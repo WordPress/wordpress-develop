@@ -237,7 +237,7 @@ jQuery( function( $ ) {
 
 		$circle.css( { strokeDashoffset: pct } );
 
-		if ( 80 <= val && 0 === parseInt( SiteHealth.site_status.issues.critical, 0 ) ) {
+		if ( 80 <= val && 0 === parseInt( SiteHealth.site_status.issues.critical, 0 ) && ! SiteHealth.site_status.force_improvable ) {
 			$wrapper.addClass( 'green' ).removeClass( 'orange' );
 
 			$progressLabel.text( __( 'Good' ) );

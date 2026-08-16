@@ -32,6 +32,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Performs cleanup tasks after every test.
+	 */
+	public function tear_down() {
+		delete_option( 'email_delivery_last_tested' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 55791
 	 * @covers ::__construct()
 	 */
@@ -647,6 +656,153 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
 		add_option( 'test_set_autoloaded_option', $heavy_option_string, '', true );
+	}
+
+	/**
+	 * Tests the email delivery Site Health status.
+	 *
+	 * @ticket 65891
+	 * @dataProvider data_email_delivery_status
+	 * @covers ::get_email_delivery_last_tested()
+	 * @covers ::get_test_email_delivery()
+	 *
+	 * @param string $state           The stored timestamp state.
+	 * @param string $expected_status The expected Site Health status.
+	 */
+	public function test_email_delivery_status( $state, $expected_status ) {
+		switch ( $state ) {
+			case 'malformed':
+				update_option( 'email_delivery_last_tested', 'not-a-timestamp', false );
+				break;
+			case 'future':
+				update_option( 'email_delivery_last_tested', time() + HOUR_IN_SECONDS, false );
+				break;
+			case 'expired':
+				update_option( 'email_delivery_last_tested', time() - ( 3 * MONTH_IN_SECONDS ), false );
+				break;
+			case 'recent':
+				update_option( 'email_delivery_last_tested', time() - DAY_IN_SECONDS, false );
+				break;
+		}
+
+		$result = $this->instance->get_test_email_delivery();
+
+		$this->assertSame( $expected_status, $result['status'] );
+		$this->assertSame( 'email_delivery', $result['test'] );
+		$this->assertSame(
+			array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			$result['badge']
+		);
+
+		if ( 'recommended' === $expected_status ) {
+			$this->assertStringNotContainsString( '#email-delivery-test', $result['actions'] );
+		}
+	}
+
+	/**
+	 * Data provider for test_email_delivery_status().
+	 *
+	 * @return array[] Test parameters.
+	 */
+	public function data_email_delivery_status() {
+		return array(
+			'missing timestamp'   => array( 'missing', 'recommended' ),
+			'malformed timestamp' => array( 'malformed', 'recommended' ),
+			'future timestamp'    => array( 'future', 'recommended' ),
+			'expired timestamp'   => array( 'expired', 'recommended' ),
+			'recent timestamp'    => array( 'recent', 'good' ),
+		);
+	}
+
+	/**
+	 * Tests a successful email delivery test.
+	 *
+	 * @ticket 65891
+	 * @covers ::send_email_delivery_test()
+	 */
+	public function test_send_email_delivery_test_success() {
+		global $wpdb;
+
+		$mail_data = null;
+		$callback  = static function ( $short_circuit, $atts ) use ( &$mail_data ) {
+			$mail_data = $atts;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $callback, 10, 2 );
+
+		$result = $this->instance->send_email_delivery_test();
+
+		remove_filter( 'pre_wp_mail', $callback );
+
+		$this->assertTrue( $result );
+		$this->assertSame( get_option( 'admin_email' ), $mail_data['to'] );
+		$this->assertStringContainsString( get_option( 'blogname' ), $mail_data['subject'] );
+		$this->assertStringContainsString( home_url( '/' ), $mail_data['message'] );
+		$this->assertGreaterThan( 0, $this->instance->get_email_delivery_last_tested() );
+		$this->assertSame(
+			'off',
+			$wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT autoload FROM $wpdb->options WHERE option_name = %s",
+					'email_delivery_last_tested'
+				)
+			)
+		);
+	}
+
+	/**
+	 * Tests an immediate email sending failure.
+	 *
+	 * @ticket 65891
+	 * @covers ::send_email_delivery_test()
+	 */
+	public function test_send_email_delivery_test_failure() {
+		add_filter( 'pre_wp_mail', '__return_false' );
+
+		$result = $this->instance->send_email_delivery_test();
+
+		remove_filter( 'pre_wp_mail', '__return_false' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'send-failed', $result->get_error_code() );
+		$this->assertFalse( get_option( 'email_delivery_last_tested', false ) );
+	}
+
+	/**
+	 * Tests an invalid administration email address.
+	 *
+	 * @ticket 65891
+	 * @covers ::send_email_delivery_test()
+	 */
+	public function test_send_email_delivery_test_invalid_address() {
+		$callback = static function () {
+			return 'not-an-email';
+		};
+		add_filter( 'pre_option_admin_email', $callback );
+
+		$result = $this->instance->send_email_delivery_test();
+
+		remove_filter( 'pre_option_admin_email', $callback );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'invalid-address', $result->get_error_code() );
+		$this->assertFalse( get_option( 'email_delivery_last_tested', false ) );
+	}
+
+	/**
+	 * Tests that the email delivery check is registered as a direct test.
+	 *
+	 * @ticket 65891
+	 * @covers ::get_tests()
+	 */
+	public function test_email_delivery_test_is_registered() {
+		$tests = WP_Site_Health::get_tests();
+
+		$this->assertArrayHasKey( 'email_delivery', $tests['direct'] );
+		$this->assertSame( 'email_delivery', $tests['direct']['email_delivery']['test'] );
 	}
 
 	/**
