@@ -1243,10 +1243,12 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 	$notes = array();
 
 	$notes_query = array(
-		'number' => $total_items * 5,
-		'type'   => 'note',
-		'offset' => 0,
-
+		'number'  => $total_items * 5,
+		'offset'  => 0,
+		'type'    => 'note',
+		'status'  => 'hold',
+		'orderby' => 'comment_date',
+		'order'   => 'DESC',
 	);
 
 	if ( ! current_user_can( 'edit_posts' ) ) {
@@ -1262,13 +1264,17 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 		}
 
 		foreach ( $possible as $note ) {
-			if ( ! current_user_can( 'edit_post', $note->comment_post_ID )
-				&& ( post_password_required( $note->comment_post_ID )
-					|| ! current_user_can( 'read_post', $note->comment_post_ID ) )
-			) {
-				// The user has no access to the post and thus cannot see the comments.
+			if ( ! current_user_can( 'edit_post', $note->comment_post_ID ) ) {
 				continue;
 			}
+
+			// if ( $note->comment_parent ) {
+			// 	$parent_note = get_comment( (int) $note->comment_parent );
+
+			// 	if ( ! $parent_note || 'hold' !== wp_get_comment_status( $parent_note ) ) {
+			// 		continue;
+			// 	}
+			// }
 
 			$notes[]     = $note;
 			$notes_count = count( $notes );
