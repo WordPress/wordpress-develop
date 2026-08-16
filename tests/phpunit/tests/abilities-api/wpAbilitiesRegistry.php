@@ -137,74 +137,6 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should accept ability name with 3 segments (2 slashes).
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 */
-	public function test_register_valid_name_with_three_segments() {
-		$result = $this->registry->register( 'test/sub/add-numbers', self::$test_ability_args );
-		$this->assertInstanceOf( WP_Ability::class, $result );
-		$this->assertSame( 'test/sub/add-numbers', $result->get_name() );
-	}
-
-	/**
-	 * Should accept ability name with 4 segments (3 slashes).
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 */
-	public function test_register_valid_name_with_four_segments() {
-		$result = $this->registry->register( 'test/sub/deep/add-numbers', self::$test_ability_args );
-		$this->assertInstanceOf( WP_Ability::class, $result );
-		$this->assertSame( 'test/sub/deep/add-numbers', $result->get_name() );
-	}
-
-	/**
-	 * Should reject ability name with 5 segments (exceeds maximum of 4).
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
-	 */
-	public function test_register_invalid_name_with_five_segments() {
-		$result = $this->registry->register( 'test/a/b/c/too-deep', self::$test_ability_args );
-		$this->assertNull( $result );
-	}
-
-	/**
-	 * Should reject ability name with empty segments (double slashes).
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
-	 */
-	public function test_register_invalid_name_with_empty_segment() {
-		$result = $this->registry->register( 'test//add-numbers', self::$test_ability_args );
-		$this->assertNull( $result );
-	}
-
-	/**
-	 * Should reject ability name with trailing slash.
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
-	 */
-	public function test_register_invalid_name_with_trailing_slash() {
-		$result = $this->registry->register( 'test/add-numbers/', self::$test_ability_args );
-		$this->assertNull( $result );
-	}
-
-	/**
 	 * Should reject ability registration without a label.
 	 *
 	 * @ticket 64098
@@ -426,7 +358,6 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->assertNull( $result );
 	}
 
-
 	/**
 	 * Should reject ability registration with invalid `annotations` type.
 	 *
@@ -473,6 +404,23 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_invalid_show_in_rest_type() {
 		self::$test_ability_args['meta']['show_in_rest'] = 5;
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should reject ability registration with invalid public type.
+	 *
+	 * @ticket 65568
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_public_type() {
+		self::$test_ability_args['meta']['public'] = 5;
 
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );

@@ -186,7 +186,7 @@ function wp_authenticate_username_password(
 			sprintf(
 				/* translators: %s: User name. */
 				__( '<strong>Error:</strong> The username <strong>%s</strong> is not registered on this site. If you are unsure of your username, try your email address instead.' ),
-				$username
+				esc_html( $username )
 			)
 		);
 	}
@@ -213,7 +213,7 @@ function wp_authenticate_username_password(
 			sprintf(
 				/* translators: %s: User name. */
 				__( '<strong>Error:</strong> The password you entered for the username %s is incorrect.' ),
-				'<strong>' . $username . '</strong>'
+				'<strong>' . esc_html( $username ) . '</strong>'
 			) .
 			' <a href="' . wp_lostpassword_url() . '">' .
 			__( 'Lost your password?' ) .
@@ -296,7 +296,7 @@ function wp_authenticate_email_password(
 			sprintf(
 				/* translators: %s: Email address. */
 				__( '<strong>Error:</strong> The password you entered for the email address %s is incorrect.' ),
-				'<strong>' . $email . '</strong>'
+				'<strong>' . esc_html( $email ) . '</strong>'
 			) .
 			' <a href="' . wp_lostpassword_url() . '">' .
 			__( 'Lost your password?' ) .
@@ -1152,6 +1152,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
  * Finds out whether a user is a member of a given blog.
  *
  * @since MU (3.0.0)
+ * @since 7.1.0 Introduced the {@see 'is_user_member_of_blog'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1201,9 +1202,24 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 	} else {
 		$capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 	}
-	$has_cap = get_user_meta( $user_id, $capabilities_key, true );
 
-	return is_array( $has_cap );
+	$has_cap   = get_user_meta( $user_id, $capabilities_key, true );
+	$is_member = is_array( $has_cap );
+
+	/**
+	 * Filters whether the user is a member of a given blog.
+	 *
+	 * This filter only runs when the user and blog have both been resolved
+	 * to valid records on a multisite installation; it is not invoked for
+	 * logged-out requests, unknown users, or archived/spammed/deleted sites.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool $is_member Whether the user is a member of the blog.
+	 * @param int  $user_id   The user ID being checked.
+	 * @param int  $blog_id   The blog ID being checked.
+	 */
+	return (bool) apply_filters( 'is_user_member_of_blog', $is_member, $user_id, $blog_id );
 }
 
 /**
@@ -2229,6 +2245,7 @@ function wp_insert_user( $userdata ) {
 				'description',
 				'rich_editing',
 				'syntax_highlighting',
+				'infinite_scrolling',
 				'comment_shortcuts',
 				'admin_color',
 				'use_ssl',
@@ -2492,6 +2509,8 @@ function wp_insert_user( $userdata ) {
 	$meta['rich_editing'] = empty( $userdata['rich_editing'] ) ? 'true' : $userdata['rich_editing'];
 
 	$meta['syntax_highlighting'] = empty( $userdata['syntax_highlighting'] ) ? 'true' : $userdata['syntax_highlighting'];
+
+	$meta['infinite_scrolling'] = empty( $userdata['infinite_scrolling'] ) ? 'true' : $userdata['infinite_scrolling'];
 
 	$meta['comment_shortcuts'] = empty( $userdata['comment_shortcuts'] ) || 'false' === $userdata['comment_shortcuts'] ? 'false' : 'true';
 
@@ -3003,7 +3022,7 @@ function wp_create_user(
  * @return string[] List of user keys to be populated in wp_update_user().
  */
 function _get_additional_user_keys( $user ) {
-	$keys = array( 'first_name', 'last_name', 'nickname', 'description', 'rich_editing', 'syntax_highlighting', 'comment_shortcuts', 'admin_color', 'use_ssl', 'show_admin_bar_front', 'locale' );
+	$keys = array( 'first_name', 'last_name', 'nickname', 'description', 'rich_editing', 'syntax_highlighting', 'infinite_scrolling', 'comment_shortcuts', 'admin_color', 'use_ssl', 'show_admin_bar_front', 'locale' );
 	return array_merge( $keys, array_keys( wp_get_user_contact_methods( $user ) ) );
 }
 
@@ -3568,7 +3587,7 @@ function register_new_user( $user_login, $user_email ) {
 			sprintf(
 				/* translators: %s: Link to the login page. */
 				__( '<strong>Error:</strong> This email address is already registered. <a href="%s">Log in</a> with this address or choose another one.' ),
-				wp_login_url()
+				esc_url( wp_login_url() )
 			)
 		);
 	}
@@ -3616,7 +3635,7 @@ function register_new_user( $user_login, $user_email ) {
 			sprintf(
 				/* translators: %s: Admin email address. */
 				__( '<strong>Error:</strong> Could not register you&hellip; please contact the <a href="mailto:%s">site admin</a>!' ),
-				get_option( 'admin_email' )
+				esc_attr( get_option( 'admin_email' ) )
 			)
 		);
 		return $errors;
@@ -3839,18 +3858,26 @@ function _wp_get_current_user() {
  *
  * @since 3.0.0
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
+ * @since 7.0.3 Added the `$user_id` parameter, which is sent with the `personal_options_update` action.
  *
  * @global WP_Error $errors WP_Error object.
+ *
+ * @param int $user_id Optional. The ID of the user whose email is being changed. Defaults to `$_POST['user_id']` if set, otherwise 0.
  */
-function send_confirmation_on_profile_email() {
+function send_confirmation_on_profile_email( $user_id = 0 ) {
 	global $errors;
+
+	// Maintain backward compatibility for those relying on a check based on $_POST['user_id'].
+	if ( ! $user_id && isset( $_POST['user_id'] ) ) {
+		$user_id = absint( $_POST['user_id'] );
+	}
 
 	$current_user = wp_get_current_user();
 	if ( ! is_object( $errors ) ) {
 		$errors = new WP_Error();
 	}
 
-	if ( $current_user->ID !== (int) $_POST['user_id'] ) {
+	if ( 0 === $current_user->ID || $current_user->ID !== (int) $user_id ) {
 		return false;
 	}
 
@@ -3864,6 +3891,7 @@ function send_confirmation_on_profile_email() {
 				)
 			);
 
+			$_POST['email'] = addslashes( $current_user->user_email );
 			return;
 		}
 
@@ -3877,6 +3905,7 @@ function send_confirmation_on_profile_email() {
 			);
 			delete_user_meta( $current_user->ID, '_new_email' );
 
+			$_POST['email'] = addslashes( $current_user->user_email );
 			return;
 		}
 
@@ -5097,7 +5126,7 @@ function wp_validate_user_request_key(
 /**
  * Returns the user request object for the specified request ID.
  *
- * @since 4.9.6
+ * @since 5.4.0
  *
  * @param int $request_id The ID of the user request.
  * @return WP_User_Request|false

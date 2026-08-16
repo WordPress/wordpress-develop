@@ -69,7 +69,6 @@ input[type="url"],
 input[type="week"] {
 	padding: 0 12px;
 	/* inherits font size 14px */
-	line-height: 2.71428571; /* 38px for 40px min-height */
 	min-height: 40px;
 }
 
@@ -171,10 +170,11 @@ td > input[type="checkbox"],
 }
 
 input[type="radio"] {
+	display: inline-flex;
 	border-radius: 50%;
 	margin-right: 0.25rem;
-	/* 10px not sure if still necessary, comes from the MP6 redesign in r26072 */
-	line-height: 0.71428571;
+	align-items: center;
+	justify-content: center;
 }
 
 input[type="checkbox"]:checked::before,
@@ -211,10 +211,10 @@ input[type="radio"]:checked::before {
 	border-radius: 50%;
 	width: 0.5rem; /* 8px */
 	height: 0.5rem; /* 8px */
-	margin: 0.1875rem; /* 3px */
+	margin: auto;
 	background-color: #fff;
-	/* 16px not sure if still necessary, comes from the MP6 redesign in r26072 */
-	line-height: 1.14285714;
+	/* Only visible in Windows High Contrast mode */
+	outline: 4px solid transparent;
 }
 
 @-moz-document url-prefix() {
@@ -522,9 +522,6 @@ input[type="number"].tiny-text {
 #doaction2,
 #post-query-submit {
 	margin: 0 8px 0 0;
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
 }
 
 /* @since 5.7.0 secondary bulk action controls require JS. */
@@ -537,16 +534,34 @@ input[type="number"].tiny-text {
 	display: none;
 }
 
-.tablenav .actions select {
+.wp-core-ui .tablenav input[type="text"],
+.wp-core-ui .tablenav input[type="password"],
+.wp-core-ui .tablenav input[type="date"],
+.wp-core-ui .tablenav input[type="datetime"],
+.wp-core-ui .tablenav input[type="datetime-local"],
+.wp-core-ui .tablenav input[type="email"],
+.wp-core-ui .tablenav input[type="month"],
+.wp-core-ui .tablenav input[type="number"],
+.wp-core-ui .tablenav input[type="search"],
+.wp-core-ui .tablenav input[type="tel"],
+.wp-core-ui .tablenav input[type="time"],
+.wp-core-ui .tablenav input[type="url"],
+.wp-core-ui .tablenav input[type="week"],
+.wp-core-ui .tablenav select {
+	padding: 0 12px;
+	/* inherits font size 14px */
+	line-height: 2.14285714; /* 30px for 32px height with 14px font */
+	min-height: 32px;
+}
+
+.wp-core-ui .tablenav select {
 	float: left;
 	margin-right: 6px;
 	max-width: 12.5rem;
-	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 24px 0 8px;
 }
 
-.tablenav .actions .button {
+.wp-core-ui .tablenav .button {
 	min-height: 32px;
 	line-height: 2.30769231; /* 30px for 32px height with 13px font */
 	padding: 0 12px;
@@ -563,6 +578,12 @@ input[type="number"].tiny-text {
 	font-size: 20px;
 	line-height: 1;
 	vertical-align: middle;
+}
+
+.button.wp-hide-pw.user-new-password-toggle {
+	display: inline-flex;
+	align-items: center;
+	column-gap: 4px;
 }
 
 .wp-cancel-pw .dashicons-no {
@@ -637,7 +658,7 @@ fieldset label,
 	background: transparent;
 	border-color: var(--wp-admin-theme-color);
 	border-radius: 2px;
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -715,7 +736,8 @@ fieldset label,
 
 #pass1:focus,
 #pass1-text:focus {
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -797,7 +819,6 @@ p.search-box {
 p.search-box input[type="search"],
 p.search-box input[type="text"] {
 	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 8px;
 }
 
@@ -957,13 +978,6 @@ ul#add-to-blog-users {
 	line-height: 1.4;
 }
 
-.form-table input.tog,
-.form-table input[type="radio"] {
-	margin-top: -4px;
-	margin-right: 4px;
-	float: none;
-}
-
 .form-table .pre {
 	padding: 8px;
 	margin: 0;
@@ -1057,7 +1071,8 @@ table.form-table td .updated p {
 
 .application-password-display input.code {
 	margin-bottom: 6px;
-	width: 19em;
+	width: 100%;
+	max-width: 20em;
 }
 
 .auth-app-card.card {
@@ -1224,8 +1239,7 @@ table.form-table td .updated p {
 .options-general-php input.small-text {
 	width: 56px;
 	margin: -2px 0;
-	min-height: 24px;
-	line-height: 1.71428571; /* 24px for 14px font size */
+	min-height: 32px;
 }
 
 .options-general-php .spinner {
@@ -1479,7 +1493,7 @@ table.form-table td .updated p {
 	border-left: 4px solid #fff;
 }
 
-.privacy_requests tbody th {
+.privacy_requests tbody td.check-column {
 	border-left: 4px solid #fff;
 	background: #fff;
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
@@ -1501,7 +1515,8 @@ table.form-table td .updated p {
 	margin: 0 0 5px;
 }
 
-.privacy_requests tbody td {
+.privacy_requests tbody td:not(.check-column),
+.privacy_requests tbody th {
 	background: #fff;
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
@@ -1515,16 +1530,14 @@ table.form-table td .updated p {
 	white-space: normal;
 }
 
-.privacy_requests .status-request-confirmed th,
-.privacy_requests .status-request-confirmed td {
+.privacy_requests tr.status-request-confirmed td.check-column {
 	background-color: #fff;
-	border-left-color: #72aee6;
+	border-left-color: #3858e9;
 }
 
-.privacy_requests .status-request-failed th,
-.privacy_requests .status-request-failed td {
+.privacy_requests tr.status-request-failed td.check-column {
 	background-color: #f6f7f7;
-	border-left-color: #d63638;
+	border-left-color: #cc1818;
 }
 
 .privacy_requests .export_personal_data_failed a {
@@ -1559,7 +1572,7 @@ table.form-table td .updated p {
 	margin: 1.5em 0;
 }
 
-.wp-privacy-request-form input {
+.wp-privacy-request-form input[type="text"] {
 	margin: 0;
 }
 
@@ -1588,7 +1601,6 @@ table.form-table td .updated p {
 		-webkit-appearance: none;
 		padding: 0 12px;
 		min-height: 40px;
-		line-height: 2.5; /* 40px for 16px font */
 	}
 
 	::-webkit-datetime-edit {
@@ -1742,6 +1754,29 @@ table.form-table td .updated p {
 		display: block;
 	}
 
+	.wp-core-ui .tablenav input[type="text"],
+	.wp-core-ui .tablenav input[type="password"],
+	.wp-core-ui .tablenav input[type="date"],
+	.wp-core-ui .tablenav input[type="datetime"],
+	.wp-core-ui .tablenav input[type="datetime-local"],
+	.wp-core-ui .tablenav input[type="email"],
+	.wp-core-ui .tablenav input[type="month"],
+	.wp-core-ui .tablenav input[type="number"],
+	.wp-core-ui .tablenav input[type="search"],
+	.wp-core-ui .tablenav input[type="tel"],
+	.wp-core-ui .tablenav input[type="time"],
+	.wp-core-ui .tablenav input[type="url"],
+	.wp-core-ui .tablenav input[type="week"],
+	.wp-core-ui .tablenav select {
+		min-height: 40px;
+	}
+
+	.wp-core-ui .tablenav .button {
+		min-height: 40px;
+		line-height: 2.71428571;
+		padding: 0 14px;
+	}
+
 	p.search-box {
 		float: none;
 		width: 100%;
@@ -1760,7 +1795,13 @@ table.form-table td .updated p {
 		margin-bottom: 0;
 	}
 
-	p.search-box input[type="submit"] {
+	p.search-box input[type="search"],
+	p.search-box input[type="text"] {
+		min-height: 40px;
+		padding: 0 12px;
+	}
+
+	p.search-box input[type="submit"].button {
 		margin-bottom: 10px;
 	}
 
@@ -1904,6 +1945,7 @@ table.form-table td .updated p {
 	.options-general-php input[type="text"].small-text {
 		max-width: 6.25em;
 		margin: 0;
+		min-height: 40px;
 	}
 
 	/* Privacy Policy settings screen */
@@ -1925,13 +1967,9 @@ table.form-table td .updated p {
 		margin-left: 0;
 	}
 
-	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) td.column-primary:not(.check-column) {
+	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) td.column-primary:not(.check-column),
+	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) th.column-primary:not(.check-column) {
 		display: table-cell;
-	}
-
-	.wp-list-table.privacy_requests.widefat th input,
-	.wp-list-table.privacy_requests.widefat thead td input {
-		margin-left: 5px;
 	}
 
 	.wp-privacy-request-form-field input[type="text"] {

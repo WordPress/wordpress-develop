@@ -109,13 +109,6 @@ unset( $post_formats['standard'] );
 	</select>
 </td>
 </tr>
-<tr>
-<th scope="row"><label for="wp_enable_real_time_collaboration"><?php _e( 'Collaboration' ); ?></label></th>
-<td>
-	<input name="wp_enable_real_time_collaboration" type="checkbox" id="wp_enable_real_time_collaboration" value="1" <?php checked( '1', get_option( 'wp_enable_real_time_collaboration' ) ); ?> />
-	<label for="wp_enable_real_time_collaboration"><?php _e( 'Enable real-time collaboration' ); ?></label>
-</td>
-</tr>
 <?php
 if ( get_option( 'link_manager_enabled' ) ) :
 	?>
@@ -148,7 +141,7 @@ do_settings_fields( 'writing', 'remote_publishing' ); // A deprecated section.
 /** This filter is documented in wp-admin/options.php */
 if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
 	?>
-<h2 class="title"><?php _e( 'Post via email' ); ?></h2>
+<h2 id="wp-settings-section-post-via-email" class="title"><?php _e( 'Post via email' ); ?></h2>
 <p>
 	<?php
 	printf(
@@ -219,7 +212,7 @@ if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
  */
 if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 	?>
-<h2 class="title"><?php _e( 'Update Services' ); ?></h2>
+<h2 id="wp-settings-section-update-services" class="title"><?php _e( 'Update Services' ); ?></h2>
 
 	<?php if ( '1' === get_option( 'blog_public' ) ) : ?>
 

@@ -775,9 +775,7 @@ final class WP_Customize_Widgets {
 
 		if ( 1 === $registered_sidebar_count ) {
 			$no_areas_shown_message = html_entity_decode(
-				sprintf(
-					__( 'Your theme has 1 widget area, but this particular page does not display it.' )
-				),
+				__( 'Your theme has 1 widget area, but this particular page does not display it.' ),
 				ENT_QUOTES,
 				get_bloginfo( 'charset' )
 			);
@@ -897,7 +895,7 @@ final class WP_Customize_Widgets {
 			wp_enqueue_script( 'wp-customize-widgets' );
 			wp_enqueue_style( 'wp-customize-widgets' );
 
-			/** This action is documented in edit-form-blocks.php */
+			/** This action is documented in wp-admin/edit-form-blocks.php */
 			do_action( 'enqueue_block_editor_assets' );
 		}
 	}
@@ -1699,6 +1697,8 @@ final class WP_Customize_Widgets {
 	 * @since 3.9.0
 	 *
 	 * @see wp_ajax_save_widget()
+	 *
+	 * @return never
 	 */
 	public function wp_ajax_update_widget() {
 

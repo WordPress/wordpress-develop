@@ -3,19 +3,19 @@
 require_once dirname( __DIR__, 2 ) . '/includes/wp-ai-client-mock-provider-trait.php';
 
 /**
- * Tests for _wp_connectors_get_connector_settings().
+ * Tests for wp_get_connectors().
  *
  * @group connectors
- * @covers ::_wp_connectors_get_connector_settings
+ * @covers ::wp_get_connectors
  */
-class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase {
+class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 
 	use WP_AI_Client_Mock_Provider_Trait;
 
 	/**
 	 * Registers the mock provider once before any tests in this class run.
 	 */
-	public static function set_up_before_class() {
+	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
 		self::register_mock_connectors_provider();
 	}
@@ -23,7 +23,7 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	/**
 	 * Unregisters the mock provider setting added by `init`.
 	 */
-	public static function tear_down_after_class() {
+	public static function tear_down_after_class(): void {
 		self::unregister_mock_connector_setting();
 		parent::tear_down_after_class();
 	}
@@ -31,21 +31,22 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	/**
 	 * @ticket 64730
 	 */
-	public function test_returns_expected_connector_keys() {
-		$connectors = _wp_connectors_get_connector_settings();
+	public function test_returns_expected_connector_keys(): void {
+		$connectors = wp_get_connectors();
 
 		$this->assertArrayHasKey( 'google', $connectors );
 		$this->assertArrayHasKey( 'openai', $connectors );
 		$this->assertArrayHasKey( 'anthropic', $connectors );
-		$this->assertArrayHasKey( 'mock_connectors_test', $connectors );
-		$this->assertCount( 4, $connectors );
+		$this->assertArrayHasKey( 'akismet', $connectors );
+		$this->assertArrayHasKey( 'mock-connectors-test', $connectors );
+		$this->assertCount( 5, $connectors );
 	}
 
 	/**
 	 * @ticket 64730
 	 */
-	public function test_each_connector_has_required_fields() {
-		$connectors = _wp_connectors_get_connector_settings();
+	public function test_each_connector_has_required_fields(): void {
+		$connectors = wp_get_connectors();
 
 		$this->assertNotEmpty( $connectors, 'Connector settings should not be empty.' );
 
@@ -56,19 +57,49 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 			$this->assertArrayHasKey( 'description', $connector_data, "Connector '{$connector_id}' is missing 'description'." );
 			$this->assertIsString( $connector_data['description'], "Connector '{$connector_id}' description should be a string." );
 			$this->assertArrayHasKey( 'type', $connector_data, "Connector '{$connector_id}' is missing 'type'." );
-			$this->assertContains( $connector_data['type'], array( 'ai_provider' ), "Connector '{$connector_id}' has unexpected type '{$connector_data['type']}'." );
+			$this->assertContains( $connector_data['type'], array( 'ai_provider', 'spam_filtering' ), "Connector '{$connector_id}' has unexpected type '{$connector_data['type']}'." );
 			$this->assertArrayHasKey( 'authentication', $connector_data, "Connector '{$connector_id}' is missing 'authentication'." );
 			$this->assertIsArray( $connector_data['authentication'], "Connector '{$connector_id}' authentication should be an array." );
 			$this->assertArrayHasKey( 'method', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'method'." );
-			$this->assertContains( $connector_data['authentication']['method'], array( 'api_key', 'none' ), "Connector '{$connector_id}' has unexpected authentication method." );
+			$this->assertContains( $connector_data['authentication']['method'], array( 'api_key', 'application_password', 'none' ), "Connector '{$connector_id}' has unexpected authentication method." );
+		}
+	}
+
+	/**
+	 * @ticket 64850
+	 */
+	public function test_application_password_connector_has_setting_name(): void {
+		$connector_id = 'remote-site';
+
+		WP_Connector_Registry::get_instance()->register(
+			$connector_id,
+			array(
+				'name'           => 'Remote Site',
+				'description'    => 'Connects to a remote WordPress site.',
+				'type'           => 'content_source',
+				'authentication' => array(
+					'method' => 'application_password',
+				),
+			)
+		);
+
+		try {
+			$connector = wp_get_connectors()[ $connector_id ];
+
+			$this->assertSame( 'application_password', $connector['authentication']['method'] );
+			$this->assertSame( 'connectors_content_source_remote_site_application_password', $connector['authentication']['setting_name'] );
+		} finally {
+			if ( wp_is_connector_registered( $connector_id ) ) {
+				WP_Connector_Registry::get_instance()->unregister( $connector_id );
+			}
 		}
 	}
 
 	/**
 	 * @ticket 64730
 	 */
-	public function test_api_key_connectors_have_setting_name_and_credentials_url() {
-		$connectors    = _wp_connectors_get_connector_settings();
+	public function test_api_key_connectors_have_setting_name_and_credentials_url(): void {
+		$connectors    = wp_get_connectors();
 		$api_key_count = 0;
 
 		foreach ( $connectors as $connector_id => $connector_data ) {
@@ -79,12 +110,17 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 			++$api_key_count;
 
 			$this->assertArrayHasKey( 'setting_name', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'setting_name'." );
+			$this->assertNotEmpty( $connector_data['authentication']['setting_name'], "Connector '{$connector_id}' setting_name should not be empty." );
+
+			if ( 'ai_provider' !== $connector_data['type'] ) {
+				continue;
+			}
+
 			$this->assertSame(
-				"connectors_ai_{$connector_id}_api_key",
+				'connectors_ai_' . str_replace( '-', '_', $connector_id ) . '_api_key',
 				$connector_data['authentication']['setting_name'],
-				"Connector '{$connector_id}' setting_name does not match expected format."
+				"Connector '{$connector_id}' setting_name does not match expected AI provider format."
 			);
-			$this->assertArrayHasKey( 'credentials_url', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'credentials_url'." );
 		}
 
 		$this->assertGreaterThan( 0, $api_key_count, 'At least one connector should use api_key authentication.' );
@@ -93,8 +129,8 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	/**
 	 * @ticket 64730
 	 */
-	public function test_featured_provider_names_match_expected() {
-		$connectors = _wp_connectors_get_connector_settings();
+	public function test_featured_provider_names_match_expected(): void {
+		$connectors = wp_get_connectors();
 
 		$this->assertSame( 'Google', $connectors['google']['name'] );
 		$this->assertSame( 'OpenAI', $connectors['openai']['name'] );
@@ -104,15 +140,15 @@ class Tests_Connectors_WpConnectorsGetConnectorSettings extends WP_UnitTestCase 
 	/**
 	 * @ticket 64730
 	 */
-	public function test_includes_registered_provider_from_registry() {
-		$connectors = _wp_connectors_get_connector_settings();
-		$mock       = $connectors['mock_connectors_test'];
+	public function test_includes_registered_provider_from_registry(): void {
+		$connectors = wp_get_connectors();
+		$mock       = $connectors['mock-connectors-test'];
 
 		$this->assertSame( 'Mock Connectors Test', $mock['name'] );
 		$this->assertSame( '', $mock['description'] );
 		$this->assertSame( 'ai_provider', $mock['type'] );
 		$this->assertSame( 'api_key', $mock['authentication']['method'] );
-		$this->assertNull( $mock['authentication']['credentials_url'] );
-		$this->assertSame( 'connectors_ai_mock_connectors_test_api_key', $mock['authentication']['setting_name'] );
+		$this->assertNull( $mock['authentication']['credentials_url'] ?? null );
+		$this->assertSame( 'connectors_ai_mock_connectors_test_api_key', $mock['authentication']['setting_name'] ?? null );
 	}
 }

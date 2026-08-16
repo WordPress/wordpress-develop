@@ -138,7 +138,7 @@ class WP_Widget {
 	 * @since 2.8.0
 	 *
 	 * @param array $instance The settings for the particular instance of the widget.
-	 * @return string|void Default return is 'noform'.
+	 * @return string|null Default return is 'noform'. A subclass may opt to return null.
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
@@ -546,9 +546,9 @@ class WP_Widget {
 			 *
 			 * @since 2.8.0
 			 *
-			 * @param WP_Widget $widget   The widget instance (passed by reference).
-			 * @param null      $return   Return null if new fields are added.
-			 * @param array     $instance An array of the widget's settings.
+			 * @param WP_Widget   $widget   The widget instance (passed by reference).
+			 * @param null|string $return   Default 'noform'. Return null if new fields are added.
+			 * @param array       $instance An array of the widget's settings.
 			 */
 			do_action_ref_array( 'in_widget_form', array( &$this, &$return, $instance ) );
 		}

@@ -594,7 +594,8 @@ function get_oembed_response_data( $post, $width ) {
 		)
 	);
 
-	$width  = min( max( $min_max_width['min'], $width ), $min_max_width['max'] );
+	/** @var array{ min: positive-int, max: positive-int } $min_max_width */
+	$width  = clamp( $width, $min_max_width['min'], $min_max_width['max'] );
 	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
 	$data = array(
@@ -739,10 +740,13 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 	}
 
 	if ( $thumbnail_id ) {
-		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
-		$data['thumbnail_url']                                      = $thumbnail_url;
-		$data['thumbnail_width']                                    = $thumbnail_width;
-		$data['thumbnail_height']                                   = $thumbnail_height;
+		$thumbnail_src = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
+
+		if ( is_array( $thumbnail_src ) ) {
+			$data['thumbnail_url']    = $thumbnail_src[0];
+			$data['thumbnail_width']  = $thumbnail_src[1];
+			$data['thumbnail_height'] = $thumbnail_src[2];
+		}
 	}
 
 	return $data;
@@ -1229,12 +1233,25 @@ function print_embed_sharing_dialog() {
  *
  * @since 4.5.0
  */
-function the_embed_site_title() {
+function the_embed_site_title(): void {
+	$fallback_icon_url = includes_url( 'images/w-logo-gray-white-bg.svg' );
+	$site_icon_url     = get_site_icon_url( 32, $fallback_icon_url );
+
+	$icon_img = '';
+	if ( $site_icon_url ) {
+		$site_icon_url_2x = get_site_icon_url( 64, $fallback_icon_url );
+		$srcset           = ( $site_icon_url_2x && $site_icon_url !== $site_icon_url_2x ) ? sprintf( ' srcset="%s 2x"', esc_url( $site_icon_url_2x ) ) : '';
+		$icon_img         = sprintf(
+			'<img src="%s"%s width="32" height="32" alt="" class="wp-embed-site-icon" />',
+			esc_url( $site_icon_url ),
+			$srcset
+		);
+	}
+
 	$site_title = sprintf(
-		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon" /><span>%s</span></a>',
+		'<a href="%s" target="_top">%s<span>%s</span></a>',
 		esc_url( home_url() ),
-		esc_url( get_site_icon_url( 32, includes_url( 'images/w-logo-blue.png' ) ) ),
-		esc_url( get_site_icon_url( 64, includes_url( 'images/w-logo-blue.png' ) ) ),
+		$icon_img,
 		esc_html( get_bloginfo( 'name' ) )
 	);
 

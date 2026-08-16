@@ -316,7 +316,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		}
 
 		if ( $scale_down ) {
-			// Resize the image. This will also convet it if needed.
+			// Resize the image. This will also convert it if needed.
 			$resized = $editor->resize( $threshold, $threshold );
 		} elseif ( $convert ) {
 			// The image will be converted (if possible) when saved.
@@ -1088,11 +1088,16 @@ function wp_read_image_metadata( $file ) {
 function wp_get_image_alttext( $file ) {
 	$alt_text     = '';
 	$img_contents = file_get_contents( $file );
+
+	if ( false === $img_contents ) {
+		return $alt_text;
+	}
+
 	// Find the start and end positions of the XMP metadata.
 	$xmp_start = strpos( $img_contents, '<x:xmpmeta' );
 	$xmp_end   = strpos( $img_contents, '</x:xmpmeta>' );
 
-	if ( ! $xmp_start || ! $xmp_end ) {
+	if ( false === $xmp_start || false === $xmp_end ) {
 		// No XMP metadata found.
 		return $alt_text;
 	}

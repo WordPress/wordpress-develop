@@ -65,7 +65,8 @@ span.wp-media-buttons-icon:before {
 .media-modal .delete-attachment,
 .media-modal .trash-attachment,
 .media-modal .untrash-attachment,
-.wp-core-ui .button-link-delete {
+/* Needs higher specificity to override the default button-link. */
+.wp-core-ui .button-link.button-link-delete {
 	color: tokens.$alert-red;
 }
 
@@ -75,9 +76,10 @@ span.wp-media-buttons-icon:before {
 .media-modal .delete-attachment:focus,
 .media-modal .trash-attachment:focus,
 .media-modal .untrash-attachment:focus,
-.wp-core-ui .button-link-delete:hover,
-.wp-core-ui .button-link-delete:focus {
-	color: color.adjust(tokens.$alert-red, $lightness: 10%);
+/* Needs higher specificity to override the default button-link. */
+.wp-core-ui .button-link.button-link-delete:hover,
+.wp-core-ui .button-link.button-link-delete:focus {
+	color: color.adjust(tokens.$alert-red, $lightness: -10%);
 }
 
 /* Forms */
@@ -88,25 +90,10 @@ input[type="checkbox"]:checked {
 	border-color: var(--wp-admin-theme-color);
 }
 
-input[type=checkbox]:checked::before {
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27#{url-friendly-colour(variables.$form-checked)}%27%2F%3E%3C%2Fsvg%3E");
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27#{url-friendly-colour(variables.$form-checked)}%27%2F%3E%3C%2Fsvg%3E") / '';
-}
-
-// Checkbox checkmark - white for visibility on theme color background
-input[type="checkbox"]:checked::before {
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23ffffff%27%2F%3E%3C%2Fsvg%3E") / '';
-}
-
 // Radio checked state - uses theme color
 input[type="radio"]:checked {
 	background: var(--wp-admin-theme-color);
 	border-color: var(--wp-admin-theme-color);
-}
-
-// Radio dot - white for visibility on theme color background
-input[type="radio"]:checked::before {
-	background: tokens.$white;
 }
 
 .wp-core-ui input[type="reset"]:hover,
@@ -171,9 +158,9 @@ input[type="radio"]:focus {
 /* Core UI */
 
 .wp-core-ui {
-
 	/* Default button - theme color border and text (matches secondary) */
-	.button {
+	/* Exclude .button-link without increasing specificity. */
+	.button:where(:not(.button-link)) {
 		@include mixins.button-secondary();
 	}
 
@@ -189,7 +176,7 @@ input[type="radio"]:focus {
 
 	.button-group > .button.active {
 		border-color: var(--wp-admin-theme-color);
-		background: rgba(var(--wp-admin-theme-color--rgb), 0.04);
+		background: rgba(var(--wp-admin-theme-color--rgb), 0.08);
 	}
 
 	.wp-ui-primary {
@@ -390,12 +377,13 @@ ul#adminmenu > li.current > a.current:after {
 /* Admin Menu: collapse button */
 
 #collapse-button {
-    color: variables.$menu-collapse-text;
+	color: variables.$menu-collapse-text;
 }
 
 #collapse-button:hover,
 #collapse-button:focus {
-    color: variables.$menu-submenu-focus-text;
+	color: variables.$menu-highlight-text;
+	background: variables.$menu-highlight-background;
 }
 
 /* Admin Bar */
@@ -490,13 +478,13 @@ ul#adminmenu > li.current > a.current:after {
 #wpadminbar .quicklinks li a:focus .blavatar,
 #wpadminbar .quicklinks .ab-sub-wrapper .menupop.hover > a .blavatar,
 #wpadminbar .menupop .menupop > .ab-item:hover:before,
-#wpadminbar.mobile .quicklinks .ab-icon:before,
-#wpadminbar.mobile .quicklinks .ab-item:before {
+#wpadminbar.mobile .quicklinks .hover .ab-icon:before,
+#wpadminbar.mobile .quicklinks .hover .ab-item:before {
 	color: variables.$menu-submenu-focus-text;
 }
 
-#wpadminbar.mobile .quicklinks .hover .ab-icon:before,
-#wpadminbar.mobile .quicklinks .hover .ab-item:before {
+#wpadminbar.mobile .quicklinks .ab-icon:before,
+#wpadminbar.mobile .quicklinks .ab-item:before {
 	color: variables.$menu-icon;
 }
 

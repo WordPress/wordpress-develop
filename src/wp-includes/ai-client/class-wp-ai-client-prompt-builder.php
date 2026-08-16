@@ -7,13 +7,20 @@
  * @since 7.0.0
  */
 
+use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Builders\PromptBuilder;
+use WordPress\AiClient\Common\Exception\InvalidArgumentException;
+use WordPress\AiClient\Common\Exception\TokenLimitReachedException;
 use WordPress\AiClient\Files\DTO\File;
 use WordPress\AiClient\Files\Enums\FileTypeEnum;
+use WordPress\AiClient\Files\Enums\MediaOrientationEnum;
 use WordPress\AiClient\Messages\DTO\Message;
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Messages\Enums\ModalityEnum;
 use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
+use WordPress\AiClient\Providers\Http\Exception\ClientException;
+use WordPress\AiClient\Providers\Http\Exception\NetworkException;
+use WordPress\AiClient\Providers\Http\Exception\ServerException;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
 use WordPress\AiClient\Providers\Models\DTO\ModelConfig;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
@@ -36,9 +43,13 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * interface. As soon as any exception is caught in a chain of method calls,
  * the returned instance will be in an error state, and all subsequent method
  * calls will be no-ops that just return the same error state instance. Only
- * when a generating method is called, the WP_Error will be returned.
+ * when a generating method is called, the WP_Error will be returned. The
+ * support check methods are the exception to the no-op behavior: they return
+ * false rather than the error state instance.
  *
  * @since 7.0.0
+ *
+ * @phpstan-import-type Prompt from PromptBuilder
  *
  * @method self with_text(string $text) Adds text to the current message.
  * @method self with_file($file, ?string $mimeType = null) Adds a file to the current message.
@@ -66,8 +77,11 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * @method self as_output_schema(array<string, mixed> $schema) Sets the output schema.
  * @method self as_output_modalities(ModalityEnum ...$modalities) Sets the output modalities.
  * @method self as_output_file_type(FileTypeEnum $fileType) Sets the output file type.
+ * @method self as_output_media_orientation(MediaOrientationEnum $orientation) Sets the output media orientation.
+ * @method self as_output_media_aspect_ratio(string $aspectRatio) Sets the output media aspect ratio.
+ * @method self as_output_speech_voice(string $voice) Sets the output speech voice.
  * @method self as_json_response(?array<string, mixed> $schema = null) Configures the prompt for JSON response output.
- * @method bool|WP_Error is_supported(?CapabilityEnum $capability = null) Checks if the prompt is supported for the given capability.
+ * @method bool is_supported(?CapabilityEnum $capability = null) Checks if the prompt is supported for the given capability.
  * @method bool is_supported_for_text_generation() Checks if the prompt is supported for text generation.
  * @method bool is_supported_for_image_generation() Checks if the prompt is supported for image generation.
  * @method bool is_supported_for_text_to_speech_conversion() Checks if the prompt is supported for text to speech conversion.
@@ -80,6 +94,7 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * @method GenerativeAiResult|WP_Error generate_image_result() Generates an image result from the prompt.
  * @method GenerativeAiResult|WP_Error generate_speech_result() Generates a speech result from the prompt.
  * @method GenerativeAiResult|WP_Error convert_text_to_speech_result() Converts text to speech and returns the result.
+ * @method GenerativeAiResult|WP_Error generate_video_result() Generates a video result from the prompt.
  * @method string|WP_Error generate_text() Generates text from the prompt.
  * @method list<string>|WP_Error generate_texts(?int $candidateCount = null) Generates multiple text candidates from the prompt.
  * @method File|WP_Error generate_image() Generates an image from the prompt.
@@ -88,6 +103,8 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * @method list<File>|WP_Error convert_text_to_speeches(?int $candidateCount = null) Converts text to multiple speech outputs.
  * @method File|WP_Error generate_speech() Generates speech from the prompt.
  * @method list<File>|WP_Error generate_speeches(?int $candidateCount = null) Generates multiple speech outputs from the prompt.
+ * @method File|WP_Error generate_video() Generates a video from the prompt.
+ * @method list<File>|WP_Error generate_videos(?int $candidateCount = null) Generates multiple videos from the prompt.
  */
 class WP_AI_Client_Prompt_Builder {
 
@@ -121,6 +138,7 @@ class WP_AI_Client_Prompt_Builder {
 		'generate_image_result'         => true,
 		'generate_speech_result'        => true,
 		'convert_text_to_speech_result' => true,
+		'generate_video_result'         => true,
 		'generate_text'                 => true,
 		'generate_texts'                => true,
 		'generate_image'                => true,
@@ -129,6 +147,8 @@ class WP_AI_Client_Prompt_Builder {
 		'convert_text_to_speeches'      => true,
 		'generate_speech'               => true,
 		'generate_speeches'             => true,
+		'generate_video'                => true,
+		'generate_videos'               => true,
 	);
 
 	/**
@@ -155,37 +175,46 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param ProviderRegistry                                                                 $registry The provider registry for finding suitable models.
-	 * @param string|MessagePart|Message|array|list<string|MessagePart|array>|list<Message>|null $prompt   Optional. Initial prompt content.
-	 *                                                                                                    A string for simple text prompts,
-	 *                                                                                                    a MessagePart or Message object for
-	 *                                                                                                    structured content, an array for a
-	 *                                                                                                    message array shape, or a list of
-	 *                                                                                                    parts or messages for multi-turn
-	 *                                                                                                    conversations. Default null.
+	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
+	 * @param Prompt           $prompt   Optional. Initial prompt content.
+	 *                                   A string for simple text prompts,
+	 *                                   a MessagePart or Message object for
+	 *                                   structured content, an array for a
+	 *                                   message array shape, or a list of
+	 *                                   parts or messages for multi-turn
+	 *                                   conversations. Default null.
 	 */
 	public function __construct( ProviderRegistry $registry, $prompt = null ) {
 		try {
-			$this->builder = new PromptBuilder( $registry, $prompt );
+			$this->builder = new PromptBuilder( $registry, $prompt, AiClient::getEventDispatcher() );
 		} catch ( Exception $e ) {
-			$this->builder = new PromptBuilder( $registry );
-			$this->error   = new WP_Error(
-				'prompt_builder_error',
-				$e->getMessage(),
-				array(
-					'exception_class' => get_class( $e ),
-				)
-			);
+			$this->builder = new PromptBuilder( $registry, null, AiClient::getEventDispatcher() );
+			$this->error   = $this->exception_to_wp_error( $e );
 		}
+
+		$default_timeout = 30.0;
 
 		/**
 		 * Filters the default request timeout in seconds for AI Client HTTP requests.
 		 *
 		 * @since 7.0.0
 		 *
-		 * @param int $default_timeout The default timeout in seconds.
+		 * @param float $default_timeout The default timeout in seconds.
 		 */
-		$default_timeout = (int) apply_filters( 'wp_ai_client_default_request_timeout', 30 );
+		$filtered_default_timeout = apply_filters( 'wp_ai_client_default_request_timeout', $default_timeout );
+		if ( is_numeric( $filtered_default_timeout ) && (float) $filtered_default_timeout >= 0.0 ) {
+			$default_timeout = (float) $filtered_default_timeout;
+		} else {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: wp_ai_client_default_request_timeout */
+					__( 'The %s filter must return a non-negative number.' ),
+					'<code>wp_ai_client_default_request_timeout</code>'
+				),
+				'7.0.0'
+			);
+		}
 
 		$this->builder->usingRequestOptions(
 			RequestOptions::fromArray(
@@ -194,6 +223,23 @@ class WP_AI_Client_Prompt_Builder {
 				)
 			)
 		);
+	}
+
+	/**
+	 * Clones the wrapped prompt builder alongside this instance.
+	 *
+	 * The wrapped builder mutates its own state, so without this a clone would
+	 * share that state with the original and any change made to one would be
+	 * visible in the other.
+	 *
+	 * @since 7.2.0
+	 */
+	public function __clone() {
+		$this->builder = clone $this->builder;
+
+		if ( null !== $this->error ) {
+			$this->error = clone $this->error;
+		}
 	}
 
 	/**
@@ -234,7 +280,7 @@ class WP_AI_Client_Prompt_Builder {
 			}
 
 			$function_name = WP_AI_Client_Ability_Function_Resolver::ability_name_to_function_name( $ability->get_name() );
-			$input_schema  = $ability->get_input_schema();
+			$input_schema  = wp_prepare_json_schema_for_client( $ability->get_input_schema() );
 
 			$declarations[] = new FunctionDeclaration(
 				$function_name,
@@ -255,7 +301,7 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * This allows WordPress developers to use snake_case naming conventions. It catches
 	 * any exceptions thrown, stores them, and returns a WP_Error when a terminate method
-	 * is called.
+	 * is called, or false when a support check method is called.
 	 *
 	 * @since 7.0.0
 	 *
@@ -280,15 +326,20 @@ class WP_AI_Client_Prompt_Builder {
 
 		// Check if the prompt should be prevented for is_supported* and generate_*/convert_text_to_speech* methods.
 		if ( self::is_support_check_method( $name ) || self::is_generating_method( $name ) ) {
-			/**
-			 * Filters whether to prevent the prompt from being executed.
-			 *
-			 * @since 7.0.0
-			 *
-			 * @param bool                        $prevent Whether to prevent the prompt. Default false.
-			 * @param WP_AI_Client_Prompt_Builder $builder A clone of the prompt builder instance (read-only).
-			 */
-			$prevent = (bool) apply_filters( 'wp_ai_client_prevent_prompt', false, clone $this );
+			// If AI is not supported, then there's no need to apply the filter as the prompt will be prevented anyway.
+			$is_ai_disabled = ! wp_supports_ai();
+			$prevent        = $is_ai_disabled;
+			if ( ! $prevent ) {
+				/**
+				 * Filters whether to prevent the prompt from being executed.
+				 *
+				 * @since 7.0.0
+				 *
+				 * @param bool                        $prevent Whether to prevent the prompt. Default false.
+				 * @param WP_AI_Client_Prompt_Builder $builder A clone of the prompt builder instance (read-only).
+				 */
+				$prevent = (bool) apply_filters( 'wp_ai_client_prevent_prompt', false, clone $this );
+			}
 
 			if ( $prevent ) {
 				// For is_supported* methods, return false.
@@ -296,12 +347,16 @@ class WP_AI_Client_Prompt_Builder {
 					return false;
 				}
 
+				$error_message = $is_ai_disabled
+					? __( 'AI features are not supported in this environment.' )
+					: __( 'Prompt execution was prevented by a filter.' );
+
 				// For generate_* and convert_text_to_speech* methods, create a WP_Error.
 				$this->error = new WP_Error(
 					'prompt_prevented',
-					__( 'Prompt execution was prevented by a filter.' ),
+					$error_message,
 					array(
-						'exception_class' => 'WP_AI_Client_Prompt_Prevented',
+						'status' => 503,
 					)
 				);
 
@@ -323,19 +378,61 @@ class WP_AI_Client_Prompt_Builder {
 
 			return $result;
 		} catch ( Exception $e ) {
-			$this->error = new WP_Error(
-				'prompt_builder_error',
-				$e->getMessage(),
-				array(
-					'exception_class' => get_class( $e ),
-				)
-			);
+			$this->error = $this->exception_to_wp_error( $e );
 
 			if ( self::is_generating_method( $name ) ) {
 				return $this->error;
 			}
+			if ( self::is_support_check_method( $name ) ) {
+				return false;
+			}
 			return $this;
 		}
+	}
+
+	/**
+	 * Converts an exception into a WP_Error with a structured error code and message.
+	 *
+	 * This method maps different exception types to specific WP_Error codes and HTTP status codes.
+	 * The presence of the status codes means these WP_Error objects can be easily used in REST API responses
+	 * or other contexts where HTTP semantics are relevant.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param Exception $e The exception to convert.
+	 * @return WP_Error The resulting WP_Error object.
+	 */
+	private function exception_to_wp_error( Exception $e ): WP_Error {
+		if ( $e instanceof NetworkException ) {
+			$error_code  = 'prompt_network_error';
+			$status_code = 503;
+		} elseif ( $e instanceof ClientException ) {
+			// `ClientException` uses HTTP status codes as exception codes, so we can rely on them.
+			$error_code  = 'prompt_client_error';
+			$status_code = $e->getCode() ? $e->getCode() : 400;
+		} elseif ( $e instanceof ServerException ) {
+			// `ServerException` uses HTTP status codes as exception codes, so we can rely on them.
+			$error_code  = 'prompt_upstream_server_error';
+			$status_code = $e->getCode() ? $e->getCode() : 500;
+		} elseif ( $e instanceof TokenLimitReachedException ) {
+			$error_code  = 'prompt_token_limit_reached';
+			$status_code = 400;
+		} elseif ( $e instanceof InvalidArgumentException ) {
+			$error_code  = 'prompt_invalid_argument';
+			$status_code = 400;
+		} else {
+			$error_code  = 'prompt_builder_error';
+			$status_code = 500;
+		}
+
+		return new WP_Error(
+			$error_code,
+			$e->getMessage(),
+			array(
+				'status'          => $status_code,
+				'exception_class' => get_class( $e ),
+			)
+		);
 	}
 
 	/**
@@ -375,7 +472,8 @@ class WP_AI_Client_Prompt_Builder {
 	protected function get_builder_callable( string $name ): callable {
 		$camel_case_name = $this->snake_to_camel_case( $name );
 
-		if ( ! is_callable( array( $this->builder, $camel_case_name ) ) ) {
+		$method = array( $this->builder, $camel_case_name );
+		if ( ! is_callable( $method ) ) {
 			throw new BadMethodCallException(
 				sprintf(
 					/* translators: 1: Method name. 2: Class name. */
@@ -386,7 +484,7 @@ class WP_AI_Client_Prompt_Builder {
 			);
 		}
 
-		return array( $this->builder, $camel_case_name );
+		return $method;
 	}
 
 	/**

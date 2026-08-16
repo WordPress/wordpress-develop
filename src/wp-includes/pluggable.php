@@ -1367,7 +1367,9 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 	 * @param string     $query_arg Optional. Key to check for nonce in `$_REQUEST`. Default '_wpnonce'.
 	 * @return int|false 1 if the nonce is valid and generated between 0-12 hours ago,
 	 *                   2 if the nonce is valid and generated between 12-24 hours ago.
-	 *                   False if the nonce is invalid.
+	 *                   False if the nonce is invalid. Only possible when `$action` is -1,
+	 *                   as the function otherwise exits rather than returning false.
+	 * @phpstan-return ( $action is -1 ? int|false : int )
 	 */
 	function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
 		if ( -1 === $action ) {
@@ -1412,7 +1414,9 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 	 *                                Default true.
 	 * @return int|false 1 if the nonce is valid and generated between 0-12 hours ago,
 	 *                   2 if the nonce is valid and generated between 12-24 hours ago.
-	 *                   False if the nonce is invalid.
+	 *                   False if the nonce is invalid. Only possible when `$stop` is false,
+	 *                   as the function otherwise exits rather than returning false.
+	 * @phpstan-return ( $stop is true ? int : int|false )
 	 */
 	function check_ajax_referer( $action = -1, $query_arg = false, $stop = true ) {
 		if ( -1 === $action ) {
@@ -1937,11 +1941,11 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					break;
 			}
 
-			/* translators: %s: Comment URL. */
 			if ( 'note' === $comment->comment_type ) {
 				$notify_message .= get_edit_post_link( $comment->comment_post_ID, 'url' ) . "\r\n";
 			} else {
 				$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
+				/* translators: %s: Comment URL. */
 				$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
 			}
 
@@ -2086,7 +2090,8 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
 					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
-					$notify_message .= __( 'Trackback excerpt: ' ) . "\r\n" . $comment_content . "\r\n\r\n";
+					/* translators: %s: Trackback excerpt text. */
+					$notify_message .= sprintf( __( 'Trackback excerpt: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					break;
 
 				case 'pingback':
@@ -2097,7 +2102,8 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
 					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
-					$notify_message .= __( 'Pingback excerpt: ' ) . "\r\n" . $comment_content . "\r\n\r\n";
+					/* translators: %s: Pingback excerpt text. */
+					$notify_message .= sprintf( __( 'Pingback excerpt: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					break;
 
 				default: // Comments.
@@ -2263,7 +2269,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 	 * @since 4.6.0 The `$notify` parameter accepts 'user' for sending notification only to the user created.
 	 *
 	 * @param int    $user_id    User ID.
-	 * @param null   $deprecated Not used (argument deprecated).
+	 * @param mixed  $deprecated Not used.
 	 * @param string $notify     Optional. Type of notification that should happen. Accepts 'admin' or an empty
 	 *                           string (admin only), 'user', or 'both' (admin and user). Default empty.
 	 */
@@ -2372,9 +2378,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 
 		$switched_locale = switch_to_user_locale( $user_id );
 
-		/* translators: %s: User login. */
-		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
-		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
+		$message = __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
 
 		/*
 		 * Since some user login names end in a period, this could produce ambiguous URLs that

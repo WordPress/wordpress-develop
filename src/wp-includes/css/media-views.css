@@ -27,15 +27,6 @@
 	font-size: 13px;
 }
 
-.media-modal .media-filter-container label {
-	display: block;
-}
-
-.media-modal .media-filter-container select,
-.media-modal .search-form input {
-	margin-top: 6px;
-}
-
 .media-modal .legend-inline {
 	position: absolute;
 	transform: translate(-100%, 50%);
@@ -45,18 +36,18 @@
 
 .media-frame a {
 	border-bottom: none;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-frame a:hover,
 .media-frame a:active {
-	color: #135e96;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .media-frame a:focus {
 	border-radius: 2px;
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
-	color: #043959;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -144,9 +135,8 @@
 .media-frame input[type="url"]:focus,
 .media-frame textarea:focus,
 .media-frame select:focus {
-	border-color: var(--wp-admin-theme-color);
-	/* Expand border by 0.5px for total 1.5px effect */
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	outline: 2px solid transparent;
 }
 
@@ -244,13 +234,13 @@
 
 .media-modal-close:hover,
 .media-modal-close:active {
-	color: #135e96;
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-modal-close:focus {
-	color: #135e96;
-	border-color: #4f94d4;
-	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8);
+	color: var(--wp-admin-theme-color, #3858e9);
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 3px rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.8);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -279,13 +269,6 @@
 	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
 	background: #fff;
 	-webkit-font-smoothing: subpixel-antialiased;
-}
-
-.media-modal-content .button,
-.media-modal-content .button.button-large {
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
 }
 
 .media-toolbar input[type="text"],
@@ -336,8 +319,8 @@
 
 .media-frame-toolbar .media-toolbar-primary > .media-button,
 .media-frame-toolbar .media-toolbar-primary > .media-button-group {
-	margin-top: 14px;
-	margin-bottom: 14px;
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 
 .media-toolbar-primary {
@@ -349,9 +332,43 @@
 .media-toolbar-secondary {
 	float: left;
 	height: 100%;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
+	display: grid;
+	grid-template-columns: repeat( 2, 1fr );
+	grid-template-rows: repeat( 2, 1fr );
+	grid-column-gap: 12px;
+	grid-row-gap: 0px;
+	align-items: end;
+}
+
+label[for="media-attachment-filters"] {
+	grid-area: 1 / 1 / 2 / 2;
+}
+
+select#media-attachment-filters {
+	grid-area: 2 / 1 / 3 / 2;
+}
+
+label[for="media-attachment-date-filters"] {
+	grid-area: 1 / 1 / 2 / 2;
+}
+
+select#media-attachment-date-filters {
+	grid-area: 2 / 1 / 3 / 2;
+}
+
+select#media-attachment-filters ~ label[for="media-attachment-date-filters"] {
+	grid-area: 1 / 2 / 2 / 3;
+}
+
+select#media-attachment-filters ~ select#media-attachment-date-filters {
+	grid-area: 2 / 2 / 3 / 3;
+}
+
+.media-modal .media-toolbar-secondary > .spinner {
+	position: absolute;
+	right: -30px;
+	top: 50%;
+	margin: 0;
 }
 
 .media-toolbar-primary > .media-button,
@@ -672,7 +689,7 @@
 	font-size: 14px;
 	line-height: 1.28571428;
 	background: transparent;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	text-align: left;
 	text-decoration: none;
 	cursor: pointer;
@@ -683,7 +700,7 @@
 }
 
 .media-menu .media-menu-item:active {
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	outline: none;
 }
 
@@ -695,7 +712,7 @@
 
 .media-menu .media-menu-item:focus {
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
-	color: #043959;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -738,7 +755,7 @@
 
 .media-router .media-menu-item:hover,
 .media-router .media-menu-item:active {
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-router .active,
@@ -748,7 +765,7 @@
 
 .media-router .media-menu-item:focus {
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
-	color: #043959;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	z-index: 1;
@@ -1020,9 +1037,8 @@
 .wp-core-ui .attachment:focus,
 .wp-core-ui .selected.attachment:focus,
 .wp-core-ui .attachment.details:focus {
-	box-shadow:
-		inset 0 0 2px 3px #fff,
-		inset 0 0 0 7px var(--wp-admin-theme-color, #3858e9);
+	/* Keep this box-shadow consistent between media.css and media-views.css. */
+	box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -6px;
@@ -1276,7 +1292,7 @@
 }
 
 .attachments-browser .media-toolbar-primary {
-	max-width: 33%;
+	max-width: calc( 33% - 20px );
 }
 
 .mode-grid .attachments-browser .media-toolbar-primary {
@@ -1292,6 +1308,7 @@
 
 .attachments-browser .media-toolbar-secondary {
 	max-width: 66%;
+	position: relative;
 }
 
 .uploader-inline .close {
@@ -1320,8 +1337,8 @@
 }
 
 .uploader-inline .close:focus {
-	outline: 1px solid #4f94d4;
-	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8);
+	outline: 1px solid var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 3px rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.8);
 }
 
 .attachments-browser.hide-sidebar .attachments,
@@ -1388,7 +1405,11 @@
 }
 
 .attachment.new-media {
-	outline: 2px dotted #c3c4c7;
+	/* Dotted outline for the first added item when Infinite scrolling is disabled. */
+	/* Contrast ratio must be at least 3:1 against the #dcdcde background for added items when Infinite scrolling is disabled. */
+	outline: 2px dotted #757575;
+	/* Prevent the border from being obscured by adjacent items. */
+	outline-offset: -2px;
 }
 
 /**
@@ -1408,7 +1429,7 @@
 	height: 10px;
 	min-width: 20px;
 	width: 0;
-	background: #2271b1;
+	background: var(--wp-admin-theme-color, #3858e9);
 	border-radius: 10px;
 	transition: width 300ms;
 }
@@ -1526,7 +1547,7 @@
 
 .uploader-window,
 .wp-editor-wrap .uploader-editor.droppable {
-	background: rgba(10, 75, 120, 0.9);
+	background-color: rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.9);
 }
 
 .uploader-window-content,
@@ -1687,13 +1708,13 @@
 	margin: 1px 8px 1px -8px;
 	line-height: 1.4;
 	border-right: 1px solid #dcdcde;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	text-decoration: none;
 }
 
 .media-selection .button-link:hover,
 .media-selection .button-link:focus {
-	color: #135e96;
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .media-selection .button-link:last-child {
@@ -1751,7 +1772,7 @@
 .wp-core-ui .media-selection .attachment.details:focus {
 	box-shadow:
 		0 0 0 1px #fff,
-		0 0 2px 3px #4f94d4;
+		0 0 2px 3px var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -1763,7 +1784,7 @@
 .wp-core-ui .media-selection .attachment.details {
 	box-shadow:
 		0 0 0 1px #fff,
-		0 0 0 3px #2271b1;
+		0 0 0 3px var(--wp-admin-theme-color, #3858e9);
 }
 
 .media-selection:after {
@@ -1810,18 +1831,16 @@
 	vertical-align: middle;
 }
 
-.media-modal .media-toolbar .spinner {
-	float: none;
-	vertical-align: bottom;
-	margin: 0 0 5px 5px;
-}
-
 .media-frame .instructions + .spinner.is-active {
 	vertical-align: middle;
 }
 
 .media-frame .spinner.is-active {
 	visibility: visible;
+}
+
+.media-bg-overlay {
+	position: absolute;
 }
 
 /**
@@ -1836,6 +1855,7 @@
 	text-align: right;
 	text-transform: none;
 	font-weight: 400;
+	display: flex;
 }
 
 .attachment-details .settings-save-status .spinner {
@@ -2043,7 +2063,7 @@
 	margin: 0;
 	padding: 0;
 	background: transparent;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
 	font-size: 20px;
 	line-height: 1;
 	cursor: pointer;
@@ -2052,9 +2072,9 @@
 }
 
 .wp-core-ui.media-modal .image-editor .imgedit-help-toggle:focus {
-	color: #2271b1;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	color: var(--wp-admin-theme-color, #3858e9);
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -2616,6 +2636,7 @@
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.attachments-browser .media-toolbar,
 	.attachments-browser .attachments-wrapper,
@@ -2624,13 +2645,14 @@
 	}
 
 	.attachments-browser .media-toolbar {
-		height: 74px;
+		height: 117px;
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.media-frame-content .attachments-browser .attachments-wrapper {
-		top: 90px;
+		top: 131px;
 	}
 
 	.media-sidebar .setting,
@@ -2714,6 +2736,11 @@
 
 	.media-frame .media-toolbar input[type="search"] {
 		line-height: 2.25; /* 36px */
+	}
+
+	.media-toolbar-secondary,
+	.media-toolbar-secondary label {
+		display: block;
 	}
 
 	.media-sidebar .setting select.columns,
@@ -2816,6 +2843,10 @@
 		float: right;
 	}
 
+	.media-modal .media-frame .media-toolbar-secondary .spinner {
+		top: calc( 50% - 8px );
+	}
+
 	.media-modal .attachments-browser .media-toolbar .attachment-filters {
 		height: auto;
 	}
@@ -2836,10 +2867,6 @@
 	.media-frame .media-toolbar input[type="search"] {
 		line-height: 2.3755; /* 38px */
 	}
-
-	.media-modal .media-toolbar .spinner {
-		margin-bottom: 10px;
-	}
 }
 
 @media screen and (max-width: 782px) {
@@ -2849,6 +2876,10 @@
 
 	.media-frame-toolbar .media-toolbar {
 		bottom: -60px;
+	}
+
+	.media-modal .media-frame .media-toolbar-secondary .spinner {
+		top: 0;
 	}
 
 	.mode-grid .attachments-browser .media-toolbar-primary {
@@ -2870,13 +2901,9 @@
 		position: unset;
 	}
 
-	.media-frame .media-toolbar-secondary .spinner {
-		position: absolute;
-		top: 0;
+	.media-modal .media-frame .media-toolbar-secondary .spinner {
 		bottom: 0;
 		margin: auto;
-		left: 0;
-		right: 0;
 		z-index: 9;
 	}
 
@@ -2886,7 +2913,6 @@
 		width: 100%;
 		height: 100%;
 		display: none;
-		position: absolute;
 		left: 0;
 		right: 0;
 		top: 0;
@@ -2929,6 +2955,7 @@
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.attachments-browser .media-toolbar,
 	.media-frame-content .attachments-browser .attachments-wrapper {

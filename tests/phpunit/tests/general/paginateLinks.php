@@ -7,7 +7,28 @@
  */
 class Tests_General_PaginateLinks extends WP_UnitTestCase {
 
-	private $i18n_count = 0;
+	private int $i18n_count = 0;
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
+		$category_id = $factory->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Categorized',
+			)
+		);
+		self::assertIsInt( $category_id );
+
+		$post_ids = $factory->post->create_many( 10 );
+		foreach ( $post_ids as $post_id ) {
+			self::assertIsInt( $post_id );
+			self::assertIsArray( wp_set_post_categories( $post_id, array( $category_id ) ) );
+		}
+	}
 
 	public function set_up() {
 		parent::set_up();
@@ -382,5 +403,164 @@ EXPECTED;
 
 		$page_2_url = home_url() . '?foo=2';
 		$this->assertContains( "<a class=\"page-numbers\" href=\"$page_2_url\">2</a>", $links );
+	}
+
+	/**
+	 * Ensures pagination links include trailing slashes when the permalink structure includes them.
+	 *
+	 * @ticket 61393
+	 */
+	public function test_permalinks_with_trailing_slash_produce_links_with_trailing_slashes(): void {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$this->go_to( '/category/categorized/page/2/' );
+
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			++$found_links;
+			$href = (string) $processor->get_attribute( 'href' );
+			$this->assertStringEndsWith( '/', $href, "Pagination links should end with a trailing slash, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
+	}
+
+	/**
+	 * Ensures pagination links do not include trailing slashes when the permalink structure doesn't include them.
+	 *
+	 * @ticket 61393
+	 */
+	public function test_permalinks_without_trailing_slash_produce_links_without_trailing_slashes(): void {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '/%postname%' );
+
+		$this->go_to( '/category/categorized/page/2' );
+
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			++$found_links;
+			$href = (string) $processor->get_attribute( 'href' );
+			$this->assertStringEndsNotWith( '/', $href, "Pagination links should not end with a trailing slash, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
+	}
+
+	/**
+	 * Ensures pagination links do not include trailing slashes when the permalink structure is plain.
+	 *
+	 * @ticket 61393
+	 */
+	public function test_plain_permalinks_are_not_modified_with_trailing_slash(): void {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '' );
+
+		$term = get_category_by_slug( 'categorized' );
+		$this->assertInstanceOf( WP_Term::class, $term );
+		$category_id = $term->term_id;
+		$this->go_to( "/?cat={$category_id}&paged=2" );
+
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$expected_links = array(
+			home_url( "?cat={$category_id}" ), // Previous
+			home_url( "?cat={$category_id}" ), // Page 1
+			home_url( "?paged=3&cat={$category_id}" ), // Page 3
+			home_url( "?paged=4&cat={$category_id}" ), // Page 4
+			home_url( "?paged=5&cat={$category_id}" ), // Page 5
+			home_url( "?paged=3&cat={$category_id}" ), // Next
+		);
+
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			$expected_link = $expected_links[ $found_links ] ?? '';
+			++$found_links;
+			$href = (string) $processor->get_attribute( 'href' );
+			$this->assertSame( $expected_link, $href, "Pagination links should include the category query string, found: $href" );
+		}
+		$this->assertSame( count( $expected_links ), $found_links, 'There should be this number of pagination links found.' );
+	}
+
+	/**
+	 * Ensures the pagination links do not modify query strings (permalinks with trailing slash).
+	 *
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_query_strings
+	 *
+	 * @param string $query_string Query string.
+	 */
+	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( string $query_string ): void {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$this->go_to( "/page/2/?{$query_string}" );
+
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			++$found_links;
+			$href = (string) $processor->get_attribute( 'href' );
+			$this->assertStringEndsWith( "/?{$query_string}", $href, "Pagination links should not modify the query string, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
+	}
+
+	/**
+	 * Ensures the pagination links do not modify query strings (permalinks without trailing slash).
+	 *
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_query_strings
+	 *
+	 * @param string $query_string Query string.
+	 */
+	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( string $query_string ): void {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '/%postname%' );
+
+		$this->go_to( "/page/2?{$query_string}" );
+
+		// `current` needs to be passed as it's not picked up from the query vars set by `go_to()` above.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$processor   = new WP_HTML_Tag_Processor( $links );
+		$found_links = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			++$found_links;
+			$href = (string) $processor->get_attribute( 'href' );
+			$this->assertStringEndsWith( "?{$query_string}", $href, "Pagination links should not modify the query string, found: $href" );
+			$this->assertStringEndsNotWith( "/?{$query_string}", $href, "Pagination links should not be slashed before the query string, found: $href" );
+		}
+		$this->assertGreaterThan( 0, $found_links, 'There should be pagination links found.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @see self::test_permalinks_without_trailing_slash_do_not_modify_query_strings()
+	 * @see self::test_permalinks_with_trailing_slash_do_not_modify_query_strings()
+	 *
+	 * @return array<string, array{ 0: string }> Data provider.
+	 */
+	public function data_query_strings(): array {
+		return array(
+			'single query var' => array( 'foo=bar' ),
+			'multi query vars' => array( 'foo=bar&pen=pencil' ),
+		);
 	}
 }

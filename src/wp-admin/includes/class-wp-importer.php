@@ -9,10 +9,6 @@
 
 #[AllowDynamicProperties]
 class WP_Importer {
-	/**
-	 * Class Constructor
-	 */
-	public function __construct() {}
 
 	/**
 	 * Returns array with imported permalinks from WordPress database.
@@ -135,8 +131,14 @@ class WP_Importer {
 	}
 
 	/**
-	 * @param int $blog_id
-	 * @return int|void
+	 * Sets the blog to import to.
+	 *
+	 * Accepts a numeric blog ID or a URL string. When given a URL,
+	 * the blog is looked up by domain and path. On multisite, switches
+	 * to the resolved blog. Exits with an error if the blog cannot be found.
+	 *
+	 * @param int|string $blog_id Blog ID or URL.
+	 * @return int Blog ID on success. Exits on failure.
 	 */
 	public function set_blog( $blog_id ) {
 		if ( is_numeric( $blog_id ) ) {
@@ -177,7 +179,7 @@ class WP_Importer {
 
 	/**
 	 * @param int $user_id
-	 * @return int|void
+	 * @return int
 	 */
 	public function set_user( $user_id ) {
 		if ( is_numeric( $user_id ) ) {
@@ -296,8 +298,11 @@ class WP_Importer {
  *
  * @param string $param    The parameter name to retrieve.
  * @param bool   $required Optional. Whether the parameter is required. Default false.
- * @return string|true|null|never The parameter value or true if found, null otherwise.
- *                                The function exits when a required parameter is missing.
+ * @return string|true|null The parameter value, or true if the parameter was supplied
+ *                          without a value, or null if it was not supplied at all.
+ *                          Never returns when `$required` is true and the parameter
+ *                          is missing, as the function exits instead.
+ * @phpstan-return ( $required is true ? string|true : string|true|null )
  */
 function get_cli_args( $param, $required = false ) {
 	$args = $_SERVER['argv'];

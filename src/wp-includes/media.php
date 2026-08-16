@@ -8,7 +8,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 /**
@@ -16,9 +16,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 4.7.0
  *
+ * @see add_image_size()
+ *
  * @global array $_wp_additional_image_sizes
  *
  * @return array Additional images size data.
+ *
+ * @phpstan-return array<string, array{
+ *                     width: non-negative-int,
+ *                     height: non-negative-int,
+ *                     crop: array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool,
+ *                 }>
  */
 function wp_get_additional_image_sizes() {
 	global $_wp_additional_image_sizes;
@@ -106,7 +114,7 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		if ( (int) $content_width > 0 ) {
 			$max_width = min( (int) $content_width, $max_width );
 		}
-	} elseif ( ! empty( $_wp_additional_image_sizes ) && in_array( $size, array_keys( $_wp_additional_image_sizes ), true ) ) {
+	} elseif ( isset( $_wp_additional_image_sizes[ $size ] ) ) {
 		$max_width  = (int) $_wp_additional_image_sizes[ $size ]['width'];
 		$max_height = (int) $_wp_additional_image_sizes[ $size ]['height'];
 		// Only in admin. Assume that theme authors know what they're doing.
@@ -296,6 +304,10 @@ function image_downsize( $id, $size = 'medium' ) {
  *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
  *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
  * }
+ *
+ * @phpstan-param non-negative-int $width
+ * @phpstan-param non-negative-int $height
+ * @phpstan-param array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool $crop
  */
 function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
 	global $_wp_additional_image_sizes;
@@ -908,8 +920,14 @@ function get_intermediate_image_sizes() {
  *
  * @return array[] Associative array of arrays of image sub-size information,
  *                 keyed by image size name.
+ *
+ * @phpstan-return array<string, array{
+ *                     width: non-negative-int,
+ *                     height: non-negative-int,
+ *                     crop: array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool,
+ *                 }>
  */
-function wp_get_registered_image_subsizes() {
+function wp_get_registered_image_subsizes(): array {
 	$additional_sizes = wp_get_additional_image_sizes();
 	$all_sizes        = array();
 
@@ -956,6 +974,69 @@ function wp_get_registered_image_subsizes() {
 }
 
 /**
+ * Determines the encode quality WordPress would use for an image.
+ *
+ * Resolves the quality the same way WP_Image_Editor::set_quality() does when no
+ * explicit quality is supplied: it starts from the per-format default, applies the
+ * 'wp_editor_set_quality' filter, then the 'jpeg_quality' filter for JPEG output,
+ * resets out-of-range values to the per-format default, and squashes 0 to 1.
+ *
+ * This lets code outside of an image editor instance - such as the REST API, which
+ * reports the quality client-side processing should use - resolve the same value the
+ * server would apply, without loading the image into an editor.
+ *
+ * @since 7.1.0
+ *
+ * @param string   $mime_type       The output image MIME type, e.g. 'image/jpeg'.
+ * @param array    $size            {
+ *     Optional. Dimensions of the image, passed to the 'wp_editor_set_quality' filter.
+ *
+ *     @type int $width  The image width in pixels.
+ *     @type int $height The image height in pixels.
+ * }
+ * @param int|null $default_quality Optional. Starting quality before filters are applied.
+ *                                  Defaults to the per-format default (86 for WebP, 82 otherwise).
+ * @return int Encode quality between 1 and 100.
+ *
+ * @phpstan-param non-empty-string $mime_type
+ * @phpstan-param array{ width?: non-negative-int, height?: non-negative-int } $size
+ * @phpstan-param int<0, 100>|null $default_quality
+ * @phpstan-return int<1, 100>
+ */
+function wp_get_image_encode_quality( string $mime_type, array $size = array(), ?int $default_quality = null ): int {
+	if ( null === $default_quality ) {
+		// Mirror WP_Image_Editor::get_default_quality(): WebP defaults to 86, everything else to 82.
+		$default_quality = ( 'image/webp' === $mime_type ) ? 86 : 82;
+	}
+
+	/** This filter is documented in wp-includes/class-wp-image-editor.php */
+	$quality = apply_filters( 'wp_editor_set_quality', $default_quality, $mime_type, $size );
+
+	if ( 'image/jpeg' === $mime_type ) {
+		/** This filter is documented in wp-includes/class-wp-image-editor.php */
+		$quality = apply_filters( 'jpeg_quality', $quality, 'image_resize' );
+	}
+
+	if ( ! is_numeric( $quality ) ) {
+		$quality = $default_quality;
+	} else {
+		$quality = (int) $quality;
+	}
+
+	// Reset out-of-range values to the default, matching WP_Image_Editor::set_quality().
+	if ( $quality < 0 || $quality > 100 ) {
+		$quality = $default_quality;
+	}
+
+	// Allow 0, but squash to 1, matching WP_Image_Editor::set_quality().
+	if ( 0 === $quality ) {
+		$quality = 1;
+	}
+
+	return $quality;
+}
+
+/**
  * Retrieves an image to represent an attachment.
  *
  * @since 2.5.0
@@ -972,12 +1053,15 @@ function wp_get_registered_image_subsizes() {
  *     @type int    $2 Image height in pixels.
  *     @type bool   $3 Whether the image is a resized image.
  * }
+ * @phpstan-return array{ 0: string, 1: int, 2: int, 3: bool }|false
  */
 function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon = false ) {
 	// Get a thumbnail or intermediate image if there is one.
 	$image = image_downsize( $attachment_id, $size );
 	if ( ! $image ) {
-		$src = false;
+		$src    = false;
+		$width  = 0;
+		$height = 0;
 
 		if ( $icon ) {
 			$src = wp_mime_type_icon( $attachment_id, '.svg' );
@@ -988,7 +1072,11 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 
 				$src_file = $icon_dir . '/' . wp_basename( $src );
 
-				list( $width, $height ) = wp_getimagesize( $src_file );
+				$image_size = wp_getimagesize( $src_file );
+				if ( is_array( $image_size ) ) {
+					$width  = $image_size[0];
+					$height = $image_size[1];
+				}
 
 				$ext = strtolower( substr( $src_file, -4 ) );
 
@@ -997,7 +1085,11 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 					$width  = 48;
 					$height = 64;
 				} else {
-					list( $width, $height ) = wp_getimagesize( $src_file );
+					$image_size = wp_getimagesize( $src_file );
+					if ( is_array( $image_size ) ) {
+						$width  = $image_size[0];
+						$height = $image_size[1];
+					}
 				}
 			}
 		}
@@ -1024,7 +1116,16 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 	 *                                    an array of width and height values in pixels (in that order).
 	 * @param bool         $icon          Whether the image should be treated as an icon.
 	 */
-	return apply_filters( 'wp_get_attachment_image_src', $image, $attachment_id, $size, $icon );
+	$source = apply_filters( 'wp_get_attachment_image_src', $image, $attachment_id, $size, $icon );
+	if ( is_array( $source ) && isset( $source[0] ) && is_string( $source[0] ) ) {
+		return array(
+			$source[0],
+			(int) ( $source[1] ?? 0 ),
+			(int) ( $source[2] ?? 0 ),
+			(bool) ( $source[3] ?? false ),
+		);
+	}
+	return false;
 }
 
 /**
@@ -2555,6 +2656,16 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		return $output;
 	}
 
+	/**
+	 * @var array{
+	 *     id: string,
+	 *     caption_id: string,
+	 *     align: string,
+	 *     width: string,
+	 *     caption: string,
+	 *     class: string,
+	 * } $atts
+	 */
 	$atts = shortcode_atts(
 		array(
 			'id'         => '',
@@ -2574,24 +2685,30 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		return $content;
 	}
 
-	$id          = '';
-	$caption_id  = '';
-	$describedby = '';
+	$id               = '';
+	$caption_id       = '';
+	$describedby      = '';
+	$unique_id_value  = '';
+	$caption_id_value = '';
 
 	if ( $atts['id'] ) {
-		$atts['id'] = sanitize_html_class( $atts['id'] );
-		$id         = 'id="' . esc_attr( $atts['id'] ) . '" ';
+		$atts['id']      = sanitize_html_class( $atts['id'] );
+		$unique_id_value = (string) preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['id'] . '-' ) );
+		$id              = 'id="' . esc_attr( $unique_id_value ) . '" ';
 	}
 
 	if ( $atts['caption_id'] ) {
+		// User explicitly provided a caption_id - make it unique.
 		$atts['caption_id'] = sanitize_html_class( $atts['caption_id'] );
-	} elseif ( $atts['id'] ) {
-		$atts['caption_id'] = 'caption-' . str_replace( '_', '-', $atts['id'] );
+		$caption_id_value   = preg_replace( '/-1$/', '', wp_unique_prefixed_id( $atts['caption_id'] . '-' ) );
+	} elseif ( $unique_id_value ) {
+		// Derive from the already-unique figure ID - guaranteed unique, no need for second call.
+		$caption_id_value = 'caption-' . str_replace( '_', '-', $unique_id_value );
 	}
 
-	if ( $atts['caption_id'] ) {
-		$caption_id  = 'id="' . esc_attr( $atts['caption_id'] ) . '" ';
-		$describedby = 'aria-describedby="' . esc_attr( $atts['caption_id'] ) . '" ';
+	if ( $caption_id_value ) {
+		$caption_id  = 'id="' . esc_attr( $caption_id_value ) . '" ';
+		$describedby = 'aria-describedby="' . esc_attr( $caption_id_value ) . '" ';
 	}
 
 	$class = trim( 'wp-caption ' . $atts['align'] . ' ' . $atts['class'] );
@@ -2865,6 +2982,7 @@ function gallery_shortcode( $attr ) {
 	 * Filters whether to print default gallery styles.
 	 *
 	 * @since 3.1.0
+	 * @since 3.9.0 Set the default to false when the theme supports HTML5 galleries.
 	 *
 	 * @param bool $print Whether to print default gallery styles.
 	 *                    Defaults to false if the theme supports HTML5 galleries.
@@ -2896,9 +3014,18 @@ function gallery_shortcode( $attr ) {
 	$gallery_div = "<div id='$selector' class='gallery galleryid-{$id} gallery-columns-{$columns} gallery-size-{$size_class}'>";
 
 	/**
-	 * Filters the default gallery shortcode CSS styles.
+	 * Filters the gallery shortcode's default CSS styles and opening HTML div container.
+	 *
+	 * To remove the CSS entirely, use the `use_default_gallery_style` filter instead:
+	 *
+	 *     add_filter( 'use_default_gallery_style', '__return_false' );
 	 *
 	 * @since 2.5.0
+	 * @since 3.1.0 Added classes for number of columns and size to opening div.
+	 * @since 5.3.0 Removed the `type` attribute for `style` tags when the theme
+	 *              supports HTML5 style, and changed the quotes from single to
+	 *              double for other themes.
+	 * @since 7.0.0 Removed the `type` attribute for any theme.
 	 *
 	 * @param string $gallery_style Default CSS styles and opening HTML div container
 	 *                              for the gallery shortcode output.
@@ -3230,10 +3357,23 @@ function wp_playlist_shortcode( $attr ) {
 		if ( $atts['images'] ) {
 			$thumb_id = get_post_thumbnail_id( $attachment->ID );
 			if ( ! empty( $thumb_id ) ) {
-				list( $src, $width, $height ) = wp_get_attachment_image_src( $thumb_id, 'full' );
-				$track['image']               = compact( 'src', 'width', 'height' );
-				list( $src, $width, $height ) = wp_get_attachment_image_src( $thumb_id, 'thumbnail' );
-				$track['thumb']               = compact( 'src', 'width', 'height' );
+				$image_src_full = wp_get_attachment_image_src( $thumb_id, 'full' );
+				if ( is_array( $image_src_full ) ) {
+					$track['image'] = array(
+						'src'    => $image_src_full[0],
+						'width'  => $image_src_full[1],
+						'height' => $image_src_full[2],
+					);
+				}
+
+				$image_src_thumb = wp_get_attachment_image_src( $thumb_id, 'thumbnail' );
+				if ( is_array( $image_src_thumb ) ) {
+					$track['thumb'] = array(
+						'src'    => $image_src_thumb[0],
+						'width'  => $image_src_thumb[1],
+						'height' => $image_src_thumb[2],
+					);
+				}
 			} else {
 				$src            = wp_mime_type_icon( $attachment->ID, '.svg' );
 				$width          = 48;
@@ -3389,7 +3529,7 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
  *     @type string $style    The 'style' attribute for the `<audio>` element. Default 'width: 100%;'.
  * }
  * @param string $content Shortcode content.
- * @return string|void HTML content to display audio.
+ * @return string|null HTML content to display audio.
  */
 function wp_audio_shortcode( $attr, $content = '' ) {
 	$post_id = get_post() ? get_the_ID() : 0;
@@ -3459,14 +3599,14 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		$audios = get_attached_media( 'audio', $post_id );
 
 		if ( empty( $audios ) ) {
-			return;
+			return null;
 		}
 
 		$audio       = reset( $audios );
 		$atts['src'] = wp_get_attachment_url( $audio->ID );
 
 		if ( empty( $atts['src'] ) ) {
-			return;
+			return null;
 		}
 
 		array_unshift( $default_types, 'src' );
@@ -3614,7 +3754,7 @@ function wp_get_video_extensions() {
  *                            Default 'wp-video-shortcode'.
  * }
  * @param string $content Shortcode content.
- * @return string|void HTML content to display video.
+ * @return string|null HTML content to display video.
  */
 function wp_video_shortcode( $attr, $content = '' ) {
 	global $content_width;
@@ -3717,13 +3857,13 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	if ( ! $primary ) {
 		$videos = get_attached_media( 'video', $post_id );
 		if ( empty( $videos ) ) {
-			return;
+			return null;
 		}
 
 		$video       = reset( $videos );
 		$atts['src'] = wp_get_attachment_url( $video->ID );
 		if ( empty( $atts['src'] ) ) {
-			return;
+			return null;
 		}
 
 		array_unshift( $default_types, 'src' );
@@ -4464,8 +4604,8 @@ function wp_plupload_default_settings() {
  * @since 3.5.0
  *
  * @param int|WP_Post $attachment Attachment ID or object.
- * @return array|void {
- *     Array of attachment details, or void if the parameter does not correspond to an attachment.
+ * @return array|null {
+ *     Array of attachment details, or null if the parameter does not correspond to an attachment.
  *
  *     @type string $alt                   Alt text of the attachment.
  *     @type string $author                ID of the attachment author, as a string.
@@ -4509,11 +4649,11 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	$attachment = get_post( $attachment );
 
 	if ( ! $attachment ) {
-		return;
+		return null;
 	}
 
 	if ( 'attachment' !== $attachment->post_type ) {
-		return;
+		return null;
 	}
 
 	$meta = wp_get_attachment_metadata( $attachment->ID );
@@ -4530,7 +4670,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		'id'            => $attachment->ID,
 		'title'         => $attachment->post_title,
 		'filename'      => wp_basename( get_attached_file( $attachment->ID ) ),
-		'url'           => $attachment_url,
+		'url'           => esc_url_raw( $attachment_url ),
 		'link'          => get_attachment_link( $attachment->ID ),
 		'alt'           => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
 		'author'        => $attachment->post_author,
@@ -4576,9 +4716,9 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$attached_file = get_attached_file( $attachment->ID );
 
-	if ( isset( $meta['filesize'] ) ) {
-		$bytes = $meta['filesize'];
-	} elseif ( file_exists( $attached_file ) ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
+		$bytes = (int) $meta['filesize'];
+	} elseif ( is_string( $attached_file ) && '' !== $attached_file && is_readable( $attached_file ) ) {
 		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
@@ -4636,7 +4776,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 				$sizes[ $size ] = array(
 					'height'      => $downsize[2],
 					'width'       => $downsize[1],
-					'url'         => $downsize[0],
+					'url'         => esc_url_raw( $downsize[0] ),
 					'orientation' => $downsize[2] > $downsize[1] ? 'portrait' : 'landscape',
 				);
 			} elseif ( isset( $meta['sizes'][ $size ] ) ) {
@@ -4652,7 +4792,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 				$sizes[ $size ] = array(
 					'height'      => $height,
 					'width'       => $width,
-					'url'         => $base_url . $size_meta['file'],
+					'url'         => esc_url_raw( $base_url . $size_meta['file'] ),
 					'orientation' => $height > $width ? 'portrait' : 'landscape',
 				);
 			}
@@ -4660,11 +4800,12 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 		if ( 'image' === $type ) {
 			if ( ! empty( $meta['original_image'] ) ) {
-				$response['originalImageURL']  = wp_get_original_image_url( $attachment->ID );
+				$original_image_url            = wp_get_original_image_url( $attachment->ID );
+				$response['originalImageURL']  = $original_image_url ? esc_url_raw( $original_image_url ) : '';
 				$response['originalImageName'] = wp_basename( wp_get_original_image_path( $attachment->ID ) );
 			}
 
-			$sizes['full'] = array( 'url' => $attachment_url );
+			$sizes['full'] = array( 'url' => esc_url_raw( $attachment_url ) );
 
 			if ( isset( $meta['height'], $meta['width'] ) ) {
 				$sizes['full']['height']      = $meta['height'];
@@ -4673,9 +4814,12 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			}
 
 			$response = array_merge( $response, $sizes['full'] );
-		} elseif ( $meta['sizes']['full']['file'] ) {
+		} elseif (
+			! empty( $meta['sizes']['full']['file'] ) &&
+			isset( $meta['sizes']['full']['width'], $meta['sizes']['full']['height'] )
+		) {
 			$sizes['full'] = array(
-				'url'         => $base_url . $meta['sizes']['full']['file'],
+				'url'         => esc_url_raw( $base_url . $meta['sizes']['full']['file'] ),
 				'height'      => $meta['sizes']['full']['height'],
 				'width'       => $meta['sizes']['full']['width'],
 				'orientation' => $meta['sizes']['full']['height'] > $meta['sizes']['full']['width'] ? 'portrait' : 'landscape',
@@ -4711,10 +4855,23 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 		$id = get_post_thumbnail_id( $attachment->ID );
 		if ( ! empty( $id ) ) {
-			list( $src, $width, $height ) = wp_get_attachment_image_src( $id, 'full' );
-			$response['image']            = compact( 'src', 'width', 'height' );
-			list( $src, $width, $height ) = wp_get_attachment_image_src( $id, 'thumbnail' );
-			$response['thumb']            = compact( 'src', 'width', 'height' );
+			$response_image_full = wp_get_attachment_image_src( $id, 'full' );
+			if ( is_array( $response_image_full ) ) {
+				$response['image'] = array(
+					'src'    => esc_url_raw( $response_image_full[0] ),
+					'width'  => $response_image_full[1],
+					'height' => $response_image_full[2],
+				);
+			}
+
+			$response_image_thumb = wp_get_attachment_image_src( $id, 'thumbnail' );
+			if ( is_array( $response_image_thumb ) ) {
+				$response['thumb'] = array(
+					'src'    => esc_url_raw( $response_image_thumb[0] ),
+					'width'  => $response_image_thumb[1],
+					'height' => $response_image_thumb[2],
+				);
+			}
 		} else {
 			$src               = wp_mime_type_icon( $attachment->ID, '.svg' );
 			$width             = 48;
@@ -4902,14 +5059,25 @@ function wp_enqueue_media( $args = array() ) {
 		);
 	}
 
+	$infinite_scrolling = true;
+
+	// A user can opt out of infinite scrolling via their profile's personal options.
+	if ( 'false' === get_user_option( 'infinite_scrolling' ) ) {
+		$infinite_scrolling = false;
+	}
+
 	/**
-	 * Filters whether the Media Library grid has infinite scrolling. Default `false`.
+	 * Filters whether the Media Library grid has infinite scrolling. Default `true`.
+	 *
+	 * This setting respects the current user's "Infinite Scrolling" personal
+	 * option, but a filter callback takes precedence over that preference.
 	 *
 	 * @since 5.8.0
+	 * @since 7.1.0 Changed default to `true` and introduced per-user opt-out of infinite scrolling.
 	 *
-	 * @param bool $infinite Whether the Media Library grid has infinite scrolling.
+	 * @param bool $infinite_scrolling Whether the Media Library grid has infinite scrolling.
 	 */
-	$infinite_scrolling = apply_filters( 'media_library_infinite_scrolling', false );
+	$infinite_scrolling = apply_filters( 'media_library_infinite_scrolling', $infinite_scrolling );
 
 	$settings = array(
 		'tabs'              => $tabs,
@@ -5024,6 +5192,8 @@ function wp_enqueue_media( $args = array() ) {
 		'mediaFound'                  => __( 'Number of media items found: %d' ),
 		'noMedia'                     => __( 'No media items found.' ),
 		'noMediaTryNewSearch'         => __( 'No media items found. Try a different search.' ),
+		/* translators: %s: Media item title or file name. */
+		'mediaItemViewed'             => __( 'Viewing media item: %s' ),
 
 		// Library Details.
 		'attachmentDetails'           => __( 'Attachment details' ),
@@ -5724,6 +5894,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
  * @return array|false Array of image information or false on failure.
+ * @phpstan-return array{ 0: int, 1: int, 2: int, 3: string, mime: string, bits?: int, channels?: int }|false
  */
 function wp_getimagesize( $filename, ?array &$image_info = null ) {
 	// Don't silence errors when in debug mode, unless running unit tests.
@@ -6366,7 +6537,7 @@ function wp_high_priority_element_flag( $value = null ): bool {
  *
  * @param string $filename  Path to the image.
  * @param string $mime_type The source image mime type.
- * @return string[] An array of mime type mappings.
+ * @return array<string, string> An array of mime type mappings.
  */
 function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	$output_format = array(
@@ -6388,14 +6559,10 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 * @since 6.7.0 The default was changed from an empty array to an array
 	 *              containing the HEIC/HEIF images mime types.
 	 *
-	 * @param string[] $output_format {
-	 *     An array of mime type mappings. Maps a source mime type to a new
-	 *     destination mime type. By default maps HEIC/HEIF input to JPEG output.
-	 *
-	 *     @type string ...$0 The new mime type.
-	 * }
-	 * @param string $filename  Path to the image.
-	 * @param string $mime_type The source image mime type.
+	 * @param array<string, string> $output_format An array of mime type mappings. Maps a source mime type to a new
+	 *                                             destination mime type. By default maps HEIC/HEIF input to JPEG output.
+	 * @param string                $filename      Path to the image.
+	 * @param string                $mime_type     The source image mime type.
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
 }
@@ -6406,49 +6573,42 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
  * Client-side media processing uses the browser's capabilities to handle
  * tasks like image resizing and compression before uploading to the server.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @return bool Whether client-side media processing is enabled.
  */
 function wp_is_client_side_media_processing_enabled(): bool {
+	// This is due to SharedArrayBuffer requiring a secure context.
+	$host    = strtolower( (string) strtok( $_SERVER['HTTP_HOST'] ?? '', ':' ) );
+	$enabled = ( is_ssl() || 'localhost' === $host || str_ends_with( $host, '.localhost' ) );
+
 	/**
 	 * Filters whether client-side media processing is enabled.
 	 *
-	 * @since 7.0.0
+	 * @since 7.1.0
 	 *
-	 * @param bool $enabled Whether client-side media processing is enabled. Default true.
+	 * @param bool $enabled Whether client-side media processing is enabled. Default true if the page is served in a secure context.
 	 */
-	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', true );
+	return (bool) apply_filters( 'wp_client_side_media_processing_enabled', $enabled );
 }
 
 /**
  * Sets a global JS variable to indicate that client-side media processing is enabled.
  *
- * @since 7.0.0
+ * @since 7.1.0
  */
 function wp_set_client_side_media_processing_flag(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
 		return;
 	}
 
-	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true', 'before' );
+	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true;', 'before' );
 
 	$chromium_version = wp_get_chromium_major_version();
 
 	if ( null !== $chromium_version && $chromium_version >= 137 ) {
 		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
 	}
-
-	/*
-	 * Register the @wordpress/vips/worker script module as a dynamic dependency
-	 * of the wp-upload-media classic script. This ensures it is included in the
-	 * import map so that the dynamic import() in upload-media.js can resolve it.
-	 */
-	wp_scripts()->add_data(
-		'wp-upload-media',
-		'module_dependencies',
-		array( '@wordpress/vips/worker' )
-	);
 }
 
 /**
@@ -6456,7 +6616,7 @@ function wp_set_client_side_media_processing_flag(): void {
  *
  * Matches all Chromium-based browsers (Chrome, Edge, Opera, Brave).
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @return int|null The major Chrome version, or null if not a Chromium browser.
  */
@@ -6477,7 +6637,11 @@ function wp_get_chromium_major_version(): ?int {
  * media processing in the editor. Uses Document-Isolation-Policy
  * on supported browsers (Chromium 137+).
  *
- * @since 7.0.0
+ * Skips setup when a third-party page builder overrides the block
+ * editor via a custom `action` query parameter, as DIP would block
+ * same-origin iframe access that these editors rely on.
+ *
+ * @since 7.1.0
  */
 function wp_set_up_cross_origin_isolation(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
@@ -6494,6 +6658,31 @@ function wp_set_up_cross_origin_isolation(): void {
 		return;
 	}
 
+	/*
+	 * Skip when rendering the classic-theme home route, which shows the site
+	 * preview in an iframe and must reach its `contentDocument` to neutralize
+	 * interactive elements. DIP would block that same-origin access.
+	 *
+	 * Keyed off $pagenow rather than the current screen so the guard keeps
+	 * working if the header set-up is ever moved to an earlier hook (such as
+	 * admin_init) where the screen is not yet available.
+	 */
+	global $pagenow;
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( 'site-editor.php' === $pagenow && ! wp_is_block_theme() && ( ! isset( $_GET['p'] ) || '/' === $_GET['p'] ) ) {
+		return;
+	}
+
+	/*
+	 * Skip when a third-party page builder overrides the block editor.
+	 * DIP isolates the document into its own agent cluster,
+	 * which blocks same-origin iframe access that these editors rely on.
+	 */
+	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
+		return;
+	}
+
 	// Cross-origin isolation is not needed if users can't upload files anyway.
 	if ( ! current_user_can( 'upload_files' ) ) {
 		return;
@@ -6507,7 +6696,7 @@ function wp_set_up_cross_origin_isolation(): void {
  *
  * Uses an output buffer to add crossorigin="anonymous" where needed.
  *
- * @since 7.0.0
+ * @since 7.1.0
  */
 function wp_start_cross_origin_isolation_output_buffer(): void {
 	$chromium_version = wp_get_chromium_major_version();
@@ -6528,7 +6717,7 @@ function wp_start_cross_origin_isolation_output_buffer(): void {
 /**
  * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
  *
- * @since 7.0.0
+ * @since 7.1.0
  *
  * @param string $html HTML input.
  * @return string Modified HTML.
@@ -6540,27 +6729,21 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin.
 	$cross_origin_tag_attributes = array(
-		'AUDIO'  => array( 'src' => false ),
-		'IMG'    => array(
-			'src'    => false,
-			'srcset' => true,
-		),
-		'LINK'   => array(
-			'href'        => false,
-			'imagesrcset' => true,
-		),
-		'SCRIPT' => array( 'src' => false ),
-		'VIDEO'  => array(
-			'src'    => false,
-			'poster' => false,
-		),
-		'SOURCE' => array( 'src' => false ),
+		'AUDIO'  => array( 'src' ),
+		'LINK'   => array( 'href' ),
+		'SCRIPT' => array( 'src' ),
+		'VIDEO'  => array( 'src', 'poster' ),
+		'SOURCE' => array( 'src' ),
 	);
 
 	while ( $processor->next_tag() ) {
 		$tag = $processor->get_tag();
 
 		if ( ! isset( $cross_origin_tag_attributes[ $tag ] ) ) {
+			continue;
+		}
+		$crossorigin = $processor->get_attribute( 'crossorigin' );
+		if ( null !== $crossorigin ) {
 			continue;
 		}
 
@@ -6572,27 +6755,12 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 		$sought = false;
 
-		$crossorigin = $processor->get_attribute( 'crossorigin' );
-
 		$is_cross_origin = false;
 
-		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr => $is_srcset ) {
-			if ( $is_srcset ) {
-				$srcset = $processor->get_attribute( $attr );
-				if ( is_string( $srcset ) ) {
-					foreach ( explode( ',', $srcset ) as $candidate ) {
-						$candidate_url = strtok( trim( $candidate ), ' ' );
-						if ( is_string( $candidate_url ) && '' !== $candidate_url && ! str_starts_with( $candidate_url, $site_url ) && ! str_starts_with( $candidate_url, '/' ) ) {
-							$is_cross_origin = true;
-							break;
-						}
-					}
-				}
-			} else {
-				$url = $processor->get_attribute( $attr );
-				if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
-					$is_cross_origin = true;
-				}
+		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr ) {
+			$url = $processor->get_attribute( $attr );
+			if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
+				$is_cross_origin = true;
 			}
 
 			if ( $is_cross_origin ) {
@@ -6600,7 +6768,7 @@ function wp_add_crossorigin_attributes( string $html ): string {
 			}
 		}
 
-		if ( $is_cross_origin && ! is_string( $crossorigin ) ) {
+		if ( $is_cross_origin ) {
 			if ( 'SOURCE' === $tag ) {
 				$sought = $processor->seek( 'audio-video-parent' );
 

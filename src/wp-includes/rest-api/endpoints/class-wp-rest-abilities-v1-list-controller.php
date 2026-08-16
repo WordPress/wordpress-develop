@@ -86,25 +86,24 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
-		$abilities = array_filter(
-			wp_get_abilities(),
-			static function ( $ability ) {
-				return $ability->get_meta_item( 'show_in_rest' );
-			}
+		$query_args = array(
+			'meta' => array( 'show_in_rest' => true ),
 		);
 
-		// Filter by ability category if specified.
-		$category = $request['category'];
-		if ( ! empty( $category ) ) {
-			$abilities = array_filter(
-				$abilities,
-				static function ( $ability ) use ( $category ) {
-					return $ability->get_category() === $category;
-				}
-			);
-			// Reset array keys after filtering.
-			$abilities = array_values( $abilities );
+		if ( ! empty( $request['category'] ) ) {
+			$query_args['category'] = $request['category'];
 		}
+
+		if ( ! empty( $request['namespace'] ) ) {
+			$query_args['namespace'] = $request['namespace'];
+		}
+
+		if ( ! empty( $request['meta'] ) ) {
+			// Merge caller meta first so the forced show_in_rest filter wins. This keeps a caller from using meta to reveal abilities hidden from REST.
+			$query_args['meta'] = array_merge( $request['meta'], $query_args['meta'] );
+		}
+
+		$abilities = wp_get_abilities( $query_args );
 
 		$page     = $request['page'];
 		$per_page = $request['per_page'];
@@ -157,7 +156,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$ability = wp_get_ability( $request['name'] );
+		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return new WP_Error(
 				'rest_ability_not_found',
@@ -195,27 +194,6 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Normalizes schema empty object defaults.
-	 *
-	 * Converts empty array defaults to objects when the schema type is 'object'
-	 * to ensure proper JSON serialization as {} instead of [].
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param array<string, mixed> $schema The schema array.
-	 * @return array<string, mixed> The normalized schema.
-	 */
-	private function normalize_schema_empty_object_defaults( array $schema ): array {
-		if ( isset( $schema['type'] ) && 'object' === $schema['type'] && isset( $schema['default'] ) ) {
-			$default = $schema['default'];
-			if ( is_array( $default ) && empty( $default ) ) {
-				$schema['default'] = (object) $default;
-			}
-		}
-		return $schema;
-	}
-
-	/**
 	 * Prepares an ability for response.
 	 *
 	 * @since 6.9.0
@@ -230,8 +208,8 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			'label'         => $ability->get_label(),
 			'description'   => $ability->get_description(),
 			'category'      => $ability->get_category(),
-			'input_schema'  => $this->normalize_schema_empty_object_defaults( $ability->get_input_schema() ),
-			'output_schema' => $this->normalize_schema_empty_object_defaults( $ability->get_output_schema() ),
+			'input_schema'  => wp_prepare_json_schema_for_client( $ability->get_input_schema() ),
+			'output_schema' => wp_prepare_json_schema_for_client( $ability->get_output_schema() ),
 			'meta'          => $ability->get_meta(),
 		);
 
@@ -316,9 +294,27 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 					'type'        => 'object',
 					'properties'  => array(
 						'annotations' => array(
-							'description' => __( 'Annotations for the ability.' ),
-							'type'        => array( 'boolean', 'null' ),
-							'default'     => null,
+							'description'          => __( 'Behavioral annotations for the ability.' ),
+							'type'                 => 'object',
+							'properties'           => array(
+								'readonly'    => array(
+									'description' => __( 'Whether the ability does not modify its environment.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+								'destructive' => array(
+									'description' => __( 'Whether the ability may perform destructive updates to its environment.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+								'idempotent'  => array(
+									'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
+							),
+							'additionalProperties' => true,
+						),
+						'public'      => array(
+							'description' => __( 'Whether the ability is meant to be available to clients such as the REST API, MCP, or AI agents. Defaults to false, but individual channel settings such as show_in_rest can override it.' ),
+							'type'        => 'boolean',
 						),
 					),
 					'context'     => array( 'view', 'edit' ),
@@ -338,27 +334,73 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @return array<string, mixed> Collection parameters.
 	 */
 	public function get_collection_params(): array {
-		return array(
-			'context'  => $this->get_context_param( array( 'default' => 'view' ) ),
-			'page'     => array(
+		$query_params = array(
+			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
+			'page'      => array(
 				'description' => __( 'Current page of the collection.' ),
 				'type'        => 'integer',
 				'default'     => 1,
 				'minimum'     => 1,
 			),
-			'per_page' => array(
+			'per_page'  => array(
 				'description' => __( 'Maximum number of items to be returned in result set.' ),
 				'type'        => 'integer',
 				'default'     => 50,
 				'minimum'     => 1,
 				'maximum'     => 100,
 			),
-			'category' => array(
+			'category'  => array(
 				'description'       => __( 'Limit results to abilities in specific ability category.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
+			'namespace' => array(
+				'description'       => __( 'Limit results to abilities in a specific namespace.' ),
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_key',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+			'meta'      => array(
+				'description'          => __( 'Limit results to abilities matching all of the given meta fields.' ),
+				'type'                 => 'object',
+				'properties'           => array(
+					// show_in_rest is omitted on purpose. It is forced on and cannot be filtered by a caller.
+					'annotations' => array(
+						'description'          => __( 'Limit results to abilities matching the given behavioral annotations.' ),
+						'type'                 => 'object',
+						'properties'           => array(
+							'readonly'    => array(
+								'description' => __( 'Whether the ability does not modify its environment.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'destructive' => array(
+								'description' => __( 'Whether the ability may perform destructive updates to its environment.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'idempotent'  => array(
+								'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+						),
+						'additionalProperties' => true,
+					),
+				),
+				'additionalProperties' => true,
+			),
 		);
+
+		/**
+		 * Filters REST API collection parameters for the abilities controller.
+		 *
+		 * Use this to declare the schema type of a custom meta key. A declared
+		 * type lets REST coerce a query-string value, for example "true" to a
+		 * boolean, before the meta filter matches it.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param array $query_params JSON Schema-formatted collection parameters.
+		 */
+		return apply_filters( 'rest_abilities_collection_params', $query_params );
 	}
 }

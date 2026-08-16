@@ -8,6 +8,7 @@
 
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Files\DTO\File;
+use WordPress\AiClient\Files\Enums\MediaOrientationEnum;
 use WordPress\AiClient\Messages\DTO\Message;
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Messages\DTO\ModelMessage;
@@ -31,6 +32,11 @@ use WordPress\AiClient\Results\DTO\GenerativeAiResult;
 use WordPress\AiClient\Results\DTO\TokenUsage;
 use WordPress\AiClient\Results\Enums\FinishReasonEnum;
 use WordPress\AiClient\Builders\PromptBuilder;
+use WordPress\AiClient\Common\Exception\InvalidArgumentException as AiClientInvalidArgumentException;
+use WordPress\AiClient\Common\Exception\TokenLimitReachedException;
+use WordPress\AiClient\Providers\Http\Exception\ClientException;
+use WordPress\AiClient\Providers\Http\Exception\NetworkException;
+use WordPress\AiClient\Providers\Http\Exception\ServerException;
 use WordPress\AiClient\Tools\DTO\FunctionDeclaration;
 use WordPress\AiClient\Tools\DTO\FunctionResponse;
 
@@ -182,19 +188,25 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertEquals( 30, $request_options->getTimeout() );
+		$this->assertSame( 30.0, $request_options->getTimeout() );
 	}
 
 	/**
-	 * Test that the constructor allows overriding the default request timeout.
+	 * Test that the constructor allows overriding the default request timeout with a valid value.
 	 *
 	 * @ticket 64591
+	 * @ticket 65094
+	 *
+	 * @dataProvider data_valid_request_timeout_overrides
+	 *
+	 * @param mixed $input    The timeout value returned by the filter.
+	 * @param float $expected The expected timeout stored on the request options.
 	 */
-	public function test_constructor_allows_overriding_request_timeout() {
+	public function test_constructor_allows_overriding_request_timeout_with_valid_timeout( $input, float $expected ) {
 		add_filter(
 			'wp_ai_client_default_request_timeout',
-			static function () {
-				return 45;
+			static function () use ( $input ) {
+				return $input;
 			}
 		);
 
@@ -204,7 +216,63 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertEquals( 45, $request_options->getTimeout() );
+		$this->assertSame( $expected, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_allows_overriding_request_timeout_with_valid_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed, 1: float}>
+	 */
+	public function data_valid_request_timeout_overrides(): array {
+		return array(
+			'float'    => array( 45.5, 45.5 ),
+			'integer'  => array( 67, 67.0 ),
+			'string'   => array( '20', 20.0 ),
+			'infinity' => array( INF, INF ),
+			'zero'     => array( 0.0, 0.0 ),
+		);
+	}
+
+	/**
+	 * Test that the constructor disallows overriding the default request timeout with an invalid value.
+	 *
+	 * @ticket 65094
+	 *
+	 * @dataProvider data_invalid_request_timeouts
+	 *
+	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 *
+	 * @param mixed $timeout The invalid timeout value returned by the filter.
+	 */
+	public function test_constructor_disallows_overriding_with_invalid_request_timeout( $timeout ) {
+		add_filter(
+			'wp_ai_client_default_request_timeout',
+			static function () use ( $timeout ) {
+				return $timeout;
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		/** @var RequestOptions $request_options */
+		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
+
+		$this->assertInstanceOf( RequestOptions::class, $request_options );
+		$this->assertSame( 30.0, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_disallows_overriding_with_invalid_request_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_request_timeouts(): array {
+		return array(
+			'negative number' => array( -1 ),
+			'array'           => array( array() ),
+			'null'            => array( null ),
+		);
 	}
 
 	/**
@@ -395,7 +463,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $messages );
 		$this->assertInstanceOf( Message::class, $messages[0] );
-		$this->assertEquals( 'Hello, world!', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Hello, world!', $messages[0]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -412,7 +480,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $messages );
 		$this->assertInstanceOf( Message::class, $messages[0] );
-		$this->assertEquals( 'Test message', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Test message', $messages[0]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -473,7 +541,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $messages );
 		$this->assertInstanceOf( Message::class, $messages[0] );
-		$this->assertEquals( 'Hello from array', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Hello from array', $messages[0]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -491,7 +559,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$messages = $this->get_wrapped_prompt_builder_property_value( $builder, 'messages' );
 
 		$this->assertCount( 1, $messages );
-		$this->assertEquals( 'Some text', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Some text', $messages[0]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -509,8 +577,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$parts = $messages[0]->getParts();
 		$this->assertCount( 2, $parts );
-		$this->assertEquals( 'Initial text', $parts[0]->getText() );
-		$this->assertEquals( ' Additional text', $parts[1]->getText() );
+		$this->assertSame( 'Initial text', $parts[0]->getText() );
+		$this->assertSame( ' Additional text', $parts[1]->getText() );
 	}
 
 	/**
@@ -531,8 +599,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$file = $messages[0]->getParts()[0]->getFile();
 		$this->assertInstanceOf( File::class, $file );
-		$this->assertEquals( 'data:image/png;base64,' . $base64, $file->getDataUri() );
-		$this->assertEquals( 'image/png', $file->getMimeType() );
+		$this->assertSame( 'data:image/png;base64,' . $base64, $file->getDataUri() );
+		$this->assertSame( 'image/png', $file->getMimeType() );
 	}
 
 	/**
@@ -552,8 +620,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$file = $messages[0]->getParts()[0]->getFile();
 		$this->assertInstanceOf( File::class, $file );
-		$this->assertEquals( 'https://example.com/image.jpg', $file->getUrl() );
-		$this->assertEquals( 'image/jpeg', $file->getMimeType() );
+		$this->assertSame( 'https://example.com/image.jpg', $file->getUrl() );
+		$this->assertSame( 'image/jpeg', $file->getMimeType() );
 	}
 
 	/**
@@ -574,7 +642,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$file = $messages[0]->getParts()[0]->getFile();
 		$this->assertInstanceOf( File::class, $file );
-		$this->assertEquals( 'image/jpeg', $file->getMimeType() );
+		$this->assertSame( 'image/jpeg', $file->getMimeType() );
 	}
 
 	/**
@@ -594,8 +662,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$file = $messages[0]->getParts()[0]->getFile();
 		$this->assertInstanceOf( File::class, $file );
-		$this->assertEquals( 'https://example.com/audio.mp3', $file->getUrl() );
-		$this->assertEquals( 'audio/mpeg', $file->getMimeType() );
+		$this->assertSame( 'https://example.com/audio.mp3', $file->getUrl() );
+		$this->assertSame( 'audio/mpeg', $file->getMimeType() );
 	}
 
 	/**
@@ -638,9 +706,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$parts = $messages[0]->getParts();
 		$this->assertCount( 3, $parts );
-		$this->assertEquals( 'Part 1', $parts[0]->getText() );
-		$this->assertEquals( 'Part 2', $parts[1]->getText() );
-		$this->assertEquals( 'Part 3', $parts[2]->getText() );
+		$this->assertSame( 'Part 1', $parts[0]->getText() );
+		$this->assertSame( 'Part 2', $parts[1]->getText() );
+		$this->assertSame( 'Part 3', $parts[2]->getText() );
 	}
 
 	/**
@@ -664,9 +732,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$messages = $this->get_wrapped_prompt_builder_property_value( $builder, 'messages' );
 
 		$this->assertCount( 3, $messages );
-		$this->assertEquals( 'User 1', $messages[0]->getParts()[0]->getText() );
-		$this->assertEquals( 'Model 1', $messages[1]->getParts()[0]->getText() );
-		$this->assertEquals( 'User 2', $messages[2]->getParts()[0]->getText() );
+		$this->assertSame( 'User 1', $messages[0]->getParts()[0]->getText() );
+		$this->assertSame( 'Model 1', $messages[1]->getParts()[0]->getText() );
+		$this->assertSame( 'User 2', $messages[2]->getParts()[0]->getText() );
 	}
 
 	/**
@@ -704,9 +772,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertInstanceOf( Message::class, $messages[0] );
 		$parts = $messages[0]->getParts();
 		$this->assertCount( 3, $parts );
-		$this->assertEquals( 'Part 1', $parts[0]->getText() );
-		$this->assertEquals( 'Part 2', $parts[1]->getText() );
-		$this->assertEquals( 'Part 3', $parts[2]->getText() );
+		$this->assertSame( 'Part 1', $parts[0]->getText() );
+		$this->assertSame( 'Part 2', $parts[1]->getText() );
+		$this->assertSame( 'Part 3', $parts[2]->getText() );
 	}
 
 	/**
@@ -729,9 +797,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertCount( 1, $messages );
 		$parts = $messages[0]->getParts();
 		$this->assertCount( 3, $parts );
-		$this->assertEquals( 'String part', $parts[0]->getText() );
-		$this->assertEquals( 'Part 1', $parts[1]->getText() );
-		$this->assertEquals( 'Part 2', $parts[2]->getText() );
+		$this->assertSame( 'String part', $parts[0]->getText() );
+		$this->assertSame( 'Part 1', $parts[1]->getText() );
+		$this->assertSame( 'Part 2', $parts[2]->getText() );
 	}
 
 	/**
@@ -769,13 +837,13 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'Be helpful', $config->getSystemInstruction() );
-		$this->assertEquals( 500, $config->getMaxTokens() );
-		$this->assertEquals( 0.8, $config->getTemperature() );
-		$this->assertEquals( 0.95, $config->getTopP() );
-		$this->assertEquals( 50, $config->getTopK() );
-		$this->assertEquals( 2, $config->getCandidateCount() );
-		$this->assertEquals( 'application/json', $config->getOutputMimeType() );
+		$this->assertSame( 'Be helpful', $config->getSystemInstruction() );
+		$this->assertSame( 500, $config->getMaxTokens() );
+		$this->assertSame( 0.8, $config->getTemperature() );
+		$this->assertSame( 0.95, $config->getTopP() );
+		$this->assertSame( 50, $config->getTopK() );
+		$this->assertSame( 2, $config->getCandidateCount() );
+		$this->assertSame( 'application/json', $config->getOutputMimeType() );
 	}
 
 	/**
@@ -901,7 +969,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString(
 			'Model preferences must be model identifiers',
 			$result->get_error_message()
@@ -925,7 +993,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString(
 			'Model preference tuple must contain model identifier and provider ID.',
 			$result->get_error_message()
@@ -944,7 +1012,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString(
 			'Model preference identifiers cannot be empty.',
 			$result->get_error_message()
@@ -963,7 +1031,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString(
 			'At least one model preference must be provided.',
 			$result->get_error_message()
@@ -995,11 +1063,11 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $merged_config */
 		$merged_config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'Builder instruction', $merged_config->getSystemInstruction() );
-		$this->assertEquals( 500, $merged_config->getMaxTokens() );
-		$this->assertEquals( 0.5, $merged_config->getTemperature() );
-		$this->assertEquals( 0.9, $merged_config->getTopP() );
-		$this->assertEquals( 40, $merged_config->getTopK() );
+		$this->assertSame( 'Builder instruction', $merged_config->getSystemInstruction() );
+		$this->assertSame( 500, $merged_config->getMaxTokens() );
+		$this->assertSame( 0.5, $merged_config->getTemperature() );
+		$this->assertSame( 0.9, $merged_config->getTopP() );
+		$this->assertSame( 40, $merged_config->getTopK() );
 	}
 
 	/**
@@ -1022,21 +1090,22 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'stopSequences', $custom_options );
 		$this->assertIsArray( $custom_options['stopSequences'] );
-		$this->assertEquals( array( 'CONFIG_STOP' ), $custom_options['stopSequences'] );
+		$this->assertSame( array( 'CONFIG_STOP' ), $custom_options['stopSequences'] );
 		$this->assertArrayHasKey( 'otherOption', $custom_options );
-		$this->assertEquals( 'value', $custom_options['otherOption'] );
+		$this->assertSame( 'value', $custom_options['otherOption'] );
 
 		$builder->using_stop_sequences( 'STOP' );
 
 		/** @var ModelConfig $merged_config */
-		$merged_config  = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
-		$custom_options = $merged_config->getCustomOptions();
+		$merged_config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
+		$this->assertSame( array( 'STOP' ), $merged_config->getStopSequences() );
+
+		$custom_options = $merged_config->getCustomOptions();
 		$this->assertArrayHasKey( 'stopSequences', $custom_options );
-		$this->assertIsArray( $custom_options['stopSequences'] );
-		$this->assertEquals( array( 'STOP' ), $custom_options['stopSequences'] );
+		$this->assertSame( array( 'CONFIG_STOP' ), $custom_options['stopSequences'] );
 		$this->assertArrayHasKey( 'otherOption', $custom_options );
-		$this->assertEquals( 'value', $custom_options['otherOption'] );
+		$this->assertSame( 'value', $custom_options['otherOption'] );
 	}
 
 	/**
@@ -1051,7 +1120,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertSame( $builder, $result );
 
 		$actual_provider = $this->get_wrapped_prompt_builder_property_value( $builder, 'providerIdOrClassName' );
-		$this->assertEquals( 'test-provider', $actual_provider );
+		$this->assertSame( 'test-provider', $actual_provider );
 	}
 
 	/**
@@ -1068,7 +1137,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'You are a helpful assistant.', $config->getSystemInstruction() );
+		$this->assertSame( 'You are a helpful assistant.', $config->getSystemInstruction() );
 	}
 
 	/**
@@ -1085,7 +1154,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 1000, $config->getMaxTokens() );
+		$this->assertSame( 1000, $config->getMaxTokens() );
 	}
 
 	/**
@@ -1102,7 +1171,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 0.7, $config->getTemperature() );
+		$this->assertSame( 0.7, $config->getTemperature() );
 	}
 
 	/**
@@ -1119,7 +1188,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 0.9, $config->getTopP() );
+		$this->assertSame( 0.9, $config->getTopP() );
 	}
 
 	/**
@@ -1136,7 +1205,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 40, $config->getTopK() );
+		$this->assertSame( 40, $config->getTopK() );
 	}
 
 	/**
@@ -1153,9 +1222,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$custom_options = $config->getCustomOptions();
-		$this->assertArrayHasKey( 'stopSequences', $custom_options );
-		$this->assertEquals( array( 'STOP', 'END', '###' ), $custom_options['stopSequences'] );
+		$this->assertSame( array( 'STOP', 'END', '###' ), $config->getStopSequences() );
 	}
 
 	/**
@@ -1172,7 +1239,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 3, $config->getCandidateCount() );
+		$this->assertSame( 3, $config->getCandidateCount() );
 	}
 
 	/**
@@ -1189,7 +1256,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'application/json', $config->getOutputMimeType() );
+		$this->assertSame( 'application/json', $config->getOutputMimeType() );
 	}
 
 	/**
@@ -1213,7 +1280,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( $schema, $config->getOutputSchema() );
+		$this->assertSame( $schema, $config->getOutputSchema() );
 	}
 
 	/**
@@ -1253,7 +1320,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'application/json', $config->getOutputMimeType() );
+		$this->assertSame( 'application/json', $config->getOutputMimeType() );
 	}
 
 	/**
@@ -1271,8 +1338,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'application/json', $config->getOutputMimeType() );
-		$this->assertEquals( $schema, $config->getOutputSchema() );
+		$this->assertSame( 'application/json', $config->getOutputMimeType() );
+		$this->assertSame( $schema, $config->getOutputSchema() );
 	}
 
 	/**
@@ -1286,7 +1353,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'Cannot generate from an empty prompt', $result->get_error_message() );
 	}
 
@@ -1307,7 +1374,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'The first message must be from a user role', $result->get_error_message() );
 	}
 
@@ -1340,7 +1407,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'The last message must be from a user role', $result->get_error_message() );
 	}
 
@@ -1354,7 +1421,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result  = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'Cannot create a message from an empty string', $result->get_error_message() );
 	}
 
@@ -1368,7 +1435,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result  = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'Cannot create a message from an empty array', $result->get_error_message() );
 	}
 
@@ -1382,7 +1449,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result  = $builder->generate_result();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertStringContainsString( 'Input must be a string, MessagePart, MessagePartArrayShape', $result->get_error_message() );
 	}
 
@@ -1402,7 +1469,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$result = $builder->generate_text();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 	}
 
 	/**
@@ -1558,7 +1625,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
-		$this->assertStringContainsString( 'Output modality "video" is not yet supported', $result->get_error_message() );
+		$this->assertStringContainsString( 'does not support video generation', $result->get_error_message() );
 	}
 
 	/**
@@ -1592,6 +1659,63 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$modalities = $config->getOutputModalities();
 		$this->assertNotNull( $modalities );
 		$this->assertTrue( $modalities[0]->isText() );
+	}
+
+	/**
+	 * Tests that the wrapped PromptBuilder receives the same event dispatcher as AiClient.
+	 *
+	 * @ticket 64935
+	 */
+	public function test_prompt_builder_passes_ai_client_event_dispatcher_to_wrapped_builder() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$wrapped_dispatcher = $this->get_wrapped_prompt_builder_property_value( $builder, 'eventDispatcher' );
+
+		$this->assertSame( AiClient::getEventDispatcher(), $wrapped_dispatcher );
+		$this->assertInstanceOf( WP_AI_Client_Event_Dispatcher::class, $wrapped_dispatcher );
+	}
+
+	/**
+	 * Tests that generate_text_result fires wp_ai_client_before_generate_result and wp_ai_client_after_generate_result in order.
+	 *
+	 * @ticket 64935
+	 */
+	public function test_generate_text_result_fires_lifecycle_action_hooks() {
+		$result = new GenerativeAiResult(
+			'test-result',
+			array( new Candidate( new ModelMessage( array( new MessagePart( 'Generated text' ) ) ), FinishReasonEnum::stop() ) ),
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_text_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_text_generation_model( $result, $metadata );
+
+		$hook_order = array();
+
+		add_action(
+			'wp_ai_client_before_generate_result',
+			static function () use ( &$hook_order ) {
+				$hook_order[] = 'before';
+			}
+		);
+		add_action(
+			'wp_ai_client_after_generate_result',
+			static function () use ( &$hook_order ) {
+				$hook_order[] = 'after';
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Test prompt' );
+		$builder->using_model( $model );
+
+		$actual_result = $builder->generate_text_result();
+
+		$this->assertSame( $result, $actual_result );
+		$this->assertSame( array( 'before', 'after' ), $hook_order );
 	}
 
 	/**
@@ -1762,14 +1886,14 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$texts = $builder->generate_texts( 3 );
 
 		$this->assertCount( 3, $texts );
-		$this->assertEquals( 'Text 1', $texts[0] );
-		$this->assertEquals( 'Text 2', $texts[1] );
-		$this->assertEquals( 'Text 3', $texts[2] );
+		$this->assertSame( 'Text 1', $texts[0] );
+		$this->assertSame( 'Text 2', $texts[1] );
+		$this->assertSame( 'Text 3', $texts[2] );
 
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 3, $config->getCandidateCount() );
+		$this->assertSame( 3, $config->getCandidateCount() );
 	}
 
 	/**
@@ -2052,6 +2176,168 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests generateVideo method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_generate_video() {
+		$file         = new File( 'https://example.com/video.mp4', 'video/mp4' );
+		$message_part = new MessagePart( $file );
+		$message      = new Message( MessageRoleEnum::model(), array( $message_part ) );
+		$candidate    = new Candidate( $message, FinishReasonEnum::stop() );
+
+		$result = new GenerativeAiResult(
+			'test-result',
+			array( $candidate ),
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_video_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_video_generation_model( $result, $metadata );
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Generate video' );
+		$builder->using_model( $model );
+
+		$video_file = $builder->generate_video();
+		$this->assertSame( $file, $video_file );
+	}
+
+	/**
+	 * Tests generateVideos method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_generate_videos() {
+		$files = array(
+			new File( 'https://example.com/video1.mp4', 'video/mp4' ),
+			new File( 'https://example.com/video2.mp4', 'video/mp4' ),
+		);
+
+		$candidates = array();
+		foreach ( $files as $file ) {
+			$candidates[] = new Candidate(
+				new Message( MessageRoleEnum::model(), array( new MessagePart( $file ) ) ),
+				FinishReasonEnum::stop()
+			);
+		}
+
+		$result = new GenerativeAiResult(
+			'test-result-id',
+			$candidates,
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_video_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_video_generation_model( $result, $metadata );
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Generate videos' );
+		$builder->using_model( $model );
+
+		$video_files = $builder->generate_videos( 2 );
+
+		$this->assertCount( 2, $video_files );
+		$this->assertSame( $files[0], $video_files[0] );
+		$this->assertSame( $files[1], $video_files[1] );
+	}
+
+	/**
+	 * Tests generateVideoResult method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_generate_video_result() {
+		$result = new GenerativeAiResult(
+			'test-result',
+			array(
+				new Candidate(
+					new ModelMessage( array( new MessagePart( new File( 'data:video/mp4;base64,AAAAAA==', 'video/mp4' ) ) ) ),
+					FinishReasonEnum::stop()
+				),
+			),
+			new TokenUsage( 100, 50, 150 ),
+			$this->create_test_provider_metadata(),
+			$this->create_test_video_model_metadata()
+		);
+
+		$metadata = $this->createMock( ModelMetadata::class );
+		$metadata->method( 'getId' )->willReturn( 'test-model' );
+
+		$model = $this->create_mock_video_generation_model( $result, $metadata );
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Generate video' );
+		$builder->using_model( $model );
+
+		$actual_result = $builder->generate_video_result();
+		$this->assertSame( $result, $actual_result );
+
+		/** @var ModelConfig $config */
+		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
+
+		$modalities = $config->getOutputModalities();
+		$this->assertNotNull( $modalities );
+		$this->assertTrue( $modalities[0]->isVideo() );
+	}
+
+	/**
+	 * Tests asOutputMediaOrientation method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_as_output_media_orientation() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
+		$result  = $builder->as_output_media_orientation( MediaOrientationEnum::landscape() );
+
+		$this->assertSame( $builder, $result );
+
+		/** @var ModelConfig $config */
+		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
+
+		$this->assertTrue( $config->getOutputMediaOrientation()->isLandscape() );
+	}
+
+	/**
+	 * Tests asOutputMediaAspectRatio method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_as_output_media_aspect_ratio() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
+		$result  = $builder->as_output_media_aspect_ratio( '16:9' );
+
+		$this->assertSame( $builder, $result );
+
+		/** @var ModelConfig $config */
+		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
+
+		$this->assertSame( '16:9', $config->getOutputMediaAspectRatio() );
+	}
+
+	/**
+	 * Tests asOutputSpeechVoice method.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_as_output_speech_voice() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
+		$result  = $builder->as_output_speech_voice( 'alloy' );
+
+		$this->assertSame( $builder, $result );
+
+		/** @var ModelConfig $config */
+		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
+
+		$this->assertSame( 'alloy', $config->getOutputSpeechVoice() );
+	}
+
+	/**
 	 * Tests using_abilities with ability name string.
 	 *
 	 * @ticket 64591
@@ -2066,8 +2352,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 1, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
-		$this->assertEquals( 'A simple test ability with no parameters.', $declarations[0]->getDescription() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'A simple test ability with no parameters.', $declarations[0]->getDescription() );
 	}
 
 	/**
@@ -2087,13 +2373,15 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 1, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__with-params', $declarations[0]->getName() );
-		$this->assertEquals( 'A test ability that accepts parameters.', $declarations[0]->getDescription() );
+		$this->assertSame( 'wpab__wpaiclienttests__with-params', $declarations[0]->getName() );
+		$this->assertSame( 'A test ability that accepts parameters.', $declarations[0]->getDescription() );
 
 		$params = $declarations[0]->getParameters();
 		$this->assertNotNull( $params );
 		$this->assertArrayHasKey( 'properties', $params );
 		$this->assertArrayHasKey( 'title', $params['properties'] );
+		$this->assertSame( array( 'title' ), $params['required'] );
+		$this->assertArrayNotHasKey( 'required', $params['properties']['title'] );
 	}
 
 	/**
@@ -2115,9 +2403,9 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 3, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
-		$this->assertEquals( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
-		$this->assertEquals( 'wpab__wpaiclienttests__returns-error', $declarations[2]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__returns-error', $declarations[2]->getName() );
 	}
 
 	/**
@@ -2143,8 +2431,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 2, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
-		$this->assertEquals( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
 	}
 
 	/**
@@ -2183,8 +2471,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 2, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
-		$this->assertEquals( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__with-params', $declarations[1]->getName() );
 	}
 
 	/**
@@ -2202,7 +2490,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 1, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__hyphen-test', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__hyphen-test', $declarations[0]->getName() );
 	}
 
 	/**
@@ -2224,13 +2512,26 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertNotNull( $declarations );
 		$this->assertCount( 1, $declarations );
-		$this->assertEquals( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
+		$this->assertSame( 'wpab__wpaiclienttests__simple', $declarations[0]->getName() );
 
 		/** @var ModelConfig $config */
 		$config = $this->get_wrapped_prompt_builder_property_value( $builder, 'modelConfig' );
 
-		$this->assertEquals( 'You are a helpful assistant', $config->getSystemInstruction() );
-		$this->assertEquals( 500, $config->getMaxTokens() );
+		$this->assertSame( 'You are a helpful assistant', $config->getSystemInstruction() );
+		$this->assertSame( 500, $config->getMaxTokens() );
+	}
+
+	/**
+	 * Tests that is_supported returns false when prevent prompt filter returns true.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_is_supported_returns_false_when_ai_not_supported() {
+		add_filter( 'wp_supports_ai', '__return_false' );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$this->assertFalse( $builder->is_supported() );
 	}
 
 	/**
@@ -2245,7 +2546,6 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertFalse( $builder->is_supported() );
 	}
-
 	/**
 	 * Tests that generate_result returns WP_Error when prevent prompt filter returns true.
 	 *
@@ -2261,6 +2561,23 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'prompt_prevented', $result->get_error_code() );
 		$this->assertSame( 'Prompt execution was prevented by a filter.', $result->get_error_message() );
+	}
+
+	/**
+	 * Tests that generate_result returns WP_Error when AI is not supported.
+	 *
+	 * @ticket 65422
+	 */
+	public function test_generate_result_returns_wp_error_when_ai_not_supported() {
+		add_filter( 'wp_supports_ai', '__return_false' );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$result = $builder->generate_result();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_prevented', $result->get_error_code() );
+		$this->assertSame( 'AI features are not supported in this environment.', $result->get_error_message() );
 	}
 
 	/**
@@ -2294,6 +2611,75 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$builder2->generate_result();
 		$this->assertNotSame( $builder2, $captured_builder, 'Filter should receive a clone, not the same instance' );
 		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $captured_builder );
+	}
+
+	/**
+	 * Returns the text of every message part held by a prompt builder.
+	 *
+	 * @param WP_AI_Client_Prompt_Builder $builder The prompt builder to read.
+	 * @return string[] The text of each message part, in order.
+	 */
+	private function get_prompt_parts( WP_AI_Client_Prompt_Builder $builder ): array {
+		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $wrapped );
+		$inner = $wrapped->getValue( $builder );
+
+		$messages = new ReflectionProperty( $inner, 'messages' );
+		self::set_accessible( $messages );
+
+		$parts = array();
+		foreach ( $messages->getValue( $inner ) as $message ) {
+			foreach ( $message->getParts() as $part ) {
+				$parts[] = (string) $part->getText();
+			}
+		}
+
+		return $parts;
+	}
+
+	/**
+	 * Tests that a clone does not share the wrapped builder with the original.
+	 *
+	 * @ticket 65782
+	 */
+	public function test_clone_does_not_share_the_wrapped_builder() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
+		$clone   = clone $builder;
+
+		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $wrapped );
+
+		$this->assertNotSame(
+			$wrapped->getValue( $builder ),
+			$wrapped->getValue( $clone ),
+			'A clone should wrap its own builder instance'
+		);
+
+		$clone->with_text( 'Added to the clone' );
+
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'Changing the clone should not change the original' );
+	}
+
+	/**
+	 * Tests that the clone passed to the prevent prompt filter cannot change the prompt.
+	 *
+	 * @ticket 65782
+	 */
+	public function test_prevent_prompt_filter_cannot_mutate_the_original_prompt() {
+		add_filter(
+			'wp_ai_client_prevent_prompt',
+			static function ( $prevent, $builder ) {
+				$builder->with_text( 'Added by the filter' );
+				return $prevent;
+			},
+			10,
+			2
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
+		$builder->is_supported();
+
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'A filter should not be able to change the prompt' );
 	}
 
 	/**
@@ -2332,6 +2718,86 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that support check methods return false when the wrapped builder throws.
+	 *
+	 * @ticket 65781
+	 *
+	 * @dataProvider data_support_check_methods
+	 *
+	 * @param string $method         The support check method on the wrapper.
+	 * @param string $wrapped_method The matching method on the wrapped builder.
+	 */
+	public function test_support_check_methods_return_false_when_builder_throws( $method, $wrapped_method ) {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		$wrapped_builder = $this->createMock( PromptBuilder::class );
+		$wrapped_builder->method( $wrapped_method )
+			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
+
+		$builder_property = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $builder_property );
+		$builder_property->setValue( $prompt_builder, $wrapped_builder );
+
+		$result = $prompt_builder->{$method}();
+
+		$this->assertFalse( $result, $method . ' should return false when the wrapped builder throws' );
+
+		// The error is still recorded, so a generating method returns it.
+		$error = $prompt_builder->generate_text();
+		$this->assertWPError( $error, 'The caught error should still be returned by generating methods' );
+		$this->assertSame(
+			'prompt_builder_error',
+			$error->get_error_code(),
+			'The recorded error should be the one thrown by the wrapped builder'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Support check method names, keyed by the method on the wrapper.
+	 */
+	public static function data_support_check_methods(): array {
+		return array(
+			'is_supported'                               => array( 'is_supported', 'isSupported' ),
+			'is_supported_for_text_generation'           => array( 'is_supported_for_text_generation', 'isSupportedForTextGeneration' ),
+			'is_supported_for_image_generation'          => array( 'is_supported_for_image_generation', 'isSupportedForImageGeneration' ),
+			'is_supported_for_text_to_speech_conversion' => array( 'is_supported_for_text_to_speech_conversion', 'isSupportedForTextToSpeechConversion' ),
+			'is_supported_for_video_generation'          => array( 'is_supported_for_video_generation', 'isSupportedForVideoGeneration' ),
+			'is_supported_for_speech_generation'         => array( 'is_supported_for_speech_generation', 'isSupportedForSpeechGeneration' ),
+			'is_supported_for_music_generation'          => array( 'is_supported_for_music_generation', 'isSupportedForMusicGeneration' ),
+			'is_supported_for_embedding_generation'      => array( 'is_supported_for_embedding_generation', 'isSupportedForEmbeddingGeneration' ),
+		);
+	}
+
+	/**
+	 * Tests that a throw from the bundled client during a support check is handled.
+	 *
+	 * This covers the route reported on the ticket. The document modality has no
+	 * capability to infer, so the wrapped builder throws while determining whether
+	 * the prompt is supported.
+	 *
+	 * @ticket 65781
+	 */
+	public function test_is_supported_returns_false_when_the_bundled_builder_throws() {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		$result = $prompt_builder->as_output_modalities( ModalityEnum::document() )->is_supported();
+
+		$this->assertFalse( $result, 'is_supported should return false when the wrapped builder throws' );
+
+		$error = $prompt_builder->generate_text();
+		$this->assertWPError( $error, 'The caught error should still be returned by generating methods' );
+		$this->assertSame(
+			'prompt_builder_error',
+			$error->get_error_code(),
+			'The document modality should still throw from the wrapped builder. If it no longer does, this test needs another route to a throw'
+		);
+	}
+
+	/**
 	 * Tests that generating methods return WP_Error when in error state.
 	 *
 	 * @ticket 64591
@@ -2360,7 +2826,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$error = $prompt_builder->generate_text();
 
 		$this->assertWPError( $error, 'generate_text should return WP_Error when exception occurs' );
-		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $error->get_error_code() );
 
 		$error_data = $error->get_error_data();
 		$this->assertIsArray( $error_data );
@@ -2435,12 +2901,206 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 			->generate_text();
 
 		$this->assertWPError( $result, 'generate_text should return WP_Error when exception occurs' );
-		$this->assertSame( 'prompt_builder_error', $result->get_error_code() );
+		$this->assertSame( 'prompt_invalid_argument', $result->get_error_code() );
 		$this->assertSame( 'Model preference tuple must contain model identifier and provider ID.', $result->get_error_message() );
 
 		$error_data = $result->get_error_data();
 		$this->assertIsArray( $error_data );
 		$this->assertArrayHasKey( 'exception_class', $error_data );
 		$this->assertNotEmpty( $error_data['exception_class'] );
+	}
+
+	/**
+	 * Invokes the private exception_to_wp_error method via reflection.
+	 *
+	 * @param WP_AI_Client_Prompt_Builder $builder   The builder instance.
+	 * @param Exception                   $exception The exception to convert.
+	 * @return WP_Error The resulting WP_Error.
+	 */
+	private function invoke_exception_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Exception $exception ): WP_Error {
+		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$method     = $reflection->getMethod( 'exception_to_wp_error' );
+		self::set_accessible( $method );
+
+		return $method->invoke( $builder, $exception );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps NetworkException correctly.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_network_exception() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new NetworkException( 'Connection timed out' )
+		);
+
+		$this->assertSame( 'prompt_network_error', $error->get_error_code() );
+		$this->assertSame( 'Connection timed out', $error->get_error_message() );
+		$this->assertSame( 503, $error->get_error_data()['status'] );
+		$this->assertSame( NetworkException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps ClientException with a custom code.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_client_exception_with_code() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new ClientException( 'Unauthorized', 401 )
+		);
+
+		$this->assertSame( 'prompt_client_error', $error->get_error_code() );
+		$this->assertSame( 'Unauthorized', $error->get_error_message() );
+		$this->assertSame( 401, $error->get_error_data()['status'] );
+		$this->assertSame( ClientException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps ClientException without a code to 400.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_client_exception_without_code() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new ClientException( 'Bad request' )
+		);
+
+		$this->assertSame( 'prompt_client_error', $error->get_error_code() );
+		$this->assertSame( 'Bad request', $error->get_error_message() );
+		$this->assertSame( 400, $error->get_error_data()['status'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps ServerException with a custom code.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_server_exception_with_code() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new ServerException( 'Bad gateway', 502 )
+		);
+
+		$this->assertSame( 'prompt_upstream_server_error', $error->get_error_code() );
+		$this->assertSame( 'Bad gateway', $error->get_error_message() );
+		$this->assertSame( 502, $error->get_error_data()['status'] );
+		$this->assertSame( ServerException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps ServerException without a code to 500.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_server_exception_without_code() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new ServerException( 'Internal server error' )
+		);
+
+		$this->assertSame( 'prompt_upstream_server_error', $error->get_error_code() );
+		$this->assertSame( 'Internal server error', $error->get_error_message() );
+		$this->assertSame( 500, $error->get_error_data()['status'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps TokenLimitReachedException correctly.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_token_limit_reached_exception() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new TokenLimitReachedException( 'Token limit exceeded', 4096 )
+		);
+
+		$this->assertSame( 'prompt_token_limit_reached', $error->get_error_code() );
+		$this->assertSame( 'Token limit exceeded', $error->get_error_message() );
+		$this->assertSame( 400, $error->get_error_data()['status'] );
+		$this->assertSame( TokenLimitReachedException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps InvalidArgumentException correctly.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_invalid_argument_exception() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new AiClientInvalidArgumentException( 'Invalid model parameter' )
+		);
+
+		$this->assertSame( 'prompt_invalid_argument', $error->get_error_code() );
+		$this->assertSame( 'Invalid model parameter', $error->get_error_message() );
+		$this->assertSame( 400, $error->get_error_data()['status'] );
+		$this->assertSame( AiClientInvalidArgumentException::class, $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps a generic Exception to the fallback error.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_exception_to_wp_error_generic_exception() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error(
+			$builder,
+			new Exception( 'Something went wrong' )
+		);
+
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
+		$this->assertSame( 'Something went wrong', $error->get_error_message() );
+		$this->assertSame( 500, $error->get_error_data()['status'] );
+		$this->assertSame( 'Exception', $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error always includes status and exception_class in error data.
+	 *
+	 * @ticket 64591
+	 *
+	 * @dataProvider data_exception_to_wp_error_error_data_structure
+	 *
+	 * @param Exception $exception The exception to convert.
+	 */
+	public function test_exception_to_wp_error_error_data_structure( Exception $exception ) {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_exception_to_wp_error( $builder, $exception );
+
+		$data = $error->get_error_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'status', $data );
+		$this->assertIsInt( $data['status'] );
+		$this->assertArrayHasKey( 'exception_class', $data );
+		$this->assertIsString( $data['exception_class'] );
+	}
+
+	/**
+	 * Data provider for test_exception_to_wp_error_error_data_structure.
+	 *
+	 * @return array<string, array{0: Exception}>
+	 */
+	public static function data_exception_to_wp_error_error_data_structure(): array {
+		return array(
+			'NetworkException'           => array( new NetworkException( 'network error' ) ),
+			'ClientException'            => array( new ClientException( 'client error', 422 ) ),
+			'ServerException'            => array( new ServerException( 'server error', 503 ) ),
+			'TokenLimitReachedException' => array( new TokenLimitReachedException( 'token limit' ) ),
+			'InvalidArgumentException'   => array( new AiClientInvalidArgumentException( 'invalid arg' ) ),
+			'generic Exception'          => array( new Exception( 'generic' ) ),
+		);
 	}
 }

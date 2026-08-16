@@ -8,6 +8,20 @@
  * @covers ::wp_script_add_data
  * @covers ::wp_add_inline_script
  * @covers ::wp_set_script_translations
+ *
+ * @phpstan-type ScriptArgs array{
+ *     in_footer?: bool,
+ *     strategy?: 'async'|'defer',
+ *     fetchpriority?: 'low'|'auto'|'high',
+ *     module_dependencies?: array<non-empty-string|array{ id: non-empty-string, ... }>,
+ * }
+ * @phpstan-type WpEnqueueScriptArgs array{
+ *     0: non-empty-string, // $handle
+ *     1?: non-empty-string, // $src
+ *     2?: non-empty-string[], // $deps
+ *     3?: null|bool|string, // $version
+ *     4?: ScriptArgs,
+ * }
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
@@ -543,9 +557,8 @@ JS;
 	 *
 	 * @dataProvider get_data_to_filter_eligible_strategies
 	 *
-	 * @param callable $set_up     Set up.
-	 * @param bool     $async_only Async only.
-	 * @param bool     $expected   Expected return value.
+	 * @param callable $set_up   Set up.
+	 * @param string[] $expected Expected return value.
 	 */
 	public function test_filter_eligible_strategies( $set_up, $expected ) {
 		$handle = $set_up();
@@ -1397,6 +1410,223 @@ HTML
 	}
 
 	/**
+	 * Tests that registering a script with `module_dependencies` triggers `_doing_it_wrong`
+	 * when the script is not printed in the footer and does not use the `defer` strategy.
+	 *
+	 * @ticket 65165
+	 *
+	 * @covers ::wp_register_script
+	 * @covers ::wp_enqueue_script
+	 * @covers ::_wp_scripts_add_args_data
+	 *
+	 * @dataProvider data_module_dependencies_require_footer_or_defer
+	 *
+	 * @param callable-string $function_name Function name to call.
+	 * @param array           $args          Arguments to pass to the function.
+	 * @param bool            $should_warn   Whether the call is expected to trigger a `_doing_it_wrong` warning.
+	 *
+	 * @phpstan-param WpEnqueueScriptArgs $args
+	 */
+	public function test_module_dependencies_require_footer_or_defer( string $function_name, array $args, bool $should_warn ): void {
+		if ( $should_warn ) {
+			$this->setExpectedIncorrectUsage( $function_name );
+		}
+
+		call_user_func_array( $function_name, $args );
+
+		if ( $should_warn ) {
+			$this->assertStringContainsString(
+				'module_dependencies',
+				$this->caught_doing_it_wrong[ $function_name ],
+				'The _doing_it_wrong message should reference module_dependencies.'
+			);
+			$this->assertStringContainsString(
+				'in_footer',
+				$this->caught_doing_it_wrong[ $function_name ],
+				'The _doing_it_wrong message should reference the in_footer requirement.'
+			);
+			$this->assertStringContainsString(
+				'defer',
+				$this->caught_doing_it_wrong[ $function_name ],
+				'The _doing_it_wrong message should reference the defer strategy.'
+			);
+		} else {
+			$this->assertArrayNotHasKey(
+				$function_name,
+				$this->caught_doing_it_wrong,
+				'No _doing_it_wrong warning should be triggered when in_footer is true or strategy is defer.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider for {@see self::test_module_dependencies_require_footer_or_defer()}.
+	 *
+	 * @phpstan-return array<string, array{
+	 *     function_name: callable-string,
+	 *     args: WpEnqueueScriptArgs,
+	 *     should_warn: bool,
+	 * }>
+	 */
+	public function data_module_dependencies_require_footer_or_defer(): array {
+		$base_args = array(
+			'/script.js',
+			array(),
+			null,
+		);
+
+		return array(
+			'register_blocking_warns'            => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-blocking-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+						),
+					)
+				),
+				'should_warn'   => true,
+			),
+			'enqueue_blocking_warns'             => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array_merge(
+					array( 'module-deps-blocking-enqueue' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+						),
+					)
+				),
+				'should_warn'   => true,
+			),
+			'register_async_warns'               => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-async-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'strategy'            => 'async',
+						),
+					)
+				),
+				'should_warn'   => true,
+			),
+			'enqueue_async_warns'                => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array_merge(
+					array( 'module-deps-async-enqueue' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'strategy'            => 'async',
+						),
+					)
+				),
+				'should_warn'   => true,
+			),
+			'register_in_footer_does_not_warn'   => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-footer-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'in_footer'           => true,
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'enqueue_in_footer_does_not_warn'    => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array_merge(
+					array( 'module-deps-footer-enqueue' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'in_footer'           => true,
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'register_defer_does_not_warn'       => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-defer-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'strategy'            => 'defer',
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'enqueue_defer_does_not_warn'        => array(
+				'function_name' => 'wp_enqueue_script',
+				'args'          => array_merge(
+					array( 'module-deps-defer-enqueue' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'strategy'            => 'defer',
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'register_footer_and_defer_no_warn'  => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'module-deps-footer-defer-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array( 'foo' ),
+							'in_footer'           => true,
+							'strategy'            => 'defer',
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+			'register_no_module_deps_no_warn'    => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'no-module-deps-register' ),
+					$base_args,
+					array( array() )
+				),
+				'should_warn'   => false,
+			),
+			'register_empty_module_deps_no_warn' => array(
+				'function_name' => 'wp_register_script',
+				'args'          => array_merge(
+					array( 'empty-module-deps-register' ),
+					$base_args,
+					array(
+						array(
+							'module_dependencies' => array(),
+						),
+					)
+				),
+				'should_warn'   => false,
+			),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array<string, array{enqueues: string[], expected: string}>
@@ -2044,6 +2274,9 @@ HTML;
 
 	/**
 	 * Test script concatenation.
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string $wp_version
 	 */
 	public function test_script_concatenation() {
 		global $wp_scripts, $wp_version;
@@ -2058,9 +2291,9 @@ HTML;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$expected = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two,three&amp;ver={$wp_version}'></script>\n";
+		$expected = "<script src=\"/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two,three&#038;ver={$wp_version}\"></script>\n";
 
-		$this->assertSame( $expected, $print_scripts );
+		$this->assertEqualHTML( $expected, $print_scripts );
 	}
 
 	/**
@@ -3169,6 +3402,7 @@ HTML;
 				'unused',
 				'browser',
 				'globals',
+				'espreeModuleUrl',
 			),
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
@@ -3252,6 +3486,7 @@ HTML;
 				'unused',
 				'browser',
 				'globals',
+				'espreeModuleUrl',
 			),
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
@@ -3349,6 +3584,7 @@ HTML;
 				'unused',
 				'browser',
 				'globals',
+				'espreeModuleUrl',
 			),
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
@@ -3443,6 +3679,7 @@ HTML;
 				'unused',
 				'browser',
 				'globals',
+				'espreeModuleUrl',
 			),
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
@@ -4075,6 +4312,10 @@ HTML;
 
 	/**
 	 * @ticket 63887
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global bool $concatenate_scripts
+	 * @global string $wp_version
 	 */
 	public function test_source_url_with_concat() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -4093,14 +4334,13 @@ HTML;
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected = <<<HTML
+		<script>
+		var one = {"key":"val"};var two = {"key":"val"};
+		//# sourceURL=js-inline-concat-one%2Ctwo
+		</script>
+		<script src="/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two&#038;ver={$wp_version}"></script>
 
-<script>
-var one = {"key":"val"};var two = {"key":"val"};
-//# sourceURL=js-inline-concat-one%2Ctwo
-</script>
-<script src="/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=one,two&ver={$wp_version}"></script>
-
-HTML;
+		HTML;
 
 		$this->assertEqualHTML( $expected, $print_scripts );
 	}
