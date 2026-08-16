@@ -2046,12 +2046,6 @@ function upgrade_430_fix_comments() {
 			'type'   => 'byte',
 			'length' => 65535,
 		);
-	} elseif ( ! is_array( $content_length ) ) {
-		$length         = (int) $content_length > 0 ? (int) $content_length : 65535;
-		$content_length = array(
-			'type'   => 'byte',
-			'length' => $length,
-		);
 	}
 
 	if ( 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
