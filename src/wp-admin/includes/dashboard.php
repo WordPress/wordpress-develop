@@ -1266,6 +1266,7 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 
 	$notes_query = array(
 		'number' => $total_items * 5,
+		'type'   => 'note',
 		'offset' => 0,
 	);
 
