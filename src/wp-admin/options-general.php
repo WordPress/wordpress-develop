@@ -16,13 +16,6 @@ if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
 }
 
-// The nonce is verified by WP_Site_Health::handle_email_delivery_test().
-// phpcs:ignore WordPress.Security.NonceVerification.Missing
-if ( isset( $_POST['action'] ) && 'verify_email_delivery' === $_POST['action'] ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
-	WP_Site_Health::get_instance()->handle_email_delivery_test();
-}
-
 // Used in the HTML title tag.
 $title       = __( 'General Settings' );
 $parent_file = 'options-general.php';
@@ -73,50 +66,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
-
-<?php
-$email_delivery_test_status = '';
-// The query parameter only selects a notice to display.
-// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-if ( isset( $_GET['email-delivery-test'] ) && is_string( $_GET['email-delivery-test'] ) ) {
-	$email_delivery_test_status = sanitize_key( wp_unslash( $_GET['email-delivery-test'] ) );
-}
-
-if ( 'success' === $email_delivery_test_status ) {
-	wp_admin_notice(
-		sprintf(
-			/* translators: %s: Administration email address. */
-			__( 'WordPress accepted a request to send a test email to %s. Check that it arrived in your inbox and review its headers to confirm that the sender details are correct.' ),
-			'<code>' . esc_html( get_option( 'admin_email' ) ) . '</code>'
-		),
-		array(
-			'type'        => 'success',
-			'dismissible' => true,
-		)
-	);
-} elseif ( 'invalid-address' === $email_delivery_test_status ) {
-	wp_admin_notice(
-		__( 'The Administration Email Address is not valid. Enter a valid address before testing email delivery.' ),
-		array(
-			'type'        => 'error',
-			'dismissible' => true,
-		)
-	);
-} elseif ( 'send-failed' === $email_delivery_test_status ) {
-	wp_admin_notice(
-		__( 'The test email could not be sent. Your site may not be correctly configured to send emails.' ),
-		array(
-			'type'        => 'error',
-			'dismissible' => true,
-		)
-	);
-}
-?>
-
-<form id="email-delivery-test-form" method="post" action="<?php echo esc_url( admin_url( 'options-general.php' ) ); ?>">
-	<input type="hidden" name="action" value="verify_email_delivery" />
-	<?php wp_nonce_field( 'verify-email-delivery', '_wpnonce', false ); ?>
-</form>
 
 <form method="post" action="options.php" novalidate="novalidate">
 <?php settings_fields( 'general' ); ?>
@@ -316,34 +265,6 @@ if ( ! is_multisite() ) {
 <th scope="row"><label for="new_admin_email"><?php _e( 'Administration Email Address' ); ?></label></th>
 <td><input name="new_admin_email" type="email" id="new_admin_email" aria-describedby="new-admin-email-description" value="<?php form_option( 'admin_email' ); ?>" class="regular-text ltr" />
 <p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
-<p>
-	<button
-		type="submit"
-		class="button button-secondary"
-		form="email-delivery-test-form"
-		aria-describedby="email-delivery-test-description"
-	><?php _e( 'Verify email delivery' ); ?></button>
-</p>
-<p class="description" id="email-delivery-test-description">
-	<?php
-	_e( 'Send a test message to this address. You must confirm that it reaches the inbox and review its sender headers.' );
-
-	$email_delivery_last_tested = WP_Site_Health::get_instance()->get_email_delivery_last_tested();
-	if ( $email_delivery_last_tested ) {
-		echo ' ';
-		printf(
-			/* translators: %s: Date and time of the most recent email delivery test. */
-			__( 'Last tested: %s.' ),
-			esc_html(
-				wp_date(
-					get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
-					(int) $email_delivery_last_tested
-				)
-			)
-		);
-	}
-	?>
-</p>
 <?php
 $new_admin_email = get_option( 'new_admin_email' );
 if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
