@@ -703,7 +703,7 @@ function get_others_unpublished_posts( $user_id, $type = 'any' ) {
 	else
 		$type_sql = " ( post_status = 'draft' OR post_status = 'pending' ) ";
 
-	$dir = ( 'pending' == $type ) ? 'ASC' : 'DESC';
+	$dir = ( 'pending' === $type ) ? 'ASC' : 'DESC';
 
 	if ( !$editable ) {
 		$other_unpubs = '';
