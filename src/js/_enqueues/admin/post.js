@@ -316,6 +316,39 @@ jQuery( function($) {
 		copyAttachmentURLSuccessTimeout,
 		__ = wp.i18n.__, _x = wp.i18n._x;
 
+	/**
+	 * Toggles the publish button's disabled state based on the title and content fields.
+	 *
+	 * The Publish button is disabled if both the title and content are empty.
+	 *
+	 * @since 6.6.0
+	 */
+	function togglePublishButtonState() {
+		var $title = $( '#title' ),
+			$publishButton = $( '#publish' ),
+			editor = window.tinymce && window.tinymce.get( 'content' ),
+			content;
+
+		if ( editor && ! editor.isHidden() ) {
+			content = editor.getContent( { format: 'text' } );
+		} else {
+			content = $textarea.val();
+		}
+
+		if ( ! $title.val().trim() && ! content.trim() ) {
+			$publishButton.prop( 'disabled', true );
+		} else {
+			$publishButton.prop( 'disabled', false );
+		}
+	}
+
+	// Set initial state and bind events to check publish button state.
+	togglePublishButtonState();
+	$( '#title, #content' ).on( 'input keyup', togglePublishButtonState );
+	$document.on( 'tinymce-editor-init', function( event, editor ) {
+		editor.on( 'keyup input', togglePublishButtonState );
+	} );
+
 	postboxes.add_postbox_toggles(pagenow);
 
 	/*
