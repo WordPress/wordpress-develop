@@ -1398,7 +1398,10 @@ function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
  *
  * @param WP_Post $post
  * @param array   $errors
- * @return array<string, array<string, mixed>> The attachment fields.
+ * @return array<string, string|array<string, mixed>> The attachment fields, keyed by field name. Each value is a field
+ *                                                    definition array, except for underscore-prefixed keys such as
+ *                                                    `_final`, which the `attachment_fields_to_edit` filter may set to
+ *                                                    raw HTML.
  */
 function get_attachment_fields_to_edit( $post, $errors = null ) {
 	if ( is_int( $post ) ) {
