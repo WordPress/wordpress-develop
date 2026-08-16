@@ -2610,8 +2610,11 @@ function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
  * what `rel="prefetch"` describes. `rel="preload"` would fetch them at the current document's
  * priority and make cross-navigation reuse depend entirely on the static files' HTTP cache headers,
  * which core does not control; browsers also warn about preloaded resources the document never uses.
- * The links additionally carry `fetchpriority="low"` so they queue behind the login screen's own
- * render-blocking assets rather than competing with them.
+ * A prefetch is already dispatched at the browser's lowest priority, so it stays out of the way of
+ * the login screen's own render-blocking assets without needing `fetchpriority`.
+ *
+ * The `as` attribute is still worth setting: it gives the request the same destination the admin
+ * screen will later ask for, which is what lets the prefetched response be reused.
  *
  * Nothing is printed when concatenation is enabled, since `load-scripts.php` and
  * `load-styles.php` already collapse these handles into a handful of requests.
@@ -2696,9 +2699,8 @@ function wp_prefetch_admin_assets(): void {
 
 			foreach ( _wp_resolve_dependency_urls( $dependencies, $handle ) as $url ) {
 				$resources[ $url ] = array(
-					'href'          => $url,
-					'as'            => $as,
-					'fetchpriority' => 'low',
+					'href' => $url,
+					'as'   => $as,
 				);
 			}
 		}
@@ -2707,8 +2709,8 @@ function wp_prefetch_admin_assets(): void {
 	/**
 	 * Filters the admin assets prefetched on the login screen.
 	 *
-	 * Only the `href`, `as` and `fetchpriority` attributes below are printed; any other key is
-	 * ignored. Returning an empty array turns the prefetching off.
+	 * Only the `href` and `as` attributes below are printed; any other key is ignored.
+	 * Returning an empty array turns the prefetching off.
 	 *
 	 * @since 7.2.0
 	 *
@@ -2716,9 +2718,8 @@ function wp_prefetch_admin_assets(): void {
 	 *     Resources to prefetch, keyed by URL.
 	 *
 	 *     @type array ...$0 {
-	 *         @type string $href          URL to prefetch.
-	 *         @type string $as            How the browser should treat the resource.
-	 *         @type string $fetchpriority Fetchpriority value for the resource.
+	 *         @type string $href URL to prefetch.
+	 *         @type string $as   How the browser should treat the resource.
 	 *     }
 	 * }
 	 */
@@ -2740,16 +2741,10 @@ function wp_prefetch_admin_assets(): void {
 			continue;
 		}
 
-		$fetchpriority = $resource['fetchpriority'] ?? 'low';
-		if ( ! is_string( $fetchpriority ) ) {
-			$fetchpriority = 'low';
-		}
-
 		printf(
-			"<link rel='prefetch' href='%s' as='%s' fetchpriority='%s' />\n",
+			"<link rel='prefetch' href='%s' as='%s' />\n",
 			esc_url( $href ),
-			esc_attr( $as ),
-			esc_attr( $fetchpriority )
+			esc_attr( $as )
 		);
 	}
 }
