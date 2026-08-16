@@ -223,7 +223,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	color: #72aee6;
 }
 
-#wpadminbar > #wp-toolbar li:hover span.ab-label,
+#wpadminbar:not(.mobile) > #wp-toolbar li:hover span.ab-label,
 #wpadminbar > #wp-toolbar li.hover span.ab-label,
 #wpadminbar:not(.mobile) > #wp-toolbar a:focus span.ab-label {
 	color: #72aee6;
