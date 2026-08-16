@@ -2498,6 +2498,259 @@ function script_concat_settings() {
 }
 
 /**
+ * Resolves a registered script or style handle to the URL it would be loaded from.
+ *
+ * Mirrors how {@see WP_Scripts::do_item()} and {@see WP_Styles::do_item()} build the
+ * URL they print, including the version query argument and the {@see 'script_loader_src'}
+ * and {@see 'style_loader_src'} filters, without printing anything or disturbing the queue.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param WP_Scripts|WP_Styles $dependencies Registry to look the handle up in.
+ * @param string               $handle       Handle to resolve.
+ * @return string[] URLs the handle resolves to. Empty when the handle is not registered,
+ *                  aliases other handles without a source of its own, or is filtered away.
+ *
+ * @phpstan-return list<non-empty-string>
+ */
+function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
+	if ( ! isset( $dependencies->registered[ $handle ] ) ) {
+		return array();
+	}
+
+	$obj = $dependencies->registered[ $handle ];
+
+	// A handle may alias a set of other handles by having dependencies but no source.
+	if ( empty( $obj->src ) || ! is_string( $obj->src ) ) {
+		return array();
+	}
+
+	if ( $dependencies instanceof WP_Styles ) {
+		$href = $dependencies->_css_href( $obj->src, $obj->ver, $handle );
+
+		if ( ! is_string( $href ) || '' === $href ) {
+			return array();
+		}
+
+		$urls = array( $href );
+
+		/*
+		 * On RTL locales a handle may be served by a separate stylesheet, either replacing
+		 * the LTR one or loading alongside it. Follow the same rules WP_Styles::do_item() uses.
+		 */
+		if ( 'rtl' === $dependencies->text_direction && ! empty( $obj->extra['rtl'] ) ) {
+			if ( null === $obj->ver ) {
+				$ver = '';
+			} else {
+				$ver = $obj->ver ? $obj->ver : $dependencies->default_version;
+			}
+
+			if ( isset( $dependencies->args[ $handle ] ) ) {
+				$ver = $ver ? $ver . '&amp;' . $dependencies->args[ $handle ] : $dependencies->args[ $handle ];
+			}
+
+			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
+				$suffix   = isset( $obj->extra['suffix'] ) && is_string( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
+				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $dependencies->_css_href( $obj->src, $ver, "$handle-rtl" ) );
+			} elseif ( is_string( $obj->extra['rtl'] ) ) {
+				$rtl_href = $dependencies->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
+			} else {
+				$rtl_href = '';
+			}
+
+			if ( is_string( $rtl_href ) && '' !== $rtl_href ) {
+				if ( 'replace' === $obj->extra['rtl'] ) {
+					$urls = array( $rtl_href );
+				} else {
+					$urls[] = $rtl_href;
+				}
+			}
+		}
+
+		return $urls;
+	}
+
+	$src = $obj->src;
+
+	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $dependencies->content_url && str_starts_with( $src, $dependencies->content_url ) ) ) {
+		$src = $dependencies->base_url . $src;
+	}
+
+	$ver_to_add = '';
+	if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $dependencies->default_version ) ) {
+		$ver_to_add = $dependencies->default_version;
+	} elseif ( is_scalar( $obj->ver ) ) {
+		$ver_to_add = (string) $obj->ver;
+	}
+
+	if ( '' !== $ver_to_add ) {
+		$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
+	}
+
+	/** This filter is documented in wp-includes/class-wp-scripts.php */
+	$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
+
+	if ( ! is_string( $src ) || '' === $src ) {
+		return array();
+	}
+
+	return array( $src );
+}
+
+/**
+ * Prints preload links on the login screen for the admin assets that concatenation would bundle.
+ *
+ * With concatenation disabled the first admin screen after logging in downloads each of these
+ * files separately, which is what makes an uncached admin load slower than a concatenated one.
+ * Requesting them while the login form is on screen puts them in the HTTP cache during time the
+ * user spends typing credentials, so the redirect that follows finds them already there.
+ *
+ * The links carry `fetchpriority="low"` so they queue behind the login screen's own
+ * render-blocking assets rather than competing with them.
+ *
+ * Nothing is printed when concatenation is enabled, since `load-scripts.php` and
+ * `load-styles.php` already collapse these handles into a handful of requests.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_preload_resources()
+ */
+function wp_preload_admin_assets(): void {
+	/*
+	 * Deliberately not the $concatenate_scripts global: script_concat_settings() often runs on a
+	 * login request before 'login_init' fires — anything registering a script on 'init' is enough
+	 * to trigger it — and at that point it evaluates is_admin() as false and settles the global on
+	 * false whatever the constant says. What matters here is what the admin screen this login leads
+	 * to will do, which is the constant together with the SCRIPT_DEBUG override.
+	 */
+	$admin_will_concatenate = ( defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true )
+		&& ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG );
+
+	if ( $admin_will_concatenate ) {
+		return;
+	}
+
+	/*
+	 * The handles that load-scripts.php and load-styles.php concatenate on an admin screen.
+	 * Handles registered without a source of their own, or not registered at all, are skipped.
+	 */
+	$script_handles = array(
+		'jquery-core',
+		'jquery-migrate',
+		'utils',
+		'hoverIntent',
+		'wp-dom-ready',
+		'wp-hooks',
+	);
+
+	$style_handles = array(
+		'dashicons',
+		'admin-bar',
+		'site-health',
+		'common',
+		'forms',
+		'admin-menu',
+		'dashboard',
+		'list-tables',
+		'edit',
+		'revisions',
+		'media',
+		'themes',
+		'about',
+		'nav-menus',
+		'wp-pointer',
+		'widgets',
+		'site-icon',
+		'l10n',
+		'wp-base-styles',
+		'wp-tooltip',
+		'buttons',
+		'wp-auth-check',
+		'wp-theme',
+		'wp-components',
+		'wp-commands',
+	);
+
+	$resources = array();
+
+	foreach ( array(
+		'script' => $script_handles,
+		'style'  => $style_handles,
+	) as $as => $handles ) {
+		$dependencies = 'script' === $as ? wp_scripts() : wp_styles();
+
+		foreach ( $handles as $handle ) {
+			/*
+			 * The login screen shares a handful of these handles and has already printed them by
+			 * the time this runs, so the browser is fetching them anyway. Preloading them again
+			 * would only add markup.
+			 */
+			if ( in_array( $handle, $dependencies->done, true ) ) {
+				continue;
+			}
+
+			foreach ( _wp_resolve_dependency_urls( $dependencies, $handle ) as $url ) {
+				$resources[ $url ] = array(
+					'href'          => $url,
+					'as'            => $as,
+					'fetchpriority' => 'low',
+				);
+			}
+		}
+	}
+
+	/**
+	 * Filters the admin assets preloaded on the login screen.
+	 *
+	 * Accepts the same resource attributes as the {@see 'wp_preload_resources'} filter.
+	 * Returning an empty array turns the preloading off.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $resources {
+	 *     Resources to preload, keyed by URL.
+	 *
+	 *     @type array ...$0 {
+	 *         @type string $href          URL to preload.
+	 *         @type string $as            How the browser should treat the resource.
+	 *         @type string $fetchpriority Fetchpriority value for the resource.
+	 *     }
+	 * }
+	 */
+	$resources = apply_filters( 'login_preload_admin_assets', $resources );
+
+	if ( ! is_array( $resources ) ) {
+		return;
+	}
+
+	foreach ( $resources as $resource ) {
+		if ( ! is_array( $resource ) ) {
+			continue;
+		}
+
+		$href = $resource['href'] ?? '';
+		$as   = $resource['as'] ?? '';
+
+		if ( ! is_string( $href ) || '' === $href || ! is_string( $as ) || '' === $as ) {
+			continue;
+		}
+
+		$fetchpriority = $resource['fetchpriority'] ?? 'low';
+		if ( ! is_string( $fetchpriority ) ) {
+			$fetchpriority = 'low';
+		}
+
+		printf(
+			"<link rel='preload' href='%s' as='%s' fetchpriority='%s' />\n",
+			esc_url( $href ),
+			esc_attr( $as ),
+			esc_attr( $fetchpriority )
+		);
+	}
+}
+
+/**
  * Handles the enqueueing of block scripts and styles that are common to both
  * the editor and the front-end.
  *
