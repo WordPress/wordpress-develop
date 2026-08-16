@@ -114,6 +114,45 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	}
 
 	/**
+	 * Returns the dates the rendered section ends each row with, in order and
+	 * without the trailing time.
+	 *
+	 * @param string $output The rendered section.
+	 * @return string[] The rendered dates.
+	 */
+	private function get_rendered_days( $output ) {
+		preg_match_all( '#<span>([^<]*)</span></li>#', $output, $matches );
+
+		return array_map(
+			static function ( $date ) {
+				$parts = explode( ', ', $date, 2 );
+
+				return $parts[0];
+			},
+			$matches[1]
+		);
+	}
+
+	/**
+	 * Returns a date that is in the current year whichever day the tests run on,
+	 * so that it is rendered without a year.
+	 *
+	 * @param string $modifier A relative date modifier, as accepted by strtotime().
+	 * @return DateTimeImmutable The date.
+	 */
+	private function date_in_the_current_year( $modifier ) {
+		$now  = current_datetime();
+		$date = $now->modify( $modifier );
+
+		if ( $date->format( 'Y' ) !== $now->format( 'Y' ) ) {
+			// Near the turn of the year, count in the other direction instead.
+			$date = $now->modify( str_replace( '-', '+', $modifier ) );
+		}
+
+		return $date;
+	}
+
+	/**
 	 * @ticket 65890
 	 */
 	public function test_should_return_false_when_there_are_no_notes() {
@@ -359,6 +398,53 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 			'<span class="open-notes-count">1 open note</span>',
 			$output,
 			'Only the open thread should have been counted.'
+		);
+	}
+
+	/**
+	 * The date is the last time the thread was added to, which is the date of
+	 * its most recent reply when it has one.
+	 *
+	 * @ticket 65890
+	 */
+	public function test_should_show_the_date_of_the_most_recent_reply() {
+		$opened  = $this->date_in_the_current_year( '-13 days' );
+		$replied = $opened->modify( '+10 days' );
+
+		$post_id = $this->create_post( 'A post with a reply' );
+		$note_id = $this->create_note( $post_id, '0', 0, $opened->format( 'Y-m-d H:i:s' ) );
+		$this->create_note( $post_id, '0', $note_id, $replied->format( 'Y-m-d H:i:s' ) );
+
+		list( , $output ) = $this->render();
+
+		$this->assertSame(
+			array( date_i18n( 'M jS', $replied->getTimestamp() + $replied->getOffset() ) ),
+			$this->get_rendered_days( $output ),
+			'The date was not the date of the most recent reply.'
+		);
+	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_should_order_posts_by_their_most_recent_reply() {
+		$opened  = $this->date_in_the_current_year( '-13 days' );
+		$replied = $opened->modify( '+10 days' );
+
+		$replied_to_id = $this->create_post( 'A post replied to recently' );
+		$note_id       = $this->create_note( $replied_to_id, '0', 0, $opened->format( 'Y-m-d H:i:s' ) );
+		$this->create_note( $replied_to_id, '0', $note_id, $replied->format( 'Y-m-d H:i:s' ) );
+
+		// Opened after the other thread started, but not added to since.
+		$quiet_id = $this->create_post( 'A post left alone since' );
+		$this->create_note( $quiet_id, '0', 0, $opened->modify( '+1 day' )->format( 'Y-m-d H:i:s' ) );
+
+		list( , $output ) = $this->render();
+
+		$this->assertSame(
+			array( 'A post replied to recently', 'A post left alone since' ),
+			$this->get_linked_titles( $output ),
+			'The posts were not ordered by their most recent reply.'
 		);
 	}
 

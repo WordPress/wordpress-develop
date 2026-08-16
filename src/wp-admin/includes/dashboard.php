@@ -1208,7 +1208,7 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
  * Show Notes section.
  *
  * Lists the posts the current user can edit that have at least one open note,
- * ordered by the most recently added open note.
+ * ordered by the note or reply most recently added to them.
  *
  * @since 7.2.0
  *
@@ -1217,12 +1217,13 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
  */
 function wp_dashboard_recent_notes( $total_items = 5 ) {
 	/*
-	 * Only top level notes are queried: replies live in the same thread, and
-	 * resolving a note approves it, so open notes are the ones still on hold.
+	 * Replies are queried alongside the notes that start a thread, so that a
+	 * thread someone replied to counts as added to when it was replied to.
+	 * Resolving a thread approves the note that starts it, while the replies
+	 * stay on hold, so a reply is only recent activity while its thread is.
 	 */
 	$notes_query = array(
 		'type'    => 'note',
-		'parent'  => 0,
 		'status'  => 'hold',
 		'orderby' => 'comment_date_gmt',
 		'order'   => 'DESC',
@@ -1230,7 +1231,7 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 		'offset'  => 0,
 	);
 
-	// The most recent open note of each post, keyed by post ID.
+	// The most recent open note or reply of each post, keyed by post ID.
 	$latest_notes = array();
 
 	do {
@@ -1240,12 +1241,37 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 			break;
 		}
 
+		/*
+		 * Prime the threads the replies belong to, so that they are not
+		 * queried for one at a time below.
+		 */
+		$thread_ids = array();
+
+		foreach ( $possible as $note ) {
+			if ( $note->comment_parent ) {
+				$thread_ids[] = (int) $note->comment_parent;
+			}
+		}
+
+		if ( $thread_ids ) {
+			_prime_comment_caches( array_unique( $thread_ids ), false );
+		}
+
 		foreach ( $possible as $note ) {
 			$note_post_id = (int) $note->comment_post_ID;
 
 			// Only the first note of a post is kept, as notes are ordered by date.
 			if ( isset( $latest_notes[ $note_post_id ] ) ) {
 				continue;
+			}
+
+			// A reply is resolved along with the thread it belongs to.
+			if ( $note->comment_parent ) {
+				$thread = get_comment( (int) $note->comment_parent );
+
+				if ( ! $thread || '0' !== $thread->comment_approved ) {
+					continue;
+				}
 			}
 
 			// Notes are only visible to users who can edit the post they belong to.
@@ -1283,6 +1309,7 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 				'status'  => 'hold',
 				'post_id' => $note_post_id,
 				'count'   => true,
+				'orderby' => 'none',
 			)
 		);
 	}
