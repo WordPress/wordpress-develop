@@ -1268,20 +1268,23 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 		return false;
 	}
 
-	// Count the open notes of each of the posts about to be displayed.
-	$open_notes = array_fill_keys( array_keys( $latest_notes ), 0 );
+	/*
+	 * Count the open notes of each of the posts about to be displayed. A count
+	 * query per post is cheaper than one query for every open note on them: the
+	 * count is a single value, so the notes themselves are never loaded.
+	 */
+	$open_notes = array();
 
-	$post_notes = get_comments(
-		array(
-			'type'     => 'note',
-			'parent'   => 0,
-			'status'   => 'hold',
-			'post__in' => array_keys( $latest_notes ),
-		)
-	);
-
-	foreach ( $post_notes as $post_note ) {
-		++$open_notes[ (int) $post_note->comment_post_ID ];
+	foreach ( array_keys( $latest_notes ) as $note_post_id ) {
+		$open_notes[ $note_post_id ] = (int) get_comments(
+			array(
+				'type'    => 'note',
+				'parent'  => 0,
+				'status'  => 'hold',
+				'post_id' => $note_post_id,
+				'count'   => true,
+			)
+		);
 	}
 
 	echo '<div id="latest-notes" class="activity-block">';
