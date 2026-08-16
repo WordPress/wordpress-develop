@@ -1248,14 +1248,6 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 				continue;
 			}
 
-			// if ( $note->comment_parent ) {
-			// 	$parent_note = get_comment( (int) $note->comment_parent );
-
-			// 	if ( ! $parent_note || 'hold' !== wp_get_comment_status( $parent_note ) ) {
-			// 		continue;
-			// 	}
-			// }
-
 			// Notes are only visible to users who can edit the post they belong to.
 			if ( ! current_user_can( 'edit_post', $note_post_id ) ) {
 				continue;
