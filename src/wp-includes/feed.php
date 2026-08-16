@@ -720,20 +720,46 @@ function get_feed_build_date( $format ) {
 	$utc               = new DateTimeZone( 'UTC' );
 
 	if ( ! empty( $wp_query ) && $wp_query->have_posts() ) {
-		// Extract the post modified times from the posts.
-		$modified_times = wp_list_pluck( $wp_query->posts, 'post_modified_gmt' );
+		/*
+		 * Resolve each entry to a WP_Post so we can read post_modified_gmt.
+		 * Supports queries using fields => 'ids' where $posts contains
+		 * integers, as well as the default WP_Post objects.
+		 */
+		$modified_times = array_filter(
+			array_map(
+				static function ( $post ) {
+					$post_object = get_post( $post );
+					return $post_object instanceof WP_Post ? $post_object->post_modified_gmt : null;
+				},
+				$wp_query->posts
+			)
+		);
 
 		// If this is a comment feed, check those objects too.
 		if ( $wp_query->is_comment_feed() && $wp_query->comment_count ) {
-			// Extract the comment modified times from the comments.
-			$comment_times = wp_list_pluck( $wp_query->comments, 'comment_date_gmt' );
+			/*
+			 * Resolve each entry to a WP_Comment so we can read
+			 * comment_date_gmt. Supports comment queries using
+			 * fields => 'ids' as well as the default WP_Comment objects.
+			 */
+			$comment_times = array_filter(
+				array_map(
+					static function ( $comment ) {
+						$comment_object = get_comment( $comment );
+						return $comment_object instanceof WP_Comment ? $comment_object->comment_date_gmt : null;
+					},
+					$wp_query->comments
+				)
+			);
 
 			// Add the comment times to the post times for comparison.
 			$modified_times = array_merge( $modified_times, $comment_times );
 		}
 
 		// Determine the maximum modified time.
-		$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', max( $modified_times ), $utc );
+		if ( $modified_times ) {
+			$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', max( $modified_times ), $utc );
+		}
 	}
 
 	if ( false === $datetime ) {
