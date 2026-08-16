@@ -5,6 +5,7 @@ on:
   workflow_run:
     workflows:
       - 'Check Built Files (PRs)'
+      - 'Sync Gutenberg Packages'
       - 'Test Default Themes & Create ZIPs'
     types:
       - completed
