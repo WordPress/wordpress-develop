@@ -44,6 +44,28 @@ jobs:
       # generated below, so `GITHUB_TOKEN` only needs read access to the triggering workflow's artifacts.
       actions: read # Required to list and download the artifact uploaded by the triggering workflow run.
     steps:
+      - name: Output PR link
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const headBranch = context.payload.workflow_run.head_branch;
+            const headRepoOwner = context.payload.workflow_run.head_repository.owner.login;
+            
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${headRepoOwner}:${headBranch}`,
+              state: 'open'
+            });
+            
+            if (pullRequests && pullRequests.length > 0) {
+              for (const pr of pullRequests) {
+                core.notice(`Pull request being updated: ${pr.html_url}`);
+              }
+            } else {
+              core.notice(`Could not find open PR for branch ${headRepoOwner}:${headBranch}.`);
+            }
+
       - name: Download artifact
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
