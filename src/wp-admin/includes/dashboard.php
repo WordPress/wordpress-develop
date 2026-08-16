@@ -953,6 +953,28 @@ function _wp_dashboard_recent_notes_row( &$comment, $show_date = true ) {
 	} else {
 		$comment_post_link = '';
 	}
+
+
+		$today    = current_time( 'Y-m-d' );
+		$year     = current_time( 'Y' );
+
+		$time = get_comment_date( 'U' );
+
+		if ( ! is_int( $time ) ) {
+			/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+			$date = get_comment_date( __( 'M jS Y' ) );
+		} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
+			$date = __( 'Today' );
+		} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
+			$date = __( 'Tomorrow' );
+		} elseif ( gmdate( 'Y', $time ) !== $year ) {
+			/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+			$date = date_i18n( __( 'M jS Y' ), $time );
+		} else {
+			/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
+			$date = date_i18n( __( 'M jS' ), $time );
+		}
+
 	?>
 
 		<li id="comment-<?php echo $comment->comment_ID; ?>" <?php comment_class( array( 'comment-item', wp_get_comment_status( $comment ) ), $comment ); ?>>
@@ -964,19 +986,19 @@ function _wp_dashboard_recent_notes_row( &$comment, $show_date = true ) {
 			<div class="dashboard-comment-wrap has-row-actions">
 			<p class="comment-meta">
 				<?php
-				echo get_comment_date( '', $comment );
+				echo $date . " " . get_comment_date("H:s");
 				// Pingbacks, Trackbacks or custom comment types might not have a post they relate to, e.g. programmatically created ones.
 				if ( $comment_post_link ) {
 					printf(
 						/* translators: 1: Type of comment, 2: Post link, 3: Notification if the comment is pending. */
-						_x( ' - From %1$s on %2$s', 'dashboard' ),
+						_x( ' - From <em>%1$s</em> on %2$s', 'dashboard' ),
 						get_comment_author( $comment ),
 						$comment_post_link
 					);
 				} else {
 					printf(
 						/* translators: 1: Type of comment, 2: Notification if the comment is pending. */
-						_x( ' - From %1$s', 'dashboard' ),
+						_x( ' - From <em>%1$s</em>', 'dashboard' ),
 						get_comment_author( $comment )
 					);
 				}
