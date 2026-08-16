@@ -14,7 +14,7 @@ services:
 
     environment:
       LOCAL_DIR: ${LOCAL_DIR-src}
-      LOCAL_NGINX_COMPRESSION: ${LOCAL_NGINX_COMPRESSION-on}
+      LOCAL_NGINX_COMPRESSION: ${LOCAL_NGINX_COMPRESSION-off}
 
     volumes:
       - ./tools/local-env/default.template:/etc/nginx/conf.d/default.template
