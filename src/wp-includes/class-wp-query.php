@@ -782,7 +782,8 @@ class WP_Query {
 	 *                                                   character used for exclusion can be modified using the
 	 *                                                   the 'wp_query_search_exclusion_prefix' filter.
 	 *     @type string[]        $search_columns         Array of column names to be searched. Accepts 'post_title',
-	 *                                                   'post_excerpt' and 'post_content'. Default empty array.
+	 *                                                   'post_excerpt', 'post_content', and 'post_name'.
+	 *                                                   Default empty array.
 	 *     @type int             $second                 Second of the minute. Default empty. Accepts numbers 0-59.
 	 *     @type bool            $sentence               Whether to search by phrase. Default false.
 	 *     @type bool            $suppress_filters       Whether to suppress filters. Default false.
@@ -1463,6 +1464,7 @@ class WP_Query {
 		$query_vars['search_orderby_title'] = array();
 
 		$default_search_columns = array( 'post_title', 'post_excerpt', 'post_content' );
+		$allowed_search_columns = array( 'post_title', 'post_excerpt', 'post_content', 'post_name' );
 		$search_columns         = ! empty( $query_vars['search_columns'] ) ? $query_vars['search_columns'] : $default_search_columns;
 		if ( ! is_array( $search_columns ) ) {
 			$search_columns = array( $search_columns );
@@ -1471,10 +1473,12 @@ class WP_Query {
 		/**
 		 * Filters the columns to search in a WP_Query search.
 		 *
-		 * The supported columns are `post_title`, `post_excerpt` and `post_content`.
-		 * They are all included by default.
+		 * The supported columns are `post_title`, `post_excerpt`, `post_content`,
+		 * and `post_name`. By default, `post_title`, `post_excerpt`, and
+		 * `post_content` are searched.
 		 *
 		 * @since 6.2.0
+		 * @since 7.1.0 Added support for `post_name`.
 		 *
 		 * @param string[] $search_columns Array of column names to be searched.
 		 * @param string   $search         Text being searched.
@@ -1483,7 +1487,7 @@ class WP_Query {
 		$search_columns = (array) apply_filters( 'post_search_columns', $search_columns, $query_vars['s'], $this );
 
 		// Use only supported search columns.
-		$search_columns = array_intersect( $search_columns, $default_search_columns );
+		$search_columns = array_intersect( $search_columns, $allowed_search_columns );
 		if ( empty( $search_columns ) ) {
 			$search_columns = $default_search_columns;
 		}
