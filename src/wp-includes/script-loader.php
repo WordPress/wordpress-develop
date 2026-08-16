@@ -2658,18 +2658,24 @@ function wp_prefetch_admin_assets(): void {
 	}
 
 	/*
-	 * A successful login lands on `redirect_to` when one was given, and on the admin otherwise.
-	 * When it points somewhere else, such as the front end or a plugin's own screen, none of
-	 * these assets are wanted. wp_validate_redirect() mirrors what wp_safe_redirect() will do
-	 * with a value pointing off-host, which is to fall back to the admin.
+	 * Resolve where the login is going to land, the same way wp-login.php will: `redirect_to`
+	 * when one was given, and the admin otherwise. wp_validate_redirect() mirrors what
+	 * wp_safe_redirect() does with a value pointing off-host, which is to fall back to the admin.
 	 */
-	if ( isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
-		$destination = wp_validate_redirect( esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), admin_url() );
-		$admin_path  = (string) wp_parse_url( admin_url(), PHP_URL_PATH );
+	$redirect_to = admin_url();
 
-		if ( '' === $admin_path || ! str_starts_with( (string) wp_parse_url( $destination, PHP_URL_PATH ), $admin_path ) ) {
-			return;
-		}
+	if ( isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
+		$redirect_to = wp_validate_redirect( esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), admin_url() );
+	}
+
+	/*
+	 * When the login lands somewhere other than the admin, such as the front end or a plugin's
+	 * own screen, none of these assets are wanted.
+	 */
+	$admin_path = (string) wp_parse_url( admin_url(), PHP_URL_PATH );
+
+	if ( '' === $admin_path || ! str_starts_with( (string) wp_parse_url( $redirect_to, PHP_URL_PATH ), $admin_path ) ) {
+		return;
 	}
 
 	/*
@@ -2750,7 +2756,7 @@ function wp_prefetch_admin_assets(): void {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array $resources {
+	 * @param array  $resources {
 	 *     Resources to prefetch, keyed by URL.
 	 *
 	 *     @type array ...$0 {
@@ -2758,8 +2764,14 @@ function wp_prefetch_admin_assets(): void {
 	 *         @type string $as   How the browser should treat the resource.
 	 *     }
 	 * }
+	 * @param string $redirect_to URL the login will redirect to, already run through
+	 *                            wp_validate_redirect() with the admin as the fallback. Always
+	 *                            points into the admin, since nothing is prefetched otherwise,
+	 *                            but may be relative: this is the value as wp_safe_redirect()
+	 *                            will receive it, so a request-supplied path is passed through
+	 *                            unchanged and only the fallback is a full URL.
 	 */
-	$resources = apply_filters( 'login_prefetch_admin_assets', $resources );
+	$resources = apply_filters( 'login_prefetch_admin_assets', $resources, $redirect_to );
 
 	if ( ! is_array( $resources ) ) {
 		return;
