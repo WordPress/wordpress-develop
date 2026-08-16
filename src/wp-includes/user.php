@@ -1014,7 +1014,10 @@ function wp_list_users( $args = array() ) {
 	if ( ! $parsed_args['echo'] ) {
 		return $return;
 	}
+
 	echo $return;
+
+	return null;
 }
 
 /**

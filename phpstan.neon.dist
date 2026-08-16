@@ -80,7 +80,6 @@ includes:
 	- tests/phpstan/baselines/property.private.neon
 	- tests/phpstan/baselines/property.protected.neon
 	- tests/phpstan/baselines/return.empty.neon
-	- tests/phpstan/baselines/return.missing.neon
 	- tests/phpstan/baselines/return.type.neon
 	- tests/phpstan/baselines/return.unusedType.neon
 	- tests/phpstan/baselines/smallerOrEqual.alwaysTrue.neon
