@@ -934,12 +934,14 @@ body #dashboard-widgets .postbox form .submit {
 }
 
 #future-posts ul,
-#published-posts ul {
+#published-posts ul,
+#latest-notes ul {
 	margin: 8px -12px 0 -12px;
 }
 
 #future-posts li,
-#published-posts li {
+#published-posts li,
+#latest-notes li {
 	display: grid;
 	grid-template-columns: clamp(160px, calc(2vw + 140px), 200px) auto;
 	column-gap: 10px;
@@ -947,8 +949,14 @@ body #dashboard-widgets .postbox form .submit {
 	padding: 4px 12px;
 }
 
+/* Recent Notes rows add a third column for the number of open notes. */
+#latest-notes li {
+	grid-template-columns: clamp(160px, calc(2vw + 140px), 200px) auto max-content;
+}
+
 #future-posts li:nth-child(odd),
-#published-posts li:nth-child(odd) {
+#published-posts li:nth-child(odd),
+#latest-notes li:nth-child(odd) {
 	background-color: #f6f7f7;
 }
 

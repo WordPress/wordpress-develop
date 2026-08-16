@@ -933,26 +933,18 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 }
 
 /**
- * Outputs a row for the Recent Notes widget.  Notes are implemented as a type of comment.
+ * Outputs a row for the Recent Notes widget. Notes are implemented as a type of comment.
+ *
+ * Each row represents a post with open notes, not an individual note.
  *
  * @access private
  * @since 7.2.0
  *
- * @global WP_Comment $comment Global comment object.
- *
- * @param WP_Comment $note      The current note.
- * @param bool       $show_date Optional. Whether to display the date.
+ * @param WP_Comment $note       The most recent open note of the post.
+ * @param int        $open_notes Optional. Number of open notes the post has. Default 1.
  */
-function _wp_dashboard_recent_notes_row( &$note, $show_date = true ) {
-	$GLOBALS['comment'] = clone $note;
-
-	if ( $note->comment_post_ID > 0 ) {
-		$note_post_title = _draft_or_post_title( $note->comment_post_ID );
-		$note_post_url   = get_edit_post_link( $note->comment_post_ID );
-		$note_post_link  = '<a href="' . esc_url( $note_post_url ) . '">' . $note_post_title . '</a>';
-	} else {
-		$note_post_link = '';
-	}
+function _wp_dashboard_recent_notes_row( $note, $open_notes = 1 ) {
+	$note_post_id = (int) $note->comment_post_ID;
 
 	$today    = current_time( 'Y-m-d' );
 	$tomorrow = current_datetime()->modify( '+1 day' )->format( 'Y-m-d' );
@@ -961,54 +953,36 @@ function _wp_dashboard_recent_notes_row( &$note, $show_date = true ) {
 	$time = get_comment_date( 'U', $note );
 
 	if ( ! is_int( $time ) ) {
-		/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+		/* translators: Date and time format for recent notes on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
 		$date = get_comment_date( __( 'M jS Y' ), $note );
 	} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
 		$date = __( 'Today' );
 	} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
 		$date = __( 'Tomorrow' );
 	} elseif ( gmdate( 'Y', $time ) !== $year ) {
-		/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+		/* translators: Date and time format for recent notes on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
 		$date = date_i18n( __( 'M jS Y' ), $time );
 	} else {
-		/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
+		/* translators: Date and time format for recent notes on the dashboard, see https://www.php.net/manual/datetime.format.php */
 		$date = date_i18n( __( 'M jS' ), $time );
 	}
 
-	?>
+	$note_post_title = _draft_or_post_title( $note_post_id );
 
-		<li id="comment-<?php echo $note->comment_ID; ?>" <?php comment_class( array( 'comment-item', wp_get_comment_status( $note ) ), $note ); ?>>
-
-			<?php
-			$note_row_class = '';
-			$note_type      = esc_html( ucwords( $note->comment_type ) );
-			?>
-			<div class="dashboard-comment-wrap has-row-actions">
-			<p class="comment-meta">
-				<?php
-				echo $date . ' ' . get_comment_date( 'H:s', $note );
-				// Notes might not have a post they relate to, e.g. programmatically created ones.
-				if ( $note_post_link ) {
-					printf(
-						/* translators: 1: Note author, 2: Post link. */
-						_x( ' - From <em>%1$s</em> on %2$s', 'dashboard' ),
-						get_comment_author( $note ),
-						$note_post_link
-					);
-				} else {
-					printf(
-						/* translators: 1: Note author. */
-						_x( ' - From <em>%1$s</em>', 'dashboard' ),
-						get_comment_author( $note )
-					);
-				}
-				?>
-			</p>
-			<blockquote><p><?php comment_excerpt( $note ); ?></p></blockquote>
-			</div>
-		</li>
-	<?php
-	$GLOBALS['comment'] = null;
+	printf(
+		'<li><a href="%2$s" aria-label="%3$s">%4$s</a> <span class="open-notes-count">%5$s</span> <span>%1$s</span></li>',
+		/* translators: 1: Relative date, 2: Time. */
+		sprintf( _x( '%1$s, %2$s', 'dashboard' ), $date, get_comment_time( '', false, true, $note ) ),
+		esc_url( get_edit_post_link( $note_post_id ) ),
+		/* translators: %s: Post title. */
+		esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $note_post_title ) ),
+		$note_post_title,
+		sprintf(
+			/* translators: %s: Number of open notes. */
+			_n( '%s open note', '%s open notes', $open_notes ),
+			number_format_i18n( $open_notes )
+		)
+	);
 }
 
 /**
@@ -1233,27 +1207,32 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 /**
  * Show Notes section.
  *
+ * Lists the posts the current user can edit that have at least one open note,
+ * ordered by the most recently added open note.
+ *
  * @since 7.2.0
  *
- * @param int $total_items Optional. Number of notes to query. Default 5.
- * @return bool False if no notes were found. True otherwise.
+ * @param int $total_items Optional. Number of posts to display. Default 5.
+ * @return bool False if no posts with open notes were found. True otherwise.
  */
 function wp_dashboard_recent_notes( $total_items = 5 ) {
-	// Select all notes.
-	$notes = array();
-
+	/*
+	 * Only top level notes are queried: replies live in the same thread, and
+	 * resolving a note approves it, so open notes are the ones still on hold.
+	 */
 	$notes_query = array(
-		'number' => $total_items * 5,
-		'type'   => 'note',
-		'offset' => 0,
-
+		'type'    => 'note',
+		'parent'  => 0,
+		'status'  => 'hold',
+		'orderby' => 'comment_date_gmt',
+		'order'   => 'DESC',
+		'number'  => $total_items * 5,
+		'offset'  => 0,
 	);
 
-	if ( ! current_user_can( 'edit_posts' ) ) {
-		$notes_query['status'] = 'approve';
-	}
+	// The most recent open note of each post, keyed by post ID.
+	$latest_notes = array();
 
-	$notes_count = 0;
 	do {
 		$possible = get_comments( $notes_query );
 
@@ -1262,40 +1241,60 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 		}
 
 		foreach ( $possible as $note ) {
-			if ( ! current_user_can( 'edit_post', $note->comment_post_ID )
-				&& ( post_password_required( $note->comment_post_ID )
-					|| ! current_user_can( 'read_post', $note->comment_post_ID ) )
-			) {
-				// The user has no access to the post and thus cannot see the comments.
+			$note_post_id = (int) $note->comment_post_ID;
+
+			// Only the first note of a post is kept, as notes are ordered by date.
+			if ( isset( $latest_notes[ $note_post_id ] ) ) {
 				continue;
 			}
 
-			$notes[]     = $note;
-			$notes_count = count( $notes );
+			// Notes are only visible to users who can edit the post they belong to.
+			if ( ! current_user_can( 'edit_post', $note_post_id ) ) {
+				continue;
+			}
 
-			if ( $notes_count === $total_items ) {
+			$latest_notes[ $note_post_id ] = $note;
+
+			if ( count( $latest_notes ) === $total_items ) {
 				break 2;
 			}
 		}
 
 		$notes_query['offset'] += $notes_query['number'];
 		$notes_query['number']  = $total_items * 10;
-	} while ( $notes_count < $total_items );
+	} while ( count( $latest_notes ) < $total_items );
 
-	if ( $notes ) {
-		echo '<div id="latest-notes" class="activity-block table-view-list">';
-		echo '<h3>' . __( 'Recent Notes' ) . '</h3>';
-
-		echo '<ul id="the-notes-list" data-wp-lists="list:notes">';
-		foreach ( $notes as $note ) {
-			_wp_dashboard_recent_notes_row( $note );
-		}
-		echo '</ul>';
-
-		echo '</div>';
-	} else {
+	if ( ! $latest_notes ) {
 		return false;
 	}
+
+	// Count the open notes of each of the posts about to be displayed.
+	$open_notes = array_fill_keys( array_keys( $latest_notes ), 0 );
+
+	$post_notes = get_comments(
+		array(
+			'type'     => 'note',
+			'parent'   => 0,
+			'status'   => 'hold',
+			'post__in' => array_keys( $latest_notes ),
+		)
+	);
+
+	foreach ( $post_notes as $post_note ) {
+		++$open_notes[ (int) $post_note->comment_post_ID ];
+	}
+
+	echo '<div id="latest-notes" class="activity-block">';
+	echo '<h3>' . __( 'Recent Notes' ) . '</h3>';
+
+	echo '<ul>';
+	foreach ( $latest_notes as $note_post_id => $note ) {
+		_wp_dashboard_recent_notes_row( $note, $open_notes[ $note_post_id ] );
+	}
+	echo '</ul>';
+
+	echo '</div>';
+
 	return true;
 }
 
