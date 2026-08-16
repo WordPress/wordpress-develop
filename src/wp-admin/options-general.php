@@ -305,7 +305,7 @@ if ( ! is_multisite() ) {
 <th scope="row"><label for="default_role"><?php _e( 'New User Default Role' ); ?></label></th>
 <td>
 	<?php
-	/* This filter is documented in wp-includes/functions.php */
+	/** This filter is documented in wp-includes/functions.php */
 	$roles_to_exclude = apply_filters( 'default_role_excluded_roles', array( 'administrator', 'editor' ) );
 
 	/**
