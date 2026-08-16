@@ -946,9 +946,12 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 function _wp_dashboard_recent_notes_row( &$note, $show_date = true ) {
 	$GLOBALS['comment'] = clone $note;
 
-	if ( $note->comment_post_ID > 0 ) {
-		$note_post_title = _draft_or_post_title( $note->comment_post_ID );
-		$note_post_url   = get_edit_post_link( $note->comment_post_ID );
+	// WP_Comment exposes its columns as strings, so the post ID is cast before use.
+	$note_post_id = (int) $note->comment_post_ID;
+
+	if ( $note_post_id > 0 ) {
+		$note_post_title = _draft_or_post_title( $note_post_id );
+		$note_post_url   = get_edit_post_link( $note_post_id );
 		$note_post_link  = '<a href="' . esc_url( $note_post_url ) . '">' . $note_post_title . '</a>';
 	} else {
 		$note_post_link = '';
