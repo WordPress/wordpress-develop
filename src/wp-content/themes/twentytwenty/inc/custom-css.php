@@ -20,16 +20,14 @@ if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 	 * @param string $prefix   The CSS prefix.
 	 * @param string $suffix   The CSS suffix.
 	 * @param bool   $display  Print the styles.
-	 * @return string|void Generated CSS.
+	 * @return string Generated CSS.
 	 */
 	function twentytwenty_generate_css( $selector, $style, $value, $prefix = '', $suffix = '', $display = true ) {
-
 		/*
 		 * Bail early if we have no $selector elements or properties and $value.
 		 */
 		if ( ! $value || ! $selector ) {
-
-			return;
+			return '';
 		}
 
 		$return = sprintf( '%s { %s: %s; }', $selector, $style, $prefix . $value . $suffix );
