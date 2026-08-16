@@ -43,7 +43,6 @@ includes:
 	- tests/phpstan/baselines/empty.property.neon
 	- tests/phpstan/baselines/empty.variable.neon
 	- tests/phpstan/baselines/encapsedStringPart.nonString.neon
-	- tests/phpstan/baselines/foreach.nonIterable.neon
 	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
 	- tests/phpstan/baselines/function.impossibleType.neon
 	- tests/phpstan/baselines/function.resultUnused.neon

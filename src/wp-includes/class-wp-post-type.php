@@ -820,7 +820,7 @@ final class WP_Post_Type {
 		}
 
 		// Remove registered custom meta capabilities.
-		foreach ( $this->cap as $cap ) {
+		foreach ( (array) $this->cap as $cap ) {
 			unset( $post_type_meta_caps[ $cap ] );
 		}
 	}
