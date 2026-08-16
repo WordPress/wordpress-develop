@@ -80,6 +80,18 @@ module.exports = function(grunt) {
 			SOURCE_DIR + 'wp-includes/assets/script-modules-packages.php',
 		],
 
+		/*
+		 * Files included in the `/gutenberg` directory that should be excluded.
+		 *
+		 * `tools/gutenberg/copy.js` copies every package under `gutenberg/build/scripts/`
+		 * indiscriminately. These files are not properly excluded from the built zip file
+		 * built for WordPress Core, so they need to be ecluded manually instead.
+		 */
+		gutenbergExcludedCoreFiles = [
+			'wp-includes/js/dist/sync.js',
+			'wp-includes/js/dist/sync.min.js',
+		],
+
 		// All files built by Webpack, in /src or /build.
 		// Webpack only builds Core-specific media files and development scripts.
 		// Blocks, packages, script modules, and vendors come from the Gutenberg build.
@@ -1727,6 +1739,20 @@ module.exports = function(grunt) {
 		} );
 	} );
 
+	/*
+	 * Remove files that are in the `gutenberg` directory that should be included in Core.
+	 */
+	grunt.registerTask( 'gutenberg:remove-excluded-files', 'Removes Gutenberg-sourced files that should not ship in WordPress Core.', function() {
+		gutenbergExcludedCoreFiles.forEach( function( file ) {
+			var filePath = WORKING_DIR + file;
+
+			if ( fs.existsSync( filePath ) ) {
+				fs.unlinkSync( filePath );
+				grunt.log.writeln( 'Removed ' + filePath );
+			}
+		} );
+	} );
+
 	grunt.renameTask( 'watch', '_watch' );
 
 	grunt.registerTask( 'watch', function() {
@@ -2238,7 +2264,8 @@ module.exports = function(grunt) {
 				'build:js',
 				'build:css',
 				'build:codemirror',
-				'build:certificates'
+				'build:certificates',
+				'gutenberg:remove-excluded-files'
 			] );
 		} else {
 			grunt.task.run( [
@@ -2250,7 +2277,8 @@ module.exports = function(grunt) {
 				'build:css',
 				'build:codemirror',
 				'replace:source-maps',
-				'verify:build'
+				'verify:build',
+				'gutenberg:remove-excluded-files'
 			] );
 		}
 	} );
