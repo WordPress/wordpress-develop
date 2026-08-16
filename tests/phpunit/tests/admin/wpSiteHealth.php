@@ -867,7 +867,11 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			false
 		);
 
-		wp_delete_user( $user->ID );
+		if ( is_multisite() ) {
+			wpmu_delete_user( $user->ID );
+		} else {
+			wp_delete_user( $user->ID );
+		}
 		wp_set_current_user( 0 );
 
 		$this->assertSame( 'recommended', $this->instance->get_test_email_delivery()['status'] );
