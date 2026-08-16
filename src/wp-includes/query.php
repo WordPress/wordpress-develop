@@ -462,6 +462,8 @@ function is_comment_feed() {
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @return bool Whether the query is for the front page of the site.
+ *
+ * @phpstan-impure
  */
 function is_front_page() {
 	global $wp_query;
