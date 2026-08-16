@@ -1045,7 +1045,7 @@ function wp_dashboard_site_activity() {
 
 	$recent_notes = wp_dashboard_recent_notes();
 
-	if ( ! $future_posts && ! $recent_posts && ! $recent_comments ) {
+	if ( ! $future_posts && ! $recent_posts && ! $recent_comments && ! $recent_notes ) {
 		echo '<div class="no-activity">';
 		echo '<p>' . __( 'No activity yet!' ) . '</p>';
 		echo '</div>';
@@ -1246,6 +1246,7 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 		'number' => $total_items * 5,
 		'type'   => 'note',
 		'offset' => 0,
+
 	);
 
 	if ( ! current_user_can( 'edit_posts' ) ) {
