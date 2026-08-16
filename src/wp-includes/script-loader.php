@@ -2616,6 +2616,11 @@ function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
  * The `as` attribute is still worth setting: it gives the request the same destination the admin
  * screen will later ask for, which is what lets the prefetched response be reused.
  *
+ * Every handle covered here loads on all admin screens rather than only on the Dashboard, so the
+ * list does not vary with where the login lands. Nothing is printed at all when the login is not
+ * going to lead to an admin screen: on the password reset, registration and logout flows, on an
+ * interim login, or when `redirect_to` points outside the admin.
+ *
  * Nothing is printed when concatenation is enabled, since `load-scripts.php` and
  * `load-styles.php` already collapse these handles into a handful of requests.
  *
@@ -2639,7 +2644,39 @@ function wp_prefetch_admin_assets(): void {
 	}
 
 	/*
+	 * Only the login form is followed by an admin screen. The password reset, registration,
+	 * logout confirmation and check-your-email flows all render through 'login_head' too, and
+	 * none of them leads anywhere these assets are wanted. An interim login re-authenticates
+	 * inside a modal on a page that has already loaded them, so it does not need them either.
+	 */
+	$login_action = isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] )
+		? sanitize_key( wp_unslash( $_REQUEST['action'] ) )
+		: 'login';
+
+	if ( 'login' !== $login_action || isset( $_REQUEST['interim-login'] ) ) {
+		return;
+	}
+
+	/*
+	 * A successful login lands on `redirect_to` when one was given, and on the admin otherwise.
+	 * When it points somewhere else, such as the front end or a plugin's own screen, none of
+	 * these assets are wanted. wp_validate_redirect() mirrors what wp_safe_redirect() will do
+	 * with a value pointing off-host, which is to fall back to the admin.
+	 */
+	if ( isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
+		$destination = wp_validate_redirect( esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), admin_url() );
+		$admin_path  = (string) wp_parse_url( admin_url(), PHP_URL_PATH );
+
+		if ( '' === $admin_path || ! str_starts_with( (string) wp_parse_url( $destination, PHP_URL_PATH ), $admin_path ) ) {
+			return;
+		}
+	}
+
+	/*
 	 * The handles that load-scripts.php and load-styles.php concatenate on an admin screen.
+	 * Every handle listed here loads on all admin screens, not just the one the login happens
+	 * to land on, so the list does not depend on the destination. Screen-specific handles are
+	 * deliberately left out: `site-health` is concatenated on the Dashboard but nowhere else.
 	 * Handles registered without a source of their own, or not registered at all, are skipped.
 	 */
 	$script_handles = array(
@@ -2654,7 +2691,6 @@ function wp_prefetch_admin_assets(): void {
 	$style_handles = array(
 		'dashicons',
 		'admin-bar',
-		'site-health',
 		'common',
 		'forms',
 		'admin-menu',
