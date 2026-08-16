@@ -452,7 +452,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 			'The font_face_settings data should match the expected data.'
 		);
 
-		$expected_file_path = WP_CONTENT_DIR . '/uploads/fonts/subdir/' . reset( $files )['name'];
+		$expected_file_path = ABSPATH . '/' . UPLOADS . '/fonts/subdir/' . reset( $files )['name'];
 		$expected_post_meta = 'subdir/' . reset( $files )['name'];
 		$this->assertFileExists( $expected_file_path, 'The font file should exist in the expected subdirectory.' );
 		$this->assertSame( $expected_post_meta, get_post_meta( $data['id'], '_wp_font_face_file', true ), 'The post meta should match the expected subdirectory.' );
