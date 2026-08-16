@@ -123,6 +123,7 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
+  # - Upload JUnit test results for scheduled runs.
   # - Upload the code coverage report to Codecov.io.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
@@ -254,7 +255,7 @@ jobs:
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http ${{ github.event_name == 'schedule' && '--log-junit tests/phpunit/build/logs/junit-external-http.xml' || '' }}
 
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
@@ -264,6 +265,7 @@ jobs:
             --verbose \
             -c "${PHPUNIT_CONFIG}" \
             ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
+            ${{ github.event_name == 'schedule' && '--log-junit tests/phpunit/build/logs/junit-main.xml' || '' }} \
             ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml"' || '' }}
         env:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
@@ -272,18 +274,27 @@ jobs:
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ajax
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ajax ${{ github.event_name == 'schedule' && '--log-junit tests/phpunit/build/logs/junit-ajax.xml' || '' }}
 
       - name: Run ms-files tests as a multisite install
         if: ${{ inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files ${{ github.event_name == 'schedule' && '--log-junit tests/phpunit/build/logs/junit-ms-files.xml' || '' }}
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
+        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__ ${{ github.event_name == 'schedule' && '--log-junit tests/phpunit/build/logs/junit-xdebug.xml' || '' }}
+
+      - name: Upload PHPUnit test results
+        if: ${{ always() && github.event_name == 'schedule' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: phpunit-results-php-${{ inputs.php }}-${{ inputs.db-type }}-${{ inputs.db-version }}-${{ inputs.multisite && 'multisite' || 'single-site' }}-${{ inputs.memcached && 'memcached' || 'default' }}${{ inputs.phpunit-test-groups && format('-{0}', inputs.phpunit-test-groups) || '' }}${{ 'example.org' != inputs.tests-domain && '-custom-domain' || '' }}
+          path: tests/phpunit/build/logs/*.xml
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Upload test coverage report to Codecov
         if: ${{ inputs.coverage-report }}
