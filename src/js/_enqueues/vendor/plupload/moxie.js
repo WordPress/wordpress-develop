@@ -224,7 +224,7 @@ define('moxie/core/utils/Basic', [], function() {
 	};
 
 	/**
-	Recieve an array of functions (usually async) to call in sequence, each  function
+	Receive an array of functions (usually async) to call in sequence, each  function
 	receives a callback as first argument that it should call, when it completes. Finally,
 	after everything is complete, main callback is called. Passing truthy value to the
 	callback as a first argument will interrupt the sequence and invoke main callback
@@ -259,7 +259,7 @@ define('moxie/core/utils/Basic', [], function() {
 
 
 	/**
-	Recieve an array of functions (usually async) to call in parallel, each  function
+	Receive an array of functions (usually async) to call in parallel, each  function
 	receives a callback as first argument that it should call, when it completes. After 
 	everything is complete, main callback is called. Passing truthy value to the
 	callback as a first argument will interrupt the process and invoke main callback
