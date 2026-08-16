@@ -940,71 +940,71 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
  *
  * @global WP_Comment $comment Global comment object.
  *
- * @param WP_Comment $comment   The current comment.
+ * @param WP_Comment $note      The current note.
  * @param bool       $show_date Optional. Whether to display the date.
  */
-function _wp_dashboard_recent_notes_row( &$comment, $show_date = true ) {
-	$GLOBALS['comment'] = clone $comment;
+function _wp_dashboard_recent_notes_row( &$note, $show_date = true ) {
+	$GLOBALS['comment'] = clone $note;
 
-	if ( $comment->comment_post_ID > 0 ) {
-		$comment_post_title = _draft_or_post_title( $comment->comment_post_ID );
-		$comment_post_url   = get_edit_post_link( $comment->comment_post_ID );
-		$comment_post_link  = '<a href="' . esc_url( $comment_post_url ) . '">' . $comment_post_title . '</a>';
+	if ( $note->comment_post_ID > 0 ) {
+		$note_post_title = _draft_or_post_title( $note->comment_post_ID );
+		$note_post_url   = get_edit_post_link( $note->comment_post_ID );
+		$note_post_link  = '<a href="' . esc_url( $note_post_url ) . '">' . $note_post_title . '</a>';
 	} else {
-		$comment_post_link = '';
+		$note_post_link = '';
 	}
 
+	$today    = current_time( 'Y-m-d' );
+	$tomorrow = current_datetime()->modify( '+1 day' )->format( 'Y-m-d' );
+	$year     = current_time( 'Y' );
 
-		$today    = current_time( 'Y-m-d' );
-		$year     = current_time( 'Y' );
+	$time = get_comment_date( 'U', $note );
 
-		$time = get_comment_date( 'U' );
-
-		if ( ! is_int( $time ) ) {
-			/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-			$date = get_comment_date( __( 'M jS Y' ) );
-		} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
-			$date = __( 'Today' );
-		} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
-			$date = __( 'Tomorrow' );
-		} elseif ( gmdate( 'Y', $time ) !== $year ) {
-			/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-			$date = date_i18n( __( 'M jS Y' ), $time );
-		} else {
-			/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
-			$date = date_i18n( __( 'M jS' ), $time );
-		}
+	if ( ! is_int( $time ) ) {
+		/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+		$date = get_comment_date( __( 'M jS Y' ), $note );
+	} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
+		$date = __( 'Today' );
+	} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
+		$date = __( 'Tomorrow' );
+	} elseif ( gmdate( 'Y', $time ) !== $year ) {
+		/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+		$date = date_i18n( __( 'M jS Y' ), $time );
+	} else {
+		/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
+		$date = date_i18n( __( 'M jS' ), $time );
+	}
 
 	?>
 
-		<li id="comment-<?php echo $comment->comment_ID; ?>" <?php comment_class( array( 'comment-item', wp_get_comment_status( $comment ) ), $comment ); ?>>
+		<li id="comment-<?php echo $note->comment_ID; ?>" <?php comment_class( array( 'comment-item', wp_get_comment_status( $note ) ), $note ); ?>>
 
 			<?php
-			$comment_row_class = '';
-			$type = esc_html( ucwords( $comment->comment_type ) );
+			$note_row_class = '';
+			$note_type      = esc_html( ucwords( $note->comment_type ) );
 			?>
 			<div class="dashboard-comment-wrap has-row-actions">
 			<p class="comment-meta">
 				<?php
-				echo $date . " " . get_comment_date("H:s");
-				// Pingbacks, Trackbacks or custom comment types might not have a post they relate to, e.g. programmatically created ones.
-				if ( $comment_post_link ) {
+				echo $date . ' ' . get_comment_date( 'H:s', $note );
+				// Notes might not have a post they relate to, e.g. programmatically created ones.
+				if ( $note_post_link ) {
 					printf(
-						/* translators: 1: Type of comment, 2: Post link, 3: Notification if the comment is pending. */
+						/* translators: 1: Note author, 2: Post link. */
 						_x( ' - From <em>%1$s</em> on %2$s', 'dashboard' ),
-						get_comment_author( $comment ),
-						$comment_post_link
+						get_comment_author( $note ),
+						$note_post_link
 					);
 				} else {
 					printf(
-						/* translators: 1: Type of comment, 2: Notification if the comment is pending. */
+						/* translators: 1: Note author. */
 						_x( ' - From <em>%1$s</em>', 'dashboard' ),
-						get_comment_author( $comment )
+						get_comment_author( $note )
 					);
 				}
 				?>
 			</p>
-			<blockquote><p><?php comment_excerpt( $comment ); ?></p></blockquote>
+			<blockquote><p><?php comment_excerpt( $note ); ?></p></blockquote>
 			</div>
 		</li>
 	<?php
