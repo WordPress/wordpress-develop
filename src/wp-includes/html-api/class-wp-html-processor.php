@@ -642,6 +642,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see self::ERROR_UNSUPPORTED
 	 * @see self::ERROR_EXCEEDED_MAX_BOOKMARKS
 	 *
+	 * @phpstan-impure
+	 *
 	 * @return string|null The last error, if one exists, otherwise null.
 	 */
 	public function get_last_error(): ?string {
