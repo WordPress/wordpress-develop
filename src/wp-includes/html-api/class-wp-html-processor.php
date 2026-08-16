@@ -1632,6 +1632,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#the-before-html-insertion-mode
@@ -1732,6 +1733,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#the-before-head-insertion-mode
@@ -2162,6 +2164,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#the-after-head-insertion-mode
@@ -3430,6 +3433,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-intable
@@ -3904,6 +3908,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-intbody
