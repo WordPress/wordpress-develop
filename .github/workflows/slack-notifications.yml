@@ -135,7 +135,7 @@ jobs:
       # The REST API exposes a distinct `timed_out` job conclusion that is unavailable through workflow contexts.
       - name: Determine whether the workflow timed out
         id: timeout-check
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         if: ${{ inputs.calling_status == 'cancelled' }}
         with:
           retries: 2
@@ -147,7 +147,7 @@ jobs:
               repo: context.repo.repo,
               run_id: `${context.runId}`,
               attempt_number: Number( process.env.GITHUB_RUN_ATTEMPT ),
-            });
+            }, ( response ) => response.data.jobs );
 
             return jobs.some( ( job ) => job.conclusion === 'timed_out' ) ? 'true' : 'false';
 
