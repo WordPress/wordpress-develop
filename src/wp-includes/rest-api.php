@@ -249,7 +249,7 @@ function rest_api_default_filters() {
 	}
 
 	// Default serving.
-	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
+	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers', 10, 2 );
 	add_filter( 'rest_post_dispatch', 'rest_send_allow_header', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
@@ -798,11 +798,14 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * Sends Cross-Origin Resource Sharing headers with API requests.
  *
  * @since 4.4.0
+ * @since 7.2.0 Added the `$result` parameter. An `Access-Control-Allow-Methods`
+ *              header already set on the response is no longer overwritten.
  *
- * @param mixed $value Response data.
+ * @param mixed            $value  Response data.
+ * @param WP_HTTP_Response $result Optional. Result to send to the client. Default null.
  * @return mixed Response data.
  */
-function rest_send_cors_headers( $value ) {
+function rest_send_cors_headers( $value, $result = null ) {
 	$origin = get_http_origin();
 
 	if ( $origin ) {
@@ -811,7 +814,22 @@ function rest_send_cors_headers( $value ) {
 			$origin = sanitize_url( $origin );
 		}
 		header( 'Access-Control-Allow-Origin: ' . $origin );
-		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
+
+		/*
+		 * This runs on 'rest_pre_serve_request', after the response's own headers
+		 * have already been emitted by WP_REST_Server::send_headers(). Sending the
+		 * default list unconditionally would replace a value set on the response --
+		 * for instance through the 'rest_post_dispatch' filter -- because header()
+		 * replaces by default. Only send the default when the response has not
+		 * provided one. Header names are case-insensitive.
+		 */
+		$response_headers = ( $result instanceof WP_HTTP_Response ) ? $result->get_headers() : array();
+		$response_headers = array_change_key_case( $response_headers );
+
+		if ( ! isset( $response_headers['access-control-allow-methods'] ) ) {
+			header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
+		}
+
 		header( 'Access-Control-Allow-Credentials: true' );
 		header( 'Vary: Origin', false );
 	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
