@@ -78,6 +78,7 @@
 		"source-map-loader": "5.0.0",
 		"terser-webpack-plugin": "5.4.0",
 		"typescript": "5.9.3",
+		"update-browserslist-db": "1.2.3",
 		"uuid": "13.0.0",
 		"wait-on": "9.0.4",
 		"webpack": "5.105.4"
