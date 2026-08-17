@@ -123,7 +123,7 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
-  # - Upload JUnit timing results for scheduled runs.
+  # - Upload JUnit timing results as an artifact.
   # - Upload the code coverage report to Codecov.io.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
@@ -270,11 +270,11 @@ jobs:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
           MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
 
-      # Use the existing host test reporting job as the canonical timing environment.
-      - name: Upload PHPUnit timing results
+      - name: Upload PHPUnit timing results as an artifact
         if: |
           always() &&
-          github.event_name == 'schedule' &&
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/trunk' &&
           inputs.php == '8.5' &&
           inputs.report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
