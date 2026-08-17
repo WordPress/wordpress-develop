@@ -894,7 +894,7 @@ function strip_html_newlines( $text ) {
 
 		if ( 0 !== $i % 2 ) {
 			foreach ( $preserve_newlines_elements as $element ) {
-				if ( stripos( $chunk, '<' . $element ) === 0 ) {
+				if ( preg_match( '~^<' . $element . '[\s/>]~i', $chunk ) ) {
 					$skip = true;
 					break;
 				}
