@@ -30,6 +30,12 @@ module.exports = {
 					`Avoid "${ value }" value for the "${ property }" property. For accessibility reasons, visual, reading, and DOM order must match. Only use the reverse values when they do not affect reading order, meaning, and interaction.`,
 			},
 		],
+		'font-family-no-missing-generic-family-keyword': [
+			true,
+			{
+				ignoreFontFamilies: ['dashicons'],
+			},
+		],
 		'font-weight-notation': 'numeric',
 		'function-disallowed-list': ['rgb'],
 		'no-descending-specificity': null,
