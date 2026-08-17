@@ -10,8 +10,8 @@ module.exports = {
 		'at-rule-empty-line-before': [
 			'always',
 			{
-				except: ['blockless-after-blockless'],
-				ignore: ['first-nested', 'after-comment'],
+				except: [ 'blockless-after-blockless' ],
+				ignore: [ 'first-nested', 'after-comment' ],
 			},
 		],
 		'at-rule-no-unknown': null,
@@ -33,11 +33,11 @@ module.exports = {
 		'font-family-no-missing-generic-family-keyword': [
 			true,
 			{
-				ignoreFontFamilies: ['dashicons'],
+				ignoreFontFamilies: [ 'dashicons' ],
 			},
 		],
 		'font-weight-notation': 'numeric',
-		'function-disallowed-list': ['rgb'],
+		'function-disallowed-list': [ 'rgb' ],
 		'no-descending-specificity': null,
 		'no-invalid-position-at-import-rule': null,
 		'property-disallowed-list': [
@@ -50,8 +50,8 @@ module.exports = {
 		'rule-empty-line-before': [
 			'always',
 			{
-				except: ['first-nested'],
-				ignore: ['after-comment'],
+				except: [ 'first-nested' ],
+				ignore: [ 'after-comment' ],
 			},
 		],
 		'selector-class-pattern': [
