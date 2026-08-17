@@ -51,4 +51,20 @@ class Tests_Formatting_StripHtmlNewlines extends WP_UnitTestCase {
 			$this->assertStringContainsString( "x\ny", $out, "Newline inside <{$tag}> should be preserved." );
 		}
 	}
+
+	/**
+	 * @ticket 5678
+	 */
+	public function test_does_not_preserve_newlines_in_tags_prefixed_with_preserved_name() {
+		$cases = array(
+			'preload'   => "<preload>some\ncontent</preload><p>normal\ntext</p>",
+			'codeblock' => "<codeblock>x\ny</codeblock>",
+			'keyboard'  => "<keyboard>a\nb</keyboard>",
+		);
+
+		foreach ( $cases as $tag => $html ) {
+			$out = strip_html_newlines( $html );
+			$this->assertStringNotContainsString( "\n", $out, "Newlines inside <{$tag}> should be stripped (not a preserved element)." );
+		}
+	}
 }
