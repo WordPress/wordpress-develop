@@ -222,6 +222,10 @@ table.diff th {
 	word-wrap: break-word;
 }
 
+table.diff thead tr.diff-sub-title th input[type="button"] {
+	vertical-align: middle;
+}
+
 table.diff td h1,
 table.diff td h2,
 table.diff td h3,
