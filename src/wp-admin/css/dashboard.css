@@ -1033,21 +1033,6 @@ body #dashboard-widgets .postbox form .submit {
 	top: 0;
 }
 
-/* Dashboard activity widget - notes */
-
-#latest-notes ul {
-	margin: 8px -12px 0 -12px
-}
-
-#latest-notes li{
-	padding: 4px 12px;
-	color: #646970;
-}
-
-#latest-notes li:nth-child(odd) {
-	background-color: #f6f7f7;
-}
-
 /* Browse happy box */
 
 #dashboard-widgets #dashboard_browser_nag.postbox .inside {

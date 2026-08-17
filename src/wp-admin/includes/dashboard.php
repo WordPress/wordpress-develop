@@ -969,11 +969,18 @@ function _wp_dashboard_recent_notes_row( $note, $open_notes = 1 ) {
 
 	$note_post_title = _draft_or_post_title( $note_post_id );
 
+	// The post may have been deleted since the note was queried.
+	$note_post_link = get_edit_post_link( $note_post_id );
+
+	if ( ! $note_post_link ) {
+		return;
+	}
+
 	printf(
-		'<li><a href="%2$s" aria-label="%3$s">%4$s</a> <span class="open-notes-count">%5$s</span> <span>%1$s</span></li>',
+		'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a> <span class="open-notes-count">%5$s</span></li>',
 		/* translators: 1: Relative date, 2: Time. */
 		sprintf( _x( '%1$s, %2$s', 'dashboard' ), $date, get_comment_time( '', false, true, $note ) ),
-		esc_url( get_edit_post_link( $note_post_id ) ),
+		esc_url( $note_post_link ),
 		/* translators: %s: Post title. */
 		esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $note_post_title ) ),
 		$note_post_title,

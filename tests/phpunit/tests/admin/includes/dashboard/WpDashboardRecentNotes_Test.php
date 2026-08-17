@@ -114,14 +114,14 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	}
 
 	/**
-	 * Returns the dates the rendered section ends each row with, in order and
+	 * Returns the dates the rendered section starts each row with, in order and
 	 * without the trailing time.
 	 *
 	 * @param string $output The rendered section.
 	 * @return string[] The rendered dates.
 	 */
 	private function get_rendered_days( $output ) {
-		preg_match_all( '#<span>([^<]*)</span></li>#', $output, $matches );
+		preg_match_all( '#<li><span>([^<]*)</span>#', $output, $matches );
 
 		return array_map(
 			static function ( $date ) {

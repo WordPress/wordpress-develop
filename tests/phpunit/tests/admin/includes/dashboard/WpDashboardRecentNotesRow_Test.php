@@ -97,13 +97,13 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 	}
 
 	/**
-	 * Returns the date and time a rendered row ends with.
+	 * Returns the date and time a rendered row starts with.
 	 *
 	 * @param string $output The rendered row.
 	 * @return string The contents of the date element.
 	 */
 	private function get_rendered_date( $output ) {
-		preg_match( '#<span>([^<]*)</span></li>#', $output, $matches );
+		preg_match( '#<li><span>([^<]*)</span>#', $output, $matches );
 
 		$this->assertNotEmpty( $matches, 'The row did not render a date.' );
 
@@ -132,6 +132,24 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 			'href="' . esc_url( get_edit_post_link( self::$post_id ) ) . '"',
 			$output,
 			'The row did not link to the edit screen of the post.'
+		);
+	}
+
+	/**
+	 * A post can be deleted between the moment its notes are queried and the
+	 * moment the row is rendered.
+	 *
+	 * @ticket 65890
+	 */
+	public function test_should_render_nothing_for_a_post_without_an_edit_link() {
+		$note = $this->create_note();
+
+		wp_delete_post( self::$post_id, true );
+
+		$this->assertSame(
+			'',
+			$this->render( $note ),
+			'A note whose post has no edit link rendered a row.'
 		);
 	}
 
