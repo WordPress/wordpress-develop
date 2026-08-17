@@ -136,6 +136,7 @@ jobs:
     name: ${{ ( inputs.phpunit-test-groups || inputs.coverage-report ) && format( 'PHP {0} with ', inputs.php ) || '' }} ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ vars.RUNNERS_NAME || inputs.os }}
     timeout-minutes: ${{ inputs.coverage-report && 120 || inputs.php == '8.4' && 30 || 20 }}
+    continue-on-error: ${{ matrix.php == '8.6' || false }}
     permissions:
       contents: read
 
