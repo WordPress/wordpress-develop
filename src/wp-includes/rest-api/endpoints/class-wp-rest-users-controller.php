@@ -567,6 +567,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
+		if ( ! empty( $request['roles'] ) && ! current_user_can( 'promote_users' ) ) {
+			return new WP_Error(
+				'rest_cannot_edit_roles',
+				__( 'Sorry, you are not allowed to give users that role.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
 		return true;
 	}
 
