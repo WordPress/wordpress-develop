@@ -3,7 +3,7 @@
 require_once dirname( __DIR__, 2 ) . '/includes/class-wp-phpunit-timing-metrics.php';
 
 /**
- * @group phpunit
+ * @group core-vitals-tooling
  *
  * @ticket 65887
  */

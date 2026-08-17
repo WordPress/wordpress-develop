@@ -274,7 +274,11 @@ jobs:
           MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
 
       - name: Publish PHPUnit timing metrics
-        if: ${{ github.event_name == 'schedule' && inputs.php == '8.5' && inputs.report }}
+        if: |
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/trunk' &&
+          inputs.php == '8.5' &&
+          inputs.report
         env:
           CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
         run: |

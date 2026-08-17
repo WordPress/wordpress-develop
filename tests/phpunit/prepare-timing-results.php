@@ -1,6 +1,13 @@
 #!/usr/bin/env php
 <?php
 
+/**
+ * Prepares aggregate PHPUnit timing metrics for publication to CodeVitals.
+ *
+ * @package WordPress
+ * @subpackage UnitTests
+ */
+
 require_once __DIR__ . '/includes/class-wp-phpunit-timing-metrics.php';
 
 if ( 5 !== $argc ) {
