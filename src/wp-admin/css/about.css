@@ -78,6 +78,7 @@
 	}
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors -- For historical reasons this file is split in sections and contains duplicate selectors based on the sections. */
 .about__container {
 	max-width: 1000px;
 	margin: 24px auto;
@@ -143,6 +144,7 @@
 
 /* 1.1 - Layout */
 
+/* stylelint-disable-next-line no-duplicate-selectors -- For historical reasons this file is split in sections and contains duplicate selectors based on the sections. */
 .about__section {
 	margin: 0;
 }
@@ -239,6 +241,7 @@
 	grid-template-columns: 3fr 2fr;
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors -- For historical reasons this file is split in sections and contains duplicate selectors based on the sections. */
 .about__section .is-section-header {
 	grid-column-start: 1;
 	grid-column-end: -1;
@@ -332,10 +335,12 @@
 	}
 
 	.about__section.has-2-columns:not(.is-wider-right,.is-wider-left) div:has(img) {
+		/* stylelint-disable-next-line property-disallowed-list -- Only applies to decorative images. */
 		order: 1;
 	}
 
 	.about__section.has-2-columns:not(.is-wider-right,.is-wider-left) div:not(:has(img)) {
+		/* stylelint-disable-next-line property-disallowed-list -- Only applies to decorative images. */
 		order: 0;
 	}
 
@@ -392,6 +397,7 @@
 
 /* 1.2 - Typography & Elements */
 
+/* stylelint-disable-next-line no-duplicate-selectors -- For historical reasons this file is split in sections and contains duplicate selectors based on the sections. */
 .about__container {
 	line-height: 1.4;
 	color: var(--text);
@@ -560,11 +566,13 @@
 	font-size: inherit;
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors -- For historical reasons this file is split in sections and contains duplicate selectors based on the sections. */
 .about__section {
 	font-size: 1.125rem;
 	line-height: 1.55;
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors -- For historical reasons this file is split in sections and contains duplicate selectors based on the sections. */
 .about__section.is-feature {
 	font-size: 1.6em;
 }
@@ -807,7 +815,6 @@
 	}
 }
 
-
 /*------------------------------------------------------------------------------
   2.0 - Credits Page
 ------------------------------------------------------------------------------*/
@@ -923,7 +930,6 @@
 	}
 }
 
-
 /*------------------------------------------------------------------------------
   3.0 - Freedoms Page
 ------------------------------------------------------------------------------*/
@@ -932,7 +938,6 @@
 	margin-bottom: var(--gap);
 	max-height: 180px;
 }
-
 
 /*------------------------------------------------------------------------------
   4.0 - Privacy Page
@@ -944,7 +949,6 @@
 	margin-right: auto;
 	max-width: 25rem;
 }
-
 
 /*------------------------------------------------------------------------------
   x.2.0 - Legacy About Styles: Global
