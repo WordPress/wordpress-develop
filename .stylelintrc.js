@@ -10,9 +10,11 @@ module.exports = {
 		'at-rule-empty-line-before': [
 			'always',
 			{
-				'ignore': ['first-nested', 'after-comment'],
+				except: ['blockless-after-blockless'],
+				ignore: ['first-nested', 'after-comment'],
 			},
 		],
+		'at-rule-no-unknown': null,
 		'comment-empty-line-before': null,
 		'declaration-property-unit-allowed-list': [
 			{
@@ -51,6 +53,13 @@ module.exports = {
 			{
 				message:
 					'Class selector should use lowercase class segments separated with hyphens, double hyphens, or double underscores',
+			},
+		],
+		'selector-id-pattern': [
+			'^([a-z][a-z0-9]*)(-[a-z0-9]+)*$',
+			{
+				message:
+					'ID selector should use lowercase and separate words with hyphens',
 			},
 		],
 		'selector-no-qualifying-type': [
