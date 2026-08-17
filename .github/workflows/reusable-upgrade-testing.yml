@@ -47,6 +47,7 @@ jobs:
   # Performs the following steps:
   # - Sets up PHP.
   # - Downloads the specified version of WordPress.
+  # - Verifies files against WordPress.org’s checksums.
   # - Creates a `wp-config.php` file.
   # - Installs WordPress.
   # - Checks the version of WordPress before the upgrade.
@@ -88,6 +89,9 @@ jobs:
         run: wp core download --version="${WP_VERSION}"
         env:
           WP_VERSION: ${{ inputs.wp }}
+
+      - name: Verify checksums
+        run: wp core verify-checksums
 
       - name: Create wp-config.php file
         run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost="127.0.0.1:${DB_PORT}"
