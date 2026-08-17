@@ -71,7 +71,7 @@ jobs:
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4', '9.7' ]
-        wp: [ '6.9', '7.0' ]
+        wp: [ '6.9', '7.0', '7.1-RC2' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -206,6 +206,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
@@ -225,7 +226,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

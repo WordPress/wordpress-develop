@@ -502,7 +502,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			}
 
 			?>
-			<tr class="<?php echo trim( $class ); ?>">
+			<tr id="user-<?php echo (int) $user->ID; ?>" class="<?php echo trim( $class ); ?>">
 				<?php $this->single_row_columns( $user ); ?>
 			</tr>
 			<?php
@@ -563,5 +563,20 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$actions = apply_filters( 'ms_user_row_actions', $actions, $user );
 
 		return $this->row_actions( $actions );
+	}
+
+	/**
+	 * Returns a clean label for the primary (Username) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the user login as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_User $user The current WP_User object.
+	 * @return string The user login.
+	 */
+	protected function get_primary_column_aria_label( $user ) {
+		return $user->user_login;
 	}
 }

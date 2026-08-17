@@ -86,7 +86,7 @@ function wp_get_layout_container_values( $layout ) {
 function wp_sanitize_block_gap_value( $gap_value ) {
 	if ( is_array( $gap_value ) ) {
 		foreach ( $gap_value as $key => $value ) {
-			$gap_value[ $key ] = $value && preg_match( '%[\\\(&=}]|/\*%', $value ) ? null : $value;
+			$gap_value[ $key ] = ! is_scalar( $value ) || ( $value && preg_match( '%[\\\(&=}]|/\*%', (string) $value ) ) ? null : $value;
 		}
 
 		return $gap_value;
@@ -958,14 +958,32 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$block_type            = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
 	$block_supports_layout = block_has_support( $block_type, 'layout', false ) || block_has_support( $block_type, '__experimentalLayout', false );
 	$style_attr            = $block['attrs']['style'] ?? array();
-	$child_layout          = $style_attr['layout'] ?? null;
+	/*
+	 * A block with no layout support and no style attribute at all cannot
+	 * produce layout output, so return before resolving global settings.
+	 *
+	 * Resolving settings is not read-only: on a cold cache it queries the
+	 * user's `wp_global_styles` post, which fires `the_posts`. A callback on
+	 * that hook that renders blocks re-enters this filter, and the content it
+	 * renders at that point is the global styles post itself, which parses to a
+	 * single block with no name and no attributes. Without this return that
+	 * block resolves settings again and the recursion has no base case.
+	 */
+	if ( ! $block_supports_layout && empty( $style_attr ) ) {
+		return $block_content;
+	}
+
+	$global_settings          = wp_get_global_settings();
+	$viewport_settings        = $global_settings['viewport'] ?? null;
+	$responsive_media_queries = WP_Theme_JSON::get_viewport_media_queries( $viewport_settings );
+	$child_layout             = $style_attr['layout'] ?? null;
 
 	/*
 	 * Collect responsive viewport child layout overrides so that a block with
 	 * only responsive child layout (no base child layout) is still processed.
 	 */
 	$viewport_child_layouts = array();
-	foreach ( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS as $breakpoint => $media_query ) {
+	foreach ( $responsive_media_queries as $breakpoint => $media_query ) {
 		$viewport_child = wp_get_layout_child_values( $style_attr[ $breakpoint ]['layout'] ?? null );
 
 		if ( ! empty( $viewport_child ) ) {
@@ -1075,7 +1093,6 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$global_settings = wp_get_global_settings();
 	$fallback_layout = $block_type->supports['layout']['default'] ?? array();
 	if ( empty( $fallback_layout ) ) {
 		$fallback_layout = $block_type->supports['__experimentalLayout']['default'] ?? array();
@@ -1158,7 +1175,9 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		// Check if the block has an active style variation with a blockGap value.
 		// Only check the registry if the className contains a variation class to avoid unnecessary lookups.
 		$variation_block_gap_value = null;
-		$block_class_name          = $block['attrs']['className'] ?? '';
+		$block_class_name          = is_string( $block['attrs']['className'] ?? null )
+			? $block['attrs']['className']
+			: '';
 		if ( $block_class_name && str_contains( $block_class_name, 'is-style-' ) && $block_name ) {
 			$styles_registry   = WP_Block_Styles_Registry::get_instance();
 			$registered_styles = $styles_registry->get_registered_styles_for_block( $block_name );
@@ -1183,7 +1202,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			$block_spacing,
 		);
 
-		foreach ( array_keys( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS ) as $breakpoint ) {
+		foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
 			$viewport_style = $style_attr[ $breakpoint ] ?? null;
 			if ( ! is_array( $viewport_style ) ) {
 				continue;
@@ -1231,7 +1250,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		 * Emit responsive container layout styles using the same $container_class
 		 * selector as the base layout so they target the inner block wrapper.
 		 */
-		foreach ( WP_Theme_JSON::RESPONSIVE_BREAKPOINTS as $breakpoint => $media_query ) {
+		foreach ( $responsive_media_queries as $breakpoint => $media_query ) {
 			$viewport_style = $style_attr[ $breakpoint ] ?? null;
 			if ( ! is_array( $viewport_style ) ) {
 				continue;

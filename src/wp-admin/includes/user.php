@@ -44,6 +44,8 @@ function edit_user( $user_id = 0 ) {
 		$user->user_login = sanitize_user( wp_unslash( $_POST['user_login'] ), true );
 	}
 
+	$errors = new WP_Error();
+
 	$pass1 = '';
 	$pass2 = '';
 	if ( isset( $_POST['pass1'] ) ) {
@@ -78,7 +80,12 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	if ( isset( $_POST['email'] ) ) {
-		$user->user_email = sanitize_text_field( wp_unslash( $_POST['email'] ) );
+		$maybe_email = wp_unslash( $_POST['email'] );
+		if ( is_string( $maybe_email ) && is_email( $maybe_email ) ) {
+			$user->user_email = $maybe_email;
+		} else {
+			$errors->add( 'invalid_email', __( '<strong>Error:</strong> The email address is not correct.' ), array( 'form-field' => 'email' ) );
+		}
 	}
 	if ( isset( $_POST['url'] ) ) {
 		if ( empty( $_POST['url'] ) || 'http://' === $_POST['url'] ) {
@@ -145,8 +152,6 @@ function edit_user( $user_id = 0 ) {
 	if ( ! empty( $_POST['use_ssl'] ) ) {
 		$user->use_ssl = 1;
 	}
-
-	$errors = new WP_Error();
 
 	/* checking that username has been typed */
 	if ( '' === $user->user_login ) {
@@ -560,26 +565,6 @@ function default_password_nag() {
 			'paragraph_wrap'     => false,
 		)
 	);
-}
-
-/**
- * @since 3.5.0
- * @access private
- */
-function delete_users_add_js() {
-	?>
-<script>
-jQuery( function($) {
-	var submit = $('#submit').prop('disabled', true);
-	$('input[name="delete_option"]').one('change', function() {
-		submit.prop('disabled', false);
-	});
-	$('#reassign_user').focus( function() {
-		$('#delete_option1').prop('checked', true).trigger('change');
-	});
-} );
-</script>
-	<?php
 }
 
 /**

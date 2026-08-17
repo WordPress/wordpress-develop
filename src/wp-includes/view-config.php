@@ -4,11 +4,32 @@
  *
  * Builds the default view configuration for an entity and exposes it through
  * the dynamic `get_entity_view_config_{$kind}_{$name}` filter so core and third
- * parties can provide the configuration for a specific entity.
+ * parties can provide the configuration for a specific entity. The dynamic
+ * portions of the hook name are lowercased, e.g.
+ * `get_entity_view_config_posttype_page` for the `page` post type.
  *
  * @package WordPress
  * @since 7.1.0
  */
+
+/**
+ * Builds the name of the dynamic filter that provides the view configuration
+ * for an entity.
+ *
+ * The entity kind and name are embedded in the hook name lowercased, so the
+ * hook follows the WordPress convention of lowercase hook names regardless of
+ * how the entity identifiers are spelled: the `postType`/`page` entity maps to
+ * the `get_entity_view_config_posttype_page` hook.
+ *
+ * @since 7.1.0
+ *
+ * @param string $kind The entity kind (e.g. `postType`).
+ * @param string $name The entity name (e.g. `page`).
+ * @return string The filter name.
+ */
+function wp_get_entity_view_config_hook_name( $kind, $name ) {
+	return strtolower( "get_entity_view_config_{$kind}_{$name}" );
+}
 
 /**
  * Builds the default `form` configuration for post types that don't provide their own.
@@ -27,7 +48,7 @@
  *
  * @return array The default form configuration.
  */
-function _wp_get_default_post_type_form() {
+function _wp_get_default_posttype_form() {
 	return array(
 		'layout' => array( 'type' => 'panel' ),
 		'fields' => array(
@@ -97,8 +118,10 @@ function _wp_get_default_post_type_form() {
  * Returns the view configuration for the given entity.
  *
  * Builds the default configuration shared by all entities and then exposes it
- * through the dynamic `get_entity_view_config_{$kind}_{$name}` filter so that core
- * and third parties can provide the configuration for a specific entity.
+ * through the dynamic `get_entity_view_config_{$kind}_{$name}` filter — with the
+ * dynamic portions lowercased, see wp_get_entity_view_config_hook_name()
+ * — so that core and third parties can provide the configuration for a
+ * specific entity.
  *
  * @since 7.1.0
  *
@@ -148,49 +171,12 @@ function wp_get_entity_view_config( $kind, $name ) {
 		'default_view'    => $default_view,
 		'default_layouts' => $default_layouts,
 		'view_list'       => $view_list,
-		'form'            => 'postType' === $kind ? _wp_get_default_post_type_form() : array(),
+		'form'            => 'postType' === $kind ? _wp_get_default_posttype_form() : array(),
 	);
 
-	/**
-	 * Filters the view configuration for a given entity.
-	 *
-	 * The dynamic portions of the hook name, `$kind` and `$name`, refer to the
-	 * entity kind (e.g. `postType`) and the entity name (e.g. `page`).
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param array $config {
-	 *     The view configuration for the entity.
-	 *
-	 *     @type array $default_view    Default view configuration.
-	 *     @type array $default_layouts Default layouts configuration.
-	 *     @type array $view_list       List of available views.
-	 *     @type array $form            Form configuration.
-	 * }
-	 * @param array $entity {
-	 *     The entity the configuration is built for.
-	 *
-	 *     @type string $kind The entity kind.
-	 *     @type string $name The entity name.
-	 * }
-	 */
-	$filtered_config = apply_filters(
-		"get_entity_view_config_{$kind}_{$name}",
-		$config,
-		array(
-			'kind' => $kind,
-			'name' => $name,
-		)
-	);
+	$data = new WP_View_Config_Data( $config );
 
-	if ( ! is_array( $filtered_config ) ) {
-		return $config;
-	}
-
-	// Backfill any dropped keys with their defaults, then discard any keys the
-	// filter introduced that are not part of the documented configuration shape.
-	$filtered_config = array_merge( $config, $filtered_config );
-	return array_intersect_key( $filtered_config, $config );
+	return $data->apply_filters( $kind, $name );
 }
 
 /**
@@ -198,13 +184,11 @@ function wp_get_entity_view_config( $kind, $name ) {
  *
  * @since 7.1.0
  *
- * @param array $config {
- *     The view configuration for the entity.
- * }
- * @return array The filtered view configuration.
+ * @param WP_View_Config_Data $data The view configuration container for the entity.
+ * @return WP_View_Config_Data The updated view configuration container.
  */
-function _wp_get_entity_view_config_post_type_page( $config ) {
-	$config['default_layouts'] = array(
+function _wp_get_entity_view_config_posttype_page( $data ) {
+	$default_layouts = array(
 		'table' => array(
 			'layout' => array(
 				'styles' => array(
@@ -218,7 +202,7 @@ function _wp_get_entity_view_config_post_type_page( $config ) {
 		'list'  => array(),
 	);
 
-	$config['default_view'] = array(
+	$default_view = array(
 		'type'       => 'list',
 		'filters'    => array(),
 		'perPage'    => 20,
@@ -232,10 +216,7 @@ function _wp_get_entity_view_config_post_type_page( $config ) {
 		'fields'     => array( 'author', 'status' ),
 	);
 
-	$config['view_list'] = array(
-		// Reuse the base "all items" view, whose title is derived from the post
-		// type's `all_items` label in wp_get_entity_view_config().
-		$config['view_list'][0],
+	$view_list = array(
 		array(
 			'title' => __( 'Published' ),
 			'slug'  => 'published',
@@ -311,7 +292,7 @@ function _wp_get_entity_view_config_post_type_page( $config ) {
 			'slug'  => 'trash',
 			'view'  => array(
 				'type'    => 'table',
-				'layout'  => $config['default_layouts']['table']['layout'],
+				'layout'  => $default_layouts['table']['layout'],
 				'filters' => array(
 					array(
 						'field'    => 'status',
@@ -324,7 +305,18 @@ function _wp_get_entity_view_config_post_type_page( $config ) {
 		),
 	);
 
-	return $config;
+	$data->set(
+		array(
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+		),
+		1
+	);
+	// Append the status views, thereby preserving the base "all items" view,
+	// so its post-type-specific title is kept.
+	$data->merge( array( 'view_list' => $view_list ), 1 );
+
+	return $data;
 }
 
 /**
@@ -332,13 +324,11 @@ function _wp_get_entity_view_config_post_type_page( $config ) {
  *
  * @since 7.1.0
  *
- * @param array $config {
- *     The view configuration for the entity.
- * }
- * @return array The filtered view configuration.
+ * @param WP_View_Config_Data $data The view configuration container for the entity.
+ * @return WP_View_Config_Data The updated view configuration container.
  */
-function _wp_get_entity_view_config_post_type_wp_block( $config ) {
-	$config['default_layouts'] = array(
+function _wp_get_entity_view_config_posttype_wp_block( $data ) {
+	$default_layouts = array(
 		'table' => array(
 			'layout' => array(
 				'styles' => array(
@@ -355,14 +345,14 @@ function _wp_get_entity_view_config_post_type_wp_block( $config ) {
 		),
 	);
 
-	$config['default_view'] = array(
+	$default_view = array(
 		'type'       => 'grid',
 		'perPage'    => 20,
 		'titleField' => 'title',
 		'mediaField' => 'preview',
 		'fields'     => array( 'sync-status' ),
 		'filters'    => array(),
-		'layout'     => $config['default_layouts']['grid']['layout'],
+		'layout'     => $default_layouts['grid']['layout'],
 	);
 
 	$view_list = array(
@@ -412,9 +402,7 @@ function _wp_get_entity_view_config_post_type_wp_block( $config ) {
 		);
 	}
 
-	$config['view_list'] = $view_list;
-
-	$config['form'] = array(
+	$form = array(
 		'layout' => array( 'type' => 'panel' ),
 		'fields' => array(
 			array(
@@ -436,7 +424,17 @@ function _wp_get_entity_view_config_post_type_wp_block( $config ) {
 		),
 	);
 
-	return $config;
+	$data->set(
+		array(
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+			'view_list'       => $view_list,
+			'form'            => $form,
+		),
+		1
+	);
+
+	return $data;
 }
 
 /**
@@ -444,13 +442,11 @@ function _wp_get_entity_view_config_post_type_wp_block( $config ) {
  *
  * @since 7.1.0
  *
- * @param array $config {
- *     The view configuration for the entity.
- * }
- * @return array The filtered view configuration.
+ * @param WP_View_Config_Data $data The view configuration container for the entity.
+ * @return WP_View_Config_Data The updated view configuration container.
  */
-function _wp_get_entity_view_config_post_type_wp_template_part( $config ) {
-	$config['default_layouts'] = array(
+function _wp_get_entity_view_config_posttype_wp_template_part( $data ) {
+	$default_layouts = array(
 		'table' => array(
 			'layout' => array(
 				'styles' => array(
@@ -465,14 +461,14 @@ function _wp_get_entity_view_config_post_type_wp_template_part( $config ) {
 		),
 	);
 
-	$config['default_view'] = array(
+	$default_view = array(
 		'type'       => 'grid',
 		'perPage'    => 20,
 		'titleField' => 'title',
 		'mediaField' => 'preview',
 		'fields'     => array( 'author' ),
 		'filters'    => array(),
-		'layout'     => $config['default_layouts']['grid']['layout'],
+		'layout'     => $default_layouts['grid']['layout'],
 	);
 
 	$view_list = array(
@@ -516,9 +512,7 @@ function _wp_get_entity_view_config_post_type_wp_template_part( $config ) {
 		);
 	}
 
-	$config['view_list'] = $view_list;
-
-	$config['form'] = array(
+	$form = array(
 		'layout' => array( 'type' => 'panel' ),
 		'fields' => array(
 			array(
@@ -532,7 +526,17 @@ function _wp_get_entity_view_config_post_type_wp_template_part( $config ) {
 		),
 	);
 
-	return $config;
+	$data->set(
+		array(
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+			'view_list'       => $view_list,
+			'form'            => $form,
+		),
+		1
+	);
+
+	return $data;
 }
 
 /**
@@ -540,13 +544,11 @@ function _wp_get_entity_view_config_post_type_wp_template_part( $config ) {
  *
  * @since 7.1.0
  *
- * @param array $config {
- *     The view configuration for the entity.
- * }
- * @return array The filtered view configuration.
+ * @param WP_View_Config_Data $data The view configuration container for the entity.
+ * @return WP_View_Config_Data The updated view configuration container.
  */
-function _wp_get_entity_view_config_post_type_wp_template( $config ) {
-	$config['default_view'] = array(
+function _wp_get_entity_view_config_posttype_wp_template( $data ) {
+	$default_view = array(
 		'type'             => 'grid',
 		'perPage'          => 20,
 		'sort'             => array(
@@ -561,7 +563,7 @@ function _wp_get_entity_view_config_post_type_wp_template( $config ) {
 		'showMedia'        => true,
 	);
 
-	$config['default_layouts'] = array(
+	$default_layouts = array(
 		'table' => array( 'showMedia' => false ),
 		'grid'  => array( 'showMedia' => true ),
 		'list'  => array( 'showMedia' => false ),
@@ -660,7 +662,11 @@ function _wp_get_entity_view_config_post_type_wp_template( $config ) {
 				if ( '' === $plugin_name ) {
 					$plugins         = get_plugins();
 					$plugin_basename = plugin_basename( sanitize_text_field( $template->theme . '.php' ) );
-					$plugin_name     = $plugins[ $plugin_basename ]['Name'] ?? $template->plugin ?? $template->theme;
+					if ( isset( $plugins[ $plugin_basename ] ) && isset( $plugins[ $plugin_basename ]['Name'] ) ) {
+						$plugin_name = $plugins[ $plugin_basename ]['Name'];
+					} else {
+						$plugin_name = $template->plugin ?? $template->theme;
+					}
 				}
 				$author_text = $plugin_name;
 				break;
@@ -701,9 +707,7 @@ function _wp_get_entity_view_config_post_type_wp_template( $config ) {
 		}
 	}
 
-	$config['view_list'] = array_merge( $view_list, $registered_authors, $user_authors );
-
-	$config['form'] = array(
+	$form = array(
 		'layout' => array( 'type' => 'panel' ),
 		'fields' => array(
 			array(
@@ -738,5 +742,15 @@ function _wp_get_entity_view_config_post_type_wp_template( $config ) {
 		),
 	);
 
-	return $config;
+	$data->set(
+		array(
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+			'view_list'       => array_merge( $view_list, $registered_authors, $user_authors ),
+			'form'            => $form,
+		),
+		1
+	);
+
+	return $data;
 }

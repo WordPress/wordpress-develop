@@ -596,7 +596,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			if ( ! empty( $output ) ) {
 				echo $output;
-				submit_button( __( 'Filter' ), 'button-compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
 		}
 
@@ -1013,10 +1013,44 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets a trimmed excerpt to display in place of a missing post title.
+	 *
+	 * Only returns text in the Compact list view for posts that have no title,
+	 * do not require a password, and that the current user is allowed to read.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global string $mode List table view mode.
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 * @return string The escaped, trimmed excerpt, or an empty string.
+	 */
+	protected function get_no_title_excerpt( $post ) {
+		global $mode;
+
+		if ( 'excerpt' === $mode
+			|| '' !== get_the_title( $post )
+			|| post_password_required( $post )
+			|| ! current_user_can( 'read_post', $post->ID )
+		) {
+			return '';
+		}
+
+		$excerpt = get_the_excerpt( $post );
+
+		if ( '' === $excerpt || ! is_string( $excerpt ) ) {
+			return '';
+		}
+
+		return esc_html( wp_trim_words( $excerpt, 15 ) );
+	}
+
+	/**
 	 * Handles the checkbox column output.
 	 *
 	 * @since 4.3.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
+	 * @since 7.1.0 Includes a trimmed excerpt for untitled posts in Compact view.
 	 *
 	 * @param WP_Post $item The current WP_Post object.
 	 */
@@ -1037,13 +1071,21 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param WP_Post $post The current WP_Post object.
 		 */
 		if ( apply_filters( 'wp_list_table_show_post_checkbox', $show, $post ) ) :
+
+			$post_title = _draft_or_post_title();
+
+			// If the post has no title, try adding part of the excerpt.
+			$no_title_excerpt = $this->get_no_title_excerpt( $post );
+			if ( '' !== $no_title_excerpt ) {
+				$post_title .= ' ' . $no_title_excerpt;
+			}
 			?>
 			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
 			<label for="cb-select-<?php the_ID(); ?>">
 				<span class="screen-reader-text">
 				<?php
 					/* translators: %s: Post title. */
-					printf( __( 'Select %s' ), _draft_or_post_title() );
+					printf( __( 'Select %s' ), $post_title );
 				?>
 				</span>
 			</label>
@@ -1054,7 +1096,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				printf(
 					/* translators: Hidden accessibility text. %s: Post title. */
 					__( '&#8220;%s&#8221; is locked' ),
-					_draft_or_post_title()
+					$post_title
 				);
 				?>
 				</span>
@@ -1072,16 +1114,35 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param string  $primary
 	 */
 	protected function _column_title( $post, $classes, $data, $primary ) {
-		echo '<td class="' . $classes . ' page-title" ', $data, '>';
+		$aria_label = $this->get_primary_column_aria_label( $post );
+		$aria_attr  = ( '' !== $aria_label ) ? ' aria-label="' . esc_attr( $aria_label ) . '"' : '';
+		echo '<th scope="row" class="' . $classes . ' page-title" ', $data, $aria_attr, '>';
 		echo $this->column_title( $post );
 		echo $this->handle_row_actions( $post, 'title', $primary );
-		echo '</td>';
+		echo '</th>';
+	}
+
+	/**
+	 * Returns a clean label for the primary (title) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the post title as the row header name,
+	 * preventing them from computing the name from the full cell content
+	 * (which includes row action links, post states, and possibly an excerpt).
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Post $item The current post object.
+	 * @return string The post title, or 'no title' if no title.
+	 */
+	protected function get_primary_column_aria_label( $item ) {
+		return isset( $item->post_title ) && ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
 	}
 
 	/**
 	 * Handles the title column output.
 	 *
 	 * @since 4.3.0
+	 * @since 7.1.0 Includes a trimmed excerpt for untitled posts in Compact view.
 	 *
 	 * @global string $mode List table view mode.
 	 *
@@ -1131,23 +1192,63 @@ class WP_Posts_List_Table extends WP_List_Table {
 			echo '<div class="locked-info"><span class="locked-avatar">' . $locked_avatar . '</span> <span class="locked-text">' . $locked_text . "</span></div>\n";
 		}
 
-		$pad = str_repeat( '&#8212; ', $this->current_level );
+		$pad               = str_repeat(
+			'<span aria-hidden="true">&#8212;</span> ',
+			$this->current_level
+		);
+		$described_by_attr = '';
+		$hierarchy_linked  = '';
+		$hierarchy_nolink  = '';
+
+		if ( $post->post_parent ) {
+			$parent = get_post( $post->post_parent );
+
+			if ( $parent ) {
+				/** This filter is documented in wp-includes/post-template.php */
+				$parent_title = apply_filters( 'the_title', $parent->post_title, $parent->ID );
+
+				$hierarchy_id      = 'post-hierarchy-' . $post->ID;
+				$described_by_attr = sprintf( ' aria-describedby="%s"', esc_attr( $hierarchy_id ) );
+				$hierarchy_linked  = sprintf(
+					'<span id="%1$s" class="hidden">%2$s</span>',
+					esc_attr( $hierarchy_id ),
+					/* translators: %s: Parent post title. */
+					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
+				);
+				$hierarchy_nolink = sprintf(
+					'<span id="%1$s" class="screen-reader-text"> (%2$s)</span>',
+					esc_attr( $hierarchy_id ),
+					/* translators: %s: Parent post title. */
+					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
+				);
+			}
+		}
+
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
 
+		// If the post has no title, try adding part of the excerpt.
+		$no_title_excerpt = $this->get_no_title_excerpt( $post );
+		if ( '' !== $no_title_excerpt ) {
+			$title .= ' <span class="trimmed-post-excerpt">' . $no_title_excerpt . '</span>';
+		}
+
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'<a class="row-title" href="%s">%s%s</a>',
-				get_edit_post_link( $post->ID ),
+				'%1$s<a class="row-title" href="%2$s"%3$s>%4$s</a>%5$s',
 				$pad,
-				$title
+				get_edit_post_link( $post->ID ),
+				$described_by_attr,
+				$title,
+				$hierarchy_linked
 			);
 		} else {
 			printf(
-				'<span>%s%s</span>',
+				'%1$s<span>%2$s%3$s</span>',
 				$pad,
-				$title
+				$title,
+				$hierarchy_nolink
 			);
 		}
 		_post_states( $post );

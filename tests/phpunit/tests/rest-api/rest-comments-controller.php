@@ -2321,7 +2321,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$params = array(
 			'post'         => self::$post_id,
 			'author_name'  => 'Bleeding Gums Murphy',
-			'author_email' => 'murphy@' . rand_long_str( 60 ) . '.' . rand_long_str( 60 ) . '.com',
+			'author_email' => 'murphy@' . rand_long_str( 190 ) . '.com',
 			'author_url'   => 'http://jazz.gingivitis.com',
 			'content'      => 'This isn\'t a saxophone. It\'s an umbrella.',
 			'date'         => '1995-04-30T10:22:00',
@@ -2954,7 +2954,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$admin_id );
 
 		$params = array(
-			'author_email' => 'murphy@' . rand_long_str( 60 ) . '.' . rand_long_str( 60 ) . '.com',
+			'author_email' => 'murphy@' . rand_long_str( 190 ) . '.com',
 			'content'      => 'This isn\'t a saxophone. It\'s an umbrella.',
 		);
 
@@ -3646,7 +3646,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Create a test post with note.
 	 *
-	 * @param int $user_id Post author's user ID.
+	 * @param string $role User role to assign the post author.
 	 * @return int Post ID.
 	 */
 	protected function create_test_post_with_note( $role ) {

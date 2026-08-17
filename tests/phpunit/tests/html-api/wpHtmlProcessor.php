@@ -303,16 +303,18 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string}>
 	 */
-	public static function data_self_contained_node_tokens() {
+	public static function data_self_contained_node_tokens(): array {
 		$self_contained_nodes = array(
-			'Normative comment'                => array( '<!-- comment -->' ),
-			'Comment with invalid closing'     => array( '<!-- comment --!>' ),
-			'CDATA Section lookalike'          => array( '<![CDATA[ comment ]]>' ),
-			'Processing Instruction lookalike' => array( '<?ok comment ?>' ),
-			'Funky comment'                    => array( '<//wp:post-meta key=isbn>' ),
-			'Text node'                        => array( 'Trombone' ),
+			'Normative comment'              => array( '<!-- comment -->' ),
+			'Comment with invalid closing'   => array( '<!-- comment --!>' ),
+			'CDATA Section lookalike'        => array( '<![CDATA[ comment ]]>' ),
+			'Processing Instruction'         => array( '<?ok pi ?>' ),
+			'Bogus PI-lookalike xml comment' => array( '<?xml version="1.0"?>' ),
+			'Bogus comment'                  => array( '<?🔥?>' ),
+			'Funky comment'                  => array( '<//wp:post-meta key=isbn>' ),
+			'Text node'                      => array( 'Trombone' ),
 		);
 
 		foreach ( self::data_void_tags_not_ignored_in_body() as $tag_name => $_name ) {
@@ -644,7 +646,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that the HTML Processor correctly handles TEMPLATE tag closing and namespaces.
 	 *
-	 * This is a tricky test case that corresponds to the html5lib tests "template/line1466".
+	 * This is a tricky test case that corresponds to the Web Platform Tests fixture "template/line1466".
 	 *
 	 * When the `</template>` token is reached it is in the HTML namespace (thanks to the
 	 * SVG `foreignObject` element). It is not handled as foreign content; therefore, it
@@ -652,7 +654,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * SVG `TEMPLATE` element (the second `<template>` token).
 	 *
 	 * The test is included here because it may show up as unsupported markup and be skipped by
-	 * the html5lib test suite.
+	 * the Web Platform Tests suite.
 	 *
 	 * @ticket 61576
 	 */

@@ -558,6 +558,55 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the design tokens stylesheet is registered in core.
+	 *
+	 * @ticket 65646
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_wp_theme_style_is_registered() {
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertArrayHasKey( 'wp-theme', $GLOBALS['wp_styles']->registered );
+		$this->assertSame(
+			'/' . WPINC . '/css/dist/theme/design-tokens.css',
+			$GLOBALS['wp_styles']->registered['wp-theme']->src
+		);
+	}
+
+	/**
+	 * Tests that wp-components depends on wp-theme so tokens load before component styles.
+	 *
+	 * @ticket 65646
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_wp_components_depends_on_wp_theme() {
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertContains(
+			'wp-theme',
+			$GLOBALS['wp_styles']->registered['wp-components']->deps
+		);
+	}
+
+	/**
+	 * Tests that wp-edit-blocks loads design tokens before other editor styles.
+	 *
+	 * @ticket 65646
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_wp_edit_blocks_depends_on_wp_theme_first() {
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$deps = $GLOBALS['wp_styles']->registered['wp-edit-blocks']->deps;
+
+		$this->assertContains( 'wp-theme', $deps );
+		$this->assertSame( 0, array_search( 'wp-theme', $deps, true ) );
+	}
+
+	/**
 	 * @ticket 58394
 	 * @ticket 63887
 	 *

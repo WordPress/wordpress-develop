@@ -585,6 +585,7 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-includes/js/wp-ajax-response.js' ]: [ './src/js/_enqueues/lib/ajax-response.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-api.js' ]: [ './src/js/_enqueues/wp/api.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-auth-check.js' ]: [ './src/js/_enqueues/lib/auth-check.js' ],
+					[ WORKING_DIR + 'wp-includes/js/wp-tooltip.js' ]: [ './src/js/_enqueues/wp/wp-tooltip.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-backbone.js' ]: [ './src/js/_enqueues/wp/backbone.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-custom-header.js' ]: [ './src/js/_enqueues/wp/custom-header.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-embed-template.js' ]: [ './src/js/_enqueues/lib/embed-template.js' ],
@@ -2278,8 +2279,8 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'qunit', 'Runs QUnit tests.', function() {
 		var done = this.async();
 		grunt.util.spawn( {
-			cmd: 'npx',
-			args: [ 'playwright', 'test', '--config', 'tests/qunit/playwright.config.js' ],
+			cmd: 'npm',
+			args: [ 'exec', '--no', '--', 'playwright', 'test', '--config', 'tests/qunit/playwright.config.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error, result, code ) {
 			if ( code !== 0 ) {
@@ -2362,15 +2363,15 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'wp-packages:update', 'Update WordPress packages', function() {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating WordPress packages (--dist-tag=${distTag})` );
-		spawn( 'npx', [ 'wp-scripts', 'packages-update', `--dist-tag=${distTag}` ], {
+		spawn( 'npm', [ 'exec', '--no', '--', 'wp-scripts', 'packages-update', `--dist-tag=${distTag}` ], {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
 	} );
 
 	grunt.registerTask( 'browserslist:update', 'Update the local database of browser supports', function() {
-		grunt.log.writeln( `Updating browsers list` );
-		spawn( 'npx', [ 'update-browserslist-db@latest' ], {
+		grunt.log.writeln( 'Updating browsers list' );
+		spawn( 'npm', [ 'exec', '--no', '--', 'update-browserslist-db' ], {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );

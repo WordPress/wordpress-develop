@@ -111,6 +111,43 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that numeric character references for U+0000 decode to U+FFFD
+	 * while raw NULL bytes pass through the decoder untransformed.
+	 *
+	 * The tokenizer, not the decoder, is responsible for replacing raw NULL
+	 * bytes; in the Tag Processor that responsibility falls on the methods
+	 * which read values out of the input document.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_null_code_points
+	 *
+	 * @param string $raw_value     Raw attribute value.
+	 * @param string $decoded_value The expected decoded attribute value.
+	 */
+	public function test_null_code_points_in_attribute_values( string $raw_value, string $decoded_value ): void {
+		$this->assertSame(
+			$decoded_value,
+			WP_HTML_Decoder::decode_attribute( $raw_value ),
+			'Improperly decoded raw attribute value.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public static function data_null_code_points(): array {
+		return array(
+			'Decimal zero'                 => array( 'a&#0;b', "a\u{FFFD}b" ),
+			'Hexadecimal zero'             => array( 'a&#x0;b', "a\u{FFFD}b" ),
+			'Multiple zeros'               => array( 'a&#0000;b', "a\u{FFFD}b" ),
+			'Raw NULL byte passes through' => array( "a\x00b", "a\x00b" ),
+		);
+	}
+
+	/**
 	 * Ensures unmatched named character references leave the by-ref match length unchanged.
 	 *
 	 * @ticket 65372
@@ -307,6 +344,119 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 		foreach ( $with_javascript_prefix as $attribute_value ) {
 			yield $attribute_value => array( $attribute_value, 'javascript:' );
 		}
+	}
+
+	/**
+	 * Ensures that `attribute_starts_with` checks the full search string.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_attribute_starts_with_search_string_boundaries
+	 *
+	 * @param string $attribute_value  Raw attribute value from HTML string.
+	 * @param string $search_string    Prefix contained or not contained in encoded attribute value.
+	 * @param string $case_sensitivity Whether to search with ASCII case sensitivity;
+	 *                                 'ascii-case-insensitive' or 'case-sensitive'.
+	 * @param bool   $is_match         Whether the search string is a prefix for the attribute value.
+	 */
+	public function test_attribute_starts_with_checks_search_string_boundaries(
+		string $attribute_value,
+		string $search_string,
+		string $case_sensitivity,
+		bool $is_match
+	): void {
+		if ( $is_match ) {
+			$this->assertTrue(
+				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, $case_sensitivity ),
+				'Should have matched attribute prefix.'
+			);
+		} else {
+			$this->assertFalse(
+				WP_HTML_Decoder::attribute_starts_with( $attribute_value, $search_string, $case_sensitivity ),
+				'Should not have matched attribute with prefix.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<string, array{string, string, string, bool}> Test cases.
+	 */
+	public static function data_attribute_starts_with_search_string_boundaries(): Generator {
+		yield 'Empty attribute does not match non-empty prefix' => array( '', 'http', 'case-sensitive', false );
+		yield 'Short attribute does not match longer prefix' => array(
+			'java',
+			'javascript',
+			'case-sensitive',
+			false,
+		);
+		yield 'Attribute ending in a character reference does not match a longer prefix' => array(
+			'&amp;',
+			'&&',
+			'case-sensitive',
+			false,
+		);
+		yield 'Longer attribute matches shorter prefix' => array(
+			'javascript',
+			'java',
+			'case-sensitive',
+			true,
+		);
+		yield "&fjlig; (decodes to 2-codepoint 'fj') starts with f" => array(
+			'&fjlig; is literally "f" followed by "j"',
+			'f',
+			'case-sensitive',
+			true,
+		);
+		yield "&nvlt; (decodes to 2-codepoint '<⃒') starts with '<'" => array(
+			'&nvlt;script>',
+			'<',
+			'case-sensitive',
+			true,
+		);
+		yield "Combining character references (¬̸) full match on '¬̸' prefix" => array(
+			'&not;&#x338; A negated not?',
+			'¬̸',
+			'case-sensitive',
+			true,
+		);
+		yield "Combining character references (¬̸) partial match on '¬' prefix" => array(
+			'&not;&#x338; A negated not?',
+			'¬',
+			'case-sensitive',
+			true,
+		);
+		yield 'Search A: prefix continues past a decoded character reference' => array(
+			'start&fjlig;ord',
+			'startfjord',
+			'case-sensitive',
+			true,
+		);
+		yield 'Search B: prefix ends part-way through a decoded character reference' => array(
+			'start&fjlig;ord',
+			'startf',
+			'case-sensitive',
+			true,
+		);
+		yield 'Search C: prefix mismatches within a decoded character reference' => array(
+			'start&fjlig;ord',
+			'startfr',
+			'case-sensitive',
+			false,
+		);
+		yield 'ASCII-case-insensitive prefix ends part-way through a decoded character reference' => array(
+			'start&fjlig;ord',
+			'STARTF',
+			'ascii-case-insensitive',
+			true,
+		);
+		yield 'ASCII-case-insensitive prefix mismatches within a decoded character reference' => array(
+			'start&fjlig;ord',
+			'STARTFR',
+			'ascii-case-insensitive',
+			false,
+		);
 	}
 
 	/**
