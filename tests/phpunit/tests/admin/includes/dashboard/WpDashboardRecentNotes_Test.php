@@ -449,6 +449,58 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	}
 
 	/**
+	 * Notes the current user cannot see are paged past, but only up to a point,
+	 * so that a site with a large number of them does not have every dashboard
+	 * load walk the whole comments table.
+	 *
+	 * @ticket 65890
+	 */
+	public function test_should_stop_paging_past_notes_the_user_cannot_see() {
+		$other_id = $this->create_post( 'A post of somebody else' );
+
+		// One more note than a single row is allowed to look at.
+		for ( $i = 0; $i <= 100; $i++ ) {
+			$this->create_note( $other_id, '0', 0, '2026-01-02 10:00:00' );
+		}
+
+		// Older than all of them, so it is only reached by paging past them.
+		$own_id = $this->create_post( 'A post of their own', self::$author_id );
+		$this->create_note( $own_id, '0', 0, '2026-01-01 10:00:00' );
+
+		wp_set_current_user( self::$author_id );
+
+		list( $returned, $output ) = $this->render( 1 );
+
+		$this->assertFalse( $returned, 'The function did not return false.' );
+		$this->assertSame( '', $output, 'The function kept paging past the limit.' );
+	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_should_page_past_notes_the_user_cannot_see() {
+		$other_id = $this->create_post( 'A post of somebody else' );
+
+		// More notes than the first page of the query holds.
+		for ( $i = 0; $i < 20; $i++ ) {
+			$this->create_note( $other_id, '0', 0, '2026-01-02 10:00:00' );
+		}
+
+		$own_id = $this->create_post( 'A post of their own', self::$author_id );
+		$this->create_note( $own_id, '0', 0, '2026-01-01 10:00:00' );
+
+		wp_set_current_user( self::$author_id );
+
+		list( , $output ) = $this->render( 1 );
+
+		$this->assertSame(
+			array( 'A post of their own' ),
+			$this->get_linked_titles( $output ),
+			'The post was not found past the notes the user cannot see.'
+		);
+	}
+
+	/**
 	 * @ticket 65890
 	 */
 	public function test_should_return_false_when_the_user_can_edit_none_of_the_posts() {

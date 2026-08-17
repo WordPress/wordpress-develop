@@ -1223,16 +1223,29 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 	 * stay on hold, so a reply is only recent activity while its thread is.
 	 */
 	$notes_query = array(
-		'type'    => 'note',
-		'status'  => 'hold',
-		'orderby' => 'comment_date_gmt',
-		'order'   => 'DESC',
-		'number'  => $total_items * 5,
-		'offset'  => 0,
+		'type'                      => 'note',
+		'status'                    => 'hold',
+		'orderby'                   => 'comment_date_gmt',
+		'order'                     => 'DESC',
+		'number'                    => $total_items * 5,
+		'offset'                    => 0,
+		// The posts are needed for the capability checks below, the note meta is not.
+		'update_comment_post_cache' => true,
+		'update_comment_meta_cache' => false,
 	);
 
 	// The most recent open note or reply of each post, keyed by post ID.
 	$latest_notes = array();
+
+	/*
+	 * Only notes on posts the current user can edit are listed, and a user who
+	 * can edit none of them would otherwise page through every open note on the
+	 * site. Paging stops once a hundred notes per row have been looked at, so
+	 * that the section costs a bounded number of queries however many notes the
+	 * site has.
+	 */
+	$max_notes_examined = $total_items * 100;
+	$notes_examined     = 0;
 
 	do {
 		$possible = get_comments( $notes_query );
@@ -1240,6 +1253,8 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 		if ( empty( $possible ) || ! is_array( $possible ) ) {
 			break;
 		}
+
+		$notes_examined += count( $possible );
 
 		/*
 		 * Prime the threads the replies belong to, so that they are not
@@ -1287,8 +1302,8 @@ function wp_dashboard_recent_notes( $total_items = 5 ) {
 		}
 
 		$notes_query['offset'] += $notes_query['number'];
-		$notes_query['number']  = $total_items * 10;
-	} while ( count( $latest_notes ) < $total_items );
+		$notes_query['number']  = min( $total_items * 10, $max_notes_examined - $notes_examined );
+	} while ( count( $latest_notes ) < $total_items && $notes_examined < $max_notes_examined );
 
 	if ( ! $latest_notes ) {
 		return false;
