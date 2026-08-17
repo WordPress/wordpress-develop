@@ -11,8 +11,8 @@ class Tests_XMLRPC_mt_publishPost extends WP_XMLRPC_UnitTestCase {
 			$role,
 			'XML-RPC page publisher',
 			array(
-				'read'                => true,
-				'edit_pages'          => true,
+				'read'                 => true,
+				'edit_pages'           => true,
 				'edit_published_pages' => true,
 				'publish_posts'        => true,
 			)
