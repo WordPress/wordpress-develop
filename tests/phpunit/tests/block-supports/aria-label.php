@@ -51,9 +51,9 @@ class Tests_Block_Supports_Aria_Label extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_aria_label_block_support
 	 *
-	 * @param boolean|array $support  Aria label block support configuration.
-	 * @param string        $value    Aria label value for attribute object.
-	 * @param array         $expected Expected aria-label attributes.
+	 * @param bool|array $support  Aria label block support configuration.
+	 * @param string     $value    Aria label value for attribute object.
+	 * @param array      $expected Expected aria-label attributes.
 	 */
 	public function test_wp_apply_aria_label_support( $support, $value, $expected ) {
 		$block_type  = self::register_aria_label_block_with_support(
