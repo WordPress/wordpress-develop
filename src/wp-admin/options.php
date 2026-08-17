@@ -260,6 +260,12 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		if ( is_multisite() && ! current_user_can( 'manage_network_options' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to modify unregistered settings for this site.' ) );
 		}
+		$max_input_vars = (int) ini_get( 'max_input_vars' );
+
+		if ( $max_input_vars > 0 && count( $_POST ) >= $max_input_vars ) {
+			wp_die( __( 'Too many options were submitted. This can happen when many fields are changed at once on the All Settings screen. Please change fewer options at once, or ask your server administrator to increase the max_input_vars limit.' ) );
+		}
+
 		$options = isset( $_POST['page_options'] ) ? explode( ',', wp_unslash( $_POST['page_options'] ) ) : null;
 	} else {
 		$options = $allowed_options[ $option_page ];
@@ -334,13 +340,17 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			}
 
 			$option = trim( $option );
-			$value  = null;
+
 			if ( isset( $_POST[ $option ] ) ) {
 				$value = $_POST[ $option ];
 				if ( ! is_array( $value ) ) {
 					$value = trim( $value );
 				}
 				$value = wp_unslash( $value );
+			} elseif ( 'options' === $option_page && ! $unregistered ) {
+				continue;
+			} else {
+				$value = null;
 			}
 			update_option( $option, $value );
 		}
@@ -376,6 +386,30 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 	exit;
 }
 
+// Only submit changed options on the All Settings screen to avoid exceeding max_input_vars.
+wp_add_inline_script(
+	'common',
+	<<<'JS'
+jQuery( function( $ ) {
+	var $allOptionsForm = $( '#all-options' );
+
+	$allOptionsForm.find( '.all-options[name]:enabled' ).each( function() {
+		var $field = $( this );
+
+		$field.data( 'optionName', $field.attr( 'name' ) );
+		$field.removeAttr( 'name' );
+	} );
+
+	$allOptionsForm.on( 'input change', '.all-options', function() {
+		var $field = $( this );
+
+		if ( $field.data( 'optionName' ) && ! $field.attr( 'name' ) ) {
+			$field.attr( 'name', $field.data( 'optionName' ) );
+		}
+	} );
+} );
+JS
+);
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
@@ -402,6 +436,12 @@ foreach ( (array) $options as $option ) :
 	$disabled = false;
 
 	if ( '' === $option->option_name ) {
+		continue;
+	}
+
+	if ( str_starts_with( $option->option_name, '_transient_' )
+		|| str_starts_with( $option->option_name, '_site_transient_' )
+	) {
 		continue;
 	}
 
