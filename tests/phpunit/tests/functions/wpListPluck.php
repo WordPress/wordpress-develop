@@ -106,6 +106,60 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56262
+	 */
+	public function test_wp_list_pluck_null_field() {
+		$this->assertSame( $this->array_list, wp_list_pluck( $this->array_list, null ) );
+		$this->assertSame( $this->object_list, wp_list_pluck( $this->object_list, null ) );
+	}
+
+	/**
+	 * @ticket 56262
+	 */
+	public function test_wp_list_pluck_null_field_with_index_key() {
+		$expected_array_list = array(
+			'f' => $this->array_list['foo'],
+			'b' => $this->array_list['bar'],
+			'z' => $this->array_list['baz'],
+		);
+
+		$expected_object_list = array(
+			'f' => $this->object_list['foo'],
+			'b' => $this->object_list['bar'],
+			'z' => $this->object_list['baz'],
+		);
+
+		$this->assertSame( $expected_array_list, wp_list_pluck( $this->array_list, null, 'id' ) );
+		$this->assertSame( $expected_object_list, wp_list_pluck( $this->object_list, null, 'id' ) );
+	}
+
+	/**
+	 * @ticket 56262
+	 */
+	public function test_wp_list_pluck_null_field_with_missing_index_key() {
+		$array_list = $this->array_list;
+		unset( $array_list['bar']['id'] );
+
+		$object_list = $this->object_list;
+		unset( $object_list['bar']->id );
+
+		$expected_array_list = array(
+			'f' => $array_list['foo'],
+			0   => $array_list['bar'],
+			'z' => $array_list['baz'],
+		);
+
+		$expected_object_list = array(
+			'f' => $object_list['foo'],
+			0   => $object_list['bar'],
+			'z' => $object_list['baz'],
+		);
+
+		$this->assertSame( $expected_array_list, wp_list_pluck( $array_list, null, 'id' ) );
+		$this->assertSame( $expected_object_list, wp_list_pluck( $object_list, null, 'id' ) );
+	}
+
+	/**
 	 * @ticket 28666
 	 */
 	public function test_wp_list_pluck_missing_index_key() {

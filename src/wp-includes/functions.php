@@ -5471,11 +5471,13 @@ function wp_list_filter( $input_list, $args = array(), $operator = 'AND' ) {
  * @since 3.1.0
  * @since 4.0.0 $index_key parameter added.
  * @since 4.7.0 Uses `WP_List_Util` class.
+ * @since 7.1.0 The `$field` parameter accepts null to return each complete element.
  *
- * @param array      $input_list List of objects or arrays.
- * @param int|string $field      Field from the object to place instead of the entire object.
- * @param int|string $index_key  Optional. Field from the object to use as keys for the new array.
- *                               Default null.
+ * @param array           $input_list List of objects or arrays.
+ * @param int|string|null $field      Field to fetch from the object or array. If null, the whole element
+ *                                    is returned.
+ * @param int|string      $index_key  Optional. Field from the object to use as keys for the new array.
+ *                                    Default null.
  * @return array Array of found values. If `$index_key` is set, an array of found values with keys
  *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
  *               `$input_list` will be preserved in the results.
