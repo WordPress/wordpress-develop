@@ -70,6 +70,7 @@
 		"source-map-loader": "5.0.0",
 		"terser-webpack-plugin": "5.3.12",
 		"uglify-js": "^3.19.3",
+		"update-browserslist-db": "1.1.1",
 		"uuid": "11.1.0",
 		"wait-on": "8.0.2",
 		"webpack": "5.98.0",
