@@ -546,4 +546,116 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertIsArray( $rewrite_rules );
 		$this->assertNotEmpty( $rewrite_rules );
 	}
+
+	/**
+	 * @ticket 43746
+	 */
+	public function test_cpt_with_no_archive_and_explicit_feeds_true_generates_single_post_feed_rules() {
+		global $wp_rewrite;
+
+		register_post_type(
+			'cpt_43746_rules',
+			array(
+				'public'      => true,
+				'has_archive' => false,
+				'rewrite'     => array(
+					'slug'  => 'cpt-43746-rules',
+					'feeds' => true,
+				),
+			)
+		);
+
+		$wp_rewrite->flush_rules();
+		$rules = $wp_rewrite->rewrite_rules();
+
+		$feed_rule_found = false;
+		foreach ( array_keys( $rules ) as $pattern ) {
+			// Match direct single-post feed patterns.
+			if ( str_contains( $pattern, 'cpt-43746-rules/([^/]+)/' ) && str_contains( $pattern, 'feed' ) ) {
+				$feed_rule_found = true;
+				break;
+			}
+		}
+
+		_unregister_post_type( 'cpt_43746_rules' );
+		$wp_rewrite->flush_rules();
+
+		$this->assertTrue( $feed_rule_found, 'Feed rewrite rules should be generated for a CPT with has_archive=false and feeds=true' );
+	}
+
+	/**
+	 * @ticket 43746
+	 */
+	public function test_cpt_with_no_archive_and_feeds_false_does_not_generate_single_post_feed_rules() {
+		global $wp_rewrite;
+
+		register_post_type(
+			'cpt_43746_norules',
+			array(
+				'public'      => true,
+				'has_archive' => false,
+				'rewrite'     => array(
+					'slug'  => 'cpt-43746-norules',
+					'feeds' => false,
+				),
+			)
+		);
+
+		$wp_rewrite->flush_rules();
+		$rules = $wp_rewrite->rewrite_rules();
+
+		$feed_rule_found = false;
+		foreach ( array_keys( $rules ) as $pattern ) {
+			// Only look for direct single-post feed patterns.
+			if ( str_contains( $pattern, 'cpt-43746-norules/([^/]+)/' ) && str_contains( $pattern, 'feed' ) ) {
+				$feed_rule_found = true;
+				break;
+			}
+		}
+
+		_unregister_post_type( 'cpt_43746_norules' );
+		$wp_rewrite->flush_rules();
+
+		$this->assertFalse( $feed_rule_found, 'No feed rewrite rules should be generated for a CPT with has_archive=false and feeds=false' );
+	}
+
+	/**
+	 * @ticket 43746
+	 */
+	public function test_cpt_with_no_archive_and_explicit_feeds_true_does_not_generate_archive_feed_rules() {
+		global $wp_rewrite;
+
+		register_post_type(
+			'cpt_43746_noarch',
+			array(
+				'public'      => true,
+				'has_archive' => false,
+				'rewrite'     => array(
+					'slug'  => 'cpt-43746-noarch',
+					'feeds' => true,
+				),
+			)
+		);
+
+		$wp_rewrite->flush_rules();
+		$rules = $wp_rewrite->rewrite_rules();
+
+		$archive_feed_rule_found = false;
+		foreach ( $rules as $pattern => $query ) {
+			// Archive feed rules point directly to post_type=cpt_43746_noarch&feed= (no post slug segment).
+			if ( str_contains( $pattern, 'cpt-43746-noarch' )
+				&& str_contains( $pattern, 'feed' )
+				&& str_contains( $query, 'post_type=cpt_43746_noarch&feed=' )
+				&& ! str_contains( $query, 'cpt_43746_noarch=' )
+			) {
+				$archive_feed_rule_found = true;
+				break;
+			}
+		}
+
+		_unregister_post_type( 'cpt_43746_noarch' );
+		$wp_rewrite->flush_rules();
+
+		$this->assertFalse( $archive_feed_rule_found, 'Archive feed rewrite rules should NOT be generated when has_archive is false, even if feeds is true' );
+	}
 }

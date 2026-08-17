@@ -1816,7 +1816,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *         @type bool   $with_front Whether the permastruct should be prepended with WP_Rewrite::$front.
  *                                  Default true.
  *         @type bool   $feeds      Whether the feed permastruct should be built for this post type.
- *                                  Default is value of $has_archive.
+ *                                  Enables single post (comments) feed URLs regardless of $has_archive.
+ *                                  When not set, defaults to the value of $has_archive.
  *         @type bool   $pages      Whether the permastruct should provide for pagination. Default true.
  *         @type int    $ep_mask    Endpoint mask to assign. If not specified and permalink_epmask is set,
  *                                  inherits from $permalink_epmask. If not specified and permalink_epmask
