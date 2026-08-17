@@ -32,6 +32,20 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	protected static $subscriber_id;
 
 	/**
+	 * Pre-existing block types registered before the current test.
+	 *
+	 * @var string[] $registered_block_types
+	 */
+	private $registered_block_types = array();
+
+	/**
+	 * Pre-existing block styles registered before the current test, grouped by block type name.
+	 *
+	 * @var array[] $registered_block_styles
+	 */
+	private $registered_block_styles = array();
+
+	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @since 5.5.0
@@ -49,19 +63,55 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 				'role' => 'subscriber',
 			)
 		);
-
-		$name     = 'fake/test';
-		$settings = array(
-			'icon' => 'text',
-		);
-
-		register_block_type( $name, $settings );
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$subscriber_id );
-		unregister_block_type( 'fake/test' );
+	}
+
+	/**
+	 * Sets up each test method.
+	 *
+	 * Records the registered block types and block styles so that anything
+	 * registered by a test can be unregistered again in tear_down(), and
+	 * registers a block type used by many tests in this class.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->registered_block_types  = array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() );
+		$this->registered_block_styles = WP_Block_Styles_Registry::get_instance()->get_all_registered();
+
+		register_block_type(
+			'fake/test',
+			array(
+				'icon' => 'text',
+			)
+		);
+	}
+
+	/**
+	 * Tears down each test method.
+	 *
+	 * Unregisters any block types and block styles registered while the test ran.
+	 */
+	public function tear_down() {
+		foreach ( WP_Block_Styles_Registry::get_instance()->get_all_registered() as $block_name => $block_styles ) {
+			foreach ( array_keys( $block_styles ) as $block_style_name ) {
+				if ( ! isset( $this->registered_block_styles[ $block_name ][ $block_style_name ] ) ) {
+					unregister_block_style( $block_name, $block_style_name );
+				}
+			}
+		}
+
+		foreach ( array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() ) as $block_name ) {
+			if ( ! in_array( $block_name, $this->registered_block_types, true ) ) {
+				unregister_block_type( $block_name );
+			}
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -136,8 +186,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_name );
 		$response = rest_get_server()->dispatch( $request );
-		unregister_block_type( $block_name );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertSameSets( array( $block_styles ), $data['styles'] );
 	}
 
@@ -165,7 +214,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_name );
 		$response = rest_get_server()->dispatch( $request );
-		unregister_block_type( $block_name );
 		$data     = $response->get_data();
 		$expected = array(
 			array(
@@ -232,8 +280,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
-		unregister_block_type( $block_type );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertSame( $block_type, $data['name'] );
 		$this->assertSame( '1', $data['title'] );
 		$this->assertNull( $data['category'] );
@@ -312,8 +359,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
-		unregister_block_type( $block_type );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertSame( $block_type, $data['name'] );
 		$this->assertSame( '', $data['title'] );
 		$this->assertNull( $data['category'] );
@@ -370,8 +416,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
-		unregister_block_type( $block_type );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertSameSets(
 			array( 'hello_world' ),
 			$data['editor_script_handles'],
@@ -441,8 +486,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
-		unregister_block_type( $block_type );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertSameSets(
 			$settings['editor_script'],
 			$data['editor_script_handles'],
@@ -529,8 +573,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
-		unregister_block_type( $block_type );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertSame( $block_type, $data['name'] );
 		$this->assertArrayHasKey( 'variations', $data );
 		$this->assertCount( 1, $data['variations'] );
@@ -873,8 +916,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
-		unregister_block_type( $block_type );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertSameSets( $this->mock_variation_callback(), $data['variations'] );
 	}
 
