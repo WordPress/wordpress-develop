@@ -3934,7 +3934,7 @@ class wpdb {
 	 * @since 3.5.0
 	 */
 	protected function load_col_info() {
-		if ( $this->col_info ) {
+		if ( $this->col_info || ! ( $this->result instanceof mysqli_result ) ) {
 			return;
 		}
 

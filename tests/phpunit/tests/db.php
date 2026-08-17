@@ -563,6 +563,18 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->users, $wpdb->get_col_info( 'table', 0 ) );
 	}
 
+	public function test_get_col_info_after_failed_query() {
+		global $wpdb;
+
+		$wpdb->suppress_errors( true );
+		$wpdb->query( 'SELECT ID FROM wptests_table_that_does_not_exist' );
+		$wpdb->suppress_errors( false );
+
+		$this->assertFalse( $wpdb->result );
+		$this->assertNull( $wpdb->get_col_info() );
+		$this->assertNull( $wpdb->col_info );
+	}
+
 	public function test_query_and_delete() {
 		global $wpdb;
 		$rows = $wpdb->query( "INSERT INTO $wpdb->users (display_name) VALUES ('Walter Sobchak')" );
