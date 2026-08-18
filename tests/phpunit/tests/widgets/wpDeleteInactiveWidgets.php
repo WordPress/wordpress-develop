@@ -28,8 +28,6 @@ class Tests_Widgets_WpDeleteInactiveWidgets extends WP_UnitTestCase {
 	 * Tests that wp_delete_inactive_widgets() removes inactive widgets and their settings.
 	 */
 	public function test_wp_delete_inactive_widgets_removes_widgets() {
-		require_once ABSPATH . 'wp-admin/includes/widgets.php';
-
 		// Set up some inactive widgets.
 		$widget_id_1 = 'search-2';
 		$widget_id_2 = 'text-3';
