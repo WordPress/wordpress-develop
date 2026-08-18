@@ -23,14 +23,63 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 */
 		public $is_plural = false;
 
-		public $context             = null;
-		public $singular            = null;
-		public $plural              = null;
-		public $translations        = array();
+		/**
+		 * The string to translate.
+		 *
+		 * @var string|null
+		 */
+		public $singular = null;
+
+		/**
+		 * The plural form of the string.
+		 *
+		 * @var string|null
+		 */
+		public $plural = null;
+
+		/**
+		 * Translations of the string and possibly its plural forms.
+		 *
+		 * Plural forms which have not been filled in are null.
+		 *
+		 * @var (string|null)[]
+		 */
+		public $translations = array();
+
+		/**
+		 * Context of the string, used to differentiate two equal strings used in different contexts.
+		 *
+		 * @var string|null
+		 */
+		public $context = null;
+
+		/**
+		 * Comments left by translators.
+		 *
+		 * @var string
+		 */
 		public $translator_comments = '';
-		public $extracted_comments  = '';
-		public $references          = array();
-		public $flags               = array();
+
+		/**
+		 * Comments left by developers.
+		 *
+		 * @var string
+		 */
+		public $extracted_comments = '';
+
+		/**
+		 * Places in the code this string is used, in relative_to_root_path/file.php:linenum form.
+		 *
+		 * @var string[]
+		 */
+		public $references = array();
+
+		/**
+		 * Flags like php-format.
+		 *
+		 * @var string[]
+		 */
+		public $flags = array();
 
 		/**
 		 * @param array $args {
