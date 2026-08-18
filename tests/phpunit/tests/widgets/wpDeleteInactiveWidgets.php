@@ -11,6 +11,7 @@ class Tests_Widgets_WpDeleteInactiveWidgets extends WP_UnitTestCase {
 		parent::set_up();
 		require_once ABSPATH . 'wp-admin/includes/widgets.php';
 	}
+
 	/**
 	 * Tests that wp_delete_inactive_widgets() does nothing when there are no inactive widgets.
 	 */
