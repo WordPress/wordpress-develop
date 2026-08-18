@@ -2607,14 +2607,14 @@ function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
  * @since 7.2.0
  * @access private
  *
- * @param WP_Scripts|WP_Styles $dependencies Registry to resolve the handles against.
- * @param string[]             $handles      Root handles to expand.
+ * @param WP_Dependencies $dependencies Registry to resolve the handles against.
+ * @param string[]        $handles      Root handles to expand.
  * @return string[] The roots together with everything they depend on, roots first. Handles that
  *                  are not registered are dropped, as are their dependencies.
  *
  * @phpstan-return list<string>
  */
-function _wp_expand_dependency_handles( $dependencies, array $handles ): array {
+function _wp_expand_dependency_handles( WP_Dependencies $dependencies, array $handles ): array {
 	$expanded = array();
 	$queue    = array_values( $handles );
 
