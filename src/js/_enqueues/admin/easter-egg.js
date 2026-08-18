@@ -42,6 +42,9 @@
 		'Follow the white rabbit.'
 	];
 
+	// Left on screen at the end, as the original's noscript fallback did.
+	var CLOSING = "Don't let this happen again.";
+
 	var STYLE = [
 		'.wp-easter-egg{position:fixed;inset:0;z-index:2147483647;margin:0;padding:2.5em;',
 			'font-family:courier,monospace;font-size:16px;line-height:1.6;',
@@ -63,14 +66,16 @@
 	 * @param {string} displayName The current user's display name.
 	 */
 	function run( displayName ) {
-		var aborted = false,
-			timer   = null;
+		var aborted          = false,
+			timer            = null,
+			previousOverflow = document.documentElement.style.overflow;
 
 		var style = document.createElement( 'style' );
 		style.textContent = STYLE;
 
 		var overlay = document.createElement( 'div' );
 		overlay.className = 'wp-easter-egg';
+		overlay.setAttribute( 'aria-hidden', 'true' );
 
 		var line = document.createElement( 'p' );
 
@@ -154,8 +159,7 @@
 		 */
 		function actTwo( index ) {
 			if ( index >= ACT_TWO.length ) {
-				wait( LINE_PAUSE, function () {
-					clear();
+				type( CLOSING, function () {
 					cursor.className = 'cursor';
 				} );
 				return;
@@ -177,6 +181,7 @@
 			aborted = true;
 			window.clearTimeout( timer );
 			document.removeEventListener( 'keydown', abort );
+			document.documentElement.style.overflow = previousOverflow;
 			overlay.remove();
 			style.remove();
 		}
@@ -186,6 +191,7 @@
 
 		document.head.appendChild( style );
 		document.body.appendChild( overlay );
+		document.documentElement.style.overflow = 'hidden';
 
 		wait( START_DELAY, function () {
 			actOne( 0 );
