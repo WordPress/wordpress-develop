@@ -70,8 +70,8 @@ a:hover {
 // The extra specificity here is required to override the background color styles.
 .has-background {
 	// Target both current level and nested block.
-	.has-link-color a,
-	&.has-link-color a {
+	.has-link-color a:not(.wp-block-post-excerpt__more-link),
+	&.has-link-color a:not(.wp-block-post-excerpt__more-link) {
 		color: var(--wp--style--color--link, var(--global--color-primary));
 	}
 }
