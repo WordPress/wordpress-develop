@@ -82,6 +82,10 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		public $flags = array();
 
 		/**
+		 * Constructor.
+		 *
+		 * @since 2.8.0
+		 *
 		 * @param array $args {
 		 *     Arguments array, supports the following keys:
 		 *
@@ -130,6 +134,8 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 * @deprecated 5.4.0 Use __construct() instead.
 		 *
 		 * @see Translation_Entry::__construct()
+		 *
+		 * @param array $args Optional. Array of arguments. Default empty array.
 		 */
 		public function Translation_Entry( $args = array() ) {
 			_deprecated_constructor( self::class, '5.4.0', static::class );
@@ -162,6 +168,7 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 * @since 2.8.0
 		 *
 		 * @param Translation_Entry $other Other translation entry.
+		 * @return void
 		 */
 		public function merge_with( &$other ) {
 			$this->flags      = array_unique( array_merge( $this->flags, $other->flags ) );
