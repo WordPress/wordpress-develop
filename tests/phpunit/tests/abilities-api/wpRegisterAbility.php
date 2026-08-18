@@ -196,6 +196,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				'annotations'  => $expected_annotations,
 				'show_in_rest' => true,
 				'public'       => false,
+				'deprecated'   => false,
 			)
 		);
 
