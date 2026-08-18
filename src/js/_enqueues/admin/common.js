@@ -1350,9 +1350,15 @@ $( function() {
 		event.stopPropagation();
 		$( 'html, body' ).animate( { scrollTop: 0 } );
 
+		var noSelectionMessages = {
+			'bulk_action': __( 'Please select a bulk action to perform.' ),
+			'changeit': __( 'Please select a role to change.' )
+		};
+
 		var errorMessage = value !== '-1' ?
 			__( 'Please select at least one item to perform this action on.' ) :
-			__( 'Please select a bulk action to perform.' );
+			noSelectionMessages[ submitterName ] || noSelectionMessages.bulk_action;
+
 		addAdminNotice( {
 			id: value !== '-1' ? 'no-items-selected' : 'no-bulk-action-selected',
 			type: 'error',
