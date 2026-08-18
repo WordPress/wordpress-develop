@@ -613,4 +613,59 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		return $stats['cmd_get'];
 	}
+
+	/**
+	 * Data provider for test_pre_add_option_filter_short_circuits().
+	 *
+	 * @return array[]
+	 */
+	public function data_pre_add_option_filter_short_circuits() {
+		return array(
+			'returns true'  => array( '__return_true', true ),
+			'returns false' => array( '__return_false', false ),
+		);
+	}
+
+	/**
+	 * @ticket 37928
+	 *
+	 * @dataProvider data_pre_add_option_filter_short_circuits
+	 *
+	 * @covers ::add_option
+	 *
+	 * @param callable $callback       The filter callback to use.
+	 * @param bool     $expected       The expected return value of add_option().
+	 */
+	public function test_pre_add_option_filter_short_circuits( $callback, $expected ) {
+		add_filter( 'pre_add_option', $callback );
+		$result = add_option( 'test_pre_add_option', 'value' );
+		remove_filter( 'pre_add_option', $callback );
+
+		$this->assertSame( $expected, $result );
+		// Confirm the option was NOT actually written to the database.
+		$this->assertFalse( get_option( 'test_pre_add_option' ) );
+	}
+
+	/**
+	 * @ticket 37928
+	 *
+	 * @covers ::add_option
+	 */
+	public function test_pre_add_option_dynamic_filter_short_circuits_specific_option() {
+		add_filter( 'pre_add_option_test_specific_option', '__return_true' );
+		$result_specific = add_option( 'test_specific_option', 'value' );
+
+		// A different option must NOT be short-circuited by the per-option filter.
+		$result_other = add_option( 'test_other_option', 'value' );
+
+		remove_filter( 'pre_add_option_test_specific_option', '__return_true' );
+
+		// The targeted option was short-circuited.
+		$this->assertTrue( $result_specific );
+		$this->assertFalse( get_option( 'test_specific_option' ) );
+
+		// The other option was written normally.
+		$this->assertTrue( $result_other );
+		$this->assertSame( 'value', get_option( 'test_other_option' ) );
+	}
 }

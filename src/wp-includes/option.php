@@ -1114,18 +1114,35 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	$value = sanitize_option( $option, $value );
 
 	/**
+	 * Filters whether to short-circuit adding a specific option.
+	 *
+	 * The dynamic portion of the hook name, `$option`, refers to the option name.
+	 *
+	 * Returning a non-null value will short-circuit adding the option, and the
+	 * returned value will be used as a boolean success/failure return value.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param null   $skip   Whether to short-circuit adding the option. Default null.
+	 * @param string $option Name of the option to add.
+	 * @param mixed  $value  Option value.
+	 */
+	$skip = apply_filters( "pre_add_option_{$option}", null, $option, $value );
+
+	/**
 	 * Filters whether to short-circuit the process of adding an option.
 	 *
-	 * Returning a value other than null will short-circuit the process, and the value will be
-	 * returned cast as a bool.
+	 * Returning a non-null value will short-circuit adding the option, and the
+	 * returned value will be used as a boolean success/failure return value.
 	 *
-	 * @since 4.7.0
+	 * @since 7.2.0
 	 *
 	 * @param null   $skip   Whether to short-circuit the process. Default null.
 	 * @param string $option Name of the option to add.
 	 * @param mixed  $value  Option value.
 	 */
-	$skip = apply_filters( 'pre_add_option', null, $option, $value );
+	$skip = apply_filters( 'pre_add_option', $skip, $option, $value );
+
 	if ( ! is_null( $skip ) ) {
 		return (bool) $skip;
 	}
