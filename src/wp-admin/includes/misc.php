@@ -1201,9 +1201,8 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 			return $response;
 		}
 
-		$user_id = wp_check_post_lock( $post_id );
+		$user_id = wp_check_post_lock( $post_id, $received['lock'] ?? '' );
 		$user    = get_userdata( $user_id );
-
 		if ( $user ) {
 			$error = array(
 				'name' => $user->display_name,

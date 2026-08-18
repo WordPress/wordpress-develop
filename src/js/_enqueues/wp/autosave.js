@@ -115,6 +115,10 @@ window.autosave = function() {
 				data.auto_draft = '1';
 			}
 
+			if ( $( '#active_post_lock' ).length ) {
+				data.active_post_lock = $( '#active_post_lock' ).val() || '';
+			}
+
 			return data;
 		}
 

@@ -132,6 +132,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 25272
 	 */
 	public function test_edit_post_auto_draft() {
+
 		wp_set_current_user( self::$editor_id );
 		$post = self::factory()->post->create_and_get( array( 'post_status' => 'auto-draft' ) );
 		$this->assertSame( 'auto-draft', $post->post_status );
@@ -145,6 +146,31 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'draft', get_post( $post->ID )->post_status );
 	}
 
+	/**
+	 * @ticket 28288
+	 */
+	public function test_wp_check_post_lock_allows_the_current_session() {
+		wp_set_current_user( self::$editor_id );
+
+		$lock = implode( ':', wp_set_post_lock( self::$post_id ) );
+
+		$this->assertFalse( wp_check_post_lock( self::$post_id, $lock ) );
+	}
+
+	/**
+	 * @ticket 28288
+	 */
+	public function test_wp_check_post_lock_detects_a_stale_same_user_lock() {
+		wp_set_current_user( self::$editor_id );
+
+		$stale_lock = ( time() - 1 ) . ':' . self::$editor_id;
+		$fresh_lock = time() . ':' . self::$editor_id;
+
+		update_post_meta( self::$post_id, '_edit_lock', $fresh_lock );
+
+		$this->assertNotSame( $stale_lock, $fresh_lock );
+		$this->assertSame( self::$editor_id, wp_check_post_lock( self::$post_id, $stale_lock ) );
+	}
 	/**
 	 * @ticket 30615
 	 */
