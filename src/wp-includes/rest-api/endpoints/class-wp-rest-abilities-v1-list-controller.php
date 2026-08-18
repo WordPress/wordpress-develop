@@ -251,6 +251,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `meta.public` property.
 	 * @since 7.2.0 Added the `required_capabilities` property.
+	 * @since 7.2.0 Added the `deprecated` meta property to the ability schema.
 	 *
 	 * @return array<string, mixed> Item schema data.
 	 */
@@ -366,6 +367,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `namespace` and `meta` parameters and the `rest_abilities_collection_params` filter.
 	 * @since 7.2.0 Added the `has_required_capabilities` parameter.
+	 * @since 7.2.0 Added support for filtering by the `deprecated` meta property.
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
@@ -455,6 +457,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		 * boolean, before the meta filter matches it.
 		 *
 		 * @since 7.1.0
+		 * @since 7.2.0 Added the `deprecated` meta collection parameter.
 		 *
 		 * @param array $query_params JSON Schema-formatted collection parameters.
 		 */

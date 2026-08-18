@@ -292,6 +292,7 @@ declare( strict_types = 1 );
  * @since 7.1.0 Added the `public` meta argument.
  * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
  * @since 7.2.0 Added the `required_capabilities` argument.
+ * @since 7.2.0 Added the `deprecated` meta property.
  *
  * @see WP_Abilities_Registry::register()
  * @see WP_Ability::execute()
@@ -504,7 +505,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  * The current behavior is to trigger a user error if `WP_DEBUG` is true.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param string $ability_name The ability that was executed.
  * @param string $version      Optional. The version of the ability provider that deprecated the ability.
@@ -516,7 +517,7 @@ function _deprecated_ability( string $ability_name, string $version = '', string
 	/**
 	 * Fires when a deprecated ability is executed.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param string $ability_name The ability that was executed.
 	 * @param string $replacement  The ability that should be used as a replacement.
@@ -528,7 +529,7 @@ function _deprecated_ability( string $ability_name, string $version = '', string
 	/**
 	 * Filters whether to trigger an error for deprecated abilities.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param bool $trigger Whether to trigger the error for deprecated abilities. Default true.
 	 */
@@ -651,6 +652,7 @@ function _deprecated_ability( string $ability_name, string $version = '', string
  * @since 6.9.0
  * @since 7.1.0 Added the `$args` parameter for filtering support.
  * @since 7.2.0 Added the `has_required_capabilities` argument.
+ * @since 7.2.0 Added support for filtering by the `deprecated` meta property.
  *
  * @see WP_Abilities_Registry::get_all_registered()
  *
