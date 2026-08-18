@@ -817,12 +817,10 @@ function rest_send_cors_headers( $value, $result = null, $request = null ) {
 		header( 'Access-Control-Allow-Origin: ' . $origin );
 
 		/*
-		 * This runs on 'rest_pre_serve_request', after the response's own headers
-		 * have already been emitted by WP_REST_Server::send_headers(). Sending the
-		 * default list unconditionally would replace a value set on the response --
-		 * for instance through the 'rest_post_dispatch' filter -- because header()
-		 * replaces by default. Only send the default when the response has not
-		 * provided one. Header names are case-insensitive.
+		 * This runs on 'rest_pre_serve_request', after the response's own headers have
+		 * been sent, and header() replaces by default -- so sending the default list
+		 * unconditionally would discard a value set on the response. Header names are
+		 * case-insensitive.
 		 */
 		$response_headers = ( $result instanceof WP_HTTP_Response ) ? $result->get_headers() : array();
 		$response_headers = array_change_key_case( $response_headers );
