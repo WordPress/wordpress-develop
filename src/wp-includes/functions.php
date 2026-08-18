@@ -6530,6 +6530,11 @@ function wp_suspend_cache_addition( $suspend = null ) {
  * invalidations every time a post is inserted. Callers must be sure that what they are
  * doing won't lead to an inconsistent cache when invalidation is suspended.
  *
+ * IMPORTANT: This affects both object cache (transients, etc.) AND persistent term
+ * hierarchy caches stored in the options table. When cache invalidation is suspended,
+ * functions like clean_term_cache() will not update term hierarchy caches in the database,
+ * which can lead to stale data if those hierarchies are modified during suspension.
+ *
  * @since 2.7.0
  *
  * @global bool $_wp_suspend_cache_invalidation
@@ -6543,6 +6548,39 @@ function wp_suspend_cache_invalidation( $suspend = true ) {
 	$current_suspend                = $_wp_suspend_cache_invalidation;
 	$_wp_suspend_cache_invalidation = $suspend;
 	return $current_suspend;
+}
+
+/**
+ * Flushes all caches, including object cache and persistent database caches.
+ *
+ * Unlike wp_cache_flush() which only clears the object cache, this function
+ * also clears persistent caches stored in the database, such as term hierarchies
+ * stored in the options table.
+ *
+ * @since 6.8.0
+ *
+ * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ *
+ * @return bool True on success, false on failure.
+ */
+function wp_flush_all_caches() {
+	$result = wp_cache_flush();
+
+	$taxonomies = get_taxonomies();
+	foreach ( $taxonomies as $taxonomy ) {
+		delete_option( "{$taxonomy}_children" );
+		_get_term_hierarchy( $taxonomy );
+	}
+
+	/**
+	 * Fires after all caches have been flushed, including object cache and
+	 * persistent database caches.
+	 *
+	 * @since 6.8.0
+	 */
+	do_action( 'wp_flush_all_caches' );
+
+	return $result;
 }
 
 /**

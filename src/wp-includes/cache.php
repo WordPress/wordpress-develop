@@ -255,6 +255,10 @@ function wp_cache_decr( $key, $offset = 1, $group = '' ) {
 /**
  * Removes all cache items.
  *
+ * Note that this only clears the object cache and does not affect persistent caches
+ * stored in the database, such as term hierarchies. To clear all types of cache,
+ * including database-stored caches, use wp_flush_all_caches().
+ *
  * @since 2.0.0
  *
  * @see WP_Object_Cache::flush()

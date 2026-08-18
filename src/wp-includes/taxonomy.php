@@ -3713,12 +3713,29 @@ function clean_object_term_cache( $object_ids, $object_type ) {
  *                                  term IDs will be used. Default empty.
  * @param bool      $clean_taxonomy Optional. Whether to clean taxonomy wide caches (true), or just individual
  *                                  term object caches (false). Default true.
+ *                                  IMPORTANT: When cache invalidation is suspended via wp_suspend_cache_invalidation(),
+ *                                  this function will exit early, which means persistent term hierarchies in
+ *                                  the database will not be updated.
  */
 function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 	global $wpdb, $_wp_suspend_cache_invalidation;
 
 	if ( ! empty( $_wp_suspend_cache_invalidation ) ) {
-		return;
+		/**
+		 * Filters whether to bypass cache invalidation suspension for term cache cleaning.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool      $bypass     Whether to bypass cache invalidation suspension. Default false.
+		 * @param array     $ids        An array of term IDs.
+		 * @param string    $taxonomy   Taxonomy slug.
+		 * @param bool      $clean_taxonomy Whether to clean taxonomy-wide caches.
+		 */
+		$bypass_suspension = apply_filters( 'bypass_term_cache_suspension', false, $ids, $taxonomy, $clean_taxonomy );
+
+		if ( ! $bypass_suspension ) {
+			return;
+		}
 	}
 
 	if ( ! is_array( $ids ) ) {
