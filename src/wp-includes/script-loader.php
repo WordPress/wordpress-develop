@@ -2778,15 +2778,13 @@ function wp_prefetch_admin_assets(): void {
 			return;
 		}
 
-		$create_posts = $post_type_object->cap->create_posts ?? '';
-
 		/*
 		 * A user who cannot create this post type will never reach the editor from here, and a post
 		 * type still using the classic editor would not load any of these stylesheets.
 		 */
-		if ( ! is_string( $create_posts )
-			|| ! current_user_can( $create_posts )
-			|| ! use_block_editor_for_post_type( $post_type )
+		if (
+			! current_user_can( $post_type_object->cap->create_posts ) ||
+			! use_block_editor_for_post_type( $post_type )
 		) {
 			return;
 		}
