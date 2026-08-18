@@ -249,7 +249,7 @@ function rest_api_default_filters() {
 	}
 
 	// Default serving.
-	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers', 10, 2 );
+	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_send_allow_header', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
@@ -798,14 +798,15 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * Sends Cross-Origin Resource Sharing headers with API requests.
  *
  * @since 4.4.0
- * @since 7.2.0 Added the `$result` parameter. An `Access-Control-Allow-Methods`
+ * @since 7.2.0 Added the `$result` and `$request` parameters. An `Access-Control-Allow-Methods`
  *              header already set on the response is no longer overwritten.
  *
- * @param mixed            $value  Response data.
- * @param WP_HTTP_Response $result Optional. Result to send to the client. Default null.
+ * @param mixed                $value   Response data.
+ * @param WP_HTTP_Response     $result  Optional. Result to send to the client. Default null.
+ * @param WP_REST_Request|null $request Optional. The request in context. Default null.
  * @return mixed Response data.
  */
-function rest_send_cors_headers( $value, $result = null ) {
+function rest_send_cors_headers( $value, $result = null, $request = null ) {
 	$origin = get_http_origin();
 
 	if ( $origin ) {
@@ -827,7 +828,26 @@ function rest_send_cors_headers( $value, $result = null ) {
 		$response_headers = array_change_key_case( $response_headers );
 
 		if ( ! isset( $response_headers['access-control-allow-methods'] ) ) {
-			header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
+			$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
+
+			/**
+			 * Filters the list of HTTP methods advertised to REST API CORS requests.
+			 *
+			 * The allowed methods are passed to the browser to specify which methods
+			 * may be used in a cross-origin request to the REST API. The list is a
+			 * fixed default and is not derived from the registered routes, so a site
+			 * serving routes that accept other methods can advertise them here.
+			 *
+			 * A value set on the response itself takes precedence over this filter.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param string[]             $allow_methods The list of HTTP methods to allow.
+			 * @param WP_REST_Request|null $request       The request in context, if available.
+			 */
+			$allow_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request );
+
+			header( 'Access-Control-Allow-Methods: ' . implode( ', ', $allow_methods ) );
 		}
 
 		header( 'Access-Control-Allow-Credentials: true' );

@@ -225,4 +225,93 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		$this->assertContains( 'Access-Control-Allow-Origin: http://example.org', $headers );
 		$this->assertContains( 'Access-Control-Allow-Credentials: true', $headers );
 	}
+
+	/**
+	 * The rest_allowed_cors_methods filter changes the advertised method list.
+	 *
+	 * @ticket 46992
+	 *
+	 * @requires function xdebug_get_headers
+	 */
+	public function test_allowed_cors_methods_filter_changes_the_list() {
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function ( $methods ) {
+				$methods[] = 'HEAD';
+				return $methods;
+			}
+		);
+
+		$headers = $this->serve_and_get_headers();
+
+		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE, HEAD', $headers );
+		$this->assertNotContains( self::DEFAULT_ALLOW_METHODS, $headers );
+	}
+
+	/**
+	 * The filter receives the default list as an array and the request in context.
+	 *
+	 * Matches the signature of the sibling CORS list filters, rest_exposed_cors_headers
+	 * and rest_allowed_cors_headers.
+	 *
+	 * @ticket 46992
+	 *
+	 * @requires function xdebug_get_headers
+	 */
+	public function test_allowed_cors_methods_filter_receives_the_default_list_and_the_request() {
+		$received = null;
+
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function ( $methods, $request ) use ( &$received ) {
+				$received = array( $methods, $request );
+				return $methods;
+			},
+			10,
+			2
+		);
+
+		$this->serve_and_get_headers();
+
+		$this->assertNotNull( $received, 'The filter did not run.' );
+		$this->assertSame( array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' ), $received[0] );
+		$this->assertInstanceOf( WP_REST_Request::class, $received[1] );
+		$this->assertSame( '/wp/v2/types', $received[1]->get_route() );
+	}
+
+	/**
+	 * A value set on the response wins over the filter, and the filter does not run.
+	 *
+	 * The response header is the more specific instruction: the filter shapes the
+	 * default, and there is no default to shape once the response has supplied one.
+	 *
+	 * @ticket 46992
+	 *
+	 * @requires function xdebug_get_headers
+	 */
+	public function test_response_value_takes_precedence_over_the_filter() {
+		$filter_ran = false;
+
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $response ) {
+				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
+				return $response;
+			}
+		);
+
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function ( $methods ) use ( &$filter_ran ) {
+				$filter_ran = true;
+				return array( 'OPTIONS', 'DELETE' );
+			}
+		);
+
+		$headers = $this->serve_and_get_headers();
+
+		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
+		$this->assertNotContains( 'Access-Control-Allow-Methods: OPTIONS, DELETE', $headers );
+		$this->assertFalse( $filter_ran, 'The filter ran even though the response set the header.' );
+	}
 }
