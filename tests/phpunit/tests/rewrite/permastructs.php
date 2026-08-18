@@ -81,4 +81,25 @@ class Tests_Rewrite_Permastructs extends WP_UnitTestCase {
 		$rules = $wp_rewrite->generate_rewrite_rules( $stored_struct );
 		$this->assertContains( 'index.php?wptests_cert=$matches[1]', array_values( $rules ) );
 	}
+
+	/**
+	 * Tests that percent-encoded sequences that do not decode to valid UTF-8 are left intact
+	 * so that plugin-registered tag placeholders shaped like hex sequences are never silently mangled.
+	 *
+	 * @ticket 41791
+	 */
+	public function test_add_permastruct_preserves_non_utf8_encoded_sequences() {
+		global $wp_rewrite;
+
+		// %80%81 decodes to two lone continuation bytes — invalid UTF-8.
+		$invalid_sequence = '%80%81';
+		add_permastruct( 'foo_invalid', "bar/{$invalid_sequence}/%foo_invalid%" );
+
+		$stored_struct = $wp_rewrite->extra_permastructs['foo_invalid']['struct'];
+
+		// The invalid sequence must be preserved as-is.
+		$this->assertStringContainsString( $invalid_sequence, $stored_struct );
+
+		remove_permastruct( 'foo_invalid' );
+	}
 }

@@ -1847,7 +1847,8 @@ class WP_Rewrite {
 		$args['struct'] = preg_replace_callback(
 			'/(?:%[0-9A-F]{2})+/',
 			static function ( $matches ) {
-				return rawurldecode( $matches[0] );
+				$decoded = rawurldecode( $matches[0] );
+				return wp_is_valid_utf8( $decoded ) ? $decoded : $matches[0];
 			},
 			$struct
 		);
