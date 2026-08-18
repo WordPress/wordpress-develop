@@ -4549,6 +4549,61 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( 'post-my-invalid-template.php', $data['template'] );
 	}
 
+	/**
+	 * Tests If-Unmodified-Since conditional updates and Last-Modified headers.
+	 *
+	 * @covers WP_REST_Posts_Controller::update_item_permissions_check
+	 * @covers WP_REST_Posts_Controller::get_item
+	 * @covers WP_REST_Posts_Controller::add_last_modified_header
+	 * @ticket 47676
+	 */
+	public function test_update_item_with_if_unmodified_since_precondition() {
+		wp_set_current_user( self::$editor_id );
+
+		$get_request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$get_response = rest_get_server()->dispatch( $get_request );
+		$this->assertSame( 200, $get_response->get_status() );
+		$headers = $get_response->get_headers();
+		$this->assertArrayHasKey( 'Last-Modified', $headers );
+		$last_modified = $headers['Last-Modified'];
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$title1 = 'Same as last modified';
+		$request->set_body( wp_json_encode( $this->set_post_data( array( 'title' => $title1 ) ) ) );
+		$request->set_header( 'If-Unmodified-Since', $last_modified );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Update should succeed when If-Unmodified-Since matches Last-Modified.' );
+		$new_data = $response->get_data();
+		$this->assertSame( $title1, $new_data['title']['raw'] );
+		$this->assertSame( $title1, get_post( self::$post_id )->post_title );
+
+		$get_response = rest_get_server()->dispatch( $get_request );
+		$headers      = $get_response->get_headers();
+		$this->assertArrayHasKey( 'Last-Modified', $headers );
+		$last_modified_after_update = $headers['Last-Modified'];
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$title2 = '1 second after last modified';
+		$request->set_body( wp_json_encode( $this->set_post_data( array( 'title' => $title2 ) ) ) );
+		$request->set_header( 'If-Unmodified-Since', gmdate( 'D, d M Y H:i:s', strtotime( $last_modified_after_update ) + 1 ) . ' GMT' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Update should succeed when If-Unmodified-Since is after the server modified time.' );
+		$new_data = $response->get_data();
+		$this->assertSame( $title2, $new_data['title']['raw'] );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$title3 = 'Should not save';
+		$request->set_body( wp_json_encode( $this->set_post_data( array( 'title' => $title3 ) ) ) );
+		$request->set_header( 'If-Unmodified-Since', $last_modified );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 412, $response->get_status(), 'Update should fail when If-Unmodified-Since predates current revision.' );
+		$this->assertSame( $title2, get_post( self::$post_id )->post_title, 'Expected title not to update due to failed precondition.' );
+	}
+
 	public function verify_post_roundtrip( $input = array(), $expected_output = array() ) {
 		// Create the post.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
