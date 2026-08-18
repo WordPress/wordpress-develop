@@ -2612,7 +2612,8 @@ function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
  * @return string[] The roots together with everything they depend on, roots first. Handles that
  *                  are not registered are dropped, as are their dependencies.
  *
- * @phpstan-return list<string>
+ * @phpstan-param non-empty-list<non-empty-string> $handles
+ * @phpstan-return list<non-empty-string>
  */
 function _wp_expand_dependency_handles( WP_Dependencies $dependencies, array $handles ): array {
 	$expanded = array();
@@ -2628,7 +2629,7 @@ function _wp_expand_dependency_handles( WP_Dependencies $dependencies, array $ha
 		$expanded[ $handle ] = true;
 
 		foreach ( $dependencies->registered[ $handle ]->deps as $dependency ) {
-			if ( is_string( $dependency ) && ! isset( $expanded[ $dependency ] ) ) {
+			if ( is_string( $dependency ) && '' !== $dependency && ! isset( $expanded[ $dependency ] ) ) {
 				$queue[] = $dependency;
 			}
 		}
