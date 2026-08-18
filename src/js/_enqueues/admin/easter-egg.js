@@ -43,7 +43,7 @@
 	];
 
 	// Left on screen at the end, as the original's noscript fallback did.
-	var CLOSING = "Don't let this happen again.";
+	var CLOSING = 'Don\'t let this happen again.';
 
 	var STYLE = [
 		'.wp-easter-egg{position:fixed;inset:0;z-index:2147483647;margin:0;padding:2.5em;',
