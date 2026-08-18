@@ -87,21 +87,21 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 * @since 2.8.0
 		 *
 		 * @param array $args {
-		 *     Arguments array, supports the following keys:
+		 *     Optional. Array of arguments. Default empty array.
 		 *
-		 *     @type string $singular            The string to translate, if omitted an
-		 *                                       empty entry will be created.
-		 *     @type string $plural              The plural form of the string, setting
-		 *                                       this will set `$is_plural` to true.
-		 *     @type array  $translations        Translations of the string and possibly
-		 *                                       its plural forms.
-		 *     @type string $context             A string differentiating two equal strings
-		 *                                       used in different contexts.
-		 *     @type string $translator_comments Comments left by translators.
-		 *     @type string $extracted_comments  Comments left by developers.
-		 *     @type array  $references          Places in the code this string is used, in
-		 *                                       relative_to_root_path/file.php:linenum form.
-		 *     @type array  $flags               Flags like php-format.
+		 *     @type string          $singular            The string to translate, if omitted an
+		 *                                                empty entry will be created.
+		 *     @type string          $plural              The plural form of the string, setting
+		 *                                                this will set `$is_plural` to true.
+		 *     @type (string|null)[] $translations        Translations of the string and possibly
+		 *                                                its plural forms.
+		 *     @type string          $context             A string differentiating two equal strings
+		 *                                                used in different contexts.
+		 *     @type string          $translator_comments Comments left by translators.
+		 *     @type string          $extracted_comments  Comments left by developers.
+		 *     @type string[]        $references          Places in the code this string is used, in
+		 *                                                relative_to_root_path/file.php:linenum form.
+		 *     @type string[]        $flags               Flags like php-format.
 		 * }
 		 */
 		public function __construct( $args = array() ) {
