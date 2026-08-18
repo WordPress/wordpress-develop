@@ -7,10 +7,10 @@
  * @covers ::wp_delete_inactive_widgets
  */
 class Tests_Widgets_WpDeleteInactiveWidgets extends WP_UnitTestCase {
-	public function tear_down() {
-		parent::tear_down();
+	public function set_up() {
+		parent::set_up();
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
 	}
-
 	/**
 	 * Tests that wp_delete_inactive_widgets() does nothing when there are no inactive widgets.
 	 */
