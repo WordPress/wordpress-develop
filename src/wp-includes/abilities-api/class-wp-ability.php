@@ -140,6 +140,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 Added the `deprecated` meta property.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -220,6 +221,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 Added support for the `deprecated` meta property.
 	 *
 	 * @see WP_Abilities_Registry::register()
 	 *
@@ -829,6 +831,7 @@ class WP_Ability {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_invoked` action.
 	 * @since 7.1.0 Added the `wp_pre_execute_ability` filter.
+	 * @since 7.2.0 Added deprecation notices for abilities with the `deprecated` meta property.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.

@@ -42,6 +42,7 @@ final class WP_Abilities_Registry {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
 	 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
+	 * @since 7.2.0 Added the `deprecated` meta property.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -122,6 +123,7 @@ final class WP_Abilities_Registry {
 		 * @since 6.9.0
 		 * @since 7.1.0 Added the `public` meta argument.
 		 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
+		 * @since 7.2.0 Added the `deprecated` meta property.
 		 *
 		 * @param array<string, mixed> $args {
 		 *     An associative array of arguments for the ability.
