@@ -12,9 +12,13 @@
  * the 2013 original used, so it is not a readable string in the admin bundle. That is
  * the one piece of deliberate obfuscation here and it is aimed at users, not at other
  * developers: the mystery is meant to live in the trigger. Everything else, including
- * the payload in easter-egg.js, ships as readable source.
+ * the payload in teletype.js, ships as readable source.
  *
- * @output wp-admin/js/easter-egg-loader.js
+ * The files are named for what they do rather than for what they are. This one is
+ * enqueued by name on every admin screen that loads the palette, so a src ending in
+ * easter-egg.js would answer the question before anyone thought to ask it.
+ *
+ * @output wp-admin/js/teletype-loader.js
  */
 
 ( function ( wp, settings ) {
@@ -53,8 +57,8 @@
 	function play() {
 		var script;
 
-		if ( wp.easterEgg ) {
-			wp.easterEgg.run( settings.name );
+		if ( wp.teletype ) {
+			wp.teletype.run( settings.name );
 			return;
 		}
 
@@ -62,8 +66,8 @@
 		script.src = settings.src;
 
 		script.onload = function () {
-			if ( wp.easterEgg ) {
-				wp.easterEgg.run( settings.name );
+			if ( wp.teletype ) {
+				wp.teletype.run( settings.name );
 			}
 		};
 
@@ -103,4 +107,4 @@
 	}
 
 	document.addEventListener( 'keydown', onKeydown, true );
-}( window.wp, window.wpEasterEgg ) );
+}( window.wp, window.wpTeletype ) );

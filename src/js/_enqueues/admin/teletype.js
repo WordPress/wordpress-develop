@@ -15,7 +15,7 @@
  *
  * Timings, dialogue, and staging are faithful to the original.
  *
- * @output wp-admin/js/easter-egg.js
+ * @output wp-admin/js/teletype.js
  */
 
 ( function ( wp ) {
@@ -46,18 +46,18 @@
 	var CLOSING = 'Don\'t let this happen again.';
 
 	var STYLE = [
-		'.wp-easter-egg{position:fixed;inset:0;z-index:2147483647;margin:0;padding:2.5em;',
+		'.wp-teletype{position:fixed;inset:0;z-index:2147483647;margin:0;padding:2.5em;',
 			'font-family:courier,monospace;font-size:16px;line-height:1.6;',
 			'background:#fff;color:#000;overflow:hidden;',
 			'transition:background-color .6s linear,color .6s linear}',
-		'.wp-easter-egg.is-dark{background:#000;color:#0f0}',
-		'.wp-easter-egg p{margin:0;white-space:pre-wrap}',
-		'.wp-easter-egg .cursor{opacity:0;transition:opacity ' + ( FADE_TIME / 1000 ) + 's linear}',
-		'.wp-easter-egg .cursor.is-visible{opacity:1;animation:wp-easter-egg-blink 1s step-end infinite}',
-		'@keyframes wp-easter-egg-blink{50%{opacity:0}}',
+		'.wp-teletype.is-dark{background:#000;color:#0f0}',
+		'.wp-teletype p{margin:0;white-space:pre-wrap}',
+		'.wp-teletype .cursor{opacity:0;transition:opacity ' + ( FADE_TIME / 1000 ) + 's linear}',
+		'.wp-teletype .cursor.is-visible{opacity:1;animation:wp-teletype-blink 1s step-end infinite}',
+		'@keyframes wp-teletype-blink{50%{opacity:0}}',
 		'@media (prefers-reduced-motion:reduce){',
-			'.wp-easter-egg .cursor.is-visible{animation:none}',
-			'.wp-easter-egg,.wp-easter-egg .cursor{transition:none}}'
+			'.wp-teletype .cursor.is-visible{animation:none}',
+			'.wp-teletype,.wp-teletype .cursor{transition:none}}'
 	].join( '' );
 
 	/**
@@ -74,7 +74,7 @@
 		style.textContent = STYLE;
 
 		var overlay = document.createElement( 'div' );
-		overlay.className = 'wp-easter-egg';
+		overlay.className = 'wp-teletype';
 		overlay.setAttribute( 'aria-hidden', 'true' );
 
 		var line = document.createElement( 'p' );
@@ -146,7 +146,7 @@
 		 * The turn: screen to black, text to green, cursor fades up alone.
 		 */
 		function lightsOut() {
-			overlay.className = 'wp-easter-egg is-dark';
+			overlay.className = 'wp-teletype is-dark';
 			clear();
 			cursor.className = 'cursor is-visible';
 			wait( ACT_PAUSE, function () {
@@ -198,5 +198,5 @@
 		} );
 	}
 
-	wp.easterEgg = { run: run };
+	wp.teletype = { run: run };
 }( window.wp = window.wp || {} ) );
