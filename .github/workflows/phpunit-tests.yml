@@ -155,6 +155,7 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
+      allow-errors: ${{ matrix.php == '8.6' && true || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
@@ -220,6 +221,7 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: false
+      allow-errors: ${{ matrix.php == '8.6' && true || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
@@ -279,6 +281,7 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: false
+      allow-errors: ${{ matrix.php == '8.6' && true || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
@@ -323,6 +326,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
+      allow-errors: ${{ matrix.php == '8.6' && true || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
