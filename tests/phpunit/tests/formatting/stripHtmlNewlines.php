@@ -27,7 +27,6 @@ class Tests_Formatting_StripHtmlNewlines extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @ticket 5678
 	 */
 	public function test_preserves_newlines_in_preformatted_elements() {
