@@ -275,11 +275,23 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	},
 
 	hasNext: function() {
-		return ( this.getCurrentIndex() + 1 ) < this.library.length;
+		var currentIndex = this.getCurrentIndex();
+
+		// Ensure model is in library collection before allowing navigation
+		if ( -1 === currentIndex ) {
+			return false;
+		}
+		return ( currentIndex + 1 ) < this.library.length;
 	},
 
 	hasPrevious: function() {
-		return ( this.getCurrentIndex() - 1 ) > -1;
+		var currentIndex = this.getCurrentIndex();
+
+		// Ensure model is in library collection before allowing navigation
+		if ( -1 === currentIndex ) {
+			return false;
+		}
+		return ( currentIndex - 1 ) > -1;
 	},
 	/**
 	 * Respond to the keyboard events: Alt + right arrow, Alt + left arrow,
