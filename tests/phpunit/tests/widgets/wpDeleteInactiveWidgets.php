@@ -74,5 +74,7 @@ class Tests_Widgets_WpDeleteInactiveWidgets extends WP_UnitTestCase {
 
 		$text_option = get_option( 'widget_text' );
 		$this->assertArrayNotHasKey( 3, $text_option, 'Inactive text widget setting should be removed.' );
+
+		$this->assertFalse( get_option( 'widget_no-option' ), 'A missing widget option should not be created.' );
 	}
 }
