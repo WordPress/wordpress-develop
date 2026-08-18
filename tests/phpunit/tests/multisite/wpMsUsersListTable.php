@@ -104,4 +104,38 @@ class Tests_Multisite_wpMsUsersListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
+
+	/**
+	 * @ticket 43899
+	 */
+	public function test_view_switcher_is_not_displayed() {
+		$pagination = new ReflectionMethod( $this->table, 'pagination' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$pagination->setAccessible( true );
+		}
+
+		ob_start();
+		$pagination->invoke( $this->table, 'top' );
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'view-switch', $output );
+	}
+
+	/**
+	 * @ticket 43899
+	 */
+	public function test_excerpt_mode_request_does_not_change_registered_date_format() {
+		$_REQUEST['mode'] = 'excerpt';
+		$this->table->prepare_items();
+		unset( $_REQUEST['mode'] );
+
+		$user                  = new WP_User();
+		$user->user_registered = '2025-01-02 03:04:05';
+
+		ob_start();
+		$this->table->column_registered( $user );
+		$output = ob_get_clean();
+
+		$this->assertSame( mysql2date( __( 'Y/m/d g:i:s a' ), $user->user_registered ), $output );
+	}
 }
