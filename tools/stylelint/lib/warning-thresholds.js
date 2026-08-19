@@ -24,7 +24,7 @@ const ROOT = path.resolve( __dirname, '..', '..', '..' );
 const THRESHOLDS_FILE = path.join( __dirname, '..', 'warning-thresholds.json' );
 const CONFIG_FILE = path.join( ROOT, '.stylelintrc.js' );
 const IGNORE_PATH = path.join( ROOT, '.stylelintignore' );
-const FILES_GLOB = path.join( ROOT, 'src/**/*.{css,scss}' );
+const FILES_GLOB = path.join( ROOT, 'src/**/*.{css,scss}' ).split( path.sep ).join( '/' );
 
 /**
  * Lints core CSS and returns the raw Stylelint results.
