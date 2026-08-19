@@ -2684,12 +2684,12 @@ function _wp_prefetch_target_is_block_editor( string $url ): bool {
  * Handles the current screen has already printed are skipped, so each context only fetches what it
  * is actually adding.
  *
- * These are resources for the *next* navigation rather than for the login screen itself, which is
+ * These are resources for the *next* navigation rather than for the screen printing them, which is
  * what `rel="prefetch"` describes. `rel="preload"` would fetch them at the current document's
  * priority and make cross-navigation reuse depend entirely on the static files' HTTP cache headers,
  * which core does not control; browsers also warn about preloaded resources the document never uses.
  * A prefetch is already dispatched at the browser's lowest priority, so it stays out of the way of
- * the login screen's own render-blocking assets without needing `fetchpriority`.
+ * that screen's own render-blocking assets without needing `fetchpriority`.
  *
  * The `as` attribute is still worth setting: it gives the request the same destination the admin
  * screen will later ask for, which is what lets the prefetched response be reused.
@@ -2873,9 +2873,9 @@ function wp_prefetch_admin_assets(): void {
 	) {
 		foreach ( $handles as $handle ) {
 			/*
-			 * The login screen shares a handful of these handles and has already printed them by
-			 * the time this runs, so the browser is fetching them anyway. Prefetching them again
-			 * would only add markup.
+			 * Whichever screen this is running on shares some of these handles and has already
+			 * printed them by the time this runs, so the browser is fetching them anyway.
+			 * Prefetching them again would only add markup.
 			 */
 			if ( in_array( $handle, $dependencies->done, true ) ) {
 				continue;
