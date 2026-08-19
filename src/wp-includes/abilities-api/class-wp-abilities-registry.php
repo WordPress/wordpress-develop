@@ -142,25 +142,31 @@ final class WP_Abilities_Registry {
 		 */
 		$args = apply_filters( 'wp_register_ability_args', $args, $name );
 
-		if ( ! isset( $args['category'] ) || '' === $args['category'] ) {
+		if ( ! array_key_exists( 'category', $args ) ) {
 			$args['category'] = 'uncategorized';
 		}
 
-		// Validate ability category exists after applying the default.
-		if ( is_string( $args['category'] ) ) {
-			if ( ! wp_has_ability_category( $args['category'] ) ) {
-				_doing_it_wrong(
-					__METHOD__,
-					sprintf(
-						/* translators: %1$s: ability category slug, %2$s: ability name */
-						__( 'Ability category "%1$s" is not registered. Please register the ability category before assigning it to ability "%2$s".' ),
-						esc_html( $args['category'] ),
-						esc_html( $name )
-					),
-					'6.9.0'
-				);
-				return null;
-			}
+		if ( ! is_string( $args['category'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Ability category must be a string.' ),
+				'6.9.0'
+			);
+			return null;
+		}
+
+		if ( ! wp_has_ability_category( $args['category'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %1$s: ability category slug, %2$s: ability name */
+					__( 'Ability category "%1$s" is not registered. Please register the ability category before assigning it to ability "%2$s".' ),
+					esc_html( $args['category'] ),
+					esc_html( $name )
+				),
+				'6.9.0'
+			);
+			return null;
 		}
 
 		// The class is only used to instantiate the ability, and is not a property of the ability itself.
