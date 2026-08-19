@@ -2504,6 +2504,11 @@ function script_concat_settings() {
  * URL they print, including the version query argument and the {@see 'script_loader_src'}
  * and {@see 'style_loader_src'} filters, without printing anything or disturbing the queue.
  *
+ * The registry is deliberately not typed as WP_Dependencies, whose subclasses need not declare the
+ * `base_url`, `content_url`, `default_version`, `text_direction` and `_css_href()` members the URL
+ * is built from. Static analysis does not object to the wider type, having no reason to expect a
+ * subclass beyond the two named here.
+ *
  * @since 7.2.0
  * @access private
  *
@@ -2512,6 +2517,7 @@ function script_concat_settings() {
  * @return string[] URLs the handle resolves to. Empty when the handle is not registered,
  *                  aliases other handles without a source of its own, or is filtered away.
  *
+ * @phpstan-param non-empty-string $handle
  * @phpstan-return list<non-empty-string>
  */
 function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
