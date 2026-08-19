@@ -634,6 +634,87 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 11398
+	 */
+	public function test_query_orderby_comment_date() {
+		$post_ids = self::factory()->post->create_many(
+			4,
+			array(
+				'post_date' => '2020-01-01 00:00:00',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_ids[0],
+				'comment_date'     => '2020-01-01 00:00:00',
+				'comment_date_gmt' => '2020-01-04 00:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_ids[1],
+				'comment_date'     => '2020-01-02 00:00:00',
+				'comment_date_gmt' => '2020-01-02 00:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_ids[1],
+				'comment_date'     => '2020-01-05 00:00:00',
+				'comment_date_gmt' => '2020-01-05 00:00:00',
+				'comment_approved' => '0',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_ids[2],
+				'comment_date'     => '2019-01-01 00:00:00',
+				'comment_date_gmt' => '2019-01-01 00:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_ids[2],
+				'comment_date'     => '2020-01-03 00:00:00',
+				'comment_date_gmt' => '2020-01-03 00:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_ids[3],
+				'comment_date'     => '2020-01-06 00:00:00',
+				'comment_date_gmt' => '2020-01-06 00:00:00',
+				'comment_type'     => 'note',
+			)
+		);
+
+		$query_args = array(
+			'post__in'            => $post_ids,
+			'orderby'             => 'comment_date',
+			'fields'              => 'ids',
+			'posts_per_page'      => -1,
+			'ignore_sticky_posts' => true,
+		);
+
+		$desc_query    = new WP_Query( array_merge( $query_args, array( 'order' => 'DESC' ) ) );
+		$asc_query     = new WP_Query( array_merge( $query_args, array( 'order' => 'ASC' ) ) );
+		$limited_query = new WP_Query(
+			array_merge(
+				$query_args,
+				array(
+					'order'          => 'DESC',
+					'posts_per_page' => 2,
+				)
+			)
+		);
+
+		$this->assertSame( array( $post_ids[2], $post_ids[1], $post_ids[0], $post_ids[3] ), $desc_query->posts );
+		$this->assertSame( array( $post_ids[0], $post_ids[1], $post_ids[2], $post_ids[3] ), $asc_query->posts );
+		$this->assertSame( array( $post_ids[2], $post_ids[1] ), $limited_query->posts );
+	}
+
+	/**
 	 * @ticket 39055
 	 */
 	public function test_query_orderby_post__in_with_no_order_specified() {
