@@ -1445,11 +1445,7 @@ function get_status_header_desc( $code ) {
 		);
 	}
 
-	if ( isset( $wp_header_to_desc[ $code ] ) ) {
-		return $wp_header_to_desc[ $code ];
-	} else {
-		return '';
-	}
+	return $wp_header_to_desc[ $code ] ?? '';
 }
 
 /**
@@ -3639,24 +3635,29 @@ function wp_get_ext_types() {
  * Wrapper for PHP filesize with filters and casting the result as an integer.
  *
  * @since 6.0.0
+ * @since 7.1.0 The return value is now ensured to always be greater than or equal to zero.
  *
  * @link https://www.php.net/manual/en/function.filesize.php
  *
  * @param string $path Path to the file.
  * @return int The size of the file in bytes, or 0 in the event of an error.
+ * @phpstan-return non-negative-int
  */
-function wp_filesize( $path ) {
+function wp_filesize( $path ): int {
 	/**
 	 * Filters the result of wp_filesize() before the file_exists() PHP function is run.
 	 *
 	 * @since 6.0.0
+	 * @since 7.1.0 Negative values are now ignored, being treated the same as null. Numeric values are cast to integers.
 	 *
-	 * @param null|int $size The unfiltered value. Returning an int from the callback bypasses the filesize call.
+	 * @param null|int $size The unfiltered value. Returning a non-negative number from the callback bypasses the filesize call.
 	 * @param string   $path Path to the file.
 	 */
 	$size = apply_filters( 'pre_wp_filesize', null, $path );
-
-	if ( is_int( $size ) ) {
+	if ( is_numeric( $size ) ) {
+		$size = (int) $size;
+	}
+	if ( is_int( $size ) && $size >= 0 ) {
 		return $size;
 	}
 
@@ -3666,11 +3667,18 @@ function wp_filesize( $path ) {
 	 * Filters the size of the file.
 	 *
 	 * @since 6.0.0
+	 * @since 7.1.0 The return value is now always zero or greater. Numeric values are cast to integers.
 	 *
 	 * @param int    $size The result of PHP filesize on the file.
 	 * @param string $path Path to the file.
 	 */
-	return (int) apply_filters( 'wp_filesize', $size, $path );
+	$size = apply_filters( 'wp_filesize', $size, $path );
+	if ( is_numeric( $size ) ) {
+		$size = (int) $size;
+	} else {
+		$size = 0;
+	}
+	return max( 0, $size );
 }
 
 /**
@@ -5021,12 +5029,19 @@ function wp_parse_args( $args, $defaults = array() ) {
  *
  * @since 5.1.0
  *
- * @param array|string $input_list List of values.
- * @return array Array of values.
+ * @param mixed[]|string $input_list List of values.
+ * @return array Array of scalar values. A string is split into a list, while an array
+ *               keeps its keys, so the result is not necessarily a list.
+ * @phpstan-return (
+ *     $input_list is string ? list<string> : (
+ *         $input_list is array<string> ? array<string> : array<scalar>
+ *     )
+ * )
  */
-function wp_parse_list( $input_list ) {
+function wp_parse_list( $input_list ): array {
 	if ( ! is_array( $input_list ) ) {
-		return preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
+		$parsed_list = preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
+		return is_array( $parsed_list ) ? $parsed_list : array();
 	}
 
 	// Validate all entries of the list are scalar.
@@ -5041,10 +5056,13 @@ function wp_parse_list( $input_list ) {
  * @since 3.0.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $input_list List of IDs.
- * @return int[] Sanitized array of IDs.
+ * @param mixed[]|string $input_list List of IDs.
+ * @return int[] Sanitized array of IDs. May include zero. Keys are preserved
+ *               from the input and `array_unique()` may leave gaps, so the
+ *               result is not necessarily a list.
+ * @phpstan-return array<non-negative-int>
  */
-function wp_parse_id_list( $input_list ) {
+function wp_parse_id_list( $input_list ): array {
 	$input_list = wp_parse_list( $input_list );
 
 	return array_unique( array_map( 'absint', $input_list ) );
@@ -5056,13 +5074,27 @@ function wp_parse_id_list( $input_list ) {
  * @since 4.7.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $input_list List of slugs.
- * @return string[] Sanitized array of slugs.
+ * @param mixed[]|string $input_list List of slugs.
+ * @return string[] Sanitized array of slugs. May include an empty string. Keys
+ *                  are preserved from the input and `array_unique()` may leave
+ *                  gaps, so the result is not necessarily a list.
  */
-function wp_parse_slug_list( $input_list ) {
+function wp_parse_slug_list( $input_list ): array {
 	$input_list = wp_parse_list( $input_list );
 
-	return array_unique( array_map( 'sanitize_title', $input_list ) );
+	return array_unique(
+		array_map(
+			'sanitize_title',
+			array_map(
+				/*
+				 * Cast booleans, integers, and floats to strings. Non-scalar types
+				 * (including null) have already been filtered out by wp_parse_list().
+				 */
+				'strval',
+				$input_list
+			)
+		)
+	);
 }
 
 /**
@@ -5268,7 +5300,6 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
  * @link https://github.com/lodash-php/lodash-php/blob/master/src/internal/unicodeWords.php
  *
  * @param string $input_string The string to kebab-case.
- *
  * @return string kebab-cased-string.
  */
 function _wp_to_kebab_case( $input_string ) {
@@ -6327,11 +6358,20 @@ function iis7_supports_permalinks() {
  *
  * A return value of `1` means the file path contains directory traversal.
  *
- * A return value of `2` means the file path contains a Windows drive path.
+ * A return value of `2` means the file path contains an absolute Windows path.
+ * This covers drive paths such as `C:/WINDOWS`, UNC network share paths such as
+ * `//server/share`, and the Windows device namespaces `//./` and `//?/`.
  *
  * A return value of `3` means the file is not in the allowed files list.
  *
+ * Note that absolute POSIX paths such as `/etc/passwd` are *not* rejected, and
+ * never have been. Callers that must reject them are responsible for their own
+ * check. The convention in core is to concatenate the validated value onto a
+ * trusted base directory and then confirm the result exists, rather than to
+ * treat this function as an absolute-path guard.
+ *
  * @since 1.2.0
+ * @since 7.2.0 A return value of `2` also covers UNC and Windows device paths.
  *
  * @param string   $file          File path.
  * @param string[] $allowed_files Optional. Array of allowed files. Default empty array.
@@ -6367,8 +6407,21 @@ function validate_file( $file, $allowed_files = array() ) {
 		return 3;
 	}
 
-	// Absolute Windows drive paths are not allowed:
-	if ( ':' === substr( $file, 1, 1 ) ) {
+	/*
+	 * Absolute Windows paths are not allowed.
+	 *
+	 * The drive-letter test predates validate_file() itself, arriving from
+	 * b2/cafelog by way of a long series of moves. It only ever matched the
+	 * `X:` form, which left UNC and device paths accepted: wp_normalize_path()
+	 * above has already folded backslashes to forward slashes, and it
+	 * deliberately preserves a leading `//` for network shares, so those
+	 * paths arrive with no colon in the second byte.
+	 *
+	 * Anchoring the second test to the start of the string is what keeps
+	 * stream wrappers working. A registered wrapper keeps its `://` through
+	 * wp_normalize_path(), placing those slashes past the second byte.
+	 */
+	if ( ':' === substr( $file, 1, 1 ) || str_starts_with( $file, '//' ) ) {
 		return 2;
 	}
 
@@ -7031,7 +7084,7 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	}
 
 	foreach ( $all_headers as $field => $regex ) {
-		if ( preg_match( '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
+		if ( preg_match( '/^(?:[ \t]*<\?(?:php)?)?[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $file_data, $match ) && $match[1] ) {
 			$all_headers[ $field ] = _cleanup_header_comment( $match[1] );
 		} else {
 			$all_headers[ $field ] = '';
@@ -8667,7 +8720,6 @@ function wp_get_default_update_php_url() {
  * @param string $before  Markup to output before the annotation. Default `<p class="description">`.
  * @param string $after   Markup to output after the annotation. Default `</p>`.
  * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
- *
  * @return string|null Update PHP page annotation if available and $display is false, null otherwise.
  */
 function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {

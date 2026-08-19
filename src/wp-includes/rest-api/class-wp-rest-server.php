@@ -245,7 +245,6 @@ class WP_REST_Server {
 	 * @since 6.1.0
 	 *
 	 * @param \WP_REST_Request $request The current request object.
-	 *
 	 * @return int The JSON encode options.
 	 */
 	protected function get_json_encode_options( WP_REST_Request $request ) {
@@ -283,6 +282,12 @@ class WP_REST_Server {
 	 * @return null|false Null if not served and a HEAD request, false otherwise.
 	 */
 	public function serve_request( $path = null ) {
+		// Refuse to start a fresh top-level REST cycle while another dispatch
+		// is already in flight. Internal sub-requests must use dispatch().
+		if ( $this->is_dispatching() ) {
+			return false;
+		}
+
 		/* @var WP_User|null $current_user */
 		global $current_user;
 
@@ -1378,6 +1383,20 @@ class WP_REST_Server {
 
 			/** This filter is documented in wp-admin/includes/image.php */
 			$available['image_size_threshold'] = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
+
+			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+			$available['image_strip_meta'] = (bool) apply_filters( 'image_strip_meta', true );
+
+			/*
+			 * On the server, this filter receives the decoded image's actual bit depth.
+			 * The client path never decodes the image on the server, so the filter is
+			 * applied with 16 (the maximum depth the client encoder can produce) as
+			 * both the value and the current depth. The client caps its output bit
+			 * depth at the filtered value, so a plugin lowering it (e.g. to 8) takes
+			 * effect on client-generated images too.
+			 */
+			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+			$available['image_max_bit_depth'] = (int) apply_filters( 'image_max_bit_depth', 16, 16 );
 		}
 
 		$response = new WP_REST_Response( $available );
@@ -1756,6 +1775,7 @@ class WP_REST_Server {
 		foreach ( $requests as $single_request ) {
 			if ( is_wp_error( $single_request ) ) {
 				$has_error    = true;
+				$matches[]    = $single_request;
 				$validation[] = $single_request;
 				continue;
 			}
