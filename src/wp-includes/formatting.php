@@ -2423,12 +2423,13 @@ function sanitize_sql_orderby( $orderby ) {
 /**
  * Sanitizes an HTML classname to ensure it only contains valid characters.
  *
- * Strips the string down to A-Z,a-z,0-9,_,-. If this results in an empty
+ * Strips the string down to characters that are allowed by the HTML5 specification for class attributes.
+ * Class names can contain any Unicode character except whitespace.
  * string then it will return the alternative value supplied.
  *
- * @todo Expand to support the full range of CDATA that a class attribute can contain.
- *
  * @since 2.8.0
+ * @since 6.9.0 Added support for the full range of CDATA characters that a class attribute can contain,
+ *                allowing any Unicode character except whitespace.
  *
  * @param string $classname The classname to be sanitized.
  * @param string $fallback  Optional. The value to return if the sanitization ends up as an empty string.
@@ -2439,12 +2440,16 @@ function sanitize_html_class( $classname, $fallback = '' ) {
 	// Strip out any percent-encoded characters.
 	$sanitized = preg_replace( '|%[a-fA-F0-9][a-fA-F0-9]|', '', $classname );
 
-	// Limit to A-Z, a-z, 0-9, '_', '-'.
-	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $sanitized );
+	// Remove any whitespace characters (spaces, tabs, newlines, etc.).
+	$sanitized = preg_replace( '/\s+/', '', $sanitized );
+
+	// Allow all Unicode characters except whitespace characters.
+	$sanitized = preg_replace( '/[^\P{Z}]/u', '', $sanitized );
 
 	if ( '' === $sanitized && $fallback ) {
 		return sanitize_html_class( $fallback );
 	}
+
 	/**
 	 * Filters a sanitized HTML class string.
 	 *
