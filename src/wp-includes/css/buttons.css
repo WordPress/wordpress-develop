@@ -241,7 +241,7 @@ TABLE OF CONTENTS:
 	color: var(--wp-admin-theme-color, #3858e9);
 	text-decoration: underline;
 	transition-property: border, background, color;
-	transition-duration: .05s;
+	transition-duration: 0.05s;
 	transition-timing-function: ease-in-out;
 }
 
@@ -272,7 +272,6 @@ TABLE OF CONTENTS:
 	/* overrides the default buttons disabled background */
 	background: transparent !important;
 }
-
 
 /* ----------------------------------------------------------------------------
   3.0 - Primary Button Style
@@ -381,7 +380,6 @@ TABLE OF CONTENTS:
 ---------------------------------------------------------------------------- */
 
 @media screen and (max-width: 782px) {
-
 	.wp-core-ui .button,
 	.wp-core-ui .button.button-large,
 	.wp-core-ui .button.button-compact,
@@ -427,7 +425,6 @@ TABLE OF CONTENTS:
 	}
 
 	/* Reset responsive styles in Press This, Customizer */
-
 	.wp-core-ui.wp-customizer .button {
 		font-size: 13px;
 		line-height: 2.30769231; /* 30px */
@@ -446,11 +443,9 @@ TABLE OF CONTENTS:
 	}
 
 	/* Reset responsive styles on Log in button on iframed login form */
-
 	.interim-login .button.button-large {
 		min-height: 32px;
 		line-height: 2.30769231; /* 30px */
 		padding: 0 12px;
 	}
-
 }
