@@ -146,15 +146,6 @@ final class WP_Abilities_Registry {
 			$args['category'] = 'uncategorized';
 		}
 
-		if ( ! is_string( $args['category'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Ability category must be a string.' ),
-				'6.9.0'
-			);
-			return null;
-		}
-
 		if ( ! wp_has_ability_category( $args['category'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,

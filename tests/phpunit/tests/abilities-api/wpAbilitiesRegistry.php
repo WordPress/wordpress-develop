@@ -225,13 +225,11 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that an invalid category type is rejected before the category lookup.
+	 * Tests that an invalid category type is rejected by the category lookup.
 	 *
 	 * @ticket 65569
 	 *
 	 * @dataProvider data_invalid_category_types
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 *
 	 * @param mixed $category Invalid category value.
 	 */
@@ -239,13 +237,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$args             = self::$test_ability_args;
 		$args['category'] = $category;
 
-		$result = $this->registry->register( self::$test_ability_name, $args );
+		$this->expectException( TypeError::class );
 
-		$this->assertNull( $result );
-		$this->assertStringContainsString(
-			'Ability category must be a string.',
-			$this->caught_doing_it_wrong['WP_Abilities_Registry::register']
-		);
+		$this->registry->register( self::$test_ability_name, $args );
 	}
 
 	/**
