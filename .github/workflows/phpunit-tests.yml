@@ -191,7 +191,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
+        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major. PHP 8.6 is in pre-release and always tested.
         php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5","8.6"]') || fromJSON('["7.4","8.0","8.5","8.6"]') }}
         db-type: [ 'mariadb' ]
         db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
@@ -259,7 +259,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
+        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major. PHP 8.6 is in pre-release and always tested.
         php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5","8.6"]') || fromJSON('["7.4","8.0","8.5","8.6"]') }}
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '12.1' ]
