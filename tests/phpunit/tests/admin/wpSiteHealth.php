@@ -12,10 +12,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * An instance of the class to test.
 	 *
 	 * @since 6.1.0
-	 *
-	 * @var WP_Site_Health
 	 */
-	private $instance;
+	private WP_Site_Health $instance;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Include the `WP_Site_Health` file.
@@ -40,8 +38,9 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	public function test_mysql_recommended_version_matches_readme_html() {
 		$reflection          = new ReflectionClass( $this->instance );
 		$reflection_property = $reflection->getProperty( 'mysql_recommended_version' );
-		$reflection_property->setAccessible( true );
-
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
 		preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]*)#s', $readme, $matches );
@@ -56,7 +55,9 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	public function test_mariadb_recommended_version_matches_readme_html() {
 		$reflection          = new ReflectionClass( $this->instance );
 		$reflection_property = $reflection->getProperty( 'mariadb_recommended_version' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
@@ -169,7 +170,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::get_page_cache_headers()
 	 * @covers ::check_for_page_caching()
 	 */
-	public function test_get_page_cache( $responses, $expected_status, $expected_label, $good_basic_auth = null, $delay_the_response = false ) {
+	public function test_get_page_cache( array $responses, string $expected_status, string $expected_label, bool $has_basic_auth = false, bool $delay_the_response = false ) {
 		$expected_props = array(
 			'badge'  => array(
 				'label' => __( 'Performance' ),
@@ -180,7 +181,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			'label'  => $expected_label,
 		);
 
-		if ( null !== $good_basic_auth ) {
+		if ( $has_basic_auth ) {
 			$_SERVER['PHP_AUTH_USER'] = 'admin';
 			$_SERVER['PHP_AUTH_PW']   = 'password';
 		}
@@ -197,7 +198,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function ( $response, $parsed_args ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold ) {
+			function ( $response, $parsed_args ) use ( &$responses, &$is_unauthorized, $has_basic_auth, $delay_the_response, $threshold ) {
 
 				$expected_response = array_shift( $responses );
 
@@ -216,7 +217,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 					);
 				}
 
-				if ( null !== $good_basic_auth ) {
+				if ( $has_basic_auth ) {
 					$this->assertArrayHasKey(
 						'Authorization',
 						$parsed_args['headers']
@@ -260,9 +261,15 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @ticket 56041
 	 *
-	 * @return array[]
+	 * @return array<string, array{
+	 *     responses: array<int, string|array<string, string|string[]>>,
+	 *     expected_status: 'recommended'|'critical'|'good',
+	 *     expected_label: string,
+	 *     good_basic_auth?: bool,
+	 *     delay_the_response?: bool,
+	 * }>
 	 */
-	public function data_get_page_cache() {
+	public function data_get_page_cache(): array {
 		$recommended_label = 'Page cache is not detected but the server response time is OK';
 		$good_label        = 'Page cache is detected and the server response time is good';
 		$critical_label    = 'Page cache is not detected and the server response time is slow';
@@ -275,13 +282,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status' => 'recommended',
 				'expected_label'  => $error_label,
-				'good_basic_auth' => false,
+				'has_basic_auth'  => true,
 			),
 			'no-cache-control'                       => array(
 				'responses'          => array_fill( 0, 3, array() ),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
+				'has_basic_auth'     => false,
 				'delay_the_response' => true,
 			),
 			'no-cache'                               => array(
@@ -307,7 +314,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				'responses'          => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
+				'has_basic_auth'     => false,
 				'delay_the_response' => true,
 			),
 			'age'                                    => array(
@@ -363,7 +370,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
+				'has_basic_auth'     => false,
 				'delay_the_response' => true,
 			),
 			'cache-control-with-basic-auth'          => array(
@@ -374,7 +381,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
-				'good_basic_auth' => true,
+				'has_basic_auth'  => true,
 			),
 			'x-cache-enabled'                        => array(
 				'responses'       => array_fill(
@@ -393,7 +400,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
+				'has_basic_auth'     => false,
 				'delay_the_response' => true,
 			),
 			'x-cache-disabled'                       => array(
@@ -401,6 +408,78 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 					0,
 					3,
 					array( 'x-cache-disabled' => 'off' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'false-positive-hit-in-word'             => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-cache' => 'no-hit' )
+				),
+				'expected_status' => 'recommended',
+				'expected_label'  => $recommended_label,
+			),
+			'varnish-header'                         => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-varnish' => '123 456' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'varnish-header-miss'                    => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-varnish' => '123' )
+				),
+				'expected_status' => 'recommended',
+				'expected_label'  => $recommended_label,
+			),
+			'srcache-store-status'                   => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-srcache-store-status' => 'STORE' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'srcache-store-status-bypass'            => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-srcache-store-status' => 'BYPASS' )
+				),
+				'expected_status' => 'recommended',
+				'expected_label'  => $recommended_label,
+			),
+			'srcache-fetch-status'                   => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-srcache-fetch-status' => 'HIT' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'last-modified'                          => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'last-modified' => 'Wed, 21 Oct 2015 07:28:00 GMT' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'via'                                    => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'via' => '1.1 varnish' )
 				),
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
@@ -486,11 +565,11 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		return array(
 			array( 'comments_count', 0 ),
 			array( 'posts_count', 0 ),
-			array( 'terms_count', 1 ),
-			array( 'options_count', 100 ),
+			array( 'terms_count', 0 ),
+			array( 'options_count', 1 ),
 			array( 'users_count', 0 ),
-			array( 'alloptions_count', 100 ),
-			array( 'alloptions_bytes', 1000 ),
+			array( 'alloptions_count', 1 ),
+			array( 'alloptions_bytes', 10 ),
 		);
 	}
 
@@ -568,5 +647,64 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
 		add_option( 'test_set_autoloaded_option', $heavy_option_string, '', true );
+	}
+
+	/**
+	 * Tests get_test_opcode_cache() return structure.
+	 *
+	 * @ticket 63697
+	 *
+	 * @covers ::get_test_opcode_cache()
+	 */
+	public function test_get_test_opcode_cache_return_structure() {
+		$result = $this->instance->get_test_opcode_cache();
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'label', $result );
+		$this->assertArrayHasKey( 'status', $result );
+		$this->assertArrayHasKey( 'badge', $result );
+		$this->assertArrayHasKey( 'description', $result );
+		$this->assertArrayHasKey( 'actions', $result );
+		$this->assertArrayHasKey( 'test', $result );
+
+		$this->assertSame( 'opcode_cache', $result['test'] );
+		$this->assertSame(
+			array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			$result['badge']
+		);
+		$this->assertContains( $result['status'], array( 'good', 'recommended' ), 'Status must be good or recommended.' );
+	}
+
+	/**
+	 * Tests get_test_opcode_cache() result when opcode cache is enabled or not.
+	 *
+	 * Covers: opcache enabled, disabled, not available, and opcache_get_status() returns false.
+	 *
+	 * @ticket 63697
+	 *
+	 * @covers ::get_test_opcode_cache()
+	 */
+	public function test_get_test_opcode_cache_result_by_environment() {
+		$result = $this->instance->get_test_opcode_cache();
+
+		$opcache_enabled = false;
+		if ( function_exists( 'opcache_get_status' ) ) {
+			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+			if ( $status && true === $status['opcache_enabled'] ) {
+				$opcache_enabled = true;
+			}
+		}
+
+		if ( $opcache_enabled ) {
+			$this->assertSame( 'good', $result['status'], 'When opcache is enabled, status should be "good".' );
+			$this->assertSame( __( 'Opcode cache is enabled' ), $result['label'] );
+		} else {
+			$this->assertSame( 'recommended', $result['status'] );
+			$this->assertSame( __( 'Opcode cache is not enabled' ), $result['label'] );
+			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
+		}
 	}
 }

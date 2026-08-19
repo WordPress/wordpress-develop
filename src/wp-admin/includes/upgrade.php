@@ -886,6 +886,10 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
+	if ( $wp_current_db_version < 61644 ) {
+		upgrade_700();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2414,6 +2418,7 @@ function upgrade_650() {
 		wp_set_option_autoload_values( $autoload );
 	}
 }
+
 /**
  * Executes changes made in WordPress 6.7.0.
  *
@@ -2477,6 +2482,31 @@ function upgrade_682() {
 		$ping_sites_value = array_filter( $ping_sites_value );
 		$ping_sites_value = implode( "\n", $ping_sites_value );
 		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 7.0.
+ *
+ * @ignore
+ * @since 7.0.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_700() {
+	global $wp_current_db_version, $wpdb;
+
+	// Migrate users with 'fresh' admin color to 'modern'.
+	if ( $wp_current_db_version < 61644 ) {
+		$wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'modern' ),
+			array(
+				'meta_key'   => 'admin_color',
+				'meta_value' => 'fresh',
+			)
+		);
 	}
 }
 
@@ -2830,7 +2860,7 @@ function get_alloptions_110() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $setting Option name.
- * @return mixed
+ * @return mixed Option value.
  */
 function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	global $wpdb;
@@ -2932,8 +2962,10 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	// Create a tablename index for an array ($cqueries) of recognized query types.
 	foreach ( $queries as $qry ) {
 		if ( preg_match( '|CREATE TABLE ([^ ]*)|', $qry, $matches ) ) {
-			$cqueries[ trim( $matches[1], '`' ) ] = $qry;
-			$for_update[ $matches[1] ]            = 'Created table ' . $matches[1];
+			$table_name = trim( $matches[1], '`' );
+
+			$cqueries[ $table_name ]   = $qry;
+			$for_update[ $table_name ] = 'Created table ' . $matches[1];
 			continue;
 		}
 
@@ -3171,7 +3203,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 				$fieldtype_base = strtok( $fieldtype_without_parentheses, ' ' );
 
 				// Is actual field type different from the field type in query?
-				if ( $tablefield->Type !== $fieldtype ) {
+				if ( $tablefield->Type !== $fieldtype_lowercased ) {
 					$do_change = true;
 					if ( in_array( $fieldtype_lowercased, $text_fields, true ) && in_array( $tablefield_type_lowercased, $text_fields, true ) ) {
 						if ( array_search( $fieldtype_lowercased, $text_fields, true ) < array_search( $tablefield_type_lowercased, $text_fields, true ) ) {
@@ -3250,7 +3282,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( '0' === $tableindex->Non_unique ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = '0' === (string) $tableindex->Non_unique;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 
@@ -3371,7 +3403,7 @@ function make_db_current_silent( $tables = 'all' ) {
  *
  * @param string $theme_name The name of the theme.
  * @param string $template   The directory name of the theme.
- * @return bool
+ * @return bool True on success, false on failure.
  */
 function make_site_theme_from_oldschool( $theme_name, $template ) {
 	$home_path   = get_home_path();
@@ -3711,7 +3743,7 @@ function pre_schema_upgrade() {
 	}
 
 	// Multisite schema upgrades.
-	if ( $wp_current_db_version < 25448 && is_multisite() && wp_should_upgrade_global_tables() ) {
+	if ( $wp_current_db_version < 60497 && is_multisite() && wp_should_upgrade_global_tables() ) {
 
 		// Upgrade versions prior to 3.7.
 		if ( $wp_current_db_version < 25179 ) {
@@ -3724,6 +3756,20 @@ function pre_schema_upgrade() {
 			// Convert archived from enum to tinyint.
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived varchar(1) NOT NULL default '0'" );
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived tinyint(2) NOT NULL default 0" );
+		}
+
+		// Upgrade versions prior to 6.9
+		if ( $wp_current_db_version < 60497 ) {
+			// Convert ID columns from signed to unsigned
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY blog_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogmeta MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY ID bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->site MODIFY id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY meta_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->signups MODIFY signup_id bigint(20) unsigned NOT NULL auto_increment" );
 		}
 	}
 

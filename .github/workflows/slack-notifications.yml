@@ -25,6 +25,9 @@ on:
       SLACK_GHA_FAILURE_WEBHOOK:
         description: 'The Slack webhook URL for a failed build.'
         required: true
+      SLACK_GHA_TIMEOUT_WEBHOOK:
+        description: 'The Slack webhook URL for a timed out build.'
+        required: false
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -55,12 +58,13 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
       previous_conclusion: ${{ steps.previous-attempt-result.outputs.result }}
+      timed_out: ${{ steps.timeout-check.outputs.result }}
       payload: ${{ steps.create-payload.outputs.payload }}
 
     steps:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -128,9 +132,28 @@ jobs:
         env:
           CALLING_STATUS: ${{ inputs.calling_status }}
 
+      # The REST API exposes a distinct `timed_out` job conclusion that is unavailable through workflow contexts.
+      - name: Determine whether the workflow timed out
+        id: timeout-check
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        if: ${{ inputs.calling_status == 'cancelled' }}
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          result-encoding: string
+          script: |
+            const jobs = await github.paginate( github.rest.actions.listJobsForWorkflowRunAttempt, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: `${context.runId}`,
+              attempt_number: Number( process.env.GITHUB_RUN_ATTEMPT ),
+            }, ( response ) => response.data.jobs );
+
+            return jobs.some( ( job ) => job.conclusion === 'timed_out' ) ? 'true' : 'false';
+
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           retries: 2
@@ -171,7 +194,7 @@ jobs:
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
@@ -188,7 +211,7 @@ jobs:
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
@@ -205,25 +228,40 @@ jobs:
 
     steps:
       - name: Post success notifications to Slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
           payload: ${{ needs.prepare.outputs.payload }}
 
-  # Posts notifications when a workflow is cancelled.
   cancelled:
     name: Cancelled notifications
     permissions: {}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
+    if: ${{ ( inputs.calling_status == 'cancelled' && github.run_attempt == 2 && needs.prepare.outputs.timed_out != 'true' ) || cancelled() }}
 
     steps:
       - name: Post cancelled notifications to Slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+          payload: ${{ needs.prepare.outputs.payload }}
+
+  timeout:
+    name: Timeout notifications
+    permissions: {}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: [ prepare ]
+    if: ${{ inputs.calling_status == 'cancelled' && github.run_attempt == 2 && needs.prepare.outputs.timed_out == 'true' }}
+
+    steps:
+      - name: Post timeout notifications to Slack
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
+        with:
+          webhook-type: webhook-trigger
+          webhook: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
           payload: ${{ needs.prepare.outputs.payload }}

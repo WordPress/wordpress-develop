@@ -1313,7 +1313,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $author_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	/**
@@ -3283,7 +3283,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertTrue( isset( $args[0][0] ), 'Query parameters were not captured.' );
 		$this->assertInstanceOf( WP_User_Query::class, $args[0][0], 'Query parameters were not captured.' );
 
-		/** @var WP_User $query */
+		/** @var WP_User_Query $query */
 		$query = $args[0][0];
 
 		if ( $is_head_request ) {

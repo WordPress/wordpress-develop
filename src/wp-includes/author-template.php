@@ -86,24 +86,31 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
  * Retrieves the author who last edited the current post.
  *
  * @since 2.8.0
+ * @since 6.9.0 Added the `$post` parameter. Unknown return value is now explicitly null instead of void.
  *
- * @return string|void The author's display name, empty string if unknown.
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Default is global `$post` object.
+ * @return string|null The author's display name. Empty string if user is unavailable. Null if there was no last editor or the post is invalid.
  */
-function get_the_modified_author() {
-	$last_id = get_post_meta( get_post()->ID, '_edit_last', true );
-
-	if ( $last_id ) {
-		$last_user = get_userdata( $last_id );
-
-		/**
-		 * Filters the display name of the author who last edited the current post.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param string $display_name The author's display name, empty string if unknown.
-		 */
-		return apply_filters( 'the_modified_author', $last_user ? $last_user->display_name : '' );
+function get_the_modified_author( $post = null ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return null;
 	}
+
+	$last_id = get_post_meta( $post->ID, '_edit_last', true );
+	if ( ! $last_id ) {
+		return null;
+	}
+	$last_user = get_userdata( $last_id );
+
+	/**
+	 * Filters the display name of the author who last edited the current post.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param string $display_name The author's display name, empty string if user is unavailable.
+	 */
+	return apply_filters( 'the_modified_author', $last_user ? $last_user->display_name : '' );
 }
 
 /**
@@ -124,13 +131,11 @@ function the_modified_author() {
  * Valid values for the `$field` parameter include:
  *
  * - admin_color
- * - aim
  * - comment_shortcuts
  * - description
  * - display_name
  * - first_name
  * - ID
- * - jabber
  * - last_name
  * - nickname
  * - plugins_last_view
@@ -149,9 +154,9 @@ function the_modified_author() {
  * - user_registered
  * - user_status
  * - user_url
- * - yim
  *
  * @since 2.8.0
+ * @since 6.9.0 Removed `aim`, `jabber`, and `yim` as valid values for the `$field` parameter.
  *
  * @global WP_User $authordata The current author's data.
  *
@@ -164,7 +169,7 @@ function get_the_author_meta( $field = '', $user_id = false ) {
 
 	if ( ! $user_id ) {
 		global $authordata;
-		$user_id = isset( $authordata->ID ) ? $authordata->ID : 0;
+		$user_id = $authordata->ID ?? 0;
 	} else {
 		$authordata = get_userdata( $user_id );
 	}
@@ -173,7 +178,7 @@ function get_the_author_meta( $field = '', $user_id = false ) {
 		$field = 'user_' . $field;
 	}
 
-	$value = isset( $authordata->$field ) ? $authordata->$field : '';
+	$value = $authordata->$field ?? '';
 
 	/**
 	 * Filters the value of the requested user metadata.
@@ -224,24 +229,29 @@ function the_author_meta( $field = '', $user_id = false ) {
  * the author's name.
  *
  * @since 3.0.0
+ * @since 7.0.0 Added `$use_title_attr` parameter.
  *
  * @global WP_User $authordata The current author's data.
  *
+ * @param bool $use_title_attr Optional. Whether to add a title attribute.
+ *                             Default true.
  * @return string An HTML link if the author's URL exists in user meta,
  *                otherwise the result of get_the_author().
  */
-function get_the_author_link() {
+function get_the_author_link( $use_title_attr = true ) {
 	if ( get_the_author_meta( 'url' ) ) {
 		global $authordata;
 
 		$author_url          = get_the_author_meta( 'url' );
 		$author_display_name = get_the_author();
 
+		/* translators: %s: Author's display name. */
+		$author_title = sprintf( __( 'Visit %s&#8217;s website' ), $author_display_name );
+
 		$link = sprintf(
-			'<a href="%1$s" title="%2$s" rel="author external">%3$s</a>',
+			'<a href="%1$s"%2$s rel="author external">%3$s</a>',
 			esc_url( $author_url ),
-			/* translators: %s: Author's display name. */
-			esc_attr( sprintf( __( 'Visit %s&#8217;s website' ), $author_display_name ) ),
+			$use_title_attr ? ' title="' . esc_attr( $author_title ) . '"' : '',
 			$author_display_name
 		);
 
@@ -269,9 +279,13 @@ function get_the_author_link() {
  * @link https://developer.wordpress.org/reference/functions/the_author_link/
  *
  * @since 2.1.0
+ * @since 7.0.0 Added `$use_title_attr` parameter.
+ *
+ * @param bool $use_title_attr Optional. Whether to add a title attribute.
+ *                             Default true.
  */
-function the_author_link() {
-	echo get_the_author_link();
+function the_author_link( $use_title_attr = true ) {
+	echo get_the_author_link( $use_title_attr );
 }
 
 /**
@@ -305,6 +319,7 @@ function the_author_posts() {
  * Returns an HTML-formatted link using get_author_posts_url().
  *
  * @since 4.4.0
+ * @since 7.0.0 Removed title attribute.
  *
  * @global WP_User $authordata The current author's data.
  *
@@ -317,22 +332,27 @@ function get_the_author_posts_link() {
 		return '';
 	}
 
+	$author = get_the_author();
+	/* translators: %s: Author's display name. */
+	$title = sprintf( __( 'Posts by %s' ), $author );
+
 	$link = sprintf(
-		'<a href="%1$s" title="%2$s" rel="author">%3$s</a>',
+		'<a href="%1$s" rel="author">%2$s</a>',
 		esc_url( get_author_posts_url( $authordata->ID, $authordata->user_nicename ) ),
-		/* translators: %s: Author's display name. */
-		esc_attr( sprintf( __( 'Posts by %s' ), get_the_author() ) ),
-		get_the_author()
+		$author
 	);
 
 	/**
 	 * Filters the link to the author page of the author of the current post.
 	 *
 	 * @since 2.9.0
+	 * @since 7.0.0 Added `$author` and `$title` parameters.
 	 *
-	 * @param string $link HTML link.
+	 * @param string $link   HTML link.
+	 * @param string $author Author's display name.
+	 * @param string $title  Text originally used for a title attribute.
 	 */
-	return apply_filters( 'the_author_posts_link', $link );
+	return apply_filters( 'the_author_posts_link', $link, $author, $title );
 }
 
 /**
@@ -469,8 +489,7 @@ function wp_list_authors( $args = '' ) {
 	 */
 	$query_args = apply_filters( 'wp_list_authors_args', $query_args, $parsed_args );
 
-	$authors     = get_users( $query_args );
-	$post_counts = array();
+	$authors = get_users( $query_args );
 
 	/**
 	 * Filters whether to short-circuit performing the query for author post counts.
@@ -497,7 +516,7 @@ function wp_list_authors( $args = '' ) {
 	}
 
 	foreach ( $authors as $author_id ) {
-		$posts = isset( $post_counts[ $author_id ] ) ? $post_counts[ $author_id ] : 0;
+		$posts = $post_counts[ $author_id ] ?? 0;
 
 		if ( ! $posts && $parsed_args['hide_empty'] ) {
 			continue;
@@ -531,10 +550,8 @@ function wp_list_authors( $args = '' ) {
 		}
 
 		$link = sprintf(
-			'<a href="%1$s" title="%2$s">%3$s</a>',
+			'<a href="%1$s">%2$s</a>',
 			esc_url( get_author_posts_url( $author->ID, $author->user_nicename ) ),
-			/* translators: %s: Author's display name. */
-			esc_attr( sprintf( __( 'Posts by %s' ), $author->display_name ) ),
 			$name
 		);
 

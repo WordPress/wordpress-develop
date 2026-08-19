@@ -14,29 +14,32 @@
  * @since 6.8.0 The `user_pass` property is now hashed using bcrypt by default instead of phpass.
  *              Existing passwords may still be hashed using phpass.
  *
- * @property string $nickname
- * @property string $description
- * @property string $user_description
- * @property string $first_name
- * @property string $user_firstname
- * @property string $last_name
- * @property string $user_lastname
- * @property string $user_login
- * @property string $user_pass
- * @property string $user_nicename
- * @property string $user_email
- * @property string $user_url
- * @property string $user_registered
- * @property string $user_activation_key
- * @property string $user_status
- * @property int    $user_level
- * @property string $display_name
- * @property string $spam
- * @property string $deleted
- * @property string $locale
- * @property string $rich_editing
- * @property string $syntax_highlighting
- * @property string $use_ssl
+ * @property string     $nickname
+ * @property string     $description
+ * @property string     $user_description
+ * @property string     $first_name
+ * @property string     $user_firstname
+ * @property string     $last_name
+ * @property string     $user_lastname
+ * @property string     $user_login
+ * @property string     $user_pass
+ * @property string     $user_nicename
+ * @property string     $user_email
+ * @property string     $user_url
+ * @property string     $user_registered
+ * @property string     $user_activation_key
+ * @property string     $user_status
+ * @property int|string $user_level
+ * @property string     $display_name
+ * @property string     $spam
+ * @property string     $deleted
+ * @property string     $locale
+ * @property string     $rich_editing
+ * @property string     $syntax_highlighting
+ * @property string     $use_ssl
+ *
+ * @phpstan-property numeric-string        $user_status
+ * @phpstan-property int|numeric-string|'' $user_level
  */
 #[AllowDynamicProperties]
 class WP_User {
@@ -121,9 +124,9 @@ class WP_User {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int|string|stdClass|WP_User $id      User's ID, a WP_User object, or a user object from the DB.
-	 * @param string                      $name    Optional. User's username
-	 * @param int                         $site_id Optional Site ID, defaults to current site.
+	 * @param int|string|object $id      User's ID, a WP_User object, or a user object from the DB.
+	 * @param string            $name    Optional. User's username
+	 * @param int               $site_id Optional Site ID, defaults to current site.
 	 */
 	public function __construct( $id = 0, $name = '', $site_id = 0 ) {
 		global $wpdb;
@@ -515,9 +518,15 @@ class WP_User {
 
 		$wp_roles = wp_roles();
 
-		// Filter out caps that are not role names and assign to $this->roles.
+		// Select caps that are role names and assign to $this->roles.
 		if ( is_array( $this->caps ) ) {
-			$this->roles = array_filter( array_keys( $this->caps ), array( $wp_roles, 'is_role' ) );
+			$this->roles = array();
+
+			foreach ( $this->caps as $key => $value ) {
+				if ( $wp_roles->is_role( $key ) ) {
+					$this->roles[] = $key;
+				}
+			}
 		}
 
 		// Build $allcaps from role caps, overlay user's $caps.
@@ -648,7 +657,7 @@ class WP_User {
 		 * Fires after the user's role has changed.
 		 *
 		 * @since 2.9.0
-		 * @since 3.6.0 Added $old_roles to include an array of the user's previous roles.
+		 * @since 3.6.0 Added `$old_roles` to include an array of the user's previous roles.
 		 *
 		 * @param int      $user_id   The user ID.
 		 * @param string   $role      The new role.
@@ -821,13 +830,7 @@ class WP_User {
 		unset( $capabilities['do_not_allow'] );
 
 		// Must have ALL requested caps.
-		foreach ( (array) $caps as $cap ) {
-			if ( empty( $capabilities[ $cap ] ) ) {
-				return false;
-			}
-		}
-
-		return true;
+		return array_all( (array) $caps, fn( $cap, $key ) => ! empty( $capabilities[ $cap ] ) );
 	}
 
 	/**
