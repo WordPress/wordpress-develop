@@ -1086,7 +1086,7 @@ body #dashboard-widgets .postbox form .submit {
 
 #latest-comments #the-comment-list {
 	position: relative;
-	margin: 0 -12px;
+	margin: 0;
 }
 
 #activity-widget #the-comment-list .comment,
