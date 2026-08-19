@@ -5614,7 +5614,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = _truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_id ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5651,7 +5651,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = _truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id, $post_parent ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5707,7 +5707,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = _truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5734,25 +5734,17 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
  * Truncates a post slug.
  *
  * @since 3.6.0
+ * @since 7.2.0 Now an alias of _truncate_slug(), which is not post specific.
  * @access private
  *
- * @see utf8_uri_encode()
+ * @see _truncate_slug()
  *
  * @param string $slug   The slug to truncate.
  * @param int    $length Optional. Max length of the slug. Default 200 (characters).
  * @return string The truncated slug.
  */
 function _truncate_post_slug( $slug, $length = 200 ) {
-	if ( strlen( $slug ) > $length ) {
-		$decoded_slug = urldecode( $slug );
-		if ( $decoded_slug === $slug ) {
-			$slug = substr( $slug, 0, $length );
-		} else {
-			$slug = utf8_uri_encode( $decoded_slug, $length, true );
-		}
-	}
-
-	return rtrim( $slug, '-' );
+	return _truncate_slug( $slug, $length );
 }
 
 /**
@@ -8619,7 +8611,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 		return $post->post_name;
 	}
 	add_post_meta( $post->ID, '_wp_desired_post_slug', $post->post_name );
-	$post_name = _truncate_post_slug( $post->post_name, 191 ) . '__trashed';
+	$post_name = _truncate_slug( $post->post_name, 191 ) . '__trashed';
 	$wpdb->update( $wpdb->posts, array( 'post_name' => $post_name ), array( 'ID' => $post->ID ) );
 	clean_post_cache( $post->ID );
 	return $post_name;
