@@ -2910,4 +2910,47 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * Test to ensure wp_kses() allows text fragment links.
+	 *
+	 * This test verifies that wp_kses() correctly handles and preserves
+	 * text fragment links (e.g., #:~:text=highlight) in the href attribute.
+	 *
+	 * @ticket 60347
+	 *
+	 * @return void
+	 */
+	public function test_wp_kses_allows_text_fragments() {
+		$html         = '<a href="#:~:text=highlight">Text Fragment</a>';
+		$allowed_html = array(
+			'a' => array(
+				'href' => true,
+			),
+		);
+
+		$result = wp_kses( $html, $allowed_html );
+		$this->assertSame( $html, $result );
+	}
+
+	/**
+	 * Test to ensure wp_kses() doesn't allow fake text fragments.
+	 *
+	 * @ticket 60347
+	 *
+	 * @return void
+	 */
+	public function test_wp_kses_disallows_fake_text_fragment_without_custom_handling() {
+		$html = '<a href="javascript:alert(1)">Bad Link</a>';
+
+		$allowed_html = array(
+			'a' => array(
+				'href' => true,
+			),
+		);
+
+		$result = wp_kses( $html, $allowed_html );
+		$this->assertNotSame( $html, $result );
+		$this->assertStringNotContainsString( 'javascript:', $result );
+	}
 }
