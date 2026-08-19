@@ -1020,4 +1020,81 @@ EOF;
 		$this->assertIsArray( $out, 'Return value is not an array' );
 		$this->assertEmpty( $out, 'Returned array is not empty' );
 	}
+
+	/**
+	 * @dataProvider data_should_return_expected_attributes_when_shortcode_is_parsed
+	 */
+	public function test_should_return_expected_attributes_when_shortcode_is_parsed( $input, $expected ) {
+		$this->assertSame( $expected, shortcode_parse_atts( $input ) );
+	}
+
+	public function data_should_return_expected_attributes_when_shortcode_is_parsed() {
+		return array(
+			'basic_attributes'       => array(
+				'attr1="value1" attr2="value2"',
+				array(
+					'attr1' => 'value1',
+					'attr2' => 'value2',
+				),
+			),
+			'mixed_case_attributes'  => array(
+				'Attr1="value1" ATTR2="value2"',
+				array(
+					'attr1' => 'value1',
+					'attr2' => 'value2',
+				),
+			),
+			'single_quotes'          => array(
+				"attr1='value1' attr2='value2'",
+				array(
+					'attr1' => 'value1',
+					'attr2' => 'value2',
+				),
+			),
+			'unclosed_html_elements' => array(
+				'attr1="<div>value1"',
+				array(
+					'attr1' => '<div>value1',
+				),
+			),
+			'no_attributes'          => array(
+				'',
+				array(),
+			),
+			'extra_whitespace'       => array(
+				'    attr1  =   "value1"   attr2   =   "value2"',
+				array(
+					'attr1' => 'value1',
+					'attr2' => 'value2',
+				),
+			),
+			'html_in_attributes'     => array(
+				'attr1="<b>Bold</b>"',
+				array(
+					'attr1' => '<b>Bold</b>',
+				),
+			),
+			'special_characters'     => array(
+				'attr1="value!@#$%^&*()_+"',
+				array(
+					'attr1' => 'value!@#$%^&*()_+',
+				),
+			),
+			'numeric_attribute_keys' => array(
+				'0="value0" 1="value1" 2="value2"',
+				array(
+					'0' => 'value0',
+					'1' => 'value1',
+					'2' => 'value2',
+				),
+			),
+			'malformed_attribute'    => array(
+				'attr1="value1" attr2',
+				array(
+					'attr1' => 'value1',
+					0       => 'attr2',
+				),
+			),
+		);
+	}
 }
