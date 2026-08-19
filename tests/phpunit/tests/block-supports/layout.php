@@ -978,6 +978,8 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @ticket 64624
 	 * @covers ::wp_render_layout_support_flag
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_layout_support_flag_uses_variation_block_gap_value() {
 		switch_theme( 'block-theme' );
