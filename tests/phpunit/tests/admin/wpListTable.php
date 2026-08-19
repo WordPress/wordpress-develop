@@ -17,14 +17,22 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	/**
 	 * Original value of $GLOBALS['hook_suffix'].
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	private static $original_hook_suffix;
+
+	/**
+	 * Whether $GLOBALS['hook_suffix'] existed before the test class ran.
+	 *
+	 * @var bool
+	 */
+	private static $hook_suffix_was_set;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		static::$original_hook_suffix = $GLOBALS['hook_suffix'];
+		static::$hook_suffix_was_set  = array_key_exists( 'hook_suffix', $GLOBALS );
+		static::$original_hook_suffix = $GLOBALS['hook_suffix'] ?? null;
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 	}
@@ -37,8 +45,12 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	public function clean_up_global_scope() {
-		global $hook_suffix;
-		$hook_suffix = static::$original_hook_suffix;
+		if ( static::$hook_suffix_was_set ) {
+			$GLOBALS['hook_suffix'] = static::$original_hook_suffix;
+		} else {
+			unset( $GLOBALS['hook_suffix'] );
+		}
+
 		parent::clean_up_global_scope();
 	}
 
@@ -67,7 +79,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		 */
 		$GLOBALS['hook_suffix'] = 'my-hook';
 
-		$list_table = _get_list_table( $list_class );
+		$list_table = _get_list_table(
+			$list_class,
+			array( 'screen' => 'wp-list-table-test-' . sanitize_key( $list_class ) )
+		);
 
 		$column_headers = new ReflectionProperty( $list_table, '_column_headers' );
 		if ( PHP_VERSION_ID < 80100 ) {
@@ -97,7 +112,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		 */
 		$list_primary_columns = array(
 			'WP_Application_Passwords_List_Table'         => 'name',
-			'WP_Comments_List_Table'                      => 'author',
+			'WP_Comments_List_Table'                      => 'comment',
 			'WP_Links_List_Table'                         => 'name',
 			'WP_Media_List_Table'                         => 'title',
 			'WP_MS_Sites_List_Table'                      => 'blogname',
