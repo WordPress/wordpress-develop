@@ -225,6 +225,22 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an invalid category type is not replaced by the default.
+	 *
+	 * @ticket 65569
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_rejects_invalid_category_type(): void {
+		$args             = self::$test_ability_args;
+		$args['category'] = false;
+
+		$result = $this->registry->register( self::$test_ability_name, $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * Should reject ability registration without an execute callback.
 	 *
 	 * @ticket 64098

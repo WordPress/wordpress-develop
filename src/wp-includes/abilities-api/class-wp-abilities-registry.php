@@ -40,6 +40,7 @@ final class WP_Abilities_Registry {
 	 * Do not use this method directly. Instead, use the `wp_register_ability()` function.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -51,7 +52,8 @@ final class WP_Abilities_Registry {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The ability category slug this ability belongs to.
+	 *     @type string               $category              Optional. The ability category slug this ability belongs to.
+	 *                                                       Defaults to `uncategorized`.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -108,13 +110,15 @@ final class WP_Abilities_Registry {
 		 * Filters the ability arguments before they are validated and used to instantiate the ability.
 		 *
 		 * @since 6.9.0
+		 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
 		 *
 		 * @param array<string, mixed> $args {
 		 *     An associative array of arguments for the ability.
 		 *
 		 *     @type string               $label                 The human-readable label for the ability.
 		 *     @type string               $description           A detailed description of what the ability does.
-		 *     @type string               $category              The ability category slug this ability belongs to.
+		 *     @type string               $category              Optional. The ability category slug this ability belongs to.
+		 *                                                       Defaults to `uncategorized`.
 		 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 		 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 		 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -138,8 +142,12 @@ final class WP_Abilities_Registry {
 		 */
 		$args = apply_filters( 'wp_register_ability_args', $args, $name );
 
-		// Validate ability category exists if provided (will be validated as required in WP_Ability).
-		if ( isset( $args['category'] ) ) {
+		if ( ! isset( $args['category'] ) || '' === $args['category'] ) {
+			$args['category'] = 'uncategorized';
+		}
+
+		// Validate ability category exists after applying the default.
+		if ( is_string( $args['category'] ) ) {
 			if ( ! wp_has_ability_category( $args['category'] ) ) {
 				_doing_it_wrong(
 					__METHOD__,
