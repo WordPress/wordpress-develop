@@ -16,6 +16,12 @@ class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 		force_ssl_admin( false );
 	}
 
+	public function tear_down() {
+		force_ssl_admin( false );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that force_ssl_admin() returns expected values based on various inputs.
 	 *
