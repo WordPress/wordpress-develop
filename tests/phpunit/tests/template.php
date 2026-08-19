@@ -151,6 +151,11 @@ class Tests_Template extends WP_UnitTestCase {
 			$registry->unregister( 'third-party/test' );
 		}
 
+		if ( isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+			remove_all_filters( 'theme_file_path' );
+			wp_theme_has_theme_json();
+		}
+
 		unset( $GLOBALS['_wp_tests_development_mode'] );
 		parent::tear_down();
 	}
