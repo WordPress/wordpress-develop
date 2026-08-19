@@ -1174,7 +1174,7 @@ function the_meta() {
  * @since 2.1.0
  * @since 4.2.0 The `$value_field` argument was added.
  * @since 4.3.0 The `$class` argument was added.
- * @since 6.8.0 The `$disabled` argument was added.
+ * @since 7.2.0 The `$disabled` argument was added.
  *
  * @see get_pages()
  *

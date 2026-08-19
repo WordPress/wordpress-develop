@@ -301,7 +301,7 @@ function category_description( $category = 0 ) {
  * @since 4.2.0 Introduced the `value_field` argument.
  * @since 4.6.0 Introduced the `required` argument.
  * @since 6.1.0 Introduced the `aria_describedby` argument.
- * @since 6.8.0 Introduced the `disabled` argument.
+ * @since 7.2.0 Introduced the `disabled` argument.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a categories drop-down element. See WP_Term_Query::__construct()
@@ -413,12 +413,12 @@ function wp_dropdown_categories( $args = '' ) {
 	$class    = esc_attr( $parsed_args['class'] );
 	$id       = $parsed_args['id'] ? esc_attr( $parsed_args['id'] ) : $name;
 	$required = $parsed_args['required'] ? 'required' : '';
-	$disabled = $parsed_args['disabled'] ? 'disabled' : '';
+	$disabled = $parsed_args['disabled'] ? ' disabled' : '';
 
 	$aria_describedby_attribute = $parsed_args['aria_describedby'] ? ' aria-describedby="' . esc_attr( $parsed_args['aria_describedby'] ) . '"' : '';
 
 	if ( ! $parsed_args['hide_if_empty'] || ! empty( $categories ) ) {
-		$output = "<select $required $disabled name='$name' id='$id' class='$class'$tab_index_attribute$aria_describedby_attribute>\n";
+		$output = "<select $required$disabled name='$name' id='$id' class='$class'$tab_index_attribute$aria_describedby_attribute>\n";
 	} else {
 		$output = '';
 	}

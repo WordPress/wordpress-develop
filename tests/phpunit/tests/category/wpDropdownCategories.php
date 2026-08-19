@@ -257,7 +257,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 21474
+	 * @ticket 20810
 	 */
 	public function test_disabled_true_should_add_disabled_attribute() {
 		// Create a test category.
@@ -280,7 +280,7 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 21474
+	 * @ticket 20810
 	 */
 	public function test_disabled_should_default_to_false() {
 		// Create a test category.

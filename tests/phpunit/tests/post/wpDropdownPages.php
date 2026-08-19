@@ -221,7 +221,7 @@ NO;
 	}
 
 	/**
-	 * @ticket 21474
+	 * @ticket 20810
 	 */
 	public function test_disabled_true_should_add_disabled_attribute() {
 		$p = self::factory()->post->create(
@@ -241,7 +241,7 @@ NO;
 	}
 
 	/**
-	 * @ticket 21474
+	 * @ticket 20810
 	 */
 	public function test_disabled_should_default_to_false() {
 		$p = self::factory()->post->create(
