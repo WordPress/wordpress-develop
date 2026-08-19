@@ -907,6 +907,52 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertSame( 'invalid_term_name', $term->get_error_code() );
 	}
 
+	/**
+	 * Non-ASCII slugs are stored percent-encoded, so a short term name can still
+	 * overflow the 200 character `slug` column once a parent slug is appended.
+	 *
+	 * @ticket 46010
+	 */
+	public function test_child_term_with_long_encoded_slug_should_be_inserted() {
+		$taxonomy = 'wptests_tax';
+		register_taxonomy( $taxonomy, 'post', array( 'hierarchical' => true ) );
+
+		$name = 'Категория на продукта';
+
+		$parent = wp_insert_term( $name, $taxonomy );
+		$this->assertNotWPError( $parent );
+
+		$child = wp_insert_term( $name, $taxonomy, array( 'parent' => $parent['term_id'] ) );
+
+		$this->assertNotWPError( $child, 'The child term could not be inserted.' );
+		$this->assertLessThanOrEqual( 200, strlen( get_term( $child['term_id'] )->slug ) );
+	}
+
+	/**
+	 * @ticket 46010
+	 */
+	public function test_terms_with_long_colliding_slugs_should_remain_unique() {
+		$taxonomy = 'wptests_tax';
+		register_taxonomy( $taxonomy, 'post' );
+
+		// 22 characters percent-encode to exactly 198 bytes, so every name below shares a slug.
+		$prefix = str_repeat( 'あ', 22 );
+
+		$slugs = array();
+		for ( $i = 1; $i <= 12; $i++ ) {
+			$term = wp_insert_term( $prefix . ' ' . str_repeat( 'か', $i ), $taxonomy );
+
+			$this->assertNotWPError( $term, "Term $i could not be inserted." );
+
+			$slug = get_term( $term['term_id'] )->slug;
+			$this->assertLessThanOrEqual( 200, strlen( $slug ), "Term $i has an overlong slug." );
+
+			$slugs[] = $slug;
+		}
+
+		$this->assertSame( $slugs, array_unique( $slugs ), 'Duplicate slugs were created.' );
+	}
+
 	/** Helpers */
 
 	public function deleted_term_cb( $term, $tt_id, $taxonomy, $deleted_term, $object_ids ) {

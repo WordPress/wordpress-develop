@@ -802,4 +802,54 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		$this->assertWPError( $found );
 		$this->assertSame( 'invalid_term', $found->get_error_code() );
 	}
+
+	/**
+	 * wp_update_term() shares the uniquifier with wp_insert_term().
+	 *
+	 * @ticket 46010
+	 */
+	public function test_wp_update_term_child_with_long_encoded_slug_should_be_updated() {
+		$taxonomy = 'wptests_tax';
+		register_taxonomy( $taxonomy, 'post', array( 'hierarchical' => true ) );
+
+		$name = 'Категория на продукта';
+
+		$parent = wp_insert_term( $name, $taxonomy );
+		$this->assertNotWPError( $parent );
+
+		$child = self::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy,
+				'name'     => 'Child',
+				'slug'     => 'child',
+				'parent'   => $parent['term_id'],
+			)
+		);
+
+		/*
+		 * Clearing the slug field on the Edit Category screen regenerates the slug
+		 * from the name, which then collides with the parent and gets suffixed.
+		 */
+		$found = wp_update_term(
+			$child,
+			$taxonomy,
+			array(
+				'name'   => $name,
+				'slug'   => '',
+				'parent' => $parent['term_id'],
+			)
+		);
+
+		$this->assertNotWPError( $found, 'The term could not be updated.' );
+
+		$updated = get_term( $child );
+
+		// wp_update_term() ignores the return value of $wpdb->update(), so an
+		// overlong slug leaves the whole row unwritten without reporting an error.
+		$this->assertSame( $name, $updated->name, 'The term name was not updated.' );
+		$this->assertNotSame( 'child', $updated->slug, 'The term slug was not updated.' );
+		$this->assertLessThanOrEqual( 200, strlen( $updated->slug ) );
+
+		_unregister_taxonomy( $taxonomy );
+	}
 }
