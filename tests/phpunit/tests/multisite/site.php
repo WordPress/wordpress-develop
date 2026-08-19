@@ -25,6 +25,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wpdb;
 		$wpdb->suppress_errors( $this->suppress );
+		wp_installing( false );
 		parent::tear_down();
 	}
 
