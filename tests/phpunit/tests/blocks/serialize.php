@@ -10,6 +10,37 @@
  * @group blocks
  */
 class Tests_Blocks_Serialize extends WP_UnitTestCase {
+	/**
+	 * Set up.
+	 *
+	 * @ticket 63325.
+	 */
+	public static function wpSetUpBeforeClass() {
+		register_block_type(
+			'core/attributes',
+			array(
+				'attributes' => array(
+					'array'  => array(
+						'type' => 'array',
+					),
+					'object' => array(
+						'type' => 'object',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Tear down.
+	 *
+	 * @ticket 63325.
+	 */
+	public static function wpTearDownAfterClass() {
+		$registry = WP_Block_Type_Registry::get_instance();
+
+		$registry->unregister( 'core/attributes' );
+	}
 
 	/**
 	 * @dataProvider data_serialize_identity_from_parsed
@@ -46,6 +77,12 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 			// Block with attribute values that should not be escaped.
 			array( '<!-- wp:attributes {"key":"€1.00 / 3 for €2.00"} /-->' ),
+
+			// Block with empty array attribute value.
+			array( '<!-- wp:attributes {"array":[]} /-->' ),
+
+			// Block with empty object attribute value.
+			array( '<!-- wp:attributes {"object":{}} /-->' ),
 		);
 	}
 
