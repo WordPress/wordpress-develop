@@ -141,7 +141,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 #wpadminbar .quicklinks > ul > li > a {
-	padding: 0 8px 0 7px;
+	padding: 0 6px;
 }
 
 #wpadminbar .menupop .ab-sub-wrapper,
