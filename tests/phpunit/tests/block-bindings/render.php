@@ -480,9 +480,9 @@ HTML;
 				),
 				'bound_value'             => 'Bound list item',
 				'expected_rendered_block' => <<<HTML
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Bound list item
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Nested child</li>
 </ul>
 </li>
@@ -500,9 +500,9 @@ HTML
 				),
 				'bound_value'             => 'Bound list item',
 				'expected_rendered_block' => <<<HTML
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Bound list item
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Nested child</li>
 </ul>
 </li>
@@ -520,9 +520,9 @@ HTML
 				),
 				'bound_value'             => 'Bound list item',
 				'expected_rendered_block' => <<<HTML
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Bound list item
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Nested child</li>
 </ul>
 </li>
@@ -540,9 +540,9 @@ HTML
 				),
 				'bound_value'             => 'Bound <em>línea</em>',
 				'expected_rendered_block' => <<<HTML
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Bound <em>línea</em>
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Nested child</li>
 </ul>
 </li>
@@ -561,11 +561,11 @@ HTML
 				),
 				'bound_value'             => 'Bound parent',
 				'expected_rendered_block' => <<<HTML
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Bound parent
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Nested parent
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Nested grandchild</li>
 </ul>
 </li>
@@ -587,9 +587,9 @@ HTML
 				),
 				'bound_value'             => 'Bound ordered parent',
 				'expected_rendered_block' => <<<HTML
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Bound ordered parent
-<ol class="wp-block-list" start="3">
+<ol class="wp-block-list is-layout-flow wp-block-list-is-layout-flow" start="3">
 <li>Ordered child</li>
 
 <li>Second ordered child</li>
@@ -776,9 +776,9 @@ HTML;
 		$result        = $block->render();
 
 		$expected_rendered_block = <<<HTML
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Pattern <em>override</em>
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Nested child</li>
 </ul>
 </li>
@@ -841,9 +841,9 @@ HTML;
 		$result        = $block->render();
 
 		$expected_rendered_block = <<<HTML
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Bound value
-<ul class="wp-block-list">
+<ul class="wp-block-list is-layout-flow wp-block-list-is-layout-flow">
 <li>Nested child</li>
 </ul>
 trailing text</li>
