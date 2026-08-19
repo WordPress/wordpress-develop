@@ -2730,6 +2730,31 @@ function drop_index( $table, $index ) {
 }
 
 /**
+ * Checks if an index exists for a specified column in a table.
+ *
+ * @since 6.8.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $table  The name of the table.
+ * @param string $column The name of the column to check for an index.
+ *
+ * @return bool True if the index exists, false otherwise.
+ */
+function has_index( $table, $column ) {
+	global $wpdb;
+
+	$index = $wpdb->get_var(
+		$wpdb->prepare(
+			"SHOW INDEX FROM `$table` WHERE Column_name = %s",
+			$column
+		)
+	);
+
+	return ! empty( $index );
+}
+
+/**
  * Adds an index to a specified table.
  *
  * @since 1.0.1
@@ -2743,7 +2768,9 @@ function drop_index( $table, $index ) {
 function add_clean_index( $table, $index ) {
 	global $wpdb;
 
-	drop_index( $table, $index );
+	if ( has_index( $table, $index ) ) {
+		drop_index( $table, $index );
+	}
 	$wpdb->query( "ALTER TABLE `$table` ADD INDEX ( `$index` )" );
 
 	return true;
