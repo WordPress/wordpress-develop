@@ -2864,12 +2864,13 @@ function wp_prefetch_admin_assets(): void {
 
 	$resources = array();
 
-	foreach ( array(
-		'script' => $script_handles,
-		'style'  => $style_handles,
-	) as $as => $handles ) {
-		$dependencies = 'script' === $as ? wp_scripts() : wp_styles();
-
+	foreach (
+		array(
+			'script' => array( wp_scripts(), $script_handles ),
+			'style'  => array( wp_styles(), $style_handles ),
+		)
+		as $as => list( $dependencies, $handles )
+	) {
 		foreach ( $handles as $handle ) {
 			/*
 			 * The login screen shares a handful of these handles and has already printed them by
