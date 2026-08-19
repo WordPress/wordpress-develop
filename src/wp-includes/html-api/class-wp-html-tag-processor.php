@@ -1728,6 +1728,8 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @return bool Whether a tag was found before the end of the document.
+	 *
+	 * @phpstan-impure
 	 */
 	private function parse_next_tag(): bool {
 		$this->after_tag();
@@ -3231,7 +3233,6 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $attribute_name Which attribute to adjust.
-	 *
 	 * @return string|null
 	 */
 	public function get_qualified_attribute_name( $attribute_name ): ?string {

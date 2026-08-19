@@ -292,11 +292,6 @@ parameters:
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
 			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
 			path: ../../../src/wp-includes/pluggable.php
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
