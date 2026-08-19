@@ -19,6 +19,13 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	private $test_blocks = array();
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * Administrator ID.
 	 *
 	 * @var int
@@ -37,6 +44,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 	}
 
@@ -47,6 +55,10 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 				unregister_block_type( $test_block );
 			}
 			$this->test_blocks = array();
+		}
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
 		}
 
 		parent::tear_down();
@@ -63,7 +75,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		wp_add_global_styles_for_blocks();
 
 		$this->assertNotContains(
-			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
+			':root :where(.wp-block-my-unregistered-third-party-block){background-color: hotpink;}',
 			$this->get_global_styles()
 		);
 	}
