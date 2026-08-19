@@ -2909,8 +2909,8 @@ function wp_prefetch_admin_assets(): void {
 	 *         Array of resource attributes.
 	 *
 	 *         @type string $href URL to prefetch. Required.
-	 *         @type string $as   How the browser should treat the resource (`script`, `style`).
-	 *                            Required.
+	 *         @type string $as   How the browser should treat the resource
+	 *                            (`script`, `style`, `image`, `document`, etc). Required.
 	 *     }
 	 * }
 	 * @param string $next_screen URL of the screen the assets are being prefetched for. Always
