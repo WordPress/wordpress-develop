@@ -88,11 +88,11 @@ class WP_Font_Face_Resolver {
 				}
 
 				// Skip if "fontFamily" is not defined.
-				if ( empty( $definition['fontFamily'] ) ) {
+				if ( empty( $definition['fontFace'][0]['fontFamily'] ) ) {
 					continue;
 				}
 
-				$font_family_name = static::maybe_parse_name_from_comma_separated_list( $definition['fontFamily'] );
+				$font_family_name = static::maybe_parse_name_from_comma_separated_list( $definition['fontFace'][0]['fontFamily'] );
 
 				// Skip if no font family is defined.
 				if ( empty( $font_family_name ) ) {
