@@ -2881,7 +2881,7 @@ function wp_prefetch_admin_assets(): void {
 			}
 
 			foreach ( _wp_resolve_dependency_urls( $dependencies, $handle ) as $url ) {
-				$resources[ $url ] = array(
+				$resources[] = array(
 					'href' => $url,
 					'as'   => $as,
 				);
@@ -2896,17 +2896,21 @@ function wp_prefetch_admin_assets(): void {
 	 * distinguishes the contexts: the login screen passes the URL it is about to redirect to, and
 	 * the Dashboard and post list tables pass the editor they expect the user to open.
 	 *
-	 * Only the `href` and `as` attributes below are printed; any other key is ignored.
-	 * Returning an empty array turns the prefetching off.
+	 * Only the `href` and `as` attributes below are printed; any other key is ignored. Resources
+	 * sharing an `href` are collapsed to the first of them, so a callback may append without
+	 * checking what is already there. Returning an empty array turns the prefetching off.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param array  $resources {
-	 *     Resources to prefetch, keyed by URL.
+	 *     Array of resources and their attributes to prefetch.
 	 *
 	 *     @type array ...$0 {
-	 *         @type string $href URL to prefetch.
-	 *         @type string $as   How the browser should treat the resource.
+	 *         Array of resource attributes.
+	 *
+	 *         @type string $href URL to prefetch. Required.
+	 *         @type string $as   How the browser should treat the resource (`script`, `style`).
+	 *                            Required.
 	 *     }
 	 * }
 	 * @param string $next_screen URL of the screen the assets are being prefetched for. Always
@@ -2923,6 +2927,9 @@ function wp_prefetch_admin_assets(): void {
 		return;
 	}
 
+	$unique_resources = array();
+
+	// Parse the complete resource list and extract unique resources.
 	foreach ( $resources as $resource ) {
 		if ( ! is_array( $resource ) ) {
 			continue;
@@ -2935,6 +2942,15 @@ function wp_prefetch_admin_assets(): void {
 			continue;
 		}
 
+		if ( isset( $unique_resources[ $href ] ) ) {
+			continue;
+		}
+
+		$unique_resources[ $href ] = $as;
+	}
+
+	// Build and output the HTML for each unique resource.
+	foreach ( $unique_resources as $href => $as ) {
 		printf(
 			"<link rel='prefetch' href='%s' as='%s' />\n",
 			esc_url( $href ),
