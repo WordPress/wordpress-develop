@@ -2639,33 +2639,6 @@ function _wp_expand_dependency_handles( WP_Dependencies $dependencies, array $ha
 }
 
 /**
- * Determines whether a URL points at the block editor.
- *
- * @since 7.2.0
- * @access private
- *
- * @param string $url URL to examine.
- * @return bool Whether loading the URL would open the block editor.
- */
-function _wp_prefetch_target_is_block_editor( string $url ): bool {
-	$file = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
-
-	if ( 'post-new.php' === $file ) {
-		return true;
-	}
-
-	if ( 'post.php' !== $file ) {
-		return false;
-	}
-
-	// post.php also handles trashing, restoring and bulk edits, none of which loads the editor.
-	$query = array();
-	wp_parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $query );
-
-	return isset( $query['action'] ) && 'edit' === $query['action'];
-}
-
-/**
  * Prints prefetch links for the assets of the screen the user is most likely to open next.
  *
  * Runs wherever the next screen can be predicted with confidence, and prefetches only what that
@@ -2837,7 +2810,18 @@ function wp_prefetch_admin_assets(): void {
 		);
 	}
 
-	if ( _wp_prefetch_target_is_block_editor( $next_screen ) ) {
+	/*
+	 * post-new.php always opens the editor, while post.php also handles trashing, restoring and
+	 * bulk edits, so it counts only when it is editing.
+	 */
+	$next_screen_file  = basename( (string) wp_parse_url( $next_screen, PHP_URL_PATH ) );
+	$next_screen_query = array();
+	wp_parse_str( (string) wp_parse_url( $next_screen, PHP_URL_QUERY ), $next_screen_query );
+
+	$next_screen_is_block_editor = 'post-new.php' === $next_screen_file
+		|| ( 'post.php' === $next_screen_file && 'edit' === ( $next_screen_query['action'] ?? '' ) );
+
+	if ( $next_screen_is_block_editor ) {
 		/*
 		 * Roots rather than the full set: everything these depend on is pulled in with them, so the
 		 * list follows the dependencies declared in wp_default_styles() instead of restating them.
