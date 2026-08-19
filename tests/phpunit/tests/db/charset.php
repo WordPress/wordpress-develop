@@ -750,7 +750,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		),
 		array(
 			'definition'      => '( a VARCHAR(50) CHARACTER SET utf8, b TEXT CHARACTER SET utf8mb4 )',
-			'table_expected'  => 'utf8',
+			'table_expected'  => 'utf8mb4',
 			'column_expected' => array(
 				'a' => 'utf8',
 				'b' => 'utf8mb4',
@@ -909,7 +909,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				// utf8/utf8mb4 tables default to utf8.
 				'create'   => '( a VARCHAR(50) CHARACTER SET utf8, b VARCHAR(50) CHARACTER SET utf8mb4 )',
 				'query'    => "('foo\xf0\x9f\x98\x88bar', 'foo')",
-				'expected' => "('foobar', 'foo')",
+				'expected' => "('foo\xf0\x9f\x98\x88bar', 'foo')",
 			),
 		);
 

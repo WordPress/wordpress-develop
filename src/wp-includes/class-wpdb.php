@@ -3315,45 +3315,40 @@ class wpdb {
 
 		foreach ( $columns as $column ) {
 			if ( ! empty( $column->Collation ) ) {
-				list( $charset ) = explode( '_', $column->Collation );
-
+				list( $charset )                    = explode( '_', $column->Collation );
 				$charsets[ strtolower( $charset ) ] = true;
 			}
 
 			list( $type ) = explode( '(', $column->Type );
 
-			// A binary/blob means the whole query gets treated like this.
+			// Handle binary/blob types.
 			if ( in_array( strtoupper( $type ), array( 'BINARY', 'VARBINARY', 'TINYBLOB', 'MEDIUMBLOB', 'BLOB', 'LONGBLOB' ), true ) ) {
 				$this->table_charset[ $tablekey ] = 'binary';
 				return 'binary';
 			}
 		}
 
-		// utf8mb3 is an alias for utf8.
+		// Handle utf8mb3 as an alias for utf8.
 		if ( isset( $charsets['utf8mb3'] ) ) {
 			$charsets['utf8'] = true;
 			unset( $charsets['utf8mb3'] );
 		}
 
-		// Check if we have more than one charset in play.
+		// Determine charset based on the presence of multiple charsets.
 		$count = count( $charsets );
 		if ( 1 === $count ) {
 			$charset = key( $charsets );
 		} elseif ( 0 === $count ) {
-			// No charsets, assume this table can store whatever.
 			$charset = false;
 		} else {
-			// More than one charset. Remove latin1 if present and recalculate.
 			unset( $charsets['latin1'] );
 			$count = count( $charsets );
 			if ( 1 === $count ) {
-				// Only one charset (besides latin1).
 				$charset = key( $charsets );
 			} elseif ( 2 === $count && isset( $charsets['utf8'], $charsets['utf8mb4'] ) ) {
-				// Two charsets, but they're utf8 and utf8mb4, use utf8.
-				$charset = 'utf8';
+				// Use utf8mb4 when both utf8 and utf8mb4 are present.
+				$charset = 'utf8mb4';
 			} else {
-				// Two mixed character sets. ascii.
 				$charset = 'ascii';
 			}
 		}
