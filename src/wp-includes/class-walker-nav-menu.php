@@ -144,6 +144,8 @@ class Walker_Nav_Menu extends Walker {
 	 * @since 5.9.0 Renamed `$item` to `$data_object` and `$id` to `$current_object_id`
 	 *              to match parent class for PHP 8 named parameter support.
 	 * @since 6.7.0 Removed redundant title attributes.
+	 * @since 7.2.0 The `$args` object is now cloned before the `nav_menu_item_args` filter
+	 *              to prevent filter modifications from leaking between menu items.
 	 *
 	 * @see Walker::start_el()
 	 *
@@ -157,8 +159,8 @@ class Walker_Nav_Menu extends Walker {
 		// Restores the more descriptive, specific name for use within this method.
 		$menu_item = $data_object;
 
-		$args = (array) $args;
-		if ( isset( $args['item_spacing'] ) && 'discard' === $args['item_spacing'] ) {
+		$args = is_object( $args ) ? clone $args : (object) $args;
+		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
 			$t = '';
 			$n = '';
 		} else {
@@ -179,7 +181,7 @@ class Walker_Nav_Menu extends Walker {
 		 * @param WP_Post  $menu_item Menu item data object.
 		 * @param int      $depth     Depth of menu item. Used for padding.
 		 */
-		$args = apply_filters( 'nav_menu_item_args', (object) $args, $menu_item, $depth );
+		$args = apply_filters( 'nav_menu_item_args', $args, $menu_item, $depth );
 
 		/**
 		 * Filters the CSS classes applied to a menu item's list item element.

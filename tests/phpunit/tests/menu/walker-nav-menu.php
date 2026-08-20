@@ -473,6 +473,8 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 			'link_after'  => '',
 		);
 
+		$original_args = (object) $args;
+
 		$output1 = '';
 		$this->walker->start_el( $output1, (object) $item1, 0, (object) $args );
 
@@ -480,6 +482,8 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 		$this->walker->start_el( $output2, (object) $item2, 0, (object) $args );
 
 		remove_filter( 'nav_menu_item_args', array( $this, 'filter_nav_menu_item_args_append_marker' ), 10 );
+
+		$this->assertSame( '', $original_args->before, 'start_el() must not mutate the caller\'s $args object.' );
 
 		// Both menu items should have exactly one 'X' marker, not accumulating.
 		$this->assertStringContainsString( '>X<a href="http://example.com/item1">Item 1</a>', $output1 );
