@@ -65,6 +65,9 @@ function wp_dashboard_setup() {
 		wp_enqueue_style( 'site-health' );
 		wp_enqueue_script( 'site-health' );
 
+		// The widget's data is loaded via JavaScript, so hide the whole widget when JavaScript is disabled in browser.
+		add_filter( 'postbox_classes_dashboard_dashboard_site_health', 'wp_dashboard_site_health_postbox_class' );
+
 		wp_add_dashboard_widget( 'dashboard_site_health', __( 'Site Health Status' ), 'wp_dashboard_site_health' );
 	}
 
@@ -1816,6 +1819,23 @@ function dashboard_browser_nag_class( $classes ) {
 	if ( $response && $response['insecure'] ) {
 		$classes[] = 'browser-insecure';
 	}
+
+	return $classes;
+}
+
+/**
+ * Adds a class to the Site Health dashboard widget's meta box.
+ *
+ * The widget's data is loaded via JavaScript, so the whole widget is hidden
+ * when JavaScript is disabled.
+ *
+ * @since 7.1.0
+ *
+ * @param string[] $classes Array of meta box classes.
+ * @return string[] Modified array of meta box classes.
+ */
+function wp_dashboard_site_health_postbox_class( array $classes = [] ): array {
+	$classes[] = 'hide-if-no-js';
 
 	return $classes;
 }
