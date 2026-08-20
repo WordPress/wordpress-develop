@@ -310,20 +310,34 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::delete_expired_transients
 	 */
 	public function test_delete_expired_transients_removes_orphaned_expired_timeout_row() {
-		$transient = 'test_orphan_expired';
+		global $wpdb;
+
+		$transient      = 'test_orphan_expired';
+		$option_timeout = '_transient_timeout_' . $transient;
 
 		// Simulate an orphaned timeout row that has already expired.
-		add_option( '_transient_timeout_' . $transient, time() - 1, '', false );
+		add_option( $option_timeout, time() - 1, '', false );
 
 		// Confirm the value row does not exist and the timeout row does.
 		$this->assertFalse( get_option( '_transient_' . $transient ), 'Value row should not exist.' );
-		$this->assertNotFalse( get_option( '_transient_timeout_' . $transient ), 'Timeout row should exist before cleanup.' );
+		$this->assertNotFalse( get_option( $option_timeout ), 'Timeout row should exist before cleanup.' );
 
 		delete_expired_transients();
 
-		$this->assertFalse(
-			get_option( '_transient_timeout_' . $transient ),
-			'Orphaned expired timeout row should have been removed by delete_expired_transients().'
+		/*
+		 * delete_expired_transients() uses raw SQL and does not clear the option cache.
+		 * Query the database directly to verify the row was physically removed.
+		 */
+		$row = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
+				$option_timeout
+			)
+		);
+
+		$this->assertNull(
+			$row,
+			'Orphaned expired timeout row should have been removed from the database by delete_expired_transients().'
 		);
 	}
 
@@ -335,15 +349,26 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::delete_expired_transients
 	 */
 	public function test_delete_expired_transients_keeps_orphaned_future_timeout_row() {
-		$transient = 'test_orphan_future';
+		global $wpdb;
+
+		$transient      = 'test_orphan_future';
+		$option_timeout = '_transient_timeout_' . $transient;
 
 		// Simulate an orphaned timeout row that has not yet expired.
-		add_option( '_transient_timeout_' . $transient, time() + 3600, '', false );
+		add_option( $option_timeout, time() + 3600, '', false );
 
 		delete_expired_transients();
 
-		$this->assertNotFalse(
-			get_option( '_transient_timeout_' . $transient ),
+		// Query the database directly to confirm the row is still present.
+		$row = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
+				$option_timeout
+			)
+		);
+
+		$this->assertNotNull(
+			$row,
 			'Orphaned timeout row with a future expiry should not be removed by delete_expired_transients().'
 		);
 	}
