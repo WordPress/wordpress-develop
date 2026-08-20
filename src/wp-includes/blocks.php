@@ -2560,6 +2560,42 @@ function parse_blocks( $content ) {
 }
 
 /**
+ * Parses blocks while preserving nested empty JSON object attributes.
+ *
+ * An attribute written as `{}` decodes to an empty PHP array like any other JSON object,
+ * and is therefore re-serialized as `[]`. This is only a problem for code that parses
+ * stored markup and writes it back, so preservation is limited to the two workflows that
+ * do: the Block Hooks algorithm and block content filtering through KSES.
+ *
+ * Nested empty objects are returned as empty stdClass instances. Every other value keeps
+ * the shape the default parse path produces.
+ *
+ * Custom block parsers that do not implement `parse_with_options()` fall back to their
+ * existing parse behavior.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $content Post content.
+ * @return array[] Array of parsed block objects.
+ */
+function _wp_parse_blocks_preserving_empty_object_attributes( $content ) {
+	/** This filter is documented in wp-includes/blocks.php */
+	$parser_class = apply_filters( 'block_parser_class', 'WP_Block_Parser' );
+
+	$parser = new $parser_class();
+
+	if ( method_exists( $parser, 'parse_with_options' ) ) {
+		return $parser->parse_with_options(
+			$content,
+			array( 'preserve_empty_object_attributes' => true )
+		);
+	}
+
+	return $parser->parse( $content );
+}
+
+/**
  * Parses dynamic blocks out of `post_content` and re-renders them.
  *
  * @since 5.0.0
