@@ -244,6 +244,8 @@ function rest_api_default_filters() {
 		add_filter( 'deprecated_function_trigger_error', '__return_false' );
 		add_action( 'deprecated_argument_run', 'rest_handle_deprecated_argument', 10, 3 );
 		add_filter( 'deprecated_argument_trigger_error', '__return_false' );
+		add_action( 'deprecated_ability_run', 'rest_handle_deprecated_ability', 10, 4 );
+		add_filter( 'deprecated_ability_trigger_error', '__return_false' );
 		add_action( 'doing_it_wrong_run', 'rest_handle_doing_it_wrong', 10, 3 );
 		add_filter( 'doing_it_wrong_trigger_error', '__return_false' );
 	}
@@ -765,6 +767,42 @@ function rest_handle_deprecated_argument( $function_name, $message, $version ) {
 	}
 
 	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
+}
+
+/**
+ * Handles _deprecated_ability() errors.
+ *
+ * @since 7.2.0
+ *
+ * @param string $ability_name The ability that was executed.
+ * @param string $replacement  The ability that should be used as a replacement.
+ * @param string $version      The version of the ability provider that deprecated the ability.
+ * @param string $message      Additional migration guidance.
+ */
+function rest_handle_deprecated_ability( $ability_name, $replacement, $version, $message ) {
+	if ( ! WP_DEBUG || headers_sent() ) {
+		return;
+	}
+
+	if ( $version && $replacement ) {
+		/* translators: 1: Ability name, 2: Version number, 3: Alternative ability name. */
+		$string = sprintf( __( '%1$s (since %2$s; use %3$s instead)' ), $ability_name, $version, $replacement );
+	} elseif ( $version ) {
+		/* translators: 1: Ability name, 2: Version number. */
+		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $ability_name, $version );
+	} elseif ( $replacement ) {
+		/* translators: 1: Ability name, 2: Alternative ability name. */
+		$string = sprintf( __( '%1$s (use %2$s instead)' ), $ability_name, $replacement );
+	} else {
+		/* translators: %s: Ability name. */
+		$string = sprintf( __( '%s (no alternative available)' ), $ability_name );
+	}
+
+	if ( $message ) {
+		$string .= ' ' . $message;
+	}
+
+	header( sprintf( 'X-WP-DeprecatedAbility: %s', $string ) );
 }
 
 /**

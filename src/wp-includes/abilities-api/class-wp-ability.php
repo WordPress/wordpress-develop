@@ -401,6 +401,12 @@ class WP_Ability {
 					);
 				}
 
+				if ( 'replacement' === $key && ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $args['meta']['deprecated'][ $key ] ) ) {
+					throw new InvalidArgumentException(
+						__( 'The ability deprecation `replacement` value should be a namespaced ability name, i.e. "my-plugin/my-ability". It can only contain lowercase alphanumeric characters, dashes and the forward slash.' )
+					);
+				}
+
 				$has_deprecation_details = true;
 			}
 

@@ -12743,19 +12743,22 @@ mockedApiResponse.Schema = {
                                     "additionalProperties": true
                                 },
                                 "deprecated": {
-                                    "description": "Limit results by deprecation status or details.",
+                                    "description": "Limit results by deprecation status or details. Use true to return only deprecated abilities, false to return only active abilities, or an object to match specific deprecation details.",
                                     "type": [
                                         "boolean",
                                         "object"
                                     ],
                                     "properties": {
                                         "since": {
+                                            "description": "Version of the ability provider that deprecated the ability.",
                                             "type": "string"
                                         },
                                         "replacement": {
+                                            "description": "Namespaced ability to use instead.",
                                             "type": "string"
                                         },
                                         "message": {
+                                            "description": "Additional migration guidance.",
                                             "type": "string"
                                         }
                                     },
