@@ -5836,6 +5836,910 @@ function wp_set_post_terms( $post_id = 0, $terms = '', $taxonomy = 'post_tag', $
 	return wp_set_object_terms( $post_id, $terms, $taxonomy, $append );
 }
 
+
+/**
+* Determines whether the current user may assign the post terms in the given parameters.
+*
+* Only taxonomies registered with `show_in_rest` are considered. Parameters are keyed
+* by the taxonomy REST base, falling back to the taxonomy name.
+*
+* @since 7.1.0
+*
+* @param string $post_type Post type name.
+* @param array  $params    Parameters keyed by taxonomy REST base.
+* @return bool Whether the current user can assign the provided terms.
+*/
+function wp_check_post_terms_assign_permission( $post_type, $params ) {
+	$taxonomies = wp_list_filter( get_object_taxonomies( $post_type, 'objects' ), array( 'show_in_rest' => true ) );
+
+	foreach ( $taxonomies as $taxonomy ) {
+		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+		if ( ! isset( $params[ $base ] ) ) {
+			continue;
+		}
+
+		foreach ( (array) $params[ $base ] as $term_id ) {
+			// Invalid terms will be rejected later.
+			if ( ! get_term( $term_id, $taxonomy->name ) ) {
+				continue;
+			}
+
+			if ( ! current_user_can( 'assign_term', (int) $term_id ) ) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
+* Assigns the post terms supplied in the given parameters.
+*
+* @since 7.1.0
+*
+* @param string $post_type Post type name.
+* @param int    $post_id   The post ID to assign the terms to.
+* @param array  $params    Parameters keyed by taxonomy REST base.
+* @return null|WP_Error WP_Error on an error assigning any of the terms, otherwise null.
+*/
+function wp_set_post_terms_from_params( $post_type, $post_id, $params ) {
+	$taxonomies = wp_list_filter( get_object_taxonomies( $post_type, 'objects' ), array( 'show_in_rest' => true ) );
+
+	foreach ( $taxonomies as $taxonomy ) {
+		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+		if ( ! isset( $params[ $base ] ) ) {
+			continue;
+		}
+
+		$result = wp_set_object_terms( $post_id, $params[ $base ], $taxonomy->name );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+	}
+
+	return null;
+}
+
+/**
+* Determines whether the current user may create a post of the given type with the given parameters.
+*
+* @since 7.1.0
+*
+* @param string $post_type Post type name.
+* @param array  $params    The parameters the post would be created with.
+* @return true|WP_Error True if the current user may create the post, WP_Error otherwise.
+*/
+function wp_check_create_post_permission( $post_type, $params ) {
+	if ( ! empty( $params['id'] ) ) {
+		return new WP_Error(
+			'rest_post_exists',
+			__( 'Cannot create existing post.' ),
+			array( 'status' => 400 )
+		);
+	}
+
+	$post_type_object = get_post_type_object( $post_type );
+
+	if ( ! empty( $params['author'] ) && get_current_user_id() !== $params['author'] && ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
+		return new WP_Error(
+			'rest_cannot_edit_others',
+			__( 'Sorry, you are not allowed to create posts as this user.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! empty( $params['sticky'] ) && ! current_user_can( $post_type_object->cap->edit_others_posts ) && ! current_user_can( $post_type_object->cap->publish_posts ) ) {
+		return new WP_Error(
+			'rest_cannot_assign_sticky',
+			__( 'Sorry, you are not allowed to make posts sticky.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! current_user_can( $post_type_object->cap->create_posts ) ) {
+		return new WP_Error(
+			'rest_cannot_create',
+			__( 'Sorry, you are not allowed to create posts as this user.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_check_post_terms_assign_permission( $post_type, $params ) ) {
+		return new WP_Error(
+			'rest_cannot_assign_term',
+			__( 'Sorry, you are not allowed to assign the provided terms.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	return true;
+}
+
+
+/**
+* Determines whether a post type is exposed for programmatic access.
+*
+* @since 7.1.0
+*
+* @param WP_Post_Type|string $post_type Post type name or object.
+* @return bool Whether the post type is exposed.
+*/
+function wp_is_post_type_exposed( $post_type ) {
+	if ( ! is_object( $post_type ) ) {
+		$post_type = get_post_type_object( $post_type );
+	}
+
+	if ( ! empty( $post_type ) && ! empty( $post_type->show_in_rest ) ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+* Determines whether the current user may read the given post.
+*
+* @since 7.1.0
+*
+* @param WP_Post $post Post object.
+* @return bool Whether the current user may read the post.
+*/
+function wp_check_read_post_permission( $post ) {
+	$post_type = get_post_type_object( $post->post_type );
+	if ( ! wp_is_post_type_exposed( $post_type ) ) {
+		return false;
+	}
+
+	// Is the post readable?
+	if ( 'publish' === $post->post_status || current_user_can( 'read_post', $post->ID ) ) {
+		return true;
+	}
+
+	$post_status_obj = get_post_status_object( $post->post_status );
+	if ( $post_status_obj && $post_status_obj->public ) {
+		return true;
+	}
+
+	// Can we read the parent if we're inheriting?
+	if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
+		$parent = get_post( $post->post_parent );
+		if ( $parent ) {
+			return wp_check_read_post_permission( $parent );
+		}
+	}
+
+	/*
+	* If there isn't a parent, but the status is set to inherit, assume
+	* it's published (as per get_post_status()).
+	*/
+	if ( 'inherit' === $post->post_status ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+* Determines whether the current user may assign the given status to a post of the given type.
+*
+* An unrecognized status is downgraded to 'draft' rather than rejected.
+*
+* @since 7.1.0
+*
+* @param string       $post_status The desired post status.
+* @param WP_Post_Type $post_type   Post type object.
+* @return string|WP_Error The status to use, or WP_Error if the current user may not assign it.
+*/
+function wp_check_post_status_permission( $post_status, $post_type ) {
+	switch ( $post_status ) {
+		case 'draft':
+		case 'pending':
+			break;
+		case 'private':
+			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
+				return new WP_Error(
+					'rest_cannot_publish',
+					__( 'Sorry, you are not allowed to create private posts in this post type.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
+			break;
+		case 'publish':
+		case 'future':
+			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
+				return new WP_Error(
+					'rest_cannot_publish',
+					__( 'Sorry, you are not allowed to publish posts in this post type.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
+			break;
+		default:
+			if ( ! get_post_status_object( $post_status ) ) {
+				$post_status = 'draft';
+			}
+			break;
+	}
+
+	return $post_status;
+}
+
+/**
+* Builds a post-type-agnostic representation of a post.
+*
+* Fields that depend on post type support (sticky, format, featured media, template)
+* are included only when the post type supports them. The post password is never
+* included.
+*
+* @since 7.1.0
+*
+* @param int|WP_Post $post Post ID or post object.
+* @return array|null The post data, or null if the post does not exist.
+*/
+function wp_get_post_item_data( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post instanceof WP_Post ) {
+		return null;
+	}
+
+	$post_type = $post->post_type;
+
+	$data = array(
+		'id'             => (int) $post->ID,
+		'type'           => $post_type,
+		'status'         => $post->post_status,
+		'title'          => $post->post_title,
+		'content'        => $post->post_content,
+		'excerpt'        => $post->post_excerpt,
+		'slug'           => $post->post_name,
+		'link'           => (string) get_permalink( $post->ID ),
+		'author'         => (int) $post->post_author,
+		'parent'         => (int) $post->post_parent,
+		'menu_order'     => (int) $post->menu_order,
+		'comment_status' => $post->comment_status,
+		'ping_status'    => $post->ping_status,
+		'date'           => mysql_to_rfc3339( $post->post_date ),
+		'date_gmt'       => mysql_to_rfc3339( $post->post_date_gmt ),
+		'modified'       => mysql_to_rfc3339( $post->post_modified ),
+		'modified_gmt'   => mysql_to_rfc3339( $post->post_modified_gmt ),
+	);
+
+	if ( 'post' === $post_type ) {
+		$data['sticky'] = is_sticky( $post->ID );
+	}
+
+	if ( post_type_supports( $post_type, 'post-formats' ) ) {
+		$format         = get_post_format( $post->ID );
+		$data['format'] = $format ? $format : 'standard';
+	}
+
+	if ( post_type_supports( $post_type, 'thumbnail' ) ) {
+		$data['featured_media'] = (int) get_post_thumbnail_id( $post->ID );
+	}
+
+	$template = get_page_template_slug( $post->ID );
+	if ( '' !== $template && false !== $template ) {
+		$data['template'] = $template;
+	}
+
+	$terms = array();
+	foreach ( wp_list_filter( get_object_taxonomies( $post_type, 'objects' ), array( 'show_in_rest' => true ) ) as $taxonomy ) {
+		$base           = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+		$term_ids       = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'ids' ) );
+		$terms[ $base ] = is_wp_error( $term_ids ) ? array() : array_map( 'intval', $term_ids );
+	}
+
+	if ( ! empty( $terms ) ) {
+		$data['terms'] = $terms;
+	}
+
+	return $data;
+}
+
+/**
+* Creates a post of any exposed post type from a flat set of parameters.
+*
+* This performs no permission check. Callers must check permission first, for
+* example with {@see wp_check_create_post_permission()}.
+*
+* @since 7.1.0
+*
+* @param string $post_type Post type name.
+* @param array  $params    The post fields to create the post with.
+* @return array|WP_Error The created post data, or WP_Error on failure.
+*/
+/**
+* Maps a flat set of post parameters onto an object ready for the database.
+*
+* Shared by the REST posts controller and by the content abilities so the mapping
+* exists once. Callers are responsible for permission checks and for applying any
+* transport-specific filters to the result.
+*
+* @since 7.1.0
+*
+* @param string       $post_type     Post type name.
+* @param array        $params        The post fields, keyed by public field name.
+* @param array|null   $schema        Optional. Item schema used to gate which fields are accepted.
+*                                    When null, every field is accepted. Default null.
+* @param WP_Post|null $existing_post Optional. The post being updated, when there is one. Default null.
+* @return stdClass|WP_Error An object ready for wp_insert_post()/wp_update_post(), or WP_Error on failure.
+*/
+function wp_prepare_post_params_for_database( $post_type, $params, $schema = null, $existing_post = null ) {
+	$prepared_post  = new stdClass();
+	$current_status = '';
+
+	$has_field = static function ( $field ) use ( $schema ) {
+		return null === $schema || ! empty( $schema['properties'][ $field ] );
+	};
+
+	// Post ID.
+	if ( isset( $params['id'] ) ) {
+		if ( ! $existing_post instanceof WP_Post ) {
+			$existing_post = get_post( (int) $params['id'] );
+		}
+
+		if ( ! $existing_post instanceof WP_Post ) {
+			return new WP_Error(
+				'rest_post_invalid_id',
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$prepared_post->ID = $existing_post->ID;
+		$current_status    = $existing_post->post_status;
+	}
+
+	// Post title.
+	if ( $has_field( 'title' ) && isset( $params['title'] ) ) {
+		if ( is_string( $params['title'] ) ) {
+			$prepared_post->post_title = $params['title'];
+		} elseif ( ! empty( $params['title']['raw'] ) ) {
+			$prepared_post->post_title = $params['title']['raw'];
+		}
+	}
+
+	// Post content.
+	if ( $has_field( 'content' ) && isset( $params['content'] ) ) {
+		if ( is_string( $params['content'] ) ) {
+			$prepared_post->post_content = $params['content'];
+		} elseif ( isset( $params['content']['raw'] ) ) {
+			$prepared_post->post_content = $params['content']['raw'];
+		}
+	}
+
+	// Post excerpt.
+	if ( $has_field( 'excerpt' ) && isset( $params['excerpt'] ) ) {
+		if ( is_string( $params['excerpt'] ) ) {
+			$prepared_post->post_excerpt = $params['excerpt'];
+		} elseif ( isset( $params['excerpt']['raw'] ) ) {
+			$prepared_post->post_excerpt = $params['excerpt']['raw'];
+		}
+	}
+
+	// Post type.
+	if ( empty( $params['id'] ) ) {
+		// Creating a new post, use the requested type.
+		$prepared_post->post_type = $post_type;
+	} else {
+		// Updating a post, use the previous type.
+		$prepared_post->post_type = $existing_post->post_type;
+	}
+
+	$post_type_object = get_post_type_object( $prepared_post->post_type );
+
+	// Post status.
+	if (
+		$has_field( 'status' ) &&
+		isset( $params['status'] ) &&
+		( ! $current_status || $current_status !== $params['status'] )
+	) {
+		$status = wp_check_post_status_permission( $params['status'], $post_type_object );
+
+		if ( is_wp_error( $status ) ) {
+			return $status;
+		}
+
+		$prepared_post->post_status = $status;
+	}
+
+	// Post date.
+	if ( $has_field( 'date' ) && ! empty( $params['date'] ) ) {
+		$current_date = isset( $prepared_post->ID ) ? get_post( $prepared_post->ID )->post_date : false;
+		$date_data    = rest_get_date_with_gmt( $params['date'] );
+
+		if ( ! empty( $date_data ) && $current_date !== $date_data[0] ) {
+			list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
+			$prepared_post->edit_date                                        = true;
+		}
+	} elseif ( $has_field( 'date_gmt' ) && ! empty( $params['date_gmt'] ) ) {
+		$current_date = isset( $prepared_post->ID ) ? get_post( $prepared_post->ID )->post_date_gmt : false;
+		$date_data    = rest_get_date_with_gmt( $params['date_gmt'], true );
+
+		if ( ! empty( $date_data ) && $current_date !== $date_data[1] ) {
+			list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
+			$prepared_post->edit_date                                        = true;
+		}
+	}
+
+	/*
+	* Sending a null date or date_gmt value resets date and date_gmt to their
+	* default values (`0000-00-00 00:00:00`).
+	*/
+	if (
+		( $has_field( 'date_gmt' ) && array_key_exists( 'date_gmt', $params ) && null === $params['date_gmt'] ) ||
+		( $has_field( 'date' ) && array_key_exists( 'date', $params ) && null === $params['date'] )
+	) {
+		$prepared_post->post_date_gmt = null;
+		$prepared_post->post_date     = null;
+	}
+
+	// Post slug.
+	if ( $has_field( 'slug' ) && isset( $params['slug'] ) ) {
+		$prepared_post->post_name = $params['slug'];
+	}
+
+	// Author.
+	if ( $has_field( 'author' ) && ! empty( $params['author'] ) ) {
+		$post_author = (int) $params['author'];
+
+		if ( get_current_user_id() !== $post_author ) {
+			$user_obj = get_userdata( $post_author );
+
+			if ( ! $user_obj ) {
+				return new WP_Error(
+					'rest_invalid_author',
+					__( 'Invalid author ID.' ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
+		$prepared_post->post_author = $post_author;
+	}
+
+	// Post password.
+	if ( $has_field( 'password' ) && isset( $params['password'] ) ) {
+		$prepared_post->post_password = $params['password'];
+
+		if ( '' !== $params['password'] ) {
+			if ( $has_field( 'sticky' ) && ! empty( $params['sticky'] ) ) {
+				return new WP_Error(
+					'rest_invalid_field',
+					__( 'A post can not be sticky and have a password.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			if ( ! empty( $prepared_post->ID ) && is_sticky( $prepared_post->ID ) ) {
+				return new WP_Error(
+					'rest_invalid_field',
+					__( 'A sticky post can not be password protected.' ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+	}
+
+	if ( $has_field( 'sticky' ) && ! empty( $params['sticky'] ) ) {
+		if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
+			return new WP_Error(
+				'rest_invalid_field',
+				__( 'A password protected post can not be set to sticky.' ),
+				array( 'status' => 400 )
+			);
+		}
+	}
+
+	// Parent.
+	if ( $has_field( 'parent' ) && isset( $params['parent'] ) ) {
+		if ( 0 === (int) $params['parent'] ) {
+			$prepared_post->post_parent = 0;
+		} else {
+			$parent = get_post( (int) $params['parent'] );
+
+			if ( empty( $parent ) ) {
+				return new WP_Error(
+					'rest_post_invalid_id',
+					__( 'Invalid post parent ID.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			$prepared_post->post_parent = (int) $parent->ID;
+		}
+	}
+
+	// Menu order.
+	if ( $has_field( 'menu_order' ) && isset( $params['menu_order'] ) ) {
+		$prepared_post->menu_order = (int) $params['menu_order'];
+	}
+
+	// Comment status.
+	if ( $has_field( 'comment_status' ) && ! empty( $params['comment_status'] ) ) {
+		$prepared_post->comment_status = $params['comment_status'];
+	}
+
+	// Ping status.
+	if ( $has_field( 'ping_status' ) && ! empty( $params['ping_status'] ) ) {
+		$prepared_post->ping_status = $params['ping_status'];
+	}
+
+	if ( $has_field( 'template' ) ) {
+		// Force template to null so that it is handled exclusively by the caller.
+		$prepared_post->page_template = null;
+	}
+
+	$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+	/**
+	* Filters which post types should have Block Hooks applied.
+	*
+	* Allows themes and plugins to add or remove post types that should
+	* have Block Hooks functionality enabled.
+	*
+	* @since 7.0.0
+	*
+	* @param string[]         $content_like_post_types Array of post type names that support Block Hooks.
+	* @param string           $post_type               The current post type being processed.
+	* @param stdClass|WP_Post $prepared_post           The prepared post object.
+	*/
+	$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $post_type, $prepared_post );
+
+	if ( in_array( $post_type, $content_like_post_types, true ) ) {
+		$prepared_post = update_ignored_hooked_blocks_postmeta( $prepared_post );
+	}
+
+	return $prepared_post;
+}
+
+/**
+* Applies the post fields that can only be set once the post row exists.
+*
+* @since 7.1.0
+* @access private
+*
+* @param string $post_type Post type name.
+* @param int    $post_id   The post ID.
+* @param array  $params    The post fields.
+* @return true|WP_Error True on success, WP_Error on failure.
+*/
+function _wp_apply_post_item_extras( $post_type, $post_id, $params ) {
+	if ( 'post' === $post_type && array_key_exists( 'sticky', $params ) ) {
+		if ( ! empty( $params['sticky'] ) ) {
+			stick_post( $post_id );
+		} else {
+			unstick_post( $post_id );
+		}
+	}
+
+	if ( ! empty( $params['format'] ) && post_type_supports( $post_type, 'post-formats' ) ) {
+		set_post_format( $post_id, $params['format'] );
+	}
+
+	if ( isset( $params['featured_media'] ) && post_type_supports( $post_type, 'thumbnail' ) ) {
+		$thumbnail_id = (int) $params['featured_media'];
+
+		if ( $thumbnail_id ) {
+			if ( ! set_post_thumbnail( $post_id, $thumbnail_id ) ) {
+				return new WP_Error(
+					'rest_invalid_featured_media',
+					__( 'Invalid featured media ID.' ),
+					array( 'status' => 400 )
+				);
+			}
+		} else {
+			delete_post_thumbnail( $post_id );
+		}
+	}
+
+	if ( ! empty( $params['template'] ) ) {
+		$allowed_templates = array_keys( wp_get_theme()->get_page_templates( get_post( $post_id ) ) );
+
+		if ( in_array( $params['template'], $allowed_templates, true ) ) {
+			update_post_meta( $post_id, '_wp_page_template', $params['template'] );
+		}
+	}
+
+	$term_params = isset( $params['terms'] ) && is_array( $params['terms'] ) ? $params['terms'] : array();
+
+	$terms_update = wp_set_post_terms_from_params( $post_type, $post_id, $term_params );
+
+	if ( is_wp_error( $terms_update ) ) {
+		return $terms_update;
+	}
+
+	return true;
+}
+
+/**
+* Creates a post of any exposed post type from a flat set of parameters.
+*
+* This performs no permission check. Callers must check permission first, for
+* example with {@see wp_check_create_post_permission()}.
+*
+* @since 7.1.0
+*
+* @param string $post_type Post type name.
+* @param array  $params    The post fields to create the post with.
+* @return array|WP_Error The created post data, or WP_Error on failure.
+*/
+function wp_create_post_item( $post_type, $params ) {
+	$post_type_object = get_post_type_object( $post_type );
+
+	if ( ! $post_type_object instanceof WP_Post_Type || ! wp_is_post_type_exposed( $post_type_object ) ) {
+		return new WP_Error(
+			'invalid_post_type',
+			__( 'Invalid post type.' ),
+			array( 'status' => 400 )
+		);
+	}
+
+	unset( $params['id'] );
+
+	$prepared_post = wp_prepare_post_params_for_database( $post_type, $params );
+
+	if ( is_wp_error( $prepared_post ) ) {
+		return $prepared_post;
+	}
+
+	if ( ! empty( $prepared_post->post_name )
+		&& ! empty( $prepared_post->post_status )
+		&& in_array( $prepared_post->post_status, array( 'draft', 'pending' ), true )
+	) {
+		/*
+		* `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
+		*
+		* To ensure that a unique slug is generated, pass the post data with the 'publish' status.
+		*/
+		$prepared_post->post_name = wp_unique_post_slug(
+			$prepared_post->post_name,
+			0,
+			'publish',
+			$prepared_post->post_type,
+			isset( $prepared_post->post_parent ) ? $prepared_post->post_parent : 0
+		);
+	}
+
+	$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
+
+	if ( is_wp_error( $post_id ) ) {
+		$post_id->add_data( array( 'status' => 'db_insert_error' === $post_id->get_error_code() ? 500 : 400 ) );
+
+		return $post_id;
+	}
+
+	$extras = _wp_apply_post_item_extras( $post_type, $post_id, $params );
+
+	if ( is_wp_error( $extras ) ) {
+		return $extras;
+	}
+
+	wp_after_insert_post( get_post( $post_id ), false, null );
+
+	return wp_get_post_item_data( $post_id );
+}
+
+
+/**
+* Determines whether the current user may edit the given post.
+*
+* @since 7.1.0
+*
+* @param WP_Post $post Post object.
+* @return bool Whether the current user may edit the post.
+*/
+function wp_check_edit_post_permission( $post ) {
+	$post_type = get_post_type_object( $post->post_type );
+
+	if ( ! wp_is_post_type_exposed( $post_type ) ) {
+		return false;
+	}
+
+	return current_user_can( 'edit_post', $post->ID );
+}
+
+/**
+* Determines whether the current user may delete the given post.
+*
+* @since 7.1.0
+*
+* @param WP_Post $post Post object.
+* @return bool Whether the current user may delete the post.
+*/
+function wp_check_delete_post_permission( $post ) {
+	$post_type = get_post_type_object( $post->post_type );
+
+	if ( ! wp_is_post_type_exposed( $post_type ) ) {
+		return false;
+	}
+
+	return current_user_can( 'delete_post', $post->ID );
+}
+
+/**
+* Determines whether the current user may update the given post with the given parameters.
+*
+* @since 7.1.0
+*
+* @param WP_Post $post   Post object.
+* @param array   $params The parameters the post would be updated with.
+* @return true|WP_Error True if the current user may update the post, WP_Error otherwise.
+*/
+function wp_check_update_post_permission( $post, $params ) {
+	$post_type = get_post_type_object( $post->post_type );
+
+	if ( ! wp_check_edit_post_permission( $post ) ) {
+		return new WP_Error(
+			'rest_cannot_edit',
+			__( 'Sorry, you are not allowed to edit this post.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! empty( $params['author'] ) && get_current_user_id() !== $params['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+		return new WP_Error(
+			'rest_cannot_edit_others',
+			__( 'Sorry, you are not allowed to update posts as this user.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! empty( $params['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+		return new WP_Error(
+			'rest_cannot_assign_sticky',
+			__( 'Sorry, you are not allowed to make posts sticky.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	if ( ! wp_check_post_terms_assign_permission( $post->post_type, $params ) ) {
+		return new WP_Error(
+			'rest_cannot_assign_term',
+			__( 'Sorry, you are not allowed to assign the provided terms.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	return true;
+}
+
+/**
+* Updates a post of any exposed post type from a flat set of parameters.
+*
+* This performs no permission check. Callers must check permission first, for
+* example with {@see wp_check_update_post_permission()}.
+*
+* @since 7.1.0
+*
+* @param int   $post_id The ID of the post to update.
+* @param array $params  The post fields to update.
+* @return array|WP_Error The updated post data, or WP_Error on failure.
+*/
+function wp_update_post_item( $post_id, $params ) {
+	$post_before = get_post( (int) $post_id );
+
+	if ( ! $post_before instanceof WP_Post || ! wp_is_post_type_exposed( $post_before->post_type ) ) {
+		return new WP_Error(
+			'invalid_item',
+			__( 'Invalid item ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	$post_type    = $post_before->post_type;
+	$params['id'] = $post_before->ID;
+
+	$prepared_post = wp_prepare_post_params_for_database( $post_type, $params, null, $post_before );
+
+	if ( is_wp_error( $prepared_post ) ) {
+		return $prepared_post;
+	}
+
+	$updated_id = wp_update_post( wp_slash( (array) $prepared_post ), true, false );
+
+	if ( is_wp_error( $updated_id ) ) {
+		$updated_id->add_data( array( 'status' => 'db_update_error' === $updated_id->get_error_code() ? 500 : 400 ) );
+
+		return $updated_id;
+	}
+
+	$extras = _wp_apply_post_item_extras( $post_type, $updated_id, $params );
+
+	if ( is_wp_error( $extras ) ) {
+		return $extras;
+	}
+
+	wp_after_insert_post( get_post( $updated_id ), true, $post_before );
+
+	return wp_get_post_item_data( $updated_id );
+}
+
+/**
+* Trashes or permanently deletes a post of any exposed post type.
+*
+* This performs no permission check. Callers must check permission first, for
+* example with {@see wp_check_delete_post_permission()}.
+*
+* @since 7.1.0
+*
+* @param int  $post_id The ID of the post to delete.
+* @param bool $force   Optional. Whether to bypass the Trash and delete permanently. Default false.
+* @return array|WP_Error An array with `deleted` and `previous` keys, or WP_Error on failure.
+*/
+function wp_delete_post_item( $post_id, $force = false ) {
+	$post = get_post( (int) $post_id );
+
+	if ( ! $post instanceof WP_Post || ! wp_is_post_type_exposed( $post->post_type ) ) {
+		return new WP_Error(
+			'invalid_item',
+			__( 'Invalid item ID.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
+
+	if ( 'attachment' === $post->post_type ) {
+		$supports_trash = $supports_trash && MEDIA_TRASH;
+	}
+
+	/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+	$supports_trash = apply_filters( "rest_{$post->post_type}_trashable", $supports_trash, $post );
+
+	if ( $force ) {
+		$previous = wp_get_post_item_data( $post );
+
+		if ( ! wp_delete_post( $post->ID, true ) ) {
+			return new WP_Error(
+				'rest_cannot_delete',
+				__( 'The post cannot be deleted.' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		return array(
+			'deleted'  => true,
+			'previous' => $previous,
+		);
+	}
+
+	if ( ! $supports_trash ) {
+		return new WP_Error(
+			'rest_trash_not_supported',
+			/* translators: %s: force=true */
+			sprintf( __( "The post does not support trashing. Set '%s' to delete." ), 'force=true' ),
+			array( 'status' => 501 )
+		);
+	}
+
+	if ( 'trash' === $post->post_status ) {
+		return new WP_Error(
+			'rest_already_trashed',
+			__( 'The post has already been deleted.' ),
+			array( 'status' => 410 )
+		);
+	}
+
+	if ( ! wp_trash_post( $post->ID ) ) {
+		return new WP_Error(
+			'rest_cannot_delete',
+			__( 'The post cannot be deleted.' ),
+			array( 'status' => 500 )
+		);
+	}
+
+	return array(
+		'deleted'  => true,
+		'previous' => wp_get_post_item_data( $post->ID ),
+	);
+}
+
 /**
  * Sets categories for a post.
  *
