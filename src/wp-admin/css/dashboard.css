@@ -874,7 +874,8 @@ body #dashboard-widgets .postbox form .submit {
 
 #dashboard-widgets h4, /* Back-compat for pre-4.4 */
 #dashboard-widgets h3,
-#dashboard_quick_press .drafts h2 {
+#dashboard_quick_press .drafts h2,
+#dashboard_quick_press .drafts.hide-if-js p {
 	margin: 0 12px 8px;
 	padding: 0;
 	font-size: 14px;

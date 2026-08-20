@@ -657,7 +657,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 		$drafts = get_posts( $query_args );
 		if ( ! $drafts ) {
 			echo '<div class="drafts hide-if-js">';
-			echo '<h2>' . __( 'There are no recent drafts.' ) . '</h2>';
+			echo '<p>' . __( 'There are no recent drafts.' ) . '</p>';
 			echo '</div>';
 			return;
 		}
