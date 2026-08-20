@@ -284,6 +284,7 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *                  of that hook is returned, or false if the function is not attached.
  *                  If `$callback` and `$priority` are both provided, a boolean is returned
  *                  for whether the specific function is registered at that priority.
+ * @phpstan-param Maybe_Callable|false $callback
  */
 function has_filter( $hook_name, $callback = false, $priority = false ) {
 	global $wp_filter;
@@ -316,6 +317,7 @@ function has_filter( $hook_name, $callback = false, $priority = false ) {
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         filter callback. Default 10.
  * @return bool Whether the function existed before it was removed.
+ * @phpstan-param Maybe_Callable $callback
  */
 function remove_filter( $hook_name, $callback, $priority = 10 ) {
 	global $wp_filter;
@@ -597,6 +599,7 @@ function do_action_ref_array( $hook_name, $args ) {
  *                  of that hook is returned, or false if the function is not attached.
  *                  If `$callback` and `$priority` are both provided, a boolean is returned
  *                  for whether the specific function is registered at that priority.
+ * @phpstan-param Maybe_Callable|false $callback
  */
 function has_action( $hook_name, $callback = false, $priority = false ) {
 	return has_filter( $hook_name, $callback, $priority );
@@ -621,6 +624,7 @@ function has_action( $hook_name, $callback = false, $priority = false ) {
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         action callback. Default 10.
  * @return bool Whether the function is removed.
+ * @phpstan-param Maybe_Callable $callback
  */
 function remove_action( $hook_name, $callback, $priority = 10 ) {
 	return remove_filter( $hook_name, $callback, $priority );
