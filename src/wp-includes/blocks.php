@@ -1025,6 +1025,30 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 
 	$markup = '';
+
+	/*
+	 * Nothing below reads or writes anything but the anchor block, so an empty list
+	 * leaves no work to do. Returning here avoids copying the anchor block's attributes
+	 * for the many blocks that have no hooked blocks.
+	 *
+	 * This must run after the `hooked_block_types` filter, which can add a hooked block
+	 * type to an anchor that has none registered.
+	 */
+	if ( empty( $hooked_block_types ) ) {
+		return $markup;
+	}
+
+	// Filters have always received array-shaped attributes.
+	$filtered_anchor_block = _wp_get_block_hooks_filter_anchor_block( $parsed_anchor_block );
+
+	/*
+	 * Read `metadata` through an array cast. On the preserving parse path `"metadata":{}`
+	 * arrives as an empty stdClass, and in PHP an array offset on an object is a fatal
+	 * error, including inside isset() and ??.
+	 */
+	$anchor_metadata       = (array) ( $parsed_anchor_block['attrs']['metadata'] ?? array() );
+	$ignored_hooked_blocks = (array) ( $anchor_metadata['ignoredHookedBlocks'] ?? array() );
+
 	foreach ( $hooked_block_types as $hooked_block_type ) {
 		$parsed_hooked_block = array(
 			'blockName'    => $hooked_block_type,
@@ -1046,7 +1070,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, post object,
 		 *                                                             or pattern that the anchor block belongs to.
 		 */
-		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $filtered_anchor_block, $context );
 
 		/**
 		 * Filters the parsed block array for a given hooked block.
@@ -1062,7 +1086,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, post object,
 		 *                                                             or pattern that the anchor block belongs to.
 		 */
-		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $filtered_anchor_block, $context );
 
 		if ( null === $parsed_hooked_block ) {
 			continue;
@@ -1070,10 +1094,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 
 		// It's possible that the filter returned a block of a different type, so we explicitly
 		// look for the original `$hooked_block_type` in the `ignoredHookedBlocks` metadata.
-		if (
-			! isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ||
-			! in_array( $hooked_block_type, $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
-		) {
+		if ( ! in_array( $hooked_block_type, $ignored_hooked_blocks, true ) ) {
 			$markup .= serialize_block( $parsed_hooked_block );
 		}
 	}
@@ -1108,6 +1129,9 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 		return '';
 	}
 
+	// Filters have always received array-shaped attributes.
+	$filtered_anchor_block = _wp_get_block_hooks_filter_anchor_block( $parsed_anchor_block );
+
 	foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 		$parsed_hooked_block = array(
 			'blockName'    => $hooked_block_type,
@@ -1117,24 +1141,32 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 		);
 
 		/** This filter is documented in wp-includes/blocks.php */
-		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $filtered_anchor_block, $context );
 
 		/** This filter is documented in wp-includes/blocks.php */
-		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $filtered_anchor_block, $context );
 
 		if ( null === $parsed_hooked_block ) {
 			unset( $hooked_block_types[ $index ] );
 		}
 	}
 
-	$previously_ignored_hooked_blocks = $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ?? array();
+	/*
+	 * Rebuild `metadata` through an array cast rather than writing into it in place. On
+	 * the preserving parse path `"metadata":{}` arrives as an empty stdClass, and in PHP
+	 * an array offset on an object is a fatal error, assignment included.
+	 */
+	$anchor_metadata                  = (array) ( $parsed_anchor_block['attrs']['metadata'] ?? array() );
+	$previously_ignored_hooked_blocks = (array) ( $anchor_metadata['ignoredHookedBlocks'] ?? array() );
 
-	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
+	$anchor_metadata['ignoredHookedBlocks'] = array_unique(
 		array_merge(
 			$previously_ignored_hooked_blocks,
 			$hooked_block_types
 		)
 	);
+
+	$parsed_anchor_block['attrs']['metadata'] = $anchor_metadata;
 
 	// Markup for the hooked blocks has already been created (in `insert_hooked_blocks`).
 	return '';
@@ -1237,7 +1269,7 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 	};
 	add_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
 	$content = traverse_and_serialize_blocks(
-		parse_blocks( $content ),
+		_wp_parse_blocks_preserving_empty_object_attributes( $content ),
 		$before_block_visitor,
 		$after_block_visitor
 	);
@@ -2123,7 +2155,7 @@ function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols
 		$text = preg_replace_callback( '%<!--(.*?)--->%', '_filter_block_content_callback', $text );
 	}
 
-	$blocks = parse_blocks( $text );
+	$blocks = _wp_parse_blocks_preserving_empty_object_attributes( $text );
 	foreach ( $blocks as $block ) {
 		$block   = filter_block_kses( $block, $allowed_html, $allowed_protocols );
 		$result .= serialize_block( $block );
@@ -2593,6 +2625,59 @@ function _wp_parse_blocks_preserving_empty_object_attributes( $content ) {
 	}
 
 	return $parser->parse( $content );
+}
+
+/**
+ * Converts preserved empty object attributes back to empty arrays.
+ *
+ * Used when exposing an internally preserved parsed block to extension points that
+ * historically received arrays throughout.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param mixed $value Attribute value.
+ * @return mixed The value with empty objects converted to empty arrays.
+ */
+function _wp_block_attribute_empty_objects_to_arrays( $value ) {
+	if ( $value instanceof stdClass ) {
+		return array();
+	}
+
+	if ( ! is_array( $value ) ) {
+		return $value;
+	}
+
+	foreach ( $value as $key => $child_value ) {
+		if ( is_array( $child_value ) || $child_value instanceof stdClass ) {
+			$value[ $key ] = _wp_block_attribute_empty_objects_to_arrays( $child_value );
+		}
+	}
+
+	return $value;
+}
+
+/**
+ * Returns a parsed block using the historical all-array attribute shape.
+ *
+ * The Block Hooks algorithm parses with empty-object preservation enabled, so an anchor
+ * block handed to a third-party filter would otherwise expose an empty stdClass where
+ * that filter has always seen an empty array.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param array $parsed_block A block, in parsed block array format.
+ * @return array A copy of the block with all-array attributes.
+ */
+function _wp_get_block_hooks_filter_anchor_block( $parsed_block ) {
+	if ( empty( $parsed_block['attrs'] ) || ! is_array( $parsed_block['attrs'] ) ) {
+		return $parsed_block;
+	}
+
+	$parsed_block['attrs'] = _wp_block_attribute_empty_objects_to_arrays( $parsed_block['attrs'] );
+
+	return $parsed_block;
 }
 
 /**
