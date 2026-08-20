@@ -5298,3 +5298,21 @@ function wp_is_password_reset_allowed_for_user( $user ) {
 	 */
 	return apply_filters( 'allow_password_reset', $allow, $user->ID );
 }
+
+/**
+ * Retrieves the roles assigned to a user.
+ *
+ * @since 7.1.0
+ *
+ * @param int $user_id User ID.
+ * @return string[] Array of role slugs. Returns an empty array if the user does not exist or has no assigned roles.
+ */
+function wp_get_user_roles( $user_id ) {
+	$user = get_userdata( $user_id );
+
+	if ( ! $user instanceof WP_User ) {
+		return array();
+	}
+
+	return $user->roles;
+}
