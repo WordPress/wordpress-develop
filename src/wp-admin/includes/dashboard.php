@@ -1834,7 +1834,7 @@ function dashboard_browser_nag_class( $classes ) {
  * @param string[] $classes Array of meta box classes.
  * @return string[] Modified array of meta box classes.
  */
-function wp_dashboard_site_health_postbox_class( array $classes = [] ): array {
+function wp_dashboard_site_health_postbox_class( array $classes = array() ): array {
 	$classes[] = 'hide-if-no-js';
 
 	return $classes;
