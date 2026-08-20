@@ -109,11 +109,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/meta.php
 		-
-			message: '#^Function _wp_filter_build_unique_id\(\) should return non\-decimal\-int\-string\|null but returns decimal\-int\-string\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/plugin.php
-		-
 			message: '#^Function wp_post_revision_title\(\) should return string\|false but returns null\.$#'
 			identifier: return.type
 			count: 1
