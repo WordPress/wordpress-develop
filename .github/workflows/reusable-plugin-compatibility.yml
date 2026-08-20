@@ -1,0 +1,316 @@
+##
+# A reusable workflow that installs a version of WordPress and then checks that a list of plugins can be
+# activated against it without fataling.
+#
+# Each plugin in the `plugin-slugs` shard is tested on its own: it is installed, activated, exercised, and then
+# removed before the next one is installed. This keeps one broken plugin from masking (or breaking) the next.
+##
+name: Plugin Compatibility Tests
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on.'
+        required: false
+        type: 'string'
+        default: 'ubuntu-24.04'
+      wp-version:
+        description: 'The version of WordPress to test against. Accepts a version number, "latest", or "nightly".'
+        required: false
+        type: 'string'
+        default: 'nightly'
+      php-version:
+        description: 'The version of PHP to use. Expected format: X.Y.'
+        required: false
+        type: 'string'
+        default: '8.3'
+      plugin-slugs:
+        description: 'A JSON array of WordPress.org plugin slugs to test in this shard.'
+        required: true
+        type: 'string'
+      db-type:
+        description: 'Database type. Valid types are mysql and mariadb.'
+        required: false
+        type: 'string'
+        default: 'mysql'
+      db-version:
+        description: 'Database version.'
+        required: false
+        type: 'string'
+        default: '8.4'
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Tests that each plugin in the shard can be activated against the given version of WordPress.
+  #
+  # Performs the following steps:
+  # - Sets up PHP.
+  # - Downloads the specified version of WordPress.
+  # - Creates a `wp-config.php` file with debugging and error logging enabled.
+  # - Installs WordPress.
+  # - Starts the PHP built-in web server so HTTP requests can be made against the site.
+  # - Installs, activates, exercises, and removes each plugin in the shard, one at a time.
+  # - Writes a results table to the workflow summary and fails the job if any plugin fataled.
+  plugin-compatibility-tests:
+    name: PHP ${{ inputs.php-version }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}
+    permissions:
+      contents: read
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 30
+
+    services:
+      database:
+        image: ${{ inputs.db-type }}:${{ inputs.db-version }}
+        ports:
+          - 3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval="30s"
+          --health-timeout="10s"
+          --health-retries="5"
+          -e MYSQL_ROOT_PASSWORD="root"
+          -e MYSQL_DATABASE="test_db"
+
+    steps:
+      - name: Set up PHP ${{ inputs.php-version }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '${{ inputs.php-version }}'
+          coverage: none
+          tools: wp-cli
+
+      - name: Download WordPress ${{ inputs.wp-version }}
+        run: wp core download --version="${WP_VERSION}"
+        env:
+          WP_VERSION: ${{ inputs.wp-version }}
+
+      - name: Create wp-config.php file
+        run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost="127.0.0.1:${DB_PORT}"
+        env:
+          DB_PORT: ${{ job.services.database.ports['3306'] }}
+
+      # Errors need to reach `wp-content/debug.log` so that a white screen of death is still detectable.
+      #
+      # `WP_DEBUG_DISPLAY` is left off on purpose: this should behave the way a production site does, where a
+      # fatal error is an empty page and an HTTP 500 rather than a printed stack trace.
+      #
+      # The fatal error handler is disabled so that a fatal is reported as a fatal instead of being swallowed by
+      # recovery mode, which would also deactivate the plugin mid-test.
+      - name: Enable debugging and error logging
+        run: |
+          wp config set WP_DEBUG true --raw
+          wp config set WP_DEBUG_LOG true --raw
+          wp config set WP_DEBUG_DISPLAY false --raw
+          wp config set WP_DISABLE_FATAL_ERROR_HANDLER true --raw
+
+      - name: Install WordPress
+        run: |
+          wp core install --url="${SITE_URL}" --title="Plugin Compatibility Test" --admin_user=admin \
+          --admin_password=password --admin_email=me@example.org --skip-email
+        env:
+          SITE_URL: http://127.0.0.1:8889
+
+      # The site needs to answer real requests so that fatals which only happen on a front end or admin page
+      # load are caught. The built-in server is enough for that and needs nothing installed.
+      - name: Start the PHP built-in web server
+        run: |
+          set -uo pipefail
+
+          nohup php -S 127.0.0.1:8889 -t "$( pwd )" > "${RUNNER_TEMP}/php-server.log" 2>&1 &
+
+          # Wait for the server to start answering before any plugin is installed.
+          for _ in $( seq 1 30 ); do
+            if curl -sSf -o /dev/null "http://127.0.0.1:8889/wp-login.php"; then
+              printf 'The PHP built-in server is ready.\n'
+              exit 0
+            fi
+            sleep 1
+          done
+
+          printf 'The PHP built-in server did not start.\n'
+          cat "${RUNNER_TEMP}/php-server.log"
+          exit 1
+
+      - name: Test each plugin in isolation
+        env:
+          PLUGIN_SLUGS: ${{ inputs.plugin-slugs }}
+          PHP_VERSION: ${{ inputs.php-version }}
+          SITE_URL: http://127.0.0.1:8889
+          WP_VERSION: ${{ inputs.wp-version }}
+        run: |
+          # `set -e` is deliberately not used here: a plugin that fatals must not stop the remaining
+          # plugins in the shard from being tested.
+          set -uo pipefail
+
+          RESULTS="${RUNNER_TEMP}/plugin-results.tsv"
+          RESPONSE_BODY="${RUNNER_TEMP}/response.html"
+          : > "${RESULTS}"
+
+          # record <slug> <version> <status> <reason>
+          #
+          # Appends one tab separated row to the results file. The reason is flattened so that it cannot
+          # break the markdown table that is generated from these rows later on.
+          record() {
+            SAFE_REASON="$( printf '%s' "${4:--}" | tr '\n\t|' '   ' )"
+            printf '%s\t%s\t%s\t%s\n' "${1}" "${2:-unknown}" "${3}" "${SAFE_REASON}" >> "${RESULTS}"
+          }
+
+          # check_url <path>
+          #
+          # Requests a path on the test site and prints a reason to stdout when the response looks broken.
+          # Prints nothing when the request looks healthy.
+          check_url() {
+            HTTP_CODE="$( curl -s -o "${RESPONSE_BODY}" -w '%{http_code}' --max-time 60 "${SITE_URL}${1}" || printf '000' )"
+            HTTP_CODE="${HTTP_CODE:-000}"
+
+            if [ "${HTTP_CODE}" = "000" ]; then
+              printf 'The request to %s did not complete' "${1}"
+              return
+            fi
+
+            if [ "${HTTP_CODE}" -ge 500 ]; then
+              printf 'The request to %s returned HTTP %s' "${1}" "${HTTP_CODE}"
+              return
+            fi
+
+            # Belt and braces. Errors are not displayed by default, but a plugin can turn display_errors
+            # back on for itself.
+            if grep -qi 'Fatal error' "${RESPONSE_BODY}"; then
+              printf 'The response from %s contained a fatal error' "${1}"
+            fi
+          }
+
+          # The plugins directory itself must never be removed, only directories inside it.
+          PLUGINS_ROOT="$( wp plugin path )"
+
+          # cleanup_plugin <slug> <directory>
+          #
+          # Returns the site to a clean slate. A plugin that fatals can take WP-CLI down with it, so every
+          # command here is allowed to fail and the plugin directory is removed directly as a fallback.
+          # `--skip-plugins` keeps WP-CLI from loading the broken plugin while cleaning up after it.
+          cleanup_plugin() {
+            wp plugin deactivate "${1}" --skip-plugins --skip-themes > /dev/null 2>&1 || true
+            wp plugin delete "${1}" --skip-plugins --skip-themes > /dev/null 2>&1 || true
+
+            if [ -n "${2:-}" ] && [ -d "${2}" ] && [ "${2}" != "${PLUGINS_ROOT}" ]; then
+              rm -rf "${2}"
+            fi
+
+            rm -rf "wp-content/plugins/${1}"
+
+            # Make sure nothing is left behind in `active_plugins` pointing at a plugin that is now gone.
+            wp option update active_plugins '[]' --format=json --skip-plugins --skip-themes > /dev/null 2>&1 || true
+          }
+
+          while IFS= read -r SLUG; do
+            [ -n "${SLUG}" ] || continue
+
+            printf '::group::%s\n' "${SLUG}"
+
+            STATUS="PASS"
+            REASON="-"
+            VERSION="unknown"
+            PLUGIN_DIR=""
+
+            # Start every plugin with an empty log so that anything found in it belongs to this plugin.
+            rm -f wp-content/debug.log
+
+            # Step 1: download the plugin. A download failure is recorded as skipped rather than failed,
+            # since it generally means a network flake or a plugin that is no longer in the directory.
+            if ! wp plugin install "${SLUG}" --skip-plugins --skip-themes; then
+              record "${SLUG}" "unknown" "SKIPPED" "The plugin could not be downloaded from WordPress.org"
+              cleanup_plugin "${SLUG}" ""
+              printf '::endgroup::\n'
+              continue
+            fi
+
+            VERSION="$( wp plugin get "${SLUG}" --field=version --skip-plugins --skip-themes 2>/dev/null || printf 'unknown' )"
+            PLUGIN_DIR="$( wp plugin path "${SLUG}" --dir --skip-plugins --skip-themes 2>/dev/null || printf '' )"
+
+            # Step 2: activation. Activation runs the plugin's activation hooks and loads its main file.
+            if ! wp plugin activate "${SLUG}"; then
+              STATUS="FAIL"
+              REASON="The plugin could not be activated"
+            fi
+
+            # Step 3: boot all of core plus the active plugin in a CLI context.
+            if [ "${STATUS}" = "PASS" ]; then
+              EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )"
+              EVAL_EXIT_CODE=$?
+
+              if [ "${EVAL_EXIT_CODE}" -ne 0 ] || [ "${EVAL_OUTPUT#*loaded-ok}" = "${EVAL_OUTPUT}" ]; then
+                printf '%s\n' "${EVAL_OUTPUT}"
+                STATUS="FAIL"
+                REASON="WordPress could not be loaded by WP-CLI with the plugin active"
+              fi
+            fi
+
+            # Step 4: request the front page and the login screen through the PHP built-in server.
+            if [ "${STATUS}" = "PASS" ]; then
+              for URL_PATH in "/" "/wp-login.php"; do
+                HTTP_REASON="$( check_url "${URL_PATH}" )"
+
+                if [ -n "${HTTP_REASON}" ]; then
+                  STATUS="FAIL"
+                  REASON="${HTTP_REASON}"
+                  break
+                fi
+              done
+            fi
+
+            # Step 5: a fatal can be logged without changing the HTTP status, for example during a shutdown
+            # hook, so the debug log is checked separately.
+            if [ "${STATUS}" = "PASS" ] && [ -f wp-content/debug.log ] && grep -q 'PHP Fatal' wp-content/debug.log; then
+              grep 'PHP Fatal' wp-content/debug.log
+              STATUS="FAIL"
+              REASON="A fatal error was logged: $( grep -m 1 'PHP Fatal' wp-content/debug.log | cut -c 1-200 )"
+            fi
+
+            # Step 6: record the outcome and put the site back the way it was found.
+            record "${SLUG}" "${VERSION}" "${STATUS}" "${REASON}"
+            cleanup_plugin "${SLUG}" "${PLUGIN_DIR}"
+
+            printf '%s: %s\n' "${SLUG}" "${STATUS}"
+            printf '::endgroup::\n'
+          done < <( printf '%s' "${PLUGIN_SLUGS}" | jq -r '.[]' )
+
+          PASS_COUNT="$( awk -F '\t' '$3 == "PASS" { count++ } END { print count + 0 }' "${RESULTS}" )"
+          FAIL_COUNT="$( awk -F '\t' '$3 == "FAIL" { count++ } END { print count + 0 }' "${RESULTS}" )"
+          SKIP_COUNT="$( awk -F '\t' '$3 == "SKIPPED" { count++ } END { print count + 0 }' "${RESULTS}" )"
+
+          {
+            printf '### WordPress %s / PHP %s\n\n' "${WP_VERSION}" "${PHP_VERSION}"
+            printf '%s passed, %s failed, %s skipped.\n\n' "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}"
+            printf '| Plugin | Version | Result | Details |\n'
+            printf '| --- | --- | --- | --- |\n'
+
+            while IFS=$'\t' read -r ROW_SLUG ROW_VERSION ROW_STATUS ROW_REASON; do
+              case "${ROW_STATUS}" in
+                PASS ) ICON=':white_check_mark:' ;;
+                FAIL ) ICON=':x:' ;;
+                * ) ICON=':warning:' ;;
+              esac
+
+              printf '| [%s](https://wordpress.org/plugins/%s/) | %s | %s %s | %s |\n' \
+                "${ROW_SLUG}" "${ROW_SLUG}" "${ROW_VERSION}" "${ICON}" "${ROW_STATUS}" "${ROW_REASON}"
+            done < "${RESULTS}"
+
+            printf '\n'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          # Plugins that could not be downloaded are reported but do not fail the run.
+          if [ "${FAIL_COUNT}" -gt 0 ]; then
+            printf 'The following plugins failed against WordPress %s:\n' "${WP_VERSION}"
+            awk -F '\t' '$3 == "FAIL" { print "- " $1 " (" $2 "): " $4 }' "${RESULTS}"
+            exit 1
+          fi
+
+          printf 'No plugins fataled against WordPress %s.\n' "${WP_VERSION}"
+
+      - name: Show the web server log
+        if: ${{ failure() }}
+        run: cat "${RUNNER_TEMP}/php-server.log"
