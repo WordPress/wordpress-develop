@@ -472,6 +472,21 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `replacement` detail must be a namespaced ability name.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_meta_deprecated_rejects_invalid_replacement(): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = array( 'replacement' => 'Not An Ability' );
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability deprecation `replacement` value should be a namespaced ability name' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
 	 * Tests that executing a deprecated ability emits its structured details.
 	 *
 	 * @ticket 64209

@@ -385,6 +385,27 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that collection discovery can return only deprecated abilities.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_get_items_can_filter_only_deprecated_abilities(): void {
+		$this->register_deprecated_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+		$request->set_param( 'meta', array( 'deprecated' => 'true' ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$ability_names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/deprecated-calculator', $ability_names );
+		$this->assertNotContains( 'test/calculator', $ability_names );
+	}
+
+	/**
 	 * Test getting a specific ability.
 	 *
 	 * @ticket 64098
