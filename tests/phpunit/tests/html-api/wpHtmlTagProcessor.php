@@ -1596,6 +1596,65 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that removing an attribute does not introduce a self-closing flag.
+	 *
+	 * A `/` inside a tag is only a self-closing flag when immediately followed by `>`.
+	 * Anywhere else it's ignored as a separator. Removing an attribute that was
+	 * directly preceded by a `/` could leave that `/` adjacent to the `>`, which
+	 * would change the meaning of the tag, e.g. `<g /attr>` becoming `<g />`.
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 *
+	 * @dataProvider data_remove_attribute_preserves_self_closing_flag
+	 *
+	 * @param string $html                HTML containing a tag whose attribute will be removed.
+	 * @param string $attribute_to_remove Name of the attribute to remove.
+	 * @param string $expected            Expected HTML after removing the attribute.
+	 */
+	public function test_remove_attribute_preserves_self_closing_flag( string $html, string $attribute_to_remove, string $expected ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag( 'G' );
+		$had_self_closing_flag = $processor->has_self_closing_flag();
+
+		$this->assertTrue( $processor->remove_attribute( $attribute_to_remove ), 'Failed to remove the attribute.' );
+		$updated_html = $processor->get_updated_html();
+		$this->assertSame( $expected, $updated_html, 'Updated HTML did not match the expected output.' );
+
+		// Re-parse the output to confirm the tag's semantics are unchanged.
+		$processor = new WP_HTML_Tag_Processor( $updated_html );
+		$processor->next_tag( 'G' );
+		$this->assertNull( $processor->get_attribute( $attribute_to_remove ), 'Attribute still present in the updated HTML.' );
+		$this->assertSame(
+			$had_self_closing_flag,
+			$processor->has_self_closing_flag(),
+			$had_self_closing_flag
+				? 'Removing the attribute dropped the self-closing flag.'
+				: 'Removing the attribute introduced a self-closing flag.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_remove_attribute_preserves_self_closing_flag() {
+		return array(
+			'Slash before attribute'                    => array( '<svg><g /attr>ok', 'attr', '<svg><g >ok' ),
+			'Slash before attribute, no whitespace'     => array( '<svg><g/attr>ok', 'attr', '<svg><g>ok' ),
+			'Multiple slashes before attribute'         => array( '<svg><g //attr>ok', 'attr', '<svg><g >ok' ),
+			'Slash separating attributes, remove last'  => array( '<svg><g a/b>ok', 'b', '<svg><g a>ok' ),
+			'Slash separating attributes, remove first' => array( '<svg><g a/b>ok', 'a', '<svg><g /b>ok' ),
+			'Slash after quoted value, remove last'     => array( '<svg><g a="x"/b>ok', 'b', '<svg><g a="x">ok' ),
+			'Slash before duplicated attributes'        => array( '<svg><g /a /a>ok', 'a', '<svg><g  >ok' ),
+			'Slash and whitespace before attribute'     => array( '<svg><g / attr>ok', 'attr', '<svg><g / >ok' ),
+			'Self-closing flag is preserved'            => array( '<svg><g attr/>ok', 'attr', '<svg><g />ok' ),
+			'Self-closing flag after quoted value'      => array( '<svg><g attr="x"/>ok', 'attr', '<svg><g />ok' ),
+			'Self-closing flag, slash before attribute' => array( '<svg><g /attr/>ok', 'attr', '<svg><g />ok' ),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
