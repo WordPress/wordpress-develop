@@ -2208,7 +2208,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @ignore
 	 *
-	 * @return bool Whether an attribute was found before the end of the document.
+	 * @return bool Whether an attribute was found. Returns `false` upon reaching the end
+	 *              of the tag (`>` or `/>`) or the end of the document.
 	 */
 	private function parse_next_attribute(): bool {
 		$doc_length = strlen( $this->html );
