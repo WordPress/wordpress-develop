@@ -195,7 +195,7 @@ jobs:
             | map( { index: .index, slugs: ( .slugs | @json ) } )
           ' )"
 
-          printf 'Testing %s plugins across %s shards.\n' "${TOTAL}" "$( printf '%s' "${SHARDS}" | jq 'length' )"
+          printf 'Testing %s plugins across %s shard(s).\n' "${TOTAL}" "$( printf '%s' "${SHARDS}" | jq 'length' )"
           printf '%s\n' "${SHARDS}" | jq -r '.[] | "Shard \(.index): \(.slugs)"'
 
           printf 'shards=%s\n' "${SHARDS}" >> "${GITHUB_OUTPUT}"
