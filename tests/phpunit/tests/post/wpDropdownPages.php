@@ -219,4 +219,53 @@ NO;
 
 		$this->assertMatchesRegularExpression( '/<select[^>]+class=\'bar\'/', $found );
 	}
+
+	/**
+	 * Tests that the 'show_option_none' option can be selected.
+	 *
+	 * @ticket 65510
+	 */
+	public function test_wp_dropdown_pages_show_option_none_is_selected() {
+		self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'foo',
+			)
+		);
+
+		$found = wp_dropdown_pages(
+			array(
+				'echo'              => 0,
+				'show_option_none'  => 'None',
+				'option_none_value' => 'none_value',
+				'selected'          => 'none_value',
+			)
+		);
+
+		$this->assertStringContainsString( '<option value="none_value" selected=\'selected\'>None</option>', $found );
+	}
+
+	/**
+	 * Tests that the 'show_option_no_change' option can be selected.
+	 *
+	 * @ticket 65510
+	 */
+	public function test_wp_dropdown_pages_show_option_no_change_is_selected() {
+		self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'foo',
+			)
+		);
+
+		$found = wp_dropdown_pages(
+			array(
+				'echo'                  => 0,
+				'show_option_no_change' => 'No Change',
+				'selected'              => '-1',
+			)
+		);
+
+		$this->assertStringContainsString( '<option value="-1" selected=\'selected\'>No Change</option>', $found );
+	}
 }
