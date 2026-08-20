@@ -24,6 +24,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
+
+	/**
+	 * Site locale before each test.
+	 *
+	 * @var string
+	 */
 	protected $original_locale = 'en_US';
 
 	/**
