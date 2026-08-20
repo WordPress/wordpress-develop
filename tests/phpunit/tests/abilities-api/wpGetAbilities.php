@@ -195,6 +195,30 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'test/deprecated-ability', $result );
 	}
 
+	/**
+	 * Tests that `true` works as a shorthand for any deprecated ability.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_deprecated_abilities_can_be_filtered_with_true_shorthand(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/active-ability' );
+		$this->register_test_ability(
+			'test/deprecated-ability',
+			array(
+				'meta' => array(
+					'deprecated' => array( 'replacement' => 'test/active-ability' ),
+				),
+			)
+		);
+
+		$result = wp_get_abilities( array( 'meta' => array( 'deprecated' => true ) ) );
+
+		$this->assertArrayNotHasKey( 'test/active-ability', $result );
+		$this->assertArrayHasKey( 'test/deprecated-ability', $result );
+	}
+
 	// -------------------------------------------------------------------------
 	// Category filter
 	// -------------------------------------------------------------------------

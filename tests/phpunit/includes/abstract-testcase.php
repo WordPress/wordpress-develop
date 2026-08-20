@@ -760,8 +760,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function deprecated_function_run( $function_name, $replacement, $version, $message = '' ) {
 		if ( ! isset( $this->caught_deprecated[ $function_name ] ) ) {
-			$additional_message = $message;
-
 			switch ( current_action() ) {
 				case 'deprecated_function_run':
 					if ( $replacement ) {
@@ -849,6 +847,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 					break;
 
 				case 'deprecated_ability_run':
+					$additional_message = $message;
+
 					if ( $version ) {
 						if ( $replacement ) {
 							$message = sprintf(

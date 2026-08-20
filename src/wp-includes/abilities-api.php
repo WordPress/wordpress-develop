@@ -539,9 +539,10 @@ function _deprecated_ability( string $ability_name, string $version = '', string
  *         'meta' => array( 'deprecated' => false ),
  *     ) );
  *
- *     // Return only deprecated abilities.
+ *     // Return only deprecated abilities. Passing `true` matches any deprecated
+ *     // ability. An array of details narrows the results further.
  *     $abilities = wp_get_abilities( array(
- *         'meta' => array( 'deprecated' => array() ),
+ *         'meta' => array( 'deprecated' => true ),
  *     ) );
  *
  *     // Filter by category.
@@ -623,6 +624,15 @@ function wp_get_abilities( array $args = array() ): array {
 	$meta                  = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
 	$item_include_callback = isset( $args['item_include_callback'] ) && is_callable( $args['item_include_callback'] ) ? $args['item_include_callback'] : null;
 	$result_callback       = isset( $args['result_callback'] ) && is_callable( $args['result_callback'] ) ? $args['result_callback'] : null;
+
+	/*
+	 * Normalize the `deprecated` meta filter shorthand. Stored values are `false`
+	 * or an array of details, so `true` becomes an empty set of conditions that
+	 * matches any deprecated ability.
+	 */
+	if ( isset( $meta['deprecated'] ) && true === $meta['deprecated'] ) {
+		$meta['deprecated'] = array();
+	}
 
 	$matched = array();
 

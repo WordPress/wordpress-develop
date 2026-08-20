@@ -408,17 +408,20 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 						'additionalProperties' => true,
 					),
 					'deprecated'  => array(
-						'description'          => __( 'Limit results by deprecation status or details.' ),
+						'description'          => __( 'Limit results by deprecation status or details. Use true to return only deprecated abilities, false to return only active abilities, or an object to match specific deprecation details.' ),
 						'type'                 => array( 'boolean', 'object' ),
 						'properties'           => array(
 							'since'       => array(
-								'type' => 'string',
+								'description' => __( 'Version of the ability provider that deprecated the ability.' ),
+								'type'        => 'string',
 							),
 							'replacement' => array(
-								'type' => 'string',
+								'description' => __( 'Namespaced ability to use instead.' ),
+								'type'        => 'string',
 							),
 							'message'     => array(
-								'type' => 'string',
+								'description' => __( 'Additional migration guidance.' ),
+								'type'        => 'string',
 							),
 						),
 						'additionalProperties' => true,
