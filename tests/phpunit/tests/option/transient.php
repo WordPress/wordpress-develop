@@ -265,4 +265,86 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		);
 		$this->assertSame( $expected, $a->get_events() );
 	}
+
+	/**
+	 * Tests that delete_transient() removes an orphaned timeout row when the value row is missing.
+	 *
+	 * set_transient() writes the timeout row before the value row in two separate statements.
+	 * If a request aborts between those two writes, the timeout row is committed but the value
+	 * row never arrives. delete_transient() must still remove the orphaned timeout row.
+	 *
+	 * @ticket 65863
+	 *
+	 * @covers ::delete_transient
+	 */
+	public function test_delete_transient_removes_orphaned_timeout_row() {
+		global $wpdb;
+
+		$transient = 'test_orphan_timeout';
+
+		// Simulate an orphaned timeout row by writing it directly without the value row.
+		add_option( '_transient_timeout_' . $transient, time() + 3600, '', false );
+
+		// Confirm the value row does not exist and the timeout row does.
+		$this->assertFalse( get_option( '_transient_' . $transient ), 'Value row should not exist.' );
+		$this->assertNotFalse( get_option( '_transient_timeout_' . $transient ), 'Timeout row should exist.' );
+
+		// delete_transient() should remove the orphaned timeout row.
+		delete_transient( $transient );
+
+		$this->assertFalse(
+			get_option( '_transient_timeout_' . $transient ),
+			'Orphaned timeout row should have been removed by delete_transient().'
+		);
+	}
+
+	/**
+	 * Tests that delete_expired_transients() removes orphaned timeout rows whose timestamp has passed.
+	 *
+	 * An orphaned timeout row — a `_transient_timeout_` row without a matching `_transient_` row —
+	 * is invisible to the normal multi-table DELETE used by delete_expired_transients() because the
+	 * JOIN requires both rows to exist. A dedicated LEFT JOIN query must remove them.
+	 *
+	 * @ticket 65863
+	 *
+	 * @covers ::delete_expired_transients
+	 */
+	public function test_delete_expired_transients_removes_orphaned_expired_timeout_row() {
+		$transient = 'test_orphan_expired';
+
+		// Simulate an orphaned timeout row that has already expired.
+		add_option( '_transient_timeout_' . $transient, time() - 1, '', false );
+
+		// Confirm the value row does not exist and the timeout row does.
+		$this->assertFalse( get_option( '_transient_' . $transient ), 'Value row should not exist.' );
+		$this->assertNotFalse( get_option( '_transient_timeout_' . $transient ), 'Timeout row should exist before cleanup.' );
+
+		delete_expired_transients();
+
+		$this->assertFalse(
+			get_option( '_transient_timeout_' . $transient ),
+			'Orphaned expired timeout row should have been removed by delete_expired_transients().'
+		);
+	}
+
+	/**
+	 * Tests that delete_expired_transients() does not remove an orphaned timeout row that has not yet expired.
+	 *
+	 * @ticket 65863
+	 *
+	 * @covers ::delete_expired_transients
+	 */
+	public function test_delete_expired_transients_keeps_orphaned_future_timeout_row() {
+		$transient = 'test_orphan_future';
+
+		// Simulate an orphaned timeout row that has not yet expired.
+		add_option( '_transient_timeout_' . $transient, time() + 3600, '', false );
+
+		delete_expired_transients();
+
+		$this->assertNotFalse(
+			get_option( '_transient_timeout_' . $transient ),
+			'Orphaned timeout row with a future expiry should not be removed by delete_expired_transients().'
+		);
+	}
 }
