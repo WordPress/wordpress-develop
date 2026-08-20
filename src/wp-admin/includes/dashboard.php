@@ -1829,7 +1829,7 @@ function dashboard_browser_nag_class( $classes ) {
  * The widget's data is loaded via JavaScript, so the whole widget is hidden
  * when JavaScript is disabled.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param string[] $classes Array of meta box classes.
  * @return string[] Modified array of meta box classes.
