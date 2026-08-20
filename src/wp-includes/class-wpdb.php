@@ -2295,6 +2295,19 @@ class wpdb {
 			$this->last_error = __( 'Unable to retrieve the error message from the database server' );
 		}
 
+		// User has reached 'max_questions' stop retrying
+		if ( 1226 === $mysql_errno ) {
+			$message = '<h1>' . __( 'Cannot query database' ) . "</h1>\n";
+			$message .= '<p>' . __( 'The database server could be connected to (which means username and password is okay) but the query could not be performed.' ) . '<br>';
+			$message .= sprintf( $this->last_error );
+			$message .= '<p>' . sprintf(
+				/* translators: %s: Support forums URL. */
+				__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
+				__( 'https://wordpress.org/support/forums/' )
+			) . "</p>\n";
+			wp_die( $message );
+		}
+
 		if ( $this->last_error ) {
 			// Clear insert_id on a subsequent failed insert.
 			if ( $this->insert_id && preg_match( '/^\s*(insert|replace)\s/i', $query ) ) {
