@@ -7,9 +7,29 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
+	/**
+	 * Original HTTPS value.
+	 *
+	 * @var string|null
+	 */
+	private $original_https;
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->original_https = $_SERVER['HTTPS'] ?? null;
+	}
+
 	public function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
+
+		if ( null === $this->original_https ) {
+			unset( $_SERVER['HTTPS'] );
+		} else {
+			$_SERVER['HTTPS'] = $this->original_https;
+		}
+
 		parent::tear_down();
 	}
 
