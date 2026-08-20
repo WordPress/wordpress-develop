@@ -85,20 +85,147 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	/**
 	 * @ticket 65667
 	 *
+	 * @dataProvider data_sanitize_block_gap_value
+	 *
 	 * @covers ::wp_sanitize_block_gap_value
 	 */
-	public function test_sanitize_block_gap_value_rejects_nested_array_values() {
-		$this->assertSame(
-			array(
-				'top'  => null,
-				'left' => '2rem',
-			),
-			wp_sanitize_block_gap_value(
+	public function test_sanitize_block_gap_value_normalizes_zero_and_rejects_other_non_string_values( $gap_value, $expected ) {
+		$this->assertSame( $expected, wp_sanitize_block_gap_value( $gap_value ) );
+	}
+
+	/**
+	 * Data provider for test_sanitize_block_gap_value_normalizes_zero_and_rejects_other_non_string_values().
+	 *
+	 * @return array[] Test data.
+	 */
+	public function data_sanitize_block_gap_value() {
+		return array(
+			'string value'           => array( '1rem', '1rem' ),
+			'empty string'           => array( '', null ),
+			'whitespace-only string' => array( " \t\n", null ),
+			'integer zero'           => array( 0, '0' ),
+			'floating-point zero'    => array( 0.0, '0' ),
+			'non-zero integer'       => array( 1, null ),
+			'boolean value'          => array( true, null ),
+			'object value'           => array( new stdClass(), null ),
+			'nested array value'     => array(
 				array(
 					'top'  => array( '1rem' ),
 					'left' => '2rem',
-				)
+				),
+				array( 'left' => '2rem' ),
+			),
+			'empty sanitized array'  => array( array( array( '1rem' ) ), null ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_wp_get_layout_style
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style( $args, $expected_output ) {
+		$this->assertSame(
+			$expected_output,
+			wp_get_layout_style(
+				$args['selector'],
+				$args['layout'],
+				$args['has_block_gap_support'],
+				$args['gap_value'],
+				false,
+				$args['fallback_gap_value'] ?? '0.5em'
 			)
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_get_layout_style().
+	 *
+	 * @return array[] Test data.
+	 */
+	public function data_wp_get_layout_style() {
+		return array(
+			'flex layout uses the default for malformed gap values' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'flex' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'left' => '2rem' ),
+					'fallback_gap_value'    => array(
+						'top'  => array( '1rem' ),
+						'left' => new stdClass(),
+					),
+				),
+				'expected_output' => '.wp-layout{gap:0.5em 2rem;}',
+			),
+			'flex layout ignores an empty block gap'    => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'flex' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => '',
+				),
+				'expected_output' => '',
+			),
+			'grid layout uses the default for malformed gap values' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'grid' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'left' => '2rem' ),
+					'fallback_gap_value'    => array(
+						'top'  => array( '1rem' ),
+						'left' => new stdClass(),
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(min(12rem, 100%), 1fr));container-type:inline-size;gap:0.5em 2rem;}',
+			),
+			'grid layout uses horizontal gap for responsive columns' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array(
+						'top'  => '2rem',
+						'left' => '3rem',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (3rem * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 3rem;}',
+			),
+			'grid layout uses fallback when horizontal gap is missing' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'top' => '2rem' ),
+					'fallback_gap_value'    => '1.2rem',
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (1.2rem * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 1.2rem;}',
+			),
+			'grid layout preserves zero horizontal gap' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array(
+						'top'  => '2rem',
+						'left' => '0',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (0px * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 0;}',
+			),
 		);
 	}
 
