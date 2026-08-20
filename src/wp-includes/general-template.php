@@ -473,13 +473,16 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 
 	$defaults = array(
 		'id'          => wp_unique_id( 'wp-tooltip-' ),
-		'button'      => '<button type="button" aria-label="%3$s"><span class="dashicons %4$s" aria-hidden="true"></span></button>',
+		'button'      => '<button type="button" aria-label="{{wp-tooltip-label}}"><span class="dashicons {{wp-tooltip-icon}}" aria-hidden="true"></span></button>',
 		'label'       => __( 'Help' ),
 		'close_label' => __( 'Close' ),
 		'icon'        => 'dashicons-editor-help',
 		'class'       => '',
 		'type'        => 'tooltip',
 	);
+
+	// Captured before `wp_parse_args()` merges in the default button markup below.
+	$is_default_button = empty( $args['button'] );
 
 	$args = wp_parse_args( $args, $defaults );
 
@@ -492,11 +495,22 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	$id        = ( $args['id'] ) ? $args['id'] : $defaults['id'];
 	$button    = ( $args['button'] ) ? $args['button'] : $defaults['button'];
 	$processed = false;
+
+	/*
+	 * Placeholder tokens, rather than `sprintf()` conversion specifications,
+	 * are used so the popover target, label, and icon can be filled in with
+	 * `str_replace()` below. The button markup is later passed to `sprintf()`
+	 * as an argument, not concatenated into the format string, so any literal
+	 * `%` characters in caller-supplied markup (e.g. a percent-encoded URL)
+	 * are never parsed as a conversion specification. See #65914.
+	 */
+	$popovertarget_token = '{{wp-tooltip-popovertarget}}';
+
 	$processor = new WP_HTML_Tag_Processor( $button );
 	if ( true === $processor->next_tag( 'button' ) ) {
 		$processor->add_class( 'wp-tooltip__toggle' );
 		if ( 'tooltip' !== $args['type'] ) {
-			$processor->set_attribute( 'popovertarget', '%2$s' );
+			$processor->set_attribute( 'popovertarget', $popovertarget_token );
 			$processor->set_attribute( 'aria-haspopup', 'dialog' );
 		}
 		$button    = $processor->get_updated_html();
@@ -512,13 +526,32 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	}
 	if ( ! $processed ) {
 		// Button HTML passed was not valid.
-		$processor = new WP_HTML_Tag_Processor( $defaults['button'] );
+		$is_default_button = true;
+		$processor         = new WP_HTML_Tag_Processor( $defaults['button'] );
 		$processor->add_class( 'wp-tooltip__toggle' );
 		if ( 'tooltip' !== $args['type'] ) {
-			$processor->set_attribute( 'popovertarget', '%2$s' );
+			$processor->set_attribute( 'popovertarget', $popovertarget_token );
 			$processor->set_attribute( 'aria-haspopup', 'dialog' );
 		}
 		$button = $processor->get_updated_html();
+	}
+
+	if ( false !== strpos( $button, $popovertarget_token ) ) {
+		$button = str_replace( $popovertarget_token, esc_attr( $id ), $button );
+	}
+
+	/*
+	 * Only the default, core-generated button template contains the label
+	 * and icon tokens. Caller-supplied button markup is never scanned for
+	 * these tokens, so literal matching text in custom markup is left as-is.
+	 */
+	if ( $is_default_button ) {
+		$button_label = ( 'tooltip' === $args['type'] ) ? wp_strip_all_tags( $content, true ) : $args['label'];
+		$button       = str_replace(
+			array( '{{wp-tooltip-label}}', '{{wp-tooltip-icon}}' ),
+			array( esc_attr( $button_label ), esc_attr( $icon ) ),
+			$button
+		);
 	}
 
 	/*
@@ -529,19 +562,17 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	 */
 	if ( 'tooltip' === $args['type'] ) {
 		// Tooltips are only used to visually display labels.
-		$label  = wp_strip_all_tags( $content, true );
 		$markup = sprintf(
 			'<span class="%1$s">
-				' . $button . '
+				%4$s
 				<span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
-					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
+					'<span id="%2$s-text" class="wp-tooltip__text">%3$s</span>' .
 				'</span>' .
 			'</span>',
 			esc_attr( $classes ),
 			esc_attr( $id ),
-			esc_attr( $label ),
-			esc_attr( $icon ),
 			esc_html( $content ),
+			$button,
 		);
 	} else {
 		/*
@@ -551,10 +582,10 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		 */
 		$markup = sprintf(
 			'<span class="%1$s">
-				' . $button . '
+				%6$s
 				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
-					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
-					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
+					'<span id="%2$s-text" class="wp-tooltip__text">%4$s</span>' .
+					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%5$s">' .
 						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
 					'</button>' .
 				'</span>' .
@@ -562,9 +593,9 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 			esc_attr( $classes ),
 			esc_attr( $id ),
 			esc_attr( $args['label'] ),
-			esc_attr( $icon ),
 			esc_html( $content ),
 			esc_attr( $args['close_label'] ),
+			$button,
 		);
 	}
 

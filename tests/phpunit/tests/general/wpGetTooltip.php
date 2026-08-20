@@ -207,6 +207,85 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a percent sign in custom button markup is not parsed as a
+	 * `sprintf()` conversion specification.
+	 *
+	 * @ticket 65914
+	 */
+	public function test_wp_get_tooltip_does_not_treat_percent_encoded_url_as_format_string() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array( 'button' => '<a href="/wp-admin/edit.php?s=hello%20world">Search</a>' )
+		);
+
+		$this->assertStringContainsString( 'href="/wp-admin/edit.php?s=hello%20world"', $html );
+	}
+
+	/**
+	 * Tests that literal text containing a percent sign is preserved verbatim.
+	 *
+	 * @ticket 65914
+	 */
+	public function test_wp_get_tooltip_preserves_percent_sign_in_button_text() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array( 'button' => '<button type="button">100% done</button>' )
+		);
+
+		$this->assertStringContainsString( '100% done', $html );
+	}
+
+	/**
+	 * Tests that a percent-encoded path is not silently rewritten.
+	 *
+	 * @ticket 65914
+	 */
+	public function test_wp_get_tooltip_does_not_rewrite_percent_encoded_path() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array( 'button' => '<a href="/x?p=a%2Fb">Link</a>' )
+		);
+
+		$this->assertStringContainsString( 'href="/x?p=a%2Fb"', $html );
+	}
+
+	/**
+	 * Tests that a meta box style ID containing a percent sign, as used by
+	 * `do_meta_boxes()`, does not cause a fatal error.
+	 *
+	 * @ticket 65914
+	 */
+	public function test_wp_get_tooltip_does_not_fatal_on_percent_in_id_attribute() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array( 'button' => '<button type="button" id="sale_100%_off">Toggle</button>' )
+		);
+
+		$this->assertStringContainsString( 'id="sale_100%_off"', $html );
+	}
+
+	/**
+	 * Tests that the default, core-generated button still receives its label,
+	 * icon, and popovertarget correctly after the button markup is no longer
+	 * concatenated into the `sprintf()` format string.
+	 *
+	 * @ticket 65914
+	 */
+	public function test_wp_get_toggletip_default_button_still_receives_label_and_icon() {
+		$html = wp_get_toggletip(
+			'Some help content here.',
+			array(
+				'label' => 'Info',
+				'icon'  => 'dashicons-info',
+			)
+		);
+
+		$this->assertStringContainsString( 'aria-label="Info"', $html );
+		$this->assertStringContainsString( 'class="dashicons dashicons-info"', $html );
+		$this->assertStringNotContainsString( '{{', $html, 'Placeholder tokens must not leak into output.' );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
