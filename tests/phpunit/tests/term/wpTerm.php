@@ -89,4 +89,33 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 		$found = WP_Term::get_instance( self::$term_id, 'wptests_tax2' );
 		$this->assertFalse( $found );
 	}
+
+	/**
+	 * @ticket 65915
+	 *
+	 * @dataProvider data_get_instance_should_ignore_non_object_cached_values
+	 *
+	 * @param mixed $cached_value A non-object value stored in the 'terms' cache group.
+	 */
+	public function test_get_instance_should_ignore_non_object_cached_values( $cached_value ) {
+		wp_cache_set( self::$term_id, $cached_value, 'terms' );
+
+		$found = WP_Term::get_instance( self::$term_id );
+
+		$this->assertInstanceOf( 'WP_Term', $found );
+		$this->assertSame( self::$term_id, $found->term_id );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_instance_should_ignore_non_object_cached_values() {
+		return array(
+			'an array'   => array( array( 'term_id' => 12345 ) ),
+			'an integer' => array( 12345 ),
+			'a string'   => array( 'a term' ),
+		);
+	}
 }

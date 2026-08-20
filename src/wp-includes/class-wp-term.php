@@ -124,7 +124,7 @@ final class WP_Term {
 		$_term = wp_cache_get( $term_id, 'terms' );
 
 		// If there isn't a cached version, hit the database.
-		if ( ! $_term || ( $taxonomy && $taxonomy !== $_term->taxonomy ) ) {
+		if ( ! is_object( $_term ) || ( $taxonomy && $taxonomy !== $_term->taxonomy ) ) {
 			// Any term found in the cache is not a match, so don't use it.
 			$_term = false;
 
