@@ -307,6 +307,22 @@ jobs:
           fi
           echo 'Published six PHPUnit timing metrics to CodeVitals.'
 
+      - name: Flag slow PHPUnit tests
+        # Runs even when the test step failed (always()), so the signal still
+        # surfaces on red runs, and never fails the job itself (continue-on-error),
+        # because this is advisory only.
+        if: >-
+          always() && inputs.report && inputs.php == '8.5' &&
+          ( github.event_name == 'pull_request' ||
+            ( github.event_name == 'push' && github.ref == 'refs/heads/trunk' ) )
+        continue-on-error: true
+        run: |
+          if [ -f tests/phpunit/build/logs/junit.xml ]; then
+            php tests/phpunit/prepare-slow-test-annotations.php tests/phpunit/build/logs/junit.xml
+           else
+             echo 'PHPUnit JUnit report not found; skipping slow-test annotations.'
+           fi
+
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
