@@ -64,7 +64,10 @@ jobs:
 
     services:
       database:
-        image: ${{ inputs.db-type }}:${{ inputs.db-version }}
+        # The database type and version are inputs so that this workflow can be pointed at any supported
+        # combination, which means the image cannot be pinned to a digest. This matches how the database
+        # service is declared in install-testing.yml and reusable-upgrade-testing.yml.
+        image: ${{ inputs.db-type }}:${{ inputs.db-version }} # zizmor: ignore[unpinned-images]
         ports:
           - 3306
         options: >-
@@ -100,12 +103,18 @@ jobs:
       #
       # The fatal error handler is disabled so that a fatal is reported as a fatal instead of being swallowed by
       # recovery mode, which would also deactivate the plugin mid-test.
+      #
+      # WP-Cron is disabled because WordPress spawns it as a loopback request during a front end request. The
+      # loopback lands back on the same PHP built-in server that is still busy serving the request that spawned
+      # it, and the two deadlock until curl gives up. Catching fatals that only happen on a scheduled event is
+      # worth doing, but it needs to run through WP-CLI rather than a loopback, which is follow up work.
       - name: Enable debugging and error logging
         run: |
           wp config set WP_DEBUG true --raw
           wp config set WP_DEBUG_LOG true --raw
           wp config set WP_DEBUG_DISPLAY false --raw
           wp config set WP_DISABLE_FATAL_ERROR_HANDLER true --raw
+          wp config set DISABLE_WP_CRON true --raw
 
       - name: Install WordPress
         run: |
@@ -116,7 +125,13 @@ jobs:
 
       # The site needs to answer real requests so that fatals which only happen on a front end or admin page
       # load are caught. The built-in server is enough for that and needs nothing installed.
+      #
+      # `PHP_CLI_SERVER_WORKERS` is set because the built-in server is single threaded by default. Plenty of
+      # plugins make a loopback request to the site they are running on, and a single threaded server cannot
+      # answer one while it is still serving the request that made it.
       - name: Start the PHP built-in web server
+        env:
+          PHP_CLI_SERVER_WORKERS: '4'
         run: |
           set -uo pipefail
 
@@ -164,16 +179,24 @@ jobs:
           # Requests a path on the test site and prints a reason to stdout when the response looks broken.
           # Prints nothing when the request looks healthy.
           check_url() {
-            HTTP_CODE="$( curl -s -o "${RESPONSE_BODY}" -w '%{http_code}' --max-time 60 "${SITE_URL}${1}" || printf '000' )"
-            HTTP_CODE="${HTTP_CODE:-000}"
+            CURL_EXIT_CODE=0
+            # The exit code is captured separately rather than falling back to a literal inside the command
+            # substitution, which would append to whatever curl had already written and produce a nonsense
+            # status like "200000" when a request returned headers and then stalled.
+            HTTP_CODE="$( curl -s -o "${RESPONSE_BODY}" -w '%{http_code}' --max-time 60 "${SITE_URL}${1}" )" || CURL_EXIT_CODE=$?
 
-            if [ "${HTTP_CODE}" = "000" ]; then
-              printf 'The request to %s did not complete' "${1}"
+            if [ -z "${HTTP_CODE}" ] || [ "${HTTP_CODE}" = "000" ]; then
+              printf 'The request to %s did not complete, curl exit code %s' "${1}" "${CURL_EXIT_CODE}"
               return
             fi
 
             if [ "${HTTP_CODE}" -ge 500 ]; then
               printf 'The request to %s returned HTTP %s' "${1}" "${HTTP_CODE}"
+              return
+            fi
+
+            if [ "${CURL_EXIT_CODE}" -ne 0 ]; then
+              printf 'The request to %s returned HTTP %s but the response did not finish, curl exit code %s' "${1}" "${HTTP_CODE}" "${CURL_EXIT_CODE}"
               return
             fi
 
@@ -232,20 +255,46 @@ jobs:
             PLUGIN_DIR="$( wp plugin path "${SLUG}" --dir --skip-plugins --skip-themes 2>/dev/null || printf '' )"
 
             # Step 2: activation. Activation runs the plugin's activation hooks and loads its main file.
-            if ! wp plugin activate "${SLUG}"; then
-              STATUS="FAIL"
-              REASON="The plugin could not be activated"
+            ACTIVATE_EXIT_CODE=0
+            ACTIVATE_OUTPUT="$( wp plugin activate "${SLUG}" 2>&1 )" || ACTIVATE_EXIT_CODE=$?
+            printf '%s\n' "${ACTIVATE_OUTPUT}"
+
+            if [ "${ACTIVATE_EXIT_CODE}" -ne 0 ]; then
+              case "${ACTIVATE_OUTPUT}" in
+                # Core refuses to activate a plugin whose declared requirements are not met, most often a
+                # `Requires Plugins` dependency that is not installed. Testing each plugin on its own means
+                # every WooCommerce extension lands here. That is core working as designed rather than a
+                # fatal, so it is recorded as skipped.
+                *"to be installed and activated"* | *"requires PHP version"* | *"requires WordPress version"* )
+                  STATUS="SKIPPED"
+                  REASON="Core declined to activate the plugin because its declared requirements are not met"
+                  ;;
+                * )
+                  STATUS="FAIL"
+                  REASON="The plugin could not be activated"
+                  ;;
+              esac
             fi
 
             # Step 3: boot all of core plus the active plugin in a CLI context.
             if [ "${STATUS}" = "PASS" ]; then
-              EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )"
-              EVAL_EXIT_CODE=$?
+              EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )" || true
 
-              if [ "${EVAL_EXIT_CODE}" -ne 0 ] || [ "${EVAL_OUTPUT#*loaded-ok}" = "${EVAL_OUTPUT}" ]; then
+              if [ "${EVAL_OUTPUT#*loaded-ok}" = "${EVAL_OUTPUT}" ]; then
                 printf '%s\n' "${EVAL_OUTPUT}"
-                STATUS="FAIL"
-                REASON="WordPress could not be loaded by WP-CLI with the plugin active"
+
+                case "${EVAL_OUTPUT}" in
+                  *"Fatal error"* | *"PHP Fatal"* | *"Uncaught"* )
+                    STATUS="FAIL"
+                    REASON="A fatal error occurred while WP-CLI loaded WordPress with the plugin active"
+                    ;;
+                  # Some plugins redirect or exit while loading, which stops WP-CLI without anything being
+                  # broken. Only a fatal counts as a failure here. Everything else is left to the HTTP and
+                  # debug log checks below, which see the same code in a real request.
+                  * )
+                    printf 'WP-CLI did not finish loading WordPress, but no fatal error was reported.\n'
+                    ;;
+                esac
               fi
             fi
 
