@@ -7,8 +7,13 @@
 # every request and a white screen for real sites. This workflow is a smoke test for that class of failure, so
 # that it can be found while there is still time to fix core or notify the plugin author.
 #
-# The plugin list is fetched from the WordPress.org API at run time and is sharded across a small matrix. Each
-# plugin is installed and activated on its own, so one broken plugin cannot hide another.
+# The plugin list is fetched from the WordPress.org API at run time and is sharded across a matrix sized to the
+# number of plugins being tested. Each plugin is installed and activated on its own, so one broken plugin cannot
+# hide another.
+#
+# It runs weekly against nightly, and can be dispatched manually against any version with any number of plugins,
+# which is the intended way to use it as part of the pre-release checklist: point it at the beta or RC and give
+# it a count.
 #
 # This workflow is not meant to test wordpress-develop checkouts, but rather versions officially available on
 # WordPress.org.
@@ -36,11 +41,11 @@ on:
   workflow_dispatch:
     inputs:
       wp-version:
-        description: 'The version of WordPress to test plugins against. Accepts "latest", "nightly", or a specific version number.'
+        description: 'The version of WordPress to test plugins against. Accepts "latest", "nightly", or a specific version number such as a beta or RC, for a pre-release check.'
         type: string
         default: 'nightly'
       plugin-count:
-        description: 'How many of the most popular plugins to test.'
+        description: 'Number of most popular plugins to test. Accepts any number from 1 to 1000, eg. 10, 50, or 250.'
         type: string
         default: '100'
 
@@ -78,42 +83,103 @@ jobs:
       - name: Fetch the most popular plugins
         id: plugin-shards
         env:
-          # A pull request or scheduled run has no inputs, so fall back to the default count.
-          PLUGIN_COUNT: ${{ inputs.plugin-count || '100' }}
-          SHARD_COUNT: '5'
+          # Runs that carry no inputs fall back to the defaults. Pull request and push runs exist to test
+          # this workflow rather than the ecosystem, so they use a small count. See the note on the
+          # plugin-compatibility-tests job below.
+          PLUGIN_COUNT: ${{ inputs.plugin-count || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && '10' ) || '100' }}
+          # The API caps `per_page` at 250 and returns 250 without complaint for anything larger, so counts
+          # above that have to be paged.
+          PAGE_SIZE: '250'
+          # Anything higher would take longer than the 20 minute wall time this is meant to fit inside. The
+          # directory holds roughly 66,000 plugins, so this is a guard against a typo, not a real limit.
+          MAX_PLUGIN_COUNT: '1000'
+          # Shards are sized rather than counted, so that a run of 10 does not spin up 5 near empty jobs and a
+          # run of 250 is not squeezed into the same 5.
+          TARGET_PER_SHARD: '25'
+          MAX_SHARDS: '10'
         run: |
           set -euo pipefail
 
           # Guard against a non-numeric value being passed to the API.
           if ! printf '%s' "${PLUGIN_COUNT}" | grep -Eq '^[0-9]+$'; then
-            printf 'The plugin-count input must be a positive integer.\n'
+            printf 'The plugin-count input must be a positive integer, got "%s".\n' "${PLUGIN_COUNT}"
             exit 1
           fi
 
-          # The bracketed `request[...]` parameters are URL encoded by curl rather than written inline.
-          # The unneeded response fields are turned off to keep the payload small.
-          curl -sS --fail --retry 3 --retry-delay 5 \
-            --get 'https://api.wordpress.org/plugins/info/1.2/' \
-            --data-urlencode 'action=query_plugins' \
-            --data-urlencode 'request[browse]=popular' \
-            --data-urlencode "request[per_page]=${PLUGIN_COUNT}" \
-            --data-urlencode 'request[fields][short_description]=0' \
-            --data-urlencode 'request[fields][sections]=0' \
-            --data-urlencode 'request[fields][icons]=0' \
-            --data-urlencode 'request[fields][banners]=0' \
-            --data-urlencode 'request[fields][ratings]=0' \
-            --data-urlencode 'request[fields][tags]=0' \
-            --data-urlencode 'request[fields][compatibility]=0' \
-            --data-urlencode 'request[fields][screenshots]=0' \
-            -o "${RUNNER_TEMP}/plugins.json"
+          if [ "${PLUGIN_COUNT}" -lt 1 ] || [ "${PLUGIN_COUNT}" -gt "${MAX_PLUGIN_COUNT}" ]; then
+            printf 'The plugin-count input must be between 1 and %s, got %s.\n' "${MAX_PLUGIN_COUNT}" "${PLUGIN_COUNT}"
+            printf 'Testing more than %s plugins will not fit in the wall time this workflow targets.\n' "${MAX_PLUGIN_COUNT}"
+            exit 1
+          fi
 
-          SLUGS="$( jq -c '[ .plugins[].slug ] | map( select( . != null and . != "" ) )' "${RUNNER_TEMP}/plugins.json" )"
+          RAW_SLUGS="${RUNNER_TEMP}/slugs-raw.txt"
+          DEDUPED_SLUGS="${RUNNER_TEMP}/slugs.txt"
+          : > "${RAW_SLUGS}"
+          PAGE=1
+          UNIQUE_COUNT=0
+
+          while : ; do
+            # The bracketed `request[...]` parameters are URL encoded by curl rather than written inline.
+            # The unneeded response fields are turned off to keep the payload small.
+            curl -sS --fail --retry 3 --retry-delay 5 \
+              --get 'https://api.wordpress.org/plugins/info/1.2/' \
+              --data-urlencode 'action=query_plugins' \
+              --data-urlencode 'request[browse]=popular' \
+              --data-urlencode "request[per_page]=${PAGE_SIZE}" \
+              --data-urlencode "request[page]=${PAGE}" \
+              --data-urlencode 'request[fields][short_description]=0' \
+              --data-urlencode 'request[fields][sections]=0' \
+              --data-urlencode 'request[fields][icons]=0' \
+              --data-urlencode 'request[fields][banners]=0' \
+              --data-urlencode 'request[fields][ratings]=0' \
+              --data-urlencode 'request[fields][tags]=0' \
+              --data-urlencode 'request[fields][compatibility]=0' \
+              --data-urlencode 'request[fields][screenshots]=0' \
+              -o "${RUNNER_TEMP}/plugins-page.json"
+
+            PAGE_COUNT="$( jq '.plugins | length' "${RUNNER_TEMP}/plugins-page.json" )"
+            jq -r '.plugins[] | .slug // empty' "${RUNNER_TEMP}/plugins-page.json" >> "${RAW_SLUGS}"
+
+            # Popularity ordering can shift between two requests, so the same slug can turn up on more than
+            # one page. Duplicates are dropped while the first occurrence keeps its position.
+            awk '!seen[$0]++ && NF > 0' "${RAW_SLUGS}" > "${DEDUPED_SLUGS}"
+            UNIQUE_COUNT="$( wc -l < "${DEDUPED_SLUGS}" | tr -d ' ' )"
+
+            printf 'Page %s returned %s plugins, %s unique slugs collected so far.\n' "${PAGE}" "${PAGE_COUNT}" "${UNIQUE_COUNT}"
+
+            if [ "${UNIQUE_COUNT}" -ge "${PLUGIN_COUNT}" ]; then
+              break
+            fi
+
+            # A short page means the directory has nothing left to give.
+            if [ "${PAGE_COUNT}" -lt "${PAGE_SIZE}" ]; then
+              printf 'The API returned fewer than %s plugins on page %s, so %s is everything available.\n' "${PAGE_SIZE}" "${PAGE}" "${UNIQUE_COUNT}"
+              break
+            fi
+
+            PAGE=$(( PAGE + 1 ))
+          done
+
+          SLUGS="$( head -n "${PLUGIN_COUNT}" "${DEDUPED_SLUGS}" | jq -R -s -c 'split( "\n" ) | map( select( . != "" ) )' )"
           TOTAL="$( printf '%s' "${SLUGS}" | jq 'length' )"
 
           if [ "${TOTAL}" -lt 1 ]; then
             printf 'The WordPress.org API did not return any plugins.\n'
             exit 1
           fi
+
+          if [ "${TOTAL}" -lt "${PLUGIN_COUNT}" ]; then
+            printf 'Only %s plugins were available, fewer than the %s requested.\n' "${TOTAL}" "${PLUGIN_COUNT}"
+          fi
+
+          # Aim for TARGET_PER_SHARD plugins in each shard, up to MAX_SHARDS shards. Past that point the
+          # shards get longer instead of more numerous.
+          SHARD_COUNT="$( awk -v total="${TOTAL}" -v per="${TARGET_PER_SHARD}" -v max="${MAX_SHARDS}" 'BEGIN {
+            count = int( ( total + per - 1 ) / per );
+            if ( count < 1 ) { count = 1 }
+            if ( count > max ) { count = max }
+            print count
+          }' )"
 
           # Split the slugs into evenly sized shards, dropping any shard that ends up empty because fewer
           # plugins were requested than there are shards. Each shard's slugs are passed to the reusable
@@ -135,8 +201,14 @@ jobs:
           printf 'shards=%s\n' "${SHARDS}" >> "${GITHUB_OUTPUT}"
 
   # Tests each shard of plugins against the version of WordPress being tested.
+  #
+  # Pull request and push runs are here to check that this workflow itself still works, not to report on the
+  # health of the ecosystem. They use the latest stable release and a small number of plugins, because a genuine
+  # fatal against nightly is a true result that should not sit as a red check on every future change to these
+  # two files. Scheduled and manually dispatched runs are the ones that carry the ecosystem signal, and they
+  # default to nightly and the full count.
   plugin-compatibility-tests:
-    name: WP ${{ inputs.wp-version || 'nightly' }} / Shard ${{ matrix.shard.index }}
+    name: WP ${{ inputs.wp-version || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && 'latest' ) || 'nightly' }} / Shard ${{ matrix.shard.index }}
     uses: ./.github/workflows/reusable-plugin-compatibility.yml
     permissions:
       contents: read
@@ -148,7 +220,7 @@ jobs:
         shard: ${{ fromJSON( needs.build-plugin-matrix.outputs.shards ) }}
     with:
       os: 'ubuntu-24.04'
-      wp-version: ${{ inputs.wp-version || 'nightly' }}
+      wp-version: ${{ inputs.wp-version || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && 'latest' ) || 'nightly' }}
       php-version: '8.3'
       plugin-slugs: ${{ matrix.shard.slugs }}
       db-type: 'mysql'
