@@ -192,6 +192,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			array(
 				'annotations'  => $expected_annotations,
 				'show_in_rest' => true,
+				'public'       => false,
 			)
 		);
 
@@ -521,13 +522,15 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_get_existing_ability_using_callback() {
 		$this->simulate_doing_wp_abilities_init_action();
 
-		$name     = self::$test_ability_name;
-		$args     = self::$test_ability_args;
-		$callback = static function ( $instance ) use ( $name, $args ) {
-			wp_register_ability( $name, $args );
-		};
+		$name = self::$test_ability_name;
+		$args = self::$test_ability_args;
 
-		add_action( 'wp_abilities_api_init', $callback );
+		add_action(
+			'wp_abilities_api_init',
+			static function ( $instance ) use ( $name, $args ) {
+				wp_register_ability( $name, $args );
+			}
+		);
 
 		// Reset the Registry, to ensure it's empty before the test.
 		$registry_reflection = new ReflectionClass( WP_Abilities_Registry::class );
@@ -538,8 +541,6 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$instance_prop->setValue( null, null );
 
 		$result = wp_get_ability( $name );
-
-		remove_action( 'wp_abilities_api_init', $callback );
 
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),

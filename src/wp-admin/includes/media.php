@@ -2905,7 +2905,7 @@ function media_upload_library_form( $errors ) {
 			</select>
 		<?php } ?>
 
-		<?php submit_button( __( 'Filter &#187;' ), '', 'post-query-submit', false ); ?>
+		<?php submit_button( __( 'Filter &#187;' ), 'compact', 'post-query-submit', false ); ?>
 
 	</div>
 
@@ -3274,7 +3274,15 @@ function edit_form_image_editor( $post ) {
 	<?php endif; ?>
 
 		<p>
-			<label for="attachment_caption"><strong><?php _e( 'Caption' ); ?></strong></label><br />
+			<label for="attachment_caption"><strong>
+				<?php
+				if ( wp_attachment_is( 'image', $post ) ) {
+					esc_html_e( 'Image Caption' );
+				} else {
+					esc_html_e( 'Short Description' );
+				}
+				?>
+			</strong></label><br />
 			<textarea class="widefat" name="excerpt" id="attachment_caption"><?php echo $post->post_excerpt; ?></textarea>
 		</p>
 
@@ -3387,7 +3395,7 @@ function attachment_submitbox_metadata() {
 		</span>
 	</div>
 	<div class="misc-pub-section misc-pub-download">
-		<a href="<?php echo esc_attr( $att_url ); ?>" download><?php _e( 'Download file' ); ?></a>
+		<a href="<?php echo esc_url( $att_url ); ?>" download><?php _e( 'Download file' ); ?></a>
 	</div>
 	<div class="misc-pub-section misc-pub-filename">
 		<?php _e( 'File name:' ); ?> <strong><?php echo $filename; ?></strong>
@@ -3417,9 +3425,9 @@ function attachment_submitbox_metadata() {
 
 	$file_size = false;
 
-	if ( isset( $meta['filesize'] ) ) {
-		$file_size = $meta['filesize'];
-	} elseif ( file_exists( $file ) ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
+		$file_size = (int) $meta['filesize'];
+	} elseif ( is_string( $file ) && '' !== $file && is_readable( $file ) ) {
 		$file_size = wp_filesize( $file );
 	}
 

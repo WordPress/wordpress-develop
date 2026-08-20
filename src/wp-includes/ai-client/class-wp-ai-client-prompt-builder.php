@@ -43,7 +43,9 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * interface. As soon as any exception is caught in a chain of method calls,
  * the returned instance will be in an error state, and all subsequent method
  * calls will be no-ops that just return the same error state instance. Only
- * when a generating method is called, the WP_Error will be returned.
+ * when a generating method is called, the WP_Error will be returned. The
+ * support check methods are the exception to the no-op behavior: they return
+ * false rather than the error state instance.
  *
  * @since 7.0.0
  *
@@ -79,7 +81,7 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * @method self as_output_media_aspect_ratio(string $aspectRatio) Sets the output media aspect ratio.
  * @method self as_output_speech_voice(string $voice) Sets the output speech voice.
  * @method self as_json_response(?array<string, mixed> $schema = null) Configures the prompt for JSON response output.
- * @method bool|WP_Error is_supported(?CapabilityEnum $capability = null) Checks if the prompt is supported for the given capability.
+ * @method bool is_supported(?CapabilityEnum $capability = null) Checks if the prompt is supported for the given capability.
  * @method bool is_supported_for_text_generation() Checks if the prompt is supported for text generation.
  * @method bool is_supported_for_image_generation() Checks if the prompt is supported for image generation.
  * @method bool is_supported_for_text_to_speech_conversion() Checks if the prompt is supported for text to speech conversion.
@@ -190,14 +192,29 @@ class WP_AI_Client_Prompt_Builder {
 			$this->error   = $this->exception_to_wp_error( $e );
 		}
 
+		$default_timeout = 30.0;
+
 		/**
 		 * Filters the default request timeout in seconds for AI Client HTTP requests.
 		 *
 		 * @since 7.0.0
 		 *
-		 * @param int $default_timeout The default timeout in seconds.
+		 * @param float $default_timeout The default timeout in seconds.
 		 */
-		$default_timeout = (int) apply_filters( 'wp_ai_client_default_request_timeout', 30 );
+		$filtered_default_timeout = apply_filters( 'wp_ai_client_default_request_timeout', $default_timeout );
+		if ( is_numeric( $filtered_default_timeout ) && (float) $filtered_default_timeout >= 0.0 ) {
+			$default_timeout = (float) $filtered_default_timeout;
+		} else {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: wp_ai_client_default_request_timeout */
+					__( 'The %s filter must return a non-negative number.' ),
+					'<code>wp_ai_client_default_request_timeout</code>'
+				),
+				'7.0.0'
+			);
+		}
 
 		$this->builder->usingRequestOptions(
 			RequestOptions::fromArray(
@@ -206,6 +223,23 @@ class WP_AI_Client_Prompt_Builder {
 				)
 			)
 		);
+	}
+
+	/**
+	 * Clones the wrapped prompt builder alongside this instance.
+	 *
+	 * The wrapped builder mutates its own state, so without this a clone would
+	 * share that state with the original and any change made to one would be
+	 * visible in the other.
+	 *
+	 * @since 7.2.0
+	 */
+	public function __clone() {
+		$this->builder = clone $this->builder;
+
+		if ( null !== $this->error ) {
+			$this->error = clone $this->error;
+		}
 	}
 
 	/**
@@ -246,7 +280,7 @@ class WP_AI_Client_Prompt_Builder {
 			}
 
 			$function_name = WP_AI_Client_Ability_Function_Resolver::ability_name_to_function_name( $ability->get_name() );
-			$input_schema  = $ability->get_input_schema();
+			$input_schema  = wp_prepare_json_schema_for_client( $ability->get_input_schema() );
 
 			$declarations[] = new FunctionDeclaration(
 				$function_name,
@@ -267,7 +301,7 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * This allows WordPress developers to use snake_case naming conventions. It catches
 	 * any exceptions thrown, stores them, and returns a WP_Error when a terminate method
-	 * is called.
+	 * is called, or false when a support check method is called.
 	 *
 	 * @since 7.0.0
 	 *
@@ -348,6 +382,9 @@ class WP_AI_Client_Prompt_Builder {
 
 			if ( self::is_generating_method( $name ) ) {
 				return $this->error;
+			}
+			if ( self::is_support_check_method( $name ) ) {
+				return false;
 			}
 			return $this;
 		}
