@@ -22,7 +22,7 @@ class WP_Widget_Factory {
 	 * Without it the key would be the decimal representation of an integer, which PHP casts from
 	 * string to int when it is used as an array key.
 	 *
-	 * @since 7.2.0
+	 * @since 7.1.1
 	 */
 	private const INSTANCE_KEY_PREFIX = 'spl_object_id:';
 
@@ -65,7 +65,7 @@ class WP_Widget_Factory {
 	 * @since 2.8.0
 	 * @since 4.6.0 Updated the `$widget` parameter to also accept a WP_Widget instance object
 	 *              instead of simply a `WP_Widget` subclass name.
-	 * @since 7.2.0 The key for an instance is prefixed so that it is never cast to an integer.
+	 * @since 7.1.1 The key for an instance is prefixed so that it is never cast to an integer.
 	 *
 	 * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
 	 */
@@ -83,7 +83,7 @@ class WP_Widget_Factory {
 	 * @since 2.8.0
 	 * @since 4.6.0 Updated the `$widget` parameter to also accept a WP_Widget instance object
 	 *              instead of simply a `WP_Widget` subclass name.
-	 * @since 7.2.0 The key for an instance is prefixed so that it is never cast to an integer.
+	 * @since 7.1.1 The key for an instance is prefixed so that it is never cast to an integer.
 	 *
 	 * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
 	 */

@@ -989,7 +989,7 @@ function _wp_call_all_hook( $args ) {
  *              and no longer returns false, but can still return void for invalid callbacks.
  * @since 6.9.0 Returns explicit null if an invalid callback is supplied.
  * @since 7.1.0 Uses spl_object_id() instead of spl_object_hash() for performance.
- * @since 7.2.0 The ID for an object callback is prefixed so that it is never cast to an integer array key.
+ * @since 7.1.1 The ID for an object callback is prefixed so that it is never cast to an integer array key.
  *
  * @access private
  *
