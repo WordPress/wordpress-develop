@@ -35,6 +35,14 @@ class WP_Query {
 	public $query_vars = array();
 
 	/**
+	 * Resolved query vars with final values used in the SQL query.
+	 *
+	 * @since x.x.x
+	 * @var array
+	 */
+	public $resolved_query_vars = array();
+
+	/**
 	 * Taxonomy query, as passed to get_tax_sql().
 	 *
 	 * @since 3.1.0
@@ -539,7 +547,8 @@ class WP_Query {
 	public function init() {
 		unset( $this->posts );
 		unset( $this->query );
-		$this->query_vars = array();
+		$this->query_vars          = array();
+		$this->resolved_query_vars = array();
 		unset( $this->queried_object );
 		unset( $this->queried_object_id );
 		$this->post_count   = 0;
@@ -1871,6 +1880,23 @@ class WP_Query {
 	 */
 	public function get( $query_var, $default_value = '' ) {
 		return $this->query_vars[ $query_var ] ?? $default_value;
+	}
+
+	/**
+	 * Retrieves the value of a resolved query variable.
+	 *
+	 * Resolved query vars contain the final values used in the SQL query
+	 * after get_posts() has applied defaults and transformations.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $query_var     Query variable key.
+	 * @param mixed  $default_value Optional. Value to return if the resolved query variable is not set.
+	 *                              Default empty string.
+	 * @return mixed Contents of the resolved query variable.
+	 */
+	public function get_resolved_query_var( $query_var, $default_value = '' ) {
+		return $this->resolved_query_vars[ $query_var ] ?? $default_value;
 	}
 
 	/**
@@ -3673,6 +3699,39 @@ class WP_Query {
 
 		if ( $query_vars['lazy_load_term_meta'] ) {
 			wp_queue_posts_for_term_meta_lazyload( $this->posts );
+		}
+
+		/*
+		 * Store the resolved query variable values for external systems.
+		 */
+		$this->resolved_query_vars['post_type'] = $post_type;
+
+		if ( ! empty( $q_status ) ) {
+			$this->resolved_query_vars['post_status'] = $q_status;
+		} elseif ( ! $this->is_singular ) {
+
+			$resolved_statuses = get_post_stati( array( 'public' => true ) );
+
+			if ( $this->is_admin ) {
+				$resolved_statuses = array_merge(
+					$resolved_statuses,
+					get_post_stati(
+						array(
+							'protected'              => true,
+							'show_in_admin_all_list' => true,
+						)
+					)
+				);
+			}
+
+			if ( is_user_logged_in() && current_user_can( $read_private_cap ) ) {
+				$resolved_statuses = array_merge(
+					$resolved_statuses,
+					get_post_stati( array( 'private' => true ) )
+				);
+			}
+
+			$this->resolved_query_vars['post_status'] = array_unique( $resolved_statuses );
 		}
 
 		return $this->posts;
