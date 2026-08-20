@@ -4786,22 +4786,55 @@ class WP_HTML_Tag_Processor {
 		 *
 		 *    Result: <div />
 		 */
-		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
-			$this->attributes[ $name ]->start,
-			$this->attributes[ $name ]->length,
-			''
-		);
+		$this->lexical_updates[ $name ] = $this->get_attribute_removal( $this->attributes[ $name ] );
 
 		// Removes any duplicated attributes if they were also present.
-		foreach ( $this->duplicate_attributes[ $name ] ?? array() as $attribute_token ) {
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
-				$attribute_token->start,
-				$attribute_token->length,
-				''
-			);
+		foreach ( $this->duplicate_attributes[ $name ] ?? array() as $attribute_span ) {
+			$this->lexical_updates[] = $this->get_attribute_removal( $attribute_span );
 		}
 
 		return true;
+	}
+
+	/**
+	 * Creates a text replacement which removes the given attribute from the document.
+	 *
+	 * Any `/` characters immediately preceding the attribute are removed along with it.
+	 * Inside a tag, `/` is ignored unless it's immediately followed by `>`, in which case
+	 * it's the self-closing flag. Leaving a `/` behind could therefore change the meaning
+	 * of the tag if it ends up adjacent to the `>` after the attribute is removed.
+	 *
+	 * Example:
+	 *
+	 *     <g /attr>
+	 *        ^----^
+	 *        start end
+	 *     replacement: ``
+	 *
+	 *     Result: <g >
+	 *
+	 * Had only `attr` been removed the result would have been `<g />`, which has a
+	 * self-closing flag that wasn't in the input.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_HTML_Attribute_Token|WP_HTML_Span $attribute Attribute to remove, or the span it occupies.
+	 * @return WP_HTML_Text_Replacement Replacement which removes the attribute.
+	 */
+	private function get_attribute_removal( $attribute ): WP_HTML_Text_Replacement {
+		$start = $attribute->start;
+		$end   = $start + $attribute->length;
+
+		/*
+		 * A `/` can only precede an attribute as a separator: tag names and attribute
+		 * names end at `/`, and it's part of an unquoted attribute value when found
+		 * there. It's safe to consume every `/` leading up to the attribute.
+		 */
+		while ( $start > 0 && '/' === $this->html[ $start - 1 ] ) {
+			--$start;
+		}
+
+		return new WP_HTML_Text_Replacement( $start, $end - $start, '' );
 	}
 
 	/**
