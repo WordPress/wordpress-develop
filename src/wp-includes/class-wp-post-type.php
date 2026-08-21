@@ -372,6 +372,18 @@ final class WP_Post_Type {
 	public $show_in_rest;
 
 	/**
+	 * Whether this post type should be exposed through the Abilities API.
+	 *
+	 * Default false. When truthy, the post type's readable posts can be retrieved
+	 * through the read-only `core/read-content` ability, subject to per-post capability
+	 * checks. May be an array to enable specific operations in the future.
+	 *
+	 * @since 7.1.0
+	 * @var bool|array $show_in_abilities
+	 */
+	public $show_in_abilities;
+
+	/**
 	 * The base path for this post type's REST API endpoints.
 	 *
 	 * @since 4.7.4
@@ -551,6 +563,7 @@ final class WP_Post_Type {
 			'can_export'                      => true,
 			'delete_with_user'                => null,
 			'show_in_rest'                    => false,
+			'show_in_abilities'               => false,
 			'rest_base'                       => false,
 			'rest_namespace'                  => false,
 			'rest_controller_class'           => false,

@@ -9,6 +9,8 @@
 
 declare( strict_types = 1 );
 
+require_once __DIR__ . '/abilities/class-wp-content-abilities.php';
+
 /**
  * Registers the core ability categories.
  *
@@ -28,6 +30,14 @@ function wp_register_core_ability_categories(): void {
 		array(
 			'label'       => __( 'User' ),
 			'description' => __( 'Abilities that retrieve or modify user information and settings.' ),
+		)
+	);
+
+	wp_register_ability_category(
+		'content',
+		array(
+			'label'       => __( 'Content' ),
+			'description' => __( 'Abilities that retrieve or manage posts and other content.' ),
 		)
 	);
 }
@@ -351,4 +361,7 @@ function wp_register_core_abilities(): void {
 			),
 		)
 	);
+
+	// Register the content abilities (currently the read-only `core/read-content`).
+	( new WP_Content_Abilities() )->register();
 }
