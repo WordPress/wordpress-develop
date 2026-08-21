@@ -7848,6 +7848,8 @@ EOF;
 	 * Ensures the HEIC upload error flag is added when image editors do not support HEIC.
 	 *
 	 * @ticket 65802
+	 *
+	 * @covers ::wp_show_heic_upload_error
 	 */
 	public function test_wp_show_heic_upload_error_adds_flag_when_not_supported() {
 		// Force the editor check to return false.
@@ -7866,6 +7868,8 @@ EOF;
 	 * Ensures the HEIC upload error flag is absent when image editors support HEIC.
 	 *
 	 * @ticket 65802
+	 *
+	 * @covers ::wp_show_heic_upload_error
 	 */
 	public function test_wp_show_heic_upload_error_omits_flag_when_supported() {
 		// Skip if the environment cannot support HEIC.
