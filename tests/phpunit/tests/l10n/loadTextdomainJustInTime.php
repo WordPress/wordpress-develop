@@ -440,5 +440,4 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		$this->assertSame( 'This is a dummy plugin', $untranslated, 'There should be no ja_JP translations' );
 		$this->assertSame( 'Das ist ein Dummy Plugin', $after, 'de_DE translations should survive load_plugin_textdomain()' );
 	}
-
 }
