@@ -3938,6 +3938,14 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		$message  .= "\n<p><a href='javascript:history.back()'>$back_text</a></p>";
 	}
 
+	// Ensure HTTP 500 status code for critical errors.
+	if ( 'internal_server_error' === $parsed_args['code'] || 500 === $parsed_args['response'] ) {
+		$parsed_args['response'] = 500;
+		if ( ! headers_sent() ) {
+			http_response_code( 500 );
+		}
+	}
+
 	if ( ! did_action( 'admin_head' ) ) :
 		if ( ! headers_sent() ) {
 			header( "Content-Type: text/html; charset={$parsed_args['charset']}" );
