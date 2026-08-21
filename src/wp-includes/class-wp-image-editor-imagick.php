@@ -720,7 +720,64 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			// Set appropriate quality settings after resizing.
 			if ( 'image/jpeg' === $this->mime_type ) {
 				if ( is_callable( array( $this->image, 'unsharpMaskImage' ) ) ) {
-					$this->image->unsharpMaskImage( 0.25, 0.25, 8, 0.065 );
+					$default_configuration = array(
+						'radius'    => 0.25,
+						'sigma'     => 0.25,
+						'amount'    => 8,
+						'threshold' => 0.065,
+					);
+
+					$valid_ranges = array(
+						'radius'    => array( 0.1, 5.0 ),
+						'sigma'     => array( 0.1, 5.0 ),
+						'amount'    => array( 0.0, 100.0 ),
+						'threshold' => array( 0.0, 255.0 ),
+					);
+
+					/**
+					 * Filters the unsharp mask radius, sigma, amount and threshold values used when resizing JPEG images.
+					 *
+					 * @since 6.9.0
+					 *
+					 * @param array $unsharp_mask_values {
+					 *     An array of unsharp mask values.
+					 *
+					 *     @type float $radius  The radius of the unsharp mask.
+					 *     @type float $sigma   The standard deviation of the unsharp mask.
+					 *     @type float   $amount  The amount of the unsharp mask.
+					 *     @type float $threshold The threshold of the unsharp mask.
+					 * }
+					 */
+					$unsharp_mask_values = apply_filters( 'image_editor_imagick_unsharp_mask', $default_configuration );
+
+					if ( ! is_array( $unsharp_mask_values ) ) {
+						$unsharp_mask_values = $default_configuration;
+					} else {
+						$unsharp_mask_values['radius']    = isset( $unsharp_mask_values['radius'] ) ? (float) $unsharp_mask_values['radius'] : $default_configuration['radius'];
+						$unsharp_mask_values['sigma']     = isset( $unsharp_mask_values['sigma'] ) ? (float) $unsharp_mask_values['sigma'] : $default_configuration['sigma'];
+						$unsharp_mask_values['amount']    = isset( $unsharp_mask_values['amount'] ) ? (float) $unsharp_mask_values['amount'] : $default_configuration['amount'];
+						$unsharp_mask_values['threshold'] = isset( $unsharp_mask_values['threshold'] ) ? (float) $unsharp_mask_values['threshold'] : $default_configuration['threshold'];
+
+						foreach ( $default_configuration as $key => $value ) {
+							if ( ! isset( $unsharp_mask_values[ $key ] ) ) {
+								$unsharp_mask_values[ $key ] = $value;
+								continue;
+							}
+
+							$unsharp_mask_values[ $key ] = (float) $unsharp_mask_values[ $key ];
+
+							if ( ( $unsharp_mask_values[ $key ] < $valid_ranges[ $key ][0] ) || ( $unsharp_mask_values[ $key ] > $valid_ranges[ $key ][1] ) ) {
+								$unsharp_mask_values[ $key ] = $default_configuration[ $key ];
+							}
+						}
+					}
+
+					$this->image->unsharpMaskImage(
+						$unsharp_mask_values['radius'],
+						$unsharp_mask_values['sigma'],
+						$unsharp_mask_values['amount'],
+						$unsharp_mask_values['threshold']
+					);
 				}
 
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
