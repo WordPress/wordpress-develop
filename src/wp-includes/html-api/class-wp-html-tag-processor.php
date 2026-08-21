@@ -2769,6 +2769,19 @@ class WP_HTML_Tag_Processor {
 			return $by_start;
 		}
 
+		/*
+		 * An insertion (a replacement of zero length) must be applied before
+		 * any replacement which starts at the same offset but consumes bytes.
+		 * Otherwise the consuming replacement would advance the cursor past
+		 * the insertion point before the insertion is applied.
+		 *
+		 * For example, new attributes are inserted directly after the tag name,
+		 * and removing the attribute in `<g/a>` also starts there.
+		 */
+		if ( ( 0 === $a->length ) !== ( 0 === $b->length ) ) {
+			return 0 === $a->length ? -1 : 1;
+		}
+
 		$by_text = isset( $a->text, $b->text ) ? strcmp( $a->text, $b->text ) : 0;
 		if ( 0 !== $by_text ) {
 			return $by_text;
@@ -4816,6 +4829,22 @@ class WP_HTML_Tag_Processor {
 	 * Had only `attr` been removed the result would have been `<g />`, which has a
 	 * self-closing flag that wasn't in the input.
 	 *
+	 * When those `/` characters are the only thing separating the attribute from what
+	 * precedes it, and another attribute immediately follows, a space is left in their
+	 * place so that the surrounding syntax doesn't merge.
+	 *
+	 * Example:
+	 *
+	 *     <g/attr="x"b>
+	 *       ^--------^
+	 *       start    end
+	 *     replacement: ` `
+	 *
+	 *     Result: <g b>
+	 *
+	 * Had the `/` been removed outright the result would have been `<gb>`, changing
+	 * the tag name.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param WP_HTML_Attribute_Token|WP_HTML_Span $attribute Attribute to remove, or the span it occupies.
@@ -4834,7 +4863,20 @@ class WP_HTML_Tag_Processor {
 			--$start;
 		}
 
-		return new WP_HTML_Text_Replacement( $start, $end - $start, '' );
+		/*
+		 * Only a quoted attribute value can be directly followed by another attribute,
+		 * e.g. `<g/a="x"b>`. If the `/` separating the removed attribute from the tag
+		 * name or from a preceding attribute is consumed, then a space must take its
+		 * place to keep the tag name or preceding attribute from merging with the
+		 * following one, e.g. `<gb>`.
+		 */
+		$needs_separator = (
+			$start !== $attribute->start &&
+			isset( $this->html[ $end ] ) &&
+			0 === strspn( $this->html, " \t\f\r\n/>", $end, 1 )
+		);
+
+		return new WP_HTML_Text_Replacement( $start, $end - $start, $needs_separator ? ' ' : '' );
 	}
 
 	/**
