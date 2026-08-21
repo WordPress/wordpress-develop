@@ -63,7 +63,7 @@ class WP_Textdomain_Registry {
 	 * Holds a cached list of domains with translations to improve performance.
 	 *
 	 * @since 6.2.0
-	 * @since 6.8.0 This property is no longer used.
+	 * @since 7.2.0 This property is no longer used.
 	 *
 	 * @var string[]
 	 *
@@ -111,10 +111,14 @@ class WP_Textdomain_Registry {
 	 * Determines whether any MO file paths are available for the domain.
 	 *
 	 * This is the case if a path has been set for the current locale,
-	 * or if there is no information stored yet, in which case
-	 * {@see _load_textdomain_just_in_time()} will fetch the information first.
+	 * if there is no information stored yet, in which case
+	 * {@see _load_textdomain_just_in_time()} will fetch the information first,
+	 * or if a custom path has been registered via {@see load_plugin_textdomain()}
+	 * or {@see load_theme_textdomain()}, which is always worth looking at.
 	 *
 	 * @since 6.1.0
+	 * @since 7.2.0 Checks for a registered custom path instead of the
+	 *              `$domains_with_translations` property.
 	 *
 	 * @param string $domain Text domain.
 	 * @return bool Whether any MO file paths are available for the domain.
@@ -122,7 +126,8 @@ class WP_Textdomain_Registry {
 	public function has( $domain ) {
 		return (
 			isset( $this->current[ $domain ] ) ||
-			empty( $this->all[ $domain ] )
+			empty( $this->all[ $domain ] ) ||
+			isset( $this->custom_paths[ $domain ] )
 		);
 	}
 
