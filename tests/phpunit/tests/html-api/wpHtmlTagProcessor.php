@@ -1613,7 +1613,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @param string $attribute_to_remove Name of the attribute to remove.
 	 * @param string $expected            Expected HTML after removing the attribute.
 	 */
-	public function test_remove_attribute_preserves_tag_semantics( string $html, string $attribute_to_remove, string $expected ) {
+	public function test_remove_attribute_preserves_tag_semantics( string $html, string $attribute_to_remove, string $expected ): void {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag( 'G' );
 		$had_self_closing_flag = $processor->has_self_closing_flag();
@@ -1652,9 +1652,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string, string}>
 	 */
-	public static function data_remove_attribute_preserves_tag_semantics() {
+	public static function data_remove_attribute_preserves_tag_semantics(): array {
 		return array(
 			'Slash before attribute'                    => array( '<svg><g /attr>ok', 'attr', '<svg><g >ok' ),
 			'Slash before attribute, no whitespace'     => array( '<svg><g/attr>ok', 'attr', '<svg><g>ok' ),
@@ -1692,11 +1692,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_set_and_remove_attribute_at_tag_name_end
 	 *
-	 * @param string $html     HTML containing a G tag.
-	 * @param array  $ops      Operations to apply, each a method name followed by its arguments.
-	 * @param string $expected Expected HTML after applying the operations.
+	 * @param string                                                                              $html     HTML containing a G tag.
+	 * @param list<array{0: 'set_attribute'|'remove_attribute'|'add_class', 1: string, 2?: string}> $ops      Operations to apply, each a method name followed by its arguments.
+	 * @param string                                                                              $expected Expected HTML after applying the operations.
 	 */
-	public function test_set_and_remove_attribute_at_tag_name_end( string $html, array $ops, string $expected ) {
+	public function test_set_and_remove_attribute_at_tag_name_end( string $html, array $ops, string $expected ): void {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag( 'G' );
 		foreach ( $ops as $op ) {
@@ -1709,9 +1709,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, list<array{0: 'set_attribute'|'remove_attribute'|'add_class', 1: string, 2?: string}>, string}>
 	 */
-	public static function data_set_and_remove_attribute_at_tag_name_end() {
+	public static function data_set_and_remove_attribute_at_tag_name_end(): array {
 		return array(
 			'Set then remove'                    => array(
 				'<svg><g/a>ok',
