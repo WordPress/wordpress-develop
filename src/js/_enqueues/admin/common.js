@@ -1087,7 +1087,7 @@ $( function() {
 	if ( ! $headerEnd.length ) {
 		$headerEnd = $( '.wrap h1, .wrap h2' ).first();
 	}
-	$( 'div.updated, div.error, div.notice' ).not( '.inline, .below-h2' ).insertAfter( $headerEnd );
+	$( '#wpbody-content > div.updated, #wpbody-content > div.error, #wpbody-content > div.notice' ).not( '.inline, .below-h2' ).insertAfter( $headerEnd );
 
 	/**
 	 * Makes notices dismissible.
