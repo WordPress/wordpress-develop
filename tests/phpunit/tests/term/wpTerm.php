@@ -102,16 +102,16 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 
 		$found = WP_Term::get_instance( self::$term_id );
 
-		$this->assertInstanceOf( 'WP_Term', $found );
+		$this->assertInstanceOf( WP_Term::class, $found );
 		$this->assertSame( self::$term_id, $found->term_id );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public function data_get_instance_should_ignore_non_object_cached_values() {
+	public function data_get_instance_should_ignore_non_object_cached_values(): array {
 		return array(
 			'an array'   => array( array( 'term_id' => 12345 ) ),
 			'an integer' => array( 12345 ),
