@@ -302,6 +302,16 @@ class WP_Term_Query {
 	 * @param string|array $query Array or URL query string of parameters.
 	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
 	 *                                         when 'count' is passed to `$args['fields']`.
+	 *
+	 * @phpstan-return (
+	 *     $query is array{ fields: 'count', ... }
+	 *         ? 0|numeric-string
+	 *         : ( $query is array{ fields: 'ids'|'tt_ids'|'id=>parent', ... }
+	 *             ? int[]
+	 *             : ( $query is array{ fields: 'names'|'slugs'|'id=>name'|'id=>slug', ... }
+	 *                 ? string[]
+	 *                 : WP_Term[] ) )
+	 * )
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
