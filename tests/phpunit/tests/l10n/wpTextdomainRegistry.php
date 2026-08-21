@@ -283,11 +283,11 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	public function data_text_domains_sharing_a_prefix() {
 		return array(
 			// "internationalized-plugin-{de_DE,es_ES}.mo" exist, "internationalized-*" do not.
-			'prefix of a domain with .mo files'       => array( 'internationalized', 'de_DE' ),
-			'prefix of a domain with .mo files, es'   => array( 'internationalized', 'es_ES' ),
+			'prefix of a domain with .mo files'     => array( 'internationalized', 'de_DE' ),
+			'prefix of a domain with .mo files, es' => array( 'internationalized', 'es_ES' ),
 			// "internationalized-plugin-2-de_DE.l10n.php" exists, but is not a
 			// translation of "internationalized-plugin".
-			'domain whose sibling adds a suffix'      => array( 'internationalized-plugin', 'fr_FR' ),
+			'domain whose sibling adds a suffix'    => array( 'internationalized-plugin', 'fr_FR' ),
 		);
 	}
 
