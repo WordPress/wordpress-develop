@@ -1393,8 +1393,6 @@ function _wp_kses_split_callback( $matches ) {
  * @return string Fixed HTML element
  */
 function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
-	$content = wp_kses_stripslashes( $content );
-
 	/*
 	 * The regex pattern used to split HTML into chunks attempts
 	 * to split on HTML token boundaries. This function should
@@ -2037,10 +2035,13 @@ function wp_kses_no_null( $content, $options = null ) {
  *
  * @since 1.0.0
  *
+ * @deprecated 6.9.0 Not necessary since the `e` PCRE modifier was removed in PHP 7.0.
+ *
  * @param string $content String to strip slashes from.
  * @return string Fixed string with quoted slashes.
  */
 function wp_kses_stripslashes( $content ) {
+	_deprecated_function( __FUNCTION__, '6.9.0' );
 	return preg_replace( '%\\\\"%', '"', $content );
 }
 
