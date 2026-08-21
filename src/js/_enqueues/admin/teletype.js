@@ -1,17 +1,23 @@
 /**
  * The WordPress admin easter egg.
  *
- * Originally written by Matt Mullenweg and shipped in WordPress 3.6 as
- * wp-admin/js/revisions-js.php, where it triggered on comparing a post revision to
- * itself. Removed in r24820 (see #24852) because that revisions UI was rewritten and
- * the trigger disappeared with it, not because the egg was unwanted. Restored here
- * with a new home behind the command palette.
+ * Originally written by Matt Mullenweg and committed in r8306 (July 10, 2008) as
+ * wp-admin/js/revisions-js.php, under the cover of "Javascriptify revision selections to
+ * deal elegantly while comparing." Trunk was 2.6-beta3 at the time, so it first shipped
+ * in WordPress 2.6 and survived through 3.5.x. wp-admin/revision.php included it when a
+ * post revision was compared to itself. Removed in r24820 (see #24852) for 3.6 because
+ * that revisions UI was rewritten and the trigger disappeared with it, not because the
+ * egg was unwanted: "There will be opportunities for other easter eggs. This one has had
+ * its decade." Restored here with a new home behind the command palette.
  *
- * The 2013 original shipped as a Dean Edwards packed blob with its dialogue run
- * through the Dvorak/QWERTY substitution cipher in dvortr(). Both are unwound here:
- * obfuscated code is not GPL source (see #15262), and the mystery is meant to live in
- * the trigger, not in unreadable code. This file is only fetched once the egg has
- * already been invoked, so it never loads on a normal admin screen.
+ * The original shipped as a Dean Edwards packed blob whose dialogue was additionally run
+ * through the Dvorak/QWERTY substitution cipher in dvortr(). #15262 raised that packed
+ * code is not GPL source, and r16826 answered it with a comment pointing at the ticket
+ * rather than with readable code. The packing is dropped here: all of the logic ships as
+ * ordinary source. The cipher is kept, on the dialogue only, so the payoff does not turn
+ * up in a plain-text search of wp-admin/js. It hides the lines from a grep, not from a
+ * reader, and the decoder sits a few lines below. This file is also only fetched once the
+ * egg has already been invoked, so it never loads on a normal admin screen.
  *
  * Timings, dialogue, and staging are faithful to the original.
  *
@@ -27,23 +33,52 @@
 		FADE_TIME   = 3000, // Cursor fade-in, once the lights go out.
 		ACT_PAUSE   = 4000; // Between the two acts.
 
+	/*
+	 * The dialogue is stored in its Dvorak/QWERTY-substituted form and run back through
+	 * dvortr() as each line is typed, exactly as the 2008 original stored it. The point is
+	 * to keep the payoff out of a plain-text search of wp-admin/js, not to hide anything
+	 * from anyone reading this file: the cipher is right here, and every line of logic
+	 * around it is ordinary source.
+	 */
 	var ACT_ONE = [
-		'Self-comparison detected.',
-		'Initiating infinite loop eschewal protocol.',
-		'Self destruct in... 3',
+		'O.nu[jrmlapcorb e.y.jy.ev',
+		'Cbcycaycbi cbucbcy. nrrl .ojd.,an lpryrjrnv',
+		'O.nu e.oypgjy cbvvv 3',
 		'2',
 		'1'
 	];
 
 	// %s is replaced with the current user's display name.
 	var ACT_TWO = [
-		'Wake up, %s...',
-		'The Matrix has you...',
-		'Follow the white rabbit.'
+		'<at. glw %ovvv',
+		'Yd. Maypcq dao frgvvv',
+		'Urnnr, yd. ,dcy. paxxcyv'
 	];
 
 	// Left on screen at the end, as the original's noscript fallback did.
-	var CLOSING = 'Don\'t let this happen again.';
+	var CLOSING = 'Erb-y n.y ydco dall.b aiacbv';
+
+	var FROM = '\',.pyfgcrl/=\\aoeuidhtns-;qjkxbmwvz"<>PYFGCRL?+|AOEUIDHTNS_:QJKXBMWVZ[]',
+		TO   = 'qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?-=';
+
+	/**
+	 * Applies the Dvorak/QWERTY substitution cipher.
+	 *
+	 * @param {string} value Text to substitute.
+	 * @return {string} Substituted text.
+	 */
+	function dvortr( value ) {
+		var map = {},
+			i;
+
+		for ( i = 0; i < FROM.length; i++ ) {
+			map[ FROM.charAt( i ) ] = TO.charAt( i );
+		}
+
+		return value.replace( /[\s\S]/g, function ( character ) {
+			return map[ character ] || character;
+		} );
+	}
 
 	var STYLE = [
 		'.wp-teletype{position:fixed;inset:0;z-index:2147483647;margin:0;padding:2.5em;',
@@ -134,7 +169,7 @@
 				return;
 			}
 
-			type( ACT_ONE[ index ], function () {
+			type( dvortr( ACT_ONE[ index ] ), function () {
 				newline();
 				wait( LINE_PAUSE, function () {
 					actOne( index + 1 );
@@ -159,13 +194,15 @@
 		 */
 		function actTwo( index ) {
 			if ( index >= ACT_TWO.length ) {
-				type( CLOSING, function () {
+				type( dvortr( CLOSING ), function () {
 					cursor.className = 'cursor';
 				} );
 				return;
 			}
 
-			type( ACT_TWO[ index ].replace( '%s', displayName ), function () {
+			type( dvortr( ACT_TWO[ index ] ).replace( '%s', function () {
+				return displayName;
+			} ), function () {
 				wait( LINE_PAUSE, function () {
 					clear();
 					actTwo( index + 1 );

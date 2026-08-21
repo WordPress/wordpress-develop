@@ -9,10 +9,10 @@
  * that found nothing.
  *
  * The phrase is compared in its Dvorak/QWERTY-substituted form, using the same cipher
- * the 2013 original used, so it is not a readable string in the admin bundle. That is
- * the one piece of deliberate obfuscation here and it is aimed at users, not at other
- * developers: the mystery is meant to live in the trigger. Everything else, including
- * the payload in teletype.js, ships as readable source.
+ * the 2008 original used, so it is not a readable string in the admin bundle. The payload
+ * in teletype.js stores its dialogue the same way. Both are aimed at users rather than at
+ * other developers: the cipher and its decoder are in plain sight, and everything that is
+ * actually logic ships as readable source.
  *
  * The files are named for what they do rather than for what they are. This one is
  * enqueued by name on every admin screen that loads the palette, so a src ending in
