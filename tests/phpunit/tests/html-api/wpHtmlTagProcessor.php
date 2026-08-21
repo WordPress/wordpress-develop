@@ -1596,25 +1596,33 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that removing an attribute does not introduce a self-closing flag.
+	 * Ensures that removing an attribute does not change anything else about the tag.
 	 *
-	 * A `/` inside a tag is only a self-closing flag when immediately followed by `>`.
-	 * Anywhere else it's ignored as a separator. Removing an attribute that was
-	 * directly preceded by a `/` could leave that `/` adjacent to the `>`, which
-	 * would change the meaning of the tag, e.g. `<g /attr>` becoming `<g />`.
+	 * Inside a tag, `/` is ignored unless immediately followed by `>`, where it's the
+	 * self-closing flag; otherwise it merely separates attributes. Removing only the
+	 * attribute's own span can leave a stray `/` which changes the meaning of the tag,
+	 * e.g. `<g /attr>` becoming `<g />`. Conversely, removing too much can merge the
+	 * tag name or a neighboring attribute into whatever follows, e.g. `<g/a="b"c>`
+	 * becoming `<gc>`.
 	 *
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 *
-	 * @dataProvider data_remove_attribute_preserves_self_closing_flag
+	 * @dataProvider data_remove_attribute_preserves_tag_semantics
 	 *
-	 * @param string $html                HTML containing a tag whose attribute will be removed.
+	 * @param string $html                HTML containing a G tag whose attribute will be removed.
 	 * @param string $attribute_to_remove Name of the attribute to remove.
 	 * @param string $expected            Expected HTML after removing the attribute.
 	 */
-	public function test_remove_attribute_preserves_self_closing_flag( string $html, string $attribute_to_remove, string $expected ) {
+	public function test_remove_attribute_preserves_tag_semantics( string $html, string $attribute_to_remove, string $expected ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag( 'G' );
 		$had_self_closing_flag = $processor->has_self_closing_flag();
+		$expected_attributes   = array();
+		foreach ( $processor->get_attribute_names_with_prefix( '' ) as $name ) {
+			if ( strtolower( $attribute_to_remove ) !== $name ) {
+				$expected_attributes[ $name ] = $processor->get_attribute( $name );
+			}
+		}
 
 		$this->assertTrue( $processor->remove_attribute( $attribute_to_remove ), 'Failed to remove the attribute.' );
 		$updated_html = $processor->get_updated_html();
@@ -1622,8 +1630,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 
 		// Re-parse the output to confirm the tag's semantics are unchanged.
 		$processor = new WP_HTML_Tag_Processor( $updated_html );
-		$processor->next_tag( 'G' );
-		$this->assertNull( $processor->get_attribute( $attribute_to_remove ), 'Attribute still present in the updated HTML.' );
+		$processor->next_tag();
+		$processor->next_tag();
+		$this->assertSame( 'G', $processor->get_tag(), 'Removing the attribute changed the tag name.' );
 		$this->assertSame(
 			$had_self_closing_flag,
 			$processor->has_self_closing_flag(),
@@ -1631,6 +1640,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 				? 'Removing the attribute dropped the self-closing flag.'
 				: 'Removing the attribute introduced a self-closing flag.'
 		);
+		$actual_attributes = array();
+		foreach ( $processor->get_attribute_names_with_prefix( '' ) as $name ) {
+			$actual_attributes[ $name ] = $processor->get_attribute( $name );
+		}
+		$this->assertSame( $expected_attributes, $actual_attributes, 'Removing the attribute changed the other attributes.' );
+		$processor->next_token();
+		$this->assertSame( 'ok', $processor->get_modifiable_text(), 'Removing the attribute changed the content following the tag.' );
 	}
 
 	/**
@@ -1638,7 +1654,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_remove_attribute_preserves_self_closing_flag() {
+	public static function data_remove_attribute_preserves_tag_semantics() {
 		return array(
 			'Slash before attribute'                    => array( '<svg><g /attr>ok', 'attr', '<svg><g >ok' ),
 			'Slash before attribute, no whitespace'     => array( '<svg><g/attr>ok', 'attr', '<svg><g>ok' ),
@@ -1648,9 +1664,90 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Slash after quoted value, remove last'     => array( '<svg><g a="x"/b>ok', 'b', '<svg><g a="x">ok' ),
 			'Slash before duplicated attributes'        => array( '<svg><g /a /a>ok', 'a', '<svg><g  >ok' ),
 			'Slash and whitespace before attribute'     => array( '<svg><g / attr>ok', 'attr', '<svg><g / >ok' ),
+			'Slash inside unquoted value'               => array( '<svg><g attr=/>ok', 'attr', '<svg><g >ok' ),
+			'Slash ending unquoted value'               => array( '<svg><g attr=a/>ok', 'attr', '<svg><g >ok' ),
+			'Slash ending unquoted value, remove other' => array( '<svg><g a=x/ b>ok', 'b', '<svg><g a=x/ >ok' ),
 			'Self-closing flag is preserved'            => array( '<svg><g attr/>ok', 'attr', '<svg><g />ok' ),
 			'Self-closing flag after quoted value'      => array( '<svg><g attr="x"/>ok', 'attr', '<svg><g />ok' ),
 			'Self-closing flag, slash before attribute' => array( '<svg><g /attr/>ok', 'attr', '<svg><g />ok' ),
+			'Attribute directly after quoted value'     => array( '<svg><g/a="x"b>ok', 'a', '<svg><g b>ok' ),
+			'Attribute directly after quoted value, middle' => array( '<svg><g c/a="x"b>ok', 'a', '<svg><g c b>ok' ),
+			'Equals directly after quoted value'        => array( '<svg><g/a="x"=b>ok', 'a', '<svg><g =b>ok' ),
+			'Quote directly after quoted value'         => array( '<svg><g/a="x""b">ok', 'a', '<svg><g "b">ok' ),
+			'Slash directly after quoted value'         => array( '<svg><g/a="x"/b>ok', 'a', '<svg><g/b>ok' ),
+			'Whitespace after quoted value'             => array( '<svg><g/a="x" b>ok', 'a', '<svg><g b>ok' ),
+		);
+	}
+
+	/**
+	 * Ensures that attributes added and removed on the same tag don't interfere
+	 * when the removal extends all the way back to the end of the tag name.
+	 *
+	 * New attributes are inserted directly after the tag name, which is also where
+	 * a removal starts when the removed attribute directly follows the tag name
+	 * with only `/` between them, e.g. `<g/attr>`.
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 *
+	 * @dataProvider data_set_and_remove_attribute_at_tag_name_end
+	 *
+	 * @param string $html     HTML containing a G tag.
+	 * @param array  $ops      Operations to apply, each a method name followed by its arguments.
+	 * @param string $expected Expected HTML after applying the operations.
+	 */
+	public function test_set_and_remove_attribute_at_tag_name_end( string $html, array $ops, string $expected ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag( 'G' );
+		foreach ( $ops as $op ) {
+			$method = array_shift( $op );
+			$processor->$method( ...$op );
+		}
+		$this->assertSame( $expected, $processor->get_updated_html() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_set_and_remove_attribute_at_tag_name_end() {
+		return array(
+			'Set then remove'                    => array(
+				'<svg><g/a>ok',
+				array( array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g b="x">ok',
+			),
+			'Remove then set'                    => array(
+				'<svg><g/a>ok',
+				array( array( 'remove_attribute', 'a' ), array( 'set_attribute', 'b', 'x' ) ),
+				'<svg><g b="x">ok',
+			),
+			'Set two then remove'                => array(
+				'<svg><g/a>ok',
+				array( array( 'set_attribute', 'c', 'y' ), array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g b="x" c="y">ok',
+			),
+			'Add class then remove'              => array(
+				'<svg><g/a>ok',
+				array( array( 'add_class', 'c' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g class="c">ok',
+			),
+			'Set then remove, self-closing'      => array(
+				'<svg><g/a/>ok',
+				array( array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g b="x"/>ok',
+			),
+			'Set then remove, attribute follows' => array(
+				'<svg><g/a="1"c>ok',
+				array( array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g b="x" c>ok',
+			),
+			'Set, remove both'                   => array(
+				'<svg><g/a/c>ok',
+				array( array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ), array( 'remove_attribute', 'c' ) ),
+				'<svg><g b="x">ok',
+			),
 		);
 	}
 
