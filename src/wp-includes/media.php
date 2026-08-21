@@ -1070,25 +1070,45 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 				/** This filter is documented in wp-includes/post.php */
 				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
 
-				$src_file = $icon_dir . '/' . wp_basename( $src );
-
-				$image_size = wp_getimagesize( $src_file );
-				if ( is_array( $image_size ) ) {
-					$width  = $image_size[0];
-					$height = $image_size[1];
-				}
-
-				$ext = strtolower( substr( $src_file, -4 ) );
-
+				$src_file_name = wp_basename( $src );
+				$ext           = strtolower( substr( $src_file_name, -4 ) );
 				if ( '.svg' === $ext ) {
 					// SVG does not have true dimensions, so this assigns width and height directly.
 					$width  = 48;
 					$height = 64;
 				} else {
-					$image_size = wp_getimagesize( $src_file );
-					if ( is_array( $image_size ) ) {
-						$width  = $image_size[0];
-						$height = $image_size[1];
+					/** These filters are documented in wp-includes/post.php */
+					$icon_dir_uri = apply_filters( 'icon_dir_uri', includes_url( 'images/media' ) );
+					$dirs         = array_keys( apply_filters( 'icon_dirs', array( $icon_dir => $icon_dir_uri ) ) );
+
+					while ( $dirs ) {
+						$dir        = array_shift( $dirs );
+						$src_file   = $dir . '/' . $src_file_name;
+						$image_size = wp_getimagesize( $src_file );
+						if ( is_array( $image_size ) ) {
+							$width  = $image_size[0];
+							$height = $image_size[1];
+							break;
+						}
+
+						$dh = opendir( $dir );
+						if ( $dh ) {
+							while ( false !== $file = readdir( $dh ) ) {
+								$file = wp_basename( $file );
+								if ( str_starts_with( $file, '.' ) ) {
+									continue;
+								}
+
+								$sub_dir = "$dir/$file";
+								if ( ! is_dir( $sub_dir ) ) {
+									continue;
+								}
+
+								$dirs[] = $sub_dir;
+							}
+
+							closedir( $dh );
+						}
 					}
 				}
 			}
