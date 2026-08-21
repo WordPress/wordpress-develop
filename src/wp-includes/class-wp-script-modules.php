@@ -464,6 +464,8 @@ class WP_Script_Modules {
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_data' ) );
 		add_action( 'wp_footer', array( $this, 'print_a11y_script_module_html' ), 20 );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_a11y_script_module_html' ), 20 );
+
+		add_filter( 'wp_resource_hints', array( $this, 'filter_resource_hints' ), 10, 2 );
 	}
 
 	/**
@@ -1139,5 +1141,48 @@ class WP_Script_Modules {
 			. '<div id="a11y-speak-assertive" class="a11y-speak-region" aria-live="assertive" aria-relevant="additions text" aria-atomic="true"></div>'
 			. '<div id="a11y-speak-polite" class="a11y-speak-region" aria-live="polite" aria-relevant="additions text" aria-atomic="true"></div>'
 			. '</div>';
+	}
+
+	/**
+	 * Filters resource hints to add DNS prefetch for external script module hosts.
+	 *
+	 * Hooks into the {@see 'wp_resource_hints'} filter to include DNS prefetch hints
+	 * for all external hosts used by enqueued script modules and their dependencies,
+	 * including dynamic dependencies which do not receive modulepreload hints.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array  $urls          Array of resources and their attributes, or URLs to print
+	 *                              for resource hints.
+	 * @param string $relation_type The relation type the URLs are printed for.
+	 * @return array Filtered array of resource URLs.
+	 */
+	public function filter_resource_hints( array $urls, string $relation_type ): array {
+		if ( 'dns-prefetch' !== $relation_type ) {
+			return $urls;
+		}
+
+		// Collect all queued module IDs and all their dependencies (static and dynamic).
+		$all_ids = array_unique(
+			array_merge( $this->queue, array_keys( $this->get_dependencies( $this->queue ) ) )
+		);
+
+		foreach ( $all_ids as $id ) {
+			if ( ! isset( $this->registered[ $id ] ) ) {
+				continue;
+			}
+
+			$src    = $this->registered[ $id ]['src'];
+			$parsed = wp_parse_url( $src );
+
+			if (
+				! empty( $parsed['host'] ) &&
+				$parsed['host'] !== $_SERVER['SERVER_NAME']
+			) {
+				$urls[] = $src;
+			}
+		}
+
+		return $urls;
 	}
 }
