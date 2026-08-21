@@ -457,16 +457,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url?foo=1", add_query_arg( 'foo', '1', $url ) );
 			$this->assertSame( "$url?foo=1", add_query_arg( array( 'foo' => '1' ), $url ) );
-			$this->assertSame(
-				"$url?foo=2",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					),
-					$url
-				)
-			);
+			$this->assertSame( "$url?foo=2", add_query_arg( array( 'foo' => '2' ), $url ) );
 			$this->assertSame(
 				"$url?foo=1&bar=2",
 				add_query_arg(
@@ -482,15 +473,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url?foo=1", add_query_arg( 'foo', '1' ) );
 			$this->assertSame( "$url?foo=1", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertSame(
-				"$url?foo=2",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					)
-				)
-			);
+			$this->assertSame( "$url?foo=2", add_query_arg( array( 'foo' => '2' ) ) );
 			$this->assertSame(
 				"$url?foo=1&bar=2",
 				add_query_arg(
@@ -508,16 +491,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url?foo=1#frag", add_query_arg( 'foo', '1', $frag_url ) );
 			$this->assertSame( "$url?foo=1#frag", add_query_arg( array( 'foo' => '1' ), $frag_url ) );
-			$this->assertSame(
-				"$url?foo=2#frag",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					),
-					$frag_url
-				)
-			);
+			$this->assertSame( "$url?foo=2#frag", add_query_arg( array( 'foo' => '2' ), $frag_url ) );
 			$this->assertSame(
 				"$url?foo=1&bar=2#frag",
 				add_query_arg(
@@ -533,15 +507,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url?foo=1#frag", add_query_arg( 'foo', '1' ) );
 			$this->assertSame( "$url?foo=1#frag", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertSame(
-				"$url?foo=2#frag",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					)
-				)
-			);
+			$this->assertSame( "$url?foo=2#frag", add_query_arg( array( 'foo' => '2' ) ) );
 			$this->assertSame(
 				"$url?foo=1&bar=2#frag",
 				add_query_arg(
@@ -570,16 +536,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url&foo=1", add_query_arg( 'foo', '1', $url ) );
 			$this->assertSame( "$url&foo=1", add_query_arg( array( 'foo' => '1' ), $url ) );
-			$this->assertSame(
-				"$url&foo=2",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					),
-					$url
-				)
-			);
+			$this->assertSame( "$url&foo=2", add_query_arg( array( 'foo' => '2' ), $url ) );
 			$this->assertSame(
 				"$url&foo=1&bar=2",
 				add_query_arg(
@@ -595,15 +552,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$this->assertSame( "$url&foo=1", add_query_arg( 'foo', '1' ) );
 			$this->assertSame( "$url&foo=1", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertSame(
-				"$url&foo=2",
-				add_query_arg(
-					array(
-						'foo' => '1',
-						'foo' => '2',
-					)
-				)
-			);
+			$this->assertSame( "$url&foo=2", add_query_arg( array( 'foo' => '2' ) ) );
 			$this->assertSame(
 				"$url&foo=1&bar=2",
 				add_query_arg(
@@ -2032,6 +1981,121 @@ class Tests_Functions extends WP_UnitTestCase {
 			array(
 				'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css',
 				array( 'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css' ),
+				0,
+			),
+
+			/*
+			 * Windows UNC and device paths.
+			 *
+			 * wp_normalize_path() folds backslashes to forward slashes but
+			 * deliberately preserves a leading '//' for network shares, so
+			 * these arrive with no colon at offset 1 and must be matched on
+			 * the '//' prefix instead.
+			 */
+			array(
+				'//system07/C$/',
+				array(),
+				2,
+			),
+			array(
+				'//Server2/Share/Test/Foo.txt',
+				array(),
+				2,
+			),
+			array(
+				'//127.0.0.1/c$/temp/test-file.txt',
+				array(),
+				2,
+			),
+			array(
+				'//./c:/temp/test-file.txt',
+				array(),
+				2,
+			),
+			array(
+				'//?/c:/temp/test-file.txt',
+				array(),
+				2,
+			),
+			array(
+				'//./UNC/LOCALHOST/c$/temp/test-file.txt',
+				array(),
+				2,
+			),
+			// The backslash form a Windows caller actually supplies.
+			array(
+				'\\\\system07\\C$\\',
+				array(),
+				2,
+			),
+			// Shortest matching input.
+			array(
+				'//',
+				array(),
+				2,
+			),
+			// A UNC path is rejected even when explicitly allowed, matching
+			// the precedence the drive-letter check already has.
+			array(
+				'//system07/C$/foo.php',
+				array( '//system07/C$/foo.php' ),
+				2,
+			),
+
+			/*
+			 * Absolute POSIX paths are NOT rejected. validate_file() has never
+			 * screened them and does not begin to here. Callers needing that
+			 * must check separately; core's convention is to concatenate onto
+			 * a trusted base directory and stat the result.
+			 */
+			array(
+				'/etc/passwd',
+				array(),
+				0,
+			),
+			array(
+				'/Server2/Share/Test/Foo.txt',
+				array(),
+				0,
+			),
+			array(
+				'/',
+				array(),
+				0,
+			),
+			/*
+			 * A deliberate exception. POSIX.1 leaves a pathname beginning with
+			 * two successive slashes implementation-defined, and Linux resolves
+			 * it as a single slash, so this is a valid POSIX path. It is still
+			 * rejected: after normalization it cannot be told apart from a UNC
+			 * path, and wp_normalize_path() already preserves a leading '//' on
+			 * the assumption that it denotes a network share.
+			 */
+			array(
+				'//home/user/file.php',
+				array(),
+				2,
+			),
+
+			/*
+			 * Stream wrappers stay allowed via two different mechanisms.
+			 * A registered wrapper keeps its '://' through wp_normalize_path()'s
+			 * scheme split; an unregistered one has its '//' collapsed. Neither
+			 * ends up with a leading '//'.
+			 */
+			array(
+				'php://memory',
+				array(),
+				0,
+			),
+			array(
+				'file:///tmp/test-file.txt',
+				array(),
+				0,
+			),
+			array(
+				'myapp://foo/bar',
+				array(),
 				0,
 			),
 
