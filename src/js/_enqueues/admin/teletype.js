@@ -1,25 +1,12 @@
 /**
  * The WordPress admin easter egg.
  *
- * Originally written by Matt Mullenweg and committed in r8306 (July 10, 2008) as
- * wp-admin/js/revisions-js.php, under the cover of "Javascriptify revision selections to
- * deal elegantly while comparing." Trunk was 2.6-beta3 at the time, so it first shipped
- * in WordPress 2.6 and survived through 3.5.x. wp-admin/revision.php included it when a
- * post revision was compared to itself. Removed in r24820 (see #24852) for 3.6 because
- * that revisions UI was rewritten and the trigger disappeared with it, not because the
- * egg was unwanted: "There will be opportunities for other easter eggs. This one has had
- * its decade." Restored here with a new home behind the command palette.
+ * Originally written by Matt Mullenweg for WordPress 2.6 and removed in 3.6 along with
+ * the revisions UI that triggered it. Restored here behind the command palette, with the
+ * timings, dialogue, and staging of the original. See #65907.
  *
- * The original shipped as a Dean Edwards packed blob whose dialogue was additionally run
- * through the Dvorak/QWERTY substitution cipher in dvortr(). #15262 raised that packed
- * code is not GPL source, and r16826 answered it with a comment pointing at the ticket
- * rather than with readable code. The packing is dropped here: all of the logic ships as
- * ordinary source. The cipher is kept, on the dialogue only, so the payoff does not turn
- * up in a plain-text search of wp-admin/js. It hides the lines from a grep, not from a
- * reader, and the decoder sits a few lines below. This file is also only fetched once the
- * egg has already been invoked, so it never loads on a normal admin screen.
- *
- * Timings, dialogue, and staging are faithful to the original.
+ * The dialogue is stored in a Dvorak/QWERTY substitution cipher so that the payoff does
+ * not turn up in a plain-text search of wp-admin/js. The decoder is dvortr(), below.
  *
  * @output wp-admin/js/teletype.js
  */
@@ -33,13 +20,6 @@
 		FADE_TIME   = 3000, // Cursor fade-in, once the lights go out.
 		ACT_PAUSE   = 4000; // Between the two acts.
 
-	/*
-	 * The dialogue is stored in its Dvorak/QWERTY-substituted form and run back through
-	 * dvortr() as each line is typed, exactly as the 2008 original stored it. The point is
-	 * to keep the payoff out of a plain-text search of wp-admin/js, not to hide anything
-	 * from anyone reading this file: the cipher is right here, and every line of logic
-	 * around it is ordinary source.
-	 */
 	var ACT_ONE = [
 		'O.nu[jrmlapcorb e.y.jy.ev',
 		'Cbcycaycbi cbucbcy. nrrl .ojd.,an lpryrjrnv',

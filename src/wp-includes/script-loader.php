@@ -3621,9 +3621,8 @@ function wp_enqueue_command_palette_assets() {
 	);
 
 	/*
-	 * The admin easter egg. The loader is small and stays inert until its phrase is
-	 * typed into the palette; the payload it plays is fetched only at that point, so
-	 * nothing else is added to a normal admin page load. See teletype-loader.js.
+	 * The admin easter egg. The loader stays inert until its phrase is typed into the
+	 * palette, and only then fetches the payload it plays.
 	 */
 	wp_enqueue_script( 'wp-teletype-loader' );
 	wp_add_inline_script(
