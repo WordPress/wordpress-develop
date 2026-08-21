@@ -461,6 +461,9 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 		// Delete the post.
 		wp_delete_post( $data['id'], true );
 		$this->assertFileDoesNotExist( $expected_file_path, 'The font file should have been deleted when the post was deleted.' );
+
+		// Clean up: Delete the subdir test directory.
+		rmdir( WP_CONTENT_DIR . '/uploads/fonts/subdir' );
 	}
 
 	/**
