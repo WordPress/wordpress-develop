@@ -1191,7 +1191,7 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
 	$doing_ajax = wp_doing_ajax();
 	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
 	$loading   .= wp_get_admin_notice(
-		__( 'The WordPress Events and News feeds require JavaScript.' ),
+		__( 'This widget requires JavaScript.' ),
 		array(
 			'type'               => 'error',
 			'additional_classes' => array( 'inline', 'hide-if-js' ),
