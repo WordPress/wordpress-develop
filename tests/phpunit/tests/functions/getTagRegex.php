@@ -1,18 +1,24 @@
 <?php
-
 /**
  * Tests for the get_tag_regex() function.
  *
- * @group functions
+ * @package WordPress\UnitTests
  *
+ * @since 7.2.0
+ *
+ * @group functions
  * @covers ::get_tag_regex
  */
 class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 
 	/**
+	 * Tests that get_tag_regex() properly generates regex patterns for various HTML tags.
+	 *
 	 * @ticket 26674
 	 *
 	 * @dataProvider data_get_tag_regex_matches
+	 *
+	 * @since 7.2.0
 	 *
 	 * @param string   $tag      Tag name to build the regex for.
 	 * @param string   $content  Content to match against.
@@ -25,6 +31,8 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 
 	/**
 	 * Data provider.
+	 *
+	 * @since 7.2.0
 	 *
 	 * @return array[]
 	 */
@@ -81,17 +89,23 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that calling get_tag_regex() with an empty tag name returns an empty string.
+	 *
 	 * @ticket 26674
+	 *
+	 * @since 7.2.0
 	 */
 	public function test_get_tag_regex_returns_empty_string_for_empty_tag() {
 		$this->assertSame( '', get_tag_regex( '' ) );
 	}
 
 	/**
-	 * The tag name is passed through tag_escape(), so casing and invalid
-	 * characters do not change the generated pattern.
+	 * Tests that the tag name is passed through tag_escape(), so casing and
+	 * invalid characters do not change the generated pattern.
 	 *
 	 * @ticket 26674
+	 *
+	 * @since 7.2.0
 	 */
 	public function test_get_tag_regex_escapes_the_tag_name() {
 		$this->assertSame( get_tag_regex( 'iframe' ), get_tag_regex( 'IFRAME' ) );
