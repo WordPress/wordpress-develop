@@ -365,6 +365,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 * Verifies that cross-origin elements get crossorigin="anonymous" added.
 	 *
 	 * @ticket 64766
+	 * @ticket 65930
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -409,6 +410,9 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 			'cross-origin source inside video' => array(
 				'<video><source src="https://external.example.com/video.mp4" type="video/mp4" /></video>',
 			),
+			'multiple cross-origin sources'    => array(
+				'<video><source src="https://external.example.com/video.mp4" type="video/mp4" /><source src="https://external.example.com/video.webm" type="video/webm" /></video>',
+			),
 		);
 	}
 
@@ -420,6 +424,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 * in credentialless mode without needing explicit CORS headers.
 	 *
 	 * @ticket 64766
+	 * @ticket 65930
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -460,6 +465,12 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 			),
 			'relative URL script'                     => array(
 				'<script src="/wp-includes/js/wp-embed.min.js"></script>',
+			),
+			'source outside a media element'          => array(
+				'<picture><source src="https://external.example.com/image.avif" /><img src="/local-image.jpg" /></picture>',
+			),
+			'source in a video with crossorigin'      => array(
+				'<audio src="/local-audio.mp3"></audio><video crossorigin="use-credentials"><source src="https://external.example.com/video.mp4" /></video>',
 			),
 		);
 	}

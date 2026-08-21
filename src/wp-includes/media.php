@@ -6736,24 +6736,37 @@ function wp_add_crossorigin_attributes( string $html ): string {
 		'SOURCE' => array( 'src' ),
 	);
 
-	while ( $processor->next_tag() ) {
+	/*
+	 * Bookmark of the AUDIO or VIDEO element the cursor is inside of. Closing tags
+	 * are visited so it cannot outlive its element and be mistaken for the parent
+	 * of a later SOURCE.
+	 */
+	$media_bookmark = null;
+
+	while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 		$tag = $processor->get_tag();
 
 		if ( ! isset( $cross_origin_tag_attributes[ $tag ] ) ) {
 			continue;
 		}
+
+		if ( 'AUDIO' === $tag || 'VIDEO' === $tag ) {
+			$media_bookmark = null;
+
+			if ( ! $processor->is_tag_closer() && null === $processor->get_attribute( 'crossorigin' ) ) {
+				$media_bookmark = 'audio-video-parent';
+				$processor->set_bookmark( $media_bookmark );
+			}
+		}
+
+		if ( $processor->is_tag_closer() ) {
+			continue;
+		}
+
 		$crossorigin = $processor->get_attribute( 'crossorigin' );
 		if ( null !== $crossorigin ) {
 			continue;
 		}
-
-		if ( 'AUDIO' === $tag || 'VIDEO' === $tag ) {
-			$processor->set_bookmark( 'audio-video-parent' );
-		}
-
-		$processor->set_bookmark( 'resume' );
-
-		$sought = false;
 
 		$is_cross_origin = false;
 
@@ -6770,18 +6783,17 @@ function wp_add_crossorigin_attributes( string $html ): string {
 
 		if ( $is_cross_origin ) {
 			if ( 'SOURCE' === $tag ) {
-				$sought = $processor->seek( 'audio-video-parent' );
-
-				if ( $sought ) {
+				if ( null !== $media_bookmark ) {
+					$processor->set_bookmark( 'resume' );
+					$processor->seek( $media_bookmark );
 					$processor->set_attribute( 'crossorigin', 'anonymous' );
+					$processor->seek( 'resume' );
+
+					// The element is marked, so further SOURCE children need nothing.
+					$media_bookmark = null;
 				}
 			} else {
 				$processor->set_attribute( 'crossorigin', 'anonymous' );
-			}
-
-			if ( $sought ) {
-				$processor->seek( 'resume' );
-				$processor->release_bookmark( 'audio-video-parent' );
 			}
 		}
 	}
