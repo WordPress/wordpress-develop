@@ -4,6 +4,24 @@
 	"title": "Dusk",
 	"settings": {
 		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#650DD4",
+						"#F5EDFF"
+					],
+					"name": "Dusk Purple",
+					"slug": "dusk-purple"
+				},
+				{
+					"colors": [
+						"#191919",
+						"#DBDBDB"
+					],
+					"name": "Dusk Grayscale",
+					"slug": "dusk-grayscale"
+				}
+			],
 			"palette": [
 				{
 					"color": "#E2E2E2",

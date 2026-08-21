@@ -4,6 +4,16 @@
 	"title": "Sunrise",
 	"settings": {
 		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#4A1628",
+						"#C1E4E7"
+					],
+					"name": "Sunrise filter",
+					"slug": "sunrise-filter"
+				}
+			],
 			"palette": [
 				{
 					"color": "#330616",

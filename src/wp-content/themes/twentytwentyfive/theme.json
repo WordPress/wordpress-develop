@@ -7,6 +7,24 @@
 			"defaultDuotone": false,
 			"defaultGradients": false,
 			"defaultPalette": false,
+			"duotone": [
+				{
+					"colors": [
+						"#111111",
+						"#FFFFFF"
+					],
+					"name": "Grayscale Filter",
+					"slug": "grayscale-filter"
+				},
+				{
+					"colors": [
+						"#686868",
+						"#FBFAF3"
+					],
+					"name": "Sepia Filter",
+					"slug": "sepia-filter"
+				}
+			],
 			"palette": [
 				{
 					"color": "#FFFFFF",
