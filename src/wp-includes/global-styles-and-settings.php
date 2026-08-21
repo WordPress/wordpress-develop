@@ -122,11 +122,34 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 	&& is_array( $context['transforms'] )
 	&& in_array( 'resolve-variables', $context['transforms'], true );
 
-	$merged_data = WP_Theme_JSON_Resolver::get_merged_data( $origin );
+	$cache_group = 'theme_json';
+	$cache_key   = 'wp_get_global_styles_' . $origin;
 	if ( $resolve_variables ) {
-		$merged_data = WP_Theme_JSON::resolve_variables( $merged_data );
+		$cache_key .= '_resolved';
 	}
-	$styles = $merged_data->get_raw_data()['styles'];
+
+	/*
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
+	 * developer's workflow.
+	 */
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	$styles = false;
+	if ( $can_use_cached ) {
+		$styles = wp_cache_get( $cache_key, $cache_group );
+	}
+
+	if ( false === $styles ) {
+		$merged_data = WP_Theme_JSON_Resolver::get_merged_data( $origin );
+		if ( $resolve_variables ) {
+			$merged_data = WP_Theme_JSON::resolve_variables( $merged_data );
+		}
+		$styles = $merged_data->get_raw_data()['styles'];
+		if ( $can_use_cached ) {
+			wp_cache_set( $cache_key, $styles, $cache_group );
+		}
+	}
+
 	return _wp_array_get( $styles, $path, $styles );
 }
 
@@ -432,6 +455,10 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_styles_svg_filters', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_custom', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_custom_resolved', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_theme', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_theme_resolved', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
 	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
