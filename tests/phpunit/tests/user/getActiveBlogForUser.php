@@ -69,7 +69,14 @@ class Tests_User_GetActiveBlogForUser extends WP_UnitTestCase {
 
 		$result = get_active_blog_for_user( self::$user_id );
 
-		wp_delete_site( $primary_site_id );
+		/*
+		 * Avoid using wp_delete_site() here because it will delete the uploads
+		 * directory without checking if the site is the main one. Otherwise,
+		 * when this test runs in a single site environment (e.g. when running
+		 * grunt precommit), it will delete the entire contents of the uploads
+		 * directory, which we want to avoid.
+		 */
+		wpmu_delete_blog( $primary_site_id, true );
 
 		$this->assertSame( $primary_site_id, $result->id );
 	}
