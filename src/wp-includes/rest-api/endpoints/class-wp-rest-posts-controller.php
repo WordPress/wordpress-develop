@@ -1980,7 +1980,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
-			$data['title']['rendered'] = get_the_title( $post->ID );
+			$data['title']['rendered'] = wp_kses_decode_entities( get_the_title( $post->ID ) );
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
