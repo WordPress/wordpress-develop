@@ -207,6 +207,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
+	/**
+	 * Turns client-side media processing off and rebuilds the REST server so the
+	 * routes are registered with the feature disabled.
+	 */
+	private function disable_client_side_media_processing(): void {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
+
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/media', $routes );
@@ -3412,9 +3424,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * Tests the permissions check directly with file params set, since the core
 	 * check uses get_file_params() which is only populated for multipart uploads.
 	 *
+	 * The check is only relaxed when client-side media processing is enabled,
+	 * since that is what makes the client able to handle the image, so the
+	 * feature is enabled here.
+	 *
 	 * @ticket 64836
+	 * @ticket 65517
 	 */
 	public function test_upload_unsupported_image_type_skipped_when_not_generating_sub_sizes() {
+		$this->enable_client_side_media_processing();
+
 		wp_set_current_user( self::$author_id );
 
 		add_filter( 'wp_image_editors', '__return_empty_array' );
@@ -4083,7 +4102,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * The image_size argument accepts either a single size name or an array of
 	 * size names, so it validates via a custom callback rather than an enum. The
 	 * callback must accept 'scaled' and the 'source_original' source-format size,
-	 * and reject unknown sizes.
+	 * reject unknown sizes, and reject a special size sent as an array, since an
+	 * array registers one file under several regular sub-sizes.
 	 *
 	 * sideload_item() never reads generate_sub_sizes, so advertising it on the
 	 * route would silently mislead clients into expecting server-side sub-size
@@ -4126,12 +4146,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'image_size validation should accept the source_original source-format size.'
 		);
 		$this->assertTrue(
-			$validate( array( 'scaled' ), $request, $param_name ),
+			$validate( array( 'thumbnail', 'medium' ), $request, $param_name ),
 			'image_size validation should accept an array of size names.'
+		);
+		$this->assertTrue(
+			$validate( array( 'full', 'large' ), $request, $param_name ),
+			'image_size validation should accept the full size grouped with a registered size.'
 		);
 		$this->assertWPError(
 			$validate( 'not-a-real-size', $request, $param_name ),
 			'image_size validation should reject an unknown size.'
+		);
+		$this->assertWPError(
+			$validate( array( 'scaled' ), $request, $param_name ),
+			'image_size validation should reject a special size sent as an array.'
 		);
 
 		$this->assertArrayNotHasKey( 'generate_sub_sizes', $args, 'Sideload route should not advertise the unused generate_sub_sizes arg.' );
@@ -4972,20 +5000,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$metadata['image_meta']['orientation'] = 6;
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
+		// Sideload the client-scaled image so finalize has a provenance-backed
+		// 'scaled' entry to store.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=big-rotated-photo-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the scaled image should succeed.' );
+		$sub_size = $response->get_data();
+
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
-		$request->set_param(
-			'sub_sizes',
-			array(
-				array(
-					'image_size'     => 'scaled',
-					'width'          => 1920,
-					'height'         => 2560,
-					'file'           => '2026/07/big-rotated-photo-scaled.jpg',
-					'filesize'       => 500000,
-					'original_image' => 'big-rotated-photo.jpg',
-				),
-			)
-		);
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
@@ -5071,21 +5098,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$original_image_meta = wp_get_attachment_metadata( $attachment_id, true )['image_meta'];
 
-		// Finalize with a thumbnail sub-size.
+		// Sideload a thumbnail sub-size so finalize has a provenance-backed file
+		// to store. test-image.jpg is 50x50, within the thumbnail maximum.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=2004-07-22-DSC_0008-thumb.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Sideloading a thumbnail should succeed.' );
+		$sub_size = $response->get_data();
+
+		// Finalize with the sideloaded thumbnail sub-size.
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
-		$request->set_param(
-			'sub_sizes',
-			array(
-				array(
-					'image_size' => 'thumbnail',
-					'width'      => 150,
-					'height'     => 150,
-					'file'       => '2004-07-22-DSC_0008-150x150.jpg',
-					'mime_type'  => 'image/jpeg',
-					'filesize'   => 5000,
-				),
-			)
-		);
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
@@ -5228,12 +5254,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 201, $response->get_status() );
 
-		// Sideload a single file registered under multiple sizes.
+		/*
+		 * Sideload a single file registered under multiple sizes. The file is
+		 * 50x50 so that it satisfies the registered maximum for every size in
+		 * the group, which is what sharing one file among them requires.
+		 */
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-dup.jpg' );
 		$request->set_param( 'image_size', array( 'thumbnail', 'medium' ) );
-		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Sideloading with an array of sizes should succeed.' );
@@ -5828,6 +5858,166 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'url', $creatable['args'] );
 		$this->assertSame( 'string', $creatable['args']['url']['type'] );
 		$this->assertSame( 'uri', $creatable['args']['url']['format'] );
+	}
+
+	/**
+	 * Verifies that the media creation arguments are registered even when
+	 * client-side media processing is disabled.
+	 *
+	 * The feature is determined per request, from the scheme and host, so gating
+	 * the schema on it would advertise different arguments for the same site
+	 * depending on how it was reached.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::get_endpoint_args_for_item_schema
+	 */
+	public function test_creatable_args_registered_without_client_side_media_processing() {
+		$this->disable_client_side_media_processing();
+
+		$routes    = rest_get_server()->get_routes();
+		$creatable = null;
+		foreach ( $routes['/wp/v2/media'] as $route ) {
+			if ( ! empty( $route['methods'][ WP_REST_Server::CREATABLE ] ) ) {
+				$creatable = $route;
+				break;
+			}
+		}
+
+		$this->assertNotNull( $creatable, 'The media route should register a CREATABLE handler.' );
+		$this->assertArrayHasKey( 'url', $creatable['args'] );
+		$this->assertArrayHasKey( 'generate_sub_sizes', $creatable['args'] );
+		$this->assertArrayHasKey( 'convert_format', $creatable['args'] );
+	}
+
+	/**
+	 * Verifies that sideloading an external image works when client-side media
+	 * processing is disabled.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 */
+	public function test_create_item_from_url_without_client_side_media_processing() {
+		$this->disable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/photo.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$data = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'image', $data['media_type'] );
+		$this->assertSame( 'https://example.com/photo.jpg', $this->last_download_url );
+	}
+
+	/**
+	 * Verifies that the `url` argument's validation runs when client-side media
+	 * processing is disabled, so an unsafe URL is rejected with a 400 rather than
+	 * reaching the download.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::get_endpoint_args_for_item_schema
+	 */
+	public function test_url_arg_rejects_unsafe_urls_without_client_side_media_processing() {
+		$this->disable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'http://127.0.0.1/private.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that `generate_sub_sizes` is honored when client-side media
+	 * processing is disabled.
+	 *
+	 * Skipping sub-size generation is a request the server can carry out on its
+	 * own, so it does not depend on the feature. Sub-sizes can still be added
+	 * later with wp_update_image_subsizes().
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 */
+	public function test_generate_sub_sizes_honored_without_client_side_media_processing() {
+		$this->disable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/photo.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$data = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$metadata = wp_get_attachment_metadata( $data['id'], true );
+		$this->assertEmpty(
+			$metadata['sizes'] ?? array(),
+			'Sub-sizes should not be generated when generate_sub_sizes is false.'
+		);
+	}
+
+	/**
+	 * Verifies that `generate_sub_sizes` does not relax the unsupported image
+	 * type check when client-side media processing is disabled.
+	 *
+	 * That check exists because the server cannot process the image, so it should
+	 * only be relaxed when the client can process it instead. Otherwise the
+	 * upload is stored unprocessable.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_permissions_check
+	 */
+	public function test_unsupported_image_type_still_checked_without_client_side_media_processing() {
+		$this->disable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'avif-lossy.avif',
+					'type'     => 'image/avif',
+					'tmp_name' => self::$test_avif_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_avif_file ),
+				),
+			)
+		);
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result     = $controller->create_item_permissions_check( $request );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
 	}
 
 	/**

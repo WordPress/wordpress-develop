@@ -73,10 +73,10 @@ on:
         type: boolean
         default: false
       gutenberg-artifact:
-        description: 'The name of a same-workflow artifact containing the prepared Gutenberg build. Optional: callers that omit it download Gutenberg per job.'
+        description: 'Whether the Gutenberg-sourced assets are sourced from zip artifact.'
         required: false
-        type: string
-        default: ''
+        type: boolean
+        default: false
       gutenberg-sha:
         description: 'The immutable Gutenberg source SHA verified by the calling workflow.'
         required: false
@@ -146,14 +146,12 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      # Branches >= 5.9 call this workflow at @trunk without the producer job, so they
-      # pass no artifact. They skip this step and fall back to a per-job download.
+      # Only WordPress 7.0+ include Gutenberg-maintained assets from a built zip file.
       - name: Download prepared Gutenberg build
-        if: inputs.gutenberg-artifact != ''
+        if: ${{ inputs.gutenberg-artifact }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          # Without a run ID, this action reads only from the caller's current workflow run.
-          name: ${{ inputs.gutenberg-artifact }}
+          name: gutenberg-build
           path: gutenberg
           digest-mismatch: error
 
@@ -205,21 +203,8 @@ jobs:
         run: |
           docker -v
 
-      - name: Pull Docker images (with retry)
-        run: |
-          for attempt in 1 2 3; do
-            if npm run env:pull; then
-              break
-            fi
-
-            if [ "$attempt" -eq 3 ]; then
-              echo "npm run env:pull failed after $attempt attempts."
-              exit 1
-            fi
-
-            echo "npm run env:pull failed (attempt $attempt); retrying..."
-            sleep $(( attempt * 10 ))
-          done
+      - name: Pull Docker images
+        run: npm run env:pull
 
       - name: Start Docker environment
         run: |
