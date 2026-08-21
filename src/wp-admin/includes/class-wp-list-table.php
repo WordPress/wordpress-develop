@@ -1054,7 +1054,7 @@ class WP_List_Table {
 		$current              = $this->get_pagenum();
 		$removable_query_args = wp_removable_query_args();
 
-		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+		$current_url = $this->get_current_url();
 
 		$current_url = remove_query_arg( $removable_query_args, $current_url );
 
@@ -1182,6 +1182,36 @@ class WP_List_Table {
 		$this->_pagination = "<div class='tablenav-pages{$page_class}'>$output</div>";
 
 		echo $this->_pagination;
+	}
+
+	/**
+	 * Builds the current request URL for list table links.
+	 *
+	 * When `HTTP_HOST` omits the port, non-default ports from `SERVER_PORT`
+	 * are preserved so search, sorting, and pagination keep working.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string Current URL including scheme, host, port, and request URI.
+	 */
+	protected function get_current_url() {
+		$host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '';
+		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+
+		if ( isset( $_SERVER['SERVER_PORT'] ) ) {
+			$port   = (int) $_SERVER['SERVER_PORT'];
+			$parsed = wp_parse_url( 'http://' . $host );
+
+			if ( $port && empty( $parsed['port'] ) ) {
+				$default_port = is_ssl() ? 443 : 80;
+
+				if ( $default_port !== $port ) {
+					$host .= ':' . $port;
+				}
+			}
+		}
+
+		return set_url_scheme( 'http://' . $host . $uri );
 	}
 
 	/**
@@ -1408,7 +1438,7 @@ class WP_List_Table {
 	public function print_column_headers( $with_id = true ) {
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
 
-		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+		$current_url = $this->get_current_url();
 		$current_url = remove_query_arg( 'paged', $current_url );
 
 		// When users click on a column header to sort by other columns.

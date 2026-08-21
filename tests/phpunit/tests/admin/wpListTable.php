@@ -592,4 +592,103 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( $expected_html, $actual );
 	}
+
+	/**
+	 * Tests that list table pagination links preserve a non-default port
+	 * when HTTP_HOST does not include it.
+	 *
+	 * @ticket 59272
+	 *
+	 * @covers WP_List_Table::get_current_url
+	 * @covers WP_List_Table::pagination
+	 */
+	public function test_pagination_links_preserve_non_default_port() {
+		$list_table = new WP_List_Table_Current_Url_Test_Double();
+
+		$_SERVER['HTTP_HOST']   = 'localhost';
+		$_SERVER['REQUEST_URI'] = '/wp-admin/edit.php';
+		$_SERVER['SERVER_PORT'] = '8182';
+		unset( $_SERVER['HTTPS'] );
+
+		$output = $list_table->get_pagination_html();
+
+		$this->assertStringContainsString( 'localhost:8182/wp-admin/edit.php', $output );
+		$this->assertStringNotContainsString( 'http://localhost/wp-admin/edit.php', $output );
+	}
+
+	/**
+	 * Tests that list table pagination links do not duplicate a port already
+	 * present in HTTP_HOST.
+	 *
+	 * @ticket 59272
+	 *
+	 * @covers WP_List_Table::get_current_url
+	 * @covers WP_List_Table::pagination
+	 */
+	public function test_pagination_links_do_not_duplicate_port_in_host() {
+		$list_table = new WP_List_Table_Current_Url_Test_Double();
+
+		$_SERVER['HTTP_HOST']   = 'localhost:8182';
+		$_SERVER['REQUEST_URI'] = '/wp-admin/edit.php';
+		$_SERVER['SERVER_PORT'] = '8182';
+		unset( $_SERVER['HTTPS'] );
+
+		$output = $list_table->get_pagination_html();
+
+		$this->assertStringContainsString( 'localhost:8182/wp-admin/edit.php', $output );
+		$this->assertStringNotContainsString( 'localhost:8182:8182', $output );
+	}
+
+	/**
+	 * Tests that default ports are not appended when HTTP_HOST has no port.
+	 *
+	 * @ticket 59272
+	 *
+	 * @covers WP_List_Table::get_current_url
+	 * @covers WP_List_Table::pagination
+	 */
+	public function test_pagination_links_do_not_append_default_http_port() {
+		$list_table = new WP_List_Table_Current_Url_Test_Double();
+
+		$_SERVER['HTTP_HOST']   = 'example.org';
+		$_SERVER['REQUEST_URI'] = '/wp-admin/edit.php';
+		$_SERVER['SERVER_PORT'] = '80';
+		unset( $_SERVER['HTTPS'] );
+
+		$output = $list_table->get_pagination_html();
+
+		$this->assertStringContainsString( 'example.org/wp-admin/edit.php', $output );
+		$this->assertStringNotContainsString( 'example.org:80/', $output );
+	}
+}
+
+/**
+ * Test double that exposes pagination HTML for URL assertions.
+ */
+class WP_List_Table_Current_Url_Test_Double extends WP_List_Table {
+	public function get_columns() {
+		return array(
+			'title' => 'Title',
+		);
+	}
+
+	/**
+	 * Returns pagination markup for the current request URL.
+	 *
+	 * @return string Pagination HTML.
+	 */
+	public function get_pagination_html() {
+		$this->_pagination = null;
+		$this->set_pagination_args(
+			array(
+				'total_items' => 40,
+				'total_pages' => 4,
+				'per_page'    => 10,
+			)
+		);
+
+		ob_start();
+		$this->pagination( 'bottom' );
+		return ob_get_clean();
+	}
 }
