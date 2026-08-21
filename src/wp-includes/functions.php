@@ -1122,7 +1122,9 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
  *     ), 'http://example.com' );
  *
  * Omitting the URL from either use results in the current URL being used
- * (the value of `$_SERVER['REQUEST_URI']`).
+ * (the value of `$_SERVER['REQUEST_URI']`), which is a root-relative path,
+ * not an absolute URL. If an absolute URL is needed, pass one explicitly
+ * or wrap the result with `home_url()`.
  *
  * Values are expected to be encoded appropriately with urlencode() or rawurlencode().
  *
@@ -1139,7 +1141,7 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
  * @param string|array $key   Either a query variable key, or an associative array of query variables.
  * @param string       $value Optional. Either a query variable value, or a URL to act upon.
  * @param string       $url   Optional. A URL to act upon.
- * @return string New URL query string (unescaped).
+ * @return string New URL query string (unescaped). Root-relative if no base URL is provided.
  */
 function add_query_arg( ...$args ) {
 	if ( is_array( $args[0] ) ) {
