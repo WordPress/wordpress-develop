@@ -52,6 +52,7 @@ function create_initial_post_types() {
 			'show_in_rest'          => true,
 			'rest_base'             => 'posts',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'show_in_abilities'     => true,
 		)
 	);
 
@@ -86,6 +87,7 @@ function create_initial_post_types() {
 			'show_in_rest'          => true,
 			'rest_base'             => 'pages',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'show_in_abilities'     => true,
 		)
 	);
 
@@ -1759,6 +1761,11 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         of $show_in_menu.
  *     @type bool         $show_in_rest                    Whether to include the post type in the REST API. Set this to true
  *                                                         for the post type to be available in the block editor.
+ *     @type bool         $show_in_abilities               Whether to expose this post type via the Abilities API. When true,
+ *                                                         a `core/post-type/{slug}/get` ability is registered, enabling
+ *                                                         single-post retrieval by ID and multi-post querying with filters.
+ *                                                         Default false. Enabled by default for the built-in 'post' and
+ *                                                         'page' post types.
  *     @type string       $rest_base                       To change the base URL of REST API route. Default is $post_type.
  *     @type string       $rest_namespace                  To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string       $rest_controller_class           REST API controller class name. Default is 'WP_REST_Posts_Controller'.

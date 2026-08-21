@@ -83,7 +83,7 @@ final class WP_Abilities_Registry {
 	 * @return WP_Ability|null The registered ability instance on success, null on failure.
 	 */
 	public function register( string $name, array $args ): ?WP_Ability {
-		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
+		if ( ! preg_match( '/^[a-z0-9-]+(\/[a-z0-9-]+)+$/', $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__(
