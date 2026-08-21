@@ -110,6 +110,8 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 				$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra, 'The path of the style should exist' );
 				$this->assertArrayHasKey( 'path', $wp_styles->registered[ $style_handle ]->extra, 'The path key of the style should exist in extra array' );
 				$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra['path'], 'The path key of the style should not be empty' );
+				$this->assertArrayHasKey( 'file_size', $wp_styles->registered[ $style_handle ]->extra, 'The file_size key of the style should exist in extra array' );
+				$this->assertGreaterThan( 0, $wp_styles->registered[ $style_handle ]->extra['file_size'], 'The file_size key of the style should not be empty' );
 			}
 		}
 	}
@@ -172,6 +174,8 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 			$this->assertArrayHasKey( 'path', $wp_styles->registered[ $style_handle ]->extra, 'The path key of the style should exist in extra array' );
 			$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra['path'], 'The path key of the style should not be empty' );
 			$this->assertArrayHasKey( 'rtl', $wp_styles->registered[ $style_handle ]->extra, 'The rtl key of the style should exist in extra array' );
+			$this->assertArrayHasKey( 'file_size', $wp_styles->registered[ $style_handle ]->extra, 'The file_size key of the style should exist in extra array' );
+			$this->assertGreaterThan( 0, $wp_styles->registered[ $style_handle ]->extra['file_size'], 'The file_size key of the style should not be empty' );
 		}
 	}
 
