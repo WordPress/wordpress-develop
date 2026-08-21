@@ -93,17 +93,18 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 	/**
 	 * @ticket 65915
 	 *
-	 * @dataProvider data_get_instance_should_ignore_non_object_cached_values
+	 * @dataProvider data_get_instance_should_ignore_unusable_cached_values
 	 *
-	 * @param mixed $cached_value A non-object value stored in the 'terms' cache group.
+	 * @param mixed $cached_value A cached value that is not a usable term object.
 	 */
-	public function test_get_instance_should_ignore_non_object_cached_values( $cached_value ) {
+	public function test_get_instance_should_ignore_unusable_cached_values( $cached_value ) {
 		wp_cache_set( self::$term_id, $cached_value, 'terms' );
 
 		$found = WP_Term::get_instance( self::$term_id );
 
 		$this->assertInstanceOf( WP_Term::class, $found );
 		$this->assertSame( self::$term_id, $found->term_id );
+		$this->assertSame( 'wptests_tax', $found->taxonomy );
 	}
 
 	/**
@@ -111,11 +112,13 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public function data_get_instance_should_ignore_non_object_cached_values(): array {
+	public function data_get_instance_should_ignore_unusable_cached_values(): array {
 		return array(
-			'an array'   => array( array( 'term_id' => 12345 ) ),
-			'an integer' => array( 12345 ),
-			'a string'   => array( 'a term' ),
+			'an array'                       => array( array( 'term_id' => 12345 ) ),
+			'an integer'                     => array( 12345 ),
+			'a string'                       => array( 'a term' ),
+			'an object with no taxonomy'     => array( (object) array( 'term_id' => 12345 ) ),
+			'an object with a null taxonomy' => array( (object) array( 'taxonomy' => null ) ),
 		);
 	}
 }
