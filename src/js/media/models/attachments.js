@@ -218,7 +218,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * Start observing another attachments collection change events
 	 * and replicate them on this collection.
 	 *
-	 * @param {wp.media.model.Attachments} The attachments collection to observe.
+	 * @param {wp.media.model.Attachments} attachments The attachments collection to observe.
 	 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
 	 */
 	observe: function( attachments ) {
@@ -227,6 +227,18 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 
 		attachments.on( 'add change remove', this._validateHandler, this );
 		attachments.on( 'reset', this._validateAllHandler, this );
+
+		/*
+		 * Only track the total number of attachments for the mirrored query
+		 * collection. Other observed collections, such as the selection, must
+		 * not change the count, otherwise an uploaded attachment that is also
+		 * added to the selection is counted more than once. See ticket #65513.
+		 */
+		if ( attachments === this.mirroring ) {
+			attachments.on( 'add', this._addToTotalAttachments, this );
+			attachments.on( 'remove', this._removeFromTotalAttachments, this );
+		}
+
 		this.validateAll( attachments );
 		return this;
 	},
@@ -251,7 +263,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		return this;
 	},
 	/**
-	 * Update total attachment count when items are added to a collection.
+	 * Update total attachment count when items are removed from a collection.
 	 *
 	 * @access private
 	 *
