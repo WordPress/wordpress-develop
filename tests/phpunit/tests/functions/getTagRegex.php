@@ -29,10 +29,14 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_get_tag_regex_matches() {
+		// Each case embeds the element(s) within surrounding HTML, mirroring the
+		// original usage in get_media_embedded_in_content(), which is passed a
+		// string of HTML that may contain media elements rather than the bare
+		// element on its own.
 		return array(
 			'a single tag with a body'                 => array(
 				'iframe',
-				'<iframe src="https://example.com/a"></iframe>',
+				'<div><p>Before.</p><iframe src="https://example.com/a"></iframe><p>After.</p></div>',
 				array( '<iframe src="https://example.com/a"></iframe>' ),
 			),
 
@@ -41,7 +45,7 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 			// them into a single match. See #26674.
 			'two adjacent tags are matched separately' => array(
 				'iframe',
-				'<iframe src="https://example.com/a"></iframe> text <iframe src="https://example.com/b"></iframe>',
+				'<div><p>Intro.</p><iframe src="https://example.com/a"></iframe> text <iframe src="https://example.com/b"></iframe><p>Outro.</p></div>',
 				array(
 					'<iframe src="https://example.com/a"></iframe>',
 					'<iframe src="https://example.com/b"></iframe>',
@@ -52,25 +56,25 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 			// both with and without the space before the slash (comment:16).
 			'a self-closing tag with a space'          => array(
 				'input',
-				'<input type="text" />',
+				'<div>A form field: <input type="text" /> and more text.</div>',
 				array( '<input type="text" />' ),
 			),
 
 			'a self-closing tag without a space'       => array(
 				'input',
-				'<input type="text"/>',
+				'<div>A form field: <input type="text"/> and more text.</div>',
 				array( '<input type="text"/>' ),
 			),
 
 			'a tag with a multiline body'              => array(
 				'video',
-				"<video>\n<source src=\"a.mp4\">\n</video>",
+				"<div><p>Watch:</p>\n<video>\n<source src=\"a.mp4\">\n</video>\n<p>End.</p></div>",
 				array( "<video>\n<source src=\"a.mp4\">\n</video>" ),
 			),
 
 			'no match when the tag is absent'          => array(
 				'iframe',
-				'<p>No embeds here.</p>',
+				'<div><p>No embeds here.</p></div>',
 				array(),
 			),
 		);
