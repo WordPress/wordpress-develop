@@ -448,6 +448,47 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A failed seek() must not leave the crossorigin attribute on the SOURCE element.
+	 *
+	 * WP_HTML_Tag_Processor::seek() returns false without moving the cursor once
+	 * MAX_SEEK_OPS is exceeded. The cursor is then still on the SOURCE, so marking
+	 * the element without checking the return value adds the attribute where it does
+	 * nothing for CORS and leaves the parent media element unmarked.
+	 *
+	 * @ticket 65930
+	 *
+	 * @covers ::wp_add_crossorigin_attributes
+	 */
+	public function test_source_is_not_marked_when_seeking_the_parent_fails() {
+		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::seek' );
+
+		/*
+		 * Marking a media element costs two seeks, one back to the parent and one
+		 * forward to resume, so one more than half the budget outlasts it.
+		 */
+		$media_elements = intdiv( WP_HTML_Tag_Processor::MAX_SEEK_OPS, 2 ) + 1;
+
+		$output = wp_add_crossorigin_attributes(
+			str_repeat(
+				'<video><source src="https://external.example.com/video.mp4" /></video>',
+				$media_elements
+			)
+		);
+
+		$this->assertSame(
+			0,
+			preg_match_all( '/<source\b[^>]*\bcrossorigin\b/i', $output ),
+			'A SOURCE element must never receive the crossorigin attribute.'
+		);
+
+		$this->assertSame(
+			$media_elements - 1,
+			substr_count( $output, 'crossorigin="anonymous"' ),
+			'Every media element reachable within the seek budget should have been marked.'
+		);
+	}
+
+	/**
 	 * Data provider for elements that should not receive crossorigin="anonymous".
 	 *
 	 * @return array[]

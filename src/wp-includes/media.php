@@ -6737,9 +6737,10 @@ function wp_add_crossorigin_attributes( string $html ): string {
 	);
 
 	/*
-	 * Bookmark of the AUDIO or VIDEO element the cursor is inside of. Closing tags
-	 * are visited so it cannot outlive its element and be mistaken for the parent
-	 * of a later SOURCE.
+	 * Name of the bookmark on the AUDIO or VIDEO element the cursor is inside of,
+	 * for as long as that element still needs the attribute. Closing tags are
+	 * visited so the bookmark cannot outlive its element and be mistaken for the
+	 * parent of a later SOURCE.
 	 */
 	$media_bookmark = null;
 
@@ -6785,15 +6786,30 @@ function wp_add_crossorigin_attributes( string $html ): string {
 			if ( 'SOURCE' === $tag ) {
 				if ( null !== $media_bookmark ) {
 					$processor->set_bookmark( 'resume' );
-					$processor->seek( $media_bookmark );
-					$processor->set_attribute( 'crossorigin', 'anonymous' );
-					$processor->seek( 'resume' );
 
-					// The element is marked, so further SOURCE children need nothing.
+					/*
+					 * A seek past MAX_SEEK_OPS leaves the cursor where it is, so mark the
+					 * parent only once the cursor has reached it. Marking a SOURCE does
+					 * nothing for CORS and would hide the media element that was missed.
+					 */
+					if ( $processor->seek( $media_bookmark ) ) {
+						$processor->set_attribute( 'crossorigin', 'anonymous' );
+						$processor->seek( 'resume' );
+					}
+
+					/*
+					 * The element is either marked or past the seek budget, which does not
+					 * come back, so its remaining SOURCE children need nothing.
+					 */
 					$media_bookmark = null;
 				}
 			} else {
 				$processor->set_attribute( 'crossorigin', 'anonymous' );
+
+				// A marked AUDIO or VIDEO needs nothing from its SOURCE children.
+				if ( 'AUDIO' === $tag || 'VIDEO' === $tag ) {
+					$media_bookmark = null;
+				}
 			}
 		}
 	}
