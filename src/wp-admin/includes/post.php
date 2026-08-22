@@ -765,7 +765,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 }
 
 /**
- * Determines if a post exists based on title, content, date and type.
+ * Determines if a post exists based on title, content, author, date and type.
  *
  * @since 2.0.0
  * @since 5.2.0 Added the `$type` parameter.
@@ -778,9 +778,10 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
  * @param string $date    Optional. Post date.
  * @param string $type    Optional. Post type.
  * @param string $status  Optional. Post status.
+ * @param int    $author Optional. Post author ID.
  * @return int Post ID if post exists, 0 otherwise.
  */
-function post_exists( $title, $content = '', $date = '', $type = '', $status = '' ) {
+function post_exists( $title, $content = '', $date = '', $type = '', $status = '', $author = 0 ) {
 	global $wpdb;
 
 	$post_title   = wp_unslash( sanitize_post_field( 'post_title', $title, 0, 'db' ) );
@@ -788,6 +789,7 @@ function post_exists( $title, $content = '', $date = '', $type = '', $status = '
 	$post_date    = wp_unslash( sanitize_post_field( 'post_date', $date, 0, 'db' ) );
 	$post_type    = wp_unslash( sanitize_post_field( 'post_type', $type, 0, 'db' ) );
 	$post_status  = wp_unslash( sanitize_post_field( 'post_status', $status, 0, 'db' ) );
+	$post_author  = wp_unslash( sanitize_post_field( 'post_author', $author, 0, 'db' ) );
 
 	$query = "SELECT ID FROM $wpdb->posts WHERE 1=1";
 	$args  = array();
@@ -815,6 +817,11 @@ function post_exists( $title, $content = '', $date = '', $type = '', $status = '
 	if ( ! empty( $status ) ) {
 		$query .= ' AND post_status = %s';
 		$args[] = $post_status;
+	}
+	
+	if ( ! empty( $author ) ) {
+		$query .= ' AND post_author = %d';
+		$args[] = $post_author;
 	}
 
 	if ( ! empty( $args ) ) {
