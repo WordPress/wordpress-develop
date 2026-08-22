@@ -1,29 +1,12 @@
-module.exports = {
-	rules: {
-		'require-jsdoc': 'off',
-		'valid-jsdoc': [ 'error', {
-			prefer: {
-				arg: 'param',
-				argument: 'param',
-				extends: 'augments',
-				returns: 'return',
-			},
-			preferType: {
-				array: 'Array',
-				bool: 'boolean',
-				Boolean: 'boolean',
-				float: 'number',
-				Float: 'number',
-				int: 'number',
-				integer: 'number',
-				Integer: 'number',
-				Number: 'number',
-				object: 'Object',
-				String: 'string',
-				Void: 'void',
-			},
-			requireParamDescription: false,
-			requireReturn: false,
-		} ],
-	},
-};
+/**
+ * ESLint v10 flat config file for JSDoc linting.
+ *
+ * This file contains JSDoc validation rules converted to ESLint v10's
+ * flat config format. It can be used standalone or imported by eslint.config.js.
+ */
+
+const wordpressPlugin = require( '@wordpress/eslint-plugin' );
+
+module.exports = [
+	...wordpressPlugin.configs.jsdoc,
+];
