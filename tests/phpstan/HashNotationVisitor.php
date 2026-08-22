@@ -1,7 +1,7 @@
 <?php
 /**
  * PHPStan parser node visitor that bridges WordPress core's hash notation
- * PHPDoc convention to PHPStan's array shape types.
+ * PHPDoc convention to PHPStan's array and object shape types.
  *
  * @package WordPress
  */
@@ -16,9 +16,9 @@ use PhpParser\NodeVisitorAbstract;
 
 /**
  * Reads WordPress hash notation from `@param` and `@return` tags and injects
- * the equivalent `@phpstan-*` array shape into the docblock.
+ * the equivalent `@phpstan-*` array or object shape into the docblock.
  *
- * Core documents the contents of an array argument with a nested list of
+ * Core documents the contents of an array or object with a nested list of
  * `@type` tags:
  *
  *     @param array $args {
@@ -45,12 +45,13 @@ use PhpParser\NodeVisitorAbstract;
  * - A `@phpstan-` counterpart already written by hand always wins; the tag it
  *   covers is skipped, so a shape that has been tuned in the source is never
  *   overwritten by the derived one.
- * - The declared type must name a bare `array`, on its own or as one member of
- *   a union such as `string|array`. A type that is already more specific than
- *   the hash, such as `array<string, string|bool>`, is left as written. An
- *   `object` hash is left alone as well: PHPStan's object shapes are
- *   structural, so one derived for a value core builds as a `stdClass` would
- *   no longer be assignable to a property declared `stdClass`.
+ * - The declared type must name something a shape can be put on: a bare `array`
+ *   or `object`, or a class, on its own or as one member of a union such as
+ *   `string|array`. A type that is already more specific than the hash, such as
+ *   `array<string, string|bool>`, is left as written. A shape derived for a
+ *   named class is intersected with it, as `stdClass&object{...}`, because an
+ *   object shape is structural on its own and one derived from a bare `object`
+ *   would not be assignable to a property declared `stdClass`.
  * - The hash has to be well formed: every `{` closed by a `}` on a line of its
  *   own, and every `@type` carrying a type and a `$name`. Anything else, and
  *   the whole tag is skipped.
@@ -443,10 +444,10 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$target = null;
 		foreach ( $members as $position => $member ) {
-			if ( 'array' !== $member ) {
+			if ( ! $this->is_shapeable( $member ) ) {
 				continue;
 			}
-			// Two bare members would leave it ambiguous which one the hash describes.
+			// Two shapeable members would leave it ambiguous which one the hash describes.
 			if ( null !== $target ) {
 				return null;
 			}
@@ -457,9 +458,25 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return null;
 		}
 
-		$shape = $this->resolve_container( $entries, $for_param );
+		$member = $members[ $target ];
+		$shape  = $this->resolve_container( $entries, $for_param, 'array' === $member );
 		if ( null === $shape ) {
 			return null;
+		}
+
+		/*
+		 * An object shape is structural, so one derived for a value core builds as a
+		 * `stdClass` would no longer be assignable to a property declared `stdClass`.
+		 * Naming the class in the docblock keeps both: the value stays that class, and
+		 * its members are typed by the shape intersected with it.
+		 */
+		if ( 'array' !== $member && 'object' !== $member ) {
+			$shape = $member . '&' . $shape;
+
+			// An intersection inside a union needs parentheses to parse.
+			if ( count( $members ) > 1 ) {
+				$shape = '(' . $shape . ')';
+			}
 		}
 
 		$members[ $target ] = $shape;
@@ -468,19 +485,74 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
+	 * Reports whether a member of a union type can carry a shape.
+	 *
+	 * `array` and `object` take one directly. A class name takes one through an
+	 * intersection, so the value keeps the class it is documented as, which is
+	 * what makes a `stdClass` hash usable where the class is expected.
+	 *
+	 * @param string $member One member of a union type.
+	 * @return bool
+	 */
+	private function is_shapeable( string $member ): bool {
+		if ( 'array' === $member || 'object' === $member ) {
+			return true;
+		}
+
+		// A name PHPDoc gives a meaning of its own is not a class, whatever its shape.
+		$keywords = array(
+			'bool',
+			'boolean',
+			'callable',
+			'double',
+			'false',
+			'float',
+			'int',
+			'integer',
+			'iterable',
+			'list',
+			'mixed',
+			'never',
+			'null',
+			'number',
+			'numeric',
+			'parent',
+			'resource',
+			'scalar',
+			'self',
+			'static',
+			'string',
+			'this',
+			'true',
+			'void',
+		);
+
+		if ( in_array( strtolower( $member ), $keywords, true ) ) {
+			return false;
+		}
+
+		return preg_match( '#^\\\\?[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$#', $member ) === 1;
+	}
+
+	/**
 	 * Builds the shape for one hash level.
 	 *
 	 * @param list<mixed> $entries   Entries of this level.
 	 * @param bool        $for_param Whether the hash documents a `@param`.
+	 * @param bool        $is_array  Whether the hash describes an array rather than an object.
 	 * @return string|null
 	 */
-	private function resolve_container( array $entries, bool $for_param ): ?string {
+	private function resolve_container( array $entries, bool $for_param, bool $is_array ): ?string {
 		/*
 		 * A single `...$0` entry describes a repeated value rather than a key.
 		 * The hash says nothing about the keys it repeats under, and core uses
 		 * both numbered and named ones, so the keys stay `array-key`.
 		 */
 		if ( 1 === count( $entries ) && $entries[0]['variadic'] ) {
+			if ( ! $is_array ) {
+				return null;
+			}
+
 			$inner = $this->resolve_entry_type( $entries[0], $for_param );
 
 			return null === $inner ? null : sprintf( 'array<array-key, %s>', $inner );
@@ -515,6 +587,10 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * the shape would be sealed, and reading or testing for an undocumented
 		 * key would be reported as an error at every call site that adds one.
 		 */
+		if ( ! $is_array ) {
+			return sprintf( 'object{%s}', implode( ', ', $members ) );
+		}
+
 		return sprintf( 'array{%s%s}', implode( ', ', $members ), $for_param ? ', ...' : '' );
 	}
 

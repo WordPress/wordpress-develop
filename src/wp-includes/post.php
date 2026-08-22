@@ -2011,7 +2011,7 @@ function unregister_post_type( $post_type ) {
  * @see map_meta_cap()
  *
  * @param object $args Post type registration arguments.
- * @return object {
+ * @return stdClass {
  *     Object with all the capabilities as member variables.
  *
  *     @type string $edit_post              Capability to edit a post.

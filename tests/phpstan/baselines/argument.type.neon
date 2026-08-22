@@ -94,7 +94,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/edit.php
 		-
-			message: '#^Parameter \#1 \$args of method WP_Ajax_Response\:\:add\(\) expects array\{what\?\: string, action\?\: string\|false, id\?\: int\|WP_Error, old_id\?\: int\|false, position\?\: string, data\?\: string\|WP_Error, supplemental\?\: array, \.\.\.\}\|string, array\{what\: ''comment'', id\: numeric\-string, data\: string\|false, position\: ''\-1''\|int, supplemental\: array\{in_moderation\: mixed, i18n_comments_text\: string, i18n_moderation_text\: string, parent_approved\: numeric\-string, parent_post_id\: numeric\-string\}\|array\{in_moderation\: mixed, i18n_comments_text\: string, i18n_moderation_text\: string\}\} given\.$#'
+			message: '#^Parameter \#1 \$args of method WP_Ajax_Response\:\:add\(\) expects array\{what\?\: string, action\?\: string\|false, id\?\: int\|WP_Error, old_id\?\: int\|false, position\?\: string, data\?\: string\|WP_Error, supplemental\?\: array, \.\.\.\}\|string, array\{what\: ''comment'', id\: numeric\-string, data\: string\|false, position\: ''\-1''\|int, supplemental\: array\{in_moderation\: int, i18n_comments_text\: string, i18n_moderation_text\: string, parent_approved\: numeric\-string, parent_post_id\: numeric\-string\}\|array\{in_moderation\: int, i18n_comments_text\: string, i18n_moderation_text\: string\}\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/ajax-actions.php
