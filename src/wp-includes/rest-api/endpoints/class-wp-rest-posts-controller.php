@@ -788,6 +788,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post = get_post( $post_id );
 
+		// Set last edit user, so that get_the_modified_author() works.
+		update_post_meta( $post_id, '_edit_last', get_current_user_id() );
+
 		/**
 		 * Fires after a single post is created or updated via the REST API.
 		 *
@@ -989,6 +992,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post = get_post( $post_id );
+
+		// Update last edit user, so that get_the_modified_author() works.
+		update_post_meta( $post_id, '_edit_last', get_current_user_id() );
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		do_action( "rest_insert_{$this->post_type}", $post, $request, false );
