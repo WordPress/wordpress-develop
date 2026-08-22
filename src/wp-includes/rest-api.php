@@ -325,10 +325,8 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Sites.
-	if ( is_multisite() ) {
-		$controller = new WP_REST_Sites_Controller();
-		$controller->register_routes();
-	}
+	$controller = new WP_REST_Sites_Controller();
+	$controller->register_routes();
 
 	$search_handlers = array(
 		new WP_REST_Post_Search_Handler(),

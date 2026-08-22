@@ -10,7 +10,7 @@
  * @group restapi
  * @group ms-required
  *
- * @covers WP_REST_Sites_Controller
+ * @coversDefaultClass WP_REST_Sites_Controller
  */
 class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -41,6 +41,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->endpoint = new WP_REST_Sites_Controller();
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::register_routes
+	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/sites', $routes );
@@ -49,6 +53,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertCount( 3, $routes['/wp/v2/sites/(?P<id>[\d]+)'] );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::get_context_param
+	 */
 	public function test_context_param() {
 		wp_set_current_user( self::$superadmin_id );
 		// Collection
@@ -66,7 +74,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
-
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items
+	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$superadmin_id );
 		self::factory()->blog->create_many( 6 );
@@ -77,7 +88,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertCount( 7, $sites );
 	}
 
-
+	/**
+	 * @ticket 40365
+	 * @covers ::get_item
+	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$superadmin_id );
 
@@ -100,6 +114,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * An unknown ID is a 404, not an empty site.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item
 	 */
 	public function test_get_item_invalid_id() {
 		wp_set_current_user( self::$superadmin_id );
@@ -110,6 +127,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_site_invalid_id', $response, 404 );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::create_item
+	 */
 	public function test_create_item() {
 		wp_set_current_user( self::$superadmin_id );
 
@@ -132,6 +153,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( '/tempor/', $site->path );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item
+	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$superadmin_id );
 
@@ -152,6 +177,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( '/incididunt/', get_site( $blog_id )->path );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::delete_item
+	 */
 	public function test_delete_item() {
 		wp_set_current_user( self::$superadmin_id );
 
@@ -173,6 +202,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Deleting a site drops its tables.
+	 *
+	 * @ticket 40365
+	 * @covers ::delete_item
 	 */
 	public function test_delete_item_uninitializes_the_site() {
 		wp_set_current_user( self::$superadmin_id );
@@ -192,6 +224,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Sites have no trash, so deleting has to be explicit.
+	 *
+	 * @ticket 40365
+	 * @covers ::delete_item
 	 */
 	public function test_delete_item_requires_force() {
 		wp_set_current_user( self::$superadmin_id );
@@ -207,6 +242,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The main site of a network holds the network together.
+	 *
+	 * @ticket 40365
+	 * @covers ::delete_item
 	 */
 	public function test_delete_main_site_is_not_allowed() {
 		wp_set_current_user( self::$superadmin_id );
@@ -222,6 +260,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertNotNull( get_site( $main_site_id ) );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::prepare_item_for_response
+	 */
 	public function test_prepare_item() {
 		wp_set_current_user( self::$superadmin_id );
 
@@ -245,6 +287,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertIsInt( $data['post_count'] );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::get_item_schema
+	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/sites' );
 		$response   = rest_get_server()->dispatch( $request );
@@ -275,6 +321,11 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			'meta',
 		);
 
+		if ( ! is_site_meta_supported() ) {
+			// The meta property is only registered when the blogmeta table exists.
+			$expected = array_values( array_diff( $expected, array( 'meta' ) ) );
+		}
+
 		$this->assertEqualSets( $expected, array_keys( $properties ) );
 		$this->assertTrue( $properties['id']['readonly'] );
 		$this->assertTrue( $properties['registered']['readonly'] );
@@ -289,6 +340,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The status flags are booleans, the dates are RFC3339 with a GMT counterpart.
+	 *
+	 * @ticket 40365
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_get_item_uses_the_schema_types() {
 		wp_set_current_user( self::$superadmin_id );
@@ -311,6 +365,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The collection can be narrowed down by status.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_filter_by_status() {
 		wp_set_current_user( self::$superadmin_id );
@@ -340,6 +397,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Without the parameter the status does not narrow anything.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_without_status_filter_returns_every_site() {
 		wp_set_current_user( self::$superadmin_id );
@@ -356,6 +416,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The language IDs narrow the collection, in both directions.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_filter_by_lang_id() {
 		wp_set_current_user( self::$superadmin_id );
@@ -383,6 +446,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Registration dates are GMT, so the boundaries are read as GMT.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_filter_by_registration_date() {
 		wp_set_current_user( self::$superadmin_id );
@@ -410,6 +476,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * A created site gets the title and the administrator that were asked for.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
 	 */
 	public function test_create_item_sets_the_title_and_the_administrator() {
 		wp_set_current_user( self::$superadmin_id );
@@ -440,6 +509,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * An unknown administrator is refused before the site is created.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
 	 */
 	public function test_create_item_rejects_an_unknown_user_id() {
 		wp_set_current_user( self::$superadmin_id );
@@ -460,6 +532,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Title and administrator belong to creation, an update does not accept them.
+	 *
+	 * @ticket 40365
+	 * @covers  ::update_item
 	 */
 	public function test_update_item_does_not_accept_the_creation_fields() {
 		wp_set_current_user( self::$superadmin_id );
@@ -480,6 +555,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Filtering by user narrows the total, not just the current page.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_me_filter_reports_the_filtered_total() {
 		$blog_ids = self::factory()->blog->create_many( 3 );
@@ -509,6 +587,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * A user without sites gets nothing, not everything.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_filter_user_without_sites() {
 		wp_set_current_user( self::$superadmin_id );
@@ -528,6 +609,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * A site links to itself and to the collection.
+	 *
+	 * @ticket 40365
+	 * @covers ::prepare_links
 	 */
 	public function test_get_item_has_links() {
 		wp_set_current_user( self::$superadmin_id );
@@ -547,6 +631,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Reading a site's options means switching to it, so avoid it when the
 	 * fields that need it were not asked for.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_does_not_switch_blogs_for_table_columns() {
 		wp_set_current_user( self::$superadmin_id );
@@ -581,6 +668,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * A HEAD request answers with the headers and an empty body.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_head_request_returns_no_body() {
 		wp_set_current_user( self::$superadmin_id );
@@ -599,6 +689,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * A HEAD request on a single site answers with an empty body, and the
 	 * fields that need a switch stay untouched.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item
 	 */
 	public function test_head_request_on_a_single_site_returns_no_body() {
 		wp_set_current_user( self::$superadmin_id );
@@ -625,6 +718,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The collection is ordered by ID, ascending.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_are_ordered_ascending() {
 		wp_set_current_user( self::$superadmin_id );
@@ -641,6 +737,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Ordering by an ID list falls back when there is no list.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
 	 */
 	public function test_get_items_orderby_id_list_without_a_list() {
 		wp_set_current_user( self::$superadmin_id );
@@ -658,6 +757,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The data is stored as sent, without added slashes.
+	 *
+	 * @ticket 40365
+	 * @covers ::update_item
 	 */
 	public function test_update_item_does_not_slash_the_stored_data() {
 		wp_set_current_user( self::$superadmin_id );
@@ -675,6 +777,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The status fields are stored when a site is created.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
 	 */
 	public function test_create_item_stores_the_status_fields() {
 		wp_set_current_user( self::$superadmin_id );
@@ -700,6 +805,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * A partial update must not touch fields the request left out.
+	 *
+	 * @ticket 40365
+	 * @covers ::update_item
 	 */
 	public function test_update_item_keeps_fields_that_were_not_sent() {
 		wp_set_current_user( self::$superadmin_id );
@@ -722,6 +830,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The domain is left alone when the request does not carry one.
+	 *
+	 * @ticket 40365
+	 * @covers ::update_item
 	 */
 	public function test_update_item_keeps_the_domain() {
 		wp_set_current_user( self::$superadmin_id );
@@ -744,6 +855,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * Registering under the `blog` meta type is what `add_site_meta()` and
 	 * `get_site_meta()` do, so the controller has to read the same type.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item
 	 */
 	public function test_get_item_exposes_site_meta() {
 		if ( ! is_site_meta_supported() ) {
@@ -779,6 +893,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		unregister_meta_key( 'blog', 'rest_test_site_meta' );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::get_user_site_ids
+	 */
 	public function test_invalid_user_input() {
 		$this->assertEquals( array(), $this->endpoint->get_user_site_ids( false ) );
 		$this->assertEquals( array(), $this->endpoint->get_user_site_ids( 0 ) );
@@ -787,6 +905,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( array(), $this->endpoint->get_user_site_ids( 999 ) );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::get_user_site_ids
+	 */
 	public function test_valid_user_input() {
 
 		$blog_ids = self::factory()->blog->create_many( 5 );
@@ -799,6 +921,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $blog_ids, $this->endpoint->get_user_site_ids( $user_id ) );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items
+	 */
 	public function test_get_items_filter_user() {
 		wp_set_current_user( self::$superadmin_id );
 		$blog_ids = self::factory()->blog->create_many( 5 );
@@ -817,6 +943,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $blog_ids, wp_list_pluck( $sites, 'id' ) );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items
+	 */
 	public function test_get_items_me_filter_user() {
 
 		$blog_ids = self::factory()->blog->create_many( 5 );
@@ -835,6 +965,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $blog_ids, wp_list_pluck( $sites, 'id' ) );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 */
 	public function test_get_items_filter_user_no_access() {
 
 		$blog_ids = self::factory()->blog->create_many( 5 );
@@ -852,6 +986,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 403, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items
+	 */
 	public function test_get_items_filter_with_includes_user() {
 		wp_set_current_user( self::$superadmin_id );
 		$blog_ids = self::factory()->blog->create_many( 5 );
@@ -864,7 +1002,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'user', (string) $user_id );
 		$request->set_param( 'include', $blog_ids[0] );
 		$response = rest_get_server()->dispatch( $request );
-		//$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 200, $response->get_status() );
 		$sites = $response->get_data();
 		$this->assertCount( 1, $sites );
 		$this->assertEquals( array( $blog_ids[0] ), wp_list_pluck( $sites, 'id' ) );

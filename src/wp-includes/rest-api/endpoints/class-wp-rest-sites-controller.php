@@ -408,6 +408,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
 		}
 
+		if ( is_super_admin() ) {
+			return true;
+		}
+
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'manage_sites' ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit sites.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
@@ -450,6 +454,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! is_multisite() ) {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
+		}
+
+		if ( is_super_admin() ) {
+			return true;
 		}
 
 		return current_user_can( 'create_sites' );
@@ -519,7 +527,16 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		$schema = $this->get_item_schema();
 
-		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+		if ( isset( $request['meta'] ) ) {
+			if ( empty( $schema['properties']['meta'] ) ) {
+				return new WP_Error(
+					'rest_site_meta_not_supported',
+					/* translators: %s: database table name */
+					sprintf( __( 'The %s table is not installed. Please run the network database upgrade.' ), $GLOBALS['wpdb']->blogmeta ),
+					array( 'status' => 400 )
+				);
+			}
+
 			$meta_update = $this->meta->update_value( $request['meta'], $site_id );
 
 			if ( is_wp_error( $meta_update ) ) {
@@ -613,14 +630,13 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		$schema = $this->get_item_schema();
 
-		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
-			if ( function_exists( 'is_site_meta_supported' ) && ! is_site_meta_supported() ) {
-
+		if ( isset( $request['meta'] ) ) {
+			if ( empty( $schema['properties']['meta'] ) ) {
 				return new WP_Error(
-					'reset_site_meta_not_supported',
+					'rest_site_meta_not_supported',
 					/* translators: %s: database table name */
 					sprintf( __( 'The %s table is not installed. Please run the network database upgrade.' ), $GLOBALS['wpdb']->blogmeta ),
-					array( 'status' => 500 )
+					array( 'status' => 400 )
 				);
 			}
 
@@ -666,7 +682,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! current_user_can( 'delete_sites' ) ) {
+		if ( ! current_user_can( 'delete_sites' ) && ! is_super_admin() ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete this site.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -749,24 +765,64 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return apply_filters( 'rest_prepare_site', new WP_REST_Response( array() ), $site, $request );
 		}
 
-		$data = array(
-			'id'               => (int) $site->blog_id,
-			'network'          => (int) $site->site_id,
-			'domain'           => $site->domain,
-			'path'             => $site->path,
-			'registered'       => $this->prepare_date_response( $site->registered ),
-			'registered_gmt'   => $this->prepare_date_response( $site->registered, true ),
-			'last_updated'     => $this->prepare_date_response( $site->last_updated ),
-			'last_updated_gmt' => $this->prepare_date_response( $site->last_updated, true ),
-			'public'           => (bool) $site->public,
-			'archived'         => (bool) $site->archived,
-			'mature'           => (bool) $site->mature,
-			'spam'             => (bool) $site->spam,
-			'deleted'          => (bool) $site->deleted,
-			'lang_id'          => (int) $site->lang_id,
-		);
-
+		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
+
+		if ( rest_is_field_included( 'id', $fields ) ) {
+			$data['id'] = (int) $site->blog_id;
+		}
+
+		if ( rest_is_field_included( 'network', $fields ) ) {
+			$data['network'] = (int) $site->site_id;
+		}
+
+		if ( rest_is_field_included( 'domain', $fields ) ) {
+			$data['domain'] = $site->domain;
+		}
+
+		if ( rest_is_field_included( 'path', $fields ) ) {
+			$data['path'] = $site->path;
+		}
+
+		if ( rest_is_field_included( 'registered', $fields ) ) {
+			$data['registered'] = $this->prepare_date_response( $site->registered );
+		}
+
+		if ( rest_is_field_included( 'registered_gmt', $fields ) ) {
+			$data['registered_gmt'] = $this->prepare_date_response( $site->registered, true );
+		}
+
+		if ( rest_is_field_included( 'last_updated', $fields ) ) {
+			$data['last_updated'] = $this->prepare_date_response( $site->last_updated );
+		}
+
+		if ( rest_is_field_included( 'last_updated_gmt', $fields ) ) {
+			$data['last_updated_gmt'] = $this->prepare_date_response( $site->last_updated, true );
+		}
+
+		if ( rest_is_field_included( 'public', $fields ) ) {
+			$data['public'] = (bool) $site->public;
+		}
+
+		if ( rest_is_field_included( 'archived', $fields ) ) {
+			$data['archived'] = (bool) $site->archived;
+		}
+
+		if ( rest_is_field_included( 'mature', $fields ) ) {
+			$data['mature'] = (bool) $site->mature;
+		}
+
+		if ( rest_is_field_included( 'spam', $fields ) ) {
+			$data['spam'] = (bool) $site->spam;
+		}
+
+		if ( rest_is_field_included( 'deleted', $fields ) ) {
+			$data['deleted'] = (bool) $site->deleted;
+		}
+
+		if ( rest_is_field_included( 'lang_id', $fields ) ) {
+			$data['lang_id'] = (int) $site->lang_id;
+		}
 
 		// These four are not columns of the sites table. Reading one switches to the site.
 		if ( rest_is_field_included( 'blogname', $fields ) ) {
@@ -943,6 +999,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/schema#',
 			'title'      => 'site',
@@ -1074,9 +1134,14 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			),
 		);
 
-		$schema['properties']['meta'] = $this->meta->get_field_schema();
+		// Not all sites support site meta, do not register if the site does not support it.
+		if ( is_site_meta_supported() ) {
+			$schema['properties']['meta'] = $this->meta->get_field_schema();
+		}
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
@@ -1271,6 +1336,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! is_multisite() ) {
 			return false;
+		}
+
+		if ( is_super_admin() ) {
+			return true;
 		}
 
 		return current_user_can( 'manage_sites' );
