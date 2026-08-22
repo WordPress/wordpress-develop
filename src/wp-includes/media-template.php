@@ -1101,7 +1101,7 @@ function wp_print_media_templates() {
 		<?php endif; ?>
 
 		<fieldset class="setting-group">
-			<legend class="name"><?php _e( 'Align' ); ?></legend>
+			<legend class="name"><?php _e( 'Alignment' ); ?></legend>
 			<span class="setting align">
 				<span class="button-group button-large" data-setting="align">
 					<button class="button" value="left">
@@ -1165,7 +1165,7 @@ function wp_print_media_templates() {
 
 					<h2><?php _e( 'Display Settings' ); ?></h2>
 					<fieldset class="setting-group">
-						<legend class="legend-inline"><?php _e( 'Align' ); ?></legend>
+						<legend class="legend-inline"><?php _e( 'Alignment' ); ?></legend>
 						<span class="setting align">
 							<span class="button-group button-large" data-setting="align">
 								<button class="button" value="left">
