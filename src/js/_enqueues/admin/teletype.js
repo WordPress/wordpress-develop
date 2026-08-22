@@ -2,8 +2,8 @@
  * The WordPress admin easter egg.
  *
  * Originally written by Matt Mullenweg for WordPress 2.6 and removed in 3.6 along with
- * the revisions UI that triggered it. Restored here behind the command palette, with the
- * timings, dialogue, and staging of the original. See #65907.
+ * the revisions UI that triggered it. Restored here behind the command palette, keeping
+ * the timings and staging of the original. See #65907.
  *
  * The dialogue is stored in a Dvorak/QWERTY substitution cipher so that the payoff does
  * not turn up in a plain-text search of wp-admin/js. The decoder is dvortr(), below.
@@ -18,12 +18,12 @@
 		LINE_PAUSE  = 2000, // Between lines.
 		START_DELAY = 3000, // Before the first line.
 		FADE_TIME   = 3000, // Cursor fade-in, once the lights go out.
-		ACT_PAUSE   = 4000; // Between the two acts.
+		ACT_PAUSE   = 4000; // Between the two acts, and before the exit.
 
 	var ACT_ONE = [
-		'O.nu[jrmlapcorb e.y.jy.ev',
+		'O.nu[p.u.p.bj. e.y.jy.ev',
 		'Cbcycaycbi cbucbcy. nrrl .ojd.,an lpryrjrnv',
-		'O.nu e.oypgjy cbvvv 3',
+		'Pgbbcbi a prgycb. macby.babj. jfjn.v Xajt cbvvv 3',
 		'2',
 		'1'
 	];
@@ -34,9 +34,6 @@
 		'Yd. Maypcq dao frgvvv',
 		'Urnnr, yd. ,dcy. paxxcyv'
 	];
-
-	// Left on screen at the end, as the original's noscript fallback did.
-	var CLOSING = 'Erb-y n.y ydco dall.b aiacbv';
 
 	var FROM = '\',.pyfgcrl/=\\aoeuidhtns-;qjkxbmwvz"<>PYFGCRL?+|AOEUIDHTNS_:QJKXBMWVZ[]',
 		TO   = 'qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?-=';
@@ -170,19 +167,18 @@
 		}
 
 		/**
-		 * Act two: one line at a time, cleared between each.
+		 * Act two: one line at a time, cleared between each. The last line holds, then
+		 * the scene takes itself down and gives the admin page back.
 		 */
 		function actTwo( index ) {
-			if ( index >= ACT_TWO.length ) {
-				type( dvortr( CLOSING ), function () {
-					cursor.className = 'cursor';
-				} );
-				return;
-			}
-
 			type( dvortr( ACT_TWO[ index ] ).replace( '%s', function () {
 				return displayName;
 			} ), function () {
+				if ( index + 1 >= ACT_TWO.length ) {
+					wait( ACT_PAUSE, abort );
+					return;
+				}
+
 				wait( LINE_PAUSE, function () {
 					clear();
 					actTwo( index + 1 );
