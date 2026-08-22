@@ -520,9 +520,11 @@ window.wp = window.wp || {};
 
 				if (r) {
 					if ( -1 !== r.indexOf( '<tr' ) ) {
-						$(inlineEditPost.what+id).siblings('tr.hidden').addBack().remove();
-						$('#edit-'+id).before(r).remove();
-						$( inlineEditPost.what + id ).hide().fadeIn( 400, function() {
+						// Remove the quick edit form and the hidden tr.
+						$('#edit-'+id).siblings('tr.hidden').remove();
+						$('#edit-'+id).remove();
+						// Keep the existing row and update content instead of replacing it.
+						$( inlineEditPost.what + id ).html( $(r).html() ).hide().fadeIn( 400, function() {
 							// Move focus back to the Quick Edit button. $( this ) is the row being animated.
 							$( this ).find( '.editinline' )
 								.attr( 'aria-expanded', 'false' )
