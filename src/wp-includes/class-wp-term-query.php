@@ -306,11 +306,15 @@ class WP_Term_Query {
 	 * @phpstan-return (
 	 *     $query is array{ fields: 'count', ... }
 	 *         ? 0|numeric-string
-	 *         : ( $query is array{ fields: 'ids'|'tt_ids'|'id=>parent', ... }
+	 *         : ( $query is array{ fields: 'ids'|'tt_ids', ... }
 	 *             ? int[]
-	 *             : ( $query is array{ fields: 'names'|'slugs'|'id=>name'|'id=>slug', ... }
-	 *                 ? string[]
-	 *                 : WP_Term[] ) )
+	 *             : ( $query is array{ fields: 'id=>parent', ... }
+	 *                 ? array<int, int>
+	 *                 : ( $query is array{ fields: 'names'|'slugs', ... }
+	 *                     ? string[]
+	 *                     : ( $query is array{ fields: 'id=>name'|'id=>slug', ... }
+	 *                         ? array<int, string>
+	 *                         : WP_Term[] ) ) ) )
 	 * )
 	 */
 	public function query( $query ) {
@@ -339,12 +343,9 @@ class WP_Term_Query {
 	 *   - 'names'
 	 *   - 'slugs'
 	 *
-	 * The following will result in an array of numeric strings being returned:
-	 *
-	 *   - 'id=>parent'
-	 *
 	 * The following will result in an array of integers being returned:
 	 *
+	 *   - 'id=>parent'
 	 *   - 'ids'
 	 *   - 'tt_ids'
 	 *
