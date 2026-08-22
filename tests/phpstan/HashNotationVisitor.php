@@ -127,7 +127,13 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return null;
 		}
 
-		$node->setDocComment( new Doc( $merged, $doc->getStartLine(), $doc->getStartFilePos() ) );
+		/*
+		 * The rewritten docblock is longer than the one in the file, so it carries no
+		 * position. Keeping the original start would point at a span of the source that
+		 * no longer holds this text, which is the same reason GlobalDocBlockVisitor
+		 * leaves it off.
+		 */
+		$node->setDocComment( new Doc( $merged ) );
 
 		return null;
 	}
