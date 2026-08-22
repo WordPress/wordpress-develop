@@ -94,6 +94,26 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/edit.php
 		-
+			message: '#^Parameter \#1 \$args of method WP_Ajax_Response\:\:add\(\) expects array\{what\?\: string, action\?\: string\|false, id\?\: int\|WP_Error, old_id\?\: int\|false, position\?\: string, data\?\: string\|WP_Error, supplemental\?\: array, \.\.\.\}\|string, array\{what\: ''comment'', id\: numeric\-string, data\: string\|false, position\: ''\-1''\|int, supplemental\: array\{in_moderation\: mixed, i18n_comments_text\: string, i18n_moderation_text\: string, parent_approved\: numeric\-string, parent_post_id\: numeric\-string\}\|array\{in_moderation\: mixed, i18n_comments_text\: string, i18n_moderation_text\: string\}\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
+			message: '#^Parameter \#1 \$args of method WP_Ajax_Response\:\:add\(\) expects array\{what\?\: string, action\?\: string\|false, id\?\: int\|WP_Error, old_id\?\: int\|false, position\?\: string, data\?\: string\|WP_Error, supplemental\?\: array, \.\.\.\}\|string, array\{what\: ''edit_comment'', id\: non\-falsy\-string&numeric\-string, data\: string\|false, position\: ''\-1''\|int\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
+			message: '#^Parameter \#1 \$args of method WP_Ajax_Response\:\:add\(\) expects array\{what\?\: string, action\?\: string\|false, id\?\: int\|WP_Error, old_id\?\: int\|false, position\?\: string, data\?\: string\|WP_Error, supplemental\?\: array, \.\.\.\}\|string, array\{what\: ''link\-category'', id\: int, data\: non\-falsy\-string, position\: \-1\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
+			message: '#^Parameter \#1 \$args of method WP_Ajax_Response\:\:add\(\) expects array\{what\?\: string, action\?\: string\|false, id\?\: int\|WP_Error, old_id\?\: int\|false, position\?\: string, data\?\: string\|WP_Error, supplemental\?\: array, \.\.\.\}\|string, array\{what\: ''term'', position\: int\<0, max\>, supplemental\: non\-empty\-array\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
 			message: '#^Parameter \#1 \$attachment of function wp_get_attachment_id3_keys expects WP_Post, stdClass given\.$#'
 			identifier: argument.type
 			count: 1
@@ -153,6 +173,16 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-comments-list-table.php
+		-
+			message: '#^Parameter \#1 \$args of function get_bookmarks expects array\{orderby\?\: string, order\?\: string, limit\?\: int, category\?\: string, category_name\?\: string, hide_invisible\?\: bool\|int, show_updated\?\: bool\|int, include\?\: string, \.\.\., \.\.\.\}\|string, array\{hide_invisible\: 0, hide_empty\: 0, category\?\: int, search\?\: non\-falsy\-string, orderby\?\: non\-falsy\-string, order\?\: non\-falsy\-string\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/class-wp-links-list-table.php
+		-
+			message: '#^Parameter \#2 \$args of function wp_admin_notice expects array\{type\?\: string, dismissible\?\: bool, id\?\: string, additional_classes\?\: array\<string\>, attributes\?\: array\<string\>, paragraph_wrap\?\: bool, \.\.\.\}, array\{type\: ''error'', additional_classes\: ''inline''\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php
 		-
 			message: '#^Parameter \#3 \$number of function _nx expects int, float given\.$#'
 			identifier: argument.type
@@ -369,7 +399,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/template.php
 		-
-			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, stdClass given\.$#'
+			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, object\{language\: string, version\: string, updated\: string, english_name\: string, native_name\: string, package\: string, iso\: array\<string\>, strings\: array\}&stdClass given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/translation-install.php
@@ -509,7 +539,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
 		-
-			message: '#^Parameter \#3 \$args of function register_setting expects array, string given\.$#'
+			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: callable\(\)\: mixed, show_in_rest\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
@@ -583,6 +613,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentynineteen/inc/helper-functions.php
+		-
+			message: '#^Parameter \#1 \$args of function comment_form expects array\{fields\?\: array\{author\?\: string, email\?\: string, url\?\: string, cookies\?\: string, \.\.\.\}, comment_field\?\: string, must_log_in\?\: string, logged_in_as\?\: string, comment_notes_before\?\: string, comment_notes_after\?\: string, action\?\: string, novalidate\?\: bool, \.\.\., \.\.\.\}, array\{title_reply\: null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-content/themes/twentynineteen/inc/template-tags.php
 		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
@@ -729,6 +764,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentytwenty/functions.php
 		-
+			message: '#^Parameter \#1 \$args of function wp_list_pages expects array\{child_of\?\: int, authors\?\: string, date_format\?\: string, depth\?\: int, echo\?\: bool, exclude\?\: string, include\?\: array, link_after\?\: string, \.\.\., \.\.\.\}\|string, array\{match_menu_classes\: true, show_sub_menu_icons\: true, title_li\: false, walker\: TwentyTwenty_Walker_Page\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-content/themes/twentytwenty/header.php
+		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -738,6 +778,26 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentytwenty/template-parts/entry-author-bio.php
+		-
+			message: '#^Parameter \#1 \$args of function wp_nav_menu expects array\{menu\?\: int\|string\|WP_Term, menu_class\?\: string, menu_id\?\: string, container\?\: string, container_class\?\: string, container_id\?\: string, container_aria_label\?\: string, fallback_cb\?\: \(callable\(\)\: mixed\)\|false, \.\.\., \.\.\.\}, array\{theme_location\: ''social'', container\: '''', container_class\: '''', items_wrap\: ''%%3\$s'', menu_id\: '''', menu_class\: '''', depth\: 1, link_before\: ''\<span class\="screen…'', \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-content/themes/twentytwenty/template-parts/footer-menus-widgets.php
+		-
+			message: '#^Parameter \#1 \$args of function wp_list_pages expects array\{child_of\?\: int, authors\?\: string, date_format\?\: string, depth\?\: int, echo\?\: bool, exclude\?\: string, include\?\: array, link_after\?\: string, \.\.\., \.\.\.\}\|string, array\{match_menu_classes\: true, show_toggles\: true, title_li\: false, walker\: TwentyTwenty_Walker_Page\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-content/themes/twentytwenty/template-parts/modal-menu.php
+		-
+			message: '#^Parameter \#1 \$args of function wp_nav_menu expects array\{menu\?\: int\|string\|WP_Term, menu_class\?\: string, menu_id\?\: string, container\?\: string, container_class\?\: string, container_id\?\: string, container_aria_label\?\: string, fallback_cb\?\: \(callable\(\)\: mixed\)\|false, \.\.\., \.\.\.\}, array\{theme_location\: ''social'', container\: '''', container_class\: '''', items_wrap\: ''%%3\$s'', menu_id\: '''', menu_class\: '''', depth\: 1, link_before\: ''\<span class\="screen…'', \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-content/themes/twentytwenty/template-parts/modal-menu.php
+		-
+			message: '#^Parameter \#1 \$args of function wp_nav_menu expects array\{menu\?\: int\|string\|WP_Term, menu_class\?\: string, menu_id\?\: string, container\?\: string, container_class\?\: string, container_id\?\: string, container_aria_label\?\: string, fallback_cb\?\: \(callable\(\)\: mixed\)\|false, \.\.\., \.\.\.\}, array\{theme_location\: ''footer'', items_wrap\: ''%%3\$s'', container\: false, depth\: 1, link_before\: ''\<span\>'', link_after\: ''\</span\>'', fallback_cb\: false\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-content/themes/twentytwentyone/footer.php
 		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
@@ -814,7 +874,22 @@ parameters:
 			count: 6
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
+			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, array\{number\: 1, hierarchical\: 0\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-customize-manager.php
+		-
+			message: '#^Parameter \#1 \$args of method WP_Customize_Manager\:\:get_changeset_posts\(\) expects array\{posts_per_page\?\: int, author\?\: int, post_status\?\: string, exclude_restore_dismissed\?\: bool, \.\.\.\}, array\{post_status\: array\<stdClass\|string\>, exclude_restore_dismissed\: false, author\: ''any'', posts_per_page\: 1, order\: ''DESC'', orderby\: ''date''\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-customize-manager.php
+		-
 			message: '#^Parameter \#1 \$month of function wp_checkdate expects int, \(string\|false\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-customize-manager.php
+		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\|string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
@@ -828,6 +903,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
+		-
+			message: '#^Parameter \#3 \$args of class WP_Customize_Filter_Setting constructor expects array\{type\?\: string, capability\?\: string, theme_supports\?\: array\<string\>\|string, default\?\: string, transport\?\: string, validate_callback\?\: callable\(\)\: mixed, sanitize_callback\?\: callable\(\)\: mixed, sanitize_js_callback\?\: callable\(\)\: mixed, \.\.\., \.\.\.\}, array\{transport\: ''postMessage'', type\: ''option'', default\: array\{\}, sanitize_callback\: array\{\$this\(WP_Customize_Nav_Menus\), ''sanitize_nav_menus…''\}\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-customize-nav-menus.php
 		-
 			message: '#^Parameter \#2 \$parent_query of method WP_Date_Query\:\:get_sql_for_clause\(\) expects array, string given\.$#'
 			identifier: argument.type
@@ -853,6 +933,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-duotone.php
+		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/class-wp-embed.php
 		-
 			message: '#^Parameter \#3 \$priority of function _wp_filter_build_unique_id expects int, false given\.$#'
 			identifier: argument.type
@@ -945,6 +1030,11 @@ parameters:
 			path: ../../../src/wp-includes/class-wp-widget.php
 		-
 			message: '#^Parameter \#1 \$post of function get_the_title expects int\|WP_Post, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
+		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: int\|string, post_date_gmt\: int\|string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
@@ -1244,6 +1334,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/nav-menu.php
 		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{menu_order\: mixed, ping_status\: 0, post_content\: mixed, post_excerpt\: mixed, post_parent\: int\|string\|WP_Error\|null, post_title\: mixed, post_type\: ''nav_menu_item'', post_date\?\: non\-falsy\-string, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/nav-menu.php
+		-
 			message: '#^Parameter \#2 \$value of function setcookie expects string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1283,6 +1378,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/pluggable.php
+		-
+			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/post-template.php
 		-
 			message: '#^Parameter \#1 \$attachment of function is_attachment expects array\<int\|string\>\|int\|string, WP_Post given\.$#'
 			identifier: argument.type
@@ -1391,7 +1491,12 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$data_object of method WP_REST_Controller\:\:update_additional_fields_for_object\(\) expects object, array given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
+			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php
+		-
+			message: '#^Parameter \#1 \$data_object of method WP_REST_Controller\:\:update_additional_fields_for_object\(\) expects object, array\<string, int\|string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php
 		-
 			message: '#^Parameter \#1 \$comment_id of function get_comment_type expects int\|WP_Comment, string given\.$#'
@@ -1583,6 +1688,11 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/user.php
+		-
+			message: '#^Parameter \#1 \$args of function register_sidebar expects array\{name\?\: string, id\?\: string, description\?\: string, class\?\: string, before_widget\?\: string, after_widget\?\: string, before_title\?\: string, after_title\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array\<int\|string, array\<mixed\>\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/widgets.php
 		-
 			message: '#^Parameter \#3 \$control_callback of function wp_register_widget_control expects callable\(\)\: mixed, '''' given\.$#'
 			identifier: argument.type

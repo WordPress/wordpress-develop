@@ -2915,9 +2915,9 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * @return array {
  *     Information about the newly-uploaded file.
  *
- *     @type string       $file  Filename of the newly-uploaded file.
- *     @type string       $url   URL of the uploaded file.
- *     @type string       $type  File type.
+ *     @type string       $file  Optional. Filename of the newly-uploaded file. Not set if there has been an error.
+ *     @type string       $url   Optional. URL of the uploaded file. Not set if there has been an error.
+ *     @type string       $type  Optional. File type. Not set if there has been an error.
  *     @type string|false $error Error message, if there has been an error.
  * }
  */
