@@ -5961,10 +5961,7 @@ function _admin_bar_bump_cb() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
 	?>
 	<style media="screen">
-	html { margin-top: 32px !important; }
-	@media screen and ( max-width: 782px ) {
-	  html { margin-top: 46px !important; }
-	}
+	html { margin-top: 48px !important; }
 	</style>
 	<?php
 }

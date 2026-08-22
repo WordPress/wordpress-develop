@@ -230,10 +230,10 @@ $baseline-unit: 10px;
 }
 
 .admin-bar {
-	--global--admin-bar--height: 32px;
+	--global--admin-bar--height: 48px;
 
 	@media only screen and (max-width: 782px) {
-		--global--admin-bar--height: 46px;
+		--global--admin-bar--height: 48px;
 	}
 }
 
