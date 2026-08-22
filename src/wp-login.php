@@ -56,7 +56,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	}
 
 	// Shake it!
-	$shake_error_codes = array( 'empty_password', 'empty_email', 'invalid_email', 'invalidcombo', 'empty_username', 'invalid_username', 'incorrect_password', 'retrieve_password_email_failure' );
+	$shake_error_codes = array( 'empty_password', 'empty_email', 'invalid_email', 'user_email', 'invalidcombo', 'empty_username', 'invalid_username', 'incorrect_password', 'retrieve_password_email_failure' );
 	/**
 	 * Filters the error codes array for shaking the login form.
 	 *
