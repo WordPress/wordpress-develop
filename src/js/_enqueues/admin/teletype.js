@@ -68,8 +68,17 @@
 			'background:#fff;color:#000;overflow:hidden;',
 			'transition:background-color .6s linear,color .6s linear}',
 		'.wp-teletype.is-dark{background:#000;color:#0f0}',
+		// Focused only to move the reading position in, never by tabbing to it.
+		'.wp-teletype:focus{outline:none}',
 		'.wp-teletype p{position:relative;z-index:1;margin:0;white-space:pre-wrap}',
 		'.wp-teletype .rain{position:absolute;inset:0;opacity:.5}',
+		'.wp-teletype .narration{position:absolute;width:1px;height:1px;margin:-1px;',
+			'padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}',
+		'.wp-teletype .exit{position:absolute;z-index:2;top:1.5em;right:1.5em;',
+			'padding:.7em 1.8em;border:0;border-radius:999px;background:#2271b1;color:#fff;',
+			'font-family:inherit;font-size:14px;line-height:1;cursor:pointer}',
+		'.wp-teletype .exit:hover{background:#135e96}',
+		'.wp-teletype .exit:focus-visible{outline:2px solid #fff;outline-offset:2px}',
 		'.wp-teletype .cursor{opacity:0;transition:opacity ' + ( FADE_TIME / 1000 ) + 's linear}',
 		'.wp-teletype .cursor.is-visible{opacity:1;animation:wp-teletype-blink 1s step-end infinite}',
 		'@keyframes wp-teletype-blink{50%{opacity:0}}',
@@ -181,16 +190,39 @@
 		var aborted          = false,
 			timer            = null,
 			stopRain         = null,
+			previousFocus    = document.activeElement,
 			previousOverflow = document.documentElement.style.overflow;
 
 		var style = document.createElement( 'style' );
 		style.textContent = STYLE;
 
+		/*
+		 * The scene is a modal dialog so that it is reachable and escapable rather than
+		 * something that happens silently over the top of an admin page. The dialogue
+		 * is English whatever the profile language, so it says so.
+		 */
 		var overlay = document.createElement( 'div' );
 		overlay.className = 'wp-teletype';
-		overlay.setAttribute( 'aria-hidden', 'true' );
+		overlay.setAttribute( 'role', 'dialog' );
+		overlay.setAttribute( 'aria-modal', 'true' );
+		overlay.setAttribute( 'aria-label', 'A WordPress easter egg. Press Escape to leave.' );
+		overlay.setAttribute( 'lang', 'en' );
+		overlay.setAttribute( 'tabindex', '-1' );
 
+		// Typed a character at a time, so it reaches the accessibility tree as whole
+		// lines through the live region below instead.
 		var line = document.createElement( 'p' );
+		line.setAttribute( 'aria-hidden', 'true' );
+
+		var narration = document.createElement( 'div' );
+		narration.className = 'narration';
+		narration.setAttribute( 'aria-live', 'polite' );
+		narration.setAttribute( 'aria-atomic', 'true' );
+
+		var exit = document.createElement( 'button' );
+		exit.type = 'button';
+		exit.className = 'exit';
+		exit.textContent = 'Exit';
 
 		var cursor = document.createElement( 'span' );
 		cursor.className = 'cursor';
@@ -198,6 +230,17 @@
 
 		line.appendChild( cursor );
 		overlay.appendChild( line );
+		overlay.appendChild( narration );
+		overlay.appendChild( exit );
+
+		/**
+		 * Hands a whole line to the live region.
+		 *
+		 * @param {string} text Line to announce.
+		 */
+		function say( text ) {
+			narration.textContent = text;
+		}
 
 		function wait( ms, next ) {
 			timer = window.setTimeout( function () {
@@ -247,6 +290,7 @@
 				return;
 			}
 
+			say( dvortr( ACT_ONE[ index ] ) );
 			type( dvortr( ACT_ONE[ index ] ), function () {
 				newline();
 				wait( LINE_PAUSE, function () {
@@ -268,6 +312,9 @@
 				stopRain = rain( overlay );
 			}
 
+			// The rain is the whole joke of this act, so describe it once.
+			say( 'The screen goes black. Green code rains down it.' );
+
 			wait( ACT_PAUSE, function () {
 				actTwo( 0 );
 			} );
@@ -278,9 +325,12 @@
 		 * the scene takes itself down and gives the admin page back.
 		 */
 		function actTwo( index ) {
-			type( dvortr( ACT_TWO[ index ] ).replace( '%s', function () {
+			var text = dvortr( ACT_TWO[ index ] ).replace( '%s', function () {
 				return displayName;
-			} ), function () {
+			} );
+
+			say( text );
+			type( text, function () {
 				if ( index + 1 >= ACT_TWO.length ) {
 					wait( ACT_PAUSE, abort );
 					return;
@@ -293,8 +343,8 @@
 			} );
 		}
 
-		function abort( event ) {
-			if ( event && 'keydown' === event.type && 'Escape' !== event.key ) {
+		function abort() {
+			if ( aborted ) {
 				return;
 			}
 
@@ -305,18 +355,38 @@
 				stopRain();
 			}
 
-			document.removeEventListener( 'keydown', abort );
+			document.removeEventListener( 'keydown', onKeydown );
 			document.documentElement.style.overflow = previousOverflow;
 			overlay.remove();
 			style.remove();
+
+			if ( previousFocus && previousFocus.focus ) {
+				previousFocus.focus();
+			}
 		}
 
-		document.addEventListener( 'keydown', abort );
-		overlay.addEventListener( 'click', abort );
+		function onKeydown( event ) {
+			if ( 'Escape' === event.key ) {
+				abort();
+				return;
+			}
+
+			// The scene has one control, so the trap has one stop.
+			if ( 'Tab' === event.key ) {
+				event.preventDefault();
+				exit.focus();
+			}
+		}
+
+		document.addEventListener( 'keydown', onKeydown );
+		overlay.addEventListener( 'click', function () {
+			abort();
+		} );
 
 		document.head.appendChild( style );
 		document.body.appendChild( overlay );
 		document.documentElement.style.overflow = 'hidden';
+		overlay.focus();
 
 		wait( START_DELAY, function () {
 			actOne( 0 );
