@@ -196,4 +196,16 @@ PHPStan can be resource-intensive, especially on large codebases like WordPress.
 
 PHPStan caches analysis results to speed up subsequent runs. You can see information about the results cache by running `analyse` with the `-vv` or `-vvv` flag.
 
+### Clear the cache after changing anything in this directory
+
+The `.cache` directory holds more than the results. PHPStan also stores what it read out of each source file there, the docblocks and signatures it found, keyed by that file's contents and nothing else. The sources in this directory change what reading a file yields without changing the file: `HashNotationVisitor` rewrites a docblock in the syntax tree, and the bytes on disk stay as they were.
+
+A cache written before one of them changed therefore answers with what the old code saw. The run does not fail or warn; it reports against types that are no longer derived, so a visitor can look as though it does nothing, or as though it does less than it does. So clear the cache by hand after editing anything here:
+
+```bash
+rm -rf .cache
+```
+
+The results cache alone is not the problem. PHPStan invalidates that itself when the configuration changes, and says which part of it no longer matches under `-vv`. What survives is the per-file reflection, which it has no way to know is stale. CI keys its cache on these files for the same reason; see `.github/workflows/reusable-phpstan-static-analysis-v1.yml`.
+
 Sometimes, due to the lack of type information in legacy code, PHPStan may still struggle to analyze certain parts of the codebase. In such cases, you can use the `--debug` flag to disable caching and see which files are causing issues.
