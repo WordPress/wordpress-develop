@@ -358,7 +358,10 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 		 * @param int             $attachment_id The attachment post ID.
 		 */
 		$image = apply_filters( 'image_editor_save_pre', $image, $attachment_id );
-
+		// Get the mine if we can aftert eh filter in case the image got changed.
+		if ( method_exists( $image, 'get_mime_type' ) ) {
+			$mime_type = $image->get_mime_type();
+		}
 		if ( is_wp_error( $image->stream( $mime_type ) ) ) {
 			return false;
 		}
@@ -433,6 +436,7 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
  * }
  */
 function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
+
 	if ( $image instanceof WP_Image_Editor ) {
 
 		/** This filter is documented in wp-admin/includes/image-edit.php */
@@ -457,8 +461,8 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		if ( null !== $saved ) {
 			return $saved;
 		}
-
-		return $image->save( $filename, $mime_type );
+		$file_ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+		return $image->save( $filename, $image->get_mime_type( $file_ext ) );
 	} else {
 		/* translators: 1: $image, 2: WP_Image_Editor */
 		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
@@ -491,8 +495,8 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		if ( null !== $saved ) {
 			return $saved;
 		}
-
-		switch ( $mime_type ) {
+var_dump($image->mime_type);
+		switch ( $image->mime_type ) {
 			case 'image/jpeg':
 				/** This filter is documented in wp-includes/class-wp-image-editor.php */
 				return imagejpeg( $image, $filename, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
@@ -801,7 +805,9 @@ function stream_preview_image( $post_id ) {
 		return false;
 	}
 
-	return wp_stream_image( $img, $post->post_mime_type, $post_id );
+	$mime_type = $post->post_mime_type;
+
+	return wp_stream_image( $img, $mime_type, $post_id );
 }
 
 /**

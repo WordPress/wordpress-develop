@@ -310,6 +310,55 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * test that wp_save_image_file uses the correct mime type when saving images.
+	 * If the filter in _load_image_to_edit_path is used, it should respect the filter.
+	 *
+	 * @dataProvider data_wp_save_image_file
+	 *
+	 * @covers ::wp_save_image_file
+	 */
+	public function test_wp_save_image_file_mime_type_honers_filter( $class_name, $mime_type ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
+		$loaded = $img->load();
+
+		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned.' );
+
+		if ( ! $img->supports_mime_type( $mime_type ) ) {
+			$this->markTestSkipped(
+				sprintf(
+					'The %s mime type is not supported by the %s engine.',
+					$mime_type,
+					str_replace( 'WP_Image_Editor_', '', $class_name )
+				)
+			);
+		}
+
+		add_filter( 'load_image_to_edit_path', function () {
+			return DIR_TESTDATA . '/images/avif-lossy.avif';
+		});
+
+		$ret  = wp_save_image_file( 'canola.jpg', $img, $mime_type, 1 );
+
+		// Make assertions.
+
+		$this->assertSame( 'image/avif', $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match.' );
+
+		// Clean up.
+		unlink( $file );
+		unlink( $ret['path'] );
+		unset( $img );
+		// Remove the filter.
+		remove_all_filters( 'load_image_to_edit_path' );
+    }
+
+    /**
+     * Data provider for test_wp_save_image_file_mime_type.
+     *
+     * @return array
+     */
+	/**
 	 * Data provider.
 	 *
 	 * @return array
