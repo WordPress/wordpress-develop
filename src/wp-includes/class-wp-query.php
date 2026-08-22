@@ -2821,6 +2821,18 @@ class WP_Query {
 				$pgstrt = absint( ( $page - 1 ) * $query_vars['posts_per_page'] ) . ', ';
 			}
 			$limits = 'LIMIT ' . $pgstrt . $query_vars['posts_per_page'];
+		} elseif ( ! empty( $query_vars['nopaging'] ) && ! $this->is_singular && absint( $query_vars['paged'] ) > 1 ) {
+			/*
+			 * The query retrieves all posts ('nopaging' true, e.g. via
+			 * 'posts_per_page' => -1) yet a page greater than 1 was requested.
+			 *
+			 * Without a LIMIT clause every paginated URL would return the full
+			 * result set, producing unlimited identical pages of duplicate
+			 * content (e.g. when 'posts_per_page' => -1 is applied to an archive
+			 * via 'pre_get_posts'). Return no posts instead, mirroring how an
+			 * out-of-bounds page behaves in normal pagination.
+			 */
+			$limits = 'LIMIT 0';
 		}
 
 		// Comments feeds.
@@ -3735,7 +3747,16 @@ class WP_Query {
 		$this->found_posts = (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
 
 		if ( ! empty( $limits ) ) {
-			$this->max_num_pages = (int) ceil( $this->found_posts / $query_vars['posts_per_page'] );
+			if ( ! empty( $query_vars['nopaging'] ) ) {
+				/*
+				 * All posts are retrieved ('posts_per_page' => -1), so there is
+				 * only one page. 'posts_per_page' is -1 here and cannot be used
+				 * to divide the total.
+				 */
+				$this->max_num_pages = 1;
+			} else {
+				$this->max_num_pages = (int) ceil( $this->found_posts / $query_vars['posts_per_page'] );
+			}
 		}
 	}
 
