@@ -59,6 +59,39 @@ This directory also contains extensions that teach PHPStan conventions specific 
 
 Core documents the globals a function uses with `@global Type $varname`. `GlobalDocBlockVisitor` bridges that convention to PHPStan's variable type resolution, so those globals are typed rather than `mixed` inside the function.
 
+### Hash notation
+
+Core documents the contents of an array argument with a nested list of `@type` tags, [hash notation](https://developer.wordpress.org/coding-standards/inline-documentation-standards/php/#1-1-parameters-that-are-arrays):
+
+```php
+/**
+ * @param array $args {
+ *     Optional. An array of arguments.
+ *
+ *     @type string $post_type   Post type. Default 'post'.
+ *     @type int    $post_author Post author ID.
+ * }
+ */
+```
+
+PHPStan reads that hash as free text, so the value stays a plain `array` and nothing inside it is typed. `HashNotationVisitor` translates it into the array shape PHPStan understands, which for the example above is `array{post_type?: string, post_author?: int, ...}`, so the same documentation serves the reader and the analysis rather than each shape having to be written a second time as a `@phpstan-param`.
+
+A hash whose translation would be a guess is left alone, and the value keeps whatever type it has today. The visitor therefore only ever narrows a type, and never contradicts one:
+
+- A `@phpstan-param` or `@phpstan-return` written by hand always wins. Hash notation cannot express everything a type can — a function returning either of two shapes, for example — so a shape that has been tuned in the source is never overwritten by the derived one.
+- The declared type has to name a bare `array`, on its own or as one member of a union such as `string|array`. A type that is already more specific than the hash, such as `array<string, string|bool>`, is left as written.
+- The hash has to be well formed: every `{` closed by a `}` on a line of its own, and every `@type` carrying a type and a `$name`.
+- A parameter taken by reference is skipped, because PHPStan checks a by-reference argument in both directions, and a shape there would be a contract every caller's variable has to satisfy before the call rather than a description of what the function reads.
+
+Keys of a `@param` hash are optional, at every level, and the shape is left open with a trailing `...`, because the hash lists the keys core reads rather than the only keys a caller may pass. Keys of a `@return` hash are required and the shape is sealed, since they describe a value core itself builds — unless the description marks one `Optional.`, which the visitor honors. Reading a key that a `@return` hash does not document is therefore reported rather than silently typed as `mixed`.
+
+Two kinds of hash are outside what the visitor covers today:
+
+- **`@var` hashes on properties.** A property declaration is inherited by every subclass and has to accept its own default, so a shape there would say more than the hash does: that no subclass may widen the property, and that the declared default already has the shape.
+- **`object` hashes**, such as the one on `get_taxonomy_labels()`. PHPStan's object shapes are structural, so a shape derived for a value core builds as a `stdClass` is no longer assignable to a property declared `stdClass`. Covering these needs the docblocks to name the class rather than `object`, so that the shape can be intersected with it.
+
+Hashes are also written on hook docblocks, where core documents `apply_filters()` and `do_action()`. Those are not attached to a function, so they are outside what this visitor sees, and the value a filter passes stays typed by [the hook extensions below](#hook-documentation).
+
 ### Hook documentation
 
 The remaining extensions read the docblock documenting a hook where the hook is fired, which is where WordPress documents its hooks. They cover `apply_filters()`, `do_action()` and their `_deprecated` and `_ref_array` variants.
