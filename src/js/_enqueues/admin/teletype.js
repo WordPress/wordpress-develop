@@ -18,7 +18,12 @@
 		LINE_PAUSE  = 2000, // Between lines.
 		START_DELAY = 3000, // Before the first line.
 		FADE_TIME   = 3000, // Cursor fade-in, once the lights go out.
-		ACT_PAUSE   = 4000; // Between the two acts, and before the exit.
+		ACT_PAUSE   = 4000, // Between the two acts, and before the exit.
+		RAIN_SIZE   = 16,   // Glyph size of the falling rain, in pixels.
+		RAIN_SPEED  = 60;   // Milliseconds between rain rows.
+
+	// Half-width katakana and digits, as the films used.
+	var GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
 
 	var ACT_ONE = [
 		'O.nu[p.u.p.bj. e.y.jy.ev',
@@ -63,7 +68,8 @@
 			'background:#fff;color:#000;overflow:hidden;',
 			'transition:background-color .6s linear,color .6s linear}',
 		'.wp-teletype.is-dark{background:#000;color:#0f0}',
-		'.wp-teletype p{margin:0;white-space:pre-wrap}',
+		'.wp-teletype p{position:relative;z-index:1;margin:0;white-space:pre-wrap}',
+		'.wp-teletype .rain{position:absolute;inset:0;opacity:.5}',
 		'.wp-teletype .cursor{opacity:0;transition:opacity ' + ( FADE_TIME / 1000 ) + 's linear}',
 		'.wp-teletype .cursor.is-visible{opacity:1;animation:wp-teletype-blink 1s step-end infinite}',
 		'@keyframes wp-teletype-blink{50%{opacity:0}}',
@@ -73,6 +79,100 @@
 	].join( '' );
 
 	/**
+	 * Runs the falling glyph rain behind the scene.
+	 *
+	 * @param {HTMLElement} parent Element to render into.
+	 * @return {Function} Stops the rain and removes it.
+	 */
+	function rain( parent ) {
+		var canvas  = document.createElement( 'canvas' ),
+			context = canvas.getContext( '2d' ),
+			columns = [],
+			width   = 0,
+			height  = 0,
+			frame   = null,
+			last    = 0;
+
+		canvas.className = 'rain';
+		canvas.setAttribute( 'aria-hidden', 'true' );
+
+		function resize() {
+			var ratio = window.devicePixelRatio || 1,
+				count,
+				i;
+
+			width  = parent.clientWidth;
+			height = parent.clientHeight;
+
+			canvas.width        = width * ratio;
+			canvas.height       = height * ratio;
+			canvas.style.width  = width + 'px';
+			canvas.style.height = height + 'px';
+
+			context.setTransform( ratio, 0, 0, ratio, 0, 0 );
+			context.font = RAIN_SIZE + 'px courier, monospace';
+
+			count = Math.ceil( width / RAIN_SIZE );
+
+			/*
+			 * Columns keep their position across a resize so the rain does not restart,
+			 * and any new ones start at a random height so the edge does not arrive as
+			 * a straight line.
+			 */
+			for ( i = columns.length; i < count; i++ ) {
+				columns.push( Math.random() * height );
+			}
+
+			columns.length = count;
+		}
+
+		function draw() {
+			var i;
+
+			// Painting over the last frame rather than clearing it leaves the trails.
+			context.fillStyle = 'rgba(0,0,0,.08)';
+			context.fillRect( 0, 0, width, height );
+			context.fillStyle = '#0f0';
+
+			for ( i = 0; i < columns.length; i++ ) {
+				context.fillText(
+					GLYPHS.charAt( Math.floor( Math.random() * GLYPHS.length ) ),
+					i * RAIN_SIZE,
+					columns[ i ]
+				);
+
+				if ( columns[ i ] > height && Math.random() > 0.975 ) {
+					columns[ i ] = 0;
+				} else {
+					columns[ i ] += RAIN_SIZE;
+				}
+			}
+		}
+
+		function tick( now ) {
+			frame = window.requestAnimationFrame( tick );
+
+			if ( now - last < RAIN_SPEED ) {
+				return;
+			}
+
+			last = now;
+			draw();
+		}
+
+		resize();
+		parent.appendChild( canvas );
+		window.addEventListener( 'resize', resize );
+		frame = window.requestAnimationFrame( tick );
+
+		return function () {
+			window.cancelAnimationFrame( frame );
+			window.removeEventListener( 'resize', resize );
+			canvas.remove();
+		};
+	}
+
+	/**
 	 * Plays the scene.
 	 *
 	 * @param {string} displayName The current user's display name.
@@ -80,6 +180,7 @@
 	function run( displayName ) {
 		var aborted          = false,
 			timer            = null,
+			stopRain         = null,
 			previousOverflow = document.documentElement.style.overflow;
 
 		var style = document.createElement( 'style' );
@@ -155,12 +256,18 @@
 		}
 
 		/**
-		 * The turn: screen to black, text to green, cursor fades up alone.
+		 * The turn: screen to black, text to green, rain starts, cursor fades up alone.
 		 */
 		function lightsOut() {
 			overlay.className = 'wp-teletype is-dark';
 			clear();
 			cursor.className = 'cursor is-visible';
+
+			// The rain is decoration, so it sits out a reduced-motion preference.
+			if ( ! window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ) {
+				stopRain = rain( overlay );
+			}
+
 			wait( ACT_PAUSE, function () {
 				actTwo( 0 );
 			} );
@@ -193,6 +300,11 @@
 
 			aborted = true;
 			window.clearTimeout( timer );
+
+			if ( stopRain ) {
+				stopRain();
+			}
+
 			document.removeEventListener( 'keydown', abort );
 			document.documentElement.style.overflow = previousOverflow;
 			overlay.remove();
