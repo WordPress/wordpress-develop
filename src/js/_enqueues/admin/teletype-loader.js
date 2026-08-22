@@ -71,9 +71,10 @@
 	 */
 	function onKeydown( event ) {
 		var store,
+			input = event.target,
 			value;
 
-		if ( 'Enter' !== event.key || ! event.target || ! event.target.value ) {
+		if ( 'Enter' !== event.key || ! input || ! input.value ) {
 			return;
 		}
 
@@ -83,7 +84,20 @@
 			return;
 		}
 
-		value = event.target.value.toLowerCase().replace( /[^a-z0-9]/g, '' );
+		/*
+		 * The palette's search field is a combobox: while any command matches, one of
+		 * them is the active option and Enter belongs to it. Only an empty result list
+		 * is ours to take, otherwise a post that happens to be named for the phrase
+		 * would never open.
+		 */
+		if (
+			'combobox' !== input.getAttribute( 'role' ) ||
+			input.getAttribute( 'aria-activedescendant' )
+		) {
+			return;
+		}
+
+		value = input.value.toLowerCase().replace( /[^a-z0-9]/g, '' );
 
 		if ( ! value || dvortr( value ) !== KEY ) {
 			return;
