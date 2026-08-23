@@ -1044,6 +1044,34 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
 }
 
 /**
+ * Adds multiple items of meta data to a site.
+ *
+ * This function is more performant than calling `add_site_meta()` multiple times because it queries the database
+ * only once and clears the meta cache only once.
+ *
+ * Examples:
+ *
+ *     bulk_add_site_meta(
+ *         $site_id,
+ *         array(
+ *             'meta_key_1' => 'value_1',
+ *             'meta_key_2' => 'value_2',
+ *         )
+ *     );
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
+ * @since x.y.z
+ *
+ * @param int                 $site_id     Site ID.
+ * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
+ * @return array<string,int>|false Array of meta IDs keyed by their meta key on success, false on failure.
+ */
+function bulk_add_site_meta( int $site_id, array $meta_fields ) {
+	return bulk_add_metadata( 'blog', $site_id, $meta_fields );
+}
+
+/**
  * Removes metadata matching criteria from a site.
  *
  * You can match based on the key, or key and value. Removing based on key and

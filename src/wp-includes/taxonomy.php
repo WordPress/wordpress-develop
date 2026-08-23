@@ -1409,6 +1409,39 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
 }
 
 /**
+ * Adds multiple items of meta data to a term.
+ *
+ * This function is more performant than calling `add_term_meta()` multiple times because it queries the database
+ * only once and clears the meta cache only once.
+ *
+ * Examples:
+ *
+ *     bulk_add_term_meta(
+ *         $term->term_id,
+ *         array(
+ *             'meta_key_1' => 'value_1',
+ *             'meta_key_2' => 'value_2',
+ *         )
+ *     );
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
+ * @since x.y.z
+ *
+ * @param int                 $term_id     Term ID.
+ * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
+ * @return array<string,int>|false|WP_Error Array of meta IDs keyed by their meta key on success, false on failure,
+ *                                          WP_Error when term_id is ambiguous between taxonomies.
+ */
+function bulk_add_term_meta( int $term_id, array $meta_fields ) {
+	if ( wp_term_is_shared( $term_id ) ) {
+		return new WP_Error( 'ambiguous_term_id', __( 'Term meta cannot be added to terms that are shared between taxonomies.' ), $term_id );
+	}
+
+	return bulk_add_metadata( 'term', $term_id, $meta_fields );
+}
+
+/**
  * Removes metadata matching criteria from a term.
  *
  * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.

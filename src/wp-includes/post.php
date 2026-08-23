@@ -2698,6 +2698,34 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
 }
 
 /**
+ * Adds multiple items of meta data to a post.
+ *
+ * This function is more performant than calling `add_post_meta()` multiple times because it queries the database
+ * only once and clears the meta cache only once.
+ *
+ * Examples:
+ *
+ *     bulk_add_post_meta(
+ *         $post->ID,
+ *         array(
+ *             'meta_key_1' => 'value_1',
+ *             'meta_key_2' => 'value_2',
+ *         )
+ *     );
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
+ * @since x.y.z
+ *
+ * @param int                 $post_id     Post ID.
+ * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
+ * @return array<string,int>|false Array of meta IDs keyed by their meta key on success, false on failure.
+ */
+function bulk_add_post_meta( int $post_id, array $meta_fields ) {
+	return bulk_add_metadata( 'post', $post_id, $meta_fields );
+}
+
+/**
  * Deletes a post meta field for the given post ID.
  *
  * You can match based on the key, or key and value. Removing based on key and
@@ -5109,8 +5137,12 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	if ( ! empty( $postarr['meta_input'] ) ) {
-		foreach ( $postarr['meta_input'] as $field => $value ) {
-			update_post_meta( $post_id, $field, $value );
+		if ( $update ) {
+			foreach ( $postarr['meta_input'] as $field => $value ) {
+				update_post_meta( $post_id, $field, $value );
+			}
+		} else {
+			bulk_add_post_meta( $post_id, $postarr['meta_input'] );
 		}
 	}
 
