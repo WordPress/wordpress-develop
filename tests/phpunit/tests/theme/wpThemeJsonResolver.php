@@ -1484,4 +1484,32 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex( $expected, $actual, 'Merged variation styles do not match.' );
 	}
+
+	/**
+	 * Tests that core theme.json does not emit hardcoded button color declarations
+	 * that would override theme styles due to CSS load order.
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_core_data
+	 * @ticket 65162
+	 */
+	public function test_core_theme_json_does_not_set_button_colors() {
+		$stylesheet = WP_Theme_JSON_Resolver::get_core_data()->get_stylesheet( array( 'styles' ) );
+
+		preg_match( '/:root :where\(\.wp-element-button[^{]*\)\s*\{[^}]*\}/', $stylesheet, $matches );
+		$this->assertNotEmpty( $matches, 'Button element rule should exist in core stylesheet.' );
+
+		$button_rule = $matches[0];
+
+		$this->assertStringNotContainsString(
+			'background-color',
+			$button_rule,
+			'Core theme.json must not set a background-color on the button element.'
+		);
+
+		$this->assertStringNotContainsString(
+			'color:',
+			$button_rule,
+			'Core theme.json must not set any color property on the button element.'
+		);
+	}
 }
