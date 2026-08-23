@@ -662,7 +662,13 @@ function get_comment_type_labels( $comment_type_object ) {
 
 	$provided_labels = (array) $comment_type_object->labels;
 
-	$labels = _get_custom_object_labels( $comment_type_object, $nohier_vs_hier_defaults );
+	/*
+	 * _get_custom_object_labels() writes every label it derives back onto the object
+	 * it is given, including the post-type-only labels removed below. Hand it a copy
+	 * so calling this function on a registered comment type leaves the registered
+	 * object untouched.
+	 */
+	$labels = _get_custom_object_labels( clone $comment_type_object, $nohier_vs_hier_defaults );
 
 	/*
 	 * _get_custom_object_labels() derives labels that only apply to post types.

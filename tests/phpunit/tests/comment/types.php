@@ -467,6 +467,25 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comment_type_labels
 	 */
+	public function test_get_comment_type_labels_does_not_modify_a_registered_type() {
+		register_comment_type( 'foo', array( 'label' => 'Foos' ) );
+
+		$comment_type_object = get_comment_type_object( 'foo' );
+		$registered_labels   = get_object_vars( $comment_type_object->labels );
+
+		$first  = get_comment_type_labels( $comment_type_object );
+		$second = get_comment_type_labels( $comment_type_object );
+
+		$this->assertSame( $registered_labels, get_object_vars( $comment_type_object->labels ), 'The registered labels should not change.' );
+		$this->assertEquals( $first, $second, 'Repeated calls should return the same labels.' );
+		$this->assertObjectNotHasProperty( 'archives', $second, 'Post-type-only labels should not appear on repeated calls.' );
+	}
+
+	/**
+	 * @ticket 35214
+	 *
+	 * @covers ::get_comment_type_labels
+	 */
 	public function test_labels_do_not_spawn_post_type_only_labels_from_menu_name() {
 		register_comment_type(
 			'foo',
