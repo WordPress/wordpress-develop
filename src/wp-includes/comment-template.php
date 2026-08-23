@@ -755,7 +755,7 @@ function comment_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  *
  * @since 1.5.0
  * @since 4.4.0 Added the ability for `$comment` to also accept a WP_Comment object. Added `$cpage` argument.
- * @since 7.1.0 The default 'type' changed from 'all' to '', matching get_page_of_comment().
+ * @since 7.2.0 The default 'type' changed from 'all' to '', matching get_page_of_comment().
  *
  * @see get_page_of_comment()
  *

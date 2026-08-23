@@ -223,7 +223,7 @@ function get_comment_to_edit( $id ) {
  *
  * @since 2.3.0
  * @since 6.9.0 Exclude the 'note' comment type from the count.
- * @since 7.1.0 The excluded comment types are derived from the
+ * @since 7.2.0 The excluded comment types are derived from the
  *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.

@@ -1086,7 +1086,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  * Calculates what page number a comment will appear on for comment paging.
  *
  * @since 2.7.0
- * @since 7.1.0 The default 'type' changed from 'all' to '', so that the page math
+ * @since 7.2.0 The default 'type' changed from 'all' to '', so that the page math
  *              applies the same default exclusions as the rendered comment list.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -3115,7 +3115,7 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
  * understood by WP_Comment_Query ('all', 'comment', 'comments', 'pings') are
  * stripped - the filter deals in literal `comment_type` values only.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param WP_Comment_Query|null $query Optional. The current query instance when called
  *                                     from WP_Comment_Query, or null when the set is
@@ -3181,7 +3181,7 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * comment data private. Enforce capability checks wherever the data is
 	 * displayed or exposed (for example over REST).
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param string[]              $excluded_types Comment types excluded from query results by default.
 	 *                                              Defaults to the 'note' type and every comment type
@@ -3220,7 +3220,7 @@ function wp_get_default_excluded_comment_types( $query = null ) {
  * WP_Comment_Query - the comment feeds and the comment counters - so that they all
  * honor the same {@see 'default_excluded_comment_types'} filter output.
  *
- * @since 7.1.0
+ * @since 7.2.0
  * @access private
  *
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -3252,7 +3252,7 @@ function _wp_get_excluded_comment_types_clause( $column = 'comment_type' ) {
  * Updates the comment count for the post.
  *
  * @since 2.5.0
- * @since 7.1.0 The excluded comment types are derived from the
+ * @since 7.2.0 The excluded comment types are derived from the
  *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.

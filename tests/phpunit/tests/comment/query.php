@@ -5541,7 +5541,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * Creates one comment of each of the 'comment', 'note', and 'private' types.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<'comment'|'note'|'private', int> Array of created comment IDs keyed by type.
 	 */
@@ -5665,7 +5665,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	/**
 	 * Data provider for explicit-request tests against a filtered excluded type.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
 	 */
