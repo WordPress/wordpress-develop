@@ -1989,6 +1989,29 @@ function wp_filter_content_tags( $content, $context = null ) {
 		$context = current_filter();
 	}
 
+	/*
+	 * During block template rendering, template parts, post content, excerpts, and widgets are
+	 * filtered before the overall template pass. Mark those tags so the final pass only handles
+	 * template-level tags.
+	 */
+	$is_block_template_filtering = ! empty( $GLOBALS['_wp_block_template_content_filtering'] );
+	$is_template_context         = 'template' === $context;
+	$template_filtered_attr_name = '';
+	$template_filtered_attr      = '';
+
+	if ( $is_block_template_filtering ) {
+		$template_filtered_attr_name = 'data-wp-block-template-filtered-' . sanitize_key(
+			$GLOBALS['_wp_block_template_content_filtering']
+		);
+		$template_filtered_attr      = ' ' . $template_filtered_attr_name . '="true"';
+	}
+
+	$context_flows_to_template = in_array(
+		$context,
+		array( 'the_content', 'the_excerpt', 'widget_text_content', 'widget_block_content' ),
+		true
+	) || str_starts_with( $context, 'template_part_' );
+
 	$add_iframe_loading_attr = wp_lazy_loading_enabled( 'iframe', $context );
 
 	if ( ! preg_match_all( '/<(img|iframe)\s[^>]+>/', $content, $matches, PREG_SET_ORDER ) ) {
@@ -2041,6 +2064,19 @@ function wp_filter_content_tags( $content, $context = null ) {
 	foreach ( $matches as $match ) {
 		// Filter an image match.
 		if ( isset( $images[ $match[0] ] ) ) {
+			$has_template_filtered_attr = false;
+			if ( $is_block_template_filtering && $is_template_context ) {
+				$processor = new WP_HTML_Tag_Processor( $match[0] );
+				if ( $processor->next_tag( array( 'tag_name' => 'IMG' ) ) ) {
+					$has_template_filtered_attr = null !== $processor->get_attribute( $template_filtered_attr_name );
+				}
+			}
+
+			if ( $has_template_filtered_attr ) {
+				unset( $images[ $match[0] ] );
+				continue;
+			}
+
 			$filtered_image = $match[0];
 			$attachment_id  = $images[ $match[0] ];
 
@@ -2071,6 +2107,14 @@ function wp_filter_content_tags( $content, $context = null ) {
 			 */
 			$filtered_image = apply_filters( 'wp_content_img_tag', $filtered_image, $context, $attachment_id );
 
+			if ( $is_block_template_filtering && $context_flows_to_template && ! $is_template_context ) {
+				$processor = new WP_HTML_Tag_Processor( $filtered_image );
+				if ( $processor->next_tag( array( 'tag_name' => 'IMG' ) ) ) {
+					$processor->set_attribute( $template_filtered_attr_name, 'true' );
+					$filtered_image = $processor->get_updated_html();
+				}
+			}
+
 			if ( $filtered_image !== $match[0] ) {
 				$content = str_replace( $match[0], $filtered_image, $content );
 			}
@@ -2084,11 +2128,32 @@ function wp_filter_content_tags( $content, $context = null ) {
 
 		// Filter an iframe match.
 		if ( isset( $iframes[ $match[0] ] ) ) {
+			$has_template_filtered_attr = false;
+			if ( $is_block_template_filtering && $is_template_context ) {
+				$processor = new WP_HTML_Tag_Processor( $match[0] );
+				if ( $processor->next_tag( array( 'tag_name' => 'IFRAME' ) ) ) {
+					$has_template_filtered_attr = null !== $processor->get_attribute( $template_filtered_attr_name );
+				}
+			}
+
+			if ( $has_template_filtered_attr ) {
+				unset( $iframes[ $match[0] ] );
+				continue;
+			}
+
 			$filtered_iframe = $match[0];
 
 			// Add 'loading' attribute if applicable.
 			if ( $add_iframe_loading_attr && ! str_contains( $filtered_iframe, ' loading=' ) ) {
 				$filtered_iframe = wp_iframe_tag_add_loading_attr( $filtered_iframe, $context );
+			}
+
+			if ( $is_block_template_filtering && $context_flows_to_template && ! $is_template_context ) {
+				$processor = new WP_HTML_Tag_Processor( $filtered_iframe );
+				if ( $processor->next_tag( array( 'tag_name' => 'IFRAME' ) ) ) {
+					$processor->set_attribute( $template_filtered_attr_name, 'true' );
+					$filtered_iframe = $processor->get_updated_html();
+				}
 			}
 
 			if ( $filtered_iframe !== $match[0] ) {
@@ -2101,6 +2166,10 @@ function wp_filter_content_tags( $content, $context = null ) {
 			 */
 			unset( $iframes[ $match[0] ] );
 		}
+	}
+
+	if ( $is_block_template_filtering && $is_template_context ) {
+		$content = str_replace( $template_filtered_attr, '', $content );
 	}
 
 	return $content;
@@ -6172,10 +6241,10 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	$loading_attrs = array();
 
 	/*
-	 * Skip lazy-loading for the overall block template, as it is handled more granularly.
-	 * The skip is also applicable for `fetchpriority`.
+	 * Skip lazy-loading for the overall block template outside the actual block template render,
+	 * as it is handled more granularly during that render.
 	 */
-	if ( 'template' === $context ) {
+	if ( 'template' === $context && empty( $GLOBALS['_wp_block_template_content_filtering'] ) ) {
 		/** This filter is documented in wp-includes/media.php */
 		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
 	}
@@ -6312,10 +6381,17 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		if ( isset( $header_enforced_contexts[ $context ] ) ) {
 			$maybe_in_viewport    = true;
 			$maybe_increase_count = true;
-		} elseif ( ! is_admin() && in_the_loop() && is_main_query() ) {
+		} elseif (
+			! is_admin() &&
+			(
+				( 'template' === $context && ! empty( $GLOBALS['_wp_block_template_content_filtering'] ) ) ||
+				( in_the_loop() && is_main_query() )
+			)
+		) {
 			/*
-			 * Get the content media count, since this is a main query
-			 * content element. This is accomplished by "increasing"
+			 * Get the content media count, since this is either a main query
+			 * content element or an element directly in the overall block template.
+			 * This is accomplished by "increasing"
 			 * the count by zero, as the only way to get the count is
 			 * to call this function.
 			 * The actual count increase happens further below, based
