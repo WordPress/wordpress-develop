@@ -385,7 +385,7 @@ function get_the_category_rss( $type = null ) {
 	$categories = get_the_category();
 	$tags       = get_the_tags();
 	$the_list   = '';
-	$cat_names  = array();
+	$cats  = array();
 
 	$filter = 'rss';
 	if ( 'atom' === $type ) {
@@ -394,25 +394,31 @@ function get_the_category_rss( $type = null ) {
 
 	if ( ! empty( $categories ) ) {
 		foreach ( (array) $categories as $category ) {
-			$cat_names[] = sanitize_term_field( 'name', $category->name, $category->term_id, 'category', $filter );
+			$cat_name = sanitize_term_field( 'name', $category->name, $category->term_id, 'category', $filter );
+			$cats[ $cat_name ] = $category;
 		}
 	}
 
 	if ( ! empty( $tags ) ) {
 		foreach ( (array) $tags as $tag ) {
-			$cat_names[] = sanitize_term_field( 'name', $tag->name, $tag->term_id, 'post_tag', $filter );
+			$cat_name = sanitize_term_field( 'name', $tag->name, $tag->term_id, 'post_tag', $filter );
+			$cats[ $cat_name ] = $tag;
 		}
 	}
 
-	$cat_names = array_unique( $cat_names );
-
-	foreach ( $cat_names as $cat_name ) {
+	foreach ( $cats as $cat_name => $category ) {
 		if ( 'rdf' === $type ) {
 			$the_list .= "\t\t<dc:subject><![CDATA[$cat_name]]></dc:subject>\n";
 		} elseif ( 'atom' === $type ) {
-			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" />', esc_attr( get_bloginfo_rss( 'url' ) ), esc_attr( $cat_name ) );
+			/** This filter is documented in wp-includes/feed.php */
+			$blog_url = apply_filters( 'get_bloginfo_rss', get_bloginfo( 'url' ) );
+			$scheme   = esc_attr( 'post_tag' === $category->taxonomy ? $blog_url . '/tag/' : $blog_url . '/category/' );
+			$label    = esc_attr( $cat_name );
+
+			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" label="%3$s" />', esc_url( $scheme ), esc_attr( $cat_name ), esc_attr( $label ) );
 		} else {
-			$the_list .= "\t\t<category><![CDATA[" . html_entity_decode( $cat_name, ENT_COMPAT, get_option( 'blog_charset' ) ) . "]]></category>\n";
+			$domain = 'post_tag' === $category->taxonomy ? 'tag' : 'category';
+			$the_list .= "\t\t<category domain=\"{$domain}\"><![CDATA[" . html_entity_decode( $cat_name, ENT_COMPAT, get_option( 'blog_charset' ) ) . "]]></category>\n";
 		}
 	}
 
