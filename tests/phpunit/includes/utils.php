@@ -583,17 +583,6 @@ function _unregister_taxonomy( $taxonomy_name ) {
 }
 
 /**
- * Unregisters a comment type.
- *
- * @since 7.1.0
- *
- * @param string $comment_type_name Comment type name.
- */
-function _unregister_comment_type( $comment_type_name ) {
-	unregister_comment_type( $comment_type_name );
-}
-
-/**
  * Unregister a post status.
  *
  * @since 4.2.0
