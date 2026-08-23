@@ -1540,7 +1540,7 @@ class WP_Automatic_Updater {
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
-		if ( WP_DEBUG && ( 'fail' === $type || 'mixed' === $type ) ) {
+		if ( 'fail' === $type || 'mixed' === $type ) {
 			$fatal_error = get_transient( 'wp_updater_last_fatal_error' );
 			if ( is_string( $fatal_error ) ) {
 				$email['body'] .= "\n\n=== " . __( 'Last fatal PHP error', 'default' ) . " ===\n";
@@ -1838,56 +1838,15 @@ Thanks! -- The WordPress Team"
 			$result       = json_decode( trim( $error_output ), true );
 		}
 
-		if ( WP_DEBUG ) {
-			$fatal_error = null;
+		if ( is_array( $result ) && ! empty( $result['message'] ) ) {
+			$fatal_error = sprintf(
+				'PHP Fatal error: %s in %s on line %d',
+				$result['message'],
+				$result['file'] ?? 'unknown',
+				$result['line'] ?? 0
+			);
 
-			$last_error = error_get_last();
-			if ( $last_error && in_array( $last_error['type'], array( E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR ) ) ) {
-				$fatal_error = "PHP Fatal error: {$last_error['message']} in {$last_error['file']} on line {$last_error['line']}";
-			} else {
-				$log_file = ini_get( 'error_log' );
-
-				if ( ! $log_file ) {
-					error_log( 'WP Auto-Update: error_log is empty, falling back to debug.log' );
-					$log_file = WP_CONTENT_DIR . '/debug.log';
-				}
-
-				if ( file_exists( $log_file ) && is_readable( $log_file ) ) {
-					$handle = fopen( $log_file, 'r' );
-					if ( $handle ) {
-						$pos = -2;
-						$current_line = '';
-						while ( $pos > -filesize( $log_file ) ) {
-							fseek( $handle, $pos, SEEK_END );
-							$char = fgetc( $handle );
-							if ( "\n" === $char ) {
-								if ( '' !== $current_line ) {
-									$line = strrev( $current_line );
-									if ( false !== strpos( $line, 'PHP Fatal error' ) ) {
-										$fatal_error = trim( $line );
-										break;
-									}
-									$current_line = '';
-								}
-							} else {
-								$current_line .= $char;
-							}
-							--$pos;
-						}
-						if ( '' !== $current_line && null === $fatal_error ) {
-							$line = strrev( $current_line );
-							if ( false !== strpos( $line, 'PHP Fatal error' ) ) {
-								$fatal_error = trim( $line );
-							}
-						}
-						fclose( $handle );
-					}
-				}
-			}
-
-			if ( $fatal_error ) {
-				set_transient( 'wp_updater_last_fatal_error', $fatal_error, 5 * MINUTE_IN_SECONDS );
-			}
+			set_transient( 'wp_updater_last_fatal_error', $fatal_error, 5 * MINUTE_IN_SECONDS );
 		}
 
 		delete_transient( $transient );
