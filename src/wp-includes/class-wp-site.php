@@ -15,12 +15,14 @@
  *
  * @since 4.5.0
  *
- * @property int    $id
- * @property int    $network_id
- * @property string $blogname
- * @property string $siteurl
- * @property int    $post_count
- * @property string $home
+ * @property int              $id
+ * @property int              $network_id
+ * @property string           $blogname
+ * @property string           $siteurl
+ * @property int|string|false $post_count
+ * @property string           $home
+ *
+ * @phpstan-property int|numeric-string|false $post_count
  */
 #[AllowDynamicProperties]
 final class WP_Site {
@@ -34,6 +36,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $blog_id;
 
@@ -63,6 +66,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $site_id = '0';
 
@@ -89,6 +93,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $public = '1';
 
@@ -99,6 +104,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $archived = '0';
 
@@ -112,6 +118,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $mature = '0';
 
@@ -122,16 +129,18 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $spam = '0';
 
 	/**
-	 * Whether the site should be treated as deleted.
+	 * Whether the site should be treated as flagged for deletion.
 	 *
 	 * A numeric string, for compatibility reasons.
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $deleted = '0';
 
@@ -142,6 +151,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	public $lang_id = '0';
 
@@ -190,7 +200,7 @@ final class WP_Site {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @param WP_Site|object $site A site object.
+	 * @param object $site A site object.
 	 */
 	public function __construct( $site ) {
 		foreach ( get_object_vars( $site ) as $key => $value ) {

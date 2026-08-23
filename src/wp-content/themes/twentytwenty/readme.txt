@@ -1,9 +1,9 @@
 === Twenty Twenty ===
 Contributors: the WordPress team
 Requires at least: 4.7
-Tested up to: 6.6
+Tested up to: 7.1
 Requires PHP: 5.2.4
-Stable tag: 2.7
+Stable tag: 3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,31 @@ all elements on your site are automatically calculated based on the colors
 you pick, ensuring a high, accessible color contrast for your visitors.
 
 == Changelog ==
+
+= 3.2 =
+* Released: August 19, 2026
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_3.2
+
+= 3.1 =
+* Released: May 20, 2026
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_3.1
+
+= 3.0 =
+* Released: December 2, 2025
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_3.0
+
+= 2.9 =
+* Released: April 15, 2025
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_2.9
+
+= 2.8 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_2.8
 
 = 2.7 =
 * Released: July 16, 2024
@@ -116,7 +141,7 @@ Initial release
 
 == Copyright ==
 
-Twenty Twenty WordPress Theme, Copyright 2019-2024 WordPress.org
+Twenty Twenty WordPress Theme, Copyright 2019-2026 WordPress.org and contributors.
 Twenty Twenty is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify
@@ -165,7 +190,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Source: WordPress Social Link Block (See wp-includes\blocks\social-link.php)
 
 Code from Twenty Nineteen
-Copyright (c) 2018-2024 WordPress.org
+Copyright (c) 2018-2026 WordPress.org
 License: GPLv2
 Source: https://wordpress.org/themes/twentynineteen/
 Included as part of the following classes and functions:
@@ -175,11 +200,11 @@ Included as part of the following classes and functions:
 - twentytwenty_nav_menu_social_icons()
 
 Code from Twenty Seventeen
-Copyright (c) 2016-2024 WordPress.org
+Copyright (c) 2016-2026 WordPress.org
 License: GPLv2
 Source: https://wordpress.org/themes/twentyseventeen/
 Included as part of the following classes and functions:
 - twentytwenty_unique_id()
 
 Underscores
-https://underscores.me/, (C) 2012-2024 Automattic, Inc., [GPLv2 or later](https://www.gnu.org/licenses/gpl-2.0.html)
+https://underscores.me/, (C) 2012-2026 Automattic, Inc., [GPLv2 or later](https://www.gnu.org/licenses/gpl-2.0.html)

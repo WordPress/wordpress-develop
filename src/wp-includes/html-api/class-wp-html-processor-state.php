@@ -16,6 +16,7 @@
  * @since 6.4.0
  *
  * @access private
+ * @ignore
  *
  * @see WP_HTML_Processor
  */
@@ -208,7 +209,9 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselect
+	 * @deprecated 7.1.0 The "in select" insertion mode was removed from the standard.
+	 * @ignore
+	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -220,7 +223,9 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselectintable
+	 * @deprecated 7.1.0 The "in select in table" insertion mode was removed from the standard.
+	 * @ignore
+	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -300,18 +305,6 @@ class WP_HTML_Processor_State {
 	const INSERTION_MODE_AFTER_AFTER_FRAMESET = 'insertion-mode-after-after-frameset';
 
 	/**
-	 * In foreign content insertion mode for full HTML parser.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inforeign
-	 * @see WP_HTML_Processor_State::$insertion_mode
-	 *
-	 * @var string
-	 */
-	const INSERTION_MODE_IN_FOREIGN_CONTENT = 'insertion-mode-in-foreign-content';
-
-	/**
 	 * The stack of template insertion modes.
 	 *
 	 * @since 6.7.0
@@ -333,7 +326,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @var WP_HTML_Open_Elements
 	 */
-	public $stack_of_open_elements = null;
+	public $stack_of_open_elements;
 
 	/**
 	 * Tracks open formatting elements, used to handle mis-nested formatting element tags.
@@ -346,7 +339,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @var WP_HTML_Active_Formatting_Elements
 	 */
-	public $active_formatting_elements = null;
+	public $active_formatting_elements;
 
 	/**
 	 * Refers to the currently-matched tag, if any.
@@ -372,12 +365,43 @@ class WP_HTML_Processor_State {
 	 * Context node initializing fragment parser, if created as a fragment parser.
 	 *
 	 * @since 6.4.0
+	 * @deprecated 6.8.0 WP_HTML_Processor tracks the context_node internally.
 	 *
-	 * @see https://html.spec.whatwg.org/#concept-frag-parse-context
-	 *
-	 * @var [string, array]|null
+	 * @var null
 	 */
 	public $context_node = null;
+
+	/**
+	 * The recognized encoding of the input byte stream.
+	 *
+	 * > The stream of code points that comprises the input to the tokenization
+	 * > stage will be initially seen by the user agent as a stream of bytes
+	 * > (typically coming over the network or from the local file system).
+	 * > The bytes encode the actual characters according to a particular character
+	 * > encoding, which the user agent uses to decode the bytes into characters.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string|null
+	 */
+	public $encoding = null;
+
+	/**
+	 * The parser's confidence in the input encoding.
+	 *
+	 * > When the HTML parser is decoding an input byte stream, it uses a character
+	 * > encoding and a confidence. The confidence is either tentative, certain, or
+	 * > irrelevant. The encoding used, and whether the confidence in that encoding
+	 * > is tentative or certain, is used during the parsing to determine whether to
+	 * > change the encoding. If no encoding is necessary, e.g. because the parser is
+	 * > operating on a Unicode stream and doesn't have to use a character encoding
+	 * > at all, then the confidence is irrelevant.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	public $encoding_confidence = 'tentative';
 
 	/**
 	 * HEAD element pointer.
@@ -389,6 +413,24 @@ class WP_HTML_Processor_State {
 	 * @var WP_HTML_Token|null
 	 */
 	public $head_element = null;
+
+	/**
+	 * FORM element pointer.
+	 *
+	 * > points to the last form element that was opened and whose end tag has
+	 * > not yet been seen. It is used to make form controls associate with
+	 * > forms in the face of dramatically bad markup, for historical reasons.
+	 * > It is ignored inside template elements.
+	 *
+	 * @todo This may be invalidated by a seek operation.
+	 *
+	 * @see https://html.spec.whatwg.org/#form-element-pointer
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var WP_HTML_Token|null
+	 */
+	public $form_element = null;
 
 	/**
 	 * The frameset-ok flag indicates if a `FRAMESET` element is allowed in the current state.

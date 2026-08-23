@@ -12,7 +12,7 @@ on:
         description: 'Operating system to run tests on'
         required: false
         type: 'string'
-        default: 'ubuntu-latest'
+        default: 'ubuntu-24.04'
       php:
         description: 'The version of PHP to use, in the format of X.Y'
         required: true
@@ -26,7 +26,12 @@ on:
         description: 'Database version'
         required: false
         type: 'string'
-        default: '8.0'
+        default: '8.4'
+      db-innovation:
+        description: 'Whether a database software innovation release is being tested.'
+        required: false
+        type: 'boolean'
+        default: false
       multisite:
         description: 'Whether to run tests as multisite'
         required: false
@@ -42,11 +47,21 @@ on:
         required: false
         type: 'string'
         default: 'phpunit.xml.dist'
+      phpunit-test-groups:
+        description: 'A list of test groups to run.'
+        required: false
+        type: 'string'
+        default: ''
       tests-domain:
         description: 'The domain to use for the tests'
         required: false
         type: 'string'
         default: 'example.org'
+      coverage-report:
+        description: 'Whether to generate a code coverage report.'
+        required: false
+        type: boolean
+        default: false
       report:
         description: 'Whether to report results to WordPress.org Hosting Tests'
         required: false
@@ -57,14 +72,38 @@ on:
         required: false
         type: boolean
         default: false
+      gutenberg-artifact:
+        description: 'Whether the Gutenberg-sourced assets are sourced from zip artifact.'
+        required: false
+        type: boolean
+        default: false
+      gutenberg-sha:
+        description: 'The immutable Gutenberg source SHA verified by the calling workflow.'
+        required: false
+        type: string
+        default: ''
+    secrets:
+      CODECOV_TOKEN:
+        description: 'The Codecov token required for uploading reports.'
+        required: false
+      WPT_REPORT_API_KEY:
+        description: 'The WordPress.org Hosting Tests API key.'
+        required: false
+
 env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
+  LOCAL_PHP_XDEBUG: false
+  LOCAL_PHP_XDEBUG_MODE: 'develop,debug'
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_WP_TESTS_DOMAIN: ${{ inputs.tests-domain }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  PUPPETEER_SKIP_DOWNLOAD: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
 
 jobs:
   # Runs the PHPUnit tests for WordPress.
@@ -72,6 +111,7 @@ jobs:
   # Performs the following steps:
   # - Sets environment variables.
   # - Checks out the repository.
+  # - Downloads the prepared Gutenberg build provided by the calling workflow.
   # - Sets up Node.js.
   # - Sets up PHP.
   # - Installs Composer dependencies.
@@ -83,27 +123,40 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
+  # - Upload the code coverage report to Codecov.io.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
-    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
-    runs-on: ${{ inputs.os }}
-    timeout-minutes: 20
+    name: ${{ ( inputs.phpunit-test-groups || inputs.coverage-report ) && format( 'PHP {0} with ', inputs.php ) || '' }} ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
+    runs-on: ${{ vars.RUNNERS_NAME || inputs.os }}
+    timeout-minutes: ${{ inputs.coverage-report && 120 || inputs.php == '8.4' && 30 || 20 }}
+    permissions:
+      contents: read
 
     steps:
       - name: Configure environment variables
         run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      # Only WordPress 7.0+ include Gutenberg-maintained assets from a built zip file.
+      - name: Download prepared Gutenberg build
+        if: ${{ inputs.gutenberg-artifact }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: gutenberg-build
+          path: gutenberg
+          digest-mismatch: error
 
       - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -116,7 +169,7 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
@@ -124,12 +177,18 @@ jobs:
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Build WordPress
+        run: npm run build:dev
+        env:
+          # The producer resolved this once. Matrix jobs must not re-resolve mutable GHCR tags.
+          GUTENBERG_EXPECTED_SHA: ${{ inputs.gutenberg-sha }}
 
       - name: General debug information
         run: |
@@ -144,6 +203,9 @@ jobs:
         run: |
           docker -v
 
+      - name: Pull Docker images
+        run: npm run env:pull
+
       - name: Start Docker environment
         run: |
           npm run env:start
@@ -153,52 +215,99 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker compose run --rm mysql ${{ env.LOCAL_DB_TYPE }} --version
+          docker compose run --rm mysql "${LOCAL_DB_CMD}" --version
           docker compose run --rm php php --version
           docker compose run --rm php php -m
           docker compose run --rm php php -i
           docker compose run --rm php locale -a
+        env:
+          LOCAL_DB_CMD: ${{ env.LOCAL_DB_TYPE == 'mariadb' && contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), env.LOCAL_DB_VERSION ) && 'mysql' || env.LOCAL_DB_TYPE }}
 
       - name: Install WordPress
         run: npm run env:install
 
-      - name: Run PHPUnit tests
-        continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}
-
-      - name: Run AJAX tests
-        continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
-
-      - name: Run ms-files tests as a multisite install
-        if: ${{ inputs.multisite }}
-        continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ms-files
+      # Installs PCOV as the code coverage driver for the PHPUnit run below.
+      #
+      # The INI directives tune PCOV for WordPress's codebase:
+      # - `pcov.enabled` keeps the Zend hooks active (this is the default, but
+      #   stated explicitly for clarity).
+      # - `pcov.directory` restricts instrumentation to `src/`, so PCOV does not
+      #   record hits for `vendor/`, `tests/`, or WordPress test fixtures that
+      #   PHPUnit would discard at report time anyway.
+      # - `pcov.initial.files` pre-sizes the internal file tracking array for
+      #   the thousands of files under `src/`, avoiding reallocation churn
+      #   during test warmup. The default of 64 is far too low here.
+      - name: Install PCOV coverage driver
+        if: ${{ inputs.coverage-report }}
+        run: |
+          docker compose exec -T -u 0 php sh -c '
+            pecl install --force pcov-1.0.12 &&
+            docker-php-ext-enable pcov &&
+            {
+              echo "pcov.enabled=1"
+              echo "pcov.directory=/var/www/src"
+              echo "pcov.initial.files=10000"
+            } >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini &&
+            php -m | grep -i pcov
+          '
 
       - name: Run external HTTP tests
-        if: ${{ ! inputs.multisite }}
+        if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group external-http
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
+
+      - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: |
+          node ./tools/local-env/scripts/docker.js ${{ inputs.coverage-report && 'exec' || 'run' }} \
+            php ./vendor/bin/phpunit \
+            --verbose \
+            -c "${PHPUNIT_CONFIG}" \
+            ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
+            ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml"' || '' }}
+        env:
+          TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
+          MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
+
+      - name: Run AJAX tests
+        if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ajax
+
+      - name: Run ms-files tests as a multisite install
+        if: ${{ inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
-        if: ${{ inputs.php != '8.3' }}
+        if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
+
+      - name: Upload test coverage report to Codecov
+        if: ${{ inputs.coverage-report }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}.xml
+          flags: ${{ inputs.multisite && 'multisite' || 'single' }},php
+          fail_ci_if_error: true
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
 
       - name: Checkout the WordPress Test Reporter
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && inputs.report }}
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Submit test results to the WordPress.org host test results
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && inputs.report }}
+        if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php

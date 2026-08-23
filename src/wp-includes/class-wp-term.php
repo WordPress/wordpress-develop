@@ -192,7 +192,7 @@ final class WP_Term {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param WP_Term|object $term Term object.
+	 * @param object $term Term object.
 	 */
 	public function __construct( $term ) {
 		foreach ( get_object_vars( $term ) as $key => $value ) {
@@ -236,7 +236,7 @@ final class WP_Term {
 				$data    = new stdClass();
 				$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
 				foreach ( $columns as $column ) {
-					$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
+					$data->{$column} = $this->{$column} ?? null;
 				}
 
 				return sanitize_term( $data, $data->taxonomy, 'raw' );

@@ -681,6 +681,26 @@ function is_favicon() {
 }
 
 /**
+ * Is the query for a sitemap?
+ *
+ * @since 7.1.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool Whether the query is for a sitemap.
+ */
+function is_sitemap(): bool {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '7.1.0' );
+		return false;
+	}
+
+	return $wp_query->is_sitemap();
+}
+
+/**
  * Determines whether the query is for a search.
  *
  * For more information on this and similar theme functions, check out
@@ -1155,13 +1175,13 @@ function _find_post_by_old_slug( $post_type ) {
 
 	$key          = md5( $query );
 	$last_changed = wp_cache_get_last_changed( 'posts' );
-	$cache_key    = "find_post_by_old_slug:$key:$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'post-queries' );
+	$cache_key    = "find_post_by_old_slug:$key";
+	$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $cache ) {
 		$id = $cache;
 	} else {
 		$id = (int) $wpdb->get_var( $query );
-		wp_cache_set( $cache_key, $id, 'post-queries' );
+		wp_cache_set_salted( $cache_key, $id, 'post-queries', $last_changed );
 	}
 
 	return $id;
@@ -1198,8 +1218,8 @@ function _find_post_by_old_date( $post_type ) {
 		$query        = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) );
 		$key          = md5( $query );
 		$last_changed = wp_cache_get_last_changed( 'posts' );
-		$cache_key    = "find_post_by_old_date:$key:$last_changed";
-		$cache        = wp_cache_get( $cache_key, 'post-queries' );
+		$cache_key    = "find_post_by_old_date:$key";
+		$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 		if ( false !== $cache ) {
 			$id = $cache;
 		} else {
@@ -1208,7 +1228,7 @@ function _find_post_by_old_date( $post_type ) {
 				// Check to see if an old slug matches the old date.
 				$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts, $wpdb->postmeta AS pm_slug, $wpdb->postmeta AS pm_date WHERE ID = pm_slug.post_id AND ID = pm_date.post_id AND post_type = %s AND pm_slug.meta_key = '_wp_old_slug' AND pm_slug.meta_value = %s AND pm_date.meta_key = '_wp_old_date'" . $date_query, $post_type, get_query_var( 'name' ) ) );
 			}
-			wp_cache_set( $cache_key, $id, 'post-queries' );
+			wp_cache_set_salted( $cache_key, $id, 'post-queries', $last_changed );
 		}
 	}
 

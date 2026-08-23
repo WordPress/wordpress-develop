@@ -168,10 +168,55 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'       => true,
 				'author'          => 0,
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
+				'date'            => mysql_to_rfc3339( self::$template_post->post_date ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
+		);
+	}
+
+	/**
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Templates_Controller::get_items
+	 */
+	public function test_get_items_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/templates' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'HEAD', $path );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/templates/default//my_template' ),
+			'get_items request' => array( '/wp/v2/templates' ),
 		);
 	}
 
@@ -203,6 +248,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'       => true,
 				'author'          => 0,
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
+				'date'            => mysql_to_rfc3339( self::$template_post->post_date ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -260,11 +306,26 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'       => true,
 				'author'          => 0,
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
+				'date'            => mysql_to_rfc3339( self::$template_post->post_date ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
 			$data
 		);
+	}
+
+	/**
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Templates_Controller::get_item
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/templates/default//my_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
@@ -297,6 +358,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'       => true,
 				'author'          => 0,
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
+				'date'            => mysql_to_rfc3339( self::$template_post->post_date ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -310,7 +372,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	public function test_get_item_subscriber() {
 		wp_set_current_user( self::$subscriber_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
-		$response = rest_get_server()->dispatch( $request );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
 	}
@@ -347,6 +408,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'       => true,
 				'author'          => 0,
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
+				'date'            => mysql_to_rfc3339( self::$template_post->post_date ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -412,6 +474,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( $post->post_modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
+				'date'            => mysql_to_rfc3339( $post->post_date ),
 			),
 			$data
 		);
@@ -529,6 +592,73 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * Tests that get_item() returns plugin-registered templates.
+	 *
+	 * @ticket 61804
+	 *
+	 * @covers WP_REST_Templates_Controller::get_item
+	 */
+	public function test_get_item_from_registry() {
+		wp_set_current_user( self::$admin_id );
+
+		$template_name = 'test-plugin//test-template';
+		$args          = array(
+			'content'     => 'Template content',
+			'title'       => 'Test Template',
+			'description' => 'Description of test template',
+			'post_types'  => array( 'post', 'page' ),
+		);
+
+		register_block_template( $template_name, $args );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/test-plugin//test-template' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertNotWPError( $response, "Fetching a registered template shouldn't cause an error." );
+
+		$data = $response->get_data();
+
+		$this->assertSame( 'default//test-template', $data['id'], 'Template ID mismatch.' );
+		$this->assertSame( 'default', $data['theme'], 'Template theme mismatch.' );
+		$this->assertSame( 'Template content', $data['content']['raw'], 'Template content mismatch.' );
+		$this->assertSame( 'test-template', $data['slug'], 'Template slug mismatch.' );
+		$this->assertSame( 'plugin', $data['source'], "Template source should be 'plugin'." );
+		$this->assertSame( 'plugin', $data['origin'], "Template origin should be 'plugin'." );
+		$this->assertSame( 'test-plugin', $data['author_text'], 'Template author text mismatch.' );
+		$this->assertSame( 'Description of test template', $data['description'], 'Template description mismatch.' );
+		$this->assertSame( 'Test Template', $data['title']['rendered'], 'Template title mismatch.' );
+		$this->assertSame( 'test-plugin', $data['plugin'], 'Plugin name mismatch.' );
+
+		unregister_block_template( $template_name );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/test-plugin//test-template' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertNotWPError( $response, "Fetching an unregistered template shouldn't cause an error." );
+		$this->assertSame( 404, $response->get_status(), 'Fetching an unregistered template should return 404.' );
+	}
+
+	/**
+	 * A file-backed template has no publication or modification date, which should
+	 * be exposed as `null` rather than the `false` returned by `mysql_to_rfc3339()`.
+	 *
+	 * @ticket 65728
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_dates_are_null_for_file_backed_template() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/block-theme//page-home' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Fetching a file-backed template should return 200.' );
+		$this->assertNull( $data['date'], 'The date should be null for a file-backed template.' );
+		$this->assertNull( $data['modified'], 'The modified date should be null for a file-backed template.' );
+	}
+
+	/**
 	 * @ticket 54507
 	 * @dataProvider data_sanitize_template_id
 	 */
@@ -569,6 +699,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$modified = get_post( $data['wp_id'] )->post_modified;
+		$date     = get_post( $data['wp_id'] )->post_date;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -595,6 +726,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'       => true,
 				'author'          => self::$admin_id,
 				'modified'        => mysql_to_rfc3339( $modified ),
+				'date'            => mysql_to_rfc3339( $date ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
 			),
@@ -621,6 +753,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$modified = get_post( $data['wp_id'] )->post_modified;
+		$date     = get_post( $data['wp_id'] )->post_date;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -647,6 +780,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'       => false,
 				'author'          => self::$admin_id,
 				'modified'        => mysql_to_rfc3339( $modified ),
+				'date'            => mysql_to_rfc3339( $date ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
 			),
@@ -677,6 +811,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$modified = get_post( $data['wp_id'] )->post_modified;
+		$date     = get_post( $data['wp_id'] )->post_date;
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -703,6 +838,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'       => true,
 				'author'          => self::$admin_id,
 				'modified'        => mysql_to_rfc3339( $modified ),
+				'date'            => mysql_to_rfc3339( $date ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
 			),
@@ -863,7 +999,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 17, $properties );
+		$this->assertCount( 19, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
@@ -880,8 +1016,10 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'is_custom', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'date', $properties );
 		$this->assertArrayHasKey( 'author_text', $properties );
 		$this->assertArrayHasKey( 'original_source', $properties );
+		$this->assertArrayHasKey( 'plugin', $properties );
 	}
 
 	protected function find_and_normalize_template_by_id( $templates, $id ) {
@@ -915,7 +1053,9 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response                    = rest_get_server()->dispatch( $request );
 		$data                        = $response->get_data();
 		$modified                    = get_post( $data['wp_id'] )->post_modified;
+		$date                        = get_post( $data['wp_id'] )->post_date;
 		$expected['modified']        = mysql_to_rfc3339( $modified );
+		$expected['date']            = mysql_to_rfc3339( $date );
 		$expected['author_text']     = get_user_by( 'id', self::$admin_id )->get( 'display_name' );
 		$expected['original_source'] = 'user';
 
@@ -1036,7 +1176,9 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
 
 		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
-		$prepare_item_for_database->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$prepare_item_for_database->setAccessible( true );
+		}
 
 		$body_params = array(
 			'title'   => 'Untitled Template Part',
@@ -1088,7 +1230,9 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
 
 		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
-		$prepare_item_for_database->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$prepare_item_for_database->setAccessible( true );
+		}
 
 		$id          = get_stylesheet() . '//' . 'my_template_part';
 		$body_params = array(

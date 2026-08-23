@@ -20,34 +20,33 @@
  *
  * The second filter, {@see 'plugins_api'}, allows a plugin to override the WordPress.org
  * Plugin Installation API entirely. If `$action` is 'query_plugins' or 'plugin_information',
- * an object MUST be passed. If `$action` is 'hot_tags' or 'hot_categories', an array MUST
- * be passed.
+ * an object MUST be passed. If `$action` is 'hot_tags', an array MUST be passed.
  *
  * Finally, the third filter, {@see 'plugins_api_result'}, makes it possible to filter the
  * response object or array, depending on the `$action` type.
  *
  * Supported arguments per action:
  *
- * | Argument Name        | query_plugins | plugin_information | hot_tags | hot_categories |
- * | -------------------- | :-----------: | :----------------: | :------: | :------------: |
- * | `$slug`              | No            |  Yes               | No       | No             |
- * | `$per_page`          | Yes           |  No                | No       | No             |
- * | `$page`              | Yes           |  No                | No       | No             |
- * | `$number`            | No            |  No                | Yes      | Yes            |
- * | `$search`            | Yes           |  No                | No       | No             |
- * | `$tag`               | Yes           |  No                | No       | No             |
- * | `$author`            | Yes           |  No                | No       | No             |
- * | `$user`              | Yes           |  No                | No       | No             |
- * | `$browse`            | Yes           |  No                | No       | No             |
- * | `$locale`            | Yes           |  Yes               | No       | No             |
- * | `$installed_plugins` | Yes           |  No                | No       | No             |
- * | `$is_ssl`            | Yes           |  Yes               | No       | No             |
- * | `$fields`            | Yes           |  Yes               | No       | No             |
+ * | Argument Name        | query_plugins | plugin_information | hot_tags |
+ * | -------------------- | :-----------: | :----------------: | :------: |
+ * | `$slug`              | No            |  Yes               | No       |
+ * | `$per_page`          | Yes           |  No                | No       |
+ * | `$page`              | Yes           |  No                | No       |
+ * | `$number`            | No            |  No                | Yes      |
+ * | `$search`            | Yes           |  No                | No       |
+ * | `$tag`               | Yes           |  No                | No       |
+ * | `$author`            | Yes           |  No                | No       |
+ * | `$user`              | Yes           |  No                | No       |
+ * | `$browse`            | Yes           |  No                | No       |
+ * | `$locale`            | Yes           |  Yes               | No       |
+ * | `$installed_plugins` | Yes           |  No                | No       |
+ * | `$is_ssl`            | Yes           |  Yes               | No       |
+ * | `$fields`            | Yes           |  Yes               | No       |
  *
  * @since 2.7.0
  *
  * @param string       $action API action to perform: 'query_plugins', 'plugin_information',
- *                             'hot_tags' or 'hot_categories'.
+ *                             or 'hot_tags'.
  * @param array|object $args   {
  *     Optional. Array or object of arguments to serialize for the Plugin Info API.
  *
@@ -91,7 +90,6 @@
  *         @type bool $banners           Whether to return the banner images links. Default false.
  *         @type bool $icons             Whether to return the icon links. Default false.
  *         @type bool $active_installs   Whether to return the number of active installations. Default false.
- *         @type bool $group             Whether to return the assigned group. Default false.
  *         @type bool $contributors      Whether to return the list of contributors. Default false.
  *     }
  * }
@@ -100,9 +98,6 @@
  *         for more information on the make-up of possible return values depending on the value of `$action`.
  */
 function plugins_api( $action, $args = array() ) {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
 	if ( is_array( $args ) ) {
 		$args = (object) $args;
 	}
@@ -118,7 +113,7 @@ function plugins_api( $action, $args = array() ) {
 	}
 
 	if ( ! isset( $args->wp_version ) ) {
-		$args->wp_version = substr( $wp_version, 0, 3 ); // x.y
+		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
 	}
 
 	/**
@@ -139,7 +134,7 @@ function plugins_api( $action, $args = array() ) {
 	 * Returning a non-false value will effectively short-circuit the WordPress.org API request.
 	 *
 	 * If `$action` is 'query_plugins' or 'plugin_information', an object MUST be passed.
-	 * If `$action` is 'hot_tags' or 'hot_categories', an array should be passed.
+	 * If `$action` is 'hot_tags', an array should be passed.
 	 *
 	 * @since 2.7.0
 	 *
@@ -168,7 +163,7 @@ function plugins_api( $action, $args = array() ) {
 
 		$http_args = array(
 			'timeout'    => 15,
-			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
+			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),
 		);
 		$request   = wp_remote_get( $url, $http_args );
 
@@ -375,7 +370,7 @@ function install_plugins_favorites_form() {
 	<p><?php _e( 'If you have marked plugins as favorites on WordPress.org, you can browse them here.' ); ?></p>
 	<form method="get">
 		<input type="hidden" name="tab" value="favorites" />
-		<p>
+		<p class="favorites-username">
 			<label for="user"><?php _e( 'Your WordPress.org username:' ); ?></label>
 			<input type="search" id="user" name="user" value="<?php echo esc_attr( $user ); ?>" />
 			<input type="submit" class="button" value="<?php esc_attr_e( 'Get Favorites' ); ?>" />
@@ -404,11 +399,7 @@ function display_plugins_table() {
 			);
 			break;
 		case 'install_plugins_featured':
-			printf(
-				/* translators: %s: https://wordpress.org/plugins/ */
-				'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins in the <a href="%s">WordPress Plugin Directory</a> right from here, or upload a plugin in .zip format by clicking the button at the top of this page.' ) . '</p>',
-				__( 'https://wordpress.org/plugins/' )
-			);
+			echo '<br>';
 			break;
 		case 'install_plugins_recommended':
 			echo '<p>' . __( 'These suggestions are based on the plugins you and other users have installed.' ) . '</p>';
@@ -615,7 +606,7 @@ function install_plugin_information() {
 		$low          = empty( $api->banners['low'] ) ? $api->banners['high'] : $api->banners['low'];
 		$high         = empty( $api->banners['high'] ) ? $api->banners['low'] : $api->banners['high'];
 		?>
-		<style type="text/css">
+		<style>
 			#plugin-information-title.with-banner {
 				background-image: url( <?php echo esc_url( $low ); ?> );
 			}
@@ -805,8 +796,8 @@ function install_plugin_information() {
 	</div>
 	<div id="section-holder">
 	<?php
-	$requires_php = isset( $api->requires_php ) ? $api->requires_php : null;
-	$requires_wp  = isset( $api->requires ) ? $api->requires : null;
+	$requires_php = $api->requires_php ?? null;
+	$requires_wp  = $api->requires ?? null;
 
 	$compatible_php = is_php_version_compatible( $requires_php );
 	$compatible_wp  = is_wp_version_compatible( $requires_wp );
@@ -949,7 +940,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_installed && ! empty( $data->download_link ) ) {
 						$button = sprintf(
-							'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
+							'<a class="install-now button button-compact" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
 							esc_attr( $data->slug ),
 							esc_url( $status['url'] ),
 							/* translators: %s: Plugin name and version. */
@@ -959,7 +950,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 					} else {
 						$button = sprintf(
-							'<button type="button" class="install-now button button-disabled" disabled="disabled">%s</button>',
+							'<button type="button" class="install-now button button-compact button-disabled" disabled="disabled">%s</button>',
 							_x( 'Install Now', 'plugin' )
 						);
 					}
@@ -970,7 +961,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp ) {
 						$button = sprintf(
-							'<a class="update-now button aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
+							'<a class="update-now button button-compact aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
 							esc_attr( $status['file'] ),
 							esc_attr( $data->slug ),
 							esc_url( $status['url'] ),
@@ -981,7 +972,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 					} else {
 						$button = sprintf(
-							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+							'<button type="button" class="button button-compact button-disabled" disabled="disabled">%s</button>',
 							_x( 'Update Now', 'plugin' )
 						);
 					}
@@ -992,7 +983,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 			case 'newer_installed':
 				if ( is_plugin_active( $status['file'] ) ) {
 					$button = sprintf(
-						'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+						'<button type="button" class="button button-compact button-disabled" disabled="disabled">%s</button>',
 						_x( 'Active', 'plugin' )
 					);
 				} elseif ( current_user_can( 'activate_plugin', $status['file'] ) ) {
@@ -1017,7 +1008,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						}
 
 						$button = sprintf(
-							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-primary activate-now" aria-label="%5$s" role="button">%6$s</a>',
+							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-compact button-primary activate-now" aria-label="%5$s" role="button">%6$s</a>',
 							esc_url( $activate_url ),
 							esc_attr( $name ),
 							esc_attr( $data->slug ),
@@ -1027,13 +1018,13 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 					} else {
 						$button = sprintf(
-							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+							'<button type="button" class="button button-compact button-disabled" disabled="disabled">%s</button>',
 							is_network_admin() ? _x( 'Network Activate', 'plugin' ) : _x( 'Activate', 'plugin' )
 						);
 					}
 				} else {
 					$button = sprintf(
-						'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
+						'<button type="button" class="button button-compact button-disabled" disabled="disabled">%s</button>',
 						_x( 'Installed', 'plugin' )
 					);
 				}

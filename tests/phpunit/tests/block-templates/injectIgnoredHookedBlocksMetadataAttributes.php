@@ -621,4 +621,59 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 			'The template part\'s post content was modified.'
 		);
 	}
+
+	/**
+	 * @ticket 61550
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_with_no_changes_to_post_content() {
+		register_block_type(
+			'tests/hooked-block',
+			array(
+				'block_hooks' => array(
+					'core/heading' => 'after',
+				),
+			)
+		);
+
+		$id       = self::TEST_THEME . '//' . 'my_template';
+		$template = get_block_template( $id, 'wp_template' );
+
+		$changes     = new stdClass();
+		$changes->ID = $template->wp_id;
+
+		// Note that we're not setting `$changes->post_content`!
+
+		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes );
+		$this->assertFalse(
+			isset( $post->post_content ),
+			"post_content shouldn't have been set."
+		);
+	}
+
+	/**
+	 * @ticket 61550
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part_with_no_changes_to_post_content() {
+		register_block_type(
+			'tests/hooked-block',
+			array(
+				'block_hooks' => array(
+					'core/heading' => 'after',
+				),
+			)
+		);
+
+		$id       = self::TEST_THEME . '//' . 'my_template_part';
+		$template = get_block_template( $id, 'wp_template_part' );
+
+		$changes     = new stdClass();
+		$changes->ID = $template->wp_id;
+		// Note that we're not setting `$changes->post_content`!
+
+		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes );
+		$this->assertFalse(
+			isset( $post->post_content ),
+			"post_content shouldn't have been set."
+		);
+	}
 }

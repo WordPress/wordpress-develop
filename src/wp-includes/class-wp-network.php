@@ -18,8 +18,11 @@
  *
  * @since 4.4.0
  *
- * @property int $id
- * @property int $site_id
+ * @property int    $id
+ * @property string $blog_id
+ * @property int    $site_id
+ *
+ * @phpstan-property numeric-string $blog_id
  */
 #[AllowDynamicProperties]
 class WP_Network {
@@ -61,6 +64,7 @@ class WP_Network {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	private $blog_id = '0';
 
@@ -131,7 +135,7 @@ class WP_Network {
 	 */
 	public function __construct( $network ) {
 		foreach ( get_object_vars( $network ) as $key => $value ) {
-			$this->$key = $value;
+			$this->__set( $key, $value );
 		}
 
 		$this->_set_site_name();

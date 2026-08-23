@@ -321,7 +321,8 @@ figure[class*="wp-block-"] > figcaption {
 	margin-bottom: 1.4736842105em;
 }
 
-.wp-block-quote__citation {
+.wp-block-quote__citation,
+.wp-block-quote cite {
 	color: #1a1a1a;
 	display: block;
 	font-size: 16px;
@@ -333,6 +334,11 @@ figure[class*="wp-block-"] > figcaption {
 	color: inherit;
 }
 
+.has-text-color .wp-block-quote:not(.has-text-color),
+.has-text-color .wp-block-quote:not(.has-text-color) cite {
+	color: inherit;
+}
+
 .wp-block-quote__citation:before {
 	content: "\2014\00a0";
 }
@@ -341,6 +347,11 @@ figure[class*="wp-block-"] > figcaption {
 .wp-block-quote i,
 .wp-block-quote__citation:before {
 	font-style: normal;
+}
+
+.wp-block-quote__citation em,
+.wp-block-quote__citation i {
+	font-style: italic;
 }
 
 .wp-block-quote strong,
@@ -368,6 +379,10 @@ figure[class*="wp-block-"] > figcaption {
 .rtl .wp-block-quote:not(.is-large):not(.is-style-large).alignright  {
 	border-right: 0;
 	padding-right: 0;
+}
+
+.wp-block-quote.is-style-plain {
+	border: none;
 }
 
 @media screen and (min-width: 44.375em) {
@@ -416,7 +431,9 @@ figure[class*="wp-block-"] > figcaption {
 
 .editor-styles-wrapper .wp-block-code {
 	border: 0;
-	padding: 0.125em 0.25em;
+	font-family: Inconsolata, monospace;
+	line-height: 1.75;
+	padding: 0;
 	background-color: #d1d1d1;
 }
 
@@ -536,6 +553,21 @@ figure[class*="wp-block-"] > figcaption {
 	color: inherit;
 }
 
+.wp-block-pullquote[class*="-font-size"] blockquote,
+.wp-block-pullquote[class*="-font-size"] blockquote p,
+.wp-block-pullquote[class*="-font-size"] cite,
+.wp-block-pullquote[style*="font-size"] blockquote,
+.wp-block-pullquote[style*="font-size"] blockquote p,
+.wp-block-pullquote[style*="font-size"] cite {
+	font-size: inherit;
+}
+
+.wp-block-pullquote[style*="line-height"] blockquote,
+.wp-block-pullquote[style*="line-height"] blockquote p,
+.wp-block-pullquote[style*="line-height"] cite {
+	line-height: inherit;
+}
+
 .wp-block-pullquote .wp-block-pullquote__citation:before {
 	content: "\2014\00a0";
 }
@@ -600,7 +632,7 @@ figure[class*="wp-block-"] > figcaption {
 
 /* Latest Comments */
 
-.editor-block-list__block .wp-block-latest-comments__comment-meta a {
+.editor-styles-wrapper .wp-block-latest-comments__comment-meta a {
 	box-shadow: none;
 	font-weight: 700;
 	text-decoration: none;
@@ -614,7 +646,7 @@ figure[class*="wp-block-"] > figcaption {
 	line-height: 1.6153846154;
 }
 
-.wp-block-latest-comments .wp-block-latest-comments__comment {
+.wp-block-latest-comments .wp-block-latest-comments__comment:not(:first-child) {
 	border-top: 1px solid #d1d1d1;
 	margin-bottom: 0;
 	padding: 1.75em 0;

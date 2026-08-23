@@ -22,7 +22,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * Full URL with trailing slash.
 	 *
 	 * @since 2.6.0
-	 * @var string
+	 * @see wp_default_scripts()
+	 * @var string|null
 	 */
 	public $base_url;
 
@@ -30,7 +31,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * URL of the content directory.
 	 *
 	 * @since 2.8.0
-	 * @var string
+	 * @see wp_default_scripts()
+	 * @var string|null
 	 */
 	public $content_url;
 
@@ -38,7 +40,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * Default version string for scripts.
 	 *
 	 * @since 2.6.0
-	 * @var string
+	 * @see wp_default_scripts()
+	 * @var string|null
 	 */
 	public $default_version;
 
@@ -46,7 +49,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * Holds handles of scripts which are enqueued in footer.
 	 *
 	 * @since 2.8.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $in_footer = array();
 
@@ -118,7 +121,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * List of default directories.
 	 *
 	 * @since 2.8.0
-	 * @var array
+	 * @see wp_default_scripts()
+	 * @var string[]|null
 	 */
 	public $default_dirs;
 
@@ -127,7 +131,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * Used to optimize recursive dependency tree checks.
 	 *
 	 * @since 6.3.0
-	 * @var array
+	 * @var array<string, string[]>
 	 */
 	private $dependents_map = array();
 
@@ -197,7 +201,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
 	 */
 	public function print_scripts_l10n( $handle, $display = true ) {
@@ -213,13 +217,27 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
 	 */
 	public function print_extra_script( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'data' );
 		if ( ! $output ) {
-			return;
+			return null;
+		}
+
+		/*
+		 * Do not print a sourceURL comment if concatenation is enabled.
+		 *
+		 * Extra scripts may be concatenated into a single script.
+		 * The line-based sourceURL comments may break concatenated scripts
+		 * and do not make sense when multiple scripts are joined together.
+		 */
+		if ( ! $this->do_concat ) {
+			$output .= sprintf(
+				"\n//# sourceURL=%s",
+				rawurlencode( "{$handle}-js-extra" )
+			);
 		}
 
 		if ( ! $display ) {
@@ -278,6 +296,9 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$obj = $this->registered[ $handle ];
+		if ( $obj->extra['conditional'] ?? false ) {
+			return false;
+		}
 
 		if ( null === $obj->ver ) {
 			$ver = '';
@@ -292,9 +313,6 @@ class WP_Scripts extends WP_Dependencies {
 		$src               = $obj->src;
 		$strategy          = $this->get_eligible_loading_strategy( $handle );
 		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
-		$cond_before       = '';
-		$cond_after        = '';
-		$conditional       = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
 		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
 			$intended_strategy = '';
@@ -319,16 +337,11 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		if ( $conditional ) {
-			$cond_before = "<!--[if {$conditional}]>\n";
-			$cond_after  = "<![endif]-->\n";
-		}
-
 		$before_script = $this->get_inline_script_tag( $handle, 'before' );
 		$after_script  = $this->get_inline_script_tag( $handle, 'after' );
 
 		if ( $before_script || $after_script ) {
-			$inline_script_tag = $cond_before . $before_script . $after_script . $cond_after;
+			$inline_script_tag = $before_script . $after_script;
 		} else {
 			$inline_script_tag = '';
 		}
@@ -341,7 +354,16 @@ class WP_Scripts extends WP_Dependencies {
 
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
-			$translations = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
+			/*
+			 * The sourceURL comment is not included by WP_Scripts::print_translations()
+			 * when `$display` is `false` to prevent issues where the script tag contents are used
+			 * by extenders for other purposes, for example concatenated with other script content.
+			 *
+			 * Include the sourceURL comment here as it would be when printed directly.
+			 */
+			$source_url    = rawurlencode( "{$handle}-js-translations" );
+			$translations .= "\n//# sourceURL={$source_url}";
+			$translations  = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
 		if ( $this->do_concat ) {
@@ -353,10 +375,11 @@ class WP_Scripts extends WP_Dependencies {
 			 * @param string $src    Script loader source path.
 			 * @param string $handle Script handle.
 			 */
-			$srce = apply_filters( 'script_loader_src', $src, $handle );
+			$filtered_src = apply_filters( 'script_loader_src', $src, $handle );
 
 			if (
-				$this->in_default_dir( $srce )
+				is_string( $filtered_src )
+				&& $this->in_default_dir( $filtered_src )
 				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
 			) {
 				$this->do_concat = false;
@@ -364,7 +387,7 @@ class WP_Scripts extends WP_Dependencies {
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
 				_print_scripts();
 				$this->reset();
-			} elseif ( $this->in_default_dir( $srce ) && ! $conditional ) {
+			} elseif ( $this->in_default_dir( $filtered_src ) ) {
 				$this->print_code     .= $this->print_extra_script( $handle, false );
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
@@ -375,17 +398,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		$has_conditional_data = $conditional && $this->get_data( $handle, 'data' );
-
-		if ( $has_conditional_data ) {
-			echo $cond_before;
-		}
-
 		$this->print_extra_script( $handle );
-
-		if ( $has_conditional_data ) {
-			echo $cond_after;
-		}
 
 		// A single item may alias a set of items, by having dependencies, but no source.
 		if ( ! $src ) {
@@ -404,8 +417,31 @@ class WP_Scripts extends WP_Dependencies {
 			$src = $this->base_url . $src;
 		}
 
-		if ( ! empty( $ver ) ) {
-			$src = add_query_arg( 'ver', $ver, $src );
+		$ver_to_add = '';
+		if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $this->default_version ) ) {
+			$ver_to_add = $this->default_version;
+		} elseif ( is_scalar( $obj->ver ) ) {
+			$ver_to_add = (string) $obj->ver;
+		}
+
+		$added_args = (string) ( $this->args[ $handle ] ?? '' );
+
+		if ( '' !== $ver_to_add || '' !== $added_args ) {
+			$fragment = strstr( $src, '#' );
+			if ( false !== $fragment ) {
+				$src = substr( $src, 0, -strlen( $fragment ) );
+			}
+
+			if ( '' !== $ver_to_add ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
+			}
+			if ( '' !== $added_args ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_args;
+			}
+
+			if ( false !== $fragment ) {
+				$src .= $fragment;
+			}
 		}
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
@@ -425,9 +461,28 @@ class WP_Scripts extends WP_Dependencies {
 		if ( $intended_strategy ) {
 			$attr['data-wp-strategy'] = $intended_strategy;
 		}
-		$tag  = $translations . $cond_before . $before_script;
+
+		// Determine fetchpriority.
+		$original_fetchpriority = $obj->extra['fetchpriority'] ?? null;
+		if ( null === $original_fetchpriority || ! $this->is_valid_fetchpriority( $original_fetchpriority ) ) {
+			$original_fetchpriority = 'auto';
+		}
+		$actual_fetchpriority = $this->get_highest_fetchpriority_with_dependents( $handle );
+		if ( null === $actual_fetchpriority ) {
+			// If null, it's likely this script was not explicitly enqueued, so in this case use the original priority.
+			$actual_fetchpriority = $original_fetchpriority;
+		}
+		if ( is_string( $actual_fetchpriority ) && 'auto' !== $actual_fetchpriority ) {
+			$attr['fetchpriority'] = $actual_fetchpriority;
+		}
+
+		if ( $original_fetchpriority !== $actual_fetchpriority ) {
+			$attr['data-wp-fetchpriority'] = $original_fetchpriority;
+		}
+
+		$tag  = $translations . $before_script;
 		$tag .= wp_get_script_tag( $attr );
-		$tag .= $after_script . $cond_after;
+		$tag .= $after_script;
 
 		/**
 		 * Filters the HTML script tag of an enqueued script.
@@ -521,6 +576,17 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
+		/*
+		 * Print sourceURL comment regardless of concatenation.
+		 *
+		 * Inline scripts prevent scripts from being concatenated, so
+		 * sourceURL comments are safe to print for inline scripts.
+		 */
+		$data[] = sprintf(
+			'//# sourceURL=%s',
+			rawurlencode( "{$handle}-js-{$position}" )
+		);
+
 		return trim( implode( "\n", $data ), "\n" );
 	}
 
@@ -551,9 +617,9 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $handle      Name of the script to attach data to.
-	 * @param string $object_name Name of the variable that will contain the data.
-	 * @param array  $l10n        Array of data to localize.
+	 * @param string               $handle      Name of the script to attach data to.
+	 * @param string               $object_name Name of the variable that will contain the data.
+	 * @param array<string, mixed> $l10n        Array of data to localize.
 	 * @return bool True on success, false on failure.
 	 */
 	public function localize( $handle, $object_name, $l10n ) {
@@ -596,7 +662,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		$script = "var $object_name = " . wp_json_encode( $l10n ) . ';';
+		$script = "var $object_name = " . wp_json_encode( $l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';';
 
 		if ( ! empty( $after ) ) {
 			$script .= "\n$after;";
@@ -626,16 +692,16 @@ class WP_Scripts extends WP_Dependencies {
 	 */
 	public function set_group( $handle, $recursion, $group = false ) {
 		if ( isset( $this->registered[ $handle ]->args ) && 1 === $this->registered[ $handle ]->args ) {
-			$grp = 1;
+			$calculated_group = 1;
 		} else {
-			$grp = (int) $this->get_data( $handle, 'group' );
+			$calculated_group = (int) $this->get_data( $handle, 'group' );
 		}
 
-		if ( false !== $group && $grp > $group ) {
-			$grp = $group;
+		if ( false !== $group && $calculated_group > $group ) {
+			$calculated_group = $group;
 		}
 
-		return parent::set_group( $handle, $recursion, $grp );
+		return parent::set_group( $handle, $recursion, $calculated_group );
 	}
 
 	/**
@@ -702,6 +768,8 @@ class WP_Scripts extends WP_Dependencies {
 JS;
 
 		if ( $display ) {
+			$source_url = rawurlencode( "{$handle}-js-translations" );
+			$output    .= "\n//# sourceURL={$source_url}";
 			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
@@ -723,7 +791,7 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	public function all_deps( $handles, $recursion = false, $group = false ) {
-		$r = parent::all_deps( $handles, $recursion, $group );
+		$result = parent::all_deps( $handles, $recursion, $group );
 		if ( ! $recursion ) {
 			/**
 			 * Filters the list of script dependencies left to print.
@@ -734,7 +802,7 @@ JS;
 			 */
 			$this->to_do = apply_filters( 'print_scripts_array', $this->to_do );
 		}
-		return $r;
+		return $result;
 	}
 
 	/**
@@ -782,12 +850,7 @@ JS;
 			return false;
 		}
 
-		foreach ( (array) $this->default_dirs as $test ) {
-			if ( str_starts_with( $src, $test ) ) {
-				return true;
-			}
-		}
-		return false;
+		return array_any( (array) $this->default_dirs, fn( $test ) => str_starts_with( $src, $test ) );
 	}
 
 	/**
@@ -805,6 +868,11 @@ JS;
 			return false;
 		}
 
+		if ( 'conditional' === $key ) {
+			// If a dependency is declared by a conditional script, remove it.
+			$this->registered[ $handle ]->deps = array();
+		}
+
 		if ( 'strategy' === $key ) {
 			if ( ! empty( $value ) && ! $this->is_delayed_strategy( $value ) ) {
 				_doing_it_wrong(
@@ -812,7 +880,7 @@ JS;
 					sprintf(
 						/* translators: 1: $strategy, 2: $handle */
 						__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
-						$value,
+						is_string( $value ) ? $value : gettype( $value ),
 						$handle
 					),
 					'6.3.0'
@@ -824,19 +892,92 @@ JS;
 					sprintf(
 						/* translators: 1: $strategy, 2: $handle */
 						__( 'Cannot supply a strategy `%1$s` for script `%2$s` because it is an alias (it lacks a `src` value).' ),
-						$value,
+						is_string( $value ) ? $value : gettype( $value ),
 						$handle
 					),
 					'6.3.0'
 				);
 				return false;
 			}
+		} elseif ( 'fetchpriority' === $key ) {
+			if ( empty( $value ) ) {
+				$value = 'auto';
+			}
+			if ( ! $this->is_valid_fetchpriority( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: $fetchpriority, 2: $handle */
+						__( 'Invalid fetchpriority `%1$s` defined for `%2$s` during script registration.' ),
+						is_string( $value ) ? $value : gettype( $value ),
+						$handle
+					),
+					'6.9.0'
+				);
+				return false;
+			} elseif ( ! $this->registered[ $handle ]->src ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: $fetchpriority, 2: $handle */
+						__( 'Cannot supply a fetchpriority `%1$s` for script `%2$s` because it is an alias (it lacks a `src` value).' ),
+						is_string( $value ) ? $value : gettype( $value ),
+						$handle
+					),
+					'6.9.0'
+				);
+				return false;
+			}
+		} elseif ( 'module_dependencies' === $key ) {
+			if ( ! is_array( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: 'module_dependencies', 2: Script handle. */
+						__( 'The value for "%1$s" must be an array for the "%2$s" script.' ),
+						'module_dependencies',
+						$handle
+					),
+					'7.0.0'
+				);
+				return false;
+			}
+
+			$sanitized_value = array();
+			$has_invalid_ids = false;
+			foreach ( $value as $module ) {
+				if (
+					is_string( $module ) ||
+					( is_array( $module ) && isset( $module['id'] ) && is_string( $module['id'] ) )
+				) {
+					$sanitized_value[] = $module;
+				} else {
+					$has_invalid_ids = true;
+				}
+			}
+
+			if ( $has_invalid_ids ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Script handle, 2: 'module_dependencies' */
+						__( 'The script handle "%1$s" has one or more of its script module dependencies ("%2$s") which are invalid.' ),
+						$handle,
+						'module_dependencies'
+					),
+					'7.0.0'
+				);
+			}
+
+			$value = $sanitized_value;
 		}
 		return parent::add_data( $handle, $key, $value );
 	}
 
 	/**
 	 * Gets all dependents of a script.
+	 *
+	 * This is not recursive.
 	 *
 	 * @since 6.3.0
 	 *
@@ -869,15 +1010,27 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $strategy The strategy to check.
+	 * @param string|mixed $strategy The strategy to check.
 	 * @return bool True if $strategy is one of the delayed strategies, otherwise false.
 	 */
-	private function is_delayed_strategy( $strategy ) {
+	private function is_delayed_strategy( $strategy ): bool {
 		return in_array(
 			$strategy,
 			$this->delayed_strategies,
 			true
 		);
+	}
+
+	/**
+	 * Checks if the provided fetchpriority is valid.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string|mixed $priority Fetch priority.
+	 * @return bool Whether valid fetchpriority.
+	 */
+	private function is_valid_fetchpriority( $priority ): bool {
+		return in_array( $priority, array( 'auto', 'low', 'high' ), true );
 	}
 
 	/**
@@ -889,10 +1042,10 @@ JS;
 	 * @return string The best eligible loading strategy.
 	 */
 	private function get_eligible_loading_strategy( $handle ) {
-		$intended = (string) $this->get_data( $handle, 'strategy' );
+		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
 
 		// Bail early if there is no intended strategy.
-		if ( ! $intended ) {
+		if ( ! $intended_strategy ) {
 			return '';
 		}
 
@@ -900,16 +1053,16 @@ JS;
 		 * If the intended strategy is 'defer', limit the initial list of eligible
 		 * strategies, since 'async' can fallback to 'defer', but not vice-versa.
 		 */
-		$initial = ( 'defer' === $intended ) ? array( 'defer' ) : null;
+		$initial_strategy = ( 'defer' === $intended_strategy ) ? array( 'defer' ) : null;
 
-		$eligible = $this->filter_eligible_strategies( $handle, $initial );
+		$eligible_strategies = $this->filter_eligible_strategies( $handle, $initial_strategy );
 
 		// Return early once we know the eligible strategy is blocking.
-		if ( empty( $eligible ) ) {
+		if ( empty( $eligible_strategies ) ) {
 			return '';
 		}
 
-		return in_array( 'async', $eligible, true ) ? 'async' : 'defer';
+		return in_array( 'async', $eligible_strategies, true ) ? 'async' : 'defer';
 	}
 
 	/**
@@ -917,20 +1070,25 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string              $handle   The script handle.
-	 * @param string[]|null       $eligible Optional. The list of strategies to filter. Default null.
-	 * @param array<string, true> $checked  Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param string                  $handle              The script handle.
+	 * @param string[]|null           $eligible_strategies Optional. The list of strategies to filter. Default null.
+	 * @param array<string, true>     $checked             Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param array<string, string[]> $stored_results      Optional. An array of already computed eligible loading strategies by handle, used to increase performance in large dependency lists.
 	 * @return string[] A list of eligible loading strategies that could be used.
 	 */
-	private function filter_eligible_strategies( $handle, $eligible = null, $checked = array() ) {
+	private function filter_eligible_strategies( $handle, $eligible_strategies = null, $checked = array(), array &$stored_results = array() ) {
+		if ( isset( $stored_results[ $handle ] ) ) {
+			return $stored_results[ $handle ];
+		}
+
 		// If no strategies are being passed, all strategies are eligible.
-		if ( null === $eligible ) {
-			$eligible = $this->delayed_strategies;
+		if ( null === $eligible_strategies ) {
+			$eligible_strategies = $this->delayed_strategies;
 		}
 
 		// If this handle was already checked, return early.
 		if ( isset( $checked[ $handle ] ) ) {
-			return $eligible;
+			return $eligible_strategies;
 		}
 
 		// Mark this handle as checked.
@@ -938,12 +1096,12 @@ JS;
 
 		// If this handle isn't registered, don't filter anything and return.
 		if ( ! isset( $this->registered[ $handle ] ) ) {
-			return $eligible;
+			return $eligible_strategies;
 		}
 
 		// If the handle is not enqueued, don't filter anything and return.
 		if ( ! $this->query( $handle, 'enqueued' ) ) {
-			return $eligible;
+			return $eligible_strategies;
 		}
 
 		$is_alias          = (bool) ! $this->registered[ $handle ]->src;
@@ -961,7 +1119,7 @@ JS;
 
 		// If the intended strategy is 'defer', filter out 'async'.
 		if ( 'defer' === $intended_strategy ) {
-			$eligible = array( 'defer' );
+			$eligible_strategies = array( 'defer' );
 		}
 
 		$dependents = $this->get_dependents( $handle );
@@ -969,14 +1127,75 @@ JS;
 		// Recursively filter eligible strategies for dependents.
 		foreach ( $dependents as $dependent ) {
 			// Bail early once we know the eligible strategy is blocking.
-			if ( empty( $eligible ) ) {
+			if ( empty( $eligible_strategies ) ) {
 				return array();
 			}
 
-			$eligible = $this->filter_eligible_strategies( $dependent, $eligible, $checked );
+			$eligible_strategies = $this->filter_eligible_strategies( $dependent, $eligible_strategies, $checked, $stored_results );
+		}
+		$stored_results[ $handle ] = $eligible_strategies;
+		return $eligible_strategies;
+	}
+
+	/**
+	 * Gets the highest fetch priority for a given script and all of its dependent scripts.
+	 *
+	 * @since 6.9.0
+	 * @see self::filter_eligible_strategies()
+	 * @see WP_Script_Modules::get_highest_fetchpriority()
+	 *
+	 * @param string                $handle         Script module ID.
+	 * @param array<string, true>   $checked        Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param array<string, string> $stored_results Optional. An array of already computed max priority by handle, used to increase performance in large dependency lists.
+	 * @return string|null Highest fetch priority for the script and its dependents.
+	 */
+	private function get_highest_fetchpriority_with_dependents( string $handle, array $checked = array(), array &$stored_results = array() ): ?string {
+		if ( isset( $stored_results[ $handle ] ) ) {
+			return $stored_results[ $handle ];
 		}
 
-		return $eligible;
+		// If there is a recursive dependency, return early.
+		if ( isset( $checked[ $handle ] ) ) {
+			return null;
+		}
+
+		// Mark this handle as checked to guard against infinite recursion.
+		$checked[ $handle ] = true;
+
+		// Abort if the script is not enqueued or a dependency of an enqueued script.
+		if ( ! $this->query( $handle, 'enqueued' ) ) {
+			return null;
+		}
+
+		$fetchpriority = $this->get_data( $handle, 'fetchpriority' );
+		if ( ! $this->is_valid_fetchpriority( $fetchpriority ) ) {
+			$fetchpriority = 'auto';
+		}
+
+		static $priorities   = array(
+			'low',
+			'auto',
+			'high',
+		);
+		$high_priority_index = count( $priorities ) - 1;
+
+		$highest_priority_index = (int) array_search( $fetchpriority, $priorities, true );
+		if ( $highest_priority_index !== $high_priority_index ) {
+			foreach ( $this->get_dependents( $handle ) as $dependent_handle ) {
+				$dependent_priority = $this->get_highest_fetchpriority_with_dependents( $dependent_handle, $checked, $stored_results );
+				if ( is_string( $dependent_priority ) ) {
+					$highest_priority_index = max(
+						$highest_priority_index,
+						(int) array_search( $dependent_priority, $priorities, true )
+					);
+					if ( $highest_priority_index === $high_priority_index ) {
+						break;
+					}
+				}
+			}
+		}
+		$stored_results[ $handle ] = $priorities[ $highest_priority_index ];
+		return $priorities[ $highest_priority_index ];
 	}
 
 	/**
@@ -1009,5 +1228,23 @@ JS;
 		$this->print_html     = '';
 		$this->ext_version    = '';
 		$this->ext_handles    = '';
+	}
+
+	/**
+	 * Gets a script-specific dependency warning message.
+	 *
+	 * @since 6.9.1
+	 *
+	 * @param string   $handle                     Script handle with missing dependencies.
+	 * @param string[] $missing_dependency_handles Missing dependency handles.
+	 * @return string Formatted, localized warning message.
+	 */
+	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
+		return sprintf(
+			/* translators: 1: Script handle, 2: List of missing dependency handles. */
+			__( 'The script with the handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
+			$handle,
+			implode( wp_get_list_item_separator(), $missing_dependency_handles )
+		);
 	}
 }

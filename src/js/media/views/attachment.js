@@ -18,10 +18,20 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	template:  wp.template('attachment'),
 
 	attributes: function() {
+		var ariaLabel = this.model.get( 'title' );
+
+		if ( ! ariaLabel ) {
+			if ( this.model.get( 'uploading' ) ) {
+				ariaLabel = wp.i18n.__( 'uploading…' );
+			} else {
+				ariaLabel = wp.i18n.__( '(no title)' );
+			}
+		}
+
 		return {
 			'tabIndex':     0,
 			'role':         'checkbox',
-			'aria-label':   this.model.get( 'title' ),
+			'aria-label':   ariaLabel,
 			'aria-checked': false,
 			'data-id':      this.model.get( 'id' )
 		};
@@ -197,6 +207,11 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 			method = 'between';
 		} else if ( event.ctrlKey || event.metaKey ) {
 			method = 'toggle';
+		}
+
+		// Avoid toggles when the command or control key is pressed with the enter key to prevent deselecting the last selected attachment.
+		if ( ( event.metaKey || event.ctrlKey ) && ( 13 === event.keyCode || 10 === event.keyCode ) ) {
+			return;
 		}
 
 		this.toggleSelection({

@@ -54,7 +54,7 @@ wp_localize_script(
 			'adminUrl'   => parse_url( self_admin_url(), PHP_URL_PATH ),
 		),
 		'l10n'            => array(
-			'addNew'              => __( 'Add New Theme' ),
+			'addNew'              => __( 'Add Theme' ),
 			'search'              => __( 'Search Themes' ),
 			'upload'              => __( 'Upload Theme' ),
 			'back'                => __( 'Back' ),
@@ -67,6 +67,8 @@ wp_localize_script(
 			/* translators: %d: Number of themes. */
 			'themesFound'         => __( 'Number of Themes found: %d' ),
 			'noThemesFound'       => __( 'No themes found. Try a different search.' ),
+			/* translators: %s: Theme name. */
+			'themeViewed'         => __( 'Theme details: %s' ),
 			'collapseSidebar'     => __( 'Collapse Sidebar' ),
 			'expandSidebar'       => __( 'Expand Sidebar' ),
 			/* translators: Hidden accessibility text. */
@@ -230,7 +232,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			?>
 			<p class="install-help"><?php _e( 'If you have marked themes as favorites on WordPress.org, you can browse them here.' ); ?></p>
 
-			<p>
+			<p class="favorites-username">
 				<label for="wporg-username-input"><?php _e( 'Your WordPress.org username:' ); ?></label>
 				<input type="hidden" id="wporg-username-nonce" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( $action ) ); ?>" />
 				<input type="search" id="wporg-username-input" value="<?php echo esc_attr( $user ); ?>" />
@@ -408,21 +410,21 @@ if ( $tab ) {
 					?>
 					<# if ( data.activate_url ) { #>
 						<# if ( ! data.active ) { #>
-							<a class="button button-primary activate" href="{{ data.activate_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
+							<a class="button button-primary button-compact activate" href="{{ data.activate_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 						<# } else { #>
-							<button class="button button-primary disabled"><?php _ex( 'Activated', 'theme' ); ?></button>
+							<button class="button button-primary button-compact disabled"><?php _ex( 'Activated', 'theme' ); ?></button>
 						<# } #>
 					<# } #>
 					<# if ( data.customize_url ) { #>
 						<# if ( ! data.active ) { #>
 							<# if ( ! data.block_theme ) { #>
-								<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+								<a class="button button-compact load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
 							<# } #>
 						<# } else { #>
-							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
+							<a class="button button-compact load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
 						<# } #>
 					<# } else { #>
-						<button class="button preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
+						<button class="button button-compact preview install-theme-preview"><?php echo esc_html_x( 'Preview', 'verb' ); ?></button>
 					<# } #>
 				<# } else { #>
 					<?php
@@ -430,12 +432,12 @@ if ( $tab ) {
 					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<# if ( data.activate_url ) { #>
-						<a class="button button-primary disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
+						<a class="button button-primary button-compact disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 					<# } #>
 					<# if ( data.customize_url ) { #>
-						<a class="button disabled"><?php _e( 'Live Preview' ); ?></a>
+						<a class="button button-compact disabled"><?php _e( 'Live Preview' ); ?></a>
 					<# } else { #>
-						<button class="button disabled"><?php _e( 'Preview' ); ?></button>
+						<button class="button button-compact disabled"><?php echo esc_html_x( 'Preview', 'verb' ); ?></button>
 					<# } #>
 				<# } #>
 			<# } else { #>
@@ -444,15 +446,15 @@ if ( $tab ) {
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( _x( 'Install %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button button-primary theme-install" data-name="{{ data.name }}" data-slug="{{ data.id }}" href="{{ data.install_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Install' ); ?></a>
-					<button class="button preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
+					<a class="button button-primary button-compact theme-install" data-name="{{ data.name }}" data-slug="{{ data.id }}" href="{{ data.install_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Install' ); ?></a>
+					<button class="button button-compact preview install-theme-preview"><?php echo esc_html_x( 'Preview', 'verb' ); ?></button>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( _x( 'Cannot Install %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button button-primary disabled" data-name="{{ data.name }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Install', 'theme' ); ?></a>
-					<button class="button disabled"><?php _e( 'Preview' ); ?></button>
+					<a class="button button-primary button-compact disabled" data-name="{{ data.name }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Install', 'theme' ); ?></a>
+					<button class="button button-compact disabled"><?php echo esc_html_x( 'Preview', 'verb' ); ?></button>
 				<# } #>
 			<# } #>
 		</div>
@@ -599,13 +601,13 @@ if ( $tab ) {
 			</div>
 			<div class="wp-full-overlay-footer">
 				<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
-					<span class="collapse-sidebar-arrow"></span>
+					<span class="collapse-sidebar-arrow" aria-hidden="true"></span>
 					<span class="collapse-sidebar-label"><?php _e( 'Collapse' ); ?></span>
 				</button>
 			</div>
 		</div>
 		<div class="wp-full-overlay-main">
-		<iframe src="{{ data.preview_url }}" title="<?php esc_attr_e( 'Preview' ); ?>"></iframe>
+		<iframe src="{{ data.preview_url }}" title="<?php echo esc_attr_x( 'Preview', 'noun' ); ?>"></iframe>
 	</div>
 </script>
 

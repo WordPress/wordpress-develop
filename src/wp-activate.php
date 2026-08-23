@@ -29,9 +29,9 @@ $result = null;
 if ( isset( $_GET['key'] ) && isset( $_POST['key'] ) && $_GET['key'] !== $_POST['key'] ) {
 	wp_die( __( 'A key value mismatch has been detected. Please follow the link provided in your activation email.' ), __( 'An error occurred during the activation' ), 400 );
 } elseif ( ! empty( $_GET['key'] ) ) {
-	$key = $_GET['key'];
+	$key = sanitize_text_field( $_GET['key'] );
 } elseif ( ! empty( $_POST['key'] ) ) {
-	$key = $_POST['key'];
+	$key = sanitize_text_field( $_POST['key'] );
 }
 
 if ( $key ) {
@@ -63,10 +63,6 @@ if ( null === $result || ( is_wp_error( $result ) && 'invalid_key' === $result->
 }
 
 nocache_headers();
-
-if ( is_object( $wp_object_cache ) ) {
-	$wp_object_cache->cache_enabled = false;
-}
 
 // Fix for page title.
 $wp_query->is_404 = false;
@@ -104,13 +100,14 @@ add_action( 'wp_head', 'do_activate_header' );
  */
 function wpmu_activate_stylesheet() {
 	?>
-	<style type="text/css">
-		.wp-activate-container { width: 90%; margin: 0 auto; }
-		.wp-activate-container form { margin-top: 2em; }
-		#submit, #key { width: 100%; font-size: 24px; box-sizing: border-box; }
-		#language { margin-top: 0.5em; }
-		.wp-activate-container .error { background: #f66; color: #333; }
-		span.h3 { padding: 0 8px; font-size: 1.3em; font-weight: 600; }
+	<style>
+		.wp-activate-container { width: 90%; margin: 0 auto; text-align: start; padding: 24px; box-sizing: border-box; }
+		.wp-activate-container form { margin: 24px 0; }
+		.wp-activate-container p { font-size: 18px; }
+		#key, #submit { font-size: 24px; box-sizing: border-box; margin: 5px 0; }
+		#key { width: 100%; direction: ltr; }
+		#submit { width: auto; }
+		span.h3 { font-weight: 600; }
 	</style>
 	<?php
 }
@@ -120,6 +117,7 @@ add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
 
 get_header( 'wp-activate' );
 
+/** @var WP_Site $blog_details */
 $blog_details = get_site();
 ?>
 
@@ -141,6 +139,7 @@ $blog_details = get_site();
 		<?php
 	} else {
 		if ( is_wp_error( $result ) && in_array( $result->get_error_code(), $valid_error_codes, true ) ) {
+			/** @var object{ signup_id: string, domain: string, path: string, title: string, user_login: string, user_email: string, registered: string, activated: string, active: string, activation_key: string, meta: string|null } $signup */
 			$signup = $result->get_error_data();
 			?>
 			<h2><?php _e( 'Your account is now active!' ); ?></h2>
@@ -156,10 +155,12 @@ $blog_details = get_site();
 					esc_url( wp_lostpassword_url() )
 				);
 			} else {
+				$url = ( is_ssl() ? 'https://' : 'http://' ) . $signup->domain . $blog_details->path;
+
 				printf(
 					/* translators: 1: Site URL, 2: Username, 3: User email address, 4: Lost password URL. */
 					__( 'Your site at %1$s is active. You may now log in to your site using your chosen username of &#8220;%2$s&#8221;. Please check your email inbox at %3$s for your password and login instructions. If you do not receive an email, please check your junk or spam folder. If you still do not receive an email within an hour, you can <a href="%4$s">reset your password</a>.' ),
-					sprintf( '<a href="http://%1$s">%1$s</a>', esc_url( $signup->domain . $blog_details->path ) ),
+					sprintf( '<a href="%1$s">%1$s</a>', esc_url( $url ) ),
 					esc_html( $signup->user_login ),
 					esc_html( $signup->user_email ),
 					esc_url( wp_lostpassword_url() )
@@ -174,7 +175,8 @@ $blog_details = get_site();
 			<?php endif; ?>
 			<?php
 		} else {
-			$url  = isset( $result['blog_id'] ) ? esc_url( get_home_url( (int) $result['blog_id'] ) ) : '';
+			$url = isset( $result['blog_id'] ) ? esc_url( get_home_url( (int) $result['blog_id'] ) ) : '';
+			/** @var WP_User $user */
 			$user = get_userdata( (int) $result['user_id'] );
 			?>
 			<h2><?php _e( 'Your account is now active!' ); ?></h2>

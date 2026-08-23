@@ -17,7 +17,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_address( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -65,7 +65,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_a( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -120,7 +120,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $expected Expected output following KSES parsing.
 	 */
 	public function test_wp_kses_video( $source, $context, $expected ) {
-		$this->assertSame( $expected, wp_kses( $source, $context ) );
+		$this->assertEqualHTML( $expected, wp_kses( $source, $context ) );
 	}
 
 	/**
@@ -171,7 +171,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_abbr( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -232,7 +232,7 @@ EOF;
 <a href="">CLICK ME</a>
 EOF;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function test_wp_kses_bad_protocol() {
@@ -489,12 +489,15 @@ EOF;
 
 		$tags = wp_kses_allowed_html( 'post' );
 
+		$this->assertNotEmpty( $tags );
+
 		foreach ( $tags as $tag ) {
 			$this->assertTrue( $tag['class'] );
 			$this->assertTrue( $tag['dir'] );
 			$this->assertTrue( $tag['id'] );
 			$this->assertTrue( $tag['lang'] );
 			$this->assertTrue( $tag['style'] );
+			$this->assertTrue( $tag['tabindex'] );
 			$this->assertTrue( $tag['title'] );
 			$this->assertTrue( $tag['xml:lang'] );
 		}
@@ -533,6 +536,227 @@ EOF;
 		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
 	}
 
+	/**
+	 * Tests that the comment content context allows only the mention span beyond the defaults.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_wp_kses_allowed_html_pre_comment_content_allows_only_the_mention_span() {
+		global $allowedtags;
+
+		$allowed = wp_kses_allowed_html( 'pre_comment_content' );
+
+		$this->assertSame(
+			array( 'class' => true ),
+			$allowed['span'],
+			'The mention span should be allowed in comment content.'
+		);
+
+		unset( $allowed['span'] );
+		$this->assertSame(
+			$allowedtags,
+			$allowed,
+			'Nothing beyond the mention span should be allowed on top of the default comment tags.'
+		);
+	}
+
+	/**
+	 * Tests that a note mention survives content sanitization of a `note` comment.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_markup_survives_note_content_sanitization() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that the mention markup also survives in regular comment content.
+	 *
+	 * The allowance is always on rather than scoped per comment type: the
+	 * mention markup is inert, so uniform sanitization avoids stateful
+	 * arming and disarming of kses filters around each note write.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_markup_survives_regular_comment_content_sanitization() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that span classes are reduced to the two mention tokens.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_span_classes_are_reduced_to_the_mention_tokens() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2 is-destructive components-button">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Class tokens beyond `wp-note-mention` and `user-N` should be stripped from spans.'
+		);
+	}
+
+	/**
+	 * Tests that class tokens are reduced on spans regardless of tag-name casing.
+	 *
+	 * kses preserves tag-name casing, so the class reduction must match `SPAN`
+	 * case-insensitively rather than bail on a `<span` substring check.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_tokens_are_reduced_on_uppercase_span_tags() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <SPAN class="wp-note-mention user-2 is-destructive">@admin</SPAN>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertEqualHTML(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
+			'Class tokens should be reduced on spans regardless of tag-name casing.'
+		);
+	}
+
+	/**
+	 * Tests that the class attribute is removed when no mention tokens remain.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_attribute_removed_when_no_tokens_remain() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="is-destructive user-0 user-x wp-note-mention-foo">there</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		// Markup-equivalence assertion: the HTML API's whitespace handling
+		// when removing the final attribute is not part of its contract.
+		$this->assertEqualHTML(
+			'Hello <span>there</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
+			'A span with no valid mention tokens should lose its class attribute entirely.'
+		);
+	}
+
+	/**
+	 * Tests that only the `class` attribute is allowed on mention spans.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_note_mention_allows_only_class_on_mention_spans() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2" data-user-id="2" onclick="alert(1)" style="color:red" id="mention">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Attributes beyond `class` should be stripped from spans.'
+		);
+	}
+
+	/**
+	 * Tests that `class` is still stripped from links in comment content.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_class_is_still_stripped_from_links_in_comment_content() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		/*
+		 * The href is external to the test site so that wp_rel_ugc() - which
+		 * applies to notes like any other comment - deterministically appends
+		 * `rel="nofollow ugc"`.
+		 */
+		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'The class allowance is scoped to spans; links keep the default sanitization.'
+		);
+	}
+
+	/**
+	 * Tests that the class reduction is skipped while the restrictive comment kses is inactive.
+	 *
+	 * Users with `unfiltered_html` are filtered through `wp_filter_post_kses`
+	 * (or not at all), where arbitrary classes are permitted; the mention
+	 * class reduction must not narrow what they can post.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_reduction_skipped_when_restrictive_kses_is_inactive() {
+		// kses_init() hooks wp_filter_kses by default in the test
+		// environment, so detach it to simulate the unfiltered_html setup.
+		// The test framework restores filters after each test.
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content = 'Hello <span class="components-button is-destructive">there</span>!';
+
+		$this->assertSame(
+			wp_slash( $content ),
+			_wp_kses_sanitize_note_mention_classes( wp_slash( $content ) ),
+			'Span classes should be left untouched when wp_filter_kses is not active.'
+		);
+	}
+
+	/**
+	 * Builds a complete commentdata array for wp_filter_comment().
+	 *
+	 * @param 'note'|'comment' $comment_type The comment type.
+	 * @param string           $content      The comment content.
+	 * @return array{
+	 *     comment_content: string,
+	 *     ...
+	 * }
+	 */
+	private function get_mention_commentdata( string $comment_type, string $content ): array {
+		return array(
+			'comment_content'      => $content,
+			'comment_type'         => $comment_type,
+			'comment_author'       => 'admin',
+			'comment_author_IP'    => '127.0.0.1',
+			'comment_author_url'   => 'http://example.org',
+			'comment_author_email' => 'admin@example.org',
+			'comment_agent'        => '',
+		);
+	}
+
 	public function test_hyphenated_tag() {
 		$content     = '<hyphenated-tag attribute="value" otherattribute="value2">Alot of hyphens.</hyphenated-tag>';
 		$custom_tags = array(
@@ -544,23 +768,81 @@ EOF;
 		$expect_stripped_content = 'Alot of hyphens.';
 		$expect_valid_content    = '<hyphenated-tag attribute="value">Alot of hyphens.</hyphenated-tag>';
 
-		$this->assertSame( $expect_stripped_content, wp_kses_post( $content ) );
-		$this->assertSame( $expect_valid_content, wp_kses( $content, $custom_tags ) );
+		$this->assertEqualHTML( $expect_stripped_content, wp_kses_post( $content ) );
+		$this->assertEqualHTML( $expect_valid_content, wp_kses( $content, $custom_tags ) );
+	}
+
+	/**
+	 * Data provider.
+	 */
+	public static function data_normalize_entities(): array {
+		return array(
+			/**
+			 * These examples are from the wp_kses_normalize_entities function description.
+			 */
+			'AT&T'                               => array( 'AT&T', 'AT&amp;T' ),
+			'&#00058;'                           => array( '&#00058;', '&#058;' ),
+			'&#XYZZY;'                           => array( '&#XYZZY;', '&amp;#XYZZY;' ),
+
+			'Named ref &amp;'                    => array( '&spades;', '&spades;' ),
+			'Named ref &AMP;'                    => array( '&spades;', '&spades;' ),
+			'Named ref &spades;'                 => array( '&spades;', '&spades;' ),
+			'Named ref &sup1;'                   => array( '&sup1;', '&sup1;' ),
+			'Named ref &sup2;'                   => array( '&sup2;', '&sup2;' ),
+			'Named ref &sup3;'                   => array( '&sup3;', '&sup3;' ),
+			'Named ref &frac14;'                 => array( '&frac14;', '&frac14;' ),
+			'Named ref &frac12;'                 => array( '&frac12;', '&frac12;' ),
+			'Named ref &frac34;'                 => array( '&frac34;', '&frac34;' ),
+			'Named ref &there4;'                 => array( '&there4;', '&there4;' ),
+
+			'Decimal ref &#9; ( )'               => array( '&#9;', '&#009;' ),
+			'Decimal ref &#34; (")'              => array( '&#34;', '&#034;' ),
+			'Decimal ref &#0034; (")'            => array( '&#0034;', '&#034;' ),
+			'Decimal ref &#38; (&)'              => array( '&#38;', '&#038;' ),
+			"Decimal ref &#39; (')"              => array( '&#39;', '&#039;' ),
+			'Decimal ref &#128525; (😍)'          => array( '&#128525;', '&#128525;' ),
+			'Decimal ref &#00128525; (😍)'        => array( '&#00128525;', '&#128525;' ),
+
+			'Hex ref &#x9; ( )'                  => array( '&#x9;', '&#x9;' ),
+			'Hex ref &#x22; (")'                 => array( '&#x22;', '&#x22;' ),
+			'Hex ref &#x0022; (")'               => array( '&#x0022;', '&#x22;' ),
+			'Hex ref &#x26; (&)'                 => array( '&#x26;', '&#x26;' ),
+			"Hex ref &#x27; (')"                 => array( '&#x27;', '&#x27;' ),
+			'Hex ref &#x1f60d; (😍)'              => array( '&#x1f60d;', '&#x1f60d;' ),
+			'Hex ref &#x001f60d; (😍)'            => array( '&#x001f60d;', '&#x1f60d;' ),
+
+			'HEX REF &#X22; (")'                 => array( '&#X22;', '&#x22;' ),
+			'HEX REF &#X26; (&)'                 => array( '&#X26;', '&#x26;' ),
+			"HEX REF &#X27; (')"                 => array( '&#X27;', '&#x27;' ),
+			'HEX REF &#X1F60D; (😍)'              => array( '&#X1F60D;', '&#x1F60D;' ),
+
+			'Encoded named ref &amp;amp;'        => array( '&amp;amp;', '&amp;amp;' ),
+			'Encoded named ref &#38;amp;'        => array( '&#38;amp;', '&#038;amp;' ),
+			'Encoded named ref &#x26;amp;'       => array( '&#x26;amp;', '&#x26;amp;' ),
+			'Encoded numeric ref &amp;#39;'      => array( '&amp;#39;', '&amp;#39;' ),
+			'Encoded numeric ref &#38;#39;'      => array( '&#38;#39;', '&#038;#39;' ),
+			'Encoded numeric ref &#x26;#39;'     => array( '&#x26;#39;', '&#x26;#39;' ),
+			'Encoded hex ref &amp;#x27;'         => array( '&amp;#x27;', '&amp;#x27;' ),
+			'Encoded hex ref &#38;#x27;'         => array( '&#38;#x27;', '&#038;#x27;' ),
+			'Encoded hex ref &#x26;#x27;'        => array( '&#x26;#x27;', '&#x26;#x27;' ),
+
+			/*
+			 * The codepoint value here is outside of the valid unicode range whose
+			 * maximum is 0x10FFFF or 1114111.
+			 */
+			'Invalid decimal unicode &#1114112;' => array( '&#1114112;', '&amp;#1114112;' ),
+			'Invalid hex unicode &#x110000;'     => array( '&#x110000;', '&amp;#x110000;' ),
+		);
 	}
 
 	/**
 	 * @ticket 26290
+	 * @ticket 63630
+	 *
+	 * @dataProvider data_normalize_entities
 	 */
-	public function test_wp_kses_normalize_entities() {
-		$this->assertSame( '&spades;', wp_kses_normalize_entities( '&spades;' ) );
-
-		$this->assertSame( '&sup1;', wp_kses_normalize_entities( '&sup1;' ) );
-		$this->assertSame( '&sup2;', wp_kses_normalize_entities( '&sup2;' ) );
-		$this->assertSame( '&sup3;', wp_kses_normalize_entities( '&sup3;' ) );
-		$this->assertSame( '&frac14;', wp_kses_normalize_entities( '&frac14;' ) );
-		$this->assertSame( '&frac12;', wp_kses_normalize_entities( '&frac12;' ) );
-		$this->assertSame( '&frac34;', wp_kses_normalize_entities( '&frac34;' ) );
-		$this->assertSame( '&there4;', wp_kses_normalize_entities( '&there4;' ) );
+	public function test_wp_kses_normalize_entities( string $input, string $expected ) {
+		$this->assertEqualHTML( $expected, wp_kses_normalize_entities( $input ) );
 	}
 
 	/**
@@ -572,7 +854,7 @@ EOF;
 	public function test_ctrl_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_ctrl_removal() {
@@ -609,7 +891,7 @@ EOF;
 	public function test_slash_zero_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_slash_zero_removal() {
@@ -864,7 +1146,7 @@ EOF;
 
 		$content = '<p>This is <bdo dir="rtl">a BDO tag</bdo>. Weird, <bdo dir="ltr">right?</bdo></p>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -875,7 +1157,7 @@ EOF;
 
 		$content = '<ruby>✶<rp>: </rp><rt>Star</rt><rp>, </rp><rt lang="fr">Étoile</rt><rp>.</rp></ruby>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -886,7 +1168,7 @@ EOF;
 
 		$content = '<ol reversed="reversed"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ol>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -896,7 +1178,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => array() ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => array() ), array() ) );
 	}
 
 	/**
@@ -906,7 +1188,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => true ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => true ), array() ) );
 	}
 
 	/**
@@ -916,7 +1198,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element} title=\"foo\">", wp_kses_attr( $element, $attribute, array( 'foo' => array( 'title' => true ) ), array() ) );
+		$this->assertEqualHTML( "<{$element} title=\"foo\">", wp_kses_attr( $element, $attribute, array( 'foo' => array( 'title' => true ) ), array() ) );
 	}
 
 	/**
@@ -926,7 +1208,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
 	}
 
 	/**
@@ -939,6 +1221,10 @@ EOF;
 	 * @ticket 56122
 	 * @ticket 58551
 	 * @ticket 60132
+	 * @ticket 64414
+	 * @ticket 65457
+	 * @ticket 64974
+	 * @ticket 65832
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1110,6 +1396,38 @@ EOF;
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 			),
+			/*
+			 * Background gradient support, introduced in 7.1 (ticket 64974).
+			 * A gradient combined with a url() image is allowed, in either order.
+			 */
+			array(
+				'css'      => "background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url('https://example.com/image.jpg')",
+				'expected' => "background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url('https://example.com/image.jpg')",
+			),
+			array(
+				'css'      => "background-image: url('https://example.com/image.jpg'), linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%)",
+				'expected' => "background-image: url('https://example.com/image.jpg'), linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%)",
+			),
+			// A gradient using modern color functions is allowed.
+			array(
+				'css'      => 'background-image: linear-gradient(135deg, hsl(0,100%,50%) 0%, hsl(240,100%,50%) 100%)',
+				'expected' => 'background-image: linear-gradient(135deg, hsl(0,100%,50%) 0%, hsl(240,100%,50%) 100%)',
+			),
+			// Nesting beyond one level inside a gradient is not supported (unchanged from before).
+			array(
+				'css'      => 'background-image: linear-gradient(red 0%, blue calc(50% + var(--x)))',
+				'expected' => '',
+			),
+			/*
+			 * As of 7.1 (ticket 64974) any single-level nested function is permitted inside a
+			 * gradient, widening the previous rgb()/rgba()-only allowance. This includes the
+			 * legacy expression() form, which is inert in all supported browsers and remains
+			 * escaped when output as an attribute value.
+			 */
+			array(
+				'css'      => 'background-image: linear-gradient(red, expression(alert))',
+				'expected' => 'background-image: linear-gradient(red, expression(alert))',
+			),
 			// `object-position` introduced in 5.7.1.
 			array(
 				'css'      => 'object-position: right top',
@@ -1119,6 +1437,23 @@ EOF;
 			array(
 				'css'      => 'object-fit: cover',
 				'expected' => 'object-fit: cover',
+			),
+			// `white-space` introduced in 6.9.0.
+			array(
+				'css'      => 'white-space: nowrap',
+				'expected' => 'white-space: nowrap',
+			),
+			array(
+				'css'      => 'white-space: pre',
+				'expected' => 'white-space: pre',
+			),
+			array(
+				'css'      => 'white-space: pre-wrap',
+				'expected' => 'white-space: pre-wrap',
+			),
+			array(
+				'css'      => 'white-space: pre-line',
+				'expected' => 'white-space: pre-line',
 			),
 			// Expressions are not allowed.
 			array(
@@ -1358,6 +1693,195 @@ EOF;
 				'css'      => 'opacity: 10',
 				'expected' => 'opacity: 10',
 			),
+			// `display` introduced in 7.0.0.
+			array(
+				'css'      => 'display: none',
+				'expected' => 'display: none',
+			),
+			array(
+				'css'      => 'display: block',
+				'expected' => 'display: block',
+			),
+			array(
+				'css'      => 'display: inline',
+				'expected' => 'display: inline',
+			),
+			array(
+				'css'      => 'display: inline-block',
+				'expected' => 'display: inline-block',
+			),
+			array(
+				'css'      => 'display: inline-flex',
+				'expected' => 'display: inline-flex',
+			),
+			array(
+				'css'      => 'display: inline-grid',
+				'expected' => 'display: inline-grid',
+			),
+			array(
+				'css'      => 'display: table',
+				'expected' => 'display: table',
+			),
+			array(
+				'css'      => 'display: flex',
+				'expected' => 'display: flex',
+			),
+			array(
+				'css'      => 'display: grid',
+				'expected' => 'display: grid',
+			),
+			// SVG presentation attributes introduced in 7.1.0.
+			array(
+				'css'      => 'fill: none',
+				'expected' => 'fill: none',
+			),
+			array(
+				'css'      => 'fill-rule: evenodd',
+				'expected' => 'fill-rule: evenodd',
+			),
+			array(
+				'css'      => 'stroke: red',
+				'expected' => 'stroke: red',
+			),
+			array(
+				'css'      => 'stroke-width: 2',
+				'expected' => 'stroke-width: 2',
+			),
+			array(
+				'css'      => 'stroke-linecap: round',
+				'expected' => 'stroke-linecap: round',
+			),
+			array(
+				'css'      => 'paint-order: stroke',
+				'expected' => 'paint-order: stroke',
+			),
+			array(
+				'css'      => 'vector-effect: non-scaling-stroke',
+				'expected' => 'vector-effect: non-scaling-stroke',
+			),
+			array(
+				'css'      => 'clip-rule: evenodd',
+				'expected' => 'clip-rule: evenodd',
+			),
+			array(
+				'css'      => 'text-anchor: middle',
+				'expected' => 'text-anchor: middle',
+			),
+			// SVG transform functions (ticket #65832).
+			array(
+				'css'      => 'transform: rotate(45deg)',
+				'expected' => 'transform: rotate(45deg)',
+			),
+			array(
+				'css'      => 'transform: translate(10px, 20px)',
+				'expected' => 'transform: translate(10px, 20px)',
+			),
+			array(
+				'css'      => 'transform: scale(1.5)',
+				'expected' => 'transform: scale(1.5)',
+			),
+			array(
+				'css'      => 'transform: matrix(1, 0, 0, 1, 10, 20)',
+				'expected' => 'transform: matrix(1, 0, 0, 1, 10, 20)',
+			),
+			array(
+				'css'      => 'transform: skewX(30deg)',
+				'expected' => 'transform: skewX(30deg)',
+			),
+			array(
+				'css'      => 'transform: skewY(30deg)',
+				'expected' => 'transform: skewY(30deg)',
+			),
+			// Multiple transform functions chained.
+			array(
+				'css'      => 'transform: rotate(45deg) scale(1.5)',
+				'expected' => 'transform: rotate(45deg) scale(1.5)',
+			),
+			// transform: none is unchanged (regression control).
+			array(
+				'css'      => 'transform: none',
+				'expected' => 'transform: none',
+			),
+			// SVG clip-path shape functions (ticket #65832).
+			array(
+				'css'      => 'clip-path: inset(10px)',
+				'expected' => 'clip-path: inset(10px)',
+			),
+			array(
+				'css'      => 'clip-path: circle(50%)',
+				'expected' => 'clip-path: circle(50%)',
+			),
+			array(
+				'css'      => 'clip-path: ellipse(25% 40% at 50% 50%)',
+				'expected' => 'clip-path: ellipse(25% 40% at 50% 50%)',
+			),
+			array(
+				'css'      => 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%)',
+				'expected' => 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%)',
+			),
+			array(
+				'css'      => "clip-path: path('M 0 0 L 100 0 L 50 100 Z')",
+				'expected' => "clip-path: path('M 0 0 L 100 0 L 50 100 Z')",
+			),
+			array(
+				'css'      => 'clip-path: rect(0 100% 100% 0)',
+				'expected' => 'clip-path: rect(0 100% 100% 0)',
+			),
+			array(
+				'css'      => 'clip-path: xywh(0 0 100% 100% round 10px)',
+				'expected' => 'clip-path: xywh(0 0 100% 100% round 10px)',
+			),
+			array(
+				'css'      => 'clip-path: shape(from 0 0, line to 100% 0, line to 50% 100%, close)',
+				'expected' => 'clip-path: shape(from 0 0, line to 100% 0, line to 50% 100%, close)',
+			),
+			// Nested functions within a basic shape are allowed.
+			array(
+				'css'      => 'clip-path: inset(calc(10px + 1em) round var(--radius))',
+				'expected' => 'clip-path: inset(calc(10px + 1em) round var(--radius))',
+			),
+			// SVG url() references for allowlisted properties (ticket #65832).
+			array(
+				'css'      => 'clip-path: url(#myClipper)',
+				'expected' => 'clip-path: url(#myClipper)',
+			),
+			array(
+				'css'      => 'fill: url(#gradient1)',
+				'expected' => 'fill: url(#gradient1)',
+			),
+			array(
+				'css'      => 'mask: url(#myMask)',
+				'expected' => 'mask: url(#myMask)',
+			),
+			array(
+				'css'      => 'marker-start: url(#arrowStart)',
+				'expected' => 'marker-start: url(#arrowStart)',
+			),
+			array(
+				'css'      => 'marker-end: url(#arrowEnd)',
+				'expected' => 'marker-end: url(#arrowEnd)',
+			),
+			array(
+				'css'      => 'marker-mid: url(#arrowMid)',
+				'expected' => 'marker-mid: url(#arrowMid)',
+			),
+			array(
+				'css'      => 'marker: url(#marker1)',
+				'expected' => 'marker: url(#marker1)',
+			),
+			array(
+				'css'      => 'stroke: url(#strokeGradient)',
+				'expected' => 'stroke: url(#strokeGradient)',
+			),
+			// Disallow javascript: URLs in SVG url() references (security regression).
+			array(
+				'css'      => 'fill: url(javascript:alert(1))',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'clip-path: url(javascript:alert(1))',
+				'expected' => '',
+			),
 		);
 	}
 
@@ -1370,7 +1894,7 @@ EOF;
 		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data-two-hyphens="remains">Pens and pencils</div>';
 		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
 
-		$this->assertSame( $expected, wp_kses_post( $test ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $test ) );
 	}
 
 	/**
@@ -1382,7 +1906,7 @@ EOF;
 		$test     = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
 		$expected = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
 
-		$this->assertSame( $expected, wp_kses_post( $test ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $test ) );
 	}
 
 	/**
@@ -1403,7 +1927,7 @@ EOF;
 
 		$actual = wp_kses( $content, $allowed_html );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1423,7 +1947,7 @@ EOF;
 
 		$actual = wp_kses( $content, $allowed_html );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1465,6 +1989,52 @@ EOF;
 			// Multiple wildcards.
 			array( 'd*ta-*', false ),
 			array( 'data**', false ),
+		);
+	}
+
+	/**
+	 * Tests that style attribute values are decoded before CSS filtering.
+	 *
+	 * @ticket 65270
+	 *
+	 * @dataProvider data_wp_kses_style_attr_decodes_entities_before_css_filtering
+	 *
+	 * @param string $content  A string of HTML to test.
+	 * @param string $expected Expected result after passing through KSES.
+	 */
+	public function test_wp_kses_style_attr_decodes_entities_before_css_filtering( $content, $expected ) {
+		$allowed_html = array(
+			'div' => array(
+				'style' => true,
+			),
+		);
+
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_style_attr_decodes_entities_before_css_filtering().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_style_attr_decodes_entities_before_css_filtering() {
+		return array(
+			'background image URL with single quotes' => array(
+				'<div style="background-image: url(\'https://localhost/image.jpg\');"></div>',
+				'<div style="background-image: url(&#039;https://localhost/image.jpg&#039;)"></div>',
+			),
+			'background image URL with entity-encoded double quotes' => array(
+				'<div style="background-image: url(&quot;https://localhost/image.jpg&quot;);"></div>',
+				'<div style="background-image: url(&quot;https://localhost/image.jpg&quot;)"></div>',
+			),
+			'background image URL with query string ampersand' => array(
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&b=2);"></div>',
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&amp;b=2)"></div>',
+			),
+			'background image URL followed by another declaration' => array(
+				'<div style="background-image:url(\'https://localhost/image.jpg\');background-size:cover;"></div>',
+				'<div style="background-image:url(&#039;https://localhost/image.jpg&#039;);background-size:cover"></div>',
+			),
 		);
 	}
 
@@ -1708,7 +2278,7 @@ EOF;
 
 		$html = implode( ' ', $html );
 
-		$this->assertSame( $html, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1726,7 +2296,30 @@ EOF;
 
 		$html = implode( ' ', $test );
 
-		$this->assertSame( $html, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Tests that the autofocus attribute is allowed on dialog elements and removed from other focusable elements.
+	 *
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_dialog_autofocus_attribute() {
+		$html     = '<dialog open autofocus>Content</dialog><button type="button" autofocus>Button</button><textarea autofocus>Some content</textarea><div tabindex="0" autofocus>Some content</div>';
+		$expected = '<dialog open autofocus>Content</dialog><button type="button">Button</button><textarea>Some content</textarea><div tabindex="0">Some content</div>';
+
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test that Invoker Commands API attributes are preserved on buttons in post content.
+	 *
+	 * @ticket 64576
+	 */
+	public function test_wp_kses_button_invoker_command_attributes() {
+		$html = '<button type="button" commandfor="my-popover" command="toggle-popover">Toggle</button><div id="my-popover" popover>Content</div>';
+
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1740,7 +2333,7 @@ EOF;
 	 * @param string $expected The expected result from KSES.
 	 */
 	public function test_wp_kses_object_tag_allowed( $html, $expected ) {
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1851,7 +2444,7 @@ EOF;
 	 */
 	public function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
 		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1917,7 +2510,7 @@ HTML;
 
 		remove_filter( 'wp_kses_allowed_html', array( $this, 'filter_wp_kses_object_added_in_html_filter' ) );
 
-		$this->assertSame( $html, $filtered_html );
+		$this->assertEqualHTML( $html, $filtered_html );
 	}
 
 	public function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
@@ -1948,9 +2541,10 @@ HTML;
 	 * @param string $expected_output How `wp_kses()` ought to transform the comment.
 	 */
 	public function test_wp_kses_preserves_html_comments( $html_comment, $expected_output ) {
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected_output,
 			wp_kses( $html_comment, array() ),
+			'<body>',
 			'Failed to properly preserve HTML comment.'
 		);
 	}
@@ -1980,7 +2574,7 @@ HTML;
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
 	public function test_wp_kses_allowed_values_list( $content, $expected, $allowed_html ) {
-		$this->assertSame( $expected, wp_kses( $content, $allowed_html ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
 	}
 
 	/**
@@ -2038,7 +2632,7 @@ HTML;
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
 	public function test_wp_kses_required_attribute( $content, $expected, $allowed_html ) {
-		$this->assertSame( $expected, wp_kses( $content, $allowed_html ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
 	}
 
 	/**
@@ -2243,5 +2837,77 @@ HTML;
 		);
 
 		return $this->text_array_to_dataprovider( $required_kses_globals );
+	}
+
+	/**
+	 * Tests that the target attribute is preserved in various contexts.
+	 *
+	 * @dataProvider data_target_attribute_preserved_in_descriptions
+	 *
+	 * @ticket 12056
+	 *
+	 * @param string $context  The context to test ('user_description' or 'pre_term_description').
+	 * @param string $input    The input HTML string.
+	 * @param string $expected The expected output HTML string.
+	 */
+	public function test_target_attribute_preserved_in_context( $context, $input, $expected ) {
+		$allowed = wp_kses_allowed_html( $context );
+		$this->assertTrue( isset( $allowed['a']['target'] ), "Target attribute not allowed in {$context}" );
+		$this->assertEqualHTML( $expected, wp_kses( $input, $context ) );
+	}
+
+	/**
+	 * Data provider for test_target_attribute_preserved_in_context.
+	 *
+	 * @return array
+	 */
+	public function data_target_attribute_preserved_in_descriptions() {
+		return array(
+			array(
+				'user_description',
+				'<a href="https://example.com" target="_blank">Example</a>',
+				'<a href="https://example.com" target="_blank">Example</a>',
+			),
+			array(
+				'pre_term_description',
+				'<a href="https://example.com" target="_blank">Example</a>',
+				'<a href="https://example.com" target="_blank">Example</a>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that specific attributes are preserved in various contexts.
+	 *
+	 * @dataProvider data_allowed_attributes_in_descriptions
+	 *
+	 * @ticket 12056
+	 *
+	 * @param string $context    The context to test ('user_description' or 'pre_term_description').
+	 * @param array  $attributes List of attributes to check for.
+	 */
+	public function test_specific_attributes_preserved_in_context( $context, $attributes ) {
+		$allowed = wp_kses_allowed_html( $context );
+		foreach ( $attributes as $attribute ) {
+			$this->assertTrue( isset( $allowed['a'][ $attribute ] ), "{$attribute} attribute not allowed in {$context}" );
+		}
+	}
+
+	/**
+	 * Data provider for test_specific_attributes_preserved_in_context.
+	 *
+	 * @return array
+	 */
+	public function data_allowed_attributes_in_descriptions() {
+		return array(
+			array(
+				'user_description',
+				array( 'target', 'href', 'rel' ),
+			),
+			array(
+				'pre_term_description',
+				array( 'target', 'href', 'rel' ),
+			),
+		);
 	}
 }

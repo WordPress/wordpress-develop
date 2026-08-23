@@ -40,7 +40,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! WP_Filesystem( $credentials ) ) {
@@ -55,7 +55,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! is_object( $wp_filesystem ) ) {
@@ -400,11 +400,7 @@ function get_theme_feature_list( $api = true ) {
 		$wporg_features[ $feature_category ] = array();
 
 		foreach ( $feature_items as $feature ) {
-			if ( isset( $features[ $feature_category ][ $feature ] ) ) {
-				$wporg_features[ $feature_category ][ $feature ] = $features[ $feature_category ][ $feature ];
-			} else {
-				$wporg_features[ $feature_category ][ $feature ] = $feature;
-			}
+			$wporg_features[ $feature_category ][ $feature ] = $features[ $feature_category ][ $feature ] ?? $feature;
 		}
 	}
 
@@ -493,9 +489,6 @@ function get_theme_feature_list( $api = true ) {
  *         for more information on the make-up of possible return objects depending on the value of `$action`.
  */
 function themes_api( $action, $args = array() ) {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
 	if ( is_array( $args ) ) {
 		$args = (object) $args;
 	}
@@ -511,7 +504,7 @@ function themes_api( $action, $args = array() ) {
 	}
 
 	if ( ! isset( $args->wp_version ) ) {
-		$args->wp_version = substr( $wp_version, 0, 3 ); // x.y
+		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
 	}
 
 	/**
@@ -562,7 +555,7 @@ function themes_api( $action, $args = array() ) {
 
 		$http_args = array(
 			'timeout'    => 15,
-			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
+			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),
 		);
 		$request   = wp_remote_get( $url, $http_args );
 
@@ -735,8 +728,8 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			$customize_action = esc_url( $customize_action );
 		}
 
-		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;
-		$update_requires_php = isset( $updates[ $slug ]['requires_php'] ) ? $updates[ $slug ]['requires_php'] : null;
+		$update_requires_wp  = $updates[ $slug ]['requires'] ?? null;
+		$update_requires_php = $updates[ $slug ]['requires_php'] ?? null;
 
 		$auto_update        = in_array( $slug, $auto_updates, true );
 		$auto_update_action = $auto_update ? 'disable-auto-update' : 'enable-auto-update';

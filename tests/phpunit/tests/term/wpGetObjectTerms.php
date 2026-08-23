@@ -110,6 +110,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		add_filter( 'wp_get_object_terms', array( $this, 'filter_get_object_terms' ) );
 		$terms = wp_get_object_terms( $post_id, $this->taxonomy );
 		remove_filter( 'wp_get_object_terms', array( $this, 'filter_get_object_terms' ) );
+
+		$this->assertNotEmpty( $terms );
+
 		foreach ( $terms as $term ) {
 			$this->assertIsObject( $term );
 		}
@@ -778,9 +781,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $found );
-		foreach ( $found as $f ) {
-			$this->assertInstanceOf( 'WP_Term', $f );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
@@ -801,9 +802,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $found );
-		foreach ( $found as $f ) {
-			$this->assertInstanceOf( 'WP_Term', $f );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
@@ -844,6 +843,8 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 				'fields' => 'all_with_object_id',
 			)
 		);
+
+		$this->assertNotEmpty( $found );
 
 		foreach ( $found as $f ) {
 			$this->assertSame( $p, $f->object_id );
