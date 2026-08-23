@@ -39,8 +39,6 @@
 	width: 36px;
 }
 
-/* New Menu icons */
-
 /* hide background-image for icons above */
 .menu-icon-dashboard div.wp-menu-image,
 .menu-icon-post div.wp-menu-image,
@@ -58,17 +56,12 @@
 	background-image: none !important;
 }
 
-/*------------------------------------------------------------------------------
-  7.0 - Main Navigation (Left Menu)
-------------------------------------------------------------------------------*/
-
 #adminmenuwrap {
 	position: relative;
 	float: left;
 	z-index: 9990;
 }
 
-/* side admin menu */
 #adminmenu * {
 	-webkit-user-select: none;
 	user-select: none;
@@ -533,9 +526,6 @@ ul#adminmenu > li.current > a.current::after {
 	transition: all 0.1s ease-in-out;
 }
 
-/**
- * Toolbar menu toggle
- */
 li#wp-admin-bar-menu-toggle {
 	display: none;
 }
