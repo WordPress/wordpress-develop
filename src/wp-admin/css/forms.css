@@ -332,10 +332,6 @@ input[type="radio"].disabled:checked::before {
 	cursor: default;
 }
 
-/*------------------------------------------------------------------------------
-  2.0 - Forms
-------------------------------------------------------------------------------*/
-
 /* Select styles are based on the default button in buttons.css */
 .wp-core-ui select {
 	font-size: 14px;
@@ -899,10 +895,6 @@ ul#add-to-blog-users {
 	outline: 2px solid transparent;
 }
 
-/*------------------------------------------------------------------------------
-  15.0 - Comments Screen
-------------------------------------------------------------------------------*/
-
 .form-table {
 	border-collapse: collapse;
 	margin-top: 0.5em;
@@ -996,10 +988,6 @@ table.form-table td .updated p {
 	margin: 0.3em 0;
 }
 
-/*------------------------------------------------------------------------------
-  18.0 - Users
-------------------------------------------------------------------------------*/
-
 #profile-page .form-table textarea {
 	width: 500px;
 	margin-bottom: 6px;
@@ -1084,10 +1072,6 @@ table.form-table td .updated p {
 .authorize-application-php .form-wrap p {
 	display: block;
 }
-
-/*------------------------------------------------------------------------------
-  19.0 - Tools
-------------------------------------------------------------------------------*/
 
 .tool-box .title {
 	margin: 8px 0;
@@ -1220,10 +1204,6 @@ table.form-table td .updated p {
 	color: #50575e;
 }
 
-/*------------------------------------------------------------------------------
-  20.0 - Settings
-------------------------------------------------------------------------------*/
-
 .timezone-info code {
 	white-space: nowrap;
 }
@@ -1299,10 +1279,6 @@ table.form-table td .updated p {
 	display: inline-block;
 }
 
-/*------------------------------------------------------------------------------
-  21.0 - Network Admin
-------------------------------------------------------------------------------*/
-
 .setup-php textarea {
 	max-width: 100%;
 }
@@ -1336,10 +1312,6 @@ table.form-table td .updated p {
 	font-weight: 600;
 	margin-bottom: 4px;
 }
-
-/*------------------------------------------------------------------------------
-   Credentials check dialog for Install and Updates
-------------------------------------------------------------------------------*/
 
 .request-filesystem-credentials-dialog {
 	display: none;
@@ -1445,9 +1417,6 @@ table.form-table td .updated p {
 	clear: both;
 }
 
-/*------------------------------------------------------------------------------
-   Privacy Policy settings screen
-------------------------------------------------------------------------------*/
 .tools-privacy-policy-page form {
 	margin-bottom: 1.3em;
 }
@@ -1563,9 +1532,6 @@ table.form-table td .updated p {
 .wp-privacy-request-form input[type="text"] {
 	margin: 0;
 }
-
-/* =Media Queries
--------------------------------------------------------------- */
 
 @media screen and (max-width: 782px) {
 	/* Input Elements */
