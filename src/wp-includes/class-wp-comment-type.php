@@ -78,9 +78,9 @@ final class WP_Comment_Type {
 	/**
 	 * Whether the comment type is for internal use only.
 	 *
-	 * Analogous to the `internal` argument of register_post_status(). Internal types are
-	 * excluded from comment queries and counts by default, through the
-	 * {@see 'default_excluded_comment_types'} filter.
+	 * Analogous to the `internal` argument of register_post_status(). Internal types
+	 * are meant to be excluded from comment queries and counts by default. Core does
+	 * not currently act on this flag.
 	 *
 	 * Default false.
 	 *

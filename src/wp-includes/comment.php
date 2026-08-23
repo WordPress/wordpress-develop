@@ -412,7 +412,8 @@ function create_initial_comment_types() {
  *
  *  - `public` states display-surface intent: whether the type is meant to be seen by site
  *    visitors. It does not affect what queries return.
- *  - `internal` marks the type as excluded from comment queries and counts by default.
+ *  - `internal` states query-surface intent: whether the type should be excluded from
+ *    comment queries and counts by default.
  *
  * An argument never implies another argument. The one cascade planned for the future is
  * `show_in_rest`, which will default from `public`.
@@ -444,9 +445,10 @@ function create_initial_comment_types() {
  *     @type bool       $public      Whether the comment type is intended for use publicly either via
  *                                   the admin interface or by front-end users. Core does not
  *                                   currently act on this argument. Default true.
- *     @type bool       $internal    Whether the comment type is for internal use only. Internal types
- *                                   are excluded from comment queries and counts by default, through
- *                                   the {@see 'default_excluded_comment_types'} filter. Default false.
+ *     @type bool       $internal    Whether the comment type is for internal use only. Internal
+ *                                   types are meant to be excluded from comment queries and counts
+ *                                   by default. Core does not currently act on this argument.
+ *                                   Default false.
  *     @type bool       $_builtin    For internal core use only. Marks the type as native to
  *                                   WordPress, which blocks it from being re-registered or
  *                                   unregistered. Default false.
