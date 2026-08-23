@@ -1969,6 +1969,11 @@ body.full-overlay-active {
 	max-width: 100%;
 }
 
+.install-theme-info .theme-url {
+	display: block;
+	margin: 15px 0 0;
+}
+
 .theme-install-overlay .wp-full-overlay-header .button {
 	float: right;
 	margin: 7px 10px 0 0; /* Vertically center 32px button in 45px header */
