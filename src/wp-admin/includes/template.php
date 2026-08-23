@@ -1877,13 +1877,23 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
 }
 
 /**
+ * Stores settings errors for retrieval on the next Network Admin page load.
+ *
+ * @since x.x.x
+ */
+function set_network_settings_errors() {
+	set_site_transient( 'settings_errors', get_settings_errors(), 30 );
+}
+
+/**
  * Fetches settings errors registered by add_settings_error().
  *
  * Checks the $wp_settings_errors array for any errors declared during the current
  * pageload and returns them.
  *
  * If changes were just submitted ($_GET['settings-updated']) and settings errors were saved
- * to the 'settings_errors' transient then those errors will be returned instead. This
+ * to the 'settings_errors' transient then those errors will be returned instead. In Network
+ * Admin, the same applies to $_GET['updated'] and the 'settings_errors' site transient. This
  * is used to pass errors back across pageloads.
  *
  * Use the $sanitize argument to manually re-sanitize the option before returning errors.
@@ -1892,6 +1902,7 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
  * action hook).
  *
  * @since 3.0.0
+ * @since x.x.x Added support for network settings errors stored in a site transient.
  *
  * @global array[] $wp_settings_errors Storage array of errors registered during this pageload
  *
@@ -1924,10 +1935,13 @@ function get_settings_errors( $setting = '', $sanitize = false ) {
 		sanitize_option( $setting, get_option( $setting ) );
 	}
 
-	// If settings were passed back from options.php then use them.
+	// If settings were passed back from options.php or network/settings.php then use them.
 	if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] && get_transient( 'settings_errors' ) ) {
 		$wp_settings_errors = array_merge( (array) $wp_settings_errors, get_transient( 'settings_errors' ) );
 		delete_transient( 'settings_errors' );
+	} elseif ( is_network_admin() && isset( $_GET['updated'] ) && 'true' === $_GET['updated'] && get_site_transient( 'settings_errors' ) ) {
+		$wp_settings_errors = array_merge( (array) $wp_settings_errors, get_site_transient( 'settings_errors' ) );
+		delete_site_transient( 'settings_errors' );
 	}
 
 	// Check global in case errors have been added on this pageload.
