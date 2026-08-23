@@ -76,6 +76,7 @@ class WP_Sitemaps {
 
 		// Add additional action callbacks.
 		add_filter( 'robots_txt', array( $this, 'add_robots' ), 0, 2 );
+		add_filter( 'pre_handle_404', array( $this, 'prevent_sitemap_404' ), 10, 2 );
 	}
 
 	/**
@@ -262,5 +263,25 @@ class WP_Sitemaps {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Prevents core from issuing a 404 status header on valid sitemap requests
+	 * when no standard blog posts exist.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param bool     $preempt Whether to short-circuit default 404 handling.
+	 * @param WP_Query $query   The global WP_Query object.
+	 * @return bool True to preempt 404 handling if a valid sitemap route is requested, original $preempt otherwise.
+	 */
+	public function prevent_sitemap_404( $preempt, $query ) {
+		if ( $query->is_main_query() && get_query_var( 'sitemap' ) ) {
+			if ( $this->sitemaps_enabled() ) {
+				return true;
+			}
+		}
+
+		return $preempt;
 	}
 }
