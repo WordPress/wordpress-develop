@@ -72,13 +72,14 @@ if ( ! $sendback ||
 switch ( $action ) {
 	case 'post-quickdraft-save':
 		// Check nonce and capabilities.
-		$nonce     = $_REQUEST['_wpnonce'];
+		$nonce     = isset( $_REQUEST['_wpnonce'] ) ? $_REQUEST['_wpnonce'] : '';
+		$post_id   = absint( $_REQUEST['post_ID'] ?? 0 );
 		$error_msg = false;
 
 		// For output of the Quick Draft dashboard widget.
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
-		if ( ! wp_verify_nonce( $nonce, 'add-post' ) ) {
+		if ( ! $post_id || ! wp_verify_nonce( $nonce, 'add-post' ) ) {
 			$error_msg = __( 'Unable to submit this form, please refresh and try again.' );
 		}
 
@@ -90,7 +91,14 @@ switch ( $action ) {
 			return wp_dashboard_quick_press( $error_msg );
 		}
 
-		$post = get_post( $_REQUEST['post_ID'] );
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			$error_msg = __( 'Unable to submit this form, please refresh and try again.' );
+		}
+
+		if ( $error_msg ) {
+			return wp_dashboard_quick_press( $error_msg );
+		}
 		check_admin_referer( 'add-' . $post->post_type );
 
 		$_POST['comment_status'] = get_default_comment_status( $post->post_type );
