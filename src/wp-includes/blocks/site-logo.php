@@ -76,6 +76,7 @@ function register_block_core_site_logo_setting() {
 			'type'         => 'integer',
 			'label'        => __( 'Logo' ),
 			'description'  => __( 'Site logo.' ),
+			'autoload'     => true,
 		)
 	);
 }
@@ -96,6 +97,7 @@ function register_block_core_site_icon_setting() {
 			'type'         => 'integer',
 			'label'        => __( 'Icon' ),
 			'description'  => __( 'Site icon.' ),
+			'autoload'     => true,
 		)
 	);
 }

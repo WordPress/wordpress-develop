@@ -162,4 +162,47 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 		unregister_setting( $setting, $setting );
 		$this->assertFalse( has_filter( 'default_option_' . $setting, 'filter_default_option' ) );
 	}
+
+	/**
+	 * @ticket 61522
+	 *
+	 * @covers ::register_setting
+	 *
+	 * @dataProvider data_provider_register_setting_sets_autoload
+	 */
+	public function test_register_setting_sets_autoload( $autoload, $expected ) {
+		global $wpdb;
+
+		register_setting(
+			'test_group',
+			'test_default',
+			array(
+				'autoload' => $autoload,
+			)
+		);
+		$added = add_option( 'test_default', 'Autoload test' );
+		$this->assertTrue( $added );
+
+		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", 'test_default' ) );
+		$this->assertSame( $expected, $actual->autoload );
+
+		$added = update_option( 'test_default', 'Autoload tested' );
+		$this->assertTrue( $added );
+
+		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", 'test_default' ) );
+		$this->assertSame( $expected, $actual->autoload );
+	}
+
+	public function data_provider_register_setting_sets_autoload() {
+		return array(
+			'autoloaded'     => array(
+				'autoload' => true,
+				'expected' => 'auto-on',
+			),
+			'not_autoloaded' => array(
+				'autoload' => false,
+				'expected' => 'auto-off',
+			),
+		);
+	}
 }
