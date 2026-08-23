@@ -1179,7 +1179,7 @@ function get_comment_type( $comment_id = 0 ) {
  * Displays the comment type of the current comment.
  *
  * @since 0.71
- * @since 7.1.0 The default output for a registered non-built-in comment type
+ * @since 7.2.0 The default output for a registered non-built-in comment type
  *              falls back to the type's singular name label.
  *
  * @param string|false $comment_text   Optional. String to display for comment type. Default false.
