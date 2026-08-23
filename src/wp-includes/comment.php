@@ -1352,6 +1352,24 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
 function wp_check_comment_data( $comment_data ) {
 	global $wpdb;
 
+	if ( ! is_user_logged_in() && isset( $comment_data['comment_author_email'] ) && email_exists( $comment_data['comment_author_email'] ) ) {
+		$referrer  = wp_get_referer() ? wp_get_referer() : home_url( $_SERVER['REQUEST_URI'] );
+		$login_url = wp_login_url( $referrer );
+
+		wp_die(
+			'<p>' . sprintf(
+				/* translators: %s: Login URL link */
+				__( 'The email address you entered is already associated with a registered account. Please <a href="%s">log in</a> to continue.' ),
+				esc_url( $login_url )
+			) . '</p>',
+			__( 'Email Address Error' ),
+			array(
+				'response'  => 403,
+				'back_link' => true,
+			)
+		);
+	}
+
 	if ( ! empty( $comment_data['user_id'] ) ) {
 		$user        = get_userdata( $comment_data['user_id'] );
 		$post_author = (int) $wpdb->get_var(
