@@ -81,6 +81,19 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->assertNotContains( 'pagename=', $wp_rewrite->queryreplace );
 	}
 
+	/**
+	 * @ticket 49510
+	 */
+	public function test_generate_rewrite_rules_with_regex_metacharacter_in_tag() {
+		global $wp_rewrite;
+
+		add_rewrite_tag( '%foo.bar%', '([^/]+)', 'foo=' );
+
+		$rules = $wp_rewrite->generate_rewrite_rules( '/base/%foo.bar%' );
+
+		$this->assertSame( 'index.php?foo=$1', $rules['base/([^/]+)/?$'] );
+	}
+
 	public function test_remove_rewrite_tag() {
 		global $wp_rewrite;
 

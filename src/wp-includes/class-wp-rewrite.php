@@ -912,6 +912,11 @@ class WP_Rewrite {
 
 		$num_tokens = count( $tokens[0] );
 
+		$quoted_rewritecode = array();
+		foreach ( $this->rewritecode as $code ) {
+			$quoted_rewritecode[] = preg_quote( $code, '#' );
+		}
+
 		$index          = $this->index; // Probably 'index.php'.
 		$feedindex      = $index;
 		$trackbackindex = $index;
@@ -960,7 +965,7 @@ class WP_Rewrite {
 			$struct  = ltrim( $struct, '/' );
 
 			// Replace tags with regexes.
-			$match = str_replace( $this->rewritecode, $this->rewritereplace, $struct );
+			$match = str_replace( $quoted_rewritecode, $this->rewritereplace, preg_quote( $struct, '#' ) );
 
 			// Make a list of tags, and store how many there are in $num_toks.
 			$num_toks = preg_match_all( '/%.+?%/', $struct, $toks );
@@ -1102,8 +1107,12 @@ class WP_Rewrite {
 					// Trim slashes from the end of the regex for this dir.
 					$match = rtrim( $match, '/' );
 
-					// Get rid of brackets.
-					$submatchbase = str_replace( array( '(', ')' ), '', $match );
+					// Remove capture groups from rewrite tag regexes for attachment rules.
+					$submatchbase = str_replace(
+						$quoted_rewritecode,
+						str_replace( array( '(', ')' ), '', $this->rewritereplace ),
+						preg_quote( rtrim( $struct, '/' ), '#' )
+					);
 
 					// Add a rule for at attachments, which take the form of <permalink>/some-text.
 					$sub1 = $submatchbase . '/([^/]+)/';
