@@ -323,6 +323,7 @@ function create_initial_post_types() {
 				'item_reverted_to_draft'   => __( 'Pattern reverted to draft.' ),
 				'item_scheduled'           => __( 'Pattern scheduled.' ),
 				'item_updated'             => __( 'Pattern updated.' ),
+				'item_draft_saved'         => __( 'Pattern draft saved.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -2146,6 +2147,8 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
  *                    'Page scheduled.'
  * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
+ * - `item_draft_saved` - Label used when a draft is saved. Default is 'Draft saved.' for both
+ *                      non-hierarchical and hierarchical post types.
  * - `item_link` - Title for a navigation link block variation. Default is 'Post Link' / 'Page Link'.
  * - `item_link_description` - Description for a navigation link block variation. Default is 'A link to a post.' /
  *                             'A link to a page.'
@@ -2170,6 +2173,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 6.4.0 Changed default values for the `add_new` label to include the type of content.
  *              This matches `add_new_item` and provides more context for better accessibility.
  * @since 6.6.0 Added the `template_name` label.
+ * @since 7.1.0 Added the `item_draft_saved` label.
  * @since 6.7.0 Restored pre-6.4.0 defaults for the `add_new` label and updated documentation.
  *              Updated core usage to reference `add_new_item`.
  *
