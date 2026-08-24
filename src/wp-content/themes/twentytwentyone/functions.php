@@ -387,18 +387,23 @@ add_action( 'after_setup_theme', 'twenty_twenty_one_content_width', 0 );
  *
  * @since Twenty Twenty-One 1.0
  * @since Twenty Twenty-One 2.8 Removed Internet Explorer support.
+ * @since Twenty Twenty-One 2.9 Added minified stylesheets.
  *
  * @return void
  */
 function twenty_twenty_one_scripts() {
+	$theme_version = wp_get_theme()->get( 'Version' );
+	$suffix        = ( ! SCRIPT_DEBUG ) ? '.min' : '';
+
 	// The standard stylesheet.
-	wp_enqueue_style( 'twenty-twenty-one-style', get_template_directory_uri() . '/style.css', array(), wp_get_theme()->get( 'Version' ) );
+	wp_enqueue_style( 'twenty-twenty-one-style', get_template_directory_uri() . "/style$suffix.css", array(), $theme_version );
 
 	// RTL styles.
 	wp_style_add_data( 'twenty-twenty-one-style', 'rtl', 'replace' );
+	wp_style_add_data( 'twenty-twenty-one-style', 'suffix', $suffix );
 
 	// Print styles.
-	wp_enqueue_style( 'twenty-twenty-one-print-style', get_template_directory_uri() . '/assets/css/print.css', array(), wp_get_theme()->get( 'Version' ), 'print' );
+	wp_enqueue_style( 'twenty-twenty-one-print-style', get_template_directory_uri() . "/assets/css/print$suffix.css", array(), $theme_version, 'print' );
 
 	// Threaded comment reply styles.
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -410,14 +415,14 @@ function twenty_twenty_one_scripts() {
 		'twenty-twenty-one-ie11-polyfills-asset',
 		false,
 		array(),
-		wp_get_theme()->get( 'Version' ),
+		$theme_version,
 		array( 'in_footer' => true )
 	);
 	wp_register_script(
 		'twenty-twenty-one-ie11-polyfills',
 		false,
 		array(),
-		wp_get_theme()->get( 'Version' ),
+		$theme_version,
 		array( 'in_footer' => true )
 	);
 
@@ -427,7 +432,7 @@ function twenty_twenty_one_scripts() {
 			'twenty-twenty-one-primary-navigation-script',
 			get_template_directory_uri() . '/assets/js/primary-navigation.js',
 			array(),
-			wp_get_theme()->get( 'Version' ),
+			$theme_version,
 			array(
 				'in_footer' => false, // Because involves header.
 				'strategy'  => 'defer',
@@ -440,7 +445,7 @@ function twenty_twenty_one_scripts() {
 		'twenty-twenty-one-responsive-embeds-script',
 		get_template_directory_uri() . '/assets/js/responsive-embeds.js',
 		array(),
-		wp_get_theme()->get( 'Version' ),
+		$theme_version,
 		array( 'in_footer' => true )
 	);
 }
