@@ -22,7 +22,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		self::$slug_theme_root = sys_get_temp_dir() . '/wp-tests-block-template-slug-' . uniqid();
 
 		$files = array(
-			'parts/header.html'              => '<!-- wp:template-part /--->',
+			'parts/header.html'              => '<!-- wp:template-part /-->',
 			'parts/footer.html'              => '<!-- wp:template-part /-->',
 			'parts/footer-parts/header.html' => '<!-- wp:template-part /-->',
 			'templates/index.html'           => '<!-- wp:template-part /-->',
