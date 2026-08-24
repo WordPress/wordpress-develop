@@ -5354,8 +5354,11 @@ function wp_update_post( $postarr = array(), $wp_error = false, $fire_after_hook
 	}
 
 	// Drafts shouldn't be assigned a date unless explicitly done so by the user.
+	// Additionally, if the post_status is being updated to 'publish', 'future', or 'private',
+	// do not clear the date, as the provided date should take precedence.
 	if ( isset( $post['post_status'] )
 		&& in_array( $post['post_status'], array( 'draft', 'pending', 'auto-draft' ), true )
+		&& ( ! isset( $postarr['post_status'] ) || ! in_array( $postarr['post_status'], array( 'publish', 'future', 'private' ), true ) )
 		&& empty( $postarr['edit_date'] ) && ( '0000-00-00 00:00:00' === $post['post_date_gmt'] )
 	) {
 		$clear_date = true;
