@@ -59,5 +59,13 @@ window._wpUpdatesSettings = {
 };
 window._wpUpdatesItemCounts = {
 	plugins: {},
-	totals: {}
+	totals: {
+		counts: {
+			plugins:      2,
+			themes:       0,
+			wordpress:    0,
+			translations: 0,
+			total:        2
+		}
+	}
 };
