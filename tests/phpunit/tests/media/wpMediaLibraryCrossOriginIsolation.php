@@ -141,6 +141,40 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * upload.php only renders grid mode for the exact saved value 'grid', so
+	 * any other saved value must be returned verbatim rather than collapsed
+	 * to 'grid'. Otherwise a page that upload.php renders in list mode - and
+	 * that has no client-side pipeline - would be cross-origin isolated.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_unknown_user_option_mode_is_not_treated_as_grid() {
+		unset( $_GET['mode'] );
+
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $user_id );
+		update_user_option( $user_id, 'media_library_mode', 'cards' );
+
+		$this->assertNotSame( 'grid', wp_get_media_library_mode() );
+	}
+
+	/**
+	 * @ticket 65661
+	 */
+	public function test_no_buffer_for_unknown_user_option_mode() {
+		$this->set_up_grid_isolation_environment();
+		unset( $_GET['mode'] );
+
+		update_user_option( get_current_user_id(), 'media_library_mode', 'cards' );
+
+		$level_before = ob_get_level();
+		wp_set_up_media_library_cross_origin_isolation();
+		$level_after = ob_get_level();
+
+		$this->assertSame( $level_before, $level_after );
+	}
+
+	/**
 	 * @ticket 65661
 	 */
 	public function test_no_buffer_when_client_side_processing_disabled() {

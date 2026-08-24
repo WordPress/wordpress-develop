@@ -6697,22 +6697,26 @@ function wp_set_up_cross_origin_isolation(): void {
  * Replicates the mode resolution in wp-admin/upload.php, which runs after
  * the `load-upload.php` hook, without updating the saved user option.
  *
+ * upload.php falls back to grid mode only when no mode is saved, and renders
+ * grid mode only for the exact value 'grid'. A saved value outside the two
+ * known modes - one a plugin stored, say - therefore renders list mode there
+ * and is returned verbatim here, so callers do not isolate a page that the
+ * Media Library renders in list mode.
+ *
  * @since 7.2.0
  *
- * @return string Either 'grid' or 'list'.
+ * @return string The Media Library mode, 'grid' when none is saved.
  */
 function wp_get_media_library_mode(): string {
-	$modes = array( 'grid', 'list' );
-
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['mode'] ) && in_array( $_GET['mode'], $modes, true ) ) {
+	if ( isset( $_GET['mode'] ) && in_array( $_GET['mode'], array( 'grid', 'list' ), true ) ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		return $_GET['mode'];
 	}
 
 	$mode = get_user_option( 'media_library_mode', get_current_user_id() );
 
-	return in_array( $mode, $modes, true ) ? $mode : 'grid';
+	return ( is_string( $mode ) && '' !== $mode ) ? $mode : 'grid';
 }
 
 /**
