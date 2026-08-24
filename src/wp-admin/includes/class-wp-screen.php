@@ -89,7 +89,7 @@ final class WP_Screen {
 	 * have a `$parent_base` of 'edit'.
 	 *
 	 * @since 3.3.0
-	 * @var string|null
+	 * @var ?string
 	 */
 	public $parent_base;
 
@@ -99,7 +99,7 @@ final class WP_Screen {
 	 * Some `$parent_file` values are 'edit.php?post_type=page', 'edit.php', and 'options-general.php'.
 	 *
 	 * @since 3.3.0
-	 * @var string|null
+	 * @var ?string
 	 */
 	public $parent_file;
 
@@ -186,7 +186,7 @@ final class WP_Screen {
 	 * Stores the 'screen_settings' section of screen options.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var ?string
 	 */
 	private $_screen_settings;
 
@@ -792,8 +792,9 @@ final class WP_Screen {
 		 * Filters the legacy contextual help list.
 		 *
 		 * @since 2.7.0
-		 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
-		 *                   {@see get_current_screen()->remove_help_tab()} instead.
+		 * @deprecated 3.3.0 Use {@see get_current_screen()} with
+		 *                   {@see WP_Screen::add_help_tab()} or
+		 *                   {@see WP_Screen::remove_help_tab()} instead.
 		 *
 		 * @param array     $old_compat_help Old contextual help.
 		 * @param WP_Screen $screen          Current WP_Screen instance.
@@ -811,8 +812,9 @@ final class WP_Screen {
 		 * Filters the legacy contextual help text.
 		 *
 		 * @since 2.7.0
-		 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
-		 *                   {@see get_current_screen()->remove_help_tab()} instead.
+		 * @deprecated 3.3.0 Use {@see get_current_screen()} with
+		 *                   {@see WP_Screen::add_help_tab()} or
+		 *                   {@see WP_Screen::remove_help_tab()} instead.
 		 *
 		 * @param string    $old_help  Help text that appears on the screen.
 		 * @param string    $screen_id Screen ID.
@@ -832,8 +834,9 @@ final class WP_Screen {
 			 * Filters the default legacy contextual help text.
 			 *
 			 * @since 2.8.0
-			 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
-			 *                   {@see get_current_screen()->remove_help_tab()} instead.
+			 * @deprecated 3.3.0 Use {@see get_current_screen()} with
+			 *                   {@see WP_Screen::add_help_tab()} or
+			 *                   {@see WP_Screen::remove_help_tab()} instead.
 			 *
 			 * @param string $old_help_default Default contextual help text.
 			 */

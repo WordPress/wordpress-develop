@@ -71,7 +71,6 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 * It filters JSON theme data and returns it as an array.
 	 *
 	 * @param array $theme_data Theme data to filter.
-	 *
 	 * @return array Filtered theme data.
 	 */
 	private function filter_global_styles( $theme_data ) {
