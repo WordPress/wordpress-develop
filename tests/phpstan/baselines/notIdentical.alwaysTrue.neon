@@ -39,21 +39,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/functions.php
 		-
-			message: '#^Strict comparison using \!\=\= between ''STATE_COMPLETE'' and ''STATE_READY'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
-			message: '#^Strict comparison using \!\=\= between ''STATE_INCOMPLETE…'' and ''STATE_READY'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
-			message: '#^Strict comparison using \!\=\= between ''STATE_MATCHED_TAG'' and ''STATE_READY'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
 			message: '#^Strict comparison using \!\=\= between 0 and int\<min, \-1\>\|int\<1, max\> will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1

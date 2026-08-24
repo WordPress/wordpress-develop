@@ -97,6 +97,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks

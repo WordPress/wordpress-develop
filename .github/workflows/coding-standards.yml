@@ -47,7 +47,7 @@ jobs:
   # Runs the PHP coding standards checks.
   phpcs:
     name: Coding standards
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-php.yml@trunk
+    uses: ./.github/workflows/reusable-coding-standards-php.yml
     permissions:
       contents: read
     if: |
@@ -62,7 +62,7 @@ jobs:
   # Runs the JavaScript coding standards checks.
   jshint:
     name: Coding standards
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-javascript.yml@trunk
+    uses: ./.github/workflows/reusable-coding-standards-javascript.yml
     permissions:
       contents: read
     if: |
@@ -76,7 +76,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -89,6 +89,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks

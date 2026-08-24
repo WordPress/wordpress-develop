@@ -39,7 +39,7 @@ jobs:
   # Runs PHPStan Static Analysis.
   phpstan:
     name: PHP static analysis
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpstan-static-analysis-v1.yml@trunk
+    uses: ./.github/workflows/reusable-phpstan-static-analysis-v1.yml
     permissions:
       contents: read
     if: |
@@ -53,7 +53,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -66,6 +66,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
