@@ -123,6 +123,12 @@
 	margin-right: 10px;
 }
 
+.media-item .edit-attachment:focus {
+	box-shadow: 0 0 0 2px #2271b1;
+	color: #043959;
+	outline: 2px solid transparent;
+}
+
 .media-item .edit-attachment.copy-to-clipboard-container {
 	display: flex;
 	margin-top: 0;
@@ -170,6 +176,14 @@
 	padding: 14px 2px;
 	overflow: hidden;
 	margin-left: 4px;
+}
+
+.media-item .filename.new {
+	overflow: visible;
+}
+
+.media-item .filename.new .edit-attachment {
+	padding: 0;
 }
 
 .media-item .pinkynail {
