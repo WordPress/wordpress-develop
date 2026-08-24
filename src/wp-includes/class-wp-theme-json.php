@@ -4412,7 +4412,7 @@ class WP_Theme_JSON {
 					// Set names for theme presets based on the slug if they are not set and can use default names.
 					if ( 'theme' === $origin && $preset_metadata['use_default_names'] ) {
 						foreach ( $content as $key => $item ) {
-							if ( ! isset( $item['name'] ) ) {
+							if ( ! isset( $item['name'] ) && isset( $item['slug'] ) ) {
 								$name = static::get_name_from_defaults( $item['slug'], $base_path );
 								if ( null !== $name ) {
 									$content[ $key ]['name'] = $name;
