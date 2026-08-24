@@ -1371,4 +1371,52 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
+
+	/**
+	 * Ensures that giving a sticky post a password through edit_post() unsticks it,
+	 * even when the caller never sends an explicit `visibility` value.
+	 *
+	 * The block editor sends `visibility`, so `edit_post()` reaches the
+	 * `case 'password'` branch and drops the `sticky` flag. Quick Edit never sends
+	 * it, so a post could end up both sticky and password protected, a combination
+	 * the editor itself forbids.
+	 *
+	 * @ticket 64810
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_unsticks_a_post_when_a_password_is_set_without_visibility() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_author' => self::$admin_id,
+			)
+		);
+
+		stick_post( $post_id );
+		$this->assertTrue( is_sticky( $post_id ), 'The post was not sticky to begin with: check test setup.' );
+
+		// Mirrors Quick Edit, which posts `sticky` but no `visibility`.
+		edit_post(
+			array(
+				'post_ID'       => $post_id,
+				'post_title'    => 'Protected and sticky',
+				'post_status'   => 'publish',
+				'post_password' => 'secret',
+				'sticky'        => 'sticky',
+			)
+		);
+
+		$this->assertSame(
+			'secret',
+			get_post( $post_id )->post_password,
+			'The password was not saved: check test setup.'
+		);
+		$this->assertFalse(
+			is_sticky( $post_id ),
+			'A password protected post was left sticky when no explicit visibility was sent.'
+		);
+	}
 }
