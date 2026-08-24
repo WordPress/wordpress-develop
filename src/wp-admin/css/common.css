@@ -1484,6 +1484,18 @@ div.error {
 	padding: 8px 12px;
 }
 
+.notice.has-icon {
+	display: flex;
+	column-gap: 4px;
+	align-items: start;
+	flex-wrap: no-wrap;
+}
+
+.notice.has-icon .wp-notice-icon {
+	margin: .5em 0;
+	display: block;
+}
+
 div[class="update-message"] { /* back-compat for pre-4.6 */
 	padding: 0.5em 12px 0.5em 0;
 }

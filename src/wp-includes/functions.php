@@ -9210,6 +9210,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
  *     @type string[] $attributes         Optional. Additional attributes for the notice div. Default empty array.
  *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
+ *     @type bool     $has_icon           Optional. Whether to include an icon. Default true.
  * }
  * @return string The markup for an admin notice.
  */
@@ -9221,6 +9222,7 @@ function wp_get_admin_notice( $message, $args = array() ) {
 		'additional_classes' => array(),
 		'attributes'         => array(),
 		'paragraph_wrap'     => true,
+		'has_icon'           => true,
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -9291,7 +9293,44 @@ function wp_get_admin_notice( $message, $args = array() ) {
 		$message = "<p>$message</p>";
 	}
 
-	$markup = sprintf( '<div %1$sclass="%2$s"%3$s>%4$s</div>', $id, $classes, $attributes, $message );
+	$img = '';
+	if ( true === $args['has_icon'] ) {
+		$classes .= ' has-icon';
+		switch ( $args['type'] ) {
+			case 'info':
+				$label = __( 'Info' );
+				$url   = admin_url( 'images/info.svg' );
+				break;
+			case 'success':
+				$label = __( 'Success' );
+				$url   = admin_url( 'images/success.svg' );
+				break;
+			case 'warning':
+				$label = __( 'Warning' );
+				$url   = admin_url( 'images/warning.svg' );
+				break;
+			case 'error':
+				$label = __( 'Error' );
+				$url   = admin_url( 'images/error.svg' );
+				break;
+			default:
+				$label = __( 'Info' );
+				$url   = admin_url( 'images/info.svg' );
+		}
+		/**
+		 * Filter the icon URL used for admin notices.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $url  URL pointing to the image.
+		 * @param array  $args The arguments for the admin notice.
+		 */
+		$url     = apply_filters( 'wp_get_admin_notice_icon', $url, $args );
+		$img     = '<img src="' . esc_url( $url ) . '" width="24" height="24" class="wp-notice-icon" alt="' . esc_attr( $label ) . '">';
+		$message = '<div class="notice-wrap">' . $message . '</div>';
+	}
+
+	$markup = sprintf( '<div %1$sclass="%2$s"%3$s>%4$s%5$s</div>', $id, $classes, $attributes, $img, $message );
 
 	/**
 	 * Filters the markup for an admin notice.
