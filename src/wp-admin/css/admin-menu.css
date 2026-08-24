@@ -362,10 +362,10 @@ ul#adminmenu > li.current > a.current:after {
 }
 
 /* flyout menu arrow */
-#adminmenu li.wp-has-submenu.wp-not-current-submenu:hover:after,
-#adminmenu li.wp-has-submenu.wp-not-current-submenu:focus-within:after {
+#adminmenu li.wp-has-submenu.wp-not-current-submenu.opensub:after {
 	right: 0;
 	border: 8px solid transparent;
+	border-right-color: #2c3338;
 	content: " ";
 	height: 0;
 	width: 0;
@@ -375,16 +375,10 @@ ul#adminmenu > li.current > a.current:after {
 	z-index: 10000;
 }
 
-.folded ul#adminmenu li.wp-has-submenu.wp-not-current-submenu:hover:after,
-.folded ul#adminmenu li.wp-has-submenu.wp-not-current-submenu:focus-within:after {
+.folded ul#adminmenu li.wp-has-submenu.wp-not-current-submenu.opensub:after {
 	border-width: 4px;
 	margin-top: -4px;
 	top: 18px;
-}
-
-#adminmenu li.wp-has-submenu.wp-not-current-submenu.opensub:hover:after,
-#adminmenu li.wp-has-submenu.wp-not-current-submenu:focus-within:after {
-	border-right-color: #2c3338;
 }
 
 #adminmenu li.menu-top:hover .wp-menu-image img,

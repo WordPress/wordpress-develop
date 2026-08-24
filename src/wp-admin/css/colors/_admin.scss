@@ -298,8 +298,7 @@ input[type="radio"]:focus {
 	background: variables.$menu-submenu-background;
 }
 
-#adminmenu li.wp-has-submenu.wp-not-current-submenu.opensub:hover:after,
-#adminmenu li.wp-has-submenu.wp-not-current-submenu:focus-within:after {
+#adminmenu li.wp-has-submenu.wp-not-current-submenu.opensub:after {
 	border-right-color: variables.$menu-submenu-background;
 }
 
