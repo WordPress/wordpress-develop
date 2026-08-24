@@ -71,6 +71,7 @@ final class WP_Ability_Category {
 	 *     @type string               $description A description of the ability category.
 	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
 	 * }
+	 * @throws InvalidArgumentException If an argument is invalid.
 	 */
 	public function __construct( string $slug, array $args ) {
 		if ( empty( $slug ) ) {
@@ -108,7 +109,7 @@ final class WP_Ability_Category {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param array<string, mixed> $args $args {
+	 * @param array<string, mixed> $args {
 	 *     An associative array of arguments used to instantiate the ability category class.
 	 *
 	 *     @type string               $label       The human-readable label for the ability category.
@@ -122,7 +123,7 @@ final class WP_Ability_Category {
 	 *     @type string               $description A description of the ability category.
 	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
 	 * }
-	 * @throws InvalidArgumentException if an argument is invalid.
+	 * @throws InvalidArgumentException If an argument is invalid.
 	 */
 	protected function prepare_properties( array $args ): array {
 		// Required args must be present and of the correct type.

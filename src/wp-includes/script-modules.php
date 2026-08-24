@@ -211,7 +211,12 @@ function wp_default_script_modules() {
 			wp_interactivity()->add_client_navigation_support_to_script_module( $script_module_id );
 		}
 
-		if ( '' !== $suffix ) {
+		// VIPS files and the video-conversion worker are always minified — the
+		// non-minified versions are not shipped because they consist of large
+		// inlined WASM/worker code with no debugging value.
+		if ( str_starts_with( $file_name, 'vips/' ) || 'video-conversion/worker.js' === $file_name ) {
+			$file_name = str_replace( '.js', '.min.js', $file_name );
+		} elseif ( '' !== $suffix ) {
 			$file_name = str_replace( '.js', $suffix . '.js', $file_name );
 		}
 
