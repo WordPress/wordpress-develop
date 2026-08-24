@@ -25,9 +25,9 @@ if ( ! defined( 'IS_PROFILE_PAGE' ) ) {
 if ( ! $user_id && IS_PROFILE_PAGE ) {
 	$user_id = $current_user->ID;
 } elseif ( ! $user_id && ! IS_PROFILE_PAGE ) {
-	wp_die( __( 'Invalid user ID.' ) );
+	wp_die( __( 'Invalid user ID.' ), 400 );
 } elseif ( ! get_userdata( $user_id ) ) {
-	wp_die( __( 'Invalid user ID.' ) );
+	wp_die( __( 'Invalid user ID.' ), 400 );
 }
 
 wp_enqueue_script( 'user-profile' );
@@ -101,7 +101,7 @@ if ( is_multisite()
 	&& $user_id !== $current_user->ID
 	&& ! apply_filters( 'enable_edit_any_user_configuration', true )
 ) {
-	wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
+	wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
 }
 
 // Execute confirmed email change. See send_confirmation_on_profile_email().
@@ -133,7 +133,7 @@ switch ( $action ) {
 		check_admin_referer( 'update-user_' . $user_id );
 
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
-			wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
 		}
 
 		if ( IS_PROFILE_PAGE ) {
@@ -192,7 +192,7 @@ switch ( $action ) {
 		$profile_user = get_user_to_edit( $user_id );
 
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
-			wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
 		}
 
 		$title    = sprintf( $title, $profile_user->display_name );
