@@ -2124,7 +2124,7 @@ function wp_welcome_panel() {
 				<a href="<?php echo esc_url( admin_url( 'site-editor.php' ) ); ?>"><?php _e( 'Open site editor' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Start Customizing' ); ?></h3>
-				<p><?php _e( 'Configure your site&#8217;s logo, header, menus, and more in the Customizer.' ); ?></p>
+				<p><?php _e( 'Configure your site&#8217;s logo, header, menus, widgets, and more in the Customizer.' ); ?></p>
 				<?php if ( $can_customize ) : ?>
 					<a class="load-customize hide-if-no-customize" href="<?php echo wp_customize_url(); ?>"><?php _e( 'Open the Customizer' ); ?></a>
 				<?php endif; ?>
