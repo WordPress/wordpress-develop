@@ -156,13 +156,8 @@
 		 * Detect clicks to external (_top) links.
 		 */
 		function linkClickHandler( e ) {
-			var target = e.target,
-				href;
-			if ( target.hasAttribute( 'href' ) ) {
-				href = target.getAttribute( 'href' );
-			} else {
-				href = target.parentElement.getAttribute( 'href' );
-			}
+			var link = e.target.closest( '[href]' ),
+				href = link ? link.getAttribute( 'href' ) : null;
 
 			// Only catch clicks from the primary mouse button, without any modifiers.
 			if ( event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ) {
