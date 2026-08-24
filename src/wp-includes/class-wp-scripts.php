@@ -388,6 +388,7 @@ class WP_Scripts extends WP_Dependencies {
 				_print_scripts();
 				$this->reset();
 			} elseif ( $this->in_default_dir( $filtered_src ) ) {
+				$this->print_code     .= $this->print_script_data( $handle, false );
 				$this->print_code     .= $this->print_extra_script( $handle, false );
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
@@ -398,6 +399,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
+		$this->print_script_data( $handle );
 		$this->print_extra_script( $handle );
 
 		// A single item may alias a set of items, by having dependencies, but no source.
@@ -1228,6 +1230,128 @@ JS;
 		$this->print_html     = '';
 		$this->ext_version    = '';
 		$this->ext_handles    = '';
+	}
+
+	/**
+	 * Prints the data for a registered script as a JSON script tag.
+	 *
+	 * The data is provided via the {@see 'script_data_{$handle}'} filter and printed
+	 * as a `<script type="application/json">` tag. This is a non-blocking alternative
+	 * to passing data via {@see wp_localize_script()} or {@see wp_add_inline_script()},
+	 * as the browser does not evaluate the tag's content as JavaScript.
+	 *
+	 * The consuming script can read the data on the client with a pattern like:
+	 *
+	 *     const dataContainer = document.getElementById( 'my-handle-js-data' );
+	 *     let data = {};
+	 *     if ( dataContainer ) {
+	 *         try {
+	 *             data = JSON.parse( dataContainer.textContent );
+	 *         } catch {}
+	 *     }
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $handle  The script's registered handle.
+	 * @param bool   $display Optional. Whether to print the script tag (true) or return it (false).
+	 *                        Default true.
+	 * @return string|bool|void The script data tag when $display is false, true if printed,
+	 *                          or void if no data.
+	 */
+	public function print_script_data( $handle, $display = true ) {
+		/**
+		 * Filters the data associated with a registered script.
+		 *
+		 * Scripts may require initialization data that is essential to have immediately
+		 * available on page load. These are suitable use cases for this data.
+		 *
+		 * The dynamic portion of the hook name, `$handle`, refers to the script handle
+		 * that the data is associated with.
+		 *
+		 * If the filter returns no data (an empty array), nothing will be printed.
+		 *
+		 * The data for a given script handle, if provided, will be JSON serialized in a
+		 * script tag with a `type` of `application/json` and an ID of the form
+		 * `{$handle}-js-data`.
+		 *
+		 * Example usage:
+		 *
+		 *     add_filter(
+		 *         'script_data_my-handle',
+		 *         function ( array $data ): array {
+		 *             $data['key'] = 'value';
+		 *             return $data;
+		 *         }
+		 *     );
+		 *
+		 * @since x.x.x
+		 *
+		 * @param array $data The data associated with the script handle.
+		 */
+		$data = apply_filters( "script_data_{$handle}", array() );
+
+		if ( ! is_array( $data ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: The filter name, 2: The handle name. */
+					__( 'The %1$s filter must return an array. Non-array value returned for handle "%2$s".' ),
+					"<code>script_data_{$handle}</code>",
+					$handle
+				),
+				'x.x.x'
+			);
+			return;
+		}
+
+		if ( array() === $data ) {
+			return;
+		}
+
+		/*
+		 * This data will be printed as JSON inside a script tag like this:
+		 *   <script type="application/json"></script>
+		 *
+		 * A script tag must be closed by a sequence beginning with `</`. It's impossible to
+		 * close a script tag without using `<`. We ensure that `<` is escaped and `/` can
+		 * remain unescaped, so `</script>` will be printed as `\u003C/script>`.
+		 *
+		 *   - JSON_HEX_TAG: All < and > are converted to \u003C and \u003E.
+		 *   - JSON_UNESCAPED_SLASHES: Don't escape /.
+		 *
+		 * If the page will use UTF-8 encoding, it's safe to print unescaped unicode:
+		 *
+		 *   - JSON_UNESCAPED_UNICODE: Encode multibyte Unicode characters literally (instead of as `\uXXXX`).
+		 *   - JSON_UNESCAPED_LINE_TERMINATORS: The line terminators are kept unescaped when
+		 *     JSON_UNESCAPED_UNICODE is supplied. Available as of PHP 7.1.0.
+		 */
+		$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
+		if ( ! is_utf8_charset() ) {
+			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
+		}
+
+		$output = wp_get_inline_script_tag(
+			(string) wp_json_encode(
+				$data,
+				$json_encode_flags
+			),
+			array(
+				'type' => 'application/json',
+				'id'   => "{$handle}-js-data",
+			)
+		);
+
+		if ( ! $display ) {
+			return $output;
+		}
+
+		if ( $this->do_concat ) {
+			$this->print_html .= $output;
+		} else {
+			echo $output;
+		}
+
+		return true;
 	}
 
 	/**
