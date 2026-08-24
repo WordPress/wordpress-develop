@@ -2625,7 +2625,12 @@ Object.assign(_player2.default.prototype, {
 			label = _i18n2.default.t(_mejs2.default.language.codes[lang]) || lang;
 		}
 
-		t.captionsButton.querySelector('ul').innerHTML += '<li class="' + t.options.classPrefix + 'captions-selector-list-item">' + ('<input type="radio" class="' + t.options.classPrefix + 'captions-selector-input" ') + ('name="' + t.id + '_captions" id="' + trackId + '" value="' + trackId + '" disabled>') + ('<label class="' + t.options.classPrefix + 'captions-selector-label"') + ('for="' + trackId + '">' + label + ' (loading)</label>') + '</li>';
+		// The label comes from the track element's `label` attribute and is inserted
+		// as HTML below. Escape it so a label is always rendered as text rather than
+		// parsed as markup.
+		var labelText = ('' + label).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
+		t.captionsButton.querySelector('ul').innerHTML += '<li class="' + t.options.classPrefix + 'captions-selector-list-item">' + ('<input type="radio" class="' + t.options.classPrefix + 'captions-selector-input" ') + ('name="' + t.id + '_captions" id="' + trackId + '" value="' + trackId + '" disabled>') + ('<label class="' + t.options.classPrefix + 'captions-selector-label"') + ('for="' + trackId + '">' + labelText + ' (loading)</label>') + '</li>';
 	},
 	checkForTracks: function checkForTracks() {
 		var t = this;
