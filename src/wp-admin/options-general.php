@@ -486,18 +486,53 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 <td>
 	<fieldset><legend class="screen-reader-text"><span><?php echo $date_format_title; ?></span></legend>
 <?php
-	/**
-	 * Filters the default date formats.
-	 *
-	 * @since 2.7.0
-	 * @since 4.0.0 Replaced the `Y/m/d` format with `Y-m-d` (ISO date standard YYYY-MM-DD).
-	 * @since 6.8.0 Added the `d.m.Y` format.
-	 *
-	 * @param string[] $default_date_formats Array of default date formats.
-	 */
-	$date_formats = array_unique( apply_filters( 'date_formats', array( __( 'F j, Y' ), 'Y-m-d', 'm/d/Y', 'd/m/Y', 'd.m.Y' ) ) );
+/**
+ * Determine which format string is the default for the site's configured locale.
+ *
+ * get_locale()       always returns the site locale (WPLANG option/constant).
+ * determine_locale() returns the user locale in admin contexts.
+ *
+ * We briefly switch to the site locale only when the two differ and
+ * the language pack is installed. If the switch fails (pack missing),
+ * $site_locale_date_default stays null and no label is shown — that is
+ * intentionally safe: we never guess.
+ *
+ * @since 7.1.0
+ * @ticket 64102
+ */
+$site_locale    = get_locale();
+$current_locale = determine_locale();
 
-	$custom = true;
+$site_locale_date_default = null;
+$site_locale_time_default = null;
+
+if ( $site_locale === $current_locale ) {
+	// Already running in the site locale — __() gives the correct translation.
+	$site_locale_date_default = __( 'F j, Y' );
+	$site_locale_time_default = __( 'g:i a' );
+} else {
+	// User locale differs from site locale. switch_to_locale() returns false
+	// when the language pack isn't installed on disk, keeping both vars null.
+	$locale_switched = switch_to_locale( $site_locale );
+	if ( $locale_switched ) {
+		$site_locale_date_default = __( 'F j, Y' );
+		$site_locale_time_default = __( 'g:i a' );
+		restore_previous_locale();
+	}
+}
+
+/**
+ * Filters the default date formats.
+ *
+ * @since 2.7.0
+ * @since 4.0.0 Replaced the `Y/m/d` format with `Y-m-d` (ISO date standard YYYY-MM-DD).
+ * @since 6.8.0 Added the `d.m.Y` format.
+ *
+ * @param string[] $default_date_formats Array of default date formats.
+ */
+$date_formats = array_unique( apply_filters( 'date_formats', array( __( 'F j, Y' ), 'Y-m-d', 'm/d/Y', 'd/m/Y', 'd.m.Y' ) ) );
+
+$custom = true;
 
 foreach ( $date_formats as $format ) {
 	echo "\t<label><input type='radio' name='date_format' value='" . esc_attr( $format ) . "'";
@@ -505,7 +540,12 @@ foreach ( $date_formats as $format ) {
 		echo " checked='checked'";
 		$custom = false;
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . '</code>';
+	if ( null !== $site_locale_date_default && $format === $site_locale_date_default ) {
+		/* translators: Shown next to the date/time format that is the default for the site's language. */
+		echo ' <span class="description">' . __( '(Language default)' ) . '</span>';
+	}
+	echo "</label><br />\n";
 }
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
@@ -550,7 +590,12 @@ foreach ( $time_formats as $format ) {
 		echo " checked='checked'";
 		$custom = false;
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . '</code>';
+	if ( null !== $site_locale_time_default && $format === $site_locale_time_default ) {
+		/* translators: Shown next to the date/time format that is the default for the site's language. */
+		echo ' <span class="description">' . __( '(Language default)' ) . '</span>';
+	}
+	echo "</label><br />\n";
 }
 
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';
