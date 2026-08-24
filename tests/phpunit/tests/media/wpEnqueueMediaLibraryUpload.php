@@ -15,6 +15,11 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	private ?string $original_http_host;
 
 	/**
+	 * Original HTTP_USER_AGENT value.
+	 */
+	private ?string $original_user_agent;
+
+	/**
 	 * Original $wp_scripts global.
 	 *
 	 * @var WP_Scripts|null
@@ -23,10 +28,18 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->original_http_host = $_SERVER['HTTP_HOST'] ?? null;
+		$this->original_http_host  = $_SERVER['HTTP_HOST'] ?? null;
+		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
 		// A secure origin so client-side media processing is enabled.
 		$_SERVER['HTTP_HOST'] = 'localhost';
+
+		/*
+		 * Cross-origin isolation relies on Document-Isolation-Policy, so the
+		 * enqueue is gated on Chromium 137+. The PHPUnit bootstrap defines no
+		 * User-Agent at all, which reads as "not Chromium".
+		 */
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
 
 		/*
 		 * The script is registered in the admin-only branch of
@@ -43,6 +56,12 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 			unset( $_SERVER['HTTP_HOST'] );
 		} else {
 			$_SERVER['HTTP_HOST'] = $this->original_http_host;
+		}
+
+		if ( null === $this->original_user_agent ) {
+			unset( $_SERVER['HTTP_USER_AGENT'] );
+		} else {
+			$_SERVER['HTTP_USER_AGENT'] = $this->original_user_agent;
 		}
 
 		$GLOBALS['wp_scripts']     = $this->original_wp_scripts;
@@ -66,6 +85,32 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	 */
 	public function test_script_not_enqueued_when_client_side_processing_disabled() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
+
+		wp_enqueue_media_library_upload();
+
+		$this->assertFalse( wp_script_is( 'media-library-upload', 'enqueued' ) );
+	}
+
+	/**
+	 * Document-Isolation-Policy is Chromium-only, so a browser that can never
+	 * be cross-origin isolated must not download the pipeline bundles for a
+	 * script that could only no-op.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_script_not_enqueued_for_non_chromium_user_agent() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0';
+
+		wp_enqueue_media_library_upload();
+
+		$this->assertFalse( wp_script_is( 'media-library-upload', 'enqueued' ) );
+	}
+
+	/**
+	 * @ticket 65661
+	 */
+	public function test_script_not_enqueued_for_older_chromium() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 
 		wp_enqueue_media_library_upload();
 
