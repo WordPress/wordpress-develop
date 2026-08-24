@@ -4919,6 +4919,7 @@ function paginate_links( $args = '' ) {
 		'add_fragment'       => '',
 		'before_page_number' => '',
 		'after_page_number'  => '',
+		'link_current'       => false,
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -4989,11 +4990,27 @@ function paginate_links( $args = '' ) {
 
 	for ( $n = 1; $n <= $total; $n++ ) :
 		if ( $n === $current ) :
-			$page_links[] = sprintf(
-				'<span aria-current="%s" class="page-numbers current">%s</span>',
-				esc_attr( $args['aria_current'] ),
-				$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
-			);
+			if ( $args['link_current'] ) {
+				$current_link = str_replace( '%_%', 1 === $n ? '' : $args['format'], $args['base'] );
+				$current_link = str_replace( '%#%', $n, $current_link );
+				if ( $add_args ) {
+					$link = add_query_arg( $add_args, $current_link );
+				}
+				$current_link .= $args['add_fragment'];
+
+				$page_links[] = sprintf(
+					'<a aria-current="%s" class="page-numbers current" href="%s">%s</a>',
+					esc_attr( $args['aria_current'] ),
+					esc_url( apply_filters( 'paginate_links', $current_link ) ),
+					$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
+				);
+			} else {
+				$page_links[] = sprintf(
+					'<span aria-current="%s" class="page-numbers current">%s</span>',
+					esc_attr( $args['aria_current'] ),
+					$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
+				);
+			}
 
 			$dots = true;
 		else :
