@@ -4024,31 +4024,52 @@ function wp_handle_comment_submission( $comment_data ) {
 	} elseif ( 'trash' === $status ) {
 
 		/**
-		 * Fires when a comment is attempted on a trashed post.
+		 * Filters whether to allow comments on trashed posts.
 		 *
-		 * @since 2.9.0
+		 * @since 7.2.0
 		 *
-		 * @param int $comment_post_id Post ID.
+		 * @param bool $allow           Whether to allow comments on trashed posts. Default false.
+		 * @param int  $comment_post_id Post ID.
 		 */
-		do_action( 'comment_on_trash', $comment_post_id );
+		if ( ! apply_filters( 'allow_comment_on_trash', false, $comment_post_id ) ) {
 
-		return new WP_Error( 'comment_on_trash' );
+			/**
+			 * Fires when a comment is attempted on a trashed post.
+			 *
+			 * @since 2.9.0
+			 *
+			 * @param int $comment_post_id Post ID.
+			 */
+			do_action( 'comment_on_trash', $comment_post_id );
 
+			return new WP_Error( 'comment_on_trash' );
+		}
 	} elseif ( ! $status_obj->public && ! $status_obj->private ) {
 
 		/**
-		 * Fires when a comment is attempted on a post in draft mode.
+		 * Filters whether to allow comments on draft posts.
 		 *
-		 * @since 1.5.1
+		 * @since 7.2.0
 		 *
-		 * @param int $comment_post_id Post ID.
+		 * @param bool $allow           Whether to allow comments on draft posts. Default false.
+		 * @param int  $comment_post_id Post ID.
 		 */
-		do_action( 'comment_on_draft', $comment_post_id );
+		if ( ! apply_filters( 'allow_comment_on_draft', false, $comment_post_id ) ) {
 
-		if ( current_user_can( 'read_post', $comment_post_id ) ) {
-			return new WP_Error( 'comment_on_draft', __( 'Sorry, comments are not allowed for this item.' ), 403 );
-		} else {
-			return new WP_Error( 'comment_on_draft' );
+			/**
+			 * Fires when a comment is attempted on a post in draft mode.
+			 *
+			 * @since 1.5.1
+			 *
+			 * @param int $comment_post_id Post ID.
+			 */
+			do_action( 'comment_on_draft', $comment_post_id );
+
+			if ( current_user_can( 'read_post', $comment_post_id ) ) {
+				return new WP_Error( 'comment_on_draft', __( 'Sorry, comments are not allowed for this item.' ), 403 );
+			} else {
+				return new WP_Error( 'comment_on_draft' );
+			}
 		}
 	} elseif ( post_password_required( $comment_post_id ) ) {
 
@@ -4063,16 +4084,16 @@ function wp_handle_comment_submission( $comment_data ) {
 
 		return new WP_Error( 'comment_on_password_protected' );
 
-	} else {
-		/**
-		 * Fires before a comment is posted.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param int $comment_post_id Post ID.
-		 */
-		do_action( 'pre_comment_on_post', $comment_post_id );
 	}
+
+	/**
+	 * Fires before a comment is posted.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param int $comment_post_id Post ID.
+	 */
+	do_action( 'pre_comment_on_post', $comment_post_id );
 
 	// If the user is logged in.
 	$user = wp_get_current_user();
