@@ -591,6 +591,15 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( '!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $text );
 	$text = preg_replace( "|\n</p>$|", '</p>', $text );
 
+	// If two closing paragraph tags are adjacent, remove the second.
+	$text = preg_replace( '|</p>\s*</p>|', '</p>', $text );
+
+	// If a block element is followed by a closing paragraph tag, remove it.
+	$text = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*</p>!', '$1', $text );
+
+	// Remove empty paragraphs.
+	$text = preg_replace( '|<p>\s*</p>|', '', $text );
+
 	// Replace placeholder <pre> tags with their original content.
 	if ( ! empty( $pre_tags ) ) {
 		$text = str_replace( array_keys( $pre_tags ), array_values( $pre_tags ), $text );
