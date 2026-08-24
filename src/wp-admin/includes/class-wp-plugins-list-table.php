@@ -1649,18 +1649,60 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$links = array();
-		foreach ( $dependency_names as $slug => $name ) {
-			$links[] = $this->get_dependency_view_details_link( $name, $slug );
-		}
+		$requires = null;
+		if ( ! empty( $dependency_names ) ) {
 
-		$is_active = is_multisite() ? is_plugin_active_for_network( $dependent ) : is_plugin_active( $dependent );
-		$comma     = wp_get_list_item_separator();
-		$requires  = sprintf(
-			/* translators: %s: List of dependency names. */
-			__( '<strong>Requires:</strong> %s' ),
-			implode( $comma, $links )
-		);
+			$links = array();
+
+			foreach ( $dependency_names as $slug => $name ) {
+				$link = $this->get_dependency_view_details_link( $name, $slug );
+				$dependency_file = WP_Plugin_Dependencies::get_dependency_filepath( $slug );
+
+				$is_installed = false;
+				$is_active    = false;
+
+				if ( $dependency_file ) {
+					$is_installed = true;
+					$is_active    = is_multisite()
+						? is_plugin_active_for_network( $dependency_file ) || is_plugin_active( $dependency_file )
+						: is_plugin_active( $dependency_file );
+				}
+
+				if ( ! $is_installed ) {
+					$link .= sprintf(
+						' <span class="dependency-state dependency-state--missing">%s</span>
+						  <span class="screen-reader-text">%s</span>',
+						__( '(not installed)' ),
+						__( 'Not installed' )
+					);
+				} elseif ( $is_active ) {
+					$link .= sprintf(
+						' <span class="dependency-state dependency-state--active">%s</span>
+						  <span class="dashicons dashicons-yes-alt dependency-icon dependency-icon--active" aria-hidden="true"></span>
+						  <span class="screen-reader-text">%s</span>',
+						__( '(installed, active)' ),
+						__( 'Installed and active' )
+					);
+				} else {
+					$link .= sprintf(
+						' <span class="dependency-state dependency-state--installed">%s</span>
+						  <span class="dashicons dashicons-yes-alt dependency-icon dependency-icon--installed" aria-hidden="true"></span>
+						  <span class="screen-reader-text">%s</span>',
+						__( '(installed, inactive)' ),
+						__( 'Installed but inactive' )
+					);
+				}
+
+				$links[] = $link;
+			}
+
+			$comma    = wp_get_list_item_separator();
+			$requires = sprintf(
+				/* translators: %s: List of dependency names. */
+				__( '<strong>Requires:</strong> %s' ),
+				implode( $comma, $links )
+			);
+		}
 
 		$notice        = '';
 		$error_message = '';
