@@ -1007,7 +1007,15 @@ class WP_Upgrader {
 	public function maintenance_mode( $enable = false ) {
 		global $wp_filesystem;
 
-		if ( ! $wp_filesystem ) {
+		/*
+		 * WP_Filesystem() assigns the global before connecting and returns false on a
+		 * constructor error without calling connect(), so a failed call earlier in the
+		 * request leaves an object here that has never been connected. Checking for
+		 * recorded errors as well, the way fs_connect() does, catches that case.
+		 */
+		if ( ! is_object( $wp_filesystem )
+			|| ( is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors() )
+		) {
 			if ( ! function_exists( 'WP_Filesystem' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/file.php';
 			}
