@@ -1689,6 +1689,48 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
 	}
 
+	/**
+	 * @ticket 41672
+	 */
+	public function test_create_user_with_existing_username_or_email() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( self::$user );
+
+		// Create User
+		$params = array(
+			'username' => 'testjsonuser',
+			'password' => 'testjsonpassword',
+			'email'    => 'testjson@example.com',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_add_edit_user_response( $response );
+
+		// Make request again, expecting existing_user_login response
+		$params = array(
+			'username' => 'testjsonuser',
+			'password' => 'testjsonpassword',
+			'email'    => 'testjson1@example.com',
+		);
+
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_existing_user_login', $response, 409 );
+
+		// Make request again, expecting existing_user_email response
+		$params = array(
+			'username' => 'testjsonuser1',
+			'password' => 'testjsonpassword',
+			'email'    => 'testjson@example.com',
+		);
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_existing_user_email', $response, 409 );
+	}
+
 	public function test_update_item() {
 		$user_id = self::factory()->user->create(
 			array(
