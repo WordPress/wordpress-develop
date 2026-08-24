@@ -6853,6 +6853,17 @@ function wp_enqueue_media_new_upload(): void {
 		return;
 	}
 
+	/*
+	 * Cross-origin isolation relies on Document-Isolation-Policy, which only
+	 * Chromium 137+ honors. Without it the page is never isolated, the script
+	 * no-ops, and the whole wp-upload-media dependency chain would be loaded
+	 * for nothing.
+	 */
+	$chromium_version = wp_get_chromium_major_version();
+	if ( null === $chromium_version || $chromium_version < 137 ) {
+		return;
+	}
+
 	wp_enqueue_script( 'media-new-upload' );
 
 	wp_add_inline_script(
