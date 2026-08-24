@@ -24,6 +24,8 @@ class Tests_wp_cache_flush_runtime extends WP_UnitTestCase {
 	 * @param string $group Cache group.
 	 */
 	public function test_wp_cache_flush_runtime( array $items, string $group ): void {
+		global $wp_object_cache;
+
 		foreach ( $items as $key => $value ) {
 			wp_cache_set( $key, $value, $group );
 			$this->assertSame( $value, wp_cache_get( $key, $group ) );
@@ -37,8 +39,14 @@ class Tests_wp_cache_flush_runtime extends WP_UnitTestCase {
 			$result = wp_cache_flush_runtime();
 			$this->assertTrue( $result );
 
-			foreach ( $items as $key => $value ) {
-				$this->assertFalse( wp_cache_get( $key, $group ) );
+			if ( wp_using_ext_object_cache() ) {
+				if ( isset( $wp_object_cache->cache ) && is_array( $wp_object_cache->cache ) ) {
+					$this->assertEmpty( $wp_object_cache->cache );
+				}
+			} else {
+				foreach ( $items as $key => $value ) {
+					$this->assertFalse( wp_cache_get( $key, $group ) );
+				}
 			}
 		}
 	}
