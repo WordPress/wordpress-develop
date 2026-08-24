@@ -50,6 +50,14 @@
 
 	window.__wpMediaLibraryUpload = true;
 
+	/*
+	 * @wordpress/media-utils branches on this flag: without it uploadMedia()
+	 * creates and revokes a throwaway blob URL per file and emits an extra
+	 * onFileChange carrying it. The block editor sets the same flag before
+	 * configuring the same pipeline.
+	 */
+	window.__clientSideMediaProcessing = true;
+
 	var __ = wp.i18n.__;
 	var settings = window._wpMediaLibraryUploadSettings || {};
 	var uploadStore = wp.uploadMedia.store;
@@ -167,6 +175,24 @@
 	}
 
 	/**
+	 * Deletes an attachment whose client-side processing failed outright.
+	 *
+	 * The queue calls this when every sub-size sideload for an upload fails:
+	 * without it the original file is left behind as an attachment with no
+	 * metadata, visible in the Media Library after the next page load. The
+	 * block editor passes the same setting.
+	 *
+	 * @param {number} id The attachment ID to delete.
+	 * @return {Promise} Resolves once the attachment is deleted.
+	 */
+	function mediaDelete( id ) {
+		return wp.apiFetch( {
+			path: '/wp/v2/media/' + id + '?force=true',
+			method: 'DELETE',
+		} );
+	}
+
+	/**
 	 * Builds the display text for a failed upload.
 	 *
 	 * wp.uploadMedia.getErrorMessage() maps an error *code* and a file name
@@ -213,6 +239,7 @@
 		mediaUpload: wp.mediaUtils.uploadMedia,
 		mediaSideload: mediaSideload,
 		mediaFinalize: mediaFinalize,
+		mediaDelete: mediaDelete,
 		maxUploadFileSize: settings.maxUploadFileSize,
 		allowedMimeTypes: settings.allowedMimeTypes,
 		allImageSizes: settings.allImageSizes,
@@ -265,10 +292,11 @@
 	/**
 	 * Handles a completed upload by syncing the grid tile with the server data.
 	 *
+	 * @param {Object} wpUploader The wp.Uploader instance that queued the file.
 	 * @param {Object} model      The placeholder Attachment model.
 	 * @param {Object} attachment The finalized attachment from the pipeline.
 	 */
-	function handleSuccess( model, attachment ) {
+	function handleSuccess( wpUploader, model, attachment ) {
 		model.set( { id: attachment.id }, { silent: true } );
 
 		// Register the model in Attachments.all (parity with wp-plupload.js).
@@ -298,45 +326,58 @@
 			.always( function () {
 				stopTrackingProgress( model );
 				maybeResetQueue();
+
+				// Parity with wp-plupload.js, which exposes this callback so
+				// other code can react to a finished upload.
+				wpUploader.success( model );
 			} );
 	}
 
 	/**
 	 * Handles an upload error by removing the tile and surfacing the message.
 	 *
+	 * @param {Object} wpUploader The wp.Uploader instance that queued the file.
 	 * @param {Object} model      The placeholder Attachment model.
 	 * @param {Error}  error      The upload error.
 	 * @param {File}   nativeFile The original file (for the error label).
 	 */
-	function handleError( model, error, nativeFile ) {
+	function handleError( wpUploader, model, error, nativeFile ) {
 		var message = getErrorText( error, nativeFile.name );
+		var file = { name: nativeFile.name };
 
 		model.destroy();
 
 		wp.Uploader.errors.unshift( {
 			message: message,
 			data: {},
-			file: { name: nativeFile.name },
+			file: file,
 		} );
 
 		stopTrackingProgress( model );
 		maybeResetQueue();
+
+		// Parity with wp-plupload.js, which exposes this callback so other
+		// code can react to a failed upload.
+		wpUploader.error( message, {}, file );
 	}
 
 	/**
 	 * Dispatches a single file into the client-side pipeline.
 	 *
-	 * @param {File}   nativeFile The original file to upload.
-	 * @param {Object} model      The placeholder Attachment model.
+	 * @param {Object} wpUploader     The wp.Uploader instance that queued the file.
+	 * @param {File}   nativeFile     The original file to upload.
+	 * @param {Object} model          The placeholder Attachment model.
+	 * @param {Object} additionalData Extra fields to send with the attachment.
 	 */
-	function uploadFile( nativeFile, model ) {
+	function uploadFile( wpUploader, nativeFile, model, additionalData ) {
 		wp.data.dispatch( uploadStore ).addItems( {
 			files: [ nativeFile ],
+			additionalData: additionalData,
 			onSuccess: function ( attachments ) {
-				handleSuccess( model, attachments[ 0 ] );
+				handleSuccess( wpUploader, model, attachments[ 0 ] );
 			},
 			onError: function ( error ) {
-				handleError( model, error, nativeFile );
+				handleError( wpUploader, model, error, nativeFile );
 			},
 		} );
 	}
@@ -362,6 +403,28 @@
 		if ( ! storeSettings || ! storeSettings.mediaUpload ) {
 			return;
 		}
+
+		// The pipeline works on native File objects, and plupload returns
+		// null for sources it cannot expose as one (the html4 runtime, say).
+		// Hand the whole batch back to classic plupload rather than strand
+		// part of it: suppressing the built-in handler is all-or-nothing.
+		var unusable = files.some( function ( file ) {
+			return (
+				plupload.FAILED !== file.status &&
+				( ! file.getNative || ! file.getNative() )
+			);
+		} );
+
+		if ( unusable ) {
+			return;
+		}
+
+		// The classic flow attaches uploads to the post the uploader was
+		// opened for by posting `post_id` to async-upload.php; the REST API
+		// spells the same thing `post`.
+		var params = ( up.settings && up.settings.multipart_params ) || {};
+		var parentPostId = parseInt( params.post_id, 10 ) || 0;
+		var additionalData = parentPostId ? { post: parentPostId } : {};
 
 		files.forEach( function ( file ) {
 			// Ignore failed uploads.
@@ -406,7 +469,7 @@
 			// Remove the file from plupload so it is not uploaded twice.
 			up.removeFile( file );
 
-			uploadFile( nativeFile, model );
+			uploadFile( wpUploader, nativeFile, model, additionalData );
 		} );
 
 		up.refresh();

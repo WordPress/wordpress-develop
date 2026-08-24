@@ -19,6 +19,7 @@ const FILE_INPUT_SELECTOR = '.moxie-shim-html5 input[type="file"]';
 test.describe( 'Add New Media File client-side uploads', () => {
 	test.afterEach( async ( { requestUtils } ) => {
 		await requestUtils.deleteAllMedia();
+		await requestUtils.deleteAllPosts();
 	} );
 
 	test( 'sends the Document-Isolation-Policy header', async ( {
@@ -228,5 +229,45 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		// so handing it straight to the UI renders "[object Object]".
 		const errorText = await errorItem.innerText();
 		expect( errorText ).not.toContain( '[object Object]' );
+	} );
+
+	test( 'attaches the upload to the post named by post_id', async ( {
+		page,
+		admin,
+		requestUtils,
+	} ) => {
+		// Published, so the attachment (post_status 'inherit') stays visible
+		// in the media collection.
+		const post = await requestUtils.createPost( {
+			title: 'Client-side upload parent',
+			status: 'publish',
+		} );
+
+		await admin.visitAdminPage( 'media-new.php', `post_id=${ post.id }` );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		// The classic flow posts `post_id` to async-upload.php; the pipeline
+		// has to send the REST equivalent or the file lands unattached even
+		// though the screen counts it against the post.
+		const [ attachment ] = await requestUtils.rest( {
+			path: '/wp/v2/media',
+			params: { per_page: 1 },
+		} );
+		expect( attachment.post ).toBe( post.id );
 	} );
 } );

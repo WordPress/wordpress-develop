@@ -55,6 +55,14 @@
 
 	window.__wpMediaNewUpload = true;
 
+	/*
+	 * @wordpress/media-utils branches on this flag: without it uploadMedia()
+	 * creates and revokes a throwaway blob URL per file and emits an extra
+	 * onFileChange carrying it. The block editor sets the same flag before
+	 * configuring the same pipeline.
+	 */
+	window.__clientSideMediaProcessing = true;
+
 	var __ = wp.i18n.__;
 	var settings = window._wpMediaNewUploadSettings || {};
 	var uploadStore = wp.uploadMedia.store;
@@ -176,6 +184,24 @@
 	}
 
 	/**
+	 * Deletes an attachment whose client-side processing failed outright.
+	 *
+	 * The queue calls this when every sub-size sideload for an upload fails:
+	 * without it the original file is left behind as an attachment with no
+	 * metadata, visible in the Media Library after the next page load. The
+	 * block editor passes the same setting.
+	 *
+	 * @param {number} id The attachment ID to delete.
+	 * @return {Promise} Resolves once the attachment is deleted.
+	 */
+	function mediaDelete( id ) {
+		return wp.apiFetch( {
+			path: '/wp/v2/media/' + id + '?force=true',
+			method: 'DELETE',
+		} );
+	}
+
+	/**
 	 * Builds the display text for a failed upload.
 	 *
 	 * wp.uploadMedia.getErrorMessage() maps an error *code* and a file name
@@ -222,6 +248,7 @@
 		mediaUpload: wp.mediaUtils.uploadMedia,
 		mediaSideload: mediaSideload,
 		mediaFinalize: mediaFinalize,
+		mediaDelete: mediaDelete,
 		maxUploadFileSize: settings.maxUploadFileSize,
 		allowedMimeTypes: settings.allowedMimeTypes,
 		allImageSizes: settings.allImageSizes,
@@ -291,10 +318,34 @@
 			return;
 		}
 
+		// The pipeline works on native File objects, and plupload returns
+		// null for sources it cannot expose as one (the html4 runtime, say).
+		// Hand the whole batch back to classic plupload rather than strand
+		// part of it: suppressing the built-in handler is all-or-nothing.
+		var unusable = files.some( function ( file ) {
+			return (
+				plupload.FAILED !== file.status &&
+				( ! file.getNative || ! file.getNative() )
+			);
+		} );
+
+		if ( unusable ) {
+			return;
+		}
+
 		// Parity with the built-in handler: clear stale queue errors and run
 		// the shared upload-start housekeeping.
 		jQuery( '#media-upload-error' ).empty();
 		uploadStart();
+
+		// The classic flow attaches uploads to the post named by `post_id` in
+		// the query string by posting it to async-upload.php; the REST API
+		// spells the same thing `post`. Without it a file uploaded from
+		// media-new.php?post_id=N lands unattached even though the screen
+		// counts it against that post.
+		var params = ( up.settings && up.settings.multipart_params ) || {};
+		var parentPostId = parseInt( params.post_id, 10 ) || 0;
+		var additionalData = parentPostId ? { post: parentPostId } : {};
 
 		files.forEach( function ( file ) {
 			// Ignore failed uploads.
@@ -321,6 +372,7 @@
 
 			wp.data.dispatch( uploadStore ).addItems( {
 				files: [ nativeFile ],
+				additionalData: additionalData,
 				onSuccess: function ( attachments ) {
 					// uploadSuccess() renders the finished attachment row via
 					// the existing async-upload.php markup endpoint; the
