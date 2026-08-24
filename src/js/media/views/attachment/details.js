@@ -17,15 +17,28 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	attributes: {},
 
 	events: {
-		'change [data-setting]':          'updateSetting',
-		'change [data-setting] input':    'updateSetting',
-		'change [data-setting] select':   'updateSetting',
-		'change [data-setting] textarea': 'updateSetting',
-		'click .delete-attachment':       'deleteAttachment',
-		'click .trash-attachment':        'trashAttachment',
-		'click .untrash-attachment':      'untrashAttachment',
-		'click .edit-attachment':         'editAttachment',
-		'keydown':                        'toggleSelectionHandler'
+		'change [data-setting]':            		'updateSetting',
+		'change [data-setting] input':      		'updateSetting',
+		'change [data-setting] select':     		'updateSetting',
+		'change [data-setting] textarea':   		'updateSetting',
+		'click .delete-attachment':         		'deleteAttachment',
+		'click .trash-attachment':          		'trashAttachment',
+		'click .untrash-attachment':        		'untrashAttachment',
+		'click .edit-attachment':           		'editAttachment',
+		'keydown':                          		'toggleSelectionHandler',
+		'keydown [data-setting="title"] textarea':  'updateTitle'
+	},
+
+	/**
+	 * Prevent enter in title textarea field
+	 * 
+	 * @param {KeyboardEvent} event A keydown event 
+	 * @returns {void}
+	 */
+	updateTitle: function( event ) {
+		if ( event.code === 'Enter' ) {
+			return false;
+		}
 	},
 
 	/**
