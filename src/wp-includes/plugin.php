@@ -1005,7 +1005,7 @@ function _wp_call_all_hook( $args ) {
  * @param int                   $priority  Unused. The order in which the functions
  *                                         associated with a particular action are executed.
  * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
- * @phpstan-param callable|string|array{ 0: string|object, 1: string, ... } $callback
+ * @phpstan-param Maybe_Callable $callback
  * @phpstan-return non-decimal-int-string|null
  */
 function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {
