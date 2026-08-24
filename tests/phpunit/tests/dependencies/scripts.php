@@ -2663,6 +2663,342 @@ HTML;
 	}
 
 	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_prints_client_data_before_localized_data() {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_localize_script( 'test-example', 'testExample', array( 'foo' => 'bar' ) );
+		add_filter(
+			'script_client_data_test-example',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-client-data-test-example'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script id='test-example-js-extra'>\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=test-example-js-extra\n</script>\n";
+		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_does_not_print_empty_data() {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		add_filter(
+			'script_client_data_test-example',
+			static function ( $client_data ) {
+				return $client_data;
+			}
+		);
+
+		$expected = "<script src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 58873
+	 *
+	 * @dataProvider data_invalid_script_client_data
+	 *
+	 * @param mixed $data Client data to return in filter.
+	 */
+	public function test_script_client_data_filter_does_not_print_invalid_data( $data ) {
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		add_filter(
+			'script_client_data_test-example',
+			static function () use ( $data ) {
+				return $data;
+			}
+		);
+
+		$expected = "<script src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_invalid_script_client_data(): array {
+		return array(
+			'null'     => array( null ),
+			'stdClass' => array( new stdClass() ),
+			'number 1' => array( 1 ),
+			'string'   => array( 'string' ),
+		);
+	}
+
+	/**
+	 * @ticket 58873
+	 *
+	 * @dataProvider data_script_client_data_encoding
+	 *
+	 * @param string $input    Raw input string.
+	 * @param string $expected Expected output string.
+	 * @param string $charset  Blog charset option.
+	 */
+	public function test_script_client_data_filter_encoding( $input, $expected, $charset ) {
+		add_filter(
+			'pre_option_blog_charset',
+			static function () use ( $charset ) {
+				return $charset;
+			}
+		);
+
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		add_filter(
+			'script_client_data_test-example',
+			static function ( $client_data ) use ( $input ) {
+				$client_data[''] = $input;
+				return $client_data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-client-data-test-example'>\n{\"\":\"{$expected}\"}\n</script>\n";
+		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_does_not_prevent_concat() {
+		global $wp_scripts, $wp_version;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_enqueue_script( 'two', $this->default_scripts_dir . 'two.js' );
+		add_filter(
+			'script_client_data_two',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-client-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two&amp;ver={$wp_version}'></script>\n";
+
+		$actual = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$this->assertEqualHTML( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_for_external_script_prints_before_deferred_concat_output() {
+		global $wp_scripts, $wp_version;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_enqueue_script( 'two', 'https://example.com/two.js', array(), null );
+		add_filter(
+			'script_client_data_two',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-client-data-two'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
+		$expected .= "<script src='https://example.com/two.js' id='two-js'></script>\n";
+
+		$actual = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$this->assertEqualHTML( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_with_localized_data_prints_before_concat_inline_script() {
+		global $wp_scripts, $wp_version;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_localize_script( 'one', 'testExample', array( 'foo' => 'bar' ) );
+		add_filter(
+			'script_client_data_one',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-client-data-one'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "\n<script>\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=js-inline-concat-one\n</script>\n";
+		$expected .= "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
+
+		$actual = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$this->assertEqualHTML( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_with_inline_script_still_prevents_concat() {
+		global $wp_scripts, $wp_version;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_add_inline_script( 'one', 'console.log("before one");', 'before' );
+		wp_add_inline_script( 'one', 'console.log("after one");' );
+		add_filter(
+			'script_client_data_one',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$expected  = "<script type='application/json' id='wp-script-client-data-one'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected .= "<script id='one-js-before'>\nconsole.log(\"before one\");\n//# sourceURL=one-js-before\n</script>\n";
+		$expected .= "<script src='{$this->default_scripts_dir}one.js?ver={$wp_version}' id='one-js'></script>\n";
+		$expected .= "<script id='one-js-after'>\nconsole.log(\"after one\");\n//# sourceURL=one-js-after\n</script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 *
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_does_not_print_for_conditional_script() {
+		global $wp_scripts;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . 'one.js' );
+		wp_script_add_data( 'one', 'conditional', 'gte IE 9' );
+		add_filter(
+			'script_client_data_one',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$actual = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * @ticket 58873
+	 */
+	public function test_script_client_data_filter_prints_when_script_moves_to_footer() {
+		wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => true ) );
+		add_filter(
+			'script_client_data_script-a',
+			static function ( $client_data ) {
+				$client_data['clientData'] = 'ok';
+				return $client_data;
+			}
+		);
+
+		$header = get_echo(
+			static function () {
+				wp_scripts()->do_head_items();
+			}
+		);
+		$footer = get_echo(
+			static function () {
+				wp_scripts()->do_footer_items();
+			}
+		);
+
+		$expected_footer  = "<script type='application/json' id='wp-script-client-data-script-a'>\n{\"clientData\":\"ok\"}\n</script>\n";
+		$expected_footer .= "<script src='https://example.com/script-a.js' id='script-a-js' data-wp-strategy='defer'></script>\n";
+		$expected_footer .= "<script src='https://example.com/script-b.js' id='script-b-js'></script>\n";
+
+		$this->assertSame( '', $header );
+		$this->assertEqualHTML( $expected_footer, $footer, '<body>', 'Expected client data for a moved script to print in the footer.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_script_client_data_encoding(): array {
+		return array(
+			// UTF-8.
+			'Solidus'                                => array( '/', '/', 'UTF-8' ),
+			'Double quote'                           => array( '"', '\\"', 'UTF-8' ),
+			'Single quote'                           => array( '\'', '\'', 'UTF-8' ),
+			'Less than'                              => array( '<', '\u003C', 'UTF-8' ),
+			'Greater than'                           => array( '>', '\u003E', 'UTF-8' ),
+			'Ampersand'                              => array( '&', '&', 'UTF-8' ),
+			'Newline'                                => array( "\n", "\\n", 'UTF-8' ),
+			'Tab'                                    => array( "\t", "\\t", 'UTF-8' ),
+			'Form feed'                              => array( "\f", "\\f", 'UTF-8' ),
+			'Carriage return'                        => array( "\r", "\\r", 'UTF-8' ),
+			'Line separator'                         => array( "\u{2028}", "\u{2028}", 'UTF-8' ),
+			'Paragraph separator'                    => array( "\u{2029}", "\u{2029}", 'UTF-8' ),
+			'Flag of England'                        => array( "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", 'UTF-8' ),
+			'Malicious script closer'                => array( '</script>', '\u003C/script\u003E', 'UTF-8' ),
+			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'UTF-8' ),
+
+			// Non UTF-8.
+			'Solidus non-utf8'                       => array( '/', '/', 'iso-8859-1' ),
+			'Less than non-utf8'                     => array( '<', '\u003C', 'iso-8859-1' ),
+			'Greater than non-utf8'                  => array( '>', '\u003E', 'iso-8859-1' ),
+			'Ampersand non-utf8'                     => array( '&', '&', 'iso-8859-1' ),
+			'Newline non-utf8'                       => array( "\n", "\\n", 'iso-8859-1' ),
+			'Tab non-utf8'                           => array( "\t", "\\t", 'iso-8859-1' ),
+			'Form feed non-utf8'                     => array( "\f", "\\f", 'iso-8859-1' ),
+			'Carriage return non-utf8'               => array( "\r", "\\r", 'iso-8859-1' ),
+			'Line separator non-utf8'                => array( "\u{2028}", "\u2028", 'iso-8859-1' ),
+			'Paragraph separator non-utf8'           => array( "\u{2029}", "\u2029", 'iso-8859-1' ),
+			'Flag of England non-utf8'               => array( "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f", 'iso-8859-1' ),
+			'Malicious script closer non-utf8'       => array( '</script>', '\u003C/script\u003E', 'iso-8859-1' ),
+			'Entity-encoded malicious script closer non-utf8' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'iso-8859-1' ),
+		);
+	}
+
+	/**
 	 * @ticket 14853
 	 */
 	public function test_wp_add_inline_script_before_with_concat() {

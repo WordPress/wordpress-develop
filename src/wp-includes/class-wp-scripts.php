@@ -96,6 +96,14 @@ class WP_Scripts extends WP_Dependencies {
 	public $print_code = '';
 
 	/**
+	 * Holds client data HTML markup if concatenation is enabled.
+	 *
+	 * @since 7.1.0
+	 * @var string
+	 */
+	public $print_client_data = '';
+
+	/**
 	 * Holds a list of script handles which are not in the default directory
 	 * if concatenation is enabled.
 	 *
@@ -250,6 +258,82 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Gets client data associated with a registered script.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $handle The script's registered handle.
+	 * @return string Client data script tag, or empty string when no client data exists.
+	 */
+	private function get_script_client_data_tag( $handle ) {
+		/**
+		 * Filters client data associated with a given script.
+		 *
+		 * Scripts may require client data that is required for initialization or is
+		 * essential to have available on page load. These are suitable use cases for
+		 * this data.
+		 *
+		 * The dynamic portion of the hook name, `$handle`, refers to the script handle
+		 * that the client data is associated with.
+		 *
+		 * This is best suited to pass essential client data that must be available to the
+		 * script for initialization or immediately on page load. It does not replace the
+		 * REST API or client-side data fetching.
+		 *
+		 * Example:
+		 *
+		 *     add_filter(
+		 *         'script_client_data_my-handle',
+		 *         function ( array $client_data ): array {
+		 *             $client_data['dataForClient'] = 'ok';
+		 *             return $client_data;
+		 *         }
+		 *     );
+		 *
+		 * If the filter returns no data (an empty array), nothing will be embedded in the page.
+		 *
+		 * The client data for a given script, if provided, will be JSON serialized in a
+		 * script tag with an ID of the form `wp-script-client-data-{$handle}`.
+		 *
+		 * The client data can be read with a pattern like this:
+		 *
+		 * Example:
+		 *
+		 *     const clientDataContainer = document.getElementById( 'wp-script-client-data-my-handle' );
+		 *     let clientData = {};
+		 *     if ( clientDataContainer ) {
+		 *         try {
+		 *             clientData = JSON.parse( clientDataContainer.textContent );
+		 *         } catch {}
+		 *     }
+		 *     // clientData.dataForClient === 'ok';
+		 *     initMyScriptWithData( clientData );
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param array $client_data The client data associated with the script.
+		 */
+		$client_data = apply_filters( "script_client_data_{$handle}", array() );
+
+		if ( ! is_array( $client_data ) || array() === $client_data ) {
+			return '';
+		}
+
+		$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
+		if ( ! is_utf8_charset() ) {
+			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
+		}
+
+		return wp_get_inline_script_tag(
+			(string) wp_json_encode( $client_data, $json_encode_flags ),
+			array(
+				'type' => 'application/json',
+				'id'   => "wp-script-client-data-{$handle}",
+			)
+		);
+	}
+
+	/**
 	 * Checks whether all dependents of a given handle are in the footer.
 	 *
 	 * If there are no dependents, this is considered the same as if all dependents were in the footer.
@@ -337,8 +421,9 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		$before_script = $this->get_inline_script_tag( $handle, 'before' );
-		$after_script  = $this->get_inline_script_tag( $handle, 'after' );
+		$client_data_tag = $this->get_script_client_data_tag( $handle );
+		$before_script   = $this->get_inline_script_tag( $handle, 'before' );
+		$after_script    = $this->get_inline_script_tag( $handle, 'after' );
 
 		if ( $before_script || $after_script ) {
 			$inline_script_tag = $before_script . $after_script;
@@ -388,9 +473,10 @@ class WP_Scripts extends WP_Dependencies {
 				_print_scripts();
 				$this->reset();
 			} elseif ( $this->in_default_dir( $filtered_src ) ) {
-				$this->print_code     .= $this->print_extra_script( $handle, false );
-				$this->concat         .= "$handle,";
-				$this->concat_version .= "$handle$ver";
+				$this->print_client_data .= $client_data_tag;
+				$this->print_code        .= $this->print_extra_script( $handle, false );
+				$this->concat            .= "$handle,";
+				$this->concat_version    .= "$handle$ver";
 				return true;
 			} else {
 				$this->ext_handles .= "$handle,";
@@ -398,6 +484,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
+		echo $client_data_tag;
 		$this->print_extra_script( $handle );
 
 		// A single item may alias a set of items, by having dependencies, but no source.
@@ -1221,13 +1308,14 @@ JS;
 	 * @since 2.8.0
 	 */
 	public function reset() {
-		$this->do_concat      = false;
-		$this->print_code     = '';
-		$this->concat         = '';
-		$this->concat_version = '';
-		$this->print_html     = '';
-		$this->ext_version    = '';
-		$this->ext_handles    = '';
+		$this->do_concat         = false;
+		$this->print_code        = '';
+		$this->print_client_data = '';
+		$this->concat            = '';
+		$this->concat_version    = '';
+		$this->print_html        = '';
+		$this->ext_version       = '';
+		$this->ext_handles       = '';
 	}
 
 	/**

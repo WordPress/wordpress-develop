@@ -2243,6 +2243,14 @@ function _print_scripts() {
 	$concat = trim( $wp_scripts->concat, ', ' );
 
 	if ( $concat ) {
+		/*
+		 * Client data is inert JSON. When scripts are concatenated, print it
+		 * before executable inline code and the bundle that may consume it.
+		 */
+		if ( ! empty( $wp_scripts->print_client_data ) ) {
+			echo $wp_scripts->print_client_data;
+		}
+
 		if ( ! empty( $wp_scripts->print_code ) ) {
 			wp_print_inline_script_tag( $wp_scripts->print_code . "\n//# sourceURL=" . rawurlencode( 'js-inline-concat-' . $concat ) );
 		}
