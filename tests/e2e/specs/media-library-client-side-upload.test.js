@@ -226,8 +226,19 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		} );
 
 		// The Manage frame renders rejected uploads in the error sidebar.
-		await expect(
-			page.locator( '.upload-error, .upload-errors' ).first()
-		).toBeVisible( { timeout: 30_000 } );
+		const errorNotice = page
+			.locator( '.upload-error, .upload-errors' )
+			.first();
+		await expect( errorNotice ).toBeVisible( { timeout: 30_000 } );
+
+		// The reason has to be readable: getErrorMessage() returns an object,
+		// so handing it straight to the UI renders "[object Object]". The
+		// message span holds only the message, not the file-name heading.
+		const message = await page
+			.locator( '.upload-error-message' )
+			.first()
+			.innerText();
+		expect( message ).not.toContain( '[object Object]' );
+		expect( message ).toContain( 'disallowed.xyz' );
 	} );
 } );

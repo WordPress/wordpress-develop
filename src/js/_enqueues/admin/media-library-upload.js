@@ -166,6 +166,46 @@
 			} );
 	}
 
+	/**
+	 * Builds the display text for a failed upload.
+	 *
+	 * wp.uploadMedia.getErrorMessage() maps an error *code* and a file name
+	 * to a { title, description, action } object, so it can neither be handed
+	 * the Error itself nor used as a string. Only codes it actually maps are
+	 * worth using: its fallback (and the GENERAL code) says nothing the
+	 * error's own message does not, and preferring the message there keeps a
+	 * server-supplied reason instead of replacing it with "Please try again."
+	 *
+	 * @param {Error}  error    The upload error.
+	 * @param {string} fileName Name of the file that failed to upload.
+	 * @return {string} A human-readable message.
+	 */
+	function getErrorText( error, fileName ) {
+		var errorCodes = wp.uploadMedia.ErrorCode || {};
+		var code = error && error.code;
+		var details;
+
+		if (
+			code &&
+			code !== errorCodes.GENERAL &&
+			Object.prototype.hasOwnProperty.call( errorCodes, code ) &&
+			wp.uploadMedia.getErrorMessage
+		) {
+			details = wp.uploadMedia.getErrorMessage( code, fileName );
+
+			if ( details && details.description ) {
+				return details.action ?
+					details.description + ' ' + details.action :
+					details.description;
+			}
+		}
+
+		return (
+			( error && error.message ) ||
+			__( 'An error occurred while uploading the file.' )
+		);
+	}
+
 	// Configure the default-registry upload-media store once. Rendering the
 	// provider with useSubRegistry: false wires the settings into the store
 	// that wp.data.dispatch/select address (the block editor does the same).
@@ -269,11 +309,7 @@
 	 * @param {File}   nativeFile The original file (for the error label).
 	 */
 	function handleError( model, error, nativeFile ) {
-		var message =
-			( wp.uploadMedia.getErrorMessage &&
-				wp.uploadMedia.getErrorMessage( error ) ) ||
-			( error && error.message ) ||
-			__( 'An error occurred while uploading the file.' );
+		var message = getErrorText( error, nativeFile.name );
 
 		model.destroy();
 

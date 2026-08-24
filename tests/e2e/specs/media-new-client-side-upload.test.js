@@ -219,10 +219,14 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		// (itemAjaxError renders .error-div inside the media item) or as a
 		// plupload extension rejection (a .media-item.error element),
 		// depending on which layer rejects the file first.
-		await expect(
-			page
-				.locator( '.media-item .error-div, .media-item.error' )
-				.first()
-		).toBeVisible( { timeout: 30_000 } );
+		const errorItem = page
+			.locator( '.media-item .error-div, .media-item.error' )
+			.first();
+		await expect( errorItem ).toBeVisible( { timeout: 30_000 } );
+
+		// The reason has to be readable: getErrorMessage() returns an object,
+		// so handing it straight to the UI renders "[object Object]".
+		const errorText = await errorItem.innerText();
+		expect( errorText ).not.toContain( '[object Object]' );
 	} );
 } );
