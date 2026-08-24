@@ -1445,6 +1445,25 @@ VIDEO;
 	}
 
 	/**
+	 * Tests that a URL with no file extension (e.g. a 302 redirect) renders
+	 * an audio player instead of a plain link.
+	 *
+	 * @ticket 31689
+	 */
+	public function test_wp_audio_shortcode_with_redirect_url() {
+		$actual = wp_audio_shortcode(
+			array(
+				'src' => 'https://onedrive.live.com/download?resid=123',
+			)
+		);
+
+		$this->assertStringContainsString( '<audio', $actual, 'Should render an audio player, not a link.' );
+		$this->assertStringNotContainsString( '<a class="wp-embedded-audio"', $actual, 'Should not render a fallback link.' );
+		$this->assertStringContainsString( 'src="https://onedrive.live.com/download?resid=123', $actual, 'Source URL should be present.' );
+		$this->assertStringNotContainsString( 'type=""', $actual, 'Source tag should not have an empty type attribute.' );
+	}
+
+	/**
 	 * @ticket 35367
 	 */
 	public function test_wp_audio_shortcode_attributes() {
@@ -1548,6 +1567,26 @@ VIDEO;
 				)
 			)
 		);
+	}
+
+	/**
+	 * Tests that a URL with no file extension (e.g. a 302 redirect) renders
+	 * a video player instead of a plain link.
+	 *
+	 * @ticket 31689
+	 * @depends test_video_shortcode_body
+	 */
+	public function test_wp_video_shortcode_with_redirect_url() {
+		$actual = wp_video_shortcode(
+			array(
+				'src' => 'https://onedrive.live.com/download?resid=123',
+			)
+		);
+
+		$this->assertStringContainsString( '<video', $actual, 'Should render a video player, not a link.' );
+		$this->assertStringNotContainsString( '<a class="wp-embedded-video"', $actual, 'Should not render a fallback link.' );
+		$this->assertStringContainsString( 'src="https://onedrive.live.com/download?resid=123', $actual, 'Source URL should be present.' );
+		$this->assertStringNotContainsString( 'type=""', $actual, 'Source tag should not have an empty type attribute.' );
 	}
 
 	/**
