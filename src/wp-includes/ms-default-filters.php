@@ -117,8 +117,8 @@ if ( ! defined( 'EDIT_ANY_USER' ) || ! EDIT_ANY_USER ) { // Back compat constant
 add_filter( 'force_filtered_html_on_import', '__return_true' );
 
 // WP_HOME and WP_SITEURL should not have any effect in MS.
-remove_filter( 'option_siteurl', '_config_wp_siteurl' );
-remove_filter( 'option_home', '_config_wp_home' );
+remove_filter( 'pre_option_siteurl', '_config_wp_siteurl' );
+remove_filter( 'pre_option_home', '_config_wp_home' );
 
 // Some options changes should trigger site details refresh.
 add_action( 'update_option_blogname', 'clean_site_details_cache', 10, 0 );
