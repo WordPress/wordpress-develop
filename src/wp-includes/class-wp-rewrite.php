@@ -874,8 +874,8 @@ class WP_Rewrite {
 	public function generate_rewrite_rules( $permalink_structure, $ep_mask = EP_NONE, $paged = true, $feed = true, $forcomments = false, $walk_dirs = true, $endpoints = true ) {
 		// Build a regex to match the feed section of URLs, something like (feed|atom|rss|rss2)/?
 		$feedregex2 = array();
-		foreach ( $this->feeds as $feed ) {
-			$feedregex2[] = preg_quote( $feed, '#' );
+		foreach ( $this->feeds as $feed_name ) {
+			$feedregex2[] = preg_quote( $feed_name, '#' );
 		}
 		$feedregex2 = '(' . implode( '|', $feedregex2 ) . ')/?$';
 
