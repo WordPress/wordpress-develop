@@ -21,6 +21,7 @@ input[type="submit"] {
 
 	&:hover {
 		background: $color__background-button-hover;
+		color: $color__text-button-hover;
 		cursor: pointer;
 	}
 
@@ -31,6 +32,7 @@ input[type="submit"] {
 
 	&:focus {
 		background: $color__background-button-hover;
+		color: $color__text-button-hover;
 		outline: thin dotted;
 		outline-offset: -4px;
 	}
