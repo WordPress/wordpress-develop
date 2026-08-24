@@ -76,6 +76,21 @@ jQuery( function($) {
 					nextFocus.trigger( 'focus' );
 					message = wp.i18n.__( 'The selected tag has been deleted.' );
 
+					/**
+					 * Updates the term count on deletion.
+					 */
+					var termCountWrapper = $( '#posts-filter .displaying-num' );
+					if ( termCountWrapper.length ) {
+						termCountWrapper.each( function () {
+							$( this ).text(
+								$( this )
+									.text()
+									.replace( /^\d+/, function ( match ) {
+										return parseInt( match, 10 ) - 1;
+									} )
+							);
+						} );
+					}
 				} else if ( '-1' == r ) {
 					message = wp.i18n.__( 'Sorry, you are not allowed to do that.' );
 					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + message + '</p></div>');
@@ -199,7 +214,7 @@ jQuery( function($) {
 		 * @return {void}
 		 */
 		$.post(ajaxurl, $('#addtag').serialize(), function(r){
-			var res, parent, term, indent, i;
+			var res, parent, term, indent, i, termCountWrapper;
 
 			addingTerm = false;
 			form.find( '.submit .spinner' ).removeClass( 'is-active' );
@@ -238,6 +253,23 @@ jQuery( function($) {
 					indent += '&nbsp;&nbsp;&nbsp;';
 
 				form.find( 'select#parent option:selected' ).after( '<option value="' + term.term_id + '">' + indent + term.name + '</option>' );
+			}
+
+			termCountWrapper = $( '#posts-filter .displaying-num' );
+
+			/**
+			 * Updates the term count on term add.
+			 */
+			if ( termCountWrapper.length ) {
+				termCountWrapper.each( function () {
+					$( this ).text(
+						$( this )
+							.text()
+							.replace( /^\d+/, function ( match ) {
+								return parseInt( match, 10 ) + 1;
+							} )
+					);
+				} );
 			}
 
 			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
