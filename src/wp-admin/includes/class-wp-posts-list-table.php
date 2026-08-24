@@ -1973,7 +1973,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 						<label>
 							<span class="title"><?php _e( 'Order' ); ?></span>
-							<span class="input-text-wrap"><input type="text" name="menu_order" class="inline-edit-menu-order-input" value="<?php echo $post->menu_order; ?>" /></span>
+							<span class="input-text-wrap"><input type="number" name="menu_order" class="tiny-text inline-edit-menu-order-input" value="<?php echo $post->menu_order; ?>" /></span>
 						</label>
 
 					<?php endif; // ! $bulk ?>

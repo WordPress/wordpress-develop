@@ -1068,7 +1068,7 @@ function page_attributes_meta_box( $post ) {
 <?php endif; ?>
 	<?php if ( post_type_supports( $post->post_type, 'page-attributes' ) ) : ?>
 <p class="post-attributes-label-wrapper menu-order-label-wrapper"><label class="post-attributes-label" for="menu_order"><?php _e( 'Order' ); ?></label></p>
-<input name="menu_order" type="text" size="4" id="menu_order" value="<?php echo esc_attr( $post->menu_order ); ?>" />
+<input name="menu_order" type="number" id="menu_order" class="small-text" value="<?php echo esc_attr( $post->menu_order ); ?>" />
 		<?php
 		/**
 		 * Fires before the help hint text in the 'Page Attributes' meta box.
