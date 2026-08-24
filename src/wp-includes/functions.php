@@ -3783,7 +3783,7 @@ function wp_nonce_ays( $action ) {
  * @since 5.3.0 The `$charset` argument was added.
  * @since 5.5.0 The `$text_direction` argument has a priority over get_language_attributes()
  *              in the default handler.
- * @since 7.1.0 The `$heading` argument was added.
+ * @since 7.2.0 The `$heading` argument was added.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -3900,8 +3900,8 @@ function wp_die( $message = '', $title = '', $args = array() ) {
  * you can override this using the {@see 'wp_die_handler'} filter in wp_die().
  *
  * @since 3.0.0
- * @since 7.1.0 The `$heading` argument was added. The `lang` attribute now falls back
- *              to `en-US` when the site's language is not available.
+ * @since 7.2.0 The `$heading` argument was added. The `lang` attribute is now printed
+ *              on pages rendered before `general-template.php` is loaded.
  * @access private
  *
  * @param string|WP_Error $message Error message or WP_Error object.
@@ -3959,10 +3959,19 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 
 		if ( ! function_exists( 'language_attributes' ) || ! function_exists( 'is_rtl' ) ) {
 			/*
-			 * Errors triggered early in the bootstrap process happen before the
-			 * site's language is known, so fall back to the default locale.
+			 * Errors triggered early in the bootstrap process happen before
+			 * general-template.php is loaded, but wp_load_translations_early()
+			 * has already loaded the site's translations, so the language tag
+			 * can still be read from them.
 			 */
-			$dir_attr .= " lang='en-US'";
+			$lang = $have_gettext ? __( 'html_lang_attribute' ) : '';
+
+			if ( '' !== $lang && 'html_lang_attribute' !== $lang && ! preg_match( '/[^a-zA-Z0-9-]/', $lang ) ) {
+				$dir_attr .= " lang='$lang'";
+			} elseif ( ! $have_gettext || ! is_textdomain_loaded( 'default' ) ) {
+				// No translations are loaded, so the page is rendered in English.
+				$dir_attr .= " lang='en-US'";
+			}
 		} elseif ( empty( $args['text_direction'] ) ) {
 			/*
 			 * If `text_direction` was not explicitly passed,
