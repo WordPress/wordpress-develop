@@ -854,11 +854,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-duotone.php
 		-
-			message: '#^Parameter \#3 \$priority of function _wp_filter_build_unique_id expects int, false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-hook.php
-		-
 			message: '#^Parameter \#3 \$value of function curl_setopt expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
