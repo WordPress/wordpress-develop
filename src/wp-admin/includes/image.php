@@ -107,8 +107,8 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 		$full_width  = $imagesize[0];
 		$full_height = $imagesize[1];
 	} else {
-		$full_width  = (int) $image_meta['width'];
-		$full_height = (int) $image_meta['height'];
+		$full_width  = isset( $image_meta['width'] ) ? (int) $image_meta['width'] : 0;
+		$full_height = isset( $image_meta['height'] ) ? (int) $image_meta['height'] : 0;
 	}
 
 	$possible_sizes = array();
