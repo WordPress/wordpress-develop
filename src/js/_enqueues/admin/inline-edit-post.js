@@ -439,7 +439,15 @@ window.wp = window.wp || {};
 		post_date_string += ' ' + $(':input[name="hh"]').val() + ':' + $(':input[name="mn"]').val() + ':' + $(':input[name="ss"]').val();
 		var post_date = new Date( post_date_string );
 		status = $('._status', rowData).text();
-		if ( 'future' !== status && Date.now() > post_date ) {
+		// Convert browser Date into site timezone before comparing.
+		var browserDate = new Date();
+		var browserOffset = browserDate.getTimezoneOffset();
+		var siteOffset = browserOffset;
+		if ( window.inlineEditPostConfig && window.inlineEditPostConfig.siteTzOffset ) {
+			siteOffset = parseInt( window.inlineEditPostConfig.siteTzOffset, 10 );
+		}
+		var siteDate = new Date( browserDate.getTime() + (browserOffset - siteOffset) * 60000 );
+		if ( 'future' !== status && siteDate > post_date ) {
 			$('select[name="_status"] option[value="future"]', editRow).remove();
 		} else {
 			$('select[name="_status"] option[value="publish"]', editRow).remove();
