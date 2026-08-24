@@ -1419,4 +1419,145 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			'A password protected post was left sticky when no explicit visibility was sent.'
 		);
 	}
+
+	/**
+	 * Ensures that an explicit `public` visibility clears any existing post password.
+	 *
+	 * @ticket 64810
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_clears_the_password_when_visibility_is_public() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_author'   => self::$admin_id,
+				'post_password' => 'secret',
+			)
+		);
+
+		edit_post(
+			array(
+				'post_ID'       => $post_id,
+				'post_title'    => 'Now public',
+				'post_status'   => 'publish',
+				'post_password' => '',
+				'visibility'    => 'public',
+			)
+		);
+
+		$this->assertSame( '', get_post( $post_id )->post_password );
+	}
+
+	/**
+	 * Ensures that an explicit `password` visibility unsticks the post.
+	 *
+	 * The companion test above covers the same branch reached through an
+	 * inferred visibility; this one covers a caller that sends it outright.
+	 *
+	 * @ticket 64810
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_unsticks_the_post_when_visibility_is_password() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_author' => self::$admin_id,
+			)
+		);
+
+		stick_post( $post_id );
+
+		edit_post(
+			array(
+				'post_ID'       => $post_id,
+				'post_title'    => 'Protected',
+				'post_status'   => 'publish',
+				'post_password' => 'secret',
+				'sticky'        => 'sticky',
+				'visibility'    => 'password',
+			)
+		);
+
+		$this->assertSame( 'secret', get_post( $post_id )->post_password, 'The password was not saved: check test setup.' );
+		$this->assertFalse( is_sticky( $post_id ), 'A password protected post was left sticky.' );
+	}
+
+	/**
+	 * Ensures that an explicit `private` visibility privatises the post, drops any
+	 * password and unsticks it.
+	 *
+	 * @ticket 64810
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_privatises_and_unsticks_the_post_when_visibility_is_private() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_author' => self::$admin_id,
+			)
+		);
+
+		stick_post( $post_id );
+
+		edit_post(
+			array(
+				'post_ID'       => $post_id,
+				'post_title'    => 'Private',
+				'post_status'   => 'publish',
+				'post_password' => '',
+				'sticky'        => 'sticky',
+				'visibility'    => 'private',
+			)
+		);
+
+		$post = get_post( $post_id );
+
+		$this->assertSame( 'private', $post->post_status, 'The post was not made private.' );
+		$this->assertSame( '', $post->post_password, 'A private post kept a password.' );
+		$this->assertFalse( is_sticky( $post_id ), 'A private post was left sticky.' );
+	}
+
+	/**
+	 * Documents that a non-empty password wins over a `public` visibility sent alongside it.
+	 *
+	 * Inferring the visibility from the password means the two can now contradict each
+	 * other, and the inferred value is applied last. The editors never send that
+	 * combination, since selecting "Public" clears the password field, but `edit_post()`
+	 * is reachable from bulk edit and Quick Edit too, so the precedence is worth pinning.
+	 *
+	 * @ticket 64810
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_prefers_the_password_over_a_contradicting_public_visibility() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_author' => self::$admin_id,
+			)
+		);
+
+		edit_post(
+			array(
+				'post_ID'       => $post_id,
+				'post_title'    => 'Contradictory',
+				'post_status'   => 'publish',
+				'post_password' => 'secret',
+				'visibility'    => 'public',
+			)
+		);
+
+		$this->assertSame( 'secret', get_post( $post_id )->post_password );
+	}
 }
