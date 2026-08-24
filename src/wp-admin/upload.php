@@ -164,12 +164,27 @@ if ( 'grid' === $mode ) {
 		}
 	}
 
+	/*
+	 * Collect custom bulk actions registered via the `bulk_actions-upload`
+	 * filter so they can be surfaced in the grid view toolbar alongside
+	 * the built-in Delete button.
+	 */
+	$base_actions = MEDIA_TRASH
+		? array( 'trash' => __( 'Move to Trash' ) )
+		: array( 'delete' => __( 'Delete permanently' ) );
+
+	$bulk_actions        = apply_filters( 'bulk_actions-upload', $base_actions ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	$built_in_actions    = array( 'delete', 'trash', 'untrash' );
+	$custom_bulk_actions = array_diff_key( $bulk_actions, array_flip( $built_in_actions ) );
+
 	wp_localize_script(
 		'media-grid',
 		'_wpMediaGridSettings',
 		array(
-			'adminUrl'  => parse_url( self_admin_url(), PHP_URL_PATH ),
-			'queryVars' => (object) $query_vars,
+			'adminUrl'        => parse_url( self_admin_url(), PHP_URL_PATH ),
+			'queryVars'       => (object) $query_vars,
+			'bulkActions'     => (object) $custom_bulk_actions,
+			'bulkActionNonce' => wp_create_nonce( 'media-grid-bulk-action' ),
 		)
 	);
 

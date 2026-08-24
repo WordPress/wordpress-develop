@@ -3336,6 +3336,56 @@ function wp_ajax_save_attachment_order() {
 }
 
 /**
+ * Handles a custom bulk action from the Media Library grid view via AJAX.
+ *
+ * @since x.x.x
+ */
+function wp_ajax_media_grid_bulk_action() {
+	check_ajax_referer( 'media-grid-bulk-action', 'nonce' );
+
+	if ( ! current_user_can( 'upload_files' ) ) {
+		wp_send_json_error( array( 'message' => __( 'Sorry, you are not allowed to do that.' ) ) );
+	}
+
+	$action   = isset( $_REQUEST['bulk_action'] ) ? sanitize_key( wp_unslash( $_REQUEST['bulk_action'] ) ) : '';
+	$post_ids = isset( $_REQUEST['ids'] ) ? array_map( 'absint', wp_unslash( (array) $_REQUEST['ids'] ) ) : array();
+
+	if ( ! $action || empty( $post_ids ) ) {
+		wp_send_json_error( array( 'message' => __( 'Invalid request.' ) ) );
+	}
+
+	// Reject built-in actions handled natively by the grid view JS.
+	$built_in = array( 'delete', 'trash', 'untrash' );
+	if ( in_array( $action, $built_in, true ) ) {
+		wp_send_json_error( array( 'message' => __( 'Invalid bulk action.' ) ) );
+	}
+
+	// Verify each ID is a real attachment the current user can edit.
+	$post_ids = array_filter(
+		$post_ids,
+		function ( $id ) {
+			return 'attachment' === get_post_type( $id )
+				&& current_user_can( 'edit_post', $id );
+		}
+	);
+
+	if ( empty( $post_ids ) ) {
+		wp_send_json_error( array( 'message' => __( 'No valid attachments found.' ) ) );
+	}
+
+	// Re-index after filtering.
+	$post_ids = array_values( $post_ids );
+
+	/** This action is documented in wp-admin/upload.php */
+	$redirect_url = apply_filters( 'handle_bulk_actions-upload', '', $action, $post_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+
+	// Sanitize redirect to prevent open redirects from plugin filter callbacks.
+	$redirect_url = wp_validate_redirect( $redirect_url, '' );
+
+	wp_send_json_success( array( 'redirect' => esc_url_raw( $redirect_url ) ) );
+}
+
+/**
  * Handles sending an attachment to the editor via AJAX.
  *
  * Generates the HTML to send an attachment to the editor.

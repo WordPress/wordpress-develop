@@ -362,6 +362,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				}).render() );
 			}
 
+			this.addCustomBulkActions();
+
 		} else if ( this.options.date ) {
 			// DateFilter is a <select>, a label element needs to be rendered before.
 			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
@@ -408,6 +410,89 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority: -40
 			}) );
 		}
+	},
+
+	/**
+	 * Adds custom bulk action buttons registered via the PHP-side
+	 * `bulk_actions-upload` filter to the grid view toolbar.
+	 *
+	 * @since x.x.x
+	 *
+	 * @return {void}
+	 */
+	addCustomBulkActions: function() {
+		var toolbar = this.toolbar,
+			controller = this.controller,
+			settings = window._wpMediaGridSettings || {},
+			bulkActions = settings.bulkActions || {},
+			nonce = settings.bulkActionNonce || '';
+
+		var BulkActionButton = wp.media.view.Button.extend( {
+			initialize: function() {
+				wp.media.view.Button.prototype.initialize.apply( this, arguments );
+				this.controller.on( 'selection:toggle', this.toggleDisabled, this );
+				this.controller.on( 'select:activate', this.toggleDisabled, this );
+				this.controller.on( 'select:deactivate', this.toggleDisabled, this );
+			},
+
+			toggleDisabled: function() {
+				this.model.set( 'disabled', ! this.controller.state().get( 'selection' ).length );
+			},
+
+			render: function() {
+				wp.media.view.Button.prototype.render.apply( this, arguments );
+				if ( this.controller.isModeActive( 'select' ) ) {
+					this.$el.addClass( 'delete-selected-button' );
+				} else {
+					this.$el.addClass( 'delete-selected-button hidden' );
+				}
+				this.toggleDisabled();
+				return this;
+			},
+
+			click: function() {
+				var ids = this.controller.state().get( 'selection' ).map( function( model ) {
+					return model.get( 'id' );
+				} );
+
+				if ( ! ids.length ) {
+					return;
+				}
+
+				this.model.set( 'disabled', true );
+
+				wp.media.ajax( {
+					data: {
+						action: 'media-grid-bulk-action',
+						bulk_action: this.options.bulkAction,
+						ids: ids,
+						nonce: nonce
+					},
+					success: _.bind( function( response ) {
+						if ( response && response.redirect && response.redirect.length ) {
+							window.location.href = response.redirect;
+						} else {
+							this.controller.trigger( 'selection:action:done' );
+						}
+					}, this ),
+					error: _.bind( function() {
+						this.model.set( 'disabled', false );
+						this.controller.trigger( 'selection:action:done' );
+					}, this )
+				} );
+			}
+		} );
+
+		_.each( bulkActions, function( label, action ) {
+			toolbar.set( 'bulkAction-' + action, new BulkActionButton( {
+				text: label,
+				disabled: true,
+				style: 'secondary',
+				priority: -75,
+				controller: controller,
+				bulkAction: action
+			} ).render() );
+		} );
 	},
 
 	updateContent: function() {
