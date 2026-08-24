@@ -4553,6 +4553,13 @@ function get_avatar_data( $id_or_email, $args = null ) {
 		$args['found_avatar'] = true;
 	}
 
+	// Serve local avatar if no email hash and default is 'mm'
+	if ( ! $email_hash && 'mm' === $args['default'] ) {
+		// wp_die('Early return');
+		$args['url'] = includes_url( 'images/avatar-default.png' );
+		return apply_filters( 'get_avatar_data', $args, $id_or_email );
+	}
+
 	$url_args = array(
 		's' => $args['size'],
 		'd' => $args['default'],
