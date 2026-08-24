@@ -801,7 +801,8 @@ class WP_Site_Health {
 				__( 'Your site is running on an older version of PHP (%s)' ),
 				PHP_VERSION
 			);
-			$result['status'] = 'recommended';
+			$result['status']         = 'recommended';
+			$result['badge']['color'] = 'orange';
 
 			return $result;
 		}
@@ -820,6 +821,7 @@ class WP_Site_Health {
 			);
 
 			$result['status']         = 'critical';
+			$result['badge']['color'] = 'red';
 			$result['badge']['label'] = __( 'Requirements' );
 
 			return $result;
@@ -832,7 +834,8 @@ class WP_Site_Health {
 				__( 'Your site is running on an older version of PHP (%s), which should be updated' ),
 				PHP_VERSION
 			);
-			$result['status'] = 'recommended';
+			$result['status']         = 'recommended';
+			$result['badge']['color'] = 'orange';
 
 			return $result;
 		}
@@ -853,9 +856,9 @@ class WP_Site_Health {
 			);
 		}
 
-		$result['label']  = $message;
-		$result['status'] = 'critical';
-
+		$result['label']          = $message;
+		$result['status']         = 'critical';
+		$result['badge']['color'] = 'red';
 		$result['badge']['label'] = __( 'Security' );
 
 		return $result;
