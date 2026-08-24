@@ -657,6 +657,7 @@ add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
 
 add_action( 'wp_default_styles', 'wp_default_styles' );
 add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
+add_filter( 'style_loader_src', '_admin_bar_style_set_text_direction', 10, 2 );
 
 add_action( 'wp_head', 'wp_enqueue_img_auto_sizes_contain_css_fix', 0 ); // Must run before wp_print_auto_sizes_contain_css_fix().
 add_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_img_auto_sizes_contain_css_fix().
