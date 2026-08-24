@@ -523,6 +523,14 @@ class WP_REST_Server {
 			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
 			$result = $this->response_to_data( $result, $embed );
 
+			if (
+				$request->get_method() === 'OPTIONS' &&
+				isset( $result['schema'] ) &&
+				is_array( $result['schema'] )
+			) {
+				$result['schema'] = $this->sanitize_schema_properties_recursive( $result['schema'] );
+			}
+
 			/**
 			 * Filters the REST API response.
 			 *
@@ -1344,6 +1352,37 @@ class WP_REST_Server {
 		}
 
 		return json_last_error_msg();
+	}
+
+	/**
+	 * Recursively sanitizes schema data ensuring empty properties arrays become objects.
+	 *
+	 * The JSON Schema specification requires 'properties' to always be an object.
+	 * In PHP, empty associative arrays become empty arrays ([]) when JSON-encoded,
+	 * not empty objects ({}), which would make the schema invalid.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param array|object $data The schema data to sanitize.
+	 * @return array|object The sanitized schema data.
+	 */
+	protected function sanitize_schema_properties_recursive( $data ) {
+		$is_object  = is_object( $data );
+		$data_array = $is_object ? (array) $data : $data;
+
+		// Convert empty properties array to empty object.
+		if ( isset( $data_array['properties'] ) && is_array( $data_array['properties'] ) && empty( $data_array['properties'] ) ) {
+			$data_array['properties'] = (object) array();
+		}
+
+		// Process nested elements recursively.
+		foreach ( $data_array as $key => $value ) {
+			if ( is_array( $value ) || is_object( $value ) ) {
+				$data_array[ $key ] = $this->sanitize_schema_properties_recursive( $value );
+			}
+		}
+
+		return $is_object ? (object) $data_array : $data_array;
 	}
 
 	/**
