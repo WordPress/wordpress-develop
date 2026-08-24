@@ -524,7 +524,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 		$meta_output = ob_get_clean();
 
 		// If there is meta to output, return it.
-		if ( $has_meta && $meta_output ) {
+		if ( ( $has_meta && $meta_output ) || '' !== wp_strip_all_tags( $meta_output ) ) {
 
 			return $meta_output;
 
