@@ -723,7 +723,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		// metadata (alt text, caption, description) in the sidebar. Without
 		// this, the sidebar is positioned off-screen on narrow viewports
 		// and the metadata fields are unreachable.
-		if ( [ 'insert', 'featured-image', 'replace-image', 'gallery-edit', 'gallery-library' ].includes( this.model.id ) ) {
+		if ( [ 'insert', 'featured-image', 'replace-image', 'gallery-edit', 'gallery-library', 'library' ].includes( this.model.id ) ) {
 			sidebar.$el.addClass( 'visible' );
 		}
 	},
