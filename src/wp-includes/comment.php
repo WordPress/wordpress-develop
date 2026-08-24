@@ -4024,26 +4024,15 @@ function wp_handle_comment_submission( $comment_data ) {
 	} elseif ( 'trash' === $status ) {
 
 		/**
-		 * Filters whether to allow comments on trashed posts.
+		 * Fires when a comment is attempted on a trashed post.
 		 *
-		 * @since 7.2.0
+		 * @since 2.9.0
 		 *
-		 * @param bool $allow           Whether to allow comments on trashed posts. Default false.
-		 * @param int  $comment_post_id Post ID.
+		 * @param int $comment_post_id Post ID.
 		 */
-		if ( ! apply_filters( 'allow_comment_on_trash', false, $comment_post_id ) ) {
+		do_action( 'comment_on_trash', $comment_post_id );
 
-			/**
-			 * Fires when a comment is attempted on a trashed post.
-			 *
-			 * @since 2.9.0
-			 *
-			 * @param int $comment_post_id Post ID.
-			 */
-			do_action( 'comment_on_trash', $comment_post_id );
-
-			return new WP_Error( 'comment_on_trash' );
-		}
+		return new WP_Error( 'comment_on_trash' );
 	} elseif ( ! $status_obj->public && ! $status_obj->private ) {
 
 		/**
