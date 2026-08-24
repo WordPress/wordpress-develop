@@ -444,6 +444,7 @@ jQuery( function( $ ) {
 		} );
 
 		copyButton.attr( 'data-clipboard-text', clipboardText );
+		copyButton.removeAttr( 'disabled ');
 
 		pathsSizesSection.find( 'td[class]' ).each( function( i, element ) {
 			var td = $( element );
