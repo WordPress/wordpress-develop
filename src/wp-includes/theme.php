@@ -2185,7 +2185,7 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 function add_editor_style( $stylesheet = 'editor-style.css' ) {
 	global $editor_styles;
 
-	add_theme_support( 'editor-style' );
+	add_theme_support( 'editor-styles' );
 
 	$editor_styles = (array) $editor_styles;
 	$stylesheet    = (array) $stylesheet;
@@ -2208,10 +2208,10 @@ function add_editor_style( $stylesheet = 'editor-style.css' ) {
  * @return bool True on success, false if there were no stylesheets to remove.
  */
 function remove_editor_styles() {
-	if ( ! current_theme_supports( 'editor-style' ) ) {
+	if ( ! current_theme_supports( 'editor-styles' ) ) {
 		return false;
 	}
-	_remove_theme_support( 'editor-style' );
+	_remove_theme_support( 'editor-styles' );
 	if ( is_admin() ) {
 		$GLOBALS['editor_styles'] = array();
 	}
@@ -3067,7 +3067,7 @@ function get_theme_support( $feature, ...$args ) {
  */
 function remove_theme_support( $feature ) {
 	// Do not remove internal registrations that are not used directly by themes.
-	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ), true ) ) {
+	if ( in_array( $feature, array( 'editor-styles', 'widgets', 'menus' ), true ) ) {
 		return false;
 	}
 
