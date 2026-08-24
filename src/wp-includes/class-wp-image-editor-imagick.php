@@ -839,8 +839,46 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	public function multi_resize( $sizes ) {
 		$metadata = array();
 
+		uasort(
+			$sizes,
+			static function ( $a, $b ) {
+				if ( $b['crop'] === $a['crop'] ) {
+					return 0;
+				}
+
+				return false === $a['crop'] ? -1 : 1;
+			}
+		);
+
+		$generated_sizes = array();
 		foreach ( $sizes as $size => $size_data ) {
-			$meta = $this->make_subsize( $size_data );
+			$meta = false;
+			foreach ( $generated_sizes as $previous_size_name => $previous_size_meta ) {
+				if (
+					$sizes[ $previous_size_name ]['crop'] === $size_data['crop'] &&
+					$sizes[ $previous_size_name ]['width'] === $size_data['width'] &&
+					$sizes[ $previous_size_name ]['height'] === $size_data['height']
+				) {
+					$meta = $previous_size_meta;
+
+					break;
+				}
+
+				if (
+					is_array( $previous_size_meta ) &&
+					$previous_size_meta['width'] === $size_data['width'] &&
+					$previous_size_meta['height'] === $size_data['height']
+				) {
+					$meta = $previous_size_meta;
+
+					break;
+				}
+			}
+
+			if ( false === $meta ) {
+				$meta = $this->make_subsize( $size_data );
+				$generated_sizes[ $size ] = $meta;
+			}
 
 			if ( ! is_wp_error( $meta ) ) {
 				$metadata[ $size ] = $meta;
