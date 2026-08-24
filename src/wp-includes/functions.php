@@ -1156,6 +1156,14 @@ function add_query_arg( ...$args ) {
 		}
 	}
 
+	if ( preg_match( '/&(#\d+|[a-zA-Z]+);/', $uri ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Passing encoded URLs to add_query_arg() is not recommended. Please pass a non-encoded URL to add_query_arg().' ),
+			'6.8.2'
+		);
+	}
+
 	$frag = strstr( $uri, '#' );
 	if ( $frag ) {
 		$uri = substr( $uri, 0, -strlen( $frag ) );
