@@ -1,4 +1,10 @@
 <?php
+
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Dependencies API: WP_Scripts class
  *

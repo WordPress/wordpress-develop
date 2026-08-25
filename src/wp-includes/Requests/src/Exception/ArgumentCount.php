@@ -4,6 +4,11 @@ namespace WpOrg\Requests\Exception;
 
 use WpOrg\Requests\Exception;
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+    die( '-1' );
+}
+
 /**
  * Exception for when an incorrect number of arguments are passed to a method.
  *
