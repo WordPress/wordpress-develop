@@ -756,6 +756,10 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
  *                                      and the current site. Multisite only. Default null.
  */
 function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
+	if ( ! is_admin() ) {
+		return;
+	}
+
 	if ( is_multisite() ) {
 		$network_current = get_site_option( 'active_sitewide_plugins', array() );
 	}
