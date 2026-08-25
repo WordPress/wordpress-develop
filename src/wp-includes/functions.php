@@ -2095,6 +2095,16 @@ function wp_mkdir_p( $target ) {
 		$dir_perms = 0777;
 	}
 
+	/**
+	 * Fires before a directory is created.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $target    The full path to the directory to be created.
+	 * @param int    $dir_perms The directory permissions.
+	 */
+	do_action( 'before_directory_creation', $target, $dir_perms );
+
 	if ( @mkdir( $target, $dir_perms, true ) ) {
 
 		/*
@@ -2108,8 +2118,28 @@ function wp_mkdir_p( $target ) {
 			}
 		}
 
+		/**
+		 * Fires after a directory is successfully created.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string $target    The full path to the created directory.
+		 * @param int    $dir_perms The directory permissions.
+		 */
+		do_action( 'after_directory_creation', $target, $dir_perms );
+
 		return true;
 	}
+
+	/**
+	 * Fires when directory creation fails.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $target    The full path to the directory that failed to be created.
+	 * @param int    $dir_perms The directory permissions that were attempted.
+	 */
+	do_action( 'directory_creation_failed', $target, $dir_perms );
 
 	return false;
 }
