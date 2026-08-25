@@ -4725,7 +4725,7 @@ EOF;
 		$_wp_current_template_content = '<!-- wp:post-content /-->';
 
 		$html = get_the_block_template_html();
-		$this->assertSame( '<div class="wp-site-blocks"><div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">' . $expected_content . '</div></div>', $html );
+		$this->assertEqualHTML( '<div class="wp-site-blocks"><div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">' . $expected_content . '</div></div>', $html );
 	}
 
 	/**
@@ -4795,7 +4795,7 @@ EOF;
 		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
 
 		$html = get_the_block_template_html();
-		$this->assertSame( '<div class="wp-site-blocks">' . $expected_featured_image . ' <div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">' . $expected_content . '</div></div>', $html );
+		$this->assertEqualHTML( '<div class="wp-site-blocks">' . $expected_featured_image . ' <div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">' . $expected_content . '</div></div>', $html );
 	}
 
 	/**
@@ -4854,7 +4854,7 @@ EOF;
 		$expected_template_content .= '<footer class="wp-block-template-part">' . wp_img_tag_add_loading_optimization_attrs( $footer_img, 'force-lazy' ) . '</footer>';
 
 		$html = get_the_block_template_html();
-		$this->assertSame( '<div class="wp-site-blocks">' . $expected_template_content . '</div>', $html );
+		$this->assertEqualHTML( '<div class="wp-site-blocks">' . $expected_template_content . '</div>', $html );
 	}
 
 	/**
@@ -5967,7 +5967,7 @@ EOF;
 		// Cleanup.
 		remove_shortcode( 'full_image' );
 
-		$this->assertSame( $expected_content, $content );
+		$this->assertEqualHTML( $expected_content, $content );
 	}
 
 	/**
@@ -6121,7 +6121,7 @@ EOF;
 		remove_shortcode( 'full_image' );
 		unregister_block_type( 'core/full-image-shortcode' );
 
-		$this->assertSame( $expected_content, $content );
+		$this->assertEqualHTML( $expected_content, $content );
 	}
 
 	private function reset_content_media_count() {
