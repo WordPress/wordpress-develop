@@ -1401,4 +1401,55 @@ window.wp = window.wp || {};
 		return $( '#' + id ).val();
 	};
 
+	/**
+	 * Re-initializes TinyMCE editors inside a meta box that was just moved.
+	 *
+	 * Moving a meta box re-inserts its DOM subtree. When the box contains a
+	 * TinyMCE editor, re-inserting its iframe resets the iframe document and
+	 * leaves TinyMCE holding a stale reference, so the editor renders blank and
+	 * a later Visual/Code switch throws. Recreating the affected editors after
+	 * the move restores their content and mode.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {Event}  event   The postbox-moved event.
+	 * @param {Object} postbox The jQuery object for the meta box that was moved.
+	 */
+	function reinitializeMovedEditors( event, postbox ) {
+		if ( ! window.tinymce || ! window.tinyMCEPreInit ) {
+			return;
+		}
+
+		$( postbox ).find( 'textarea.wp-editor-area' ).each( function() {
+			var id = this.id,
+				editor = id && window.tinymce.get( id ),
+				wasVisible;
+
+			// Nothing to do when no TinyMCE instance is attached to this textarea.
+			if ( ! editor ) {
+				return;
+			}
+
+			wasVisible = ! editor.isHidden();
+
+			// Persist the current Visual content to the textarea before removing.
+			if ( wasVisible ) {
+				editor.save();
+			}
+
+			// Drop the stale instance so its reset iframe is discarded.
+			editor.remove();
+
+			/*
+			 * Recreate the editor only when it was in Visual mode. In Code mode the
+			 * textarea is used directly, and switching back to Visual re-initializes it.
+			 */
+			if ( wasVisible && window.tinyMCEPreInit.mceInit[ id ] ) {
+				window.tinymce.init( window.tinyMCEPreInit.mceInit[ id ] );
+			}
+		} );
+	}
+
+	$( document ).on( 'postbox-moved', reinitializeMovedEditors );
+
 }( window.jQuery, window.wp ));
