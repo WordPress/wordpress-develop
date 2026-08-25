@@ -146,7 +146,7 @@
 		 *
 		 * @param {Object} event The event that caused the update.
 		 *
-		 * @return {Promise} Resolves when the update has been executed.
+		 * @return {Promise|void} Resolves when the update has been executed.
 		 */
 		update: function( event ) {
 			var self = this,

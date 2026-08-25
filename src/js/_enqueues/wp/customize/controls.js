@@ -18,7 +18,7 @@
 		 * Whether the notification should show a loading spinner.
 		 *
 		 * @since 4.9.0
-		 * @var {boolean}
+		 * @member {boolean}
 		 */
 		loading: false,
 
@@ -88,7 +88,7 @@
 		 * The default constructor for items of the collection.
 		 *
 		 * @since 4.9.0
-		 * @type {object}
+		 * @type {Object}
 		 */
 		defaultConstructor: api.Notification,
 
@@ -346,7 +346,7 @@
 		 * Default params.
 		 *
 		 * @since 4.9.0
-		 * @var {object}
+		 * @member {Object}
 		 */
 		defaults: {
 			transport: 'refresh',
@@ -468,7 +468,7 @@
 	 * @alias wp.customize._latestSettingRevisions
 	 *
 	 * @since 4.7.0
-	 * @type {object}
+	 * @type {Object}
 	 * @protected
 	 */
 	api._latestSettingRevisions = {};
@@ -754,7 +754,7 @@
 	 *
 	 * @param {(wp.customize.Panel|wp.customize.Section|wp.customize.Control)} a
 	 * @param {(wp.customize.Panel|wp.customize.Section|wp.customize.Control)} b
-	 * @return {number}
+	 * @return {number} A negative number if a has lower priority than b, a positive number if a has higher priority than b, or zero if they have the same priority.
 	 */
 	api.utils.prioritySort = function ( a, b ) {
 		if ( a.priority() === b.priority() && typeof a.params.instanceNumber === 'number' && typeof b.params.instanceNumber === 'number' ) {
@@ -772,7 +772,7 @@
 	 * @since 4.1.0
 	 *
 	 * @param {jQuery.Event} event
-	 * @return {boolean}
+	 * @return {boolean} True if the event is a keydown event but not the Enter key, false otherwise.
 	 */
 	api.utils.isKeydownButNotEnterEvent = function ( event ) {
 		return ( 'keydown' === event.type && 13 !== event.which );
@@ -787,7 +787,7 @@
 	 *
 	 * @param {Array|jQuery} listA
 	 * @param {Array|jQuery} listB
-	 * @return {boolean}
+	 * @return {boolean} True if the two lists are equal, false otherwise.
 	 */
 	api.utils.areElementListsEqual = function ( listA, listB ) {
 		var equal = (
@@ -1075,7 +1075,7 @@
 		 *
 		 * @param {string} parentType
 		 * @param {string} childType
-		 * @return {Array}
+		 * @return {Array} Array of child models sorted by priority.
 		 */
 		_children: function ( parentType, childType ) {
 			var parent = this,
@@ -1278,7 +1278,7 @@
 		 * @since 4.7.0
 		 * @private
 		 *
-		 * @param {function} completeCallback Function to be called after transition is completed.
+		 * @param {Function} completeCallback Function to be called after transition is completed.
 		 * @return {void}
 		 */
 		_animateChangeExpanded: function( completeCallback ) {
@@ -1566,7 +1566,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @return {boolean}
+		 * @return {boolean} True if the section has any active controls, false otherwise.
 		 */
 		isContextuallyActive: function () {
 			var section = this,
@@ -1585,7 +1585,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @return {Array}
+		 * @return {Array} Array of control models sorted by priority.
 		 */
 		controls: function () {
 			return this._children( 'section', 'control' );
@@ -1831,7 +1831,7 @@
 		 *
 		 * @since 4.2.0
 		 *
-		 * @return {boolean}
+		 * @return {boolean} True if the section is active, false otherwise.
 		 */
 		isContextuallyActive: function () {
 			return this.active();
@@ -2077,7 +2077,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @return {jQuery}
+		 * @return {jQuery} The section's content element.
 		 */
 		getContent: function() {
 			return this.container.find( '.control-section-content' );
@@ -2453,6 +2453,7 @@
 		/**
 		 * Update the number of themes in the section.
 		 *
+		 * @param count
 		 * @since 4.9.0
 		 *
 		 * @return {void}
@@ -2906,7 +2907,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @return {Array}
+		 * @return {Array} Array of sections.
 		 */
 		sections: function () {
 			return this._children( 'panel', 'section' );
@@ -3484,7 +3485,7 @@
 		 * Default params.
 		 *
 		 * @since 4.9.0
-		 * @var {object}
+		 * @member {Object}
 		 */
 		defaults: {
 			label: '',
@@ -3954,6 +3955,7 @@
 		},
 
 		/**
+		 * @param active
 		 * @deprecated 4.1.0 Use this.onChangeActive() instead.
 		 */
 		toggle: function ( active ) {
@@ -4313,6 +4315,7 @@
 
 		/**
 		 * Open the media modal.
+		 * @param event
 		 */
 		openFrame: function( event ) {
 			if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
@@ -4376,6 +4379,7 @@
 
 		/**
 		 * Reset the setting to the default value.
+		 * @param event
 		 */
 		restoreDefault: function( event ) {
 			if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
@@ -4539,6 +4543,7 @@
 
 		/**
 		 * Open the media modal to the library state.
+		 * @param event
 		 */
 		openFrame: function( event ) {
 			if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
@@ -5288,6 +5293,7 @@
 		/**
 		 * Rerender the theme from its JS template with the installed type.
 		 *
+		 * @param installed
 		 * @since 4.9.0
 		 *
 		 * @return {void}
@@ -5959,7 +5965,7 @@
 		 *
 		 * @since 4.9.0
 		 * @param {boolean} notify Add or remove the notification.
-		 * @return {wp.customize.DateTimeControl}
+		 * @return {wp.customize.DateTimeControl} The date control instance.
 		 */
 		toggleFutureDateNotification: function toggleFutureDateNotification( notify ) {
 			var control = this, notificationCode, notification;
@@ -6293,10 +6299,11 @@
 		 * @constructs wp.customize.PreviewFrame
 		 * @augments   wp.customize.Messenger
 		 *
-		 * @param {Object} params.container
-		 * @param {Object} params.previewUrl
-		 * @param {Object} params.query
-		 * @param {Object} options
+		 * @param {Object} params            The parameters object.
+		 * @param {Object} params.container  The container element for the preview frame.
+		 * @param {string} params.previewUrl The URL of the preview.
+		 * @param {Object} params.query      The query parameters for the preview URL.
+		 * @param {Object} options 		     The options object.
 		 */
 		initialize: function( params, options ) {
 			var deferred = $.Deferred();
@@ -6500,7 +6507,7 @@
 		 * misnomer as it is not an actual UUID, and it is not universally unique.
 		 * This is not to be confused with `api.settings.changeset.uuid`.
 		 *
-		 * @return {string}
+		 * @return {string} A unique ID for a preview messenger channel.
 		 */
 		api.PreviewFrame.uuid = function() {
 			return 'preview-' + String( id++ );
@@ -6531,12 +6538,13 @@
 		 * @constructs wp.customize.Previewer
 		 * @augments   wp.customize.Messenger
 		 *
-		 * @param {Array}  params.allowedUrls
+		 * @param {Object} params             The parameters object.
+		 * @param {Array}  params.allowedUrls An array of allowed URLs for the preview.
 		 * @param {string} params.container   A selector or jQuery element for the preview
 		 *                                    frame to be placed.
-		 * @param {string} params.form
+		 * @param {string} params.form 	      A selector or jQuery element for the form to be used for POSTing data to the preview frame.
 		 * @param {string} params.previewUrl  The URL to preview.
-		 * @param {Object} options
+		 * @param {Object} options            The options object.
 		 */
 		initialize: function( params, options ) {
 			var previewer = this,
@@ -7790,8 +7798,6 @@
 			 * Revert the Customizer to its previously-published state.
 			 *
 			 * @since 4.9.0
-			 *
-			 * @return {jQuery.promise} Promise.
 			 */
 			trash: function trash() {
 				var request, success, fail;
@@ -8183,7 +8189,7 @@
 				/**
 				 * Lock user.
 				 *
-				 * @type {object}
+				 * @type {Object}
 				 */
 				lockUser: null,
 

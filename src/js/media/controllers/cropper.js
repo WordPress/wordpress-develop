@@ -168,6 +168,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	/**
 	 * Creates an object with the image attachment and crop properties.
 	 *
+	 * @param attachment
 	 * @since 4.2.0
 	 *
 	 * @return {$.promise} A jQuery promise with the custom header crop details.

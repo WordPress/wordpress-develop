@@ -2,8 +2,6 @@
  * @output wp-admin/js/theme-plugin-editor.js
  */
 
-/* eslint-env es2020 */
-
 /* eslint no-magic-numbers: ["error", { "ignore": [-1, 0, 1, 9, 1000] }] */
 
 if ( ! window.wp ) {
@@ -476,10 +474,6 @@ wp.themePluginEditor = (function( $ ) {
 		} );
 	};
 
-	/* jshint ignore:start */
-	/* jscs:disable */
-	/* eslint-disable */
-
 	/**
 	 * Creates a new TreeitemLink.
 	 *
@@ -503,9 +497,9 @@ wp.themePluginEditor = (function( $ ) {
 		 */
 
 		/**
-		 *   @constructor
+		 *   @class
 		 *
-		 *   @desc
+		 *   @description
 		 *       Treeitem object for representing the state and user interactions for a
 		 *       treeItem widget
 		 *
@@ -601,10 +595,8 @@ wp.themePluginEditor = (function( $ ) {
 		/* EVENT HANDLERS */
 
 		TreeitemLink.prototype.handleKeydown = function (event) {
-			var tgt = event.currentTarget,
-				flag = false,
-				_char = event.key,
-				clickEvent;
+			var flag = false,
+				_char = event.key;
 
 			function isPrintableCharacter(str) {
 				return str.length === 1 && str.match(/\S/);
@@ -736,7 +728,7 @@ wp.themePluginEditor = (function( $ ) {
 			}
 		};
 
-		TreeitemLink.prototype.handleFocus = function (event) {
+		TreeitemLink.prototype.handleFocus = function () {
 			var node = this.domNode;
 			if (this.isExpandable) {
 				node = node.firstElementChild;
@@ -744,7 +736,7 @@ wp.themePluginEditor = (function( $ ) {
 			node.classList.add('focus');
 		};
 
-		TreeitemLink.prototype.handleBlur = function (event) {
+		TreeitemLink.prototype.handleBlur = function () {
 			var node = this.domNode;
 			if (this.isExpandable) {
 				node = node.firstElementChild;
@@ -1022,10 +1014,6 @@ wp.themePluginEditor = (function( $ ) {
 		return TreeLinks;
 	})();
 
-	/* jshint ignore:end */
-	/* jscs:enable */
-	/* eslint-enable */
-
 	return component;
 })( jQuery );
 
@@ -1035,7 +1023,7 @@ wp.themePluginEditor = (function( $ ) {
  * @since 4.9.0
  * @deprecated 5.5.0
  *
- * @type {object}
+ * @type {Object}
  */
 wp.themePluginEditor.l10n = wp.themePluginEditor.l10n || {
 	saveAlert: '',

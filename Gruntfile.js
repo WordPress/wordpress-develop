@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );

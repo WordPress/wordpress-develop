@@ -58,10 +58,10 @@ function deprecatedProperty( propName, version, replacement ) {
  * @since 5.6.0 Added the `version` parameter.
  *
  * @param {string} name       The name of the object, i.e. commonL10n.
- * @param {object} l10nObject The object to deprecate the properties on.
+ * @param {Object} l10nObject The object to deprecate the properties on.
  * @param {string} version    The version of WordPress that deprecated the property.
  *
- * @return {object} The object with all its properties deprecated.
+ * @return {Object} The object with all its properties deprecated.
  */
 function deprecateL10nObject( name, l10nObject, version ) {
 	var deprecatedObject = {};
@@ -476,8 +476,6 @@ window.columns = {
 	 * Gets the checked column toggles from the screen options.
 	 *
 	 * @since 3.0.0
-	 *
-	 * @return {string} String containing the checked column names.
 	 */
 	useCheckboxesForHidden : function() {
 		this.hidden = function(){
@@ -1263,6 +1261,7 @@ $( function() {
 		/**
 		 * Triggers the primary submit when then secondary submit is clicked.
 		 *
+		 * @param e
 		 * @since 5.7.0
 		 *
 		 * @return {void}

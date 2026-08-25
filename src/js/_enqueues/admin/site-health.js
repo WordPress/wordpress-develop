@@ -85,9 +85,9 @@ jQuery( function( $ ) {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param {Object} issue
+	 * @param {Object} issue The issue data to validate.
 	 *
-	 * @return {boolean}
+	 * @return {boolean} True if the issue data is valid, false otherwise.
 	 */
 	function validateIssueData( issue ) {
 		// Expected minimum format of a valid SiteHealth test response.
@@ -346,6 +346,8 @@ jQuery( function( $ ) {
 	/**
 	 * Add the details of a failed asynchronous test to the list of test results.
 	 *
+	 * @param url
+	 * @param description
 	 * @since 5.6.0
 	 */
 	function addFailedSiteHealthCheckNotice( url, description ) {

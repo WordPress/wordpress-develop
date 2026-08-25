@@ -324,7 +324,7 @@
 		 *
 		 * @since 3.5.0
 		 *
-		 * @return {string} The element's color.
+		 * @return {string|void} The element's color.
 		 */
 		color: function( newColor ) {
 			if ( newColor === undef ) {
@@ -332,6 +332,7 @@
 			}
 			this.element.iris( 'option', 'color', newColor );
 		},
+
 		/**
 		 * Returns the iris object if no new default color is provided.
 		 * If a new default color is provided, it sets the new default color.
@@ -340,7 +341,7 @@
 		 *
 		 * @since 3.5.0
 		 *
-		 * @return {boolean|string} The element's color.
+		 * @return {string|void} The element's default color.
 		 */
 		defaultColor: function( newDefaultColor ) {
 			if ( newDefaultColor === undef ) {

@@ -970,7 +970,7 @@
 		 *
 		 * @param {boolean}   active
 		 * @param {Object}    args
-		 * @param {function}  args.completeCallback
+		 * @param {Function}  args.completeCallback
 		 */
 		onChangeActive: function ( active, args ) {
 			// Note: there is a second 'args' parameter being passed, merged on top of this.defaultActiveArguments.
@@ -1052,7 +1052,7 @@
 		 * This string can be used to compare whether or not the form has all of the same fields.
 		 *
 		 * @param {jQuery} inputs
-		 * @return {string}
+		 * @return {string} Signature string for the inputs.
 		 * @private
 		 */
 		_getInputsSignature: function( inputs ) {
@@ -1075,7 +1075,7 @@
 		 * Get the state for an input depending on its type.
 		 *
 		 * @param {jQuery|Element} input
-		 * @return {string|boolean|Array|*}
+		 * @return {string|boolean|Array|*} State of the input.
 		 * @private
 		 */
 		_getInputState: function( input ) {
@@ -1124,7 +1124,9 @@
 		 **********************************************************************/
 
 		/**
-		 * @return {wp.customize.controlConstructor.sidebar_widgets[]}
+		 * Get the sidebar widgets control for the sidebar this widget is in.
+		 *
+		 * @return {wp.customize.controlConstructor.sidebar_widgets[]|void} Sidebar widgets control for the sidebar this widget is in, or undefined if not found.
 		 */
 		getSidebarWidgetsControl: function() {
 			var settingId, sidebarWidgetsControl;
@@ -1341,9 +1343,9 @@
 		/**
 		 * @since 4.1.0
 		 *
-		 * @param {Boolean} expanded
+		 * @param {boolean} expanded
 		 * @param {Object} [params]
-		 * @return {Boolean} False if state already applied.
+		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
 
@@ -1351,7 +1353,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already expanded.
+		 * @return {boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
 
@@ -1368,7 +1370,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already collapsed.
+		 * @return {boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
 
@@ -1498,7 +1500,7 @@
 		/**
 		 * Get the position (index) of the widget in the containing sidebar
 		 *
-		 * @return {number}
+		 * @return {number|void} Index of the widget in the sidebar, or undefined if not found
 		 */
 		getWidgetSidebarPosition: function() {
 			var sidebarWidgetIds, position;
@@ -1642,7 +1644,7 @@
 				/**
 				 * Determine whether or not the notice should be displayed.
 				 *
-				 * @return {boolean}
+				 * @return {boolean} True if the notice should be displayed, false otherwise.
 				 */
 				shouldShowNotice = function() {
 					var activeSectionCount = getActiveSectionCount();
@@ -1712,7 +1714,7 @@
 		 *
 		 * @since 4.4.0
 		 *
-		 * @return {boolean}
+		 * @return {boolean} True if the panel is contextually active, false otherwise.
 		 */
 		isContextuallyActive: function() {
 			var panel = this;
@@ -2048,7 +2050,7 @@
 		 * Get the widget_form Customize controls associated with the current sidebar.
 		 *
 		 * @since 3.9.0
-		 * @return {wp.customize.controlConstructor.widget_form[]}
+		 * @return {wp.customize.controlConstructor.widget_form[]} Widget form controls associated with the current sidebar.
 		 */
 		getWidgetFormControls: function() {
 			var formControls = [];
@@ -2065,6 +2067,8 @@
 		},
 
 		/**
+		 * Add a widget to the sidebar.
+		 *
 		 * @param {string} widgetId or an id_base for adding a previously non-existing widget.
 		 * @return {Object|false} widget_form control instance, or false on error.
 		 */
@@ -2247,7 +2251,7 @@
 	/**
 	 * Given a widget control, find the sidebar widgets control that contains it.
 	 * @param {string} widgetId
-	 * @return {Object|null}
+	 * @return {Object|null} Sidebar widgets control that contains the widget, or null if not found.
 	 */
 	api.Widgets.getSidebarWidgetControlContainingWidget = function( widgetId ) {
 		var foundControl = null;
@@ -2266,7 +2270,7 @@
 	 * Given a widget ID for a widget appearing in the preview, get the widget form control associated with it.
 	 *
 	 * @param {string} widgetId
-	 * @return {Object|null}
+	 * @return {Object|null} Widget form control associated with the widget, or null if not found.
 	 */
 	api.Widgets.getWidgetFormControlForWidget = function( widgetId ) {
 		var foundControl = null;
@@ -2335,7 +2339,7 @@
 
 	/**
 	 * @param {string} widgetId
-	 * @return {Object}
+	 * @return {Object} Parsed widget ID with id_base and number properties
 	 */
 	function parseWidgetId( widgetId ) {
 		var matches, parsed = {

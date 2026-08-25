@@ -1,4 +1,6 @@
 /**
+ * @param window
+ * @param undefined
  * @output wp-includes/js/wp-api.js
  */
 
@@ -100,7 +102,7 @@
 	/**
 	 * Parse date into ISO 8601 format.
 	 *
-	 * @param {Date} date.
+	 * @param {Date} date A date object to parse.
 	 */
 	wp.api.utils.parseISO8601 = function( date ) {
 		var timestamp, struct, i, k,
@@ -152,6 +154,7 @@
 
 	/**
 	 * Helper for capitalizing strings.
+	 * @param str
 	 */
 	wp.api.utils.capitalize = function( str ) {
 		if ( _.isUndefined( str ) ) {
@@ -163,6 +166,7 @@
 	/**
 	 * Helper function that capitalizes the first word and camel cases any words starting
 	 * after dashes, removing the dashes.
+	 * @param str
 	 */
 	wp.api.utils.capitalizeAndCamelCaseDashes = function( str ) {
 		if ( _.isUndefined( str ) ) {
@@ -175,6 +179,7 @@
 
 	/**
 	 * Helper function to camel case the letter after dashes, removing the dashes.
+	 * @param str
 	 */
 	wp.api.utils.camelCaseDashes = function( str ) {
 		return str.replace( /-([a-z])/g, function( g ) {
@@ -494,6 +499,8 @@
 
 			/**
 			 * Set the model post parent.
+			 * @param collection
+			 * @param postId
 			 */
 			setHelperParentPost = function( collection, postId ) {
 
@@ -834,9 +841,9 @@
 			/**
 			 * Set nonce header before every Backbone sync.
 			 *
-			 * @param {string} method.
-			 * @param {Backbone.Model} model.
-			 * @param {{beforeSend}, *} options.
+			 * @param {string}          method The CRUD method ("create", "read", "update", or "delete") to be performed.
+			 * @param {Backbone.Model}  model The model to be synced.
+			 * @param {{beforeSend}, *} options Additional options for the sync.
 			 * @return {*}.
 			 */
 			sync: function( method, model, options ) {
@@ -888,6 +895,8 @@
 
 			/**
 			 * Save is only allowed when the PUT OR POST methods are available for the endpoint.
+			 * @param attrs
+			 * @param options
 			 */
 			save: function( attrs, options ) {
 
@@ -905,6 +914,7 @@
 
 			/**
 			 * Delete is only allowed when the DELETE method is available for the endpoint.
+			 * @param options
 			 */
 			destroy: function( options ) {
 
@@ -967,6 +977,8 @@
 
 			/**
 			 * Setup default state.
+			 * @param models
+			 * @param options
 			 */
 			initialize: function( models, options ) {
 				this.state = {
@@ -987,9 +999,9 @@
 			 *
 			 * Set nonce header before every Backbone sync.
 			 *
-			 * @param {string} method.
-			 * @param {Backbone.Model} model.
-			 * @param {{success}, *} options.
+			 * @param {string}         method The CRUD method ("create", "read", "update", or "delete") to be performed.
+			 * @param {Backbone.Model} model The model to be synced.
+			 * @param {{success}, *}   options Additional options for the sync.
 			 * @return {*}.
 			 */
 			sync: function( method, model, options ) {
@@ -1064,7 +1076,7 @@
 			/**
 			 * Fetches the next page of objects if a new page exists.
 			 *
-			 * @param {data: {page}} options.
+			 * @param {data: {page}} options An object containing the page number to fetch. If not provided, the next page will be fetched.
 			 * @return {*}.
 			 */
 			more: function( options ) {
@@ -1091,7 +1103,7 @@
 			/**
 			 * Returns true if there are more pages of objects available.
 			 *
-			 * @return {null|boolean}
+			 * @return {null|boolean} Returns null if the current page, total pages, or total objects are unknown. Otherwise returns true if there are more pages available.
 			 */
 			hasMore: function() {
 				if ( null === this.state.totalPages ||

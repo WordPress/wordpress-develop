@@ -1,4 +1,5 @@
 /**
+ * @param w
  * @output wp-includes/js/wp-list-revisions.js
  */
 

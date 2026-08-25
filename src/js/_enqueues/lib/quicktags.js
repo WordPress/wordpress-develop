@@ -330,15 +330,15 @@ window.edToolbar = function(){};
 	 *     QTags.addButton( 'my_id', 'my button', '<span>', '</span>' );
 	 *     QTags.addButton( 'my_id2', 'my button', '<br />' );
 	 *
-	 * @param string id Required. Button HTML ID
-	 * @param string display Required. Button's value="..."
-	 * @param string|function arg1 Required. Either a starting tag to be inserted like "<span>" or a callback that is executed when the button is clicked.
-	 * @param string arg2 Optional. Ending tag like "</span>"
-	 * @param string access_key Deprecated Not used
-	 * @param string title Optional. Button's title="..."
-	 * @param int priority Optional. Number representing the desired position of the button in the toolbar. 1 - 9 = first, 11 - 19 = second, 21 - 29 = third, etc.
-	 * @param string instance Optional. Limit the button to a specific instance of Quicktags, add to all instances if not present.
-	 * @param attr object Optional. Used to pass additional attributes. Currently supports `ariaLabel` and `ariaLabelClose` (for "close tag" state)
+	 * @param {string}          id         Required. Button HTML ID
+	 * @param {string}          display    Required. Button's value="..."
+	 * @param {string|Function} arg1       Required. Either a starting tag to be inserted like "<span>" or a callback that is executed when the button is clicked.
+	 * @param {string}          arg2       Optional. Ending tag like "</span>"
+	 * @param {string}          access_key Deprecated Not used
+	 * @param {string}          title      Optional. Button's title="..."
+	 * @param {number}          priority   Optional. Number representing the desired position of the button in the toolbar. 1 - 9 = first, 11 - 19 = second, 21 - 29 = third, etc.
+	 * @param {string}          instance   Optional. Limit the button to a specific instance of Quicktags, add to all instances if not present.
+	 * @param {Object}          attr       Optional. Used to pass additional attributes. Currently supports `ariaLabel` and `ariaLabelClose` (for "close tag" state)
 	 * @return mixed null or the button object that is needed for back-compat.
 	 */
 	qt.addButton = function( id, display, arg1, arg2, access_key, title, priority, instance, attr ) {
@@ -723,6 +723,7 @@ window.edToolbar = function(){};
 
 /**
  * Initialize new instance of the Quicktags editor
+ * @param settings
  */
 window.quicktags = function(settings) {
 	return new window.QTags(settings);
@@ -732,6 +733,8 @@ window.quicktags = function(settings) {
  * Inserts content at the caret in the active editor (textarea)
  *
  * Added for back compatibility
+ * @param bah
+ * @param txt
  * @see QTags.insertContent()
  */
 window.edInsertContent = function(bah, txt) {
@@ -742,6 +745,11 @@ window.edInsertContent = function(bah, txt) {
  * Adds a button to all instances of the editor
  *
  * Added for back compatibility, use QTags.addButton() as it gives more flexibility like type of button, button placement, etc.
+ * @param id
+ * @param display
+ * @param tagStart
+ * @param tagEnd
+ * @param access
  * @see QTags.addButton()
  */
 window.edButton = function(id, display, tagStart, tagEnd, access) {

@@ -18,7 +18,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * @param {wp.media.model.Attachment} model
 	 * @param {Object} [options={}]
 	 *
-	 * @return {Promise}
+	 * @return {Promise} A jQuery Promise that is resolved or rejected based on the success of the sync operation.
 	 */
 	sync: function( method, model, options ) {
 		// If the attachment does not yet have an `id`, return an instantly
@@ -118,7 +118,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 *
 	 * @this Backbone.Model
 	 *
-	 * @return {Promise}
+	 * @return {Promise} A jQuery Promise that is resolved or rejected based on the success of the sync operation.
 	 */
 	saveCompat: function( data, options ) {
 		var model = this;
@@ -143,7 +143,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * @static
 	 *
 	 * @param {Object} attrs
-	 * @return {wp.media.model.Attachment}
+	 * @return {wp.media.model.Attachment} The newly created attachment model.
 	 */
 	create: function( attrs ) {
 		var Attachments = wp.media.model.Attachments;

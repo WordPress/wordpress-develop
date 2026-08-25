@@ -88,6 +88,9 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	},
 	/**
 	 * Map activeMode collection events to the frame.
+	 * @param model
+	 * @param collection
+	 * @param options
 	 */
 	triggerModeEvents: function( model, collection, options ) {
 		var collectionEvent,
@@ -113,8 +116,8 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	/**
 	 * Activate a mode on the frame.
 	 *
-	 * @param string mode Mode ID.
-	 * @return {this} Returns itself to allow chaining.
+	 * @param {string} mode Mode ID.
+	 * @return {void|this} Returns itself to allow chaining.
 	 */
 	activateMode: function( mode ) {
 		// Bail if the mode is already active.
@@ -130,7 +133,7 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	/**
 	 * Deactivate a mode on the frame.
 	 *
-	 * @param string mode Mode ID.
+	 * @param {string} mode Mode ID.
 	 * @return {this} Returns itself to allow chaining.
 	 */
 	deactivateMode: function( mode ) {
@@ -152,7 +155,7 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	/**
 	 * Check if a mode is enabled on the frame.
 	 *
-	 * @param string mode Mode ID.
+	 * @param {string} mode Mode ID.
 	 * @return bool
 	 */
 	isModeActive: function( mode ) {

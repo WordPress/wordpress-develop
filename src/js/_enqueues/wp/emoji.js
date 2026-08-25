@@ -2,6 +2,8 @@
  * wp-emoji.js is used to replace emoji with images in browsers when the browser
  * doesn't support emoji natively.
  *
+ * @param window
+ * @param settings
  * @output wp-includes/js/wp-emoji.js
  */
 

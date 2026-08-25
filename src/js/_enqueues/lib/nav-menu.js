@@ -5,7 +5,6 @@
  * @version 2.0.0
  *
  * @package WordPress
- * @subpackage Administration
  * @output wp-admin/js/nav-menu.js
  */
 
@@ -178,7 +177,7 @@
 				 *
 				 * @ignore
 				 *
-				 * @param jQuery metabox The metabox jQuery object.
+				 * @param {Function} processMethod The method to use for adding the menu items. Defaults to api.addMenuItemToBottom.
 				 */
 				addSelectedToMenu : function(processMethod) {
 					if ( 0 === $('#menu-to-edit').length ) {
@@ -339,7 +338,7 @@
 								}
 							});
 						});
-						
+
 					});
 				},
 				updateOrderDropdown : function() {
@@ -403,7 +402,7 @@
 
 							}
 						});
-						
+
 					});
 				}
 			});
@@ -560,7 +559,7 @@
 			menu.on( 'change', '.edit-menu-item-parent', function() {
 				api.changeMenuParent( $( this ) );
 			});
-			
+
 			// Update menu item order when value is changed.
 			menu.on( 'change', '.edit-menu-item-order', function() {
 				api.changeMenuOrder( $( this ) );
@@ -569,10 +568,10 @@
 
 		/**
 		 * changeMenuParent( [parentDropdown] )
-		 * 
+		 *
 		 * @since 6.7.0
 		 *
-		 * @param {object} parentDropdown select field
+		 * @param {Object} parentDropdown select field
 		 */
 		changeMenuParent : function( parentDropdown ) {
 			var menuItemNewPosition,
@@ -625,10 +624,10 @@
 
 		/**
 		 * changeMenuOrder( [OrderDropdown] )
-		 * 
+		 *
 		 * @since 6.7.0
 		 *
-		 * @param {object} orderDropdown select field
+		 * @param {Object} orderDropdown select field
 		 */
 		changeMenuOrder : function( orderDropdown ) {
 			var menuItems = $( '#menu-to-edit li' ),
@@ -1159,7 +1158,7 @@
 		 * Handle toggling bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachBulkSelectButtonListeners : function() {
 			var that = this;
 
@@ -1178,7 +1177,7 @@
 		 * Enable bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		enableBulkSelection : function() {
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
 
@@ -1195,7 +1194,7 @@
 		 * Disable bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		disableBulkSelection : function() {
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
 
@@ -1219,7 +1218,7 @@
 		 * Listen for state changes on bulk action checkboxes.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachMenuCheckBoxListeners : function() {
 			var that = this;
 
@@ -1232,7 +1231,7 @@
 		 * Create delete button to remove menu items from collection.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachMenuItemDeleteButton : function() {
 			var that = this;
 
@@ -1275,7 +1274,7 @@
 		 * List menu items awaiting deletion.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachPendingMenuItemsListForDeletion : function() {
 			$( '#post-body-content' ).on( 'change', '.menu-item-checkbox', function() {
 				var menuItemName, menuItemType, menuItemID, listedMenuItem;
@@ -1317,7 +1316,7 @@
 		 * Set status of bulk delete checkbox.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		setBulkDeleteCheckboxStatus : function() {
 			var that = this;
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
@@ -1341,7 +1340,7 @@
 		 * Set status of menu items removal button.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		setRemoveSelectedButtonStatus : function() {
 			var button = $( '.menu-items-delete' );
 
@@ -1419,7 +1418,7 @@
 			}
 
 			/*
-			 * Reset results when search is less than or equal to 
+			 * Reset results when search is less than or equal to
 			 * minimum characters for searched term.
 			 */
 			if ( q.length <= minSearchLength ) {
@@ -1766,9 +1765,9 @@
 		/**
 		 * Process the quick search response into a search result
 		 *
-		 * @param string resp The server response to the query.
-		 * @param object req The request arguments.
-		 * @param jQuery panel The tabs panel we're searching in.
+		 * @param {string} resp The server response to the query.
+		 * @param {Object} req The request arguments.
+		 * @param {jQuery} panel The tabs panel we're searching in.
 		 */
 		processQuickSearchQueryResponse : function(resp, req, panel) {
 			var matched, newID,

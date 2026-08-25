@@ -127,7 +127,7 @@ window.addComment = ( function( window ) {
 	 *
 	 * @param {HTMLElement} context The parent DOM element to search for links.
 	 *
-	 * @return {HTMLCollection|NodeList|Array}
+	 * @return {HTMLCollection|NodeList|Array} The collection of links.
 	 */
 	function replyLinks( context ) {
 		var selectorClass = config.commentReplyClass;
@@ -270,10 +270,10 @@ window.addComment = ( function( window ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param {HTMLElement} Element DOM element with the attribute.
-	 * @param {string}      Attribute the attribute to get.
+	 * @param {HTMLElement} element DOM element with the attribute.
+	 * @param {string}      attribute The attribute to get.
 	 *
-	 * @return {string}
+	 * @return {string} The value of the attribute.
 	 */
 	function getDataAttribute( element, attribute ) {
 		if ( supportsDataset ) {
@@ -291,7 +291,7 @@ window.addComment = ( function( window ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param {HTMLElement} The requested element.
+	 * @param {string} elementId The requested element.
 	 */
 	function getElementById( elementId ) {
 		return document.getElementById( elementId );

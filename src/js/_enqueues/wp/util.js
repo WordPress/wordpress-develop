@@ -18,7 +18,7 @@ window.wp = window.wp || {};
 	 *
 	 * @param {string} id A string that corresponds to a DOM element with an id prefixed with "tmpl-".
 	 *                    For example, "attachment" maps to "tmpl-attachment".
-	 * @return {function} A function that lazily-compiles the template requested.
+	 * @return {Function} A function that lazily-compiles the template requested.
 	 */
 	wp.template = _.memoize(function ( id ) {
 		var compiled,

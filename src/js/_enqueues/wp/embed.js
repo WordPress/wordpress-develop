@@ -1,6 +1,8 @@
 /**
  * WordPress inline HTML embed
  *
+ * @param window
+ * @param document
  * @since 4.4.0
  * @output wp-includes/js/wp-embed.js
  *
@@ -90,7 +92,7 @@
 			i, source, secret;
 
 		for ( i = 0; i < iframes.length; i++ ) {
-			/** @var {IframeElement} */
+			/** @member {IframeElement} */
 			source = iframes[ i ];
 
 			secret = source.getAttribute( 'data-secret' );

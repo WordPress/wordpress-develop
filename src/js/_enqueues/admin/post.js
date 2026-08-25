@@ -620,11 +620,11 @@ jQuery( function($) {
 		});
 
 		/**
-		 * Before adding a new taxonomy, disable submit button.
+		 * Disables the submit button before adding a new taxonomy.
 		 *
 		 * @param {Object} s Taxonomy object which will be added.
 		 *
-		 * @return {Object}
+		 * @return {Object} Taxonomy object with additional data to be sent to the server.
 		 */
 		catAddBefore = function( s ) {
 			if ( !$('#new'+taxonomy).val() ) {

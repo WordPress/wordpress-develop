@@ -18,7 +18,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.CurrentView
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.CurrentView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.CurrentView.prototype */{
@@ -64,7 +64,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.ChoiceView
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.ChoiceView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.ChoiceView.prototype */{
@@ -142,7 +142,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.ChoiceListView
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.ChoiceListView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.ChoiceListView.prototype */{
@@ -188,7 +188,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.CombinedList
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.CombinedList = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.CombinedList.prototype */{

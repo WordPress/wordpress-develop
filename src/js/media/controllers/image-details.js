@@ -15,7 +15,7 @@ var State = wp.media.controller.State,
  * @augments wp.media.controller.State
  * @augments Backbone.Model
  *
- * @param {object}                    [attributes]                       The attributes hash passed to the state.
+ * @param {Object}                    [attributes]                       The attributes hash passed to the state.
  * @param {string}                    [attributes.id=image-details]      Unique identifier.
  * @param {string}                    [attributes.title=Image Details]   Title for the state. Displays in the frame's title region.
  * @param {wp.media.model.Attachment} attributes.image                   The image's model.
@@ -24,7 +24,7 @@ var State = wp.media.controller.State,
  * @param {string|false}              [attributes.router=false]          Initial mode for the router region.
  * @param {string|false}              [attributes.toolbar=image-details] Initial mode for the toolbar region.
  * @param {boolean}                   [attributes.editing=false]         Unused.
- * @param {int}                       [attributes.priority=60]           Unused.
+ * @param {number}                    [attributes.priority=60]           Unused.
  *
  * @todo This state inherits some defaults from media.controller.Library.prototype.defaults,
  *       however this may not do anything.

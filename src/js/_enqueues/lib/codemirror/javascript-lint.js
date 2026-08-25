@@ -12,10 +12,10 @@ import CodeMirror from 'codemirror';
  * @see https://codemirror.net/5/doc/manual.html#addon_lint
  *
  * @typedef {Object} CodeMirrorLintError
- * @property {string} message - Error message.
- * @property {'error'} severity - Severity.
- * @property {CodeMirror.Position} from - From position.
- * @property {CodeMirror.Position} to - To position.
+ * @property {string} message Error message.
+ * @property {'error'} severity Severity.
+ * @property {CodeMirror.Position} from From position.
+ * @property {CodeMirror.Position} to To position.
  */
 
 /**
@@ -25,12 +25,12 @@ import CodeMirror from 'codemirror';
  * @see https://www.npmjs.com/package/espree#options
  *
  * @typedef {Object} SupportedJSHintOptions
- * @property {import('espree').Options['ecmaVersion']} [esversion] - "This option is used to specify the ECMAScript version to which the code must adhere."
- * @property {boolean} [es5] - "This option enables syntax first defined in the ECMAScript 5.1 specification. This includes allowing reserved keywords as object properties."
- * @property {boolean} [es3] - "This option tells JSHint that your code needs to adhere to ECMAScript 3 specification. Use this option if you need your program to be executable in older browsers—such as Internet Explorer 6/7/8/9—and other legacy JavaScript environments."
- * @property {boolean} [module] - "This option informs JSHint that the input code describes an ECMAScript 6 module. All module code is interpreted as strict mode code."
- * @property {'implied'} [strict] - "This option requires the code to run in ECMAScript 5's strict mode."
- * @property {string} [espreeModuleUrl] - The URL to the espree script module.
+ * @property {import('espree').Options['ecmaVersion']} [esversion] "This option is used to specify the ECMAScript version to which the code must adhere."
+ * @property {boolean} [es5] "This option enables syntax first defined in the ECMAScript 5.1 specification. This includes allowing reserved keywords as object properties."
+ * @property {boolean} [es3] "This option tells JSHint that your code needs to adhere to ECMAScript 3 specification. Use this option if you need your program to be executable in older browsers—such as Internet Explorer 6/7/8/9—and other legacy JavaScript environments."
+ * @property {boolean} [module] "This option informs JSHint that the input code describes an ECMAScript 6 module. All module code is interpreted as strict mode code."
+ * @property {'implied'} [strict] "This option requires the code to run in ECMAScript 5's strict mode."
+ * @property {string} [espreeModuleUrl] The URL to the espree script module.
  */
 
 /**
@@ -38,9 +38,9 @@ import CodeMirror from 'codemirror';
  *
  * @since 7.0.0
  *
- * @param {string} text - Source.
- * @param {SupportedJSHintOptions} options - Linting options.
- * @returns {Promise<CodeMirrorLintError[]>}
+ * @param {string} text Source.
+ * @param {SupportedJSHintOptions} options Linting options.
+ * @return {Promise<CodeMirrorLintError[]>} Linting errors.
  */
 async function validator( text, options ) {
 	if ( ! options.espreeModuleUrl ) {
@@ -84,14 +84,14 @@ CodeMirror.registerHelper( 'lint', 'javascript', validator );
  *
  * @since 7.0.0
  *
- * @param {SupportedJSHintOptions} options - Linting options for JSHint.
+ * @param {SupportedJSHintOptions} options Linting options for JSHint.
  * @return {{
  *     ecmaVersion?: import('espree').Options['ecmaVersion'],
  *     sourceType?: 'module'|'script',
  *     ecmaFeatures?: {
  *         impliedStrict?: true
  *     }
- * }}
+ * }} Options for Espree.
  */
 function getEspreeOptions( options ) {
 	/** @type {{ impliedStrict?: true }} */
@@ -112,7 +112,7 @@ function getEspreeOptions( options ) {
  *
  * @since 7.0.0
  *
- * @param {SupportedJSHintOptions} options - Options.
+ * @param {SupportedJSHintOptions} options Options.
  * @return {import('espree').Options['ecmaVersion']} ECMAScript version.
  */
 function getEcmaVersion( options ) {

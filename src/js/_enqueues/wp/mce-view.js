@@ -296,7 +296,7 @@
 		/**
 		 * Whether or not to display a loader.
 		 *
-		 * @type {Boolean}
+		 * @type {boolean}
 		 */
 		loader: true,
 
@@ -308,7 +308,7 @@
 		/**
 		 * Returns the content to render in the view node.
 		 *
-		 * @return {*}
+		 * @return {*} The content.
 		 */
 		getContent: function() {
 			return this.content;
@@ -675,6 +675,7 @@
 
 		/**
 		 * Sets a loader for all view nodes tied to this view instance.
+		 * @param dashicon
 		 */
 		setLoader: function( dashicon ) {
 			this.setContent(
@@ -705,7 +706,7 @@
 		 *
 		 * @param {string} content The string to scan.
 		 *
-		 * @return {Object}
+		 * @return {void|Object} An object with the match index, content and options, or undefined if no match was found.
 		 */
 		match: function( content ) {
 			var match = shortcode.next( this.type, content );

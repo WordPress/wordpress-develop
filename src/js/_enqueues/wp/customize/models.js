@@ -21,7 +21,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.ImageModel
 	 *
-	 * @constructor
+	 * @class
 	 * @augments Backbone.Model
 	 */
 	api.HeaderTool.ImageModel = Backbone.Model.extend(/** @lends wp.customize.HeaderTool.ImageModel.prototype */{
@@ -136,7 +136,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.ChoiceList
 	 *
-	 * @constructor
+	 * @class
 	 * @augments Backbone.Collection
 	 */
 	api.HeaderTool.ChoiceList = Backbone.Collection.extend({
@@ -266,7 +266,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.DefaultsList
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.HeaderTool.ChoiceList
 	 * @augments Backbone.Collection
 	 */

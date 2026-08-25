@@ -35,7 +35,7 @@
 	 * @since 3.6.0
 	 *
 	 * @return {Object} An instance of the Heartbeat class.
-	 * @constructor
+	 * @class
 	 */
 	var Heartbeat = function() {
 		var $document = $(document),
@@ -278,6 +278,7 @@
 		/**
 		 * Checks if the iframe is from the same origin.
 		 *
+		 * @param frame
 		 * @since 3.6.0
 		 * @access private
 		 *
@@ -824,7 +825,7 @@
 		 *
 		 * @param {string} handle The handle for the data.
 		 *
-		 * @return {boolean} True if the data is queued with this handle.
+		 * @return {void|boolean} True if the data is queued with this handle.
 		 */
 		function isQueued( handle ) {
 			if ( handle ) {

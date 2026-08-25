@@ -239,8 +239,8 @@ window.wp = window.wp || {};
 		 * @param {string} content The text content to check against.
 		 * @param {number} cursorPosition    The cursor position to check.
 		 *
-		 * @return {(undefined|Object)} Undefined if the cursor is not wrapped in a shortcode tag.
-		 *                              Information about the wrapping shortcode tag if it's wrapped in one.
+		 * @return {void|Object} Undefined if the cursor is not wrapped in a shortcode tag.
+		 *                       Information about the wrapping shortcode tag if it's wrapped in one.
 		 */
 		function getShortcodeWrapperInfo( content, cursorPosition ) {
 			var contentShortcodes = getShortCodePositionsInText( content );
@@ -385,7 +385,7 @@ window.wp = window.wp || {};
 		 * @param {string} content Textarea content that the cursors are in
 		 * @param {{cursorStart: number, cursorEnd: number}} cursorPositions Cursor start and end positions
 		 *
-		 * @return {{cursorStart: number, cursorEnd: number}}
+		 * @return {Object} Adjusted cursor positions with `cursorStart` and `cursorEnd` properties.
 		 */
 		function adjustTextAreaSelectionCursors( content, cursorPositions ) {
 			var voidElements = [
@@ -649,7 +649,7 @@ window.wp = window.wp || {};
 		 * and why this solution was chosen.
 		 *
 		 * @param {Object} editor The editor where we must find the selection.
-		 * @return {(null|Object)} The selection range position in the editor.
+		 * @return {void|Object} The selection range position in the editor.
 		 */
 		function findBookmarkedPosition( editor ) {
 			// Get the TinyMCE `window` reference, since we need to access the raw selection.

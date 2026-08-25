@@ -17,9 +17,9 @@ window.wp = window.wp || {};
 	 * Similar to `goog.inherits`, but uses a hash of prototype properties and
 	 * class properties to be extended.
 	 *
-	 * @param object parent      Parent class constructor to inherit from.
-	 * @param object protoProps  Properties to apply to the prototype for use as class instance properties.
-	 * @param object staticProps Properties to apply directly to the class constructor.
+	 * @param {Object} parent      Parent class constructor to inherit from.
+	 * @param {Object} protoProps  Properties to apply to the prototype for use as class instance properties.
+	 * @param {Object} staticProps Properties to apply directly to the class constructor.
 	 * @return child The subclassed constructor.
 	 */
 	inherits = function( parent, protoProps, staticProps ) {
@@ -108,8 +108,8 @@ window.wp = window.wp || {};
 	/**
 	 * Creates a subclass of the class.
 	 *
-	 * @param object protoProps  Properties to apply to the prototype.
-	 * @param object staticProps Properties to apply directly to the class.
+	 * @param {Object} protoProps  Properties to apply to the prototype.
+	 * @param {Object} staticProps Properties to apply directly to the class.
 	 * @return child The subclass.
 	 */
 	api.Class.extend = function( protoProps, staticProps ) {
@@ -183,7 +183,7 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Value
 	 *
-	 * @constructor
+	 * @class
 	 */
 	api.Value = api.Class.extend(/** @lends wp.customize.Value.prototype */{
 		/**
@@ -211,7 +211,7 @@ window.wp = window.wp || {};
 		/**
 		 * Get the value.
 		 *
-		 * @return {mixed}
+		 * @return {mixed} The value.
 		 */
 		get: function() {
 			return this._value;
@@ -266,8 +266,6 @@ window.wp = window.wp || {};
 
 		/**
 		 * Bind a function to be invoked whenever the value changes.
-		 *
-		 * @param {...Function} A function, or multiple functions, to add to the callback stack.
 		 */
 		bind: function() {
 			this.callbacks.add.apply( this.callbacks, arguments );
@@ -276,8 +274,6 @@ window.wp = window.wp || {};
 
 		/**
 		 * Unbind a previously bound function.
-		 *
-		 * @param {...Function} A function, or multiple functions, to remove from the callback stack.
 		 */
 		unbind: function() {
 			this.callbacks.remove.apply( this.callbacks, arguments );
@@ -325,7 +321,7 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Values
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Class
 	 * @mixes wp.customize.Events
 	 */
@@ -334,7 +330,7 @@ window.wp = window.wp || {};
 		/**
 		 * The default constructor for items of the collection.
 		 *
-		 * @type {object}
+		 * @type {Object}
 		 */
 		defaultConstructor: api.Value,
 
@@ -355,8 +351,6 @@ window.wp = window.wp || {};
 		 * @see {api.Values.when}
 		 *
 		 * @param {string} id ID of the item.
-		 * @param {...}       Zero or more IDs of items to wait for and a callback
-		 *                    function to invoke when they're available. Optional.
 		 * @return {mixed} The item instance if only one ID was supplied.
 		 *                 A Deferred Promise object if a callback function is supplied.
 		 */
@@ -382,7 +376,7 @@ window.wp = window.wp || {};
 		 * Whether the collection has an item with the given ID.
 		 *
 		 * @param {string} id The ID of the item to look for.
-		 * @return {boolean}
+		 * @return {boolean} True if the collection has an item with the given ID, false otherwise.
 		 */
 		has: function( id ) {
 			return typeof this._value[ id ] !== 'undefined';
@@ -437,7 +431,6 @@ window.wp = window.wp || {};
 		 * and store it in the collection.
 		 *
 		 * @param {string} id    The ID of the item.
-		 * @param {mixed}  value Any extra arguments are passed into the item's initialize method.
 		 * @return {mixed} The new item's instance.
 		 */
 		create: function( id ) {
@@ -571,7 +564,7 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Element
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Value
 	 * @augments wp.customize.Class
 	 */
@@ -663,7 +656,7 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Messenger
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Class
 	 * @mixes wp.customize.Events
 	 */
@@ -822,7 +815,7 @@ window.wp = window.wp || {};
 	 * @alias wp.customize.Notification
 	 *
 	 * @param {string}  code - The error code.
-	 * @param {object}  params - Params.
+	 * @param {Object}  params - Params.
 	 * @param {string}  params.message=null - The error message.
 	 * @param {string}  [params.type=error] - The notification type.
 	 * @param {boolean} [params.fromServer=false] - Whether the notification was server-sent.
@@ -837,7 +830,7 @@ window.wp = window.wp || {};
 		 * This will be populated with template option or else it will be populated with template from the ID.
 		 *
 		 * @since 4.9.0
-		 * @var {Function}
+		 * @member {Function}
 		 */
 		template: null,
 
@@ -845,7 +838,7 @@ window.wp = window.wp || {};
 		 * ID for the template to render the notification.
 		 *
 		 * @since 4.9.0
-		 * @var {string}
+		 * @member {string}
 		 */
 		templateId: 'customize-notification',
 
@@ -853,7 +846,7 @@ window.wp = window.wp || {};
 		 * Additional class names to add to the notification container.
 		 *
 		 * @since 4.9.0
-		 * @var {string}
+		 * @member {string}
 		 */
 		containerClasses: '',
 
@@ -935,7 +928,7 @@ window.wp = window.wp || {};
 	 *
 	 * @alias wp.customize.get
 	 *
-	 * @return {Object}
+	 * @return {Object} All customize settings.
 	 */
 	api.get = function() {
 		var result = {};

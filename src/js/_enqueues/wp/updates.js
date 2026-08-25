@@ -9,8 +9,8 @@
 
 /**
  * @param {jQuery}  $                                        jQuery object.
- * @param {object}  wp                                       WP object.
- * @param {object}  settings                                 WP Updates settings.
+ * @param {Object}  wp                                       WP object.
+ * @param {Object}  settings                                 WP Updates settings.
  * @param {string}  settings.ajax_nonce                      Ajax nonce.
  * @param {object=} settings.plugins                         Base names of plugins in their different states.
  * @param {Array}   settings.plugins.all                     Base names of all plugins.
@@ -54,7 +54,7 @@
 	 * @since 4.2.0
 	 * @deprecated 5.5.0
 	 *
-	 * @type {object}
+	 * @type {Object}
 	 */
 	wp.updates.l10n = {
 		searchResults: '',
@@ -155,7 +155,7 @@
 	 *
 	 * @since 4.2.0
 	 *
-	 * @type {bool}
+	 * @type {boolean}
 	 */
 	wp.updates.shouldRequestFilesystemCredentials = false;
 
@@ -166,18 +166,18 @@
 	 * @since 4.6.0 Added `available` property to indicate whether credentials have been provided.
 	 *
 	 * @type {Object}
-	 * @property {Object} filesystemCredentials.ftp                Holds FTP credentials.
-	 * @property {string} filesystemCredentials.ftp.host           FTP host. Default empty string.
-	 * @property {string} filesystemCredentials.ftp.username       FTP user name. Default empty string.
-	 * @property {string} filesystemCredentials.ftp.password       FTP password. Default empty string.
-	 * @property {string} filesystemCredentials.ftp.connectionType Type of FTP connection. 'ssh', 'ftp', or 'ftps'.
-	 *                                                             Default empty string.
-	 * @property {Object} filesystemCredentials.ssh                Holds SSH credentials.
-	 * @property {string} filesystemCredentials.ssh.publicKey      The public key. Default empty string.
-	 * @property {string} filesystemCredentials.ssh.privateKey     The private key. Default empty string.
-	 * @property {string} filesystemCredentials.fsNonce            Filesystem credentials form nonce.
-	 * @property {bool}   filesystemCredentials.available          Whether filesystem credentials have been provided.
-	 *                                                             Default 'false'.
+	 * @property {Object}  filesystemCredentials.ftp                Holds FTP credentials.
+	 * @property {string}  filesystemCredentials.ftp.host           FTP host. Default empty string.
+	 * @property {string}  filesystemCredentials.ftp.username       FTP user name. Default empty string.
+	 * @property {string}  filesystemCredentials.ftp.password       FTP password. Default empty string.
+	 * @property {string}  filesystemCredentials.ftp.connectionType Type of FTP connection. 'ssh', 'ftp', or 'ftps'.
+	 *                                                              Default empty string.
+	 * @property {Object}  filesystemCredentials.ssh                Holds SSH credentials.
+	 * @property {string}  filesystemCredentials.ssh.publicKey      The public key. Default empty string.
+	 * @property {string}  filesystemCredentials.ssh.privateKey     The private key. Default empty string.
+	 * @property {string}  filesystemCredentials.fsNonce            Filesystem credentials form nonce.
+	 * @property {boolean} filesystemCredentials.available          Whether filesystem credentials have been provided.
+	 *                                                              Default 'false'.
 	 */
 	wp.updates.filesystemCredentials = {
 		ftp:       {
@@ -200,7 +200,7 @@
 	 * @since 4.2.0
 	 * @since 4.6.0 More accurately named `ajaxLocked`.
 	 *
-	 * @type {bool}
+	 * @type {boolean}
 	 */
 	wp.updates.ajaxLocked = false;
 
@@ -209,7 +209,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @type {function}
+	 * @type {Function}
 	 */
 	wp.updates.adminNotice = wp.template( 'wp-updates-admin-notice' );
 
@@ -2326,7 +2326,7 @@
 	 * If the response deems to be invalid, an admin notice is being displayed.
 	 *
 	 * @param {(Object|string)} response              Response from the server.
-	 * @param {function=}       response.always       Optional. Callback for when the Deferred is resolved or rejected.
+	 * @param {Function=}       response.always       Optional. Callback for when the Deferred is resolved or rejected.
 	 * @param {string=}         response.statusText   Optional. Status message corresponding to the status code.
 	 * @param {string=}         response.responseText Optional. Request response as text.
 	 * @param {string}          action                Type of action the response is referring to. Can be 'delete',

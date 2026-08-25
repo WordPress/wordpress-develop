@@ -160,7 +160,7 @@
 	 *
 	 * @param {jQuery Object} $this   The button element: the message will be inserted
 	 *                                above this button
-	 * @param {bool}          success Whether the message is a success message.
+	 * @param {boolean}          success Whether the message is a success message.
 	 * @param {string}        message The message to insert.
 	 */
 	function addInlineNotice( $this, success, message ) {
@@ -400,7 +400,7 @@
 	 * On macOS Safari and Firefox, the native warning is preferred,
 	 * so this function returns false to suppress custom warnings.
 	 *
-	 * @param {KeyboardEvent} e The keydown event object.
+	 * @param {KeyboardEvent} event The keydown event object.
 	 *
 	 * @return {boolean} True if Caps Lock is on, false otherwise.
 	 */

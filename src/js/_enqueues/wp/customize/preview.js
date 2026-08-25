@@ -74,6 +74,9 @@
 	/**
 	 * Returns a debounced version of the function.
 	 *
+	 * @param fn
+	 * @param delay
+	 * @param context
 	 * @todo Require Underscore.js for this file and retire this.
 	 */
 	debounce = function( fn, delay, context ) {
@@ -95,7 +98,7 @@
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Preview
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Messenger
 	 * @augments wp.customize.Class
 	 * @mixes wp.customize.Events

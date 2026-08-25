@@ -1,4 +1,6 @@
 /**
+ * @param window
+ * @param document
  * @output wp-includes/js/wp-embed-template.js
  */
 (function ( window, document ) {
@@ -154,6 +156,7 @@
 
 		/**
 		 * Detect clicks to external (_top) links.
+		 * @param e
 		 */
 		function linkClickHandler( e ) {
 			var target = e.target,
