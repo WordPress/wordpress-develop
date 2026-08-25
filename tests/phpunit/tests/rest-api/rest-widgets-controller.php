@@ -1254,7 +1254,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_store_html_as_admin() {
 		if ( is_multisite() ) {
 			$this->assertSame(
-				'<div class="textwidget">alert(1)</div>',
+				'<div class="textwidget"></div>',
 				$this->update_text_widget_with_raw_html( '<script>alert(1)</script>' )
 			);
 		} else {
