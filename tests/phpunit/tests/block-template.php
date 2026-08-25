@@ -63,9 +63,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	public function tear_down() {
 		global $_wp_current_template_id, $_wp_current_template_content;
 		unset( $_wp_current_template_id, $_wp_current_template_content );
-
-		remove_all_filters( 'stylesheet_directory' );
-
 		parent::tear_down();
 	}
 
