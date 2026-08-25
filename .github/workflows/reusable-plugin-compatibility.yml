@@ -4,6 +4,11 @@
 #
 # Each plugin in the `plugin-slugs` shard is tested on its own: it is installed, activated, exercised, and then
 # removed before the next one is installed. This keeps one broken plugin from masking (or breaking) the next.
+#
+# The exception is a plugin that declares a `Requires Plugins` dependency, which core will not activate until
+# that dependency is installed and active. Those dependencies are installed and activated alongside it, and the
+# site is checked with only the dependencies active first so that a dependency's own breakage is not reported
+# against the plugin under test.
 ##
 name: Plugin Compatibility Tests
 
@@ -53,14 +58,17 @@ jobs:
   # - Creates a `wp-config.php` file with debugging and error logging enabled.
   # - Installs WordPress.
   # - Starts the PHP built-in web server so HTTP requests can be made against the site.
-  # - Installs, activates, exercises, and removes each plugin in the shard, one at a time.
+  # - Installs, activates, exercises, and removes each plugin in the shard, one at a time, together with
+  #   anything it declares in `Requires Plugins`.
   # - Writes a results table to the workflow summary and fails the job if any plugin fataled.
   plugin-compatibility-tests:
     name: PHP ${{ inputs.php-version }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
-    timeout-minutes: 30
+    # Installing a plugin's dependencies before testing it adds a download and an activation for each
+    # one, and a dependency the size of WooCommerce is not quick to activate.
+    timeout-minutes: 45
 
     services:
       database:
@@ -165,13 +173,24 @@ jobs:
           RESPONSE_BODY="${RUNNER_TEMP}/response.html"
           : > "${RESULTS}"
 
-          # record <slug> <version> <status> <reason>
+          # How many levels of `Requires Plugins` to follow. Chains in the directory are one level
+          # deep in practice, so the bound is only here to stop a circular declaration from looping
+          # forever.
+          MAX_DEPENDENCY_DEPTH=3
+
+          # Everything installed for the plugin currently under test, that plugin included. The
+          # directories are tracked alongside the slugs because a plugin does not always unpack into
+          # a directory named after its slug.
+          INSTALLED_SLUGS=()
+          INSTALLED_DIRS=()
+
+          # record <slug> <version> <status> <dependencies> <reason>
           #
           # Appends one tab separated row to the results file. The reason is flattened so that it cannot
           # break the markdown table that is generated from these rows later on.
           record() {
-            SAFE_REASON="$( printf '%s' "${4:--}" | tr '\n\t|' '   ' )"
-            printf '%s\t%s\t%s\t%s\n' "${1}" "${2:-unknown}" "${3}" "${SAFE_REASON}" >> "${RESULTS}"
+            SAFE_REASON="$( printf '%s' "${5:--}" | tr '\n\t|' '   ' )"
+            printf '%s\t%s\t%s\t%s\t%s\n' "${1}" "${2:-unknown}" "${3}" "${4:--}" "${SAFE_REASON}" >> "${RESULTS}"
           }
 
           # check_url <path>
@@ -210,20 +229,70 @@ jobs:
           # The plugins directory itself must never be removed, only directories inside it.
           PLUGINS_ROOT="$( wp plugin path )"
 
-          # cleanup_plugin <slug> <directory>
+          # install_plugin <slug>
           #
-          # Returns the site to a clean slate. A plugin that fatals can take WP-CLI down with it, so every
+          # Installs a plugin from WordPress.org and remembers it so that it is removed again once the
+          # plugin under test has been checked. The slug is remembered before the download is attempted
+          # so that a partial download is still cleaned up. Returns non zero when the download failed.
+          install_plugin() {
+            INSTALLED_SLUGS+=( "${1}" )
+            INSTALLED_DIRS+=( "" )
+
+            wp plugin install "${1}" --skip-plugins --skip-themes || return 1
+
+            INSTALLED_DIRS[-1]="$( wp plugin path "${1}" --dir --skip-plugins --skip-themes 2>/dev/null || printf '' )"
+          }
+
+          # plugin_dependencies <slug>
+          #
+          # Prints the slugs named in the plugin's `Requires Plugins` header, one per line. WordPress'
+          # own header parser is used so that the same rules apply here as when core decides whether a
+          # plugin's dependencies are met.
+          plugin_dependencies() {
+            PLUGIN_FILE="$( wp plugin path "${1}" --skip-plugins --skip-themes 2>/dev/null || printf '' )"
+
+            [ -n "${PLUGIN_FILE}" ] || return 0
+
+            # The single quotes are what keep the shell out of the PHP below. The path is handed over as an
+            # environment variable rather than interpolated so that it never reaches PHP as source code.
+            # shellcheck disable=SC2016
+            PLUGIN_FILE="${PLUGIN_FILE}" wp eval --skip-plugins --skip-themes '
+              require_once ABSPATH . "wp-admin/includes/plugin.php";
+
+              $plugin_data = get_plugin_data( getenv( "PLUGIN_FILE" ), false, false );
+
+              foreach ( explode( ",", $plugin_data["RequiresPlugins"] ?? "" ) as $dependency ) {
+                // Core only accepts a WordPress.org slug here, so anything else is ignored.
+                if ( preg_match( "/^[a-z0-9-]+$/", trim( $dependency ) ) ) {
+                  echo trim( $dependency ), "\n";
+                }
+              }
+            ' 2>/dev/null
+          }
+
+          # cleanup_plugins
+          #
+          # Returns the site to a clean slate by removing everything installed for the current plugin,
+          # its dependencies included. A plugin that fatals can take WP-CLI down with it, so every
           # command here is allowed to fail and the plugin directory is removed directly as a fallback.
           # `--skip-plugins` keeps WP-CLI from loading the broken plugin while cleaning up after it.
-          cleanup_plugin() {
-            wp plugin deactivate "${1}" --skip-plugins --skip-themes > /dev/null 2>&1 || true
-            wp plugin delete "${1}" --skip-plugins --skip-themes > /dev/null 2>&1 || true
+          cleanup_plugins() {
+            for INDEX in "${!INSTALLED_SLUGS[@]}"; do
+              CLEANUP_SLUG="${INSTALLED_SLUGS[${INDEX}]}"
+              CLEANUP_DIR="${INSTALLED_DIRS[${INDEX}]}"
 
-            if [ -n "${2:-}" ] && [ -d "${2}" ] && [ "${2}" != "${PLUGINS_ROOT}" ]; then
-              rm -rf "${2}"
-            fi
+              wp plugin deactivate "${CLEANUP_SLUG}" --skip-plugins --skip-themes > /dev/null 2>&1 || true
+              wp plugin delete "${CLEANUP_SLUG}" --skip-plugins --skip-themes > /dev/null 2>&1 || true
 
-            rm -rf "wp-content/plugins/${1}"
+              if [ -n "${CLEANUP_DIR}" ] && [ -d "${CLEANUP_DIR}" ] && [ "${CLEANUP_DIR}" != "${PLUGINS_ROOT}" ]; then
+                rm -rf "${CLEANUP_DIR}"
+              fi
+
+              rm -rf "wp-content/plugins/${CLEANUP_SLUG}"
+            done
+
+            INSTALLED_SLUGS=()
+            INSTALLED_DIRS=()
 
             # Make sure nothing is left behind in `active_plugins` pointing at a plugin that is now gone.
             wp option update active_plugins '[]' --format=json --skip-plugins --skip-themes > /dev/null 2>&1 || true
@@ -237,46 +306,119 @@ jobs:
             STATUS="PASS"
             REASON="-"
             VERSION="unknown"
-            PLUGIN_DIR=""
+            DEPENDENCIES=()
 
             # Start every plugin with an empty log so that anything found in it belongs to this plugin.
             rm -f wp-content/debug.log
 
             # Step 1: download the plugin. A download failure is recorded as skipped rather than failed,
             # since it generally means a network flake or a plugin that is no longer in the directory.
-            if ! wp plugin install "${SLUG}" --skip-plugins --skip-themes; then
-              record "${SLUG}" "unknown" "SKIPPED" "The plugin could not be downloaded from WordPress.org"
-              cleanup_plugin "${SLUG}" ""
+            if ! install_plugin "${SLUG}"; then
+              record "${SLUG}" "unknown" "SKIPPED" "-" "The plugin could not be downloaded from WordPress.org"
+              cleanup_plugins
               printf '::endgroup::\n'
               continue
             fi
 
             VERSION="$( wp plugin get "${SLUG}" --field=version --skip-plugins --skip-themes 2>/dev/null || printf 'unknown' )"
-            PLUGIN_DIR="$( wp plugin path "${SLUG}" --dir --skip-plugins --skip-themes 2>/dev/null || printf '' )"
 
-            # Step 2: activation. Activation runs the plugin's activation hooks and loads its main file.
-            ACTIVATE_EXIT_CODE=0
-            ACTIVATE_OUTPUT="$( wp plugin activate "${SLUG}" 2>&1 )" || ACTIVATE_EXIT_CODE=$?
-            printf '%s\n' "${ACTIVATE_OUTPUT}"
+            # Step 2: install whatever the plugin names in `Requires Plugins`. Core refuses to activate a
+            # plugin whose dependencies are missing, so without this every WooCommerce extension - a large
+            # slice of the most popular plugins - would go untested.
+            #
+            # Dependencies are resolved a level at a time so that a dependency declaring its own is
+            # installed too. Anything already installed is left alone, which covers a plugin named twice
+            # in the same tree as well as a declaration pointing back at the plugin under test.
+            mapfile -t PENDING < <( plugin_dependencies "${SLUG}" )
+            DEPTH=0
 
-            if [ "${ACTIVATE_EXIT_CODE}" -ne 0 ]; then
-              case "${ACTIVATE_OUTPUT}" in
-                # Core refuses to activate a plugin whose declared requirements are not met, most often a
-                # `Requires Plugins` dependency that is not installed. Testing each plugin on its own means
-                # every WooCommerce extension lands here. That is core working as designed rather than a
-                # fatal, so it is recorded as skipped.
-                *"to be installed and activated"* | *"requires PHP version"* | *"requires WordPress version"* )
+            while [ "${#PENDING[@]}" -gt 0 ] && [ "${DEPTH}" -lt "${MAX_DEPENDENCY_DEPTH}" ]; do
+              NEXT=()
+
+              for DEPENDENCY in "${PENDING[@]}"; do
+                if wp plugin is-installed "${DEPENDENCY}" --skip-plugins --skip-themes > /dev/null 2>&1; then
+                  continue
+                fi
+
+                printf 'Installing %s, which %s requires.\n' "${DEPENDENCY}" "${SLUG}"
+
+                if ! install_plugin "${DEPENDENCY}"; then
                   STATUS="SKIPPED"
-                  REASON="Core declined to activate the plugin because its declared requirements are not met"
-                  ;;
-                * )
-                  STATUS="FAIL"
-                  REASON="The plugin could not be activated"
-                  ;;
-              esac
+                  REASON="The required plugin ${DEPENDENCY} is not available from WordPress.org"
+                  break 2
+                fi
+
+                DEPENDENCIES+=( "${DEPENDENCY}" )
+                mapfile -t -O "${#NEXT[@]}" NEXT < <( plugin_dependencies "${DEPENDENCY}" )
+              done
+
+              PENDING=( "${NEXT[@]}" )
+              DEPTH=$(( DEPTH + 1 ))
+            done
+
+            # Step 3: activate the dependencies, deepest first. That is the reverse of the order they
+            # were discovered in, and it matters because core will not activate a plugin ahead of its own
+            # requirements either.
+            if [ "${STATUS}" = "PASS" ] && [ "${#DEPENDENCIES[@]}" -gt 0 ]; then
+              for (( INDEX = ${#DEPENDENCIES[@]} - 1; INDEX >= 0; INDEX-- )); do
+                DEPENDENCY="${DEPENDENCIES[${INDEX}]}"
+                DEPENDENCY_EXIT_CODE=0
+                DEPENDENCY_OUTPUT="$( wp plugin activate "${DEPENDENCY}" 2>&1 )" || DEPENDENCY_EXIT_CODE=$?
+                printf '%s\n' "${DEPENDENCY_OUTPUT}"
+
+                if [ "${DEPENDENCY_EXIT_CODE}" -ne 0 ]; then
+                  STATUS="SKIPPED"
+                  REASON="The required plugin ${DEPENDENCY} could not be activated"
+                  break
+                fi
+              done
             fi
 
-            # Step 3: boot all of core plus the active plugin in a CLI context.
+            # Step 4: with dependencies active the plugin under test is no longer alone on the site, so
+            # the baseline is checked before it is activated. A site that is already broken says something
+            # about the dependency rather than about the plugin being tested, and blaming the plugin for
+            # it would be the masking this workflow is built to avoid.
+            if [ "${STATUS}" = "PASS" ] && [ "${#DEPENDENCIES[@]}" -gt 0 ]; then
+              for URL_PATH in "/" "/wp-login.php"; do
+                BASELINE_REASON="$( check_url "${URL_PATH}" )"
+
+                if [ -n "${BASELINE_REASON}" ]; then
+                  STATUS="SKIPPED"
+                  REASON="The required plugins are not healthy on their own: ${BASELINE_REASON}"
+                  break
+                fi
+              done
+
+              # Anything the dependencies logged on their way up is not the responsibility of the plugin
+              # under test, so the log starts empty again here.
+              rm -f wp-content/debug.log
+            fi
+
+            # Step 5: activation. Activation runs the plugin's activation hooks and loads its main file.
+            if [ "${STATUS}" = "PASS" ]; then
+              ACTIVATE_EXIT_CODE=0
+              ACTIVATE_OUTPUT="$( wp plugin activate "${SLUG}" 2>&1 )" || ACTIVATE_EXIT_CODE=$?
+              printf '%s\n' "${ACTIVATE_OUTPUT}"
+
+              if [ "${ACTIVATE_EXIT_CODE}" -ne 0 ]; then
+                case "${ACTIVATE_OUTPUT}" in
+                  # Core refuses to activate a plugin whose declared requirements are not met. Dependencies
+                  # are installed above, so what is left here is a plugin asking for a version of PHP or
+                  # WordPress this job is not running, or for a dependency that is not on WordPress.org.
+                  # That is core working as designed rather than a fatal, so it is recorded as skipped.
+                  *"to be installed and activated"* | *"requires PHP version"* | *"requires WordPress version"* )
+                    STATUS="SKIPPED"
+                    REASON="Core declined to activate the plugin because its declared requirements are not met"
+                    ;;
+                  * )
+                    STATUS="FAIL"
+                    REASON="The plugin could not be activated"
+                    ;;
+                esac
+              fi
+            fi
+
+            # Step 6: boot all of core plus the active plugin in a CLI context.
             if [ "${STATUS}" = "PASS" ]; then
               EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )" || true
 
@@ -298,7 +440,7 @@ jobs:
               fi
             fi
 
-            # Step 4: request the front page and the login screen through the PHP built-in server.
+            # Step 7: request the front page and the login screen through the PHP built-in server.
             if [ "${STATUS}" = "PASS" ]; then
               for URL_PATH in "/" "/wp-login.php"; do
                 HTTP_REASON="$( check_url "${URL_PATH}" )"
@@ -311,7 +453,7 @@ jobs:
               done
             fi
 
-            # Step 5: a fatal can be logged without changing the HTTP status, for example during a shutdown
+            # Step 8: a fatal can be logged without changing the HTTP status, for example during a shutdown
             # hook, so the debug log is checked separately.
             if [ "${STATUS}" = "PASS" ] && [ -f wp-content/debug.log ] && grep -q 'PHP Fatal' wp-content/debug.log; then
               grep 'PHP Fatal' wp-content/debug.log
@@ -319,9 +461,16 @@ jobs:
               REASON="A fatal error was logged: $( grep -m 1 'PHP Fatal' wp-content/debug.log | cut -c 1-200 )"
             fi
 
-            # Step 6: record the outcome and put the site back the way it was found.
-            record "${SLUG}" "${VERSION}" "${STATUS}" "${REASON}"
-            cleanup_plugin "${SLUG}" "${PLUGIN_DIR}"
+            # Step 9: record the outcome and put the site back the way it was found.
+            DEPENDENCY_LIST="-"
+
+            if [ "${#DEPENDENCIES[@]}" -gt 0 ]; then
+              DEPENDENCY_LIST="$( printf '%s, ' "${DEPENDENCIES[@]}" )"
+              DEPENDENCY_LIST="${DEPENDENCY_LIST%, }"
+            fi
+
+            record "${SLUG}" "${VERSION}" "${STATUS}" "${DEPENDENCY_LIST}" "${REASON}"
+            cleanup_plugins
 
             printf '%s: %s\n' "${SLUG}" "${STATUS}"
             printf '::endgroup::\n'
@@ -334,18 +483,18 @@ jobs:
           {
             printf '### WordPress %s / PHP %s\n\n' "${WP_VERSION}" "${PHP_VERSION}"
             printf '%s passed, %s failed, %s skipped.\n\n' "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}"
-            printf '| Plugin | Version | Result | Details |\n'
-            printf '| --- | --- | --- | --- |\n'
+            printf '| Plugin | Version | Result | Also active | Details |\n'
+            printf '| --- | --- | --- | --- | --- |\n'
 
-            while IFS=$'\t' read -r ROW_SLUG ROW_VERSION ROW_STATUS ROW_REASON; do
+            while IFS=$'\t' read -r ROW_SLUG ROW_VERSION ROW_STATUS ROW_DEPENDENCIES ROW_REASON; do
               case "${ROW_STATUS}" in
                 PASS ) ICON=':white_check_mark:' ;;
                 FAIL ) ICON=':x:' ;;
                 * ) ICON=':warning:' ;;
               esac
 
-              printf '| [%s](https://wordpress.org/plugins/%s/) | %s | %s %s | %s |\n' \
-                "${ROW_SLUG}" "${ROW_SLUG}" "${ROW_VERSION}" "${ICON}" "${ROW_STATUS}" "${ROW_REASON}"
+              printf '| [%s](https://wordpress.org/plugins/%s/) | %s | %s %s | %s | %s |\n' \
+                "${ROW_SLUG}" "${ROW_SLUG}" "${ROW_VERSION}" "${ICON}" "${ROW_STATUS}" "${ROW_DEPENDENCIES}" "${ROW_REASON}"
             done < "${RESULTS}"
 
             printf '\n'
@@ -354,7 +503,7 @@ jobs:
           # Plugins that could not be downloaded are reported but do not fail the run.
           if [ "${FAIL_COUNT}" -gt 0 ]; then
             printf 'The following plugins failed against WordPress %s:\n' "${WP_VERSION}"
-            awk -F '\t' '$3 == "FAIL" { print "- " $1 " (" $2 "): " $4 }' "${RESULTS}"
+            awk -F '\t' '$3 == "FAIL" { print "- " $1 " (" $2 "): " $5 }' "${RESULTS}"
             exit 1
           fi
 
