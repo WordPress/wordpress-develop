@@ -947,18 +947,21 @@ if ( ! CUSTOM_TAGS ) {
  *
  * @see wp_kses_post() for specifically filtering post content and fields.
  * @see wp_allowed_protocols() for the default allowed protocols in link URLs.
+ * @see wp_sanitize_html() for a modern implementation based on the HTML API.
  *
  * @since 1.0.0
  *
  * @param string         $content           Text content to filter.
  * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
- *                                          or a context name such as 'post'. See wp_kses_allowed_html()
+ *                                          or a context name such as 'post'. {@see wp_kses_allowed_html()}
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Optional. Array of allowed URL protocols.
  *                                          Defaults to the result of wp_allowed_protocols().
  * @return string Filtered content containing only the allowed HTML.
  */
 function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
+	return wp_sanitize_html_kses( (string) $content, $allowed_html, $allowed_protocols );
+
 	if ( empty( $allowed_protocols ) ) {
 		$allowed_protocols = wp_allowed_protocols();
 	}
@@ -968,6 +971,415 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 	$content = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
 
 	return wp_kses_split( $content, $allowed_html, $allowed_protocols );
+}
+
+/**
+ * Filters HTML content, sanitizing according to given policies.
+ *
+ * Modern implementation of {@see wp_kses()} which parses via the HTML API.
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string $content              Text content to filter.
+ * @param array[]|string $allowed_html An array of allowed HTML elements and attributes,
+ *                                     or a context name such as 'post'. See wp_kses_allowed_html()
+ *                                     for the list of accepted context names.
+ * @param string[] $allowed_protocols  Optional. Array of allowed URL protocols.
+ *                                     Defaults to the result of wp_allowed_protocols().
+ * @return string Filtered content containing only the allowed HTML.
+ */
+function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = array() ) {
+	$allowed_html = is_array( $allowed_html )
+		? $allowed_html
+		: wp_kses_allowed_html( $allowed_html );
+
+	$allowed_protocols = empty( $allowed_protocols )
+		? wp_allowed_protocols()
+		: $allowed_protocols;
+
+	/*
+	 * The explanation for this call is that “the quoting from `preg_replace(//e)`
+	 * requires” it, but this version of `wp_kses()` doesn’t rely on PCRE functions
+	 * to parse HTML. Given that this corrupts text, it will be skipped.
+	 */
+	//$content = wp_kses_stripslashes( $content );
+
+	$processor = new class( $content, $allowed_html, $allowed_protocols ) extends WP_HTML_Tag_Processor {
+		private $allowed_html;
+
+		private $allowed_protocols;
+
+		private $uris;
+
+		public function __construct( $html, $allowed_html, $allowed_protocols ) {
+			parent::__construct( $html );
+
+			$this->allowed_html      = $allowed_html;
+			$this->allowed_protocols = $allowed_protocols;
+			$this->uris              = wp_kses_uri_attributes();
+		}
+
+		private function get_span() {
+			$this->set_bookmark( 'here' );
+
+			if ( ! isset( $this->bookmarks['here'] ) ) {
+				return null;
+			}
+
+			return $this->bookmarks['here'];
+		}
+
+		public function set_attribute( $name, $value ): bool {
+			$given_value = $value;
+			$is_url_ish  = in_array( $name, $this->uris, true );
+
+			if ( is_string( $value ) && '' !== $value && $is_url_ish ) {
+				$value = wp_kses_bad_protocol( $value, $this->allowed_protocols );
+			}
+
+			if ( ! parent::set_attribute( $name, $value ) ) {
+				return false;
+			}
+
+			/**
+			 * Legacy `wp_kses()` does not add the http/https prefix that `esc_url()` adds
+			 * when a given URL contains a relative path containing no path separators,
+			 * e.g. "foo" or "smile.png". This "undo" preserves that behavior.
+			 *
+			 * This stems from an ambiguity inside {@see \esc_url()} whereby it treats URLs
+			 * with no path separators, no `?`, and no `#` as domains, thus prefixing the
+			 * HTTP protocol.
+			 */
+			if ( $is_url_ish ) {
+				$lower_name     = strtolower( $name );
+				$enqueued_value = $this->lexical_updates[ $lower_name ]->text;
+				$enqueued_value = substr( $enqueued_value, strpos( $enqueued_value, '"' ) + 1, -1 );
+				$enqueued_value = WP_HTML_Decoder::decode_attribute( $enqueued_value );
+				$had_no_prefix  = 1 !== preg_match( '~^[a-z][a-z0-9-]*://~i', $given_value );
+				$has_prefix     = 1 === preg_match( '~^https?://~', $enqueued_value );
+
+				if ( $had_no_prefix && $has_prefix ) {
+					$escaped                                    = strtr(
+						$value,
+						array(
+							'<' => '&lt;',
+							'>' => '&gt;',
+							'&' => '&amp;',
+							'"' => '&quot;',
+							"'" => '&apos;',
+						)
+					);
+					$this->lexical_updates[ $lower_name ]->text = " {$lower_name}=\"{$escaped}\"";
+				}
+			}
+
+			return true;
+		}
+
+		/**
+		 * Returns a sanitized copy of the input HTML.
+		 *
+		 * @return string Sanitized copy of given input HTML.
+		 */
+		public function sanitize() {
+			$template_depth = 0;
+			$output         = '';
+
+			/**
+			 * These are treated as void elements inside the HTML API
+			 * due to the special handling of their inner text content.
+			 */
+			$special_atomic_elements = array(
+				'IFRAME',
+				'NOEMBED',
+				'NOFRAMES',
+				'SCRIPT',
+				'STYLE',
+				'TEXTAREA',
+				'TITLE',
+				'XMP',
+			);
+
+			while ( $this->next_token() ) {
+				$token_name = $this->get_token_name();
+				$token_type = $this->get_token_type();
+				$is_closer  = $this->is_tag_closer();
+				$text       = $this->get_modifiable_text();
+				$here       = $this->get_span();
+
+				/*
+				 * Without running the full HTML Processor, it’s not easy to know
+				 * when these sections end, and since they introduce different
+				 * parsing rules with the change of namespace, it’s best to end
+				 * processing entirely when encountering these.
+				 */
+				if ( ! $is_closer && in_array( $token_name, array( 'MATH', 'SVG' ), true ) ) {
+					return $output;
+				}
+
+				if ( 'TEMPLATE' === $token_name ) {
+					if ( $template_depth > 0 && $is_closer ) {
+						--$template_depth;
+					} elseif ( ! $is_closer ) {
+						++$template_depth;
+					}
+				}
+
+				if ( $template_depth > 0 && ! isset( $this->allowed_html['template'] ) ) {
+					continue;
+				}
+
+				switch ( $token_type ) {
+					case '#text':
+						$text = strtr(
+							$text,
+							array(
+								'<' => '&lt;',
+								'&' => '&amp;',
+								'>' => '&gt;',
+								/*
+								 * Keep compatibility with legacy `wp_kses()`.
+								 * These don’t need to be escaped, but they may.
+								 * The value in escaping them is preventing errant
+								 * PCRE patterns from catching them. In fact, only
+								 * the `<` and `&` are required to be escaped.
+								 */
+								// "'" => '&apos;',
+								// '"' => '&quot;',
+							)
+						);
+
+						$output .= $text;
+						break;
+
+					/*
+					 * Untrusted sources should not be creating these kinds of tokens,
+					 * so remove them entirely from the output.
+					 */
+					case '#doctype':
+					case '#presumptuous-tag':
+					case '#processing-instruction':
+						break;
+
+					/*
+					 * It’s questionable whether these should be allowed through, but
+					 * the legacy behavior supports it. Therefore, allow them as long
+					 * as they don’t contain potentially confusing syntax characters.
+					 */
+					case '#funky-comment':
+						if ( ! str_contains( $text, '<' ) ) {
+							$output .= substr( $this->html, $here->start, $here->length );
+						}
+						break;
+
+					/*
+					 * `wp_kses()` runs iteratively on the content inside of these tokens,
+					 * but the content is benign in a browser.
+					 */
+					case '#comment':
+						/*
+						 * Disallow comment types as they are more prone to cause problems
+						 * for downstream parsers that might mistake them for non-comments.
+						 */
+						if ( WP_HTML_Tag_Processor::COMMENT_AS_HTML_COMMENT !== $this->get_comment_type() ) {
+							break;
+						}
+
+						// Apply special filtering for block comment delimiters with JSON attributes.
+						$comment         = substr( $this->html, $here->start, $here->length );
+						$block_processor = new WP_Block_Processor( $comment );
+						if ( $block_processor->next_token() && $block_processor->opens_block() ) {
+							$original_attributes = $block_processor->allocate_and_return_parsed_attributes();
+
+							if ( isset( $original_attributes ) ) {
+								$block_type = $block_processor->get_block_type();
+								$block_type = str_starts_with( $block_type, 'core/' )
+									? substr( $block_type, /* 'core/' */ 5 )
+									: $block_type;
+
+								$filtered_attributed = filter_block_kses_value(
+									$original_attributes,
+									$this->allowed_html,
+									$this->allowed_protocols,
+									array( 'blockName' => $block_type )
+								);
+
+								if ( $original_attributes !== $filtered_attributed ) {
+									$serialized_attributes = serialize_block_attributes( $filtered_attributed );
+									$voider                = WP_Block_Processor::VOID === $block_processor->get_delimiter_type() ? '/' : '';
+									$text                  = " wp:{$block_type} {$serialized_attributes} {$voider}";
+								}
+							}
+						}
+
+						$output .= "<!--{$text}-->";
+						break;
+
+					/*
+					 * True CDATA sections only exist within embedded SVG and MathML content,
+					 * where they represent text data without any escaping, and where downstream
+					 * parsers are generally reliable enough. In fact, most downstream parsers
+					 * are more likely to properly detect true CDATA sections than the lookalikes
+					 * that exist for elements in the HTML namespace. Copy the token verbatim.
+					 */
+					case '#cdata-section':
+						$output .= substr( $this->html, $here->start, $here->length );
+						break;
+
+					case '#tag':
+						$tag_name = strtolower( $token_name );
+
+						// Skip unallowed elements by tag name
+						if ( ! isset( $this->allowed_html[ $tag_name ] ) ) {
+							if ( 'TEMPLATE' === $token_name && ! $is_closer ) {
+								$this->skip_opened_template();
+							}
+
+							break;
+						}
+
+						if ( $is_closer ) {
+							$output .= "</{$tag_name}>";
+							break;
+						}
+
+						$is_special_atomic_element = in_array( $token_name, $special_atomic_elements, true );
+
+						$expects_closer = ! (
+							WP_HTML_Processor::is_void( $token_name ) ||
+							$is_special_atomic_element
+						);
+
+						$closing_tag = $is_special_atomic_element ? "</{$tag_name}>" : '';
+
+						$attribute_names    = $this->get_attribute_names_with_prefix( '' );
+						$element_attributes = $this->allowed_html[ $tag_name ];
+
+						// Check for required attributes.
+						$required_attributes = array();
+						if ( is_array( $element_attributes ) ) {
+							foreach ( $element_attributes as $name => $spec ) {
+								if ( true === ( $spec['required'] ?? false ) ) {
+									$required_attributes[ $name ] = true;
+								}
+							}
+						}
+
+						/*
+						 * Allow `data-*` attributes.
+						 *
+						 * When specifying `$allowed_html`, the attribute name should be set as
+						 * `data-*` (not to be mixed with the HTML 4.0 `data` attribute, see
+						 * https://www.w3.org/TR/html40/struct/objects.html#adef-data).
+						 *
+						 * Note: the attribute name should only contain `A-Za-z0-9_-` chars.
+						 */
+						if ( ! empty( $element_attributes['data-*'] ) ) {
+							if ( is_array( $attribute_names ) ) {
+								foreach ( $attribute_names as $name ) {
+									if ( ! str_starts_with( $name, 'data-' ) ) {
+										continue;
+									}
+
+									if ( 1 !== preg_match( '/^data-[a-z0-9_-]+$/', $name ) ) {
+										continue;
+									}
+
+									$element_attributes[ $name ] = $element_attributes['data-*'];
+								}
+							}
+
+							unset( $element_attributes['data-*'] );
+						}
+
+						$tag_maker = new self(
+							"<{$tag_name}>{$closing_tag}",
+							$this->allowed_html,
+							$this->allowed_protocols
+						);
+						$tag_maker->next_token();
+						if ( is_array( $attribute_names ) ) {
+							foreach ( $attribute_names as $name ) {
+								$spec = $element_attributes[ $name ] ?? null;
+
+								// This attribute is not specified, thus not allowed. Skip it.
+								if ( null === $spec || '' === $spec ) {
+									continue;
+								}
+
+								$raw_value = $this->get_attribute( $name );
+								$value     = is_string( $raw_value ) ? $raw_value : '';
+
+								// Process the style attribute through CSS sanitization.
+								if ( 'style' === $name && is_string( $raw_value ) ) {
+									$style = safecss_filter_attr( $value );
+									$tag_maker->set_attribute( 'style', $style );
+									unset( $required_attributes['style'] );
+									continue;
+								}
+
+								/*
+								 * Process the remaining attributes according to their policies.
+								 *
+								 * Non-array values for the attribute specification are assumed
+								 * to be `true`, thus permitting the attribute.
+								 */
+								if ( is_array( $spec ) ) {
+									foreach ( $spec as $property => $constraint ) {
+										$vless = true === $raw_value ? 'y' : 'n';
+
+										if ( ! wp_kses_check_attr_val( $value, $vless, $property, $constraint ) ) {
+											continue 2;
+										}
+									}
+								}
+
+								if ( true === $raw_value && '' === $value ) {
+									$tag_maker->set_attribute( $name, true );
+								} else {
+									$tag_maker->set_attribute( $name, $value );
+								}
+								unset( $required_attributes[ $name ] );
+							}
+						}
+
+						if ( ! empty( $required_attributes ) ) {
+							if ( ! $expects_closer ) {
+								break;
+							}
+
+							/*
+							 * Since this processor cannot track nesting of HTML elements
+							 * generally, leave opening tags when required attributes are
+							 * missing, but strip them of their attributes.
+							 */
+							$output .= "<{$tag_name}>";
+							break;
+						}
+
+						if ( $is_special_atomic_element ) {
+							$tag_maker->set_modifiable_text( $text );
+						}
+
+						$output .= $tag_maker->get_updated_html();
+						break;
+				}
+			}
+
+			/*
+			 * While there might have been an incomplete token in the output stream,
+			 * there is no need to render it to the output. They would disappear on
+			 * their own in a browser if they ended the document, but here they do
+			 * not end the document; instead, they are likely being inserted into an
+			 * existing document, where the incomplete token might mess with the rest
+			 * of the page’s HTML structure.
+			 */
+
+			return $output;
+		}
+	};
+
+	return $processor->sanitize();
 }
 
 /**
