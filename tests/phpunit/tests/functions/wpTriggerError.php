@@ -110,7 +110,7 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 			'disallowed HTML elements are present in message' => array(
 				'function_name'    => 'some_function',
 				'message'          => '<script>alert("expected the function name and message")</script>',
-				'expected_message' => 'some_function(): alert("expected the function name and message")',
+				'expected_message' => 'some_function(): ',
 			),
 		);
 	}

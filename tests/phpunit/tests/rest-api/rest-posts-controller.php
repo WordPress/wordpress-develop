@@ -4665,16 +4665,16 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 				// Expected returned values.
 				array(
 					'title'   => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'content' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'excerpt' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				),
 			),
@@ -4717,16 +4717,16 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 				),
 				array(
 					'title'   => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'content' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'excerpt' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				)
 			);

@@ -333,11 +333,11 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'core/arrow-left', $data['name'] );
 		$this->assertSame( 'Arrow Left', $data['label'] );
 		$this->assertNotEmpty( $data['content'] );
-		$this->assertStringStartsWith(
-			'<svg xmlns="',
-			$data['content'],
-			'Icon content should match the actual SVG asset'
-		);
+
+		$processor = new WP_HTML_Tag_Processor( $data['content'] );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( 'SVG', $processor->get_tag(), 'Icon content should match the actual SVG asset' );
+		$this->assertSame( 'http://www.w3.org/2000/svg', $processor->get_attribute( 'xmlns' ), 'Icon content should match the actual SVG asset' );
 	}
 
 	/**

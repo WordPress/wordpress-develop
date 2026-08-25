@@ -1843,16 +1843,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				// Expected returned values.
 				array(
 					'title'       => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'description' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'caption'     => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				),
 			),
@@ -1897,16 +1897,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				),
 				array(
 					'title'       => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'description' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'caption'     => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				)
 			);
