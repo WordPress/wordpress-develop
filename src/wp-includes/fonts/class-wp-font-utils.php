@@ -29,7 +29,7 @@ class WP_Font_Utils {
 	 * @param string $item A font family name.
 	 * @return string The font family name with surrounding quotes, if necessary.
 	 */
-	private static function maybe_add_quotes( $item ) {
+	public static function normalize_css_font_family_name( $item ) {
 		// Matches strings that are not exclusively alphabetic characters or hyphens, and do not exactly follow the pattern generic(alphabetic characters or hyphens).
 		$regex = '/^(?!generic\([a-zA-Z\-]+\)$)(?!^[a-zA-Z\-]+$).+/';
 		$item  = trim( $item );
@@ -67,14 +67,14 @@ class WP_Font_Utils {
 		if ( str_contains( $output, ',' ) ) {
 			$items = explode( ',', $output );
 			foreach ( $items as $item ) {
-				$formatted_item = self::maybe_add_quotes( $item );
+				$formatted_item = self::normalize_css_font_family_name( $item );
 				if ( ! empty( $formatted_item ) ) {
 					$formatted_items[] = $formatted_item;
 				}
 			}
 			return implode( ', ', $formatted_items );
 		}
-		return self::maybe_add_quotes( $output );
+		return self::normalize_css_font_family_name( $output );
 	}
 
 	/**
