@@ -166,6 +166,16 @@ Description: Used to style blocks in the editor.
 
 /* Tables */
 
+.editor-styles-wrapper .wp-block-table {
+	font-size: 14px;
+}
+
+.editor-styles-wrapper .wp-block-table table,
+.editor-styles-wrapper .wp-block-table table th,
+.editor-styles-wrapper .wp-block-table table td {
+	font-size: inherit;
+}
+
 .editor-styles-wrapper table,
 .editor-styles-wrapper table th,
 .editor-styles-wrapper table td {
@@ -197,6 +207,18 @@ Description: Used to style blocks in the editor.
 	border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Calendar */
+
+.editor-styles-wrapper .wp-block-calendar {
+	font-size: 14px;
+}
+
+.editor-styles-wrapper .wp-block-calendar table,
+.editor-styles-wrapper .wp-block-calendar table th,
+.editor-styles-wrapper .wp-block-calendar table td {
+	font-size: inherit;
+}
+
 /* Quotes */
 
 .wp-block-freeform.block-library-rich-text__tinymce blockquote {
@@ -216,6 +238,7 @@ Description: Used to style blocks in the editor.
 .editor-block-list__block .wp-block-table td {
 	padding: 0;
 }
+
 
 /*--------------------------------------------------------------
 3.0 Blocks - Common Blocks
