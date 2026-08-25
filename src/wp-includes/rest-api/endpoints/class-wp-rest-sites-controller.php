@@ -408,10 +408,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
 		}
 
-		if ( is_super_admin() ) {
-			return true;
-		}
-
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'manage_sites' ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit sites.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
@@ -454,10 +450,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! is_multisite() ) {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
-		}
-
-		if ( is_super_admin() ) {
-			return true;
 		}
 
 		return current_user_can( 'create_sites' );
@@ -682,7 +674,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! current_user_can( 'delete_sites' ) && ! is_super_admin() ) {
+		if ( ! current_user_can( 'delete_sites' ) ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete this site.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -1336,10 +1328,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! is_multisite() ) {
 			return false;
-		}
-
-		if ( is_super_admin() ) {
-			return true;
 		}
 
 		return current_user_can( 'manage_sites' );
