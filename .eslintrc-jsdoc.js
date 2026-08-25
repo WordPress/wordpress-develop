@@ -53,6 +53,7 @@ module.exports = [
 				],
 			} ],
 			'jsdoc/require-param-type': 'error',
+			'jsdoc/require-returns-check': 'error',
 			'jsdoc/require-returns-description': 'error',
 
 			// Disable all other jsdoc rules to match minimal original requirements
@@ -85,7 +86,6 @@ module.exports = [
 			'jsdoc/require-property-name': 'off',
 			'jsdoc/require-property-type': 'off',
 			'jsdoc/require-returns': 'off',
-			'jsdoc/require-returns-check': 'off',
 			'jsdoc/require-returns-type': 'off',
 			'jsdoc/require-throws': 'off',
 			'jsdoc/require-yields': 'off',
