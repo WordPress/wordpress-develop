@@ -172,6 +172,8 @@ class WP_Term_Query {
 	 *                                                   are passed, `$child_of` is ignored. Default 0.
 	 *     @type int             $parent                 Parent term ID to retrieve direct-child terms of.
 	 *                                                   Default empty.
+	 *     @type int[]           $parents__in            Array of comma separated parent terms ID to retrieve child terms of given array.
+	 *                                                   Default empty array.
 	 *     @type bool            $childless              True to limit results to terms that have no children.
 	 *                                                   This parameter has no effect on non-hierarchical taxonomies.
 	 *                                                   Default false.
@@ -217,6 +219,7 @@ class WP_Term_Query {
 			'get'                    => '',
 			'child_of'               => 0,
 			'parent'                 => '',
+			'parents__in'            => array(),
 			'childless'              => false,
 			'cache_domain'           => 'core',
 			'cache_results'          => true,
@@ -613,6 +616,12 @@ class WP_Term_Query {
 		if ( '' !== $parent ) {
 			$parent                               = (int) $parent;
 			$this->sql_clauses['where']['parent'] = "tt.parent = '$parent'";
+		}
+
+		$parents__in = array_filter( $args['parents__in'], 'intval' );
+		if( ! empty( $parents__in ) && is_array( $parents__in ) ) {
+			$parents__in = implode( ', ', $parents__in );
+			$this->sql_clauses['where']['parent'] = "tt.parent IN ( $parents__in ) ";
 		}
 
 		$hierarchical = $args['hierarchical'];
