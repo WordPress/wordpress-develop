@@ -555,7 +555,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$slugs = wp_list_pluck( _get_block_templates_files( $template_type ), 'slug' );
 		sort( $slugs );
 
-		// Collect every directory for cleanup
+		// Collect every directory for cleanup.
 		$directories = array( $theme_root );
 		foreach ( $files as $file_path ) {
 			$directory = dirname( $file_path );
