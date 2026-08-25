@@ -618,6 +618,16 @@ class Tests_Block_Template extends WP_UnitTestCase {
 				'template_type'   => 'wp_template',
 				'expected_slugs'  => array( 'footer', 'index' ),
 			),
+			'template parts in a theme placed inside a directory named parts' => array(
+				'theme_directory' => 'parts/default',
+				'template_type'   => 'wp_template_part',
+				'expected_slugs'  => array( 'footer', 'footer-parts/header', 'header' ),
+			),
+			'templates in a theme placed inside a directory named templates' => array(
+				'theme_directory' => 'templates/default',
+				'template_type'   => 'wp_template',
+				'expected_slugs'  => array( 'footer', 'index' ),
+			),
 		);
 	}
 
