@@ -137,7 +137,33 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 			),
 		);
 
+		$this->schema = $this->add_fields_to_navigation_fallback_embedded_links( $this->schema );
+
 		return $this->add_additional_fields_schema( $this->schema );
+	}
+
+	/**
+	 * Adds additional fields to the embeddable links of the Navigation Fallback REST endpoint.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param array $schema The schema for the `wp_navigation` post.
+	 * @return array The modified schema.
+	 */
+	public function add_fields_to_navigation_fallback_embedded_links( $schema ) {
+		// Expose top level fields.
+		$schema['properties']['status']['context']  = array_merge( $schema['properties']['status']['context'], array( 'embed' ) );
+		$schema['properties']['content']['context'] = array_merge( $schema['properties']['content']['context'], array( 'embed' ) );
+
+		//Exposes sub properties of content field.
+
+		$schema['properties']['content']['properties']['raw']['context']           = array_merge( $schema['properties']['content']['properties']['raw']['context'], array( 'embed' ) );
+		$schema['properties']['content']['properties']['rendered']['context']      = array_merge( $schema['properties']['content']['properties']['rendered']['context'], array( 'embed' ) );
+		$schema['properties']['content']['properties']['block_version']['context'] = array_merge( $schema['properties']['content']['properties']['block_version']['context'], array( 'embed' ) );
+
+		//Exposes sub properties of title field.
+		$schema['properties']['title']['properties']['raw']['context'] = array_merge( $schema['properties']['title']['properties']['raw']['context'], array( 'embed' ) );
+		return $schema;
 	}
 
 	/**
