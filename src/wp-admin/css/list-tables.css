@@ -54,7 +54,7 @@
 	padding: 0 8px;
 	min-width: 24px;
 	height: 2em;
-	border-radius: 5px;
+	border-radius: 4px;
 	background-color: #646970;
 	color: #fff;
 	font-size: 11px;
@@ -98,7 +98,7 @@
 	min-width: 7px;
 	height: 17px;
 	border: 2px solid #fff;
-	border-radius: 11px;
+	border-radius: 12px;
 	background: #d63638;
 	color: #fff;
 	font-size: 9px;
@@ -406,7 +406,7 @@ table.media .column-title .filename {
 	transform: translate(-50%, -100%);
 	background: #000;
 	color: #fff;
-	border-radius: 5px;
+	border-radius: 4px;
 	margin: 0;
 	padding: 2px 5px;
 }
@@ -1213,7 +1213,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	height: 26px;
 	margin: 0 0 0 -26px;
 	text-align: center;
-	border-radius: 3px;
+	border-radius: 2px;
 }
 
 #bulk-titles .ntdelbutton:before {
