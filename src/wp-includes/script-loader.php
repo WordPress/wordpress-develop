@@ -1451,6 +1451,9 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard' ), false, 1 );
 		$scripts->set_translations( 'post' );
 
+		$scripts->add( 'site-editor-post-lock', "/wp-admin/js/site-editor-post-lock$suffix.js", array( 'jquery', 'heartbeat', 'wp-data', 'wp-i18n' ), false, 1 );
+		$scripts->set_translations( 'site-editor-post-lock' );
+
 		$scripts->add( 'editor-expand', "/wp-admin/js/editor-expand$suffix.js", array( 'jquery', 'underscore' ), false, 1 );
 
 		$scripts->add( 'link', "/wp-admin/js/link$suffix.js", array( 'wp-lists', 'postbox' ), false, 1 );
