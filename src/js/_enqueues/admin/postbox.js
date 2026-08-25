@@ -217,9 +217,11 @@
 			// Enable all buttons as a reset first.
 			moveUpButtons
 				.attr( 'aria-disabled', 'false' )
+				.prop( 'disabled', false )
 				.removeClass( 'hidden' );
 			moveDownButtons
 				.attr( 'aria-disabled', 'false' )
+				.prop( 'disabled', false )
 				.removeClass( 'hidden' );
 
 			// When there's only one "sortables" area (e.g. in the block editor) and only one visible postbox, hide the buttons.
@@ -230,12 +232,16 @@
 
 			// Set an aria-disabled=true attribute on the first visible "move" buttons.
 			if ( firstSortablesId === firstPostboxSortablesId ) {
-				$( firstPostbox ).find( '.handle-order-higher' ).attr( 'aria-disabled', 'true' );
+				$( firstPostbox ).find( '.handle-order-higher' )
+					.attr( 'aria-disabled', 'true' )
+					.prop( 'disabled', true );
 			}
 
 			// Set an aria-disabled=true attribute on the last visible "move" buttons.
 			if ( lastSortablesId === lastPostboxSortablesId ) {
-				$( '.postbox:visible .handle-order-lower' ).last().attr( 'aria-disabled', 'true' );
+				$( '.postbox:visible .handle-order-lower' ).last()
+					.attr( 'aria-disabled', 'true' )
+					.prop( 'disabled', true );
 			}
 		},
 
