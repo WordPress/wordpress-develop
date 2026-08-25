@@ -417,6 +417,7 @@ HTML
 		$this->assertSame(
 			$transformed,
 			$processor->get_updated_html(),
+			'<body>',
 			"Should have transformed the HTML as expected when modifying the target node's modifiable text."
 		);
 	}

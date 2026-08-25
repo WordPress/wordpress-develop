@@ -92,7 +92,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertSame( '<script>Test</script>', $post->post_title );
+		$this->assertSame( 'Talking about: <script>Test</script>', $post->post_title );
 		$this->assertSame( 'draft', $post->post_status );
 
 		kses_init_filters();

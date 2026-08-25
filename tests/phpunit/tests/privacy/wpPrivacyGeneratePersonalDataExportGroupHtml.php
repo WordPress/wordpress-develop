@@ -174,7 +174,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 				array(
 					'scripts' => array(
 						'name'  => 'Script tags are not allowed.',
-						'value' => '<script>Testing that script tags are stripped.</script>',
+						'value' => 'Before<script>Testing that script tags are stripped.</script>After',
 					),
 					'images'  => array(
 						'name'  => 'Images are not allowed',
@@ -187,7 +187,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 		$actual = wp_privacy_generate_personal_data_export_group_html( $data, 'test-data-group', 2 );
 
 		$this->assertStringNotContainsString( $data['items'][0]['scripts']['value'], $actual );
-		$this->assertStringContainsString( '<td>Testing that script tags are stripped.</td>', $actual );
+		$this->assertStringContainsString( '<td>BeforeAfter</td>', $actual );
 
 		$this->assertStringNotContainsString( $data['items'][0]['images']['value'], $actual );
 		$this->assertStringContainsString( '<th>Images are not allowed</th><td></td>', $actual );
