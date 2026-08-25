@@ -322,6 +322,51 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			echo $blocked_message;
 		}
 
+		$existing_plugin_file = '';
+
+		foreach ( $all_plugins as $plugin => $plugin_data ) {
+			if ( strrpos( $plugin, $folder ) === 0 ) {
+				$existing_plugin_file = $plugin;
+				break;
+			}
+		}
+
+		if ( $existing_plugin_file ) {
+			$from = isset( $_GET['from'] ) ? wp_unslash( $_GET['from'] ) : 'plugins';
+
+			if ( ! is_plugin_active( $existing_plugin_file ) && current_user_can( 'activate_plugin', $existing_plugin_file ) ) {
+				if ( 'import' === $from ) {
+					$install_actions['activate_existing_plugin'] = sprintf(
+						'<a class="button button-primary" href="%s" target="_parent">%s</a>',
+						wp_nonce_url( 'plugins.php?action=activate&amp;from=import&amp;plugin=' . urlencode( $existing_plugin_file ), 'activate-plugin_' . $existing_plugin_file ),
+						__( 'Activate Existing Plugin &amp; Run Importer' )
+					);
+				} elseif ( 'press-this' === $from ) {
+					$install_actions['activate_existing_plugin'] = sprintf(
+						'<a class="button button-primary" href="%s" target="_parent">%s</a>',
+						wp_nonce_url( 'plugins.php?action=activate&amp;from=press-this&amp;plugin=' . urlencode( $existing_plugin_file ), 'activate-plugin_' . $existing_plugin_file ),
+						__( 'Activate Existing Plugin &amp; Go to Press This' )
+					);
+				} else {
+					$install_actions['activate_existing_plugin'] = sprintf(
+						'<a class="button button-primary" href="%s" target="_parent">%s</a>',
+						wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $existing_plugin_file ), 'activate-plugin_' . $existing_plugin_file ),
+						__( 'Activate Existing Plugin' )
+					);
+				}
+
+				if ( is_multisite() && current_user_can( 'manage_network_plugins' ) ) {
+					$install_actions['network_activate_existing'] = sprintf(
+						'<a class="button button-primary" href="%s" target="_parent">%s</a>',
+						wp_nonce_url( 'plugins.php?action=activate&amp;networkwide=1&amp;plugin=' . urlencode( $existing_plugin_file ), 'activate-plugin_' . $existing_plugin_file ),
+						_x( 'Network Activate Existing Plugin', 'plugin' )
+					);
+
+					unset( $install_actions['activate_existing_plugin'] );
+				}
+			}
+		}
+
 		$cancel_url = add_query_arg( 'action', 'upload-plugin-cancel-overwrite', $this->url );
 
 		$install_actions['plugins_page'] = sprintf(
