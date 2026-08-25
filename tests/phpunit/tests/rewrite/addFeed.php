@@ -41,6 +41,13 @@ class Tests_Rewrite_AddFeed extends WP_UnitTestCase {
 		foreach ( array_keys( $rules ) as $pattern ) {
 			if ( str_contains( $pattern, $expected_pattern ) ) {
 				$found = true;
+
+				// Confirm the full rewrite rule pattern is a syntactically valid regex.
+				$this->assertNotFalse(
+					preg_match( '#' . $pattern . '#', '' ),
+					sprintf( 'The rewrite rule pattern "%s" is not a valid regular expression.', $pattern )
+				);
+
 				break;
 			}
 		}
@@ -50,8 +57,9 @@ class Tests_Rewrite_AddFeed extends WP_UnitTestCase {
 
 	public function data_add_feed_is_escaped_in_rules() {
 		return array(
-			array( 'test[json]', 'test\[json\]' ),
-			array( 'json', 'json' ),
+			'plain name'          => array( 'json', 'json' ),
+			'character class'     => array( 'test[json]', 'test\[json\]' ),
+			'quantifier chars'    => array( 'test???', 'test\?\?\?' ),
 		);
 	}
 }
