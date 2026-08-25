@@ -42,7 +42,7 @@ module.exports = [
 					'memberOf',
 					'output',
 					'ticket',
-					'var',
+					'link',
 				],
 			} ],
 			'jsdoc/require-param': [ 'error', {
