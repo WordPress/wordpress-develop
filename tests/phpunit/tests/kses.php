@@ -2910,4 +2910,36 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * @dataProvider data_kses_stripslashes
+	 *
+	 * @ticket TBD
+	 *
+	 * @param string $input    Input string.
+	 * @param array  $expected Expected result after applying `wp_kses_stripslashes()`.
+	 */
+	public function test_kses_stripslashes( $input, $expected ) {
+		$this->assertSame( $expected, wp_kses_stripslashes( $input ) );
+	}
+
+	/**
+	 * Data provider for test_specific_attributes_preserved_in_context.
+	 *
+	 * @return array
+	 */
+	public static function data_kses_stripslashes() {
+		return array(
+			'Text untouched'                      => array( 'Text is untouched', 'Text is untouched' ),
+			'Multibyte untouched'                 => array( 'áêiõü🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'áêiõü🏴󠁧󠁢󠁥󠁮󠁧󠁿' ),
+			'HTML characters untouched'           => array( '<>&\'"', '<>&\'"' ),
+			'" on its own untouched'              => array( '"', '"' ),
+			'\\" to "'                            => array( '\\"', '"' ),
+			'\\\' ignored'                        => array( '\\\'', '\\\'' ),
+			'\\ ignored'                          => array( '\\', '\\' ),
+
+			'unescaped \\ before " is stripped'   => array( '\\\\\\"', '\\\\"' ),
+			'escaped \\ before " is not stripped' => array( '\\\\"', '\\\\"' ),
+		);
+	}
 }

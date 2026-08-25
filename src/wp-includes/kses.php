@@ -2041,7 +2041,7 @@ function wp_kses_no_null( $content, $options = null ) {
  * @return string Fixed string with quoted slashes.
  */
 function wp_kses_stripslashes( $content ) {
-	return preg_replace( '%\\\\"%', '"', $content );
+	return preg_replace( '%(?<!\\\\)(\\\\\\\\)*\\\\"%', '$1"', $content );
 }
 
 /**
