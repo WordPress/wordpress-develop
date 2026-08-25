@@ -21,21 +21,21 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$slug_theme_root = sys_get_temp_dir() . '/wp-tests-block-template-slug-' . uniqid();
 
-		$files = array(
-			'parts/header.html'              => '<!-- wp:template-part /-->',
-			'parts/footer.html'              => '<!-- wp:template-part /-->',
-			'parts/footer-parts/header.html' => '<!-- wp:template-part /-->',
-			'templates/index.html'           => '<!-- wp:template-part /-->',
-			'templates/footer.html'          => '<!-- wp:template-part /-->',
+		$relative_paths = array(
+			'parts/header.html',
+			'parts/footer.html',
+			'parts/footer-parts/header.html',
+			'templates/index.html',
+			'templates/footer.html',
 		);
 
 		// The same template tree is created under each directory name used by
 		// the data provider, so that only the theme directory name varies.
 		foreach ( array( 'default', 'auto-parts', 'parts', 'my-templates' ) as $theme_directory ) {
-			foreach ( $files as $relative_path => $content ) {
+			foreach ( $relative_paths as $relative_path ) {
 				$file_path = self::$slug_theme_root . '/' . $theme_directory . '/' . $relative_path;
 				wp_mkdir_p( dirname( $file_path ) );
-				file_put_contents( $file_path, $content );
+				touch( $file_path );
 			}
 		}
 	}
