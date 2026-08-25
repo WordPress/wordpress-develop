@@ -1104,7 +1104,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 				),
 				array(
 					'name'        => 'div strong',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 				)
 			);
 		} else {
@@ -1116,7 +1116,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 				),
 				array(
 					'name'        => 'div strong',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 				)
 			);
 		}
@@ -1149,7 +1149,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			array(
 				'name'        => 'div strong',
-				'description' => 'div <strong>strong</strong> oh noes',
+				'description' => 'div <strong>strong</strong> ',
 			)
 		);
 	}
