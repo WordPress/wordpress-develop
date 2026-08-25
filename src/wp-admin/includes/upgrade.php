@@ -2422,11 +2422,10 @@ function upgrade_650() {
  * @ignore
  * @since 6.9.0
  *
- * @global int  $wp_current_db_version The old (current) database version.
- * @global wpdb $wpdb                  WordPress database abstraction object.
+ * @global int $wp_current_db_version The old (current) database version.
  */
 function upgrade_690() {
-	global $wp_current_db_version, $wpdb;
+	global $wp_current_db_version;
 
 	// Switch Hello Dolly from file to directory format. See #53323
 	$active_plugins = get_option( 'active_plugins' );
@@ -2437,11 +2436,6 @@ function upgrade_690() {
 	if ( $key ) {
 		$active_plugins[ $key ] = $new_plugin;
 		update_option( 'active_plugins', $active_plugins );
-	}
-
-	if ( $wp_current_db_version < 60498 ) {
-		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_post_date_gmt (post_type,post_status,post_date_gmt)" );
-		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_modified_date_gmt (post_type,post_status,post_modified_gmt)" );
 	}
 }
 /**
@@ -2507,6 +2501,24 @@ function upgrade_682() {
 		$ping_sites_value = array_filter( $ping_sites_value );
 		$ping_sites_value = implode( "\n", $ping_sites_value );
 		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 7.2.0.
+ *
+ * @ignore
+ * @since 7.2.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_720() {
+	global $wp_current_db_version, $wpdb;
+
+	if ( $wp_current_db_version < 61900 ) {
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_post_date_gmt (post_type,post_status,post_date_gmt)" );
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_modified_date_gmt (post_type,post_status,post_modified_gmt)" );
 	}
 }
 
