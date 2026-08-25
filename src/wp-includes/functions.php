@@ -4059,6 +4059,19 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			background: #f1f1f1;
 		}
 
+		.button.button-primary {
+			background: #2271b1;
+			border-color: #2271b1;
+			color: #fff;
+		}
+
+		.button.button-primary:hover,
+		.button.button-primary:focus {
+			background: #135e96;
+			border-color: #135e96;
+			color: #fff;
+		}
+
 		.button:focus {
 			background: #f3f5f6;
 			border-color: #007cba;

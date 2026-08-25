@@ -206,7 +206,7 @@ function display_setup_form( $error = null ) {
 			</td>
 		</tr>
 	</table>
-	<p class="step"><?php submit_button( __( 'Install WordPress' ), 'large', 'Submit', false, array( 'id' => 'submit' ) ); ?></p>
+	<p class="step"><?php submit_button( __( 'Install WordPress' ), 'primary large', 'Submit', false, array( 'id' => 'submit' ) ); ?></p>
 	<input type="hidden" name="language" value="<?php echo isset( $_REQUEST['language'] ) ? esc_attr( $_REQUEST['language'] ) : ''; ?>" />
 </form>
 	<?php
@@ -218,7 +218,7 @@ if ( is_blog_installed() ) {
 	die(
 		'<h1>' . __( 'Already Installed' ) . '</h1>' .
 		'<p>' . __( 'You appear to have already installed WordPress. To reinstall please clear your old database tables first.' ) . '</p>' .
-		'<p class="step"><a href="' . esc_url( wp_login_url() ) . '">' . __( 'Log In' ) . '</a></p>' .
+		'<p class="step"><a href="' . esc_url( wp_login_url() ) . '" class="button button-primary button-large">' . __( 'Log In' ) . '</a></p>' .
 		'</body></html>'
 	);
 }
@@ -462,7 +462,7 @@ switch ( $step ) {
 	</tr>
 </table>
 
-<p class="step"><a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log In' ); ?></a></p>
+<p class="step"><a href="<?php echo esc_url( wp_login_url() ); ?>" class="button button-primary button-large"><?php _e( 'Log In' ); ?></a></p>
 
 			<?php
 		}

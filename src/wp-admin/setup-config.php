@@ -204,7 +204,7 @@ switch ( $step ) {
 </p>
 <p><?php _e( 'In all likelihood, these items were supplied to you by your web host. If you do not have this information, then you will need to contact them before you can continue. If you are ready&hellip;' ); ?></p>
 
-<p class="step"><a href="<?php echo $step_1; ?>" class="button button-large"><?php _e( 'Let&#8217;s go!' ); ?></a></p>
+<p class="step"><a href="<?php echo $step_1; ?>" class="button button-primary button-large"><?php _e( 'Let&#8217;s go!' ); ?></a></p>
 		<?php
 		break;
 
@@ -269,7 +269,7 @@ switch ( $step ) {
 			?>
 <input name="noapi" type="hidden" value="1" /><?php } ?>
 	<input type="hidden" name="language" value="<?php echo esc_attr( $language ); ?>" />
-	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
+	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-primary button-large" /></p>
 </form>
 		<?php
 		wp_print_scripts( 'password-toggle' );
@@ -298,7 +298,7 @@ switch ( $step ) {
 			$install .= '?language=en_US';
 		}
 
-		$tryagain_link = '</p><p class="step"><a href="' . $step_1 . '" onclick="javascript:history.go(-1);return false;" class="button button-large">' . __( 'Try Again' ) . '</a>';
+		$tryagain_link = '</p><p class="step"><a href="' . $step_1 . '" onclick="javascript:history.go(-1);return false;" class="button button-primary button-large">' . __( 'Try Again' ) . '</a>';
 
 		if ( empty( $prefix ) ) {
 			wp_die( __( '<strong>Error:</strong> "Table Prefix" must not be empty.' ) . $tryagain_link );
@@ -443,7 +443,7 @@ switch ( $step ) {
 	</label></p>
 <textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly" aria-describedby="wp-config-description"><?php echo $config_text; ?></textarea>
 <p><?php _e( 'After you&#8217;ve done that, click &#8220;Run the installation&#8221;.' ); ?></p>
-<p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
+<p class="step"><a href="<?php echo $install; ?>" class="button button-primary button-large"><?php _e( 'Run the installation' ); ?></a></p>
 <script>
 (function(){
 if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
@@ -508,7 +508,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 </h1>
 <p><?php _e( 'All right, sparky! You&#8217;ve made it through this part of the installation. WordPress can now communicate with your database. If you are ready, time now to&hellip;' ); ?></p>
 
-<p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
+<p class="step"><a href="<?php echo $install; ?>" class="button button-primary button-large"><?php _e( 'Run the installation' ); ?></a></p>
 				<?php
 			else :
 				printf( '<p>%s</p>', $error_message );
