@@ -701,6 +701,11 @@ function get_body_class( $css_class = '' ) {
 				$classes[] = 'single-' . sanitize_html_class( $post->post_type, $post_id );
 				$classes[] = 'postid-' . $post_id;
 
+				// Add single-{post_type}-{post_slug} class for custom post types.
+				if ( 'post' !== $post->post_type && 'page' !== $post->post_type && isset( $post->post_name ) ) {
+					$classes[] = 'single-' . sanitize_html_class( $post->post_type ) . '-' . sanitize_html_class( $post->post_name );
+				}
+
 				// Post Format.
 				if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
 					$post_format = get_post_format( $post->ID );
