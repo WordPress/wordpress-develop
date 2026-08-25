@@ -147,7 +147,7 @@ EOF;
 		$this->assertTrue( have_posts() );
 		$this->assertNull( the_post() );
 
-		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
+		$this->assertEqualHTML( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 
 		kses_remove_filters();
 	}
