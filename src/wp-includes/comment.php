@@ -145,7 +145,6 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 					)
 				);
 			} else {
-				// expected_slashed ($author, $email)
 				$ok_to_comment = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT comment_approved
@@ -154,8 +153,8 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 						AND comment_author_email = %s
 						AND comment_approved = '1'
 						LIMIT 1",
-						$author,
-						$email
+						wp_unslash( $author ),
+						wp_unslash( $email )
 					)
 				);
 			}
