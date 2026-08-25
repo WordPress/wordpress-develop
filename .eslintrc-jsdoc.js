@@ -10,32 +10,44 @@ module.exports = [
 		plugins: {
 			jsdoc: jsdocPlugin,
 		},
+		settings: {
+			jsdoc: {
+				tagNamePreference: {
+					'arg': 'param',
+					'argument': 'param',
+					'extends': 'augments',
+					'returns': 'return',
+				},
+				preferredTypes: {
+					'array': 'Array',
+					'bool': 'boolean',
+					'Boolean': 'boolean',
+					'float': 'number',
+					'Float': 'number',
+					'int': 'number',
+					'integer': 'number',
+					'Integer': 'number',
+					'Number': 'number',
+					'object': 'Object',
+					'String': 'string',
+					'Void': 'void',
+				},
+			},
+		},
 		rules: {
-			// JSDoc validation - matching original valid-jsdoc behavior
-
-			// Validate @param names match actual function parameters
 			'jsdoc/check-param-names': 'error',
-
-			// Type validation with exemptTagContexts to allow flexible type formats
-			// This avoids enforcing type normalization (Object→object) preferences
-			'jsdoc/check-types': [ 'error', {
-				noDefaults: true,
-				exemptTagContexts: [
-					{ tag: 'param', types: true },
-					{ tag: 'return', types: true },
-					{ tag: 'returns', types: true },
-					{ tag: 'type', types: true },
-					{ tag: 'typedef', types: true },
-					{ tag: 'property', types: true },
-					{ tag: 'arg', types: true },
-					{ tag: 'argument', types: true },
+			'jsdoc/check-types': 'error',
+			'jsdoc/check-tag-names': [ 'error', {
+				definedTags: [
+					'memberOf',
+					'output',
+					'ticket',
+					'var',
 				],
 			} ],
 
-			// NOTE: check-tag-names is DISABLED because eslint-plugin-jsdoc enforces
-			// opposite tag preferences (return→returns) than the original valid-jsdoc
-			// (which preferred returns→return). Disabling avoids ~1600 false positives.
-			'jsdoc/check-tag-names': 'off',
+			'jsdoc/require-param': 'error',
+			'jsdoc/require-returns-description': 'error',
 
 			// Disable all other jsdoc rules to match minimal original requirements
 			'jsdoc/check-indentation': 'off',
@@ -59,7 +71,6 @@ module.exports = [
 			'jsdoc/require-file-overview': 'off',
 			'jsdoc/require-hyphen-before-param-description': 'off',
 			'jsdoc/require-jsdoc': 'off',
-			'jsdoc/require-param': 'off',
 			'jsdoc/require-param-description': 'off',
 			'jsdoc/require-param-name': 'off',
 			'jsdoc/require-param-type': 'off',
@@ -69,7 +80,6 @@ module.exports = [
 			'jsdoc/require-property-type': 'off',
 			'jsdoc/require-returns': 'off',
 			'jsdoc/require-returns-check': 'off',
-			'jsdoc/require-returns-description': 'off',
 			'jsdoc/require-returns-type': 'off',
 			'jsdoc/require-throws': 'off',
 			'jsdoc/require-yields': 'off',
