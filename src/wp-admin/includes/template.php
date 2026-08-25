@@ -2338,7 +2338,7 @@ function get_post_states( $post ) {
 
 	if ( 'page' === get_option( 'show_on_front' ) ) {
 		if ( (int) get_option( 'page_on_front' ) === $post->ID ) {
-			$post_states['page_on_front'] = _x( 'Front Page', 'page label' );
+			$post_states['page_on_front'] = _x( 'Homepage', 'page label' );
 		}
 
 		if ( (int) get_option( 'page_for_posts' ) === $post->ID ) {
