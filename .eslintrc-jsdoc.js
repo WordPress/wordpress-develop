@@ -45,8 +45,14 @@ module.exports = [
 					'var',
 				],
 			} ],
-
-			'jsdoc/require-param': 'error',
+			'jsdoc/require-param': [ 'error', {
+				contexts: [
+					'ArrowFunctionExpression',
+					'FunctionDeclaration',
+					"FunctionExpression:not(:has(Identifier[name='$']))",
+				],
+			} ],
+			'jsdoc/require-param-type': 'error',
 			'jsdoc/require-returns-description': 'error',
 
 			// Disable all other jsdoc rules to match minimal original requirements
