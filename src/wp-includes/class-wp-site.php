@@ -159,6 +159,7 @@ final class WP_Site {
 	 * Retrieves a site from the database by its ID.
 	 *
 	 * @since 4.5.0
+	 * @since 7.2.0 Non-object cache values are now treated as a cache miss.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -175,7 +176,7 @@ final class WP_Site {
 
 		$_site = wp_cache_get( $site_id, 'sites' );
 
-		if ( false === $_site ) {
+		if ( ! is_object( $_site ) && ! is_numeric( $_site ) ) {
 			$_site = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d LIMIT 1", $site_id ) );
 
 			if ( empty( $_site ) || is_wp_error( $_site ) ) {
