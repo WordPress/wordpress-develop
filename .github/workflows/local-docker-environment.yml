@@ -1,6 +1,7 @@
 name: Local Docker Environment
 
 on:
+  # Local Docker environment testing was introduced in WordPress 6.8.
   push:
     branches:
       - trunk
@@ -16,6 +17,8 @@ on:
       - 'package*.json'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       - '.npmrc'
       - '.nvmrc'
@@ -76,7 +79,6 @@ jobs:
     uses: ./.github/workflows/reusable-support-json-reader-v1.yml
     permissions:
       contents: read
-    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     with:
       wp-version: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
@@ -92,7 +94,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        memcached: [ false ]
+        memcached: [ false, true ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
 
@@ -104,11 +106,12 @@ jobs:
           - db-version: '9.1'
           - db-version: '9.2'
           - db-version: '9.3'
-          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '9.4'
-          - php: '7.3'
-            db-version: '9.4'
+          - db-version: '9.4'
+          - db-version: '9.5'
+          - db-version: '9.6'
+          # No PHP 8.5 + Memcached support yet.
+          - php: '8.5'
+            memcached: true
 
     with:
       os: ${{ matrix.os }}
@@ -132,6 +135,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
@@ -151,7 +155,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

@@ -38,6 +38,8 @@ if ( ! isset( $content_width ) ) {
 
 /**
  * Twenty Fourteen only works in WordPress 3.6 or later.
+ *
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '3.6', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -54,6 +56,8 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 	 * as indicating support post thumbnails.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 *
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyfourteen_setup() {
 
@@ -226,6 +230,8 @@ add_action( 'after_setup_theme', 'twentyfourteen_setup' );
  * Adjusts content_width value for image attachment template.
  *
  * @since Twenty Fourteen 1.0
+ *
+ * @global int $content_width Content width.
  */
 function twentyfourteen_content_width() {
 	if ( is_attachment() && wp_attachment_is_image() ) {
@@ -315,7 +321,7 @@ if ( ! function_exists( 'twentyfourteen_font_url' ) ) :
 	 * @since Twenty Fourteen 1.0
 	 * @since Twenty Fourteen 3.6 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentyfourteen_font_url() {
 		$font_url = '';
@@ -342,17 +348,16 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'twentyfourteen-lato', twentyfourteen_font_url(), array(), $font_version );
 
 	// Add Genericons font, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20250715' );
+	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20260819' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20250715' );
 
-	// Load the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20140711' );
-	wp_style_add_data( 'twentyfourteen-ie', 'conditional', 'lt IE 9' );
+	// Register the Internet Explorer specific stylesheet.
+	wp_register_style( 'twentyfourteen-ie', false, array( 'twentyfourteen-style' ) );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
@@ -391,7 +396,7 @@ function twentyfourteen_scripts() {
 		'twentyfourteen-script',
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
-		'20230526',
+		'20250729',
 		array(
 			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
@@ -416,6 +421,8 @@ add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen
  *
  * @since Twenty Fourteen 1.9
  * @deprecated Twenty Fourteen 3.6 Disabled filter because, by default, fonts are self-hosted.
+ *
+ * @global string $wp_version The WordPress version string.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.
@@ -524,6 +531,8 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 	 * Prints a list of all site contributors who published at least one post.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 *
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyfourteen_list_authors() {
 		$args = array(
@@ -596,6 +605,8 @@ endif;
  *
  * @since Twenty Fourteen 1.0
  *
+ * @global string $pagenow The filename of the current screen.
+ *
  * @param array $classes A list of existing body class values.
  * @return array The filtered body class list.
  */
@@ -665,8 +676,8 @@ add_filter( 'post_class', 'twentyfourteen_post_classes' );
  *
  * @since Twenty Fourteen 1.0
  *
- * @global int $paged WordPress archive pagination page count.
- * @global int $page  WordPress paginated post page count.
+ * @global int $paged Page number of a list of posts.
+ * @global int $page  Page number of a single post.
  *
  * @param string $title Default title text for current view.
  * @param string $sep Optional separator.
@@ -744,6 +755,8 @@ add_action( 'init', 'twentyfourteen_register_block_patterns' );
  *
  * To overwrite in a plugin, define your own Featured_Content class on or
  * before the 'setup_theme' hook.
+ *
+ * @global string $pagenow The filename of the current screen.
  */
 if ( ! class_exists( 'Featured_Content' ) && 'plugins.php' !== $GLOBALS['pagenow'] ) {
 	require get_template_directory() . '/inc/featured-content.php';
@@ -756,6 +769,8 @@ if ( ! class_exists( 'Featured_Content' ) && 'plugins.php' !== $GLOBALS['pagenow
  * `is_customize_preview` function was introduced.
  *
  * @global WP_Customize_Manager $wp_customize Customizer object.
+ *
+ * @return bool Whether the site is being previewed in the Customizer.
  */
 if ( ! function_exists( 'is_customize_preview' ) ) :
 	function is_customize_preview() {

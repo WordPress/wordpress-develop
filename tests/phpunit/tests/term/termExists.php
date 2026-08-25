@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::term_exists
  */
 class Tests_TermExists extends WP_UnitTestCase {
 	public function test_term_exists_term_0() {
@@ -273,7 +275,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
-	 * @covers ::term_exists()
 	 */
 	public function test_term_lookup_by_id_and_update() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -295,7 +296,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
-	 * @covers ::term_exists()
 	 */
 	public function test_term_lookup_by_slug_and_update() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -317,7 +317,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
-	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_caching() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -345,7 +344,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
-	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_caching_suspend_cache_invalidation() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -371,7 +369,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
-	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_caching_by_int_suspend_cache_invalidation() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -404,7 +401,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55358
-	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_with_numeric_parent_term() {
 		register_taxonomy(
@@ -444,7 +440,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55358
-	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_with_non_numeric_parent_term() {
 		register_taxonomy(
@@ -484,7 +479,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55358
-	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_with_empty_taxonomy_and_numeric_parent() {
 		register_taxonomy(
@@ -519,7 +513,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55358
-	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_with_wordpress_categories() {
 		// Create a parent category

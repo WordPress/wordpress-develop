@@ -399,8 +399,8 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * @covers ::download_url
 	 * @ticket 54738
 	 *
-	 * @param string $filter A callback containing a fake Content-Type header.
-	 * @param string $ext The expected file extension to match.
+	 * @param callable $filter    A callback containing a fake Content-Type header.
+	 * @param string   $extension The expected file extension to match.
 	 */
 	public function test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined( $filter, $extension ) {
 		add_filter( 'pre_http_request', $filter );

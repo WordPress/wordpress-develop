@@ -130,6 +130,16 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63895
+	 */
+	public function test_iptc_alt() {
+		// Image tests alt text from the IPTC photo metadata standard 2025.1.
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
+
+		$this->assertSame( 'This is the Alt Text description to support accessibility in 2025.1', $out['alt'], 'Alt text does not match source.' );
+	}
+
+	/**
 	 * @ticket 9417
 	 */
 	public function test_utf8_iptc_tags() {
@@ -174,8 +184,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 * @ticket 52826
 	 * @ticket 52922
 	 *
-	 * @param string Stream's URI.
-	 * @param array  Expected metadata.
+	 * @param string $file     Stream's URI.
+	 * @param array  $expected Expected metadata.
 	 */
 	public function test_stream( $file, $expected ) {
 		$actual = wp_read_image_metadata( $file );
@@ -200,6 +210,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => '',
 					'orientation'       => '3',
 					'keywords'          => array(),
+					'alt'               => '',
 				),
 			),
 			'Exif from a Nikon D70 with IPTC data added later' => array(
@@ -217,6 +228,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'IPTC Headline',
 					'orientation'       => '0',
 					'keywords'          => array(),
+					'alt'               => '',
 				),
 			),
 			'Exif from a DMC-LX2 camera with keywords' => array(
@@ -234,6 +246,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'Photoshop Document Ttitle',
 					'orientation'       => '1',
 					'keywords'          => array( 'beach', 'baywatch', 'LA', 'sunset' ),
+					'alt'               => '',
 				),
 			),
 		);

@@ -210,7 +210,7 @@ function dismissed_updates() {
 		$show_text = esc_js( __( 'Show hidden updates' ) );
 		$hide_text = esc_js( __( 'Hide hidden updates' ) );
 		?>
-		<script type="text/javascript">
+		<script>
 			jQuery( function( $ ) {
 				$( '#show-dismissed' ).on( 'click', function() {
 					var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
@@ -526,23 +526,23 @@ function list_plugin_updates() {
 		// Get plugin compat for running version of WordPress.
 		if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $cur_wp_version, '>=' ) ) {
 			/* translators: %s: WordPress version. */
-			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $cur_wp_version );
+			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Yes (according to its author)' ), $cur_wp_version );
 		} else {
 			/* translators: %s: WordPress version. */
-			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $cur_wp_version );
+			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Not tested' ), $cur_wp_version );
 		}
 		// Get plugin compat for updated version of WordPress.
 		if ( $core_update_version ) {
 			if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $core_update_version, '>=' ) ) {
 				/* translators: %s: WordPress version. */
-				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $core_update_version );
+				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Yes (according to its author)' ), $core_update_version );
 			} else {
 				/* translators: %s: WordPress version. */
-				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $core_update_version );
+				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Not tested' ), $core_update_version );
 			}
 		}
 
-		$requires_php   = isset( $plugin_data->update->requires_php ) ? $plugin_data->update->requires_php : null;
+		$requires_php   = $plugin_data->update->requires_php ?? null;
 		$compatible_php = is_php_version_compatible( $requires_php );
 
 		if ( ! $compatible_php && current_user_can( 'update_php' ) ) {
@@ -687,8 +687,8 @@ function list_theme_updates() {
 	}
 
 	foreach ( $themes as $stylesheet => $theme ) {
-		$requires_wp  = isset( $theme->update['requires'] ) ? $theme->update['requires'] : null;
-		$requires_php = isset( $theme->update['requires_php'] ) ? $theme->update['requires_php'] : null;
+		$requires_wp  = $theme->update['requires'] ?? null;
+		$requires_php = $theme->update['requires_php'] ?? null;
 
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );
 		$compatible_php = is_php_version_compatible( $requires_php );
@@ -840,7 +840,7 @@ function list_translation_updates() {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param bool $reinstall
+ * @param bool $reinstall Optional. Whether to reinstall WordPress. Default false.
  */
 function do_core_upgrade( $reinstall = false ) {
 	global $wp_filesystem;
@@ -854,8 +854,8 @@ function do_core_upgrade( $reinstall = false ) {
 	}
 	$url = wp_nonce_url( $url, 'upgrade-core' );
 
-	$version = isset( $_POST['version'] ) ? $_POST['version'] : false;
-	$locale  = isset( $_POST['locale'] ) ? $_POST['locale'] : 'en_US';
+	$version = $_POST['version'] ?? false;
+	$locale  = $_POST['locale'] ?? 'en_US';
 	$update  = find_core_update( $version, $locale );
 	if ( ! $update ) {
 		return;
@@ -935,7 +935,7 @@ function do_core_upgrade( $reinstall = false ) {
 	);
 	?>
 	</div>
-	<script type="text/javascript">
+	<script>
 	window.location = '<?php echo esc_url( self_admin_url( 'about.php?updated' ) ); ?>';
 	</script>
 	<?php
@@ -947,8 +947,8 @@ function do_core_upgrade( $reinstall = false ) {
  * @since 2.7.0
  */
 function do_dismiss_core_update() {
-	$version = isset( $_POST['version'] ) ? $_POST['version'] : false;
-	$locale  = isset( $_POST['locale'] ) ? $_POST['locale'] : 'en_US';
+	$version = $_POST['version'] ?? false;
+	$locale  = $_POST['locale'] ?? 'en_US';
 	$update  = find_core_update( $version, $locale );
 	if ( ! $update ) {
 		return;
@@ -964,8 +964,8 @@ function do_dismiss_core_update() {
  * @since 2.7.0
  */
 function do_undismiss_core_update() {
-	$version = isset( $_POST['version'] ) ? $_POST['version'] : false;
-	$locale  = isset( $_POST['locale'] ) ? $_POST['locale'] : 'en_US';
+	$version = $_POST['version'] ?? false;
+	$locale  = $_POST['locale'] ?? 'en_US';
 	$update  = find_core_update( $version, $locale );
 	if ( ! $update ) {
 		return;
@@ -975,7 +975,7 @@ function do_undismiss_core_update() {
 	exit;
 }
 
-$action = isset( $_GET['action'] ) ? $_GET['action'] : 'upgrade-core';
+$action = $_GET['action'] ?? 'upgrade-core';
 
 $upgrade_error = false;
 if ( ( 'do-theme-upgrade' === $action || ( 'do-plugin-upgrade' === $action && ! isset( $_GET['plugins'] ) ) )
@@ -987,7 +987,7 @@ if ( ( 'do-theme-upgrade' === $action || ( 'do-plugin-upgrade' === $action && ! 
 $title       = __( 'WordPress Updates' );
 $parent_file = 'index.php';
 
-$updates_overview  = '<p>' . __( 'On this screen, you can update to the latest version of WordPress, as well as update your themes, plugins, and translations from the WordPress.org repositories.' ) . '</p>';
+$updates_overview  = '<p>' . __( 'On this screen, you can update to the latest version of WordPress, as well as update your themes, plugins, and translations.' ) . '</p>';
 $updates_overview .= '<p>' . __( 'If an update is available, you&#8127;ll see a notification appear in the Toolbar and navigation menu.' ) . ' ' . __( 'Keeping your site updated is important for security. It also makes the internet a safer place for you and your readers.' ) . '</p>';
 
 get_current_screen()->add_help_tab(

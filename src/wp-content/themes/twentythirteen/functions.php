@@ -40,6 +40,8 @@ require get_template_directory() . '/inc/custom-header.php';
 
 /**
  * Twenty Thirteen only works in WordPress 3.6 or later.
+ *
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '3.6-alpha', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -70,6 +72,8 @@ add_action( 'init', 'twentythirteen_register_block_patterns' );
  * @uses set_post_thumbnail_size() To set a custom post thumbnail size.
  *
  * @since Twenty Thirteen 1.0
+ *
+ * @global string $wp_version The WordPress version string.
  */
 function twentythirteen_setup() {
 	/*
@@ -270,7 +274,7 @@ if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 	 * @since Twenty Thirteen 1.0
 	 * @since Twenty Thirteen 3.8 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Font stylesheet or empty string if disabled.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentythirteen_fonts_url() {
 		$fonts_url = '';
@@ -329,7 +333,7 @@ function twentythirteen_scripts_styles() {
 		'twentythirteen-script',
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
-		'20230526',
+		'20250727',
 		array(
 			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
@@ -341,17 +345,16 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), $font_version );
 
 	// Add Genericons font, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20250415' );
+	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20260819' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20240520' );
 
 	// Registers the Internet Explorer specific stylesheet.
-	wp_register_style( 'twentythirteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentythirteen-style' ), '20150214' );
-	wp_style_add_data( 'twentythirteen-ie', 'conditional', 'lt IE 9' );
+	wp_register_style( 'twentythirteen-ie', false, array( 'twentythirteen-style' ) );
 }
 add_action( 'wp_enqueue_scripts', 'twentythirteen_scripts_styles' );
 
@@ -360,6 +363,8 @@ add_action( 'wp_enqueue_scripts', 'twentythirteen_scripts_styles' );
  *
  * @since Twenty Thirteen 2.1
  * @deprecated Twenty Thirteen 3.8 Disabled filter because, by default, fonts are self-hosted.
+ *
+ * @global string $wp_version The WordPress version string.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.
@@ -403,8 +408,8 @@ add_action( 'enqueue_block_editor_assets', 'twentythirteen_block_editor_styles' 
  *
  * @since Twenty Thirteen 1.0
  *
- * @global int $paged WordPress archive pagination page count.
- * @global int $page  WordPress paginated post page count.
+ * @global int $paged Page number of a list of posts.
+ * @global int $page  Page number of a single post.
  *
  * @param string $title Default title text for current view.
  * @param string $sep   Optional separator.
@@ -474,7 +479,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Thirteen 3.7
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */
@@ -487,6 +494,8 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 	 * Displays navigation to next/previous set of posts when applicable.
 	 *
 	 * @since Twenty Thirteen 1.0
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	function twentythirteen_paging_nav() {
 		global $wp_query;
@@ -495,7 +504,17 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 		if ( $wp_query->max_num_pages < 2 ) {
 			return;
 		}
+
+		$order   = get_query_var( 'order', 'DESC' );
+		$is_desc = 'DESC' === $order;
+
+		$new_posts_text = __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentythirteen' );
+		$old_posts_text = __( '<span class="meta-nav">&larr;</span> Older posts', 'twentythirteen' );
+
+		$prev_link = $is_desc ? get_next_posts_link( $old_posts_text ) : get_previous_posts_link( $old_posts_text );
+		$next_link = $is_desc ? get_previous_posts_link( $new_posts_text ) : get_next_posts_link( $new_posts_text );
 		?>
+
 		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text">
 			<?php
@@ -504,14 +523,19 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 			?>
 		</h1>
 		<div class="nav-links">
+		<?php if ( $prev_link ) : ?>
+			<div class="nav-previous">
+				<?php echo $prev_link; ?>
+			</div>
+			<?php
+		endif;
 
-			<?php if ( get_next_posts_link() ) : ?>
-			<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentythirteen' ) ); ?></div>
-			<?php endif; ?>
-
-			<?php if ( get_previous_posts_link() ) : ?>
-			<div class="nav-next"><?php previous_posts_link( __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentythirteen' ) ); ?></div>
-			<?php endif; ?>
+		if ( $next_link ) :
+			?>
+			<div class="nav-next">
+				<?php echo $next_link; ?>
+			</div>
+		<?php endif; ?>
 
 		</div><!-- .nav-links -->
 	</nav><!-- .navigation -->
@@ -715,7 +739,8 @@ function twentythirteen_get_link_url() {
 	$content = get_the_content();
 	$has_url = get_url_in_content( $content );
 
-	return ( $has_url ) ? $has_url : apply_filters( 'the_permalink', get_permalink() );
+	/** This filter is documented in wp-includes/link-template.php */
+	return ( $has_url ) ? $has_url : apply_filters( 'the_permalink', get_permalink(), get_post() );
 }
 
 if ( ! function_exists( 'twentythirteen_excerpt_more' ) && ! is_admin() ) :

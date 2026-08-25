@@ -12,8 +12,8 @@
  * Declare these as global in case schema.php is included from a function.
  *
  * @global wpdb   $wpdb            WordPress database abstraction object.
- * @global array  $wp_queries
- * @global string $charset_collate
+ * @global array  $wp_queries      Global database queries array.
+ * @global string $charset_collate Database charset and collation.
  */
 global $wpdb, $wp_queries, $charset_collate;
 
@@ -186,7 +186,8 @@ CREATE TABLE $wpdb->posts (
 	KEY type_status_post_date_gmt (post_type,post_status,post_date_gmt),
 	KEY type_status_modified_date_gmt (post_type,post_status,post_modified_gmt),
 	KEY post_parent (post_parent),
-	KEY post_author (post_author)
+	KEY post_author (post_author),
+	KEY type_status_author (post_type,post_status,post_author)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.
@@ -561,6 +562,9 @@ function populate_options( array $options = array() ) {
 
 		// 6.4.0
 		'wp_attachment_pages_enabled'     => 0,
+
+		// 6.9.0
+		'wp_notes_notify'                 => 1,
 	);
 
 	// 3.3.0
@@ -586,7 +590,7 @@ function populate_options( array $options = array() ) {
 	);
 
 	$keys             = "'" . implode( "', '", array_keys( $options ) ) . "'";
-	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 	$insert = '';
 
@@ -1005,6 +1009,20 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 
 	$network_id = (int) $network_id;
 
+	/**
+	 * Fires before a network is populated.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int    $network_id        ID of network to populate.
+	 * @param string $domain            The domain name for the network.
+	 * @param string $email             Email address for the network administrator.
+	 * @param string $site_name         The name of the network.
+	 * @param string $path              The path to append to the network's domain name.
+	 * @param bool   $subdomain_install Whether the network is a subdomain installation or a subdirectory installation.
+	 */
+	do_action( 'before_populate_network', $network_id, $domain, $email, $site_name, $path, $subdomain_install );
+
 	$errors = new WP_Error();
 	if ( '' === $domain ) {
 		$errors->add( 'empty_domain', __( 'You must provide a domain name.' ) );
@@ -1014,7 +1032,6 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 	}
 
 	// Check for network collision.
-	$network_exists = false;
 	if ( is_multisite() ) {
 		if ( get_network( $network_id ) ) {
 			$errors->add( 'siteid_exists', __( 'The network already exists.' ) );
@@ -1124,6 +1141,20 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 
 		flush_rewrite_rules();
 
+		/**
+		 * Fires after a network is created when converting a single site to multisite.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param int    $network_id        ID of network created.
+		 * @param string $domain            The domain name for the network.
+		 * @param string $email             Email address for the network administrator.
+		 * @param string $site_name         The name of the network.
+		 * @param string $path              The path to append to the network's domain name.
+		 * @param bool   $subdomain_install Whether the network is a subdomain installation or a subdirectory installation.
+		 */
+		do_action( 'after_upgrade_to_multisite', $network_id, $domain, $email, $site_name, $path, $subdomain_install );
+
 		if ( ! $subdomain_install ) {
 			return true;
 		}
@@ -1169,6 +1200,20 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 			return new WP_Error( 'no_wildcard_dns', $msg );
 		}
 	}
+
+	/**
+	 * Fires after a network is fully populated.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int    $network_id        ID of network created.
+	 * @param string $domain            The domain name for the network.
+	 * @param string $email             Email address for the network administrator.
+	 * @param string $site_name         The name of the network.
+	 * @param string $path              The path to append to the network's domain name.
+	 * @param bool   $subdomain_install Whether the network is a subdomain installation or a subdirectory installation.
+	 */
+	do_action( 'after_populate_network', $network_id, $domain, $email, $site_name, $path, $subdomain_install );
 
 	return true;
 }

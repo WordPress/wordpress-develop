@@ -984,6 +984,400 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * Tests that block style variations in revisions are preserved.
+	 *
+	 * @ticket 64292
+	 *
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_preserves_block_style_variations() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme-child-with-block-style-variations' );
+
+		// Create a global styles post for the theme.
+		$global_styles_id = wp_insert_post(
+			array(
+				'post_content' => wp_json_encode(
+					array(
+						'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+						'isGlobalStylesUserThemeJSON' => true,
+					)
+				),
+				'post_status'  => 'publish',
+				'post_title'   => 'Custom Styles',
+				'post_type'    => 'wp_global_styles',
+				'post_name'    => 'wp-global-styles-block-theme-child-with-block-style-variations',
+				'tax_input'    => array(
+					'wp_theme' => 'block-theme-child-with-block-style-variations',
+				),
+			),
+			true
+		);
+
+		// Update with block style variations to create a revision.
+		$config_with_variations = array(
+			'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+			'isGlobalStylesUserThemeJSON' => true,
+			'styles'                      => array(
+				'blocks' => array(
+					'core/group' => array(
+						'variations' => array(
+							'block-style-variation-a' => array(
+								'color' => array(
+									'background' => '#123456',
+									'text'       => '#abcdef',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => $global_styles_id,
+				'post_content' => wp_json_encode( $config_with_variations ),
+			),
+			true
+		);
+
+		// Get the revision.
+		$revisions = wp_get_post_revisions( $global_styles_id );
+		$revision  = array_shift( $revisions );
+		$request   = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
+		$response  = rest_get_server()->dispatch( $request );
+		$data      = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
+		$this->assertArrayHasKey( 'styles', $data, 'Response should contain styles.' );
+		$this->assertArrayHasKey( 'blocks', $data['styles'], 'Styles should contain blocks.' );
+		$this->assertArrayHasKey( 'core/group', $data['styles']['blocks'], 'Blocks should contain core/group.' );
+		$this->assertArrayHasKey( 'variations', $data['styles']['blocks']['core/group'], 'core/group should contain variations.' );
+		$this->assertArrayHasKey(
+			'block-style-variation-a',
+			$data['styles']['blocks']['core/group']['variations'],
+			'Variations should contain block-style-variation-a.'
+		);
+
+		// Verify the variation styles are preserved.
+		$variation = $data['styles']['blocks']['core/group']['variations']['block-style-variation-a'];
+		$this->assertSame( '#123456', $variation['color']['background'], 'Variation background color should be preserved.' );
+		$this->assertSame( '#abcdef', $variation['color']['text'], 'Variation text color should be preserved.' );
+
+		// Clean up.
+		wp_delete_post( $global_styles_id, true );
+	}
+
+	/**
+	 * Tests that multiple block style variations are preserved.
+	 *
+	 * @ticket 64292
+	 *
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_multiple_block_variations_are_preserved() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme-child-with-block-style-variations' );
+
+		// Create a global styles post for the theme.
+		$global_styles_id = wp_insert_post(
+			array(
+				'post_content' => wp_json_encode(
+					array(
+						'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+						'isGlobalStylesUserThemeJSON' => true,
+					)
+				),
+				'post_status'  => 'publish',
+				'post_title'   => 'Custom Styles',
+				'post_type'    => 'wp_global_styles',
+				'post_name'    => 'wp-global-styles-multiple-variations',
+				'tax_input'    => array(
+					'wp_theme' => 'block-theme-child-with-block-style-variations',
+				),
+			),
+			true
+		);
+
+		// Update with multiple block style variations to create a revision.
+		$config_with_variations = array(
+			'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+			'isGlobalStylesUserThemeJSON' => true,
+			'styles'                      => array(
+				'blocks' => array(
+					'core/group'   => array(
+						'variations' => array(
+							'block-style-variation-a' => array(
+								'color' => array(
+									'background' => 'red',
+								),
+							),
+						),
+					),
+					'core/columns' => array(
+						'variations' => array(
+							'block-style-variation-a' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => $global_styles_id,
+				'post_content' => wp_json_encode( $config_with_variations ),
+			),
+			true
+		);
+
+		// Get the revision.
+		$revisions = wp_get_post_revisions( $global_styles_id );
+		$revision  = array_shift( $revisions );
+		$request   = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
+		$response  = rest_get_server()->dispatch( $request );
+		$data      = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
+
+		// Verify both blocks have their variations preserved.
+		$this->assertArrayHasKey(
+			'block-style-variation-a',
+			$data['styles']['blocks']['core/group']['variations'],
+			'core/group should have block-style-variation-a.'
+		);
+		$this->assertArrayHasKey(
+			'block-style-variation-a',
+			$data['styles']['blocks']['core/columns']['variations'],
+			'core/columns should have block-style-variation-a.'
+		);
+
+		// Verify the styles are different for each block.
+		$this->assertSame(
+			'red',
+			$data['styles']['blocks']['core/group']['variations']['block-style-variation-a']['color']['background'],
+			'core/group variation should have red background.'
+		);
+		$this->assertSame(
+			'blue',
+			$data['styles']['blocks']['core/columns']['variations']['block-style-variation-a']['color']['background'],
+			'core/columns variation should have blue background.'
+		);
+
+		// Clean up.
+		wp_delete_post( $global_styles_id, true );
+	}
+
+	/**
+	 * Tests that theme-defined block style variations are registered for revisions.
+	 *
+	 * @ticket 64292
+	 *
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_theme_variations_are_registered_for_revisions() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme-child-with-block-style-variations' );
+
+		// Verify the theme has a block style variation defined.
+		$theme_variations = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+		$this->assertNotEmpty( $theme_variations, 'Theme should have block style variations defined.' );
+
+		// Create a global styles post for the theme.
+		$global_styles_id = wp_insert_post(
+			array(
+				'post_content' => wp_json_encode(
+					array(
+						'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+						'isGlobalStylesUserThemeJSON' => true,
+					)
+				),
+				'post_status'  => 'publish',
+				'post_title'   => 'Custom Styles',
+				'post_type'    => 'wp_global_styles',
+				'post_name'    => 'wp-global-styles-theme-variations',
+				'tax_input'    => array(
+					'wp_theme' => 'block-theme-child-with-block-style-variations',
+				),
+			),
+			true
+		);
+
+		// Update with the theme's block style variation.
+		$config_with_theme_variation = array(
+			'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+			'isGlobalStylesUserThemeJSON' => true,
+			'styles'                      => array(
+				'blocks' => array(
+					'core/group' => array(
+						'variations' => array(
+							'block-style-variation-a' => array(
+								'color' => array(
+									'background' => 'purple',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => $global_styles_id,
+				'post_content' => wp_json_encode( $config_with_theme_variation ),
+			),
+			true
+		);
+
+		// Get the revision.
+		$revisions = wp_get_post_revisions( $global_styles_id );
+		$revision  = array_shift( $revisions );
+		$request   = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
+		$response  = rest_get_server()->dispatch( $request );
+		$data      = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
+
+		// Verify the theme variation is preserved in the revision.
+		$this->assertArrayHasKey(
+			'block-style-variation-a',
+			$data['styles']['blocks']['core/group']['variations'],
+			'Theme-defined variation should be preserved in revision.'
+		);
+
+		// Clean up.
+		wp_delete_post( $global_styles_id, true );
+	}
+
+	/**
+	 * Tests that block style variations are preserved in the revisions collection endpoint.
+	 *
+	 * @ticket 64292
+	 *
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::get_items
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_preserves_block_style_variations() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme-child-with-block-style-variations' );
+
+		// Create a global styles post for the theme.
+		$global_styles_id = wp_insert_post(
+			array(
+				'post_content' => wp_json_encode(
+					array(
+						'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+						'isGlobalStylesUserThemeJSON' => true,
+					)
+				),
+				'post_status'  => 'publish',
+				'post_title'   => 'Custom Styles',
+				'post_type'    => 'wp_global_styles',
+				'post_name'    => 'wp-global-styles-variations-collection',
+				'tax_input'    => array(
+					'wp_theme' => 'block-theme-child-with-block-style-variations',
+				),
+			),
+			true
+		);
+
+		// Create first revision with variations.
+		$config_variation_1 = array(
+			'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+			'isGlobalStylesUserThemeJSON' => true,
+			'styles'                      => array(
+				'blocks' => array(
+					'core/group' => array(
+						'variations' => array(
+							'block-style-variation-a' => array(
+								'color' => array(
+									'background' => 'green',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => $global_styles_id,
+				'post_content' => wp_json_encode( $config_variation_1 ),
+			),
+			true
+		);
+
+		// Create second revision with different variation styles.
+		$config_variation_2 = array(
+			'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+			'isGlobalStylesUserThemeJSON' => true,
+			'styles'                      => array(
+				'blocks' => array(
+					'core/group' => array(
+						'variations' => array(
+							'block-style-variation-a' => array(
+								'color' => array(
+									'background' => 'orange',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => $global_styles_id,
+				'post_content' => wp_json_encode( $config_variation_2 ),
+			),
+			true
+		);
+
+		// Get all revisions.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
+		$this->assertCount( 2, $data, 'Should have 2 revisions.' );
+
+		// Verify first revision (most recent - orange).
+		$this->assertArrayHasKey(
+			'block-style-variation-a',
+			$data[0]['styles']['blocks']['core/group']['variations'],
+			'First revision should have block-style-variation-a.'
+		);
+		$this->assertSame(
+			'orange',
+			$data[0]['styles']['blocks']['core/group']['variations']['block-style-variation-a']['color']['background'],
+			'First revision should have orange background.'
+		);
+
+		// Verify second revision (older - green).
+		$this->assertArrayHasKey(
+			'block-style-variation-a',
+			$data[1]['styles']['blocks']['core/group']['variations'],
+			'Second revision should have block-style-variation-a.'
+		);
+		$this->assertSame(
+			'green',
+			$data[1]['styles']['blocks']['core/group']['variations']['block-style-variation-a']['color']['background'],
+			'Second revision should have green background.'
+		);
+
+		// Clean up.
+		wp_delete_post( $global_styles_id, true );
+	}
+
+	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
