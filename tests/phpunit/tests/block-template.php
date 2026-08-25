@@ -11,48 +11,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
 
-	/**
-	 * Theme directory used by the template slug tests.
-	 *
-	 * @var string|null
-	 */
-	private static $slug_theme_root;
-
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$slug_theme_root = sys_get_temp_dir() . '/wp-tests-block-template-slug-' . uniqid();
-
-		$relative_paths = array(
-			'parts/header.html',
-			'parts/footer.html',
-			'parts/footer-parts/header.html',
-			'templates/index.html',
-			'templates/footer.html',
-		);
-
-		// The same template tree is created under each directory name used by
-		// the data provider, so that only the theme directory name varies.
-		foreach ( array( 'default', 'auto-parts', 'parts', 'my-templates' ) as $theme_directory ) {
-			foreach ( $relative_paths as $relative_path ) {
-				$file_path = self::$slug_theme_root . '/' . $theme_directory . '/' . $relative_path;
-				wp_mkdir_p( dirname( $file_path ) );
-				touch( $file_path );
-			}
-		}
-	}
-
-	public static function wpTearDownAfterClass() {
-		foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( self::$slug_theme_root, FilesystemIterator::SKIP_DOTS ), RecursiveIteratorIterator::CHILD_FIRST ) as $item ) {
-			if ( $item->isDir() ) {
-				rmdir( $item->getPathname() );
-			} else {
-				unlink( $item->getPathname() );
-			}
-		}
-		rmdir( self::$slug_theme_root );
-
-		self::$slug_theme_root = null;
-	}
-
 	public function set_up() {
 		parent::set_up();
 		switch_theme( 'block-theme' );
@@ -568,15 +526,54 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * @param array  $expected_slugs  Expected template slugs.
 	 */
 	public function test_get_block_templates_files_slugs( $theme_directory, $template_type, $expected_slugs ) {
+		$theme_root = sys_get_temp_dir() . '/wp-tests-block-template-slug-' . uniqid();
+		$theme_dir  = $theme_root . '/' . $theme_directory;
+
+		$relative_paths = array(
+			'parts/header.html',
+			'parts/footer.html',
+			'parts/footer-parts/header.html',
+			'templates/index.html',
+			'templates/footer.html',
+		);
+
+		$files = array();
+		foreach ( $relative_paths as $relative_path ) {
+			$file_path = $theme_dir . '/' . $relative_path;
+			wp_mkdir_p( dirname( $file_path ) );
+			touch( $file_path );
+			$files[] = $file_path;
+		}
+
 		add_filter(
 			'stylesheet_directory',
-			static function () use ( $theme_directory ) {
-				return self::$slug_theme_root . '/' . $theme_directory;
+			static function () use ( $theme_dir ) {
+				return $theme_dir;
 			}
 		);
 
 		$slugs = wp_list_pluck( _get_block_templates_files( $template_type ), 'slug' );
 		sort( $slugs );
+
+		// Collect every directory for cleanup.
+		$directories = array( $theme_root );
+		foreach ( $files as $file_path ) {
+			$directory = dirname( $file_path );
+			while ( strlen( $directory ) >= strlen( $theme_root ) ) {
+				$directories[] = $directory;
+				$directory     = dirname( $directory );
+			}
+		}
+		$directories = array_values( array_unique( $directories ) );
+
+		rsort( $directories );
+
+		foreach ( $files as $file_path ) {
+			unlink( $file_path );
+		}
+		foreach ( $directories as $directory ) {
+			rmdir( $directory );
+		}
 
 		$this->assertSame( $expected_slugs, $slugs );
 	}
