@@ -1412,7 +1412,8 @@ function update_core( $from, $to ) {
 	}
 
 	/*
-	 * Import $wp_version, $required_php_version, $required_php_extensions, and $required_mysql_version from the new version.
+	 * Import $wp_version, $required_php_version, $required_php_extensions, $required_mysql_version,
+	 * and $required_mariadb_version from the new version.
 	 * DO NOT globalize any variables imported from `version-current.php` in this function.
 	 *
 	 * BC Note: $wp_filesystem->wp_content_dir() returned unslashed pre-2.8.
@@ -1442,9 +1443,12 @@ function update_core( $from, $to ) {
 	require WP_CONTENT_DIR . '/upgrade/version-current.php';
 	$wp_filesystem->delete( $versions_file );
 
-	$php_version    = PHP_VERSION;
-	$mysql_version  = $wpdb->db_version();
-	$old_wp_version = $GLOBALS['wp_version']; // The version of WordPress we're updating from.
+	$php_version               = PHP_VERSION;
+	$mysql_version             = null;
+	$database_server_type      = 'MySQL';
+	$required_mariadb_version  = $required_mariadb_version ?? null;
+	$required_database_version = $required_mysql_version;
+	$old_wp_version            = $GLOBALS['wp_version']; // The version of WordPress we're updating from.
 	/*
 	 * Note: str_contains() is not used here, as this file is included
 	 * when updating from older WordPress versions, in which case
@@ -1456,7 +1460,10 @@ function update_core( $from, $to ) {
 	if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 		$mysql_compat = true;
 	} else {
-		$mysql_compat = version_compare( $mysql_version, $required_mysql_version, '>=' );
+		$mysql_version             = $wpdb->db_version();
+		$database_server_type      = method_exists( $wpdb, 'db_server_type' ) ? $wpdb->db_server_type() : 'MySQL';
+		$required_database_version = method_exists( $wpdb, 'db_required_version' ) ? $wpdb->db_required_version( $required_mysql_version, $required_mariadb_version ) : $required_mysql_version;
+		$mysql_compat              = version_compare( $mysql_version, $required_database_version, '>=' );
 	}
 
 	if ( ! $mysql_compat || ! $php_compat ) {
@@ -1485,11 +1492,12 @@ function update_core( $from, $to ) {
 		return new WP_Error(
 			'php_mysql_not_compatible',
 			sprintf(
-				/* translators: 1: WordPress version number, 2: Minimum required PHP version number, 3: Minimum required MySQL version number, 4: Current PHP version number, 5: Current MySQL version number. */
-				__( 'The update cannot be installed because WordPress %1$s requires PHP version %2$s or higher and MySQL version %3$s or higher. You are running PHP version %4$s and MySQL version %5$s.' ),
+				/* translators: 1: WordPress version number, 2: Minimum required PHP version number, 3: Database server type, 4: Minimum required database server version number, 5: Current PHP version number, 6: Current database server version number. */
+				__( 'The update cannot be installed because WordPress %1$s requires PHP version %2$s or higher and %3$s version %4$s or higher. You are running PHP version %5$s and %3$s version %6$s.' ),
 				$wp_version,
 				$required_php_version,
-				$required_mysql_version,
+				$database_server_type,
+				$required_database_version,
 				$php_version,
 				$mysql_version
 			) . $php_update_message
@@ -1509,10 +1517,11 @@ function update_core( $from, $to ) {
 		return new WP_Error(
 			'mysql_not_compatible',
 			sprintf(
-				/* translators: 1: WordPress version number, 2: Minimum required MySQL version number, 3: Current MySQL version number. */
-				__( 'The update cannot be installed because WordPress %1$s requires MySQL version %2$s or higher. You are running version %3$s.' ),
+				/* translators: 1: WordPress version number, 2: Database server type, 3: Minimum required database server version number, 4: Current database server version number. */
+				__( 'The update cannot be installed because WordPress %1$s requires %2$s version %3$s or higher. You are running version %4$s.' ),
 				$wp_version,
-				$required_mysql_version,
+				$database_server_type,
+				$required_database_version,
 				$mysql_version
 			)
 		);

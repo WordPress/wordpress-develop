@@ -55,3 +55,10 @@ $required_php_extensions = array(
  * @global string $required_mysql_version
  */
 $required_mysql_version = '5.5.5';
+
+/**
+ * Holds the minimum required MariaDB version.
+ *
+ * @global string $required_mariadb_version
+ */
+$required_mariadb_version = '5.5.5';

@@ -57,11 +57,15 @@ function list_core_update( $update ) {
 		$current = true;
 	}
 
-	$message       = '';
-	$form_action   = 'update-core.php?action=do-core-upgrade';
-	$php_version   = PHP_VERSION;
-	$mysql_version = $wpdb->db_version();
-	$show_buttons  = true;
+	$message                   = '';
+	$form_action               = 'update-core.php?action=do-core-upgrade';
+	$php_version               = PHP_VERSION;
+	$mysql_version             = null;
+	$database_server_type      = 'MySQL';
+	$required_mysql_version    = $update->mysql_version;
+	$required_mariadb_version  = $update->mariadb_version ?? null;
+	$required_database_version = $required_mysql_version;
+	$show_buttons              = true;
 
 	// Nightly build versions have two hyphens and a commit number.
 	if ( preg_match( '/-\w+-\d+/', $update->current ) ) {
@@ -86,7 +90,10 @@ function list_core_update( $update ) {
 			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = true;
 			} else {
-				$mysql_compat = version_compare( $mysql_version, $update->mysql_version, '>=' );
+				$mysql_version             = $wpdb->db_version();
+				$database_server_type      = method_exists( $wpdb, 'db_server_type' ) ? $wpdb->db_server_type() : 'MySQL';
+				$required_database_version = method_exists( $wpdb, 'db_required_version' ) ? $wpdb->db_required_version( $required_mysql_version, $required_mariadb_version ) : $required_mysql_version;
+				$mysql_compat              = version_compare( $mysql_version, $required_database_version, '>=' );
 			}
 
 			$version_url = sprintf(
@@ -109,12 +116,13 @@ function list_core_update( $update ) {
 
 			if ( ! $mysql_compat && ! $php_compat ) {
 				$message = sprintf(
-					/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Minimum required MySQL version number, 5: Current PHP version number, 6: Current MySQL version number. */
-					__( 'You cannot update because <a href="%1$s">WordPress %2$s</a> requires PHP version %3$s or higher and MySQL version %4$s or higher. You are running PHP version %5$s and MySQL version %6$s.' ),
+					/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Database server type, 5: Minimum required database server version number, 6: Current PHP version number, 7: Current database server version number. */
+					__( 'You cannot update because <a href="%1$s">WordPress %2$s</a> requires PHP version %3$s or higher and %4$s version %5$s or higher. You are running PHP version %6$s and %4$s version %7$s.' ),
 					$version_url,
 					$update->current,
 					$update->php_version,
-					$update->mysql_version,
+					$database_server_type,
+					$required_database_version,
 					$php_version,
 					$mysql_version
 				) . $php_update_message;
@@ -129,11 +137,12 @@ function list_core_update( $update ) {
 				) . $php_update_message;
 			} elseif ( ! $mysql_compat ) {
 				$message = sprintf(
-					/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required MySQL version number, 4: Current MySQL version number. */
-					__( 'You cannot update because <a href="%1$s">WordPress %2$s</a> requires MySQL version %3$s or higher. You are running version %4$s.' ),
+					/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Database server type, 4: Minimum required database server version number, 5: Current database server version number. */
+					__( 'You cannot update because <a href="%1$s">WordPress %2$s</a> requires %3$s version %4$s or higher. You are running version %5$s.' ),
 					$version_url,
 					$update->current,
-					$update->mysql_version,
+					$database_server_type,
+					$required_database_version,
 					$mysql_version
 				);
 			} else {

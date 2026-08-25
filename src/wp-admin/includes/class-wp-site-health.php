@@ -16,7 +16,7 @@ class WP_Site_Health {
 
 	public $is_mariadb                   = false;
 	private $mysql_server_version        = '';
-	private $mysql_required_version      = '5.5';
+	private $mysql_required_version      = '5.5.5';
 	private $mysql_recommended_version   = '8.0';
 	private $mariadb_recommended_version = '10.11';
 
@@ -212,17 +212,19 @@ class WP_Site_Health {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
+	 * @global wpdb   $wpdb                     WordPress database abstraction object.
+	 * @global string $required_mysql_version   The minimum required MySQL version string.
+	 * @global string $required_mariadb_version The minimum required MariaDB version string.
 	 */
 	private function prepare_sql_data() {
-		global $wpdb;
+		global $wpdb, $required_mysql_version, $required_mariadb_version;
 
-		$mysql_server_type = $wpdb->db_server_info();
+		$this->mysql_required_version = $required_mysql_version;
+		$this->mysql_server_version   = method_exists( $wpdb, 'db_version' ) ? $wpdb->db_version() : $wpdb->get_var( 'SELECT VERSION()' );
+		$this->is_mariadb             = method_exists( $wpdb, 'db_server_type' ) ? 'MariaDB' === $wpdb->db_server_type() : false !== stripos( $wpdb->db_server_info(), 'mariadb' );
 
-		$this->mysql_server_version = $wpdb->get_var( 'SELECT VERSION()' );
-
-		if ( stristr( $mysql_server_type, 'mariadb' ) ) {
-			$this->is_mariadb                = true;
+		if ( $this->is_mariadb ) {
+			$this->mysql_required_version    = $required_mariadb_version ?? $required_mysql_version;
 			$this->mysql_recommended_version = $this->mariadb_recommended_version;
 		}
 
