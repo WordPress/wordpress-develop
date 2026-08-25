@@ -356,9 +356,10 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame(
-			'<p>Allowed HTML</p> alert("xss"); &amp; "quotes"',
+		$this->assertEqualHTML(
+			'<p>Allowed HTML</p>  &amp; "quotes"',
 			_block_bindings_term_data_get_value( array( 'field' => 'description' ), $block ),
+			'<body>',
 			'Term description should be sanitized with wp_kses_post(), stripping disallowed tags like <script>.'
 		);
 	}
