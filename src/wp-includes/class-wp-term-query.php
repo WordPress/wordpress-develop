@@ -92,6 +92,7 @@ class WP_Term_Query {
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 6.4.0 Introduced the 'cache_results' parameter.
+	 * @since 6.9.0 Added support for array of orderby fields.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of term query parameters. Default empty.
@@ -100,7 +101,7 @@ class WP_Term_Query {
 	 *                                                   should be limited.
 	 *     @type int|int[]       $object_ids             Object ID, or array of object IDs. Results will be
 	 *                                                   limited to terms associated with these objects.
-	 *     @type string          $orderby                Field(s) to order terms by. Accepts:
+	 *     @type string|array    $orderby                Field(s) to order terms by. Accepts:
 	 *                                                   - Term fields ('name', 'slug', 'term_group', 'term_id', 'id',
 	 *                                                     'description', 'parent', 'term_order'). Unless `$object_ids`
 	 *                                                     is not empty, 'term_order' is treated the same as 'term_id'.
@@ -112,6 +113,7 @@ class WP_Term_Query {
 	 *                                                   - The value of `$meta_key`.
 	 *                                                   - The array keys of `$meta_query`.
 	 *                                                   - 'none' to omit the ORDER BY clause.
+	 *                                                   - Array of orderby fields as keys with order ('ASC'/'DESC') as values.
 	 *                                                   Default 'name'.
 	 *     @type string          $order                  Whether to order terms in ascending or descending order.
 	 *                                                   Accepts 'ASC' (ascending) or 'DESC' (descending).
@@ -445,7 +447,24 @@ class WP_Term_Query {
 			$_orderby = 'term_id';
 		}
 
-		$orderby = $this->parse_orderby( $_orderby );
+		if ( is_array( $_orderby ) ) {
+			$orderby_array = array();
+
+			foreach ( $_orderby as $orderby_field => $order ) {
+				$parsed_orderby = $this->parse_orderby( $orderby_field );
+
+				if ( ! $parsed_orderby ) {
+					continue;
+				}
+
+				$order           = $this->parse_order( $order );
+				$orderby_array[] = "{$parsed_orderby} {$order}";
+			}
+
+			$orderby = implode( ', ', $orderby_array );
+		} else {
+			$orderby = $this->parse_orderby( $_orderby );
+		}
 
 		if ( $orderby ) {
 			$orderby = "ORDER BY $orderby";
@@ -743,7 +762,7 @@ class WP_Term_Query {
 
 		$this->sql_clauses['select']  = "SELECT $distinct $fields";
 		$this->sql_clauses['from']    = "FROM $wpdb->terms AS t $join";
-		$this->sql_clauses['orderby'] = $orderby ? "$orderby $order" : '';
+		$this->sql_clauses['orderby'] = $orderby ? ( is_array( $this->query_vars['orderby'] ) ? $orderby : "$orderby $order" ) : '';
 		$this->sql_clauses['limits']  = $limits;
 
 		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
