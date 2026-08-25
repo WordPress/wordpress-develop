@@ -1007,13 +1007,21 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 		wp_json_encode( $shortcut_labels['appleOS'], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 	);
 	$script  .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
+	$wp_admin_bar->add_group(
+		array(
+			'id'   => 'command-palette-group',
+			'meta' => array(
+				'class' => 'ab-command-palette hide-if-no-js',
+			),
+		)
+	);
 	$wp_admin_bar->add_node(
 		array(
-			'id'    => 'command-palette',
-			'title' => $title,
-			'href'  => '#',
-			'meta'  => array(
-				'class'   => 'hide-if-no-js',
+			'parent' => 'command-palette-group',
+			'id'     => 'command-palette',
+			'title'  => $title,
+			'href'   => '#',
+			'meta'   => array(
 				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
 				'html'    => wp_get_inline_script_tag( $script ),
 			),

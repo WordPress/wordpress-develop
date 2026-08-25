@@ -488,6 +488,26 @@ ul#adminmenu > li.current > a.current:after {
 	color: variables.$menu-icon;
 }
 
+/* Admin Bar: command palette */
+
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette .ab-item {
+	background: variables.$menu-submenu-background-alt;
+}
+
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette:hover .ab-item,
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette > .ab-item:focus-visible {
+	background: variables.$menu-submenu-background;
+}
+
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette:hover .ab-icon:before,
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette > .ab-item:focus .ab-icon:before {
+	color: variables.$menu-icon;
+}
+
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette:hover span.ab-label,
+#wpadminbar > #wp-toolbar #wp-admin-bar-command-palette > .ab-item:focus span.ab-label {
+	color: variables.$menu-text;
+}
 
 /* Admin Bar: search */
 
