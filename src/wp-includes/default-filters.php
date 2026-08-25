@@ -454,6 +454,7 @@ add_action( 'user_request_action_confirmed', '_wp_privacy_account_request_confir
 add_action( 'user_request_action_confirmed', '_wp_privacy_send_request_confirmation_notification', 12 ); // After request marked as completed.
 add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_comment_personal_data_exporter' );
 add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_media_personal_data_exporter' );
+add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_post_personal_data_exporter' );
 add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_user_personal_data_exporter', 1 );
 add_filter( 'wp_privacy_personal_data_erasers', 'wp_register_comment_personal_data_eraser' );
 add_action( 'init', 'wp_schedule_delete_old_privacy_export_files' );
