@@ -1788,6 +1788,32 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54193
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext_with_filtered_json() {
+		$file     = DIR_TESTDATA . '/uploads/test.json';
+		$filename = 'test.json';
+
+		$expected = array(
+			'ext'             => 'json',
+			'type'            => 'application/json',
+			'proper_filename' => false,
+		);
+
+		add_filter(
+			'upload_mimes',
+			static function ( $mimes ) {
+				$mimes['json'] = 'application/json';
+				return $mimes;
+			}
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+	}
+
+	/**
 	 * @ticket 39550
 	 * @group ms-excluded
 	 * @requires extension fileinfo
