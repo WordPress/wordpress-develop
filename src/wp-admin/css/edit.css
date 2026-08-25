@@ -2155,4 +2155,20 @@ table.links-table {
 	.privacy-text-section .return-to-top {
 		margin: 2em 0 0;
 	}
+
+	.form-field input[type="text"],
+	.form-field input[type="password"],
+	.form-field input[type="email"],
+	.form-field input[type="number"],
+	.form-field input[type="search"],
+	.form-field input[type="tel"],
+	.form-field input[type="url"],
+	.form-field textarea,
+	.form-field select {
+		width: 100%;
+	}
+
+	.form-field select {
+		max-width: 100%;
+	}
 }
