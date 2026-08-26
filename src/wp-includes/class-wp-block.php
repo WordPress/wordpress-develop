@@ -375,19 +375,51 @@ class WP_Block {
 	 */
 	private function replace_html( string $block_content, string $attribute_name, $source_value, array $inner_block_offsets = array() ) {
 		$block_type = $this->block_type;
-		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
+
+		if ( ! isset( $block_type->attributes[ $attribute_name ] ) ) {
+			return $block_content;
+		}
+		$attribute = $block_type->attributes[ $attribute_name ];
+
+		/**
+		 * Modify an attribute's properties (for the purposes of being replaced in the block markup).
+		 *
+		 * By default, Block Bindings will replace sourced attributes in the markup with
+		 * the value from the source. However, some blocks persist attribute values explicitly
+		 * and still duplicate them in the markup. In those cases, this filter allows marking
+		 * them as "pseudo-sourced", so that they will also be replaced with the bound value.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @example function( $attribute, $attribute_name, $block_name ) {
+		 *   if ( 'core/cover' === $block_name && 'url' === $attribute_name ) {
+		 * 	   $attribute['source']    = 'attribute';
+		 * 	   $attribute['selector']  = 'img';
+		 * 	   $attribute['attribute'] = 'src';
+		 *   }
+		 *   return $attribute;
+		 * }
+		 *
+		 * @param array  $attribute      The attribute properties.
+		 * @param string $attribute_name The attribute name.
+		 * @param string $block_name     The block name.
+		 * @return array The modified attribute properties.
+		 */
+		$attribute = apply_filters( 'block_bindings_attribute_replaced_in_markup', $attribute, $attribute_name, $this->name );
+
+		if ( ! isset( $attribute['source'] ) ) {
 			return $block_content;
 		}
 
 		// Depending on the attribute source, the processing will be different.
-		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
+		switch ( $attribute['source'] ) {
 			case 'html':
 			case 'rich-text':
 				$block_reader = self::get_block_bindings_processor( $block_content );
 
 				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
 				// In the meantime, support comma-separated selectors by exploding them into an array.
-				$selectors = explode( ',', $block_type->attributes[ $attribute_name ]['selector'] );
+				$selectors = explode( ',', $attribute['selector'] );
 				// Add a bookmark to the first tag to be able to iterate over the selectors.
 				$block_reader->next_tag();
 				$block_reader->set_bookmark( 'iterate-selectors' );
@@ -422,12 +454,12 @@ class WP_Block {
 				if ( ! $amended_content->next_tag(
 					array(
 						// TODO: build the query from CSS selector.
-						'tag_name' => $block_type->attributes[ $attribute_name ]['selector'],
+						'tag_name' => $attribute['selector'],
 					)
 				) ) {
 					return $block_content;
 				}
-				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
+				$amended_content->set_attribute( $attribute['attribute'], $source_value );
 				return $amended_content->get_updated_html();
 
 			default:
