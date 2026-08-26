@@ -228,10 +228,10 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 		$first_template  = _build_block_template_result_from_post( $first_template_post );
 		$second_template = _build_block_template_result_from_post( $second_template_post );
 
-		$this->assertNotWPError( $first_template );
-		$this->assertSame( 'Post: Same Title (first-post)', $first_template->title );
-		$this->assertNotWPError( $second_template );
-		$this->assertSame( 'Post: Same Title (second-post)', $second_template->title );
+		$this->assertNotWPError( $first_template, 'Building the template for the first post should not return an error.' );
+		$this->assertSame( 'Post: Same Title (first-post)', $first_template->title, 'The title of the first post template should be suffixed with the post slug.' );
+		$this->assertNotWPError( $second_template, 'Building the template for the second post should not return an error.' );
+		$this->assertSame( 'Post: Same Title (second-post)', $second_template->title, 'The title of the second post template should be suffixed with the post slug.' );
 	}
 
 	/**
@@ -263,8 +263,8 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 
 		$template = _build_block_template_result_from_post( $template_post );
 
-		$this->assertNotWPError( $template );
-		$this->assertSame( 'Post: Unique Title', $template->title );
+		$this->assertNotWPError( $template, 'Building the template should not return an error.' );
+		$this->assertSame( 'Post: Unique Title', $template->title, 'The template title should not be suffixed with the post slug when the post title is unique.' );
 	}
 
 	/**
@@ -321,10 +321,10 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 		$first_template  = _build_block_template_result_from_post( $first_template_post );
 		$second_template = _build_block_template_result_from_post( $second_template_post );
 
-		$this->assertNotWPError( $first_template );
-		$this->assertSame( 'Tag: Same Name (first-tag)', $first_template->title );
-		$this->assertNotWPError( $second_template );
-		$this->assertSame( 'Tag: Same Name (second-tag)', $second_template->title );
+		$this->assertNotWPError( $first_template, 'Building the template for the first term should not return an error.' );
+		$this->assertSame( 'Tag: Same Name (first-tag)', $first_template->title, 'The title of the first term template should be suffixed with the term slug.' );
+		$this->assertNotWPError( $second_template, 'Building the template for the second term should not return an error.' );
+		$this->assertSame( 'Tag: Same Name (second-tag)', $second_template->title, 'The title of the second term template should be suffixed with the term slug.' );
 	}
 
 	/**
@@ -357,8 +357,8 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 
 		$template = _build_block_template_result_from_post( $template_post );
 
-		$this->assertNotWPError( $template );
-		$this->assertSame( 'Category: Unique Category', $template->title );
+		$this->assertNotWPError( $template, 'Building the template should not return an error.' );
+		$this->assertSame( 'Category: Unique Category', $template->title, 'The template title should not be suffixed with the term slug when the term name is unique.' );
 	}
 
 	/**
