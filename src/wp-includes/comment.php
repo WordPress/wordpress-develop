@@ -319,10 +319,13 @@ function wp_get_internal_comment_types(): array {
  * @since 7.2.0
  *
  * @param int|WP_Comment $comment_id Note comment ID or WP_Comment object.
- * @param string         $status     Optional. Comment status to match. Default 'all'.
+ * @param string         $status     Optional. Comment status to match, as accepted by
+ *                                   WP_Comment_Query. Note that 'all' covers only approved
+ *                                   and pending comments, so trashed reactions need an
+ *                                   explicit status. Default 'any'.
  * @return int[] Reaction comment IDs, oldest first. Empty if the comment is not a note.
  */
-function wp_get_note_reaction_ids( $comment_id, $status = 'all' ): array {
+function wp_get_note_reaction_ids( $comment_id, $status = 'any' ): array {
 	$comment = get_comment( $comment_id );
 
 	if ( ! $comment || 'note' !== $comment->comment_type ) {
@@ -1594,7 +1597,8 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	/*
 	 * Delete a note's reactions rather than letting them be reparented below.
 	 * A reaction only means anything attached to its note, and an orphaned one
-	 * would keep the reactor's identity on a note that no longer exists.
+	 * would keep the reactor's identity on a note that no longer exists. This
+	 * covers every status: a reaction the user removed is trashed, not deleted.
 	 */
 	foreach ( wp_get_note_reaction_ids( $comment ) as $reaction_id ) {
 		wp_delete_comment( $reaction_id, true );

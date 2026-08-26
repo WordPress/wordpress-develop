@@ -537,6 +537,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
+	 * @since 7.2.0 Excludes every internal comment type, unless 'all' or that type is requested.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *

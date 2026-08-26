@@ -2098,6 +2098,147 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A reaction the user already removed is trashed, not deleted, so deleting
+	 * its note must take it along too rather than leave it orphaned.
+	 *
+	 * @ticket 63191
+	 *
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_deletes_trashed_note_reactions() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$approved = $this->create_reaction_on_note( $note_id );
+		$trashed  = $this->create_reaction_on_note( $note_id, 'rocket' );
+		wp_trash_comment( $trashed );
+
+		wp_delete_comment( $note_id, true );
+
+		$this->assertNull( get_comment( $approved ), 'The approved reaction was not deleted.' );
+		$this->assertNull( get_comment( $trashed ), 'The trashed reaction was left behind.' );
+	}
+
+	/**
+	 * @ticket 63191
+	 *
+	 * @covers ::wp_get_internal_comment_types
+	 */
+	public function test_wp_get_internal_comment_types() {
+		$types = wp_get_internal_comment_types();
+
+		$this->assertContains( 'note', $types );
+		$this->assertContains( 'reaction', $types );
+		$this->assertNotContains( 'comment', $types, 'Discussion comments are not an internal type.' );
+	}
+
+	/**
+	 * @ticket 63191
+	 *
+	 * @covers ::wp_get_note_reaction_ids
+	 */
+	public function test_wp_get_note_reaction_ids_returns_reactions_oldest_first() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$heart  = $this->create_reaction_on_note( $note_id );
+		$rocket = $this->create_reaction_on_note( $note_id, 'rocket' );
+
+		// A reply is a child of the note, but it is not a reaction.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $note_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$this->assertSame( array( $heart, $rocket ), array_map( 'intval', wp_get_note_reaction_ids( $note_id ) ) );
+	}
+
+	/**
+	 * @ticket 63191
+	 *
+	 * @covers ::wp_get_note_reaction_ids
+	 */
+	public function test_wp_get_note_reaction_ids_filters_by_status() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$approved = $this->create_reaction_on_note( $note_id );
+		$trashed  = $this->create_reaction_on_note( $note_id, 'rocket' );
+		wp_trash_comment( $trashed );
+
+		$this->assertSame( array( $approved ), array_map( 'intval', wp_get_note_reaction_ids( $note_id, 'approve' ) ), 'Only the approved reaction was expected.' );
+		$this->assertSame( array( $trashed ), array_map( 'intval', wp_get_note_reaction_ids( $note_id, 'trash' ) ), 'Only the trashed reaction was expected.' );
+		$this->assertCount( 2, wp_get_note_reaction_ids( $note_id ), 'Both reactions were expected by default.' );
+		$this->assertSame( array( $approved, $trashed ), array_map( 'intval', wp_get_note_reaction_ids( $note_id ) ) );
+	}
+
+	/**
+	 * Only notes carry reactions.
+	 *
+	 * @ticket 63191
+	 *
+	 * @covers ::wp_get_note_reaction_ids
+	 *
+	 * @dataProvider data_wp_get_note_reaction_ids_non_note_comments
+	 *
+	 * @param string $comment_type The comment type to attach the reaction to.
+	 */
+	public function test_wp_get_note_reaction_ids_returns_empty_for_non_notes( $comment_type ) {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => $comment_type,
+				'comment_approved' => '1',
+			)
+		);
+
+		$this->create_reaction_on_note( $comment_id );
+
+		$this->assertSame( array(), wp_get_note_reaction_ids( $comment_id ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public function data_wp_get_note_reaction_ids_non_note_comments() {
+		return array(
+			'a discussion comment' => array( 'comment' ),
+			'a pingback'           => array( 'pingback' ),
+			'another reaction'     => array( 'reaction' ),
+		);
+	}
+
+	/**
+	 * @ticket 63191
+	 *
+	 * @covers ::wp_get_note_reaction_ids
+	 */
+	public function test_wp_get_note_reaction_ids_returns_empty_for_unknown_comment() {
+		$this->assertSame( array(), wp_get_note_reaction_ids( PHP_INT_MAX ) );
+	}
+
+	/**
 	 * @ticket 61244
 	 *
 	 * @covers ::get_comment

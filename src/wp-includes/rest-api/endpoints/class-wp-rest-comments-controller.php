@@ -43,9 +43,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * - `label` (string) A human-readable label.
 	 * - `value` (string) The slug used as the storage key in `comment_content`.
 	 *
-	 * Reactions submitted to the REST API may also use a lowercase
-	 * hex-codepoint sequence (e.g. `1f44d`) to represent emojis outside the
-	 * curated set; see create_item().
+	 * A reaction's `value` is the only content the REST API accepts, so this
+	 * list is the whole set of reactions a note can carry.
 	 *
 	 * @since 7.2.0
 	 *
