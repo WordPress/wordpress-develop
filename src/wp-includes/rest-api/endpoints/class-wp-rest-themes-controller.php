@@ -50,7 +50,26 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'get_items_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
-				'schema' => array( $this, 'get_item_schema' ),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'create_item' ),
+					'permission_callback' => array( $this, 'create_item_permissions_check' ),
+					'args'                => array(
+						'slug'   => array(
+							'type'        => 'string',
+							'required'    => true,
+							'description' => __( 'WordPress.org theme directory slug.' ),
+							'pattern'     => '[\w\-]+',
+						),
+						'status' => array(
+							'description' => __( 'The theme activation status.' ),
+							'type'        => 'string',
+							'enum'        => array( 'inactive', 'active' ),
+							'default'     => 'inactive',
+						),
+					),
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -69,6 +88,17 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				),
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'update_item' ),
+					'permission_callback' => array( $this, 'update_item_permissions_check' ),
+					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
+				),
+				array(
+					'methods'             => WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_item' ),
+					'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -444,6 +474,56 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks read permission for a given theme.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $theme_slug Theme slug to check.
+	 * @return true|WP_Error
+	 */
+	protected function check_read_permission( $theme_slug ) {
+		$theme = wp_get_theme( $theme_slug );
+		if ( ! $theme->exists() ) {
+			return new WP_Error( 'rest_theme_not_found', __( 'Theme not found.' ), array( 'status' => 404 ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Matches request with the theme.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Request data.
+	 * @param WP_Theme $theme Theme object.
+	 * @return bool
+	 */
+	protected function does_theme_match_request( $request, $theme ) {
+		$status       = $request['status'];
+		$theme_status = ( $this->is_same_theme( $theme, wp_get_theme() ) ) ? 'active' : 'inactive';
+		if ( ! is_array( $status ) || in_array( $theme_status, $status, true ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Retrieves theme data.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $theme_slug Theme slug to be retrieved.
+	 * @return WP_Theme|WP_Error
+	 */
+	protected function get_theme_data( $theme_slug ) {
+		$theme = wp_get_theme( $theme_slug );
+		if ( ! $theme->exists() ) {
+			return new WP_Error( 'rest_theme_not_found', __( 'Theme not found.' ), array( 'status' => 404 ) );
+		}
+		return $theme;
+	}
+
+	/**
 	 * Prepares the theme support value for inclusion in the REST API response.
 	 *
 	 * @since 5.5.0
@@ -645,6 +725,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'description' => __( 'A named status for the theme.' ),
 					'type'        => 'string',
 					'enum'        => array( 'inactive', 'active' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'default_template_types'      => array(
 					'description' => __( 'A list of default template types.' ),
@@ -762,5 +843,254 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		}
 
 		return $statuses;
+	}
+	/**
+	 * Checks permissions to update a theme (switch themes).
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return true|WP_Error True if the request has access to edit items, WP_Error object otherwise.
+	 */
+	public function update_item_permissions_check( $request ) {
+		if ( ! current_user_can( 'switch_themes' ) ) {
+			return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to switch themes for this site.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Update a theme (switch themes).
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function update_item( $request ) {
+		$theme_slug = $request['theme'];
+
+		$theme = $this->get_theme_data( $theme_slug );
+		if ( is_wp_error( $theme ) ) {
+			return $theme;
+		}
+
+		// Check if we need to switch the theme
+		if ( isset( $request['status'] ) && 'active' === $request['status'] ) {
+			switch_theme( $theme_slug );
+		}
+
+		return $this->prepare_item_for_response( $theme, $request );
+	}
+
+	/**
+	 * Checks permissions to install a theme.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
+	 */
+	public function create_item_permissions_check( $request ) {
+		if ( ! current_user_can( 'install_themes' ) ) {
+			return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to install themes on this site.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Install a theme.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function create_item( $request ) {
+		$slug = $request['slug'];
+		require_once ABSPATH . 'wp-admin/includes/theme-install.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+
+		// Verify filesystem is accessible first.
+		$filesystem_available = $this->is_filesystem_available();
+		if ( is_wp_error( $filesystem_available ) ) {
+			return $filesystem_available;
+		}
+
+		// Get theme information from WordPress.org API.
+		$api = themes_api(
+			'theme_information',
+			array(
+				'slug'   => $slug,
+				'fields' => array( 'sections' => false ),
+			)
+		);
+		if ( is_wp_error( $api ) ) {
+			if ( str_contains( $api->get_error_message(), 'Theme not found.' ) ) {
+				$api->add_data( array( 'status' => 404 ) );
+			} else {
+				$api->add_data( array( 'status' => 500 ) );
+			}
+			return $api;
+		}
+
+		$skin     = new WP_Ajax_Upgrader_Skin();
+		$upgrader = new Theme_Upgrader( $skin );
+
+		$result = $upgrader->install( $api->download_link );
+		if ( is_wp_error( $result ) ) {
+			$result->add_data( array( 'status' => 500 ) );
+			return $result;
+		}
+
+		// Get the installed theme file
+		$theme_file = $upgrader->theme_info();
+		if ( ! $theme_file ) {
+			return new WP_Error(
+				'unable_to_determine_installed_theme',
+				__( 'Unable to determine what theme was installed.' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$theme = wp_get_theme( $theme_file );
+
+		// Check if we need to activate the theme
+		if ( isset( $request['status'] ) && 'active' === $request['status'] ) {
+			switch_theme( $theme_file );
+		}
+
+		$response = $this->prepare_item_for_response( $theme, $request );
+		$response->set_status( 201 );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $theme_file ) ) );
+
+		return $response;
+	}
+
+
+	/**
+	 * Checks if the filesystem is available to perform theme installations.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return true|WP_Error True if the filesystem is available, or an error object if not.
+	 */
+	protected function is_filesystem_available() {
+		$filesystem_method = get_filesystem_method();
+
+		if ( 'direct' === $filesystem_method ) {
+			return true;
+		}
+
+		ob_start();
+		$credentials = request_filesystem_credentials( site_url() );
+		ob_end_clean();
+
+		if ( $credentials ) {
+			return true;
+		}
+
+		return new WP_Error( 'fs_unavailable', __( 'Could not access filesystem.' ), array( 'status' => 500 ) );
+	}
+
+	/**
+	 * Checks if a given request has access to delete a theme.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+	 */
+	public function delete_item_permissions_check( $request ) {
+		if ( ! current_user_can( 'delete_themes' ) ) {
+			return new WP_Error(
+				'rest_cannot_delete_theme',
+				__( 'Sorry, you are not allowed to delete themes for this site.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$theme = $this->get_theme_data( $request['theme'] );
+		if ( is_wp_error( $theme ) ) {
+			return $theme;
+		}
+
+		// Cannot delete active theme.
+		if ( $this->is_same_theme( $theme, wp_get_theme() ) ) {
+			return new WP_Error(
+				'rest_cannot_delete_active_theme',
+				__( 'Cannot delete the active theme.' ),
+				array( 'status' => 409 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Deletes a theme.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function delete_item( $request ) {
+		$theme = $this->get_theme_data( $request['theme'] );
+		if ( is_wp_error( $theme ) ) {
+			return $theme;
+		}
+
+		// Verify filesystem is accessible first.
+		$filesystem_available = $this->is_filesystem_available();
+		if ( is_wp_error( $filesystem_available ) ) {
+			return $filesystem_available;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/theme.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+
+		$previous_theme_data = $this->prepare_item_for_response( $theme, $request );
+
+		$result = delete_theme( $theme->get_stylesheet() );
+		if ( is_wp_error( $result ) ) {
+			$result->add_data( array( 'status' => 500 ) );
+			return $result;
+		}
+
+		return new WP_REST_Response(
+			array(
+				'deleted'  => true,
+				'previous' => $previous_theme_data->get_data(),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Validates theme param.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $value Theme parameter value.
+	 * @return true|WP_Error
+	 */
+	public function validate_theme_param( $value ) {
+		if ( ! is_string( $value ) || empty( $value ) ) {
+			return new WP_Error( 'rest_invalid_theme', __( 'Invalid theme.' ), array( 'status' => 400 ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Sanitizes theme param.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $value Theme parameter value.
+	 * @return string
+	 */
+	public function sanitize_theme_param( $value ) {
+		return urldecode( $value );
 	}
 }
