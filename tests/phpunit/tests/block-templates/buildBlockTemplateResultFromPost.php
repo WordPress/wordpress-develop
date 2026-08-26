@@ -177,6 +177,78 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 	}
 
 	/**
+	 * @ticket 65966
+	 */
+	public function test_should_append_post_slug_to_title_when_posts_share_the_same_title() {
+		self::factory()->post->create(
+			array(
+				'post_title' => 'Same Title',
+				'post_name'  => 'first-post',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_title' => 'Same Title',
+				'post_name'  => 'second-post',
+			)
+		);
+
+		$template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'single-post-first-post',
+				'post_title'   => 'single-post-first-post',
+				'post_content' => 'Content',
+				'post_excerpt' => '',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( $template_post->ID, self::TEST_THEME, 'wp_theme' );
+
+		$template = _build_block_template_result_from_post( $template_post );
+
+		$this->assertNotWPError( $template );
+		$this->assertSame( 'Post: Same Title (first-post)', $template->title );
+	}
+
+	/**
+	 * @ticket 65966
+	 */
+	public function test_should_not_append_post_slug_to_title_when_post_title_is_unique() {
+		self::factory()->post->create(
+			array(
+				'post_title' => 'Unique Title',
+				'post_name'  => 'unique-post',
+			)
+		);
+
+		$template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'single-post-unique-post',
+				'post_title'   => 'single-post-unique-post',
+				'post_content' => 'Content',
+				'post_excerpt' => '',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( $template_post->ID, self::TEST_THEME, 'wp_theme' );
+
+		$template = _build_block_template_result_from_post( $template_post );
+
+		$this->assertNotWPError( $template );
+		$this->assertSame( 'Post: Unique Title', $template->title );
+	}
+
+	/**
 	 * @ticket 59646
 	 * @ticket 60506
 	 */
