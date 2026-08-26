@@ -137,69 +137,121 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 64550
 	 *
+	 * @dataProvider data_emoji_in_plugin_updates
+	 *
 	 * @covers ::sanitize_option
 	 */
-	public function test_emoji_in_plugin_updates() {
+	public function test_emoji_in_plugin_updates( $updates ) {
 		global $wpdb;
-
-		$updates                    = new stdClass();
-		$updates->last_checked      = 1234567890;
-		$plugin_1                   = new stdClass();
-		$plugin_1->id               = 'w.org/plugins/classic-editor';
-		$plugin_1->slug             = 'classic-editor';
-		$plugin_1->plugin           = 'classic-editor/classic-editor.php';
-		$plugin_1->new_version      = '1.7.0';
-		$plugin_1->url              = 'https://wordpress.org/plugins/classic-editor/';
-		$plugin_1->package          = 'https://downloads.wordpress.org/plugin/classic-editor.1.7.0.zip';
-		$plugin_1->icons            = array(
-			'2x' => 'https://ps.w.org/classic-editor/assets/icon-256x256.png?rev=1998671',
-			'1x' => 'https://ps.w.org/classic-editor/assets/icon-128x128.png?rev=1998671',
-		);
-		$plugin_1->banners          = array(
-			'2x' => 'https://ps.w.org/classic-editor/assets/banner-1544x500.png?rev=1998671',
-			'1x' => 'https://ps.w.org/classic-editor/assets/banner-772x250.png?rev=1998676',
-		);
-		$plugin_1->banners_rtl      = array();
-		$plugin_1->requires         = '4.9';
-		$plugin_1->tested           = '7.0.4';
-		$plugin_1->requires_php     = '5.2.4';
-		$plugin_1->requires_plugins = array();
-		$plugin_2                   = new stdClass();
-		$plugin_2->id               = 'w.org/plugins/classic-widgets';
-		$plugin_2->slug             = 'classic-widgets';
-		$plugin_2->plugin           = 'classic-widgets/classic-widgets.php';
-		$plugin_2->new_version      = '0.3';
-		$plugin_2->url              = 'https://wordpress.org/plugins/classic-widgets/';
-		$plugin_2->package          = 'https://downloads.wordpress.org/plugin/classic-widgets.0.3.zip';
-		$plugin_2->icons            = array(
-			'default' => 'https://s.w.org/plugins/geopattern-icon/classic-widgets.svg',
-		);
-		$plugin_2->banners          = array();
-		$plugin_2->banners_rtl      = array();
-		$plugin_2->requires         = '4.9';
-		$plugin_2->tested           = '6.9.7';
-		$plugin_2->requires_php     = '5.6';
-		$plugin_2->requires_plugins = array();
-		$plugin_2->upgrade_notice   = "\xf0\x9f\x98\x88 This plugin does not really have an upgrade notice, but if it did, it would be here.";
-		$updates->response          = array(
-			'classic-editor/classic-editor.php'   => $plugin_1,
-			'classic-widgets/classic-widgets.php' => $plugin_2,
-		);
-		$updates->translations      = array();
-		$updates->no_update         = array();
-		$updates->checked           = array(
-			'classic-editor/classic-editor.php'   => '1.6.7',
-			'classic-widgets/classic-widgets.php' => '0.2',
-		);
 
 		// Create a deep copy.
 		$expected = unserialize( serialize( $updates ) );
 
 		if ( 'utf8mb4' !== $wpdb->get_col_charset( $wpdb->options, 'option_value' ) ) {
-			$expected->response['classic-widgets/classic-widgets.php']->upgrade_notice = ' This plugin does not really have an upgrade notice, but if it did, it would be here.';
+			// Iterate through all properties of all plugins and strip out any non-ASCII characters.
+			foreach ( $expected->response as $plugin ) {
+				$object_vars = get_object_vars( $plugin );
+				foreach ( $plugin as $property_name => $property_value ) {
+					if ( is_string( $property_value ) ) {
+						$plugin->$property_name = preg_replace( '/[\x80-\xff]/', '', $property_value );
+					}
+				}
+			}
 		}
 
 		$this->assertEquals( $expected, sanitize_option( '_site_transient_update_plugins', $updates ) );
+	}
+
+	public function data_emoji_in_plugin_updates() {
+		return array(
+			array(
+				// This is the sort of plugin data you could expect to see from the wordpress.org plugin directory.
+				(object) array(
+					'last_checked' => 1234567890,
+					'response'     => array(
+						'classic-editor/classic-editor.php'   => (object) array(
+							'id'               => 'w.org/plugins/classic-editor',
+							'slug'             => 'classic-editor',
+							'plugin'           => 'classic-editor/classic-editor.php',
+							'new_version'      => '1.7.0',
+							'url'              => 'https://wordpress.org/plugins/classic-editor/',
+							'package'          => 'https://downloads.wordpress.org/plugin/classic-editor.1.7.0.zip',
+							'icons'            => array(
+								'2x' => 'https://ps.w.org/classic-editor/assets/icon-256x256.png?rev=1998671',
+								'1x' => 'https://ps.w.org/classic-editor/assets/icon-128x128.png?rev=1998671',
+							),
+							'banners'          => array(
+								'2x' => 'https://ps.w.org/classic-editor/assets/banner-1544x500.png?rev=1998671',
+								'1x' => 'https://ps.w.org/classic-editor/assets/banner-772x250.png?rev=1998676',
+							),
+							'banners_rtl'      => array(),
+							'requires'         => '4.9',
+							'tested'           => '7.0.4',
+							'requires_php'     => '5.2.4',
+							'requires_plugins' => array(),
+						),
+						'classic-widgets/classic-widgets.php' => (object) array(
+							'id'               => 'w.org/plugins/classic-widgets',
+							'slug'             => 'classic-widgets',
+							'plugin'           => 'classic-widgets/classic-widgets.php',
+							'new_version'      => '0.3',
+							'url'              => 'https://wordpress.org/plugins/classic-widgets/',
+							'package'          => 'https://downloads.wordpress.org/plugin/classic-widgets.0.3.zip',
+							'icons'            => array(
+								'default' => 'https://s.w.org/plugins/geopattern-icon/classic-widgets.svg',
+							),
+							'banners'          => array(),
+							'banners_rtl'      => array(),
+							'requires'         => '4.9',
+							'tested'           => '6.9.7',
+							'requires_php'     => '5.6',
+							'requires_plugins' => array(),
+							'upgrade_notice'   => "\xf0\x9f\x98\x88 This plugin does not really have an upgrade notice, but if it did, it would be here.",
+						),
+					),
+					'translations' => array(),
+					'no_update'    => array(),
+					'checked'      => array(
+						'classic-editor/classic-editor.php'   => '1.6.7',
+						'classic-widgets/classic-widgets.php' => '0.2',
+					),
+				),
+			),
+
+			array(
+				/*
+				 * This plugin data contains non-BMP Unicode data in several different places.
+				 * You would probably never see this from the wordpress.org plugin directory.
+				 * But you might see it for a plugin which gets its updates from elswehere.
+				 */
+				(object) array(
+					'last_checked' => 1234567890,
+					'response'     => array(
+						'unicode-everywhere-plugin/unicode-everywhere-plugin.php' => (object) array(
+							'id'               => 'w.org/plugins/unicode-everywhere-plugin',
+							'slug'             => 'unicode-everywhere-plugin',
+							'plugin'           => 'unicode-everywhere-plugin/unicode-everywhere-plugin.php',
+							'new_version'      => '0.2',
+							'url'              => "https://example.com/plugins\xf0\x9f\x94\x8c/unicode-everywhere-plugin/",
+							'package'          => "https://example.com/plugins\xf0\x9f\x94\x8c/unicode-everywhere-plugin/unicode-everywhere-plugin.0.2.zip",
+							'icons'            => array(),
+							'banners'          => array(),
+							'banners_rtl'      => array(),
+							'requires'         => '4.9',
+							'tested'           => "6.9.7 \xf0\x9f\x9a\x80",
+							'requires_php'     => '5.6',
+							'requires_plugins' => array(),
+							'foobar'           => "You probably wouldn't see a property named 'foobar' in a response from wordpress.org, but a third-party plugin might include it. \xf0\x9f\x98\x80",
+						),
+					),
+					'translations' => array(),
+					'no_update'    => array(),
+					'checked'      => array(
+						'unicode-everywhere-plugin/unicode-everywhere-plugin.php' => '0.1',
+					),
+				),
+			),
+		);
 	}
 
 	/**
