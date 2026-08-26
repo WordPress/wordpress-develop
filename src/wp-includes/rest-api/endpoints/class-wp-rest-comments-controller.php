@@ -913,6 +913,21 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $prepared_args;
 		}
 
+		/*
+		 * `prepare_item_for_database()` always sets `comment_author_IP` (to the
+		 * request's remote address or the '127.0.0.1' fallback) and may set
+		 * `comment_agent` from the User-Agent header, even when neither field was
+		 * included in the update request.  Remove them here so that a status-only
+		 * update produces an empty `$prepared_args` array and is routed through the
+		 * lightweight `handle_status_param()` path rather than a full wp_update_comment().
+		 */
+		if ( ! isset( $request['author_ip'] ) ) {
+			unset( $prepared_args['comment_author_IP'] );
+		}
+		if ( ! isset( $request['author_user_agent'] ) ) {
+			unset( $prepared_args['comment_agent'] );
+		}
+
 		if ( ! empty( $prepared_args['comment_post_ID'] ) ) {
 			$post = get_post( $prepared_args['comment_post_ID'] );
 
