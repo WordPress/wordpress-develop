@@ -601,6 +601,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	// www.example.com vs. example.com
 	$user_home = parse_url( home_url() );
 
+	if ( ! empty( $user_home['scheme'] ) && ! empty( $original['scheme'] ) ) {
+		$redirect['scheme'] = $user_home['scheme'];
+	}
+
 	if ( ! empty( $user_home['host'] ) ) {
 		$redirect['host'] = $user_home['host'];
 	}
@@ -726,13 +730,24 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	$original_host_low = strtolower( $original['host'] );
 	$redirect_host_low = strtolower( $redirect['host'] );
 
+	$original_port = isset( $original['port'] ) ? strtolower( $original['port'] ) : '80';
+	$redirect_port = isset( $redirect['port'] ) ? strtolower( $redirect['port'] ) : '80';
+
 	/*
-	 * Ignore differences in host capitalization, as this can lead to infinite redirects.
-	 * Only redirect no-www <=> yes-www.
+	 * Preserve original host casing if the hostnames are identical (ignoring case),
+	 * or differ in a way that is not just a www <=> non-www variation,
+	 * and the port is the same.
+	 *
+	 * This prevents unnecessary redirects and avoids redirect loops due to host casing,
+	 * but still allows canonical redirects between www and non-www variants.
 	 */
-	if ( $original_host_low === $redirect_host_low
-		|| ( 'www.' . $original_host_low !== $redirect_host_low
-			&& 'www.' . $redirect_host_low !== $original_host_low )
+	if (
+		$original_host_low === $redirect_host_low
+		|| (
+			'www.' . $original_host_low !== $redirect_host_low
+			&& 'www.' . $redirect_host_low !== $original_host_low
+			&& ( '' === $original_host_low || $original_port === $redirect_port )
+		)
 	) {
 		$redirect['host'] = $original['host'];
 	}
