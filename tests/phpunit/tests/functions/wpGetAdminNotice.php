@@ -21,7 +21,7 @@ class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 	 * @param string $expected The expected admin notice markup.
 	 */
 	public function test_should_return_admin_notice( $message, $args, $expected ) {
-		$this->assertSame( $expected, wp_get_admin_notice( $message, $args ) );
+		$this->assertEqualHTML( $expected, wp_get_admin_notice( $message, $args ) );
 	}
 
 	/**

@@ -25,7 +25,7 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 		wp_admin_notice( $message, $args );
 		$actual = ob_get_clean();
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
