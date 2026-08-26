@@ -193,7 +193,7 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 			)
 		);
 
-		$template_post = self::factory()->post->create_and_get(
+		$first_template_post = self::factory()->post->create_and_get(
 			array(
 				'post_type'    => 'wp_template',
 				'post_name'    => 'single-post-first-post',
@@ -207,12 +207,31 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 				),
 			)
 		);
-		wp_set_post_terms( $template_post->ID, self::TEST_THEME, 'wp_theme' );
+		wp_set_post_terms( $first_template_post->ID, self::TEST_THEME, 'wp_theme' );
 
-		$template = _build_block_template_result_from_post( $template_post );
+		$second_template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'single-post-second-post',
+				'post_title'   => 'single-post-second-post',
+				'post_content' => 'Content',
+				'post_excerpt' => '',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( $second_template_post->ID, self::TEST_THEME, 'wp_theme' );
 
-		$this->assertNotWPError( $template );
-		$this->assertSame( 'Post: Same Title (first-post)', $template->title );
+		$first_template  = _build_block_template_result_from_post( $first_template_post );
+		$second_template = _build_block_template_result_from_post( $second_template_post );
+
+		$this->assertNotWPError( $first_template );
+		$this->assertSame( 'Post: Same Title (first-post)', $first_template->title );
+		$this->assertNotWPError( $second_template );
+		$this->assertSame( 'Post: Same Title (second-post)', $second_template->title );
 	}
 
 	/**
@@ -246,6 +265,100 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 
 		$this->assertNotWPError( $template );
 		$this->assertSame( 'Post: Unique Title', $template->title );
+	}
+
+	/**
+	 * @ticket 65966
+	 */
+	public function test_should_append_term_slug_to_title_when_terms_share_the_same_name() {
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Same Name',
+				'slug'     => 'first-tag',
+			)
+		);
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Same Name',
+				'slug'     => 'second-tag',
+			)
+		);
+
+		$first_template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'tag-first-tag',
+				'post_title'   => 'tag-first-tag',
+				'post_content' => 'Content',
+				'post_excerpt' => '',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( $first_template_post->ID, self::TEST_THEME, 'wp_theme' );
+
+		$second_template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'tag-second-tag',
+				'post_title'   => 'tag-second-tag',
+				'post_content' => 'Content',
+				'post_excerpt' => '',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( $second_template_post->ID, self::TEST_THEME, 'wp_theme' );
+
+		$first_template  = _build_block_template_result_from_post( $first_template_post );
+		$second_template = _build_block_template_result_from_post( $second_template_post );
+
+		$this->assertNotWPError( $first_template );
+		$this->assertSame( 'Tag: Same Name (first-tag)', $first_template->title );
+		$this->assertNotWPError( $second_template );
+		$this->assertSame( 'Tag: Same Name (second-tag)', $second_template->title );
+	}
+
+	/**
+	 * @ticket 65966
+	 */
+	public function test_should_not_append_term_slug_to_title_when_term_name_is_unique() {
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Unique Category',
+				'slug'     => 'unique-category',
+			)
+		);
+
+		$template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'category-unique-category',
+				'post_title'   => 'category-unique-category',
+				'post_content' => 'Content',
+				'post_excerpt' => '',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( $template_post->ID, self::TEST_THEME, 'wp_theme' );
+
+		$template = _build_block_template_result_from_post( $template_post );
+
+		$this->assertNotWPError( $template );
+		$this->assertSame( 'Category: Unique Category', $template->title );
 	}
 
 	/**
