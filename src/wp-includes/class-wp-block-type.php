@@ -488,6 +488,7 @@ class WP_Block_Type {
 	 * defaulted and missing values.
 	 *
 	 * @since 5.0.0
+	 * @since 7.2.0 Avoids rich-text and other type invalidations by calling `$this->get_attributes_for_rest_validation()`.
 	 *
 	 * @param array $attributes Original block attributes.
 	 * @return array Prepared block attributes.
@@ -586,6 +587,38 @@ class WP_Block_Type {
 		return is_array( $this->attributes ) ?
 			$this->attributes :
 			array();
+	}
+
+	/**
+	 * Get all available block attributes, removing any quirks of the Blocks
+	 * API incompatible with JSON Schema.
+	 *
+	 * @see rest_validate_value_from_schema
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array Array of attributes.
+	 */
+	public function get_attributes_for_rest_validation() {
+		$attributes = $this->get_attributes();
+
+		// In the block editor, rich-text attributes are kept as instances of
+		// RichTextData, which is why the Blocks API has a dedicated
+		// "rich-text" type, distinct from "string".
+		//
+		// This is not a valid JSON Schema type, but we can replace it with
+		// "string", since any rich-text attribute handled by the server will
+		// appear in its serialised form, i.e. a string.
+		//
+		// TODO: Next, consider what to do with subtypes.
+		foreach ( $attributes as &$attr ) {
+			if ( isset( $attr['type'] ) && 'rich-text' === $attr['type'] ) {
+				$attr['type'] = 'string';
+			}
+		}
+		unset( $attr ); // Avoid dangerous dangling refs
+
+		return $attributes;
 	}
 
 	/**
