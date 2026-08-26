@@ -444,6 +444,16 @@ add_action( 'shutdown', 'wp_ob_end_flush_all', 1 );
 // Create a revision whenever a post is updated.
 add_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert', 9, 3 );
 add_action( 'post_updated', 'wp_save_post_revision', 10, 1 );
+
+// Update post list table change tokens after post mutations.
+add_action( 'wp_after_insert_post', '_wp_set_post_list_table_last_changed', 10, 4 );
+add_action( 'deleted_post', '_wp_set_post_list_table_last_changed', 10, 2 );
+add_action( 'added_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 2 );
+add_action( 'updated_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 2 );
+add_action( 'deleted_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 2 );
+add_action( 'added_term_relationship', '_wp_set_post_list_table_last_changed_for_terms', 10, 3 );
+add_action( 'deleted_term_relationships', '_wp_set_post_list_table_last_changed_for_terms', 10, 3 );
+add_action( 'shutdown', '_wp_finalize_post_list_table_last_changed' );
 add_action( 'publish_post', '_publish_post_hook', 5, 1 );
 add_action( 'transition_post_status', '_transition_post_status', 5, 3 );
 add_action( 'transition_post_status', '_update_term_count_on_transition_post_status', 10, 3 );

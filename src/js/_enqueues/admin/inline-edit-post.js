@@ -621,6 +621,13 @@ $( function() {
 	var locked = data['wp-check-locked-posts'] || {},
 		lockedClass = 'wp-locked';
 
+	// A post change can affect filtering, ordering, and pagination.
+	// Defer reloading while an inline editor has unsaved changes.
+	if ( data['wp-refresh-post-list'] && ! $( '#the-list tr.inline-editor' ).length ) {
+		window.location.reload();
+		return;
+	}
+
 	$('#the-list tr').each( function(i, el) {
 		var key = el.id, row = $(el), lock_data, avatar;
 
@@ -659,6 +666,11 @@ $( function() {
 	if ( check.length ) {
 		data['wp-check-locked-posts'] = check;
 	}
+
+	data['wp-check-post-list'] = {
+		post_type: $( '.post_type_page' ).val(),
+		last_changed: $( '#posts-filter' ).attr( 'data-wp-post-list-last-changed' )
+	};
 });
 
 })( jQuery, window.wp );

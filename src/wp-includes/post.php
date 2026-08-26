@@ -8635,6 +8635,146 @@ function wp_cache_set_posts_last_changed() {
 }
 
 /**
+ * Retrieves the last changed token for a post type's list table.
+ *
+ * For internal use.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @param string $post_type Post type.
+ * @return string Last changed token, or an empty string if no changes have been recorded.
+ */
+function _wp_get_post_list_table_last_changed( $post_type ) {
+	return get_option( '_wp_post_list_table_last_changed_' . sanitize_key( $post_type ), '' );
+}
+
+/**
+ * Marks post list table change tokens for update.
+ *
+ * The first post save or delete updates its token immediately. Standalone meta
+ * and term mutations, and additional changes, are finalized at shutdown.
+ *
+ * For internal use.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @global array $_wp_post_list_table_changed
+ *
+ * @param int          $post_id     Post ID.
+ * @param WP_Post      $post        Post object.
+ * @param bool|null    $update      Whether this is an existing post being updated.
+ * @param WP_Post|null $post_before Post object before the update, or null.
+ * @param bool         $defer       Whether to defer the first token update until shutdown.
+ */
+function _wp_set_post_list_table_last_changed( $post_id, $post, $update = null, $post_before = null, $defer = false ) {
+	global $_wp_post_list_table_changed;
+
+	if ( 'auto-draft' === $post->post_status && ( ! $post_before || 'auto-draft' === $post_before->post_status ) ) {
+		return;
+	}
+
+	$post_types = array( $post->post_type );
+
+	if ( $post_before && $post_before->post_type !== $post->post_type ) {
+		$post_types[] = $post_before->post_type;
+	}
+
+	foreach ( $post_types as $post_type ) {
+		$post_type_object = get_post_type_object( $post_type );
+
+		if ( 'attachment' === $post_type || ! $post_type_object || ! $post_type_object->show_ui ) {
+			continue;
+		}
+
+		if ( ! isset( $_wp_post_list_table_changed[ $post_type ] ) && $defer ) {
+			$_wp_post_list_table_changed[ $post_type ] = 'pending';
+			continue;
+		}
+
+		if ( isset( $_wp_post_list_table_changed[ $post_type ] ) && 'pending' === $_wp_post_list_table_changed[ $post_type ] && $defer ) {
+			continue;
+		}
+
+		if ( ! isset( $_wp_post_list_table_changed[ $post_type ] ) || 'pending' === $_wp_post_list_table_changed[ $post_type ] ) {
+			$_wp_post_list_table_changed[ $post_type ] = false;
+
+			if ( ! update_option( '_wp_post_list_table_last_changed_' . $post_type, wp_generate_uuid4(), false ) && false === $_wp_post_list_table_changed[ $post_type ] ) {
+				$_wp_post_list_table_changed[ $post_type ] = true;
+			}
+		} else {
+			$_wp_post_list_table_changed[ $post_type ] = true;
+		}
+	}
+}
+
+/**
+ * Marks a post list table change token after a post meta mutation.
+ *
+ * For internal use.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @param int $meta_id Post meta ID.
+ * @param int $post_id Post ID.
+ */
+function _wp_set_post_list_table_last_changed_for_post_meta( $meta_id, $post_id ) {
+	$post = get_post( $post_id );
+
+	if ( $post ) {
+		_wp_set_post_list_table_last_changed( $post_id, $post, null, null, true );
+	}
+}
+
+/**
+ * Marks a post list table change token after a term relationship mutation.
+ *
+ * For internal use.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @param int       $post_id  Post ID.
+ * @param int|int[] $tt_ids   Term taxonomy ID or IDs.
+ * @param string    $taxonomy Taxonomy slug.
+ */
+function _wp_set_post_list_table_last_changed_for_terms( $post_id, $tt_ids, $taxonomy ) {
+	$post = get_post( $post_id );
+
+	if ( $post && is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
+		_wp_set_post_list_table_last_changed( $post_id, $post, null, null, true );
+	}
+}
+
+/**
+ * Finalizes coalesced post list table change token updates.
+ *
+ * For internal use.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @global array $_wp_post_list_table_changed
+ */
+function _wp_finalize_post_list_table_last_changed() {
+	global $_wp_post_list_table_changed;
+
+	if ( empty( $_wp_post_list_table_changed ) ) {
+		return;
+	}
+
+	foreach ( $_wp_post_list_table_changed as $post_type => $needs_update ) {
+		if ( $needs_update ) {
+			update_option( '_wp_post_list_table_last_changed_' . $post_type, wp_generate_uuid4(), false );
+		}
+	}
+
+	$_wp_post_list_table_changed = array();
+}
+
+/**
  * Gets all available post MIME types for a given post type.
  *
  * @since 2.5.0

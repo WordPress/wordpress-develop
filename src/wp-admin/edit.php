@@ -232,6 +232,7 @@ if ( $doaction ) {
 	exit;
 }
 
+$post_list_table_last_changed = _wp_get_post_list_table_last_changed( $post_type );
 $wp_list_table->prepare_items();
 
 wp_enqueue_script( 'inline-edit-post' );
@@ -485,7 +486,7 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( array( 'locked', 'skipped', 'updated
 
 <?php $wp_list_table->views(); ?>
 
-<form id="posts-filter" method="get">
+<form id="posts-filter" method="get" data-wp-post-list-last-changed="<?php echo esc_attr( $post_list_table_last_changed ); ?>">
 
 <?php $wp_list_table->search_box( $post_type_object->labels->search_items, 'post' ); ?>
 
