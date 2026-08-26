@@ -23,8 +23,3 @@ parameters:
 			identifier: booleanOr.alwaysTrue
 			count: 1
 			path: ../../../src/wp-includes/block-supports/position.php
-		-
-			message: '#^Result of \|\| is always true\.$#'
-			identifier: booleanOr.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block.php
