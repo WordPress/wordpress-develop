@@ -208,6 +208,41 @@ class Tests_Multisite_wpSite extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the refetched site replaces the poisoned cache value.
+	 *
+	 * Otherwise the poisoned value survives and every subsequent lookup queries the database again.
+	 *
+	 * @ticket 65962
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @dataProvider data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss
+	 *
+	 * @param mixed $cache_value Value to poison the object cache with.
+	 */
+	public function test_get_instance_replaces_a_poisoned_cache_value( $cache_value ): void {
+		global $wpdb;
+
+		wp_cache_set( self::$site_id, $cache_value, 'sites' );
+
+		// Prime the object cache, replacing the poisoned value.
+		WP_Site::get_instance( self::$site_id );
+
+		$cached = wp_cache_get( self::$site_id, 'sites' );
+
+		$this->assertInstanceOf( stdClass::class, $cached, 'The poisoned value was not replaced in the object cache.' );
+		$this->assertSame( (string) self::$site_id, $cached->blog_id, 'The wrong site was added to the object cache.' );
+
+		$num_queries = $wpdb->num_queries;
+
+		$site = WP_Site::get_instance( self::$site_id );
+
+		$this->assertInstanceOf( WP_Site::class, $site, 'A site object was not returned.' );
+		$this->assertSame( (string) self::$site_id, $site->blog_id, 'The wrong site was returned.' );
+		$this->assertSame( $num_queries, $wpdb->num_queries, 'The database was queried again.' );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array<non-falsy-string, array{ mixed }>
