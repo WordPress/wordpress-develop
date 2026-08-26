@@ -16,6 +16,12 @@
  * @see WP_Upgrader_Skin
  */
 class Plugin_Upgrader_Skin extends WP_Upgrader_Skin {
+	/**
+	 * The upgrader instance.
+	 * 
+	 * @var Plugin_Upgrader
+	 */
+	public $upgrader;
 
 	/**
 	 * Holds the plugin slug in the Plugin Directory.
