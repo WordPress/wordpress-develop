@@ -3694,7 +3694,7 @@ function get_allowed_mime_types( $user = null ) {
 	$t = wp_get_mime_types();
 
 	unset( $t['swf'], $t['exe'] );
-	if ( function_exists( 'current_user_can' ) ) {
+	if ( function_exists( 'current_user_can' ) && function_exists( 'wp_get_current_user' ) ) {
 		$unfiltered = $user ? user_can( $user, 'unfiltered_html' ) : current_user_can( 'unfiltered_html' );
 	}
 
