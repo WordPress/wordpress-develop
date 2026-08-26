@@ -372,4 +372,72 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 			'Orphaned timeout row with a future expiry should not be removed by delete_expired_transients().'
 		);
 	}
+
+	/**
+	 * Tests that delete_site_transient() removes an orphaned site transient timeout row when the value row is missing.
+	 *
+	 * @ticket 65863
+	 *
+	 * @covers ::delete_site_transient
+	 */
+	public function test_delete_site_transient_removes_orphaned_timeout_row() {
+		$transient = 'test_site_orphan_timeout';
+
+		// Simulate an orphaned site transient timeout row without its matching value row.
+		add_site_option( '_site_transient_timeout_' . $transient, time() + 3600 );
+
+		// Confirm the value row does not exist and the timeout row does.
+		$this->assertFalse( get_site_option( '_site_transient_' . $transient ), 'Value row should not exist.' );
+		$this->assertNotFalse( get_site_option( '_site_transient_timeout_' . $transient ), 'Timeout row should exist.' );
+
+		delete_site_transient( $transient );
+
+		$this->assertFalse(
+			get_site_option( '_site_transient_timeout_' . $transient ),
+			'Orphaned site transient timeout row should have been removed by delete_site_transient().'
+		);
+	}
+
+	/**
+	 * Tests that delete_expired_transients() removes orphaned site transient timeout rows whose timestamp has passed.
+	 *
+	 * On single-site installs, site transients are stored in wp_options.
+	 *
+	 * @ticket 65863
+	 *
+	 * @group site-transient
+	 *
+	 * @covers ::delete_expired_transients
+	 */
+	public function test_delete_expired_transients_removes_orphaned_expired_site_timeout_row() {
+		global $wpdb;
+
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'Single-site site transient path only.' );
+		}
+
+		$transient      = 'test_site_orphan_expired';
+		$option_timeout = '_site_transient_timeout_' . $transient;
+
+		// Simulate an orphaned site transient timeout row that has already expired.
+		add_option( $option_timeout, time() - 1, '', false );
+
+		// Confirm the value row does not exist and the timeout row does.
+		$this->assertFalse( get_option( '_site_transient_' . $transient ), 'Value row should not exist.' );
+		$this->assertNotFalse( get_option( $option_timeout ), 'Timeout row should exist before cleanup.' );
+
+		delete_expired_transients();
+
+		$row = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
+				$option_timeout
+			)
+		);
+
+		$this->assertNull(
+			$row,
+			'Orphaned expired site transient timeout row should have been removed from the database by delete_expired_transients().'
+		);
+	}
 }

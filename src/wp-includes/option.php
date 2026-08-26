@@ -1722,6 +1722,7 @@ function delete_expired_transients( $force_db = false ) {
 				"DELETE a FROM {$wpdb->sitemeta} a
 				LEFT JOIN {$wpdb->sitemeta} b
 					ON b.meta_key = CONCAT( '_site_transient_', SUBSTRING( a.meta_key, 25 ) )
+					AND b.site_id = a.site_id
 				WHERE a.meta_key LIKE %s
 				AND a.meta_value < %d
 				AND b.meta_id IS NULL",
