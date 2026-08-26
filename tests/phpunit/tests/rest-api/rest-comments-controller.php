@@ -5196,4 +5196,363 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertStringContainsString( 'type=reaction', $href );
 		$this->assertStringNotContainsString( 'type=note', $href );
 	}
+	/**
+	 * A reaction may only be added on the current user's own behalf.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_create_reaction_cannot_be_attributed_to_another_user() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$admin_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'parent'  => $note_id,
+					'content' => 'heart',
+					'type'    => 'reaction',
+					'author'  => self::$editor_id,
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_invalid_author', $response, 403 );
+		$this->assertCount(
+			0,
+			get_comments(
+				array(
+					'parent' => $note_id,
+					'type'   => 'reaction',
+					'status' => 'approve',
+				)
+			),
+			'No reaction should have been stored.'
+		);
+	}
+
+	/**
+	 * Author fields in the request must not detach a reaction from its user.
+	 *
+	 * A reaction stored with `user_id` 0 is invisible to the uniqueness check and
+	 * to `reaction_summary`, so it could be added repeatedly and never removed.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_create_reaction_ignores_request_author_fields() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$body = wp_json_encode(
+			array(
+				'post'         => $post_id,
+				'parent'       => $note_id,
+				'content'      => 'heart',
+				'type'         => 'reaction',
+				'author_name'  => 'Someone Else',
+				'author_email' => 'someone@example.com',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( $body );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data     = $response->get_data();
+		$reaction = get_comment( $data['id'] );
+		$this->assertSame( (string) self::$editor_id, $reaction->user_id, 'The reaction should belong to the current user.' );
+		$this->assertNotSame( 'someone@example.com', $reaction->comment_author_email );
+
+		// The uniqueness check can now see the stored reaction.
+		$duplicate = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$duplicate->add_header( 'Content-Type', 'application/json' );
+		$duplicate->set_body( $body );
+
+		$this->assertErrorResponse( 'rest_comment_duplicate_reaction', rest_get_server()->dispatch( $duplicate ), 409 );
+	}
+
+	/**
+	 * Removing a reaction takes it out of the note's summary.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_delete_reaction() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'heart',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $reaction_id ) );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$note    = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id ) );
+		$summary = $note->get_data()['reaction_summary'];
+		$this->assertSame( array(), $summary, 'The removed reaction should no longer be summarized.' );
+	}
+
+	/**
+	 * A user who cannot edit the note's post cannot remove a reaction on it.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_delete_reaction_requires_edit_permission() {
+		$post_id     = self::factory()->post->create();
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'heart',
+			)
+		);
+
+		wp_set_current_user( self::$subscriber_id );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $reaction_id ) );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+		$this->assertNotNull( get_comment( $reaction_id ) );
+	}
+
+	/**
+	 * Listing notes returns each note's reaction summary without a per-note query.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_note_collection_includes_reaction_summary() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id  = self::factory()->post->create();
+		$note_ids = array();
+
+		for ( $i = 0; $i < 3; $i++ ) {
+			$note_id    = self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $post_id,
+					'comment_type'     => 'note',
+					'comment_approved' => 1,
+					'user_id'          => self::$editor_id,
+					'comment_content'  => 'Note ' . $i,
+				)
+			);
+			$note_ids[] = $note_id;
+
+			self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $post_id,
+					'comment_type'     => 'reaction',
+					'comment_parent'   => $note_id,
+					'comment_approved' => 1,
+					'user_id'          => self::$editor_id,
+					'comment_content'  => 'heart',
+				)
+			);
+		}
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'type', 'note' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'context', 'edit' );
+
+		$queries_before = get_num_queries();
+		$response       = rest_get_server()->dispatch( $request );
+		$queries_after  = get_num_queries();
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertCount( 3, $data );
+
+		foreach ( $data as $note ) {
+			$this->assertArrayHasKey( 'reaction_summary', $note );
+			$this->assertSame( 1, $note['reaction_summary']['heart']['count'] );
+			$this->assertTrue( $note['reaction_summary']['heart']['reacted'] );
+		}
+
+		/*
+		 * Summaries are pre-fetched in two aggregated queries for the whole
+		 * collection. Pin a ceiling well under one query per note so a
+		 * regression back to the N+1 path is caught.
+		 */
+		$this->assertLessThan(
+			$queries_before + 20,
+			$queries_after,
+			'Listing notes should not run a reaction query per note.'
+		);
+	}
+
+	/**
+	 * A note is not readable, and so neither is its reaction summary, without permission.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_reaction_summary_is_not_exposed_to_logged_out_users() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'heart',
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id ) );
+
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
+	}
+
+	/**
+	 * Reactions from several users are counted together, and the current user's
+	 * own row is the one reported back.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_reaction_summary_counts_reactions_from_multiple_users() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$their_reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$admin_id,
+				'comment_content'  => 'heart',
+			)
+		);
+		$my_reaction_id    = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'heart',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id ) );
+		$summary  = $response->get_data()['reaction_summary'];
+
+		$this->assertSame( 2, $summary['heart']['count'], 'Both users should be counted under the same emoji.' );
+		$this->assertTrue( $summary['heart']['reacted'] );
+		$this->assertSame( $my_reaction_id, $summary['heart']['my_reaction_id'] );
+		$this->assertNotSame( $their_reaction_id, $summary['heart']['my_reaction_id'] );
+	}
+
+	/**
+	 * A trashed reaction drops out of the summary.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_reaction_summary_excludes_trashed_reactions() {
+		wp_set_current_user( self::$editor_id );
+
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'heart',
+			)
+		);
+
+		wp_trash_comment( $reaction_id );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id ) );
+
+		$this->assertSame( array(), $response->get_data()['reaction_summary'] );
+	}
 }
