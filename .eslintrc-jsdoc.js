@@ -24,6 +24,7 @@ module.exports = [
 					'Boolean': 'boolean',
 					'float': 'number',
 					'Float': 'number',
+					'function': 'Function',
 					'int': 'number',
 					'integer': 'number',
 					'Integer': 'number',
