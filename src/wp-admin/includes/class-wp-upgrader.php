@@ -1000,7 +1000,7 @@ class WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 * @global WP_Filesystem_Base|null $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param bool $enable True to enable maintenance mode, false to disable.
 	 */
@@ -1010,10 +1010,10 @@ class WP_Upgrader {
 		/*
 		 * WP_Filesystem() assigns the global before connecting and returns false on a
 		 * constructor error without calling connect(), so a failed call earlier in the
-		 * request leaves an object here that has never been connected. Checking for
-		 * recorded errors as well, the way fs_connect() does, catches that case.
+		 * request leaves an object here that has never been connected. Checking the
+		 * recorded errors too, as fs_connect() does, catches that case.
 		 */
-		if ( ! is_object( $wp_filesystem )
+		if ( ! ( $wp_filesystem instanceof WP_Filesystem_Base )
 			|| ( is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors() )
 		) {
 			if ( ! function_exists( 'WP_Filesystem' ) ) {
