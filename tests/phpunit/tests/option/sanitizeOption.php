@@ -135,6 +135,74 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64550
+	 *
+	 * @covers ::sanitize_option
+	 */
+	public function test_emoji_in_plugin_updates() {
+		global $wpdb;
+
+		$updates                    = new stdClass();
+		$updates->last_checked      = 1234567890;
+		$plugin_1                   = new stdClass();
+		$plugin_1->id               = 'w.org/plugins/classic-editor';
+		$plugin_1->slug             = 'classic-editor';
+		$plugin_1->plugin           = 'classic-editor/classic-editor.php';
+		$plugin_1->new_version      = '1.7.0';
+		$plugin_1->url              = 'https://wordpress.org/plugins/classic-editor/';
+		$plugin_1->package          = 'https://downloads.wordpress.org/plugin/classic-editor.1.7.0.zip';
+		$plugin_1->icons            = array(
+			'2x' => 'https://ps.w.org/classic-editor/assets/icon-256x256.png?rev=1998671',
+			'1x' => 'https://ps.w.org/classic-editor/assets/icon-128x128.png?rev=1998671',
+		);
+		$plugin_1->banners          = array(
+			'2x' => 'https://ps.w.org/classic-editor/assets/banner-1544x500.png?rev=1998671',
+			'1x' => 'https://ps.w.org/classic-editor/assets/banner-772x250.png?rev=1998676',
+		);
+		$plugin_1->banners_rtl      = array();
+		$plugin_1->requires         = '4.9';
+		$plugin_1->tested           = '7.0.4';
+		$plugin_1->requires_php     = '5.2.4';
+		$plugin_1->requires_plugins = array();
+		$plugin_2                   = new stdClass();
+		$plugin_2->id               = 'w.org/plugins/classic-widgets';
+		$plugin_2->slug             = 'classic-widgets';
+		$plugin_2->plugin           = 'classic-widgets/classic-widgets.php';
+		$plugin_2->new_version      = '0.3';
+		$plugin_2->url              = 'https://wordpress.org/plugins/classic-widgets/';
+		$plugin_2->package          = 'https://downloads.wordpress.org/plugin/classic-widgets.0.3.zip';
+		$plugin_2->icons            = array(
+			'default' => 'https://s.w.org/plugins/geopattern-icon/classic-widgets.svg',
+		);
+		$plugin_2->banners          = array();
+		$plugin_2->banners_rtl      = array();
+		$plugin_2->requires         = '4.9';
+		$plugin_2->tested           = '6.9.7';
+		$plugin_2->requires_php     = '5.6';
+		$plugin_2->requires_plugins = array();
+		$plugin_2->upgrade_notice   = "\xf0\x9f\x98\x88 This plugin does not really have an upgrade notice, but if it did, it would be here.";
+		$updates->response          = array(
+			'classic-editor/classic-editor.php'   => $plugin_1,
+			'classic-widgets/classic-widgets.php' => $plugin_2,
+		);
+		$updates->translations      = array();
+		$updates->no_update         = array();
+		$updates->checked           = array(
+			'classic-editor/classic-editor.php'   => '1.6.7',
+			'classic-widgets/classic-widgets.php' => '0.2',
+		);
+
+		// Create a deep copy.
+		$expected = unserialize( serialize( $updates ) );
+
+		if ( 'utf8mb4' !== $wpdb->get_col_charset( $wpdb->options, 'option_value' ) ) {
+			$expected->response['classic-widgets/classic-widgets.php']->upgrade_notice = ' This plugin does not really have an upgrade notice, but if it did, it would be here.';
+		}
+
+		$this->assertEquals( $expected, sanitize_option( '_site_transient_update_plugins', $updates ) );
+	}
+
+	/**
 	 * @dataProvider data_sanitize_option_permalink_structure
 	 *
 	 * @covers ::sanitize_option
