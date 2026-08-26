@@ -267,4 +267,35 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 			'The rolled back lock was not stored.'
 		);
 	}
+
+	/**
+	 * The reset reports whether it actually persisted.
+	 *
+	 * The write that rolls the lock back can itself fail. When it does, the caller must not
+	 * announce that the check will run again, because the armed lock is still in place. The
+	 * helper therefore returns the result of storing the reset rather than assuming it stuck.
+	 *
+	 * @ticket 64550
+	 *
+	 * @covers ::_wp_maybe_reset_update_check_lock
+	 */
+	public function test_reset_reports_whether_the_write_persisted() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		// Store the lock the reset will write, so re-storing it is a no-op that returns false.
+		$lock = (object) array( 'last_checked' => 0 );
+		set_site_transient( 'update_plugins', $lock );
+
+		$value = (object) array(
+			'last_checked' => 0,
+			'checked'      => array( 'hello.php' => '1.0' ),
+		);
+
+		$this->assertFalse(
+			_wp_maybe_reset_update_check_lock( 'update_plugins', $value, $lock ),
+			'A reset whose write did not persist was reported as done.'
+		);
+	}
 }

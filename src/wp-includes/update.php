@@ -929,7 +929,9 @@ function wp_update_themes( $extra_stats = array() ) {
  *                            or 'update_themes'.
  * @param mixed    $value     The value that set_site_transient() was asked to store.
  * @param stdClass $lock      The object that was stored when the lock was taken.
- * @return bool Whether the lock was rolled back.
+ * @return bool True when the lock was rolled back and the reset was stored, so the next
+ *              request retries the check. False when there was nothing to roll back, or
+ *              when the reset itself could not be stored.
  */
 function _wp_maybe_reset_update_check_lock( $transient, $value, $lock ) {
 	if ( maybe_serialize( $value ) === maybe_serialize( $lock ) ) {
@@ -937,9 +939,8 @@ function _wp_maybe_reset_update_check_lock( $transient, $value, $lock ) {
 	}
 
 	$lock->last_checked = 0;
-	set_site_transient( $transient, $lock );
 
-	return true;
+	return set_site_transient( $transient, $lock );
 }
 
 /**
