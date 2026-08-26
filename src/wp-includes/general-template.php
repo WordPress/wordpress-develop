@@ -2521,6 +2521,10 @@ function get_calendar( $args = array() ) {
 	$w = 0;
 	if ( isset( $_GET['w'] ) ) {
 		$w = (int) $_GET['w'];
+		// Validate week number - should be between 1 and 53
+		if ( $w < 1 || $w > 53 ) {
+			$w = 0;
+		}
 	}
 
 	/*
@@ -2594,9 +2598,15 @@ function get_calendar( $args = array() ) {
 	if ( ! empty( $monthnum ) && ! empty( $year ) ) {
 		$thismonth = (int) $monthnum;
 		$thisyear  = (int) $year;
+
+		// Validate month number - should be between 1 and 12
+		if ( $thismonth < 1 || $thismonth > 12 ) {
+			$thismonth = (int) current_time( 'm' );
+			$thisyear  = (int) current_time( 'Y' );
+		}
 	} elseif ( ! empty( $w ) ) {
 		// We need to get the month from MySQL.
-		$thisyear = (int) substr( $m, 0, 4 );
+		$thisyear = ! empty( $m ) ? (int) substr( $m, 0, 4 ) : (int) current_time( 'Y' );
 		// It seems MySQL's weeks disagree with PHP's.
 		$d         = ( ( $w - 1 ) * 7 ) + 6;
 		$thismonth = (int) $wpdb->get_var(
@@ -2612,6 +2622,11 @@ function get_calendar( $args = array() ) {
 			$thismonth = 1;
 		} else {
 			$thismonth = (int) substr( $m, 4, 2 );
+			// Validate month from $m parameter
+			if ( $thismonth < 1 || $thismonth > 12 ) {
+				$thismonth = (int) current_time( 'm' );
+				$thisyear  = (int) current_time( 'Y' );
+			}
 		}
 	} else {
 		$thisyear  = (int) current_time( 'Y' );
