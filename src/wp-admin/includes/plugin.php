@@ -654,6 +654,11 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 		return $valid;
 	}
 
+	$safety_check = safe_plugin_activation_check( $plugin );
+	if ( is_wp_error( $safety_check ) ) {
+		return $safety_check;
+	}
+
 	$requirements = validate_plugin_requirements( $plugin );
 	if ( is_wp_error( $requirements ) ) {
 		return $requirements;
@@ -1094,6 +1099,79 @@ function validate_active_plugins() {
 		}
 	}
 	return $invalid;
+}
+
+/**
+ * Safely includes a plugin file and checks for fatal errors.
+ *
+ * This function is used to safely include a plugin file during activation
+ * without causing fatal errors that could break the activation process.
+ * It converts PHP errors to exceptions for better error handling.
+ *
+ * @since 5.2.0
+ *
+ * @param string $plugin_file Path to the plugin file relative to the plugins directory.
+ * @return true|WP_Error True on success, WP_Error on failure.
+ */
+function safe_plugin_activation_check( $plugin_file ) {
+	ob_start();
+
+	$previous_handler = set_error_handler(
+		function ( $severity, $message, $file, $line ) {
+			throw new ErrorException( $message, 0, $severity, $file, $line );
+		}
+	);
+
+	try {
+		include_once WP_PLUGIN_DIR . '/' . $plugin_file;
+		ob_end_clean();
+
+		if ( null !== $previous_handler ) {
+			restore_error_handler();
+		}
+
+		return true;
+
+	} catch ( ParseError $e ) {
+		ob_end_clean();
+
+		if ( null !== $previous_handler ) {
+			restore_error_handler();
+		}
+
+		return new WP_Error(
+			'plugin_parse_error',
+			sprintf(
+			/* translators: %s: The error message returned when a plugin fails to activate due to syntax errors. */
+				__( 'Plugin activation failed due to syntax error: %s' ),
+				$e->getMessage()
+			),
+			array(
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			)
+		);
+
+	} catch ( Throwable $e ) {
+		ob_end_clean();
+
+		if ( null !== $previous_handler ) {
+			restore_error_handler();
+		}
+
+		return new WP_Error(
+			'plugin_activation_exception',
+			sprintf(
+			/* translators: %s: The exception message returned when a plugin fails to activate. */
+				__( 'Plugin activation failed with exception: %s' ),
+				$e->getMessage()
+			),
+			array(
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			)
+		);
+	}
 }
 
 /**
