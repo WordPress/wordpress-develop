@@ -569,7 +569,8 @@ function wp_protect_special_option( $option ) {
 				/* translators: %s: Option name. */
 				__( '%s is a protected WP option and may not be modified' ),
 				esc_html( $option )
-			)
+			),
+			400
 		);
 	}
 }
