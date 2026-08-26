@@ -2428,7 +2428,7 @@ class WP_Query {
 
 		// Author stuff for nice URLs.
 
-		if ( '' !== $query_vars['author_name'] ) {
+		if ( $this->is_non_empty_string( $query_vars['author_name'] ) ) {
 			if ( str_contains( $query_vars['author_name'], '/' ) ) {
 				$author_name_parts = explode( '/', $query_vars['author_name'] );
 				$last_part         = array_last( $author_name_parts );
@@ -3998,18 +3998,18 @@ class WP_Query {
 				$cat           = $this->get( 'cat' );
 				$category_name = $this->get( 'category_name' );
 
-				if ( $cat ) {
+				if ( $this->is_non_empty_string( $cat ) ) {
 					$term = get_term( $cat, 'category' );
-				} elseif ( $category_name ) {
+				} elseif ( $this->is_non_empty_string( $category_name ) ) {
 					$term = get_term_by( 'slug', $category_name, 'category' );
 				}
 			} elseif ( $this->is_tag ) {
 				$tag_id = $this->get( 'tag_id' );
 				$tag    = $this->get( 'tag' );
 
-				if ( $tag_id ) {
+				if ( $this->is_non_empty_string( $tag_id ) ) {
 					$term = get_term( $tag_id, 'post_tag' );
-				} elseif ( $tag ) {
+				} elseif ( $this->is_non_empty_string( $tag ) ) {
 					$term = get_term_by( 'slug', $tag, 'post_tag' );
 				}
 			} else {
@@ -4040,7 +4040,7 @@ class WP_Query {
 		} elseif ( $this->is_post_type_archive ) {
 			$post_type = $this->get( 'post_type' );
 			if ( is_array( $post_type ) ) {
-				$post_type = reset( $post_type );
+				$post_type = array_first( $post_type );
 			}
 
 			$this->queried_object = get_post_type_object( $post_type );
@@ -4054,12 +4054,12 @@ class WP_Query {
 			$this->queried_object    = $this->post;
 			$this->queried_object_id = (int) $this->post->ID;
 		} elseif ( $this->is_author ) {
-			$author      = (int) $this->get( 'author' );
+			$author      = $this->get( 'author' );
 			$author_name = $this->get( 'author_name' );
 
-			if ( $author ) {
-				$this->queried_object_id = $author;
-			} elseif ( $author_name ) {
+			if ( $this->is_non_empty_string( $author ) ) {
+				$this->queried_object_id = (int) $author;
+			} elseif ( $this->is_non_empty_string( $author_name ) ) {
 				$user = get_user_by( 'slug', $author_name );
 				if ( $user ) {
 					$this->queried_object_id = $user->ID;
@@ -4075,6 +4075,18 @@ class WP_Query {
 		}
 
 		return $this->queried_object;
+	}
+
+	/**
+	 * Determines whether the provided value is a non-empty string.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param mixed $value Value.
+	 * @return bool
+	 */
+	private function is_non_empty_string( $value ): bool {
+		return is_string( $value ) && '' !== $value;
 	}
 
 	/**
