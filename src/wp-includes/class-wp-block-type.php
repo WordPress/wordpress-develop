@@ -494,20 +494,22 @@ class WP_Block_Type {
 	 * @return array Prepared block attributes.
 	 */
 	public function prepare_attributes_for_render( $attributes ) {
+		$attribute_schemas = $this->get_attributes_for_rest_validation();
+
 		// If there are no attribute definitions for the block type, skip
 		// processing and return verbatim.
-		if ( ! isset( $this->attributes ) ) {
+		if ( empty( $attribute_schemas ) ) {
 			return $attributes;
 		}
 
 		foreach ( $attributes as $attribute_name => $value ) {
 			// If the attribute is not defined by the block type, it cannot be
 			// validated.
-			if ( ! isset( $this->attributes[ $attribute_name ] ) ) {
+			if ( ! isset( $attribute_schemas[ $attribute_name ] ) ) {
 				continue;
 			}
 
-			$schema = $this->attributes[ $attribute_name ];
+			$schema = $attribute_schemas[ $attribute_name ];
 
 			// Validate value by JSON schema. An invalid value should revert to
 			// its default, if one exists. This occurs by virtue of the missing
@@ -521,7 +523,7 @@ class WP_Block_Type {
 
 		// Populate values of any missing attributes for which the block type
 		// defines a default.
-		$missing_schema_attributes = array_diff_key( $this->attributes, $attributes );
+		$missing_schema_attributes = array_diff_key( $attribute_schemas, $attributes );
 		foreach ( $missing_schema_attributes as $attribute_name => $schema ) {
 			if ( isset( $schema['default'] ) ) {
 				$attributes[ $attribute_name ] = $schema['default'];
