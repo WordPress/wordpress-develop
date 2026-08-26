@@ -46,13 +46,7 @@ module.exports = [
 					'link',
 				],
 			} ],
-			'jsdoc/require-param': [ 'error', {
-				contexts: [
-					'ArrowFunctionExpression',
-					'FunctionDeclaration',
-					"FunctionExpression:not(:has(Identifier[name='$']))",
-				],
-			} ],
+			'jsdoc/require-param': 'error',
 			'jsdoc/require-param-type': 'error',
 			'jsdoc/require-returns-check': 'error',
 			'jsdoc/require-returns-description': 'error',
