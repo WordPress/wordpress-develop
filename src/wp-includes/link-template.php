@@ -4349,7 +4349,7 @@ function is_avatar_comment_type( $comment_type ) {
 	 * @since 3.0.0
 	 *
 	 * @since 6.9.0 The 'note' comment type was added.
-	 * @since 7.1.0 The 'reaction' comment type was added.
+	 * @since 7.2.0 The 'reaction' comment type was added.
 	 *
 	 * @param array $types An array of content types. Default contains 'comment' and the
 	 *                     internal comment types returned by wp_get_internal_comment_types().

@@ -302,7 +302,7 @@ function get_comment_statuses() {
  * They should typically be excluded from front-end and admin comment
  * listings, counts, and similar contexts that target user discussion.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @return string[] List of internal comment type slugs.
  */
@@ -316,7 +316,7 @@ function wp_get_internal_comment_types(): array {
  * Reactions hang off a note as child comments, so they have to be trashed,
  * restored and deleted along with it.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param int|WP_Comment $comment_id Note comment ID or WP_Comment object.
  * @param string         $status     Optional. Comment status to match. Default 'all'.
@@ -391,7 +391,7 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * @since 1.5.0
  * @since 4.7.0 Replaced caching the modified date in a local static variable
  *              with the Object Cache API.
- * @since 7.1.0 Internal comment types are excluded from the query.
+ * @since 7.2.0 Internal comment types are excluded from the query.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1559,7 +1559,7 @@ function wp_count_comments( $post_id = 0 ) {
  * post ID available.
  *
  * @since 2.0.0
- * @since 7.1.0 A note's reactions are deleted along with it, rather than
+ * @since 7.2.0 A note's reactions are deleted along with it, rather than
  *              being reparented.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -1650,7 +1650,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  *
  * @since 2.9.0
  * @since 6.9.0 Any child notes are deleted when deleting a note.
- * @since 7.1.0 A note's reactions are trashed along with it.
+ * @since 7.2.0 A note's reactions are trashed along with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1755,7 +1755,7 @@ function wp_trash_comment( $comment_id ) {
  * Removes a comment from the Trash
  *
  * @since 2.9.0
- * @since 7.1.0 A note's reactions are restored along with it.
+ * @since 7.2.0 A note's reactions are restored along with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.

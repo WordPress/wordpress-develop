@@ -30,7 +30,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Populated by get_items() to avoid N+1 queries when listing notes
 	 * with their reaction summaries. Reset after each get_items() call.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var array|null
 	 */
 	protected $reaction_summaries = null;
@@ -47,7 +47,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * hex-codepoint sequence (e.g. `1f44d`) to represent emojis outside the
 	 * curated set; see create_item().
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array[] List of emoji definitions, each with `emoji`, `label`,
 	 *                 and `value` keys.
@@ -1074,7 +1074,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Checks if a given REST request has access to update a comment.
 	 *
 	 * @since 4.7.0
-	 * @since 7.1.0 Reactions cannot be updated.
+	 * @since 7.2.0 Reactions cannot be updated.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, error object otherwise.
@@ -2210,7 +2210,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * batched note listing return reaction_summary for many notes without
 	 * issuing a per-note query.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
