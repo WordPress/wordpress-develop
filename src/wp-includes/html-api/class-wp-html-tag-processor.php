@@ -1182,9 +1182,9 @@ class WP_HTML_Tag_Processor {
 	 * $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&gt;\tlang-en'>" );
 	 * $p->next_tag();
 	 * foreach ( $p->class_list() as $class_name ) {
-	 *   echo $class_name . "\n";
+	 *   echo "{$class_name} ";
 	 * }
-	 * // Prints the string: "free\n<egg>\nlang-en\n"
+	 * // Outputs: "free <egg> lang-en "
 	 * ```
 	 *
 	 * @since 6.4.0

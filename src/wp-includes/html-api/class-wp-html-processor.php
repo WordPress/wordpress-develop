@@ -5434,9 +5434,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&gt;\tlang-en'>" );
 	 * $p->next_tag();
 	 * foreach ( $p->class_list() as $class_name ) {
-	 *   echo $class_name . "\n";
+	 *   echo "{$class_name} ";
 	 * }
-	 * // Prints the string: "free\n<egg>\nlang-en\n"
+	 * // Outputs: "free <egg> lang-en "
 	 * ```
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
