@@ -694,7 +694,7 @@ function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
 }
 
 /**
- * Removes all shortcode tags from the given content.
+ * Removes all registered Shortcodes from the text content of the given HTML content.
  *
  * @since 2.5.0
  *
@@ -714,8 +714,14 @@ function strip_shortcodes( $content ) {
 		return $content;
 	}
 
-	// Find all registered tag names in $content.
-	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
+	/*
+	 * Find set of potential Shortcode tag names in the content.
+	 * Given that this is a permissive pattern, there may be false positives.
+	 */
+	$found_names = preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $potential_names );
+	if ( ! $found_names ) {
+		return $content;
+	}
 
 	$tags_to_remove = array_keys( $shortcode_tags );
 
@@ -729,21 +735,41 @@ function strip_shortcodes( $content ) {
 	 */
 	$tags_to_remove = apply_filters( 'strip_shortcodes_tagnames', $tags_to_remove, $content );
 
-	$tagnames = array_intersect( $tags_to_remove, $matches[1] );
-
-	if ( empty( $tagnames ) ) {
+	$names_to_remove = array_intersect( $tags_to_remove, $potential_names[1] );
+	if ( empty( $names_to_remove ) ) {
 		return $content;
 	}
 
-	$content = do_shortcodes_in_html_tags( $content, true, $tagnames );
+	$replacer_class = new class( '' ) extends WP_HTML_Tag_Processor {
+		public static function replace_shortcodes_in_text( $html, $which_shortcodes ) {
+			$pattern = get_shortcode_regex( $which_shortcodes );
+			$pattern = "/$pattern/";
 
-	$pattern = get_shortcode_regex( $tagnames );
-	$content = preg_replace_callback( "/$pattern/", 'strip_shortcode_tag', $content );
+			$processor = new self( $html );
+			while ( $processor->next_token() ) {
+				if ( '#text' !== $processor->get_token_name() ) {
+					continue;
+				}
 
-	// Always restore square braces so we don't break things like <!--[if IE ]>.
-	$content = unescape_invalid_shortcodes( $content );
+				$processor->set_bookmark( 'here' );
+				$here   = $processor->bookmarks['here'];
+				$before = substr( $processor->html, $here->start, $here->length );
+				$after  = preg_replace_callback( $pattern, 'strip_shortcode_tag', $before );
 
-	return $content;
+				if ( $before !== $after ) {
+					$processor->lexical_updates[] = new WP_HTML_Text_Replacement(
+						$here->start,
+						$here->length,
+						$after
+					);
+				}
+			}
+
+			return $processor->get_updated_html();
+		}
+	};
+
+	return $replacer_class::replace_shortcodes_in_text( $content, $names_to_remove );
 }
 
 /**
