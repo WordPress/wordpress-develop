@@ -50,7 +50,7 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	/**
 	 * @since 3.9.0
 	 *
-	 * @param options
+	 * @param {Object} options Attributes.
 	 */
 	initialize: function( options ) {
 		var library, comparator;

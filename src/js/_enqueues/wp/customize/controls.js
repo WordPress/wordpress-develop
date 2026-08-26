@@ -2461,7 +2461,7 @@
 		/**
 		 * Update the number of themes in the section.
 		 *
-		 * @param count
+		 * @param {number} count The number of themes.
 		 * @since 4.9.0
 		 *
 		 * @return {void}

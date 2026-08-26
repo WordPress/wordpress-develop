@@ -278,7 +278,7 @@
 		/**
 		 * Checks if the iframe is from the same origin.
 		 *
-		 * @param frame
+		 * @param {HTMLIFrameElement} frame The iframe element to check.
 		 * @since 3.6.0
 		 * @access private
 		 *

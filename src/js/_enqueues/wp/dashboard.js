@@ -668,7 +668,7 @@ jQuery( function( $ ) {
 		 *
 		 * @since 5.5.2
 		 *
-		 * @param startTimestamp
+		 * @param {number} startTimestamp The start timestamp of the event.
 		 *
 		 * @return {string|number} A time zone string like `America/Chicago`, or a number representing the offset from UTC in minutes.
 		 */

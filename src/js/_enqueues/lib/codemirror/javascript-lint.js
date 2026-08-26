@@ -85,13 +85,7 @@ CodeMirror.registerHelper( 'lint', 'javascript', validator );
  * @since 7.0.0
  *
  * @param {SupportedJSHintOptions} options Linting options for JSHint.
- * @return {{
- *     ecmaVersion?: import('espree').Options['ecmaVersion'],
- *     sourceType?: 'module'|'script',
- *     ecmaFeatures?: {
- *         impliedStrict?: true
- *     }
- * }}
+ * @return {import('espree').Options} Options for Espree.
  */
 function getEspreeOptions( options ) {
 	/** @type {{ impliedStrict?: true }} */

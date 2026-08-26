@@ -320,7 +320,7 @@
 		/**
 		 * Returns the iris object if no new color is provided. If a new color is provided, it sets the new color.
 		 *
-		 * @param newColor {string|*} The new color to use. Can be undefined.
+		 * @param {string|*} newColor The new color to use. Can be undefined.
 		 *
 		 * @since 3.5.0
 		 *
@@ -337,7 +337,7 @@
 		 * Returns the iris object if no new default color is provided.
 		 * If a new default color is provided, it sets the new default color.
 		 *
-		 * @param newDefaultColor {string|*} The new default color to use. Can be undefined.
+		 * @param {string|*} newDefaultColor The new default color to use. Can be undefined.
 		 *
 		 * @since 3.5.0
 		 *

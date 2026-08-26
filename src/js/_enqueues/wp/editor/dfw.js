@@ -1160,7 +1160,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param event The event that triggers this function.
+		 * @param {Event} event The event that triggers this function.
 		 *
 		 * @return {void}
 		 */
@@ -1299,7 +1299,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param event The event that triggers this function.
+		 * @param {Event} event The event that triggers this function.
 		 *
 		 * @return {void}
 		 */

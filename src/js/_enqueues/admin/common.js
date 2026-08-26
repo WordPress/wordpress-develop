@@ -555,7 +555,7 @@ window.showNotice = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param text The text to display in the message.
+	 * @param {string} text The text to display in the message.
 	 */
 	note : function(text) {
 		alert(text);

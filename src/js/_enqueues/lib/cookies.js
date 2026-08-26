@@ -40,7 +40,8 @@ window.wpCookies = {
 	/**
 	 * Get a multi-values cookie.
 	 * Returns a JS object with the name: 'value' pairs.
-	 * @param name
+	 *
+	 * @param {string} name The name of the cookie.
 	 */
 	getHash: function( name ) {
 		var cookie = this.get( name ), values;

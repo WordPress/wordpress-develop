@@ -3514,7 +3514,7 @@
 	 *
 	 * @alias wp.customize.Menus.getMenuControl
 	 *
-	 * @param menuId
+	 * @param {string} menuId The ID of the menu.
 	 * @return {wp.customize.controlConstructor.menus[]} The menu control, or null if not found.
 	 */
 	api.Menus.getMenuControl = function( menuId ) {

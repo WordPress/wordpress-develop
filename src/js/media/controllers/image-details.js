@@ -44,7 +44,7 @@ ImageDetails = State.extend(/** @lends wp.media.controller.ImageDetails.prototyp
 	/**
 	 * @since 3.9.0
 	 *
-	 * @param options Attributes
+	 * @param {Object} options Attributes.
 	 */
 	initialize: function( options ) {
 		this.image = options.image;
