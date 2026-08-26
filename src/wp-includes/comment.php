@@ -311,6 +311,37 @@ function wp_get_internal_comment_types(): array {
 }
 
 /**
+ * Retrieves the IDs of a note's reaction comments.
+ *
+ * Reactions hang off a note as child comments, so they have to be trashed,
+ * restored and deleted along with it.
+ *
+ * @since 7.1.0
+ *
+ * @param int|WP_Comment $comment_id Note comment ID or WP_Comment object.
+ * @param string         $status     Optional. Comment status to match. Default 'all'.
+ * @return int[] Reaction comment IDs, oldest first. Empty if the comment is not a note.
+ */
+function wp_get_note_reaction_ids( $comment_id, $status = 'all' ): array {
+	$comment = get_comment( $comment_id );
+
+	if ( ! $comment || 'note' !== $comment->comment_type ) {
+		return array();
+	}
+
+	return get_comments(
+		array(
+			'parent'  => $comment->comment_ID,
+			'type'    => 'reaction',
+			'status'  => $status,
+			'fields'  => 'ids',
+			'orderby' => 'comment_ID',
+			'order'   => 'ASC',
+		)
+	);
+}
+
+/**
  * Gets the default comment status for a post type.
  *
  * @since 4.3.0
@@ -1528,6 +1559,8 @@ function wp_count_comments( $post_id = 0 ) {
  * post ID available.
  *
  * @since 2.0.0
+ * @since 7.1.0 A note's reactions are deleted along with it, rather than
+ *              being reparented.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1557,6 +1590,15 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	 * @param WP_Comment $comment    The comment to be deleted.
 	 */
 	do_action( 'delete_comment', $comment->comment_ID, $comment );
+
+	/*
+	 * Delete a note's reactions rather than letting them be reparented below.
+	 * A reaction only means anything attached to its note, and an orphaned one
+	 * would keep the reactor's identity on a note that no longer exists.
+	 */
+	foreach ( wp_get_note_reaction_ids( $comment ) as $reaction_id ) {
+		wp_delete_comment( $reaction_id, true );
+	}
 
 	// Move children up a level.
 	$children = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_parent = %d", $comment->comment_ID ) );
@@ -1608,6 +1650,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  *
  * @since 2.9.0
  * @since 6.9.0 Any child notes are deleted when deleting a note.
+ * @since 7.1.0 A note's reactions are trashed along with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1674,6 +1717,15 @@ function wp_trash_comment( $comment_id ) {
 		 */
 		do_action( 'trashed_comment', $comment->comment_ID, $comment );
 
+		/*
+		 * Trash a note's reactions with it, at any depth. The child-note
+		 * cascade below trashes each reply in turn, which brings the replies'
+		 * own reactions along through this same branch.
+		 */
+		foreach ( wp_get_note_reaction_ids( $comment, 'approve' ) as $reaction_id ) {
+			wp_trash_comment( $reaction_id );
+		}
+
 		// For top level 'note' type comments, also trash children.
 		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
 			$children = $comment->get_children(
@@ -1703,6 +1755,7 @@ function wp_trash_comment( $comment_id ) {
  * Removes a comment from the Trash
  *
  * @since 2.9.0
+ * @since 7.1.0 A note's reactions are restored along with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1743,6 +1796,11 @@ function wp_untrash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The untrashed comment.
 		 */
 		do_action( 'untrashed_comment', $comment->comment_ID, $comment );
+
+		// Restore the note's reactions alongside it.
+		foreach ( wp_get_note_reaction_ids( $comment, 'trash' ) as $reaction_id ) {
+			wp_untrash_comment( $reaction_id );
+		}
 
 		return true;
 	}

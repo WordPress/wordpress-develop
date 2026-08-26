@@ -1898,6 +1898,206 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Creates an approved reaction on a note.
+	 *
+	 * @param int    $note_id Parent note comment ID.
+	 * @param string $slug    Reaction storage slug.
+	 * @return int Reaction comment ID.
+	 */
+	private function create_reaction_on_note( $note_id, $slug = 'heart' ) {
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => '1',
+				'comment_content'  => $slug,
+			)
+		);
+	}
+
+	/**
+	 * Tests that permanently deleting a note deletes its reactions.
+	 *
+	 * wp_delete_comment() reparents a deleted comment's children one level up.
+	 * A reaction only means anything attached to its note, so without a cascade
+	 * it would survive as an approved top-level row still carrying the
+	 * reactor's identity.
+	 *
+	 * @ticket 63191
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_deletes_note_reactions() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reaction_1 = $this->create_reaction_on_note( $note_id );
+		$reaction_2 = $this->create_reaction_on_note( $note_id, 'rocket' );
+
+		wp_delete_comment( $note_id, true );
+
+		$this->assertNull( get_comment( $reaction_1 ), 'The first reaction outlived its note.' );
+		$this->assertNull( get_comment( $reaction_2 ), 'The second reaction outlived its note.' );
+		$this->assertSame(
+			array(),
+			get_comments(
+				array(
+					'post_id' => self::$post_id,
+					'type'    => 'reaction',
+					'status'  => 'all',
+					'fields'  => 'ids',
+				)
+			),
+			'Reaction rows remained after the note was permanently deleted.'
+		);
+	}
+
+	/**
+	 * Tests that deleting a note reply takes only that reply's reactions.
+	 *
+	 * @ticket 63191
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_deletes_note_reply_reactions() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reply_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $note_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$note_reaction  = $this->create_reaction_on_note( $note_id );
+		$reply_reaction = $this->create_reaction_on_note( $reply_id );
+
+		wp_delete_comment( $reply_id, true );
+
+		$this->assertNull( get_comment( $reply_reaction ), "The reply's reaction outlived the reply." );
+		$this->assertNotNull( get_comment( $note_reaction ), "The root note's reaction should be untouched." );
+	}
+
+	/**
+	 * Tests that a regular comment's children are still reparented.
+	 *
+	 * The reaction cascade must not change how any other comment type behaves.
+	 *
+	 * @ticket 63191
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_still_reparents_non_note_children() {
+		$parent_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_delete_comment( $parent_comment, true );
+
+		$child = get_comment( $child_comment );
+		$this->assertNotNull( $child, 'The child comment should survive its parent.' );
+		$this->assertSame( '0', $child->comment_parent, 'The child comment should have moved up a level.' );
+	}
+
+	/**
+	 * Tests that trashing and restoring a note carries its reactions along.
+	 *
+	 * Core cascades a trashed note to its `note` children only, so without this
+	 * a reaction stays approved under a trashed note.
+	 *
+	 * @ticket 63191
+	 * @covers ::wp_trash_comment
+	 * @covers ::wp_untrash_comment
+	 */
+	public function test_wp_trash_comment_trashes_and_restores_note_reactions() {
+		if ( ! EMPTY_TRASH_DAYS ) {
+			$this->markTestSkipped( 'Trash is disabled, so trashing permanently deletes.' );
+		}
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reaction_id = $this->create_reaction_on_note( $note_id );
+
+		wp_trash_comment( $note_id );
+		$this->assertSame( 'trash', get_comment( $reaction_id )->comment_approved, 'The reaction stayed approved under a trashed note.' );
+
+		wp_untrash_comment( $note_id );
+		$this->assertSame( '1', get_comment( $reaction_id )->comment_approved, 'The reaction was not restored with its note.' );
+	}
+
+	/**
+	 * Tests that trashing a note reply carries that reply's reactions along.
+	 *
+	 * @ticket 63191
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_trashes_note_reply_reactions() {
+		if ( ! EMPTY_TRASH_DAYS ) {
+			$this->markTestSkipped( 'Trash is disabled, so trashing permanently deletes.' );
+		}
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reply_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $note_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reply_reaction = $this->create_reaction_on_note( $reply_id );
+
+		// Trashing the root cascades to the reply, which brings its reactions.
+		wp_trash_comment( $note_id );
+
+		$this->assertSame( 'trash', get_comment( $reply_id )->comment_approved, 'The reply was not trashed.' );
+		$this->assertSame( 'trash', get_comment( $reply_reaction )->comment_approved, "The reply's reaction was not trashed." );
+	}
+
+	/**
 	 * @ticket 61244
 	 *
 	 * @covers ::get_comment
