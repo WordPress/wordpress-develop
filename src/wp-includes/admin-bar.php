@@ -832,7 +832,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 		$post             = get_post();
 		$post_type_object = null;
 
-		if ( 'post' === $current_screen->base ) {
+		if ( 'post' === $current_screen->base && isset( $post ) ) {
 			$post_type_object = get_post_type_object( $post->post_type );
 		} elseif ( 'edit' === $current_screen->base ) {
 			$post_type_object = get_post_type_object( $current_screen->post_type );
