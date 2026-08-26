@@ -4210,28 +4210,63 @@ class WP_Query {
 	 * @return bool Whether the query is for an existing attachment page.
 	 */
 	public function is_attachment( $attachment = '' ) {
-		if ( ! $this->is_attachment ) {
+		return $this->is_object_type( 'is_attachment', $attachment, array( 'ID', 'post_title', 'post_name' ) );
+	}
+
+	/**
+	 * Helper for `is_{$object_type}` methods.
+	 *
+	 * Checks to see whether the currently queried object is of the proper type
+	 * and is identical to `$object`, if provided.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string           $flag             The `WP_Query` flag to check for object-type status (eg 'is_page').
+	 * @param int|string|array $object           Object identifier, as passed to the parent function.
+	 * @param array            $prop_list        List of `$object` properties to compare against the currently
+	 *                                           queried object. Property names should be provided in order of
+	 *                                           precedence (ID first).
+	 * @param bool             $get_page_by_path Whether to query the database (using get_page_by_path())
+	 *                                           if matches fail using available `$object` information.
+	 * @return bool
+	 */
+	protected function is_object_type( $flag, $object, $prop_list, $get_page_by_path = false ) {
+		if ( empty( $this->{$flag} ) ) {
 			return false;
 		}
 
-		if ( empty( $attachment ) ) {
+		if ( empty( $object ) ) {
 			return true;
 		}
 
-		$attachment = array_map( 'strval', (array) $attachment );
+		$object = array_map( 'strval', (array) $object );
 
-		$post_obj = $this->get_queried_object();
-		if ( ! $post_obj ) {
+		$queried_obj = $this->get_queried_object();
+		if ( ! $queried_obj ) {
 			return false;
 		}
 
-		if ( in_array( (string) $post_obj->ID, $attachment, true ) ) {
-			return true;
-		} elseif ( in_array( $post_obj->post_title, $attachment, true ) ) {
-			return true;
-		} elseif ( in_array( $post_obj->post_name, $attachment, true ) ) {
-			return true;
+		foreach ( $prop_list as $prop ) {
+			$prop_value = isset( $queried_obj->{$prop} ) ? (string) $queried_obj->{$prop} : null;
+
+			if ( null !== $prop_value && in_array( $prop_value, $object, true ) ) {
+				return true;
+			}
 		}
+
+		if ( $get_page_by_path ) {
+			foreach ( $object as $objectpath ) {
+				if ( ! strpos( $objectpath, '/' ) ) {
+					continue;
+				}
+				$objectpath_obj = get_page_by_path( $objectpath, OBJECT, $queried_obj->post_type );
+
+				if ( $objectpath_obj && ( $objectpath_obj->ID === $queried_obj->ID ) ) {
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
 
@@ -4248,30 +4283,7 @@ class WP_Query {
 	 * @return bool Whether the query is for an existing author archive page.
 	 */
 	public function is_author( $author = '' ) {
-		if ( ! $this->is_author ) {
-			return false;
-		}
-
-		if ( empty( $author ) ) {
-			return true;
-		}
-
-		$author_obj = $this->get_queried_object();
-		if ( ! $author_obj ) {
-			return false;
-		}
-
-		$author = array_map( 'strval', (array) $author );
-
-		if ( in_array( (string) $author_obj->ID, $author, true ) ) {
-			return true;
-		} elseif ( in_array( $author_obj->nickname, $author, true ) ) {
-			return true;
-		} elseif ( in_array( $author_obj->user_nicename, $author, true ) ) {
-			return true;
-		}
-
-		return false;
+		return $this->is_object_type( 'is_author', $author, array( 'ID', 'nickname', 'user_nicename' ) );
 	}
 
 	/**
@@ -4287,30 +4299,7 @@ class WP_Query {
 	 * @return bool Whether the query is for an existing category archive page.
 	 */
 	public function is_category( $category = '' ) {
-		if ( ! $this->is_category ) {
-			return false;
-		}
-
-		if ( empty( $category ) ) {
-			return true;
-		}
-
-		$cat_obj = $this->get_queried_object();
-		if ( ! $cat_obj ) {
-			return false;
-		}
-
-		$category = array_map( 'strval', (array) $category );
-
-		if ( in_array( (string) $cat_obj->term_id, $category, true ) ) {
-			return true;
-		} elseif ( in_array( $cat_obj->name, $category, true ) ) {
-			return true;
-		} elseif ( in_array( $cat_obj->slug, $category, true ) ) {
-			return true;
-		}
-
-		return false;
+		return $this->is_object_type( 'is_category', $category, array( 'term_id', 'name', 'slug' ) );
 	}
 
 	/**
@@ -4326,30 +4315,7 @@ class WP_Query {
 	 * @return bool Whether the query is for an existing tag archive page.
 	 */
 	public function is_tag( $tag = '' ) {
-		if ( ! $this->is_tag ) {
-			return false;
-		}
-
-		if ( empty( $tag ) ) {
-			return true;
-		}
-
-		$tag_obj = $this->get_queried_object();
-		if ( ! $tag_obj ) {
-			return false;
-		}
-
-		$tag = array_map( 'strval', (array) $tag );
-
-		if ( in_array( (string) $tag_obj->term_id, $tag, true ) ) {
-			return true;
-		} elseif ( in_array( $tag_obj->name, $tag, true ) ) {
-			return true;
-		} elseif ( in_array( $tag_obj->slug, $tag, true ) ) {
-			return true;
-		}
-
-		return false;
+		return $this->is_object_type( 'is_tag', $tag, array( 'term_id', 'name', 'slug' ) );
 	}
 
 	/**
@@ -4576,42 +4542,7 @@ class WP_Query {
 	 * @return bool Whether the query is for an existing single page.
 	 */
 	public function is_page( $page = '' ) {
-		if ( ! $this->is_page ) {
-			return false;
-		}
-
-		if ( empty( $page ) ) {
-			return true;
-		}
-
-		$page_obj = $this->get_queried_object();
-		if ( ! $page_obj ) {
-			return false;
-		}
-
-		$page = array_map( 'strval', (array) $page );
-
-		if ( in_array( (string) $page_obj->ID, $page, true ) ) {
-			return true;
-		} elseif ( in_array( $page_obj->post_title, $page, true ) ) {
-			return true;
-		} elseif ( in_array( $page_obj->post_name, $page, true ) ) {
-			return true;
-		} else {
-			foreach ( $page as $pagepath ) {
-				if ( ! strpos( $pagepath, '/' ) ) {
-					continue;
-				}
-
-				$pagepath_obj = get_page_by_path( $pagepath );
-
-				if ( $pagepath_obj && ( $pagepath_obj->ID === $page_obj->ID ) ) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return $this->is_object_type( 'is_page', $page, array( 'ID', 'post_title', 'post_name' ), true );
 	}
 
 	/**
@@ -4698,41 +4629,7 @@ class WP_Query {
 	 * @return bool Whether the query is for an existing single post.
 	 */
 	public function is_single( $post = '' ) {
-		if ( ! $this->is_single ) {
-			return false;
-		}
-
-		if ( empty( $post ) ) {
-			return true;
-		}
-
-		$post_obj = $this->get_queried_object();
-		if ( ! $post_obj ) {
-			return false;
-		}
-
-		$post = array_map( 'strval', (array) $post );
-
-		if ( in_array( (string) $post_obj->ID, $post, true ) ) {
-			return true;
-		} elseif ( in_array( $post_obj->post_title, $post, true ) ) {
-			return true;
-		} elseif ( in_array( $post_obj->post_name, $post, true ) ) {
-			return true;
-		} else {
-			foreach ( $post as $postpath ) {
-				if ( ! strpos( $postpath, '/' ) ) {
-					continue;
-				}
-
-				$postpath_obj = get_page_by_path( $postpath, OBJECT, $post_obj->post_type );
-
-				if ( $postpath_obj && ( $postpath_obj->ID === $post_obj->ID ) ) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return $this->is_object_type( 'is_single', $post, array( 'ID', 'post_title', 'post_name' ), true );
 	}
 
 	/**
