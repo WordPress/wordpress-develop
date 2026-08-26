@@ -407,12 +407,12 @@ function the_excerpt() {
  * @since 0.71
  * @since 4.5.0 Introduced the `$post` parameter.
  *
- * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Post excerpt.
  */
 function get_the_excerpt( $post = null ) {
-	if ( is_bool( $post ) ) {
-		_deprecated_argument( __FUNCTION__, '2.3.0' );
+	if ( ! is_null( $post ) && ! is_numeric( $post ) && ! ( $post instanceof WP_Post ) ) {
+		_deprecated_argument( __FUNCTION__, '2.3.0', __( 'The bool $fakeit argument has been replaced with an int|WP_Post $post argument.' ) );
 	}
 
 	$post = get_post( $post );
