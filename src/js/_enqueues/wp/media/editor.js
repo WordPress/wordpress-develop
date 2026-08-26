@@ -727,7 +727,8 @@
 		/**
 		 * Send content to the editor
 		 *
-		 * @param {string} html Content to send to the editor
+		 * @param {string} html Content to send to the editor.
+		 * @return {void}
 		 */
 		insert: function( html ) {
 			var editor, wpActiveEditor,

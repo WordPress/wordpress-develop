@@ -338,7 +338,7 @@ window.edToolbar = function(){};
 	 * @param {number}          priority   Optional. Number representing the desired position of the button in the toolbar. 1 - 9 = first, 11 - 19 = second, 21 - 29 = third, etc.
 	 * @param {string}          instance   Optional. Limit the button to a specific instance of Quicktags, add to all instances if not present.
 	 * @param {Object}          attr       Optional. Used to pass additional attributes. Currently supports `ariaLabel` and `ariaLabelClose` (for "close tag" state)
-	 * @return mixed null or the button object that is needed for back-compat.
+	 * @return {void|Object} Returns the button object if priority is -1, otherwise returns void.
 	 */
 	qt.addButton = function( id, display, arg1, arg2, access_key, title, priority, instance, attr ) {
 		var btn;
@@ -724,6 +724,7 @@ window.edToolbar = function(){};
  * Initialize new instance of the Quicktags editor
  *
  * @param {Object} settings The settings for the Quicktags editor.
+ * @return {Object} The Quicktags editor instance.
  */
 window.quicktags = function(settings) {
 	return new window.QTags(settings);
@@ -736,6 +737,7 @@ window.quicktags = function(settings) {
  * @param {string} bah The ID of the textarea.
  * @param {string} txt The content to insert.
  * @see QTags.insertContent()
+ * @return {boolean} True if the content was inserted, false otherwise.
  */
 window.edInsertContent = function(bah, txt) {
 	return window.QTags.insertContent(txt);
@@ -751,6 +753,7 @@ window.edInsertContent = function(bah, txt) {
  * @param {string} tagEnd   The ending tag.
  * @param {string} access   The access key for the button.
  * @see QTags.addButton()
+ * @return {void|Object} Returns the button object if priority is -1, otherwise returns void.
  */
 window.edButton = function(id, display, tagStart, tagEnd, access) {
 	return window.QTags.addButton( id, display, tagStart, tagEnd, access, '', -1 );

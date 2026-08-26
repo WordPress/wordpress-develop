@@ -137,6 +137,7 @@ jQuery( function( $ ) {
 	 * @since 5.2.0
 	 *
 	 * @param {Object} issue The issue data.
+	 * @return {void|boolean} True if the issue was appended, false otherwise.
 	 */
 	function appendIssue( issue ) {
 		var template = wp.template( 'health-check-issue' ),

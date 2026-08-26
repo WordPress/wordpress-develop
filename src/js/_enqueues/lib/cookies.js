@@ -42,6 +42,7 @@ window.wpCookies = {
 	 * Returns a JS object with the name: 'value' pairs.
 	 *
 	 * @param {string} name The name of the cookie.
+	 * @return {Object} The cookie values as a JS object.
 	 */
 	getHash: function( name ) {
 		var cookie = this.get( name ), values;
@@ -82,6 +83,7 @@ window.wpCookies = {
 	/**
 	 * Get a cookie.
 	 * @param {string} name The name of the cookie.
+	 * @return {void|string} The cookie value.
 	 */
 	get: function( name ) {
 		var e, b,

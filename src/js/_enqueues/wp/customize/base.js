@@ -20,7 +20,7 @@ window.wp = window.wp || {};
 	 * @param {Object} parent      Parent class constructor to inherit from.
 	 * @param {Object} protoProps  Properties to apply to the prototype for use as class instance properties.
 	 * @param {Object} staticProps Properties to apply directly to the class constructor.
-	 * @return child The subclassed constructor.
+	 * @return {Function} The new class constructor.
 	 */
 	inherits = function( parent, protoProps, staticProps ) {
 		var child;
@@ -79,6 +79,7 @@ window.wp = window.wp || {};
 	 * @param {Function} applicator The function that is used to apply the arguments to the constructor.
 	 * @param {Array}    argsArray  The array of arguments to apply to the constructor.
 	 * @param {Object}   options    The options to extend the instance with.
+	 * @return {Object} The instance of the class.
 	 */
 	api.Class = function( applicator, argsArray, options ) {
 		var magic, args = arguments;
@@ -114,7 +115,7 @@ window.wp = window.wp || {};
 	 *
 	 * @param {Object} protoProps  Properties to apply to the prototype.
 	 * @param {Object} staticProps Properties to apply directly to the class.
-	 * @return child The subclass.
+	 * @return {Function} The new class constructor.
 	 */
 	api.Class.extend = function( protoProps, staticProps ) {
 		var child = inherits( this, protoProps, staticProps );
@@ -225,6 +226,7 @@ window.wp = window.wp || {};
 		 * Set the value and trigger all bound callbacks.
 		 *
 		 * @param {Object} to New value.
+		 * @return {wp.customize.Value} The instance of the Value.
 		 */
 		set: function( to ) {
 			var from = this._value;
@@ -270,6 +272,8 @@ window.wp = window.wp || {};
 
 		/**
 		 * Bind a function to be invoked whenever the value changes.
+		 *
+		 * @return {wp.customize.Value} The instance of the Value.
 		 */
 		bind: function() {
 			this.callbacks.add.apply( this.callbacks, arguments );
@@ -278,6 +282,8 @@ window.wp = window.wp || {};
 
 		/**
 		 * Unbind a previously bound function.
+		 *
+		 * @return {wp.customize.Value} The instance of the Value.
 		 */
 		unbind: function() {
 			this.callbacks.remove.apply( this.callbacks, arguments );
@@ -491,7 +497,7 @@ window.wp = window.wp || {};
 		 * For example:
 		 *     when( id1, id2, id3, function( value1, value2, value3 ) {} );
 		 *
-		 * @return $.Deferred.promise();
+		 * @return {jQuery.Deferred} A promise object that will be resolved when all requested values exist.
 		 */
 		when: function() {
 			var self = this,
@@ -555,6 +561,7 @@ window.wp = window.wp || {};
 	 * Cast a string to a jQuery collection if it isn't already.
 	 *
 	 * @param {string|jQuery collection} element
+	 * @return {jQuery collection} The jQuery collection.
 	 */
 	api.ensure = function( element ) {
 		return typeof element === 'string' ? $( element ) : element;

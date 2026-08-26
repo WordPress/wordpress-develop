@@ -397,6 +397,8 @@
 	 *
 	 * @param {HTMLElement} el Element to get parent.
 	 * @param {string} selector CSS selector to match.
+	 *
+	 * @return {HTMLElement|null} The closest matching element or null if not found.
 	 */
 	function getClosest( el, selector ) {
 		if ( ! window.Element.prototype.matches ) {

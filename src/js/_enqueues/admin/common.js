@@ -2244,6 +2244,8 @@ $( function( $ ) {
  * plugin icon images in the update plugins table.
  *
  * @since 6.4.0
+ *
+ * @return {Object} Public methods.
  */
 (function() {
 	// Private variables and methods.

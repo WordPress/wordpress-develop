@@ -188,6 +188,8 @@ window.wp = window.wp || {};
 	 * @since 2.7.0
 	 *
 	 * @memberof inlineEditPost
+	 *
+	 * @return {void}
 	 */
 	setBulk : function(){
 		var te = '', type = this.type, c = true;

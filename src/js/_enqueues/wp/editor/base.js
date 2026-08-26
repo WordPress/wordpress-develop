@@ -11,6 +11,7 @@ window.wp = window.wp || {};
 	 * Utility functions for the editor.
 	 *
 	 * @since 2.5.0
+	 * @return {Object} The editor utility functions.
 	 */
 	function SwitchEditors() {
 		var tinymce, $$,
@@ -258,6 +259,7 @@ window.wp = window.wp || {};
 		 * Gets a list of unique shortcodes or shortcode-lookalikes in the content.
 		 *
 		 * @param {string} content The content we want to scan for shortcodes.
+		 * @return {Array} An array of unique shortcodes found in the content.
 		 */
 		function getShortcodesInText( content ) {
 			var shortcodes = content.match( /\[+([\w_-])+/g ),
@@ -290,7 +292,8 @@ window.wp = window.wp || {};
 		 * The information can also be used in other cases when we need to lookup shortcode data,
 		 * as it's already structured!
 		 *
-		 * @param {string} content The content we want to scan for shortcodes
+		 * @param {string} content The content we want to scan for shortcodes.
+		 * @return {Array} An array of objects with information about the shortcodes found in the content.
 		 */
 		function getShortCodePositionsInText( content ) {
 			var allShortcodes = getShortcodesInText( content ), shortcodeInfo;
@@ -362,6 +365,7 @@ window.wp = window.wp || {};
 		 *
 		 * @param {Object} domLib DOM library instance.
 		 * @param {string} content The content to insert into the cursor marker element.
+		 * @return {Object} The cursor marker element.
 		 */
 		function getCursorMarkerSpan( domLib, content ) {
 			return domLib( '<span>' ).css( {
@@ -1381,7 +1385,7 @@ window.wp = window.wp || {};
 	 * @since 4.8.0
 	 *
 	 * @param {string} id The HTML id of the editor textarea.
-	 * @return The editor content.
+	 * @return {void|string} The editor content.
 	 */
 	wp.editor.getContent = function( id ) {
 		var editor;

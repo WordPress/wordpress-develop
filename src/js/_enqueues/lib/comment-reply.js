@@ -292,6 +292,8 @@ window.addComment = ( function( window ) {
 	 * @since 5.1.0
 	 *
 	 * @param {string} elementId The requested element.
+	 *
+	 * @return {HTMLElement} The element with the given ID.
 	 */
 	function getElementById( elementId ) {
 		return document.getElementById( elementId );
@@ -309,6 +311,8 @@ window.addComment = ( function( window ) {
 	 * @param {string} respondId  HTML ID of 'respond' element.
 	 * @param {string} postId     Database ID of the post.
 	 * @param {string} replyTo    Form heading content.
+	 *
+	 * @return {void|boolean} Returns false for backward compatibility with third party commenting systems hooking into this function.
 	 */
 	function moveForm( addBelowId, commentId, respondId, postId, replyTo ) {
 		// Get elements based on their IDs.

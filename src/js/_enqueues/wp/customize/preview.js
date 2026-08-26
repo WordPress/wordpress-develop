@@ -78,6 +78,7 @@
 	 * @param {number}   delay   Delay in milliseconds.
 	 * @param {Object}   context Context to invoke the function in.
 	 * @todo Require Underscore.js for this file and retire this.
+	 * @return {Function} Debounced function.
 	 */
 	debounce = function( fn, delay, context ) {
 		var timeout;

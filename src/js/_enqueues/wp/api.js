@@ -101,6 +101,8 @@
 	 * Parse date into ISO 8601 format.
 	 *
 	 * @param {Date} date A date object to parse.
+	 *
+	 * @return {number} The timestamp of the date.
 	 */
 	wp.api.utils.parseISO8601 = function( date ) {
 		var timestamp, struct, i, k,
@@ -154,6 +156,8 @@
 	 * Helper for capitalizing strings.
 	 *
 	 * @param {string} str The string to capitalize.
+	 *
+	 * @return {string} The capitalized string.
 	 */
 	wp.api.utils.capitalize = function( str ) {
 		if ( _.isUndefined( str ) ) {
@@ -167,6 +171,7 @@
 	 * after dashes, removing the dashes.
 	 *
 	 * @param {string} str The string to capitalize and camel case.
+	 * @return {string} The capitalized and camel cased string.
 	 */
 	wp.api.utils.capitalizeAndCamelCaseDashes = function( str ) {
 		if ( _.isUndefined( str ) ) {
@@ -181,6 +186,7 @@
 	 * Helper function to camel case the letter after dashes, removing the dashes.
 	 *
 	 * @param {string} str The string to camel case.
+	 * @return {string} The camel cased string.
 	 */
 	wp.api.utils.camelCaseDashes = function( str ) {
 		return str.replace( /-([a-z])/g, function( g ) {
@@ -196,6 +202,7 @@
 	 *                                  Example route `/a/b/c`: part 1 is `c`, part 2 is `b`, part 3 is `a`.
 	 * @param {string}  [versionString] Version string, defaults to `wp.api.versionString`.
 	 * @param {boolean} [reverse]       Whether to reverse the order when extracting the route part. Optional, default false.
+	 * @return {string} The route part.
 	 */
 	wp.api.utils.extractRoutePart = function( route, part, versionString, reverse ) {
 		var routeParts;
@@ -222,6 +229,7 @@
 	 * Extract a parent name from a passed route.
 	 *
 	 * @param {string} route The route to extract a name from.
+	 * @return {string} The parent name.
 	 */
 	wp.api.utils.extractParentName = function( route ) {
 		var name,
@@ -297,6 +305,7 @@
 	 * @param {Backbone Model} model          The model to attach helpers and mixins to.
 	 * @param {string}         modelClassName The classname of the constructed model.
 	 * @param {Object} 	       loadingObjects An object containing the models and collections we are building.
+	 * @return {undefined} No return value.
 	 */
 	wp.api.utils.addMixinsAndHelpers = function( model, modelClassName, loadingObjects ) {
 
@@ -329,6 +338,7 @@
 				 * @param {Date}   date  A JavaScript date object. WordPress expects dates in UTC.
 				 * @param {string} field The date field to set. One of 'date', 'date_gmt', 'date_modified'
 				 *                       or 'date_modified_gmt'. Optional, defaults to 'date'.
+				 * @return {void|boolean} False if the field is not a parseable date field, true otherwise.
 				 */
 				setDate: function( date, field ) {
 					var theField = field || 'date';
@@ -349,6 +359,7 @@
 				 *
 				 * @param {string} field The date field to set. One of 'date', 'date_gmt', 'date_modified'
 				 *                       or 'date_modified_gmt'. Optional, defaults to 'date'.
+				 * @return {Date|boolean} A JavaScript Date object, or false if the field is not a parseable date field.
 				 */
 				getDate: function( field ) {
 					var theField   = field || 'date',
@@ -599,6 +610,7 @@
 				 * Accepts an array of tag slugs, or a Tags collection.
 				 *
 				 * @param {Array|Backbone.Collection} tags The tags to set on the post.
+				 * @return {void|boolean} False if the tags parameter is a string, otherwise void.
 				 *
 				 */
 				setTags: function( tags ) {
@@ -645,6 +657,7 @@
 				 * Accepts a Tags collection.
 				 *
 				 * @param {Array|Backbone.Collection} tags The tags to set on the post.
+				 * @return {void} No return value.
 				 *
 				 */
 				setTagsWithCollection: function( tags ) {
@@ -683,7 +696,7 @@
 				 * Accepts an array of category slugs, or a Categories collection.
 				 *
 				 * @param {Array|Backbone.Collection} categories The categories to set on the post.
-				 *
+				 * @return {void|boolean} False if the categories parameter is a string, otherwise void.
 				 */
 				setCategories: function( categories ) {
 					var allCategories, newCategory,
@@ -730,7 +743,7 @@
 				 * Accepts Categories collection.
 				 *
 				 * @param {Array|Backbone.Collection} categories The categories to set on the post.
-				 *
+				 * @return {void} No return value.
 				 */
 				setCategoriesWithCollection: function( categories ) {
 
@@ -899,6 +912,7 @@
 			 * Save is only allowed when the PUT OR POST methods are available for the endpoint.
 			 * @param {Object} attrs   The attributes to save.
 			 * @param {Object} options The options for the save operation.
+			 * @return {boolean} True if the save was executed, false if not allowed.
 			 */
 			save: function( attrs, options ) {
 
@@ -917,6 +931,7 @@
 			/**
 			 * Delete is only allowed when the DELETE method is available for the endpoint.
 			 * @param {Object} options The options for the delete operation.
+			 * @return {boolean} True if the delete was executed, false if not allowed.
 			 */
 			destroy: function( options ) {
 
@@ -1517,6 +1532,7 @@
 	 * @param {string} [args.apiRoot]       The api root. Optional, defaults to wpApiSettings.root.
 	 * @param {string} [args.versionString] The version string. Optional, defaults to wpApiSettings.root.
 	 * @param {Object} [args.schema]        The schema. Optional, will be fetched from API if not provided.
+	 * @return {Promise} A promise that resolves with the endpoint once it is ready.
 	 */
 	wp.api.init = function( args ) {
 		var endpoint, attributes = {}, deferred, promise;

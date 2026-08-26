@@ -1360,6 +1360,7 @@
 		 * Return the container html, generated from its JS template, if it exists.
 		 *
 		 * @since 4.3.0
+		 * @return {string} Container html.
 		 */
 		getContainer: function () {
 			var template,
@@ -3967,6 +3968,7 @@
 		 *
 		 * @param {boolean} active The active state to toggle.
 		 * @deprecated 4.1.0 Use this.onChangeActive() instead.
+		 * @return {void}
 		 */
 		toggle: function ( active ) {
 			return this.onChangeActive( active, this.defaultActiveArguments );

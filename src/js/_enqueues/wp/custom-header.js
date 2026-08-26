@@ -239,7 +239,7 @@
 	 * @memberOf wp
 	 *
 	 * @param {Object} protoProps Properties to apply to the prototype.
-	 * @return CustomHandler The subclass.
+	 * @return {Function} Custom handler constructor.
 	 */
 	BaseHandler.extend = function( protoProps ) {
 		var prop;

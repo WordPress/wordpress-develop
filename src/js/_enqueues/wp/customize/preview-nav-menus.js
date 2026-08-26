@@ -263,7 +263,8 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		/**
 		 * Request full refresh if there are nav menu instances that lack partials which also match the supplied args.
 		 *
-		 * @param {Object} navMenuInstanceArgs
+		 * @param {Object} navMenuInstanceArgs Arguments for a nav menu instance, which may include menu and/or theme_location.
+		 * @return {boolean} Whether a full refresh was requested.
 		 */
 		self.handleUnplacedNavMenuInstances = function( navMenuInstanceArgs ) {
 			var unplacedNavMenuInstances;

@@ -3536,7 +3536,8 @@
 	/**
 	 * @alias wp.customize.Menus~menuItemIdToSettingId
 	 *
-	 * @param {string} menuItemId
+	 * @param {string} menuItemId The ID of the menu item.
+	 * @return {string} The setting ID for the menu item.
 	 */
 	function menuItemIdToSettingId( menuItemId ) {
 		return 'nav_menu_item[' + menuItemId + ']';
