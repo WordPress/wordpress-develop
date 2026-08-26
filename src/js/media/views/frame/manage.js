@@ -196,7 +196,8 @@ Manage = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Manage.prototype 
 
 	/**
 	 * Click handler for the `Add New` button.
-	 * @param event
+	 *
+	 * @param {Event} event The click event.
 	 */
 	addNewClickHandler: function( event ) {
 		event.preventDefault();
@@ -209,7 +210,8 @@ Manage = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Manage.prototype 
 
 	/**
 	 * Open the Edit Attachment modal.
-	 * @param model
+	 *
+	 * @param {wp.media.model.Attachment} model The attachment model to edit.
 	 */
 	openEditAttachmentModal: function( model ) {
 		// Create a new EditAttachment frame, passing along the library and the attachment model.

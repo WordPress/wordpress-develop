@@ -12,14 +12,14 @@
  * @class
  * @augments Backbone.Collection
  *
- * @param {Array}  [models]                Models to initialize with the collection.
- * @param {Object} [options]               Options hash for the collection.
- * @param {string} [options.props]         Options hash for the initial query properties.
- * @param {string} [options.props.order]   Initial order (ASC or DESC) for the collection.
- * @param {string} [options.props.orderby] Initial attribute key to order the collection by.
- * @param {string} [options.props.query]   Whether the collection is linked to an attachments query.
- * @param {string} [options.observe]
- * @param {string} [options.filters]
+ * @param {wp.media.model.Attachment[]} [models]                Models to initialize with the collection.
+ * @param {Object}                      [options]               Options hash for the collection.
+ * @param {string}                      [options.props]         Options hash for the initial query properties.
+ * @param {string}                      [options.props.order]   Initial order (ASC or DESC) for the collection.
+ * @param {string}                      [options.props.orderby] Initial attribute key to order the collection by.
+ * @param {string}                      [options.props.query]   Whether the collection is linked to an attachments query.
+ * @param {string}                      [options.observe] 	    An attachments collection to observe and mirror.
+ * @param {string}                      [options.filters] 	    Filters to apply to the collection.
  *
  */
 var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachments.prototype */{

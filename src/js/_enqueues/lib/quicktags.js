@@ -1,4 +1,3 @@
-
 /*
  * Quicktags
  *
@@ -723,18 +722,19 @@ window.edToolbar = function(){};
 
 /**
  * Initialize new instance of the Quicktags editor
- * @param settings
+ *
+ * @param {Object} settings The settings for the Quicktags editor.
  */
 window.quicktags = function(settings) {
 	return new window.QTags(settings);
 };
 
 /**
- * Inserts content at the caret in the active editor (textarea)
+ * Inserts content at the caret in the active editor (textarea).
  *
  * Added for back compatibility
- * @param bah
- * @param txt
+ * @param {string} bah The ID of the textarea.
+ * @param {string} txt The content to insert.
  * @see QTags.insertContent()
  */
 window.edInsertContent = function(bah, txt) {
@@ -742,14 +742,14 @@ window.edInsertContent = function(bah, txt) {
 };
 
 /**
- * Adds a button to all instances of the editor
+ * Adds a button to all instances of the editor.
  *
  * Added for back compatibility, use QTags.addButton() as it gives more flexibility like type of button, button placement, etc.
- * @param id
- * @param display
- * @param tagStart
- * @param tagEnd
- * @param access
+ * @param {string} id       The ID of the button.
+ * @param {string} display  The display text of the button.
+ * @param {string} tagStart The starting tag.
+ * @param {string} tagEnd   The ending tag.
+ * @param {string} access   The access key for the button.
  * @see QTags.addButton()
  */
 window.edButton = function(id, display, tagStart, tagEnd, access) {

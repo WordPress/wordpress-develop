@@ -243,7 +243,7 @@ window.autosave = function() {
 			 * Sets the storage for this blog. Confirms that the data was saved
 			 * successfully.
 			 *
-			 * @param stored_obj
+			 * @param {Object} stored_obj The storage object to set.
 			 * @since 3.9.0
 			 *
 			 * @return {boolean} True if the data was saved successfully, false if it wasn't saved.

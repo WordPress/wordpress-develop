@@ -207,7 +207,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 
 	/**
 	 * Rerender the view.
-	 * @param model
+	 * @param {wp.media.model.Attachment} model The attachment model to render.
 	 */
 	rerender: function( model ) {
 		this.stopListening( this.model );
@@ -286,7 +286,8 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 * Respond to the keyboard events: Alt + right arrow, Alt + left arrow,
 	 * except when focus is in a form field. Requires the Alt modifier key to
 	 * avoid interfering with screen reader navigation.
-	 * @param event
+	 *
+	 * @param {Event} event The keyboard event.
 	 */
 	keyEvent: function( event ) {
 		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName || 'SELECT' === event.target.nodeName ) && ! event.target.disabled ) {

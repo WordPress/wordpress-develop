@@ -1,8 +1,8 @@
 /**
  * WordPress inline HTML embed
  *
- * @param window
- * @param document
+ * @param {Window} window The global window object.
+ * @param {Document} document The global document object.
  * @since 4.4.0
  * @output wp-includes/js/wp-embed.js
  *
@@ -30,7 +30,7 @@
 	/**
 	 * Receive embed message.
 	 *
-	 * @param {MessageEvent} e
+	 * @param {MessageEvent} e The message event.
 	 */
 	window.wp.receiveEmbedMessage = function( e ) {
 		var data = e.data;

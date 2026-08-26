@@ -91,7 +91,7 @@ CodeMirror.registerHelper( 'lint', 'javascript', validator );
  *     ecmaFeatures?: {
  *         impliedStrict?: true
  *     }
- * }} Options for Espree.
+ * }}
  */
 function getEspreeOptions( options ) {
 	/** @type {{ impliedStrict?: true }} */

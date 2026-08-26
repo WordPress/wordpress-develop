@@ -1,6 +1,6 @@
 /**
- * @param window
- * @param undefined
+ * @param {Window}    window
+ * @param {undefined} undefined
  * @output wp-includes/js/wp-api.js
  */
 
@@ -49,8 +49,7 @@
 	/**
 	 * Determine model based on API route.
 	 *
-	 * @param {string} route    The API route.
-	 *
+	 * @param {string} route The API route.
 	 * @return {Backbone Model} The model found at given route. Undefined if not found.
 	 */
 	wp.api.getModelByRoute = function( route ) {
@@ -62,8 +61,7 @@
 	/**
 	 * Determine collection based on API route.
 	 *
-	 * @param {string} route    The API route.
-	 *
+	 * @param {string} route The API route.
 	 * @return {Backbone Model} The collection found at given route. Undefined if not found.
 	 */
 	wp.api.getCollectionByRoute = function( route ) {
@@ -154,7 +152,8 @@
 
 	/**
 	 * Helper for capitalizing strings.
-	 * @param str
+	 *
+	 * @param {string} str The string to capitalize.
 	 */
 	wp.api.utils.capitalize = function( str ) {
 		if ( _.isUndefined( str ) ) {
@@ -166,7 +165,8 @@
 	/**
 	 * Helper function that capitalizes the first word and camel cases any words starting
 	 * after dashes, removing the dashes.
-	 * @param str
+	 *
+	 * @param {string} str The string to capitalize and camel case.
 	 */
 	wp.api.utils.capitalizeAndCamelCaseDashes = function( str ) {
 		if ( _.isUndefined( str ) ) {
@@ -179,7 +179,8 @@
 
 	/**
 	 * Helper function to camel case the letter after dashes, removing the dashes.
-	 * @param str
+	 *
+	 * @param {string} str The string to camel case.
 	 */
 	wp.api.utils.camelCaseDashes = function( str ) {
 		return str.replace( /-([a-z])/g, function( g ) {
@@ -325,9 +326,9 @@
 				 * This helper function accepts a field and Date object. It converts the passed Date
 				 * to an ISO string and sets that on the model field.
 				 *
-				 * @param {Date}   date   A JavaScript date object. WordPress expects dates in UTC.
-				 * @param {string} field  The date field to set. One of 'date', 'date_gmt', 'date_modified'
-				 *                        or 'date_modified_gmt'. Optional, defaults to 'date'.
+				 * @param {Date}   date  A JavaScript date object. WordPress expects dates in UTC.
+				 * @param {string} field The date field to set. One of 'date', 'date_gmt', 'date_modified'
+				 *                       or 'date_modified_gmt'. Optional, defaults to 'date'.
 				 */
 				setDate: function( date, field ) {
 					var theField = field || 'date';
@@ -346,8 +347,8 @@
 				 * WordPress returns 'date' and 'date_modified' in the timezone of the server as well as
 				 * UTC dates as 'date_gmt' and 'date_modified_gmt'. Draft posts do not include UTC dates.
 				 *
-				 * @param {string} field  The date field to set. One of 'date', 'date_gmt', 'date_modified'
-				 *                        or 'date_modified_gmt'. Optional, defaults to 'date'.
+				 * @param {string} field The date field to set. One of 'date', 'date_gmt', 'date_modified'
+				 *                       or 'date_modified_gmt'. Optional, defaults to 'date'.
 				 */
 				getDate: function( field ) {
 					var theField   = field || 'date',
@@ -499,8 +500,9 @@
 
 			/**
 			 * Set the model post parent.
-			 * @param collection
-			 * @param postId
+			 *
+			 * @param {wp.api.collections} collection The collection to set the parent post for.
+			 * @param {number}             postId     The ID of the parent post.
 			 */
 			setHelperParentPost = function( collection, postId ) {
 
@@ -895,8 +897,8 @@
 
 			/**
 			 * Save is only allowed when the PUT OR POST methods are available for the endpoint.
-			 * @param attrs
-			 * @param options
+			 * @param {Object} attrs   The attributes to save.
+			 * @param {Object} options The options for the save operation.
 			 */
 			save: function( attrs, options ) {
 
@@ -914,7 +916,7 @@
 
 			/**
 			 * Delete is only allowed when the DELETE method is available for the endpoint.
-			 * @param options
+			 * @param {Object} options The options for the delete operation.
 			 */
 			destroy: function( options ) {
 
@@ -977,8 +979,8 @@
 
 			/**
 			 * Setup default state.
-			 * @param models
-			 * @param options
+			 * @param {Array}  models  The initial array of models.
+			 * @param {Object} options The options for the collection.
 			 */
 			initialize: function( models, options ) {
 				this.state = {
@@ -1511,10 +1513,10 @@
 	 * Initialize the wp-api, optionally passing the API root.
 	 *
 	 * @param {Object} [args]
-	 * @param {string} [args.nonce] The nonce. Optional, defaults to wpApiSettings.nonce.
-	 * @param {string} [args.apiRoot] The api root. Optional, defaults to wpApiSettings.root.
+	 * @param {string} [args.nonce]         The nonce. Optional, defaults to wpApiSettings.nonce.
+	 * @param {string} [args.apiRoot]       The api root. Optional, defaults to wpApiSettings.root.
 	 * @param {string} [args.versionString] The version string. Optional, defaults to wpApiSettings.root.
-	 * @param {Object} [args.schema] The schema. Optional, will be fetched from API if not provided.
+	 * @param {Object} [args.schema]        The schema. Optional, will be fetched from API if not provided.
 	 */
 	wp.api.init = function( args ) {
 		var endpoint, attributes = {}, deferred, promise;

@@ -1261,7 +1261,7 @@ $( function() {
 		/**
 		 * Triggers the primary submit when then secondary submit is clicked.
 		 *
-		 * @param e
+		 * @param {Event} e The event object.
 		 * @since 5.7.0
 		 *
 		 * @return {void}

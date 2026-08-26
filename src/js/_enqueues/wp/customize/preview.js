@@ -74,9 +74,9 @@
 	/**
 	 * Returns a debounced version of the function.
 	 *
-	 * @param fn
-	 * @param delay
-	 * @param context
+	 * @param {Function} fn      Function to debounce.
+	 * @param {number}   delay   Delay in milliseconds.
+	 * @param {Object}   context Context to invoke the function in.
 	 * @todo Require Underscore.js for this file and retire this.
 	 */
 	debounce = function( fn, delay, context ) {

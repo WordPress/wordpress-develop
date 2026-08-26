@@ -129,7 +129,7 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
-	 * @param view
+	 * @param {media.view.Title} view The title view.
 	 * @since 3.5.0
 	 * @access private
 	 */

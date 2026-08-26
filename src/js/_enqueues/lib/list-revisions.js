@@ -1,5 +1,5 @@
 /**
- * @param w
+ * @param {Window} w The global window object.
  * @output wp-includes/js/wp-list-revisions.js
  */
 

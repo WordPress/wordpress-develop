@@ -42,9 +42,9 @@ wp.media.mixin = {
 	 * MediaElement tries to pull the audio/video tag out of
 	 * its container and re-add it to the DOM.
 	 *
-	 * @param t
 	 * @since 4.2.0
 	 *
+	 * @param {object} t The MediaElement player object.
 	 * @return {void}
 	 */
 	removePlayer: function(t) {

@@ -270,7 +270,7 @@ window.addComment = ( function( window ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param {HTMLElement} element DOM element with the attribute.
+	 * @param {HTMLElement} element   DOM element with the attribute.
 	 * @param {string}      attribute The attribute to get.
 	 *
 	 * @return {string} The value of the attribute.

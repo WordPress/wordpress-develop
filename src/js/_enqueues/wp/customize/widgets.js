@@ -968,9 +968,9 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {boolean}   active
-		 * @param {Object}    args
-		 * @param {Function}  args.completeCallback
+		 * @param {boolean}  active
+		 * @param {Object}   args
+		 * @param {Function} args.completeCallback
 		 */
 		onChangeActive: function ( active, args ) {
 			// Note: there is a second 'args' parameter being passed, merged on top of this.defaultActiveArguments.

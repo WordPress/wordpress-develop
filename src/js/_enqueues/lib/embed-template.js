@@ -1,6 +1,6 @@
 /**
- * @param window
- * @param document
+ * @param {Window}   window   The global window object.
+ * @param {Document} document The global document object.
  * @output wp-includes/js/wp-embed-template.js
  */
 (function ( window, document ) {
@@ -156,7 +156,8 @@
 
 		/**
 		 * Detect clicks to external (_top) links.
-		 * @param e
+		 *
+		 * @param {Event} e The event object.
 		 */
 		function linkClickHandler( e ) {
 			var target = e.target,
