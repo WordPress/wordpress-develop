@@ -150,21 +150,21 @@ class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 				'args'     => array(
 					'type' => '"><script>alert("Howdy,admin!");</script>',
 				),
-				'expected' => '<div class="notice notice-"><script>alert("Howdy,admin!");</script>"><p>A notice with an unsafe type.</p></div>',
+				'expected' => '<div class="notice notice-&quot;><script>alert(&quot;Howdy,admin!&quot;);</script>"><p>A notice with an unsafe type.</p></div>',
 			),
 			'an unsafe ID'                              => array(
 				'message'  => 'A notice with an unsafe ID.',
 				'args'     => array(
 					'id' => '"><script>alert( "Howdy, admin!" );</script> <div class="notice',
 				),
-				'expected' => '<div id=""><script>alert( "Howdy, admin!" );</script> <div class="notice" class="notice"><p>A notice with an unsafe ID.</p></div>',
+				'expected' => '<div id="&quot;><script>alert( &quot;Howdy, admin!&quot; );</script> <div class=&quot;notice" class="notice"><p>A notice with an unsafe ID.</p></div>',
 			),
 			'unsafe additional classes'                 => array(
 				'message'  => 'A notice with unsafe additional classes.',
 				'args'     => array(
 					'additional_classes' => array( '"><script>alert( "Howdy, admin!" );</script> <div class="notice' ),
 				),
-				'expected' => '<div class="notice "><script>alert( "Howdy, admin!" );</script> <div class="notice"><p>A notice with unsafe additional classes.</p></div>',
+				'expected' => '<div class="notice &quot;><script>alert( &quot;Howdy, admin!&quot; );</script> <div class=&quot;notice"><p>A notice with unsafe additional classes.</p></div>',
 			),
 			'a type that is not a string'               => array(
 				'message'  => 'A notice with a type that is not a string.',
