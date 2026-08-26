@@ -2529,6 +2529,7 @@ function render_block( $parsed_block ) {
  * instead, as it provides a streaming and low-overhead interface for finding blocks.
  *
  * @since 5.0.0
+ * @since 6.9.0 The `parse_blocks` filter was added.
  *
  * @param string $content Post content.
  * @return array[] {
@@ -2558,7 +2559,16 @@ function parse_blocks( $content ) {
 	$parser_class = apply_filters( 'block_parser_class', 'WP_Block_Parser' );
 
 	$parser = new $parser_class();
-	return $parser->parse( $content );
+
+	/**
+	 * Filter the collection of parsed blocks.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array[] $blocks Array of parsed block objects.
+	 * @param string  $content The content that is being parsed.
+	 */
+	return apply_filters( 'parse_blocks', $parser->parse( $content ), $content );
 }
 
 /**
