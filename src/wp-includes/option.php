@@ -1390,19 +1390,20 @@ function delete_transient( $transient ) {
 	 */
 	do_action( "delete_transient_{$transient}", $transient );
 
+	$deleted = false;
 	if ( wp_using_ext_object_cache() || wp_installing() ) {
-		$result = wp_cache_delete( $transient, 'transient' );
-	} else {
-		$option_timeout = '_transient_timeout_' . $transient;
-		$option         = '_transient_' . $transient;
-		$result         = delete_option( $option );
-
-		if ( $result ) {
-			delete_option( $option_timeout );
-		}
+		$deleted = wp_cache_delete( $transient, 'transient' );
 	}
 
-	if ( $result ) {
+	$option_timeout = '_transient_timeout_' . $transient;
+	$option         = '_transient_' . $transient;
+	$deleted        = delete_option( $option );
+
+	if ( $deleted ) {
+		delete_option( $option_timeout );
+	}
+
+	if ( $deleted ) {
 
 		/**
 		 * Fires after a transient is deleted.
@@ -1414,7 +1415,7 @@ function delete_transient( $transient ) {
 		do_action( 'deleted_transient', $transient );
 	}
 
-	return $result;
+	return $deleted;
 }
 
 /**
@@ -1538,45 +1539,46 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 	 */
 	$expiration = apply_filters( "expiration_of_transient_{$transient}", $expiration, $value, $transient );
 
+	$is_set = false;
 	if ( wp_using_ext_object_cache() || wp_installing() ) {
-		$result = wp_cache_set( $transient, $value, 'transient', $expiration );
+		$is_set = wp_cache_set( $transient, $value, 'transient', $expiration );
+	}
+
+	$transient_timeout = '_transient_timeout_' . $transient;
+	$transient_option  = '_transient_' . $transient;
+	wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
+
+	if ( false === get_option( $transient_option ) ) {
+		$autoload = true;
+		if ( $expiration ) {
+			$autoload = false;
+			add_option( $transient_timeout, time() + $expiration, '', false );
+		}
+		$is_set = add_option( $transient_option, $value, '', $autoload );
 	} else {
-		$transient_timeout = '_transient_timeout_' . $transient;
-		$transient_option  = '_transient_' . $transient;
-		wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
+		/*
+		 * If expiration is requested, but the transient has no timeout option,
+		 * delete, then re-create transient rather than update.
+		 */
+		$update = true;
 
-		if ( false === get_option( $transient_option ) ) {
-			$autoload = true;
-			if ( $expiration ) {
-				$autoload = false;
+		if ( $expiration ) {
+			if ( false === get_option( $transient_timeout ) ) {
+				delete_option( $transient_option );
 				add_option( $transient_timeout, time() + $expiration, '', false );
+				$is_set = add_option( $transient_option, $value, '', false );
+				$update = false;
+			} else {
+				update_option( $transient_timeout, time() + $expiration );
 			}
-			$result = add_option( $transient_option, $value, '', $autoload );
-		} else {
-			/*
-			 * If expiration is requested, but the transient has no timeout option,
-			 * delete, then re-create transient rather than update.
-			 */
-			$update = true;
+		}
 
-			if ( $expiration ) {
-				if ( false === get_option( $transient_timeout ) ) {
-					delete_option( $transient_option );
-					add_option( $transient_timeout, time() + $expiration, '', false );
-					$result = add_option( $transient_option, $value, '', false );
-					$update = false;
-				} else {
-					update_option( $transient_timeout, time() + $expiration );
-				}
-			}
-
-			if ( $update ) {
-				$result = update_option( $transient_option, $value );
-			}
+		if ( $update ) {
+			$is_set = update_option( $transient_option, $value );
 		}
 	}
 
-	if ( $result ) {
+	if ( $is_set ) {
 
 		/**
 		 * Fires after the value for a specific transient has been set.
@@ -1618,7 +1620,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		do_action_deprecated( 'setted_transient', array( $transient, $value, $expiration ), '6.8.0', 'set_transient' );
 	}
 
-	return $result;
+	return $is_set;
 }
 
 /**
@@ -2521,19 +2523,19 @@ function delete_site_transient( $transient ) {
 	 */
 	do_action( "delete_site_transient_{$transient}", $transient );
 
+	$deleted = false;
 	if ( wp_using_ext_object_cache() || wp_installing() ) {
-		$result = wp_cache_delete( $transient, 'site-transient' );
-	} else {
-		$option_timeout = '_site_transient_timeout_' . $transient;
-		$option         = '_site_transient_' . $transient;
-		$result         = delete_site_option( $option );
+		$deleted = wp_cache_delete( $transient, 'site-transient' );
+	}
+	$option_timeout = '_site_transient_timeout_' . $transient;
+	$option         = '_site_transient_' . $transient;
+	$deleted        = delete_site_option( $option );
 
-		if ( $result ) {
-			delete_site_option( $option_timeout );
-		}
+	if ( $deleted ) {
+		delete_site_option( $option_timeout );
 	}
 
-	if ( $result ) {
+	if ( $deleted ) {
 
 		/**
 		 * Fires after a transient is deleted.
@@ -2545,7 +2547,7 @@ function delete_site_transient( $transient ) {
 		do_action( 'deleted_site_transient', $transient );
 	}
 
-	return $result;
+	return $deleted;
 }
 
 /**
