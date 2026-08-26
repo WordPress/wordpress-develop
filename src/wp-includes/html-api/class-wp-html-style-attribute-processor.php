@@ -98,6 +98,8 @@ class WP_HTML_Style_Attribute_Processor {
 	 * Do not instantiate directly. Use
 	 * {@see WP_HTML_Style_Attribute_Processor::create()} instead.
 	 *
+	 * @since {WP_VERSION}
+	 *
 	 * @param string $style Decoded CSS text value from a style attribute.
 	 */
 	private function __construct( string $style ) {
@@ -106,6 +108,8 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Creates a processor for decoded CSS text from a style attribute.
+	 *
+	 * @since {WP_VERSION}
 	 *
 	 * @param string $decoded_css_text Decoded CSS text value from a style attribute.
 	 * @return static Created processor.
@@ -123,6 +127,8 @@ class WP_HTML_Style_Attribute_Processor {
 	 *
 	 * When a property name is provided, normal CSS properties are matched
 	 * ASCII-case-insensitively while custom properties are matched exactly.
+	 *
+	 * @since {WP_VERSION}
 	 *
 	 * @param string|null $property_name Optional declaration property name to match.
 	 * @return bool Whether a matching declaration was found.
@@ -149,6 +155,8 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the current declaration's property name.
 	 *
+	 * @since {WP_VERSION}
+	 *
 	 * @return string|null Property name, or null when not on a declaration.
 	 */
 	public function get_property_name(): ?string {
@@ -158,6 +166,8 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Indicates whether the current declaration has an !important priority.
+	 *
+	 * @since {WP_VERSION}
 	 *
 	 * @return bool|null Whether the current declaration has an !important priority,
 	 *                   or null when not on a declaration.
@@ -169,6 +179,8 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Sets the value of the current declaration.
+	 *
+	 * @since {WP_VERSION}
 	 *
 	 * @param string    $value     CSS declaration value, without the property name.
 	 * @param bool|null $important Optional. Whether the declaration should be important.
@@ -223,6 +235,8 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Sets the !important priority of the current declaration.
+	 *
+	 * @since {WP_VERSION}
 	 *
 	 * @param bool $important Whether the declaration should be important.
 	 * @return bool Whether the current declaration priority is set as requested.
@@ -319,6 +333,8 @@ class WP_HTML_Style_Attribute_Processor {
 	 * Only the current declaration is removed. Other declarations with the same
 	 * property name remain in place.
 	 *
+	 * @since {WP_VERSION}
+	 *
 	 * @return bool Whether the current declaration was removed.
 	 */
 	public function remove_declaration(): bool {
@@ -352,6 +368,8 @@ class WP_HTML_Style_Attribute_Processor {
 	 *
 	 * Appending does not remove or replace existing declarations with the same
 	 * property name.
+	 *
+	 * @since {WP_VERSION}
 	 *
 	 * @param string $property_name CSS property name.
 	 * @param string $value         CSS declaration value, without the property name.
@@ -412,6 +430,8 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Returns the updated decoded CSS text value for the style attribute.
+	 *
+	 * @since {WP_VERSION}
 	 *
 	 * @return string Updated decoded CSS text value for the style attribute.
 	 */

@@ -416,6 +416,39 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::append_declaration
+	 * @covers ::get_property_name
+	 * @covers ::get_updated_style
+	 * @covers ::is_important
+	 * @covers ::next_declaration
+	 * @covers ::remove_declaration
+	 * @covers ::set_important
+	 * @covers ::set_value
+	 */
+	public function test_mixed_mutations_preserve_the_logical_cursor_and_declaration_order() {
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'color: red; background: white;' );
+
+		$this->assertTrue( $processor->next_declaration( 'color' ) );
+		$this->assertTrue( $processor->set_value( 'green', true ) );
+		$this->assertTrue( $processor->set_important( false ) );
+		$this->assertTrue( $processor->append_declaration( 'border', '1px', true ) );
+
+		$this->assertSame( 'color', $processor->get_property_name() );
+		$this->assertFalse( $processor->is_important() );
+		$this->assertTrue( $processor->set_value( 'blue' ) );
+		$this->assertSame( 'color: blue; background: white; border: 1px !important;', $processor->get_updated_style() );
+
+		$this->assertTrue( $processor->remove_declaration() );
+		$this->assertNull( $processor->get_property_name() );
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'background', $processor->get_property_name() );
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'border', $processor->get_property_name() );
+		$this->assertTrue( $processor->is_important() );
+		$this->assertSame( 'background: white; border: 1px !important;', $processor->get_updated_style() );
+	}
+
+	/**
+	 * @covers ::append_declaration
 	 * @covers ::get_updated_style
 	 */
 	public function test_append_declaration_treats_comments_as_trivia_for_separators() {
