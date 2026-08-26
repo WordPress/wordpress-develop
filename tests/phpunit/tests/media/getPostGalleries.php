@@ -1077,4 +1077,36 @@ BLOB;
 			'The src key of the first gallery is empty.'
 		);
 	}
+
+	/**
+	 * Tests that get_post_galleries() returns galleries without 'id' key for empty or malformed [gallery] shortcode.
+	 *
+	 * @dataProvider data_empty_gallery_shortcode
+	 *
+	 * @ticket 63577
+	 *
+	 * @param string $post_content The post content containing the gallery shortcode.
+	 */
+	public function test_get_post_galleries_with_empty_gallery_shortcode( $post_content ) {
+		$post_id   = self::factory()->post->create( array( 'post_content' => $post_content ) );
+		$galleries = get_post_galleries( $post_id, false );
+
+		$this->assertCount( 1, $galleries );
+		$this->assertArrayNotHasKey( 'id', $galleries[0] );
+		$this->assertSame( array( null ), wp_list_pluck( $galleries, 'id' ) );
+	}
+
+	/**
+	 * Data provider for test_get_post_galleries_with_empty_gallery_shortcode().
+	 *
+	 * @return array
+	 */
+	public function data_empty_gallery_shortcode() {
+		return array(
+			'[gallery]'        => array( '[gallery]' ),
+			'[gallery ids]'    => array( '[gallery ids]' ),
+			'[gallery ids=""]' => array( '[gallery ids=""]' ),
+			"[gallery ids='']" => array( "[gallery ids='']" ),
+		);
+	}
 }
