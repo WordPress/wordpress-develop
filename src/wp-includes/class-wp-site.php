@@ -176,7 +176,12 @@ final class WP_Site {
 
 		$_site = wp_cache_get( $site_id, 'sites' );
 
-		if ( ! is_object( $_site ) && ! is_numeric( $_site ) ) {
+		// A cached -1 records a previous lookup that found nothing. Anything else that is not a site object is treated as a cache miss.
+		if (
+			( ! is_object( $_site ) || ! isset( $_site->blog_id ) )
+			&&
+			! is_numeric( $_site )
+		) {
 			$_site = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d LIMIT 1", $site_id ) );
 
 			if ( empty( $_site ) || is_wp_error( $_site ) ) {
