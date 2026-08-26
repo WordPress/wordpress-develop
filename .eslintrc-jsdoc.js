@@ -81,7 +81,6 @@ module.exports = [
 			'jsdoc/require-jsdoc': 'off',
 			'jsdoc/require-param-description': 'off',
 			'jsdoc/require-param-name': 'off',
-			'jsdoc/require-param-type': 'off',
 			'jsdoc/require-property': 'off',
 			'jsdoc/require-property-description': 'off',
 			'jsdoc/require-property-name': 'off',
