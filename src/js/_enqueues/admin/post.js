@@ -254,6 +254,8 @@ window.wp = window.wp || {};
 
 /**
  * Heartbeat refresh nonces.
+ *
+ * @param {jQuery} $ The jQuery object.
  */
 (function($) {
 	var check, timeout;
@@ -1322,6 +1324,9 @@ jQuery( function($) {
 
 /**
  * TinyMCE word count display
+ *
+ * @param {jQuery}               $       The jQuery object.
+ * @param {wp.utils.WordCounter} counter The WordCounter object.
  */
 ( function( $, counter ) {
 	$( function() {

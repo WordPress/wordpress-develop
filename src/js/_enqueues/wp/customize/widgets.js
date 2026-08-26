@@ -1,8 +1,11 @@
+/* global _wpCustomizeWidgetsSettings */
+
 /**
  * @output wp-admin/js/customize-widgets.js
+ *
+ * @param {wp}     wp The WordPress global object.
+ * @param {jQuery} $  The jQuery object.
  */
-
-/* global _wpCustomizeWidgetsSettings */
 (function( wp, $ ){
 
 	if ( ! wp || ! wp.customize ) { return; }
@@ -284,6 +287,8 @@
 
 		/**
 		 * Highlights a widget.
+		 *
+		 * @param {jQuery} widgetTpl The widget template to highlight.
  		 */
 		select: function( widgetTpl ) {
 			this.selected = $( widgetTpl );
@@ -293,6 +298,8 @@
 
 		/**
 		 * Highlights a widget on focus.
+		 *
+		 * @param {jQuery.Event} event The focus event.
 		 */
 		focus: function( event ) {
 			this.select( $( event.currentTarget ) );
@@ -300,6 +307,8 @@
 
 		/**
 		 * Handles submit for keypress and click on widget.
+		 *
+		 * @param {jQuery.Event} event The keypress or click event.
 		 */
 		_submit: function( event ) {
 			// Only proceed with keypress if it is Enter or Spacebar.
@@ -312,6 +321,8 @@
 
 		/**
 		 * Adds a selected widget to the sidebar.
+		 *
+		 * @param {jQuery} widgetTpl The widget template to add.
  		 */
 		submit: function( widgetTpl ) {
 			var widgetId, widget, widgetFormControl;
@@ -342,6 +353,8 @@
 
 		/**
 		 * Opens the panel.
+		 *
+		 * @param {wp.customize.Widgets.SidebarControl} sidebarControl The sidebar control that opened the panel.
 		 */
 		open: function( sidebarControl ) {
 			this.currentSidebarControl = sidebarControl;
@@ -371,6 +384,8 @@
 
 		/**
 		 * Closes the panel.
+		 *
+		 * @param {Object} options Options for closing the panel.
 		 */
 		close: function( options ) {
 			options = options || {};
@@ -389,6 +404,8 @@
 
 		/**
 		 * Adds keyboard accessibility to the panel.
+		 *
+		 * @param {jQuery.Event} event The keydown event.
 		 */
 		keyboardAccessible: function( event ) {
 			var isEnter = ( event.which === 13 ),
@@ -491,6 +508,9 @@
 		 *
 		 * @constructs wp.customize.Widgets.WidgetControl
 		 * @augments   wp.customize.Control
+		 *
+		 * @param {string} id      Control ID.
+		 * @param {Object} options Control options.
 		 */
 		initialize: function( id, options ) {
 			var control = this;

@@ -1,6 +1,6 @@
 /**
- * @param {Window}    window
- * @param {undefined} undefined
+ * @param {Window}    window    The global window object.
+ * @param {undefined} undefined The undefined value.
  * @output wp-includes/js/wp-api.js
  */
 

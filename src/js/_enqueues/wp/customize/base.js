@@ -75,6 +75,10 @@ window.wp = window.wp || {};
 
 	/**
 	 * Base class for object inheritance.
+	 *
+	 * @param {Function} applicator The function that is used to apply the arguments to the constructor.
+	 * @param {Array}    argsArray  The array of arguments to apply to the constructor.
+	 * @param {Object}   options    The options to extend the instance with.
 	 */
 	api.Class = function( applicator, argsArray, options ) {
 		var magic, args = arguments;

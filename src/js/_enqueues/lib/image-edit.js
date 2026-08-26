@@ -1,12 +1,13 @@
+ /* global ajaxurl, confirm */
+
 /**
  * The functions necessary for editing images.
  *
  * @since 2.9.0
  * @output wp-admin/js/image-edit.js
+ *
+ * @param {jQuery} $ The jQuery object.
  */
-
- /* global ajaxurl, confirm */
-
 (function($) {
 	var __ = wp.i18n.__;
 
@@ -23,6 +24,10 @@
 
 	/**
 	 * Enable crop tool.
+	 *
+	 * @param {number}      postid     The post ID.
+	 * @param {string}      nonce      The nonce to verify the request.
+	 * @param {HTMLElement} cropButton The crop button element.
 	 */
 	toggleCropTool: function( postid, nonce, cropButton ) {
 		var img = $( '#image-preview-' + postid ),
@@ -64,6 +69,10 @@
 
 	/**
 	 * Handle crop tool clicks.
+	 *
+	 * @param {number}      postid     The post ID.
+	 * @param {string}      nonce      The nonce to verify the request.
+	 * @param {HTMLElement} cropButton The crop button element.
 	 */
 	handleCropToolClick: function( postid, nonce, cropButton ) {
 
