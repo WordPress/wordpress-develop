@@ -1794,9 +1794,14 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
 function serialize_block( $block ) {
 	$block_content = '';
 
-	$index = 0;
 	foreach ( $block['innerContent'] as $chunk ) {
-		$block_content .= is_string( $chunk ) ? $chunk : serialize_block( $block['innerBlocks'][ $index++ ] );
+		if ( is_string( $chunk ) ) {
+			$block_content .= $chunk;
+		} else {
+			foreach ( $block['innerBlocks'] as $inner_block ) {
+				$block_content .= serialize_block( $inner_block );
+			}
+		}
 	}
 
 	if ( ! is_array( $block['attrs'] ) ) {
