@@ -532,6 +532,12 @@ td {
 	border: 1px solid #d1d1d1;
 }
 
+table.has-text-color,
+table.has-text-color td,
+table.has-text-color th {
+  border-color: currentColor;
+}
+
 table {
 	border-collapse: separate;
 	border-spacing: 0;
