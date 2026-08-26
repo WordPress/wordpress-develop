@@ -546,4 +546,47 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertIsArray( $rewrite_rules );
 		$this->assertNotEmpty( $rewrite_rules );
 	}
+
+	/**
+	 *
+	 * @ticket 9824
+	 */
+	public function test_verbose_page_rules_enabled_without_stub() {
+		global $wp_rewrite;
+
+		$structures_expecting_true = array(
+			'/%postname%/',
+			'/%category%/%postname%/',
+			'/%tag%/%postname%/',
+			'/%author%/%postname%/',
+		);
+
+		foreach ( $structures_expecting_true as $structure ) {
+			$this->set_permalink_structure( $structure );
+			$this->assertTrue( $wp_rewrite->use_verbose_page_rules, "Expected true for: $structure" );
+		}
+	}
+
+	/**
+	 *
+	 * @ticket 9824
+	 */
+	public function test_verbose_page_rules_disabled_with_stub() {
+		global $wp_rewrite;
+
+		$structures_expecting_false = array(
+			'/news/%postname%/',
+			'/blog/%postname%/',
+			'/news-and-events/%postname%/',
+			'/articles/%category%/%postname%/',
+			'/%year%/%monthnum%/%postname%/',
+			'/%year%/%postname%/',
+			'/archives/%post_id%',
+		);
+
+		foreach ( $structures_expecting_false as $structure ) {
+			$this->set_permalink_structure( $structure );
+			$this->assertFalse( $wp_rewrite->use_verbose_page_rules, "Expected false for: $structure" );
+		}
+	}
 }

@@ -1938,11 +1938,13 @@ class WP_Rewrite {
 		$this->use_trailing_slashes = str_ends_with( $this->permalink_structure, '/' );
 
 		// Enable generic rules for pages if permalink structure doesn't begin with a wildcard.
-		if ( preg_match( '/^[^%]*%(?:postname|category|tag|author)%/', $this->permalink_structure ) ) {
-			$this->use_verbose_page_rules = true;
-		} else {
-			$this->use_verbose_page_rules = false;
+		$clean_structure = str_replace( '/' . $this->index, '', $this->permalink_structure );
+
+		if ( is_multisite() && ! is_subdomain_install() && is_main_site() ) {
+			$clean_structure = preg_replace( '/^\/\w+/', '', $clean_structure, 1 );
 		}
+
+		$this->use_verbose_page_rules = (bool) preg_match( '#^/?%(?:postname|category|tag|author)%#', $clean_structure );
 	}
 
 	/**
