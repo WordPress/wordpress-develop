@@ -4551,8 +4551,8 @@ function esc_sql( $data ) {
 function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$original_url = $url;
 
-	if ( '' === $url ) {
-		return $url;
+	if ( '' === $url || null === $url ) {
+		return '';
 	}
 
 	$url = str_replace( ' ', '%20', ltrim( $url ) );
