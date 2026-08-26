@@ -46,7 +46,9 @@ module.exports = [
 					'link',
 				],
 			} ],
-			'jsdoc/require-param': 'error',
+			'jsdoc/require-param': [ 'error', {
+				enableFixer: false,
+			} ],
 			'jsdoc/require-param-type': 'error',
 			'jsdoc/require-returns-check': 'error',
 			'jsdoc/require-returns-description': 'error',
