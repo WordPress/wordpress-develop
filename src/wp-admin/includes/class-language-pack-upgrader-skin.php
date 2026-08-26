@@ -18,7 +18,7 @@
 class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 	/**
 	 * The upgrader instance.
-	 * 
+	 *
 	 * @var Language_Pack_Upgrader
 	 */
 	public $upgrader;
