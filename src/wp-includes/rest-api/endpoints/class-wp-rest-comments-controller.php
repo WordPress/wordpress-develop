@@ -779,40 +779,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			/*
-			 * Validate the reaction content. Two shapes are accepted:
-			 *
-			 * - A curated slug (e.g. `heart`) from self::get_note_reaction_emojis().
-			 * - A lowercase hex-codepoint sequence joined by `-` (e.g. `1f44d`
-			 *   for 👍 or `1f468-200d-1f4bb` for 👨‍💻).
-			 *
-			 * Raw emoji bytes are rejected because the comments table is not
-			 * guaranteed to be utf8mb4 across all WordPress installs; clients
-			 * are expected to normalize before submitting. Variation selector
-			 * U+FE0F is dropped on the client so visually-equivalent
-			 * presentations collapse onto a single key.
+			 * Validate the reaction content against the allowed emoji list.
+			 * Only a slug from self::get_note_reaction_emojis() is accepted:
+			 * it is the one value a client can resolve back to an emoji and a
+			 * label. Raw emoji bytes are rejected because the comments table
+			 * is not guaranteed to be utf8mb4 across all WordPress installs;
+			 * clients submit the slug instead.
 			 */
 			$valid_slugs = wp_list_pluck( self::get_note_reaction_emojis(), 'value' );
 			$emoji_slug  = isset( $request['content'] ) ? wp_strip_all_tags( $request['content'] ) : '';
 
-			$is_curated_slug = in_array( $emoji_slug, $valid_slugs, true );
-			$is_hex_key      = (bool) preg_match( '/^[0-9a-f]{2,6}(-[0-9a-f]{2,6}){0,15}$/', $emoji_slug );
-
-			/*
-			 * A hex-shaped slug must still be made of assignable Unicode code
-			 * points: reject anything above U+10FFFF or in the UTF-16 surrogate
-			 * range (U+D800–U+DFFF).
-			 */
-			if ( $is_hex_key ) {
-				foreach ( explode( '-', $emoji_slug ) as $codepoint ) {
-					$value = hexdec( $codepoint );
-					if ( $value > 0x10FFFF || ( $value >= 0xD800 && $value <= 0xDFFF ) ) {
-						$is_hex_key = false;
-						break;
-					}
-				}
-			}
-
-			if ( '' === $emoji_slug || ( ! $is_curated_slug && ! $is_hex_key ) ) {
+			if ( ! in_array( $emoji_slug, $valid_slugs, true ) ) {
 				return new WP_Error(
 					'rest_comment_invalid_reaction',
 					__( 'Invalid reaction emoji.' ),
@@ -1020,7 +997,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				}
 			}
 
-			if ( count( $duplicates ) > 1 ) {
+			/*
+			 * Repoint whenever any matching row survives, not only when this
+			 * request still sees its own duplicate: a competing request may
+			 * already have deleted this request's row, leaving a single
+			 * survivor that is not `$comment_id`.
+			 */
+			if ( ! empty( $duplicates ) ) {
 				$survivor_id = array_shift( $duplicates );
 				foreach ( $duplicates as $duplicate_id ) {
 					wp_delete_comment( $duplicate_id, true );
@@ -1091,6 +1074,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Checks if a given REST request has access to update a comment.
 	 *
 	 * @since 4.7.0
+	 * @since 7.1.0 Reactions cannot be updated.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, error object otherwise.
@@ -1099,6 +1083,22 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
 			return $comment;
+		}
+
+		/*
+		 * Reactions are immutable. create_item() validates the author, parent
+		 * note, target post and canonical emoji slug as a set, and none of that
+		 * is re-checked here. Allowing an update would let anyone who can edit
+		 * the note's post reattribute a reaction to another user, move it to a
+		 * note on a post they cannot edit, or store a duplicate or invalid
+		 * slug. Removing a reaction is a delete.
+		 */
+		if ( 'reaction' === $comment->comment_type ) {
+			return new WP_Error(
+				'rest_comment_update_not_allowed',
+				__( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ),
+				array( 'status' => 403 )
+			);
 		}
 
 		if ( ! $this->check_edit_permission( $comment ) ) {

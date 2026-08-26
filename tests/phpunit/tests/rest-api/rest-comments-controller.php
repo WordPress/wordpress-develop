@@ -4528,12 +4528,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * A hex-codepoint sequence (e.g. `1f44d` for 👍) is accepted as a
-	 * reaction slug, supporting emojis outside the curated set.
+	 * Only a slug from the allowed emoji list is accepted.
+	 *
+	 * A hex-codepoint sequence (e.g. `1f44d` for 👍) is the storage format for
+	 * a picker that can decode it back into an emoji and a label. Nothing
+	 * shipping today can, so a hex slug would render as its raw storage key.
 	 *
 	 * @ticket 63191
+	 *
+	 * @dataProvider data_hex_codepoint_slugs
+	 *
+	 * @param string $slug The hex-codepoint slug to submit.
 	 */
-	public function test_create_reaction_accepts_hex_codepoint_slug() {
+	public function test_create_reaction_rejects_hex_codepoint_slug( $slug ) {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id = self::factory()->post->create();
@@ -4554,7 +4561,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => '1f468-200d-1f4bb',
+					'content' => $slug,
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4562,10 +4569,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 201, $response->get_status() );
+		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
+	}
 
-		$new_comment = get_comment( $response->get_data()['id'] );
-		$this->assertSame( '1f468-200d-1f4bb', $new_comment->comment_content );
+	public function data_hex_codepoint_slugs() {
+		return array(
+			'single codepoint' => array( '1f44d' ),
+			'ZWJ sequence'     => array( '1f468-200d-1f4bb' ),
+			'assignable ASCII' => array( '41' ),
+			'above U+10FFFF'   => array( 'ffffff' ),
+			'UTF-16 surrogate' => array( 'd800' ),
+		);
 	}
 
 	/**
@@ -4695,57 +4709,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_parent', $response, 400 );
 	}
 
-	/**
-	 * A hex-shaped slug must be made of assignable Unicode code points:
-	 * values above U+10FFFF or in the UTF-16 surrogate range are rejected.
-	 *
-	 * @ticket 63191
-	 *
-	 * @dataProvider data_invalid_codepoint_slugs
-	 *
-	 * @param string $slug The invalid hex-codepoint slug to submit.
-	 */
-	public function test_create_reaction_rejects_invalid_codepoints( $slug ) {
-		wp_set_current_user( self::$editor_id );
-
-		$post_id = self::factory()->post->create();
-		$note_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => 1,
-				'user_id'          => self::$editor_id,
-				'comment_content'  => 'Test note',
-			)
-		);
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
-		$request->add_header( 'Content-Type', 'application/json' );
-		$request->set_body(
-			wp_json_encode(
-				array(
-					'post'    => $post_id,
-					'parent'  => $note_id,
-					'content' => $slug,
-					'type'    => 'reaction',
-					'author'  => self::$editor_id,
-				)
-			)
-		);
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
-	}
-
-	public function data_invalid_codepoint_slugs() {
-		return array(
-			'above U+10FFFF'               => array( 'ffffff' ),
-			'lead surrogate U+D800'        => array( 'd800' ),
-			'trail surrogate U+DFFF'       => array( 'dfff' ),
-			'surrogate inside a sequence'  => array( '1f44d-d9ab' ),
-			'above U+10FFFF in a sequence' => array( '1f468-200d-110000' ),
-		);
-	}
 
 	/**
 	 * The stored reaction content is the validated, canonical slug — markup
@@ -4875,6 +4838,245 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// The response must reference the surviving (earliest) row.
 		$this->assertSame( (int) $hearts[0]->comment_ID, $response->get_data()['id'] );
+	}
+
+	/**
+	 * The cleanup in create_item() must repoint to the surviving row even when
+	 * a competing request has already deleted this request's own row - the
+	 * losing side of the same race the test above covers from the winner.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_concurrent_cleanup_deleting_own_row_still_returns_survivor() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$survivor_id = 0;
+		$deleted     = false;
+
+		/*
+		 * Stand in for the competing request's cleanup: it keeps the earliest
+		 * row and deletes this request's later one, which lands first.
+		 */
+		$race = function ( $comment_id, $comment ) use ( &$survivor_id, &$deleted ) {
+			if ( ! $deleted && 'reaction' === $comment->comment_type && (int) $comment_id !== $survivor_id ) {
+				$deleted = true;
+				wp_delete_comment( $comment_id, true );
+			}
+		};
+
+		/*
+		 * Insert the competing row after this request's pre-insert uniqueness
+		 * check has passed, so it takes the earlier ID. Arm the cleanup only
+		 * once that row exists, so its own insert does not trigger it.
+		 */
+		$inject = function ( $prepared ) use ( $note_id, $post_id, $race, &$survivor_id ) {
+			if ( ! $survivor_id && isset( $prepared['comment_type'] ) && 'reaction' === $prepared['comment_type'] ) {
+				$survivor_id = wp_insert_comment(
+					array(
+						'comment_post_ID'  => $post_id,
+						'comment_parent'   => $note_id,
+						'comment_type'     => 'reaction',
+						'comment_content'  => 'heart',
+						'comment_approved' => 1,
+						'user_id'          => self::$editor_id,
+					)
+				);
+				add_action( 'wp_insert_comment', $race, 10, 2 );
+			}
+			return $prepared;
+		};
+		add_filter( 'rest_pre_insert_comment', $inject );
+
+		try {
+			$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+			$request->add_header( 'Content-Type', 'application/json' );
+			$request->set_body(
+				wp_json_encode(
+					array(
+						'post'    => $post_id,
+						'parent'  => $note_id,
+						'content' => 'heart',
+						'type'    => 'reaction',
+						'author'  => self::$editor_id,
+					)
+				)
+			);
+			$response = rest_get_server()->dispatch( $request );
+		} finally {
+			remove_filter( 'rest_pre_insert_comment', $inject );
+			remove_action( 'wp_insert_comment', $race, 10 );
+		}
+
+		$this->assertTrue( $deleted, "The race injection did not delete this request's row." );
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( $survivor_id, $response->get_data()['id'], 'The response did not repoint to the surviving row.' );
+	}
+
+	/**
+	 * Creates an approved reaction on a note, bypassing REST validation.
+	 *
+	 * @param int    $post_id Post the parent note belongs to.
+	 * @param int    $note_id Parent note comment ID.
+	 * @param int    $user_id Reacting user ID.
+	 * @param string $slug    Reaction storage slug.
+	 * @return int Reaction comment ID.
+	 */
+	private function create_reaction_for_update_tests( $post_id, $note_id, $user_id, $slug = 'heart' ) {
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $note_id,
+				'comment_type'     => 'reaction',
+				'comment_approved' => 1,
+				'comment_content'  => $slug,
+				'user_id'          => $user_id,
+			)
+		);
+	}
+
+	/**
+	 * Reactions are validated as a set on create - author, parent note, target
+	 * post and canonical slug - and the generic update route re-validates none
+	 * of it, so updating a reaction is not allowed at all.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_update_reaction_content_is_not_allowed() {
+		$post_id     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$reaction_id = $this->create_reaction_for_update_tests( $post_id, $note_id, self::$editor_id );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $reaction_id );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'content' => 'rocket' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_update_not_allowed', $response, 403 );
+		$this->assertSame( 'heart', get_comment( $reaction_id )->comment_content );
+	}
+
+	/**
+	 * The reactor's identity must not be reassignable through the update route.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_update_reaction_author_is_not_allowed() {
+		$post_id     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$reaction_id = $this->create_reaction_for_update_tests( $post_id, $note_id, self::$author_id );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $reaction_id );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'author' => self::$editor_id ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_update_not_allowed', $response, 403 );
+		$this->assertSame( (string) self::$author_id, get_comment( $reaction_id )->user_id );
+	}
+
+	/**
+	 * A reaction must not be movable onto a note on a post the user cannot edit.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_update_reaction_cannot_move_to_note_on_another_post() {
+		$editable_post = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$other_post    = self::factory()->post->create( array( 'post_author' => self::$admin_id ) );
+
+		$note_id       = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $editable_post,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$other_note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $other_post,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$admin_id,
+				'comment_content'  => 'Other note',
+			)
+		);
+
+		$reaction_id = $this->create_reaction_for_update_tests( $editable_post, $note_id, self::$editor_id );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $reaction_id );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'parent' => $other_note_id,
+					'post'   => $other_post,
+				)
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_update_not_allowed', $response, 403 );
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertSame( (string) $note_id, $reaction->comment_parent );
+		$this->assertSame( (string) $editable_post, $reaction->comment_post_ID );
+	}
+
+	/**
+	 * Only reactions are locked down; notes stay editable.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_update_note_is_still_allowed() {
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'content' => 'Edited note' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
