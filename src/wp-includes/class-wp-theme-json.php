@@ -1601,6 +1601,8 @@ class WP_Theme_JSON {
 	 *     // Comments stay with the selector they follow.
 	 *     array( '.a /* a, the first *\/', '.b' ) === self::split_selector_list( '.a /* a, the first *\/,.b' );
 	 *
+	 * This is also called from the block supports states layer, so it is public.
+	 *
 	 * @see https://www.w3.org/TR/selectors/#parse-selector
 	 * @see https://www.w3.org/TR/css-syntax-3/
 	 *
@@ -1609,7 +1611,7 @@ class WP_Theme_JSON {
 	 * @param string $selector CSS selector list as a string, e.g. '.wp-block .wp-block-paragraph'.
 	 * @return string[] List of trimmed selectors parsed from input list.
 	 */
-	protected static function split_selector_list( $selector ): array {
+	public static function split_selector_list( $selector ): array {
 		if ( ! str_contains( $selector, ',' ) ) {
 			// See note on trimming CSS whitespace in main loop.
 			return array( trim( $selector, " \t\n" ) );

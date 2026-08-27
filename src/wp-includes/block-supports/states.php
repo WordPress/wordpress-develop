@@ -309,7 +309,7 @@ function wp_get_block_state_element_selectors( $root_selector ) {
 		return array();
 	}
 
-	$block_selectors   = wp_split_selector_list( $root_selector );
+	$block_selectors   = WP_Theme_JSON::split_selector_list( $root_selector );
 	$element_selectors = array();
 
 	foreach ( WP_Theme_JSON::ELEMENTS as $element_name => $element_selector ) {
@@ -333,7 +333,7 @@ function wp_get_block_state_element_selectors( $root_selector ) {
 			}
 
 			$prepended_selectors = array();
-			foreach ( wp_split_selector_list( $element_selector ) as $selector ) {
+			foreach ( WP_Theme_JSON::split_selector_list( $element_selector ) as $selector ) {
 				$prepended_selectors[] = $selector_prefix . $selector;
 			}
 			$selectors[] = implode( ',', $prepended_selectors );
@@ -447,45 +447,6 @@ function wp_get_block_state_unique_class( $block_name, $css_rules ) {
 }
 
 /**
- * Splits a selector list by top-level commas.
- *
- * @since 7.1.0
- *
- * @param string $selector CSS selector list.
- * @return string[] Selectors.
- */
-function wp_split_selector_list( $selector ) {
-	if ( ! str_contains( $selector, ',' ) ) {
-		return array( $selector );
-	}
-
-	$selectors         = array();
-	$current_selector  = '';
-	$parentheses_depth = 0;
-	$selector_length   = strlen( $selector );
-
-	for ( $i = 0; $i < $selector_length; $i++ ) {
-		$char = $selector[ $i ];
-
-		if ( '(' === $char ) {
-			++$parentheses_depth;
-		} elseif ( ')' === $char && $parentheses_depth > 0 ) {
-			--$parentheses_depth;
-		} elseif ( ',' === $char && 0 === $parentheses_depth ) {
-			$selectors[]      = $current_selector;
-			$current_selector = '';
-			continue;
-		}
-
-		$current_selector .= $char;
-	}
-
-	$selectors[] = $current_selector;
-
-	return $selectors;
-}
-
-/**
  * Builds a scoped selector from a block selector and optional pseudo-state.
  *
  * @since 7.1.0
@@ -500,7 +461,7 @@ function wp_build_state_selector( $base_selector, $block_selector, $state ) {
 		return $base_selector . $state;
 	}
 
-	$selectors        = wp_split_selector_list( $block_selector );
+	$selectors        = WP_Theme_JSON::split_selector_list( $block_selector );
 	$scoped_selectors = array();
 
 	foreach ( $selectors as $selector ) {

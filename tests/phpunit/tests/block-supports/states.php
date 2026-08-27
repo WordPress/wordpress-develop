@@ -368,6 +368,24 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a comma inside an attribute selector string does not split the
+	 * selector when scoping a state selector to the block wrapper.
+	 *
+	 * @covers ::wp_build_state_selector
+	 *
+	 * @ticket 65669
+	 */
+	public function test_build_state_selector_does_not_split_attribute_string_comma() {
+		$actual = wp_build_state_selector(
+			'.wp-states-test',
+			'[data-label="Save, continue"]',
+			':hover'
+		);
+
+		$this->assertSame( '.wp-states-test:hover', $actual );
+	}
+
+	/**
 	 * Tests that preset values are converted to CSS custom property references.
 	 *
 	 * @covers ::wp_normalize_state_preset_vars
