@@ -157,6 +157,54 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		// $this->assertSame( '&#8220;<strong>Quoted Text</strong>&#8221;,', wptexturize( '"<strong>Quoted Text</strong>",' ) );
 	}
 
+	/**
+	 * An apostrophe right after the *opening* tag of an inline element continues the
+	 * word that precedes the tag (e.g. a contraction split by <strong>), instead of
+	 * being read as opening a new quoted phrase, but only when that preceding text
+	 * actually ends in a letter or digit and the tag is one of the recognized inline
+	 * elements.
+	 *
+	 * @ticket 43810
+	 * @dataProvider data_apostrophe_after_opening_inline_tag
+	 */
+	public function test_apostrophe_after_opening_inline_tag( $input, $output ) {
+		$this->assertSame( $output, wptexturize( $input ) );
+	}
+
+	public function data_apostrophe_after_opening_inline_tag() {
+		return array(
+			// The reported bug: a contraction split across an inline tag boundary.
+			array(
+				"I<strong>'ve been</strong>",
+				'I<strong>&#8217;ve been</strong>',
+			),
+			array(
+				"That<em>'s</em> right.",
+				'That<em>&#8217;s</em> right.',
+			),
+			// Nested inline tags still continue the word.
+			array(
+				"I<strong><em>'ve been</em></strong>",
+				'I<strong><em>&#8217;ve been</em></strong>',
+			),
+			// No preceding word: a genuine opening quote is left untouched.
+			array(
+				"<em>'Hello'</em>",
+				'<em>&#8216;Hello&#8217;</em>',
+			),
+			// A space before the tag also keeps normal opening-quote behavior.
+			array(
+				"word <strong>'ve been</strong>",
+				'word <strong>&#8216;ve been</strong>',
+			),
+			// Block-level tags aren't treated as word-continuing.
+			array(
+				"word<div>'ve been</div>",
+				'word<div>&#8216;ve been</div>',
+			),
+		);
+	}
+
 	public function test_x() {
 		$this->assertSame( '14&#215;24', wptexturize( '14x24' ) );
 	}
