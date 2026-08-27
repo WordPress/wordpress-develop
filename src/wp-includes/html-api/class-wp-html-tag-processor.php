@@ -4097,11 +4097,20 @@ class WP_HTML_Tag_Processor {
 				 * Because of this, content which could potentially modify the SCRIPT tag’s
 				 * HTML structure is rejected here. It’s the responsibility of calling code to
 				 * perform whatever semantic escaping is necessary to avoid problematic strings.
+				 *
+				 * Both the start tag `<script` and the end tag `</script` are rejected. It’s
+				 * easy to assume that only an end tag can alter the HTML structure, but a
+				 * start tag which follows `<!--` moves the tokenizer into the double-escaped
+				 * states, where a later `</script>` no longer closes the element.
+				 *
+				 * In both cases the tag name ends only at one of the characters matched
+				 * below, so text such as `</scriptx>` cannot change that structure and is
+				 * safe to set.
+				 *
+				 * @link https://html.spec.whatwg.org/#script-data-end-tag-name-state
+				 * @link https://html.spec.whatwg.org/#script-data-double-escape-start-state
 				 */
-				if (
-					false !== stripos( $plaintext_content, '<script' ) ||
-					false !== stripos( $plaintext_content, '</script' )
-				) {
+				if ( 1 === preg_match( '~</?script[ \t\f\r\n/>]~i', $plaintext_content ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'SCRIPT text with an unrecognized content type cannot contain a SCRIPT tag. Apply the escaping appropriate for the content type.' ),
@@ -4121,7 +4130,14 @@ class WP_HTML_Tag_Processor {
 			case 'NOFRAMES':
 			case 'XMP':
 				$tag_name = $this->get_tag();
-				if ( false !== stripos( $plaintext_content, "</{$tag_name}" ) ) {
+
+				/*
+				 * A tag name ends only at one of the characters matched below, so text
+				 * such as `</xmp-tag>` cannot close the element and is safe to set.
+				 *
+				 * @link https://html.spec.whatwg.org/#rawtext-end-tag-name-state
+				 */
+				if ( 1 === preg_match( '~</' . preg_quote( $tag_name, '~' ) . '[ \t\f\r\n/>]~i', $plaintext_content ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						sprintf(
@@ -4162,7 +4178,7 @@ class WP_HTML_Tag_Processor {
 			case 'TEXTAREA':
 			case 'TITLE':
 				$plaintext_content = preg_replace_callback(
-					"~</(?P<TAG_NAME>{$this->get_tag()})~i",
+					'~</(?P<TAG_NAME>' . preg_quote( $this->get_tag(), '~' ) . ')~i',
 					static function ( $tag_match ) {
 						return "&lt;/{$tag_match['TAG_NAME']}";
 					},

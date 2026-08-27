@@ -586,6 +586,7 @@ HTML
 	 *
 	 * @ticket 61617
 	 * @ticket 62797
+	 * @ticket 65824
 	 *
 	 * @dataProvider data_unallowed_modifiable_text_updates
 	 *
@@ -640,6 +641,61 @@ HTML
 			'Non-JS SCRIPT with </script>'            => array( '<script type="text/plain">Replace me</script>', 'Just a </script>' ),
 			'Non-JS SCRIPT with <script attributes>'  => array( '<script language="text">Replace me</script>', '<!-- <script sneaky>after' ),
 			'Non-JS SCRIPT with </script attributes>' => array( '<script language="text">Replace me</script>', 'before</script sneaky>after' ),
+			'XMP with </xmp/>'                        => array( '<xmp>Replace me</xmp>', 'Also closed by </xmp/>' ),
+		);
+	}
+
+	/**
+	 * Ensures that raw text which resembles a closing tag, but cannot close its
+	 * element, is allowed as modifiable text.
+	 *
+	 * @ticket 65824
+	 *
+	 * @dataProvider data_raw_text_resembling_a_closing_tag
+	 *
+	 * @param string $html     HTML whose first tag holds the raw text to replace.
+	 * @param string $update   Text resembling, but not forming, that element's closing tag.
+	 * @param string $expected Expected document after the update.
+	 */
+	public function test_allows_raw_text_which_cannot_close_its_element( string $html, string $update, string $expected ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag();
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( $update ),
+			'Should have allowed text which cannot close the element.'
+		);
+
+		$this->assertSame(
+			$expected,
+			$processor->get_updated_html(),
+			'Should have updated the document as expected.'
+		);
+
+		$reparsed = new WP_HTML_Tag_Processor( $expected );
+		$reparsed->next_tag();
+
+		$this->assertSame(
+			$update,
+			$reparsed->get_modifiable_text(),
+			'Should have preserved the text when re-parsing the updated document.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_raw_text_resembling_a_closing_tag(): array {
+		return array(
+			'IFRAME with </iframely>'        => array( '<iframe>Replace me</iframe>', 'Just a </iframely>', '<iframe>Just a </iframely></iframe>' ),
+			'NOEMBED with </NOEMBEDDED>'     => array( '<noembed>Replace me</noembed>', 'Just a </NOEMBEDDED>', '<noembed>Just a </NOEMBEDDED></noembed>' ),
+			'NOFRAMES with </noframes->'     => array( '<noframes>Replace me</noframes>', 'before</noframes->after', '<noframes>before</noframes->after</noframes>' ),
+			'XMP with </xmp-tag>'            => array( '<xmp>Replace me</xmp>', 'Just a </xmp-tag>', '<xmp>Just a </xmp-tag></xmp>' ),
+			'XMP ending in </xmp'            => array( '<xmp>Replace me</xmp>', 'Trailing </xmp', '<xmp>Trailing </xmp</xmp>' ),
+			'Non-JS SCRIPT with <scriptish>' => array( '<script type="text/plain">Replace me</script>', '<!-- <scriptish> -->', '<script type="text/plain"><!-- <scriptish> --></script>' ),
+			'Non-JS SCRIPT with </scriptx>'  => array( '<script type="text/plain">Replace me</script>', 'Just a </scriptx>', '<script type="text/plain">Just a </scriptx></script>' ),
 		);
 	}
 
