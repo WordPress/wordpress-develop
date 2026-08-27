@@ -2759,26 +2759,37 @@ function wp_update_user( $userdata ) {
 	// Escape data pulled from DB.
 	$user = add_magic_quotes( $user );
 
-	if ( ! empty( $userdata['user_pass'] ) && $userdata['user_pass'] !== $user_obj->user_pass ) {
-		// If password is changing, hash it now.
-		$plaintext_pass        = $userdata['user_pass'];
-		$userdata['user_pass'] = wp_hash_password( $userdata['user_pass'] );
+	if ( ! empty( $userdata['user_pass'] ) ) {
+		// Check if the password is actually changing.
+		if ( $userdata['user_pass'] === $user_obj->user_pass
+			|| wp_check_password( $userdata['user_pass'], $user_obj->user_pass, $user_id )
+		) {
+			// Password is the same, remove it so wp_insert_user() doesn't update it.
+			unset( $userdata['user_pass'] );
+		} else {
+			// Used downstream to clear cookies.
+			$changed_password = true;
 
-		/** This action is documented in wp-includes/pluggable.php */
-		do_action( 'wp_set_password', $plaintext_pass, $user_id, $user_obj );
+			// Store plaintext for the action, then hash for wp_insert_user().
+			$plaintext_pass        = $userdata['user_pass'];
+			$userdata['user_pass'] = wp_hash_password( $userdata['user_pass'] );
 
-		/**
-		 * Filters whether to send the password change email.
-		 *
-		 * @since 4.3.0
-		 *
-		 * @see wp_insert_user() For `$user` and `$userdata` fields.
-		 *
-		 * @param bool  $send     Whether to send the email.
-		 * @param array $user     The original user array.
-		 * @param array $userdata The updated user array.
-		 */
-		$send_password_change_email = apply_filters( 'send_password_change_email', true, $user, $userdata );
+			/** This action is documented in wp-includes/pluggable.php */
+			do_action( 'wp_set_password', $plaintext_pass, $user_id, $user_obj );
+
+			/**
+			 * Filters whether to send the password change email.
+			 *
+			 * @since 4.3.0
+			 *
+			 * @see wp_insert_user() For `$user` and `$userdata` fields.
+			 *
+			 * @param bool  $send     Whether to send the email.
+			 * @param array $user     The original user array.
+			 * @param array $userdata The updated user array.
+			 */
+			$send_password_change_email = apply_filters( 'send_password_change_email', true, $user, $userdata );
+		}
 	}
 
 	if ( isset( $userdata['user_email'] ) && $user['user_email'] !== $userdata['user_email'] ) {
@@ -2938,7 +2949,7 @@ All at ###SITENAME###
 	// Update the cookies if the password changed.
 	$current_user = wp_get_current_user();
 	if ( $current_user->ID === $user_id ) {
-		if ( isset( $plaintext_pass ) ) {
+		if ( isset( $changed_password ) ) {
 			/*
 			 * Here we calculate the expiration length of the current auth cookie and compare it to the default expiration.
 			 * If it's greater than this, then we know the user checked 'Remember Me' when they logged in.

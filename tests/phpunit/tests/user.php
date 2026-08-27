@@ -860,6 +860,34 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 42183
+	 */
+	public function test_wp_update_user_should_not_change_password_when_same_plaintext_password_passed() {
+		$plaintext_password = 'test_password_42183';
+		$user_id            = self::factory()->user->create(
+			array(
+				'user_pass' => $plaintext_password,
+			)
+		);
+
+		$pwd_before = get_userdata( $user_id )->user_pass;
+
+		// Update user with the same plaintext password.
+		wp_update_user(
+			array(
+				'ID'        => $user_id,
+				'user_pass' => $plaintext_password,
+			)
+		);
+
+		// Reload the data.
+		$pwd_after = get_userdata( $user_id )->user_pass;
+
+		// Password hash should remain unchanged.
+		$this->assertSame( $pwd_before, $pwd_after );
+	}
+
+	/**
 	 * @ticket 45747
 	 * @group ms-excluded
 	 */
@@ -1568,7 +1596,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$userdata = array(
 			'ID'        => $user->ID,
-			'user_pass' => 'password',
+			'user_pass' => 'new_password',
 		);
 		wp_update_user( $userdata );
 
