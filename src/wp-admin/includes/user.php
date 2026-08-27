@@ -193,8 +193,18 @@ function edit_user( $user_id = 0 ) {
 		$user->user_pass = $pass1;
 	}
 
-	if ( ! $update && isset( $_POST['user_login'] ) && ! validate_username( $_POST['user_login'] ) ) {
-		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
+	if ( ! $update && isset( $_POST['user_login'] ) ) {
+		/*
+		 * Leading/trailing and repeated whitespace is trimmed and collapsed when the
+		 * username is stored, so validate against that same normalization instead of
+		 * the raw input. Otherwise a valid username is rejected solely for whitespace
+		 * that will never end up in the stored value.
+		 */
+		$normalized_user_login = preg_replace( '/\s+/', ' ', trim( wp_unslash( $_POST['user_login'] ) ) );
+
+		if ( ! validate_username( $normalized_user_login ) ) {
+			$errors->add( 'user_login', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
+		}
 	}
 
 	if ( ! $update && username_exists( $user->user_login ) ) {
