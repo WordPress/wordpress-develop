@@ -32,11 +32,6 @@ parameters:
 			message: '#^Left side of && is always true\.$#'
 			identifier: booleanAnd.leftAlwaysTrue
 			count: 1
-			path: ../../../src/wp-includes/block-template-utils.php
-		-
-			message: '#^Left side of && is always true\.$#'
-			identifier: booleanAnd.leftAlwaysTrue
-			count: 1
 			path: ../../../src/wp-includes/canonical.php
 		-
 			message: '#^Left side of && is always true\.$#'

@@ -459,7 +459,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 
 				if (
 					! $post_type ||
-					( $post_type && isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
+					( isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
 				) {
 					$template_files[ $template_slug ] = $candidate;
 				}
