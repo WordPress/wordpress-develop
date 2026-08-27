@@ -818,6 +818,9 @@ class WP_Theme_JSON {
 	 * uses a single max-width media query. When `tablet` is not larger than
 	 * `mobile`, it is removed.
 	 *
+	 * `tablet` is also removed when the two breakpoints are measured against
+	 * different bases, since their order cannot be determined.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param mixed $viewport_settings Viewport settings from theme.json.
@@ -836,6 +839,7 @@ class WP_Theme_JSON {
 				$breakpoints[ $breakpoint ] = array(
 					'value' => trim( $value ),
 					'px'    => $px,
+					'is_px' => str_ends_with( trim( $value ), 'px' ),
 				);
 			}
 		}
@@ -851,7 +855,11 @@ class WP_Theme_JSON {
 
 		$sanitized = array( 'mobile' => $breakpoints['mobile']['value'] );
 
-		if ( isset( $breakpoints['tablet'] ) && $breakpoints['mobile']['px'] < $breakpoints['tablet']['px'] ) {
+		if (
+			isset( $breakpoints['tablet'] )
+			&& $breakpoints['mobile']['is_px'] === $breakpoints['tablet']['is_px']
+			&& $breakpoints['mobile']['px'] < $breakpoints['tablet']['px']
+		) {
 			$sanitized['tablet'] = $breakpoints['tablet']['value'];
 		}
 
