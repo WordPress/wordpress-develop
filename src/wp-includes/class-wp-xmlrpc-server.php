@@ -815,6 +815,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @param mixed $fields The `$fields` argument to check.
 	 * @return bool True if `$fields` is an array, false otherwise.
+	 *
+	 * @phpstan-assert-if-true array $fields
 	 */
 	protected function _is_fields_array( $fields ): bool {
 		if ( ! is_array( $fields ) ) {
