@@ -2165,46 +2165,50 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
 }
 
 /**
- * Displays archive links based on type and format.
+ * Retrieves archive link data based on type.
  *
- * @since 1.2.0
- * @since 4.4.0 The `$post_type` argument was added.
- * @since 5.2.0 The `$year`, `$monthnum`, `$day`, and `$w` arguments were added.
+ * @since 7.1.0
  *
- * @see get_archives_link()
+ * @param string|array $args {
+ *     Default archive link data arguments. Optional.
+ *
+ *     @type string     $type      Type of archive to retrieve. Accepts 'daily', 'weekly', 'monthly',
+ *                                 'yearly', 'postbypost', or 'alpha'. Both 'postbypost' and 'alpha'
+ *                                 display the same archive link list as well as post titles instead
+ *                                 of displaying dates. The difference between the two is that 'alpha'
+ *                                 will order by post title and 'postbypost' will order by post date.
+ *                                 Default 'monthly'.
+ *     @type string|int $limit     Number of links to limit the query to. Default empty (no limit).
+ *     @type string     $order     Whether to use ascending or descending order. Accepts 'ASC', or 'DESC'.
+ *                                 Default 'DESC'.
+ *     @type string     $post_type Post type. Default 'post'.
+ *     @type string     $year      Year. Default current year.
+ *     @type string     $monthnum  Month number. Default current month number.
+ *     @type string     $day       Day. Default current day.
+ *     @type string     $w         Week. Default current week.
+ * }
+ * @return stdClass[]|void Array of archive data objects, or void if the post type is not viewable.
+ */
+function wp_get_archives_data( $args = '' ) {
+	/** This filter is documented in wp-includes/general-template.php */
+	$args = apply_filters( 'wp_get_archives_args', $args );
+
+	return _wp_get_archives_data( $args );
+}
+
+/**
+ * Retrieves archive link data for already-filtered arguments.
+ *
+ * @since 7.1.0
+ * @access private
  *
  * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
- * @param string|array $args {
- *     Default archive links arguments. Optional.
- *
- *     @type string     $type            Type of archive to retrieve. Accepts 'daily', 'weekly', 'monthly',
- *                                       'yearly', 'postbypost', or 'alpha'. Both 'postbypost' and 'alpha'
- *                                       display the same archive link list as well as post titles instead
- *                                       of displaying dates. The difference between the two is that 'alpha'
- *                                       will order by post title and 'postbypost' will order by post date.
- *                                       Default 'monthly'.
- *     @type string|int $limit           Number of links to limit the query to. Default empty (no limit).
- *     @type string     $format          Format each link should take using the $before and $after args.
- *                                       Accepts 'link' (`<link>` tag), 'option' (`<option>` tag), 'html'
- *                                       (`<li>` tag), or a custom format, which generates a link anchor
- *                                       with $before preceding and $after succeeding. Default 'html'.
- *     @type string     $before          Markup to prepend to the beginning of each link. Default empty.
- *     @type string     $after           Markup to append to the end of each link. Default empty.
- *     @type bool       $show_post_count Whether to display the post count alongside the link. Default false.
- *     @type bool|int   $echo            Whether to echo or return the links list. Default 1|true to echo.
- *     @type string     $order           Whether to use ascending or descending order. Accepts 'ASC', or 'DESC'.
- *                                       Default 'DESC'.
- *     @type string     $post_type       Post type. Default 'post'.
- *     @type string     $year            Year. Default current year.
- *     @type string     $monthnum        Month number. Default current month number.
- *     @type string     $day             Day. Default current day.
- *     @type string     $w               Week. Default current week.
- * }
- * @return void|string Void if 'echo' argument is true, archive links if 'echo' is false.
+ * @param string|array $args Archive link data arguments.
+ * @return stdClass[]|void Array of archive data objects, or void if the post type is not viewable.
  */
-function wp_get_archives( $args = '' ) {
+function _wp_get_archives_data( $args = '' ) {
 	global $wpdb, $wp_locale;
 
 	$defaults = array(
@@ -2222,17 +2226,6 @@ function wp_get_archives( $args = '' ) {
 		'day'             => get_query_var( 'day' ),
 		'w'               => get_query_var( 'w' ),
 	);
-
-	/**
-	 * Filters the arguments for displaying archive links.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @see wp_get_archives()
-	 *
-	 * @param array<string, string|int|bool> $args Arguments.
-	 */
-	$args = apply_filters( 'wp_get_archives_args', $args );
 
 	$parsed_args = wp_parse_args( $args, $defaults );
 
@@ -2282,7 +2275,7 @@ function wp_get_archives( $args = '' ) {
 	 */
 	$join = apply_filters( 'getarchives_join', '', $parsed_args );
 
-	$output = '';
+	$archives = array();
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
@@ -2298,19 +2291,24 @@ function wp_get_archives( $args = '' ) {
 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
-			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
 				$url = get_month_link( $result->year, $result->month );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
 				/* translators: 1: Month name, 2: 4-digit year. */
-				$text = sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $result->month ), $result->year );
-				if ( $parsed_args['show_post_count'] ) {
-					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
-				}
+				$text     = sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $result->month ), $result->year );
 				$selected = is_archive() && (string) $parsed_args['year'] === $result->year && (string) $parsed_args['monthnum'] === $result->month;
-				$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
+
+				$archives[] = (object) array(
+					'url'        => $url,
+					'label'      => $text,
+					'post_count' => (int) $result->posts,
+					'type'       => 'monthly',
+					'year'       => (int) $result->year,
+					'month'      => (int) $result->month,
+					'selected'   => $selected,
+				);
 			}
 		}
 	} elseif ( 'yearly' === $parsed_args['type'] ) {
@@ -2323,18 +2321,22 @@ function wp_get_archives( $args = '' ) {
 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
-			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
 				$url = get_year_link( $result->year );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
-				$text = sprintf( '%d', $result->year );
-				if ( $parsed_args['show_post_count'] ) {
-					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
-				}
+				$text     = sprintf( '%d', $result->year );
 				$selected = is_archive() && (string) $parsed_args['year'] === $result->year;
-				$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
+
+				$archives[] = (object) array(
+					'url'        => $url,
+					'label'      => $text,
+					'post_count' => (int) $result->posts,
+					'type'       => 'yearly',
+					'year'       => (int) $result->year,
+					'selected'   => $selected,
+				);
 			}
 		}
 	} elseif ( 'daily' === $parsed_args['type'] ) {
@@ -2347,19 +2349,25 @@ function wp_get_archives( $args = '' ) {
 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
-			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
 				$url = get_day_link( $result->year, $result->month, $result->dayofmonth );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
-				$date = sprintf( '%1$d-%2$02d-%3$02d 00:00:00', $result->year, $result->month, $result->dayofmonth );
-				$text = mysql2date( get_option( 'date_format' ), $date );
-				if ( $parsed_args['show_post_count'] ) {
-					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
-				}
+				$date     = sprintf( '%1$d-%2$02d-%3$02d 00:00:00', $result->year, $result->month, $result->dayofmonth );
+				$text     = mysql2date( get_option( 'date_format' ), $date );
 				$selected = is_archive() && (string) $parsed_args['year'] === $result->year && (string) $parsed_args['monthnum'] === $result->month && (string) $parsed_args['day'] === $result->dayofmonth;
-				$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
+
+				$archives[] = (object) array(
+					'url'        => $url,
+					'label'      => $text,
+					'post_count' => (int) $result->posts,
+					'type'       => 'daily',
+					'year'       => (int) $result->year,
+					'month'      => (int) $result->month,
+					'day'        => (int) $result->dayofmonth,
+					'selected'   => $selected,
+				);
 			}
 		}
 	} elseif ( 'weekly' === $parsed_args['type'] ) {
@@ -2374,7 +2382,6 @@ function wp_get_archives( $args = '' ) {
 		}
 		$arc_w_last = '';
 		if ( $results ) {
-			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
 				if ( $result->week !== $arc_w_last ) {
 					$arc_year       = $result->yr;
@@ -2392,12 +2399,18 @@ function wp_get_archives( $args = '' ) {
 					if ( 'post' !== $parsed_args['post_type'] ) {
 						$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 					}
-					$text = $arc_week_start . $archive_week_separator . $arc_week_end;
-					if ( $parsed_args['show_post_count'] ) {
-						$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
-					}
+					$text     = $arc_week_start . $archive_week_separator . $arc_week_end;
 					$selected = is_archive() && (string) $parsed_args['year'] === $result->yr && (string) $parsed_args['w'] === $result->week;
-					$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
+
+					$archives[] = (object) array(
+						'url'        => $url,
+						'label'      => $text,
+						'post_count' => (int) $result->posts,
+						'type'       => 'weekly',
+						'year'       => (int) $result->yr,
+						'week'       => (int) $result->week,
+						'selected'   => $selected,
+					);
 				}
 			}
 		}
@@ -2422,13 +2435,116 @@ function wp_get_archives( $args = '' ) {
 						$text = $result->ID;
 					}
 					$selected = get_the_ID() === $result->ID;
-					$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
+
+					$archives[] = (object) array(
+						'url'      => $url,
+						'label'    => $text,
+						'type'     => $parsed_args['type'],
+						'post_id'  => (int) $result->ID,
+						'selected' => $selected,
+					);
 				}
 			}
 		}
 	}
 
-	if ( $parsed_args['echo'] ) {
+	return $archives;
+}
+
+/**
+ * Displays archive links based on type and format.
+ *
+ * @since 1.2.0
+ * @since 4.4.0 The `$post_type` argument was added.
+ * @since 5.2.0 The `$year`, `$monthnum`, `$day`, and `$w` arguments were added.
+ *
+ * @see get_archives_link()
+ *
+ * @param string|array $args {
+ *     Default archive links arguments. Optional.
+ *
+ *     @type string     $type            Type of archive to retrieve. Accepts 'daily', 'weekly', 'monthly',
+ *                                       'yearly', 'postbypost', or 'alpha'. Both 'postbypost' and 'alpha'
+ *                                       display the same archive link list as well as post titles instead
+ *                                       of displaying dates. The difference between the two is that 'alpha'
+ *                                       will order by post title and 'postbypost' will order by post date.
+ *                                       Default 'monthly'.
+ *     @type string|int $limit           Number of links to limit the query to. Default empty (no limit).
+ *     @type string     $format          Format each link should take using the $before and $after args.
+ *                                       Accepts 'link' (`<link>` tag), 'option' (`<option>` tag), 'html'
+ *                                       (`<li>` tag), or a custom format, which generates a link anchor
+ *                                       with $before preceding and $after succeeding. Default 'html'.
+ *     @type string     $before          Markup to prepend to the beginning of each link. Default empty.
+ *     @type string     $after           Markup to append to the end of each link. Default empty.
+ *     @type bool       $show_post_count Whether to display the post count alongside the link. Default false.
+ *     @type bool|int   $echo            Whether to echo or return the links list. Default 1|true to echo.
+ *     @type string     $order           Whether to use ascending or descending order. Accepts 'ASC', or 'DESC'.
+ *                                       Default 'DESC'.
+ *     @type string     $post_type       Post type. Default 'post'.
+ *     @type string     $year            Year. Default current year.
+ *     @type string     $monthnum        Month number. Default current month number.
+ *     @type string     $day             Day. Default current day.
+ *     @type string     $w               Week. Default current week.
+ * }
+ * @return void|string Void if 'echo' argument is true, archive links if 'echo' is false.
+ */
+function wp_get_archives( $args = '' ) {
+	$defaults = array(
+		'type'            => 'monthly',
+		'limit'           => '',
+		'format'          => 'html',
+		'before'          => '',
+		'after'           => '',
+		'show_post_count' => false,
+		'echo'            => 1,
+		'order'           => 'DESC',
+		'post_type'       => 'post',
+		'year'            => get_query_var( 'year' ),
+		'monthnum'        => get_query_var( 'monthnum' ),
+		'day'             => get_query_var( 'day' ),
+		'w'               => get_query_var( 'w' ),
+	);
+
+	/**
+	 * Filters the arguments for displaying archive links.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @see wp_get_archives()
+	 *
+	 * @param array<string, string|int|bool> $args Arguments.
+	 */
+	$args = apply_filters( 'wp_get_archives_args', $args );
+
+	$args = wp_parse_args( $args, $defaults );
+
+	$archives = _wp_get_archives_data( $args );
+
+	if ( null === $archives ) {
+		return;
+	}
+
+	$output = '';
+	$after  = $args['after'];
+
+	foreach ( $archives as $archive ) {
+		$link_after = $after;
+
+		if ( $args['show_post_count'] && isset( $archive->post_count ) ) {
+			$link_after = '&nbsp;(' . $archive->post_count . ')' . $after;
+		}
+
+		$output .= get_archives_link(
+			$archive->url,
+			$archive->label,
+			$args['format'],
+			$args['before'],
+			$link_after,
+			$archive->selected
+		);
+	}
+
+	if ( $args['echo'] ) {
 		echo $output;
 	} else {
 		return $output;
