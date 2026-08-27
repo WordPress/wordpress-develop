@@ -476,6 +476,94 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the WXR export converts non-UTF-8 text into UTF-8.
+	 *
+	 * The export declares itself as UTF-8, so `wxr_cdata()` has to hand back a valid
+	 * UTF-8 string. Text which fails to validate is decoded as ISO-8859-1 (latin1),
+	 * which is a guess: correct when the text really is latin1, mojibake otherwise.
+	 * Core has no encoding declaration to consult here, so the guess stands.
+	 *
+	 * These cases pin that behavior so it cannot change silently.
+	 *
+	 * @ticket 65828
+	 *
+	 * @dataProvider data_non_utf8_strings
+	 *
+	 * @param string $input    Bytes which are not valid UTF-8.
+	 * @param string $expected Expected CDATA contents.
+	 */
+	public function test_wxr_cdata_converts_non_utf8_text( $input, $expected ) {
+		// Running an export defines the nested WXR helper functions.
+		$this->get_the_export( array( 'content' => 'post' ) );
+
+		$actual = wxr_cdata( $input );
+		$inner  = substr( $actual, strlen( '<![CDATA[' ), -strlen( ']]>' ) );
+
+		$this->assertSame(
+			$expected,
+			$inner,
+			'Non-UTF-8 bytes should be decoded as ISO-8859-1.'
+		);
+		$this->assertTrue(
+			wp_is_valid_utf8( $inner ),
+			'The exported CDATA section should always contain valid UTF-8.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_utf8_strings() {
+		return array(
+			// Text which is well-formed, but in some encoding other than UTF-8.
+			'ISO-8859-1 text'                 => array(
+				mb_convert_encoding( 'Café', 'ISO-8859-1', 'UTF-8' ),
+				'Café',
+			),
+			'ISO-8859-2 text'                 => array(
+				mb_convert_encoding( 'wyróżnij', 'ISO-8859-2', 'UTF-8' ),
+				'wyró¿nij',
+			),
+			'Windows-1251 text'               => array(
+				mb_convert_encoding( 'Привет', 'Windows-1251', 'UTF-8' ),
+				'Ïðèâåò',
+			),
+			'Windows-1252 quotations'         => array(
+				mb_convert_encoding( '“quoted”', 'Windows-1252', 'UTF-8' ),
+				"\u{0093}quoted\u{0094}",
+			),
+
+			// Malformed UTF-8.
+			'Never-valid byte'                => array( "a\xC0b", 'aÀb' ),
+			'Truncated sequence'              => array( "a\xE2\x9Cb", "aâ\u{009C}b" ),
+			'Overlong sequence'               => array( "a\xC1\xBFb", 'aÁ¿b' ),
+			'Surrogate half'                  => array( "a\xED\xA0\x80b", "a\u{00ED}\u{00A0}\u{0080}b" ),
+
+			/*
+			 * The guard inspects the whole string, so a single stray byte sends the
+			 * valid portions through the conversion as well and double-encodes them.
+			 */
+			'Valid UTF-8 with one stray byte' => array( "Pi\xC3\xB1a \xC0", 'PiÃ±a À' ),
+		);
+	}
+
+	/**
+	 * Ensures valid UTF-8, including multibyte text, survives the export untouched.
+	 *
+	 * @ticket 65828
+	 */
+	public function test_wxr_cdata_preserves_valid_utf8() {
+		$this->get_the_export( array( 'content' => 'post' ) );
+
+		$valid = 'Это комментарий. / Βλέπετε ένα σχόλιο. / 🅰';
+		$inner = substr( wxr_cdata( $valid ), strlen( '<![CDATA[' ), -strlen( ']]>' ) );
+
+		$this->assertSame( $valid, $inner, 'Valid UTF-8 should pass through unchanged.' );
+	}
+
+	/**
 	 * Ensure that posts types with 'can_export' set to false are not included in the export.
 	 *
 	 * @ticket 64964
