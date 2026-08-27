@@ -58,6 +58,9 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 
+		// Resets script modules enqueued while rendering fit text.
+		$GLOBALS['wp_script_modules'] = null;
+
 		parent::tear_down();
 	}
 
