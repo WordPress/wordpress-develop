@@ -8,27 +8,27 @@
  * @group restapi
  */
 class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase {
-	protected static $superadmin_id;
-	protected static $admin_id;
-	protected static $editor_id;
-	protected static $moderator_id;
-	protected static $contributor_id;
-	protected static $subscriber_id;
-	protected static $author_id;
-	protected static $user_ids = array();
+	protected static int $superadmin_id;
+	protected static int $admin_id;
+	protected static int $editor_id;
+	protected static int $moderator_id;
+	protected static int $contributor_id;
+	protected static int $subscriber_id;
+	protected static int $author_id;
+	protected static array $user_ids = array();
 
-	protected static $post_id;
-	protected static $password_id;
-	protected static $private_id;
-	protected static $draft_id;
-	protected static $trash_id;
-	protected static $approved_id;
-	protected static $hold_id;
+	protected static int $post_id;
+	protected static int $password_id;
+	protected static int $private_id;
+	protected static int $draft_id;
+	protected static int $trash_id;
+	protected static int $approved_id;
+	protected static int $hold_id;
 
-	protected static $comment_ids    = array();
-	protected static $total_comments = 30;
-	protected static $per_page       = 50;
-	protected static $num_notes      = 10;
+	protected static array $comment_ids  = array();
+	protected static int $total_comments = 30;
+	protected static int $per_page       = 50;
+	protected static int $num_notes      = 10;
 
 	protected $endpoint;
 
@@ -243,6 +243,134 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$comments = $response->get_data();
 		$this->assertCount( self::$total_comments, $comments );
+	}
+
+	/**
+	 * Test getting comments filtered by one or more statuses.
+	 *
+	 * @ticket 63982
+	 *
+	 * @dataProvider data_get_items_by_status
+	 *
+	 * @param string|list<string> $status Status value(s) to filter by.
+	 */
+	public function test_get_items_by_status( $status ) {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'status', $status );
+		$request->set_param( 'per_page', self::$per_page );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$query = new WP_Comment_Query();
+		$found = $query->query(
+			array(
+				'status' => $status,
+				'count'  => true,
+			)
+		);
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertCount( $found, $data );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string|list<string> }>
+	 */
+	public function data_get_items_by_status(): array {
+		return array(
+			'a single status'        => array( 'approve' ),
+			'the hold status'        => array( 'hold' ),
+			'the all status'         => array( 'all' ),
+			'an array of statuses'   => array( array( 'approve', 'hold' ) ),
+			'a comma-separated list' => array( 'approve,hold' ),
+		);
+	}
+
+	/**
+	 * Test that filtering by the default status does not require authorization.
+	 *
+	 * @ticket 63982
+	 */
+	public function test_get_items_by_default_status_without_permission() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'status', 'approve' );
+		$request->set_param( 'per_page', self::$per_page );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertCount( self::$total_comments, $data );
+	}
+
+	/**
+	 * Test that filtering by multiple statuses requires authorization.
+	 *
+	 * @ticket 63982
+	 *
+	 * @dataProvider data_get_items_by_multiple_statuses_without_permission
+	 *
+	 * @param string|list<string> $status Status value(s) to filter by.
+	 */
+	public function test_get_items_by_multiple_statuses_without_permission( $status ) {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'status', $status );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string|list<string> }>
+	 */
+	public function data_get_items_by_multiple_statuses_without_permission(): array {
+		return array(
+			'an array of statuses'   => array( array( 'approve', 'hold' ) ),
+			'a comma-separated list' => array( 'approve,hold' ),
+		);
+	}
+
+	/**
+	 * Test sanitization of the status parameter.
+	 *
+	 * @ticket 63982
+	 *
+	 * @dataProvider data_sanitize_comment_statuses
+	 *
+	 * @param string|string[]                  $statuses Raw status value.
+	 * @param list<non-empty-lowercase-string> $expected Expected sanitized statuses.
+	 */
+	public function test_sanitize_comment_statuses( $statuses, array $expected ) {
+		$controller = new WP_REST_Comments_Controller();
+
+		$this->assertSame( $expected, $controller->sanitize_comment_statuses( $statuses ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: mixed, 1: list<non-empty-lowercase-string> }>
+	 */
+	public function data_sanitize_comment_statuses(): array {
+		return array(
+			'a single status'        => array( 'approve', array( 'approve' ) ),
+			'a comma-separated list' => array( 'approve,hold', array( 'approve', 'hold' ) ),
+			'an array of statuses'   => array( array( 'approve', 'hold' ), array( 'approve', 'hold' ) ),
+			'mixed case statuses'    => array( 'APPROVE,Hold', array( 'approve', 'hold' ) ),
+			'duplicate statuses'     => array( array( 'approve', 'approve', 'hold' ), array( 'approve', 'hold' ) ),
+			'invalid characters'     => array( 'howdy&nbsp;admin', array( 'howdynbspadmin' ) ),
+			'an empty string'        => array( '', array() ),
+			'a literal 0 status'     => array( '0', array( '0' ) ),
+			'0 mixed with a status'  => array( '0,approve', array( '0', 'approve' ) ),
+		);
 	}
 
 	/**

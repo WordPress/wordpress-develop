@@ -157,7 +157,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 					foreach ( $protected_params as $param ) {
 						if ( 'status' === $param ) {
-							if ( 'approve' !== $request[ $param ] ) {
+							if ( array( 'approve' ) !== $request[ $param ] ) {
 								$forbidden_params[] = $param;
 							}
 						} elseif ( 'type' === $param ) {
@@ -200,7 +200,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			foreach ( $protected_params as $param ) {
 				if ( 'status' === $param ) {
-					if ( 'approve' !== $request[ $param ] ) {
+					if ( array( 'approve' ) !== $request[ $param ] ) {
 						$forbidden_params[] = $param;
 					}
 				} elseif ( 'type' === $param ) {
@@ -1777,9 +1777,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$query_params['status'] = array(
 			'default'           => 'approve',
-			'description'       => __( 'Limit result set to comments assigned a specific status. Requires authorization.' ),
-			'sanitize_callback' => 'sanitize_key',
-			'type'              => 'string',
+			'description'       => __( 'Limit result set to comments assigned one or more statuses. Requires authorization.' ),
+			'type'              => 'array',
+			'items'             => array(
+				'type' => 'string',
+			),
+			'sanitize_callback' => array( $this, 'sanitize_comment_statuses' ),
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 
@@ -2039,6 +2042,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * comment_content. See wp_handle_comment_submission().
 		 */
 		return '' !== $check['comment_content'];
+	}
+
+	/**
+	 * Sanitizes a single comment status or a list of comment statuses.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string[]|string $statuses Comment status or array of comment statuses.
+	 * @return string[] Sanitized array of comment statuses.
+	 * @phpstan-return list<non-empty-lowercase-string>
+	 */
+	public function sanitize_comment_statuses( $statuses ): array {
+		$statuses = array_unique( array_map( 'sanitize_key', wp_parse_list( $statuses ) ) );
+
+		// Only drop empty values. A literal '0' is a queryable status, as comments are held with `comment_approved` of '0'.
+		$statuses = array_filter(
+			$statuses,
+			static function ( $status ) {
+				return '' !== $status;
+			}
+		);
+
+		return array_values( $statuses );
 	}
 
 	/**
