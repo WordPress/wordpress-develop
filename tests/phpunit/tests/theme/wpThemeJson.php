@@ -7264,6 +7264,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 61165
 	 * @ticket 61769
+	 * @ticket 65608
 	 *
 	 * @dataProvider data_process_blocks_custom_css
 	 *
@@ -7338,6 +7339,49 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected' => ':root :where(.foo, .bar){color: red; margin: auto;}:root :where(.foo.one, .bar.one){color: blue;}:root :where(.foo .two, .bar .two){color: green;}:root :where(.foo, .bar)::before{color: yellow;}:root :where(.foo, .bar) ::before{color: purple;}:root :where(.foo.three, .bar.three)::before{color: orange;}:root :where(.foo .four, .bar .four)::before{color: skyblue;}',
 			),
+			// Falsy non-string CSS is handled silently by the empty() check.
+			'null css'                     => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => null,
+				),
+				'expected' => '',
+			),
+			'false css'                    => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => false,
+				),
+				'expected' => '',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 65608
+	 *
+	 * @dataProvider data_process_blocks_custom_css_non_string
+	 *
+	 * @param mixed $css A non-string, non-empty CSS value.
+	 */
+	public function test_process_blocks_custom_css_triggers_doing_it_wrong_for_non_string( $css ) {
+		$this->setExpectedIncorrectUsage( 'WP_Theme_JSON::process_blocks_custom_css' );
+
+		$this->assertSame( '', WP_Theme_JSON::process_blocks_custom_css( $css, '.foo' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_process_blocks_custom_css_non_string() {
+		return array(
+			'true'    => array( true ),
+			'integer' => array( 123 ),
+			'float'   => array( 1.5 ),
+			'array'   => array( array( 'color: red;' ) ),
+			'object'  => array( new stdClass() ),
 		);
 	}
 
