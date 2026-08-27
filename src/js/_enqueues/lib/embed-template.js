@@ -165,7 +165,7 @@
 			}
 
 			// Only catch clicks from the primary mouse button, without any modifiers.
-			if ( event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ) {
+			if ( e.altKey || e.ctrlKey || e.metaKey || e.shiftKey ) {
 				return;
 			}
 
