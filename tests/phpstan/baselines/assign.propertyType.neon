@@ -44,11 +44,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
 		-
-			message: '#^Property WP_Query\:\:\$posts \(array\<int\|WP_Post\>\|null\) does not accept array\<int, stdClass\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/wp-includes/class-wp-query.php
-		-
 			message: '#^Property WP_Query\:\:\$posts \(array\<int\|WP_Post\>\|null\) does not accept list\<stdClass\>\|null\.$#'
 			identifier: assign.propertyType
 			count: 2
