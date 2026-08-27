@@ -554,11 +554,7 @@ window.wp = window.wp || {};
 					container = $( '#' + id );
 					if ( ! container.length ) {
 						container = $('<div class="wp-uploader-browser" />').css({
-							position: 'fixed',
-							top: '-1000px',
-							left: '-1000px',
-							height: 0,
-							width: 0
+							display: 'none'
 						}).attr( 'id', 'wp-uploader-browser-' + this.uploader.id ).appendTo('body');
 					}
 
