@@ -153,6 +153,42 @@ class Tests_Functions_FilterDefaultRole extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the network registration setting governs the default role on Multisite, even when
+	 * the `users_can_register` option of the current site is closed.
+	 *
+	 * @ticket 46744
+	 * @group ms-required
+	 */
+	public function test_network_registration_governs_when_site_option_is_closed() {
+		update_site_option( 'registration', 'user' );
+		update_option( 'users_can_register', 0 );
+
+		$this->assertSame(
+			'subscriber',
+			filter_default_role( 'administrator' ),
+			'The privileged default role was not replaced while network registration was open.'
+		);
+	}
+
+	/**
+	 * Ensures the network registration setting governs the default role on Multisite, even when
+	 * the `users_can_register` option of the current site is open.
+	 *
+	 * @ticket 46744
+	 * @group ms-required
+	 */
+	public function test_network_registration_governs_when_site_option_is_open() {
+		update_site_option( 'registration', 'none' );
+		update_option( 'users_can_register', 1 );
+
+		$this->assertSame(
+			'administrator',
+			filter_default_role( 'administrator' ),
+			'The default role was changed while network registration was closed.'
+		);
+	}
+
+	/**
 	 * Ensures a new user is assigned the stored role when user registration is closed.
 	 */
 	public function test_new_user_is_assigned_the_stored_role_when_registration_is_closed() {
