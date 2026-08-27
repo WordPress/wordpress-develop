@@ -1711,6 +1711,48 @@ VIDEO;
 	}
 
 	/**
+	 * Tests that has_image_size() returns false for core/default image sizes
+	 * when the second parameter is not passed (or false).
+	 *
+	 * @ticket 43046
+	 *
+	 * @dataProvider data_default_image_size_names
+	 *
+	 * @param string $size_name A core image size name.
+	 */
+	public function test_has_image_size_returns_false_for_default_sizes( $size_name ) {
+		$this->assertFalse( has_image_size( $size_name ) );
+	}
+
+	/**
+	 * Tests that has_image_size() returns true for core/default image sizes
+	 * when true is passed as the second parameter.
+	 *
+	 * @ticket 43046
+	 *
+	 * @dataProvider data_default_image_size_names
+	 *
+	 * @param string $size_name A core image size name.
+	 */
+	public function test_has_image_size_returns_true_for_default_sizes_with_include_default( $size_name ) {
+		$this->assertTrue( has_image_size( $size_name, true ) );
+	}
+
+	/**
+	 * Data provider for core image size names.
+	 *
+	 * @return array[]
+	 */
+	public function data_default_image_size_names() {
+		return array(
+			'thumbnail'    => array( 'thumbnail' ),
+			'medium'       => array( 'medium' ),
+			'medium_large' => array( 'medium_large' ),
+			'large'        => array( 'large' ),
+		);
+	}
+
+	/**
 	 * @ticket 30346
 	 */
 	public function test_attachment_url_to_postid() {
