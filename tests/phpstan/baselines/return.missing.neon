@@ -29,52 +29,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyfourteen/inc/widgets.php
 		-
-			message: '#^Function get_category_by_path\(\) should return array\|WP_Error\|WP_Term\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/category.php
-		-
-			message: '#^Method WP_Customize_Manager\:\:get_control\(\) should return WP_Customize_Control\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
-			message: '#^Method WP_Customize_Manager\:\:get_panel\(\) should return WP_Customize_Panel\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
-			message: '#^Method WP_Customize_Manager\:\:get_section\(\) should return WP_Customize_Section\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
-			message: '#^Method WP_Customize_Manager\:\:get_setting\(\) should return WP_Customize_Setting\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
-			message: '#^Method WP_Customize_Widgets\:\:get_setting_type\(\) should return string\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-widgets.php
-		-
-			message: '#^Method WP_Image_Editor_Imagick\:\:set_imagick_time_limit\(\) should return int\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
-		-
-			message: '#^Method WP_Customize_Header_Image_Control\:\:get_current_image_src\(\) should return string\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/customize/class-wp-customize-header-image-control.php
-		-
 			message: '#^Function post_type_archive_title\(\) should return string\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/general-template.php
-		-
-			message: '#^Function single_month_title\(\) should return string\|false\|null but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
@@ -109,26 +64,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/link-template.php
 		-
-			message: '#^Function get_next_posts_link\(\) should return string\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/link-template.php
-		-
-			message: '#^Function get_next_posts_page_link\(\) should return string\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 2
-			path: ../../../src/wp-includes/link-template.php
-		-
-			message: '#^Function get_previous_posts_link\(\) should return string\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/link-template.php
-		-
-			message: '#^Function get_previous_posts_page_link\(\) should return string\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/link-template.php
-		-
 			message: '#^Function next_posts\(\) should return string\|null but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
@@ -138,11 +73,6 @@ parameters:
 			identifier: return.missing
 			count: 1
 			path: ../../../src/wp-includes/link-template.php
-		-
-			message: '#^Function wp_list_users\(\) should return string\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: ../../../src/wp-includes/user.php
 		-
 			message: '#^Method WP_Nav_Menu_Widget\:\:form\(\) should return string\|null but return statement is missing\.$#'
 			identifier: return.missing
