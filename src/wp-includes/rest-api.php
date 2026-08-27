@@ -1885,7 +1885,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
  * @since 5.6.0
  *
  * @param string $param The parameter name.
- * @param array $error  The error details.
+ * @param array  $error  The error details.
  * @return WP_Error
  */
 function rest_format_combining_operation_error( $param, $error ) {
@@ -2219,6 +2219,7 @@ function rest_get_allowed_schema_keywords() {
  * @return true|WP_Error
  */
 function rest_validate_value_from_schema( $value, $args, $param = '' ) {
+
 	if ( isset( $args['anyOf'] ) ) {
 		$matching_schema = rest_find_any_matching_schema( $value, $args, $param );
 		if ( is_wp_error( $matching_schema ) ) {
@@ -2280,9 +2281,32 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			$is_valid = rest_validate_boolean_value_from_schema( $value, $param );
 			break;
 		case 'object':
+			/*
+			 * A JSON-encoded string (e.g. from a GET query parameter) should be
+			 * decoded before validation, mirroring what parse_json_params() does
+			 * for application/json request bodies.
+			 */
+			if ( is_string( $value ) ) {
+				$decoded = json_decode( $value, true );
+				if ( null !== $decoded && JSON_ERROR_NONE === json_last_error() ) {
+					$value = $decoded;
+				}
+			}
 			$is_valid = rest_validate_object_value_from_schema( $value, $args, $param );
 			break;
 		case 'array':
+			/*
+			 * A JSON-encoded string (e.g. ?ids=[1,2,3]) should be decoded before
+			 * validation. This takes priority over the comma-separated-value
+			 * fallback in rest_is_array() / wp_parse_list(), which cannot
+			 * preserve value types.
+			 */
+			if ( is_string( $value ) && str_starts_with( ltrim( $value ), '[' ) ) {
+				$decoded = json_decode( $value, true );
+				if ( is_array( $decoded ) && JSON_ERROR_NONE === json_last_error() ) {
+					$value = $decoded;
+				}
+			}
 			$is_valid = rest_validate_array_value_from_schema( $value, $args, $param );
 			break;
 		case 'number':
@@ -2817,6 +2841,7 @@ function rest_validate_integer_value_from_schema( $value, $args, $param ) {
  * @return mixed|WP_Error The sanitized value or a WP_Error instance if the value cannot be safely sanitized.
  */
 function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
+
 	if ( isset( $args['anyOf'] ) ) {
 		$matching_schema = rest_find_any_matching_schema( $value, $args, $param );
 		if ( is_wp_error( $matching_schema ) ) {
@@ -2870,6 +2895,19 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'array' === $args['type'] ) {
+		/*
+		 * A JSON-encoded string (e.g. ?ids=[1,2,3]) should be decoded before
+		 * sanitization. This takes priority over the comma-separated-value
+		 * fallback in rest_sanitize_array() / wp_parse_list(), which cannot
+		 * preserve value types.
+		 */
+		if ( is_string( $value ) && str_starts_with( ltrim( $value ), '[' ) ) {
+			$decoded = json_decode( $value, true );
+			if ( is_array( $decoded ) && JSON_ERROR_NONE === json_last_error() ) {
+				$value = $decoded;
+			}
+		}
+
 		$value = rest_sanitize_array( $value );
 
 		if ( ! empty( $args['items'] ) ) {
@@ -2887,6 +2925,18 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'object' === $args['type'] ) {
+		/*
+		 * A JSON-encoded string (e.g. from a GET query parameter) should be
+		 * decoded before sanitization, mirroring what parse_json_params() does
+		 * for application/json request bodies.
+		 */
+		if ( is_string( $value ) ) {
+			$decoded = json_decode( $value, true );
+			if ( null !== $decoded && JSON_ERROR_NONE === json_last_error() ) {
+				$value = $decoded;
+			}
+		}
+
 		$value = rest_sanitize_object( $value );
 
 		foreach ( $value as $property => $v ) {
