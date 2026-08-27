@@ -46,7 +46,6 @@ includes:
 	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
 	- tests/phpstan/baselines/function.impossibleType.neon
 	- tests/phpstan/baselines/function.resultUnused.neon
-	- tests/phpstan/baselines/greater.invalid.neon
 	- tests/phpstan/baselines/greaterOrEqual.alwaysTrue.neon
 	- tests/phpstan/baselines/identical.alwaysFalse.neon
 	- tests/phpstan/baselines/identical.alwaysTrue.neon
@@ -55,10 +54,8 @@ includes:
 	- tests/phpstan/baselines/instanceof.alwaysTrue.neon
 	- tests/phpstan/baselines/isset.offset.neon
 	- tests/phpstan/baselines/isset.property.neon
-	- tests/phpstan/baselines/isset.variable.neon
 	- tests/phpstan/baselines/method.childParameterType.neon
 	- tests/phpstan/baselines/method.nonObject.neon
-	- tests/phpstan/baselines/method.notFound.neon
 	- tests/phpstan/baselines/method.unused.neon
 	- tests/phpstan/baselines/notIdentical.alwaysTrue.neon
 	- tests/phpstan/baselines/nullCoalesce.offset.neon
@@ -78,7 +75,6 @@ includes:
 	- tests/phpstan/baselines/property.phpDocType.neon
 	- tests/phpstan/baselines/property.private.neon
 	- tests/phpstan/baselines/property.protected.neon
-	- tests/phpstan/baselines/return.missing.neon
 	- tests/phpstan/baselines/return.type.neon
 	- tests/phpstan/baselines/return.unusedType.neon
 	- tests/phpstan/baselines/smallerOrEqual.alwaysTrue.neon
@@ -86,8 +82,6 @@ includes:
 	- tests/phpstan/baselines/ternary.alwaysTrue.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
-	- tests/phpstan/baselines/while.alwaysFalse.neon
-	- tests/phpstan/baselines/while.alwaysTrue.neon
 	# phpstan:baselines end
 
 parameters:
