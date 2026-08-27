@@ -1997,6 +1997,43 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 37685
+	 */
+	public function test_wp_initialize_site_does_not_query_user_roles_before_tables_exist() {
+		global $EZSQL_ERROR;
+
+		$error_count_before = count( (array) $EZSQL_ERROR );
+
+		$result = wp_initialize_site( self::$uninitialized_site_id, array() );
+
+		$new_errors = array_slice( (array) $EZSQL_ERROR, $error_count_before );
+
+		wp_uninitialize_site( self::$uninitialized_site_id );
+
+		$this->assertTrue( $result );
+
+		foreach ( $new_errors as $error ) {
+			$this->assertStringNotContainsString( 'user_roles', $error['query'] );
+		}
+	}
+
+	/**
+	 * @ticket 37685
+	 */
+	public function test_wp_initialize_site_restores_global_state() {
+		$blog_id_before       = get_current_blog_id();
+		$roles_site_id_before = wp_roles()->get_site_id();
+
+		$result = wp_initialize_site( self::$uninitialized_site_id, array() );
+
+		wp_uninitialize_site( self::$uninitialized_site_id );
+
+		$this->assertTrue( $result );
+		$this->assertSame( $blog_id_before, get_current_blog_id() );
+		$this->assertSame( $roles_site_id_before, wp_roles()->get_site_id() );
+	}
+
+	/**
 	 * @ticket 41333
 	 */
 	public function test_wp_initialize_site_user_is_admin() {
