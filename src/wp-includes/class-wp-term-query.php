@@ -300,8 +300,10 @@ class WP_Term_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
-	 *                                         when 'count' is passed to `$args['fields']`.
+	 * @return WP_Term[]|int[]|string[]|int|string Array of terms, or number of terms as numeric string
+	 *                                             when 'count' is passed to `$args['fields']`, or the
+	 *                                             integer 0 when the queried parent term is not in the
+	 *                                             taxonomy hierarchy.
 	 *
 	 * @phpstan-return (
 	 *     $query is array{ fields: 'count', ... }
@@ -332,7 +334,8 @@ class WP_Term_Query {
 	 *   - 'all'
 	 *   - 'all_with_object_id'
 	 *
-	 * The following will result in a numeric string being returned:
+	 * The following will result in a numeric string being returned, or the integer 0
+	 * when the queried parent term is not in the taxonomy hierarchy:
 	 *
 	 *   - 'count'
 	 *
@@ -353,8 +356,10 @@ class WP_Term_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
-	 *                                         when 'count' is passed to `$args['fields']`.
+	 * @return WP_Term[]|int[]|string[]|int|string Array of terms, or number of terms as numeric string
+	 *                                             when 'count' is passed to `$args['fields']`, or the
+	 *                                             integer 0 when the queried parent term is not in the
+	 *                                             taxonomy hierarchy.
 	 */
 	public function get_terms() {
 		global $wpdb;
