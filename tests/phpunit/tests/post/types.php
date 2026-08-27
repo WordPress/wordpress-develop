@@ -216,6 +216,43 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Templates and template parts opt in to notes so that the block editor can
+	 * attach them to a template that has been saved to the database.
+	 *
+	 * @ticket 65866
+	 *
+	 * @dataProvider data_template_post_types_support_notes
+	 *
+	 * @param string $post_type Template post type name.
+	 */
+	public function test_template_post_types_support_notes( $post_type ) {
+		$supports = get_all_post_type_supports( $post_type );
+
+		$this->assertArrayHasKey( 'editor', $supports, 'The editor feature should be registered.' );
+		$this->assertIsArray( $supports['editor'], 'The editor feature should carry arguments.' );
+		$this->assertTrue(
+			array_any( $supports['editor'], static fn( $item ) => ! empty( $item['notes'] ) ),
+			'The editor feature should declare notes support.'
+		);
+		$this->assertTrue(
+			post_type_supports( $post_type, 'editor' ),
+			'Editor support should remain enabled.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_template_post_types_support_notes() {
+		return array(
+			'template'      => array( 'wp_template' ),
+			'template part' => array( 'wp_template_part' ),
+		);
+	}
+
+	/**
 	 * @ticket 21586
 	 * @ticket 41172
 	 */
