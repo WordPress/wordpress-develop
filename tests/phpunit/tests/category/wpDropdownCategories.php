@@ -255,4 +255,49 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		// Test to see if it contains the "required" attribute.
 		$this->assertDoesNotMatchRegularExpression( '/<select[^>]+required/', $dropdown_categories );
 	}
+
+	/**
+	 * @ticket 20810
+	 */
+	public function test_disabled_true_should_add_disabled_attribute() {
+		// Create a test category.
+		$cat_id = self::factory()->category->create(
+			array(
+				'name' => 'Test Category',
+				'slug' => 'test_category',
+			)
+		);
+
+		$args                = array(
+			'disabled'   => true,
+			'hide_empty' => 0,
+			'echo'       => 0,
+		);
+		$dropdown_categories = wp_dropdown_categories( $args );
+
+		// Test to see if it contains the "disabled" attribute.
+		$this->assertMatchesRegularExpression( '/<select[^>]+disabled/', $dropdown_categories );
+	}
+
+	/**
+	 * @ticket 20810
+	 */
+	public function test_disabled_should_default_to_false() {
+		// Create a test category.
+		$cat_id = self::factory()->category->create(
+			array(
+				'name' => 'Test Category',
+				'slug' => 'test_category',
+			)
+		);
+
+		$args                = array(
+			'hide_empty' => 0,
+			'echo'       => 0,
+		);
+		$dropdown_categories = wp_dropdown_categories( $args );
+
+		// Test to see if it contains the "disabled" attribute.
+		$this->assertDoesNotMatchRegularExpression( '/<select[^>]+disabled/', $dropdown_categories );
+	}
 }

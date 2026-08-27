@@ -1174,6 +1174,7 @@ function the_meta() {
  * @since 2.1.0
  * @since 4.2.0 The `$value_field` argument was added.
  * @since 4.3.0 The `$class` argument was added.
+ * @since 7.2.0 The `$disabled` argument was added.
  *
  * @see get_pages()
  *
@@ -1195,6 +1196,8 @@ function the_meta() {
  *     @type string       $option_none_value     Value to use when no page is selected. Default empty.
  *     @type string       $value_field           Post field used to populate the 'value' attribute of the option
  *                                               elements. Accepts any valid post field. Default 'ID'.
+ *     @type bool         $disabled              Whether the `<select>` element should have the HTML5 'disabled'
+ *                                               attribute. Default false.
  * }
  * @return string HTML dropdown list of pages.
  */
@@ -1211,6 +1214,7 @@ function wp_dropdown_pages( $args = '' ) {
 		'show_option_no_change' => '',
 		'option_none_value'     => '',
 		'value_field'           => 'ID',
+		'disabled'              => false,
 	);
 
 	$parsed_args = wp_parse_args( $args, $defaults );
@@ -1228,7 +1232,9 @@ function wp_dropdown_pages( $args = '' ) {
 			$class = " class='" . esc_attr( $parsed_args['class'] ) . "'";
 		}
 
-		$output = "<select name='" . esc_attr( $parsed_args['name'] ) . "'" . $class . " id='" . esc_attr( $parsed_args['id'] ) . "'>\n";
+		$disabled = $parsed_args['disabled'] ? ' disabled' : '';
+
+		$output = "<select name='" . esc_attr( $parsed_args['name'] ) . "'" . $class . " id='" . esc_attr( $parsed_args['id'] ) . "'" . $disabled . ">\n";
 		if ( $parsed_args['show_option_no_change'] ) {
 			$output .= "\t<option value=\"-1\">" . $parsed_args['show_option_no_change'] . "</option>\n";
 		}
