@@ -681,7 +681,7 @@ class WP_Block {
 			}
 		}
 
-		if ( ! empty( $this->block_type->view_script_module_ids ) ) {
+		if ( ! empty( $this->block_type->view_script_module_ids ) && ! is_admin() ) {
 			foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
 				wp_enqueue_script_module( $view_script_module_id );
 			}
