@@ -79,28 +79,71 @@ function the_title( $before = '', $after = '', $display = true ) {
  * @return void|string Void if 'echo' argument is true, the title attribute if 'echo' is false.
  */
 function the_title_attribute( $args = '' ) {
-	$defaults    = array(
-		'before' => '',
-		'after'  => '',
-		'echo'   => true,
-		'post'   => get_post(),
+	$parsed_args = wp_parse_args(
+		$args,
+		array(
+			'before' => '',
+			'after'  => '',
+			'echo'   => true,
+			'post'   => get_post(),
+		)
 	);
-	$parsed_args = wp_parse_args( $args, $defaults );
+
+	$title = get_the_title_attribute(
+		array_merge(
+			$parsed_args,
+			array( 'echo' => false )
+		)
+	);
+
+	if ( $parsed_args['echo'] ) {
+		echo $title;
+	}
+}
+
+/**
+ * Sanitizes the current title when retrieving it as a title attribute.
+ *
+ * Works like the_title_attribute() but always returns the sanitized title
+ * attribute instead of displaying it, following the get_* naming pattern
+ * shared by other template tags.
+ *
+ * The title has its tags stripped and is passed through esc_attr() before
+ * it is returned.
+ *
+ * @since 7.2.0
+ *
+ * @param string|array $args {
+ *     Title attribute arguments. Optional.
+ *
+ *     @type string  $before Markup to prepend to the title. Default empty.
+ *     @type string  $after  Markup to append to the title. Default empty.
+ *     @type bool    $echo   Unused. Present for compatibility with the_title_attribute().
+ *                           This function always returns the title attribute.
+ *     @type WP_Post $post   Post object to retrieve the title for. Default current post.
+ * }
+ * @return string The title attribute, or an empty string if the title is empty.
+ */
+function get_the_title_attribute( $args = '' ) {
+	$parsed_args = wp_parse_args(
+		$args,
+		array(
+			'before' => '',
+			'after'  => '',
+			'post'   => get_post(),
+		)
+	);
 
 	$title = get_the_title( $parsed_args['post'] );
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return '';
 	}
 
 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
 	$title = esc_attr( strip_tags( $title ) );
 
-	if ( $parsed_args['echo'] ) {
-		echo $title;
-	} else {
-		return $title;
-	}
+	return $title;
 }
 
 /**
