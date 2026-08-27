@@ -1397,6 +1397,27 @@ class WP_REST_Server {
 			 */
 			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
 			$available['image_max_bit_depth'] = (int) apply_filters( 'image_max_bit_depth', 16, 16 );
+
+			/**
+			 * Filters whether sub-sizes of animated images should keep their animation.
+			 *
+			 * By default, sub-sizes of animated images (e.g. animated GIFs) are static,
+			 * generated from the first frame only. Re-encoding every frame per sub-size
+			 * is very resource intensive, so animated sub-sizes are opt-in.
+			 *
+			 * This currently only affects the client-side media processing path,
+			 * where all frames can be decoded and re-encoded in the browser. Only
+			 * uncropped sub-sizes keep their animation; cropped sizes (such as
+			 * `thumbnail`) are always generated from the first frame. Uploads that
+			 * take the server-side path also still produce static sub-sizes, as
+			 * neither GD nor Imagick resizing preserves animation in core.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param bool $animated_image_subsizes Whether to generate animated sub-sizes
+			 *                                      for animated images. Default false.
+			 */
+			$available['animated_image_subsizes'] = (bool) apply_filters( 'wp_generate_animated_image_subsizes', false );
 		}
 
 		$response = new WP_REST_Response( $available );

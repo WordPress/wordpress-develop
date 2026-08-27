@@ -13072,6 +13072,7 @@ mockedApiResponse.Schema = {
     "image_size_threshold": 2560,
     "image_strip_meta": true,
     "image_max_bit_depth": 16,
+    "animated_image_subsizes": false,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""
