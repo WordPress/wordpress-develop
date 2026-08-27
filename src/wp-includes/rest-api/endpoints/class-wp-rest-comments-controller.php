@@ -43,8 +43,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * - `label` (string) A human-readable label.
 	 * - `value` (string) The slug used as the storage key in `comment_content`.
 	 *
-	 * A reaction's `value` is the only content the REST API accepts, so this
-	 * list is the whole set of reactions a note can carry.
+	 * Reactions submitted to the REST API may also use a lowercase
+	 * hex-codepoint sequence (e.g. `1f44d`) to represent emojis outside the
+	 * curated set; see create_item().
 	 *
 	 * @since 7.2.0
 	 *
@@ -795,17 +796,42 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			/*
-			 * Validate the reaction content against the allowed emoji list.
-			 * Only a slug from self::get_note_reaction_emojis() is accepted:
-			 * it is the one value a client can resolve back to an emoji and a
-			 * label. Raw emoji bytes are rejected because the comments table
-			 * is not guaranteed to be utf8mb4 across all WordPress installs;
-			 * clients submit the slug instead.
+			 * Validate the reaction content. Two shapes are accepted:
+			 *
+			 * - A curated slug (e.g. `heart`) from self::get_note_reaction_emojis().
+			 * - A lowercase hex-codepoint sequence joined by `-` (e.g. `1f44d`
+			 *   for 👍 or `1f468-200d-1f4bb` for 👨‍💻), which is how a client
+			 *   offering a full emoji picker stores a pick outside the curated
+			 *   list. The client decodes the sequence back into the emoji.
+			 *
+			 * Raw emoji bytes are rejected because the comments table is not
+			 * guaranteed to be utf8mb4 across all WordPress installs; clients
+			 * are expected to normalize before submitting. Variation selector
+			 * U+FE0F is dropped on the client so visually-equivalent
+			 * presentations collapse onto a single key.
 			 */
 			$valid_slugs = wp_list_pluck( self::get_note_reaction_emojis(), 'value' );
 			$emoji_slug  = isset( $request['content'] ) ? wp_strip_all_tags( $request['content'] ) : '';
 
-			if ( ! in_array( $emoji_slug, $valid_slugs, true ) ) {
+			$is_curated_slug = in_array( $emoji_slug, $valid_slugs, true );
+			$is_hex_key      = (bool) preg_match( '/^[0-9a-f]{2,6}(-[0-9a-f]{2,6}){0,15}$/', $emoji_slug );
+
+			/*
+			 * A hex-shaped slug must still be made of assignable Unicode code
+			 * points: reject anything above U+10FFFF or in the UTF-16 surrogate
+			 * range (U+D800–U+DFFF).
+			 */
+			if ( $is_hex_key ) {
+				foreach ( explode( '-', $emoji_slug ) as $codepoint ) {
+					$value = hexdec( $codepoint );
+					if ( $value > 0x10FFFF || ( $value >= 0xD800 && $value <= 0xDFFF ) ) {
+						$is_hex_key = false;
+						break;
+					}
+				}
+			}
+
+			if ( '' === $emoji_slug || ( ! $is_curated_slug && ! $is_hex_key ) ) {
 				return new WP_Error(
 					'rest_comment_invalid_reaction',
 					__( 'Invalid reaction emoji.' ),

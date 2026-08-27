@@ -4528,11 +4528,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Only a slug from the allowed emoji list is accepted.
-	 *
-	 * A hex-codepoint sequence (e.g. `1f44d` for 👍) is the storage format for
-	 * a picker that can decode it back into an emoji and a label. Nothing
-	 * shipping today can, so a hex slug would render as its raw storage key.
+	 * A hex-codepoint sequence (e.g. `1f44d` for 👍) is accepted as a
+	 * reaction slug, supporting emojis outside the curated set. It is the
+	 * storage format a client offering a full emoji picker submits, and the
+	 * one it decodes back into the emoji.
 	 *
 	 * @ticket 63191
 	 *
@@ -4540,7 +4539,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @param string $slug The hex-codepoint slug to submit.
 	 */
-	public function test_create_reaction_rejects_hex_codepoint_slug( $slug ) {
+	public function test_create_reaction_accepts_hex_codepoint_slug( $slug ) {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id = self::factory()->post->create();
@@ -4569,16 +4568,18 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
+		$this->assertSame( 201, $response->get_status() );
+
+		$new_comment = get_comment( $response->get_data()['id'] );
+		$this->assertSame( $slug, $new_comment->comment_content );
 	}
 
 	public function data_hex_codepoint_slugs() {
 		return array(
-			'single codepoint' => array( '1f44d' ),
-			'ZWJ sequence'     => array( '1f468-200d-1f4bb' ),
-			'assignable ASCII' => array( '41' ),
-			'above U+10FFFF'   => array( 'ffffff' ),
-			'UTF-16 surrogate' => array( 'd800' ),
+			'single codepoint'  => array( '1f44d' ),
+			'ZWJ sequence'      => array( '1f468-200d-1f4bb' ),
+			'assignable ASCII'  => array( '41' ),
+			'skin-tone variant' => array( '270b-1f3ff' ),
 		);
 	}
 
@@ -4709,6 +4710,60 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_parent', $response, 400 );
 	}
 
+
+	/**
+	 * A hex-shaped slug must be made of assignable Unicode code points:
+	 * values above U+10FFFF or in the UTF-16 surrogate range are rejected,
+	 * as is a sequence that is not lowercase.
+	 *
+	 * @ticket 63191
+	 *
+	 * @dataProvider data_invalid_codepoint_slugs
+	 *
+	 * @param string $slug The invalid hex-codepoint slug to submit.
+	 */
+	public function test_create_reaction_rejects_invalid_codepoints( $slug ) {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'parent'  => $note_id,
+					'content' => $slug,
+					'type'    => 'reaction',
+					'author'  => self::$editor_id,
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
+	}
+
+	public function data_invalid_codepoint_slugs() {
+		return array(
+			'above U+10FFFF'               => array( 'ffffff' ),
+			'lead surrogate U+D800'        => array( 'd800' ),
+			'trail surrogate U+DFFF'       => array( 'dfff' ),
+			'surrogate inside a sequence'  => array( '1f44d-d9ab' ),
+			'above U+10FFFF in a sequence' => array( '1f468-200d-110000' ),
+			'uppercase hex'                => array( '1F44D' ),
+		);
+	}
 
 	/**
 	 * The stored reaction content is the validated, canonical slug — markup
