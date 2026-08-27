@@ -1166,11 +1166,29 @@ class wpdb {
 			}
 
 			if ( isset( $tables['users'] ) && defined( 'CUSTOM_USER_TABLE' ) ) {
-				$tables['users'] = CUSTOM_USER_TABLE;
+				if( ! is_string( 'CUSTOM_USER_TABLE' ) || !CUSTOM_USER_TABLE ) {
+					wp_load_translations_early();
+					_doing_it_wrong(
+						'wpdb::tables',
+						__( 'The defined value for CUSTOM_USER_TABLE is not a string or is an empty string.' ),
+						'7.0.3'
+					);					
+				} else {
+					$tables['users'] = CUSTOM_USER_TABLE;
+				}
 			}
 
 			if ( isset( $tables['usermeta'] ) && defined( 'CUSTOM_USER_META_TABLE' ) ) {
-				$tables['usermeta'] = CUSTOM_USER_META_TABLE;
+				if( ! is_string( 'CUSTOM_USER_META_TABLE' ) || !CUSTOM_USER_META_TABLE ) {
+					wp_load_translations_early();
+					_doing_it_wrong(
+						'wpdb::tables',
+						__( 'The defined value for CUSTOM_USER_META_TABLE is not a string or is an empty string.' ),
+						'7.0.3'
+					);
+				} else {				
+					$tables['usermeta'] = CUSTOM_USER_META_TABLE;
+				}		
 			}
 		}
 
