@@ -260,6 +260,44 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	}
 
 	/**
+	 * When the only template matching the query comes from the plugin
+	 * template registry — i.e. there is no corresponding 'wp_template' post
+	 * and no matching theme template file — get_block_templates() must
+	 * still return a sequentially indexed array so that callers can safely
+	 * rely on $templates[0].
+	 *
+	 * @ticket <fill in Trac ticket number>
+	 *
+	 * @covers ::get_block_templates
+	 */
+	public function test_get_block_templates_returns_sequentially_indexed_array_for_registry_only_match() {
+		$template_name = 'test-plugin//registry-only-template';
+		register_block_template(
+			$template_name,
+			array(
+				'content'    => 'Template content',
+				'post_types' => array( 'post' ),
+			)
+		);
+
+		$templates = get_block_templates( array( 'slug__in' => array( 'registry-only-template' ) ) );
+
+		unregister_block_template( $template_name );
+
+		$this->assertSame(
+			array_values( $templates ),
+			$templates,
+			'get_block_templates() must return a sequentially indexed array, even when the only match comes from the plugin template registry.'
+		);
+		$this->assertArrayHasKey(
+			0,
+			$templates,
+			'Index 0 must exist so callers like wp_get_post_content_block_attributes() can safely access $templates[0].'
+		);
+		$this->assertSame( 'registry-only-template', $templates[0]->slug );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * Make sure that plugin-registered templates with default post type slugs (ie: `single` or `page`)

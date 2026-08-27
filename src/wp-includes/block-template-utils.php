@@ -1255,7 +1255,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 				$matching_registered_templates
 			);
 
-			$query_result = array_merge( $query_result, $matching_registered_templates );
+			$query_result = array_merge( $query_result, array_values( $matching_registered_templates ) );
 		}
 	}
 

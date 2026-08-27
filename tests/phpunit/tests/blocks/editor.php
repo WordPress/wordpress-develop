@@ -485,6 +485,39 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Reproduces WordPress/gutenberg#80291: PHP warnings when a
+	 * plugin-registered template (registered via register_block_template())
+	 * is assigned to an individual post that hasn't had that template saved
+	 * as a 'wp_template' post yet.
+	 *
+	 * @ticket <fill in Trac ticket number>
+	 */
+	public function test_wp_get_post_content_block_attributes_with_registry_only_assigned_template() {
+		switch_theme( 'block-theme' );
+
+		$template_name = 'test-plugin//solo-post-template';
+		register_block_template(
+			$template_name,
+			array(
+				'content'    => '<!-- wp:post-content {"layout":{"type":"constrained"}} /-->',
+				'post_types' => array( 'post' ),
+			)
+		);
+
+		$post_id = self::factory()->post->create();
+		update_post_meta( $post_id, '_wp_page_template', 'solo-post-template' );
+
+		global $post_ID;
+		$post_ID = $post_id;
+
+		$attributes = wp_get_post_content_block_attributes();
+
+		unregister_block_template( $template_name );
+
+		$this->assertSame( array( 'layout' => array( 'type' => 'constrained' ) ), $attributes );
+	}
+
+	/**
 	 * @ticket 53458
 	 */
 	public function test_get_block_editor_settings_theme_json_settings() {
