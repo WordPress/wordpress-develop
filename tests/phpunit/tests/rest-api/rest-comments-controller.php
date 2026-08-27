@@ -3648,7 +3648,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Create a test post with note.
 	 *
-	 * @param int $user_id Post author's user ID.
+	 * @param string $role User role to assign the post author.
 	 * @return int Post ID.
 	 */
 	protected function create_test_post_with_note( $role ) {

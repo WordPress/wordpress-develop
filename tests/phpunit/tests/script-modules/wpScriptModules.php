@@ -486,7 +486,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				foreach ( $test_case as $param_name => $param_value ) {
 					$key_parts[] = sprintf( '%s_%s', $param_name, json_encode( $param_value ) );
 				}
-				$data[ join( '_', $key_parts ) ] = $test_case;
+				$data[ implode( '_', $key_parts ) ] = $test_case;
 			}
 		}
 
@@ -1851,6 +1851,50 @@ HTML;
 	}
 
 	/**
+	 * Tests that every default script module points to a file that exists on
+	 * disk, both with and without SCRIPT_DEBUG.
+	 *
+	 * Some files are only shipped minified (large inlined WASM or worker
+	 * code with no debugging value). Those must be special-cased in
+	 * wp_default_script_modules() so the non-minified URL is never used;
+	 * otherwise the import map points to a non-existent file under
+	 * SCRIPT_DEBUG. The exceptions below must mirror that special case.
+	 *
+	 * @ticket 65664
+	 *
+	 * @covers ::wp_default_script_modules
+	 */
+	public function test_default_script_module_files_exist() {
+		$assets_file = ABSPATH . WPINC . '/assets/script-modules-packages.php';
+		if ( ! file_exists( $assets_file ) ) {
+			$this->markTestSkipped( 'The script modules packages asset file is not available.' );
+		}
+
+		$assets = include $assets_file;
+		$this->assertNotEmpty( $assets, 'The script modules packages asset file should not be empty.' );
+
+		foreach ( array_keys( $assets ) as $file_name ) {
+			// Files only shipped minified; mirrors wp_default_script_modules().
+			if ( str_starts_with( $file_name, 'vips/' ) || 'video-conversion/worker.js' === $file_name ) {
+				$file_name = str_replace( '.js', '.min.js', $file_name );
+			}
+
+			$min_file_name = str_ends_with( $file_name, '.min.js' )
+				? $file_name
+				: substr( $file_name, 0, -3 ) . '.min.js';
+
+			$this->assertFileExists(
+				ABSPATH . WPINC . "/js/dist/script-modules/{$file_name}",
+				"The script module file used with SCRIPT_DEBUG enabled should exist for '{$file_name}'."
+			);
+			$this->assertFileExists(
+				ABSPATH . WPINC . "/js/dist/script-modules/{$min_file_name}",
+				"The minified script module file should exist for '{$file_name}'."
+			);
+		}
+	}
+
+	/**
 	 * Tests expected priority is used when a dependent is registered but not enqueued.
 	 *
 	 * @ticket 64429
@@ -1904,22 +1948,24 @@ HTML;
 	}
 
 	/**
-	 * Tests that VIPS script modules are not registered in Core.
+	 * Tests that VIPS script modules always use minified file paths.
 	 *
-	 * The wasm-vips library is plugin-only and should not be included
-	 * in WordPress Core builds due to its large size (~16MB per file).
+	 * Non-minified VIPS files are not shipped because they are ~10MB of
+	 * inlined WASM with no debugging value, so the registration should
+	 * always point to the .min.js variants.
 	 *
-	 * @ticket 64906
+	 * @ticket 64734
 	 *
 	 * @covers ::wp_default_script_modules
 	 */
-	public function test_vips_script_modules_not_registered_in_core() {
+	public function test_vips_script_modules_always_use_minified_paths() {
 		wp_default_script_modules();
 		wp_enqueue_script_module( '@wordpress/vips/loader' );
 
 		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
-		$this->assertStringNotContainsString( 'vips', $actual );
+		$this->assertStringContainsString( 'vips/loader.min.js', $actual );
+		$this->assertStringNotContainsString( 'vips/loader.js"', $actual );
 	}
 
 	/**
@@ -2041,6 +2087,7 @@ HTML;
 			array( 'classic-dependency' ),
 			false,
 			array(
+				'strategy'            => 'defer',
 				'module_dependencies' => array(
 					'example',
 					array(
@@ -2109,6 +2156,7 @@ HTML;
 			array(),
 			false,
 			array(
+				'in_footer'           => true,
 				'module_dependencies' => array( 'classic-transitive-dependency' ),
 			)
 		);
@@ -2118,6 +2166,7 @@ HTML;
 			array( 'classic-transitive-dep' ),
 			false,
 			array(
+				'in_footer'           => true,
 				'module_dependencies' => array( 'not-enqueued' ),
 			)
 		);
@@ -2153,6 +2202,7 @@ HTML;
 			array(),
 			null,
 			array(
+				'strategy'            => 'defer',
 				'module_dependencies' => array( 'does-not-exist' ),
 			)
 		);

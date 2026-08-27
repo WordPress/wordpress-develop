@@ -2291,7 +2291,7 @@ function previous_post_link( $format = '&laquo; %link', $link = '%title', $in_sa
  *
  * @since 3.7.0
  *
- * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
+ * @param string       $format         Optional. Link anchor format. Default '%link &raquo;'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
  * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
  *                                     Default false.
@@ -2311,7 +2311,7 @@ function get_next_post_link( $format = '%link &raquo;', $link = '%title', $in_sa
  *
  * @see get_next_post_link()
  *
- * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
+ * @param string       $format         Optional. Link anchor format. Default '%link &raquo;'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
  * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
  *                                     Default false.
@@ -3993,7 +3993,7 @@ function get_dashboard_url( $user_id = 0, $path = '', $scheme = 'admin' ) {
 	} else {
 		$current_blog = get_current_blog_id();
 
-		if ( $current_blog && ( user_can( $user_id, 'manage_network' ) || in_array( $current_blog, array_keys( $blogs ), true ) ) ) {
+		if ( $current_blog && ( user_can( $user_id, 'manage_network' ) || isset( $blogs[ $current_blog ] ) ) ) {
 			$url = admin_url( $path, $scheme );
 		} else {
 			$active = get_active_blog_for_user( $user_id );
@@ -4581,7 +4581,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 			}
 		} elseif ( $id_or_email instanceof WP_Comment ) {
 			$name = $id_or_email->comment_author;
-		} elseif ( is_string( $id_or_email ) && false !== strpos( $id_or_email, '@' ) ) {
+		} elseif ( is_string( $id_or_email ) && str_contains( $id_or_email, '@' ) ) {
 			$name = str_replace( array( '.', '_', '-' ), ' ', substr( $id_or_email, 0, strpos( $id_or_email, '@' ) ) );
 		}
 

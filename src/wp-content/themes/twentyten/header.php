@@ -8,17 +8,20 @@
  * @subpackage Twenty_Ten
  * @since Twenty Ten 1.0
  */
+
+/**
+ * @global int $page  Page number of a single post.
+ * @global int $paged Page number of a list of posts.
+ */
+global $page, $paged;
+
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>" />
 <title>
 <?php
-	/*
-	 * Print the <title> tag based on what is being viewed.
-	 */
-	global $page, $paged;
-
+	// Print the <title> tag based on what is being viewed.
 	wp_title( '|', true, 'right' );
 
 	// Add the site name.
@@ -39,7 +42,7 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 ?>
 	</title>
 <link rel="profile" href="https://gmpg.org/xfn/11" />
-<link rel="stylesheet" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20251202" />
+<link rel="stylesheet" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20260819" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <?php
 	/*

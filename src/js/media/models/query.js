@@ -251,12 +251,6 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 			// Fill default args.
 			_.defaults( props, defaults );
 
-			// Normalize the order.
-			props.order = props.order.toUpperCase();
-			if ( 'DESC' !== props.order && 'ASC' !== props.order ) {
-				props.order = defaults.order.toUpperCase();
-			}
-
 			// Ensure we have a valid orderby value.
 			if ( ! _.contains( orderby.allowed, props.orderby ) ) {
 				props.orderby = defaults.orderby;
