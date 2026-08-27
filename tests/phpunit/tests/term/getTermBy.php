@@ -7,6 +7,8 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 	protected $query = '';
 
+	protected $pre_get_term_by_args;
+
 	public function test_get_term_by_slug() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'slug', 'foo', 'category' );
@@ -56,6 +58,48 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'unknown', 'foo', 'category' );
 		$this->assertFalse( $term2 );
+	}
+
+	/**
+	 * @ticket 36978
+	 */
+	public function test_get_term_by_pre_filter() {
+		add_filter( 'pre_get_term_by', array( $this, 'filter_pre_get_term_by' ), 10, 6 );
+
+		try {
+			$term = get_term_by( 'slug', 'foo', 'category', ARRAY_A, 'display' );
+		} finally {
+			remove_filter( 'pre_get_term_by', array( $this, 'filter_pre_get_term_by' ) );
+		}
+
+		$this->assertSame( 'short-circuited', $term );
+		$this->assertSame(
+			array( 'slug', 'foo', 'category', ARRAY_A, 'display' ),
+			$this->pre_get_term_by_args
+		);
+	}
+
+	/**
+	 * @ticket 36978
+	 */
+	public function test_get_term_by_pre_filter_default_continues_normal_lookup() {
+		add_filter( 'pre_get_term_by', '__return_null' );
+
+		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
+
+		try {
+			$term2 = get_term_by( 'slug', 'foo', 'category' );
+		} finally {
+			remove_filter( 'pre_get_term_by', '__return_null' );
+		}
+
+		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
+	}
+
+	public function filter_pre_get_term_by( $pre, $field, $value, $taxonomy, $output, $filter ) {
+		$this->pre_get_term_by_args = array( $field, $value, $taxonomy, $output, $filter );
+
+		return 'short-circuited';
 	}
 
 	/**
