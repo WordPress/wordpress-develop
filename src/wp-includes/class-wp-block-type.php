@@ -167,6 +167,14 @@ class WP_Block_Type {
 	public $render_callback = null;
 
 	/**
+	 * Serialized block pattern used to render the block.
+	 *
+	 * @since 7.1.0
+	 * @var string|null
+	 */
+	public $pattern = null;
+
+	/**
 	 * Block type attributes property schemas.
 	 *
 	 * @since 5.0.0
@@ -303,6 +311,7 @@ class WP_Block_Type {
 	 * @since 6.3.0 Added the `selectors` property.
 	 * @since 6.4.0 Added the `block_hooks` property.
 	 * @since 6.5.0 Added the `allowed_blocks`, `variation_callback`, and `view_style_handles` properties.
+	 * @since 7.1.0 Added the `pattern` property.
 	 *
 	 * @see register_block_type()
 	 *
@@ -331,6 +340,7 @@ class WP_Block_Type {
 	 *     @type array|null    $supports                 Supported features.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
+	 *     @type string|null   $pattern                  Serialized block pattern used to render the block.
 	 *     @type callable|null $variation_callback       Block type variations callback.
 	 *     @type array|null    $attributes               Block type attributes property schemas.
 	 *     @type string[]      $uses_context             Context values inherited by blocks of this type.
