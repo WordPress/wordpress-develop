@@ -34,10 +34,8 @@ const wpIncludesDir = path.join( rootDir, 'src', 'wp-includes' );
  *
  * @typedef ScriptsConfig
  * @type {object}
- * @property {string}                 source           - Gutenberg-relative source directory (e.g. `'scripts'`).
- * @property {string}                 destination      - Subpath under `wp-includes/` where packages land (e.g. `'js/dist'`).
- * @property {boolean}                copyDirectories  - Whether to copy whole directories (with optional renames) as-is.
- * @property {Record<string, string>} directoryRenames - Map of source directory name → destination directory name.
+ * @property {string} source      - Gutenberg-relative source directory (e.g. `'scripts'`).
+ * @property {string} destination - Subpath under `wp-includes/` where packages land (e.g. `'js/dist'`).
  */
 
 /**
@@ -69,11 +67,6 @@ const COPY_CONFIG = {
 	scripts: {
 		source: 'scripts',
 		destination: 'js/dist',
-		copyDirectories: true,
-		// Rename vendors/ to vendor/ when copying.
-		directoryRenames: {
-			vendors: 'vendor',
-		},
 	},
 
 	/*
@@ -175,63 +168,35 @@ function copyScripts( config ) {
 		const src = path.join( scriptsSrc, entry.name );
 
 		if ( entry.isDirectory() ) {
-			// Check if this should be copied as a directory (like vendors/).
-			if (
-				config.copyDirectories &&
-				config.directoryRenames &&
-				config.directoryRenames[ entry.name ]
-			) {
-				/*
-				 * Copy special directories with rename (vendors/ → vendor/).
-				 * Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules).
-				 */
-				const destName = config.directoryRenames[ entry.name ];
-				const dest = path.join( scriptsDest, destName );
+			/*
+			 * The vendors/ directory (react, react-dom, react-jsx-runtime) is
+			 * copied by the copy:vendor-js Grunt task, not here.
+			 */
+			if ( entry.name === 'vendors' ) {
+				continue;
+			}
 
-				if ( entry.name === 'vendors' ) {
-					// Only copy react-jsx-runtime files, skip react and react-dom.
-					const vendorFiles = fs.readdirSync( src );
-					let copiedCount = 0;
-					fs.mkdirSync( dest, { recursive: true } );
-					for ( const file of vendorFiles ) {
-						if (
-							file.startsWith( 'react-jsx-runtime' ) &&
-							file.endsWith( '.js' )
-						) {
-							const srcFile = path.join( src, file );
-							const destFile = path.join( dest, file );
+			/*
+			 * Flatten package structure: package-name/index.js → package-name.js.
+			 * This matches Core's expected file structure.
+			 */
+			const packageFiles = fs.readdirSync( src );
 
-							fs.copyFileSync( srcFile, destFile );
-							copiedCount++;
-						}
-					}
-					console.log(
-						`   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)`
+			for ( const file of packageFiles ) {
+				if ( /^index\.(js|min\.js)$/.test( file ) ) {
+					const srcFile = path.join( src, file );
+					// Replace 'index.' with 'package-name.'.
+					const destFile = file.replace(
+						/^index\./,
+						`${ entry.name }.`
 					);
-				}
-			} else {
-				/*
-				 * Flatten package structure: package-name/index.js → package-name.js.
-				 * This matches Core's expected file structure.
-				 */
-				const packageFiles = fs.readdirSync( src );
+					const destPath = path.join( scriptsDest, destFile );
 
-				for ( const file of packageFiles ) {
-					if ( /^index\.(js|min\.js)$/.test( file ) ) {
-						const srcFile = path.join( src, file );
-						// Replace 'index.' with 'package-name.'.
-						const destFile = file.replace(
-							/^index\./,
-							`${ entry.name }.`
-						);
-						const destPath = path.join( scriptsDest, destFile );
+					fs.mkdirSync( path.dirname( destPath ), {
+						recursive: true,
+					} );
 
-						fs.mkdirSync( path.dirname( destPath ), {
-							recursive: true,
-						} );
-
-						fs.copyFileSync( srcFile, destPath );
-					}
+					fs.copyFileSync( srcFile, destPath );
 				}
 			}
 		} else if ( entry.isFile() && entry.name.endsWith( '.js' ) ) {

@@ -4159,21 +4159,6 @@ HTML;
 			$handle = $script;
 		}
 
-		/*
-		 * Append '.1' to the version number for React and ReactDOM.
-		 *
-		 * This is due to a change in the build to use the UMD version of the
-		 * scripts, requiring a different version number in order to break the
-		 * caches of some CDNs.
-		 *
-		 * This can be removed in the next update to the packages.
-		 *
-		 * See https://core.trac.wordpress.org/ticket/62422
-		 */
-		if ( in_array( $handle, array( 'react', 'react-dom' ), true ) ) {
-			$package_json[ $script ] .= '.1';
-		}
-
 		$script_query = $wp_scripts->query( $handle, 'registered' );
 
 		$this->assertNotFalse( $script_query, "The script '{$handle}' should be registered." );
@@ -4209,9 +4194,6 @@ HTML;
 			'objectFitPolyfill'                => array( 'objectFitPolyfill', 'wp-polyfill-object-fit' ),
 			'polyfill-library (dom rect)'      => array( 'polyfill-library', 'wp-polyfill-dom-rect' ),
 			'polyfill-library (node contains)' => array( 'polyfill-library', 'wp-polyfill-node-contains' ),
-			'react (jsx-runtime)'              => array( 'react', 'react-jsx-runtime' ),
-			'react (React)'                    => array( 'react' ),
-			'react-dom'                        => array( 'react-dom' ),
 			'regenerator-runtime'              => array( 'regenerator-runtime' ),
 			'underscore'                       => array( 'underscore' ),
 			'vanilla-js-hoverintent'           => array( 'hoverintent', 'hoverintent-js' ),
@@ -4253,14 +4235,14 @@ HTML;
 		);
 
 		// Exclude packages that are not registered in WordPress.
-		$exclude                   = array( 'react-is', 'json2php', 'espree' );
+		$exclude                   = array( 'json2php', 'espree' );
 		$package_json_dependencies = array_diff( $package_json_dependencies, $exclude );
 
 		/*
 		 * Ensure the arrays are unique.
 		 *
-		 * This is for the react package as it is included in the data provider
-		 * as both `react` and `react-jsx-runtime`.
+		 * Some packages are included in the data provider more than once, e.g.
+		 * `polyfill-library` provides both the DOM rect and node contains scripts.
 		 */
 		$package_json_dependencies  = array_unique( $package_json_dependencies );
 		$data_provider_dependencies = array_unique( $data_provider_dependencies );

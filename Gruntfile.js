@@ -51,8 +51,6 @@ module.exports = function(grunt) {
 			 */
 			'!wp-includes/js/dist',
 			'wp-includes/js/dist/vendor/*.js',
-			// Managed by the Gutenberg-related tasks.
-			'!wp-includes/js/dist/vendor/react-jsx-runtime*',
 		],
 
 		// Files sourced from the Gutenberg repository built asset that are ignored by version control.
@@ -61,7 +59,6 @@ module.exports = function(grunt) {
 			SOURCE_DIR + 'wp-includes/css/dist',
 			SOURCE_DIR + 'wp-includes/js/dist/*.js',
 			SOURCE_DIR + 'wp-includes/js/dist/script-modules',
-			SOURCE_DIR + 'wp-includes/js/dist/vendor/react-jsx-runtime*',
 		],
 
 		// Files sourced from the Gutenberg repository built asset that are managed through version control.
@@ -455,12 +452,14 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.js' ]: [ './node_modules/regenerator-runtime/runtime.js' ],
 						[ WORKING_DIR + 'wp-includes/js/dist/vendor/regenerator-runtime.min.js' ]: [ './node_modules/regenerator-runtime/runtime.js' ],
 					},
-					// React libraries: react, react-dom
+					// React libraries: react, react-dom, react-jsx-runtime (sourced from the Gutenberg build).
 					{
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react.js' ]: [ './node_modules/react/umd/react.development.js' ],
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react.min.js' ]: [ './node_modules/react/umd/react.production.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-dom.js' ]: [ './node_modules/react-dom/umd/react-dom.development.js' ],
-						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-dom.min.js' ]: [ './node_modules/react-dom/umd/react-dom.production.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react.js' ]: [ './gutenberg/build/scripts/vendors/react.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react.min.js' ]: [ './gutenberg/build/scripts/vendors/react.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-dom.js' ]: [ './gutenberg/build/scripts/vendors/react-dom.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-dom.min.js' ]: [ './gutenberg/build/scripts/vendors/react-dom.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-jsx-runtime.js' ]: [ './gutenberg/build/scripts/vendors/react-jsx-runtime.js' ],
+						[ WORKING_DIR + 'wp-includes/js/dist/vendor/react-jsx-runtime.min.js' ]: [ './gutenberg/build/scripts/vendors/react-jsx-runtime.min.js' ],
 					},
 					// Polyfills
 					{
