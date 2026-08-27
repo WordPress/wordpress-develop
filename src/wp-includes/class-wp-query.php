@@ -2010,18 +2010,20 @@ class WP_Query {
 			}
 		}
 		$post_type = $query_vars['post_type'];
-		if ( empty( $query_vars['posts_per_page'] ) ) {
-			$query_vars['posts_per_page'] = get_option( 'posts_per_page' );
+		if ( isset( $query_vars['posts_per_page'] ) && ( is_numeric( $query_vars['posts_per_page'] ) || is_bool( $query_vars['posts_per_page'] ) ) ) {
+			$query_vars['posts_per_page'] = $query_vars['posts_per_page'];
+		} else {
+			$query_vars['posts_per_page'] = get_option( 'posts_per_page', 10 );
 		}
 		if ( isset( $query_vars['showposts'] ) && $query_vars['showposts'] ) {
 			$query_vars['showposts']      = (int) $query_vars['showposts'];
 			$query_vars['posts_per_page'] = $query_vars['showposts'];
 		}
-		if ( ( isset( $query_vars['posts_per_archive_page'] ) && 0 != $query_vars['posts_per_archive_page'] ) && ( $this->is_archive || $this->is_search ) ) {
+		if ( isset( $query_vars['posts_per_archive_page'] ) && ( is_numeric( $query_vars['posts_per_archive_page'] ) || is_bool( $query_vars['posts_per_archive_page'] ) ) && ( $this->is_archive || $this->is_search ) ) {
 			$query_vars['posts_per_page'] = $query_vars['posts_per_archive_page'];
 		}
 		if ( ! isset( $query_vars['nopaging'] ) ) {
-			if ( -1 == $query_vars['posts_per_page'] ) {
+			if ( -1 == (int) $query_vars['posts_per_page'] ) {
 				$query_vars['nopaging'] = true;
 			} else {
 				$query_vars['nopaging'] = false;
@@ -2041,8 +2043,6 @@ class WP_Query {
 		$query_vars['posts_per_page'] = (int) $query_vars['posts_per_page'];
 		if ( $query_vars['posts_per_page'] < -1 ) {
 			$query_vars['posts_per_page'] = abs( $query_vars['posts_per_page'] );
-		} elseif ( 0 === $query_vars['posts_per_page'] ) {
-			$query_vars['posts_per_page'] = 1;
 		}
 
 		if ( ! isset( $query_vars['comments_per_page'] ) || 0 == $query_vars['comments_per_page'] ) {
@@ -3739,7 +3739,7 @@ class WP_Query {
 		 */
 		$this->found_posts = (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
 
-		if ( ! empty( $limits ) ) {
+		if ( ! empty( $limits ) && 0 != $query_vars['posts_per_page'] ) {
 			$this->max_num_pages = (int) ceil( $this->found_posts / $query_vars['posts_per_page'] );
 		}
 	}
