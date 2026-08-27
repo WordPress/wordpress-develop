@@ -85,8 +85,6 @@ includes:
 	- tests/phpstan/baselines/ternary.alwaysTrue.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
-	- tests/phpstan/baselines/while.alwaysFalse.neon
-	- tests/phpstan/baselines/while.alwaysTrue.neon
 	# phpstan:baselines end
 
 parameters:
