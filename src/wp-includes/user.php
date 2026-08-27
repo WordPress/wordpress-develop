@@ -2806,7 +2806,11 @@ function wp_update_user( $userdata ) {
 		return $user_id;
 	}
 
-	$blog_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	if ( '' !== get_option( 'blogname' ) ) {
+		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_title = parse_url( home_url(), PHP_URL_HOST );
+	}
 
 	$switched_locale = false;
 	if ( ! empty( $send_password_change_email ) || ! empty( $send_email_change_email ) ) {
@@ -2865,10 +2869,10 @@ All at ###SITENAME###
 		$pass_change_email['message'] = str_replace( '###USERNAME###', $user['user_login'], $pass_change_email['message'] );
 		$pass_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $pass_change_email['message'] );
 		$pass_change_email['message'] = str_replace( '###EMAIL###', $user['user_email'], $pass_change_email['message'] );
-		$pass_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $pass_change_email['message'] );
+		$pass_change_email['message'] = str_replace( '###SITENAME###', $site_title, $pass_change_email['message'] );
 		$pass_change_email['message'] = str_replace( '###SITEURL###', home_url(), $pass_change_email['message'] );
 
-		wp_mail( $pass_change_email['to'], sprintf( $pass_change_email['subject'], $blog_name ), $pass_change_email['message'], $pass_change_email['headers'] );
+		wp_mail( $pass_change_email['to'], sprintf( $pass_change_email['subject'], $site_title ), $pass_change_email['message'], $pass_change_email['headers'] );
 	}
 
 	if ( ! empty( $send_email_change_email ) ) {
@@ -2925,10 +2929,10 @@ All at ###SITENAME###
 		$email_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email_change_email['message'] );
 		$email_change_email['message'] = str_replace( '###NEW_EMAIL###', $userdata['user_email'], $email_change_email['message'] );
 		$email_change_email['message'] = str_replace( '###EMAIL###', $user['user_email'], $email_change_email['message'] );
-		$email_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $email_change_email['message'] );
+		$email_change_email['message'] = str_replace( '###SITENAME###', $site_title, $email_change_email['message'] );
 		$email_change_email['message'] = str_replace( '###SITEURL###', home_url(), $email_change_email['message'] );
 
-		wp_mail( $email_change_email['to'], sprintf( $email_change_email['subject'], $blog_name ), $email_change_email['message'], $email_change_email['headers'] );
+		wp_mail( $email_change_email['to'], sprintf( $email_change_email['subject'], $site_title ), $email_change_email['message'], $email_change_email['headers'] );
 	}
 
 	if ( $switched_locale ) {
@@ -3368,12 +3372,14 @@ function retrieve_password( $user_login = '' ) {
 
 	if ( is_multisite() ) {
 		$site_name = get_network()->site_name;
-	} else {
+	} elseif ( '' !== get_option( 'blogname' ) ) {
 		/*
 		 * The blogname option is escaped with esc_html on the way into the database
 		 * in sanitize_option. We want to reverse this for the plain text arena of emails.
 		 */
 		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_name = parse_url( home_url(), PHP_URL_HOST );
 	}
 
 	$message = __( 'Someone has requested a password reset for the following account:' ) . "\r\n\r\n";
@@ -3915,7 +3921,11 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
 		);
 		update_user_meta( $current_user->ID, '_new_email', $new_user_email );
 
-		$sitename = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		if ( '' !== get_option( 'blogname' ) ) {
+			$sitename = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		} else {
+			$sitename = parse_url( home_url(), PHP_URL_HOST );
+		}
 
 		/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 		$email_text = __(
@@ -4307,12 +4317,18 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	 */
 	$admin_email = apply_filters( 'user_request_confirmed_email_to', get_site_option( 'admin_email' ), $request );
 
+	if ( '' !== get_option( 'blogname' ) ) {
+		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_title = parse_url( home_url(), PHP_URL_HOST );
+	}
+
 	$email_data = array(
 		'request'     => $request,
 		'user_email'  => $request->email,
 		'description' => $action_description,
 		'manage_url'  => $manage_url,
-		'sitename'    => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
+		'sitename'    => $site_title,
 		'siteurl'     => home_url(),
 		'admin_email' => $admin_email,
 	);
@@ -4513,11 +4529,17 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	 */
 	$user_email = apply_filters( 'user_erasure_fulfillment_email_to', $request->email, $request );
 
+	if ( '' !== get_option( 'blogname' ) ) {
+		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_title = parse_url( home_url(), PHP_URL_HOST );
+	}
+
 	$email_data = array(
 		'request'            => $request,
 		'message_recipient'  => $user_email,
 		'privacy_policy_url' => get_privacy_policy_url(),
-		'sitename'           => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
+		'sitename'           => $site_title,
 		'siteurl'            => home_url(),
 	);
 
@@ -4919,6 +4941,12 @@ function wp_send_user_request( $request_id ) {
 	 */
 	$request->confirm_key = wp_generate_user_request_key( $request_id );
 
+	if ( '' !== get_option( 'blogname' ) ) {
+		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_title = parse_url( home_url(), PHP_URL_HOST );
+	}
+
 	$email_data = array(
 		'request'     => $request,
 		'email'       => $request->email,
@@ -4931,7 +4959,7 @@ function wp_send_user_request( $request_id ) {
 			),
 			wp_login_url()
 		),
-		'sitename'    => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
+		'sitename'    => $site_title,
 		'siteurl'     => home_url(),
 	);
 

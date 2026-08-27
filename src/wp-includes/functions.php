@@ -8350,7 +8350,11 @@ All at ###SITENAME###
 	);
 
 	// Get site name.
-	$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	if ( '' !== get_option( 'blogname' ) ) {
+		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_name = parse_url( home_url(), PHP_URL_HOST );
+	}
 
 	/**
 	 * Filters the contents of the email notification sent when the site admin email address is changed.
