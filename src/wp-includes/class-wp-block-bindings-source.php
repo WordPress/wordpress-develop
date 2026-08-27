@@ -44,6 +44,14 @@ final class WP_Block_Bindings_Source {
 	private $get_value_callback;
 
 	/**
+	 * Provide fields that will be shown in the Block Bindings UI.
+	 *
+	 * @since 6.8.0
+	 * @var array
+	 */
+	public $args;
+
+	/**
 	 * The context added to the blocks needed by the source.
 	 *
 	 * @since 6.5.0
