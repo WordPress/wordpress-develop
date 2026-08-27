@@ -9,8 +9,10 @@
  * http://api.jqueryui.com/category/theming/
  */
 
-/* Layout helpers
-----------------------------------*/
+/**
+ * Layout helpers
+ */
+
 .ui-helper-hidden {
 	display: none;
 }
@@ -66,14 +68,17 @@
 	z-index: 100;
 }
 
-/* Interaction Cues
-----------------------------------*/
+/**
+ * Interaction Cues
+ */
+
 .ui-state-disabled {
 	cursor: default !important;
 }
 
-/* Icons
-----------------------------------*/
+/**
+ * Icons
+ */
 
 /* states and images */
 .ui-icon {
@@ -83,8 +88,9 @@
 	background-repeat: no-repeat;
 }
 
-/* Misc visuals
-----------------------------------*/
+/**
+ * Misc visuals
+ */
 
 /* Overlays */
 .ui-widget-overlay {
@@ -110,6 +116,7 @@
  * Released under the MIT license.
  * http://jquery.org/license
  */
+
 .ui-resizable {
 	position: relative;
 }
@@ -141,6 +148,7 @@
 	bottom: -5px;
 	left: 0;
 }
+
 /* rtl:ignore */
 .ui-resizable-e {
 	cursor: e-resize;
@@ -149,6 +157,7 @@
 	top: 0;
 	height: 100%;
 }
+
 /* rtl:ignore */
 .ui-resizable-w {
 	cursor: w-resize;
@@ -157,6 +166,7 @@
 	top: 0;
 	height: 100%;
 }
+
 /* rtl:ignore */
 .ui-resizable-se {
 	cursor: se-resize;
@@ -165,6 +175,7 @@
 	right: 1px;
 	bottom: 1px;
 }
+
 /* rtl:ignore */
 .ui-resizable-sw {
 	cursor: sw-resize;
@@ -173,6 +184,7 @@
 	left: -5px;
 	bottom: -5px;
 }
+
 /* rtl:ignore */
 .ui-resizable-nw {
 	cursor: nw-resize;
@@ -181,6 +193,7 @@
 	left: -5px;
 	top: -5px;
 }
+
 /* rtl:ignore */
 .ui-resizable-ne {
 	cursor: ne-resize;
@@ -190,7 +203,9 @@
 	top: -5px;
 }
 
-/* WP buttons: see buttons.css. */
+/**
+ * WP buttons: see buttons.css
+ */
 
 .ui-button {
 	display: inline-block;
@@ -267,7 +282,9 @@
 
 }
 
-/* WP Theme */
+/**
+ * WP Theme
+ */
 
 .ui-dialog {
 	position: absolute;
