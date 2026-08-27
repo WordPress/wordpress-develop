@@ -816,7 +816,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param mixed $fields The `$fields` argument to check.
 	 * @return bool True if `$fields` is an array, false otherwise.
 	 */
-	protected function _is_fields_array( $fields ) {
+	protected function _is_fields_array( $fields ): bool {
 		if ( ! is_array( $fields ) ) {
 			$this->error = new IXR_Error( 400, __( 'The fields argument must be an array.' ) );
 			return false;
