@@ -74,6 +74,39 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that ideographic spaces are treated as separators even when stopwords are disabled.
+	 *
+	 * @ticket 44296
+	 */
+	public function test_ideographic_space_separator_with_no_stopwords() {
+		$terms = "This\u{3000}is\u{3000}a\u{3000}search\u{3000}term";
+		add_filter( 'wp_search_stopwords', array( $this, 'filter_wp_search_stopwords' ) );
+		$query = new WP_Query( array( 's' => $terms ) );
+		remove_filter( 'wp_search_stopwords', array( $this, 'filter_wp_search_stopwords' ) );
+
+		$this->assertSame( 5, $query->get( 'search_terms_count' ) );
+		$this->assertSame( array( 'This', 'is', 'search', 'term' ), $query->get( 'search_terms' ) );
+	}
+
+	/**
+	 * Tests that other Unicode space separators (Zs category) are also normalized.
+	 *
+	 * @ticket 44296
+	 */
+	public function test_unicode_space_separators_are_treated_as_separators() {
+		add_filter( 'wp_search_stopwords', array( $this, 'filter_wp_search_stopwords' ) );
+
+		// U+2003 Em Space — a representative Unicode Zs-category space.
+		$terms = "search\u{2003}term";
+		$query = new WP_Query( array( 's' => $terms ) );
+
+		remove_filter( 'wp_search_stopwords', array( $this, 'filter_wp_search_stopwords' ) );
+
+		$this->assertSame( 2, $query->get( 'search_terms_count' ) );
+		$this->assertSame( array( 'search', 'term' ), $query->get( 'search_terms' ) );
+	}
+
+	/**
 	 * @ticket 38099
 	 */
 	public function test_disable_search_exclusion_prefix() {
