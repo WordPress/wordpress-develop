@@ -1773,7 +1773,7 @@ function get_media_item( $attachment_id, $args = null ) {
 
 	if ( isset( $_GET['post_id'] ) ) {
 		$calling_post_id = absint( $_GET['post_id'] );
-	} elseif ( isset( $_POST ) && count( $_POST ) ) {// Like for async-upload where $_GET['post_id'] isn't set.
+	} elseif ( ! empty( $_POST ) ) { // Like for async-upload where $_GET['post_id'] isn't set.
 		$calling_post_id = $post->post_parent;
 	}
 
@@ -2234,7 +2234,7 @@ function media_upload_form( $errors = null ) {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @param array $plupload_init An array of default settings used by Plupload.
+	 * @param array<string, mixed> $plupload_init An array of default settings used by Plupload.
 	 */
 	$plupload_init = apply_filters( 'plupload_init', $plupload_init );
 
