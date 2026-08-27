@@ -71,9 +71,14 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 		} else if ( 'delete' === method ) {
 			options = options || {};
 
-			if ( ! options.wait ) {
-				this.destroyed = true;
-			}
+			/*
+			 * Mark as destroyed before the request so mirrored collections
+			 * filter it out when the `destroy` event fires. With `wait: true`,
+			 * Backbone triggers `destroy` before the request's `done` handler,
+			 * so setting the flag there was too late and the deleted item
+			 * lingered in the grid. Restored on failure. See #65513.
+			 */
+			this.destroyed = true;
 
 			options.context = this;
 			options.data = _.extend( options.data || {}, {
@@ -82,9 +87,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 				_wpnonce: this.get('nonces')['delete']
 			});
 
-			return wp.media.ajax( options ).done( function() {
-				this.destroyed = true;
-			}).fail( function() {
+			return wp.media.ajax( options ).fail( function() {
 				this.destroyed = false;
 			});
 
