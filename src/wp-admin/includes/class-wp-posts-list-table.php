@@ -2221,6 +2221,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<?php endif; ?>
 
 				<input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
+				<?php if ( ! $bulk ) : ?>
+					<input type="hidden" name="original_post_status" value="" />
+				<?php endif; ?>
 				<input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
 				<?php if ( ! $bulk && ! post_type_supports( $screen->post_type, 'author' ) ) : ?>
 					<input type="hidden" name="post_author" value="<?php echo esc_attr( $post->post_author ); ?>" />

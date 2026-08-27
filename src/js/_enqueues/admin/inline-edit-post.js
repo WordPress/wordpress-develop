@@ -439,6 +439,7 @@ window.wp = window.wp || {};
 		post_date_string += ' ' + $(':input[name="hh"]').val() + ':' + $(':input[name="mn"]').val() + ':' + $(':input[name="ss"]').val();
 		var post_date = new Date( post_date_string );
 		status = $('._status', rowData).text();
+		$(':input[name="original_post_status"]', editRow).val( status );
 		if ( 'future' !== status && Date.now() > post_date ) {
 			$('select[name="_status"] option[value="future"]', editRow).remove();
 		} else {
