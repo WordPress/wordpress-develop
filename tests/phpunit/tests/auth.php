@@ -95,7 +95,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$cookie          = wp_generate_auth_cookie( self::$user_id, time() + 3600, 'auth' );
 		list($a, $b, $c) = explode( '|', $cookie );
 		$cookie          = $a . '|' . ( $b + 1 ) . '|' . $c;
-		$this->assertFalse( wp_validate_auth_cookie( self::$user_id, 'auth' ), 'altered cookie' );
+		$this->assertFalse( wp_validate_auth_cookie( $cookie, 'auth' ), 'altered cookie' );
 	}
 
 	public function test_auth_cookie_scheme() {
