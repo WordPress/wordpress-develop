@@ -1,0 +1,26 @@
+[07-Aug-2026 10:00:41 UTC] PHP Warning:  Undefined array key "capabilities" in /Users/melita/wordpress-develop/src/wp-includes/class-wp-roles.php on line 310
+[07-Aug-2026 10:00:41 UTC] PHP Warning:  Undefined array key "capabilities" in /Users/melita/wordpress-develop/src/wp-includes/class-wp-roles.php on line 310
+[07-Aug-2026 10:00:41 UTC] PHP Warning:  Undefined array key "capabilities" in /Users/melita/wordpress-develop/src/wp-includes/class-wp-user-query.php on line 485
+[07-Aug-2026 10:00:41 UTC] PHP Fatal error:  Uncaught TypeError: array_filter(): Argument #1 ($array) must be of type array, null given in /Users/melita/wordpress-develop/src/wp-includes/class-wp-user-query.php:485
+Stack trace:
+#0 /Users/melita/wordpress-develop/src/wp-includes/class-wp-user-query.php(485): array_filter(NULL)
+#1 /Users/melita/wordpress-develop/src/wp-includes/class-wp-user-query.php(79): WP_User_Query->prepare_query(Array)
+#2 /Users/melita/wordpress-develop/src/wp-includes/user.php(879): WP_User_Query->__construct(Array)
+#3 /Users/melita/wordpress-develop/src/wp-includes/user.php(1810): get_users(Array)
+#4 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/eval-command/src/Eval_Command.php(39) : eval()'d code(2): wp_dropdown_users(Array)
+#5 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/eval-command/src/Eval_Command.php(39): eval()
+#6 [internal function]: Eval_Command->__invoke(Array, Array)
+#7 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/WP_CLI/Dispatcher/CommandFactory.php(100): call_user_func(Array, Array, Array)
+#8 [internal function]: WP_CLI\Dispatcher\CommandFactory::{closure:WP_CLI\Dispatcher\CommandFactory::create_subcommand():97}(Array, Array)
+#9 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/WP_CLI/Dispatcher/Subcommand.php(497): call_user_func(Object(Closure), Array, Array)
+#10 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/WP_CLI/Runner.php(441): WP_CLI\Dispatcher\Subcommand->invoke(Array, Array, Array)
+#11 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/WP_CLI/Runner.php(464): WP_CLI\Runner->run_command(Array, Array)
+#12 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/WP_CLI/Runner.php(136): WP_CLI\Runner->run_command_and_exit()
+#13 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/WP_CLI/Runner.php(1229): WP_CLI\Runner->do_early_invoke('before_wp_load')
+#14 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/WP_CLI/Bootstrap/LaunchRunner.php(28): WP_CLI\Runner->start()
+#15 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/bootstrap.php(83): WP_CLI\Bootstrap\LaunchRunner->process(Object(WP_CLI\Bootstrap\BootstrapState))
+#16 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/vendor/wp-cli/wp-cli/php/wp-cli.php(32): WP_CLI\bootstrap()
+#17 phar:///usr/local/Cellar/wp-cli/2.11.0/bin/wp/php/boot-phar.php(20): include('phar:///usr/loc...')
+#18 /usr/local/Cellar/wp-cli/2.11.0/bin/wp(4): include('phar:///usr/loc...')
+#19 {main}
+  thrown in /Users/melita/wordpress-develop/src/wp-includes/class-wp-user-query.php on line 485
