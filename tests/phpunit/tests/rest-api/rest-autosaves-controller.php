@@ -950,4 +950,38 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'get_items request' => array( '/wp/v2/posts/%d' ),
 		);
 	}
+
+	/**
+	 * @ticket 65694
+	 */
+	public function test_create_post_autosave_updates_stale_field_on_revert() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_title'  => 'Original Title',
+				'post_status' => 'publish',
+				'post_author' => self::$editor_id,
+			)
+		);
+
+		$controller = new WP_REST_Autosaves_Controller( 'post' );
+
+		$controller->create_post_autosave(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Original Title !!',
+			)
+		);
+
+		$controller->create_post_autosave(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Original Title',
+			)
+		);
+
+		$autosave = wp_get_post_autosave( $post_id, self::$editor_id );
+		$this->assertSame( 'Original Title', $autosave->post_title );
+	}
 }
