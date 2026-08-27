@@ -112,7 +112,12 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 */
 		$comment_type = '';
 
-		if ( ! empty( $_REQUEST['comment_type'] ) && 'note' !== $_REQUEST['comment_type'] ) {
+		/*
+		 * Only a string is honoured. A request that supplies an array, for example
+		 * comment_type[]=review, is treated as no type filter at all so that the
+		 * value can safely be compared and diffed as a string below.
+		 */
+		if ( ! empty( $_REQUEST['comment_type'] ) && is_string( $_REQUEST['comment_type'] ) && 'note' !== $_REQUEST['comment_type'] ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
 

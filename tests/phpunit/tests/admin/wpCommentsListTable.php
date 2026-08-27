@@ -416,6 +416,47 @@ OPTIONS;
 	}
 
 	/**
+	 * A non-string 'comment_type' request is ignored rather than raising a warning.
+	 *
+	 * The requested type is subtracted from the default-excluded set with
+	 * array_diff(), which casts its arguments to strings. An array request such as
+	 * comment_type[]=private would otherwise raise an "Array to string conversion"
+	 * warning and could skip the exclusion it names.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_comments_list_table_ignores_a_non_string_comment_type_request() {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'private',
+				'comment_approved' => '1',
+			)
+		);
+
+		$regular_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => '',
+				'comment_approved' => '1',
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', array( $this, 'filter_add_private_comment_type' ) );
+
+		$_REQUEST['comment_type'] = array( 'private' );
+		$this->table->prepare_items();
+
+		$this->assertSame(
+			array( $regular_comment_id ),
+			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+			'An array request should be treated as no type filter and keep the excluded type hidden.'
+		);
+	}
+
+	/**
 	 * Adds the 'private' comment type to the default-excluded set.
 	 *
 	 * @param string[] $excluded_types Comment types excluded by default.
