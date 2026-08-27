@@ -7,6 +7,26 @@
  * @since 5.2.0
  */
 
+/**
+ * @phpstan-type Test_Status_Counts array{
+ *     good: non-negative-int,
+ *     recommended: non-negative-int,
+ *     critical: non-negative-int,
+ * }
+ * @phpstan-type Stored_Test_Result array{
+ *     status: 'good'|'recommended'|'critical',
+ *     timestamp: non-negative-int,
+ * }
+ * @phpstan-type Stored_Test_Results array{
+ *     results: array<non-empty-string, Stored_Test_Result>,
+ *     timestamp: non-negative-int,
+ * }
+ * @phpstan-type Site_Status_Detail array{
+ *     results: array<non-empty-string, Stored_Test_Result>,
+ *     counts: Test_Status_Counts,
+ *     timestamp: non-negative-int,
+ * }
+ */
 #[AllowDynamicProperties]
 class WP_Site_Health {
 	private static $instance = null;
@@ -28,6 +48,75 @@ class WP_Site_Health {
 	public $last_late_cron       = null;
 	private $timeout_missed_cron = null;
 	private $timeout_late_cron   = null;
+
+	private const VALID_STATUS_VALUES = array( 'good', 'recommended', 'critical' );
+
+	private const STATUS_COUNTS_SCHEMA = array(
+		'type'       => 'object',
+		'properties' => array(
+			'good'        => array(
+				'type'    => 'integer',
+				'minimum' => 0,
+			),
+			'recommended' => array(
+				'type'    => 'integer',
+				'minimum' => 0,
+			),
+			'critical'    => array(
+				'type'    => 'integer',
+				'minimum' => 0,
+			),
+		),
+	);
+
+	private const STORED_STATUS_SCHEMA = array(
+		'type'       => 'object',
+		'properties' => array(
+			'results'   => array(
+				'type'                 => 'object',
+				'additionalProperties' => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'status'    => array(
+							'type' => 'string',
+							'enum' => self::VALID_STATUS_VALUES,
+						),
+						'timestamp' => array(
+							'type'    => 'integer',
+							'minimum' => 1,
+						),
+					),
+					'required'             => array( 'status', 'timestamp' ),
+					'additionalProperties' => false,
+				),
+			),
+			'timestamp' => array(
+				'type'    => 'integer',
+				'minimum' => 1,
+			),
+		),
+		'required'   => array( 'results', 'timestamp' ),
+	);
+
+	/**
+	 * Transient name for the cached aggregate Site Health status counts.
+	 *
+	 * This value is small and read on the admin menu and Dashboard, so it remains
+	 * autoloaded.
+	 *
+	 * @since 7.1.0
+	 */
+	const STATUS_RESULT_TRANSIENT = 'health-check-site-status-result';
+
+	/**
+	 * Transient name for the cached detailed Site Health test results.
+	 *
+	 * This value can be large, so it is stored with an expiration to keep it from
+	 * being autoloaded on every request.
+	 *
+	 * @since 7.1.0
+	 */
+	const STATUS_DETAIL_TRANSIENT = 'health-check-site-status-detail';
 
 	/**
 	 * WP_Site_Health constructor.
@@ -74,7 +163,7 @@ class WP_Site_Health {
 	 *
 	 * @since 5.4.0
 	 *
-	 * @return WP_Site_Health|null
+	 * @return WP_Site_Health
 	 */
 	public static function get_instance() {
 		if ( null === self::$instance ) {
@@ -102,23 +191,18 @@ class WP_Site_Health {
 				'site_status_result' => wp_create_nonce( 'health-check-site-status-result' ),
 			),
 			'site_status' => array(
-				'direct' => array(),
-				'async'  => array(),
-				'issues' => array(
+				'direct'  => array(),
+				'async'   => array(),
+				'issues'  => array(
 					'good'        => 0,
 					'recommended' => 0,
 					'critical'    => 0,
 				),
+				'results' => new stdClass(),
 			),
 		);
 
-		$issue_counts = get_transient( 'health-check-site-status-result' );
-
-		if ( false !== $issue_counts ) {
-			$issue_counts = json_decode( $issue_counts );
-
-			$health_check_js_variables['site_status']['issues'] = $issue_counts;
-		}
+		$health_check_js_variables['site_status']['issues'] = self::get_site_status_counts();
 
 		if ( 'site-health' === $screen->id && ( ! isset( $_GET['tab'] ) || empty( $_GET['tab'] ) ) ) {
 			$tests = WP_Site_Health::get_tests();
@@ -2848,6 +2932,22 @@ class WP_Site_Health {
 	 * @since 5.6.0 Added support for `has_rest` and `permissions`.
 	 *
 	 * @return array The list of tests to run.
+	 *
+	 * @phpstan-return array{
+	 *     direct: array<string, array{
+	 *         label: string,
+	 *         test: callable|string,
+	 *         skip_cron?: bool,
+	 *     }>,
+	 *     async: array<string, array{
+	 *         label: string,
+	 *         test: string,
+	 *         has_rest?: bool,
+	 *         skip_cron?: bool,
+	 *         async_direct_test?: callable,
+	 *         headers?: array<string, string>,
+	 *     }>,
+	 * }
 	 */
 	public static function get_tests() {
 		$tests = array(
@@ -3350,6 +3450,8 @@ class WP_Site_Health {
 	 * Runs the scheduled event to check and update the latest site health status for the website.
 	 *
 	 * @since 5.4.0
+	 * @since 7.1.0 The full test results are also cached in a separate detailed
+	 *              transient via WP_Site_Health::update_site_status_detail().
 	 */
 	public function wp_cron_scheduled_check() {
 		// Bootstrap wp-admin, as WP_Cron doesn't do this for us.
@@ -3357,13 +3459,8 @@ class WP_Site_Health {
 
 		$tests = WP_Site_Health::get_tests();
 
-		$results = array();
-
-		$site_status = array(
-			'good'        => 0,
-			'recommended' => 0,
-			'critical'    => 0,
-		);
+		$results           = array();
+		$unavailable_tests = array();
 
 		// Don't run https test on development environments.
 		if ( $this->is_development_environment() ) {
@@ -3392,7 +3489,7 @@ class WP_Site_Health {
 			}
 		}
 
-		foreach ( $tests['async'] as $test ) {
+		foreach ( $tests['async'] as $test_name => $test ) {
 			if ( ! empty( $test['skip_cron'] ) ) {
 				continue;
 			}
@@ -3436,7 +3533,10 @@ class WP_Site_Health {
 				if ( is_array( $result ) ) {
 					$results[] = $result;
 				} else {
-					$results[] = array(
+					// Include the test identifier so the unavailable result is counted consistently.
+					$unavailable_tests[ $test_name ] = true;
+					$results[]                       = array(
+						'test'   => $test_name,
 						'status' => 'recommended',
 						'label'  => __( 'A test is unavailable' ),
 					);
@@ -3444,17 +3544,251 @@ class WP_Site_Health {
 			}
 		}
 
+		$results_to_count = array();
+		$results_to_store = array();
 		foreach ( $results as $result ) {
-			if ( 'critical' === $result['status'] ) {
-				++$site_status['critical'];
-			} elseif ( 'recommended' === $result['status'] ) {
-				++$site_status['recommended'];
-			} else {
-				++$site_status['good'];
+			// Filters may return unexpected values, so require the fields used by both caches.
+			if ( ! is_array( $result ) ) {
+				continue;
+			}
+
+			$test   = $result['test'] ?? null;
+			$status = $result['status'] ?? null;
+			if (
+				! is_string( $test )
+				|| '' === sanitize_text_field( $test )
+				|| ! in_array( $status, self::VALID_STATUS_VALUES, true )
+			) {
+				continue;
+			}
+
+			$results_to_count[] = array( 'status' => $status );
+			if ( ! isset( $unavailable_tests[ $test ] ) ) {
+				$results_to_store[ $test ] = array( 'status' => $status );
 			}
 		}
 
-		set_transient( 'health-check-site-status-result', wp_json_encode( $site_status ) );
+		self::set_site_status_counts( self::count_site_status_results( $results_to_count ) );
+
+		/*
+		 * Cache the full results separately, keyed by test, so consumers can read the
+		 * detailed Site Health status without re-running the tests.
+		 *
+		 * Only verified results are included. An unavailable asynchronous test is still
+		 * reflected in the aggregate counts, but does not replace a previously verified
+		 * detailed result.
+		 */
+		self::update_site_status_detail( $results_to_store );
+	}
+
+	/**
+	 * Returns the cached aggregate Site Health status counts.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return Test_Status_Counts Aggregate counts. Each value is `0` when no result has been cached.
+	 */
+	public static function get_site_status_counts(): array {
+		$counts = get_transient( self::STATUS_RESULT_TRANSIENT );
+		if ( is_string( $counts ) ) {
+			$counts = json_decode( $counts, true );
+		}
+
+		if ( ! is_array( $counts ) || is_wp_error( rest_validate_value_from_schema( $counts, self::STATUS_COUNTS_SCHEMA ) ) ) {
+			$counts = array();
+		}
+
+		return self::normalize_status_counts( $counts );
+	}
+
+	/**
+	 * Caches the aggregate Site Health status counts.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed[] $counts Aggregate counts.
+	 * @return true|WP_Error True when the counts were saved, or WP_Error on failure.
+	 */
+	public static function set_site_status_counts( array $counts ) {
+		$validity = rest_validate_value_from_schema( $counts, self::STATUS_COUNTS_SCHEMA );
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
+		}
+
+		$stored_value = wp_json_encode( $counts );
+		if ( get_transient( self::STATUS_RESULT_TRANSIENT ) === $stored_value ) {
+			return true;
+		}
+
+		if ( ! set_transient( self::STATUS_RESULT_TRANSIENT, wp_json_encode( $counts ) ) ) {
+			return new WP_Error( 'set_transient_error', __( 'The Site Health status counts could not be saved.' ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns the cached detailed Site Health test results.
+	 *
+	 * The `counts` are derived from the cached `results`, so the two are always
+	 * internally consistent. They may differ from WP_Site_Health::get_site_status_counts(),
+	 * which reflects the latest run for the admin menu and Dashboard. Consumers that need a
+	 * consistent view of counts and detailed results should read both from here.
+	 *
+	 * @since 7.1.0
+	 * @todo This method is now not used.
+	 *
+	 * @return array The cached results as a map keyed by test name, aggregate counts derived
+	 *               from those same results, and the time of the most recent update. `results`
+	 *               is empty, all counts are `0`, and `timestamp` is `0` when none are cached.
+	 * @phpstan-return Site_Status_Detail
+	 */
+	public static function get_site_status_detail(): array {
+		$cached = self::read_site_status_detail_cache();
+
+		return array(
+			'results'   => $cached['results'],
+			'counts'    => self::count_site_status_results( array_values( $cached['results'] ) ),
+			'timestamp' => $cached['timestamp'],
+		);
+	}
+
+	/**
+	 * Updates the detailed Site Health results cache.
+	 *
+	 * Results are normalized and sanitized, then stored keyed by test name with a
+	 * per-result timestamp. Entries that have not been refreshed within a month are
+	 * dropped, for example when the plugin that registered a test has been deactivated.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array<string, mixed[]> $results Map of raw Site Health test result arrays,
+	 *                                        keyed by test name.
+	 * @return true|WP_Error True on success, WP_Error on failure.
+	 */
+	public static function update_site_status_detail( array $results ) {
+		$now = time();
+
+		$cached = self::read_site_status_detail_cache();
+
+		foreach ( $results as $test => $result ) {
+			$test = sanitize_text_field( $test );
+			if ( '' === $test ) {
+				return new WP_Error( 'invalid_test', __( 'The Site Health test identifier is invalid.' ) );
+			}
+
+			if ( is_array( $result ) ) {
+				$result['timestamp'] = $now;
+			}
+
+			$validity = rest_validate_value_from_schema( $result, self::STORED_STATUS_SCHEMA['properties']['results']['additionalProperties'] );
+			if ( is_wp_error( $validity ) ) {
+				return $validity;
+			}
+			/** @var Stored_Test_Result $result */
+
+			$cached['results'][ $test ] = $result;
+		}
+
+		// Drop results that have not been refreshed within the last month.
+		foreach ( $cached['results'] as $test => $result ) {
+			if ( ! isset( $result['timestamp'] ) || ( $now - (int) $result['timestamp'] ) > MONTH_IN_SECONDS ) {
+				unset( $cached['results'][ $test ] );
+			}
+		}
+
+		$stored_value = wp_json_encode(
+			array(
+				'results'   => $cached['results'],
+				'timestamp' => $now,
+			)
+		);
+		if ( get_transient( self::STATUS_DETAIL_TRANSIENT ) === $stored_value ) {
+			return true;
+		}
+
+		if ( ! set_transient( self::STATUS_DETAIL_TRANSIENT, $stored_value, MONTH_IN_SECONDS ) ) {
+			return new WP_Error( 'set_transient_error', __( 'The detailed Site Health status could not be saved.' ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Reads and decodes the cached detailed Site Health test results.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return array The stored status.
+	 * @phpstan-return Stored_Test_Results
+	 */
+	private static function read_site_status_detail_cache(): array {
+		$cached = get_transient( self::STATUS_DETAIL_TRANSIENT );
+		if ( is_string( $cached ) ) {
+			$cached = json_decode( $cached, true );
+		}
+
+		$validity = false;
+		if ( is_array( $cached ) ) {
+			$validity = rest_validate_value_from_schema( $cached, self::STORED_STATUS_SCHEMA );
+		}
+
+		if ( true !== $validity ) {
+			$cached = array(
+				'results'   => array(),
+				'timestamp' => 0,
+			);
+		}
+
+		/** @var Stored_Test_Results $cached */
+		return $cached;
+	}
+
+	/**
+	 * Normalizes a set of aggregate status counts to integers.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed[] $counts Raw counts that may be missing keys or hold non-integer values.
+	 * @return array The good, recommended, and critical counts.
+	 * @phpstan-return Test_Status_Counts
+	 */
+	private static function normalize_status_counts( array $counts ): array {
+		return array(
+			'good'        => max( 0, (int) ( $counts['good'] ?? 0 ) ),
+			'recommended' => max( 0, (int) ( $counts['recommended'] ?? 0 ) ),
+			'critical'    => max( 0, (int) ( $counts['critical'] ?? 0 ) ),
+		);
+	}
+
+	/**
+	 * Counts a set of Site Health results by status.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param list<array{ status: string, ... }> $results List of result arrays, each with a status.
+	 * @return array Aggregate counts, one bucket per status. A status other than `recommended` or `critical` counts as `good`.
+	 * @phpstan-return Test_Status_Counts
+	 */
+	private static function count_site_status_results( array $results ): array {
+		$counts = array(
+			'good'        => 0,
+			'recommended' => 0,
+			'critical'    => 0,
+		);
+
+		foreach ( $results as $result ) {
+			$status = $result['status'];
+
+			if ( 'critical' === $status ) {
+				++$counts['critical'];
+			} elseif ( 'recommended' === $status ) {
+				++$counts['recommended'];
+			} else {
+				++$counts['good'];
+			}
+		}
+
+		return $counts;
 	}
 
 	/**

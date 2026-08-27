@@ -156,10 +156,14 @@ jQuery( function( $ ) {
 
 		count = SiteHealth.site_status.issues[ issue.status ];
 
-		// If no test name is supplied, append a placeholder for markup references.
-		if ( typeof issue.test === 'undefined' ) {
-			issue.test = issue.status + count;
-		}
+		/*
+		 * Collect the test name and status so they can be cached server-side. These
+		 * include the asynchronous tests that only run in the browser. Labels are left
+		 * out on purpose, as they are translated and the cache is shared across locales.
+		 */
+		SiteHealth.site_status.results[ issue.test ] = {
+			status: issue.status
+		};
 
 		if ( 'critical' === issue.status ) {
 			heading = sprintf(
@@ -250,6 +254,7 @@ jQuery( function( $ ) {
 		}
 
 		if ( isStatusTab ) {
+			// Refresh the lightweight counts first, so a large detailed payload can't block them.
 			$.post(
 				ajaxurl,
 				{
@@ -258,6 +263,18 @@ jQuery( function( $ ) {
 					'counts': SiteHealth.site_status.issues
 				}
 			);
+
+			// Send the per-test results separately, as a best-effort detailed cache update.
+			if ( Object.keys( SiteHealth.site_status.results ).length > 0 ) {
+				$.post(
+					ajaxurl,
+					{
+						'action': 'health-check-site-status-result',
+						'_wpnonce': SiteHealth.nonce.site_status_result,
+						'results': JSON.stringify( SiteHealth.site_status.results )
+					}
+				);
+			}
 
 			if ( 100 === val ) {
 				$( '.site-status-all-clear' ).removeClass( 'hide' );
