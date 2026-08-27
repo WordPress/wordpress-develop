@@ -284,9 +284,9 @@ switch ( $action ) {
 			$messages[] = wp_get_admin_notice(
 				__( 'The menu item has been successfully deleted.' ),
 				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'updated' ),
-					'dismissible'        => true,
+					'id'          => 'message',
+					'type'        => 'success',
+					'dismissible' => true,
 				)
 			);
 		}
@@ -312,18 +312,18 @@ switch ( $action ) {
 			$messages[] = wp_get_admin_notice(
 				$deletion->get_error_message(),
 				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'error' ),
-					'dismissible'        => true,
+					'id'          => 'message',
+					'type'        => 'error',
+					'dismissible' => true,
 				)
 			);
 		} else {
 			$messages[] = wp_get_admin_notice(
 				__( 'The menu has been successfully deleted.' ),
 				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'updated' ),
-					'dismissible'        => true,
+					'id'          => 'message',
+					'type'        => 'success',
+					'dismissible' => true,
 				)
 			);
 		}
@@ -344,9 +344,9 @@ switch ( $action ) {
 				$messages[]     = wp_get_admin_notice(
 					$deletion->get_error_message(),
 					array(
-						'id'                 => 'message',
-						'additional_classes' => array( 'error' ),
-						'dismissible'        => true,
+						'id'          => 'message',
+						'type'        => 'error',
+						'dismissible' => true,
 					)
 				);
 				$deletion_error = true;
@@ -357,9 +357,9 @@ switch ( $action ) {
 			$messages[] = wp_get_admin_notice(
 				__( 'Selected menus have been successfully deleted.' ),
 				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'updated' ),
-					'dismissible'        => true,
+					'id'          => 'message',
+					'type'        => 'success',
+					'dismissible' => true,
 				)
 			);
 		}
@@ -387,9 +387,9 @@ switch ( $action ) {
 					$messages[] = wp_get_admin_notice(
 						$_nav_menu_selected_id->get_error_message(),
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'error' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'error',
+							'dismissible' => true,
 						)
 					);
 				} else {
@@ -445,9 +445,9 @@ switch ( $action ) {
 				$messages[] = wp_get_admin_notice(
 					__( 'Please enter a valid menu name.' ),
 					array(
-						'id'                 => 'message',
-						'additional_classes' => array( 'error' ),
-						'dismissible'        => true,
+						'id'          => 'message',
+						'type'        => 'error',
+						'dismissible' => true,
 					)
 				);
 			}
@@ -474,9 +474,9 @@ switch ( $action ) {
 				$messages[] = wp_get_admin_notice(
 					__( 'Please enter a valid menu name.' ),
 					array(
-						'id'                 => 'message',
-						'additional_classes' => array( 'error' ),
-						'dismissible'        => true,
+						'id'          => 'message',
+						'type'        => 'error',
+						'dismissible' => true,
 					)
 				);
 				$menu_title = $_menu_object->name;
@@ -490,9 +490,9 @@ switch ( $action ) {
 					$messages[]   = wp_get_admin_notice(
 						$_nav_menu_selected_id->get_error_message(),
 						array(
-							'id'                 => 'message',
-							'additional_classes' => array( 'error' ),
-							'dismissible'        => true,
+							'id'          => 'message',
+							'type'        => 'error',
+							'dismissible' => true,
 						)
 					);
 				} else {
@@ -534,9 +534,9 @@ switch ( $action ) {
 			$messages[] = wp_get_admin_notice(
 				__( 'Menu locations updated.' ),
 				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'updated' ),
-					'dismissible'        => true,
+					'id'          => 'message',
+					'type'        => 'success',
+					'dismissible' => true,
 				)
 			);
 		}
@@ -700,9 +700,9 @@ if ( ! current_theme_supports( 'menus' ) && ! $num_locations ) {
 	$messages[] = wp_get_admin_notice(
 		$message_no_theme_support,
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 }

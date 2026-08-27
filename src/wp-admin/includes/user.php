@@ -561,7 +561,8 @@ function default_password_nag() {
 	wp_admin_notice(
 		$default_password_nag_message,
 		array(
-			'additional_classes' => array( 'error', 'default-password-nag' ),
+			'type'               => 'error',
+			'additional_classes' => array( 'default-password-nag' ),
 			'paragraph_wrap'     => false,
 		)
 	);

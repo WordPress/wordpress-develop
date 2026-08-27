@@ -2522,8 +2522,8 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		wp_admin_notice(
 			$error_string,
 			array(
-				'id'                 => 'message',
-				'additional_classes' => array( 'error' ),
+				'id'   => 'message',
+				'type' => 'error',
 			)
 		);
 	}

@@ -536,8 +536,8 @@ class Custom_Image_Header {
 			wp_admin_notice(
 				$updated_message,
 				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'updated' ),
+					'id'   => 'message',
+					'type' => 'success',
 				)
 			);
 		}

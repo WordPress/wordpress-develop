@@ -1022,8 +1022,8 @@ function wp_import_upload_form( $action ) {
 		wp_admin_notice(
 			$upload_directory_error,
 			array(
-				'additional_classes' => array( 'error' ),
-				'paragraph_wrap'     => false,
+				'type'           => 'error',
+				'paragraph_wrap' => false,
 			)
 		);
 	else :
@@ -1446,7 +1446,8 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 							wp_admin_notice(
 								$meta_box_not_compatible_message,
 								array(
-									'additional_classes' => array( 'error', 'inline' ),
+									'type'               => 'error',
+									'additional_classes' => array( 'inline' ),
 								)
 							);
 						}
