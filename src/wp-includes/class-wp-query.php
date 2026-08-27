@@ -3968,7 +3968,11 @@ class WP_Query {
 	 * @return WP_Post[]|int[] Array of post objects or post IDs.
 	 *
 	 * @phpstan-return (
-	 *     $query is array{ fields: 'ids'|'id=>parent', ... } ? int[] : WP_Post[]
+	 *     $query is array{ fields: 'ids', ... }
+	 *         ? int[]
+	 *         : ( $query is array{ fields: 'id=>parent', ... }
+	 *             ? array<non-falsy-string, int>|array<int, int>
+	 *             : WP_Post[] )
 	 * )
 	 */
 	public function query( $query ) {
