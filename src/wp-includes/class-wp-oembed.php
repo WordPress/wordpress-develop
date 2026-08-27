@@ -643,8 +643,19 @@ class WP_oEmbed {
 		}
 
 		$parse_method = "_parse_$format";
+		$data         = $this->$parse_method( $body );
 
-		return $this->$parse_method( $body );
+		/*
+		 * Some providers ignore the `format` query parameter when it's already
+		 * implied by the request URL (e.g. a `.xml` endpoint). If JSON parsing
+		 * failed, try parsing the same response body as XML before giving up,
+		 * since XML parsing predictably fails on non-XML content.
+		 */
+		if ( false === $data && 'json' === $format && false !== stripos( $body, '<oembed' ) ) {
+			$data = $this->_parse_xml( $body );
+		}
+
+		return $data;
 	}
 
 	/**
