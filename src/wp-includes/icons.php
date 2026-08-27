@@ -140,6 +140,35 @@ function _wp_register_default_icons() {
 			)
 		);
 	}
+
+	/*
+	 * Register the sidebar menu icons in Core. These are not part of the
+	 * Gutenberg icon library and would otherwise be reverted by the
+	 * gutenberg:copy build task, so they are stored in their own directory
+	 * and registered here.
+	 */
+	$core_icons_directory = ABSPATH . WPINC . '/images/core-icons/';
+
+	$core_sidebar_icons = array(
+		'brush'     => _x( 'Brush', 'icon label' ),
+		'dashboard' => _x( 'Dashboard', 'icon label' ),
+		'link'      => _x( 'Link', 'icon label' ),
+		'media'     => _x( 'Media', 'icon label' ),
+		'page'      => _x( 'Page', 'icon label' ),
+		'plugins'   => _x( 'Plugins', 'icon label' ),
+		'post'      => _x( 'Post', 'icon label' ),
+		'tool'      => _x( 'Tool', 'icon label' ),
+	);
+
+	foreach ( $core_sidebar_icons as $icon_name => $icon_label ) {
+		wp_register_icon(
+			'core/' . $icon_name,
+			array(
+				'label'     => $icon_label,
+				'file_path' => $core_icons_directory . $icon_name . '.svg',
+			)
+		);
+	}
 }
 
 /**

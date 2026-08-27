@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /* translators: Network menu item. */
-$menu[2] = array( __( 'Dashboard' ), 'manage_network', 'index.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard', 'dashicons-dashboard' );
+$menu[2] = array( __( 'Dashboard' ), 'manage_network', 'index.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard', 'core/dashboard' );
 
 $submenu['index.php'][0] = array( __( 'Home' ), 'read', 'index.php' );
 
@@ -57,7 +57,7 @@ $menu[5]                  = array( __( 'Sites' ), 'manage_sites', 'sites.php', '
 $submenu['sites.php'][5]  = array( __( 'All Sites' ), 'manage_sites', 'sites.php' );
 $submenu['sites.php'][10] = array( __( 'Add Site' ), 'create_sites', 'site-new.php' );
 
-$menu[10]                 = array( __( 'Users' ), 'manage_network_users', 'users.php', '', 'menu-top menu-icon-users', 'menu-users', 'dashicons-admin-users' );
+$menu[10]                 = array( __( 'Users' ), 'manage_network_users', 'users.php', '', 'menu-top menu-icon-users', 'menu-users', 'core/people' );
 $submenu['users.php'][5]  = array( __( 'All Users' ), 'manage_network_users', 'users.php' );
 $submenu['users.php'][10] = array( __( 'Add User' ), 'create_users', 'user-new.php' );
 
@@ -77,10 +77,10 @@ if ( current_user_can( 'update_themes' ) && $update_data['counts']['themes'] ) {
 		'',
 		'menu-top menu-icon-appearance',
 		'menu-appearance',
-		'dashicons-admin-appearance',
+		'core/brush',
 	);
 } else {
-	$menu[15] = array( __( 'Themes' ), 'manage_network_themes', 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-admin-appearance' );
+	$menu[15] = array( __( 'Themes' ), 'manage_network_themes', 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'core/brush' );
 }
 $submenu['themes.php'][5]  = array( __( 'Installed Themes' ), 'manage_network_themes', 'themes.php' );
 $submenu['themes.php'][10] = array( __( 'Add Theme' ), 'install_themes', 'theme-install.php' );
@@ -102,16 +102,16 @@ if ( current_user_can( 'update_plugins' ) && $update_data['counts']['plugins'] )
 		'',
 		'menu-top menu-icon-plugins',
 		'menu-plugins',
-		'dashicons-admin-plugins',
+		'core/plugins',
 	);
 } else {
-	$menu[20] = array( __( 'Plugins' ), 'manage_network_plugins', 'plugins.php', '', 'menu-top menu-icon-plugins', 'menu-plugins', 'dashicons-admin-plugins' );
+	$menu[20] = array( __( 'Plugins' ), 'manage_network_plugins', 'plugins.php', '', 'menu-top menu-icon-plugins', 'menu-plugins', 'core/plugins' );
 }
 $submenu['plugins.php'][5]  = array( __( 'Installed Plugins' ), 'manage_network_plugins', 'plugins.php' );
 $submenu['plugins.php'][10] = array( __( 'Add Plugin' ), 'install_plugins', 'plugin-install.php' );
 $submenu['plugins.php'][15] = array( __( 'Plugin File Editor' ), 'edit_plugins', 'plugin-editor.php' );
 
-$menu[25] = array( __( 'Settings' ), 'manage_network_options', 'settings.php', '', 'menu-top menu-icon-settings', 'menu-settings', 'dashicons-admin-settings' );
+$menu[25] = array( __( 'Settings' ), 'manage_network_options', 'settings.php', '', 'menu-top menu-icon-settings', 'menu-settings', 'core/settings' );
 if ( defined( 'MULTISITE' ) && defined( 'WP_ALLOW_MULTISITE' ) && WP_ALLOW_MULTISITE ) {
 	$submenu['settings.php'][5]  = array( __( 'Network Settings' ), 'manage_network_options', 'settings.php' );
 	$submenu['settings.php'][10] = array( __( 'Network Setup' ), 'setup_network', 'setup.php' );
