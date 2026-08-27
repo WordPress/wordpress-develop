@@ -4112,6 +4112,26 @@ function wp_handle_comment_submission( $comment_data ) {
 		}
 	}
 
+	/*
+	 * A logged-out visitor may not comment using the email address of a
+	 * registered user. Requiring them to log in first prevents anyone from
+	 * impersonating that user. This is checked whenever an email is provided,
+	 * regardless of the 'require_name_email' option. See #10931.
+	 */
+	if ( ! $user->exists() && is_email( $comment_author_email ) && email_exists( $comment_author_email ) ) {
+		$login_url = wp_login_url( get_permalink( $comment_post_id ) );
+
+		return new WP_Error(
+			'comment_author_must_login',
+			sprintf(
+				/* translators: %s: Login URL. */
+				__( '<strong>Error:</strong> That email address belongs to a registered user. Please <a href="%s">log in</a> to comment.' ),
+				esc_url( $login_url )
+			),
+			403
+		);
+	}
+
 	$commentdata = array(
 		'comment_post_ID' => $comment_post_id,
 	);
