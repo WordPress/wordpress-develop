@@ -3950,9 +3950,14 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		/*
 		 * If `text_direction` was not explicitly passed,
 		 * use get_language_attributes() if available.
+		 *
+		 * Skipped while installing: get_language_attributes() queries the
+		 * database, which could re-trigger the DB error that led here and
+		 * loop wp_die() indefinitely. See #50228.
 		 */
 		if ( empty( $args['text_direction'] )
 			&& function_exists( 'language_attributes' ) && function_exists( 'is_rtl' )
+			&& ! wp_installing()
 		) {
 			$dir_attr = get_language_attributes();
 		}
