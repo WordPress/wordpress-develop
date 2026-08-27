@@ -3295,7 +3295,7 @@ class WP_Query {
 							$post_parent_cache_keys[] = 'post_parent:' . (string) $post_id;
 						}
 
-						/** @var int[] */
+						/** @var array<non-falsy-string, int|false> $cached_post_parents */
 						$cached_post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
 
 						$post_parents = array();
