@@ -11,6 +11,7 @@
  * @subpackage Twenty_Eleven
  * @since Twenty Eleven 1.0
  */
+
 ?>
 	<div id="comments">
 	<?php if ( post_password_required() ) : ?>

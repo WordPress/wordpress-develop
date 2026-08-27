@@ -17,6 +17,7 @@
  * @subpackage Twenty_Ten
  * @since Twenty Ten 1.0
  */
+
 ?>
 
 <?php // Display navigation to next/previous pages when applicable. ?>

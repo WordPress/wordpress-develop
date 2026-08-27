@@ -6,6 +6,7 @@
  * @subpackage Twenty_Ten
  * @since Twenty Ten 1.0
  */
+
 ?>
 
 		<div id="primary" class="widget-area" role="complementary">
