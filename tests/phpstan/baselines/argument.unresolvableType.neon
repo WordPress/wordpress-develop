@@ -21,5 +21,5 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$array_arg of function uksort contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/cron.php

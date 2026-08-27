@@ -85,6 +85,7 @@ includes:
 	- tests/phpstan/baselines/ternary.alwaysTrue.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
+	- tests/phpstan/baselines/wordpress.hookDocReferenceFileMissing.neon
 	# phpstan:baselines end
 
 parameters:
