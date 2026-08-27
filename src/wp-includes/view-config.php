@@ -761,3 +761,41 @@ function _wp_get_entity_view_config_posttype_wp_template( $data ) {
 
 	return $data;
 }
+
+/**
+ * Provides the view configuration for the `wp_navigation` post type.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_View_Config_Data $data The view configuration container for the entity.
+ * @return WP_View_Config_Data The updated view configuration container.
+ */
+function _wp_get_entity_view_config_posttype_wp_navigation( $data ) {
+	$default_layouts = array(
+		'list' => array(),
+	);
+
+	$default_view = array(
+		'type'       => 'list',
+		'filters'    => array(),
+		'perPage'    => 20,
+		'sort'       => array(
+			'field'     => 'date',
+			'direction' => 'desc',
+		),
+		'titleField' => 'title',
+		'fields'     => array(),
+	);
+
+	// The base config already provides the "All" view titled with the post
+	// type's `all_items` label, so only the default view and layouts change.
+	$data->set(
+		array(
+			'default_view'    => $default_view,
+			'default_layouts' => $default_layouts,
+		),
+		1
+	);
+
+	return $data;
+}
