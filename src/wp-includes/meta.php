@@ -800,8 +800,8 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
  * @param string $meta_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                          'user', or any other object type with an associated meta table.
  * @param int    $meta_id   ID for a specific meta row.
- * @return stdClass|false {
- *     Metadata object, or boolean `false` if the metadata doesn't exist.
+ * @return stdClass|null {
+ *     Metadata object, or null if the metadata doesn't exist.
  *
  *     @type string $meta_key   The meta key.
  *     @type mixed  $meta_value The unserialized meta value.
@@ -818,17 +818,17 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 	global $wpdb;
 
 	if ( ! $meta_type || ! is_numeric( $meta_id ) || floor( $meta_id ) != $meta_id ) {
-		return false;
+		return null;
 	}
 
 	$meta_id = (int) $meta_id;
 	if ( $meta_id <= 0 ) {
-		return false;
+		return null;
 	}
 
 	$table = _get_meta_table( $meta_type );
 	if ( ! $table ) {
-		return false;
+		return null;
 	}
 
 	/**
@@ -861,7 +861,7 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 	$meta = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE $id_column = %d", $meta_id ) );
 
 	if ( empty( $meta ) ) {
-		return false;
+		return null;
 	}
 
 	if ( isset( $meta->meta_value ) ) {
