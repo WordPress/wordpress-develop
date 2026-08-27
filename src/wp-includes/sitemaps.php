@@ -94,21 +94,27 @@ function wp_sitemaps_get_max_urls( $object_type ) {
  * Retrieves the full URL for a sitemap.
  *
  * @since 5.5.1
+ * @since 7.1.0 Added $format parameter.
  *
  * @param string $name         The sitemap name.
  * @param string $subtype_name The sitemap subtype name. Default empty string.
  * @param int    $page         The page of the sitemap. Default 1.
+ * @param string $format       The format for the sitemap index.  Accepts 'xml', 'html'.  Default 'xml'.
  * @return string|false The sitemap URL or false if the sitemap doesn't exist.
  */
-function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
+function get_sitemap_url( $name, $subtype_name = '', $page = 1, $format = 'xml' ) {
 	$sitemaps = wp_sitemaps_get_server();
 
 	if ( ! $sitemaps ) {
 		return false;
 	}
 
+	if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
+		$format = 'xml';
+	}
+
 	if ( 'index' === $name ) {
-		return $sitemaps->index->get_index_url();
+		return $sitemaps->index->get_index_url( $format );
 	}
 
 	$provider = $sitemaps->registry->get_provider( $name );
@@ -129,5 +135,5 @@ function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
 		$page = 1;
 	}
 
-	return $provider->get_sitemap_url( $subtype_name, $page );
+	return $provider->get_sitemap_url( $subtype_name, $page, $format );
 }

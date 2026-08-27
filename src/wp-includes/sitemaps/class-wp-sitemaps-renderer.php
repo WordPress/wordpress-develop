@@ -17,121 +17,45 @@
 #[AllowDynamicProperties]
 class WP_Sitemaps_Renderer {
 	/**
-	 * XSL stylesheet for styling a sitemap for web browsers.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @var string
-	 */
-	protected $stylesheet = '';
-
-	/**
-	 * XSL stylesheet for styling a sitemap for web browsers.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @var string
-	 */
-	protected $stylesheet_index = '';
-
-	/**
-	 * WP_Sitemaps_Renderer constructor.
-	 *
-	 * @since 5.5.0
-	 */
-	public function __construct() {
-		$stylesheet_url = $this->get_sitemap_stylesheet_url();
-
-		if ( $stylesheet_url ) {
-			$this->stylesheet = '<?xml-stylesheet type="text/xsl" href="' . esc_url( $stylesheet_url ) . '" ?>';
-		}
-
-		$stylesheet_index_url = $this->get_sitemap_index_stylesheet_url();
-
-		if ( $stylesheet_index_url ) {
-			$this->stylesheet_index = '<?xml-stylesheet type="text/xsl" href="' . esc_url( $stylesheet_index_url ) . '" ?>';
-		}
-	}
-
-	/**
-	 * Gets the URL for the sitemap stylesheet.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
-	 *
-	 * @return string The sitemap stylesheet URL.
-	 */
-	public function get_sitemap_stylesheet_url() {
-		global $wp_rewrite;
-
-		$sitemap_url = home_url( '/wp-sitemap.xsl' );
-
-		if ( ! $wp_rewrite->using_permalinks() ) {
-			$sitemap_url = home_url( '/?sitemap-stylesheet=sitemap' );
-		}
-
-		/**
-		 * Filters the URL for the sitemap stylesheet.
-		 *
-		 * If a falsey value is returned, no stylesheet will be used and
-		 * the "raw" XML of the sitemap will be displayed.
-		 *
-		 * @since 5.5.0
-		 *
-		 * @param string $sitemap_url Full URL for the sitemaps XSL file.
-		 */
-		return apply_filters( 'wp_sitemaps_stylesheet_url', $sitemap_url );
-	}
-
-	/**
-	 * Gets the URL for the sitemap index stylesheet.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
-	 *
-	 * @return string The sitemap index stylesheet URL.
-	 */
-	public function get_sitemap_index_stylesheet_url() {
-		global $wp_rewrite;
-
-		$sitemap_url = home_url( '/wp-sitemap-index.xsl' );
-
-		if ( ! $wp_rewrite->using_permalinks() ) {
-			$sitemap_url = home_url( '/?sitemap-stylesheet=index' );
-		}
-
-		/**
-		 * Filters the URL for the sitemap index stylesheet.
-		 *
-		 * If a falsey value is returned, no stylesheet will be used and
-		 * the "raw" XML of the sitemap index will be displayed.
-		 *
-		 * @since 5.5.0
-		 *
-		 * @param string $sitemap_url Full URL for the sitemaps index XSL file.
-		 */
-		return apply_filters( 'wp_sitemaps_stylesheet_index_url', $sitemap_url );
-	}
-
-	/**
 	 * Renders a sitemap index.
 	 *
 	 * @since 5.5.0
+	 * @since 7.1.0 Added $format parameter.
 	 *
-	 * @param array $sitemaps Array of sitemap URLs.
+	 * @param array  $sitemaps Array of sitemap URLs.
+	 * @param string $format   The format for the sitemap index.  Accepts 'xml', 'html'.
 	 */
-	public function render_index( $sitemaps ) {
-		header( 'Content-Type: application/xml; charset=UTF-8' );
-
+	public function render_index( $sitemaps, $format ) {
 		$this->check_for_simple_xml_availability();
 
 		$index_xml = $this->get_sitemap_index_xml( $sitemaps );
+		if ( ! $index_xml ) {
+			return;
+		}
 
-		if ( ! empty( $index_xml ) ) {
-			// All output is escaped within get_sitemap_index_xml().
-			echo $index_xml;
+		if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
+			$format = 'xml';
+		}
+
+		switch ( $format ) {
+			case 'html':
+				$this->check_for_xslt_availability();
+
+				$xslt = ( new WP_Sitemaps_Stylesheet() )->get_sitemap_index_stylesheet();
+
+				$html = $this->generate_html( $index_xml, $xslt );
+
+				echo $html;
+
+				break;
+			case 'xml':
+			default:
+				header( 'Content-Type: application/xml; charset=UTF-8' );
+
+				// All output is escaped within get_sitemap_xml().
+				echo $index_xml;
+
+				break;
 		}
 	}
 
@@ -146,9 +70,8 @@ class WP_Sitemaps_Renderer {
 	public function get_sitemap_index_xml( $sitemaps ) {
 		$sitemap_index = new SimpleXMLElement(
 			sprintf(
-				'%1$s%2$s%3$s',
+				'%1$s%2$s',
 				'<?xml version="1.0" encoding="UTF-8" ?>',
-				$this->stylesheet_index,
 				'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" />'
 			)
 		);
@@ -183,19 +106,42 @@ class WP_Sitemaps_Renderer {
 	 * Renders a sitemap.
 	 *
 	 * @since 5.5.0
+	 * @since 7.1.0 Added $format parameter.
 	 *
-	 * @param array $url_list Array of URLs for a sitemap.
+	 * @param array  $url_list Array of URLs for a sitemap.
+	 * @param string $format   The format for the sitemap index.  Accepts 'xml', 'html'.
 	 */
-	public function render_sitemap( $url_list ) {
-		header( 'Content-Type: application/xml; charset=UTF-8' );
-
+	public function render_sitemap( $url_list, $format ) {
 		$this->check_for_simple_xml_availability();
 
 		$sitemap_xml = $this->get_sitemap_xml( $url_list );
+		if ( empty( $sitemap_xml ) ) {
+			return;
+		}
 
-		if ( ! empty( $sitemap_xml ) ) {
-			// All output is escaped within get_sitemap_xml().
-			echo $sitemap_xml;
+		if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
+			$format = 'xml';
+		}
+
+		switch ( $format ) {
+			case 'html':
+				$this->check_for_xslt_availability();
+
+				$xslt = ( new WP_Sitemaps_Stylesheet() )->get_sitemap_stylesheet();
+
+				$html = $this->generate_html( $sitemap_xml, $xslt );
+
+				echo $html;
+
+				break;
+			case 'xml':
+			default:
+				header( 'Content-Type: application/xml; charset=UTF-8' );
+
+				// All output is escaped within get_sitemap_xml().
+				echo $sitemap_xml;
+
+				break;
 		}
 	}
 
@@ -210,9 +156,8 @@ class WP_Sitemaps_Renderer {
 	public function get_sitemap_xml( $url_list ) {
 		$urlset = new SimpleXMLElement(
 			sprintf(
-				'%1$s%2$s%3$s',
+				'%1$s%2$s',
 				'<?xml version="1.0" encoding="UTF-8" ?>',
-				$this->stylesheet,
 				'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" />'
 			)
 		);
@@ -269,5 +214,76 @@ class WP_Sitemaps_Renderer {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Checks for the availability of the DOMDocument & XSLTProcessor extension and errors if missing.
+	 *
+	 * @since 7.1.0
+	 */
+	private function check_for_xslt_availability() {
+		if ( ! class_exists( 'DOMDocument' ) ) {
+			wp_die(
+				sprintf(
+					/* translators: %s: DOMDocument */
+					esc_html( __( 'Could not generate XML sitemap due to missing %s extension' ) ),
+					'DOMDocument'
+				),
+				esc_html( __( 'WordPress &rsaquo; Error' ) ),
+				array(
+					'response' => 501, // "Not implemented".
+				)
+			);
+		}
+
+		if ( ! class_exists( 'XSLTProcessor' ) ) {
+			wp_die(
+				sprintf(
+					/* translators: %s: XSLTProcessor */
+					esc_html( __( 'Could not generate XML sitemap due to missing %s extension' ) ),
+					'XSLTProcessor'
+				),
+				esc_html( __( 'WordPress &rsaquo; Error' ) ),
+				array(
+					'response' => 501, // "Not implemented".
+				)
+			);
+		}
+	}
+
+	/**
+	 * Generate the HTML rendering of the sitemap or sitemap index using XSLT.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param SimpleXMLElement $xml        The XML of the sitemap or sitemap index.
+	 * @param string           $stylesheet The XSLT to apply to $xml.
+	 * @return string
+	 */
+	protected function generate_html( $xml, $stylesheet ) {
+		// @todo add some DOM/XSLTProcessor related error checking.
+
+		// Load the XML source document into a DOM.
+		$dom = new DOMDocument();
+		$dom->loadXML( $xml );
+
+		// Load the XSLT into a DOM.
+		$xslt = new DOMDocument();
+		$xslt->loadXML( $stylesheet );
+
+		// Create the XSLT processor and load the XSLT.
+		$proc = new XSLTProcessor();
+		$proc->importStylesheet( $xslt );
+
+		// Run the XSLT on the source XML.
+		// Note: XSLTProcessor::transformToXML() is poorly named and need NOT produce XML;
+		//       that is, it will produce whatever is specified by xsl:output/@method in the transform,
+		//       which in our case is 'text/html'.
+		$html = $proc->transformToXML( $dom );
+		if ( ! $html ) {
+			$html = '';
+		}
+
+		return $html;
 	}
 }

@@ -131,24 +131,31 @@ class WP_Sitemaps {
 		// Add rewrite tags.
 		add_rewrite_tag( '%sitemap%', '([^?]+)' );
 		add_rewrite_tag( '%sitemap-subtype%', '([^?]+)' );
+		add_rewrite_tag( '%sitemap-format%', '([^?]+)' );
 
 		// Register index route.
-		add_rewrite_rule( '^wp-sitemap\.xml$', 'index.php?sitemap=index', 'top' );
-
-		// Register rewrites for the XSL stylesheet.
-		add_rewrite_tag( '%sitemap-stylesheet%', '([^?]+)' );
-		add_rewrite_rule( '^wp-sitemap\.xsl$', 'index.php?sitemap-stylesheet=sitemap', 'top' );
-		add_rewrite_rule( '^wp-sitemap-index\.xsl$', 'index.php?sitemap-stylesheet=index', 'top' );
+		add_rewrite_rule( '^wp-sitemap\.xml$', 'index.php?sitemap=index&sitemap-format=xml', 'top' );
+		add_rewrite_rule( '^wp-sitemap\.html$', 'index.php?sitemap=index&sitemap-format=html', 'top' );
 
 		// Register routes for providers.
 		add_rewrite_rule(
 			'^wp-sitemap-([a-z]+?)-([a-z\d_-]+?)-(\d+?)\.xml$',
-			'index.php?sitemap=$matches[1]&sitemap-subtype=$matches[2]&paged=$matches[3]',
+			'index.php?sitemap=$matches[1]&sitemap-subtype=$matches[2]&paged=$matches[3]&sitemap-format=xml',
+			'top'
+		);
+		add_rewrite_rule(
+			'^wp-sitemap-([a-z]+?)-([a-z\d_-]+?)-(\d+?)\.html$',
+			'index.php?sitemap=$matches[1]&sitemap-subtype=$matches[2]&paged=$matches[3]&sitemap-format=html',
 			'top'
 		);
 		add_rewrite_rule(
 			'^wp-sitemap-([a-z]+?)-(\d+?)\.xml$',
-			'index.php?sitemap=$matches[1]&paged=$matches[2]',
+			'index.php?sitemap=$matches[1]&paged=$matches[2]&sitemap-format=xml',
+			'top'
+		);
+		add_rewrite_rule(
+			'^wp-sitemap-([a-z]+?)-(\d+?)\.html$',
+			'index.php?sitemap=$matches[1]&paged=$matches[2]&sitemap-format=html',
 			'top'
 		);
 	}
@@ -164,12 +171,17 @@ class WP_Sitemaps {
 		global $wp_query;
 
 		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
+		$format         = sanitize_text_field( get_query_var( 'sitemap-format' ) );
 		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
-		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
 		$paged           = absint( get_query_var( 'paged' ) );
 
-		// Bail early if this isn't a sitemap or stylesheet route.
-		if ( ! ( $sitemap || $stylesheet_type ) ) {
+		if ( ! in_array( $format, array( 'xml', 'html' ), true ) ) {
+			// Force xml if the format is unknown.
+			$format = 'xml';
+		}
+
+		// Bail early if this isn't a sitemap route.
+		if ( ! $sitemap ) {
 			return;
 		}
 
@@ -179,19 +191,11 @@ class WP_Sitemaps {
 			return;
 		}
 
-		// Render stylesheet if this is stylesheet route.
-		if ( $stylesheet_type ) {
-			$stylesheet = new WP_Sitemaps_Stylesheet();
-
-			$stylesheet->render_stylesheet( $stylesheet_type );
-			exit;
-		}
-
 		// Render the index.
 		if ( 'index' === $sitemap ) {
-			$sitemap_list = $this->index->get_sitemap_list();
+			$sitemap_list = $this->index->get_sitemap_list( $format );
 
-			$this->renderer->render_index( $sitemap_list );
+			$this->renderer->render_index( $sitemap_list, $format );
 			exit;
 		}
 
@@ -214,7 +218,7 @@ class WP_Sitemaps {
 			return;
 		}
 
-		$this->renderer->render_sitemap( $url_list );
+		$this->renderer->render_sitemap( $url_list, $format );
 		exit;
 	}
 
@@ -258,7 +262,7 @@ class WP_Sitemaps {
 	 */
 	public function add_robots( $output, $is_public ) {
 		if ( $is_public ) {
-			$output .= "\nSitemap: " . esc_url( $this->index->get_index_url() ) . "\n";
+			$output .= "\nSitemap: " . esc_url( $this->index->get_index_url( 'xml' ) ) . "\n";
 		}
 
 		return $output;

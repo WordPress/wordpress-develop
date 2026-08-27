@@ -17,11 +17,11 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 
 		$posts_provider = new WP_Sitemaps_Posts();
 
-		$post_list = $posts_provider->get_sitemap_entries();
+		$post_list = $posts_provider->get_sitemap_entries( 'xml' );
 
 		$expected = array(
 			array(
-				'loc' => home_url( '/?sitemap=posts&sitemap-subtype=page&paged=1' ),
+				'loc' => home_url( '/?sitemap=posts&sitemap-subtype=page&paged=1&sitemap-format=xml' ),
 			),
 		);
 

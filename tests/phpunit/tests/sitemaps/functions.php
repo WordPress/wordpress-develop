@@ -98,17 +98,17 @@ class Tests_Sitemaps_Functions extends WP_UnitTestCase {
 	 */
 	public function data_get_sitemap_url_plain_permalinks() {
 		return array(
-			array( 'posts', 'post', 1, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
-			array( 'posts', 'post', 0, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
-			array( 'posts', 'page', 1, home_url( '/?sitemap=posts&sitemap-subtype=page&paged=1' ) ),
-			array( 'posts', 'page', 5, home_url( '/?sitemap=posts&sitemap-subtype=page&paged=5' ) ),
+			array( 'posts', 'post', 1, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1&sitemap-format=xml' ) ),
+			array( 'posts', 'post', 0, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1&sitemap-format=xml' ) ),
+			array( 'posts', 'page', 1, home_url( '/?sitemap=posts&sitemap-subtype=page&paged=1&sitemap-format=xml' ) ),
+			array( 'posts', 'page', 5, home_url( '/?sitemap=posts&sitemap-subtype=page&paged=5&sitemap-format=xml' ) ),
 			// Post type doesn't exist.
 			array( 'posts', 'foo', 5, false ),
-			array( 'taxonomies', 'category', 1, home_url( '/?sitemap=taxonomies&sitemap-subtype=category&paged=1' ) ),
-			array( 'taxonomies', 'post_tag', 1, home_url( '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1' ) ),
+			array( 'taxonomies', 'category', 1, home_url( '/?sitemap=taxonomies&sitemap-subtype=category&paged=1&sitemap-format=xml' ) ),
+			array( 'taxonomies', 'post_tag', 1, home_url( '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1&sitemap-format=xml' ) ),
 			// Negative paged, gets converted to its absolute value.
-			array( 'taxonomies', 'post_tag', -1, home_url( '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1' ) ),
-			array( 'users', '', 4, home_url( '/?sitemap=users&paged=4' ) ),
+			array( 'taxonomies', 'post_tag', -1, home_url( '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1&sitemap-format=xml' ) ),
+			array( 'users', '', 4, home_url( '/?sitemap=users&paged=4&sitemap-format=xml' ) ),
 			// Users provider doesn't allow subtypes.
 			array( 'users', 'foo', 4, false ),
 			// Provider doesn't exist.
