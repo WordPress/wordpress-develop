@@ -250,9 +250,11 @@ function _wp_get_allowed_postdata( $post_data = null ) {
  *
  * @param array|null $post_data Optional. The array of post data to process.
  *                              Defaults to the `$_POST` superglobal.
- * @return int Post ID.
+ * @param bool       $wp_error  Optional. Whether to return a WP_Error on failure.
+ *                              Default false.
+ * @return int|WP_Error Post ID on success, WP_Error on failure.
  */
-function edit_post( $post_data = null ) {
+function edit_post( $post_data = null, $wp_error = false ) {
 	global $wpdb;
 
 	if ( empty( $post_data ) ) {
@@ -279,8 +281,14 @@ function edit_post( $post_data = null ) {
 	$ptype = get_post_type_object( $post_data['post_type'] );
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
+			if ( $wp_error ) {
+				return new WP_Error( 'edit_page_not_allowed', __( 'Sorry, you are not allowed to edit this page.' ) );
+			}
 			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
 		} else {
+			if ( $wp_error ) {
+				return new WP_Error( 'edit_post_not_allowed', __( 'Sorry, you are not allowed to edit this post.' ) );
+			}
 			wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 		}
 	}
@@ -319,6 +327,9 @@ function edit_post( $post_data = null ) {
 
 	$post_data = _wp_translate_postdata( true, $post_data );
 	if ( is_wp_error( $post_data ) ) {
+		if ( $wp_error ) {
+			return $post_data;
+		}
 		wp_die( $post_data->get_error_message() );
 	}
 	$translated = _wp_get_allowed_postdata( $post_data );
@@ -446,10 +457,10 @@ function edit_post( $post_data = null ) {
 
 	update_post_meta( $post_id, '_edit_last', get_current_user_id() );
 
-	$success = wp_update_post( $translated );
+	$success = wp_update_post( $translated, $wp_error );
 
 	// If the save failed, see if we can confidence check the main fields and try again.
-	if ( ! $success && is_callable( array( $wpdb, 'strip_invalid_text_for_column' ) ) ) {
+	if ( ( ! $success || is_wp_error( $success ) ) && is_callable( array( $wpdb, 'strip_invalid_text_for_column' ) ) ) {
 		$fields = array( 'post_title', 'post_content', 'post_excerpt' );
 
 		foreach ( $fields as $field ) {
@@ -458,7 +469,17 @@ function edit_post( $post_data = null ) {
 			}
 		}
 
-		wp_update_post( $translated );
+		$success = wp_update_post( $translated, $wp_error );
+	}
+
+	if ( is_wp_error( $success ) ) {
+		return $success;
+	}
+
+	if ( 0 === $success ) {
+		if ( $wp_error ) {
+			return new WP_Error( 'edit_post_failed', __( 'Could not update post.' ) );
+		}
 	}
 
 	// Now that we have an ID we can fix any attachment anchor hrefs.
@@ -2091,7 +2112,7 @@ function post_preview() {
 	if ( ! wp_check_post_lock( $post->ID ) && get_current_user_id() === (int) $post->post_author
 		&& ( 'draft' === $post->post_status || 'auto-draft' === $post->post_status )
 	) {
-		$saved_post_id = edit_post();
+		$saved_post_id = edit_post( null, true );
 	} else {
 		$is_autosave = true;
 
@@ -2132,8 +2153,8 @@ function post_preview() {
  * @since 3.9.0
  *
  * @param array $post_data Associative array of the submitted post data.
- * @return mixed The value 0 or WP_Error on failure. The saved post ID on success.
- *               The ID can be the draft post_id or the autosave revision post_id.
+ * @return int|WP_Error The saved post ID on success, WP_Error on failure.
+ *                      The ID can be the draft post_id or the autosave revision post_id.
  */
 function wp_autosave( $post_data ) {
 	// Back-compat.
@@ -2167,7 +2188,7 @@ function wp_autosave( $post_data ) {
 		&& ( 'auto-draft' === $post->post_status || 'draft' === $post->post_status )
 	) {
 		// Drafts and auto-drafts are just overwritten by autosave for the same user if the post is not locked.
-		return edit_post( wp_slash( $post_data ) );
+		return edit_post( wp_slash( $post_data ), true );
 	} else {
 		/*
 		 * Non-drafts or other users' drafts are not overwritten.

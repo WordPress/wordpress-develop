@@ -1371,4 +1371,114 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
+
+	/**
+	 * Tests that edit_post() returns a WP_Error instead of wp_die() when $wp_error is true.
+	 *
+	 * @ticket 65548
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_returns_wp_error_on_permission_failure() {
+		wp_set_current_user( self::$contributor_id );
+
+		$post      = self::factory()->post->create_and_get( array( 'post_author' => self::$admin_id ) );
+		$post_data = array(
+			'post_title' => 'Test',
+			'content'    => 'Test content',
+			'post_type'  => 'post',
+			'post_ID'    => $post->ID,
+		);
+
+		$result = edit_post( $post_data, true );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'edit_post_not_allowed', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that edit_post() returns a WP_Error for page post type when $wp_error is true.
+	 *
+	 * @ticket 65548
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_returns_wp_error_on_page_permission_failure() {
+		wp_set_current_user( self::$contributor_id );
+
+		$post      = self::factory()->post->create_and_get(
+			array(
+				'post_author' => self::$admin_id,
+				'post_type'   => 'page',
+			)
+		);
+		$post_data = array(
+			'post_title' => 'Test',
+			'content'    => 'Test content',
+			'post_type'  => 'page',
+			'post_ID'    => $post->ID,
+		);
+
+		$result = edit_post( $post_data, true );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'edit_page_not_allowed', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that edit_post() calls wp_die() on permission failure when $wp_error is false (default).
+	 *
+	 * @ticket 65548
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_calls_wp_die_on_permission_failure() {
+		wp_set_current_user( self::$contributor_id );
+
+		$post      = self::factory()->post->create_and_get( array( 'post_author' => self::$admin_id ) );
+		$post_data = array(
+			'post_title' => 'Test',
+			'content'    => 'Test content',
+			'post_type'  => 'post',
+			'post_ID'    => $post->ID,
+		);
+
+		$this->expectException( 'WPDieException' );
+		edit_post( $post_data );
+	}
+
+	/**
+	 * Tests that edit_post() returns a WP_Error from _wp_translate_postdata() when $wp_error is true.
+	 *
+	 * @ticket 65548
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_returns_wp_error_on_translate_postdata_failure() {
+		wp_set_current_user( self::$contributor_id );
+
+		// Create a post owned by the contributor.
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_author' => self::$contributor_id,
+				'post_status' => 'draft',
+			)
+		);
+
+		// Set post_author to another user to trigger edit_others_posts failure in _wp_translate_postdata().
+		$post_data = array(
+			'post_title'  => 'Test',
+			'content'     => 'Test content',
+			'post_type'   => 'post',
+			'post_status' => 'draft',
+			'post_author' => self::$editor_id,
+			'post_ID'     => $post->ID,
+			'saveasdraft' => true,
+		);
+
+		$result = edit_post( $post_data, true );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'edit_others_posts', $result->get_error_code() );
+	}
 }

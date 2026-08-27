@@ -1663,7 +1663,7 @@ function wp_ajax_add_meta() {
 				gmdate( __( 'g:i a' ), $now )
 			);
 
-			$post_id = edit_post( $post_data );
+			$post_id = edit_post( $post_data, true );
 
 			if ( $post_id ) {
 				if ( is_wp_error( $post_id ) ) {
@@ -2175,7 +2175,7 @@ function wp_ajax_inline_save() {
 	}
 
 	// Update the post.
-	edit_post();
+	edit_post( null, true );
 
 	$wp_list_table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => $_POST['screen'] ) );
 
@@ -2909,7 +2909,7 @@ function wp_ajax_wp_fullscreen_save_post() {
 
 	check_ajax_referer( 'update-post_' . $post_id, '_wpnonce' );
 
-	$post_id = edit_post();
+	$post_id = edit_post( null, true );
 
 	if ( is_wp_error( $post_id ) ) {
 		wp_send_json_error();
