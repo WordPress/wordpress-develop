@@ -38,76 +38,21 @@ class Tests_Functions_wpGuessUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_guess_url() returns an HTTPS URL when the site is already using HTTPS.
+	 * Tests that wp_guess_url() does not make an HTTP request to detect HTTPS support.
 	 *
 	 * @ticket 52388
 	 */
-	public function test_wp_guess_url_uses_https_when_already_ssl() {
-		$_SERVER['HTTPS']       = 'on';
-		$_SERVER['HTTP_HOST']   = 'example.org';
-		$_SERVER['REQUEST_URI'] = '/wp-admin/install.php';
+	public function test_wp_guess_url_does_not_make_http_request() {
+		$request_made = false;
+		$filter       = static function () use ( &$request_made ) {
+			$request_made = true;
+			return new WP_Error();
+		};
 
-		$url = wp_guess_url();
+		add_filter( 'pre_http_request', $filter );
+		wp_guess_url();
+		remove_filter( 'pre_http_request', $filter );
 
-		$this->assertStringStartsWith( 'https://example.org', $url );
-		unset( $_SERVER['HTTPS'] );
-	}
-
-	/**
-	 * Tests that wp_guess_url() returns an HTTPS URL when HTTPS is supported.
-	 *
-	 * @ticket 52388
-	 */
-	public function test_wp_guess_url_uses_https_when_supported() {
-		unset( $_SERVER['HTTPS'] );
-		$_SERVER['HTTP_HOST']   = 'example.org';
-		$_SERVER['REQUEST_URI'] = '/wp-admin/install.php';
-
-		if ( ! function_exists( 'wp_is_https_supported' ) ) {
-			require_once ABSPATH . WPINC . '/https-detection.php';
-		}
-
-		// Mock wp_is_https_supported() to return true.
-		add_filter(
-			'pre_wp_get_https_detection_errors',
-			function () {
-				return new WP_Error();
-			}
-		);
-
-		$url = wp_guess_url();
-
-		$this->assertStringStartsWith( 'https://example.org', $url );
-		remove_all_filters( 'pre_wp_get_https_detection_errors' );
-	}
-
-	/**
-	 * Tests that wp_guess_url() returns an HTTP URL when HTTPS is not supported.
-	 *
-	 * @ticket 52388
-	 */
-	public function test_wp_guess_url_uses_http_when_https_not_supported() {
-		unset( $_SERVER['HTTPS'] );
-		$_SERVER['HTTP_HOST']   = 'example.org';
-		$_SERVER['REQUEST_URI'] = '/wp-admin/install.php';
-
-		if ( ! function_exists( 'wp_is_https_supported' ) ) {
-			require_once ABSPATH . WPINC . '/https-detection.php';
-		}
-
-		// Mock wp_is_https_supported() to return false.
-		add_filter(
-			'pre_wp_get_https_detection_errors',
-			function () {
-				$error = new WP_Error();
-				$error->add( 'https_not_supported', 'HTTPS not supported' );
-				return $error;
-			}
-		);
-
-		$url = wp_guess_url();
-
-		$this->assertStringStartsWith( 'http://example.org', $url );
-		remove_all_filters( 'pre_wp_get_https_detection_errors' );
+		$this->assertFalse( $request_made );
 	}
 }

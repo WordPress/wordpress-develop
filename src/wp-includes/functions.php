@@ -6490,18 +6490,8 @@ function wp_guess_url() {
 			}
 		}
 
-		// Check if HTTPS is supported.
-		$schema = 'http://';
-		if ( is_ssl() ) {
-			$schema = 'https://';
-		} elseif ( file_exists( ABSPATH . WPINC . '/https-detection.php' ) ) {
-			require_once ABSPATH . WPINC . '/https-detection.php';
-			if ( function_exists( 'wp_is_https_supported' ) && wp_is_https_supported() ) {
-				$schema = 'https://';
-			}
-		}
-
-		$url = $schema . $_SERVER['HTTP_HOST'] . $path;
+		$schema = is_ssl() ? 'https://' : 'http://'; // set_url_scheme() is not defined yet.
+		$url    = $schema . $_SERVER['HTTP_HOST'] . $path;
 	}
 
 	return rtrim( $url, '/' );
