@@ -58,4 +58,38 @@ class Tests_Theme_TwentyFourteenEphemeraWidget extends WP_UnitTestCase {
 		$this->assertSame( 1, $GLOBALS['more'], 'The $more global was not restored to its original value.' ); // @phpstan-ignore method.alreadyNarrowedType (The global variable is modified by Twenty_Fourteen_Ephemera_Widget::widget().)
 		$this->assertSame( 474, $GLOBALS['content_width'], 'The $content_width global was not restored to its original value.' );
 	}
+
+	/**
+	 * The `$more` global is only defined once a loop has run, so the widget must not
+	 * assume it exists. It can render before any loop on a 404, an empty search, or an
+	 * empty archive, as well as outside the template entirely.
+	 */
+	public function test_widget_when_more_global_is_undefined() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => 'I want <!--more--> ice cream!',
+			)
+		);
+		$this->assertIsInt( $post_id );
+		set_post_format( $post_id, 'aside' );
+
+		unset( $GLOBALS['more'] );
+		$GLOBALS['content_width'] = 474;
+
+		$widget = new Twenty_Fourteen_Ephemera_Widget();
+
+		$output = get_echo(
+			array( $widget, 'widget' ),
+			array(
+				array(
+					'before_widget' => '',
+					'after_widget'  => '',
+				),
+				array( 'format' => 'aside' ),
+			)
+		);
+
+		$this->assertNotEmpty( $output, 'The widget content.' );
+		$this->assertNull( $GLOBALS['more'], 'The $more global was not restored to a falsey value.' ); // @phpstan-ignore offsetAccess.notFound (The global variable is set by Twenty_Fourteen_Ephemera_Widget::widget().)
+	}
 }

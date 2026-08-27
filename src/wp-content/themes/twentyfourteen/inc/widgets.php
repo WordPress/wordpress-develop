@@ -137,7 +137,8 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 		if ( $ephemera->have_posts() ) :
 			$tmp_content_width        = $GLOBALS['content_width'];
 			$GLOBALS['content_width'] = 306;
-			$tmp_more                 = $GLOBALS['more'];
+			// The global is unset until a loop has run, so this may be reached before it exists.
+			$tmp_more = $GLOBALS['more'] ?? null;
 
 			echo $args['before_widget'];
 			?>
