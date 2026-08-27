@@ -165,17 +165,11 @@ jQuery( function($) {
 			 * @return {void}
  			 */
 			function highlightLatestPost () {
-				var latestPost = $( '.drafts ul li' ) .first(),
-					errorNotice = $( '#quick-press .notice-error' );
-
-				if ( errorNotice.length ) {
-					return;
-				}
-
-				latestPost.css( 'background', '#fffbe5' );
-				setTimeout( function () {
-					latestPost.css( 'background', 'none' );
-				}, 1000 );
+				var latestPost = $('.drafts ul li').first();
+				latestPost.addClass('is-highlighted');
+				setTimeout(function () {
+					latestPost.removeClass('is-highlighted');
+				}, 1000);
 			}
 		} );
 
