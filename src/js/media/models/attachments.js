@@ -251,26 +251,32 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		return this;
 	},
 	/**
-	 * Update total attachment count when items are added to a collection.
+	 * Update total attachment count when items are removed from the mirrored collection.
 	 *
 	 * @access private
 	 *
 	 * @since 5.8.0
+	 *
+	 * @param {wp.media.model.Attachment} attachment  The attachment model.
+	 * @param {wp.media.model.Attachments} collection The collection that triggered the event.
 	 */
-	_removeFromTotalAttachments: function() {
-		if ( this.mirroring ) {
+	_removeFromTotalAttachments: function( attachment, collection ) {
+		if ( this.mirroring && collection === this.mirroring ) {
 			this.mirroring.totalAttachments = this.mirroring.totalAttachments - 1;
 		}
 	},
 	/**
-	 * Update total attachment count when items are added to a collection.
+	 * Update total attachment count when items are added to the mirrored collection.
 	 *
 	 * @access private
 	 *
 	 * @since 5.8.0
+	 *
+	 * @param {wp.media.model.Attachment} attachment  The attachment model.
+	 * @param {wp.media.model.Attachments} collection The collection that triggered the event.
 	 */
-	_addToTotalAttachments: function() {
-		if ( this.mirroring ) {
+	_addToTotalAttachments: function( attachment, collection ) {
+		if ( this.mirroring && collection === this.mirroring ) {
 			this.mirroring.totalAttachments = this.mirroring.totalAttachments + 1;
 		}
 	},
