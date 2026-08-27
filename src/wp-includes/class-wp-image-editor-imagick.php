@@ -1086,7 +1086,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return void|WP_Error WP_Error object if the alpha channel could not be removed.
+	 * @return null|WP_Error Null on success, WP_Error object if the alpha channel could not be removed.
 	 */
 	protected function remove_pdf_alpha_channel() {
 		$version = Imagick::getVersion();
@@ -1099,6 +1099,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				return new WP_Error( 'pdf_alpha_process_failed', $e->getMessage() );
 			}
 		}
+
+		return null;
 	}
 
 	/**
