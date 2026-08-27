@@ -91,18 +91,18 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the protected exception_to_wp_error() method on a builder.
+	 * Invokes the protected throwable_to_wp_error() method on a builder.
 	 *
 	 * @param WP_AI_Client_Embedding_Builder $builder   The builder to invoke the method on.
-	 * @param Exception                      $exception The exception to convert.
-	 * @return WP_Error The resulting WP_Error.
+	 * @param Throwable                       $throwable The throwable to convert.
+ * @return WP_Error The resulting WP_Error.
 	 */
-	private function invoke_exception_to_wp_error( WP_AI_Client_Embedding_Builder $builder, Exception $exception ): WP_Error {
+	private function invoke_throwable_to_wp_error( WP_AI_Client_Embedding_Builder $builder, Throwable $throwable ): WP_Error {
 		$reflection = new ReflectionClass( WP_AI_Client_Embedding_Builder::class );
-		$method     = $reflection->getMethod( 'exception_to_wp_error' );
+		$method     = $reflection->getMethod( 'throwable_to_wp_error' );
 		self::set_accessible( $method );
 
-		return $method->invoke( $builder, $exception );
+		return $method->invoke( $builder, $throwable );
 	}
 
 	/**
@@ -334,6 +334,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_method_chaining_returns_wrapper() {
+
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
 
 		$result = $builder->with_input( 'Test input' );
@@ -343,6 +344,25 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 		$this->assertSame( $builder, $result, 'using_dimensions() should return the wrapper instance' );
 	}
 
+	/**
+		* Test that a TypeError from a proxied SDK method is converted to a WP_Error.
+	 *
+	 * @ticket 65638
+		*/
+	public function test_type_error_from_using_dimensions_returns_wp_error() {
+
+		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
+
+		$result = $builder->using_dimensions( array( 256 ) );
+
+		$this->assertSame( $builder, $result, 'A failed fluent call should return the wrapper instance' );
+
+		$error = $builder->generate_embedding();
+
+		$this->assertWPError( $error );
+		$this->assertSame( 'embedding_builder_error', $error->get_error_code() );
+		$this->assertSame( TypeError::class, $error->get_error_data()['exception_class'] );
+	}
 	/**
 	 * Test that with_input() appends inputs to the wrapped builder.
 	 *
@@ -654,32 +674,32 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that exception_to_wp_error() maps exceptions to embedding-prefixed error codes.
+	 * Test that throwable_to_wp_error() maps exceptions to embedding-prefixed error codes.
 	 *
 	 * @ticket 64591
 	 *
-	 * @dataProvider data_exception_to_wp_error_mapping
+	 * @dataProvider data_throwable_to_wp_error_mapping
 	 *
-	 * @param Exception $exception       The exception to convert.
+	 * @param Throwable $throwable       The throwable to convert.
 	 * @param string    $expected_code   The expected WP_Error code.
 	 * @param int       $expected_status The expected HTTP status in the error data.
 	 */
-	public function test_exception_to_wp_error_mapping( Exception $exception, string $expected_code, int $expected_status ) {
+	public function test_throwable_to_wp_error_mapping( Throwable $throwable, string $expected_code, int $expected_status ) {
 		$builder = new WP_AI_Client_Embedding_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error( $builder, $exception );
+		$error   = $this->invoke_throwable_to_wp_error( $builder, $throwable );
 
 		$this->assertSame( $expected_code, $error->get_error_code() );
-		$this->assertSame( $exception->getMessage(), $error->get_error_message() );
+		$this->assertSame( $throwable->getMessage(), $error->get_error_message() );
 		$this->assertSame( $expected_status, $error->get_error_data()['status'] );
-		$this->assertSame( get_class( $exception ), $error->get_error_data()['exception_class'] );
+		$this->assertSame( get_class( $throwable ), $error->get_error_data()['exception_class'] );
 	}
 
 	/**
-	 * Data provider for {@see self::test_exception_to_wp_error_mapping()}.
+	 * Data provider for {@see self::test_throwable_to_wp_error_mapping()}.
 	 *
-	 * @return array<string, array{0: Exception, 1: string, 2: int}>
+	 * @return array<string, array{0: Throwable, 1: string, 2: int}>
 	 */
-	public static function data_exception_to_wp_error_mapping(): array {
+	public static function data_throwable_to_wp_error_mapping(): array {
 		return array(
 			'NetworkException'             => array( new NetworkException( 'network error' ), 'embedding_network_error', 503 ),
 			'ClientException with code'    => array( new ClientException( 'unauthorized', 401 ), 'embedding_client_error', 401 ),

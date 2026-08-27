@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 7.1.0
+ * @since 7.2.0
  */
 
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
@@ -29,7 +29,7 @@ use WordPress\AiClient\Providers\ProviderRegistry;
  * calls will be no-ops that just return the same error state instance. Only
  * when a generating method is called, the WP_Error will be returned.
  *
- * @since 7.1.0
+ * @since 7.2.0
  */
 abstract class WP_AI_Client_Builder {
 
@@ -37,7 +37,7 @@ abstract class WP_AI_Client_Builder {
 	 * Wrapped builder instance from the PHP AI Client SDK.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 * @var object
 	 */
 	protected object $builder;
@@ -46,7 +46,7 @@ abstract class WP_AI_Client_Builder {
 	 * WordPress error instance, if any error occurred during method calls.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 * @var WP_Error|null
 	 */
 	protected ?WP_Error $error = null;
@@ -55,7 +55,7 @@ abstract class WP_AI_Client_Builder {
 	 * Constructor.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
 	 * @param mixed            $input    Optional. Initial input content for the builder.
@@ -65,9 +65,9 @@ abstract class WP_AI_Client_Builder {
 	public function __construct( ProviderRegistry $registry, $input = null ) {
 		try {
 			$this->builder = $this->create_sdk_builder( $registry, $input );
-		} catch ( Exception $e ) {
+		} catch ( Throwable $e ) {
 			$this->builder = $this->create_sdk_builder( $registry, null );
-			$this->error   = $this->exception_to_wp_error( $e );
+			$this->error   = $this->throwable_to_wp_error( $e );
 		}
 
 		$default_timeout = 30.0;
@@ -76,7 +76,7 @@ abstract class WP_AI_Client_Builder {
 		 * Filters the default request timeout in seconds for AI Client HTTP requests.
 		 *
 		 * @since 7.0.0
-		 * @since 7.1.0 Added the `$builder_type` parameter.
+		 * @since 7.2.0 Added the `$builder_type` parameter.
 		 *
 		 * @param float  $default_timeout The default timeout in seconds.
 		 * @param string $builder_type    The class name of the builder the timeout applies to,
@@ -107,9 +107,25 @@ abstract class WP_AI_Client_Builder {
 	}
 
 	/**
+	 * Clones the wrapped SDK builder and stored error alongside this instance.
+	 *
+	 * The wrapped builder mutates its own state, so a clone must not share that
+	 * state with the original instance.
+	 *
+	 * @since 7.2.0
+	 */
+	public function __clone() {
+		$this->builder = clone $this->builder;
+
+		if ( null !== $this->error ) {
+			$this->error = clone $this->error;
+		}
+	}
+
+	/**
 	 * Creates the wrapped builder instance from the PHP AI Client SDK.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
 	 * @param mixed            $input    Initial input content for the builder, or null.
@@ -120,7 +136,7 @@ abstract class WP_AI_Client_Builder {
 	/**
 	 * Retrieves the prefix used for WP_Error codes created by this builder.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The error code prefix, e.g. 'prompt' or 'embedding'.
 	 */
@@ -129,7 +145,7 @@ abstract class WP_AI_Client_Builder {
 	/**
 	 * Retrieves the error message to use when execution is prevented by a filter.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The translated error message.
 	 */
@@ -141,7 +157,7 @@ abstract class WP_AI_Client_Builder {
 	 * Child classes apply their specific filter, passing a clone of the builder
 	 * instance for read-only inspection.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return bool Whether execution is prevented.
 	 */
@@ -152,7 +168,7 @@ abstract class WP_AI_Client_Builder {
 	 *
 	 * Structured as a map of method name to true for faster lookups.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, bool> The generating methods map.
 	 */
@@ -163,7 +179,7 @@ abstract class WP_AI_Client_Builder {
 	 *
 	 * Structured as a map of method name to true for faster lookups.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, bool> The support check methods map.
 	 */
@@ -177,7 +193,7 @@ abstract class WP_AI_Client_Builder {
 	 * is called.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param string            $name      The method name in snake_case.
 	 * @param array<int, mixed> $arguments The method arguments.
@@ -243,47 +259,50 @@ abstract class WP_AI_Client_Builder {
 			}
 
 			return $result;
-		} catch ( Exception $e ) {
-			$this->error = $this->exception_to_wp_error( $e );
-
+		} catch ( Throwable $e ) {
+			$this->error = $this->throwable_to_wp_error( $e );
 			if ( $this->is_generating_method( $name ) ) {
 				return $this->error;
+			}
+			if ( $this->is_support_check_method( $name ) ) {
+				return false;
 			}
 			return $this;
 		}
 	}
 
 	/**
-	 * Converts an exception into a WP_Error with a structured error code and message.
-	 *
-	 * This method maps different exception types to specific WP_Error codes and HTTP status codes.
+	 * Converts a throwable into a WP_Error with a structured error code and message.
+	*
+	 * This method maps different throwable types to specific WP_Error codes and HTTP status codes.
 	 * The presence of the status codes means these WP_Error objects can be easily used in REST API responses
 	 * or other contexts where HTTP semantics are relevant.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
-	 * @param Exception $e The exception to convert.
-	 * @return WP_Error The resulting WP_Error object.
+	 * @param Throwable $throwable The throwable to convert.
+	* @return WP_Error The resulting WP_Error object.
 	 */
-	protected function exception_to_wp_error( Exception $e ): WP_Error {
+	protected function throwable_to_wp_error( Throwable $throwable ): WP_Error {
+
 		$prefix = $this->get_error_code_prefix();
 
-		if ( $e instanceof NetworkException ) {
+		if ( $throwable instanceof NetworkException ) {
 			$error_code  = $prefix . '_network_error';
 			$status_code = 503;
-		} elseif ( $e instanceof ClientException ) {
-			// `ClientException` uses HTTP status codes as exception codes, so we can rely on them.
+		} elseif ( $throwable instanceof ClientException ) {
+				// `ClientException` uses HTTP status codes as exception codes, so we can rely on them.
 			$error_code  = $prefix . '_client_error';
-			$status_code = $e->getCode() ? $e->getCode() : 400;
-		} elseif ( $e instanceof ServerException ) {
+			$status_code = $throwable->getCode() ? $throwable->getCode() : 400;
+		} elseif ( $throwable instanceof ServerException ) {
 			// `ServerException` uses HTTP status codes as exception codes, so we can rely on them.
 			$error_code  = $prefix . '_upstream_server_error';
-			$status_code = $e->getCode() ? $e->getCode() : 500;
-		} elseif ( $e instanceof TokenLimitReachedException ) {
+			$status_code = $throwable->getCode() ? $throwable->getCode() : 500;
+		} elseif ( $throwable instanceof TokenLimitReachedException ) {
 			$error_code  = $prefix . '_token_limit_reached';
 			$status_code = 400;
-		} elseif ( $e instanceof InvalidArgumentException ) {
+		} elseif ( $throwable instanceof InvalidArgumentException ) {
 			$error_code  = $prefix . '_invalid_argument';
 			$status_code = 400;
 		} else {
@@ -293,10 +312,10 @@ abstract class WP_AI_Client_Builder {
 
 		return new WP_Error(
 			$error_code,
-			$e->getMessage(),
+			$throwable->getMessage(),
 			array(
 				'status'          => $status_code,
-				'exception_class' => get_class( $e ),
+				'exception_class' => get_class( $throwable ),
 			)
 		);
 	}
@@ -305,7 +324,7 @@ abstract class WP_AI_Client_Builder {
 	 * Checks if a method name is a support check method (is_supported*).
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
 	 *              and changed from static to instance method.
 	 *
 	 * @param string $name The method name.
@@ -320,7 +339,7 @@ abstract class WP_AI_Client_Builder {
 	 * Checks if a method name is a generating method (generate_*, convert_text_to_speech*).
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
 	 *              and changed from static to instance method.
 	 *
 	 * @param string $name The method name.
@@ -335,7 +354,7 @@ abstract class WP_AI_Client_Builder {
 	 * Retrieves a callable for a given PHP AI Client SDK builder method name.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param string $name The method name in snake_case.
 	 * @return callable The callable for the specified method.
@@ -364,7 +383,7 @@ abstract class WP_AI_Client_Builder {
 	 * Converts snake_case to camelCase.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param string $snake_case The snake_case string.
 	 * @return string The camelCase string.

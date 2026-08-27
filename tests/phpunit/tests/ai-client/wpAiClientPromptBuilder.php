@@ -2953,11 +2953,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps NetworkException correctly.
+	 * Tests throwable_to_wp_error maps NetworkException correctly.
 	 *
 	 * @ticket 64591
 	 */
-	public function test_exception_to_wp_error_network_exception() {
+	public function test_throwable_to_wp_error_network_exception() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -2971,11 +2972,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps ClientException with a custom code.
+	 * Tests throwable_to_wp_error maps ClientException with a custom code.
 	 *
 	 * @ticket 64591
 	 */
-	public function test_exception_to_wp_error_client_exception_with_code() {
+	public function test_throwable_to_wp_error_client_exception_with_code() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -2989,11 +2991,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps ClientException without a code to 400.
-	 *
+	 * Tests throwable_to_wp_error maps ClientException without a code to 400.
+ *
 	 * @ticket 64591
 	 */
-	public function test_exception_to_wp_error_client_exception_without_code() {
+	public function test_throwable_to_wp_error_client_exception_without_code() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -3006,11 +3009,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps ServerException with a custom code.
+	 * Tests throwable_to_wp_error maps ServerException with a custom code.
 	 *
 	 * @ticket 64591
 	 */
-	public function test_exception_to_wp_error_server_exception_with_code() {
+	public function test_throwable_to_wp_error_server_exception_with_code() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -3024,11 +3028,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps ServerException without a code to 500.
-	 *
+	 * Tests throwable_to_wp_error maps ServerException without a code to 500.
+ *
 	 * @ticket 64591
 	 */
-	public function test_exception_to_wp_error_server_exception_without_code() {
+	public function test_throwable_to_wp_error_server_exception_without_code() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -3041,11 +3046,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps TokenLimitReachedException correctly.
-	 *
+	 * Tests throwable_to_wp_error maps TokenLimitReachedException correctly.
+	*
 	 * @ticket 64591
 	 */
-	public function test_exception_to_wp_error_token_limit_reached_exception() {
+	public function test_throwable_to_wp_error_token_limit_reached_exception() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -3059,11 +3065,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps InvalidArgumentException correctly.
+	 * Tests throwable_to_wp_error maps InvalidArgumentException correctly.
 	 *
 	 * @ticket 64591
 	 */
-	public function test_exception_to_wp_error_invalid_argument_exception() {
+	public function test_throwable_to_wp_error_invalid_argument_exception() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -3077,11 +3084,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps a generic Exception to the fallback error.
-	 *
+	 * Tests throwable_to_wp_error maps a generic Exception to the fallback error.
+ *
 	 * @ticket 64591
 	 */
-	public function test_exception_to_wp_error_generic_exception() {
+	public function test_throwable_to_wp_error_generic_exception() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -3095,14 +3103,15 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error maps an Error (e.g. TypeError) to a generic builder error.
-	 *
+	 * Tests throwable_to_wp_error maps an Error (e.g. TypeError) to a generic builder error.
+	*
 	 * A TypeError extends Error, not Exception, so this guards against the
 	 * conversion only accepting Exception instances.
 	 *
 	 * @ticket 65505
 	 */
-	public function test_exception_to_wp_error_type_error() {
+	public function test_throwable_to_wp_error_type_error() {
+
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
 		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
@@ -3140,19 +3149,19 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests exception_to_wp_error always includes status and exception_class in error data.
-	 *
+	 * Tests throwable_to_wp_error always includes status and exception_class in error data.
+	*
 	 * @ticket 64591
 	 *
-	 * @dataProvider data_exception_to_wp_error_error_data_structure
-	 *
+	 * @dataProvider data_throwable_to_wp_error_error_data_structure
+	*
 	 * @param Exception $exception The exception to convert.
 	 */
-	public function test_exception_to_wp_error_error_data_structure( Exception $exception ) {
-		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_throwable_to_wp_error( $builder, $exception );
+	public function test_throwable_to_wp_error_error_data_structure( Throwable $throwable ) {
 
-		$data = $error->get_error_data();
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_throwable_to_wp_error( $builder, $throwable );
+		$data    = $error->get_error_data();
 		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'status', $data );
 		$this->assertIsInt( $data['status'] );
@@ -3161,11 +3170,12 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_exception_to_wp_error_error_data_structure.
-	 *
+	 * Data provider for test_throwable_to_wp_error_error_data_structure.
+	*
 	 * @return array<string, array{0: Exception}>
 	 */
-	public static function data_exception_to_wp_error_error_data_structure(): array {
+	public static function data_throwable_to_wp_error_error_data_structure(): array {
+
 		return array(
 			'NetworkException'           => array( new NetworkException( 'network error' ) ),
 			'ClientException'            => array( new ClientException( 'client error', 422 ) ),
