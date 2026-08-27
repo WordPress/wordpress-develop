@@ -1056,23 +1056,31 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type =
 		$allowed_extensions = apply_filters( 'image_sideload_extensions', $allowed_extensions, $file );
 		$allowed_extensions = array_map( 'preg_quote', $allowed_extensions );
 
+		// Download file to temp location.
+		$tmp = download_url( $file );
+
+		// If error storing temporarily, return the error.
+		if ( is_wp_error( $tmp ) ) {
+			return $tmp;
+		}
+
 		// Set variables for storage, fix file filename for query strings.
 		preg_match( '/[^\?]+\.(' . implode( '|', $allowed_extensions ) . ')\b/i', $file, $matches );
 
+		// If the URL has no recognizable extension, fall back to the temp filename.
+		// download_url() may have added one based on the Content-Type header.
 		if ( ! $matches ) {
+			preg_match( '/[^\?]+\.(' . implode( '|', $allowed_extensions ) . ')\b/i', $tmp, $matches );
+		}
+
+		if ( ! $matches ) {
+			@unlink( $tmp );
 			return new WP_Error( 'image_sideload_failed', __( 'Invalid image URL.' ) );
 		}
 
-		$file_array         = array();
-		$file_array['name'] = wp_basename( $matches[0] );
-
-		// Download file to temp location.
-		$file_array['tmp_name'] = download_url( $file );
-
-		// If error storing temporarily, return the error.
-		if ( is_wp_error( $file_array['tmp_name'] ) ) {
-			return $file_array['tmp_name'];
-		}
+		$file_array             = array();
+		$file_array['name']     = wp_basename( $matches[0] );
+		$file_array['tmp_name'] = $tmp;
 
 		// Do the validation and storage stuff.
 		$id = media_handle_sideload( $file_array, $post_id, $desc );
