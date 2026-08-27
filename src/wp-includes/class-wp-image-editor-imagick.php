@@ -599,7 +599,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param int    $dst_h       The destination height.
 	 * @param string $filter_name Optional. The Imagick filter to use when resizing. Default 'FILTER_TRIANGLE'.
 	 * @param bool   $strip_meta  Optional. Strip all profiles, excluding color profiles, from the image. Default true.
-	 * @return void|WP_Error
+	 * @return WP_Error|null
 	 */
 	protected function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_TRIANGLE', $strip_meta = true ) {
 		$allowed_filters = array(

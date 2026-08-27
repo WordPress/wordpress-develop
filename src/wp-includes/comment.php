@@ -3349,7 +3349,7 @@ function do_all_trackbacks() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post $post Post ID or object to do trackbacks on.
- * @return void|false Returns false on failure.
+ * @return false|null Null on success, false on failure.
  */
 function do_trackbacks( $post ) {
 	global $wpdb;
@@ -3365,7 +3365,7 @@ function do_trackbacks( $post ) {
 
 	if ( empty( $to_ping ) ) {
 		$wpdb->update( $wpdb->posts, array( 'to_ping' => '' ), array( 'ID' => $post->ID ) );
-		return;
+		return null;
 	}
 
 	if ( empty( $post->post_excerpt ) ) {

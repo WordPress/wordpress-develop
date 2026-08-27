@@ -3858,12 +3858,14 @@ function get_object_term_cache( $id, $taxonomy ) {
  *
  * @param string|int[]    $object_ids  Comma-separated list or array of term object IDs.
  * @param string|string[] $object_type The taxonomy object type or array of the same.
- * @return void|false Void on success or if the `$object_ids` parameter is empty,
- *                    false if all of the terms in `$object_ids` are already cached.
+ * @return false|null Null on success or if the `$object_ids` parameter is empty.
+ *                    False if there are no terms to cache, either because all
+ *                    terms in `$object_ids` are already cached or `$object_type`
+ *                    has no registered taxonomies.
  */
 function update_object_term_cache( $object_ids, $object_type ) {
 	if ( empty( $object_ids ) ) {
-		return;
+		return null;
 	}
 
 	if ( ! is_array( $object_ids ) ) {

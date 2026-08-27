@@ -488,7 +488,7 @@ function comment_author_url_link( $link_text = '', $before = '', $after = '', $c
  * @param int|WP_Post     $post      Optional. Post ID or WP_Post object. Default current post.
  * @param bool            $display   Optional. Whether to print or return the output.
  *                                   Default true.
- * @return void|string Void if `$display` argument is true, comment classes if `$display` is false.
+ * @return string|null Null if `$display` argument is true, comment classes if `$display` is false.
  */
 function comment_class( $css_class = '', $comment = null, $post = null, $display = true ) {
 	// Separates classes with a single space, collates classes for comment DIV.
@@ -1241,7 +1241,7 @@ function get_trackback_url() {
  * @since 0.71
  *
  * @param bool $deprecated_echo Not used.
- * @return void|string Should only be used to echo the trackback URL, use get_trackback_url()
+ * @return string|null Should only be used to echo the trackback URL, use get_trackback_url()
  *                     for the result instead.
  */
 function trackback_url( $deprecated_echo = true ) {
@@ -2228,7 +2228,7 @@ function _get_comment_reply_id( $post = null ) {
  *     @type bool     $echo              Whether to echo the output or return it. Default true.
  * }
  * @param WP_Comment[] $comments Optional. Array of WP_Comment objects. Default null.
- * @return void|string Void if 'echo' argument is true, or no comments to list.
+ * @return string|null Null if 'echo' argument is true, or no comments to list.
  *                     Otherwise, HTML list of comments.
  */
 function wp_list_comments( $args = array(), $comments = null ) {
@@ -2274,12 +2274,12 @@ function wp_list_comments( $args = array(), $comments = null ) {
 	if ( null !== $comments ) {
 		$comments = (array) $comments;
 		if ( empty( $comments ) ) {
-			return;
+			return null;
 		}
 		if ( 'all' !== $parsed_args['type'] ) {
 			$comments_by_type = separate_comments( $comments );
 			if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
-				return;
+				return null;
 			}
 			$_comments = $comments_by_type[ $parsed_args['type'] ];
 		} else {
@@ -2320,7 +2320,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 				if ( 'all' !== $parsed_args['type'] ) {
 					$comments_by_type = separate_comments( $comments );
 					if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
-						return;
+						return null;
 					}
 
 					$_comments = $comments_by_type[ $parsed_args['type'] ];
@@ -2332,14 +2332,14 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			// Otherwise, fall back on the comments from `$wp_query->comments`.
 		} else {
 			if ( empty( $wp_query->comments ) ) {
-				return;
+				return null;
 			}
 			if ( 'all' !== $parsed_args['type'] ) {
 				if ( empty( $wp_query->comments_by_type ) ) {
 					$wp_query->comments_by_type = separate_comments( $wp_query->comments );
 				}
 				if ( empty( $wp_query->comments_by_type[ $parsed_args['type'] ] ) ) {
-					return;
+					return null;
 				}
 				$_comments = $wp_query->comments_by_type[ $parsed_args['type'] ];
 			} else {

@@ -22,7 +22,7 @@
  * @param string|null $name The name of the specialized header. Default null.
  * @param array       $args Optional. Additional arguments passed to the header template.
  *                          Default empty array.
- * @return void|false Void on success, false if the template does not exist.
+ * @return false|null Null on success, false if the template does not exist.
  */
 function get_header( $name = null, $args = array() ) {
 	/**
@@ -66,7 +66,7 @@ function get_header( $name = null, $args = array() ) {
  * @param string|null $name The name of the specialized footer. Default null.
  * @param array       $args Optional. Additional arguments passed to the footer template.
  *                          Default empty array.
- * @return void|false Void on success, false if the template does not exist.
+ * @return false|null Null on success, false if the template does not exist.
  */
 function get_footer( $name = null, $args = array() ) {
 	/**
@@ -110,7 +110,7 @@ function get_footer( $name = null, $args = array() ) {
  * @param string|null $name The name of the specialized sidebar. Default null.
  * @param array       $args Optional. Additional arguments passed to the sidebar template.
  *                          Default empty array.
- * @return void|false Void on success, false if the template does not exist.
+ * @return false|null Null on success, false if the template does not exist.
  */
 function get_sidebar( $name = null, $args = array() ) {
 	/**
@@ -162,7 +162,7 @@ function get_sidebar( $name = null, $args = array() ) {
  * @param string|null $name Optional. The name of the specialized template. Default null.
  * @param array       $args Optional. Additional arguments passed to the template.
  *                          Default empty array.
- * @return void|false Void on success, false if the template does not exist.
+ * @return false|null Null on success, false if the template does not exist.
  */
 function get_template_part( $slug, $name = null, $args = array() ) {
 	/**
@@ -236,7 +236,7 @@ function get_template_part( $slug, $name = null, $args = array() ) {
  *                              multiple search forms on the same page and improve
  *                              accessibility. Default empty.
  * }
- * @return void|string Void if 'echo' argument is true, search form HTML if 'echo' is false.
+ * @return string|null Null if 'echo' argument is true, search form HTML if 'echo' is false.
  */
 function get_search_form( $args = array() ) {
 	/**
@@ -581,7 +581,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
  *
  * @param string $redirect Optional path to redirect to on login/logout.
  * @param bool   $display  Default to echo and not return the link.
- * @return void|string Void if `$display` argument is true, log in/out link if `$display` is false.
+ * @return string|null Null if `$display` argument is true, log in/out link if `$display` is false.
  */
 function wp_loginout( $redirect = '', $display = true ) {
 	if ( ! is_user_logged_in() ) {
@@ -721,7 +721,7 @@ function wp_registration_url() {
  *                                     Default false.
  *
  * }
- * @return void|string Void if 'echo' argument is true, login form HTML if 'echo' is false.
+ * @return string|null Null if 'echo' argument is true, login form HTML if 'echo' is false.
  */
 function wp_login_form( $args = array() ) {
 	$defaults = array(
@@ -901,7 +901,7 @@ function wp_lostpassword_url( $redirect = '' ) {
  * @param string $before  Text to output before the link. Default `<li>`.
  * @param string $after   Text to output after the link. Default `</li>`.
  * @param bool   $display Default to echo and not return the link.
- * @return void|string Void if `$display` argument is true, registration or admin link
+ * @return string|null Null if `$display` argument is true, registration or admin link
  *                     if `$display` is false.
  */
 function wp_register( $before = '<li>', $after = '</li>', $display = true ) {
@@ -2202,7 +2202,7 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *     @type string     $day             Day. Default current day.
  *     @type string     $w               Week. Default current week.
  * }
- * @return void|string Void if 'echo' argument is true, archive links if 'echo' is false.
+ * @return string|null Null if 'echo' argument is true, archive links if 'echo' is false.
  */
 function wp_get_archives( $args = '' ) {
 	global $wpdb, $wp_locale;
@@ -2238,7 +2238,7 @@ function wp_get_archives( $args = '' ) {
 
 	$post_type_object = get_post_type_object( $parsed_args['post_type'] );
 	if ( ! is_post_type_viewable( $post_type_object ) ) {
-		return;
+		return null;
 	}
 
 	$parsed_args['post_type'] = $post_type_object->name;
@@ -2472,7 +2472,7 @@ function calendar_week_mod( $num ) {
  *     @type bool   $display   Whether to display the calendar output. Default true.
  *     @type string $post_type Optional. Post type. Default 'post'.
  * }
- * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
+ * @return string|null Null if `$display` argument is true, calendar HTML if `$display` is false.
  */
 function get_calendar( $args = array() ) {
 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
@@ -2555,7 +2555,7 @@ function get_calendar( $args = array() ) {
 
 		if ( $args['display'] ) {
 			echo $output;
-			return;
+			return null;
 		}
 
 		return $output;
@@ -2583,7 +2583,7 @@ function get_calendar( $args = array() ) {
 		if ( ! $gotsome ) {
 			$cache[ $key ] = '';
 			wp_cache_set( 'get_calendar', $cache, 'calendar' );
-			return;
+			return null;
 		}
 	}
 
@@ -2810,7 +2810,7 @@ function get_calendar( $args = array() ) {
 
 	if ( $args['display'] ) {
 		echo $calendar_output;
-		return;
+		return null;
 	}
 
 	return $calendar_output;

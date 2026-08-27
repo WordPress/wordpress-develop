@@ -2689,7 +2689,7 @@ function get_theme_starter_content() {
  *                          - 'widgets-block-editor'
  *                          - 'wp-block-styles'
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
- * @return void|false Void on success, false on failure.
+ * @return false|null Null on success, false on failure.
  */
 function add_theme_support( $feature, ...$args ) {
 	global $_wp_theme_features;
@@ -2702,7 +2702,7 @@ function add_theme_support( $feature, ...$args ) {
 		case 'post-thumbnails':
 			// All post types are already supported.
 			if ( true === get_theme_support( 'post-thumbnails' ) ) {
-				return;
+				return null;
 			}
 
 			/*

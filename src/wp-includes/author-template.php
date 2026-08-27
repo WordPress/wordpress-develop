@@ -449,7 +449,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
  *     @type int[]|string $exclude       Array or comma/space-separated list of author IDs to exclude. Default empty.
  *     @type int[]|string $include       Array or comma/space-separated list of author IDs to include. Default empty.
  * }
- * @return void|string Void if 'echo' argument is true, list of authors if 'echo' is false.
+ * @return string|null Null if 'echo' argument is true, list of authors if 'echo' is false.
  */
 function wp_list_authors( $args = '' ) {
 	global $wpdb;
