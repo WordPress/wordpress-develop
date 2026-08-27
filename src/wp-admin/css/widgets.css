@@ -559,6 +559,12 @@ div#widgets-right .closed .widgets-sortables {
 	border-left: 1px solid #dcdcde;
 }
 
+/* Sit next to the JS expand/collapse button rather than stacking below it. */
+.widget-title-action .widget-control-edit {
+	display: inline-block;
+	vertical-align: top;
+}
+
 #widgets-left .widget-control-edit:hover,
 #widgets-right .widget-control-edit:hover {
 	color: #fff;
