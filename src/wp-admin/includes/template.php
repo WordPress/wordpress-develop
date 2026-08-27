@@ -2519,7 +2519,12 @@ function compression_test() {
 					}
 				};
 
-				x.open('GET', ajaxurl + '?action=wp-compression-test&test='+test+'&_ajax_nonce='+compressionNonce+'&'+(new Date()).getTime(), true);
+				var url = new URL(ajaxurl, window.location);
+				url.searchParams.set('action', 'wp-compression-test')
+				url.searchParams.set('test', test)
+				url.searchParams.set('_ajax_nonce', compressionNonce)
+				url.searchParams.set(new Date().getTime(), '');
+				x.open('GET', url.toString(), true);
 				x.send('');
 			}
 		},
