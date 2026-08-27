@@ -6149,13 +6149,19 @@ function wp_staticize_emoji( $text ) {
 		}
 	}
 
-	$emoji = _wp_emoji_list( 'entities' );
+	static $emoji_entities = null;
 
-	// Quickly narrow down the list of emoji that might be in the text and need replacing.
+	if ( null === $emoji_entities ) {
+		$emoji_entities = array_fill_keys( _wp_emoji_list( 'entities' ), true );
+	}
+
+	// Narrow down the list of emoji that might be in the text and need replacing.
 	$possible_emoji = array();
-	foreach ( $emoji as $emojum ) {
-		if ( str_contains( $text, $emojum ) ) {
-			$possible_emoji[ $emojum ] = html_entity_decode( $emojum );
+	if ( preg_match_all( '/(?:&#x[0-9a-f]+;)+/i', $text, $matches ) ) {
+		foreach ( array_unique( $matches[0] ) as $emojum ) {
+			if ( isset( $emoji_entities[ $emojum ] ) ) {
+				$possible_emoji[ $emojum ] = html_entity_decode( $emojum );
+			}
 		}
 	}
 
