@@ -45,6 +45,31 @@ spawnSync(
 	{ stdio: 'inherit' }
 );
 
+const result = spawnSync(
+	'docker',
+	[
+		'compose',
+		...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
+		'run',
+		'-T',
+		'--rm',
+		'php',
+		'composer',
+		'update',
+		'-W',
+	],
+	{ stdio: 'inherit' }
+);
+
+if ( result.status !== 0 ) {
+	console.error( '\nThere was an error while running PHP composer update.' );
+	console.error(
+		'This is often caused by network issues or Packagist.org downtime.'
+	);
+	console.error( 'Please check your internet connection and try again.' );
+	process.exit( 1 );
+}
+
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
 	// VBoxManage is added to the PATH on every platform except Windows.
