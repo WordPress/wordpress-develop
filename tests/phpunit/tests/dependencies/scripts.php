@@ -3419,6 +3419,7 @@ HTML;
 				'src-not-empty',
 				'attr-no-duplication',
 				'alt-require',
+				'input-requires-label',
 				'space-tab-mixed-disabled',
 				'attr-unsafe-chars',
 			),
@@ -3503,6 +3504,7 @@ HTML;
 				'src-not-empty',
 				'attr-no-duplication',
 				'alt-require',
+				'input-requires-label',
 				'space-tab-mixed-disabled',
 				'attr-unsafe-chars',
 			),
@@ -3601,6 +3603,7 @@ HTML;
 				'src-not-empty',
 				'attr-no-duplication',
 				'alt-require',
+				'input-requires-label',
 				'space-tab-mixed-disabled',
 				'attr-unsafe-chars',
 			),
@@ -3696,11 +3699,27 @@ HTML;
 				'src-not-empty',
 				'attr-no-duplication',
 				'alt-require',
+				'input-requires-label',
 				'space-tab-mixed-disabled',
 				'attr-unsafe-chars',
 			),
 			array_keys( $wp_enqueue_code_editor['htmlhint'] )
 		);
+	}
+
+	/**
+	 * Tests that the `input-requires-label` HTMLHint rule is enabled by default
+	 * in `wp_get_code_editor_settings()` for accessibility linting.
+	 *
+	 * @ticket 42780
+	 *
+	 * @covers ::wp_get_code_editor_settings
+	 */
+	public function test_wp_get_code_editor_settings_input_requires_label_rule_is_enabled() {
+		$settings = wp_get_code_editor_settings( array( 'type' => 'text/html' ) );
+
+		$this->assertArrayHasKey( 'input-requires-label', $settings['htmlhint'] );
+		$this->assertTrue( $settings['htmlhint']['input-requires-label'] );
 	}
 
 	/**

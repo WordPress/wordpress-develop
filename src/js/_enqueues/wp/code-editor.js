@@ -100,6 +100,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  * @property {boolean} [src-not-empty] - Src not empty rules.
  * @property {boolean} [attr-no-duplication] - Attribute no duplication rules.
  * @property {boolean} [alt-require] - Alt require rules.
+ * @property {boolean} [input-requires-label] - Input requires label rules.
  * @property {string} [space-tab-mixed-disabled] - Space tab mixed disabled rules.
  * @property {boolean} [attr-unsafe-chars] - Attribute unsafe chars rules.
  * @property {JSHintRules} [jshint] - JSHint rules.

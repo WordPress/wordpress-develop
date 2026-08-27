@@ -4410,6 +4410,7 @@ function wp_get_code_editor_settings( $args ) {
 			'src-not-empty'            => true,
 			'attr-no-duplication'      => true,
 			'alt-require'              => true,
+			'input-requires-label'     => true,
 			'space-tab-mixed-disabled' => 'tab',
 			'attr-unsafe-chars'        => true,
 		),
