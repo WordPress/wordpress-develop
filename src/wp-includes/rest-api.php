@@ -720,6 +720,76 @@ function rest_ensure_response( $response ) {
 }
 
 /**
+ * Returns the caller location for a REST API debug log entry.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return string The formatted caller location, or an empty string when unavailable.
+ */
+function _rest_get_debug_backtrace_caller(): string {
+	$backtrace              = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+	$normalized_content_dir = trailingslashit( wp_normalize_path( WP_CONTENT_DIR ) );
+
+	foreach ( $backtrace as $index => $frame ) {
+		if ( ! isset( $frame['file'] ) ) {
+			continue;
+		}
+
+		$normalized_file = wp_normalize_path( $frame['file'] );
+		if ( ! str_starts_with( $normalized_file, $normalized_content_dir ) ) {
+			continue;
+		}
+
+		$location = ' in ' . $normalized_file;
+		if ( isset( $frame['line'] ) ) {
+			$location .= ' on line ' . $frame['line'];
+		}
+
+		$caller = $backtrace[ $index + 1 ] ?? null;
+		if ( ! $caller ) {
+			return $location;
+		}
+
+		if ( str_starts_with( $caller['function'], '{' ) ) {
+			return ' called from (anonymous function)' . $location;
+		}
+
+		if ( in_array( $caller['function'], array( 'require', 'require_once', 'include', 'include_once' ), true ) ) {
+			return $location;
+		}
+
+		$function = $caller['function'];
+		if ( isset( $caller['class'] ) ) {
+			$function = $caller['class'] . $caller['type'] . $function;
+		}
+
+		return ' called from ' . $function . '()' . $location;
+	}
+
+	return '';
+}
+
+/**
+ * Writes a REST API diagnostic message to the PHP error log.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $message           The diagnostic message.
+ * @param int    $error_level       The `E_USER_*` error level.
+ * @param bool   $debug_log_enabled Whether debug logging is enabled.
+ */
+function _rest_log_debug_message( string $message, int $error_level, bool $debug_log_enabled ): void {
+	if ( ! $debug_log_enabled || ! ( error_reporting() & $error_level ) ) {
+		return;
+	}
+
+	$prefix = E_USER_DEPRECATED === $error_level ? 'PHP Deprecated: ' : 'PHP Notice: ';
+	error_log( $prefix . wp_strip_all_tags( $message ) . _rest_get_debug_backtrace_caller() );
+}
+
+/**
  * Handles _deprecated_function() errors.
  *
  * @since 4.4.0
@@ -729,7 +799,7 @@ function rest_ensure_response( $response ) {
  * @param string $version       Version.
  */
 function rest_handle_deprecated_function( $function_name, $replacement, $version ) {
-	if ( ! WP_DEBUG || headers_sent() ) {
+	if ( ! WP_DEBUG ) {
 		return;
 	}
 	if ( ! empty( $replacement ) ) {
@@ -740,7 +810,11 @@ function rest_handle_deprecated_function( $function_name, $replacement, $version
 		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function_name, $version );
 	}
 
-	header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
+	if ( ! headers_sent() ) {
+		header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
+	}
+
+	_rest_log_debug_message( $string, E_USER_DEPRECATED, (bool) WP_DEBUG_LOG );
 }
 
 /**
@@ -753,7 +827,7 @@ function rest_handle_deprecated_function( $function_name, $replacement, $version
  * @param string $version       Version.
  */
 function rest_handle_deprecated_argument( $function_name, $message, $version ) {
-	if ( ! WP_DEBUG || headers_sent() ) {
+	if ( ! WP_DEBUG ) {
 		return;
 	}
 	if ( $message ) {
@@ -764,7 +838,11 @@ function rest_handle_deprecated_argument( $function_name, $message, $version ) {
 		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function_name, $version );
 	}
 
-	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
+	if ( ! headers_sent() ) {
+		header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
+	}
+
+	_rest_log_debug_message( $string, E_USER_DEPRECATED, (bool) WP_DEBUG_LOG );
 }
 
 /**
@@ -777,7 +855,7 @@ function rest_handle_deprecated_argument( $function_name, $message, $version ) {
  * @param string|null $version       The version of WordPress where the message was added.
  */
 function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
-	if ( ! WP_DEBUG || headers_sent() ) {
+	if ( ! WP_DEBUG ) {
 		return;
 	}
 
@@ -791,7 +869,11 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 		$string = sprintf( $string, $function_name, $message );
 	}
 
-	header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
+	if ( ! headers_sent() ) {
+		header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
+	}
+
+	_rest_log_debug_message( $string, E_USER_NOTICE, (bool) WP_DEBUG_LOG );
 }
 
 /**
