@@ -14,6 +14,10 @@ window.wp = window.wp || {};
 	 */
 	function SwitchEditors() {
 		var tinymce, $$,
+			// Whether the Visual editor being (re)initialized as part of a mode switch
+			// should receive focus once ready. Only true when the `textarea` already had
+			// focus at the moment the switch was triggered. See ticket #42540.
+			focusVisualEditorOnInit = false,
 			exports = {};
 
 		function init() {
@@ -98,6 +102,16 @@ window.wp = window.wp || {};
 					return false;
 				}
 
+				/*
+				 * Only move focus into the Visual editor if the textarea already had
+				 * focus when the switch was triggered, e.g. via a keyboard shortcut
+				 * while actively editing. A click (or Enter/Space) on the "Visual" tab
+				 * itself moves focus to that button first, so in the common case this
+				 * is false and focus correctly stays on the tab that was activated,
+				 * instead of being unexpectedly moved into the editor. See ticket #42540.
+				 */
+				var hadFocus = document.activeElement === textarea;
+
 				// Insert closing tags for any open tags in QuickTags.
 				if ( typeof( window.QTags ) !== 'undefined' ) {
 					window.QTags.closeAllTags( id );
@@ -121,8 +135,11 @@ window.wp = window.wp || {};
 						}
 					}
 
-					focusHTMLBookmarkInVisualEditor( editor );
+					focusHTMLBookmarkInVisualEditor( editor, hadFocus );
 				} else {
+					// The editor doesn't exist yet, it's created (and focused, if `hadFocus`)
+					// asynchronously. See the `tinymce-editor-init` handler below.
+					focusVisualEditorOnInit = hadFocus;
 					tinymce.init( window.tinyMCEPreInit.mceInit[ id ] );
 				}
 
@@ -139,6 +156,12 @@ window.wp = window.wp || {};
 				}
 
 				if ( editor ) {
+					/*
+					 * Only move focus into the textarea if the Visual editor already had
+					 * focus when the switch was triggered. See ticket #42540.
+					 */
+					var editorHadFocus = typeof editor.hasFocus === 'function' && editor.hasFocus();
+
 					// Don't resize the textarea in iOS.
 					// The iframe is forced to 100% height there, we shouldn't match it.
 					if ( ! tinymce.Env.iOS ) {
@@ -163,7 +186,7 @@ window.wp = window.wp || {};
 					editor.hide();
 
 					if ( selectionRange ) {
-						selectTextInTextArea( editor, selectionRange );
+						selectTextInTextArea( editor, selectionRange, editorHadFocus );
 					}
 				} else {
 					// There is probably a JS error on the page.
@@ -514,13 +537,21 @@ window.wp = window.wp || {};
 		 *
 		 * If there is only a single node, select only the single node through TinyMCE's selection API
 		 *
-		 * @param {Object} editor TinyMCE editor instance.
+		 * @param {Object}  editor       TinyMCE editor instance.
+		 * @param {boolean} [shouldFocus=true] Whether to actually move focus into the editor. Pass
+		 *                                     `false` to restore the selection markers/scroll position
+		 *                                     without stealing focus from wherever it currently is.
+		 *                                     See ticket #42540.
 		 */
-		function focusHTMLBookmarkInVisualEditor( editor ) {
+		function focusHTMLBookmarkInVisualEditor( editor, shouldFocus ) {
 			var startNode = editor.$( '.mce_SELRES_start' ).attr( 'data-mce-bogus', 1 ),
 				endNode = editor.$( '.mce_SELRES_end' ).attr( 'data-mce-bogus', 1 );
 
-			if ( startNode.length ) {
+			if ( shouldFocus === undefined ) {
+				shouldFocus = true;
+			}
+
+			if ( startNode.length && shouldFocus ) {
 				editor.focus();
 
 				if ( ! endNode.length ) {
@@ -533,9 +564,9 @@ window.wp = window.wp || {};
 
 					editor.selection.setRng( selection );
 				}
-			}
 
-			scrollVisualModeToStartElement( editor, startNode );
+				scrollVisualModeToStartElement( editor, startNode );
+			}
 
 			removeSelectionMarker( startNode );
 			removeSelectionMarker( endNode );
@@ -812,13 +843,20 @@ window.wp = window.wp || {};
 		 * For `selection` parameter:
 		 * @link findBookmarkedPosition
 		 *
-		 * @param {Object} editor TinyMCE's editor instance.
-		 * @param {Object} selection Selection data.
+		 * @param {Object}  editor             TinyMCE's editor instance.
+		 * @param {Object}  selection          Selection data.
+		 * @param {boolean} [shouldFocus=true] Whether to actually move focus into the textarea. Pass
+		 *                                     `false` to restore the selection range without stealing
+		 *                                     focus from wherever it currently is. See ticket #42540.
 		 */
-		function selectTextInTextArea( editor, selection ) {
+		function selectTextInTextArea( editor, selection, shouldFocus ) {
 			// Only valid in the text area mode and if we have selection.
 			if ( ! selection ) {
 				return;
+			}
+
+			if ( shouldFocus === undefined ) {
+				shouldFocus = true;
 			}
 
 			var textArea = editor.getElement(),
@@ -826,14 +864,17 @@ window.wp = window.wp || {};
 				end = selection.end || selection.start;
 
 			if ( textArea.focus ) {
-				// Wait for the Visual editor to be hidden, then focus and scroll to the position.
+				// Wait for the Visual editor to be hidden, then restore the selection.
 				setTimeout( function() {
 					textArea.setSelectionRange( start, end );
-					if ( textArea.blur ) {
-						// Defocus before focusing.
-						textArea.blur();
+
+					if ( shouldFocus ) {
+						if ( textArea.blur ) {
+							// Defocus before focusing.
+							textArea.blur();
+						}
+						textArea.focus();
 					}
-					textArea.focus();
 				}, 100 );
 			}
 		}
@@ -841,8 +882,11 @@ window.wp = window.wp || {};
 		// Restore the selection when the editor is initialized. Needed when the Code editor is the default.
 		$( document ).on( 'tinymce-editor-init.keep-scroll-position', function( event, editor ) {
 			if ( editor.$( '.mce_SELRES_start' ).length ) {
-				focusHTMLBookmarkInVisualEditor( editor );
+				focusHTMLBookmarkInVisualEditor( editor, focusVisualEditorOnInit );
 			}
+
+			// Reset for the next switch. See ticket #42540.
+			focusVisualEditorOnInit = false;
 		} );
 
 		/**
