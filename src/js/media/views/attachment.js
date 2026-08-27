@@ -589,12 +589,18 @@ _.each({
 		}
 
 		/*
+		 * Re-render if attributes other than the current setting have also changed.
+		 * This ensures all model changes are reflected in the view.
+		 */
+		var otherChanges = _.difference( _.keys( model.changedAttributes() ), [ setting ] );
+
+		/*
 		 * If the updated value is in sync with the value in the DOM, there
 		 * is no need to re-render. If we're currently editing the value,
 		 * it will automatically be in sync, suppressing the re-render for
 		 * the view we're editing, while updating any others.
 		 */
-		if ( value === $setting.find('input, textarea, select, [value]').val() ) {
+		if ( _.isEmpty( otherChanges ) && value === $setting.find('input, textarea, select, [value]').val() ) {
 			return this;
 		}
 
