@@ -1577,6 +1577,39 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62996
+	 */
+	public function test_get_password_reset_key_does_not_fire_profile_update() {
+		$user = $this->author;
+
+		$before_profile_update = did_action( 'profile_update' );
+
+		$key = get_password_reset_key( $user );
+
+		$this->assertNotWPError( $key );
+		$this->assertSame( $before_profile_update, did_action( 'profile_update' ), 'get_password_reset_key() should not fire profile_update.' );
+
+		$updated_user = get_userdata( $user->ID );
+		$this->assertNotEmpty( $updated_user->user_activation_key, 'The user_activation_key should have been persisted.' );
+	}
+
+	/**
+	 * @ticket 62996
+	 */
+	public function test_register_new_user_does_not_fire_profile_update() {
+		reset_phpmailer_instance();
+
+		$before_user_register  = did_action( 'user_register' );
+		$before_profile_update = did_action( 'profile_update' );
+
+		$user_id = register_new_user( 'user62996', 'user62996@example.com' );
+
+		$this->assertIsInt( $user_id );
+		$this->assertSame( $before_user_register + 1, did_action( 'user_register' ), 'register_new_user() should fire user_register once.' );
+		$this->assertSame( $before_profile_update, did_action( 'profile_update' ), 'register_new_user() should not fire profile_update for a brand-new account.' );
+	}
+
+	/**
 	 * @ticket 61366
 	 * @dataProvider data_remember_user
 	 */

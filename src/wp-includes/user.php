@@ -3144,16 +3144,15 @@ function get_password_reset_key( $user ) {
 
 	$hashed = time() . ':' . wp_fast_hash( $key );
 
-	$key_saved = wp_update_user(
-		array(
-			'ID'                  => $user->ID,
-			'user_activation_key' => $hashed,
-		)
+	global $wpdb;
+
+	$wpdb->update(
+		$wpdb->users,
+		array( 'user_activation_key' => $hashed ),
+		array( 'ID' => $user->ID )
 	);
 
-	if ( is_wp_error( $key_saved ) ) {
-		return $key_saved;
-	}
+	clean_user_cache( $user->ID );
 
 	return $key;
 }
