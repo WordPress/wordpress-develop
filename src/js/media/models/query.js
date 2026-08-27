@@ -77,7 +77,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		 * are no filters for other properties, so observing will result in
 		 * false positives in those queries.
 		 */
-		allowed = [ 's', 'order', 'orderby', 'posts_per_page', 'post_mime_type', 'post_parent', 'author' ];
+		allowed = [ 's', 'order', 'orderby', 'posts_per_page', 'post_mime_type', 'post_parent', 'author', 'year', 'monthnum' ];
 		if ( wp.Uploader && _( this.args ).chain().keys().difference( allowed ).isEmpty().value() ) {
 			this.observe( wp.Uploader.queue );
 		}

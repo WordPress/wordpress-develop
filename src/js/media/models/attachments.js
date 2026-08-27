@@ -612,6 +612,62 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 			}
 
 			return status === attachment.get('status');
+		},
+		/**
+		 * @static
+		 * @param {wp.media.model.Attachment} attachment
+		 *
+		 * @this wp.media.model.Attachments
+		 *
+		 * @return {boolean}
+		 */
+		year: function( attachment ) {
+			var year = this.props.get('year'),
+				date;
+
+			if ( _.isUndefined( year ) || false === year ) {
+				return true;
+			}
+
+			// If uploading, we don't have the date yet, so allow it through.
+			if ( attachment.get('uploading') ) {
+				return true;
+			}
+
+			date = attachment.get('date') || attachment.get('modified');
+			if ( date ) {
+				return year === new Date( date ).getFullYear();
+			}
+
+			return false;
+		},
+		/**
+		 * @static
+		 * @param {wp.media.model.Attachment} attachment
+		 *
+		 * @this wp.media.model.Attachments
+		 *
+		 * @return {boolean}
+		 */
+		monthnum: function( attachment ) {
+			var monthnum = this.props.get('monthnum'),
+				date;
+
+			if ( _.isUndefined( monthnum ) || false === monthnum ) {
+				return true;
+			}
+
+			// If uploading, we don't have the date yet, so allow it through.
+			if ( attachment.get('uploading') ) {
+				return true;
+			}
+
+			date = attachment.get('date') || attachment.get('modified');
+			if ( date ) {
+				return monthnum === ( new Date( date ).getMonth() + 1 );
+			}
+
+			return false;
 		}
 	}
 });
