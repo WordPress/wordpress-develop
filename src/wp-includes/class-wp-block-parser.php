@@ -49,6 +49,14 @@ class WP_Block_Parser {
 	public $stack;
 
 	/**
+	 * Parse options for the current parse
+	 *
+	 * @since 7.2.0
+	 * @var array
+	 */
+	protected $options = array();
+
+	/**
 	 * Parses a document and returns a list of block structures
 	 *
 	 * When encountering an invalid parse will return a best-effort
@@ -71,6 +79,35 @@ class WP_Block_Parser {
 		}
 
 		return $this->output;
+	}
+
+	/**
+	 * Parses a document with parse options and returns a list of block structures.
+	 *
+	 * Separate from {@see WP_Block_Parser::parse()} to leave that method's signature
+	 * unchanged, since a parser supplied through the `block_parser_class` filter may
+	 * subclass this class and override it. Delegating to `parse()` rather than
+	 * reimplementing it keeps any such override in effect.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $document Input document being parsed.
+	 * @param array  $options  Optional. Parse options. Supports the
+	 *                         `preserve_empty_object_attributes` key, which keeps a
+	 *                         nested empty JSON object attribute as an empty object
+	 *                         rather than collapsing it to an empty array. Anything
+	 *                         that is not an array is ignored. Default empty array.
+	 * @return array[]
+	 */
+	public function parse_with_options( $document, $options = array() ) {
+		$this->options = is_array( $options ) ? $options : array();
+
+		try {
+			return $this->parse( $document );
+		} finally {
+			// Options apply to a single parse only.
+			$this->options = array();
+		}
 	}
 
 	/**
@@ -277,7 +314,7 @@ class WP_Block_Parser {
 		 * are associative arrays. If we use `array()` we get a JSON `[]`
 		 */
 		$attrs = $has_attrs
-			? json_decode( $matches['attrs'][0], /* as-associative */ true )
+			? $this->parse_block_attributes( $matches['attrs'][0] )
 			: array();
 
 		/*
@@ -386,6 +423,85 @@ class WP_Block_Parser {
 		}
 
 		$this->output[] = (array) $stack_top->block;
+	}
+
+	/**
+	 * Decodes a block's attribute JSON.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $json Raw attribute JSON from the block delimiter.
+	 * @return array|null Decoded attributes, or null on invalid JSON.
+	 */
+	private function parse_block_attributes( $json ) {
+		if (
+			empty( $this->options['preserve_empty_object_attributes'] )
+			/*
+			 * An attribute string with no `{}` token cannot contain an empty object, so
+			 * there is nothing to preserve and the historical decode is used. Most
+			 * attributes fall in that group, which keeps their cost unchanged. The
+			 * character class covers the whitespace JSON permits between the braces.
+			 *
+			 * A `{}` inside a string value, as in `{"tpl":"{}"}`, only leads to a walk
+			 * that finds nothing to change, so this is an optimization, not a fork.
+			 */
+			|| ! preg_match( '/\{[ \t\r\n]*\}/', $json )
+		) {
+			// Default (historical) behavior: objects and arrays both decode to arrays.
+			return json_decode( $json, /* associative */ true );
+		}
+
+		$decoded = json_decode( $json, /* associative */ false );
+		if ( JSON_ERROR_NONE !== json_last_error() ) {
+			return null;
+		}
+
+		return self::normalize_block_attributes( $decoded, /* is_attribute_root */ true );
+	}
+
+	/**
+	 * Converts a json_decode(..., false) result into the parsed attribute shape,
+	 * keeping only nested empty objects as objects.
+	 *
+	 * Every other JSON object becomes a PHP array, matching the default parse path. An
+	 * empty object holds no keys and no strings, so nothing downstream needs to read
+	 * into it or sanitize it; a populated object would hide its contents from code that
+	 * walks arrays.
+	 *
+	 * wp_json_encode() emits `{}` for an empty object and `[]` for an empty array, so
+	 * the distinction survives serialization without a marker or a restore step.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $value             Decoded value (stdClass, array, or scalar).
+	 * @param bool  $is_attribute_root Whether $value is the top-level attribute container,
+	 *                                 which always becomes an array so that empty
+	 *                                 attributes keep being dropped on serialization.
+	 * @return mixed The normalized value.
+	 */
+	private static function normalize_block_attributes( $value, $is_attribute_root = false ) {
+		if ( $value instanceof stdClass ) {
+			$properties = get_object_vars( $value );
+
+			if ( ! $is_attribute_root && empty( $properties ) ) {
+				return $value;
+			}
+
+			$normalized = array();
+			foreach ( $properties as $key => $child_value ) {
+				$normalized[ $key ] = self::normalize_block_attributes( $child_value );
+			}
+
+			return $normalized;
+		}
+
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $child_value ) {
+				$value[ $key ] = self::normalize_block_attributes( $child_value );
+			}
+		}
+
+		return $value; // Scalars and null pass through unchanged.
 	}
 }
 
