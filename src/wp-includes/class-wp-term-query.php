@@ -360,6 +360,8 @@ class WP_Term_Query {
 	 *                                             when 'count' is passed to `$args['fields']`, or the
 	 *                                             integer 0 when the queried parent term is not in the
 	 *                                             taxonomy hierarchy.
+	 *
+	 * @phpstan-return 0|numeric-string|int[]|array<int, int>|string[]|array<int, string>|WP_Term[]
 	 */
 	public function get_terms() {
 		global $wpdb;
@@ -818,6 +820,8 @@ class WP_Term_Query {
 		}
 
 		if ( 'count' === $_fields ) {
+			// The request selects a single COUNT column, so it only returns null on a database error.
+			/** @var numeric-string $count */
 			$count = $wpdb->get_var( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			if ( $args['cache_results'] ) {
 				wp_cache_set_salted( $cache_key, $count, 'term-queries', $last_changed );
