@@ -2329,13 +2329,6 @@ function wp_insert_user( $userdata ) {
 		if ( email_exists( $user_login ) ) {
 			return new WP_Error( 'existing_user_email_as_login', __( 'Sorry, that username is not available.' ) );
 		}
-	} else {
-		if ( isset( $userdata['user_email'] ) && isset( $userdata['ID'] ) ) {
-			$username_exists_id = username_exists( $userdata['user_email'] );
-			if ( $username_exists_id && $username_exists_id !== $userdata['ID'] ) {
-				return new WP_Error( 'email_as_username', __( 'Sorry, that email address is not available as it matches an existing username.' ) );
-			}
-		}
 	}
 
 	/**
@@ -2403,6 +2396,11 @@ function wp_insert_user( $userdata ) {
 	 * @param string $raw_user_email The user's email.
 	 */
 	$user_email = apply_filters( 'pre_user_email', $raw_user_email );
+
+	$username_exists_id = username_exists( $user_email );
+	if ( $username_exists_id && ( ! $update || $username_exists_id !== $user_id ) ) {
+		return new WP_Error( 'email_as_username', __( 'Sorry, that email address is not available as it matches an existing username.' ) );
+	}
 
 	/*
 	 * If there is no update, just check for `email_exists`. If there is an update,
