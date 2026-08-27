@@ -302,23 +302,43 @@ function wp_dashboard_right_now() {
 	<div class="main">
 	<ul>
 	<?php
-	// Posts and Pages.
-	foreach ( array( 'post', 'page' ) as $post_type ) {
-		$num_posts = wp_count_posts( $post_type );
+	// At a Glance Post Types.
+	foreach ( get_post_types( array( 'at_a_glance' => true ), 'objects' ) as $post_type_object ) {
+		$post_type          = $post_type_object->name;
+		$num_posts          = wp_count_posts( $post_type );
+		$num_post_published = intval( $num_posts->publish );
 
-		if ( $num_posts && $num_posts->publish ) {
-			if ( 'post' === $post_type ) {
-				/* translators: %s: Number of posts. */
-				$text = _n( '%s Published post', '%s Published posts', $num_posts->publish );
+		if ( $num_posts && $num_post_published ) {
+			if ( 1 === $num_post_published ) {
+				$post_label = $post_type_object->labels->singular_name;
 			} else {
-				/* translators: %s: Number of pages. */
-				$text = _n( '%s Published page', '%s Published pages', $num_posts->publish );
+				$post_label = $post_type_object->labels->name;
+			}
+			$text = number_format_i18n( $num_post_published ) . ' ' . $post_label;
+
+			$icon_class = '';
+			$menu_icon  = $post_type_object->menu_icon ?? 'dashicons-admin-post';
+
+			if ( str_starts_with( $menu_icon, 'dashicons-' ) ) {
+				$icon_class = $menu_icon;
+			} elseif ( str_starts_with( $menu_icon, 'data:image/svg+xml;base64,' ) ) {
+				printf(
+					'<style>
+#dashboard_right_now li.%1$s-count a:before,
+#dashboard_right_now li.%1$s-count > span:before {
+	content: url( \'%2$s\' );
+	height: auto;
+	width: 20px;
+}
+</style>',
+					$post_type,
+					$menu_icon
+				);
 			}
 
-			$text             = sprintf( $text, number_format_i18n( $num_posts->publish ) );
-			$post_type_object = get_post_type_object( $post_type );
+			$class_attr = $icon_class ? sprintf( ' class="%s"', $icon_class ) : '';
 
-			if ( $post_type_object && current_user_can( $post_type_object->cap->edit_posts ) ) {
+			if ( current_user_can( $post_type_object->cap->edit_posts ) ) {
 				$url = add_query_arg(
 					array(
 						'post_status' => 'publish',
@@ -326,9 +346,9 @@ function wp_dashboard_right_now() {
 					),
 					admin_url( 'edit.php' )
 				);
-				printf( '<li class="%1$s-count"><a href="%2$s">%3$s</a></li>', $post_type, esc_url( $url ), esc_html( $text ) );
+				printf( '<li class="%1$s-count"><a%3$s href="%2$s">%4$s</a></li>', $post_type, esc_url( $url ), $class_attr, esc_html( $text ) );
 			} else {
-				printf( '<li class="%1$s-count"><span>%2$s</span></li>', $post_type, $text );
+				printf( '<li class="%1$s-count"><span%3$s>%2$s</span></li>', $post_type, esc_html( $text ), $class_attr );
 			}
 		}
 	}
