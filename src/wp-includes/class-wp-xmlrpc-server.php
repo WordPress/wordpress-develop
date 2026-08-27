@@ -782,6 +782,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				'blogid'    => (string) $blog_id,
 				'blogName'  => get_option( 'blogname' ),
 				'xmlrpc'    => site_url( 'xmlrpc.php', 'rpc' ),
+				'siteIcon'  => get_site_icon_url( 512 ),
 			);
 
 			restore_current_blog();
@@ -4871,6 +4872,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'blogid'   => '1',
 			'blogName' => get_option( 'blogname' ),
 			'xmlrpc'   => site_url( 'xmlrpc.php', 'rpc' ),
+			'siteIcon' => get_site_icon_url( 512 ),
 		);
 
 		return array( $struct );
