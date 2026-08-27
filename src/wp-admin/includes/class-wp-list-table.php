@@ -537,7 +537,7 @@ class WP_List_Table {
 		foreach ( $views as $class => $view ) {
 			$views[ $class ] = "\t<li class='$class'>$view";
 		}
-		echo implode( " |</li>\n", $views ) . "</li>\n";
+		echo implode( " </li>\n", $views ) . "</li>\n";
 		echo '</ul>';
 	}
 
