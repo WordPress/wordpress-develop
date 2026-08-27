@@ -5508,6 +5508,56 @@ function check_and_publish_future_post( $post ) {
 }
 
 /**
+ * Checks whether any scheduled post's publish time has already passed, using a
+ * cached value so the check is cheap on every request that would otherwise 404.
+ *
+ * The cache is invalidated by clear_next_scheduled_post_cache() whenever a post
+ * enters or leaves `future` status, so it only recomputes when the answer could
+ * plausibly have changed.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @return bool Whether a `future` post's publish time has already passed.
+ */
+function wp_next_scheduled_post_is_due() {
+	global $wpdb;
+
+	$next_gmt = get_transient( 'next_scheduled_post_gmt' );
+
+	if ( false === $next_gmt ) {
+		$next_date = $wpdb->get_var(
+			"SELECT post_date_gmt FROM $wpdb->posts WHERE post_status = 'future' ORDER BY post_date_gmt ASC LIMIT 1"
+		);
+
+		$next_gmt = $next_date ? strtotime( $next_date . ' GMT' ) : 0;
+
+		set_transient( 'next_scheduled_post_gmt', $next_gmt );
+	}
+
+	return $next_gmt && (int) $next_gmt <= time();
+}
+
+/**
+ * Clears the cached "next scheduled post" time used by wp_next_scheduled_post_is_due()
+ * whenever a post transitions into or out of `future` status.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string  $new_status New post status.
+ * @param string  $old_status Old post status.
+ * @param WP_Post $post       Post object.
+ */
+function clear_next_scheduled_post_cache( $new_status, $old_status, $post ) {
+	if ( 'future' === $new_status || 'future' === $old_status ) {
+		delete_transient( 'next_scheduled_post_gmt' );
+	}
+}
+
+/**
  * Uses wp_checkdate to return a valid Gregorian-calendar value for post_date.
  * If post_date is not provided, this first checks post_date_gmt if provided,
  * then falls back to use the current time.
