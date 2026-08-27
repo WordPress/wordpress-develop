@@ -2383,6 +2383,29 @@ function post_type_supports( $post_type, $feature ) {
 
 	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
 }
+
+/**
+ * Determines whether a post type supports notes.
+ *
+ * Notes support is declared through the arguments of the `editor` feature, as in
+ * `'supports' => array( 'editor' => array( 'notes' => true ) )`.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $post_type Post type name.
+ * @return bool Whether the post type supports notes.
+ */
+function _wp_post_type_supports_notes( $post_type ) {
+	$supports = get_all_post_type_supports( $post_type );
+
+	if ( ! isset( $supports['editor'] ) || ! is_array( $supports['editor'] ) ) {
+		return false;
+	}
+
+	return array_any( $supports['editor'], static fn( $args ) => ! empty( $args['notes'] ) );
+}
+
 /**
  * Retrieves a list of post type names that support a specific feature.
  *

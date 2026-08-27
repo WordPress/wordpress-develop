@@ -632,6 +632,23 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 
 	$editor_settings['canUpdateBlockBindings'] = current_user_can( 'edit_block_binding', $block_editor_context );
 
+	/*
+	 * Advertise which note actions are locked so the editor can hide affordances
+	 * the REST API will refuse. This is a courtesy: enforcement lives in
+	 * WP_REST_Comments_Controller.
+	 */
+	if ( ! empty( $block_editor_context->post ) ) {
+		$locked_note_actions = array();
+
+		foreach ( wp_get_note_lock_actions() as $note_action ) {
+			if ( wp_note_action_is_locked( $note_action, $block_editor_context->post ) ) {
+				$locked_note_actions[] = $note_action;
+			}
+		}
+
+		$editor_settings['lockedNoteActions'] = $locked_note_actions;
+	}
+
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
 	 *

@@ -4506,6 +4506,102 @@ function _wp_check_for_scheduled_update_comment_type() {
 }
 
 /**
+ * Retrieves the note actions a lock can apply to.
+ *
+ * Reopening a note is classified as `resolve`: it is the same state machine
+ * running in the opposite direction.
+ *
+ * @since 7.2.0
+ *
+ * @return string[] The action names.
+ */
+function wp_get_note_lock_actions() {
+	return array( 'create', 'reply', 'edit', 'resolve', 'delete' );
+}
+
+/**
+ * Determines whether a note action is locked for a post.
+ *
+ * A lock freezes note mutation while leaving notes readable. It is expressed
+ * per action, so a site can either freeze a post's notes entirely or preserve
+ * them selectively, for example by disallowing deletion while review continues.
+ *
+ * Two layers feed the result: the `_wp_notes_locked` post meta locks every
+ * action on that post, and the {@see 'note_action_is_locked'} filter then
+ * refines the computed value.
+ *
+ * @since 7.2.0
+ *
+ * @param string          $action  Note action. Accepts 'create', 'reply', 'edit', 'resolve', 'delete'.
+ * @param int|WP_Post     $post    Post ID or post object the note belongs to.
+ * @param WP_Comment|null $comment Optional. The note being mutated. Null when creating one. Default null.
+ * @return bool Whether the action is locked.
+ */
+function wp_note_action_is_locked( $action, $post, $comment = null ) {
+	$post = get_post( $post );
+
+	if ( ! $post instanceof WP_Post ) {
+		return false;
+	}
+
+	$locked = (bool) get_post_meta( $post->ID, '_wp_notes_locked', true );
+
+	/**
+	 * Filters whether a note action is locked.
+	 *
+	 * Locking freezes note mutation but never affects reading notes. Returning
+	 * true blocks the action for every user, including administrators, unless
+	 * the filter itself carves out an exception.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool            $locked  Whether the action is locked. Defaults to the
+	 *                                 post's `_wp_notes_locked` meta value.
+	 * @param string          $action  Note action. Accepts 'create', 'reply', 'edit', 'resolve', 'delete'.
+	 * @param WP_Post         $post    The post the note belongs to.
+	 * @param WP_Comment|null $comment The note being mutated, or null when creating one.
+	 */
+	return (bool) apply_filters( 'note_action_is_locked', $locked, $action, $post, $comment );
+}
+
+/**
+ * Registers the note lock meta on every post type that supports notes.
+ *
+ * Runs late on the `init` action so that post types registered at the default
+ * priority are already in place.
+ *
+ * @since 7.2.0
+ */
+function wp_register_note_lock_meta() {
+	foreach ( get_post_types_by_support( 'editor' ) as $post_type ) {
+		if ( ! _wp_post_type_supports_notes( $post_type ) ) {
+			continue;
+		}
+
+		register_post_meta(
+			$post_type,
+			'_wp_notes_locked',
+			array(
+				'type'              => 'boolean',
+				'description'       => __( 'Whether notes are locked for this post.' ),
+				'single'            => true,
+				'default'           => false,
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				/*
+				 * Locking is an editorial decision, so it takes more than being the
+				 * post's author: an author locking reviewers out of their own review
+				 * thread would defeat the point.
+				 */
+				'auth_callback'     => static function ( $allowed, $meta_key, $post_id ) {
+					return current_user_can( 'edit_others_posts' ) && current_user_can( 'edit_post', $post_id );
+				},
+			)
+		);
+	}
+}
+
+/**
  * Register initial note status meta.
  *
  * @since 6.9.0
