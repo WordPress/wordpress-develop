@@ -2,7 +2,7 @@
  * @output wp-admin/js/customize-controls.js
  */
 
-/* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
+/* global _, _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
 (function( exports, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
@@ -2151,7 +2151,16 @@
 							}
 						});
 						if ( 'local' !== section.params.filter_type ) {
-							wp.a11y.speak( api.settings.l10n.themeSearchResults.replace( '%d', data.info.results ) );
+							wp.a11y.speak(
+								wp.i18n.sprintf(
+									wp.i18n._n(
+										'%d theme found',
+										'%d themes found',
+										data.info.results
+									),
+									data.info.results
+								)
+							);
 						}
 					}
 
@@ -2455,28 +2464,45 @@
 		 *
 		 * @since 4.9.0
 		 *
+		 * @param {number} count New theme count.
 		 * @return {void}
 		 */
 		updateCount: function( count ) {
-			var section = this, countEl, displayed;
+			var section = this, i18n = wp.i18n, countHtml, displayed;
 
 			if ( ! count && 0 !== count ) {
 				count = section.getVisibleCount();
 			}
 
 			displayed = section.contentContainer.find( '.themes-displayed' );
-			countEl = section.contentContainer.find( '.theme-count' );
+			countHtml = i18n.sprintf(
+				i18n._n(
+					'%s theme',
+					'%s themes',
+					count
+				),
+				'<span class="theme-count">' + count + '</span>'
+			);
 
 			if ( 0 === count ) {
-				countEl.text( '0' );
+				displayed.html( countHtml );
 			} else {
 
 				// Animate the count change for emphasis.
 				displayed.fadeOut( 180, function() {
-					countEl.text( count );
+					displayed.html( countHtml );
 					displayed.fadeIn( 180 );
 				} );
-				wp.a11y.speak( api.settings.l10n.announceThemeCount.replace( '%d', count ) );
+				wp.a11y.speak(
+					i18n.sprintf(
+						i18n._n(
+							'Displaying %d theme',
+							'Displaying %d themes',
+							count
+						),
+						count
+					)
+				);
 			}
 		},
 
@@ -5563,11 +5589,15 @@
 			control.setting.notifications.remove( 'csslint_error' );
 
 			if ( 0 !== errorAnnotations.length ) {
-				if ( 1 === errorAnnotations.length ) {
-					message = api.l10n.customCssError.singular.replace( '%d', '1' );
-				} else {
-					message = api.l10n.customCssError.plural.replace( '%d', String( errorAnnotations.length ) );
-				}
+				message = wp.i18n.sprintf(
+					wp.i18n._n(
+						'There is %d error which must be fixed before you can save.',
+						'There are %d errors which must be fixed before you can save.',
+						errorAnnotations.length
+					),
+					errorAnnotations.length
+				);
+
 				control.setting.notifications.add( new api.Notification( 'csslint_error', {
 					message: message,
 					type: 'error'
@@ -7590,7 +7620,14 @@
 
 						if ( invalidSettings.length ) {
 							api.notifications.add( new api.Notification( errorCode, {
-								message: ( 1 === invalidSettings.length ? api.l10n.saveBlockedError.singular : api.l10n.saveBlockedError.plural ).replace( /%s/g, String( invalidSettings.length ) ),
+								message: wp.i18n.sprintf(
+									wp.i18n._n(
+										'Unable to save due to %s invalid setting.',
+										'Unable to save due to %s invalid settings.',
+										invalidSettings.length
+									),
+									invalidSettings.length
+								),
 								type: 'error',
 								dismissible: true,
 								saveFailure: true

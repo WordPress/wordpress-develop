@@ -4954,14 +4954,16 @@ final class WP_Customize_Manager {
 			'previewableDevices'     => $this->get_previewable_devices(),
 			'l10n'                   => array(
 				'confirmDeleteTheme'   => __( 'Are you sure you want to delete this theme?' ),
-				/* translators: %d: Number of theme search results, which cannot currently consider singular vs. plural forms. */
-				'themeSearchResults'   => __( '%d themes found' ),
-				/* translators: %d: Number of themes being displayed, which cannot currently consider singular vs. plural forms. */
-				'announceThemeCount'   => __( 'Displaying %d themes' ),
 				/* translators: %s: Theme name. */
 				'announceThemeDetails' => __( 'Theme details: %s' ),
 			),
 		);
+
+		// These strings are here for backwards compatibility; the translations now occur in JavaScript.
+		/* translators: %d: Number of theme search results. Note there is a newer translation of this string with singular and plural forms. */
+		$settings['l10n']['themeSearchResults'] = __( '%d themes found' );
+		/* translators: %d: Number of themes being displayed. Note there is a newer translation of this string with singular and plural forms. */
+		$settings['l10n']['announceThemeCount'] = __( 'Displaying %d themes' );
 
 		// Temporarily disable installation in Customizer. See #42184.
 		$filesystem_method = get_filesystem_method();
