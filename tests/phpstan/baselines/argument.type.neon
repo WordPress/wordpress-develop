@@ -306,7 +306,7 @@ parameters:
 		-
 			message: '#^Parameter \#7 \$callback_args of function add_meta_box expects array\|null, WP_Post_Type given\.$#'
 			identifier: argument.type
-			count: 1
+			count: 2
 			path: ../../../src/wp-admin/includes/nav-menu.php
 		-
 			message: '#^Parameter \#1 \$tags of function wp_generate_tag_cloud expects array\<WP_Term\>, array\<object\{link\: string, name\: mixed, slug\: mixed, id\: string, count\: mixed\}&stdClass\> given\.$#'
@@ -1366,12 +1366,12 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$response of method WP_REST_Server\:\:envelope_response\(\) expects WP_REST_Response, WP_HTTP_Response given\.$#'
 			identifier: argument.type
-			count: 1
+			count: 2
 			path: ../../../src/wp-includes/rest-api/class-wp-rest-server.php
 		-
 			message: '#^Parameter \#1 \$response of method WP_REST_Server\:\:response_to_data\(\) expects WP_REST_Response, WP_HTTP_Response given\.$#'
 			identifier: argument.type
-			count: 1
+			count: 2
 			path: ../../../src/wp-includes/rest-api/class-wp-rest-server.php
 		-
 			message: '#^Parameter \#1 \$data_object of method WP_REST_Controller\:\:update_additional_fields_for_object\(\) expects object, array given\.$#'
