@@ -176,6 +176,40 @@ class Tests_Connectors_WpConnectorsSanitizeApplicationPasswordCredentials extend
 	}
 
 	/**
+	 * Only the exact mask stands in for the stored password.
+	 *
+	 * @ticket 65821
+	 */
+	public function test_bullet_prefixed_password_that_is_not_the_mask_is_stored(): void {
+		update_option(
+			self::CREDENTIALS_SETTING_NAME,
+			array(
+				'username' => 'remote-user',
+				'password' => 'abcd efgh ijkl mnop 1234',
+			)
+		);
+
+		// Starts with bullets, but it is the API key mask rather than the password mask.
+		$submitted = _wp_connectors_mask_api_key( 'abcd efgh ijkl mnop 1234' );
+
+		update_option(
+			self::CREDENTIALS_SETTING_NAME,
+			array(
+				'username' => 'remote-user',
+				'password' => $submitted,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'username' => 'remote-user',
+				'password' => $submitted,
+			),
+			get_option( self::CREDENTIALS_SETTING_NAME )
+		);
+	}
+
+	/**
 	 * @ticket 64850
 	 */
 	public function test_non_array_value_preserves_stored_credentials(): void {

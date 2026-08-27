@@ -622,10 +622,11 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
  *
  * A value matching the mask that `_wp_connectors_rest_settings_dispatch()`
  * places in REST responses keeps the stored key, so a masked settings response
- * can be submitted back to the endpoint unchanged. Pass an empty string to
- * clear the key.
+ * can be submitted back to the endpoint unchanged. The match must be exact; all
+ * other values are sanitized as text, as before. Pass an empty string to clear
+ * the key.
  *
- * @since 7.1.0
+ * @since 7.2.0
  * @access private
  *
  * @param mixed  $value  The submitted setting value.
@@ -766,10 +767,13 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 		$value = $data[ $setting_name ];
 
 		// On update, validate AI provider keys submitted in the request before masking.
+		// A request carrying the mask of the stored key submitted no new key, since
+		// wp_connectors_sanitize_api_key() kept the stored one, so there is nothing to validate.
 		// Non-AI connectors accept keys as-is; the service plugin handles its own validation.
 		if ( $is_update
 			&& $request->has_param( $setting_name )
 			&& is_string( $value ) && '' !== $value
+			&& _wp_connectors_mask_api_key( $value ) !== $request->get_param( $setting_name )
 			&& 'ai_provider' === $connector_data['type']
 		) {
 			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
