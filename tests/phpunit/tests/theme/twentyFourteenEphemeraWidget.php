@@ -19,32 +19,42 @@ class Tests_Theme_TwentyFourteenEphemeraWidget extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The widget must restore the original `$more` global, not the zeroed value
-	 * it sets for each post it renders.
+	 * The widget must restore the original `$more` global, which `WP_Query::setup_postdata()`
+	 * zeroes out for each post the widget's secondary loop renders.
 	 */
 	public function test_widget_restores_more_global() {
-		// More than one post, so a stale `$more` from a previous iteration would be restored.
-		foreach ( self::factory()->post->create_many( 2 ) as $post_id ) {
-			$this->assertIsInt( $post_id );
-			set_post_format( $post_id, 'aside' );
-		}
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => 'I want <!--more--> ice cream!',
+			)
+		);
+		$this->assertIsInt( $post_id );
+		set_post_format( $post_id, 'aside' );
 
+		// Sentinel value for the restore assertion below; it does not affect what the widget renders.
 		$GLOBALS['more']          = 1;
 		$GLOBALS['content_width'] = 474;
 
 		$widget = new Twenty_Fourteen_Ephemera_Widget();
 
-		ob_start();
-		$widget->widget(
+		$output = get_echo(
+			array( $widget, 'widget' ),
 			array(
-				'before_widget' => '',
-				'after_widget'  => '',
-			),
-			array( 'format' => 'aside' )
+				array(
+					'before_widget' => '',
+					'after_widget'  => '',
+				),
+				array( 'format' => 'aside' ),
+			)
 		);
-		$output = ob_get_clean();
 
-		$this->assertNotEmpty( $output, 'The widget rendered nothing, so nothing was restored.' );
+		$this->assertNotEmpty( $output, 'The widget content.' );
+		$processor       = new WP_HTML_Tag_Processor( $output );
+		$more_link_count = 0;
+		while ( $processor->next_tag( array( 'class_name' => 'more-link' ) ) ) {
+			++$more_link_count;
+		}
+		$this->assertSame( 1, $more_link_count, 'Expected there to be one more link.' );
 		$this->assertSame( 1, $GLOBALS['more'], 'The $more global was not restored to its original value.' ); // @phpstan-ignore method.alreadyNarrowedType (The global variable is modified by Twenty_Fourteen_Ephemera_Widget::widget().)
 		$this->assertSame( 474, $GLOBALS['content_width'], 'The $content_width global was not restored to its original value.' );
 	}
