@@ -109,14 +109,19 @@ window.wp = window.wp || {};
 		});
 
 		/**
-		 * Disables the password input field when the private post checkbox is checked.
+		 * Disables the password input field and sticky option when the private post checkbox is checked.
 		 */
-		$('#inline-edit .inline-edit-private input[value="private"]').on( 'click', function(){
-			var pw = $('input.inline-edit-password-input');
-			if ( $(this).prop('checked') ) {
-				pw.val('').prop('disabled', true);
+		$( 'table.widefat' ).on( 'change', '.inline-edit-private input[value="private"]', function() {
+			var editRow = $( this ).closest( 'tr' ),
+				pw = $( 'input.inline-edit-password-input', editRow ),
+				sticky = $( 'input[name="sticky"]', editRow );
+
+			if ( $( this ).prop( 'checked' ) ) {
+				pw.val( '' ).prop( 'disabled', true );
+				sticky.prop( 'checked', false ).prop( 'disabled', true );
 			} else {
-				pw.prop('disabled', false);
+				pw.prop( 'disabled', false );
+				sticky.prop( 'disabled', false );
 			}
 		});
 
@@ -143,6 +148,15 @@ window.wp = window.wp || {};
 		);
 
 		$('select[name="_status"] option[value="future"]', bulkRow).remove();
+
+		// Disable sticky option when the status is set to 'Private' in bulk edit.
+		$( '#bulk-edit' ).on( 'change', 'select[name="_status"]', function() {
+			if ( 'private' === $( this ).val() ) {
+				$( '#bulk-edit select[name="sticky"]' ).val( '-1' ).prop( 'disabled', true );
+			} else {
+				$( '#bulk-edit select[name="sticky"]' ).prop( 'disabled', false );
+			}
+		});
 
 		/**
 		 * Adds onclick events to the apply buttons.
@@ -449,6 +463,7 @@ window.wp = window.wp || {};
 		if ( 'private' === status ) {
 			$('input[name="keep_private"]', editRow).prop('checked', true);
 			pw.val( '' ).prop( 'disabled', true );
+			$('input[name="sticky"]', editRow).prop('checked', false).prop('disabled', true);
 		}
 
 		// Remove the current page and children from the parent dropdown.

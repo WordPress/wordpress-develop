@@ -706,7 +706,12 @@ function bulk_edit_posts( $post_data = null ) {
 		update_post_meta( $post_id, '_edit_last', get_current_user_id() );
 		$updated[] = $post_id;
 
-		if ( isset( $post_data['sticky'] ) && current_user_can( $ptype->cap->edit_others_posts ) ) {
+		$post_status = ! empty( $post_data['post_status'] ) ? $post_data['post_status'] : $post->post_status;
+
+		// Private posts cannot be sticky.
+		if ( 'private' === $post_status ) {
+			unstick_post( $post_id );
+		} elseif ( isset( $post_data['sticky'] ) && current_user_can( $ptype->cap->edit_others_posts ) ) {
 			if ( 'sticky' === $post_data['sticky'] ) {
 				stick_post( $post_id );
 			} else {
