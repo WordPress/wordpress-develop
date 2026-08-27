@@ -175,4 +175,45 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( new WP_Error( 'wpdb_get_table_charset_failure' ), false, false ), // @ticket 53986
 		);
 	}
+
+	/**
+	 * @ticket 65281
+	 *
+	 * @covers ::sanitize_option
+	 * @covers ::get_settings_errors
+	 *
+	 * @dataProvider data_sanitize_option_date_time_format
+	 */
+	public function test_sanitize_option_date_time_format( $option_name, $provided, $expected, $valid ) {
+		global $wp_settings_errors;
+
+		$old_wp_settings_errors = (array) $wp_settings_errors;
+
+		update_option( $option_name, $expected );
+
+		$actual = sanitize_option( $option_name, $provided );
+		$errors = get_settings_errors( $option_name );
+
+		$wp_settings_errors = $old_wp_settings_errors;
+
+		if ( $valid ) {
+			$this->assertEmpty( $errors );
+		} else {
+			$this->assertNotEmpty( $errors );
+			$this->assertSame( 'invalid_' . $option_name, $errors[0]['code'] );
+		}
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	public function data_sanitize_option_date_time_format() {
+		return array(
+			array( 'date_format', 'F j, Y', 'F j, Y', true ),
+			array( 'date_format', '', 'Y-m-d', false ),
+			array( 'date_format', '   ', 'Y-m-d', false ),
+			array( 'time_format', 'g:i a', 'g:i a', true ),
+			array( 'time_format', '', 'g:i a', false ),
+			array( 'time_format', '   ', 'g:i a', false ),
+		);
+	}
 }

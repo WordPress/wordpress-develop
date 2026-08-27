@@ -67,7 +67,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
 
-<form method="post" action="options.php" novalidate="novalidate">
+<form method="post" action="options.php">
 <?php settings_fields( 'general' ); ?>
 
 <table class="form-table" role="presentation">
@@ -518,7 +518,7 @@ foreach ( $date_formats as $format ) {
 			/* translators: Hidden accessibility text. */
 			__( 'Custom date format:' ) .
 		'</label>' .
-		'<input type="text" name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text" />' .
+		'<input type="text" name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text" required />' .
 		'<br />' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'date_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
@@ -563,7 +563,7 @@ foreach ( $time_formats as $format ) {
 			/* translators: Hidden accessibility text. */
 			__( 'Custom time format:' ) .
 		'</label>' .
-		'<input type="text" name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text" />' .
+		'<input type="text" name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text" required />' .
 		'<br />' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'time_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
