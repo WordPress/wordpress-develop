@@ -5,7 +5,7 @@
  * Covers:
  *  - wp_schedule_personal_data_cleanup_requests()
  *  - wp_privacy_personal_data_cleanup_requests()
- *  - _wp_personal_data_cleanup_requests() (including the post_modified timezone fix)
+ *  - _wp_personal_data_cleanup_requests() (including the expiry timezone fixes)
  *
  * @package WordPress
  * @subpackage UnitTests
@@ -329,16 +329,12 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 * Timezone fix: a request-pending post that is only 20 hours old must not
 	 * be marked failed on a UTC+5 site.
 	 *
-	 * Before the fix, the date_query used 'post_modified_gmt' (a UTC column) but
-	 * WP_Date_Query::build_mysql_datetime() resolved the relative 'before' string
-	 * (e.g. "86400 seconds ago") using the site's local timezone and returned a
-	 * *local-time* string. Comparing a UTC column against a local-time threshold
+	 * The expiry threshold must be an absolute UTC time. A relative 'before'
+	 * string such as "86400 seconds ago" is resolved by WP_Date_Query in the
+	 * site's timezone, so comparing it against the UTC post_modified_gmt column
 	 * shifted the effective expiry window by the UTC offset — on UTC+5 sites,
 	 * requests expired 5 hours too early, flagging posts that were as recent as
 	 * 19 hours old as expired.
-	 *
-	 * The fix changes the column to 'post_modified' (local time) so both sides
-	 * of the comparison are in the same timezone.
 	 *
 	 * @ticket 44498
 	 */
@@ -374,9 +370,9 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 	 * Symmetric check for UTC- sites: a request just over the expiry threshold
 	 * must be correctly marked as failed even on a UTC- site.
 	 *
-	 * On UTC- sites, the old buggy code shifted the effective expiry window in
-	 * the opposite direction — requests would linger longer than intended before
-	 * being cleaned up. With the fix, the threshold is always applied consistently.
+	 * A relative 'before' string shifted the effective expiry window in the
+	 * opposite direction on UTC- sites — requests lingered longer than intended
+	 * before being cleaned up. An absolute UTC threshold applies consistently.
 	 *
 	 * @ticket 44498
 	 */
@@ -397,6 +393,30 @@ class Tests_Privacy_WpPersonalDataCleanupRequests extends WP_UnitTestCase {
 			'request-failed',
 			get_post_status( $id ),
 			'A 25-hour-old request should be expired on a UTC-5 site.'
+		);
+	}
+
+	/**
+	 * Changing the site timezone must not retroactively expire a fresh request.
+	 *
+	 * @ticket 65731
+	 */
+	public function test_fresh_request_survives_a_large_timezone_change(): void {
+		// UTC-11 at request time.
+		update_option( 'timezone_string', 'Pacific/Pago_Pago' );
+
+		$id = wp_create_user_request( $this->unique_email(), 'export_personal_data' );
+		$this->assertIsInt( $id );
+
+		// UTC+14 afterwards: 25 hours ahead, more than the 24-hour expiry window.
+		update_option( 'timezone_string', 'Pacific/Kiritimati' );
+
+		_wp_personal_data_cleanup_requests();
+
+		$this->assertSame(
+			'request-pending',
+			get_post_status( $id ),
+			'A seconds-old request should stay request-pending after the site timezone changes.'
 		);
 	}
 
