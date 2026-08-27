@@ -2622,7 +2622,7 @@ function is_post_embeddable( $post = null ) {
  *     $args is array{ fields: 'ids', ... }
  *         ? int[]
  *         : ( $args is array{ fields: 'id=>parent', ... }
- *             ? array<non-falsy-string, int>|array<int, int>
+ *             ? array<int, int>
  *             : WP_Post[] )
  * )
  */

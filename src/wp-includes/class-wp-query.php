@@ -3296,14 +3296,18 @@ class WP_Query {
 						}
 
 						/** @var int[] */
-						$post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
+						$cached_post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
 
-						foreach ( $post_parents as $cache_key => $post_parent ) {
+						$post_parents = array();
+
+						foreach ( $cached_post_parents as $cache_key => $post_parent ) {
 							$obj              = new stdClass();
 							$obj->ID          = (int) str_replace( 'post_parent:', '', $cache_key );
 							$obj->post_parent = (int) $post_parent;
 
 							$this->posts[] = $obj;
+
+							$post_parents[ $obj->ID ] = $obj->post_parent;
 						}
 
 						return $post_parents;
@@ -3971,7 +3975,7 @@ class WP_Query {
 	 *     $query is array{ fields: 'ids', ... }
 	 *         ? int[]
 	 *         : ( $query is array{ fields: 'id=>parent', ... }
-	 *             ? array<non-falsy-string, int>|array<int, int>
+	 *             ? array<int, int>
 	 *             : WP_Post[] )
 	 * )
 	 */

@@ -180,16 +180,16 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 	/**
 	 * Verifies what get_posts() returns for the `id=>parent` fields value.
 	 *
-	 * The parent IDs are keyed by post ID when the query runs against the database, but a
-	 * query served from the `post-queries` cache returns them keyed by the
-	 * `post_parent:{$post_id}` cache keys they are stored under instead.
+	 * The second call is served from the `post-queries` cache, which previously returned
+	 * the parent IDs keyed by the `post_parent:{$post_id}` cache keys they are stored
+	 * under rather than by post ID.
 	 *
-	 * This is not specific to an external object cache being in use: the second call is a
-	 * cache hit with the default in-memory implementation as well.
+	 * The cache hit is not specific to an external object cache being in use: the second
+	 * call is served from the cache with the default in-memory implementation as well.
 	 *
 	 * @ticket 65817
 	 */
-	public function test_should_return_parent_ids_keyed_by_post_id_until_cached(): void {
+	public function test_should_return_parent_ids_keyed_by_post_id_when_cached(): void {
 		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$this->assertIsInt( $parent_id, 'The parent page was not created.' );
 
@@ -209,22 +209,12 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 			'order'       => 'ASC',
 		);
 
-		$this->assertSame(
-			array(
-				$parent_id => 0,
-				$child_id  => $parent_id,
-			),
-			get_posts( $args ),
-			'The uncached call should return the parent IDs keyed by post ID.'
+		$expected = array(
+			$parent_id => 0,
+			$child_id  => $parent_id,
 		);
 
-		$this->assertSame(
-			array(
-				"post_parent:{$parent_id}" => 0,
-				"post_parent:{$child_id}"  => $parent_id,
-			),
-			get_posts( $args ),
-			'The cached call should return the parent IDs keyed by the post parent cache keys.'
-		);
+		$this->assertSame( $expected, get_posts( $args ), 'The uncached call is not of the expected form.' );
+		$this->assertSame( $expected, get_posts( $args ), 'The cached call is not of the expected form.' );
 	}
 }

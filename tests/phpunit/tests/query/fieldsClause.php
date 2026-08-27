@@ -214,18 +214,18 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	/**
 	 * Tests the value returned when the fields are limited to the ID and parent sub-set.
 	 *
-	 * The parent IDs are keyed by post ID when the query runs against the database, but a
-	 * query served from the `post-queries` cache returns them keyed by the
-	 * `post_parent:{$post_id}` cache keys they are stored under instead.
+	 * The second query is served from the `post-queries` cache, which previously returned
+	 * the parent IDs keyed by the `post_parent:{$post_id}` cache keys they are stored
+	 * under rather than by post ID.
 	 *
-	 * This is not specific to an external object cache being in use: the second query is a
-	 * cache hit with the default in-memory implementation as well.
+	 * The cache hit is not specific to an external object cache being in use: the second
+	 * query is served from the cache with the default in-memory implementation as well.
 	 *
 	 * @ticket 65817
 	 *
 	 * @covers WP_Query::query
 	 */
-	public function test_id_and_parent_subset_should_return_parent_ids_keyed_by_post_id_until_cached() {
+	public function test_id_and_parent_subset_should_return_parent_ids_keyed_by_post_id_when_cached() {
 		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$this->assertIsInt( $parent_id, 'The parent page was not created.' );
 
@@ -245,37 +245,24 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 			'order'          => 'ASC',
 		);
 
-		$q1     = new WP_Query();
-		$found1 = $q1->query( $query_args );
-
-		$this->assertSame(
-			array(
-				$parent_id => 0,
-				$child_id  => $parent_id,
-			),
-			$found1,
-			'The uncached query should return the parent IDs keyed by post ID.'
+		$expected = array(
+			$parent_id => 0,
+			$child_id  => $parent_id,
 		);
 
-		$q2     = new WP_Query();
-		$found2 = $q2->query( $query_args );
+		$q1 = new WP_Query();
+		$this->assertSame( $expected, $q1->query( $query_args ), 'The uncached query is not of the expected form.' );
 
-		$this->assertSame(
-			array(
-				"post_parent:{$parent_id}" => 0,
-				"post_parent:{$child_id}"  => $parent_id,
-			),
-			$found2,
-			'The cached query should return the parent IDs keyed by the post parent cache keys.'
-		);
+		$q2 = new WP_Query();
+		$this->assertSame( $expected, $q2->query( $query_args ), 'The cached query is not of the expected form.' );
 	}
 
 	/**
 	 * Tests the value returned when the fields are limited to the ID and parent sub-set
 	 * and the query results are not cached.
 	 *
-	 * With caching disabled every query runs against the database, so the parent IDs are
-	 * keyed by post ID each time.
+	 * With caching disabled every query runs against the database, so the `post-queries`
+	 * cache is never consulted.
 	 *
 	 * @ticket 65817
 	 *
