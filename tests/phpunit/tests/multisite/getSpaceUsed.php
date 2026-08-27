@@ -83,7 +83,21 @@ class Tests_Multisite_GetSpaceUsed extends WP_UnitTestCase {
 		remove_filter( 'pre_get_space_used', array( $this, 'filter_space_used' ) );
 	}
 
+	public function test_get_space_used_filter() {
+		add_filter( 'pre_get_space_used', array( $this, 'filter_space_used' ) );
+		add_filter( 'get_space_used', array( $this, 'filter_add_additional_space_used' ) );
+
+		$this->assertSame( 350, get_space_used() );
+
+		remove_filter( 'pre_get_space_used', array( $this, 'filter_space_used' ) );
+		remove_filter( 'get_space_used', array( $this, 'filter_add_additional_space_used' ) );
+	}
+
 	public function filter_space_used() {
 		return 300;
+	}
+
+	public function filter_add_additional_space_used( $space_used ) {
+		return $space_used + 50;
 	}
 }

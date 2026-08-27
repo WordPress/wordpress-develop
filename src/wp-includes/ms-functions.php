@@ -2620,7 +2620,14 @@ function get_space_used() {
 		$space_used = get_dirsize( $upload_dir['basedir'] ) / MB_IN_BYTES;
 	}
 
-	return $space_used;
+	/**
+	 * Filters the amount of storage space used by the current site after default calculations have been applied.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int $space_used The amount of used space, in megabytes.
+	 */
+	return apply_filters( 'get_space_used', $space_used );
 }
 
 /**
