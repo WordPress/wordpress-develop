@@ -6604,6 +6604,14 @@ function wp_set_client_side_media_processing_flag(): void {
 
 	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true;', 'before' );
 
+	/*
+	 * Indicates that HEIC canvas-based upload support is available. Unlike the
+	 * full WebAssembly pipeline, this fallback does not require cross-origin
+	 * isolation, so browsers such as Safari can use createImageBitmap() to
+	 * decode HEIC images and convert them to JPEG before uploading.
+	 */
+	wp_add_inline_script( 'wp-block-editor', 'window.__heicUploadSupport = true;', 'before' );
+
 	$chromium_version = wp_get_chromium_major_version();
 
 	if ( null !== $chromium_version && $chromium_version >= 137 ) {
