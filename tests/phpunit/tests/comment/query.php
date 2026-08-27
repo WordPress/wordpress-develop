@@ -5831,8 +5831,10 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			}
 		);
 
-		// 'pings' is a query alias for the 'pingback' and 'trackback' types, so
-		// an explicit request for it must still return pingbacks.
+		/*
+		 * 'pings' is a query alias for the 'pingback' and 'trackback' types, so
+		 * an explicit request for it must still return pingbacks.
+		 */
 		$query = new WP_Comment_Query();
 		$found = $query->query(
 			array(

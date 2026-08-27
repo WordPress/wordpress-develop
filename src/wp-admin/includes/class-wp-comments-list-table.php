@@ -127,8 +127,10 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 * expanded first, matching how WP_Comment_Query resolves them.
 		 */
 		switch ( $comment_type ) {
-			// Kept for symmetry with WP_Comment_Query; the accessor strips these tokens
-			// from the excluded set, so this branch can never subtract anything.
+			/*
+			 * Kept for symmetry with WP_Comment_Query; the accessor strips these tokens
+			 * from the excluded set, so this branch can never subtract anything.
+			 */
 			case 'comment':
 			case 'comments':
 				$requested_types = array( '', 'comment' );
