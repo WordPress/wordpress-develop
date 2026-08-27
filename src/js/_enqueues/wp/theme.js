@@ -709,7 +709,7 @@ themes.view.Details = wp.Backbone.View.extend({
 
 	render: function() {
 		var data = this.model.toJSON();
-		this.$el.html( this.html( data ) );
+		this.$el.html( this.html( data ) ).attr( 'data-slug', data.id );
 		// Renders active theme styles.
 		this.activeTheme();
 		// Set up navigation events.
