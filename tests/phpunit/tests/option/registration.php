@@ -20,6 +20,7 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 		// Check defaults.
 		$this->assertSame( 'string', $args['type'] );
 		$this->assertFalse( $args['show_in_rest'] );
+		$this->assertFalse( $args['show_in_abilities'] );
 		$this->assertSame( '', $args['description'] );
 	}
 
