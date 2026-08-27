@@ -1738,6 +1738,17 @@ module.exports = function(grunt) {
 		} );
 	} );
 
+	grunt.registerTask( 'verify:view-config-schema', 'Verifies the generated view-config REST schema PHP file is in sync with the canonical JSON Schema.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/rest-api/gen-view-config-schema-php.mjs', '--check' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
 	grunt.renameTask( 'watch', '_watch' );
 
 	grunt.registerTask( 'watch', function() {
@@ -1776,6 +1787,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:php', [
+		'verify:view-config-schema',
 		'phpstan',
 		'phpunit'
 	] );

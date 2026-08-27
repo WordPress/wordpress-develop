@@ -146,6 +146,8 @@
 		"typecheck:php:baselines": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan:baselines --",
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
-		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg"
+		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg",
+		"view-config-schema:generate": "node tools/rest-api/gen-view-config-schema-php.mjs",
+		"view-config-schema:check": "node tools/rest-api/gen-view-config-schema-php.mjs --check"
 	}
 }
