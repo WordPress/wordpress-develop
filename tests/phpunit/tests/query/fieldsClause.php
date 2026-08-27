@@ -302,6 +302,32 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests the posts property when the fields are limited to the ID and parent sub-set
+	 * and the query matches nothing.
+	 *
+	 * An empty result set is cached like any other, and the cached branch only ever
+	 * appended to the posts property, so a second identical query left it as null where
+	 * the first left it an empty array.
+	 *
+	 * @ticket 65817
+	 */
+	public function test_id_and_parent_subset_should_populate_posts_property_when_cached_query_has_no_results() {
+		$query_args = array(
+			'post_type' => 'wptests_pt',
+			'fields'    => 'id=>parent',
+			'name'      => 'this-slug-does-not-exist',
+		);
+
+		$q1 = new WP_Query();
+		$this->assertSame( array(), $q1->query( $query_args ), 'The uncached query did not return an empty array.' );
+		$this->assertSame( array(), $q1->posts, 'The posts property is not an empty array after the uncached query.' );
+
+		$q2 = new WP_Query();
+		$this->assertSame( array(), $q2->query( $query_args ), 'The cached query did not return an empty array.' );
+		$this->assertSame( array(), $q2->posts, 'The posts property is not an empty array after the cached query.' );
+	}
+
+	/**
 	 * Filters the posts fields.
 	 *
 	 * @param string $fields The fields to SELECT.
