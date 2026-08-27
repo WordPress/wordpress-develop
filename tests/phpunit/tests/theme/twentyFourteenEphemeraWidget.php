@@ -25,6 +25,7 @@ class Tests_Theme_TwentyFourteenEphemeraWidget extends WP_UnitTestCase {
 	public function test_widget_restores_more_global() {
 		// More than one post, so a stale `$more` from a previous iteration would be restored.
 		foreach ( self::factory()->post->create_many( 2 ) as $post_id ) {
+			$this->assertIsInt( $post_id );
 			set_post_format( $post_id, 'aside' );
 		}
 
@@ -44,7 +45,7 @@ class Tests_Theme_TwentyFourteenEphemeraWidget extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertNotEmpty( $output, 'The widget rendered nothing, so nothing was restored.' );
-		$this->assertSame( 1, $GLOBALS['more'], 'The $more global was not restored to its original value.' );
+		$this->assertSame( 1, $GLOBALS['more'], 'The $more global was not restored to its original value.' ); // @phpstan-ignore method.alreadyNarrowedType (The global variable is modified by Twenty_Fourteen_Ephemera_Widget::widget().)
 		$this->assertSame( 474, $GLOBALS['content_width'], 'The $content_width global was not restored to its original value.' );
 	}
 }
