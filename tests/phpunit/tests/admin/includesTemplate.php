@@ -3,6 +3,16 @@
  * @group admin
  */
 class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
+	/**
+	 * Editor user ID.
+	 *
+	 * @var int $editor_id
+	 */
+	public static $editor_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
 
 	/**
 	 * @ticket 51137
@@ -64,7 +74,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
 
 		// Test that get_inline_data() has `post_category` div containing the assigned term.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 		get_inline_data( $post );
 		$this->expectOutputRegex( '/<div class="post_category" id="wptests_tax_1_' . $post->ID . '">' . $term['term_id'] . '<\/div>/' );
 	}
@@ -90,7 +100,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
 
 		// Test that get_inline_data() has `tags_input` div containing the assigned term.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 		get_inline_data( $post );
 		$this->expectOutputRegex( '/<div class="tags_input" id="wptests_tax_1_' . $post->ID . '">Test<\/div>/' );
 	}
@@ -483,5 +493,58 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 
 		// This doesn't actually get removed due to the invalid priority.
 		remove_meta_box( 'dashboard2', 'dashboard', 'normal' );
+	}
+
+	/**
+	 * Tests that get_post_states() handles a null value gracefully.
+	 *
+	 * This can happen when get_post() returns null (e.g., when a post
+	 * doesn't exist) and that result is passed to get_post_states()
+	 * without being checked first.
+	 *
+	 * @ticket 58932
+	 *
+	 * @covers ::get_post_states
+	 */
+	public function test_get_post_states_with_null_returns_empty_array() {
+		$result = get_post_states( null );
+		$this->assertSame( array(), $result, 'get_post_states() should return an empty array when WP_Post is not supplied.' );
+	}
+
+	/**
+	 * Tests that get_submit_button() expands the type shorthands into their
+	 * `button-*` classes.
+	 *
+	 * @ticket 64892
+	 *
+	 * @covers ::get_submit_button
+	 *
+	 * @dataProvider data_get_submit_button_shorthand
+	 *
+	 * @param string|array $type     The type argument passed to get_submit_button().
+	 * @param string       $expected The expected class attribute value.
+	 */
+	public function test_get_submit_button_expands_type_shorthands( $type, $expected ) {
+		$button = get_submit_button( 'Save', $type, 'submit', false );
+
+		$this->assertStringContainsString( 'class="' . $expected . '"', $button );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_submit_button_shorthand() {
+		return array(
+			'primary shorthand'            => array( 'primary', 'button button-primary' ),
+			'small shorthand'              => array( 'small', 'button button-small' ),
+			'large shorthand'              => array( 'large', 'button button-large' ),
+			'compact shorthand'            => array( 'compact', 'button button-compact' ),
+			'multiple shorthands'          => array( 'primary compact', 'button button-primary button-compact' ),
+			'non-shorthand with compact'   => array( 'action compact', 'button action button-compact' ),
+			'array type with compact'      => array( array( 'primary', 'compact' ), 'button button-primary button-compact' ),
+			'raw button-compact unchanged' => array( 'button-compact', 'button button-compact' ),
+		);
 	}
 }

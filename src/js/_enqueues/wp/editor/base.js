@@ -1273,7 +1273,7 @@ window.wp = window.wp || {};
 
 				var $addMediaButton = $( '<button type="button" class="button insert-media add_media">' );
 
-				$addMediaButton.append( '<span class="wp-media-buttons-icon"></span>' );
+				$addMediaButton.append( '<span class="wp-media-buttons-icon" aria-hidden="true"></span>' );
 				$addMediaButton.append( document.createTextNode( ' ' + buttonText ) );
 				$addMediaButton.data( 'editor', id );
 
@@ -1293,7 +1293,7 @@ window.wp = window.wp || {};
 						.append( $button.attr({
 							id: id + '-html',
 							'class': 'wp-switch-editor switch-html'
-						}).text( window.tinymce.translate( 'Code' ) ) )
+						}).text( window.tinymce.translate( 'Code|tab' ) ) )
 					).append( $editorContainer )
 			);
 

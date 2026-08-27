@@ -14,15 +14,24 @@
  *
  * @see Iterator
  * @see ArrayAccess
+ *
+ * @phpstan-type Hook_Callback array{
+ *   function: callable,
+ *   accepted_args: int,
+ * }
+ *
+ * @phpstan-implements Iterator<int, array<non-decimal-int-string, Hook_Callback>>
+ * @phpstan-implements ArrayAccess<int, array<non-decimal-int-string, Hook_Callback>>
  */
 #[AllowDynamicProperties]
 final class WP_Hook implements Iterator, ArrayAccess {
 
 	/**
-	 * Hook callbacks.
+	 * Hook callbacks keyed by priority.
 	 *
 	 * @since 4.7.0
 	 * @var array
+	 * @phpstan-var array<int, array<non-decimal-int-string, Hook_Callback>>
 	 */
 	public $callbacks = array();
 
@@ -30,7 +39,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * Priorities list.
 	 *
 	 * @since 6.4.0
-	 * @var array
+	 * @var list<int>
 	 */
 	protected $priorities = array();
 
@@ -38,7 +47,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * The priority keys of actively running iterations of a hook.
 	 *
 	 * @since 4.7.0
-	 * @var array
+	 * @var array<int, list<int>>
 	 */
 	private $iterations = array();
 
@@ -46,7 +55,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * The current priority of actively running iterations of a hook.
 	 *
 	 * @since 4.7.0
-	 * @var array
+	 * @var array<int, int>
 	 */
 	private $current_priority = array();
 
@@ -80,7 +89,14 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @param int      $accepted_args The number of arguments the function accepts.
 	 */
 	public function add_filter( $hook_name, $callback, $priority, $accepted_args ) {
+		if ( null === $priority ) {
+			$priority = 0;
+		}
+
 		$idx = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
+		if ( null === $idx ) {
+			return;
+		}
 
 		$priority_existed = isset( $this->callbacks[ $priority ] );
 
@@ -187,9 +203,13 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @return bool Whether the callback existed before it was removed.
 	 */
 	public function remove_filter( $hook_name, $callback, $priority ) {
+		if ( null === $priority ) {
+			$priority = 0;
+		}
+
 		$function_key = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 
-		$exists = isset( $this->callbacks[ $priority ][ $function_key ] );
+		$exists = isset( $function_key, $this->callbacks[ $priority ][ $function_key ] );
 
 		if ( $exists ) {
 			unset( $this->callbacks[ $priority ][ $function_key ] );
@@ -215,16 +235,21 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * that evaluates to false (e.g. 0), so use the `===` operator for testing the return value.
 	 *
 	 * @since 4.7.0
+	 * @since 6.9.0 Added the `$priority` parameter.
 	 *
 	 * @param string                      $hook_name Optional. The name of the filter hook. Default empty.
 	 * @param callable|string|array|false $callback  Optional. The callback to check for.
 	 *                                               This method can be called unconditionally to speculatively check
 	 *                                               a callback that may or may not exist. Default false.
+	 * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
+	 *                                               Default false.
 	 * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
 	 *                  anything registered. When checking a specific function, the priority
 	 *                  of that hook is returned, or false if the function is not attached.
+	 *                  If `$callback` and `$priority` are both provided, a boolean is returned
+	 *                  for whether the specific function is registered at that priority.
 	 */
-	public function has_filter( $hook_name = '', $callback = false ) {
+	public function has_filter( $hook_name = '', $callback = false, $priority = false ) {
 		if ( false === $callback ) {
 			return $this->has_filters();
 		}
@@ -235,9 +260,13 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			return false;
 		}
 
-		foreach ( $this->callbacks as $priority => $callbacks ) {
+		if ( is_int( $priority ) ) {
+			return isset( $this->callbacks[ $priority ][ $function_key ] );
+		}
+
+		foreach ( $this->callbacks as $callback_priority => $callbacks ) {
 			if ( isset( $callbacks[ $function_key ] ) ) {
-				return $priority;
+				return $callback_priority;
 			}
 		}
 
@@ -419,10 +448,11 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @since 4.7.0
 	 *
 	 * @param array $filters Filters to normalize. See documentation above for details.
-	 * @return WP_Hook[] Array of normalized filters.
+	 * @phpstan-param array<string, WP_Hook|array<int, array<Hook_Callback>>> $filters
+	 * @return array<string, WP_Hook> Array of normalized filters keyed by hook name.
 	 */
 	public static function build_preinitialized_hooks( $filters ) {
-		/** @var WP_Hook[] $normalized */
+		/** @var array<string, WP_Hook> $normalized */
 		$normalized = array();
 
 		foreach ( $filters as $hook_name => $callback_groups ) {
@@ -455,7 +485,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetexists.php
 	 *
-	 * @param mixed $offset An offset to check for.
+	 * @param int $offset An offset to check for.
 	 * @return bool True if the offset exists, false otherwise.
 	 */
 	#[ReturnTypeWillChange]
@@ -470,12 +500,13 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetget.php
 	 *
-	 * @param mixed $offset The offset to retrieve.
-	 * @return mixed If set, the value at the specified offset, null otherwise.
+	 * @param int $offset The offset to retrieve.
+	 * @return array|null If set, the value at the specified offset, null otherwise.
+	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|null
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
-		return isset( $this->callbacks[ $offset ] ) ? $this->callbacks[ $offset ] : null;
+		return $this->callbacks[ $offset ] ?? null;
 	}
 
 	/**
@@ -485,8 +516,9 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetset.php
 	 *
-	 * @param mixed $offset The offset to assign the value to.
-	 * @param mixed $value The value to set.
+	 * @param int|null $offset The offset to assign the value to.
+	 * @param array    $value The value to set.
+	 * @phpstan-param array<non-decimal-int-string, Hook_Callback> $value
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
@@ -506,7 +538,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetunset.php
 	 *
-	 * @param mixed $offset The offset to unset.
+	 * @param int $offset The offset to unset.
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
@@ -521,7 +553,8 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/iterator.current.php
 	 *
-	 * @return array Of callbacks at current priority.
+	 * @return array|false Array of callbacks at current priority, false if there are no more elements.
+	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|false
 	 */
 	#[ReturnTypeWillChange]
 	public function current() {
@@ -535,7 +568,8 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/iterator.next.php
 	 *
-	 * @return array Of callbacks at next priority.
+	 * @return array|false Array of callbacks at next priority, false if there are no more elements.
+	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|false
 	 */
 	#[ReturnTypeWillChange]
 	public function next() {
@@ -549,7 +583,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @link https://www.php.net/manual/en/iterator.key.php
 	 *
-	 * @return mixed Returns current priority on success, or NULL on failure
+	 * @return int|null Returns current priority on success, or NULL on failure
 	 */
 	#[ReturnTypeWillChange]
 	public function key() {

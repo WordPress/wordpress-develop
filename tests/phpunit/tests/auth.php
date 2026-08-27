@@ -132,23 +132,26 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23494
+	 * @dataProvider data_passwords_for_trimming
 	 */
-	public function test_password_trimming() {
-		$passwords_to_test = array(
-			'a password with no trailing or leading spaces',
-			'a password with trailing spaces ',
-			' a password with leading spaces',
-			' a password with trailing and leading spaces ',
+	public function test_password_trimming( $password_to_test ) {
+		wp_set_password( $password_to_test, $this->user->ID );
+		$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
+
+		$this->assertNotWPError( $authed_user );
+		$this->assertInstanceOf( 'WP_User', $authed_user );
+		$this->assertSame( $this->user->ID, $authed_user->ID );
+	}
+
+	public function data_passwords_for_trimming() {
+		return array(
+			'no spaces'                => array( 'a password with no trailing or leading spaces' ),
+			'trailing space'           => array( 'a password with trailing spaces ' ),
+			'leading space'            => array( ' a password with leading spaces' ),
+			'leading and trailing'     => array( ' a password with trailing and leading spaces ' ),
+			'multiple leading spaces'  => array( '    a password with multiple leading spaces' ),
+			'multiple trailing spaces' => array( 'a password with multiple trailing spaces    ' ),
 		);
-
-		foreach ( $passwords_to_test as $password_to_test ) {
-			wp_set_password( $password_to_test, $this->user->ID );
-			$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
-
-			$this->assertNotWPError( $authed_user );
-			$this->assertInstanceOf( 'WP_User', $authed_user );
-			$this->assertSame( $this->user->ID, $authed_user->ID );
-		}
 	}
 
 	/**
@@ -180,23 +183,20 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * wp_hash_password function
 	 *
 	 * @ticket 24973
+	 * @dataProvider data_passwords_with_whitespace
 	 */
-	public function test_wp_hash_password_trimming() {
+	public function test_wp_hash_password_trimming( $password_with_whitespace, $expected_password ) {
+		$this->assertTrue( wp_check_password( $expected_password, wp_hash_password( $password_with_whitespace ) ) );
+	}
 
-		$password = ' pass with leading whitespace';
-		$this->assertTrue( wp_check_password( 'pass with leading whitespace', wp_hash_password( $password ) ) );
-
-		$password = 'pass with trailing whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with trailing whitespace', wp_hash_password( $password ) ) );
-
-		$password = ' pass with whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with whitespace', wp_hash_password( $password ) ) );
-
-		$password = "pass with new line \n";
-		$this->assertTrue( wp_check_password( 'pass with new line', wp_hash_password( $password ) ) );
-
-		$password = "pass with vertical tab o_O\x0B";
-		$this->assertTrue( wp_check_password( 'pass with vertical tab o_O', wp_hash_password( $password ) ) );
+	public function data_passwords_with_whitespace() {
+		return array(
+			'leading whitespace'  => array( ' pass with leading whitespace', 'pass with leading whitespace' ),
+			'trailing whitespace' => array( 'pass with trailing whitespace ', 'pass with trailing whitespace' ),
+			'both whitespace'     => array( ' pass with whitespace ', 'pass with whitespace' ),
+			'new line'            => array( "pass with new line \n", 'pass with new line' ),
+			'vertical tab'        => array( "pass with vertical tab o_O\x0B", 'pass with vertical tab o_O' ),
+		);
 	}
 
 	/**
@@ -1579,12 +1579,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @covers ::wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
-		$user_id = self::factory()->user->create(
-			array(
-				'user_login' => 'http_auth_login',
-				'user_pass'  => 'http_auth_pass', // Shouldn't be allowed for API login.
-			)
-		);
+		$user_id = self::$_user->ID;
 
 		// Create a new app-only password.
 		list( $user_app_password, $item ) = WP_Application_Passwords::create_new_application_password( $user_id, array( 'name' => 'phpunit' ) );
@@ -1594,8 +1589,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 
 		// Fake an HTTP Auth request with the regular account password first.
-		$_SERVER['PHP_AUTH_USER'] = 'http_auth_login';
-		$_SERVER['PHP_AUTH_PW']   = 'http_auth_pass';
+		$_SERVER['PHP_AUTH_USER'] = self::USER_LOGIN;
+		$_SERVER['PHP_AUTH_PW']   = self::USER_PASS;
 
 		$this->assertNull(
 			wp_validate_application_password( null ),
@@ -2094,9 +2089,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	private static function get_default_bcrypt_cost(): int {
-		$hash = password_hash( 'password', PASSWORD_BCRYPT );
-		$info = password_get_info( $hash );
-
-		return $info['options']['cost'];
+		return 5;
 	}
 }
