@@ -869,6 +869,60 @@ function shortcode_unautop( $text ) {
 }
 
 /**
+ * Strips unnecessary newlines from HTML content.
+ *
+ * @since 7.1.0
+ *
+ * @param string $text The HTML content to strip newlines from.
+ * @return string The HTML content with unnecessary newlines removed.
+ */
+function strip_html_newlines( $text ) {
+	if ( ! str_contains( $text, "\n" ) && ! str_contains( $text, "\r" ) ) {
+		return $text;
+	}
+
+	$preserve_newlines_elements = array( 'pre', 'code', 'kbd', 'script', 'style' );
+
+	$textarr = wp_html_split( $text );
+	$changed = false;
+	$skip    = false;
+
+	foreach ( $textarr as $i => $chunk ) {
+		if ( '' === $chunk ) {
+			continue;
+		}
+
+		if ( 0 !== $i % 2 ) {
+			foreach ( $preserve_newlines_elements as $element ) {
+				if ( preg_match( '~^<' . $element . '[\s/>]~i', $chunk ) ) {
+					$skip = true;
+					break;
+				}
+				if ( stripos( $chunk, '</' . $element . '>' ) === 0 ) {
+					$skip = false;
+					break;
+				}
+			}
+			continue;
+		}
+
+		if ( ! $skip ) {
+			$stripped = preg_replace( '/[\n\r]+/', ' ', $chunk );
+			if ( $stripped !== $chunk ) {
+				$textarr[ $i ] = $stripped;
+				$changed       = true;
+			}
+		}
+	}
+
+	if ( $changed ) {
+		return implode( '', $textarr );
+	}
+
+	return $text;
+}
+
+/**
  * Checks to see if a string is utf8 encoded.
  *
  * NOTE: This function checks for 5-Byte sequences, UTF8
