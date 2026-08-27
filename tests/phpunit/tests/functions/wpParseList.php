@@ -14,7 +14,7 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_parse_list
 	 *
-	 * @param mixed[]|string $input_list
+	 * @param mixed[]|string|int $input_list
 	 * @param array<scalar> $expected
 	 */
 	public function test_wp_parse_list( $input_list, array $expected ): void {
@@ -35,7 +35,7 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ input_list: mixed[]|string, expected: array<scalar> }>
+	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<scalar> }>
 	 */
 	public function data_wp_parse_list(): array {
 		return array(
@@ -82,6 +82,22 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 			'double comma only'   => array(
 				'input_list' => ',,',
 				'expected'   => array(),
+			),
+			'positive int'        => array(
+				'input_list' => 5,
+				'expected'   => array( '5' ),
+			),
+			'negative int'        => array(
+				'input_list' => -5,
+				'expected'   => array( '-5' ),
+			),
+			'zero'                => array(
+				'input_list' => 0,
+				'expected'   => array( '0' ),
+			),
+			'comma in array item' => array(
+				'input_list' => array( '1,2' ),
+				'expected'   => array( '1,2' ),
 			),
 			'passed scalar array' => array(
 				'input_list' => array( 'foo', true, false, 1, 3.14 ),
