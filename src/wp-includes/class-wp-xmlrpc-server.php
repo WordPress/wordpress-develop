@@ -5240,7 +5240,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return new IXR_Error( 401, __( 'Sorry, you are not allowed to edit this post.' ) );
 		}
-		if ( 'publish' === $actual_post['post_status'] && ! current_user_can( 'publish_posts' ) ) {
+		if ( ( $publish || 'publish' === $actual_post['post_status'] ) && ! current_user_can( 'publish_posts' ) ) {
 			return new IXR_Error( 401, __( 'Sorry, you are not allowed to publish this post.' ) );
 		}
 
@@ -6911,7 +6911,9 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 404, __( 'Invalid post ID.' ) );
 		}
 
-		if ( ! current_user_can( 'publish_posts' ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		$post_type = get_post_type_object( $postdata['post_type'] );
+
+		if ( ! $post_type || ! current_user_can( $post_type->cap->publish_posts ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			return new IXR_Error( 401, __( 'Sorry, you are not allowed to publish this post.' ) );
 		}
 
