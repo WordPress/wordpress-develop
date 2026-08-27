@@ -468,6 +468,18 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 
 	$new_sizes = array_filter( array_merge( $priority, $new_sizes ) );
 
+	/**
+	 * Fires before creating image sub-sizes.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array  $new_sizes     Array defining what sizes to create.
+	 * @param string $file          Full path to the image file.
+	 * @param array  $image_meta    The attachment meta data array.
+	 * @param int    $attachment_id Attachment ID to process.
+	 */
+	do_action( 'wp_before_make_subsizes', $new_sizes, $file, $image_meta, $attachment_id );
+
 	$editor = wp_get_image_editor( $file );
 
 	if ( is_wp_error( $editor ) ) {
