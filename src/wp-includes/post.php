@@ -6309,7 +6309,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	$post_types          = esc_sql( $post_types );
 	$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
 	$sql                 = "
-		SELECT ID, post_name, post_parent, post_type
+		SELECT ID, post_name, post_parent, post_type, post_status
 		FROM $wpdb->posts
 		WHERE post_name IN ($in_string)
 		AND post_type IN ($post_type_in_string)
@@ -6320,7 +6320,10 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 
 	$revparts = array_reverse( $parts );
 
-	$found_id = 0;
+	$found_id          = 0;
+	$found_type_rank   = 0;
+	$found_status_rank = 0;
+
 	foreach ( (array) $pages as $page ) {
 		if ( $page->post_name === $revparts[0] ) {
 			$count = 0;
@@ -6343,9 +6346,22 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				&& count( $revparts ) === $count + 1
 				&& $p->post_name === $revparts[ $count ]
 			) {
-				$found_id = $page->ID;
-				if ( $page->post_type === $post_type ) {
-					break;
+				$is_type_match = is_array( $post_type )
+					? in_array( $page->post_type, $post_type, true )
+					: ( $page->post_type === $post_type );
+
+				$type_rank   = $is_type_match ? 2 : 1;
+				$status_rank = ( 'publish' === $page->post_status ) ? 2 : 1;
+
+				if ( $type_rank > $found_type_rank || ( $type_rank === $found_type_rank && $status_rank > $found_status_rank ) ) {
+					$found_id          = $page->ID;
+					$found_type_rank   = $type_rank;
+					$found_status_rank = $status_rank;
+
+					// Perfect match: correct type and viewable status. No need to scan further.
+					if ( 2 === $found_type_rank && 2 === $found_status_rank ) {
+						break;
+					}
 				}
 			}
 		}
