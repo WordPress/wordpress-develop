@@ -707,4 +707,51 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
 		}
 	}
+
+	/**
+	 * Tests that only WordPress' own cookies are sent with the REST API test request.
+	 *
+	 * @ticket 65839
+	 *
+	 * @covers ::get_test_rest_availability()
+	 */
+	public function test_get_test_rest_availability_sends_only_wordpress_cookies() {
+		$original_cookie = $_COOKIE;
+
+		$_COOKIE = array(
+			LOGGED_IN_COOKIE     => 'admin|1700000000|token|hmac',
+			TEST_COOKIE          => 'WP Cookie check',
+			'_ga'                => 'GA1.1.123456789.1700000000',
+			'wp-settings-time-1' => '1700000000',
+		);
+
+		$sent = null;
+
+		add_filter(
+			'pre_http_request',
+			static function ( $response, $parsed_args ) use ( &$sent ) {
+				$sent = $parsed_args['cookies'];
+
+				return array(
+					'response' => array( 'code' => 200 ),
+					'body'     => '',
+				);
+			},
+			10,
+			2
+		);
+
+		$this->instance->get_test_rest_availability();
+
+		$_COOKIE = $original_cookie;
+
+		$this->assertSame(
+			array(
+				LOGGED_IN_COOKIE => 'admin|1700000000|token|hmac',
+				TEST_COOKIE      => 'WP Cookie check',
+			),
+			$sent,
+			'Only WordPress\' own cookies should be sent with the REST API test request.'
+		);
+	}
 }
