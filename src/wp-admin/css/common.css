@@ -1152,6 +1152,7 @@ th.action-links {
 	flex-wrap: wrap;
 	justify-content: space-between;
 	align-items: center;
+	row-gap: 11px;
 }
 
 .wp-filter .search-form.search-plugins select,
@@ -1391,12 +1392,6 @@ th.action-links {
 
 @media only screen and (max-width: 1138px) {
 	.wp-filter .search-form {
-		margin: 11px 0;
-	}
-}
-
-@media only screen and (max-width: 1250px) {
-	.wp-filter:has(.plugin-install-search) .search-form {
 		margin: 11px 0;
 	}
 }
