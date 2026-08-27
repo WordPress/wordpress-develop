@@ -163,9 +163,53 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 45016
 	 * @ticket 61021
-	 * @ticket 62574.
+	 * @ticket 62574
 	 */
 	public function test_get_items() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$fields = array(
+			'_links',
+			'author',
+			'author_uri',
+			'description',
+			'is_block_theme',
+			'name',
+			'requires_php',
+			'requires_wp',
+			'screenshot',
+			'status',
+			'stylesheet',
+			'stylesheet_uri',
+			'tags',
+			'template',
+			'template_uri',
+			'textdomain',
+			'theme_uri',
+			'version',
+		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
+		$this->assertSameSets( $fields, array_keys( $data[0] ) );
+
+		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
+		$this->assertContains( get_stylesheet(), wp_list_pluck( $data, 'stylesheet' ) );
+	}
+
+	/**
+	 * Test retrieving a collection of active themes.
+	 *
+	 * @ticket 64719
+	 */
+	public function test_get_items_active() {
+		wp_set_current_user( self::$admin_id );
+
 		$response = self::perform_active_theme_request();
 
 		$this->assertSame( 200, $response->get_status() );
@@ -196,8 +240,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'version',
 		);
 		$this->assertIsArray( $data );
-		$this->assertNotEmpty( $data );
+		$this->assertCount( 1, $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
+		$this->assertEquals( array( 'rest-api' ), wp_list_pluck( $data, 'stylesheet' ) );
 	}
 
 	/**

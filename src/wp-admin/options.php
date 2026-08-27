@@ -31,20 +31,20 @@ $capability = 'manage_options';
 // This is for back compat and will eventually be removed.
 if ( empty( $option_page ) ) {
 	$option_page = 'options';
-} else {
-
-	/**
-	 * Filters the capability required when using the Settings API.
-	 *
-	 * By default, the options groups for all registered settings require the manage_options capability.
-	 * This filter is required to change the capability required for a certain options page.
-	 *
-	 * @since 3.2.0
-	 *
-	 * @param string $capability The capability used for the page, which is manage_options by default.
-	 */
-	$capability = apply_filters( "option_page_capability_{$option_page}", $capability );
 }
+
+/**
+ * Filters the capability required when using the Settings API.
+ *
+ * By default, the options groups for all registered settings require the manage_options capability.
+ * This filter is required to change the capability required for a certain options page.
+ *
+ * @since 3.2.0
+ * @since 7.0.0 Applied when `wp-admin/options.php` is accessed directly.
+ *
+ * @param string $capability The capability used for the page, which is manage_options by default.
+ */
+$capability = apply_filters( "option_page_capability_{$option_page}", $capability );
 
 if ( ! current_user_can( $capability ) ) {
 	wp_die(
@@ -125,6 +125,7 @@ $allowed_options            = array(
 		'comment_order',
 		'comment_registration',
 		'show_comments_cookies_opt_in',
+		'wp_notes_notify',
 	),
 	'media'      => array(
 		'thumbnail_size_w',
@@ -421,6 +422,12 @@ foreach ( (array) $options as $option ) :
 			$value    = 'SERIALIZED DATA';
 			$disabled = true;
 		}
+	} elseif ( str_starts_with( $option->option_name, 'connectors_' )
+		&& str_ends_with( $option->option_name, '_api_key' )
+	) {
+		// Mask connector API keys and prevent updates from this screen.
+		$value    = _wp_connectors_mask_api_key( $option->option_value );
+		$disabled = true;
 	} else {
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;

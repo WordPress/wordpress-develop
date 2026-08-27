@@ -168,7 +168,12 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 
 		$comment = get_comment( $comment_id );
-		$this->assertSame( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
+		$this->assertEqualHTML(
+			'<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>',
+			$comment->comment_content,
+			'<body>',
+			'Comment: ' . $comment->comment_content
+		);
 	}
 
 	/**
@@ -1105,6 +1110,122 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_false_for_unapproved_comment(): void {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+		$this->assertIsInt( $c );
+
+		update_option( 'comments_notify', 1 );
+
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertSame( 1, $filter->get_call_count() );
+		$args = array_first( $filter->get_args() );
+		$this->assertFalse( $args[0] ?? null, 'The filter should receive a default of false for an unapproved comment.' );
+		$this->assertFalse( $sent, 'No notification should be sent for an unapproved comment by default.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_override_unapproved_comment(): void {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+		$this->assertIsInt( $c );
+
+		add_filter( 'notify_post_author', '__return_true' );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertTrue( $sent, 'The notify_post_author filter should be able to force a notification for an unapproved comment.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_should_not_send_email_for_invalid_comment(): void {
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
+
+		// An empty ID such as 0 would fall back to the global comment in get_comment().
+		$sent = wp_new_comment_notify_postauthor( PHP_INT_MAX );
+
+		$this->assertFalse( $sent, 'No notification should be sent for an invalid comment ID.' );
+		$this->assertSame( array(), $filter->get_events(), 'The notify_post_author filter should not fire for an invalid comment ID.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_truthy_default_for_unapproved_note(): void {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '0',
+			)
+		);
+		$this->assertIsInt( $c );
+
+		update_option( 'wp_notes_notify', 1 );
+
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$this->assertTrue( $sent, 'The notification comment should have been sent.' );
+		$args = array_first( $filter->get_args() );
+		$this->assertTrue( (bool) ( $args[0] ?? null ), 'The filter should receive a truthy default for an unapproved note.' );
+	}
+
+	/**
+	 * @ticket 64217
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_wp_new_comment_notify_postauthor_filter_should_receive_option_value_for_approved_comment(): void {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+			)
+		);
+		$this->assertIsInt( $c );
+
+		update_option( 'comments_notify', 0 );
+
+		$filter = new MockAction();
+		add_filter( 'notify_post_author', array( $filter, 'filter' ) );
+
+		$sent = wp_new_comment_notify_postauthor( $c );
+
+		$args = array_first( $filter->get_args() );
+		$this->assertFalse( (bool) ( $args[0] ?? null ), 'The filter should receive the comments_notify option value as the default for an approved comment.' );
+		$this->assertFalse( $sent, 'No notification should be sent for an approved comment when comments_notify is disabled.' );
+	}
+
+	/**
 	 * @ticket 43805
 	 *
 	 * @covers ::wp_new_comment_notify_postauthor
@@ -1666,5 +1787,262 @@ class Tests_Comment extends WP_UnitTestCase {
 		$comment = get_comment( $c );
 
 		$this->assertSame( '1', $comment->comment_approved );
+	}
+
+	/**
+	 * Tests that trashing a top-level note also trashes all direct child notes.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 * @dataProvider data_comment_approved_statuses
+	 */
+	public function test_wp_trash_comment_trashes_child_notes( $approved_status ) {
+		// Create a parent note (top-level, comment_parent=0).
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		// Create child notes under the parent.
+		$child_note_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		$child_note_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		$child_note_3 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		// Trash the parent note.
+		wp_trash_comment( $parent_note );
+
+		// Verify parent note is trashed.
+		$this->assertSame( 'trash', get_comment( $parent_note )->comment_approved );
+
+		// Verify all child notes are also trashed.
+		$this->assertSame( 'trash', get_comment( $child_note_1 )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $child_note_2 )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $child_note_3 )->comment_approved );
+	}
+
+	/**
+	 * Data provider for test_wp_trash_comment_trashes_child_notes.
+	 */
+	public function data_comment_approved_statuses() {
+		return array(
+			array( '1' ),
+			array( '0' ),
+		);
+	}
+
+	/**
+	 * Tests that trashing a regular comment does NOT trash its children.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_does_not_trash_child_comments() {
+		// Create a parent comment (default type='comment').
+		$parent_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create child comments under the parent.
+		$child_comment_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_comment_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Trash the parent comment.
+		wp_trash_comment( $parent_comment );
+
+		// Verify parent comment is trashed.
+		$this->assertSame( 'trash', get_comment( $parent_comment )->comment_approved );
+
+		// Verify child comments are NOT trashed (maintaining existing behavior).
+		$this->assertSame( '1', get_comment( $child_comment_1 )->comment_approved );
+		$this->assertSame( '1', get_comment( $child_comment_2 )->comment_approved );
+	}
+
+	/**
+	 * Tests that trashing a child note does not affect parent or siblings.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_child_note_does_not_affect_parent_or_siblings() {
+		// Create a parent note.
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create multiple child notes.
+		$child_note_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_note_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_note_3 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Trash only one child note.
+		wp_trash_comment( $child_note_2 );
+
+		// Verify the parent note is still approved.
+		$this->assertSame( '1', get_comment( $parent_note )->comment_approved );
+
+		// Verify the trashed child is trashed.
+		$this->assertSame( 'trash', get_comment( $child_note_2 )->comment_approved );
+
+		// Verify sibling notes are still approved.
+		$this->assertSame( '1', get_comment( $child_note_1 )->comment_approved );
+		$this->assertSame( '1', get_comment( $child_note_3 )->comment_approved );
+	}
+
+	/**
+	 * Tests that only top-level notes trigger child deletion.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_only_top_level_notes_trigger_child_deletion() {
+		// Create a parent note.
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create a child note (not top-level, has comment_parent > 0).
+		$child_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create a sibling note (also not top-level).
+		$sibling_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Trash the child note (which has comment_parent > 0).
+		wp_trash_comment( $child_note );
+
+		// Verify the child note is trashed.
+		$this->assertSame( 'trash', get_comment( $child_note )->comment_approved );
+
+		// Verify the parent note is NOT trashed.
+		$this->assertSame( '1', get_comment( $parent_note )->comment_approved );
+
+		// Verify the sibling note is NOT trashed (no cascade since child is not top-level).
+		$this->assertSame( '1', get_comment( $sibling_note )->comment_approved );
+	}
+
+	/**
+	 * @ticket 61244
+	 *
+	 * @covers ::get_comment
+	 */
+	public function test_get_comment_filter() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( $comment_id, (int) $comment->comment_ID, 'Expected the same comment.' );
+
+		add_filter( 'get_comment', '__return_null' );
+		$this->assertNull( get_comment( $comment_id ), 'Expected get_comment() to return null when get_comment filter returns null.' );
+	}
+
+	/**
+	 * @ticket 64898
+	 *
+	 * @covers ::get_comment
+	 */
+	public function test_get_comment_should_only_treat_numeric_values_as_comment_ids(): void {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		$this->assertIsInt( $comment_id );
+
+		$comment = get_comment( (string) $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment, 'Expected a numeric string to be treated as a comment ID.' );
+		$this->assertSame( (string) $comment_id, $comment->comment_ID, 'Expected the same comment.' );
+
+		$this->assertNull( get_comment( $comment_id . 'abc' ), 'Expected a malformed numeric string not to be cast to a comment ID.' );
+		$this->assertNull( get_comment( true ), 'Expected true not to be cast to comment ID 1.' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 	}
 }

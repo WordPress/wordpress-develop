@@ -43,7 +43,7 @@ define( 'ARRAY_N', 'ARRAY_N' );
  * By default, WordPress uses this class to instantiate the global $wpdb object, providing
  * access to the WordPress database.
  *
- * It is possible to replace this class with your own by setting the $wpdb global variable
+ * It is possible to replace the global instance with your own by setting the $wpdb global variable
  * in wp-content/db.php file to your class. The wpdb class will still be included, so you can
  * extend it or simply use your own.
  *
@@ -237,7 +237,6 @@ class wpdb {
 	 * WordPress table prefix.
 	 *
 	 * You can set this to have multiple WordPress installations in a single database.
-	 * The second reason is for possible security precautions.
 	 *
 	 * @since 2.5.0
 	 *
@@ -468,7 +467,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogs;
 
@@ -477,7 +476,7 @@ class wpdb {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogmeta;
 
@@ -486,7 +485,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $registration_log;
 
@@ -495,7 +494,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $signups;
 
@@ -504,7 +503,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $site;
 
@@ -513,7 +512,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitecategories;
 
@@ -522,7 +521,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitemeta;
 
@@ -827,7 +826,7 @@ class wpdb {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $name  The private member to unset
+	 * @param string $name The private member to unset.
 	 */
 	public function __unset( $name ) {
 		unset( $this->$name );
@@ -941,7 +940,7 @@ class wpdb {
 	/**
 	 * Changes the current SQL mode, and ensures its WordPress compatibility.
 	 *
-	 * If no modes are passed, it will ensure the current MySQL server modes are compatible.
+	 * If no modes are passed, it will ensure the current SQL server modes are compatible.
 	 *
 	 * @since 3.9.0
 	 *
@@ -961,13 +960,7 @@ class wpdb {
 				return;
 			}
 
-			$modes_str = $modes_array[0];
-
-			if ( empty( $modes_str ) ) {
-				return;
-			}
-
-			$modes = explode( ',', $modes_str );
+			$modes = explode( ',', $modes_array[0] );
 		}
 
 		$modes = array_change_key_case( $modes, CASE_UPPER );
@@ -1369,7 +1362,7 @@ class wpdb {
 	}
 
 	/**
-	 * Quotes an identifier for a MySQL database, e.g. table/field names.
+	 * Quotes an identifier such as a table or field name.
 	 *
 	 * @since 6.2.0
 	 *
@@ -1435,6 +1428,13 @@ class wpdb {
 	 *         'foo'
 	 *     );
 	 *
+	 *     $wpdb->prepare(
+	 *         "SELECT * FROM %i WHERE %i = %s",
+	 *         $table,
+	 *         $field,
+	 *         $value
+	 *     );
+	 *
 	 * @since 2.3.0
 	 * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
 	 *              by updating the function signature. The second parameter was changed
@@ -1453,11 +1453,11 @@ class wpdb {
 	 *                             individual arguments.
 	 * @param mixed       ...$args Further variables to substitute into the query's placeholders
 	 *                             if being called with individual arguments.
-	 * @return string|void Sanitized query string, if there is a query to prepare.
+	 * @return string|null Sanitized query string, if there is a query to prepare.
 	 */
 	public function prepare( $query, ...$args ) {
 		if ( is_null( $query ) ) {
-			return;
+			return null;
 		}
 
 		/*
@@ -1666,7 +1666,7 @@ class wpdb {
 				'6.2.0'
 			);
 
-			return;
+			return null;
 		}
 
 		$args_count = count( $args );
@@ -1684,7 +1684,7 @@ class wpdb {
 					'4.9.0'
 				);
 
-				return;
+				return null;
 			} else {
 				/*
 				 * If we don't have the right number of placeholders,
@@ -1794,7 +1794,7 @@ class wpdb {
 	 * @global array $EZSQL_ERROR Stores error information of query and error string.
 	 *
 	 * @param string $str The error to display.
-	 * @return void|false Void if the showing of errors is enabled, false if disabled.
+	 * @return null|false Null if the showing of errors is enabled, false if disabled.
 	 */
 	public function print_error( $str = '' ) {
 		global $EZSQL_ERROR;
@@ -1855,6 +1855,8 @@ class wpdb {
 				$query
 			);
 		}
+
+		return null;
 	}
 
 	/**
@@ -1957,7 +1959,7 @@ class wpdb {
 		$client_flags = defined( 'MYSQL_CLIENT_FLAGS' ) ? MYSQL_CLIENT_FLAGS : 0;
 
 		/*
-		 * Set the MySQLi error reporting off because WordPress handles its own.
+		 * Switch error reporting off because WordPress handles its own.
 		 * This is due to the default value change from `MYSQLI_REPORT_OFF`
 		 * to `MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT` in PHP 8.1.
 		 */
@@ -2100,7 +2102,7 @@ class wpdb {
 		}
 
 		$host = ! empty( $matches['host'] ) ? $matches['host'] : '';
-		// MySQLi port cannot be a string; must be null or an integer.
+		// Port cannot be a string; must be null or an integer.
 		$port = ! empty( $matches['port'] ) ? absint( $matches['port'] ) : null;
 
 		return array( $host, $port, $socket, $is_ipv6 );
@@ -2117,7 +2119,7 @@ class wpdb {
 	 * @since 3.9.0
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
-	 * @return bool|void True if the connection is up.
+	 * @return bool Whether the connection is up. Exits if down and $allow_bail is true.
 	 */
 	public function check_connection( $allow_bail = true ) {
 		// Check if the connection is alive.
@@ -2290,7 +2292,7 @@ class wpdb {
 		if ( $this->dbh instanceof mysqli ) {
 			$this->last_error = mysqli_error( $this->dbh );
 		} else {
-			$this->last_error = __( 'Unable to retrieve the error message from MySQL' );
+			$this->last_error = __( 'Unable to retrieve the error message from the database server' );
 		}
 
 		if ( $this->last_error ) {
@@ -2653,12 +2655,12 @@ class wpdb {
 	 * @see wpdb::$field_types
 	 * @see wp_set_wpdb_vars()
 	 *
-	 * @param string       $table           Table name.
-	 * @param array        $data            Data to update (in column => value pairs).
+	 * @param string          $table        Table name.
+	 * @param array           $data         Data to update (in column => value pairs).
 	 *                                      Both $data columns and $data values should be "raw" (neither should be SQL escaped).
 	 *                                      Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                      format is ignored in this case.
-	 * @param array        $where           A named array of WHERE clauses (in column => value pairs).
+	 * @param array           $where        A named array of WHERE clauses (in column => value pairs).
 	 *                                      Multiple clauses will be joined with ANDs.
 	 *                                      Both $where columns and $where values should be "raw".
 	 *                                      Sending a null value will create an IS NULL comparison - the corresponding
@@ -2756,7 +2758,7 @@ class wpdb {
 	 * @param string[]|string $where_format Optional. An array of formats to be mapped to each of the values in $where.
 	 *                                      If string, that format will be used for all of the items in $where.
 	 *                                      A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                                      If omitted, all values in $data will be treated as strings unless otherwise
+	 *                                      If omitted, all values in $where will be treated as strings unless otherwise
 	 *                                      specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows deleted, or false on error.
 	 */
@@ -2904,7 +2906,7 @@ class wpdb {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param array $data {
+	 * @param array  $data {
 	 *     Array of values and formats keyed by their field names,
 	 *     as it comes from the wpdb::process_field_formats() method.
 	 *
@@ -2955,7 +2957,7 @@ class wpdb {
 	 *
 	 * @since 4.2.1
 	 *
-	 * @param array $data {
+	 * @param array  $data {
 	 *     Array of values, formats, and charsets keyed by their field names,
 	 *     as it comes from the wpdb::process_field_charsets() method.
 	 *
@@ -3017,12 +3019,16 @@ class wpdb {
 	 * the value in the column and row specified is returned. If $query is null,
 	 * the value in the specified column and row from the previous SQL result is returned.
 	 *
+	 * Returns null both on failure and when the matched cell value is an empty
+	 * string. To distinguish the two cases, check {@see self::$last_error}.
+	 *
 	 * @since 0.71
 	 *
 	 * @param string|null $query Optional. SQL query. Defaults to null, use the result from the previous query.
 	 * @param int         $x     Optional. Column of value to return. Indexed from 0. Default 0.
 	 * @param int         $y     Optional. Row of value to return. Indexed from 0. Default 0.
-	 * @return string|null Database query result (as string), or null on failure.
+	 * @return string|null Database query result (as string), or null on failure or when the value is an empty string.
+	 * @phpstan-return non-empty-string|null
 	 */
 	public function get_var( $query = null, $x = 0, $y = 0 ) {
 		$this->func_call = "\$db->get_var(\"$query\", $x, $y)";
@@ -3037,6 +3043,14 @@ class wpdb {
 
 		// Extract var out of cached results based on x,y vals.
 		if ( ! empty( $this->last_result[ $y ] ) ) {
+			/**
+			 * Column values.
+			 *
+			 * These are returned from the database as strings, or null for SQL NULL, but get_object_vars() types the
+			 * property values as mixed.
+			 *
+			 * @var list<string|null> $values
+			 */
 			$values = array_values( get_object_vars( $this->last_result[ $y ] ) );
 		}
 
@@ -3056,7 +3070,25 @@ class wpdb {
 	 *                            correspond to an stdClass object, an associative array, or a numeric array,
 	 *                            respectively. Default OBJECT.
 	 * @param int         $y      Optional. Row to return. Indexed from 0. Default 0.
-	 * @return array|object|null|void Database query result in format specified by $output or null on failure.
+	 * @return array|object|null Database query result in format specified by $output or null on failure.
+	 * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+	 * @phpstan-return (
+	 *     $query is non-falsy-string
+	 *         ? (
+	 *             $output is 'OBJECT'
+	 *                 ? stdClass|null
+	 *                 : (
+	 *                     $output is 'ARRAY_A'
+	 *                         ? array<array-key, mixed>|null
+	 *                         : (
+	 *                             $output is 'ARRAY_N'
+	 *                                 ? list<mixed>|null
+	 *                                 : null
+	 *                         )
+	 *                 )
+	 *         )
+	 *         : null
+	 * )
 	 */
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
@@ -3087,6 +3119,7 @@ class wpdb {
 		} else {
 			$this->print_error( ' $db->get_row(string query, output type, int offset) -- Output type must be one of: OBJECT, ARRAY_A, ARRAY_N' );
 		}
+		return null;
 	}
 
 	/**
@@ -3101,6 +3134,7 @@ class wpdb {
 	 * @param string|null $query Optional. SQL query. Defaults to previous query.
 	 * @param int         $x     Optional. Column to return. Indexed from 0. Default 0.
 	 * @return array Database query result. Array indexed from 0 by SQL result row number.
+	 * @phpstan-return list<non-empty-string|null>
 	 */
 	public function get_col( $query = null, $x = 0 ) {
 		if ( $query ) {
@@ -3115,7 +3149,7 @@ class wpdb {
 		// Extract the column values.
 		if ( $this->last_result ) {
 			for ( $i = 0, $j = count( $this->last_result ); $i < $j; $i++ ) {
-				$new_array[ $i ] = $this->get_var( null, $x, $i );
+				$new_array[] = $this->get_var( null, $x, $i );
 			}
 		}
 		return $new_array;
@@ -3126,18 +3160,47 @@ class wpdb {
 	 *
 	 * Executes a SQL query and returns the entire SQL result.
 	 *
+	 * Returns an empty array when no rows match or when the database
+	 * reports an error for the query. Returns null when $query is empty,
+	 * when $output is not one of the recognized constants, or when the
+	 * query cannot run because the connection is not ready.
+	 *
 	 * @since 0.71
 	 *
-	 * @param string $query  SQL query.
-	 * @param string $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
-	 *                       With one of the first three, return an array of rows indexed
-	 *                       from 0 by SQL result row number. Each row is an associative array
-	 *                       (column => value, ...), a numerically indexed array (0 => value, ...),
-	 *                       or an object ( ->column = value ), respectively. With OBJECT_K,
-	 *                       return an associative array of row objects keyed by the value
-	 *                       of each row's first column's value. Duplicate keys are discarded.
-	 *                       Default OBJECT.
-	 * @return array|object|null Database query results.
+	 * @param string|null $query  SQL query.
+	 * @param string      $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
+	 *                            With one of the first three, return an array of rows indexed
+	 *                            from 0 by SQL result row number. Each row is an associative array
+	 *                            (column => value, ...), a numerically indexed array (0 => value, ...),
+	 *                            or an object ( ->column = value ), respectively. With OBJECT_K,
+	 *                            return an associative array of row objects keyed by the value
+	 *                            of each row's first column's value. Duplicate keys are discarded.
+	 *                            Default OBJECT.
+	 * @return array|null Database query results. Empty array when no rows match
+	 *                    or on database error. Null when $query is empty, when
+	 *                    $output is invalid, or when the connection is not ready.
+	 * @phpstan-param 'OBJECT'|'OBJECT_K'|'ARRAY_A'|'ARRAY_N' $output
+	 * @phpstan-return (
+	 *     $query is non-falsy-string
+	 *         ? (
+	 *             $output is 'OBJECT'
+	 *                 ? list<stdClass>|null
+	 *                 : (
+	 *                     $output is 'OBJECT_K'
+	 *                         ? array<array-key, stdClass>
+	 *                         : (
+	 *                             $output is 'ARRAY_A'
+	 *                                 ? list<array<array-key, mixed>>
+	 *                                 : (
+	 *                                     $output is 'ARRAY_N'
+	 *                                         ? list<list<mixed>>
+	 *                                         : null
+	 *                                 )
+	 *                         )
+	 *                 )
+	 *         )
+	 *         : null
+	 * )
 	 */
 	public function get_results( $query = null, $output = OBJECT ) {
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
@@ -3164,7 +3227,15 @@ class wpdb {
 			if ( $this->last_result ) {
 				foreach ( $this->last_result as $row ) {
 					$var_by_ref = get_object_vars( $row );
-					$key        = array_shift( $var_by_ref );
+					/**
+					 * The first column's value is used as the key.
+					 *
+					 * A SQL NULL value surfaces as null here, so coerce it to an empty string to avoid the deprecated
+					 * use of null as an array offset (PHP 8.5+).
+					 *
+					 * @var array-key $key
+					 */
+					$key = array_shift( $var_by_ref ) ?? '';
 					if ( ! isset( $new_array[ $key ] ) ) {
 						$new_array[ $key ] = $row;
 					}
@@ -3473,7 +3544,7 @@ class wpdb {
 	}
 
 	/**
-	 * Checks if the query is accessing a collation considered safe on the current version of MySQL.
+	 * Checks if the query is accessing a collation considered safe.
 	 *
 	 * @since 4.2.0
 	 *
@@ -3797,6 +3868,9 @@ class wpdb {
 		// Strip everything between parentheses except nested selects.
 		$query = preg_replace( '/\((?!\s*select)[^(]*?\)/is', '()', $query );
 
+		// Strip any leading SET STATEMENT statements.
+		$query = preg_replace( '/^SET STATEMENT.+?\sFOR\s+/is', '', $query );
+
 		// Quickly match most common queries.
 		if ( preg_match(
 			'/^\s*(?:'
@@ -3899,6 +3973,8 @@ class wpdb {
 				return $this->col_info[ $col_offset ]->{$info_type};
 			}
 		}
+
+		return null;
 	}
 
 	/**
@@ -3934,7 +4010,7 @@ class wpdb {
 	 * @param string $message    The error message.
 	 * @param string $error_code Optional. A computer-readable string to identify the error.
 	 *                           Default '500'.
-	 * @return void|false Void if the showing of errors is enabled, false if disabled.
+	 * @return false False if the showing of errors is disabled.
 	 */
 	public function bail( $message, $error_code = '500' ) {
 		if ( $this->show_errors ) {
@@ -3987,12 +4063,12 @@ class wpdb {
 	}
 
 	/**
-	 * Determines whether MySQL database is at least the required minimum version.
+	 * Determines whether the database server is at least the required minimum version.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @global string $required_mysql_version The required MySQL version string.
-	 * @return void|WP_Error
+	 * @global string $required_mysql_version The minimum required MySQL version string.
+	 * @return WP_Error|null
 	 */
 	public function check_database_version() {
 		global $required_mysql_version;
@@ -4003,6 +4079,8 @@ class wpdb {
 			/* translators: 1: WordPress version number, 2: Minimum required MySQL version number. */
 			return new WP_Error( 'database_version', sprintf( __( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
 		}
+
+		return null;
 	}
 
 	/**
@@ -4047,7 +4125,7 @@ class wpdb {
 	 *
 	 * Capability sniffs for the database server and current version of WPDB.
 	 *
-	 * Database sniffs are based on the version of MySQL the site is using.
+	 * Database sniffs are based on the version of the database server in use.
 	 *
 	 * WPDB sniffs are added as new features are introduced to allow theme and plugin
 	 * developers to determine feature support. This is to account for drop-ins which may
@@ -4078,7 +4156,8 @@ class wpdb {
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
 		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
-			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+			&& ( PHP_VERSION_ID <= 80015 // PHP 8.0.15 or older.
+				|| 80100 <= PHP_VERSION_ID && PHP_VERSION_ID <= 80102 ) // PHP 8.1.0 to PHP 8.1.2.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
 			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );
@@ -4119,7 +4198,7 @@ class wpdb {
 	}
 
 	/**
-	 * Retrieves the database server version.
+	 * Retrieves the database server version number.
 	 *
 	 * @since 2.7.0
 	 *
@@ -4130,11 +4209,11 @@ class wpdb {
 	}
 
 	/**
-	 * Returns the version of the MySQL server.
+	 * Returns the raw version string of the database server.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return string Server version as a string.
+	 * @return string Database server version as a string.
 	 */
 	public function db_server_info() {
 		return mysqli_get_server_info( $this->dbh );

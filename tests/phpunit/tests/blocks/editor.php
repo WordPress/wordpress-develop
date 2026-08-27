@@ -9,7 +9,6 @@
  * @group blocks
  */
 class Tests_Blocks_Editor extends WP_UnitTestCase {
-
 	/**
 	 * Sets up each test method.
 	 */
@@ -32,9 +31,21 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		global $post_ID;
 		$post_ID = 1;
+
+		global $wp_scripts, $wp_styles;
+		$this->original_wp_scripts = $wp_scripts;
+		$this->original_wp_styles  = $wp_styles;
+		$wp_scripts                = null;
+		$wp_styles                 = null;
+		wp_scripts();
+		wp_styles();
 	}
 
 	public function tear_down() {
+		global $wp_scripts, $wp_styles;
+		$wp_scripts = $this->original_wp_scripts;
+		$wp_styles  = $this->original_wp_styles;
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
@@ -42,6 +53,16 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$post_ID = null;
 		parent::tear_down();
 	}
+
+	/**
+	 * @var WP_Scripts|null
+	 */
+	protected $original_wp_scripts;
+
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected $original_wp_styles;
 
 	public function filter_set_block_categories_post( $block_categories, $post ) {
 		if ( empty( $post ) ) {
@@ -562,7 +583,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		$this->assertSameSets(
 			array(
-				'filter' => 'deprecated',
+				'canEditCSS' => false,
+				'filter'     => 'deprecated',
 			),
 			$settings
 		);
@@ -631,8 +653,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
 		$this->assertStringContainsString( 'wp.apiFetch.createPreloadingMiddleware', $after );
-		$this->assertStringContainsString( '"\/wp\/v2\/blocks"', $after );
-		$this->assertStringContainsString( '"\/wp\/v2\/types"', $after );
+		$this->assertStringContainsString( '"/wp/v2/blocks"', $after );
+		$this->assertStringContainsString( '"/wp/v2/types"', $after );
 	}
 
 	/**
@@ -697,11 +719,11 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		return array(
 			'a string without a slash'               => array(
 				'preload_paths' => array( 'wp/v2/blocks' ),
-				'expected'      => '\/wp\/v2\/blocks',
+				'expected'      => '/wp/v2/blocks',
 			),
 			'a string with a slash'                  => array(
 				'preload_paths' => array( '/wp/v2/blocks' ),
-				'expected'      => '\/wp\/v2\/blocks',
+				'expected'      => '/wp/v2/blocks',
 			),
 			'a string starting with a question mark' => array(
 				'preload_paths' => array( '?context=edit' ),
@@ -709,16 +731,64 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			),
 			'an array with a string without a slash' => array(
 				'preload_paths' => array( array( 'wp/v2/blocks', 'OPTIONS' ) ),
-				'expected'      => '\/wp\/v2\/blocks',
+				'expected'      => '/wp/v2/blocks',
 			),
 			'an array with a string with a slash'    => array(
 				'preload_paths' => array( array( '/wp/v2/blocks', 'OPTIONS' ) ),
-				'expected'      => '\/wp\/v2\/blocks',
+				'expected'      => '/wp/v2/blocks',
 			),
 			'an array with a string starting with a question mark' => array(
 				'preload_paths' => array( array( '?context=edit', 'OPTIONS' ) ),
-				'expected'      => '\/?context=edit',
+				'expected'      => '/?context=edit',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 62797
+	 *
+	 * @covers ::block_editor_rest_api_preload
+	 *
+	 * Some valid JSON-encoded data is dangerous to embed in HTML without appropriate
+	 * escaping. This test includes an example of data that would prevent the enclosing
+	 * `<script></script>` tag from closing on its apparent closer and remain open.
+	 */
+	public function test_ensure_preload_data_script_tag_closes() {
+		add_theme_support( 'html5', array( 'script' ) );
+		register_rest_route(
+			'test/v0',
+			'test-62797',
+			array(
+				'methods'             => 'GET',
+				'callback'            => function () {
+					return 'Unclosed comment and a script open tag <!--<script>';
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		// Prevent a bunch of noisy or unstable data from being included in the test output.
+		wp_scripts()->registered['wp-api-fetch']->ver            = 'test';
+		wp_scripts()->registered['wp-api-fetch']->extra['after'] = array();
+
+		block_editor_rest_api_preload(
+			array( '/test/v0/test-62797' ),
+			new WP_Block_Editor_Context()
+		);
+
+		ob_start();
+		wp_scripts()->do_item( 'wp-api-fetch' );
+		$output = ob_get_clean();
+
+		$baseurl  = site_url();
+		$expected = <<<HTML
+<script src="{$baseurl}/wp-includes/js/dist/api-fetch.min.js?ver=test" id="wp-api-fetch-js"></script>
+<script id="wp-api-fetch-js-after">
+wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":["Unclosed comment and a script open tag \\u003C!--\\u003Cscript\\u003E"],"headers":{"Allow":"GET"}}} ) );
+//# sourceURL=wp-api-fetch-js-after
+</script>
+
+HTML;
+		$this->assertEqualHTML( $expected, $output );
 	}
 }

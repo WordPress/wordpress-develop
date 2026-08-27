@@ -5,10 +5,10 @@ Theme URI: https://wordpress.org/themes/twentynineteen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Our 2019 default theme is designed to show off the power of the block editor. It features custom styles for all the default blocks, and is built so that what you see in the editor looks like what you'll see on your website. Twenty Nineteen is designed to be adaptable to a wide range of websites, whether you’re running a photo blog, launching a new business, or supporting a non-profit. Featuring ample whitespace and modern sans-serif headlines paired with classic serif body text, it's built to be beautiful on all screen sizes.
-Tested up to: 6.8
+Tested up to: 7.1
 Requires at least: 4.7
 Requires PHP: 5.2.4
-Version: 3.1
+Version: 3.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentynineteen
@@ -1955,7 +1955,8 @@ abbr[title] {
   /* 1 */
   text-decoration: underline;
   /* 2 */
-  text-decoration: underline dotted;
+  -webkit-text-decoration: underline dotted;
+          text-decoration: underline dotted;
   /* 2 */
 }
 
@@ -2396,9 +2397,6 @@ h6 {
 .error-404 .page-title,
 .comments-title,
 blockquote {
-  -webkit-hyphens: auto;
-  -moz-hyphens: auto;
-  -ms-hyphens: auto;
   hyphens: auto;
   word-break: break-word;
   word-wrap: break-word;
@@ -2407,9 +2405,6 @@ blockquote {
 /* Do not hyphenate entry title on tablet view and bigger. */
 @media only screen and (min-width: 768px) {
   .entry-title {
-    -webkit-hyphens: none;
-    -moz-hyphens: none;
-    -ms-hyphens: none;
     hyphens: none;
   }
 }
@@ -2478,10 +2473,6 @@ a:focus {
 /* Elements */
 html {
   box-sizing: border-box;
-}
-
-::-moz-selection {
-  background-color: #bfdcea;
 }
 
 ::selection {
@@ -2920,8 +2911,6 @@ body.page .main-navigation {
 @media only screen and (min-width: 768px) {
   .main-navigation .sub-menu {
     width: auto;
-    min-width: -moz-max-content;
-    min-width: -webkit-max-content;
     min-width: max-content;
   }
 }
@@ -3036,8 +3025,6 @@ body.page .main-navigation {
     top: auto;
     bottom: auto;
     height: auto;
-    min-width: -moz-max-content;
-    min-width: -webkit-max-content;
     min-width: max-content;
     transform: none;
   }
@@ -3051,8 +3038,6 @@ body.page .main-navigation {
     top: auto;
     bottom: auto;
     height: auto;
-    min-width: -moz-max-content;
-    min-width: -webkit-max-content;
     min-width: max-content;
     transform: none;
   }
@@ -3175,8 +3160,6 @@ body.page .main-navigation {
     top: auto;
     bottom: auto;
     height: auto;
-    min-width: -moz-max-content;
-    min-width: -webkit-max-content;
     min-width: max-content;
     transform: none;
   }
@@ -3271,8 +3254,12 @@ body.page .main-navigation {
   white-space: inherit;
 }
 
+.main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu:not(:has(.sub-menu.expanded-true)) {
+  overflow-y: scroll;
+}
+
 .main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu.expanded-true {
-  display: table;
+  display: block;
   margin-top: 0;
   opacity: 1;
   padding-right: 0;
@@ -3463,7 +3450,8 @@ body.page .main-navigation {
 
 .post-navigation .nav-links a .meta-nav {
   color: #767676;
-  user-select: none;
+  -webkit-user-select: none;
+          user-select: none;
 }
 
 .post-navigation .nav-links a .meta-nav:before, .post-navigation .nav-links a .meta-nav:after {
@@ -3623,8 +3611,9 @@ body.page .main-navigation {
   padding: 0;
   position: absolute !important;
   width: 1px;
-  word-wrap: normal !important;
   /* Many screen reader and browser combinations announce broken words as they would appear visually. */
+  word-wrap: normal !important;
+  word-break: normal !important;
 }
 
 .screen-reader-text:focus {
@@ -3751,9 +3740,6 @@ body.page .main-navigation {
 
 .site-branding {
   color: #767676;
-  -webkit-hyphens: auto;
-  -moz-hyphens: auto;
-  -ms-hyphens: auto;
   hyphens: auto;
   position: relative;
   word-wrap: break-word;
@@ -3952,8 +3938,6 @@ body.page .main-navigation {
 
 .site-header.featured-image .social-navigation svg,
 .site-header.featured-image .site-featured-image svg {
-  /* Use -webkit- only if supporting: Chrome < 54, iOS < 9.3, Android < 4.4.4 */
-  -webkit-filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
@@ -4150,10 +4134,6 @@ body.page .main-navigation {
   .image-filters-enabled .site-header.featured-image:after {
     opacity: 0.18;
   }
-}
-
-.site-header.featured-image ::-moz-selection {
-  background: rgba(255, 255, 255, 0.17);
 }
 
 .site-header.featured-image ::selection {
@@ -4552,9 +4532,6 @@ body.page .main-navigation {
 }
 
 .comments-area {
-  -webkit-hyphens: auto;
-  -moz-hyphens: auto;
-  -ms-hyphens: auto;
   hyphens: auto;
   margin: calc(2 * 1rem) 1rem;
   word-wrap: break-word;
@@ -5083,9 +5060,6 @@ body.page .main-navigation {
 }
 
 #colophon .widget-column .widget {
-  -webkit-hyphens: auto;
-  -moz-hyphens: auto;
-  -ms-hyphens: auto;
   hyphens: auto;
   width: 100%;
   word-wrap: break-word;
@@ -5100,9 +5074,6 @@ body.page .main-navigation {
 
 #colophon .site-info {
   color: #767676;
-  -webkit-hyphens: auto;
-  -moz-hyphens: auto;
-  -ms-hyphens: auto;
   hyphens: auto;
   word-wrap: break-word;
 }
@@ -5754,6 +5725,10 @@ body.page .main-navigation {
   margin-top: 0;
 }
 
+.entry .entry-content .wp-block-pullquote.has-text-color cite {
+  color: inherit;
+}
+
 .entry .entry-content .wp-block-pullquote.is-style-solid-color {
   background-color: #0073aa;
   padding-right: 0;
@@ -6202,6 +6177,16 @@ body.page .main-navigation {
   background: #111;
   outline: thin dotted;
   outline-offset: -4px;
+}
+
+.entry .entry-content .wp-block-file.aligncenter .wp-block-file__button {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.entry .entry-content .wp-block-file.alignright .wp-block-file__button {
+  margin-right: auto;
+  margin-left: 0;
 }
 
 .entry .entry-content .wp-block-code {
