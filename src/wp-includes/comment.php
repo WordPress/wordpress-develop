@@ -996,7 +996,7 @@ function wp_check_comment_flood( $is_flood, $ip, $email, $date, $avoid_die = fal
  * @param WP_Comment[] $comments Array of comments.
  * @return array<string, WP_Comment[]> Array of comments keyed by comment type.
  */
-function separate_comments( &$comments ) {
+function separate_comments( $comments ) {
 	$comments_by_type = array(
 		'comment'   => array(),
 		'trackback' => array(),
@@ -1013,10 +1013,10 @@ function separate_comments( &$comments ) {
 			$type = 'comment';
 		}
 
-		$comments_by_type[ $type ][] = &$comments[ $i ];
+		$comments_by_type[ $type ][] = $comments[ $i ];
 
 		if ( 'trackback' === $type || 'pingback' === $type ) {
-			$comments_by_type['pings'][] = &$comments[ $i ];
+			$comments_by_type['pings'][] = $comments[ $i ];
 		}
 	}
 

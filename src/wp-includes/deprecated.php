@@ -3116,7 +3116,7 @@ function get_theme_data( $theme_file ) {
  *
  * @param array $pages list of page objects
  */
-function update_page_cache( &$pages ) {
+function update_page_cache( $pages ) {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'update_post_cache()' );
 
 	update_post_cache( $pages );
@@ -3182,9 +3182,9 @@ function sticky_class( $post_id = null ) {
  * @deprecated 3.5.0 Use get_post_ancestors()
  * @see get_post_ancestors()
  *
- * @param WP_Post $post Post object, passed by reference (unused).
+ * @param WP_Post $post Post object (unused).
  */
-function _get_post_ancestors( &$post ) {
+function _get_post_ancestors( $post ) {
 	_deprecated_function( __FUNCTION__, '3.5.0' );
 }
 

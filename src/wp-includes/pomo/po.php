@@ -499,7 +499,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * @param Translation_Entry $entry
 		 * @param string            $po_comment_line
 		 */
-		public function add_comment_to_entry( &$entry, $po_comment_line ) {
+		public function add_comment_to_entry( $entry, $po_comment_line ) {
 			$first_two = substr( $po_comment_line, 0, 2 );
 			$comment   = trim( substr( $po_comment_line, 2 ) );
 			if ( '#:' === $first_two ) {

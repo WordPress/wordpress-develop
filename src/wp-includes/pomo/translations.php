@@ -130,7 +130,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * @param Translation_Entry $entry Translation entry.
 		 * @return Translation_Entry|false Translation entry if it exists, false otherwise.
 		 */
-		public function translate_entry( &$entry ) {
+		public function translate_entry( $entry ) {
 			$key = $entry->key();
 			return $this->entries[ $key ] ?? false;
 		}
@@ -220,9 +220,9 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param Translations $other Another Translation object, whose translations will be merged in this one (passed by reference).
+		 * @param Translations $other Another Translation object, whose translations will be merged in this one.
 		 */
-		public function merge_with( &$other ) {
+		public function merge_with( $other ) {
 			foreach ( $other->entries as $entry ) {
 				$this->entries[ $entry->key() ] = $entry;
 			}
@@ -235,7 +235,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 *
 		 * @param Translations $other
 		 */
-		public function merge_originals_with( &$other ) {
+		public function merge_originals_with( $other ) {
 			foreach ( $other->entries as $entry ) {
 				if ( ! isset( $this->entries[ $entry->key() ] ) ) {
 					$this->entries[ $entry->key() ] = $entry;
@@ -479,7 +479,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param Translation_Entry $entry
 		 * @return false
 		 */
-		public function translate_entry( &$entry ) {
+		public function translate_entry( $entry ) {
 			return false;
 		}
 
@@ -540,7 +540,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 *
 		 * @param Translations $other
 		 */
-		public function merge_with( &$other ) {
+		public function merge_with( $other ) {
 		}
 	}
 endif;

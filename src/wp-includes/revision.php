@@ -435,7 +435,7 @@ function wp_save_revisioned_meta_fields( $revision_id, $post_id ) {
  *     )
  * )
  */
-function wp_get_post_revision( &$post, $output = OBJECT, $filter = 'raw' ) {
+function wp_get_post_revision( $post, $output = OBJECT, $filter = 'raw' ) {
 	$revision = get_post( $post, OBJECT, $filter );
 
 	if ( ! $revision ) {

@@ -387,9 +387,9 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array $args Arguments to pass to the hook callbacks. Passed by reference.
+	 * @param array $args Arguments to pass to the hook callbacks.
 	 */
-	public function do_all_hook( &$args ) {
+	public function do_all_hook( $args ) {
 		$nesting_level                      = $this->nesting_level++;
 		$this->iterations[ $nesting_level ] = $this->priorities;
 
