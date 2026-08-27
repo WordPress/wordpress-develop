@@ -674,4 +674,26 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$this->assertTrue( $loaded );
 	}
+
+	/**
+	 * A lossless WebP source's quality should not leak into other output formats.
+	 *
+	 * @ticket 65977
+	 *
+	 * @requires function imagecreatefromwebp
+	 * @requires function imagejpeg
+	 */
+	public function test_set_quality_does_not_leak_webp_lossless_quality_into_other_formats() {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/webp-lossless.webp' );
+		$loaded          = $gd_image_editor->load();
+
+		$this->assertNotWPError( $loaded );
+
+		$saved = $gd_image_editor->save( null, 'image/jpeg' );
+
+		$this->assertNotWPError( $saved );
+		$this->assertSame( 82, $gd_image_editor->get_quality(), 'Quality for a JPEG output should use the JPEG default, not the WebP lossless sentinel value.' );
+
+		unlink( $saved['path'] );
+	}
 }
