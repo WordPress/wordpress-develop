@@ -5028,7 +5028,7 @@ function wp_parse_args( $args, $defaults = array() ) {
  * Converts a comma- or space-separated list of scalar values to an array.
  *
  * @since 5.1.0
- * @since 7.2.0 Added explicit support for an integer to be passed.
+ * @since 7.2.0 Added explicit support for passing an integer.
  *
  * @param mixed[]|string|int $input_list List of values.
  * @return array Array of scalar values. A string is split into a list, while an array
@@ -5058,7 +5058,7 @@ function wp_parse_list( $input_list ): array {
  *
  * @since 3.0.0
  * @since 5.1.0 Refactored to use {@see wp_parse_list()}.
- * @since 7.2.0 Passing an integer is now explicitly supported.
+ * @since 7.2.0 Added explicit support for passing an integer.
  *
  * @param mixed[]|string|int $input_list List of IDs.
  * @return int[] Sanitized array of IDs. May include zero. Keys are preserved
@@ -5077,7 +5077,7 @@ function wp_parse_id_list( $input_list ): array {
  *
  * @since 4.7.0
  * @since 5.1.0 Refactored to use {@see wp_parse_list()}.
- * @since 7.2.0 Passing an integer is now explicitly supported.
+ * @since 7.2.0 Added explicit support for passing an integer.
  *
  * @param mixed[]|string|int $input_list List of slugs.
  * @return string[] Sanitized array of slugs. May include an empty string. Keys
