@@ -8,14 +8,53 @@
  */
 class Tests_Theme_TwentyFourteenEphemeraWidget extends WP_UnitTestCase {
 
+	/**
+	 * The names of the globals these tests overwrite.
+	 *
+	 * @var string[]
+	 */
+	private array $global_names = array( 'more', 'content_width' );
+
+	/**
+	 * The values of those globals before the current test ran, keyed by name.
+	 *
+	 * A name is absent when the global was not set.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $original_globals = array();
+
 	public function set_up() {
 		parent::set_up();
+
+		/*
+		 * `backupGlobals` is disabled for the suite, so these have to be restored by hand
+		 * to keep later tests in the process from inheriting them. Capture them before the
+		 * skip below, which still runs `tear_down()`.
+		 */
+		foreach ( $this->global_names as $global_name ) {
+			if ( array_key_exists( $global_name, $GLOBALS ) ) {
+				$this->original_globals[ $global_name ] = $GLOBALS[ $global_name ];
+			}
+		}
 
 		$widgets = WP_CONTENT_DIR . '/themes/twentyfourteen/inc/widgets.php';
 		if ( ! file_exists( $widgets ) ) {
 			$this->markTestSkipped( 'The Twenty Fourteen theme is not installed.' );
 		}
 		require_once $widgets;
+	}
+
+	public function tear_down() {
+		foreach ( $this->global_names as $global_name ) {
+			if ( array_key_exists( $global_name, $this->original_globals ) ) {
+				$GLOBALS[ $global_name ] = $this->original_globals[ $global_name ];
+			} else {
+				unset( $GLOBALS[ $global_name ] );
+			}
+		}
+
+		parent::tear_down();
 	}
 
 	/**
