@@ -3141,8 +3141,16 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		// Attempt to figure out what type of image it actually is.
 		$real_mime = wp_get_image_mime( $file );
 
+		/*
+		 * Image sequence extensions are re-validated even when the detected
+		 * mime matches the extension so they can be normalized to .heic below.
+		 * GD and Imagick decode only a single frame and cannot process
+		 * sequences, so there is no benefit to keeping a distinct extension.
+		 *
+		 * Note that .heif is intentionally omitted: a genuine HEIF still should
+		 * keep its .heif extension rather than being renamed to .heic.
+		 */
 		$heic_images_extensions = array(
-			'heif',
 			'heics',
 			'heifs',
 		);
@@ -3167,10 +3175,15 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/avif'          => 'avif',
 
 					/*
-					 * In theory there are/should be file extensions that correspond to the
-					 * mime types: .heif, .heics and .heifs. However it seems that HEIC images
-					 * with any of the mime types commonly have a .heic file extension.
-					 * Seems keeping the status quo here is best for compatibility.
+					 * Both image/heic and image/heif map to .heic here. PHP's
+					 * exif_imagetype() reports every HEIC/HEIF file as
+					 * IMAGETYPE_HEIF (image/heif), so this mapping is what keeps
+					 * a normal .heic upload named .heic. A genuine .heif file is
+					 * preserved earlier by being excluded from the
+					 * $heic_images_extensions re-validation list above, so it
+					 * never reaches this rewrite. The sequence types are
+					 * deliberately collapsed to .heic because GD/Imagick cannot
+					 * process multi-frame images.
 					 */
 					'image/heic'          => 'heic',
 					'image/heif'          => 'heic',
@@ -3492,7 +3505,8 @@ function wp_get_mime_types() {
 			'avif'                         => 'image/avif',
 			'ico'                          => 'image/x-icon',
 
-			// TODO: Needs improvement. All images with the following mime types seem to have .heic file extension.
+			// HEIC/HEIF images. Note that GD/Imagick can only process single-frame
+			// images, so the sequence types cannot be resized into sub-sizes.
 			'heic'                         => 'image/heic',
 			'heif'                         => 'image/heif',
 			'heics'                        => 'image/heic-sequence',
