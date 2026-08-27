@@ -539,6 +539,17 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			imageinterlace( $image, apply_filters( 'image_save_progressive', false, $mime_type ) );
 		}
 
+		// Ensure GD can handle WebP/AVIF output of palette based images.
+		if (
+			in_array( $mime_type, array( 'image/webp', 'image/avif' ), true ) &&
+			! imageistruecolor( $image )
+		) {
+			// Preserve transparence and prepare for conversion.
+			imagealphablending( $image, false );
+			imagesavealpha( $image, true );
+			imagepalettetotruecolor( $image );
+		}
+
 		if ( 'image/gif' === $mime_type ) {
 			if ( ! $this->make_image( $filename, 'imagegif', array( $image, $filename ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
