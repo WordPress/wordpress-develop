@@ -198,6 +198,14 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 					);
 				}
 
+				if ( 'blogname' === $args['option_name'] ) {
+					return new WP_Error(
+						'rest_invalid_param',
+						__( 'The site title cannot be empty. Please enter a title for your site.' ),
+						array( 'status' => 400 )
+					);
+				}
+
 				delete_option( $args['option_name'] );
 			} else {
 				update_option( $args['option_name'], $request[ $name ] );

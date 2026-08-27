@@ -598,6 +598,36 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	/**
+	 * @ticket 65718
+	 *
+	 * @dataProvider data_update_item_with_invalid_title
+	 */
+	public function test_update_item_with_invalid_title( $invalid_title ) {
+		wp_set_current_user( self::$administrator );
+		$original_title = get_option( 'blogname' );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'title', $invalid_title );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertSame( $original_title, get_option( 'blogname' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_update_item_with_invalid_title() {
+		return array(
+			'empty string'    => array( '' ),
+			'whitespace only' => array( '   ' ),
+			'null'            => array( null ),
+		);
+	}
+
 	public function test_update_item_with_integer() {
 		wp_set_current_user( self::$administrator );
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );

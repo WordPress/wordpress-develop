@@ -5006,6 +5006,11 @@ function sanitize_option( $option, $value ) {
 				$error = $value->get_error_message();
 			} else {
 				$value = esc_html( $value );
+
+				// The site title (blogname) cannot be empty.
+				if ( 'blogname' === $option && '' === trim( $value ) ) {
+					$error = __( 'The site title cannot be empty. Please enter a title for your site.' );
+				}
 			}
 			break;
 
