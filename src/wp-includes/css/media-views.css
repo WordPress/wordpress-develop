@@ -1306,6 +1306,18 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	display: none;
 }
 
+.attachments-browser .media-toolbar-secondary .selection-count {
+	display: inline-block;
+	font-weight: 600;
+	line-height: 2;
+	padding: 0 10px;
+	vertical-align: middle;
+}
+
+.attachments-browser .media-toolbar-secondary .selection-count.hidden {
+	display: none;
+}
+
 .attachments-browser .media-toolbar-secondary {
 	max-width: 66%;
 	position: relative;
