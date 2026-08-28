@@ -3747,8 +3747,22 @@ function wp_nonce_ays( $action ) {
 	} else {
 		$html = __( 'The link you followed has expired.' );
 
-		if ( wp_get_referer() ) {
-			$wp_http_referer = remove_query_arg( 'updated', wp_get_referer() );
+		$wp_http_referer = wp_get_referer();
+
+		if ( preg_match( '/^update-post_([0-9]+)$/', $action, $matches ) && isset( $_REQUEST['post_ID'] ) ) {
+			$post_id = (int) $_REQUEST['post_ID'];
+
+			if ( $post_id === (int) $matches[1] && current_user_can( 'edit_post', $post_id ) ) {
+				$edit_post_link = get_edit_post_link( $post_id, 'url' );
+
+				if ( $edit_post_link ) {
+					$wp_http_referer = $edit_post_link;
+				}
+			}
+		}
+
+		if ( $wp_http_referer ) {
+			$wp_http_referer = remove_query_arg( 'updated', $wp_http_referer );
 			$wp_http_referer = wp_validate_redirect( sanitize_url( $wp_http_referer ) );
 
 			$html .= '</p><p>';
