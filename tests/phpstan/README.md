@@ -206,6 +206,6 @@ A cache written before one of them changed therefore answers with what the old c
 rm -rf .cache
 ```
 
-The results cache alone is not the problem. PHPStan invalidates that itself when the configuration changes, and says which part of it no longer matches under `-vv`. What survives is the per-file reflection, which it has no way to know is stale. CI keys its cache on these files for the same reason; see `.github/workflows/reusable-phpstan-static-analysis-v1.yml`.
+The results cache alone is not the problem. PHPStan invalidates that itself when the configuration changes, and says which part of it no longer matches under `-vv`. What survives is the per-file reflection, which it has no way to know is stale. CI keys its cache on these files for the same reason; see [`.github/workflows/reusable-phpstan-static-analysis-v1.yml`](../../.github/workflows/reusable-phpstan-static-analysis-v1.yml).
 
 Sometimes, due to the lack of type information in legacy code, PHPStan may still struggle to analyze certain parts of the codebase. In such cases, you can use the `--debug` flag to disable caching and see which files are causing issues.
