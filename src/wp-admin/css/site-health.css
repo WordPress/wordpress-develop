@@ -95,10 +95,7 @@ are styled in the Privacy section of edit.css */
 }
 
 .health-check-tabs-wrapper {
-	/* IE 11 */
-	-ms-grid-columns: 1fr 1fr 1fr 1fr;
 	vertical-align: top;
-	/* modern browsers */
 	display: inline-grid;
 	grid-template-columns: 1fr 1fr 1fr 1fr;
 }
@@ -116,7 +113,6 @@ are styled in the Privacy section of edit.css */
 }
 
 .health-check-tab {
-	display: block; /* IE 11 */
 	text-decoration: none;
 	color: inherit;
 	padding: 0.5rem 1rem 1rem;
