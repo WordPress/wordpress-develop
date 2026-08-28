@@ -2859,7 +2859,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 			$check = false;
 		} elseif ( str_starts_with( $hash, '$wp' ) ) {
 			// Check the password using the current prefixed hash.
-			$password_to_verify = base64_encode( hash_hmac( 'sha384', $password, 'wp-sha384', true ) );
+			$password_to_verify = base64_encode( hash_hmac( 'sha384', trim( $password ), 'wp-sha384', true ) );
 			$check              = password_verify( $password_to_verify, substr( $hash, 3 ) );
 		} elseif ( str_starts_with( $hash, '$P$' ) ) {
 			// Check the password using phpass.

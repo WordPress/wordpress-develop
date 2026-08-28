@@ -189,6 +189,17 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertTrue( wp_check_password( $expected_password, wp_hash_password( $password_with_whitespace ) ) );
 	}
 
+	/**
+	 * Ensures wp_check_password() trims symmetrically with wp_hash_password() when both
+	 * receive the same whitespace-padded password.
+	 *
+	 * @ticket 65144
+	 * @dataProvider data_passwords_with_whitespace
+	 */
+	public function test_wp_check_password_trims_password_to_match_wp_hash_password( $password_with_whitespace ) {
+		$this->assertTrue( wp_check_password( $password_with_whitespace, wp_hash_password( $password_with_whitespace ) ) );
+	}
+
 	public function data_passwords_with_whitespace() {
 		return array(
 			'leading whitespace'  => array( ' pass with leading whitespace', 'pass with leading whitespace' ),
