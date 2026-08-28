@@ -174,7 +174,19 @@ if ( ! empty( $posted_content ) ) {
 			$docs_select .= '<option value="">' . esc_html__( 'Function Name&hellip;' ) . '</option>';
 
 			foreach ( $functions as $function ) {
-				$docs_select .= '<option value="' . esc_attr( $function ) . '">' . esc_html( $function ) . '()</option>';
+
+				/**
+				 * Allows the documentation URL to be filtered for the Theme Editor.
+				 *
+				 * @since x
+				 *
+				 * @param string $function Name of the selected function.
+				 * @param string $file     Path to the file being edited.
+				 * @param string $theme    Directory name of the theme being edited.
+				 */
+				$option_value = apply_filters( 'theme_editor_documentation_url', $function, $file, $theme->get_stylesheet() );
+
+				$docs_select .= '<option value="' . esc_attr( $option_value ) . '">' . esc_html( $function ) . '()</option>';
 			}
 
 			$docs_select .= '</select>';
@@ -369,7 +381,7 @@ else :
 			<div id="documentation" class="hide-if-no-js">
 				<label for="docs-list"><?php _e( 'Documentation:' ); ?></label>
 				<?php echo $docs_select; ?>
-				<input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="if ( '' !== jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" />
+				<input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="(() => { const v = jQuery('#docs-list').val(); if (!v) return; let url; if (v.startsWith('http://') || v.startsWith('https://')) { url = v; } else { try { new URL(v); url = v; } catch { url = `https://api.wordpress.org/core/handbook/1.0/?function=${escape(v)}&locale=<?php echo urlencode( get_user_locale() ); ?>&version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&redirect=true`; } } window.open(url); })()" />
 			</div>
 		<?php endif; ?>
 
