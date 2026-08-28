@@ -558,8 +558,7 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 /**
  * HiDPI Displays
  */
-@media print,
-	(min-resolution: 120dpi) {
+@media print, (min-resolution: 120dpi) {
 	.revision-tick.completed-false {
 		background-image: url(../images/spinner-2x.gif);
 	}
