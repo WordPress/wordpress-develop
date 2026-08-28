@@ -39,6 +39,28 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 * @return Generator
 	 */
 	public function data_attribute_parsing() {
+		yield 'empty attributes' => array(
+			'',
+			array(),
+		);
+
+		yield 'prematurely-terminated attributes' => array(
+			'>',
+			array(),
+		);
+
+		yield 'prematurely-terminated malformed attributes' => array(
+			'foo>bar="baz"',
+			array(
+				'foo' => array(
+					'name'  => 'foo',
+					'value' => '',
+					'whole' => 'foo',
+					'vless' => 'y',
+				),
+			),
+		);
+
 		yield 'single attribute with double quotes' => array(
 			'class="test-class"',
 			array(

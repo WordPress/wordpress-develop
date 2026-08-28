@@ -10,12 +10,12 @@
 if ( false ) {
 	?>
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>Error: PHP is not running</title>
 </head>
-<body class="wp-core-ui">
+<body class="wp-core-ui admin-color-modern">
 	<h1>Error: PHP is not running</h1>
 	<p>WordPress requires that your web server is running PHP. Your server does not have PHP installed, or PHP is turned off.</p>
 </body>
@@ -72,7 +72,7 @@ function display_header( $body_classes = '' ) {
 	<title><?php _e( 'WordPress &rsaquo; Installation' ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
-<body class="wp-core-ui<?php echo $body_classes; ?>">
+<body class="wp-core-ui admin-color-modern<?php echo $body_classes; ?>">
 <p id="logo"><?php _e( 'WordPress' ); ?></p>
 
 	<?php
@@ -143,7 +143,7 @@ function display_setup_form( $error = null ) {
 						<input type="password" name="admin_password" id="pass1" class="regular-text" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result admin-password-desc" />
 						<div id="pass-strength-result" aria-live="polite"></div>
 					</div>
-					<button type="button" class="button wp-hide-pw hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+					<button type="button" class="button wp-hide-pw user-new-password-toggle hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden"></span>
 						<span class="text"><?php _e( 'Hide' ); ?></span>
 					</button>
@@ -342,6 +342,7 @@ if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
 /**
  * @global string    $wp_local_package Locale code of the package.
  * @global WP_Locale $wp_locale        WordPress date and time locale object.
+ * @global wpdb      $wpdb             WordPress database abstraction object.
  */
 $language = '';
 if ( ! empty( $_REQUEST['language'] ) ) {

@@ -17,6 +17,8 @@ on:
       - 'package*.json'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       - '.npmrc'
       - '.nvmrc'
@@ -77,7 +79,6 @@ jobs:
     uses: ./.github/workflows/reusable-support-json-reader-v1.yml
     permissions:
       contents: read
-    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     with:
       wp-version: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
@@ -106,6 +107,8 @@ jobs:
           - db-version: '9.2'
           - db-version: '9.3'
           - db-version: '9.4'
+          - db-version: '9.5'
+          - db-version: '9.6'
           # No PHP 8.5 + Memcached support yet.
           - php: '8.5'
             memcached: true
@@ -132,6 +135,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
@@ -151,7 +155,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

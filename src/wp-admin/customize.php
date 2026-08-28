@@ -148,7 +148,7 @@ if ( is_rtl() ) {
 }
 $body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
 $admin_color = get_user_option( 'admin_color' );
-$body_class .= ' admin-color-' . sanitize_html_class( is_string( $admin_color ) ? $admin_color : '', 'fresh' );
+$body_class .= ' admin-color-' . sanitize_html_class( is_string( $admin_color ) ? $admin_color : '', 'modern' );
 
 if ( wp_use_widgets_block_editor() ) {
 	$body_class .= ' wp-embed-responsive';
@@ -198,19 +198,19 @@ do_action( 'customize_controls_head' );
 			<?php if ( $compatible_wp && $compatible_php ) : ?>
 				<?php $save_text = $wp_customize->is_theme_active() ? __( 'Publish' ) : __( 'Activate &amp; Publish' ); ?>
 				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper" >
-					<?php submit_button( $save_text, 'primary save', 'save', false ); ?>
-					<button id="publish-settings" class="publish-settings button-primary button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
+					<?php submit_button( $save_text, 'primary compact save', 'save', false ); ?>
+					<button id="publish-settings" class="publish-settings button-primary button-compact button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
 				</div>
 			<?php else : ?>
 				<?php $save_text = _x( 'Cannot Activate', 'theme' ); ?>
 				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper disabled" >
-					<button class="button button-primary disabled" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled><?php echo $save_text; ?></button>
+					<button class="button button-primary button-compact disabled" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled><?php echo $save_text; ?></button>
 				</div>
 			<?php endif; ?>
 			<span class="spinner"></span>
 			<button type="button" class="customize-controls-preview-toggle">
 				<span class="controls"><?php _e( 'Customize' ); ?></span>
-				<span class="preview"><?php _e( 'Preview' ); ?></span>
+				<span class="preview"><?php echo esc_html_x( 'Preview', 'noun' ); ?></span>
 			</button>
 			<a class="customize-controls-close" href="<?php echo esc_url( $wp_customize->get_return_url() ); ?>">
 				<span class="screen-reader-text">
@@ -275,7 +275,7 @@ do_action( 'customize_controls_head' );
 			</button>
 			<?php $previewable_devices = $wp_customize->get_previewable_devices(); ?>
 			<?php if ( ! empty( $previewable_devices ) ) : ?>
-			<div class="devices-wrapper">
+			<div class="devices-wrapper" role="group" aria-label="<?php echo esc_attr_x( 'Responsive Views', 'label for responsive previews group' ); ?>">
 				<div class="devices">
 					<?php foreach ( (array) $previewable_devices as $device => $settings ) : ?>
 						<?php
@@ -288,8 +288,8 @@ do_action( 'customize_controls_head' );
 							$class .= ' active';
 						}
 						?>
-						<button type="button" class="<?php echo esc_attr( $class ); ?>" aria-pressed="<?php echo esc_attr( $active ); ?>" data-device="<?php echo esc_attr( $device ); ?>">
-							<span class="screen-reader-text"><?php echo esc_html( $settings['label'] ); ?></span>
+						<button type="button" class="<?php echo esc_attr( $class ); ?>" aria-pressed="<?php echo $active ? 'true' : 'false'; ?>" data-device="<?php echo esc_attr( $device ); ?>">
+							<span class="devices__preview-label"><?php echo esc_html( $settings['label'] ); ?></span>
 						</button>
 					<?php endforeach; ?>
 				</div>

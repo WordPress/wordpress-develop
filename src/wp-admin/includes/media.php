@@ -38,8 +38,8 @@ function media_upload_tabs() {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $tabs
- * @return array $tabs with gallery if post has image attachment
+ * @param array $tabs Associative array of default tab names.
+ * @return array $tabs Filtered tabs with gallery if post has image attachment.
  */
 function update_gallery_tab( $tabs ) {
 	global $wpdb;
@@ -71,7 +71,7 @@ function update_gallery_tab( $tabs ) {
  *
  * @since 2.5.0
  *
- * @global string $redir_tab
+ * @global string $redir_tab The name of the tab to redirect to.
  */
 function the_media_upload_tabs() {
 	global $redir_tab;
@@ -269,6 +269,7 @@ function _cleanup_image_add_caption( $matches ) {
  * @since 2.5.0
  *
  * @param string $html
+ * @return never
  */
 function media_send_to_editor( $html ) {
 	?>
@@ -319,6 +320,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$title   = sanitize_text_field( $name );
 	$content = '';
 	$excerpt = '';
+	$alt     = '';
 
 	if ( preg_match( '#^audio#', $type ) ) {
 		$meta = wp_read_audio_metadata( $file );
@@ -399,6 +401,10 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 			if ( trim( $image_meta['caption'] ) ) {
 				$excerpt = $image_meta['caption'];
 			}
+
+			if ( trim( $image_meta['alt'] ) ) {
+				$alt = $image_meta['alt'];
+			}
 		}
 	}
 
@@ -420,6 +426,10 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 
 	// Save the data.
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
+
+	if ( trim( $alt ) ) {
+		update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+	}
 
 	if ( ! is_wp_error( $attachment_id ) ) {
 		/*
@@ -477,6 +487,7 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 	$file    = $file['file'];
 	$title   = preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
 	$content = '';
+	$alt     = '';
 
 	// Use image exif/iptc data for title and caption defaults if possible.
 	$image_meta = wp_read_image_metadata( $file );
@@ -488,6 +499,9 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 
 		if ( trim( $image_meta['caption'] ) ) {
 			$content = $image_meta['caption'];
+		}
+		if ( trim( $image_meta['alt'] ) ) {
+			$alt = $image_meta['alt'];
 		}
 	}
 
@@ -513,6 +527,10 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 	// Save the attachment metadata.
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
 
+	if ( trim( $alt ) ) {
+		update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+	}
+
 	if ( ! is_wp_error( $attachment_id ) ) {
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 	}
@@ -527,7 +545,7 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
  *
- * @global string $body_id
+ * @global string $body_id The ID attribute value for the body element.
  *
  * @param callable $content_func Function that outputs the content.
  * @param mixed    ...$args      Optional additional parameters to pass to the callback function when it's called.
@@ -611,7 +629,7 @@ function wp_iframe( $content_func, ...$args ) {
 
 	?>
 	</head>
-	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js">
+	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js <?php echo 'admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' ); ?>">
 	<script>
 	document.body.className = document.body.className.replace('no-js', 'js');
 	</script>
@@ -736,7 +754,7 @@ function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
  *
  * @since 2.5.0
  *
- * @return null|array|void Array of error messages keyed by attachment ID, null or void on success.
+ * @return null|array Array of error messages keyed by attachment ID, null on success, or exit.
  */
 function media_upload_form_handler() {
 	check_admin_referer( 'media-form' );
@@ -857,7 +875,7 @@ function media_upload_form_handler() {
 		 */
 		$html = apply_filters( 'media_send_to_editor', $html, $send_id, $attachment );
 
-		return media_send_to_editor( $html );
+		media_send_to_editor( $html );
 	}
 
 	return $errors;
@@ -868,7 +886,7 @@ function media_upload_form_handler() {
  *
  * @since 2.5.0
  *
- * @return null|string
+ * @return null|string The form handler result or null.
  */
 function wp_media_upload_handler() {
 	$errors = array();
@@ -959,7 +977,7 @@ function wp_media_upload_handler() {
 			$html = apply_filters( 'image_send_to_editor_url', $html, sanitize_url( $src ), $alt, $align );
 		}
 
-		return media_send_to_editor( $html );
+		media_send_to_editor( $html );
 	}
 
 	if ( isset( $_POST['save'] ) ) {
@@ -1096,7 +1114,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type =
  *
  * @since 2.5.0
  *
- * @return string|null
+ * @return string|null The form handler result or null.
  */
 function media_upload_gallery() {
 	$errors = array();
@@ -1122,7 +1140,7 @@ function media_upload_gallery() {
  *
  * @since 2.5.0
  *
- * @return string|null
+ * @return string|null The form handler result or null.
  */
 function media_upload_library() {
 	$errors = array();
@@ -1148,7 +1166,7 @@ function media_upload_library() {
  *
  * @param WP_Post $post
  * @param string  $checked
- * @return string
+ * @return string HTML for the image alignment radio buttons.
  */
 function image_align_input_fields( $post, $checked = '' ) {
 
@@ -1186,7 +1204,7 @@ function image_align_input_fields( $post, $checked = '' ) {
  *
  * @param WP_Post     $post
  * @param bool|string $check
- * @return array
+ * @return array<string, string> An array of data for the image size input fields.
  */
 function image_size_input_fields( $post, $check = '' ) {
 	/**
@@ -1264,7 +1282,7 @@ function image_size_input_fields( $post, $check = '' ) {
  *
  * @param WP_Post $post
  * @param string  $url_type
- * @return string
+ * @return string HTML markup for the link URL buttons.
  */
 function image_link_input_fields( $post, $url_type = '' ) {
 
@@ -1313,7 +1331,7 @@ function wp_caption_input_textarea( $edit_post ) {
  *
  * @param array  $form_fields
  * @param object $post
- * @return array
+ * @return array<string, array<string, mixed>> The attachment form fields.
  */
 function image_attachment_fields_to_edit( $form_fields, $post ) {
 	return $form_fields;
@@ -1355,7 +1373,7 @@ function media_post_single_attachment_fields_to_edit( $form_fields, $post ) {
  * @param string  $html
  * @param int     $attachment_id
  * @param array   $attachment
- * @return string
+ * @return string HTML markup for the media element.
  */
 function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
 	$post = get_post( $attachment_id );
@@ -1380,7 +1398,16 @@ function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
  *
  * @param WP_Post $post
  * @param array   $errors
- * @return array
+ * @return array<string, array<string, mixed>|string> The attachment fields, keyed by field name. Each value is a
+ *                                                    field definition array, except for the `_final` key, which the
+ *                                                    `attachment_fields_to_edit` filter may set to raw HTML that is
+ *                                                    rendered after all other fields.
+ *
+ * @phpstan-return array{
+ *     _final?: string,
+ *     menu_order?: array<string, mixed>, // Listed explicitly so that unsetting it in get_media_item() does not collapse this shape.
+ *     ...<string, array<string, mixed>>
+ * }
  */
 function get_attachment_fields_to_edit( $post, $errors = null ) {
 	if ( is_int( $post ) ) {
@@ -1755,7 +1782,7 @@ function get_media_item( $attachment_id, $args = null ) {
 
 	if ( isset( $_GET['post_id'] ) ) {
 		$calling_post_id = absint( $_GET['post_id'] );
-	} elseif ( isset( $_POST ) && count( $_POST ) ) {// Like for async-upload where $_GET['post_id'] isn't set.
+	} elseif ( ! empty( $_POST ) ) { // Like for async-upload where $_GET['post_id'] isn't set.
 		$calling_post_id = $post->post_parent;
 	}
 
@@ -1865,11 +1892,13 @@ function get_media_item( $attachment_id, $args = null ) {
 }
 
 /**
+ * Retrieves the media markup for an attachment.
+ *
  * @since 3.5.0
  *
  * @param int   $attachment_id
  * @param array $args
- * @return array
+ * @return array<string, string> An array containing the media item and its metadata.
  */
 function get_compat_media_markup( $attachment_id, $args = null ) {
 	$post = get_post( $attachment_id );
@@ -2214,7 +2243,7 @@ function media_upload_form( $errors = null ) {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @param array $plupload_init An array of default settings used by Plupload.
+	 * @param array<string, mixed> $plupload_init An array of default settings used by Plupload.
 	 */
 	$plupload_init = apply_filters( 'plupload_init', $plupload_init );
 
@@ -2885,7 +2914,7 @@ function media_upload_library_form( $errors ) {
 			</select>
 		<?php } ?>
 
-		<?php submit_button( __( 'Filter &#187;' ), '', 'post-query-submit', false ); ?>
+		<?php submit_button( __( 'Filter &#187;' ), 'compact', 'post-query-submit', false ); ?>
 
 	</div>
 
@@ -3243,7 +3272,7 @@ function edit_form_image_editor( $post ) {
 			esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
 			'target="_blank"',
 			sprintf(
-				'<span class="screen-reader-text"> %s</span>',
+				'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			)
@@ -3254,7 +3283,15 @@ function edit_form_image_editor( $post ) {
 	<?php endif; ?>
 
 		<p>
-			<label for="attachment_caption"><strong><?php _e( 'Caption' ); ?></strong></label><br />
+			<label for="attachment_caption"><strong>
+				<?php
+				if ( wp_attachment_is( 'image', $post ) ) {
+					esc_html_e( 'Image Caption' );
+				} else {
+					esc_html_e( 'Short Description' );
+				}
+				?>
+			</strong></label><br />
 			<textarea class="widefat" name="excerpt" id="attachment_caption"><?php echo $post->post_excerpt; ?></textarea>
 		</p>
 
@@ -3360,14 +3397,14 @@ function attachment_submitbox_metadata() {
 
 	<div class="misc-pub-section misc-pub-attachment">
 		<label for="attachment_url"><?php _e( 'File URL:' ); ?></label>
-		<input type="text" class="widefat urlfield" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
+		<input type="text" class="widefat urlfield ltr" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
 		<span class="copy-to-clipboard-container">
 			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL to clipboard' ); ?></button>
 			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 		</span>
 	</div>
 	<div class="misc-pub-section misc-pub-download">
-		<a href="<?php echo esc_attr( $att_url ); ?>" download><?php _e( 'Download file' ); ?></a>
+		<a href="<?php echo esc_url( $att_url ); ?>" download><?php _e( 'Download file' ); ?></a>
 	</div>
 	<div class="misc-pub-section misc-pub-filename">
 		<?php _e( 'File name:' ); ?> <strong><?php echo $filename; ?></strong>
@@ -3397,9 +3434,9 @@ function attachment_submitbox_metadata() {
 
 	$file_size = false;
 
-	if ( isset( $meta['filesize'] ) ) {
-		$file_size = $meta['filesize'];
-	} elseif ( file_exists( $file ) ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
+		$file_size = (int) $meta['filesize'];
+	} elseif ( is_string( $file ) && '' !== $file && is_readable( $file ) ) {
 		$file_size = wp_filesize( $file );
 	}
 

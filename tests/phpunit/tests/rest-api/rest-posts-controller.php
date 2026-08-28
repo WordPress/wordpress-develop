@@ -3330,6 +3330,111 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
 	}
 
+	/**
+	 * Data provider for featured media link permission tests.
+	 *
+	 * @return array
+	 */
+	public function data_featured_media_link_permissions() {
+		return array(
+			'unauthenticated user with draft parent attachment' => array(
+				'attachment_parent_status' => 'draft',
+				'attachment_status'        => 'inherit',
+				'user_id'                  => 0,
+				'expect_link'              => false,
+			),
+			'authenticated editor with draft parent attachment' => array(
+				'attachment_parent_status' => 'draft',
+				'attachment_status'        => 'inherit',
+				'user_id'                  => 'editor',
+				'expect_link'              => true,
+			),
+			'unauthenticated user with published attachment' => array(
+				'attachment_parent_status' => null,
+				'attachment_status'        => 'publish',
+				'user_id'                  => 0,
+				'expect_link'              => true,
+			),
+		);
+	}
+
+	/**
+	 * Tests that featured media links respect attachment permissions.
+	 *
+	 * @ticket 64183
+	 * @dataProvider data_featured_media_link_permissions
+	 *
+	 * @param string|null $attachment_parent_status Status of the attachment's parent post, or null for no parent.
+	 * @param string      $attachment_status Status to set on the attachment.
+	 * @param int|string  $user_id User ID (0 for unauthenticated) or 'editor' for editor role.
+	 * @param bool        $expect_link Whether the featured media link should be included.
+	 */
+	public function test_get_item_featured_media_link_permissions( $attachment_parent_status, $attachment_status, $user_id, $expect_link ) {
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		// Create attachment parent if needed.
+		$parent_post_id = 0;
+		if ( null !== $attachment_parent_status ) {
+			$parent_post_id = self::factory()->post->create(
+				array(
+					'post_title'  => 'Parent Post',
+					'post_status' => $attachment_parent_status,
+				)
+			);
+		}
+
+		// Create attachment.
+		$attachment_id = self::factory()->attachment->create_object(
+			$file,
+			$parent_post_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		// Set attachment status if different from default.
+		if ( 'publish' === $attachment_status ) {
+			wp_update_post(
+				array(
+					'ID'          => $attachment_id,
+					'post_status' => 'publish',
+				)
+			);
+		}
+
+		// Create published post with featured media.
+		$published_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Published Post',
+				'post_status' => 'publish',
+			)
+		);
+		set_post_thumbnail( $published_post_id, $attachment_id );
+
+		// Set current user.
+		if ( 'editor' === $user_id ) {
+			wp_set_current_user( self::$editor_id );
+		} else {
+			wp_set_current_user( $user_id );
+		}
+
+		// Make request.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $published_post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		// Assert link presence based on expectation.
+		if ( $expect_link ) {
+			$this->assertArrayHasKey( 'https://api.w.org/featuredmedia', $links );
+			$this->assertSame(
+				rest_url( '/wp/v2/media/' . $attachment_id ),
+				$links['https://api.w.org/featuredmedia'][0]['href']
+			);
+		} else {
+			$this->assertArrayNotHasKey( 'https://api.w.org/featuredmedia', $links );
+		}
+	}
+
 	public function test_create_post_invalid_author() {
 		wp_set_current_user( self::$editor_id );
 

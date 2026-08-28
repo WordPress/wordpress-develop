@@ -306,10 +306,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_block_template_add_skip_link_inserts_link_and_adds_main_id_when_missing() {
 		$template_html = '<div class="wp-site-blocks"><main>Content</main></div>';
-		$expected      = '
-			<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
-			<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
-		';
+		$expected      =
+			'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>' .
+			'<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>';
 
 		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
 	}
@@ -323,10 +322,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_block_template_add_skip_link_uses_existing_main_id() {
 		$template_html = '<div class="wp-site-blocks"><main id="custom-id">Content</main></div>';
-		$expected      = '
-			<a class="skip-link screen-reader-text" id="wp-skip-link" href="#custom-id">Skip to content</a>
-			<div class="wp-site-blocks"><main id="custom-id">Content</main></div>
-		';
+		$expected      =
+			'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#custom-id">Skip to content</a>' .
+			'<div class="wp-site-blocks"><main id="custom-id">Content</main></div>';
 
 		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
 	}
@@ -340,10 +338,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_block_template_add_skip_link_handles_boolean_main_id() {
 		$template_html = '<div class="wp-site-blocks"><main id>Content</main></div>';
-		$expected      = '
-			<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>
-			<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>
-		';
+		$expected      =
+			'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>' .
+			'<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>';
 
 		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
 	}
@@ -357,10 +354,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_block_template_add_skip_link_preserves_whitespace_main_id() {
 		$template_html = '<div class="wp-site-blocks"><main id=" my-id ">Content</main></div>';
-		$expected      = '
-			<a class="skip-link screen-reader-text" id="wp-skip-link" href="#%20my-id%20">Skip to content</a>
-			<div class="wp-site-blocks"><main id=" my-id ">Content</main></div>
-		';
+		$expected      =
+			'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#%20my-id%20">Skip to content</a>' .
+			'<div class="wp-site-blocks"><main id=" my-id ">Content</main></div>';
 
 		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
 	}

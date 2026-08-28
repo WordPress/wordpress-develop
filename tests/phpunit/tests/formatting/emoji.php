@@ -10,6 +10,166 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	private $svg_cdn = 'https://s.w.org/images/core/emoji/17.0.2/svg/';
 
 	/**
+	 * Tests that the emoji detection script is hooked onto the front end footer
+	 * when the footer scripts have not yet been printed.
+	 *
+	 * @ticket 64076
+	 * @ticket 65310
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @covers ::print_emoji_detection_script
+	 */
+	public function test_print_emoji_detection_script_on_front_end(): void {
+		$this->assertFalse( is_admin(), 'Expected to not be in the admin.' );
+		$this->assertFalse(
+			has_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' ),
+			'Expected _print_emoji_detection_script to not yet be hooked onto wp_print_footer_scripts.'
+		);
+
+		print_emoji_detection_script();
+
+		$this->assertSame(
+			10,
+			has_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' ),
+			'Expected _print_emoji_detection_script to be hooked onto wp_print_footer_scripts.'
+		);
+		$this->assertFalse(
+			has_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' ),
+			'Expected _print_emoji_detection_script to not be hooked onto admin_print_footer_scripts.'
+		);
+	}
+
+	/**
+	 * Tests that the emoji detection script is printed directly when the front
+	 * end footer scripts have already been printed.
+	 *
+	 * @ticket 64076
+	 * @ticket 65310
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @covers ::print_emoji_detection_script
+	 */
+	public function test_print_emoji_detection_script_on_front_end_after_footer_scripts_printed(): void {
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
+
+		$this->assertFalse( is_admin(), 'Expected to not be in the admin.' );
+
+		// Fire (and discard the output of) the footer scripts action so it counts as already done.
+		get_echo( 'do_action', array( 'wp_print_footer_scripts' ) );
+		$this->assertGreaterThanOrEqual(
+			1,
+			did_action( 'wp_print_footer_scripts' ),
+			'Expected the wp_print_footer_scripts action to have fired.'
+		);
+
+		$output = get_echo( 'print_emoji_detection_script' );
+
+		$this->assertStringContainsString(
+			'wp-emoji-settings',
+			$output,
+			'Expected the emoji detection script to be printed directly.'
+		);
+		$this->assertFalse(
+			has_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' ),
+			'Expected _print_emoji_detection_script to not be hooked since it was printed directly.'
+		);
+
+		// A subsequent call should short-circuit via the static $printed guard and print nothing.
+		$output = get_echo( 'print_emoji_detection_script' );
+		$this->assertSame(
+			'',
+			$output,
+			'Expected nothing to be printed on a subsequent call due to the static $printed guard.'
+		);
+	}
+
+	/**
+	 * Tests that the emoji detection script is hooked onto the admin footer
+	 * when the footer scripts have not yet been printed.
+	 *
+	 * @ticket 64076
+	 * @ticket 65310
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @covers ::print_emoji_detection_script
+	 */
+	public function test_print_emoji_detection_script_in_admin(): void {
+		set_current_screen( 'edit-post' );
+		$this->assertTrue( is_admin(), 'Expected to be in the admin.' );
+		$this->assertFalse(
+			has_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' ),
+			'Expected _print_emoji_detection_script to not yet be hooked onto admin_print_footer_scripts.'
+		);
+
+		print_emoji_detection_script();
+
+		$this->assertSame(
+			10,
+			has_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' ),
+			'Expected _print_emoji_detection_script to be hooked onto admin_print_footer_scripts.'
+		);
+		$this->assertFalse(
+			has_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' ),
+			'Expected _print_emoji_detection_script to not be hooked onto wp_print_footer_scripts.'
+		);
+	}
+
+	/**
+	 * Tests that the emoji detection script is printed directly when the admin
+	 * footer scripts have already been printed.
+	 *
+	 * @ticket 64076
+	 * @ticket 65310
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @covers ::print_emoji_detection_script
+	 */
+	public function test_print_emoji_detection_script_in_admin_after_footer_scripts_printed(): void {
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
+
+		set_current_screen( 'edit-post' );
+		$this->assertTrue( is_admin(), 'Expected to be in the admin.' );
+
+		// Fire (and discard the output of) the footer scripts action so it counts as already done.
+		get_echo( 'do_action', array( 'admin_print_footer_scripts' ) );
+		$this->assertGreaterThanOrEqual(
+			1,
+			did_action( 'admin_print_footer_scripts' ),
+			'Expected the admin_print_footer_scripts action to have fired.'
+		);
+
+		$output = get_echo( 'print_emoji_detection_script' );
+
+		$this->assertStringContainsString(
+			'wp-emoji-settings',
+			$output,
+			'Expected the emoji detection script to be printed directly.'
+		);
+		$this->assertFalse(
+			has_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' ),
+			'Expected _print_emoji_detection_script to not be hooked since it was printed directly.'
+		);
+
+		// A subsequent call should short-circuit via the static $printed guard and print nothing.
+		$output = get_echo( 'print_emoji_detection_script' );
+		$this->assertSame(
+			'',
+			$output,
+			'Expected nothing to be printed on a subsequent call due to the static $printed guard.'
+		);
+	}
+
+	/**
 	 * @ticket 63842
 	 *
 	 * @covers ::_print_emoji_detection_script

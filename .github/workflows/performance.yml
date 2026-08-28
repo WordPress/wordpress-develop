@@ -7,11 +7,6 @@ on:
       - trunk
       - '6.[2-9]'
       - '[7-9].[0-9]'
-    tags:
-      - '6.[2-9]'
-      - '6.[2-9].[0-9]+'
-      - '[7-9].[0-9]'
-      - '[7-9].[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -28,6 +23,8 @@ on:
       - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
@@ -35,7 +32,6 @@ on:
       - 'tests/performance/**'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/performance.yml'
-      - '.github/workflows/reusable-performance.yml'
       - '.github/workflows/reusable-performance-*.yml'
   workflow_dispatch:
 
@@ -54,7 +50,17 @@ jobs:
   determine-matrix:
     name: Determine Matrix
     runs-on: ubuntu-24.04
-    if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
+    if: |
+      (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      ) &&
+      ! contains( github.event.before, '00000000' )
     permissions:
       actions: read
     env:
@@ -69,7 +75,7 @@ jobs:
         run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> "$GITHUB_ENV"
 
       - name: Set subjects
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         id: set-subjects
         with:
           script: |
@@ -147,6 +153,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
@@ -166,7 +173,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

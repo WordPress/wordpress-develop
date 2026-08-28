@@ -1297,6 +1297,132 @@ HTML
 	}
 
 	/**
+	 * Ensures that block extraction matches the behavior of the default block parser.
+	 *
+	 * @ticket 64537
+	 *
+	 * @dataProvider data_various_block_posts
+	 *
+	 * @param string $test_document An HTML document to parse as blocks.
+	 */
+	public function test_extracts_equivalent_parses_as_parse_blocks( string $test_document ) {
+		$processor = new WP_Block_Processor( $test_document );
+		$blocks    = array();
+
+		while ( $processor->next_block( '*' ) ) {
+			$blocks[] = $processor->extract_full_block_and_advance();
+		}
+
+		$this->assertSame(
+			parse_blocks( $test_document ),
+			$blocks,
+			'Failed to properly parse the block structure.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator
+	 */
+	public static function data_various_block_posts() {
+		yield 'Empty post' => array( '' );
+
+		yield 'Void block' => array( '<!-- wp:void /-->' );
+
+		yield 'Empty block' => array( '<!-- wp:empty --><!-- /wp:empty -->' );
+
+		yield 'Paragraph block' => array( '<!-- wp:paragraph --><p>Test</p><!-- /wp:paragraph -->' );
+
+		yield 'Paragraph block with attributes' => array(
+			'<!-- wp:paragraph {"dropCaps": true} --><p>Test</p><!-- /wp:paragraph -->',
+		);
+
+		yield 'Group with void inner' => array(
+			'<!-- wp:group --><!-- wp:void /--><!-- /wp:group -->',
+		);
+
+		/*
+		 * @todo There is a hidden bug in here, which is possibly a problem in
+		 *       the default parser. There are HTML spans of newlines between
+		 *       these block delimiters, and without them, the parse doesn’t
+		 *       match `parse_blocks()`. However, `parse_blocks()` is inconsistent
+		 *       in its behavior. Whereas it produces an empty text chunk here,
+		 *       in the case of a void inner block it produces none. The test is
+		 *       being adjusted to step around this issue so that it can be resolved
+		 *       separately, and until it’s clear if there is an implementation issue
+		 *       with `parse_blocks()` itself.
+		 */
+		yield 'Empty columns' => array(
+			<<<HTML
+			<!-- wp:columns -->
+			<!-- wp:column -->
+			<!-- /wp:column -->
+			<!-- /wp:columns -->
+HTML
+			,
+		);
+
+		yield 'Contentful columns' => array(
+			<<<HTML
+			<!-- wp:columns -->
+			<ul>
+			<!-- wp:column -->
+			<li>A good point.</li>
+			<!-- wp:column /-->
+			</ul>
+			<!-- /wp:columns -->
+HTML
+			,
+		);
+
+		yield 'Group with mixed content' => array(
+			<<<HTML
+			<!-- wp:group -->
+			<div>
+			<!-- wp:paragraph --><p>Test</p><!-- /wp:paragraph -->
+			This is freeform.
+			<!-- wp:void /-->
+			End
+			<!-- wp:footer -->
+			<footer>That&rsquo;s it!</footer>
+			<!-- /wp:footer -->
+			<!-- wp:another-void /-->
+			</div>
+			<!-- /wp:group -->
+HTML
+			,
+		);
+
+		yield 'Nested blocks' => array(
+			<<<HTML
+			<!-- wp:a -->
+			<div>
+			<!-- wp:b -->
+			<span><!-- wp:c /--></span>
+			<!-- /wp:b -->
+			</div>
+			<!-- /wp:a -->
+HTML
+			,
+		);
+
+		yield 'Attributes on nested blocks' => array(
+			<<<HTML
+			<!-- wp:b1 -->
+			<!-- wp:b2 {} -->
+			<!-- wp:b3 {"id":"going"} -->
+			<!-- wp:b4 {"id":"down"} -->
+			<!-- /wp:b4 -->
+			<!-- /wp:b3 -->
+			<!-- /wp:b2 -->
+			<!-- /wp:b1 -->
+HTML
+			,
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]

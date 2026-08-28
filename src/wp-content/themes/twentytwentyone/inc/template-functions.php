@@ -182,12 +182,17 @@ if ( ! function_exists( 'twenty_twenty_one_post_title' ) ) {
 	 * Adds a title to posts and pages that are missing titles.
 	 *
 	 * @since Twenty Twenty-One 1.0
+	 * @since Twenty Twenty-One 2.9 Only applies the filter on the front end.
 	 *
 	 * @param string $title The title.
 	 * @return string
 	 */
 	function twenty_twenty_one_post_title( $title ) {
-		return '' === $title ? esc_html_x( 'Untitled', 'Added to posts and pages that are missing titles', 'twentytwentyone' ) : $title;
+		if ( is_admin() ) {
+			return $title;
+		}
+
+		return '' === $title ? esc_html_x( 'Untitled', 'Added on the front end to posts and pages that are missing titles', 'twentytwentyone' ) : $title;
 	}
 }
 add_filter( 'the_title', 'twenty_twenty_one_post_title' );
@@ -335,16 +340,16 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
 
 	// Include file if function doesn't exist.
 	if ( ! function_exists( 'twenty_twenty_one_generate_css' ) ) {
-		require_once get_theme_file_path( 'inc/custom-css.php' ); // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
+		require_once get_theme_file_path( 'inc/custom-css.php' );
 	}
 
 	// Return the specified styles.
-	return twenty_twenty_one_generate_css( // @phpstan-ignore-line.
+	return twenty_twenty_one_generate_css(
 		implode( ',', $elements[ $type ] ),
 		'font-family',
 		implode( ',', $font_family[ $locale ] ),
-		null,
-		null,
+		'',
+		'',
 		false
 	);
 }
@@ -405,7 +410,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 
 	if ( $blocks_content ) {
 		/** This filter is documented in wp-includes/post-template.php */
-		echo apply_filters( 'the_content', $blocks_content ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo apply_filters( 'the_content', $blocks_content );
 		return true;
 	}
 

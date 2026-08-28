@@ -626,7 +626,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @since 6.6.0 Added custom relative theme file URIs to `_links` for each item.
 	 *
 	 * @param WP_REST_Request $request The request instance.
-	 *
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_items( $request ) {
@@ -673,11 +672,22 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @since 7.0.0 Only restricts contents which risk prematurely closing the STYLE element,
 	 *              either through a STYLE end tag or a prefix of one which might become a
 	 *              full end tag when combined with the contents of other styles.
+	 * @since 7.1.0 Rejects non-string values with a WP_Error instead of a fatal error.
 	 *
-	 * @param string $css CSS to validate.
+	 * @see WP_Customize_Custom_CSS_Setting::validate()
+	 *
+	 * @param mixed $css CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
 	protected function validate_custom_css( $css ) {
+		if ( ! is_string( $css ) ) {
+			return new WP_Error(
+				'rest_custom_css_invalid_type',
+				__( 'CSS must be a string.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$length = strlen( $css );
 		for (
 			$at = strcspn( $css, '<' );
@@ -707,11 +717,11 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			 * Note how in the second example, both of the style contents are benign
 			 * when analyzed on their own. The first style was likely the result of
 			 * improper truncation, while the second is perfectly sound. It was only
-			 * through concatenation that these two scripts combined to form content
+			 * through concatenation that these two styles combined to form content
 			 * that would have broken out of the containing STYLE element, thus
 			 * corrupting the page and potentially introducing security issues.
 			 *
-			 * @see https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-name-state
+			 * @link https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-name-state
 			 */
 			$possible_style_close_tag = 0 === substr_compare(
 				$css,

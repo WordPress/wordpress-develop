@@ -173,6 +173,72 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that important declarations are added after CSS sanitization.
+	 *
+	 * @covers ::get_declarations_string
+	 * @covers ::filter_declaration
+	 *
+	 * @ticket 65561
+	 */
+	public function test_should_add_important_after_sanitizing_declarations() {
+		$css_declarations = new WP_Style_Engine_CSS_Declarations();
+		$css_declarations->add_declaration(
+			'background-image',
+			'linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%)',
+			array(
+				'important' => true,
+			)
+		);
+
+		$this->assertSame(
+			'background-image:linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%) !important;',
+			$css_declarations->get_declarations_string()
+		);
+	}
+
+	/**
+	 * Tests that declaration options are stored and cleared with their declarations.
+	 *
+	 * @covers ::add_declaration
+	 * @covers ::remove_declaration
+	 * @covers ::get_declaration_options
+	 *
+	 * @ticket 65561
+	 */
+	public function test_should_store_declaration_options_by_property() {
+		$css_declarations = new WP_Style_Engine_CSS_Declarations();
+		$css_declarations->add_declaration(
+			'background-image',
+			'linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%)',
+			array(
+				'important' => true,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'background-image' => array(
+					'important' => true,
+				),
+			),
+			$css_declarations->get_declaration_options()
+		);
+
+		$css_declarations->add_declaration( 'background-image', 'url("https://wordpress.org")' );
+		$this->assertSame( array(), $css_declarations->get_declaration_options() );
+
+		$css_declarations->add_declaration(
+			'background-image',
+			'linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%)',
+			array(
+				'important' => true,
+			)
+		);
+		$css_declarations->remove_declaration( 'background-image' );
+		$this->assertSame( array(), $css_declarations->get_declaration_options() );
+	}
+
+	/**
 	 * Tests that CSS declarations are compiled into a CSS declarations block string.
 	 *
 	 * @ticket 56467
@@ -288,6 +354,34 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 			'font-family:Happy Font serif;',
 			$css_declarations->get_declarations_string(),
 			'Output after removing "color" and "margin" declarations via `remove_declarations()` does not match expectations'
+		);
+	}
+
+	/**
+	 * Tests that non-string values are rejected without causing fatal errors.
+	 *
+	 * @ticket 64545
+	 *
+	 * @covers ::add_declaration
+	 */
+	public function test_should_reject_non_string_values() {
+		$css_declarations = new WP_Style_Engine_CSS_Declarations();
+
+		// Add valid string value first.
+		$css_declarations->add_declaration( 'color', 'red' );
+
+		// Try to add array value - should be silently rejected.
+		$css_declarations->add_declaration( 'padding-margin', array( 'top' => '10px' ) );
+
+		// Try to add other non-string values.
+		$css_declarations->add_declaration( 'font-size', 123 );
+		$css_declarations->add_declaration( 'margin', null );
+
+		// Only the valid string value should be stored.
+		$this->assertSame(
+			array( 'color' => 'red' ),
+			$css_declarations->get_declarations(),
+			'Non-string values should be rejected without causing errors.'
 		);
 	}
 }

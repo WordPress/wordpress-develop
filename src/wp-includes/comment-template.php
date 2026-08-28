@@ -1756,7 +1756,8 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 	$defaults = array(
 		'add_below'          => 'comment',
 		'respond_id'         => 'respond',
-		'reply_text'         => __( 'Reply' ),
+		/* translators: Comment reply button text. */
+		'reply_text'         => _x( 'Reply', 'verb' ),
 		/* translators: Comment reply button text. %s: Comment author name. */
 		'reply_to_text'      => __( 'Reply to %s' ),
 		'login_text'         => __( 'Log in to Reply' ),
@@ -2157,8 +2158,8 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
  *
  * @access private
  *
- * @param int|WP_Post $post The post the comment is being displayed for.
- *                          Defaults to the current global post.
+ * @param int|WP_Post|null $post The post the comment is being displayed for.
+ *                               Defaults to the current global post.
  * @return int Comment's reply to ID.
  */
 function _get_comment_reply_id( $post = null ) {

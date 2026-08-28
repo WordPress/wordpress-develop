@@ -268,7 +268,7 @@ class Custom_Image_Header {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @global array $_wp_default_headers
+	 * @global array $_wp_default_headers Default headers registered for themes.
 	 */
 	public function process_default_headers() {
 		global $_wp_default_headers;
@@ -550,7 +550,7 @@ class Custom_Image_Header {
 
 		<?php if ( get_custom_header() || display_header_text() ) : ?>
 <tr>
-<th scope="row"><?php _e( 'Preview' ); ?></th>
+<th scope="row"><?php echo esc_html_x( 'Preview', 'noun' ); ?></th>
 <td>
 			<?php
 			if ( $this->admin_image_div_callback ) {
@@ -841,7 +841,7 @@ endif;
 			$file          = get_attached_file( $attachment_id, true );
 			$url           = wp_get_attachment_image_src( $attachment_id, 'full' );
 			$url           = $url[0];
-		} elseif ( isset( $_POST ) ) {
+		} else {
 			$data          = $this->step_2_manage_upload();
 			$attachment_id = $data['attachment_id'];
 			$file          = $data['file'];
@@ -1383,6 +1383,8 @@ endif;
 	 * new object. Returns JSON-encoded object details.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @return never
 	 */
 	public function ajax_header_crop() {
 		check_ajax_referer( 'image_editor-' . $_POST['id'], 'nonce' );
@@ -1452,6 +1454,8 @@ endif;
 	 * Media Manager, even if s/he doesn't save that change.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @return never
 	 */
 	public function ajax_header_add() {
 		check_ajax_referer( 'header-add', 'nonce' );
@@ -1480,6 +1484,8 @@ endif;
 	 * choice in the Customizer's Header tool.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @return never
 	 */
 	public function ajax_header_remove() {
 		check_ajax_referer( 'header-remove', 'nonce' );

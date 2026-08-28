@@ -376,6 +376,17 @@ switch ( $action ) {
 						</td>
 					</tr>
 
+					<?php if ( user_can( $profile_user, 'upload_files' ) ) : ?>
+					<tr class="user-infinite-scrolling-wrap">
+						<th scope="row"><?php _e( 'Infinite Scrolling' ); ?></th>
+						<td>
+							<label for="infinite_scrolling"><input name="infinite_scrolling" type="checkbox" id="infinite_scrolling" value="false" <?php checked( 'false', $profile_user->infinite_scrolling ); ?> />
+								<?php _e( 'Disable infinite scrolling in the Media Library grid view' ); ?>
+							</label>
+						</td>
+					</tr>
+					<?php endif; ?>
+
 					<?php
 					$languages                = get_available_languages();
 					$can_install_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();
@@ -443,7 +454,7 @@ switch ( $action ) {
 				<table class="form-table" role="presentation">
 					<tr class="user-user-login-wrap">
 						<th><label for="user_login"><?php _e( 'Username' ); ?></label></th>
-						<td><input type="text" name="user_login" id="user_login" value="<?php echo esc_attr( $profile_user->user_login ); ?>" readonly="readonly" class="regular-text" /> <span class="description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
+						<td><input type="text" name="user_login" id="user_login" value="<?php echo esc_attr( $profile_user->user_login ); ?>" readonly="readonly" class="regular-text ltr" /> <span class="description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
 					</tr>
 
 					<?php if ( ! IS_PROFILE_PAGE && ! is_network_admin() && current_user_can( 'promote_user', $profile_user->ID ) ) : ?>
@@ -692,10 +703,10 @@ switch ( $action ) {
 									<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="false"><?php _e( 'Set New Password' ); ?></button>
 									<div class="wp-pwd hide-if-js">
 										<div class="password-input-wrapper">
-											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
+											<input type="password" name="pass1" id="pass1" class="regular-text ltr" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
 											<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 										</div>
-										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+										<button type="button" class="button wp-hide-pw user-new-password-toggle hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Hide' ); ?></span>
 										</button>
@@ -833,7 +844,7 @@ switch ( $action ) {
 									<div class="create-application-password form-wrap">
 										<div class="form-field">
 											<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
+											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input ltr" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
 											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 										</div>
 

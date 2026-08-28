@@ -201,7 +201,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
 	 */
 	public function print_scripts_l10n( $handle, $display = true ) {
@@ -217,13 +217,13 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
 	 */
 	public function print_extra_script( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'data' );
 		if ( ! $output ) {
-			return;
+			return null;
 		}
 
 		/*
@@ -417,19 +417,32 @@ class WP_Scripts extends WP_Dependencies {
 			$src = $this->base_url . $src;
 		}
 
-		$query_args = array();
+		$ver_to_add = '';
 		if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $this->default_version ) ) {
-			$query_args['ver'] = $this->default_version;
+			$ver_to_add = $this->default_version;
 		} elseif ( is_scalar( $obj->ver ) ) {
-			$query_args['ver'] = (string) $obj->ver;
+			$ver_to_add = (string) $obj->ver;
 		}
-		if ( isset( $this->args[ $handle ] ) ) {
-			parse_str( $this->args[ $handle ], $parsed_args );
-			if ( $parsed_args ) {
-				$query_args = array_merge( $query_args, $parsed_args );
+
+		$added_args = (string) ( $this->args[ $handle ] ?? '' );
+
+		if ( '' !== $ver_to_add || '' !== $added_args ) {
+			$fragment = strstr( $src, '#' );
+			if ( false !== $fragment ) {
+				$src = substr( $src, 0, -strlen( $fragment ) );
+			}
+
+			if ( '' !== $ver_to_add ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
+			}
+			if ( '' !== $added_args ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_args;
+			}
+
+			if ( false !== $fragment ) {
+				$src .= $fragment;
 			}
 		}
-		$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
 		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
@@ -837,12 +850,7 @@ JS;
 			return false;
 		}
 
-		foreach ( (array) $this->default_dirs as $test ) {
-			if ( str_starts_with( $src, $test ) ) {
-				return true;
-			}
-		}
-		return false;
+		return array_any( (array) $this->default_dirs, fn( $test ) => str_starts_with( $src, $test ) );
 	}
 
 	/**
@@ -872,7 +880,7 @@ JS;
 					sprintf(
 						/* translators: 1: $strategy, 2: $handle */
 						__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
-						$value,
+						is_string( $value ) ? $value : gettype( $value ),
 						$handle
 					),
 					'6.3.0'
@@ -884,7 +892,7 @@ JS;
 					sprintf(
 						/* translators: 1: $strategy, 2: $handle */
 						__( 'Cannot supply a strategy `%1$s` for script `%2$s` because it is an alias (it lacks a `src` value).' ),
-						$value,
+						is_string( $value ) ? $value : gettype( $value ),
 						$handle
 					),
 					'6.3.0'
@@ -920,6 +928,48 @@ JS;
 				);
 				return false;
 			}
+		} elseif ( 'module_dependencies' === $key ) {
+			if ( ! is_array( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: 'module_dependencies', 2: Script handle. */
+						__( 'The value for "%1$s" must be an array for the "%2$s" script.' ),
+						'module_dependencies',
+						$handle
+					),
+					'7.0.0'
+				);
+				return false;
+			}
+
+			$sanitized_value = array();
+			$has_invalid_ids = false;
+			foreach ( $value as $module ) {
+				if (
+					is_string( $module ) ||
+					( is_array( $module ) && isset( $module['id'] ) && is_string( $module['id'] ) )
+				) {
+					$sanitized_value[] = $module;
+				} else {
+					$has_invalid_ids = true;
+				}
+			}
+
+			if ( $has_invalid_ids ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Script handle, 2: 'module_dependencies' */
+						__( 'The script handle "%1$s" has one or more of its script module dependencies ("%2$s") which are invalid.' ),
+						$handle,
+						'module_dependencies'
+					),
+					'7.0.0'
+				);
+			}
+
+			$value = $sanitized_value;
 		}
 		return parent::add_data( $handle, $key, $value );
 	}
@@ -1144,7 +1194,7 @@ JS;
 				}
 			}
 		}
-		$stored_results[ $handle ] = $priorities[ $highest_priority_index ]; // @phpstan-ignore parameterByRef.type (We know the index is valid and that this will be a string.)
+		$stored_results[ $handle ] = $priorities[ $highest_priority_index ];
 		return $priorities[ $highest_priority_index ];
 	}
 
@@ -1191,10 +1241,10 @@ JS;
 	 */
 	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
 		return sprintf(
-			/* translators: 1: Script handle, 2: Comma-separated list of missing dependency handles. */
+			/* translators: 1: Script handle, 2: List of missing dependency handles. */
 			__( 'The script with the handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 			$handle,
-			implode( ', ', $missing_dependency_handles )
+			implode( wp_get_list_item_separator(), $missing_dependency_handles )
 		);
 	}
 }

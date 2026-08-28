@@ -83,7 +83,7 @@ are styled in the Privacy section of edit.css */
 		stroke: #c3c4c7;
 	}
 	50% {
-		stroke: #72aee6;
+		stroke: var(--wp-admin-theme-color);
 	}
 	100% {
 		stroke: #c3c4c7;
@@ -296,6 +296,10 @@ are styled in the Privacy section of edit.css */
 }
 
 /* Styling unique to the dashboard widget. */
+.no-js #dashboard_site_health {
+	display: none;
+}
+
 #dashboard_site_health .site-health-details {
 	padding-left: 16px;
 }
