@@ -63,12 +63,12 @@ window.wpCookies = {
 	 *
 	 * 'values_obj' is the JS object that is stored. It is encoded as URI in wpCookies.set().
 	 *
-	 * @param {string}      name       The name of the cookie.
-	 * @param {Object}      values_obj The values to store in the cookie.
-	 * @param {number|Date} expires    Expiration time in seconds or a Date object.
-	 * @param {string}      path       The path on the server in which the cookie will be available on.
-	 * @param {string}      domain     The domain that the cookie is available to.
-	 * @param {boolean}     secure     Whether the cookie should only be transmitted over a secure HTTPS connection.
+	 * @param {string}      name         The name of the cookie.
+	 * @param {Object}      values_obj   The values to store in the cookie.
+	 * @param {number|Date} [expires]    Optional. Expiration time in seconds or a Date object.
+	 * @param {string}      [path]       Optional. The path on the server in which the cookie will be available on.
+	 * @param {string}      [domain]     Optional. The domain that the cookie is available to.
+	 * @param {boolean}     [secure]     Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.
 	 */
 	setHash: function( name, values_obj, expires, path, domain, secure ) {
 		var str = '';
@@ -121,12 +121,12 @@ window.wpCookies = {
 	 * The 'expires' arg can be either a JS Date() object set to the expiration date (back-compat)
 	 * or the number of seconds until expiration.
 	 *
-	 * @param {string}      name    The name of the cookie.
-	 * @param {string}      value   The value of the cookie.
-	 * @param {number|Date} expires Expiration time in seconds or a Date object.
-	 * @param {string}      path    The path on the server in which the cookie will be available on.
-	 * @param {string}      domain  The domain that the cookie is available to.
-	 * @param {boolean}     secure  Whether the cookie should only be transmitted over a secure HTTPS connection.
+	 * @param {string}      name      The name of the cookie.
+	 * @param {string}      value     The value of the cookie.
+	 * @param {number|Date} [expires] Optional. Expiration time in seconds or a Date object.
+	 * @param {string}      [path]    Optional. The path on the server in which the cookie will be available on.
+	 * @param {string}      [domain]  Optional. The domain that the cookie is available to.
+	 * @param {boolean}     [secure]  Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.
 	 */
 	set: function( name, value, expires, path, domain, secure ) {
 		var d = new Date();
@@ -152,10 +152,10 @@ window.wpCookies = {
 	 *
 	 * This is done by setting it to an empty value and setting the expiration time in the past.
 	 *
-	 * @param {string}  name   The name of the cookie.
-	 * @param {string}  path   The path on the server in which the cookie will be available on.
-	 * @param {string}  domain The domain that the cookie is available to.
-	 * @param {boolean} secure Whether the cookie should only be transmitted over a secure HTTPS connection.
+	 * @param {string}  name     The name of th  e cookie.
+	 * @param {string}  [path]   Optional. The path on the server in which the cookie will be available on.
+	 * @param {string}  [domain] Optional. The domain that the cookie is available to.
+	 * @param {boolean} [secure] Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.
 	 */
 	remove: function( name, path, domain, secure ) {
 		this.set( name, '', -1000, path, domain, secure );

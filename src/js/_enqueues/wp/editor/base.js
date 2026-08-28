@@ -259,7 +259,7 @@ window.wp = window.wp || {};
 		 * Gets a list of unique shortcodes or shortcode-lookalikes in the content.
 		 *
 		 * @param {string} content The content we want to scan for shortcodes.
-		 * @return {Array} An array of unique shortcodes found in the content.
+		 * @return {string[]} An array of unique shortcodes found in the content.
 		 */
 		function getShortcodesInText( content ) {
 			var shortcodes = content.match( /\[+([\w_-])+/g ),
@@ -293,7 +293,7 @@ window.wp = window.wp || {};
 		 * as it's already structured!
 		 *
 		 * @param {string} content The content we want to scan for shortcodes.
-		 * @return {Array} An array of objects with information about the shortcodes found in the content.
+		 * @return {Object[]} An array of objects with information about the shortcodes found in the content.
 		 */
 		function getShortCodePositionsInText( content ) {
 			var allShortcodes = getShortcodesInText( content ), shortcodeInfo;
@@ -389,7 +389,7 @@ window.wp = window.wp || {};
 		 * @param {string} content Textarea content that the cursors are in
 		 * @param {{cursorStart: number, cursorEnd: number}} cursorPositions Cursor start and end positions
 		 *
-		 * @return {Object} Adjusted cursor positions with `cursorStart` and `cursorEnd` properties.
+		 * @return {{cursorStart: number, cursorEnd: number}} Adjusted cursor positions with `cursorStart` and `cursorEnd` properties.
 		 */
 		function adjustTextAreaSelectionCursors( content, cursorPositions ) {
 			var voidElements = [

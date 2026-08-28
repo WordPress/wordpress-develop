@@ -61,8 +61,8 @@ window.wp = window.wp || {};
 		 * Sends a POST request to WordPress.
 		 *
 		 * @param {string|Object} action The slug of the action to fire in WordPress or options passed
-		 *                                 to jQuery.ajax.
-		 * @param {Object}        data   Optional. The data to populate $_POST with.
+		 *                               to jQuery.ajax.
+		 * @param {Object}        [data] Optional. The data to populate $_POST with.
 		 * @return {$.promise} A jQuery promise that represents the request,
 		 *                     decorated with an abort() method.
 		 */
@@ -77,9 +77,9 @@ window.wp = window.wp || {};
 		 *
 		 * Sends a POST request to WordPress.
 		 *
-		 * @param {(string|Object)} action  The slug of the action to fire in WordPress or options passed
-		 *                                  to jQuery.ajax.
-		 * @param {Object}          options Optional. The options passed to jQuery.ajax.
+		 * @param {(string|Object)} action    The slug of the action to fire in WordPress or options passed
+		 *                                    to jQuery.ajax.
+		 * @param {Object}          [options] Optional. The options passed to jQuery.ajax.
 		 * @return {$.promise} A jQuery promise that represents the request,
 		 *                     decorated with an abort() method.
 		 */

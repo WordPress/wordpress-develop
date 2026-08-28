@@ -930,7 +930,7 @@
 
 			/**
 			 * Delete is only allowed when the DELETE method is available for the endpoint.
-			 * @param {Object} options The options for the delete operation.
+			 * @param {Object} [options] The options for the delete operation.
 			 * @return {boolean} True if the delete was executed, false if not allowed.
 			 */
 			destroy: function( options ) {
@@ -994,8 +994,8 @@
 
 			/**
 			 * Setup default state.
-			 * @param {Array}  models  The initial array of models.
-			 * @param {Object} options The options for the collection.
+			 * @param {Backbone.Model[]} models    The initial array of models.
+			 * @param {Object}           [options] The options for the collection.
 			 */
 			initialize: function( models, options ) {
 				this.state = {

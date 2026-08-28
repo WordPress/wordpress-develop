@@ -282,10 +282,10 @@
 		/**
 		 * Checks if the iframe is from the same origin.
 		 *
-		 * @param {HTMLIFrameElement} frame The iframe element to check.
 		 * @since 3.6.0
 		 * @access private
 		 *
+		 * @param {HTMLIFrameElement} frame The iframe element to check.
 		 * @return {boolean} Returns whether or not the iframe is from the same origin.
 		 */
 		function isLocalFrame( frame ) {

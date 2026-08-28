@@ -633,10 +633,10 @@ jQuery( function( $ ) {
 		 *
 		 * @since 5.5.2
 		 *
-		 * @param {Array}  rawEvents  The events that should have dynamic fields added to them.
-		 * @param {string} timeFormat A time format acceptable by `wp.date.dateI18n()`.
+		 * @param {Object[]} rawEvents  The events that should have dynamic fields added to them.
+		 * @param {string}   timeFormat A time format acceptable by `wp.date.dateI18n()`.
 		 *
-		 * @return {Array} The events with dynamic fields added to them.
+		 * @return {Object[]} The events with dynamic fields added to them.
 		 */
 		populateDynamicEventFields: function( rawEvents, timeFormat ) {
 			// Clone the parameter to avoid mutating it, so that this can remain a pure function.

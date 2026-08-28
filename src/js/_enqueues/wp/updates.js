@@ -241,13 +241,13 @@
 	 * @since 4.6.0
 	 *
 	 * @param {Object} data
-	 * @param {*}      data.selector      Optional. Selector of an element to be replaced with the admin notice.
-	 * @param {string} data.id            Optional. Unique id that will be used as the notice's id attribute.
-	 * @param {string} data.className     Optional. Class names that will be used in the admin notice.
-	 * @param {string} data.message       Optional. The message displayed in the notice.
-	 * @param {number} data.successes     Optional. The amount of successful operations.
-	 * @param {number} data.errors        Optional. The amount of failed operations.
-	 * @param {Array}  data.errorMessages Optional. Error messages of failed operations.
+	 * @param {*}      [data.selector]      Optional. Selector of an element to be replaced with the admin notice.
+	 * @param {string} [data.id]            Optional. Unique id that will be used as the notice's id attribute.
+	 * @param {string} [data.className]     Optional. Class names that will be used in the admin notice.
+	 * @param {string} [data.message]       Optional. The message displayed in the notice.
+	 * @param {number} [data.successes]     Optional. The amount of successful operations.
+	 * @param {number} [data.errors]        Optional. The amount of failed operations.
+	 * @param {Array}  [data.errorMessages] Optional. Error messages of failed operations.
 	 *
 	 */
 	wp.updates.addAdminNotice = function( data ) {
@@ -334,8 +334,8 @@
 	 * @since 4.6.0
 	 *
 	 * @param {Object} response
-	 * @param {Array}  response.debug     Optional. Debug information.
-	 * @param {string} response.errorCode Optional. Error code for an error that occurred.
+	 * @param {Array}  [response.debug]     Optional. Debug information.
+	 * @param {string} [response.errorCode] Optional. Error code for an error that occurred.
 	 */
 	wp.updates.ajaxAlways = function( response ) {
 		if ( ! response.errorCode || 'unable_to_connect_to_filesystem' !== response.errorCode ) {
@@ -427,16 +427,16 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object} data               An object of data to use for the button.
-	 * @param {string} data.slug          The plugin's slug.
-	 * @param {string} data.text          The text to use for the button.
-	 * @param {string} data.ariaLabel     The value for the button's aria-label attribute. An empty string removes the attribute.
-	 * @param {string} data.status        Optional. An identifier for the status.
-	 * @param {string} data.removeClasses Optional. A space-separated list of classes to remove from the button.
-	 * @param {string} data.addClasses    Optional. A space-separated list of classes to add to the button.
-	 * @param {string} data.href          Optional. The button's URL.
-	 * @param {string} data.pluginName    Optional. The plugin's name.
-	 * @param {string} data.plugin        Optional. The plugin file, relative to the plugins directory.
+	 * @param {Object} data                 An object of data to use for the button.
+	 * @param {string} data.slug            The plugin's slug.
+	 * @param {string} data.text            The text to use for the button.
+	 * @param {string} data.ariaLabel       The value for the button's aria-label attribute. An empty string removes the attribute.
+	 * @param {string} [data.status]        Optional. An identifier for the status.
+	 * @param {string} [data.removeClasses] Optional. A space-separated list of classes to remove from the button.
+	 * @param {string} [data.addClasses]    Optional. A space-separated list of classes to add to the button.
+	 * @param {string} [data.href]          Optional. The button's URL.
+	 * @param {string} [data.pluginName]    Optional. The plugin's name.
+	 * @param {string} [data.plugin]        Optional. The plugin file, relative to the plugins directory.
 	 */
 	wp.updates.setCardButtonStatus = function( data ) {
 		var target = window.parent === window ? null : window.parent;
@@ -476,11 +476,11 @@
 	 * @since 4.2.0
 	 * @since 4.6.0 More accurately named `updatePlugin`.
 	 *
-	 * @param {Object}              args         Arguments.
-	 * @param {string}              args.plugin  Plugin basename.
-	 * @param {string}              args.slug    Plugin slug.
-	 * @param {updatePluginSuccess} args.success Optional. Success callback. Default: wp.updates.updatePluginSuccess
-	 * @param {updatePluginError}   args.error   Optional. Error callback. Default: wp.updates.updatePluginError
+	 * @param {Object}              args           Arguments.
+	 * @param {string}              args.plugin    Plugin basename.
+	 * @param {string}              args.slug      Plugin slug.
+	 * @param {updatePluginSuccess} [args.success] Optional. Success callback. Default: wp.updates.updatePluginSuccess
+	 * @param {updatePluginError}   [args.error]   Optional. Error callback. Default: wp.updates.updatePluginError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */

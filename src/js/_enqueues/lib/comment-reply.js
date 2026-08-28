@@ -127,7 +127,7 @@ window.addComment = ( function( window ) {
 	 *
 	 * @param {HTMLElement} context The parent DOM element to search for links.
 	 *
-	 * @return {HTMLCollection|NodeList|Array} The collection of links.
+	 * @return {HTMLCollection|NodeList} The collection of links.
 	 */
 	function replyLinks( context ) {
 		var selectorClass = config.commentReplyClass;
