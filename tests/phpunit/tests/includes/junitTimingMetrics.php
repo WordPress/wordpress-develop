@@ -78,7 +78,7 @@ class Tests_Includes_JUnit_Timing_Metrics extends WP_UnitTestCase {
 	 * @return string Path to the temporary file.
 	 */
 	private function create_junit_file( $times, $suite_time = null ) {
-		$file                    = tempnam( sys_get_temp_dir(), 'junit-timing-' );
+		$file = tempnam( sys_get_temp_dir(), 'junit-timing-' );
 
 		if ( false === $file ) {
 			$this->fail( 'Failed to create a temporary JUnit file.' );

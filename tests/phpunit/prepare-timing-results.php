@@ -18,11 +18,12 @@ if ( 5 !== $argc ) {
 try {
 	$timestamp = new DateTimeImmutable( $argv[4] );
 	$payload   = array(
-		'branch'    => $argv[2],
-		'hash'      => $argv[3],
-		'baseHash'  => $argv[3],
-		'timestamp' => $timestamp->format( DATE_ATOM ),
-		'metrics'   => WP_PHPUnit_Timing_Metrics::from_file( $argv[1] ),
+		'branch'      => $argv[2],
+		'hash'        => $argv[3],
+		'baseHash'    => $argv[3],
+		'baseMetrics' => new stdClass(),
+		'timestamp'   => $timestamp->format( DATE_ATOM ),
+		'metrics'     => WP_PHPUnit_Timing_Metrics::from_file( $argv[1] ),
 	);
 
 	echo json_encode( $payload, JSON_THROW_ON_ERROR ) . "\n";
