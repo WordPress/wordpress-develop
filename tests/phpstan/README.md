@@ -78,7 +78,7 @@ PHPStan reads that hash as free text, so the value stays a plain `array` and not
 
 A hash whose translation would be a guess is left alone, and the value keeps whatever type it has today. The visitor therefore only ever narrows a type, and never contradicts one:
 
-- A `@phpstan-param` or `@phpstan-return` written by hand always wins. Hash notation cannot express everything a type can — a function returning either of two shapes, for example — so a shape that has been tuned in the source is never overwritten by the derived one.
+- A `@phpstan-param` or `@phpstan-return` written by hand always wins. Hash notation cannot express everything a type can — a function returning either of two shapes, or one whose return carries keys beyond those it documents, as `get_avatar_data()` returns the processed `$args` too — so a shape that has been tuned in the source is never overwritten by the derived one.
 - The declared type has to name something a shape can be put on: a bare `array` or `object`, or a class, on its own or as one member of a union such as `string|array`. A type that is already more specific than the hash, such as `array<string, string|bool>`, is left as written.
 - The hash has to be well formed: every `{` closed by a `}` on a line of its own, and every `@type` carrying a type and a `$name`.
 - A parameter taken by reference is skipped, because PHPStan checks a by-reference argument in both directions, and a shape there would be a contract every caller's variable has to satisfy before the call rather than a description of what the function reads.

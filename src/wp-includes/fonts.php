@@ -142,14 +142,6 @@ function wp_get_font_dir() {
  *     @type string       $baseurl URL path without subdir.
  *     @type string|false $error   False or error message.
  * }
- * @phpstan-return array{
- *                     path: non-empty-string,
- *                     url: non-empty-string,
- *                     subdir: non-empty-string,
- *                     basedir: non-empty-string,
- *                     baseurl: non-empty-string,
- *                 }
- *                |array{ error: non-empty-string }
  */
 function wp_font_dir( $create_dir = true ) {
 	/*

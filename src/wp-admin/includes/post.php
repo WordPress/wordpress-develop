@@ -1395,8 +1395,8 @@ function wp_edit_attachments_query_vars( $q = false ) {
  * @return array {
  *     Array containing the post mime types and the available post mime types, in that order.
  *
- *     @type array[]  $0 Post mime types.
- *     @type string[] $1 Available post mime types.
+ *     @type array<string, array{0: string, 1: string, 2: array}> $0 Post mime types. See get_post_mime_types().
+ *     @type string[]                                             $1 Available post mime types.
  * }
  */
 function wp_edit_attachments_query( $q = false ) {

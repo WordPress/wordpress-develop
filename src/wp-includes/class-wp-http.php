@@ -712,13 +712,13 @@ class WP_Http {
 	 *     Processed string headers. If duplicate headers are encountered,
 	 *     then a numbered array is returned as the value of that header-key.
 	 *
-	 *     @type array            $response {
+	 *     @type array                         $response {
 	 *         @type int    $code    The response status code. Default 0.
 	 *         @type string $message The response message. Default empty.
 	 *     }
-	 *     @type array            $headers    The processed header data as a multidimensional array.
-	 *     @type WP_Http_Cookie[] $cookies    If the original headers contain the 'Set-Cookie' key,
-	 *                                        an array containing `WP_Http_Cookie` objects is returned.
+	 *     @type array<string, string|string[]> $headers  The processed header data, keyed by lowercased header name.
+	 *     @type WP_Http_Cookie[]               $cookies  If the original headers contain the 'Set-Cookie' key,
+	 *                                                    an array containing `WP_Http_Cookie` objects is returned.
 	 * }
 	 */
 	public static function processHeaders( $headers, $url = '' ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid

@@ -2346,11 +2346,11 @@ function win_is_writable( $path ) {
  * @phpstan-return array{
  *                     path: non-empty-string,
  *                     url: non-empty-string,
- *                     subdir: non-empty-string,
+ *                     subdir: string,
  *                     basedir: non-empty-string,
  *                     baseurl: non-empty-string,
+ *                     error: non-empty-string|false,
  *                 }
- *                |array{ error: non-empty-string }
  */
 function wp_get_upload_dir() {
 	return wp_upload_dir( null, false );
@@ -2395,11 +2395,11 @@ function wp_get_upload_dir() {
  * @phpstan-return array{
  *                     path: non-empty-string,
  *                     url: non-empty-string,
- *                     subdir: non-empty-string,
+ *                     subdir: string,
  *                     basedir: non-empty-string,
  *                     baseurl: non-empty-string,
+ *                     error: non-empty-string|false,
  *                 }
- *                |array{ error: non-empty-string }
  */
 function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false ) {
 	static $cache = array(), $tested_paths = array();
@@ -2917,9 +2917,12 @@ function _wp_check_existing_file_names( $filename, $files ) {
  *
  *     @type string       $file  Optional. Filename of the newly-uploaded file. Not set if there has been an error.
  *     @type string       $url   Optional. URL of the uploaded file. Not set if there has been an error.
- *     @type string       $type  Optional. File type. Not set if there has been an error.
+ *     @type string|false $type  Optional. File type, or false if the file doesn't match a mime type.
+ *                               Not set if there has been an error.
  *     @type string|false $error Error message, if there has been an error.
  * }
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
+ *                |array{ error: non-empty-string, ... }
  */
 function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	if ( ! empty( $deprecated ) ) {
