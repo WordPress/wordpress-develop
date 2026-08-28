@@ -161,7 +161,7 @@
 			 * Elements whose href is not a string, such as SVG anchors, are skipped.
 			 */
 			var link = e.target.closest( '[href]' ),
-				href = link && 'string' === typeof link.href ? link.href : null;
+				href = 'string' === typeof link?.href ? link.href : null;
 
 			// Only catch clicks from the primary mouse button, without any modifiers.
 			if ( event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ) {
