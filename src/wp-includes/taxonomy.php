@@ -278,6 +278,7 @@ function create_initial_taxonomies() {
  *                         one element from the array needs to match; 'and' means all elements must match.
  *                         Default 'and'.
  * @return string[]|WP_Taxonomy[] An array of taxonomy names or objects.
+ * @phpstan-return ( $output is 'names' ? string[] : WP_Taxonomy[] )
  */
 function get_taxonomies( $args = array(), $output = 'names', $operator = 'and' ) {
 	global $wp_taxonomies;
