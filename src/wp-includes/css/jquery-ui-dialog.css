@@ -61,7 +61,6 @@
 	left: 0;
 	position: absolute;
 	opacity: 0;
-	filter: alpha(opacity=0); /* support: IE8 */
 }
 
 .ui-front {
@@ -104,7 +103,6 @@
 	min-height: 360px;
 	background: #000;
 	opacity: 0.7;
-	filter: alpha(opacity=70);
 	z-index: 100101;
 }
 
