@@ -95,13 +95,19 @@ jobs:
       # predates either. The baselines are left out of the key: they only decide which reported errors
       # are ignored, PHPStan invalidates the results cache on a configuration change by itself, and
       # including them would discard the whole cache every time one is regenerated.
+      #
+      # The cache is renamed rather than only prefixed, because the key this replaces restored on
+      # `phpstan-result-cache-`, which every key below still begins with. A branch that has not
+      # merged this commit yet runs the workflow it has, and that workflow would prefix-match the
+      # caches written here: it would analyse without the extensions against reflection derived with
+      # them. A name of its own leaves those runs restoring only their own caches.
       - name: Cache PHP Static Analysis scan cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .cache # This is defined in the base.neon file.
-          key: "phpstan-result-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+          key: "phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
           restore-keys: |
-            phpstan-result-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-
+            phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-
 
       - name: Run PHP static analysis tests
         id: phpstan
@@ -204,7 +210,7 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           path: .cache
-          key: "phpstan-result-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+          key: "phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
