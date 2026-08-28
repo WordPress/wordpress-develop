@@ -3699,7 +3699,7 @@ function get_post_mime_types() {
 	 * @since 2.5.0
 	 *
 	 * @param array<string, array{0: string, 1: string, 2: array}> $post_mime_types Default list of post mime types.
-	 *                                                                              See get_post_mime_types().
+	 *                                                                              See {@see get_post_mime_types()}.
 	 */
 	return apply_filters( 'post_mime_types', $post_mime_types );
 }
