@@ -1171,9 +1171,9 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_should_add_fit_text_class_name().
 	 *
-	 * @return array
+	 * @return array<non-falsy-string, array{ block_content: non-falsy-string, expected_class: non-falsy-string }>
 	 */
-	public function data_should_add_fit_text_class_name() {
+	public function data_should_add_fit_text_class_name(): array {
 		return array(
 			'wrapper without a class attribute' => array(
 				'block_content'  => '<h1>Site Title</h1>',
