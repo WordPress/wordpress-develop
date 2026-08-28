@@ -1124,4 +1124,66 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertContains( $tax1, $taxonomies );
 		$this->assertContains( $tax2, $taxonomies );
 	}
+
+	/**
+	 * @ticket 65055
+	 * Filter invalid post types before SQL query
+	 */
+	public function test_pad_term_counts_with_invalid_post_types() {
+		register_taxonomy( 'invalid_tax', array( 'non_existent_type' ), array( 'hierarchical' => true ) );
+
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'invalid_tax' ) );
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'invalid_tax',
+				'parent'   => $parent,
+			)
+		);
+
+		_get_term_hierarchy( 'invalid_tax' );
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'invalid_tax',
+				'hide_empty' => false,
+			)
+		);
+
+		_pad_term_counts( $terms, 'invalid_tax' );
+
+		$this->assertEquals( 0, $terms[0]->count );
+	}
+
+	/**
+	 * @ticket 65055
+	 */
+	public function test_pad_term_counts_with_standard_post_types() {
+		register_post_type( 'book' );
+		register_taxonomy( 'genre', array( 'book' ), array( 'hierarchical' => true ) );
+
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'genre' ) );
+		$child  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'genre',
+				'parent'   => $parent,
+			)
+		);
+
+		_get_term_hierarchy( 'genre' );
+
+		$post_id = self::factory()->post->create( array( 'post_type' => 'book' ) );
+		wp_set_object_terms( $post_id, $child, 'genre' );
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'genre',
+				'hide_empty' => false,
+			)
+		);
+
+		_pad_term_counts( $terms, 'genre' );
+
+		$parent_term = wp_list_filter( $terms, array( 'term_id' => $parent ) );
+		$this->assertEquals( 1, current( $parent_term )->count, 'Parent terms should include post counts from their child terms' );
+	}
 }
