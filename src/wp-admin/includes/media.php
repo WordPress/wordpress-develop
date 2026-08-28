@@ -1398,7 +1398,16 @@ function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
  *
  * @param WP_Post $post
  * @param array   $errors
- * @return array<string, array<string, mixed>> The attachment fields.
+ * @return array<string, array<string, mixed>|string> The attachment fields, keyed by field name. Each value is a
+ *                                                    field definition array, except for the `_final` key, which the
+ *                                                    `attachment_fields_to_edit` filter may set to raw HTML that is
+ *                                                    rendered after all other fields.
+ *
+ * @phpstan-return array{
+ *     _final?: string,
+ *     menu_order?: array<string, mixed>, // Listed explicitly so that unsetting it in get_media_item() does not collapse this shape.
+ *     ...<string, array<string, mixed>>
+ * }
  */
 function get_attachment_fields_to_edit( $post, $errors = null ) {
 	if ( is_int( $post ) ) {
@@ -1773,7 +1782,7 @@ function get_media_item( $attachment_id, $args = null ) {
 
 	if ( isset( $_GET['post_id'] ) ) {
 		$calling_post_id = absint( $_GET['post_id'] );
-	} elseif ( isset( $_POST ) && count( $_POST ) ) {// Like for async-upload where $_GET['post_id'] isn't set.
+	} elseif ( ! empty( $_POST ) ) { // Like for async-upload where $_GET['post_id'] isn't set.
 		$calling_post_id = $post->post_parent;
 	}
 
