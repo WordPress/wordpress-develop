@@ -75,17 +75,26 @@ window.wp = window.wp || {};
 	/**
 	 * Base class for object inheritance.
 	 *
-	 * @param {Function} applicator The function that is used to apply the arguments to the constructor.
-	 * @param {Array}    argsArray  The array of arguments to apply to the constructor.
-	 * @param {Object}   options    The options to extend the instance with.
+	 * The arguments are normally passed straight through to the class's
+	 * initialize method. As a special case, when the first argument is
+	 * api.Class.applicator, the second argument is used as the array of
+	 * arguments for initialize and the third is used to extend the instance.
+	 * This allows a class to be constructed from an argument list that is only
+	 * known at runtime. See {@link wp.customize.Values#create}.
+	 *
+	 * @param {...*} args Arguments for the class's initialize method. Or
+	 *                    api.Class.applicator, followed by the array of
+	 *                    arguments for the initialize method, followed by an
+	 *                    optional object of properties to extend the instance
+	 *                    with.
 	 * @return {Object} The instance of the class.
 	 */
-	api.Class = function( applicator, argsArray, options ) {
-		var magic, args = arguments;
+	api.Class = function( ...args ) {
+		var magic;
 
-		if ( applicator && argsArray && api.Class.applicator === applicator ) {
-			args = argsArray;
-			$.extend( this, options || {} );
+		if ( args[0] && args[1] && api.Class.applicator === args[0] ) {
+			$.extend( this, args[2] || {} );
+			args = args[1];
 		}
 
 		magic = this;
@@ -98,8 +107,8 @@ window.wp = window.wp || {};
 		 * It is also an object that has properties and methods inside it.
 		 */
 		if ( this.instance ) {
-			magic = function( ...args ) {
-				return magic.instance.apply( magic, args );
+			magic = function( ...instanceArgs ) {
+				return magic.instance.apply( magic, instanceArgs );
 			};
 
 			$.extend( magic, this );
