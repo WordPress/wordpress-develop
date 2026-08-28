@@ -94,7 +94,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		foreach ( array_keys( $themes ) as $name ) {
 			$theme = get_theme( $name );
-			// WP_Theme implements ArrayAccess, but is not an array. Not even ArrayObject is.
+			// WP_Theme implements ArrayAccess, but that does not make it an array.
 			$this->assertIsNotArray( $theme );
 			$this->assertInstanceOf( 'WP_Theme', $theme );
 			$this->assertSame( $theme, $themes[ $name ] );
