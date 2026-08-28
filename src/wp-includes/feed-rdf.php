@@ -16,7 +16,7 @@ do_action( 'rss_tag_pre', 'rdf' );
 <rdf:RDF
 	xmlns="http://purl.org/rss/1.0/"
 	<?php
-	feed_namespaces( 'rdf' );
+	wp_feed_namespaces( 'rdf' );
 
 	/**
 	 * Fires at the end of the feed root to add namespaces.

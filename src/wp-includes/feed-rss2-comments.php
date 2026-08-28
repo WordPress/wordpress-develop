@@ -14,7 +14,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 ?>
 <rss version="2.0"
 	<?php
-	feed_namespaces( 'rss2-comments' );
+	wp_feed_namespaces( 'rss2-comments' );
 
 	/** This action is documented in wp-includes/feed-rss2.php */
 	do_action( 'rss2_ns' );

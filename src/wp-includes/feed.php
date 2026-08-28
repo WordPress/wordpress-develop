@@ -714,7 +714,7 @@ function self_link() {
  * @phpstan-param non-falsy-string $type
  * @phpstan-return array<non-falsy-string, non-falsy-string>
  */
-function get_feed_namespaces( string $type ): array {
+function wp_get_feed_namespaces( string $type ): array {
 	$defaults = array();
 
 	switch ( $type ) {
@@ -813,8 +813,8 @@ function get_feed_namespaces( string $type ): array {
  *                     'rdf', 'atom', and 'atom-comments'.
  * @phpstan-param non-falsy-string $type
  */
-function feed_namespaces( string $type ): void {
-	foreach ( get_feed_namespaces( $type ) as $prefix => $uri ) {
+function wp_feed_namespaces( string $type ): void {
+	foreach ( wp_get_feed_namespaces( $type ) as $prefix => $uri ) {
 		printf( "xmlns:%s=\"%s\"\n\t", $prefix, esc_attr( $uri ) );
 	}
 }

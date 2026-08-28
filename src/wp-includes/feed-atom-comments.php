@@ -15,7 +15,7 @@ do_action( 'rss_tag_pre', 'atom-comments' );
 	xmlns="http://www.w3.org/2005/Atom"
 	xml:lang="<?php bloginfo_rss( 'language' ); ?>"
 	<?php
-		feed_namespaces( 'atom-comments' );
+		wp_feed_namespaces( 'atom-comments' );
 
 		/** This action is documented in wp-includes/feed-atom.php */
 		do_action( 'atom_ns' );

@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Tests for the get_feed_namespaces() and feed_namespaces() functions.
+ * Tests for the wp_get_feed_namespaces() and wp_feed_namespaces() functions.
  *
  * @group feed
  *
- * @covers ::get_feed_namespaces
- * @covers ::feed_namespaces
+ * @covers ::wp_get_feed_namespaces
+ * @covers ::wp_feed_namespaces
  */
 class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 
@@ -14,7 +14,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	 * @ticket 65785
 	 */
 	public function test_should_return_default_rss2_namespaces() {
-		$namespaces = get_feed_namespaces( 'rss2' );
+		$namespaces = wp_get_feed_namespaces( 'rss2' );
 
 		$this->assertSameSetsWithIndex(
 			array(
@@ -33,7 +33,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	 * @ticket 65785
 	 */
 	public function test_should_return_default_atom_namespaces() {
-		$namespaces = get_feed_namespaces( 'atom' );
+		$namespaces = wp_get_feed_namespaces( 'atom' );
 
 		$this->assertSameSetsWithIndex(
 			array(
@@ -55,7 +55,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 			}
 		);
 
-		$namespaces = get_feed_namespaces( 'rss2' );
+		$namespaces = wp_get_feed_namespaces( 'rss2' );
 
 		$this->assertArrayHasKey( 'source', $namespaces );
 		$this->assertSame( 'http://source.scripting.com/', $namespaces['source'] );
@@ -80,8 +80,8 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 			2
 		);
 
-		$this->assertArrayHasKey( 'source', get_feed_namespaces( 'rss2' ) );
-		$this->assertArrayNotHasKey( 'source', get_feed_namespaces( 'atom' ) );
+		$this->assertArrayHasKey( 'source', wp_get_feed_namespaces( 'rss2' ) );
+		$this->assertArrayNotHasKey( 'source', wp_get_feed_namespaces( 'atom' ) );
 	}
 
 	/**
@@ -98,7 +98,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 			}
 		);
 
-		$namespaces = get_feed_namespaces( 'rss2' );
+		$namespaces = wp_get_feed_namespaces( 'rss2' );
 
 		$this->assertArrayHasKey( 'media', $namespaces );
 		$this->assertArrayHasKey( 'content', $namespaces );
@@ -113,7 +113,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	public function test_should_handle_a_non_array_filter_return() {
 		add_filter( 'wp_feed_namespaces', '__return_null' );
 
-		$namespaces = get_feed_namespaces( 'rss2' );
+		$namespaces = wp_get_feed_namespaces( 'rss2' );
 
 		$this->assertArrayHasKey( 'content', $namespaces );
 	}
@@ -136,7 +136,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 			}
 		);
 
-		$namespaces = get_feed_namespaces( 'rss2' );
+		$namespaces = wp_get_feed_namespaces( 'rss2' );
 
 		$this->assertArrayNotHasKey( '', $namespaces );
 		$this->assertArrayNotHasKey( 'foo bar', $namespaces );
@@ -163,7 +163,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 			}
 		);
 
-		$namespaces = get_feed_namespaces( 'rss2' );
+		$namespaces = wp_get_feed_namespaces( 'rss2' );
 
 		$this->assertArrayNotHasKey( "content\n", $namespaces );
 		$this->assertSame( 'http://purl.org/rss/1.0/modules/content/', $namespaces['content'] );
@@ -186,7 +186,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 			}
 		);
 
-		$namespaces = get_feed_namespaces( 'rss2' );
+		$namespaces = wp_get_feed_namespaces( 'rss2' );
 
 		$this->assertArrayHasKey( 'creativeCommons', $namespaces );
 		$this->assertArrayHasKey( 'média', $namespaces );
@@ -198,14 +198,14 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	 * @ticket 65785
 	 */
 	public function test_should_return_an_empty_array_for_an_unknown_type() {
-		$this->assertSame( array(), get_feed_namespaces( 'unknown' ) );
+		$this->assertSame( array(), wp_get_feed_namespaces( 'unknown' ) );
 	}
 
 	/**
 	 * @ticket 65785
 	 */
 	public function test_feed_namespaces_should_print_default_namespaces() {
-		$output = get_echo( 'feed_namespaces', array( 'rss2' ) );
+		$output = get_echo( 'wp_feed_namespaces', array( 'rss2' ) );
 
 		$this->assertStringContainsString( 'xmlns:content="http://purl.org/rss/1.0/modules/content/"', $output );
 		$this->assertStringContainsString( 'xmlns:slash="http://purl.org/rss/1.0/modules/slash/"', $output );
@@ -223,7 +223,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 			}
 		);
 
-		$output = get_echo( 'feed_namespaces', array( 'rss2' ) );
+		$output = get_echo( 'wp_feed_namespaces', array( 'rss2' ) );
 
 		$this->assertStringNotContainsString( '"><script>', $output );
 		$this->assertStringContainsString( 'xmlns:evil=', $output );
@@ -243,7 +243,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 		add_filter( 'wp_feed_namespaces', $add_source_ns, 10 );
 		add_filter( 'wp_feed_namespaces', $add_source_ns, 11 );
 
-		$output = get_echo( 'feed_namespaces', array( 'rss2' ) );
+		$output = get_echo( 'wp_feed_namespaces', array( 'rss2' ) );
 
 		$this->assertSame( 1, substr_count( $output, 'xmlns:source=' ) );
 	}

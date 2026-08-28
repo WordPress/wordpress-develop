@@ -22,7 +22,7 @@ do_action( 'rss_tag_pre', 'atom' );
 	xmlns="http://www.w3.org/2005/Atom"
 	xml:lang="<?php bloginfo_rss( 'language' ); ?>"
 	<?php
-	feed_namespaces( 'atom' );
+	wp_feed_namespaces( 'atom' );
 
 	/**
 	 * Fires at end of the Atom feed root to add namespaces.

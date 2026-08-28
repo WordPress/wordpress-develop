@@ -22,7 +22,7 @@ do_action( 'rss_tag_pre', 'rss2' );
 ?>
 <rss version="2.0"
 	<?php
-	feed_namespaces( 'rss2' );
+	wp_feed_namespaces( 'rss2' );
 
 	/**
 	 * Fires at the end of the RSS root to add namespaces.
