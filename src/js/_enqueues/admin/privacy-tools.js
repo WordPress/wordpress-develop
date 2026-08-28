@@ -9,11 +9,22 @@ jQuery( function( $ ) {
 	var __ = wp.i18n.__,
 		copiedNoticeTimeout;
 
+	/**
+	 * Updates the visible state for a privacy request action.
+	 *
+	 * @param {jQuery} $action Privacy request action container.
+	 * @param {string} state   CSS class for the action state to show.
+	 */
 	function setActionState( $action, state ) {
 		$action.children().addClass( 'hidden' );
 		$action.children( '.' + state ).removeClass( 'hidden' );
 	}
 
+	/**
+	 * Removes any result notices appended after a privacy request row.
+	 *
+	 * @param {jQuery} $requestRow Privacy request table row.
+	 */
 	function clearResultsAfterRow( $requestRow ) {
 		$requestRow.removeClass( 'has-request-results' );
 
@@ -22,6 +33,14 @@ jQuery( function( $ ) {
 		}
 	}
 
+	/**
+	 * Appends an inline result notice after a privacy request row.
+	 *
+	 * @param {jQuery}   $requestRow        Privacy request table row.
+	 * @param {string}   classes            Notice classes to add.
+	 * @param {string}   summaryMessage     Summary message for the notice.
+	 * @param {string[]} additionalMessages Optional additional messages to list.
+	 */
 	function appendResultsAfterRow( $requestRow, classes, summaryMessage, additionalMessages ) {
 		var itemList = '',
 			resultRowClasses = 'request-results';
@@ -76,6 +95,11 @@ jQuery( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 		setExportProgress( 0 );
 
+		/**
+		 * Handles a successful personal data export.
+		 *
+		 * @param {string} [zipUrl] URL for the generated export ZIP file.
+		 */
 		function onExportDoneSuccess( zipUrl ) {
 			var summaryMessage = __( 'This user&#8217;s personal data export link was sent.' );
 
@@ -96,6 +120,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Handles a failed personal data export.
+		 *
+		 * @param {string} errorMessage Error message to display.
+		 */
 		function onExportFailure( errorMessage ) {
 			var summaryMessage = __( 'An error occurred while attempting to export personal data.' );
 
@@ -108,6 +137,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Updates the export progress indicator.
+		 *
+		 * @param {number} exporterIndex Current exporter index.
+		 */
 		function setExportProgress( exporterIndex ) {
 			var progress       = ( exportersCount > 0 ? exporterIndex / exportersCount : 0 ),
 				progressString = Math.round( progress * 100 ).toString() + '%';
@@ -115,6 +149,12 @@ jQuery( function( $ ) {
 			$progress.html( progressString );
 		}
 
+		/**
+		 * Requests the next page of personal data from the current exporter.
+		 *
+		 * @param {number} exporterIndex Current exporter index.
+		 * @param {number} pageIndex     Current page index for the exporter.
+		 */
 		function doNextExport( exporterIndex, pageIndex ) {
 			$.ajax(
 				{
@@ -181,6 +221,9 @@ jQuery( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 		setErasureProgress( 0 );
 
+		/**
+		 * Handles a successful personal data erasure.
+		 */
 		function onErasureDoneSuccess() {
 			var summaryMessage = __( 'No personal data was found for this user.' ),
 				classes = 'notice-success';
@@ -207,6 +250,9 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Handles a failed personal data erasure.
+		 */
 		function onErasureFailure() {
 			var summaryMessage = __( 'An error occurred while attempting to find and erase personal data.' );
 
@@ -217,6 +263,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Updates the erasure progress indicator.
+		 *
+		 * @param {number} eraserIndex Current eraser index.
+		 */
 		function setErasureProgress( eraserIndex ) {
 			var progress       = ( erasersCount > 0 ? eraserIndex / erasersCount : 0 ),
 				progressString = Math.round( progress * 100 ).toString() + '%';
@@ -224,6 +275,12 @@ jQuery( function( $ ) {
 			$progress.html( progressString );
 		}
 
+		/**
+		 * Requests the next page of personal data from the current eraser.
+		 *
+		 * @param {number} eraserIndex Current eraser index.
+		 * @param {number} pageIndex   Current page index for the eraser.
+		 */
 		function doNextErasure( eraserIndex, pageIndex ) {
 			$.ajax({
 				url: window.ajaxurl,
