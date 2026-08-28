@@ -1,8 +1,11 @@
+/* global _wpCustomizeWidgetsSettings */
+
 /**
  * @output wp-admin/js/customize-widgets.js
+ *
+ * @param {wp}     wp The WordPress global object.
+ * @param {jQuery} $  The jQuery object.
  */
-
-/* global _wpCustomizeWidgetsSettings */
 (function( wp, $ ){
 
 	if ( ! wp || ! wp.customize ) { return; }
@@ -284,6 +287,8 @@
 
 		/**
 		 * Highlights a widget.
+		 *
+		 * @param {jQuery} widgetTpl The widget template to highlight.
  		 */
 		select: function( widgetTpl ) {
 			this.selected = $( widgetTpl );
@@ -293,6 +298,8 @@
 
 		/**
 		 * Highlights a widget on focus.
+		 *
+		 * @param {jQuery.Event} event The focus event.
 		 */
 		focus: function( event ) {
 			this.select( $( event.currentTarget ) );
@@ -300,6 +307,8 @@
 
 		/**
 		 * Handles submit for keypress and click on widget.
+		 *
+		 * @param {jQuery.Event} event The keypress or click event.
 		 */
 		_submit: function( event ) {
 			// Only proceed with keypress if it is Enter or Spacebar.
@@ -312,6 +321,8 @@
 
 		/**
 		 * Adds a selected widget to the sidebar.
+		 *
+		 * @param {jQuery} widgetTpl The widget template to add.
  		 */
 		submit: function( widgetTpl ) {
 			var widgetId, widget, widgetFormControl;
@@ -342,6 +353,8 @@
 
 		/**
 		 * Opens the panel.
+		 *
+		 * @param {wp.customize.Widgets.SidebarControl} sidebarControl The sidebar control that opened the panel.
 		 */
 		open: function( sidebarControl ) {
 			this.currentSidebarControl = sidebarControl;
@@ -371,6 +384,8 @@
 
 		/**
 		 * Closes the panel.
+		 *
+		 * @param {Object} options Options for closing the panel.
 		 */
 		close: function( options ) {
 			options = options || {};
@@ -389,6 +404,8 @@
 
 		/**
 		 * Adds keyboard accessibility to the panel.
+		 *
+		 * @param {jQuery.Event} event The keydown event.
 		 */
 		keyboardAccessible: function( event ) {
 			var isEnter = ( event.which === 13 ),
@@ -491,6 +508,9 @@
 		 *
 		 * @constructs wp.customize.Widgets.WidgetControl
 		 * @augments   wp.customize.Control
+		 *
+		 * @param {string} id      Control ID.
+		 * @param {Object} options Control options.
 		 */
 		initialize: function( id, options ) {
 			var control = this;
@@ -953,9 +973,9 @@
 
 			formSyncHandler = api.Widgets.formSyncHandlers[ this.params.widget_id_base ];
 			if ( formSyncHandler ) {
-				$( document ).on( 'widget-synced', function( e, widget ) {
+				$( document ).on( 'widget-synced', function( e, widget, ...args ) {
 					if ( $widgetRoot.is( widget ) ) {
-						formSyncHandler.apply( document, arguments );
+						formSyncHandler.call( document, e, widget, ...args );
 					}
 				} );
 			}
@@ -968,9 +988,9 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {boolean}   active
-		 * @param {Object}    args
-		 * @param {function}  args.completeCallback
+		 * @param {boolean}  active
+		 * @param {Object}   args
+		 * @param {Function} args.completeCallback
 		 */
 		onChangeActive: function ( active, args ) {
 			// Note: there is a second 'args' parameter being passed, merged on top of this.defaultActiveArguments.
@@ -1052,7 +1072,7 @@
 		 * This string can be used to compare whether or not the form has all of the same fields.
 		 *
 		 * @param {jQuery} inputs
-		 * @return {string}
+		 * @return {string} Signature string for the inputs.
 		 * @private
 		 */
 		_getInputsSignature: function( inputs ) {
@@ -1075,7 +1095,7 @@
 		 * Get the state for an input depending on its type.
 		 *
 		 * @param {jQuery|Element} input
-		 * @return {string|boolean|Array|*}
+		 * @return {string|boolean|Array|*} State of the input.
 		 * @private
 		 */
 		_getInputState: function( input ) {
@@ -1124,7 +1144,9 @@
 		 **********************************************************************/
 
 		/**
-		 * @return {wp.customize.Control}
+		 * Get the sidebar widgets control for the sidebar this widget is in.
+		 *
+		 * @return {wp.customize.Widgets.SidebarControl|undefined} The sidebar widgets control, or undefined if not found.
 		 */
 		getSidebarWidgetsControl: function() {
 			var settingId, sidebarWidgetsControl;
@@ -1341,9 +1363,9 @@
 		/**
 		 * @since 4.1.0
 		 *
-		 * @param {Boolean} expanded
+		 * @param {boolean} expanded
 		 * @param {Object} [params]
-		 * @return {Boolean} False if state already applied.
+		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
 
@@ -1351,7 +1373,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already expanded.
+		 * @return {boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
 
@@ -1368,7 +1390,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already collapsed.
+		 * @return {boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
 
@@ -1498,7 +1520,7 @@
 		/**
 		 * Get the position (index) of the widget in the containing sidebar
 		 *
-		 * @return {number}
+		 * @return {number|void} Index of the widget in the sidebar, or undefined if not found
 		 */
 		getWidgetSidebarPosition: function() {
 			var sidebarWidgetIds, position;
@@ -1642,7 +1664,7 @@
 				/**
 				 * Determine whether or not the notice should be displayed.
 				 *
-				 * @return {boolean}
+				 * @return {boolean} True if the notice should be displayed, false otherwise.
 				 */
 				shouldShowNotice = function() {
 					var activeSectionCount = getActiveSectionCount();
@@ -1712,7 +1734,7 @@
 		 *
 		 * @since 4.4.0
 		 *
-		 * @return {boolean}
+		 * @return {boolean} True if the panel is contextually active, false otherwise.
 		 */
 		isContextuallyActive: function() {
 			var panel = this;
@@ -2048,7 +2070,7 @@
 		 * Get the widget_form Customize controls associated with the current sidebar.
 		 *
 		 * @since 3.9.0
-		 * @return {wp.customize.Control[]}
+		 * @return {wp.customize.Widgets.WidgetControl[]} Widget form controls associated with the current sidebar.
 		 */
 		getWidgetFormControls: function() {
 			var formControls = [];
@@ -2065,10 +2087,10 @@
 		},
 
 		/**
-		 * Add a widget.
+		 * Add a widget to the sidebar.
 		 *
-		 * @param {string} widgetId Widget ID or an id_base for adding a previously non-existing widget.
-		 * @return {wp.customize.Control|false} The widget_form control instance, or false on error.
+		 * @param {string} widgetId Widget ID, or an id_base for adding a previously non-existing widget.
+		 * @return {wp.customize.Widgets.WidgetControl|false} The widget_form control instance, or false on error.
 		 */
 		addWidget: function( widgetId ) {
 			var self = this, controlHtml, $widget, controlType = 'widget_form', controlContainer, controlConstructor,
@@ -2249,7 +2271,7 @@
 	/**
 	 * Given a widget control, find the sidebar widgets control that contains it.
 	 * @param {string} widgetId
-	 * @return {Object|null}
+	 * @return {Object|null} Sidebar widgets control that contains the widget, or null if not found.
 	 */
 	api.Widgets.getSidebarWidgetControlContainingWidget = function( widgetId ) {
 		var foundControl = null;
@@ -2268,7 +2290,7 @@
 	 * Given a widget ID for a widget appearing in the preview, get the widget form control associated with it.
 	 *
 	 * @param {string} widgetId
-	 * @return {Object|null}
+	 * @return {Object|null} Widget form control associated with the widget, or null if not found.
 	 */
 	api.Widgets.getWidgetFormControlForWidget = function( widgetId ) {
 		var foundControl = null;
@@ -2337,7 +2359,7 @@
 
 	/**
 	 * @param {string} widgetId
-	 * @return {Object}
+	 * @return {Object} Parsed widget ID with id_base and number properties
 	 */
 	function parseWidgetId( widgetId ) {
 		var matches, parsed = {

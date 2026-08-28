@@ -21,7 +21,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.ImageModel
 	 *
-	 * @constructor
+	 * @class
 	 * @augments Backbone.Model
 	 */
 	api.HeaderTool.ImageModel = Backbone.Model.extend(/** @lends wp.customize.HeaderTool.ImageModel.prototype */{
@@ -161,17 +161,17 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.ChoiceList
 	 *
-	 * @constructor
+	 * @class
 	 * @augments Backbone.Collection
 	 */
 	api.HeaderTool.ChoiceList = Backbone.Collection.extend({
 		model: api.HeaderTool.ImageModel,
 
 		/**
-		 * Comparator.
+		 * Comparator which orders the collection from most recently used to least.
 		 *
-		 * @param {Backbone.Model} model Model.
-		 * @return {number} Order.
+		 * @param {Backbone.Model} model The model to sort.
+		 * @return {number} The sort order.
 		 */
 		comparator: function(model) {
 			return -model.get('header').timestamp;
@@ -331,7 +331,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.DefaultsList
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.HeaderTool.ChoiceList
 	 * @augments Backbone.Collection
 	 */

@@ -134,7 +134,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			 * @param {wp.customize.Value|string} setting  - Object or ID.
 			 * @param {number|Object|false|null}  newValue - New value, or null if the setting was just removed.
 			 * @param {number|Object|false|null}  oldValue - Old value, or null if the setting was just added.
-			 * @return {boolean}
+			 * @return {boolean} True if the setting is related to this partial, false otherwise.
 			 */
 			isRelatedSetting: function( setting, newValue, oldValue ) {
 				var partial = this, navMenuLocationSetting, navMenuId, isNavMenuItemSetting, _newValue, _oldValue, urlParser;
@@ -210,7 +210,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			 *
 			 * @since 4.5.0
 			 *
-			 * @return {Promise}
+			 * @return {Promise} A promise that is resolved when the refresh is complete, or rejected if the partial is no longer associated with a menu.
 			 */
 			refresh: function() {
 				var partial = this, menuId, deferred = $.Deferred();
@@ -265,8 +265,8 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {Object} navMenuInstanceArgs Nav menu instance args.
-		 * @return {boolean} Whether full refresh was requested.
+		 * @param {Object} navMenuInstanceArgs Arguments for a nav menu instance, which may include menu and/or theme_location.
+		 * @return {boolean} Whether a full refresh was requested.
 		 */
 		self.handleUnplacedNavMenuInstances = function( navMenuInstanceArgs ) {
 			var unplacedNavMenuInstances;

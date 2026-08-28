@@ -74,18 +74,16 @@
 	/**
 	 * Returns a debounced version of the function.
 	 *
-	 * @todo Require Underscore.js for this file and retire this.
-	 *
 	 * @param {Function} fn      Function to debounce.
 	 * @param {number}   delay   Delay in milliseconds.
-	 * @param {Object}   context Context to invoke the function with. Optional.
+	 * @param {Object}   context Context to invoke the function in.
+	 * @todo Require Underscore.js for this file and retire this.
+	 *
 	 * @return {Function} Debounced function.
 	 */
 	debounce = function( fn, delay, context ) {
 		var timeout;
-		return function() {
-			var args = arguments;
-
+		return function( ...args ) {
 			context = context || this;
 
 			clearTimeout( timeout );
@@ -100,7 +98,7 @@
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Preview
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Messenger
 	 * @augments wp.customize.Class
 	 * @mixes wp.customize.Events
@@ -895,8 +893,8 @@
 			return 'background_' + prop;
 		} );
 
-		api.when.apply( api, bg ).done( function() {
-			$.each( arguments, function() {
+		api.when.apply( api, bg ).done( function( ...settings ) {
+			$.each( settings, function() {
 				this.bind( api.settingPreviewHandlers.background );
 			});
 		});

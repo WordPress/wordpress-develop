@@ -78,6 +78,9 @@ window.wp = window.wp || {};
 
 		/**
 		 * Handle popstate event.
+		 *
+		 * @param {jQuery.Event} e The popstate event.
+		 * @return {void}
 		 */
 		popstate: function( e ) {
 			var state = e.originalEvent.state;
@@ -118,6 +121,7 @@ window.wp = window.wp || {};
 		 * Open the Customizer overlay for a specific URL.
 		 *
 		 * @param {string} src URL to load in the Customizer.
+		 * @return {void}
 		 */
 		open: function( src ) {
 

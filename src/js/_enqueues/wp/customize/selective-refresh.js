@@ -45,7 +45,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * Default params.
 		 *
 		 * @since 4.9.0
-		 * @var {object}
+		 * @member {Object}
 		 */
 		defaults: {
 			selector: null,
@@ -253,7 +253,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @return {Array.<Placement>}
+		 * @return {Array.<Placement>} The placements for this partial in the document.
 		 */
 		placements: function() {
 			var partial = this, selector;
@@ -285,7 +285,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @return {string[]}
+		 * @return {string[]} The setting IDs related to this partial.
 		 */
 		settings: function() {
 			var partial = this;
@@ -364,7 +364,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * @since 4.5.0
 		 *
 		 * @this {wp.customize.selectiveRefresh.Partial}
-		 * @return {jQuery.Promise}
+		 * @return {jQuery.Promise} Promise for the request to render the partial.
 		 */
 		refresh: function() {
 			var partial = this, refreshPromise;
@@ -574,7 +574,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * This provides information about the placement which is included in the request
 		 * in order to render the partial properly.
 		 *
-		 * @param {object}
+		 * @param {Object}
 		 */
 		context: null,
 
@@ -645,7 +645,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * @since 4.5.0
 	 * @see wp.customize.previewer.query()
 	 *
-	 * @return {Object}
+	 * @return {Object} POST vars for a Customizer preview request.
 	 */
 	self.getCustomizeQuery = function() {
 		var dirtyCustomized = {};
@@ -708,7 +708,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * @since 4.5.0
 	 *
 	 * @param {wp.customize.selectiveRefresh.Partial} partial
-	 * @return {jQuery.Promise}
+	 * @return {jQuery.Promise} Promise for the request to render the partial.
 	 */
 	self.requestPartial = function( partial ) {
 		var partialRequest;
@@ -857,7 +857,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * @since 4.5.0
 	 *
 	 * @param {jQuery|HTMLElement} [rootElement]
-	 * @param {object}             [options]
+	 * @param {Object}             [options]
 	 * @param {boolean=true}       [options.triggerRendered]
 	 */
 	self.addPartials = function( rootElement, options ) {
@@ -1027,8 +1027,8 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		/**
 		 * Handle setting validities in partial refresh response.
 		 *
-		 * @param {object} data Response data.
-		 * @param {object} data.setting_validities Setting validities.
+		 * @param {Object} data Response data.
+		 * @param {Object} data.setting_validities Setting validities.
 		 */
 		api.selectiveRefresh.bind( 'render-partials-response', function handleSettingValiditiesResponse( data ) {
 			if ( data.setting_validities ) {

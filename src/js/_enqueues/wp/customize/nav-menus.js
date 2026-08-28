@@ -44,7 +44,7 @@
 	 *
 	 * @alias wp.customize.Menus.generatePlaceholderAutoIncrementId
 	 *
-	 * @return {number}
+	 * @return {number} A negative integer ID.
 	 */
 	api.Menus.generatePlaceholderAutoIncrementId = function() {
 		return -Math.ceil( api.Menus.data.phpIntMax * Math.random() );
@@ -1363,7 +1363,7 @@
 			api.bind( 'removed', removeChangeEventListener );
 			updateNoticeVisibility();
 
-			api.Section.prototype.attachEvents.apply( section, arguments );
+			api.Section.prototype.attachEvents.call( section );
 		},
 
 		/**
@@ -1643,7 +1643,7 @@
 		 * Shows or hides buttons based on the location of the menu item.
 		 *
 		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
-		 * 
+		 *
 		 * @since 6.6.0
 		 */
 		refreshAdvancedAccessibilityOfItem: function( itemToRefresh ) {
@@ -1723,7 +1723,7 @@
 			}
 			control.renderContent();
 			control.deferred.embedded.resolve(); // This triggers control.ready().
-			
+
 			// Mark all menu items as unprocessed.
 			$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 		},
@@ -1802,7 +1802,7 @@
 					control.moveRight();
 					control.params.depth += 1;
 				}
-				
+
 				moveBtn.focus(); // Re-focus after the container was moved.
 
 				// Mark all menu items as unprocessed.
@@ -2036,8 +2036,9 @@
 		},
 
 		/**
+		 * Gets the depth of the menu item.
 		 *
-		 * @return {number}
+		 * @return {number} The depth of the menu item.
 		 */
 		getDepth: function() {
 			var control = this, setting = control.setting(), depth = 0;
@@ -2103,7 +2104,9 @@
 		 **********************************************************************/
 
 		/**
-		 * @return {wp.customize.Control|null}
+		 * Gets the menu control that this menu item belongs to.
+		 *
+		 * @return {wp.customize.Menus.MenuControl|null} The menu control, or null if not found.
 		 */
 		getMenuControl: function() {
 			var control = this, settingValue = control.setting();
@@ -2127,9 +2130,9 @@
 		/**
 		 * @since 4.6.0
 		 *
-		 * @param {Boolean} expanded
+		 * @param {boolean} expanded
 		 * @param {Object} [params]
-		 * @return {Boolean} False if state already applied.
+		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
 
@@ -2137,7 +2140,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already expanded.
+		 * @return {boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
 
@@ -2157,7 +2160,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already collapsed.
+		 * @return {boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
 
@@ -3019,7 +3022,9 @@
 		},
 
 		/**
-		 * @return {wp.customize.Control[]}
+		 * Get all of the nav_menu_item controls for this menu.
+		 *
+		 * @return {wp.customize.Menus.MenuItemControl[]} The nav_menu_item controls for this menu.
 		 */
 		getMenuItemControls: function() {
 			var menuControl = this,
@@ -3116,15 +3121,15 @@
 		 * has child items, this function will only be called once all of the
 		 * settings have been updated.
 		 */
-		debouncedReflowMenuItems: _.debounce( function() {
-			this.reflowMenuItems.apply( this, arguments );
+		debouncedReflowMenuItems: _.debounce( function( ...args ) {
+			this.reflowMenuItems.apply( this, args );
 		}, 0 ),
 
 		/**
 		 * Add a new item to this menu.
 		 *
 		 * @param {Object} item - Value for the nav_menu_item setting to be created.
-		 * @return {wp.customize.Control} The newly-created nav_menu_item control instance.
+		 * @return {wp.customize.Menus.MenuItemControl} The newly-created nav_menu_item control instance.
 		 */
 		addItemToMenu: function( item ) {
 			var menuControl = this, customizeId, settingArgs, setting, menuItemControl, placeholderId, position = 0, priority = 10,
@@ -3189,7 +3194,9 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {wp.customize.Control[]} optionalMenuItemControls
+		 * @param {wp.customize.Menus.MenuItemControl[]} [optionalMenuItemControls] The menu item controls to
+		 *                                                                        consider. Defaults to all of
+		 *                                                                        this menu's item controls.
 		 */
 		updateInvitationVisibility: function ( optionalMenuItemControls ) {
 			var menuItemControls = optionalMenuItemControls || this.getMenuItemControls();
@@ -3509,8 +3516,8 @@
 	 *
 	 * @alias wp.customize.Menus.getMenuControl
 	 *
-	 * @param {string|number} menuId The menu ID.
-	 * @return {wp.customize.Control} The menu control.
+	 * @param {string|number} menuId The ID of the menu.
+	 * @return {wp.customize.Menus.MenuControl|undefined} The menu control, or undefined if not found.
 	 */
 	api.Menus.getMenuControl = function( menuId ) {
 		return api.control( 'nav_menu[' + menuId + ']' );
@@ -3521,8 +3528,8 @@
 	 *
 	 * @alias wp.customize.Menus.getMenuItemControl
 	 *
-	 * @param {string} menuItemId
-	 * @return {Object|null}
+	 * @param {string} menuItemId The ID of the menu item.
+	 * @return {wp.customize.Menus.MenuItemControl|undefined} The menu item control, or undefined if not found.
 	 */
 	api.Menus.getMenuItemControl = function( menuItemId ) {
 		return api.control( menuItemIdToSettingId( menuItemId ) );
@@ -3531,7 +3538,8 @@
 	/**
 	 * @alias wp.customize.Menus~menuItemIdToSettingId
 	 *
-	 * @param {string} menuItemId
+	 * @param {string} menuItemId The ID of the menu item.
+	 * @return {string} The setting ID for the menu item.
 	 */
 	function menuItemIdToSettingId( menuItemId ) {
 		return 'nav_menu_item[' + menuItemId + ']';
@@ -3544,7 +3552,7 @@
 	 * @alias wp.customize.Menus~displayNavMenuName
 	 *
 	 * @param {string} name
-	 * @return {string}
+	 * @return {string} The sanitized display name, or a fallback "unnamed" string if empty.
 	 */
 	function displayNavMenuName( name ) {
 		name = name || '';
