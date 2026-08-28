@@ -3528,9 +3528,9 @@
 		 * @param {string} [options.priority=10]    Order of priority to show the control within the section.
 		 * @param {string} [options.active=true]    Whether the control is active.
 		 * @param {string} options.section          The ID of the section the control belongs to.
-		 * @param {mixed}  [options.setting]        The ID of the main setting or an instance of this setting.
-		 * @param {mixed}  options.settings         An object with keys (e.g. default) that maps to setting IDs or Setting/Value objects, or an array of setting IDs or Setting/Value objects.
-		 * @param {mixed}  options.settings.default The ID of the setting the control relates to.
+		 * @param {*}      [options.setting]        The ID of the main setting or an instance of this setting.
+		 * @param {*}      options.settings         An object with keys (e.g. default) that maps to setting IDs or Setting/Value objects, or an array of setting IDs or Setting/Value objects.
+		 * @param {*}      options.settings.default The ID of the setting the control relates to.
 		 * @param {string} options.settings.data    @todo Is this used?
 		 * @param {string} options.label            Label.
 		 * @param {string} options.description      Description.

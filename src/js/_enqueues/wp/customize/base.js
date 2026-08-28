@@ -221,7 +221,7 @@ window.wp = window.wp || {};
 	 */
 	api.Value = api.Class.extend(/** @lends wp.customize.Value.prototype */{
 		/**
-		 * @param {mixed}  initial The initial value.
+		 * @param {*}      initial The initial value.
 		 * @param {Object} options
 		 */
 		initialize: function( initial, options ) {
@@ -245,7 +245,7 @@ window.wp = window.wp || {};
 		/**
 		 * Get the value.
 		 *
-		 * @return {mixed} The value.
+		 * @return {*} The value.
 		 */
 		get: function() {
 			return this._value;
@@ -423,8 +423,8 @@ window.wp = window.wp || {};
 		 * @param {string}               id     ID of the item.
 		 * @param {...(string|Function)} [args] Zero or more IDs of items to wait for and a callback
 		 *                                      function to invoke when they're available. Optional.
-		 * @return {mixed} The item instance if only one ID was supplied.
-		 *                 A Deferred Promise object if a callback function is supplied.
+		 * @return {*} The item instance if only one ID was supplied.
+		 *             A Deferred Promise object if a callback function is supplied.
 		 */
 		instance: function( id, ...args ) {
 			if ( 0 === args.length ) {
@@ -438,7 +438,7 @@ window.wp = window.wp || {};
 		 * Get the instance of an item.
 		 *
 		 * @param {string} id The ID of the item.
-		 * @return {mixed} The item instance.
+		 * @return {*} The item instance.
 		 */
 		value: function( id ) {
 			return this._value[ id ];
@@ -740,8 +740,8 @@ window.wp = window.wp || {};
 		 * Create a new Value.
 		 *
 		 * @param {string} key     Unique identifier.
-		 * @param {mixed}  initial Initial value.
-		 * @param {mixed}  options Options hash. Optional.
+		 * @param {*}      initial Initial value.
+		 * @param {*}      options Options hash. Optional.
 		 * @return {Value} Class instance of the Value.
 		 */
 		add: function( key, initial, options ) {

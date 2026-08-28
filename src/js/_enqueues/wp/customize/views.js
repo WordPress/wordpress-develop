@@ -265,7 +265,7 @@
 		 * Propagate event.
 		 *
 		 * @param {string} event Event.
-		 * @param {mixed}  arg   Argument.
+		 * @param {*}      arg   Argument.
 		 */
 		propagate: function(event, arg) {
 			_.each(this.collections, function(collection) {
