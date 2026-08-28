@@ -51,14 +51,14 @@ $radius-full: 9999px; // radius-full - Pills, avatars, circles
 
 $gray-100: #f0f0f0;   // Scales/Grays/gray-100 - Page background, disabled inputs
 $gray-200: #e0e0e0;   // Scales/Grays/gray-200
-$gray-300: #ddd;   // Scales/Grays/gray-300
-$gray-400: #ccc;   // Scales/Grays/gray-400 - Disabled borders
+$gray-300: #ddd;      // Scales/Grays/gray-300
+$gray-400: #ccc;      // Scales/Grays/gray-400 - Disabled borders
 $gray-600: #949494;   // Scales/Grays/gray-600 - Input borders, disabled text
 $gray-700: #757575;   // Scales/Grays/gray-700
 $gray-800: #2f2f2f;   // Scales/Grays/gray-800
 $gray-900: #1e1e1e;   // Scales/Grays/gray-900 - Primary text
 
-$white: #fff;      // Scales/Black & White/white
+$white: #fff;         // Scales/Black & White/white
 
 /**
  * Theme Colors (Static reference values)
@@ -100,7 +100,7 @@ $synced-color: #7a00df;    // Scales/Purple/--wp-block-synced-color
 
 $text-primary: $gray-900;     // Primary text color
 $text-secondary: $gray-700;   // Secondary text
-$text-tertiary: #5d5d5d;      // Alias/text/text-tertiary - Placeholder, hints
+$text-tertiary: #5d5d5d;    // Alias/text/text-tertiary - Placeholder, hints
 $text-disabled: $gray-600;    // Disabled text
 
 /**
