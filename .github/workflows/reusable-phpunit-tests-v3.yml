@@ -127,6 +127,7 @@ jobs:
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Publish PHPUnit timing metrics to CodeVitals.
+  # - Flags slow PHPUnit tests with GitHub Actions annotations and a run summary.
   # - Upload the code coverage report to Codecov.io.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
@@ -308,13 +309,15 @@ jobs:
           echo 'Published six PHPUnit timing metrics to CodeVitals.'
 
       - name: Flag slow PHPUnit tests
-        # Runs even when the test step failed (always()), so the signal still
-        # surfaces on red runs, and never fails the job itself (continue-on-error),
-        # because this is advisory only.
+        # Runs when the test step succeeds or fails, but skips cancelled jobs.
+        # This step never fails the job itself (continue-on-error), because the
+        # slow-test signal is advisory only.
         if: >-
-          always() && inputs.report && inputs.php == '8.5' &&
-          ( github.event_name == 'pull_request' ||
-            ( github.event_name == 'push' && github.ref == 'refs/heads/trunk' ) )
+          ${{
+            ! cancelled() && inputs.report && inputs.php == '8.5' &&
+            ( github.event_name == 'pull_request' ||
+              ( github.event_name == 'push' && github.ref == 'refs/heads/trunk' ) )
+          }}
         continue-on-error: true
         run: |
           if [ -f tests/phpunit/build/logs/junit.xml ]; then

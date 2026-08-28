@@ -7,7 +7,7 @@
  * Usage:
  *
  *     php tests/phpunit/prepare-slow-test-annotations.php <junit-file> \
- *         [threshold-seconds] [max-annotations]
+ *         [threshold-seconds] [max-summary-tests]
  *
  * @package WordPress
  * @subpackage UnitTests
@@ -109,23 +109,23 @@ function wp_phpunit_write_summary( $summary ) {
 if ( $argc < 2 || $argc > 4 ) {
 	fwrite(
 		STDERR,
-		"Usage: php tests/phpunit/prepare-slow-test-annotations.php <junit-file> "
-		. "[threshold-seconds] [max-annotations]\n"
+		'Usage: php tests/phpunit/prepare-slow-test-annotations.php <junit-file> '
+		. "[threshold-seconds] [max-summary-tests]\n"
 	);
 	exit( 1 );
 }
 
 try {
-	$file              = $argv[1];
-	$threshold_value   = $argv[2] ?? '1.0';
-	$max_annotations   = $argv[3] ?? '20';
+	$file                    = $argv[1];
+	$threshold_value         = $argv[2] ?? '1.0';
+	$max_summary_tests_value = $argv[3] ?? '20';
 
 	if ( ! is_numeric( $threshold_value ) || (float) $threshold_value < 0 ) {
 		throw new RuntimeException( 'The slow-test threshold must be a non-negative number.' );
 	}
 
-	if ( ! ctype_digit( $max_annotations ) || (int) $max_annotations < 1 ) {
-		throw new RuntimeException( 'The maximum annotation count must be a positive integer.' );
+	if ( ! ctype_digit( $max_summary_tests_value ) || (int) $max_summary_tests_value < 1 ) {
+		throw new RuntimeException( 'The maximum summary test count must be a positive integer.' );
 	}
 
 	if ( ! is_readable( $file ) ) {
@@ -133,7 +133,7 @@ try {
 	}
 
 	$threshold             = (float) $threshold_value;
-	$max_annotations       = (int) $max_annotations;
+	$max_summary_tests     = (int) $max_summary_tests_value;
 	$reader                = new XMLReader();
 	$previous_libxml_state = libxml_use_internal_errors( true );
 	$reader_is_open        = false;
@@ -202,12 +202,13 @@ try {
 		}
 	);
 
-	$slow_tests = array_slice( $slow_tests, 0, $max_annotations );
-
 	if ( ! $slow_tests ) {
 		wp_phpunit_write_summary( "No PHPUnit tests exceeded {$threshold_value}s.\n" );
 		exit( 0 );
 	}
+
+	$total_slow_tests = count( $slow_tests );
+	$summary_tests    = array_slice( $slow_tests, 0, $max_summary_tests );
 
 	// GitHub Actions renders at most 10 warning annotations per step, so the inline
 	// annotations are capped there while the summary table below can list more.
@@ -216,10 +217,10 @@ try {
 
 		if ( '' !== $test['file'] ) {
 			$properties[] = 'file=' . wp_phpunit_escape_command_property( $test['file'] );
-		}
 
-		if ( '' !== $test['line'] ) {
-			$properties[] = 'line=' . wp_phpunit_escape_command_property( $test['line'] );
+			if ( '' !== $test['line'] ) {
+				$properties[] = 'line=' . wp_phpunit_escape_command_property( $test['line'] );
+			}
 		}
 
 		$properties[] = 'title=' . wp_phpunit_escape_command_property( 'Slow PHPUnit test' );
@@ -238,10 +239,19 @@ try {
 	}
 
 	$summary = "### Slowest PHPUnit tests (main suite, over {$threshold_value}s)\n\n";
+
+	if ( $total_slow_tests > count( $summary_tests ) ) {
+		$summary .= sprintf(
+			"Showing the %d slowest of %d tests above the threshold.\n\n",
+			count( $summary_tests ),
+			$total_slow_tests
+		);
+	}
+
 	$summary .= "| Test | Time (s) | File:line |\n";
 	$summary .= "| --- | ---: | --- |\n";
 
-	foreach ( $slow_tests as $test ) {
+	foreach ( $summary_tests as $test ) {
 		$location = $test['file'];
 
 		if ( '' !== $test['line'] ) {
