@@ -1008,10 +1008,12 @@ function wp_dashboard_recent_posts( $args ) {
 	 * Filters the query arguments used for the Recent Posts widget.
 	 *
 	 * @since 4.2.0
+	 * @since 6.9.0 Added the `$id` parameter.
 	 *
-	 * @param array $query_args The arguments passed to WP_Query to produce the list of posts.
+	 * @param array  $query_args The arguments passed to WP_Query to produce the list of posts.
+	 * @param string $id         The ID of the widget.
 	 */
-	$query_args = apply_filters( 'dashboard_recent_posts_query_args', $query_args );
+	$query_args = apply_filters( 'dashboard_recent_posts_query_args', $query_args, $args['id'] );
 
 	$posts = new WP_Query( $query_args );
 
