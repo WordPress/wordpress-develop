@@ -64,9 +64,11 @@ use PHPStan\PhpDocParser\ParserConfig;
  * - The hash has to be well formed: every `{` closed by a `}` on a line of its
  *   own, and every `@type` carrying a `$name` and a type PHPStan's own type
  *   parser reads as one. Anything else, and the whole tag is skipped.
- * - An object hash that would have to stay open is skipped: PHPStan's object
- *   shapes have a fixed member list and no `...`, so sealing one would report
- *   every member the hash does not name.
+ * - A hash on a bare `object` that would have to stay open is skipped: PHPStan's
+ *   object shapes have a fixed member list and no `...`, so sealing one would
+ *   report every member the hash does not name. A hash on a named class is not
+ *   skipped, because the intersection leaves that class to decide what else may
+ *   be read, and a `stdClass` accepts anything.
  * - A parameter taken by reference is skipped. PHPStan checks a by-reference
  *   argument in both directions, so a shape there is a contract every caller's
  *   variable has to satisfy before the call, which is not what the hash says.
@@ -613,7 +615,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$member     = $members[ $target ];
 		$normalized = strtolower( $member );
-		$shape      = $this->resolve_container( $entries, $for_param, 'array' === $normalized );
+		$named      = 'array' !== $normalized && 'object' !== $normalized;
+		$shape      = $this->resolve_container( $entries, $for_param, 'array' === $normalized, $named );
 		if ( null === $shape ) {
 			return null;
 		}
@@ -624,7 +627,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * Naming the class in the docblock keeps both: the value stays that class, and
 		 * its members are typed by the shape intersected with it.
 		 */
-		if ( 'array' !== $normalized && 'object' !== $normalized ) {
+		if ( $named ) {
 			$shape = $member . '&' . $shape;
 
 			// An intersection inside a union needs parentheses to parse.
@@ -670,9 +673,10 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @param list<mixed> $entries   Entries of this level.
 	 * @param bool        $for_param Whether the hash documents a `@param`.
 	 * @param bool        $is_array  Whether the hash describes an array rather than an object.
+	 * @param bool        $named     Whether the shape will be intersected with a named class.
 	 * @return string|null
 	 */
-	private function resolve_container( array $entries, bool $for_param, bool $is_array ): ?string {
+	private function resolve_container( array $entries, bool $for_param, bool $is_array, bool $named = false ): ?string {
 		/*
 		 * A single `...$0` entry describes a repeated value rather than a key.
 		 * The hash says nothing about the keys it repeats under, and core uses
@@ -721,11 +725,14 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		/*
-		 * PHPStan's object shapes have no `...`, so an object hash that has to stay
-		 * open cannot be expressed as one and is left alone rather than sealed.
+		 * PHPStan's object shapes have no `...`, so a bare one that has to stay open
+		 * cannot be expressed and is left alone rather than sealed. Intersecting with
+		 * the class named in the docblock does not seal it: the class decides what
+		 * else may be read, and a `stdClass` accepts anything, which is what a hash on
+		 * a value core builds with `wp_parse_args()` needs.
 		 */
 		if ( ! $is_array ) {
-			return $open ? null : sprintf( 'object{%s}', implode( ', ', $members ) );
+			return $open && ! $named ? null : sprintf( 'object{%s}', implode( ', ', $members ) );
 		}
 
 		/*
