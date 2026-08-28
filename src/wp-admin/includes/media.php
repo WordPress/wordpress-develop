@@ -1398,10 +1398,10 @@ function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
  *
  * @param WP_Post $post
  * @param array   $errors
- * @return array<string, array<string, mixed>> The attachment fields, keyed by field name. Each value is a field
- *                                             definition array, except for the `_final` key, which the
- *                                             `attachment_fields_to_edit` filter may set to raw HTML that is
- *                                             rendered after all other fields.
+ * @return array<string, array<string, mixed>|string> The attachment fields, keyed by field name. Each value is a
+ *                                                    field definition array, except for the `_final` key, which the
+ *                                                    `attachment_fields_to_edit` filter may set to raw HTML that is
+ *                                                    rendered after all other fields.
  *
  * @phpstan-return array{
  *     _final?: string,
