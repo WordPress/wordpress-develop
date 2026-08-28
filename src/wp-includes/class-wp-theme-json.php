@@ -1098,7 +1098,7 @@ class WP_Theme_JSON {
 		$valid_block_names   = array_keys( $blocks_metadata );
 		$valid_element_names = array_keys( static::ELEMENTS );
 		$valid_variations    = static::get_valid_block_style_variations( $blocks_metadata );
-		$this->theme_json    = static::unwrap_shared_block_style_variations( $this->theme_json, $valid_variations );
+		$this->theme_json    = self::unwrap_shared_block_style_variations( $this->theme_json, $valid_variations );
 		$this->theme_json    = static::sanitize( $this->theme_json, $valid_block_names, $valid_element_names, $valid_variations );
 		$this->theme_json    = static::maybe_opt_in_into_settings( $this->theme_json );
 
@@ -1136,8 +1136,8 @@ class WP_Theme_JSON {
 		if ( isset( $spacing_scale ) ) {
 			$sizes_path           = array( 'settings', 'spacing', 'spacingSizes', $origin );
 			$spacing_sizes        = _wp_array_get( $this->theme_json, $sizes_path, array() );
-			$spacing_scale_sizes  = static::compute_spacing_sizes( $spacing_scale );
-			$merged_spacing_sizes = static::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
+			$spacing_scale_sizes  = self::compute_spacing_sizes( $spacing_scale );
+			$merged_spacing_sizes = self::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
 			_wp_array_set( $this->theme_json, $sizes_path, $merged_spacing_sizes );
 		}
 	}
@@ -1463,7 +1463,7 @@ class WP_Theme_JSON {
 			if ( empty( $result ) ) {
 				unset( $output[ $subtree ] );
 			} else {
-				$output[ $subtree ] = static::resolve_custom_css_format( $result );
+				$output[ $subtree ] = self::resolve_custom_css_format( $result );
 			}
 		}
 
@@ -3307,7 +3307,7 @@ class WP_Theme_JSON {
 			return $nodes;
 		}
 
-		$block_nodes = static::get_block_nodes( $theme_json, $selectors, $options );
+		$block_nodes = self::get_block_nodes( $theme_json, $selectors, $options );
 		foreach ( $block_nodes as $block_node ) {
 			$nodes[] = $block_node;
 		}
@@ -3332,7 +3332,7 @@ class WP_Theme_JSON {
 	 * @return array The block nodes in theme.json.
 	 */
 	public function get_styles_block_nodes() {
-		return static::get_block_nodes( $this->theme_json );
+		return self::get_block_nodes( $this->theme_json );
 	}
 
 	/**
@@ -4101,7 +4101,7 @@ class WP_Theme_JSON {
 
 		// Update declarations if there are separators with only background color defined.
 		if ( '.wp-block-separator' === $selector ) {
-			$declarations = static::update_separator_declarations( $declarations );
+			$declarations = self::update_separator_declarations( $declarations );
 		}
 
 		/*
@@ -4343,8 +4343,8 @@ class WP_Theme_JSON {
 			// Generate and merge the scales for this layer.
 			$sizes_path           = array( 'settings', 'spacing', 'spacingSizes', $origin );
 			$spacing_sizes        = _wp_array_get( $incoming_data, $sizes_path, array() );
-			$spacing_scale_sizes  = static::compute_spacing_sizes( $flattened_spacing_scale );
-			$merged_spacing_sizes = static::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
+			$spacing_scale_sizes  = self::compute_spacing_sizes( $flattened_spacing_scale );
+			$merged_spacing_sizes = self::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
 
 			_wp_array_set( $incoming_data, $sizes_path, $merged_spacing_sizes );
 		}
@@ -4441,7 +4441,7 @@ class WP_Theme_JSON {
 		 * some values provide exceptions, namely style values that are
 		 * objects and represent unique definitions for the style.
 		 */
-		$style_nodes = static::get_block_nodes(
+		$style_nodes = self::get_block_nodes(
 			$this->theme_json,
 			array(),
 			array( 'include_node_paths_only' => true )
@@ -5008,7 +5008,7 @@ class WP_Theme_JSON {
 		}
 
 		// Ensure indirect properties not included in any `PRESETS_METADATA` value are allowed.
-		static::remove_indirect_properties( $input, $output );
+		self::remove_indirect_properties( $input, $output );
 
 		// Preserve all valid settings that have type markers in VALID_SETTINGS.
 		self::preserve_valid_typed_settings( $input, $output, static::VALID_SETTINGS );
@@ -5049,7 +5049,7 @@ class WP_Theme_JSON {
 		}
 
 		// Ensure indirect properties not handled by `compute_style_properties` are allowed.
-		static::remove_indirect_properties( $input, $output );
+		self::remove_indirect_properties( $input, $output );
 
 		return $output;
 	}
@@ -5382,7 +5382,7 @@ class WP_Theme_JSON {
 			return;
 		}
 
-		$spacing_sizes = static::compute_spacing_sizes( $spacing_scale );
+		$spacing_sizes = self::compute_spacing_sizes( $spacing_scale );
 
 		// If there are 7 or fewer steps in the scale revert to numbers for labels instead of t-shirt sizes.
 		if ( $spacing_scale['steps'] <= 7 ) {
@@ -5434,7 +5434,7 @@ class WP_Theme_JSON {
 	 *         'operator'   => '+',
 	 *         'increment'  => 2,
 	 *     );
-	 *     $spacing_sizes = static::compute_spacing_sizes( $spacing_scale );
+	 *     $spacing_sizes = self::compute_spacing_sizes( $spacing_scale );
 	 *     // -> array(
 	 *     //        array( 'name' => 'Small',   'slug' => '40', 'size' => '14px' ),
 	 *     //        array( 'name' => 'Medium',  'slug' => '50', 'size' => '16px' ),
