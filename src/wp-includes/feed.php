@@ -802,8 +802,8 @@ function get_feed_namespaces( string $type ): array {
 /**
  * Displays the XML namespaces for the root element of a feed.
  *
- * Plugins should add namespaces via the `wp_feed_namespaces` filter instead
- * of the older `{$type}_ns` actions, as two action callbacks printing the
+ * Plugins should add namespaces via the {@see 'wp_feed_namespaces'} filter instead
+ * of the older {@see "{$type}_ns"} actions, as two action callbacks printing the
  * same namespace produce a duplicate attribute, which is a well-formedness
  * error in XML.
  *
