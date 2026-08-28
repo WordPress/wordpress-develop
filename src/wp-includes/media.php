@@ -4223,6 +4223,7 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
  * @param string $output Optional. The type of taxonomy output to return. Accepts 'names' or 'objects'.
  *                       Default 'names'.
  * @return string[]|WP_Taxonomy[] Array of names or objects of registered taxonomies for attachments.
+ * @phpstan-return ( $output is 'names' ? list<string> : array<string, WP_Taxonomy> )
  */
 function get_taxonomies_for_attachments( $output = 'names' ) {
 	$taxonomies = array();
