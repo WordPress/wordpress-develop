@@ -8,6 +8,9 @@ if ( ! window.wp ) {
 	window.wp = {};
 }
 
+/**
+ * @param {jQueryStatic} $ The jQuery object.
+ */
 wp.themePluginEditor = (function( $ ) {
 	'use strict';
 	var component, TreeLinks,

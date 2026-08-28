@@ -5,7 +5,7 @@
 /* global ajaxurl, wpAjax */
 
 /**
- * @param {jQuery} $ jQuery object.
+ * @param {jQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {
 var functions = {

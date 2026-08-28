@@ -1,13 +1,15 @@
+/* global adminCommentsSettings, thousandsSeparator, list_args, QTags, ajaxurl, wpAjax */
+/* global commentReply, theExtraList, theList, setCommentsList */
+
 /**
  * Handles updating and editing comments.
  *
  * @file This file contains functionality for the admin comments page.
  * @since 2.1.0
  * @output wp-admin/js/edit-comments.js
+ *
+ * @param {jQueryStatic} $ The jQuery object.
  */
-
-/* global adminCommentsSettings, thousandsSeparator, list_args, QTags, ajaxurl, wpAjax */
-/* global commentReply, theExtraList, theList, setCommentsList */
 
 (function($) {
 var getCount, updateCount, updateCountText, updatePending, updateApproved,

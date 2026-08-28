@@ -1,8 +1,11 @@
+/* global ajaxurl, pwsL10n, userProfileL10n, ClipboardJS */
+
 /**
  * @output wp-admin/js/user-profile.js
+ *
+ * @param {jQueryStatic} $ The jQuery object.
  */
 
-/* global ajaxurl, pwsL10n, userProfileL10n, ClipboardJS */
 (function($) {
 	var updateLock = false,
 		isSubmitting = false,

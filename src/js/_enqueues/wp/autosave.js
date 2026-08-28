@@ -13,8 +13,8 @@ window.autosave = function() {
  *
  * @since 3.9.0
  *
- * @param {jQuery} $      The jQuery object.
- * @param {Object} window The window object.
+ * @param {jQueryStatic} $      The jQuery object.
+ * @param {Object}       window The window object.
  *
  */
 ( function( $, window ) {

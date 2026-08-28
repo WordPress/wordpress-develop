@@ -5,6 +5,11 @@
 /* global jQuery, JSON, _customizePartialRefreshExports, console */
 
 /** @namespace wp.customize.selectiveRefresh */
+
+/**
+ * @param {jQueryStatic} $   The jQuery object.
+ * @param {Object}       api The Customizer API.
+ */
 wp.customize.selectiveRefresh = ( function( $, api ) {
 	'use strict';
 	var self, Partial, Placement;
@@ -148,8 +153,8 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * @since 4.7.0
 		 * @access public
 		 *
-		 * @param {Placement} placement The placement for the partial.
-		 * @param {jQuery} $editShortcut The shortcut element as a jQuery object.
+		 * @param {Placement} placement     The placement for the partial.
+		 * @param {jQuery}    $editShortcut The shortcut element as a jQuery object.
 		 * @return {void}
 		 */
 		addEditShortcutToPlacement: function( placement, $editShortcut ) {

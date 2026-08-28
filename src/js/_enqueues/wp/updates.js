@@ -8,26 +8,26 @@
 /* global pagenow, _wpThemeSettings */
 
 /**
- * @param {jQuery}  $                                        jQuery object.
- * @param {Object}  wp                                       WP object.
- * @param {Object}  settings                                 WP Updates settings.
- * @param {string}  settings.ajax_nonce                      Ajax nonce.
- * @param {Object}  settings.plugins                         Base names of plugins in their different states.
- * @param {Array}   settings.plugins.all                     Base names of all plugins.
- * @param {Array}   settings.plugins.active                  Base names of active plugins.
- * @param {Array}   settings.plugins.inactive                Base names of inactive plugins.
- * @param {Array}   settings.plugins.upgrade                 Base names of plugins with updates available.
- * @param {Array}   settings.plugins.recently_activated      Base names of recently activated plugins.
- * @param {Array}   settings.plugins['auto-update-enabled']  Base names of plugins set to auto-update.
- * @param {Array}   settings.plugins['auto-update-disabled'] Base names of plugins set to not auto-update.
- * @param {Object}  settings.themes                          Slugs of themes in their different states.
- * @param {Array}   settings.themes.all                      Slugs of all themes.
- * @param {Array}   settings.themes.upgrade                  Slugs of themes with updates available.
- * @param {Array}   settings.themes.disabled                 Slugs of disabled themes.
- * @param {Array}   settings.themes['auto-update-enabled']   Slugs of themes set to auto-update.
- * @param {Array}   settings.themes['auto-update-disabled']  Slugs of themes set to not auto-update.
- * @param {Object}  settings.totals                          Combined information for available update counts.
- * @param {number}  settings.totals.count                    Holds the amount of available updates.
+ * @param {jQueryStatic} $                                        The jQuery object.
+ * @param {Object}       wp                                       WP object.
+ * @param {Object}       settings                                 WP Updates settings.
+ * @param {string}       settings.ajax_nonce                      Ajax nonce.
+ * @param {Object}       settings.plugins                         Base names of plugins in their different states.
+ * @param {Array}        settings.plugins.all                     Base names of all plugins.
+ * @param {Array}        settings.plugins.active                  Base names of active plugins.
+ * @param {Array}        settings.plugins.inactive                Base names of inactive plugins.
+ * @param {Array}        settings.plugins.upgrade                 Base names of plugins with updates available.
+ * @param {Array}        settings.plugins.recently_activated      Base names of recently activated plugins.
+ * @param {Array}        settings.plugins['auto-update-enabled']  Base names of plugins set to auto-update.
+ * @param {Array}        settings.plugins['auto-update-disabled'] Base names of plugins set to not auto-update.
+ * @param {Object}       settings.themes                          Slugs of themes in their different states.
+ * @param {Array}        settings.themes.all                      Slugs of all themes.
+ * @param {Array}        settings.themes.upgrade                  Slugs of themes with updates available.
+ * @param {Array}        settings.themes.disabled                 Slugs of disabled themes.
+ * @param {Array}        settings.themes['auto-update-enabled']   Slugs of themes set to auto-update.
+ * @param {Array}        settings.themes['auto-update-disabled']  Slugs of themes set to not auto-update.
+ * @param {Object}       settings.totals                          Combined information for available update counts.
+ * @param {number}       settings.totals.count                    Holds the amount of available updates.
  */
 (function( $, wp, settings ) {
 	var $document = $( document ),

@@ -10,6 +10,9 @@
 
 /* global menus, postboxes, columns, isRtl, ajaxurl, wpNavMenu */
 
+/**
+ * @param {jQueryStatic} $ The jQuery object.
+ */
 (function($) {
 
 	var api;
@@ -1765,8 +1768,8 @@
 		/**
 		 * Process the quick search response into a search result
 		 *
-		 * @param {string} resp The server response to the query.
-		 * @param {Object} req The request arguments.
+		 * @param {string} resp  The server response to the query.
+		 * @param {Object} req   The request arguments.
 		 * @param {jQuery} panel The tabs panel we're searching in.
 		 */
 		processQuickSearchQueryResponse : function(resp, req, panel) {

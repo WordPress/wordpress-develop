@@ -3,6 +3,12 @@
  */
 
 /* global menus, _wpCustomizeNavMenusSettings, wpNavMenu, console */
+
+/**
+ * @param {Object}       api The Customizer API.
+ * @param {wp}           wp  The WordPress global object.
+ * @param {jQueryStatic} $   The jQuery object.
+*/
 ( function( api, wp, $ ) {
 	'use strict';
 

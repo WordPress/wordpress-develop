@@ -1,8 +1,8 @@
 /**
  * @output wp-admin/js/color-picker.js
  *
- * @param {jQuery}    $     The jQuery object.
- * @param {undefined} undef The undefined value.
+ * @param {jQueryStatic} $     The jQuery object.
+ * @param {undefined}    undef The undefined value.
  *
  * @since 3.5.0
  */

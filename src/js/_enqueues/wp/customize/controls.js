@@ -1,9 +1,14 @@
+/* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
+
 /**
  * @output wp-admin/js/customize-controls.js
  */
 
-/* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
-(function( exports, $ ){
+/**
+ * @param {wp}           wp The WordPress global object.
+ * @param {jQueryStatic} $  The jQuery object.
+*/
+(function( wp, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
 	var reducedMotionMediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
@@ -9425,4 +9430,4 @@
 		api.trigger( 'ready' );
 	});
 
-})( wp, jQuery );
+})( window.wp, jQuery );

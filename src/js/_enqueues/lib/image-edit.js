@@ -6,7 +6,7 @@
  * @since 2.9.0
  * @output wp-admin/js/image-edit.js
  *
- * @param {jQuery} $ The jQuery object.
+ * @param {jQueryStatic} $ The jQuery object.
  */
 (function($) {
 	var __ = wp.i18n.__;

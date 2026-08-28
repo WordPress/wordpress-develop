@@ -11,7 +11,7 @@
  *
  * @requires jQuery
  *
- * @param {jQuery} $ The jQuery object.
+ * @param {jQueryStatic} $ The jQuery object.
  */
 (function($) {
 	$( function() {

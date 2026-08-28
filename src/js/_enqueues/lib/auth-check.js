@@ -3,7 +3,7 @@
  *
  * @output wp-includes/js/wp-auth-check.js
  *
- * @param {jQuery} $ The jQuery object.
+ * @param {jQueryStatic} $ The jQuery object.
  */
 
 ( function( $ ) {

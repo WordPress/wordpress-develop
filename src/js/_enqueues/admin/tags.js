@@ -9,6 +9,9 @@
 
  /* global ajaxurl, wpAjax, showNotice, validateForm */
 
+ /**
+  * @param {jQueryStatic} $ The jQuery object.
+  */
 jQuery( function($) {
 
 	var addingTerm = false;
