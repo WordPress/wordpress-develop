@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { writeFileSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 /**
@@ -29,15 +30,42 @@ test.describe( 'WordPress installation process', () => {
 
 	test.afterEach( async () => {
 		writeFileSync( wpConfig, wpConfigOriginal );
+
+		// The test completes a full install under the `wp_e2e_` prefix. Drop those
+		// tables, otherwise the next run finds a pre-existing install and never
+		// reaches the installation screen it's meant to be testing.
+		const tables = [
+			'commentmeta', 'comments', 'links', 'options', 'postmeta', 'posts',
+			'term_relationships', 'term_taxonomy', 'termmeta', 'terms', 'usermeta', 'users',
+		];
+		const dropTablesPhp = tables
+			.map( ( table ) => `global $wpdb; $wpdb->query( "DROP TABLE IF EXISTS wp_e2e_${ table }" );` )
+			.join( ' ' );
+
+		execFileSync(
+			process.execPath,
+			[
+				join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
+				'exec',
+				'--user',
+				'wp_php',
+				'cli',
+				'wp',
+				'eval',
+				dropTablesPhp,
+			],
+			{ stdio: 'inherit' }
+		);
 	} );
 
 	test( 'should install WordPress with pre-existing database credentials', async ( { page } ) => {
-		await page.goto( '/' );
-
-		await expect(
-			page,
-			'should redirect to the installation page'
-		).toHaveURL( /wp-admin\/install\.php$/ );
+		// The config file was just rewritten on the host; retry the navigation
+		// (not just the URL check) since the container's view of the file can
+		// lag behind the write by a request or two.
+		await expect( async () => {
+			await page.goto( '/' );
+			expect( page.url() ).toMatch( /wp-admin\/install\.php$/ );
+		}, 'should redirect to the installation page' ).toPass( { timeout: 10_000 } );
 
 		await expect(
 			page.getByText( /WordPress database error/ ),
