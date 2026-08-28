@@ -457,9 +457,9 @@ class WP_Comment_Query {
 
 		$key          = md5( serialize( $_args ) );
 		$last_changed = (array) wp_cache_get_last_changed( 'comment-queries' );
-        if ( ! empty( $this->meta_query->queries ) || str_contains( $this->request, $wpdb->commentmeta ) ) {
-            $last_changed[] = wp_cache_get_last_changed( 'comment-meta' );
-        }
+		if ( ! empty( $this->meta_query->queries ) || str_contains( $this->request, $wpdb->commentmeta ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'comment-meta' );
+		}
 
 		$cache_key   = "get_comments:$key";
 		$cache_value = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
