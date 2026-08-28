@@ -149,6 +149,7 @@ function get_block_bindings_supported_attributes( $block_type ) {
 		'core/post-date'          => array( 'datetime' ),
 		'core/navigation-link'    => array( 'url' ),
 		'core/navigation-submenu' => array( 'url' ),
+		'core/verse'              => array( 'content' ),
 	);
 
 	$supported_block_attributes =
