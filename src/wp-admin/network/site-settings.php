@@ -132,62 +132,64 @@ if ( ! empty( $messages ) ) {
 			)
 		);
 
+		$ltr_fields = array(
+			'siteurl',
+			'home',
+			'admin_email',
+			'new_admin_email',
+			'mailserver_url',
+			'mailserver_login',
+			'mailserver_pass',
+			'ping_sites',
+			'permalink_structure',
+			'category_base',
+			'tag_base',
+			'upload_path',
+			'upload_url_path',
+		);
+
 		foreach ( $options as $option ) {
 			if ( 'default_role' === $option->option_name ) {
 				$editblog_default_role = $option->option_value;
 			}
 
-			$disabled = false;
-			$class    = 'all-options';
+			$value         = $option->option_value;
+			$disabled      = false;
+			$is_serialized = false;
 
-			if ( is_serialized( $option->option_value ) ) {
-				if ( is_serialized_string( $option->option_value ) ) {
-					$option->option_value = esc_html( maybe_unserialize( $option->option_value ) );
+			if ( is_serialized( $value ) ) {
+				if ( is_serialized_string( $value ) ) {
+					$value = maybe_unserialize( $value );
 				} else {
-					$option->option_value = 'SERIALIZED DATA';
-					$disabled             = true;
-					$class                = 'all-options disabled';
+					// Other serialized values (arrays, objects) are shown raw, read-only, inside a collapsible <details>.
+					$disabled      = true;
+					$is_serialized = true;
 				}
 			}
 
-			$ltr_fields = array(
-				'siteurl',
-				'home',
-				'admin_email',
-				'new_admin_email',
-				'mailserver_url',
-				'mailserver_login',
-				'mailserver_pass',
-				'ping_sites',
-				'permalink_structure',
-				'category_base',
-				'tag_base',
-				'upload_path',
-				'upload_url_path',
-			);
-			if ( in_array( $option->option_name, $ltr_fields, true ) ) {
-				$class .= ' ltr';
-			}
-
-			if ( str_contains( $option->option_value, "\n" ) ) {
-				?>
-				<tr class="form-field">
-					<th scope="row"><label for="<?php echo esc_attr( $option->option_name ); ?>" class="code"><?php echo esc_html( $option->option_name ); ?></label></th>
-					<td><textarea class="<?php echo $class; ?>" rows="5" cols="40" name="option[<?php echo esc_attr( $option->option_name ); ?>]" id="<?php echo esc_attr( $option->option_name ); ?>"<?php disabled( $disabled ); ?>><?php echo esc_textarea( $option->option_value ); ?></textarea></td>
-				</tr>
-				<?php
-			} else {
-				?>
-				<tr class="form-field">
-					<th scope="row"><label for="<?php echo esc_attr( $option->option_name ); ?>" class="code"><?php echo esc_html( $option->option_name ); ?></label></th>
-					<?php if ( $is_main_site && in_array( $option->option_name, array( 'siteurl', 'home' ), true ) ) { ?>
-					<td><code><?php echo esc_html( $option->option_value ); ?></code></td>
-					<?php } else { ?>
-					<td><input class="<?php echo $class; ?>" name="option[<?php echo esc_attr( $option->option_name ); ?>]" type="text" id="<?php echo esc_attr( $option->option_name ); ?>" value="<?php echo esc_attr( $option->option_value ); ?>" size="40" <?php disabled( $disabled ); ?> /></td>
-					<?php } ?>
-				</tr>
-				<?php
-			}
+			$class  = 'all-options' . ( $disabled ? ' disabled' : '' );
+			$class .= in_array( $option->option_name, $ltr_fields, true ) ? ' ltr' : '';
+			$name   = esc_attr( $option->option_name );
+			$label  = esc_html( $option->option_name );
+			?>
+			<tr class="form-field">
+				<th scope="row"><label for="<?php echo $name; ?>" class="code"><?php echo $label; ?></label></th>
+				<?php if ( $is_serialized ) : ?>
+				<td>
+					<details class="<?php echo $class; ?>">
+						<summary><?php esc_html_e( 'Serialized data' ); ?></summary>
+						<textarea class="<?php echo $class; ?>" rows="5" cols="40" id="<?php echo $name; ?>" readonly="readonly"><?php echo esc_textarea( $value ); ?></textarea>
+					</details>
+				</td>
+				<?php elseif ( str_contains( $value, "\n" ) ) : ?>
+				<td><textarea class="<?php echo $class; ?>" rows="5" cols="40" name="option[<?php echo $name; ?>]" id="<?php echo $name; ?>"<?php disabled( $disabled ); ?>><?php echo esc_textarea( $value ); ?></textarea></td>
+				<?php elseif ( $is_main_site && in_array( $option->option_name, array( 'siteurl', 'home' ), true ) ) : ?>
+				<td><code><?php echo esc_html( $value ); ?></code></td>
+				<?php else : ?>
+				<td><input class="<?php echo $class; ?>" name="option[<?php echo $name; ?>]" type="text" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>" size="40" <?php disabled( $disabled ); ?> /></td>
+				<?php endif; ?>
+			</tr>
+			<?php
 		} // End foreach.
 
 		/**
