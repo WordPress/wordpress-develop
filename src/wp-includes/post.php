@@ -54,6 +54,7 @@ function create_initial_post_types() {
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
 		)
 	);
+	add_post_type_support( 'post', 'sticky' );
 
 	register_post_type(
 		'page',
@@ -662,7 +663,8 @@ function create_initial_post_types() {
 		array(
 			'label'       => _x( 'Published', 'post status' ),
 			'public'      => true,
-			'_builtin'    => true, /* internal use only. */
+			'_builtin'    => true, /*
+		internal use only. */
 			/* translators: %s: Number of published posts. */
 			'label_count' => _n_noop(
 				'Published <span class="count">(%s)</span>',
@@ -676,7 +678,8 @@ function create_initial_post_types() {
 		array(
 			'label'       => _x( 'Scheduled', 'post status' ),
 			'protected'   => true,
-			'_builtin'    => true, /* internal use only. */
+			'_builtin'    => true, /*
+		internal use only. */
 			/* translators: %s: Number of scheduled posts. */
 			'label_count' => _n_noop(
 				'Scheduled <span class="count">(%s)</span>',
@@ -690,7 +693,8 @@ function create_initial_post_types() {
 		array(
 			'label'         => _x( 'Draft', 'post status' ),
 			'protected'     => true,
-			'_builtin'      => true, /* internal use only. */
+			'_builtin'      => true, /*
+		internal use only. */
 			/* translators: %s: Number of draft posts. */
 			'label_count'   => _n_noop(
 				'Draft <span class="count">(%s)</span>',
@@ -705,7 +709,8 @@ function create_initial_post_types() {
 		array(
 			'label'         => _x( 'Pending', 'post status' ),
 			'protected'     => true,
-			'_builtin'      => true, /* internal use only. */
+			'_builtin'      => true, /*
+		internal use only. */
 			/* translators: %s: Number of pending posts. */
 			'label_count'   => _n_noop(
 				'Pending <span class="count">(%s)</span>',
@@ -720,7 +725,8 @@ function create_initial_post_types() {
 		array(
 			'label'       => _x( 'Private', 'post status' ),
 			'private'     => true,
-			'_builtin'    => true, /* internal use only. */
+			'_builtin'    => true, /*
+		internal use only. */
 			/* translators: %s: Number of private posts. */
 			'label_count' => _n_noop(
 				'Private <span class="count">(%s)</span>',
@@ -734,7 +740,8 @@ function create_initial_post_types() {
 		array(
 			'label'                     => _x( 'Trash', 'post status' ),
 			'internal'                  => true,
-			'_builtin'                  => true, /* internal use only. */
+			'_builtin'                  => true, /*
+		internal use only. */
 			/* translators: %s: Number of trashed posts. */
 			'label_count'               => _n_noop(
 				'Trash <span class="count">(%s)</span>',
@@ -769,7 +776,8 @@ function create_initial_post_types() {
 		array(
 			'label'               => _x( 'Pending', 'request status' ),
 			'internal'            => true,
-			'_builtin'            => true, /* internal use only. */
+			'_builtin'            => true, /*
+		internal use only. */
 			/* translators: %s: Number of pending requests. */
 			'label_count'         => _n_noop(
 				'Pending <span class="count">(%s)</span>',
@@ -784,7 +792,8 @@ function create_initial_post_types() {
 		array(
 			'label'               => _x( 'Confirmed', 'request status' ),
 			'internal'            => true,
-			'_builtin'            => true, /* internal use only. */
+			'_builtin'            => true, /*
+		internal use only. */
 			/* translators: %s: Number of confirmed requests. */
 			'label_count'         => _n_noop(
 				'Confirmed <span class="count">(%s)</span>',
@@ -799,7 +808,8 @@ function create_initial_post_types() {
 		array(
 			'label'               => _x( 'Failed', 'request status' ),
 			'internal'            => true,
-			'_builtin'            => true, /* internal use only. */
+			'_builtin'            => true, /*
+		internal use only. */
 			/* translators: %s: Number of failed requests. */
 			'label_count'         => _n_noop(
 				'Failed <span class="count">(%s)</span>',
@@ -814,7 +824,8 @@ function create_initial_post_types() {
 		array(
 			'label'               => _x( 'Completed', 'request status' ),
 			'internal'            => true,
-			'_builtin'            => true, /* internal use only. */
+			'_builtin'            => true, /*
+		internal use only. */
 			/* translators: %s: Number of completed requests. */
 			'label_count'         => _n_noop(
 				'Completed <span class="count">(%s)</span>',
@@ -2927,6 +2938,16 @@ function is_sticky( $post_id = 0 ) {
 		$post_id = get_the_ID();
 	}
 
+	$post = get_post( $post_id );
+	if ( ! $post ) {
+		return false;
+	}
+
+	// Check if the post type supports stickiness.
+	if ( ! post_type_supports( $post->post_type, 'sticky' ) ) {
+		return false;
+	}
+
 	$stickies = get_option( 'sticky_posts' );
 
 	if ( is_array( $stickies ) ) {
@@ -3350,7 +3371,15 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
  * @param int $post_id Post ID.
  */
 function stick_post( $post_id ) {
-	$post_id  = (int) $post_id;
+	$post_id = (int) $post_id;
+
+	$post = get_post( $post_id );
+
+	// Check if the post type supports stickiness (only for existing posts).
+	if ( $post && ! post_type_supports( $post->post_type, 'sticky' ) ) {
+		return;
+	}
+
 	$stickies = get_option( 'sticky_posts' );
 	$updated  = false;
 
@@ -3387,7 +3416,13 @@ function stick_post( $post_id ) {
  * @param int $post_id Post ID.
  */
 function unstick_post( $post_id ) {
-	$post_id  = (int) $post_id;
+	$post_id = (int) $post_id;
+	$post    = get_post( $post_id );
+
+	// Check if the post type supports stickiness (only for existing posts).
+	if ( $post && ! post_type_supports( $post->post_type, 'sticky' ) ) {
+		return;
+	}
 	$stickies = get_option( 'sticky_posts' );
 
 	if ( ! is_array( $stickies ) ) {

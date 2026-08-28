@@ -181,7 +181,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				} elseif ( ! empty( $post->post_password ) ) {
 					$visibility       = 'password';
 					$visibility_trans = __( 'Password protected' );
-				} elseif ( 'post' === $post_type && is_sticky( $post_id ) ) {
+				} elseif ( post_type_supports( $post_type, 'sticky' ) && is_sticky( $post_id ) ) {
 					$visibility       = 'public';
 					$visibility_trans = __( 'Public, Sticky' );
 				} else {
@@ -210,7 +210,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 					<input type="hidden" name="hidden_post_visibility" id="hidden-post-visibility" value="<?php echo esc_attr( $visibility ); ?>" />
 					<input type="radio" name="visibility" id="visibility-radio-public" value="public" <?php checked( $visibility, 'public' ); ?> /> <label for="visibility-radio-public" class="selectit"><?php _e( 'Public' ); ?></label><br />
 
-					<?php if ( 'post' === $post_type && current_user_can( 'edit_others_posts' ) ) : ?>
+					<?php if ( post_type_supports( $post_type, 'sticky' ) && current_user_can( 'edit_others_posts' ) ) : ?>
 						<span id="sticky-span"><input id="sticky" name="sticky" type="checkbox" value="sticky" <?php checked( is_sticky( $post_id ) ); ?> /> <label for="sticky" class="selectit"><?php _e( 'Stick this post to the front page' ); ?></label><br /></span>
 					<?php endif; ?>
 
