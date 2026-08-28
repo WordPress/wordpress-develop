@@ -1164,11 +1164,13 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 	 */
 	$link = $before . apply_filters( 'edit_term_link', $link, $term->term_id ) . $after;
 
-	if ( $display ) {
-		echo $link;
-	} else {
+	if ( ! $display ) {
 		return $link;
 	}
+
+	echo $link;
+
+	return null;
 }
 
 /**
@@ -2530,6 +2532,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
 			return get_pagenum_link( $next_page );
 		}
 	}
+
+	return null;
 }
 
 /**
@@ -2545,11 +2549,13 @@ function next_posts( $max_page = 0, $display = true ) {
 	$link   = get_next_posts_page_link( $max_page );
 	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+
+	echo $output;
+
+	return null;
 }
 
 /**
@@ -2598,6 +2604,8 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
 		);
 	}
+
+	return null;
 }
 
 /**
@@ -2637,6 +2645,8 @@ function get_previous_posts_page_link() {
 
 		return get_pagenum_link( $previous_page );
 	}
+
+	return null;
 }
 
 /**
@@ -2651,11 +2661,13 @@ function previous_posts( $display = true ) {
 	$link   = get_previous_posts_page_link();
 	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+
+	echo $output;
+
+	return null;
 }
 
 /**
@@ -2692,6 +2704,8 @@ function get_previous_posts_link( $label = null ) {
 			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
 		);
 	}
+
+	return null;
 }
 
 /**
