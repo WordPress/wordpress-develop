@@ -24,11 +24,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/class-language-pack-upgrader.php
 		-
-			message: '#^Access to an undefined property WP_Upgrader\:\:\$new_plugin_data\.$#'
-			identifier: property.notFound
-			count: 1
-			path: ../../../src/wp-admin/includes/class-plugin-installer-skin.php
-		-
 			message: '#^Access to an undefined property WP_Upgrader_Skin\:\:\$plugin_active\.$#'
 			identifier: property.notFound
 			count: 1
@@ -38,11 +33,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: ../../../src/wp-admin/includes/class-plugin-upgrader.php
-		-
-			message: '#^Access to an undefined property WP_Upgrader\:\:\$new_theme_data\.$#'
-			identifier: property.notFound
-			count: 1
-			path: ../../../src/wp-admin/includes/class-theme-installer-skin.php
 		-
 			message: '#^Access to an undefined property WP_Upgrader_Skin\:\:\$api\.$#'
 			identifier: property.notFound

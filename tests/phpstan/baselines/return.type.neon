@@ -59,11 +59,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
 		-
-			message: '#^Method WP_Term_Query\:\:get_terms\(\) should return array\<int\|string\|WP_Term\>\|string but returns int\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-term-query.php
-		-
 			message: '#^Method wp_xmlrpc_server\:\:mw_newPost\(\) should return int\|IXR_Error but returns string\.$#'
 			identifier: return.type
 			count: 1
