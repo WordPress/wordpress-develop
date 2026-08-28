@@ -176,7 +176,7 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	 * @ticket 65785
 	 */
 	public function test_should_return_an_empty_array_for_an_unknown_type() {
-		$this->assertSame( array(), get_feed_namespaces( 'unknown' ) ); // @phpstan-ignore argument.type (Intentionally passing unsupported type.)
+		$this->assertSame( array(), get_feed_namespaces( 'unknown' ) );
 	}
 
 	/**
