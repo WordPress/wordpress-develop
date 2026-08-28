@@ -301,8 +301,8 @@ function edit_post( $post_data = null ) {
 		}
 	}
 
-	// Password visibility.
-	if ( ! empty( $post_data['post_password'] ) ) {
+	// Infer the password visibility when the caller did not send one of its own.
+	if ( ! isset( $post_data['visibility'] ) && ! empty( $post_data['post_password'] ) ) {
 		$post_data['visibility'] = 'password';
 	}
 
