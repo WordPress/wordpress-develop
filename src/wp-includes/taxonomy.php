@@ -4108,8 +4108,12 @@ function _pad_term_counts( &$terms, $taxonomy ) {
 	// Get the object and term IDs and stick them in a lookup table.
 	$tax_obj      = get_taxonomy( $taxonomy );
 	$object_types = esc_sql( $tax_obj->object_type );
-	$results      = $wpdb->get_results( "SELECT object_id, term_taxonomy_id FROM $wpdb->term_relationships INNER JOIN $wpdb->posts ON object_id = ID WHERE term_taxonomy_id IN (" . implode( ',', array_keys( $term_ids ) ) . ") AND post_type IN ('" . implode( "', '", $object_types ) . "') AND post_status = 'publish'" );
-
+	$results      = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT object_id, term_taxonomy_id FROM $wpdb->term_relationships INNER JOIN $wpdb->posts ON object_id = ID WHERE term_taxonomy_id IN (" . implode( ',', array_fill( 0, count( $term_ids ), '%d' ) ) . ') AND post_type IN (' . implode( ',', array_fill( 0, count( $object_types ), '%s' ) ) . ") AND post_status = 'publish'",
+			array_merge( array_keys( $term_ids ), $object_types )
+		)
+	);
 	foreach ( $results as $row ) {
 		$id = $term_ids[ $row->term_taxonomy_id ];
 
