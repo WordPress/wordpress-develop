@@ -274,6 +274,7 @@ jobs:
           MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
 
       - name: Publish PHPUnit timing metrics
+        continue-on-error: true
         if: |
           github.event_name == 'push' &&
           github.ref == 'refs/heads/trunk' &&
@@ -281,6 +282,7 @@ jobs:
           inputs.report
         env:
           CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
+        shell: bash
         run: |
           if [ -z "$CODEVITALS_PROJECT_TOKEN" ]; then
             echo "PHPUnit timing metrics could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set"
