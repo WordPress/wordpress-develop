@@ -27,7 +27,7 @@ do_action( 'rss_tag_pre', 'atom' );
 	/**
 	 * Fires at end of the Atom feed root to add namespaces.
 	 *
-	 * Consider using the `wp_feed_namespaces` filter instead, which prevents
+	 * Consider using the {@see 'wp_feed_namespaces'} filter instead, which prevents
 	 * duplicate `xmlns` attributes.
 	 *
 	 * @since 2.0.0

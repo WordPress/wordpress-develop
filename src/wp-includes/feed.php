@@ -711,7 +711,7 @@ function self_link() {
  * @param string $type Type of feed. Possible values include 'rss2', 'rss2-comments',
  *                     'rdf', 'atom', and 'atom-comments'.
  * @return array<string, string> Array of namespace URIs, keyed by their prefix.
- * @phpstan-param 'rss2'|'rss2-comments'|'rdf'|'atom'|'atom-comments' $type
+ * @phpstan-param non-falsy-string $type
  * @phpstan-return array<non-falsy-string, non-falsy-string>
  */
 function get_feed_namespaces( string $type ): array {
@@ -811,11 +811,11 @@ function get_feed_namespaces( string $type ): array {
  *
  * @param string $type Type of feed. Possible values include 'rss2', 'rss2-comments',
  *                     'rdf', 'atom', and 'atom-comments'.
- * @phpstan-param 'rss2'|'rss2-comments'|'rdf'|'atom'|'atom-comments' $type
+ * @phpstan-param non-falsy-string $type
  */
 function feed_namespaces( string $type ): void {
 	foreach ( get_feed_namespaces( $type ) as $prefix => $uri ) {
-		printf( "xmlns:%s=\"%s\"\n\t", $prefix, esc_url( $uri ) );
+		printf( "xmlns:%s=\"%s\"\n\t", $prefix, esc_attr( $uri ) );
 	}
 }
 

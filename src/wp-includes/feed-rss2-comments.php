@@ -24,7 +24,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 	/**
 	 * Fires at the end of the RSS root to add namespaces.
 	 *
-	 * Consider using the `wp_feed_namespaces` filter instead, which
+	 * Consider using the {@see 'wp_feed_namespaces'} filter instead, which
 	 * prevents duplicate `xmlns` attributes.
 	 *
 	 * @since 2.8.0
