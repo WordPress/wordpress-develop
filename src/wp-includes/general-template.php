@@ -2558,12 +2558,18 @@ function get_calendar( $args = array() ) {
 	);
 
 	wp_recursive_ksort( $cache_args );
-	$key   = md5( serialize( $cache_args ) );
-	$cache = wp_cache_get( 'get_calendar', 'calendar' );
 
-	if ( $cache && is_array( $cache ) && isset( $cache[ $key ] ) ) {
+	if ( ! wp_cache_supports( 'flush_group' ) ) {
+		$generation                 = wp_cache_get( 'get_calendar_generation', 'calendar' );
+		$cache_args['_generation_'] = $generation ? (int) $generation : 0;
+	}
+
+	$key   = 'get_calendar_' . md5( serialize( $cache_args ) );
+	$cache = wp_cache_get( $key, 'calendar' );
+
+	if ( false !== $cache ) {
 		/** This filter is documented in wp-includes/general-template.php */
-		$output = apply_filters( 'get_calendar', $cache[ $key ], $args );
+		$output = apply_filters( 'get_calendar', $cache, $args );
 
 		if ( $args['display'] ) {
 			echo $output;
@@ -2571,10 +2577,6 @@ function get_calendar( $args = array() ) {
 		}
 
 		return $output;
-	}
-
-	if ( ! is_array( $cache ) ) {
-		$cache = array();
 	}
 
 	$post_type = $args['post_type'];
@@ -2593,8 +2595,7 @@ function get_calendar( $args = array() ) {
 		);
 
 		if ( ! $gotsome ) {
-			$cache[ $key ] = '';
-			wp_cache_set( 'get_calendar', $cache, 'calendar' );
+			wp_cache_set( $key, '', 'calendar' );
 			return;
 		}
 	}
@@ -2800,8 +2801,7 @@ function get_calendar( $args = array() ) {
 	$calendar_output .= '
 	</nav>';
 
-	$cache[ $key ] = $calendar_output;
-	wp_cache_set( 'get_calendar', $cache, 'calendar' );
+	wp_cache_set( $key, $calendar_output, 'calendar' );
 
 	/**
 	 * Filters the HTML calendar output.
@@ -2835,7 +2835,59 @@ function get_calendar( $args = array() ) {
  * @since 2.1.0
  */
 function delete_get_calendar_cache() {
-	wp_cache_delete( 'get_calendar', 'calendar' );
+	if ( wp_cache_supports( 'flush_group' ) ) {
+		wp_cache_flush_group( 'calendar' );
+		return;
+	}
+
+	// Fallback for object cache implementations that do not support flushing groups.
+	// wp_cache_incr() returns false when the key does not exist in some backends
+	// (e.g. Memcached), so initialize the counter on the first invalidation.
+	if ( false === wp_cache_incr( 'get_calendar_generation', 1, 'calendar' ) ) {
+		wp_cache_add( 'get_calendar_generation', 1, 'calendar' );
+	}
+}
+
+/**
+ * Invalidates the get_calendar() cache when a post's published state changes.
+ *
+ * get_calendar() only reflects published posts, so the cache only needs to be
+ * cleared when a post enters or leaves the 'publish' status, such as publishing,
+ * unpublishing, trashing, or editing the date of a published post. Limiting
+ * invalidation to these transitions avoids clearing the cache on unrelated
+ * events such as autosaves, draft saves, or comment count updates.
+ *
+ * @since 7.2.0
+ *
+ * @see delete_get_calendar_cache()
+ *
+ * @param string $new_status The post's new status.
+ * @param string $old_status The post's old status.
+ */
+function delete_get_calendar_cache_on_transition( $new_status, $old_status ) {
+	if ( 'publish' === $new_status || 'publish' === $old_status ) {
+		delete_get_calendar_cache();
+	}
+}
+
+/**
+ * Invalidates the get_calendar() cache when a published post is deleted.
+ *
+ * Trashing a published post is already handled by the status transition; this
+ * covers permanently deleting a post that is still published, for example a
+ * forced delete that bypasses the trash.
+ *
+ * @since 7.2.0
+ *
+ * @see delete_get_calendar_cache()
+ *
+ * @param int     $post_id Post ID.
+ * @param WP_Post $post    The post being deleted.
+ */
+function delete_get_calendar_cache_on_delete( $post_id, $post ) {
+	if ( isset( $post->post_status ) && 'publish' === $post->post_status ) {
+		delete_get_calendar_cache();
+	}
 }
 
 /**
