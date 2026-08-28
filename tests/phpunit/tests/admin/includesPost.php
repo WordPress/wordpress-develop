@@ -1492,6 +1492,11 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * Ensures that an explicit `private` visibility privatises the post, drops any
 	 * password and unsticks it.
 	 *
+	 * The password is sent alongside on purpose. Quick Edit posts
+	 * `visibility => 'private'` whenever "Private" is ticked, so this pair is
+	 * reachable from the UI, and inferring `password` from the password instead
+	 * would leave the post public with its password intact.
+	 *
 	 * @ticket 64810
 	 *
 	 * @covers ::edit_post
@@ -1513,7 +1518,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 				'post_ID'       => $post_id,
 				'post_title'    => 'Private',
 				'post_status'   => 'publish',
-				'post_password' => '',
+				'post_password' => 'secret',
 				'sticky'        => 'sticky',
 				'visibility'    => 'private',
 			)
@@ -1527,18 +1532,17 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Documents that a non-empty password wins over a `public` visibility sent alongside it.
+	 * Ensures that a visibility sent by the caller is never overridden by an inferred one.
 	 *
-	 * Inferring the visibility from the password means the two can now contradict each
-	 * other, and the inferred value is applied last. The editors never send that
-	 * combination, since selecting "Public" clears the password field, but `edit_post()`
-	 * is reachable from bulk edit and Quick Edit too, so the precedence is worth pinning.
+	 * The inference only fills a gap. A caller that sends `public` alongside a
+	 * non-empty password still reaches `case 'public'` and still has the password
+	 * dropped, exactly as before this change.
 	 *
 	 * @ticket 64810
 	 *
 	 * @covers ::edit_post
 	 */
-	public function test_edit_post_prefers_the_password_over_a_contradicting_public_visibility() {
+	public function test_edit_post_keeps_an_explicit_visibility_over_an_inferred_one() {
 		wp_set_current_user( self::$admin_id );
 
 		$post_id = self::factory()->post->create(
@@ -1558,6 +1562,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 'secret', get_post( $post_id )->post_password );
+		$this->assertSame(
+			'',
+			get_post( $post_id )->post_password,
+			'An explicit public visibility was overridden by the inferred one.'
+		);
 	}
 }
