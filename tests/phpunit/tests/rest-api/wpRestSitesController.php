@@ -8,7 +8,6 @@
  * @since 7.2.0
  *
  * @group restapi
- * @group ms-required
  *
  * @coversDefaultClass WP_REST_Sites_Controller
  */
@@ -56,6 +55,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_context_param
+	 * @group ms-required
 	 */
 	public function test_context_param() {
 		wp_set_current_user( self::$superadmin_id );
@@ -77,6 +77,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$superadmin_id );
@@ -91,6 +92,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_item
+	 * @group ms-required
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$superadmin_id );
@@ -113,10 +115,37 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 40365
+	 * @covers ::get_items
+	 * @group ms-excluded
+	 */
+	public function test_get_items_no_ms() {
+		wp_set_current_user( self::$superadmin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_item
+	 * @group ms-excluded
+	 */
+	public function test_get_item_no_ms() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/1' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
 	 * An unknown ID is a 404, not an empty site.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_item
+	 * @group ms-required
 	 */
 	public function test_get_item_invalid_id() {
 		wp_set_current_user( self::$superadmin_id );
@@ -130,6 +159,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::create_item
+	 * @group ms-required
 	 */
 	public function test_create_item() {
 		wp_set_current_user( self::$superadmin_id );
@@ -156,6 +186,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::update_item
+	 * @group ms-required
 	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$superadmin_id );
@@ -179,7 +210,42 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 40365
+	 * @covers ::create_item
+	 * @group ms-excluded
+	 */
+	public function test_create_item_no_ms() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/tempor/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item
+	 * @group ms-excluded
+	 */
+	public function test_update_item_no_ms() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/1' );
+		$request->set_param( 'path', '/incididunt/' );
+		$request->set_param( 'mature', 1 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
 	 * @covers ::delete_item
+	 * @group ms-required
 	 */
 	public function test_delete_item() {
 		wp_set_current_user( self::$superadmin_id );
@@ -201,10 +267,27 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 40365
+	 * @covers ::delete_item
+	 * @group ms-excluded
+	 */
+	public function test_delete_item_no_ms() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/1' );
+		$request->set_param( 'force', true );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
 	 * Deleting a site drops its tables.
 	 *
 	 * @ticket 40365
 	 * @covers ::delete_item
+	 * @group ms-required
 	 */
 	public function test_delete_item_uninitializes_the_site() {
 		wp_set_current_user( self::$superadmin_id );
@@ -227,6 +310,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::delete_item
+	 * @group ms-required
 	 */
 	public function test_delete_item_requires_force() {
 		wp_set_current_user( self::$superadmin_id );
@@ -245,6 +329,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::delete_item
+	 * @group ms-required
 	 */
 	public function test_delete_main_site_is_not_allowed() {
 		wp_set_current_user( self::$superadmin_id );
@@ -263,6 +348,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::prepare_item_for_response
+	 * @group ms-required
 	 */
 	public function test_prepare_item() {
 		wp_set_current_user( self::$superadmin_id );
@@ -343,6 +429,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::prepare_item_for_response
+	 * @group ms-required
 	 */
 	public function test_get_item_uses_the_schema_types() {
 		wp_set_current_user( self::$superadmin_id );
@@ -368,6 +455,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_filter_by_status() {
 		wp_set_current_user( self::$superadmin_id );
@@ -400,6 +488,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_without_status_filter_returns_every_site() {
 		wp_set_current_user( self::$superadmin_id );
@@ -419,6 +508,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_filter_by_lang_id() {
 		wp_set_current_user( self::$superadmin_id );
@@ -449,6 +539,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_filter_by_registration_date() {
 		wp_set_current_user( self::$superadmin_id );
@@ -479,6 +570,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::create_item
+	 * @group ms-required
 	 */
 	public function test_create_item_sets_the_title_and_the_administrator() {
 		wp_set_current_user( self::$superadmin_id );
@@ -512,6 +604,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::create_item
+	 * @group ms-required
 	 */
 	public function test_create_item_rejects_an_unknown_user_id() {
 		wp_set_current_user( self::$superadmin_id );
@@ -558,6 +651,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_me_filter_reports_the_filtered_total() {
 		$blog_ids = self::factory()->blog->create_many( 3 );
@@ -590,6 +684,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_filter_user_without_sites() {
 		wp_set_current_user( self::$superadmin_id );
@@ -612,6 +707,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::prepare_links
+	 * @group ms-required
 	 */
 	public function test_get_item_has_links() {
 		wp_set_current_user( self::$superadmin_id );
@@ -634,6 +730,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_does_not_switch_blogs_for_table_columns() {
 		wp_set_current_user( self::$superadmin_id );
@@ -671,6 +768,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_head_request_returns_no_body() {
 		wp_set_current_user( self::$superadmin_id );
@@ -692,6 +790,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_item
+	 * @group ms-required
 	 */
 	public function test_head_request_on_a_single_site_returns_no_body() {
 		wp_set_current_user( self::$superadmin_id );
@@ -721,6 +820,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_are_ordered_ascending() {
 		wp_set_current_user( self::$superadmin_id );
@@ -740,6 +840,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_orderby_id_list_without_a_list() {
 		wp_set_current_user( self::$superadmin_id );
@@ -760,6 +861,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::update_item
+	 * @group ms-required
 	 */
 	public function test_update_item_does_not_slash_the_stored_data() {
 		wp_set_current_user( self::$superadmin_id );
@@ -780,6 +882,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::create_item
+	 * @group ms-required
 	 */
 	public function test_create_item_stores_the_status_fields() {
 		wp_set_current_user( self::$superadmin_id );
@@ -808,6 +911,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::update_item
+	 * @group ms-required
 	 */
 	public function test_update_item_keeps_fields_that_were_not_sent() {
 		wp_set_current_user( self::$superadmin_id );
@@ -833,6 +937,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 40365
 	 * @covers ::update_item
+	 * @group ms-required
 	 */
 	public function test_update_item_keeps_the_domain() {
 		wp_set_current_user( self::$superadmin_id );
@@ -908,6 +1013,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_user_site_ids
+	 * @group ms-required
 	 */
 	public function test_valid_user_input() {
 
@@ -924,6 +1030,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_filter_user() {
 		wp_set_current_user( self::$superadmin_id );
@@ -946,6 +1053,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_me_filter_user() {
 
@@ -968,6 +1076,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
+	 * @group ms-required
 	 */
 	public function test_get_items_filter_user_no_access() {
 
@@ -989,6 +1098,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items
+	 * @group ms-required
 	 */
 	public function test_get_items_filter_with_includes_user() {
 		wp_set_current_user( self::$superadmin_id );
