@@ -8638,9 +8638,9 @@ function wp_cache_set_posts_last_changed() {
 	wp_cache_set_last_changed( 'posts' );
 	$current_action = current_action();
 	if ( in_array( $current_action, array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ), true ) ) {
-		wp_cache_set_last_changed( 'blog-meta' );
+		wp_cache_set_last_changed( 'post-meta' );
 	} else {
-		wp_cache_set_last_changed( 'blog-queries' );
+		wp_cache_set_last_changed( 'post-queries' );
 	}
 }
 
