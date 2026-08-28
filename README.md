@@ -21,6 +21,8 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
+**Note for Windows users:** For much better performance, it is highly recommended to run the development environment inside WSL2. If you are using Docker Desktop with the WSL2 backend, ensure your project files are located within the Linux filesystem (e.g., \\wsl$\Ubuntu\home\user\wordpress-develop) rather than the Windows mounted drive (C:\).
+
 **Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
 
 You will also need a container environment such as [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running on your computer. The container environment is the virtualization software that powers the local development environment and can be installed just like any other regular application.
