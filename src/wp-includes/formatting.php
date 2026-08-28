@@ -5483,9 +5483,6 @@ function wp_html_excerpt( $str, $count, $more = null ) {
 	$str     = wp_strip_all_tags( $str, true );
 	$excerpt = mb_substr( $str, 0, $count );
 
-	// Remove part of an entity at the end.
-	$excerpt = preg_replace( '/&[^;\s]{0,6}$/', '', $excerpt );
-
 	if ( $str !== $excerpt ) {
 		$excerpt = trim( $excerpt ) . $more;
 	}
@@ -5595,17 +5592,23 @@ function normalize_whitespace( $str ) {
 }
 
 /**
- * Properly strips all HTML tags including 'script' and 'style'.
+ * Returns the renderable text from an HTML document.
  *
- * This differs from strip_tags() because it removes the contents of
- * the `<script>` and `<style>` tags. E.g. `strip_tags( '<script>something</script>' )`
- * will return 'something'. wp_strip_all_tags() will return an empty string.
+ * Safer and more appropriate version of {@see \strip_tags()}.
+ *
+ * A document’s renderable text is more or less the text nodes which would
+ * appear on the rendered page, before CSS processing which might trigger
+ * visibility changes and hide text. This means that the content of `SCRIPT`,
+ * `STYLE`, `IFRAME`, `TITLE`, and other elements is excluded from the output,
+ * because those portions of a document are typically rendered outside of
+ * HTML page itself.
  *
  * @since 2.9.0
+ * @since 7.2.0 Parses with HTML API, returning “renderable text” only.
  *
- * @param string $text          String containing HTML tags
- * @param bool   $remove_breaks Optional. Whether to remove left over line breaks and white space chars
- * @return string The processed string.
+ * @param string $text          Extract text from this HTML document.
+ * @param bool   $remove_breaks Optional. Whether to collapse whitespace into single spaces.
+ * @return string Normalized renderable text content from input HTML document.
  */
 function wp_strip_all_tags( $text, $remove_breaks = false ) {
 	if ( is_null( $text ) ) {
@@ -5635,14 +5638,51 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 		return '';
 	}
 
-	$text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
-	$text = strip_tags( $text );
+	$decoded_text   = '';
+	$template_depth = 0;
+	$processor      = new WP_HTML_Tag_Processor( (string) $text );
+	while ( $processor->next_token() ) {
+		$token_name = $processor->get_token_name();
 
-	if ( $remove_breaks ) {
-		$text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+		if ( '#text' === $token_name ) {
+			$decoded_text .= $processor->get_modifiable_text();
+			continue;
+		}
+
+		/*
+		 * The TEMPLATE element is special and its contents belong to a
+		 * separate document fragment from the main page, thus are not
+		 * renderable. Within the HTML namespace they nest via simple
+		 * stacking with the TEMPLATE opening and closing tags.
+		 */
+		if ( 'TEMPLATE' === $token_name && ! $processor->is_tag_closer() ) {
+			$template_query = array(
+				'tag_name'    => 'TEMPLATE',
+				'tag_closers' => 'visit',
+			);
+
+			++$template_depth;
+
+			while ( $processor->next_tag( $template_query ) && $template_depth > 0 ) {
+				$template_depth += $processor->is_tag_closer() ? -1 : 1;
+			}
+		}
 	}
 
-	return trim( $text );
+	if ( $remove_breaks ) {
+		$decoded_text = preg_replace( '/[ \t\f\r\n]+/', ' ', $decoded_text );
+	}
+
+	return trim(
+		strtr(
+			$decoded_text,
+			array(
+				'<' => '&lt;',
+				'&' => '&amp;',
+				'>' => '&gt;',
+			)
+		)
+	);
 }
 
 /**
@@ -5725,15 +5765,8 @@ function _sanitize_text_fields( $str, $keep_newlines = false ) {
 	$filtered = wp_check_invalid_utf8( $str );
 
 	if ( str_contains( $filtered, '<' ) ) {
-		$filtered = wp_pre_kses_less_than( $filtered );
 		// This will strip extra whitespace for us.
 		$filtered = wp_strip_all_tags( $filtered, false );
-
-		/*
-		 * Use HTML entities in a special case to make sure that
-		 * later newline stripping stages cannot lead to a functional tag.
-		 */
-		$filtered = str_replace( "<\n", "&lt;\n", $filtered );
 	}
 
 	if ( ! $keep_newlines ) {
