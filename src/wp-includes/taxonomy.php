@@ -308,6 +308,7 @@ function get_taxonomies( $args = array(), $output = 'names', $operator = 'and' )
  * @param string                  $output      Optional. The type of output to return in the array. Accepts either
  *                                             'names' or 'objects'. Default 'names'.
  * @return string[]|WP_Taxonomy[] The names or objects of all taxonomies of `$object_type`.
+ * @phpstan-return ( $output is 'names' ? array<int, string> : WP_Taxonomy[] )
  */
 function get_object_taxonomies( $object_type, $output = 'names' ) {
 	global $wp_taxonomies;
