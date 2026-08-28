@@ -1291,7 +1291,7 @@ function wp_dropdown_pages( $args = '' ) {
  *     @type string       $sort_column  Comma-separated list of column names to sort the pages by. Accepts 'post_author',
  *                                      'post_date', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt',
  *                                      'menu_order', 'post_parent', 'ID', 'rand', or 'comment_count'. Default 'post_title'.
- *     @type string       $title_li     List heading. Passing a null or empty value will result in no heading, and the list
+ *     @type string|false $title_li     List heading. Passing a falsy value will result in no heading, and the list
  *                                      will not be wrapped with unordered list `<ul>` tags. Default 'Pages'.
  *     @type string       $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'.
  *                                      Default 'preserve'.
