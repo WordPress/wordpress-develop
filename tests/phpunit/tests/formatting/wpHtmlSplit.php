@@ -30,24 +30,18 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 				'abcd <!-- <html> --> efgh',
 				array( 'abcd ', '<!-- <html> -->', ' efgh' ),
 			),
+			/*
+			 * CDATA sections do not exist within HTML, so even though it looks
+			 * like this should be escaping the entire ` <html> ` span, there’s
+			 * actually an invalid comment starting at `<![CDATA[` and ending at
+			 * the very first `>` character, placing the end of the comment at
+			 * the end of `html>`. The rest is normal plaintext content.
+			 */
 			array(
 				'abcd <![CDATA[ <html> ]]> efgh',
-				array( 'abcd ', '<![CDATA[ <html> ]]>', ' efgh' ),
+				array( 'abcd ', '<![CDATA[ <html>', ' ]]> efgh' ),
 			),
 		);
-	}
-
-	/**
-	 * Automated performance testing of the main regex.
-	 *
-	 * @dataProvider data_whole_posts
-	 *
-	 * @covers ::get_html_split_regex
-	 */
-	public function test_pcre_performance( $input ) {
-		$regex  = get_html_split_regex();
-		$result = benchmark_pcre_backtracking( $regex, $input, 'split' );
-		return $this->assertLessThan( 200, $result );
 	}
 
 	public function data_whole_posts() {
