@@ -3,7 +3,7 @@
  */
 
 /* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
-(function( exports, $ ){
+(function( wp, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
 	var reducedMotionMediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );

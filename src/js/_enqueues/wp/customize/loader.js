@@ -12,7 +12,7 @@
  */
 window.wp = window.wp || {};
 
-(function( exports, $ ){
+(function( wp, $ ){
 	var api = wp.customize,
 		Loader;
 

@@ -3,7 +3,7 @@
  *
  * @output wp-includes/js/customize-preview.js
  */
-(function( exports, $ ){
+(function( wp, $ ){
 	var api = wp.customize,
 		debounce,
 		currentHistoryState = {};
