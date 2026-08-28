@@ -3033,12 +3033,11 @@ function wp_ext2type( $ext ) {
 	$ext = strtolower( $ext );
 
 	$ext2type = wp_get_ext_types();
-	foreach ( $ext2type as $type => $exts ) {
-		if ( in_array( $ext, $exts, true ) ) {
-			return $type;
-		}
-	}
-	return null;
+
+	return array_find_key(
+		$ext2type,
+		fn( $exts ) => in_array( $ext, $exts, true )
+	);
 }
 
 /**
@@ -5028,18 +5027,21 @@ function wp_parse_args( $args, $defaults = array() ) {
  * Converts a comma- or space-separated list of scalar values to an array.
  *
  * @since 5.1.0
+ * @since 7.2.0 Added explicit support for passing an integer.
  *
- * @param mixed[]|string $input_list List of values.
+ * @param mixed[]|string|int $input_list List of values.
  * @return array Array of scalar values. A string is split into a list, while an array
  *               keeps its keys, so the result is not necessarily a list.
  * @phpstan-return (
- *     $input_list is string ? list<string> : (
+ *     $input_list is string|int ? list<string> : (
  *         $input_list is array<string> ? array<string> : array<scalar>
  *     )
  * )
  */
 function wp_parse_list( $input_list ): array {
-	if ( ! is_array( $input_list ) ) {
+	if ( is_int( $input_list ) ) {
+		$input_list = array( (string) $input_list );
+	} elseif ( ! is_array( $input_list ) ) {
 		$parsed_list = preg_split( '/[\s,]+/', $input_list, -1, PREG_SPLIT_NO_EMPTY );
 		return is_array( $parsed_list ) ? $parsed_list : array();
 	}
@@ -5054,9 +5056,10 @@ function wp_parse_list( $input_list ): array {
  * Cleans up an array, comma- or space-separated list of IDs.
  *
  * @since 3.0.0
- * @since 5.1.0 Refactored to use wp_parse_list().
+ * @since 5.1.0 Refactored to use {@see wp_parse_list()}.
+ * @since 7.2.0 Added explicit support for passing an integer.
  *
- * @param mixed[]|string $input_list List of IDs.
+ * @param mixed[]|string|int $input_list List of IDs.
  * @return int[] Sanitized array of IDs. May include zero. Keys are preserved
  *               from the input and `array_unique()` may leave gaps, so the
  *               result is not necessarily a list.
@@ -5072,9 +5075,10 @@ function wp_parse_id_list( $input_list ): array {
  * Cleans up an array, comma- or space-separated list of slugs.
  *
  * @since 4.7.0
- * @since 5.1.0 Refactored to use wp_parse_list().
+ * @since 5.1.0 Refactored to use {@see wp_parse_list()}.
+ * @since 7.2.0 Added explicit support for passing an integer.
  *
- * @param mixed[]|string $input_list List of slugs.
+ * @param mixed[]|string|int $input_list List of slugs.
  * @return string[] Sanitized array of slugs. May include an empty string. Keys
  *                  are preserved from the input and `array_unique()` may leave
  *                  gaps, so the result is not necessarily a list.
@@ -7700,7 +7704,7 @@ function get_tag_regex( $tag ) {
 	if ( empty( $tag ) ) {
 		return '';
 	}
-	return sprintf( '<%1$s[^<]*(?:>[\s\S]*<\/%1$s>|\s*\/>)', tag_escape( $tag ) );
+	return sprintf( '<%1$s[^<]*?(?:>[\s\S]*?<\/%1$s>|\s*\/>)', tag_escape( $tag ) );
 }
 
 /**
@@ -9233,23 +9237,26 @@ function wp_get_admin_notice( $message, $args = array() ) {
 	 * @param array  $args    The arguments for the admin notice.
 	 * @param string $message The message for the admin notice.
 	 */
-	$args       = apply_filters( 'wp_admin_notice_args', $args, $message );
-	$id         = '';
-	$classes    = 'notice';
-	$attributes = '';
+	$args = apply_filters( 'wp_admin_notice_args', $args, $message );
+
+	$wrap_with_p  = false !== $args['paragraph_wrap'];
+	$wrap_opener  = $wrap_with_p ? '<p>' : '';
+	$wrap_closer  = $wrap_with_p ? '</p>' : '';
+	$html_builder = new WP_HTML_Tag_Processor( "<div class=\"notice\">{$wrap_opener}" );
+	$html_builder->next_token();
 
 	if ( is_string( $args['id'] ) ) {
 		$trimmed_id = trim( $args['id'] );
 
 		if ( '' !== $trimmed_id ) {
-			$id = 'id="' . $trimmed_id . '" ';
+			$html_builder->set_attribute( 'id', $trimmed_id );
 		}
 	}
 
 	if ( is_string( $args['type'] ) ) {
 		$type = trim( $args['type'] );
 
-		if ( str_contains( $type, ' ' ) ) {
+		if ( strlen( $type ) !== strcspn( $type, " \f\t\r\n" ) ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				sprintf(
@@ -9262,36 +9269,40 @@ function wp_get_admin_notice( $message, $args = array() ) {
 		}
 
 		if ( '' !== $type ) {
-			$classes .= ' notice-' . $type;
+			$html_builder->add_class( "notice-{$type}" );
 		}
 	}
 
 	if ( true === $args['dismissible'] ) {
-		$classes .= ' is-dismissible';
+		$html_builder->add_class( 'is-dismissible' );
 	}
 
 	if ( is_array( $args['additional_classes'] ) && ! empty( $args['additional_classes'] ) ) {
-		$classes .= ' ' . implode( ' ', $args['additional_classes'] );
+		foreach ( $args['additional_classes'] as $class_name ) {
+			$html_builder->add_class( $class_name );
+		}
 	}
 
 	if ( is_array( $args['attributes'] ) && ! empty( $args['attributes'] ) ) {
-		$attributes = '';
-		foreach ( $args['attributes'] as $attr => $val ) {
-			if ( is_bool( $val ) ) {
-				$attributes .= $val ? ' ' . $attr : '';
-			} elseif ( is_int( $attr ) ) {
-				$attributes .= ' ' . esc_attr( trim( $val ) );
-			} elseif ( $val ) {
-				$attributes .= ' ' . $attr . '="' . esc_attr( trim( $val ) ) . '"';
+		foreach ( $args['attributes'] as $name => $value ) {
+			if ( is_int( $name ) ) {
+				/*
+				 * Boolean attributes may have been appended as numeric list items,
+				 * for example, with `$args['attributes'][] = 'disabled'`. They should
+				 * be recorded with the value serving as their name.
+				 */
+				$html_builder->set_attribute( $value, true );
+			} elseif ( true === $value ) {
+				$html_builder->set_attribute( $name, true );
+			} elseif ( false !== $value ) {
+				$html_builder->set_attribute( $name, trim( (string) $value ) );
 			}
 		}
 	}
 
-	if ( false !== $args['paragraph_wrap'] ) {
-		$message = "<p>$message</p>";
-	}
-
-	$markup = sprintf( '<div %1$sclass="%2$s"%3$s>%4$s</div>', $id, $classes, $attributes, $message );
+	$markup  = $html_builder->get_updated_html();
+	$markup .= $message;
+	$markup .= "{$wrap_closer}</div>";
 
 	/**
 	 * Filters the markup for an admin notice.
