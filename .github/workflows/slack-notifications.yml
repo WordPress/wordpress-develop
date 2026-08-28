@@ -46,6 +46,7 @@ jobs:
   # - Retrieves the current workflow run.
   # - Determines the conclusion of the previous workflow run or run attempt.
   # - Sets the previous conclusion as an output.
+  # - Determines if a canceled job timed out or was actually canceled.
   # - Prepares the commit message.
   # - Constructs and stores a message payload as an output.
   prepare:
@@ -53,6 +54,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       actions: read
+      checks: read
       contents: read
     timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
@@ -132,7 +134,11 @@ jobs:
         env:
           CALLING_STATUS: ${{ inputs.calling_status }}
 
-      # The REST API exposes a distinct `timed_out` job conclusion that is unavailable through workflow contexts.
+      # Distinguish between a truly canceled job and one that times out.
+      #
+      # While `timed_out` is documented as a possible value for `conclusion`, this value is never returned within a job
+      # object through the REST API. However, the checks API does return this detail and can be used to determine the
+      # true type of cancellation.
       - name: Determine whether the workflow timed out
         id: timeout-check
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -147,9 +153,40 @@ jobs:
               repo: context.repo.repo,
               run_id: `${context.runId}`,
               attempt_number: Number( process.env.GITHUB_RUN_ATTEMPT ),
-            }, ( response ) => response.data.jobs );
+              per_page: 100,
+            } );
 
-            return jobs.some( ( job ) => job.conclusion === 'timed_out' ) ? 'true' : 'false';
+            const cancelledJobs = jobs.filter( ( job ) => job.conclusion === 'cancelled' );
+            const BATCH_SIZE = 100;
+
+            for ( let i = 0; i < cancelledJobs.length; i += BATCH_SIZE ) {
+              const batch = cancelledJobs.slice( i, i + BATCH_SIZE );
+
+              const { nodes } = await github.graphql(
+                `query( $ids: [ID!]! ) {
+                  nodes( ids: $ids ) {
+                    ... on CheckRun {
+                      annotations( first: 10 ) {
+                        nodes {
+                          message
+                        }
+                      }
+                    }
+                  }
+                }`,
+                { ids: batch.map( ( job ) => job.node_id ) }
+              );
+
+              const timedOut = nodes.some( ( node ) => node && node.annotations.nodes.some(
+                ( annotation ) => /exceeded the maximum execution time/i.test( annotation.message )
+              ) );
+
+              if ( timedOut ) {
+                return 'true';
+              }
+            }
+
+            return 'false';
 
       - name: Get the commit message
         id: current-commit-message

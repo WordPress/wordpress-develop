@@ -401,6 +401,7 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
+      checks: read
       contents: read
     needs: [ prepare-gutenberg, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
