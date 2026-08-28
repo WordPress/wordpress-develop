@@ -1151,7 +1151,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @param string $block_content  HTML block content.
 	 * @param string $expected_class Expected value of the class attribute on the block wrapper.
 	 */
-	public function test_should_add_fit_text_class_name( $block_content, $expected_class ) {
+	public function test_should_add_fit_text_class_name( string $block_content, string $expected_class ) {
 		$block = array(
 			'blockName' => 'core/site-title',
 			'attrs'     => array(
