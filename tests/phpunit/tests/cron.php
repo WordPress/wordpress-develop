@@ -847,6 +847,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49961
+	 * @ticket 64404
 	 *
 	 * @covers ::wp_schedule_event
 	 * @covers ::wp_reschedule_event
@@ -860,6 +861,99 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->assertWPError( $rescheduled_event );
 		$this->assertSame( 'invalid_schedule', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 64404
+	 *
+	 * @covers ::wp_schedule_event
+	 * @covers ::wp_reschedule_event
+	 */
+	public function test_invalid_schedule_interval_returns_error() {
+		add_filter(
+			'cron_schedules',
+			static function ( $schedules ) {
+				$schedules['backwards_in_time'] = array(
+					'interval' => -3600,
+					'display'  => 'Back to the future!',
+				);
+				return $schedules;
+			}
+		);
+
+		$event = wp_schedule_event( time(), 'backwards_in_time', 'hook', array(), true );
+		$this->assertWPError( $event );
+		$this->assertSame( 'invalid_interval', $event->get_error_code() );
+
+		$rescheduled_event = wp_reschedule_event( time(), 'backwards_in_time', 'hook', array(), true );
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'invalid_interval', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 64404
+	 *
+	 * @covers ::wp_schedule_event
+	 * @covers ::wp_reschedule_event
+	 */
+	public function test_zero_schedule_interval_returns_error() {
+		add_filter(
+			'cron_schedules',
+			static function ( $schedules ) {
+				$schedules['zero_interval'] = array(
+					'interval' => 0,
+					'display'  => 'Zero interval',
+				);
+				return $schedules;
+			}
+		);
+
+		$event = wp_schedule_event( time(), 'zero_interval', 'hook', array(), true );
+		$this->assertWPError( $event );
+		$this->assertSame( 'invalid_interval', $event->get_error_code() );
+
+		$rescheduled_event = wp_reschedule_event( time(), 'zero_interval', 'hook', array(), true );
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'invalid_interval', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 64404
+	 *
+	 * @covers ::wp_schedule_event
+	 * @covers ::wp_reschedule_event
+	 */
+	public function test_non_numeric_schedule_interval_returns_error() {
+		add_filter(
+			'cron_schedules',
+			static function ( $schedules ) {
+				$schedules['non_numeric_interval_string'] = array(
+					'interval' => 'invalid',
+					'display'  => 'Non numeric interval (string)',
+				);
+				$schedules['non_numeric_interval_null']   = array(
+					'interval' => null,
+					'display'  => 'Non numeric interval (null)',
+				);
+				return $schedules;
+			}
+		);
+
+		$string_event = wp_schedule_event( time(), 'non_numeric_interval_string', 'hook', array(), true );
+		$this->assertWPError( $string_event );
+		$this->assertSame( 'invalid_interval', $string_event->get_error_code() );
+
+		$string_rescheduled_event = wp_reschedule_event( time(), 'non_numeric_interval_string', 'hook', array(), true );
+		$this->assertWPError( $string_rescheduled_event );
+		$this->assertSame( 'invalid_interval', $string_rescheduled_event->get_error_code() );
+
+		$null_event = wp_schedule_event( time(), 'non_numeric_interval_null', 'hook', array(), true );
+		$this->assertWPError( $null_event );
+		$this->assertSame( 'invalid_interval', $null_event->get_error_code() );
+
+		$null_rescheduled_event = wp_reschedule_event( time(), 'non_numeric_interval_null', 'hook', array(), true );
+		$this->assertWPError( $null_rescheduled_event );
+		$this->assertSame( 'invalid_interval', $null_rescheduled_event->get_error_code() );
 	}
 
 	/**
