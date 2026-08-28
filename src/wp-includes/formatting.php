@@ -5462,13 +5462,21 @@ function wp_sprintf_l( $pattern, $args ) {
 }
 
 /**
- * Safely extracts not more than the first $count characters from HTML string.
+ * Returns up to a given number of code points of the renderable text
+ * from the given HTML input, after decoding character references.
  *
- * UTF-8, tags and entities safe prefix extraction. Entities inside will *NOT*
- * be counted as one character. For example &amp; will be counted as 4, &lt; as
- * 3, etc.
+ * Example:
+ *
+ *     'Chap' === wp_html_excerpt( '<h2>Chapter One</h2>', 4 );
+ *
+ *     // Counts after decoding character references.
+ *     '¶ 3.' === wp_html_excerpt( '&para; <span major>3</span>.<span minor>1</span>', 4 );
+ *
+ *     // Code point counts may trim in the middle of extended grapheme clusters.
+ *     '👩'   === wp_html_excerpt( '👩‍✈️', 1 );
  *
  * @since 2.5.0
+ * @since 7.2.0 Trims by code point count in decoded string and normalize output.
  *
  * @param string $str   String to get the excerpt from.
  * @param int    $count Maximum number of characters to take.
@@ -5481,7 +5489,16 @@ function wp_html_excerpt( $str, $count, $more = null ) {
 	}
 
 	$str     = wp_strip_all_tags( $str, true );
+	$str     = WP_HTML_Decoder::decode_text_node( $str );
 	$excerpt = mb_substr( $str, 0, $count );
+	$excerpt = strtr(
+		$excerpt,
+		array(
+			'<' => '&lt;',
+			'&' => '&amp;',
+			'>' => '&gt;',
+		)
+	);
 
 	if ( $str !== $excerpt ) {
 		$excerpt = trim( $excerpt ) . $more;

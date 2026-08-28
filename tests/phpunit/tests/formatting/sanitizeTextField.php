@@ -56,7 +56,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 				"foo <\ndiv\n> bar",
 				array(
 					'oneline'   => 'foo &lt; div &gt; bar',
-					'multiline' => "foo &lt;\ndiv\n> bar",
+					'multiline' => "foo &lt;\ndiv\n&gt; bar",
 				),
 			),
 			array(
