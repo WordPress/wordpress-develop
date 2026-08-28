@@ -783,7 +783,7 @@ function get_feed_namespaces( string $type ): array {
 		$prefix = (string) $prefix;
 
 		// Prefixes must be valid XML names, and the `xml` and `xmlns` prefixes are reserved.
-		if ( ! preg_match( '/^[\p{L}_][\p{L}\p{M}\p{N}._\-\x{B7}]*$/u', $prefix )
+		if ( ! preg_match( '/^[\p{L}_][\p{L}\p{M}\p{N}._\-\x{B7}]*\z/u', $prefix )
 			|| in_array( strtolower( $prefix ), array( 'xml', 'xmlns' ), true )
 		) {
 			continue;

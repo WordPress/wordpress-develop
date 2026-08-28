@@ -148,6 +148,28 @@ class Tests_Feed_FeedNamespaces extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A prefix ending in a newline is a distinct array key from the same prefix
+	 * without one, so allowing it through would print the same attribute name
+	 * twice: XML permits whitespace between the name and the `=`.
+	 *
+	 * @ticket 65785
+	 */
+	public function test_should_skip_a_prefix_with_a_trailing_newline() {
+		add_filter(
+			'wp_feed_namespaces',
+			static function ( array $namespaces ): array {
+				$namespaces["content\n"] = 'http://example.org/duplicate';
+				return $namespaces;
+			}
+		);
+
+		$namespaces = get_feed_namespaces( 'rss2' );
+
+		$this->assertArrayNotHasKey( "content\n", $namespaces );
+		$this->assertSame( 'http://purl.org/rss/1.0/modules/content/', $namespaces['content'] );
+	}
+
+	/**
 	 * Prefixes are XML names: mixed case like `creativeCommons` and
 	 * non-ASCII letters are valid and must be preserved.
 	 *
