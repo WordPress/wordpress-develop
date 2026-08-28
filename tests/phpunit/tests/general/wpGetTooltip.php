@@ -167,6 +167,82 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the toggletip dialog is described by its own text.
+	 *
+	 * The dialog is named by the toggle button's label, 'Help' by default, so without
+	 * this association the help text is not part of its accessible description.
+	 *
+	 * @ticket 65675
+	 */
+	public function test_wp_get_toggletip_dialog_is_described_by_its_text() {
+		$html = wp_get_toggletip( 'Helpful text.', array( 'id' => 'my-tip' ) );
+
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		$this->assertTrue(
+			$processor->next_tag( array( 'class_name' => 'wp-tooltip__bubble' ) ),
+			'The toggletip should render a bubble element.'
+		);
+		$this->assertSame(
+			'dialog',
+			$processor->get_attribute( 'role' ),
+			'The toggletip bubble should be a dialog.'
+		);
+		$this->assertSame(
+			'my-tip-text',
+			$processor->get_attribute( 'aria-describedby' ),
+			'The dialog should be described by its text element.'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag( array( 'class_name' => 'wp-tooltip__text' ) ),
+			'The toggletip should render a text element.'
+		);
+		$this->assertSame(
+			'my-tip-text',
+			$processor->get_attribute( 'id' ),
+			'The text element should carry the ID the dialog points at.'
+		);
+	}
+
+	/**
+	 * Tests that the describing ID follows a generated ID.
+	 *
+	 * @ticket 65675
+	 */
+	public function test_wp_get_toggletip_described_by_matches_generated_id() {
+		$html = wp_get_toggletip( 'Helpful text.' );
+
+		$this->assertSame( 1, preg_match( '/id="(wp-tooltip-\d+)"/', $html, $matches ) );
+
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag( array( 'class_name' => 'wp-tooltip__bubble' ) ) );
+		$this->assertSame(
+			$matches[1] . '-text',
+			$processor->get_attribute( 'aria-describedby' ),
+			'The description should reference the generated ID.'
+		);
+	}
+
+	/**
+	 * Tests that a tooltip is not given a description.
+	 *
+	 * A tooltip already carries its content as the toggle button's accessible name.
+	 *
+	 * @ticket 65675
+	 */
+	public function test_wp_get_tooltip_bubble_has_no_described_by() {
+		$html = wp_get_tooltip( 'Helpful text.', array( 'id' => 'my-tip' ) );
+
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag( array( 'class_name' => 'wp-tooltip__bubble' ) ) );
+		$this->assertNull(
+			$processor->get_attribute( 'aria-describedby' ),
+			'A tooltip bubble should not describe itself.'
+		);
+	}
+
+	/**
 	 * Tests that the markup consists only of phrasing content so it can be nested
 	 * inside a paragraph (or other phrasing context) without the parser closing
 	 * the enclosing element and leaving a stray empty paragraph behind.
