@@ -323,9 +323,13 @@ window.wp = window.wp || {};
 		},
 
 		/**
-		 * Propagate this value's changes to one or more other values.
+		 * Update this value whenever one or more other values change.
 		 *
-		 * @param {...wp.customize.Value} values A value, or multiple values, to update when this value changes.
+		 * Note that this is one-directional: this value follows the supplied
+		 * values, not the other way around. Use sync() to link in both
+		 * directions.
+		 *
+		 * @param {...wp.customize.Value} values A value, or multiple values, for this value to follow.
 		 * @return {wp.customize.Value} The instance of the Value.
 		 */
 		link: function( ...values ) {
@@ -337,9 +341,9 @@ window.wp = window.wp || {};
 		},
 
 		/**
-		 * Stop propagating this value's changes to one or more other values.
+		 * Stop updating this value when one or more other values change.
 		 *
-		 * @param {...wp.customize.Value} values A value, or multiple values, to stop updating when this value changes.
+		 * @param {...wp.customize.Value} values A value, or multiple values, for this value to stop following.
 		 * @return {wp.customize.Value} The instance of the Value.
 		 */
 		unlink: function( ...values ) {
