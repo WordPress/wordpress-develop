@@ -2922,7 +2922,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
  *     @type string|false $error Error message, if there has been an error.
  * }
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
- *                |array{ error: non-empty-string, ... }
+ *                |array{ error: string, ... }
  */
 function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	if ( ! empty( $deprecated ) ) {
@@ -3801,19 +3801,21 @@ function wp_nonce_ays( $action ) {
  *     Optional. Arguments to control behavior. If `$args` is an integer, then it is treated
  *     as the response code. Default empty array.
  *
- *     @type int    $response       The HTTP response code. Default 200 for Ajax requests, 500 otherwise.
- *     @type string $link_url       A URL to include a link to. Only works in combination with $link_text.
- *                                  Default empty string.
- *     @type string $link_text      A label for the link to include. Only works in combination with $link_url.
- *                                  Default empty string.
- *     @type bool   $back_link      Whether to include a link to go back. Default false.
- *     @type string $text_direction The text direction. This is only useful internally, when WordPress is still
- *                                  loading and the site's locale is not set up yet. Accepts 'rtl' and 'ltr'.
- *                                  Default is the value of is_rtl().
- *     @type string $charset        Character set of the HTML output. Default 'utf-8'.
- *     @type string $code           Error code to use. Default is 'wp_die', or the main error code if $message
- *                                  is a WP_Error.
- *     @type bool   $exit           Whether to exit the process after completion. Default true.
+ *     @type int|null $response       The HTTP response code, or null to send no status header. The Ajax, JSON,
+ *                                    JSONP and XML handlers all accept null, for backward compatibility.
+ *                                    Default 200 for Ajax requests, 500 otherwise.
+ *     @type string   $link_url       A URL to include a link to. Only works in combination with $link_text.
+ *                                    Default empty string.
+ *     @type string   $link_text      A label for the link to include. Only works in combination with $link_url.
+ *                                    Default empty string.
+ *     @type bool     $back_link      Whether to include a link to go back. Default false.
+ *     @type string   $text_direction The text direction. This is only useful internally, when WordPress is still
+ *                                    loading and the site's locale is not set up yet. Accepts 'rtl' and 'ltr'.
+ *                                    Default is the value of is_rtl().
+ *     @type string   $charset        Character set of the HTML output. Default 'utf-8'.
+ *     @type string   $code           Error code to use. Default is 'wp_die', or the main error code if $message
+ *                                    is a WP_Error.
+ *     @type bool     $exit           Whether to exit the process after completion. Default true.
  * }
  * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
  * @phpstan-param string|WP_Error|int<-1, max> $message

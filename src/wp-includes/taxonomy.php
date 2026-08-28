@@ -655,6 +655,7 @@ function unregister_taxonomy( $taxonomy ) {
  *     @type string $name                       General name for the taxonomy, usually plural. The same
  *                                              as and overridden by `$tax->label`. Default 'Tags'/'Categories'.
  *     @type string $singular_name              Name for one object of this taxonomy. Default 'Tag'/'Category'.
+ *     @type string $menu_name                  Label for the menu name. Default is the same as `name`.
  *     @type string $search_items               Default 'Search Tags'/'Search Categories'.
  *     @type string $popular_items              This label is only used for non-hierarchical taxonomies.
  *                                              Default 'Popular Tags'.

@@ -174,11 +174,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-links-list-table.php
 		-
-			message: '#^Parameter \#2 \$args of function wp_admin_notice expects array\{type\?\: string, dismissible\?\: bool, id\?\: string, additional_classes\?\: array\<string\>, attributes\?\: array\<string\>, paragraph_wrap\?\: bool, \.\.\.\}, array\{type\: ''error'', additional_classes\: ''inline''\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php
-		-
 			message: '#^Parameter \#3 \$number of function _nx expects int, float given\.$#'
 			identifier: argument.type
 			count: 1
@@ -603,11 +598,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentynineteen/inc/helper-functions.php
-		-
-			message: '#^Parameter \#1 \$args of function comment_form expects array\{fields\?\: array\{author\?\: string, email\?\: string, url\?\: string, cookies\?\: string, \.\.\.\}, comment_field\?\: string, must_log_in\?\: string, logged_in_as\?\: string, comment_notes_before\?\: string, comment_notes_after\?\: string, action\?\: string, novalidate\?\: bool, \.\.\., \.\.\.\}, array\{title_reply\: null\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentynineteen/inc/template-tags.php
 		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
