@@ -13,6 +13,12 @@ namespace WordPress\PHPStan;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\ParserException;
+use PHPStan\PhpDocParser\Parser\TokenIterator;
+use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\PhpDocParser\ParserConfig;
 
 /**
  * Reads WordPress hash notation from `@param` and `@return` tags and injects
@@ -44,17 +50,23 @@ use PhpParser\NodeVisitorAbstract;
  *
  * - A `@phpstan-` counterpart already written by hand always wins; the tag it
  *   covers is skipped, so a shape that has been tuned in the source is never
- *   overwritten by the derived one.
+ *   overwritten by the derived one. Only that tag: a `@phpstan-param` written
+ *   for one parameter says nothing about the next, and a conditional
+ *   `@phpstan-return` naming a parameter is not a shape for it.
  * - The declared type must name something a shape can be put on: a bare `array`
  *   or `object`, or a class, on its own or as one member of a union such as
- *   `string|array`. A type that is already more specific than the hash, such as
+ *   `string|array` or `array|WP_Error`, where the bare member is the one the
+ *   hash is about. A type that is already more specific than the hash, such as
  *   `array<string, string|bool>`, is left as written. A shape derived for a
  *   named class is intersected with it, as `stdClass&object{...}`, because an
  *   object shape is structural on its own and one derived from a bare `object`
  *   would not be assignable to a property declared `stdClass`.
  * - The hash has to be well formed: every `{` closed by a `}` on a line of its
- *   own, and every `@type` carrying a type and a `$name`. Anything else, and
- *   the whole tag is skipped.
+ *   own, and every `@type` carrying a `$name` and a type PHPStan's own type
+ *   parser reads as one. Anything else, and the whole tag is skipped.
+ * - An object hash that would have to stay open is skipped: PHPStan's object
+ *   shapes have a fixed member list and no `...`, so sealing one would report
+ *   every member the hash does not name.
  * - A parameter taken by reference is skipped. PHPStan checks a by-reference
  *   argument in both directions, so a shape there is a contract every caller's
  *   variable has to satisfy before the call, which is not what the hash says.
@@ -62,16 +74,19 @@ use PhpParser\NodeVisitorAbstract;
  * Keys of a `@param` hash are optional, at every level, because a caller may
  * pass any subset of them, and a shape whose keys were required would report
  * every partial array as an error. Keys of a `@return` hash are required, since
- * they describe a value core itself builds, unless the description marks one
- * `Optional.` Numbered keys such as `$0`, `$1` used for positional arguments
- * are required in either case.
+ * they describe a value core itself builds. Numbered keys such as `$0`, `$1`
+ * used for positional arguments are required in either case, because they are
+ * passed in order. A description opening with `Optional.` overrides all of
+ * that, and is the only thing that does; the word elsewhere in a description is
+ * prose, not a marker.
  *
  * The shape of a `@param` hash is left open, with a trailing `...`, because the
  * hash lists the keys core reads rather than the only keys a caller may pass.
  * A sealed shape would report reading or testing for any other key as an error,
  * and would contradict the conditional return types core writes by hand. The
  * shape of a `@return` hash is sealed, so reading a key core does not document
- * is reported rather than silently typed as `mixed`.
+ * is reported rather than silently typed as `mixed` — unless the hash itself
+ * says otherwise, by listing a `...$N` entry beside its named keys.
  *
  * @link https://developer.wordpress.org/coding-standards/inline-documentation-standards/php/#1-1-parameters-that-are-arrays Hash notation in the documentation standards.
  * @link https://github.com/php-stubs/wordpress-stubs/blob/master/src/Visitor.php The equivalent translation php-stubs/wordpress-stubs performs when generating stubs, MIT license.
@@ -91,6 +106,59 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	private const HASH_TAGS = array( 'param', 'return' );
 
 	/**
+	 * Names PHPDoc gives a meaning of its own, which are therefore not classes.
+	 *
+	 * `array` and `object` are left out: they take a shape directly rather than
+	 * through an intersection, and `is_shapeable()` answers for them first.
+	 */
+	private const TYPE_KEYWORDS = array(
+		'bool'     => true,
+		'boolean'  => true,
+		'callable' => true,
+		'double'   => true,
+		'false'    => true,
+		'float'    => true,
+		'int'      => true,
+		'integer'  => true,
+		'iterable' => true,
+		'list'     => true,
+		'mixed'    => true,
+		'never'    => true,
+		'null'     => true,
+		'number'   => true,
+		'numeric'  => true,
+		'parent'   => true,
+		'resource' => true,
+		'scalar'   => true,
+		'self'     => true,
+		'static'   => true,
+		'string'   => true,
+		'this'     => true,
+		'true'     => true,
+		'void'     => true,
+	);
+
+	/**
+	 * Lexer for the type parser, built on first use.
+	 */
+	private ?Lexer $lexer = null;
+
+	/**
+	 * PHPStan's own PHPDoc type parser, built on first use.
+	 */
+	private ?TypeParser $type_parser = null;
+
+	/**
+	 * Answers `parses_as_type()` has already given, keyed by the type.
+	 *
+	 * Core writes a small vocabulary of types across a great many hashes, so the
+	 * same handful of strings is asked about over and over.
+	 *
+	 * @var array<string, bool>
+	 */
+	private array $parsed = array();
+
+	/**
 	 * Translates the hashes in a node's docblock into `@phpstan-*` shapes.
 	 *
 	 * @param Node $node The node being entered.
@@ -107,7 +175,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		$text = $doc->getText();
-		if ( ! str_contains( $text, '@type ' ) ) {
+		if ( preg_match( '#@type[ \t]#', $text ) !== 1 ) {
 			return null;
 		}
 
@@ -121,8 +189,21 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			$lines[] = ' * ' . $addition;
 		}
 
-		// Insert the derived tags just before the closing `*/`.
-		$merged = preg_replace( '#\s*\*/\s*$#', "\n" . implode( "\n", $lines ) . "\n */", $text, 1 );
+		/*
+		 * Insert the derived tags just before the docblock's closing marker. The
+		 * replacement comes from a callback rather than being passed to
+		 * preg_replace() as a string, because a derived tag ends in the variable
+		 * it documents, and a `$0` there would be read as a backreference to the
+		 * match rather than as the name it is.
+		 */
+		$merged = preg_replace_callback(
+			'#\s*\*/\s*$#',
+			static function () use ( $lines ): string {
+				return "\n" . implode( "\n", $lines ) . "\n */";
+			},
+			$text,
+			1
+		);
 		if ( ! is_string( $merged ) ) {
 			return null;
 		}
@@ -164,8 +245,10 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 */
 	private function build_additions( string $text, array $by_reference ): array {
 		$additions = array();
+		$tags      = $this->split_tags( $text );
+		$covered   = $this->phpstan_counterparts( $tags );
 
-		foreach ( $this->split_tags( $text ) as $tag ) {
+		foreach ( $tags as $tag ) {
 			if ( ! in_array( $tag['name'], self::HASH_TAGS, true ) ) {
 				continue;
 			}
@@ -199,11 +282,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			 * before the call. The hash describes what the function reads, not a
 			 * contract on the caller's variable, so it is left out.
 			 */
-			if ( 'param' === $tag['name'] && isset( $by_reference[ (string) $variable ] ) ) {
+			if ( 'param' === $tag['name'] && isset( $by_reference[ $variable ] ) ) {
 				continue;
 			}
 
-			if ( $this->has_phpstan_counterpart( $text, $tag['name'], $variable ) ) {
+			$key = 'return' === $tag['name'] ? 'return' : 'param $' . $variable;
+			if ( isset( $covered[ $key ] ) ) {
 				continue;
 			}
 
@@ -222,7 +306,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				'@phpstan-%s %s%s',
 				$tag['name'],
 				$type,
-				null !== $variable && 'return' !== $tag['name'] ? ' $' . $variable : ''
+				'return' === $tag['name'] ? '' : ' $' . $variable
 			);
 		}
 
@@ -268,32 +352,52 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
-	 * Reports whether the docblock already documents this tag for PHPStan.
+	 * Collects what the docblock already documents for PHPStan by hand.
 	 *
-	 * @param string      $text     Raw docblock text.
-	 * @param string      $tag      Tag name, one of `param`, `return` or `var`.
-	 * @param string|null $variable Variable the tag documents, without the `$`.
-	 * @return bool
+	 * A hand-written shape often spans several lines, so the variable a
+	 * `@phpstan-param` documents can be far from the tag that opens it. The
+	 * search stays inside that one tag rather than running over the whole
+	 * docblock: a `@phpstan-param` written for one parameter says nothing about
+	 * the next, and a conditional `@phpstan-return` naming a parameter is not a
+	 * shape for it.
+	 *
+	 * @param list<array{name: string, header: string, body: list<string>}> $tags Tags of the docblock.
+	 * @return array<string, true> Set keyed as `param $name`, or `return`.
 	 */
-	private function has_phpstan_counterpart( string $text, string $tag, ?string $variable ): bool {
-		if ( 'return' === $tag ) {
-			return str_contains( $text, '@phpstan-return' );
+	private function phpstan_counterparts( array $tags ): array {
+		$covered = array();
+
+		foreach ( $tags as $tag ) {
+			if ( 'phpstan-return' === $tag['name'] ) {
+				$covered['return'] = true;
+				continue;
+			}
+
+			if ( 'phpstan-param' !== $tag['name'] ) {
+				continue;
+			}
+
+			$written = trim( $tag['header'] . ' ' . implode( ' ', $tag['body'] ) );
+			$split   = $this->split_type( $written );
+
+			if ( null !== $split && preg_match( '#^\$([A-Za-z0-9_]+)#', $split[1], $matches ) === 1 ) {
+				$covered[ 'param $' . $matches[1] ] = true;
+				continue;
+			}
+
+			/*
+			 * A tag whose type cannot be split covers every name it mentions. It
+			 * was written by hand for a reason, and overwriting it would leave two
+			 * shapes for the same parameter.
+			 */
+			if ( preg_match_all( '#\$([A-Za-z0-9_]+)#', $written, $matches ) > 0 ) {
+				foreach ( $matches[1] as $name ) {
+					$covered[ 'param $' . $name ] = true;
+				}
+			}
 		}
 
-		if ( null === $variable ) {
-			return str_contains( $text, '@phpstan-' . $tag );
-		}
-
-		/*
-		 * A hand-written shape often spans several lines, so the variable it
-		 * documents can be far from the tag that opens it. Matching the tag and
-		 * the variable without requiring them to be adjacent keeps a multi-line
-		 * `@phpstan-param array{ ... } $args` recognized.
-		 */
-		return preg_match(
-			'#@phpstan-' . $tag . '\s.*?\$' . preg_quote( $variable, '#' ) . '\b#s',
-			$text
-		) === 1;
+		return $covered;
 	}
 
 	/**
@@ -305,12 +409,14 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param list<string> $lines Body lines of the tag, with docblock furniture removed.
 	 * @param int          $index Current position in `$lines`, advanced as entries are read.
+	 * @param string       $intro Set to the prose written above this level's first entry.
 	 * @return list<array{type: string, name: string, variadic: bool, description: string, children: list<mixed>}>|null
 	 *         Entries of this level, or null if the hash is malformed.
 	 */
-	private function parse_entries( array $lines, int &$index ): ?array {
+	private function parse_entries( array $lines, int &$index, string &$intro = '' ): ?array {
 		$entries = array();
 		$last    = null;
+		$intro   = '';
 		$count   = count( $lines );
 
 		while ( $index < $count ) {
@@ -321,23 +427,39 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				return $entries;
 			}
 
-			if ( str_starts_with( $line, '@type ' ) ) {
-				$entry = $this->parse_entry( substr( $line, 6 ) );
+			if ( preg_match( '#^@type[ \t]+(.*)$#', $line, $matches ) === 1 ) {
+				$entry = $this->parse_entry( $matches[1] );
 				if ( null === $entry ) {
 					return null;
 				}
 
 				if ( $entry['opens'] ) {
-					$children = $this->parse_entries( $lines, $index );
+					$nested   = '';
+					$children = $this->parse_entries( $lines, $index, $nested );
 					if ( null === $children || array() === $children ) {
 						return null;
 					}
+
 					$entry['children'] = $children;
+
+					/*
+					 * An entry that opens a hash carries no description beside its
+					 * `@type`, because the `{` ends the line. What describes it is the
+					 * hash's own intro, which is where a marker such as `Optional.`
+					 * for the whole block is written.
+					 */
+					$entry['description'] = trim( $entry['description'] . ' ' . $nested );
 				}
 
 				unset( $entry['opens'] );
 				$entries[] = $entry;
-				$last      = count( $entries ) - 1;
+
+				/*
+				 * A line below a nested hash describes the level that hash sits in
+				 * rather than the entry that opened it, whose description was read
+				 * before its `{`. It belongs to no key, so nothing collects it.
+				 */
+				$last = array() === $entry['children'] ? count( $entries ) - 1 : null;
 				continue;
 			}
 
@@ -346,8 +468,14 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				return null;
 			}
 
-			if ( '' !== $line && null !== $last ) {
+			if ( '' === $line ) {
+				continue;
+			}
+
+			if ( null !== $last ) {
 				$entries[ $last ]['description'] .= ' ' . $line;
+			} elseif ( array() === $entries ) {
+				$intro = '' === $intro ? $line : $intro . ' ' . $line;
 			}
 		}
 
@@ -443,29 +571,49 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return string|null The type with the shape substituted in, or null if it cannot be.
 	 */
 	private function substitute( string $declared, array $entries, bool $for_param ): ?string {
+		if ( ! $this->parses_as_type( $declared ) ) {
+			return null;
+		}
+
 		$members = $this->split_union( $declared );
 		if ( null === $members ) {
 			return null;
 		}
 
-		$target = null;
+		$bare      = array();
+		$shapeable = array();
+
 		foreach ( $members as $position => $member ) {
 			if ( ! $this->is_shapeable( $member ) ) {
 				continue;
 			}
-			// Two shapeable members would leave it ambiguous which one the hash describes.
-			if ( null !== $target ) {
-				return null;
+
+			$shapeable[] = $position;
+			$normalized  = strtolower( $member );
+
+			if ( 'array' === $normalized || 'object' === $normalized ) {
+				$bare[] = $position;
 			}
-			$target = $position;
 		}
 
-		if ( null === $target ) {
+		/*
+		 * A class beside a bare `array` is what the function returns instead of the
+		 * array, as `array|WP_Error` says, and never what the hash describes: a
+		 * `WP_Error` carries no keys. So the bare member takes the shape whenever
+		 * there is exactly one. Two of them, or two classes and no bare member,
+		 * would leave it a guess which one the hash is about.
+		 */
+		if ( 1 === count( $bare ) ) {
+			$target = $bare[0];
+		} elseif ( array() === $bare && 1 === count( $shapeable ) ) {
+			$target = $shapeable[0];
+		} else {
 			return null;
 		}
 
-		$member = $members[ $target ];
-		$shape  = $this->resolve_container( $entries, $for_param, 'array' === $member );
+		$member     = $members[ $target ];
+		$normalized = strtolower( $member );
+		$shape      = $this->resolve_container( $entries, $for_param, 'array' === $normalized );
 		if ( null === $shape ) {
 			return null;
 		}
@@ -476,7 +624,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * Naming the class in the docblock keeps both: the value stays that class, and
 		 * its members are typed by the shape intersected with it.
 		 */
-		if ( 'array' !== $member && 'object' !== $member ) {
+		if ( 'array' !== $normalized && 'object' !== $normalized ) {
 			$shape = $member . '&' . $shape;
 
 			// An intersection inside a union needs parentheses to parse.
@@ -501,39 +649,15 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return bool
 	 */
 	private function is_shapeable( string $member ): bool {
-		if ( 'array' === $member || 'object' === $member ) {
+		$normalized = strtolower( $member );
+
+		// PHP type names are case-insensitive, and core writes `Array` in places.
+		if ( 'array' === $normalized || 'object' === $normalized ) {
 			return true;
 		}
 
 		// A name PHPDoc gives a meaning of its own is not a class, whatever its shape.
-		$keywords = array(
-			'bool',
-			'boolean',
-			'callable',
-			'double',
-			'false',
-			'float',
-			'int',
-			'integer',
-			'iterable',
-			'list',
-			'mixed',
-			'never',
-			'null',
-			'number',
-			'numeric',
-			'parent',
-			'resource',
-			'scalar',
-			'self',
-			'static',
-			'string',
-			'this',
-			'true',
-			'void',
-		);
-
-		if ( in_array( strtolower( $member ), $keywords, true ) ) {
+		if ( isset( self::TYPE_KEYWORDS[ $normalized ] ) ) {
 			return false;
 		}
 
@@ -565,9 +689,18 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		$members = array();
+		$open    = $for_param;
+
 		foreach ( $entries as $entry ) {
+			/*
+			 * A `...$N` entry beside named ones is core's way of writing "and the
+			 * rest", as the positional hashes of `wp_maybe_grant_site_health_caps()`
+			 * and `WP_Meta_Query` do. The named keys are kept and the shape is left
+			 * open, which says the same thing about the keys it does not name.
+			 */
 			if ( $entry['variadic'] ) {
-				return null;
+				$open = true;
+				continue;
 			}
 
 			$type = $this->resolve_entry_type( $entry, $for_param );
@@ -588,16 +721,20 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		/*
+		 * PHPStan's object shapes have no `...`, so an object hash that has to stay
+		 * open cannot be expressed as one and is left alone rather than sealed.
+		 */
+		if ( ! $is_array ) {
+			return $open ? null : sprintf( 'object{%s}', implode( ', ', $members ) );
+		}
+
+		/*
 		 * A `@param` hash lists the keys core reads, not the only keys a caller
 		 * may pass, so its shape stays open with a trailing `...`. Without it
 		 * the shape would be sealed, and reading or testing for an undocumented
 		 * key would be reported as an error at every call site that adds one.
 		 */
-		if ( ! $is_array ) {
-			return sprintf( 'object{%s}', implode( ', ', $members ) );
-		}
-
-		return sprintf( 'array{%s%s}', implode( ', ', $members ), $for_param ? ', ...' : '' );
+		return sprintf( 'array{%s%s}', implode( ', ', $members ), $open ? ', ...' : '' );
 	}
 
 	/**
@@ -609,7 +746,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 */
 	private function resolve_entry_type( array $entry, bool $for_param ): ?string {
 		if ( array() === $entry['children'] ) {
-			return $this->validate_type( $entry['type'] );
+			return $this->parses_as_type( $entry['type'] ) ? $entry['type'] : null;
 		}
 
 		return $this->substitute( $entry['type'], $entry['children'], $for_param );
@@ -624,15 +761,26 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 */
 	private function is_optional( array $entry, bool $for_param ): bool {
 		/*
+		 * The documentation standard opens the description of an optional value
+		 * with `Optional.`, so that sentence is the marker. Matching the bare word
+		 * would take it out of prose that only mentions it: from a callback that
+		 * "receives optional mixed input", or from the "Optional self closing
+		 * slash" of a match array whose every group is always set.
+		 */
+		if ( preg_match( '#^\s*Optional\.#i', $entry['description'] ) === 1 ) {
+			return true;
+		}
+
+		/*
 		 * A `@return` hash describes a value core builds, so its keys are
 		 * present unless the description says otherwise. `Default ...` is not
 		 * that: a key documented with a default is still always set.
 		 */
 		if ( ! $for_param ) {
-			return preg_match( '#\bOptional\b#i', $entry['description'] ) === 1;
+			return false;
 		}
 
-		// Numbered keys document positional arguments, which are always present.
+		// Numbered keys document positional arguments, which are passed in order.
 		if ( preg_match( '#^[0-9]+$#', $entry['name'] ) === 1 ) {
 			return false;
 		}
@@ -655,29 +803,54 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
-	 * Returns a type only if it is shaped like one.
+	 * Reports whether a string PHPStan would have to read as a type parses as one.
 	 *
-	 * Guards against prose that has drifted into the type column of a `@type`
-	 * tag, which would otherwise be emitted as a type PHPStan cannot parse.
+	 * Guards against prose that has drifted into the type column of a `@type` tag,
+	 * which would otherwise be emitted as a type PHPStan cannot parse. The question
+	 * is answered by PHPStan's own type parser rather than by a description of what
+	 * a type may contain, because such a description has to be kept in step with a
+	 * grammar that keeps growing, and silently rejects the notation it has not
+	 * caught up with: `?string`, `(string|null)[]` and `callable(): void` are all
+	 * types core writes, or could.
 	 *
 	 * @param string $type Type as written in the docblock.
-	 * @return string|null
+	 * @return bool
 	 */
-	private function validate_type( string $type ): ?string {
-		return $this->split_union( $type ) === null ? null : $type;
+	private function parses_as_type( string $type ): bool {
+		if ( isset( $this->parsed[ $type ] ) ) {
+			return $this->parsed[ $type ];
+		}
+
+		if ( null === $this->lexer || null === $this->type_parser ) {
+			$config            = new ParserConfig( array() );
+			$this->lexer       = new Lexer( $config );
+			$this->type_parser = new TypeParser( $config, new ConstExprParser( $config ) );
+		}
+
+		try {
+			$tokens = new TokenIterator( $this->lexer->tokenize( $type ) );
+			$this->type_parser->parse( $tokens );
+
+			// Prose whose first word happens to parse leaves the rest of itself behind.
+			$this->parsed[ $type ] = $tokens->isCurrentTokenType( Lexer::TOKEN_END );
+		} catch ( ParserException $exception ) {
+			$this->parsed[ $type ] = false;
+		}
+
+		return $this->parsed[ $type ];
 	}
 
 	/**
 	 * Splits a union type into its members, ignoring `|` inside brackets.
 	 *
+	 * The type is expected to have been through `parses_as_type()` already; this
+	 * only finds the `|` that separate its top-level members.
+	 *
 	 * @param string $type Type as written in the docblock.
-	 * @return list<string>|null Members, or null if the type is not well formed.
+	 * @return list<string>|null Members, or null if the brackets are unbalanced.
 	 */
 	private function split_union( string $type ): ?array {
 		$type = trim( $type );
-		if ( preg_match( '#^[A-Za-z0-9_\\\\|<>{},:\'"\[\]\#\-\. ]+$#', $type ) !== 1 ) {
-			return null;
-		}
 
 		$members = array();
 		$member  = '';
