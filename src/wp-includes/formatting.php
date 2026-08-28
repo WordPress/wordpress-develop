@@ -605,26 +605,150 @@ function wpautop( $text, $br = true ) {
 }
 
 /**
- * Separates HTML elements and comments from the text.
+ * Splits an HTML input into an array of raw strings, where each token
+ * represents a tag, a comment, a text node, etc…
+ *
+ * No effort is made to clean up, sanitize, or normalize the segments
+ * of HTML. {@see WP_HTML_Processor::normalize()} for normalization.
+ *
+ * Consider using the HTML API directly instead of relying on this
+ * legacy function: it bloats memory by default and provides a text
+ * interface for working with HTML whereas the HTML API provides a
+ * low-overhead and convenient structural interface.
+ *
+ * ## Output format:
+ *
+ * To maintain legacy behaviors with this function from when it
+ * operated via {@see preg_split()}, the output array injects text
+ * nodes which do not appear in the source HTML. That is, the original
+ * array, relying on {@see PREG_SPLIT_DELIM_CAPTURE}, included a text
+ * span on each side of every tag-like or comment-like “delimiter” in
+ * the matched string.
+ *
+ * Therefore, the output array will always start and end with text nodes
+ * and will separate every non-text node with a text node. If there is no
+ * actual content in the interstitial space between tokens in the source
+ * document, an empty text node will be created.
+ *
+ * Example:
+ *
+ *     array( '', '<img>', '' )    === wp_html_split( '<img>' );
+ *     array( 'test' )             === wp_html_split( 'test' );
+ *     array( '', '<p>', 'test' )  === wp_html_split( '<p>test' );
+ *     array( 'test', '</p>', '' ) === wp_html_split( 'test</p>' );
+ *
+ *     array( '', '<br>', '', '<!-- comment -->', '' ) === wp_html_split( '<br><!-- comment -->' );
+ *
+ *     // To avoid ambiguity, leading less-than signs (<) in text nodes are encoded.
+ *     array( '&#60;3' ) === wp_split_html( '<3' );
  *
  * @since 4.2.4
+ * @since 6.9.0 Reliably parses HTML via the HTML API.
  *
- * @param string $input The text which has to be formatted.
- * @return string[] Array of the formatted text.
+ * @param string $input HTML document to split, one item for every token.
+ *                      These can be text nodes, tags, comments, or doctype declarations.
+ * @return string[] Tokens from input; starting and ending in a text node, and with text
+ *                  nodes between every non-text node (see docblock note).
  */
 function wp_html_split( $input ) {
-	return preg_split( get_html_split_regex(), $input, -1, PREG_SPLIT_DELIM_CAPTURE );
+	$token_reporter = new class( $input ) extends WP_HTML_Tag_Processor {
+		public function extract_raw_token() {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			return substr( $this->html, $here->start, $here->length );
+		}
+	};
+
+	$tokens   = array();
+	$was_text = false;
+	$next_at  = 0;
+	while ( $token_reporter->next_token() ) {
+		$raw_token = $token_reporter->extract_raw_token();
+		$next_at  += strlen( $raw_token );
+		$is_text   = '#text' === $token_reporter->get_token_name();
+
+		if ( ! $is_text ) {
+			if ( ! $was_text ) {
+				$tokens[] = '';
+			}
+
+			$tokens[] = $raw_token;
+			$was_text = false;
+			continue;
+		}
+
+		/*
+		 * WordPress looks for shortcodes and escaped shortcodes within the HTML
+		 * where they look like tags but HTML wouldn’t consider them tags, such
+		 * as in "<[header level=2]>". Look for these and artificially split the
+		 * text nodes where it looks like shortcodes reside inside.
+		 */
+		$shortcode_pattern = get_shortcode_regex();
+		$text_chunks       = preg_split( "~(<{$shortcode_pattern}>)~", $raw_token, -1, PREG_SPLIT_DELIM_CAPTURE );
+		foreach ( $text_chunks as $i => $token ) {
+			// The preg_split() always puts captured delimiters in the odd indices.
+			$is_shortcode_tag = 0x01 === $i & 0x01;
+
+			if ( $is_shortcode_tag && ! $was_text ) {
+				$tokens[] = '';
+			}
+
+			/*
+			 * Some legacy code assumes that text nodes will never start with a
+			 * less-than sign (<) but this isn’t the case, as some text nodes do
+			 * if the less-than sign doesn’t introduce a syntax token. To avoid
+			 * further corruption a leading less-than sign is replaced by its
+			 * encoded equivalent numeric character reference.
+			 */
+			if ( ! $is_shortcode_tag && '<' === ( $token[0] ?? '' ) ) {
+				$token = '&#60;' . substr( $token, 1 );
+			}
+
+			$was_text = ! $is_shortcode_tag;
+			$tokens[] = $token;
+		}
+	}
+
+	/*
+	 * The HTML API aborts when a string ends with the start of a
+	 * token which isn’t complete, such as an un-closed comment.
+	 * Typically it’s best to avoid processing or passing along
+	 * that content because it could impact any HTML which follows
+	 * it. However, to maintain backwards compatability this last
+	 * segment needs to appear.
+	 */
+	if ( $token_reporter->paused_at_incomplete_token() ) {
+		if ( ! $was_text ) {
+			$tokens[] = '';
+		}
+		$was_text = false;
+		$tokens[] = substr( $input, $next_at );
+	}
+
+	if ( ! $was_text ) {
+		$tokens[] = '';
+	}
+
+	return $tokens;
 }
 
 /**
  * Retrieves the regular expression for an HTML element.
  *
  * @since 4.4.0
+ * @deprecated 6.9.0 Use the HTML API instead.
  *
  * @return string The regular expression.
  */
 function get_html_split_regex() {
 	static $regex;
+
+	_deprecated_function(
+		__FUNCTION__,
+		'6.9.0',
+		'Use the HTML API instead.'
+	);
 
 	if ( ! isset( $regex ) ) {
 		// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
@@ -748,16 +872,44 @@ function _get_wptexturize_shortcode_regex( $tagnames ) {
 /**
  * Replaces characters or phrases within HTML elements only.
  *
- * @since 4.2.3
+ * This is a dangerous function which can break HTML syntax,
+ * consider using methods from the HTML API instead.
  *
- * @param string $haystack      The text which has to be formatted.
+ * Example:
+ *
+ *     '<p class="test">data-class</p>' === wp_replace_in_html_tags(
+ *         '<p data-class="test">data-class</p>',
+ *         array( 'data-class' => 'class' )
+ *     );
+ *
+ * @since 4.2.3
+ * @since {WP_VERSION} Reliably parses HTML via the HTML API.
+ *
+ * @param string $html          Replace matches inside the tags of this HTML.
  * @param array  $replace_pairs In the form array('from' => 'to', ...).
- * @return string The formatted text.
+ * @return string HTML after replacing the `$replace_pairs` matches, but only those
+ *                matches which appear inside HTML opening and closing tags.
  */
-function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
-	// Find all elements.
-	$textarr = wp_html_split( $haystack );
-	$changed = false;
+function wp_replace_in_html_tags( $html, $replace_pairs ) {
+	$token_updater = new class( $html ) extends WP_HTML_Tag_Processor {
+		public function extract_raw_token() {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			return substr( $this->html, $here->start, $here->length );
+		}
+
+		public function replace_raw_token( $new_raw_html ) {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$here->start,
+				$here->length,
+				$new_raw_html
+			);
+		}
+	};
 
 	// Optimize when searching for one item.
 	if ( 1 === count( $replace_pairs ) ) {
@@ -765,35 +917,44 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
 		$needle  = array_key_first( $replace_pairs );
 		$replace = $replace_pairs[ $needle ];
 
-		// Loop through delimiters (elements) only.
-		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
-			if ( str_contains( $textarr[ $i ], $needle ) ) {
-				$textarr[ $i ] = str_replace( $needle, $replace, $textarr[ $i ] );
-				$changed       = true;
+		while ( $token_updater->next_token() ) {
+			if ( '#text' === $token_updater->get_token_name() ) {
+				continue;
+			}
+
+			$token   = $token_updater->extract_raw_token();
+			$updated = str_replace( $needle, $replace, $token );
+
+			if ( $token !== $updated ) {
+				$token_updater->replace_raw_token( $updated );
 			}
 		}
 	} else {
 		// Extract all $needles.
 		$needles = array_keys( $replace_pairs );
 
-		// Loop through delimiters (elements) only.
-		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
+		while ( $token_updater->next_token() ) {
+			if ( '#text' === $token_updater->get_token_name() ) {
+				continue;
+			}
+
+			$token   = $token_updater->extract_raw_token();
+			$updated = $token;
+
 			foreach ( $needles as $needle ) {
-				if ( str_contains( $textarr[ $i ], $needle ) ) {
-					$textarr[ $i ] = strtr( $textarr[ $i ], $replace_pairs );
-					$changed       = true;
-					// After one strtr() break out of the foreach loop and look at next element.
+				if ( str_contains( $token, $needle ) ) {
+					$updated = strtr( $updated, $replace_pairs );
 					break;
 				}
+			}
+
+			if ( $token !== $updated ) {
+				$token_updater->replace_raw_token( $updated );
 			}
 		}
 	}
 
-	if ( $changed ) {
-		$haystack = implode( $textarr );
-	}
-
-	return $haystack;
+	return $token_updater->get_updated_html();
 }
 
 /**
