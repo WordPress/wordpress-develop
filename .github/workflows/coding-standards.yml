@@ -8,11 +8,6 @@ on:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
-    tags:
-      - '3.[89]'
-      - '3.[89].[0-9]+'
-      - '[4-9].[0-9]'
-      - '[4-9].[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -55,7 +50,14 @@ jobs:
     uses: ./.github/workflows/reusable-coding-standards-php.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
 
   # Runs the JavaScript coding standards checks.
   jshint:
@@ -63,7 +65,14 @@ jobs:
     uses: ./.github/workflows/reusable-coding-standards-javascript.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
 
   slack-notifications:
     name: Slack Notifications
@@ -80,6 +89,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
@@ -99,7 +109,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

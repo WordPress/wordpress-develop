@@ -118,7 +118,7 @@ jobs:
 
     steps:
       - name: Set up PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
@@ -152,6 +152,7 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
@@ -171,7 +172,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
