@@ -12,6 +12,11 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 let wpConfigOriginal;
 
+// The prefix used to trick WP into "not installed" mode. Kept as a single
+// constant since it has to stay in sync between the config rewrite and the
+// cleanup query below.
+const TEST_TABLE_PREFIX = 'wp_e2e_';
+
 test.describe( 'WordPress installation process', () => {
 	const wpConfig = join(
 		process.cwd(),
@@ -24,22 +29,22 @@ test.describe( 'WordPress installation process', () => {
 		// Changing the table prefix tricks WP into new install mode.
 		writeFileSync(
 			wpConfig,
-			wpConfigOriginal.replace( `$table_prefix = 'wp_';`, `$table_prefix = 'wp_e2e_';` )
+			wpConfigOriginal.replace( `$table_prefix = 'wp_';`, `$table_prefix = '${ TEST_TABLE_PREFIX }';` )
 		);
 	} );
 
 	test.afterEach( async () => {
 		writeFileSync( wpConfig, wpConfigOriginal );
 
-		// The test completes a full install under the `wp_e2e_` prefix. Drop those
-		// tables, otherwise the next run finds a pre-existing install and never
-		// reaches the installation screen it's meant to be testing.
+		// The test completes a full install under the `TEST_TABLE_PREFIX`. Drop
+		// those tables, otherwise the next run finds a pre-existing install and
+		// never reaches the installation screen it's meant to be testing.
 		const tables = [
 			'commentmeta', 'comments', 'links', 'options', 'postmeta', 'posts',
 			'term_relationships', 'term_taxonomy', 'termmeta', 'terms', 'usermeta', 'users',
 		];
 		const dropTablesPhp = tables
-			.map( ( table ) => `global $wpdb; $wpdb->query( "DROP TABLE IF EXISTS wp_e2e_${ table }" );` )
+			.map( ( table ) => `global $wpdb; $wpdb->query( "DROP TABLE IF EXISTS ${ TEST_TABLE_PREFIX }${ table }" );` )
 			.join( ' ' );
 
 		execFileSync(
