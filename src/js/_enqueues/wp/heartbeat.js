@@ -25,12 +25,13 @@
  *
  * @since 3.6.0
  * @output wp-includes/js/heartbeat.js
- *
+ */
+
+/**
  * @param {JQueryStatic} $         The jQuery object.
  * @param {Window}       window    The global window object.
  * @param {undefined}    undefined The undefined value.
  */
-
 ( function( $, window, undefined ) {
 
 	/**

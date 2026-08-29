@@ -2,10 +2,11 @@
 
 /**
  * @output wp-admin/js/user-profile.js
- *
- * @param {JQueryStatic} $ The jQuery object.
  */
 
+/**
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 (function($) {
 	var updateLock = false,
 		isSubmitting = false,

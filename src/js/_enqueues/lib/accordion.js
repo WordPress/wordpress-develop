@@ -27,10 +27,11 @@
  *
  * @since 3.6.0
  * @output wp-admin/js/accordion.js
- *
- * @param {JQueryStatic} $ The jQuery object.
  */
 
+/**
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 ( function( $ ){
 
 	$( function () {
