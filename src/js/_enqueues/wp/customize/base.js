@@ -254,7 +254,7 @@ window.wp = window.wp || {};
 		/**
 		 * Set the value and trigger all bound callbacks.
 		 *
-		 * @param {Object} to     New value.
+		 * @param {*}      to     New value.
 		 * @param {...*}   [args] Zero or more additional arguments to pass to the setter.
 		 * @return {wp.customize.Value} The instance of the Value.
 		 */

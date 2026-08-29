@@ -6325,7 +6325,7 @@
 		 * @param {Object} params.container  The container element for the preview frame.
 		 * @param {string} params.previewUrl The URL of the preview.
 		 * @param {Object} params.query      The query parameters for the preview URL.
-		 * @param {Object} options 		     The options object.
+		 * @param {Object} options           The options object.
 		 */
 		initialize: function( params, options ) {
 			var deferred = $.Deferred();
