@@ -57,7 +57,7 @@ jobs:
       checks: read
       contents: read
     timeout-minutes: 5
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
+    if: ${{ true }}
     outputs:
       previous_conclusion: ${{ steps.previous-attempt-result.outputs.result }}
       timed_out: ${{ steps.timeout-check.outputs.result }}
@@ -156,6 +156,8 @@ jobs:
               per_page: 100,
             } );
 
+            console.log( jobs );
+
             const cancelledJobs = jobs.filter( ( job ) => job.conclusion === 'cancelled' );
             const BATCH_SIZE = 100;
 
@@ -176,6 +178,8 @@ jobs:
                 }`,
                 { ids: batch.map( ( job ) => job.node_id ) }
               );
+
+              console.log( nodes );
 
               const timedOut = nodes.some( ( node ) => node && node.annotations.nodes.some(
                 ( annotation ) => /exceeded the maximum execution time/i.test( annotation.message )
