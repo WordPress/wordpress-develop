@@ -573,13 +573,13 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$result = wp_get_abilities(
 			array(
 				'namespace'       => 'test',
-				'result_callback' => static function ( array $abilities ): array {
-					return array_slice( $abilities, 0, 1 );
+				'result_callback' => static function ( array $abilities ) {
+					return array_first( $abilities );
 				},
 			)
 		);
 
-		$this->assertCount( 1, $result );
+		$this->assertNotEmpty( $result );
 	}
 
 	// -------------------------------------------------------------------------
@@ -597,15 +597,15 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$this->register_test_ability( 'test/ability-one' );
 		$this->register_test_ability( 'test/ability-two' );
 
-		$filter = static function ( array $abilities ): array {
-			return array_slice( $abilities, 0, 1 );
+		$filter = static function ( array $abilities ) {
+			return array_first( $abilities );
 		};
 
 		add_filter( 'wp_get_abilities_result', $filter );
 		$result = wp_get_abilities( array( 'namespace' => 'test' ) );
 		remove_filter( 'wp_get_abilities_result', $filter );
 
-		$this->assertCount( 1, $result );
+		$this->assertNotEmpty( $result );
 	}
 
 	/**

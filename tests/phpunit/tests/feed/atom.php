@@ -277,20 +277,18 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		$feed    = $this->do_atom();
 		$xml     = xml_to_array( $feed );
 		$entries = xml_find( $xml, 'feed', 'entry' );
-		$entries = array_slice( $entries, 0, 1 );
+		$entries = array_first( $entries );
 
 		$this->assertNotEmpty( $entries );
 
-		foreach ( $entries as $key => $entry ) {
-			$links = xml_find( $entries[ $key ]['child'], 'link' );
-			$i     = 0;
-			foreach ( (array) $links as $link ) {
-				if ( 'enclosure' === $link['attributes']['rel'] ) {
-					$this->assertSame( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
-					$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
-					$this->assertSame( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );
-					++$i;
-				}
+		$links = xml_find( $entries['child'], 'link' );
+		$i     = 0;
+		foreach ( (array) $links as $link ) {
+			if ( 'enclosure' === $link['attributes']['rel'] ) {
+				$this->assertSame( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
+				$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
+				$this->assertSame( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );
+				++$i;
 			}
 		}
 	}
