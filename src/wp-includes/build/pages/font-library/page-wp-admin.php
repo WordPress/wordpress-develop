@@ -270,23 +270,23 @@ function wp_font_library_wp_admin_render_page() {
 		#wpwrap {
 			overflow-y: auto;
 		}
-		body.js {
+		body {
 			background: #fff;
 		}
 
 		/* Reset wp-admin padding */
-		body.js #wpcontent {
+		#wpcontent {
 			padding-inline-start: 0;
 		}
-		body.js #wpbody-content {
+		#wpbody-content {
 			padding-bottom: 0;
 		}
 
 		/* Hide legacy admin elements */
-		body.js #wpbody-content > div:not(.boot-layout-container):not(#screen-meta) {
+		#wpbody-content > div:not(.boot-layout-container):not(#screen-meta) {
 			display: none;
 		}
-		body.js #wpfooter {
+		#wpfooter {
 			display: none;
 		}
 
