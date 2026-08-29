@@ -3557,7 +3557,7 @@
 	 *
 	 * @alias wp.customize.Menus~displayNavMenuName
 	 *
-	 * @param {string} name
+	 * @param {string} [name] The menu name.
 	 * @return {string} The sanitized display name, or a fallback "unnamed" string if empty.
 	 */
 	function displayNavMenuName( name ) {

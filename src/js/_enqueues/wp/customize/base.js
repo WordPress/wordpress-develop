@@ -16,9 +16,9 @@ window.wp = window.wp || {};
 	 * Similar to `goog.inherits`, but uses a hash of prototype properties and
 	 * class properties to be extended.
 	 *
-	 * @param {Object} parent      Parent class constructor to inherit from.
-	 * @param {Object} protoProps  Properties to apply to the prototype for use as class instance properties.
-	 * @param {Object} staticProps Properties to apply directly to the class constructor.
+	 * @param {Object} parent        Parent class constructor to inherit from.
+	 * @param {Object} [protoProps]  Properties to apply to the prototype for use as class instance properties.
+	 * @param {Object} [staticProps] Properties to apply directly to the class constructor.
 	 * @return {Function} The subclassed constructor.
 	 */
 	inherits = function( parent, protoProps, staticProps ) {
@@ -121,8 +121,8 @@ window.wp = window.wp || {};
 	/**
 	 * Creates a subclass of the class.
 	 *
-	 * @param {Object} protoProps  Properties to apply to the prototype.
-	 * @param {Object} staticProps Properties to apply directly to the class.
+	 * @param {Object} [protoProps]  Properties to apply to the prototype.
+	 * @param {Object} [staticProps] Properties to apply directly to the class.
 	 * @return {Function} The subclass.
 	 */
 	api.Class.extend = function( protoProps, staticProps ) {

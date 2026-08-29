@@ -92,9 +92,9 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			 *
 			 * @since 4.5.0
 			 * @param {string} id Partial ID.
-			 * @param {Object} options
-			 * @param {Object} options.params
-			 * @param {Object} options.params.navMenuArgs
+			 * @param {Object} [options]
+			 * @param {Object} [options.params]
+			 * @param {Object} [options.params.navMenuArgs]
 			 * @param {string} options.params.navMenuArgs.args_hmac
 			 * @param {string} [options.params.navMenuArgs.theme_location]
 			 * @param {number} [options.params.navMenuArgs.menu]
@@ -287,8 +287,8 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		 *
 		 * @param {wp.customize.Value} setting
 		 * @param {Object}             [options]
-		 * @param {boolean}            options.fire Whether to invoke the callback after binding.
-		 *                                          This is used when a dynamic setting is added.
+		 * @param {boolean}            [options.fire] Whether to invoke the callback after binding.
+		 *                                            This is used when a dynamic setting is added.
 		 * @return {boolean} Whether the setting was bound.
 		 */
 		self.bindSettingListener = function( setting, options ) {

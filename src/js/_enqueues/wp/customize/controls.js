@@ -2467,9 +2467,9 @@
 		/**
 		 * Update the number of themes in the section.
 		 *
-		 * @param {number} count The number of themes.
 		 * @since 4.9.0
 		 *
+		 * @param {number} [count] The number of themes. Defaults to the number of visible theme controls.
 		 * @return {void}
 		 */
 		updateCount: function( count ) {

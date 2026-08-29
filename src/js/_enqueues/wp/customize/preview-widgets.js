@@ -93,10 +93,9 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 * @alias wp.customize.widgetsPreview.WidgetPartial
 		 * @memberOf wp.customize.widgetsPreview
 		 *
-		 * @param {string} id             The partial's ID.
-		 * @param {Object} options        Options used to initialize the partial's
-		 *                                instance.
-		 * @param {Object} options.params The options parameters.
+		 * @param {string} id               The partial's ID.
+		 * @param {Object} [options]        Options used to initialize the partial's instance.
+		 * @param {Object} [options.params] The options parameters.
 		 */
 		initialize: function( id, options ) {
 			var partial = this, matches;
@@ -170,9 +169,9 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 * @memberOf wp.customize.widgetsPreview
 		 * @alias wp.customize.widgetsPreview.SidebarPartial
 		 *
-		 * @param {string} id             The partial's ID.
-		 * @param {Object} options        Options used to initialize the partial's instance.
-		 * @param {Object} options.params The options parameters.
+		 * @param {string} id               The partial's ID.
+		 * @param {Object} [options]        Options used to initialize the partial's instance.
+		 * @param {Object} [options.params] The options parameters.
 		 */
 		initialize: function( id, options ) {
 			var partial = this, matches;
