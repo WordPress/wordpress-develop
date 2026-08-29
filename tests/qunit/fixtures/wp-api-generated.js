@@ -11326,6 +11326,33 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/themes/activate": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "stylesheet": {
+                            "description": "Unique identifier for the theme.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/themes/activate"
+                    }
+                ]
+            }
+        },
         "/wp/v2/plugins": {
             "namespace": "wp/v2",
             "methods": [

@@ -142,6 +142,19 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		wp_set_current_user( self::$contributor_id );
 		switch_theme( 'rest-api' );
+
+		// In multisite, grant super admin privileges and network-enable the theme
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+
+			// Network-enable the twentytwentyfive theme
+			$allowed_themes = get_site_option( 'allowedthemes' );
+			if ( ! is_array( $allowed_themes ) ) {
+				$allowed_themes = array();
+			}
+			$allowed_themes['twentytwentyfive'] = true;
+			update_site_option( 'allowedthemes', $allowed_themes );
+		}
 	}
 
 	/**
@@ -1601,5 +1614,85 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_context_param() {
 		// Controller does not use get_context_param().
+	}
+
+	/**
+	 * Test that the activate_theme_permissions_check method returns an error for users without switch_themes capability.
+	 *
+	 * @covers WP_REST_Themes_Controller::activate_theme_permissions_check
+	 */
+	public function test_activate_theme_permissions_check() {
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request(
+			'POST',
+			self::$themes_route . '/activate'
+		);
+		$request->set_param( 'stylesheet', 'twentytwentyfive' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertSame( 'rest_cannot_activate_themes', $response->get_data()['code'] );
+	}
+
+	/**
+	 * Test that the validate_theme method returns an error for non-existent themes.
+	 *
+	 * @covers WP_REST_Themes_Controller::validate_theme
+	 */
+	public function test_activate_theme_validate_theme_returns_error_on_non_existent_theme() {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request(
+			'POST',
+			self::$themes_route . '/activate'
+		);
+		$request->set_param( 'stylesheet', 'non-existent-theme' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
+		$this->assertSame( 'rest_theme_not_found', $response->get_data()['data']['details']['stylesheet']['code'] );
+	}
+
+	/**
+	 * Test that the validate_theme method returns an error for themes that are not network enabled
+	 * when on a multisite installation.
+	 *
+	 * @group ms-required
+	 */
+	public function test_activate_theme_validate_theme_returns_error_on_not_network_enabled_theme() {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request(
+			'POST',
+			self::$themes_route . '/activate'
+		);
+		$request->set_param( 'stylesheet', 'twentytwentyfour' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
+		$this->assertSame( 'rest_theme_not_allowed', $response->get_data()['data']['details']['stylesheet']['code'] );
+	}
+
+	/**
+	 * Test that the activate_theme method activates a valid theme.
+	 *
+	 * @covers WP_REST_Themes_Controller::activate_theme
+	 */
+	public function test_activate_theme() {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request(
+			'POST',
+			self::$themes_route . '/activate'
+		);
+		$request->set_param( 'stylesheet', 'twentytwentyfive' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Theme activated successfully.', $response->get_data()['message'] );
+		$this->assertSame( 'twentytwentyfive', $response->get_data()['theme'] );
 	}
 }
