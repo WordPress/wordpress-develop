@@ -385,7 +385,7 @@
 		/**
 		 * Closes the panel.
 		 *
-		 * @param {Object} options Options for closing the panel.
+		 * @param {Object} [options] Options for closing the panel.
 		 */
 		close: function( options ) {
 			options = options || {};

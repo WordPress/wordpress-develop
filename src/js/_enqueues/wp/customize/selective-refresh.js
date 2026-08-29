@@ -552,6 +552,8 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * DOM element, such as in the case of a sidebar partial.
 		 * This container element itself will be replaced for partials that
 		 * have containerInclusive param defined as true.
+		 *
+		 * @member {jQuery}
 		 */
 		container: null,
 
@@ -561,6 +563,8 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * This will normally be the same as endNode since most placements appear as elements.
 		 * This is primarily useful for widget sidebars which do not have intrinsic containers, but
 		 * for which an HTML comment is output before to mark the starting position.
+		 *
+		 * @member {Node}
 		 */
 		startNode: null,
 
@@ -570,6 +574,8 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * This will normally be the same as startNode since most placements appear as elements.
 		 * This is primarily useful for widget sidebars which do not have intrinsic containers, but
 		 * for which an HTML comment is output before to mark the ending position.
+		 *
+		 * @member {Node}
 		 */
 		endNode: null,
 
@@ -586,7 +592,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		/**
 		 * The content for the partial when refreshed.
 		 *
-		 * @member {string}
+		 * @member {string|Object|boolean}
 		 */
 		addedContent: null,
 
@@ -598,7 +604,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * partial is not containerInclusive, then the removedNodes will be a
 		 * documentFragment containing the nodes removed.
 		 *
-		 * @member {Element|DocumentFragment}
+		 * @member {jQuery|DocumentFragment}
 		 */
 		removedNodes: null,
 
@@ -613,7 +619,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * @param {Node}                                  [args.startNode]    DOM node for the initial boundary of the placement.
 		 * @param {Node}                                  [args.endNode]      DOM node for the terminal boundary of the placement.
 		 * @param {Object}                                [args.context]      Context data included in the request in order to render the partial.
-		 * @param {string}                                [args.addedContent] The content for the partial when refreshed.
+		 * @param {string|Object|boolean}                 [args.addedContent] The content for the partial when refreshed.
 		 * @param {jQuery|DocumentFragment}               [args.removedNodes] DOM node(s) removed when the partial is refreshed.
 		 */
 		initialize: function( args ) {

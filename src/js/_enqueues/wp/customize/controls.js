@@ -3094,7 +3094,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {string} slug Theme slug.
+		 * @param {string} [slug] Theme slug. When omitted, whether switching is possible at all.
 		 * @return {boolean} Whether the theme can be switched to.
 		 */
 		canSwitchTheme: function canSwitchTheme( slug ) {
@@ -3926,7 +3926,7 @@
 		/**
 		 * Normal controls do not expand, so just expand its parent
 		 *
-		 * @param {Object} params Parameters to pass to the section's expand method.
+		 * @param {Object} [params] Parameters to pass to the section's expand method.
 		 */
 		expand: function ( params ) {
 			api.section( this.section() ).expand( params );
