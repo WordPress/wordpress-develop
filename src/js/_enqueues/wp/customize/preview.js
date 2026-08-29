@@ -110,8 +110,8 @@
 	 */
 	api.Preview = api.Messenger.extend(/** @lends wp.customize.Preview.prototype */{
 		/**
-		 * @param {Object} params  - Parameters to configure the messenger.
-		 * @param {Object} options - Extend any instance parameter or method with this object.
+		 * @param {Object} params  Parameters to configure the messenger.
+		 * @param {Object} options Extend any instance parameter or method with this object.
 		 */
 		initialize: function( params, options ) {
 			var preview = this, urlParser = document.createElement( 'a' );
@@ -723,9 +723,9 @@
 		/**
 		 * Create/update a setting value.
 		 *
-		 * @param {string}  id            - Setting ID.
-		 * @param {*}       value         - Setting value.
-		 * @param {boolean} [createDirty] - Whether to create a setting as dirty. Defaults to false.
+		 * @param {string}  id            Setting ID.
+		 * @param {*}       value         Setting value.
+		 * @param {boolean} [createDirty] Whether to create a setting as dirty. Defaults to false.
 		 */
 		setValue = function( id, value, createDirty ) {
 			var setting = api( id );
@@ -800,7 +800,7 @@
 		/**
 		 * Handle update to changeset UUID.
 		 *
-		 * @param {string} uuid - UUID.
+		 * @param {string} uuid UUID.
 		 * @return {void}
 		 */
 		handleUpdatedChangesetUuid = function( uuid ) {

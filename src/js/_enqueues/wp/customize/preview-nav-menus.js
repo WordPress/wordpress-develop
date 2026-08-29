@@ -91,7 +91,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			 * Constructor.
 			 *
 			 * @since 4.5.0
-			 * @param {string} id - Partial ID.
+			 * @param {string} id Partial ID.
 			 * @param {Object} options
 			 * @param {Object} options.params
 			 * @param {Object} options.params.navMenuArgs
@@ -131,9 +131,9 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			 * Return whether the setting is related to this partial.
 			 *
 			 * @since 4.5.0
-			 * @param {wp.customize.Value|string} setting  - Object or ID.
-			 * @param {number|Object|false|null}  newValue - New value, or null if the setting was just removed.
-			 * @param {number|Object|false|null}  oldValue - Old value, or null if the setting was just added.
+			 * @param {wp.customize.Value|string} setting  Object or ID.
+			 * @param {number|Object|false|null}  newValue New value, or null if the setting was just removed.
+			 * @param {number|Object|false|null}  oldValue Old value, or null if the setting was just added.
 			 * @return {boolean} True if the setting is related to this partial, false otherwise.
 			 */
 			isRelatedSetting: function( setting, newValue, oldValue ) {

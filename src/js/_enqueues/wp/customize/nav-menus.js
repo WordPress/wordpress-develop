@@ -95,9 +95,9 @@
 	 * @since 4.7.0
 	 * @alias wp.customize.Menus.insertAutoDraftPost
 	 *
-	 * @param {Object} params - Parameters for the draft post to create.
-	 * @param {string} params.post_type - Post type to add.
-	 * @param {string} params.post_title - Post title to use.
+	 * @param {Object} params            Parameters for the draft post to create.
+	 * @param {string} params.post_type  Post type to add.
+	 * @param {string} params.post_title Post title to use.
 	 * @return {jQuery.promise} Promise resolved with the added post.
 	 */
 	api.Menus.insertAutoDraftPost = function insertAutoDraftPost( params ) {
@@ -1334,7 +1334,7 @@
 			 * Handle setting addition.
 			 *
 			 * @since 4.9.0
-			 * @param {wp.customize.Setting} setting - Added setting.
+			 * @param {wp.customize.Setting} setting Added setting.
 			 * @return {void}
 			 */
 			function addChangeEventListener( setting ) {
@@ -1348,7 +1348,7 @@
 			 * Handle setting removal.
 			 *
 			 * @since 4.9.0
-			 * @param {wp.customize.Setting} setting - Removed setting.
+			 * @param {wp.customize.Setting} setting Removed setting.
 			 * @return {void}
 			 */
 			function removeChangeEventListener( setting ) {
@@ -1483,7 +1483,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {string|null} locationId - The ID of the location to select. `null` clears all selections.
+		 * @param {string|null} locationId The ID of the location to select. `null` clears all selections.
 		 * @return {void}
 		 */
 		selectDefaultLocation: function( locationId ) {
@@ -2149,8 +2149,8 @@
 		 *
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {Object}   [params] - Optional params.
-		 * @param {Function} [params.completeCallback] - Function to call when the form toggle has finished animating.
+		 * @param {Object}   [params]                  Optional params.
+		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
 		expandForm: function( params ) {
 			this.expand( params );
@@ -2169,8 +2169,8 @@
 		 *
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {Object}   [params] - Optional params.
-		 * @param {Function} [params.completeCallback] - Function to call when the form toggle has finished animating.
+		 * @param {Object}   [params]                  Optional params.
+		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
 		collapseForm: function( params ) {
 			this.collapse( params );
@@ -2182,9 +2182,9 @@
 		 * @deprecated this is poor naming, and it is better to directly set control.expanded( showOrHide )
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {boolean}  [showOrHide] - If not supplied, will be inverse of current visibility
-		 * @param {Object}   [params] - Optional params.
-		 * @param {Function} [params.completeCallback] - Function to call when the form toggle has finished animating.
+		 * @param {boolean}  [showOrHide]              If not supplied, will be inverse of current visibility
+		 * @param {Object}   [params]                  Optional params.
+		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
 		toggleForm: function( showOrHide, params ) {
 			if ( typeof showOrHide === 'undefined' ) {
@@ -2201,9 +2201,9 @@
 		 * Expand or collapse the menu item control.
 		 *
 		 * @since 4.6.0
-		 * @param {boolean}  [showOrHide] - If not supplied, will be inverse of current visibility
-		 * @param {Object}   [params] - Optional params.
-		 * @param {Function} [params.completeCallback] - Function to call when the form toggle has finished animating.
+		 * @param {boolean}  [showOrHide]              If not supplied, will be inverse of current visibility
+		 * @param {Object}   [params]                  Optional params.
+		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
 		onChangeExpanded: function( showOrHide, params ) {
 			var self = this, $menuitem, $inside, complete;
@@ -2270,8 +2270,8 @@
 		 *
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {Object}   [params] - Params object.
-		 * @param {Function} [params.completeCallback] - Optional callback function when focus has completed.
+		 * @param {Object}   [params]                  Params object.
+		 * @param {Function} [params.completeCallback] Optional callback function when focus has completed.
 		 */
 		focus: function( params ) {
 			params = params || {};
@@ -2597,7 +2597,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {Object.<string,boolean>} selections - A map of location selections.
+		 * @param {Object.<string,boolean>} selections A map of location selections.
 		 * @return {void}
 		 */
 		setSelections: function( selections ) {
@@ -2784,7 +2784,7 @@
 		 * Notice that the UI aspects here are handled by wpNavMenu.initSortables()
 		 * which is called in MenuSection.onChangeExpanded()
 		 *
-		 * @param {Object} menuList - The element that has sortable().
+		 * @param {Object} menuList The element that has sortable().
 		 */
 		_setupSortable: function( menuList ) {
 			var control = this;
@@ -3128,7 +3128,7 @@
 		/**
 		 * Add a new item to this menu.
 		 *
-		 * @param {Object} item - Value for the nav_menu_item setting to be created.
+		 * @param {Object} item Value for the nav_menu_item setting to be created.
 		 * @return {wp.customize.Menus.MenuItemControl} The newly-created nav_menu_item control instance.
 		 */
 		addItemToMenu: function( item ) {

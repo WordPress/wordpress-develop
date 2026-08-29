@@ -2343,8 +2343,8 @@
 	 *
 	 * This overrides the back button to serve the purpose of breadcrumb navigation.
 	 *
-	 * @param {wp.customize.Section|wp.customize.Panel|wp.customize.Control} focusConstruct - The object to initially focus.
-	 * @param {wp.customize.Section|wp.customize.Panel|wp.customize.Control} returnConstruct - The object to return focus.
+	 * @param {wp.customize.Section|wp.customize.Panel|wp.customize.Control} focusConstruct  The object to initially focus.
+	 * @param {wp.customize.Section|wp.customize.Panel|wp.customize.Control} returnConstruct The object to return focus.
 	 */
 	function focusConstructWithBreadcrumb( focusConstruct, returnConstruct ) {
 		focusConstruct.focus();

@@ -457,9 +457,9 @@ window.wp = window.wp || {};
 		/**
 		 * Add an item to the collection.
 		 *
-		 * @param {string|wp.customize.Class} item         - The item instance to add, or the ID for the instance to add.
-		 *                                                   When an ID string is supplied, then itemObject must be provided.
-		 * @param {wp.customize.Class}        [itemObject] - The item instance when the first argument is an ID string.
+		 * @param {string|wp.customize.Class} item         The item instance to add, or the ID for the instance to add.
+		 *                                                 When an ID string is supplied, then itemObject must be provided.
+		 * @param {wp.customize.Class}        [itemObject] The item instance when the first argument is an ID string.
 		 * @return {wp.customize.Class} The new item's instance, or an existing instance if already added.
 		 */
 		add: function( item, itemObject ) {
@@ -751,11 +751,11 @@ window.wp = window.wp || {};
 		/**
 		 * Initialize Messenger.
 		 *
-		 * @param {Object} params               - Parameters to configure the messenger.
-		 * @param {string} params.url           - The URL to communicate with.
-		 * @param {Window} params.targetWindow  - The window instance to communicate with. Default window.parent.
-		 * @param {string} [params.channel]     - If provided, will send the channel with each message and only accept messages a matching channel.
-		 * @param {Object} options              - Extend any instance parameter or method with this object.
+		 * @param {Object} params              Parameters to configure the messenger.
+		 * @param {string} params.url          The URL to communicate with.
+		 * @param {Window} params.targetWindow The window instance to communicate with. Default window.parent.
+		 * @param {string} [params.channel]    If provided, will send the channel with each message and only accept messages a matching channel.
+		 * @param {Object} options             Extend any instance parameter or method with this object.
 		 */
 		initialize: function( params, options ) {
 			// Target the parent frame by default, but only if a parent frame exists.
@@ -889,13 +889,13 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Notification
 	 *
-	 * @param {string}  code - The error code.
-	 * @param {Object}  params - Params.
-	 * @param {string}  [params.message=null] - The error message.
-	 * @param {string}  [params.type=error] - The notification type.
-	 * @param {boolean} [params.fromServer=false] - Whether the notification was server-sent.
-	 * @param {string}  [params.setting=null] - The setting ID that the notification is related to.
-	 * @param {*}       [params.data=null] - Any additional data.
+	 * @param {string}  code                      The error code.
+	 * @param {Object}  params                    Params.
+	 * @param {string}  [params.message=null]     The error message.
+	 * @param {string}  [params.type=error]       The notification type.
+	 * @param {boolean} [params.fromServer=false] Whether the notification was server-sent.
+	 * @param {string}  [params.setting=null]     The setting ID that the notification is related to.
+	 * @param {*}       [params.data=null]        Any additional data.
 	 */
 	api.Notification = api.Class.extend(/** @lends wp.customize.Notification.prototype */{
 
@@ -930,15 +930,15 @@ window.wp = window.wp || {};
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {string}   code - Notification code.
-		 * @param {Object}   params - Notification parameters.
-		 * @param {string}   params.message - Message.
-		 * @param {string}   [params.type=error] - Type.
-		 * @param {string}   [params.setting] - Related setting ID.
-		 * @param {Function} [params.template] - Function for rendering template. If not provided, this will come from templateId.
-		 * @param {string}   [params.templateId] - ID for template to render the notification.
-		 * @param {string}   [params.containerClasses] - Additional class names to add to the notification container.
-		 * @param {boolean}  [params.dismissible] - Whether the notification can be dismissed.
+		 * @param {string}   code                      Notification code.
+		 * @param {Object}   params                    Notification parameters.
+		 * @param {string}   params.message            Message.
+		 * @param {string}   [params.type=error]       Type.
+		 * @param {string}   [params.setting]          Related setting ID.
+		 * @param {Function} [params.template]         Function for rendering template. If not provided, this will come from templateId.
+		 * @param {string}   [params.templateId]       ID for template to render the notification.
+		 * @param {string}   [params.containerClasses] Additional class names to add to the notification container.
+		 * @param {boolean}  [params.dismissible]      Whether the notification can be dismissed.
 		 */
 		initialize: function( code, params ) {
 			var _params;

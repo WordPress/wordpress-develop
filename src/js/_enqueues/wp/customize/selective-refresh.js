@@ -59,14 +59,14 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {string}  id                      - Unique identifier for the partial instance.
-		 * @param {Object}  options                 - Options hash for the partial instance.
-		 * @param {string}  options.type            - Type of partial (e.g. nav_menu, widget, etc)
-		 * @param {string}  options.selector        - jQuery selector to find the container element in the page.
-		 * @param {Array}   options.settings        - The IDs for the settings the partial relates to.
-		 * @param {string}  options.primarySetting  - The ID for the primary setting the partial renders.
-		 * @param {boolean} options.fallbackRefresh - Whether to refresh the entire preview in case of a partial refresh failure.
-		 * @param {Object}  [options.params]        - Deprecated wrapper for the above properties.
+		 * @param {string}  id                      Unique identifier for the partial instance.
+		 * @param {Object}  options                 Options hash for the partial instance.
+		 * @param {string}  options.type            Type of partial (e.g. nav_menu, widget, etc)
+		 * @param {string}  options.selector        jQuery selector to find the container element in the page.
+		 * @param {Array}   options.settings        The IDs for the settings the partial relates to.
+		 * @param {string}  options.primarySetting  The ID for the primary setting the partial renders.
+		 * @param {boolean} options.fallbackRefresh Whether to refresh the entire preview in case of a partial refresh failure.
+		 * @param {Object}  [options.params]        Deprecated wrapper for the above properties.
 		 */
 		initialize: function( id, options ) {
 			var partial = this;
@@ -404,10 +404,10 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {wp.customize.selectiveRefresh.Placement} placement              - The placement to render into.
-		 * @param {Element|jQuery}                          [placement.container]  - This param will be empty if there was no element matching the selector.
-		 * @param {string|Object|boolean}                   placement.addedContent - Rendered HTML content, a data object for JS templates to render, or false if no render.
-		 * @param {Object}                                  [placement.context]    - Optional context information about the container.
+		 * @param {wp.customize.selectiveRefresh.Placement} placement              The placement to render into.
+		 * @param {Element|jQuery}                          [placement.container]  This param will be empty if there was no element matching the selector.
+		 * @param {string|Object|boolean}                   placement.addedContent Rendered HTML content, a data object for JS templates to render, or false if no render.
+		 * @param {Object}                                  [placement.context]    Optional context information about the container.
 		 * @return {boolean} Whether the rendering was successful and the fallback was not invoked.
 		 */
 		renderContent: function( placement ) {
