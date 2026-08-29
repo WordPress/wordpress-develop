@@ -534,6 +534,7 @@ class WP_Block_Type {
 	 * Sets block type properties.
 	 *
 	 * @since 5.0.0
+	 * @since 7.1.0 Added Support for rich-text attribute type, which is normalized to string for server-side rendering.
 	 *
 	 * @param array|string $args Array or string of arguments for registering a block type.
 	 *                           See WP_Block_Type::__construct() for information on accepted arguments.
@@ -557,6 +558,16 @@ class WP_Block_Type {
 		foreach ( static::GLOBAL_ATTRIBUTES as $attr_key => $attr_schema ) {
 			if ( ! array_key_exists( $attr_key, $args['attributes'] ) ) {
 				$args['attributes'][ $attr_key ] = $attr_schema;
+			}
+		}
+
+		// Normalize block attribute types. The 'rich-text' type is used in
+		// block.json for the editor, but is not a valid JSON Schema type.
+		// Map it to 'string' since rich text values are always strings on
+		// the server side.
+		foreach ( $args['attributes'] as $key => $attribute ) {
+			if ( isset( $attribute['type'] ) && 'rich-text' === $attribute['type'] ) {
+				$args['attributes'][ $key ]['type'] = 'string';
 			}
 		}
 
