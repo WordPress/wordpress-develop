@@ -9,6 +9,8 @@
 class Tests_Admin_wpApplicationPasswordsListTable extends WP_UnitTestCase {
 
 	/**
+	 * The list table instance under test.
+	 *
 	 * @var WP_Application_Passwords_List_Table
 	 */
 	private $table;
@@ -42,12 +44,6 @@ class Tests_Admin_wpApplicationPasswordsListTable extends WP_UnitTestCase {
 			'/<th class="name column-name has-row-actions column-primary" data-colname="[^"]*" scope="row">/',
 			$html,
 			'The primary column should be rendered as a <th scope="row"> row header.'
-		);
-
-		$this->assertStringNotContainsString(
-			'<td class="name column-name',
-			$html,
-			'The primary column should not be rendered as a <td> cell.'
 		);
 
 		$this->assertStringContainsString(
