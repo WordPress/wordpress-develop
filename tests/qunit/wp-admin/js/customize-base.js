@@ -275,8 +275,12 @@ jQuery( function( $ ) {
 		assert.equal( second.get(), 'setOnFirst' );
 
 		first.unsync( second );
+
+		// Both directions have to stop, so check each of them.
 		second.set( 'setOnSecondAgain' );
-		assert.equal( first.get(), 'setOnFirst', 'Values stop tracking each other once unsynced.' );
+		assert.equal( first.get(), 'setOnFirst', 'First value stops following the second once unsynced.' );
+		first.set( 'setOnFirstAgain' );
+		assert.equal( second.get(), 'setOnSecondAgain', 'Second value stops following the first once unsynced.' );
 	});
 
 	QUnit.module( 'Customize Base: Values Class' );
