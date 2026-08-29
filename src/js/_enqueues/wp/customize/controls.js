@@ -4633,8 +4633,8 @@
 		 * control-specific data, to be fed to the imgAreaSelect plugin in
 		 * wp.media.view.Cropper.
 		 *
-		 * @param {wp.media.model.Attachment}   attachment
-		 * @param {wp.media.controller.Cropper} controller
+		 * @param {wp.media.model.Attachment}   attachment The attachment to be cropped.
+		 * @param {wp.media.controller.Cropper} controller The cropper controller.
 		 * @return {Object} Options
 		 */
 		calculateImageSelectOptions: function( attachment, controller ) {
@@ -4989,8 +4989,8 @@
 		 * theme-specific data, to be fed to the imgAreaSelect plugin in
 		 * wp.media.view.Cropper.
 		 *
-		 * @param {wp.media.model.Attachment}   attachment
-		 * @param {wp.media.controller.Cropper} controller
+		 * @param {wp.media.model.Attachment}   attachment The attachment to be cropped.
+		 * @param {wp.media.controller.Cropper} controller The cropper controller.
 		 * @return {Object} Options
 		 */
 		calculateImageSelectOptions: function(attachment, controller) {
@@ -6146,8 +6146,8 @@
 	 * @since 3.4.0
 	 *
 	 * @type {Function}
-	 * @param {...string}                ids      One or more ids for controls to obtain.
-	 * @param {deferredControlsCallback} callback Function called when all supplied controls exist.
+	 * @param {...string}                             ids      One or more ids for controls to obtain.
+	 * @param {wp.customize.deferredControlsCallback} callback Function called when all supplied controls exist.
 	 * @return {wp.customize.Control|undefined|jQuery.promise} Control instance or undefined (if function called with one id param),
 	 *                                                         or promise resolving to requested controls.
 	 *
@@ -6208,8 +6208,8 @@
 	 * @since 3.4.0
 	 *
 	 * @type {Function}
-	 * @param {...string}                 ids       One or more ids for sections to obtain.
-	 * @param {deferredSectionsCallback} [callback] Function called when all supplied sections exist.
+	 * @param {...string}                             ids        One or more ids for sections to obtain.
+	 * @param {wp.customize.deferredSectionsCallback} [callback] Function called when all supplied sections exist.
 	 * @return {wp.customize.Section|undefined|jQuery.promise} Section instance or undefined (if function called with one id param),
 	 *                                                         or promise resolving to requested sections.
 	 *
@@ -6243,8 +6243,8 @@
 	 * @since 4.0.0
 	 *
 	 * @type {Function}
-	 * @param {...string}              ids      One or more ids for panels to obtain.
-	 * @param {deferredPanelsCallback} callback Function called when all supplied panels exist.
+	 * @param {...string}                           ids      One or more ids for panels to obtain.
+	 * @param {wp.customize.deferredPanelsCallback} callback Function called when all supplied panels exist.
 	 * @return {wp.customize.Panel|undefined|jQuery.promise} Panel instance or undefined (if function called with one id param),
 	 *                                                       or promise resolving to requested panels.
 	 *
@@ -6278,8 +6278,8 @@
 	 * @since 4.9.0
 	 *
 	 * @type {Function}
-	 * @param {...string}                     codes      One or more codes for notifications to obtain.
-	 * @param {deferredNotificationsCallback} [callback] Function called when all supplied notifications exist.
+	 * @param {...string}                                  codes      One or more codes for notifications to obtain.
+	 * @param {wp.customize.deferredNotificationsCallback} [callback] Function called when all supplied notifications exist.
 	 * @return {wp.customize.Notification|undefined|jQuery.promise} Notification instance or undefined (if function called with one code param),
 	 *                                                              or promise resolving to requested notifications.
 	 *

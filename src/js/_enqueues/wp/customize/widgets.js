@@ -254,7 +254,7 @@
 
 		/**
 		 * Updates the count of the available widgets that have the `search_matched` attribute.
- 		 */
+		 */
 		updateSearchMatchesCount: function() {
 			this.searchMatchesCount = this.collection.where({ search_matched: true }).length;
 		},
@@ -274,7 +274,7 @@
 
 		/**
 		 * Changes visibility of available widgets.
- 		 */
+		 */
 		updateList: function() {
 			this.collection.each( function( widget ) {
 				var widgetTpl = $( '#widget-tpl-' + widget.id );
@@ -289,7 +289,7 @@
 		 * Highlights a widget.
 		 *
 		 * @param {jQuery} widgetTpl The widget template to highlight.
- 		 */
+		 */
 		select: function( widgetTpl ) {
 			this.selected = $( widgetTpl );
 			this.selected.siblings( '.widget-tpl' ).removeClass( 'selected' );
@@ -323,7 +323,7 @@
 		 * Adds a selected widget to the sidebar.
 		 *
 		 * @param {jQuery} widgetTpl The widget template to add.
- 		 */
+		 */
 		submit: function( widgetTpl ) {
 			var widgetId, widget, widgetFormControl;
 
@@ -988,9 +988,9 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {boolean}  active
-		 * @param {Object}   args
-		 * @param {Function} args.completeCallback
+		 * @param {boolean}  active                Whether the widget is rendered.
+		 * @param {Object}   args                  Args.
+		 * @param {Function} args.completeCallback Function to call once the class has been toggled.
 		 */
 		onChangeActive: function ( active, args ) {
 			// Note: there is a second 'args' parameter being passed, merged on top of this.defaultActiveArguments.

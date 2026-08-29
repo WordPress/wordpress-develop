@@ -891,7 +891,7 @@ window.wp = window.wp || {};
 	 *
 	 * @param {string}  code - The error code.
 	 * @param {Object}  params - Params.
-	 * @param {string}  params.message=null - The error message.
+	 * @param {string}  [params.message=null] - The error message.
 	 * @param {string}  [params.type=error] - The notification type.
 	 * @param {boolean} [params.fromServer=false] - Whether the notification was server-sent.
 	 * @param {string}  [params.setting=null] - The setting ID that the notification is related to.

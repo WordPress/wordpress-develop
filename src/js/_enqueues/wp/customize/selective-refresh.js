@@ -344,7 +344,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {wp.customize.selectiveRefresh.Placement} placement
+		 * @param {wp.customize.selectiveRefresh.Placement} placement The placement to prepare.
 		 */
 		preparePlacement: function( placement ) {
 			$( placement.container ).addClass( 'customize-partial-refreshing' );
@@ -404,7 +404,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {wp.customize.selectiveRefresh.Placement} placement
+		 * @param {wp.customize.selectiveRefresh.Placement} placement              - The placement to render into.
 		 * @param {Element|jQuery}                          [placement.container]  - This param will be empty if there was no element matching the selector.
 		 * @param {string|Object|boolean}                   placement.addedContent - Rendered HTML content, a data object for JS templates to render, or false if no render.
 		 * @param {Object}                                  [placement.context]    - Optional context information about the container.
@@ -536,7 +536,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		/**
 		 * The partial with which the container is associated.
 		 *
-		 * @param {wp.customize.selectiveRefresh.Partial}
+		 * @member {wp.customize.selectiveRefresh.Partial}
 		 */
 		partial: null,
 
@@ -574,14 +574,14 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * This provides information about the placement which is included in the request
 		 * in order to render the partial properly.
 		 *
-		 * @param {Object}
+		 * @member {Object}
 		 */
 		context: null,
 
 		/**
 		 * The content for the partial when refreshed.
 		 *
-		 * @param {string}
+		 * @member {string}
 		 */
 		addedContent: null,
 
@@ -593,7 +593,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * partial is not containerInclusive, then the removedNodes will be a
 		 * documentFragment containing the nodes removed.
 		 *
-		 * @param {Element|DocumentFragment}
+		 * @member {Element|DocumentFragment}
 		 */
 		removedNodes: null,
 
@@ -602,14 +602,14 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {Object}                                args
-		 * @param {wp.customize.selectiveRefresh.Partial} args.partial
-		 * @param {jQuery|Element}                        [args.container]
-		 * @param {Node}                                  [args.startNode]
-		 * @param {Node}                                  [args.endNode]
-		 * @param {Object}                                [args.context]
-		 * @param {string}                                [args.addedContent]
-		 * @param {jQuery|DocumentFragment}               [args.removedNodes]
+		 * @param {Object}                                args                The placement properties.
+		 * @param {wp.customize.selectiveRefresh.Partial} args.partial        The partial with which the container is associated.
+		 * @param {jQuery|Element}                        [args.container]    DOM element which contains the placement's contents.
+		 * @param {Node}                                  [args.startNode]    DOM node for the initial boundary of the placement.
+		 * @param {Node}                                  [args.endNode]      DOM node for the terminal boundary of the placement.
+		 * @param {Object}                                [args.context]      Context data included in the request in order to render the partial.
+		 * @param {string}                                [args.addedContent] The content for the partial when refreshed.
+		 * @param {jQuery|DocumentFragment}               [args.removedNodes] DOM node(s) removed when the partial is refreshed.
 		 */
 		initialize: function( args ) {
 			var placement = this;
@@ -856,9 +856,9 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @param {jQuery|HTMLElement} [rootElement]
-	 * @param {Object}             [options]
-	 * @param {boolean}            [options.triggerRendered=true]
+	 * @param {jQuery|HTMLElement} [rootElement]                  Element to scan for partials. Defaults to the document element.
+	 * @param {Object}             [options]                      Options.
+	 * @param {boolean}            [options.triggerRendered=true] Whether to trigger the rendered event for the placements found.
 	 */
 	self.addPartials = function( rootElement, options ) {
 		var containerElements;

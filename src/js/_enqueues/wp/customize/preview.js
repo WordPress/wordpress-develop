@@ -1,7 +1,12 @@
-/*
+/**
+ * @output wp-includes/js/customize-preview.js
+ */
+
+/**
  * Script run inside a Customizer preview frame.
  *
- * @output wp-includes/js/customize-preview.js
+ * @param {Object}       wp The WordPress global object.
+ * @param {JQueryStatic} $  The jQuery object.
  */
 (function( wp, $ ){
 	var api = wp.customize,
@@ -237,7 +242,6 @@
 	 *
 	 * @since 4.7.0
 	 * @access protected
-	 * @access private
 	 *
 	 * @return {void}
 	 */
