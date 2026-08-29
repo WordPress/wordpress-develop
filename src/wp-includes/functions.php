@@ -652,7 +652,7 @@ function maybe_serialize( $data ) {
  */
 function maybe_unserialize( $data ) {
 	if ( is_serialized( $data ) ) { // Don't attempt to unserialize data that wasn't serialized going in.
-		return @unserialize( trim( $data ) );
+		return @unserialize( trim( $data ), array( 'allowed_classes' => false ) );
 	}
 
 	return $data;
