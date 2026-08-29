@@ -3,6 +3,11 @@
  */
 
 /* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
+
+/**
+ * @param {Object}       wp The WordPress global object.
+ * @param {JQueryStatic} $  The jQuery object.
+ */
 (function( wp, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
@@ -3062,7 +3067,7 @@
 		}
 	});
 
-	api.ThemesPanel = api.Panel.extend(/** @lends wp.customize.ThemsPanel.prototype */{
+	api.ThemesPanel = api.Panel.extend(/** @lends wp.customize.ThemesPanel.prototype */{
 
 		/**
 		 *  Class wp.customize.ThemesPanel.

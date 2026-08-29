@@ -5,6 +5,11 @@
 /* global jQuery, JSON, _customizePartialRefreshExports, console */
 
 /** @namespace wp.customize.selectiveRefresh */
+
+/**
+ * @param {JQueryStatic} $   The jQuery object.
+ * @param {Object}       api The Customizer API.
+ */
 wp.customize.selectiveRefresh = ( function( $, api ) {
 	'use strict';
 	var self, Partial, Placement;
