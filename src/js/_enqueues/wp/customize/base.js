@@ -418,7 +418,7 @@ window.wp = window.wp || {};
 		 * the last to be a function callback that will be invoked when the requested
 		 * items are available.
 		 *
-		 * @see {api.Values.when}
+		 * @see {@link wp.customize.Values#when}
 		 *
 		 * @param {string}               id     ID of the item.
 		 * @param {...(string|Function)} [args] Zero or more IDs of items to wait for and a callback
@@ -742,7 +742,7 @@ window.wp = window.wp || {};
 		 * @param {string} key     Unique identifier.
 		 * @param {*}      initial Initial value.
 		 * @param {*}      options Options hash. Optional.
-		 * @return {Value} Class instance of the Value.
+		 * @return {wp.customize.Value} Class instance of the Value.
 		 */
 		add: function( key, initial, options ) {
 			return this[ key ] = new api.Value( initial, options );

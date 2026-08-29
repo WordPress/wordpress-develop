@@ -166,7 +166,7 @@
 		 *
 		 * @since 4.9.0
 		 * @param {string} code Notification code to remove.
-		 * @return {api.Notification} Added instance (or existing instance if it was already added).
+		 * @return {wp.customize.Notification} Added instance (or existing instance if it was already added).
 		 */
 		remove: function( code ) {
 			var collection = this;
@@ -5060,7 +5060,7 @@
 		 * current theme, a cropping step after selection may be required or
 		 * skippable.
 		 *
-		 * @param {event} event
+		 * @param {jQuery.Event} event Event.
 		 */
 		openMedia: function(event) {
 			var l10n = _wpMediaViewsL10n;
