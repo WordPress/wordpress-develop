@@ -6151,8 +6151,8 @@
 	 * @since 3.4.0
 	 *
 	 * @type {Function}
-	 * @param {...string}                             ids      One or more ids for controls to obtain.
-	 * @param {wp.customize.deferredControlsCallback} callback Function called when all supplied controls exist.
+	 * @param {...string}                             ids        One or more ids for controls to obtain.
+	 * @param {wp.customize.deferredControlsCallback} [callback] Function called when all supplied controls exist.
 	 * @return {wp.customize.Control|undefined|jQuery.promise} Control instance or undefined (if function called with one id param),
 	 *                                                         or promise resolving to requested controls.
 	 *
@@ -6248,8 +6248,8 @@
 	 * @since 4.0.0
 	 *
 	 * @type {Function}
-	 * @param {...string}                           ids      One or more ids for panels to obtain.
-	 * @param {wp.customize.deferredPanelsCallback} callback Function called when all supplied panels exist.
+	 * @param {...string}                           ids        One or more ids for panels to obtain.
+	 * @param {wp.customize.deferredPanelsCallback} [callback] Function called when all supplied panels exist.
 	 * @return {wp.customize.Panel|undefined|jQuery.promise} Panel instance or undefined (if function called with one id param),
 	 *                                                       or promise resolving to requested panels.
 	 *
