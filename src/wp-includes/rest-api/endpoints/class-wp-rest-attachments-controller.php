@@ -2603,6 +2603,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			// Converted-video companions for an animated GIF (the MP4/WebM and its poster).
 			'animated_video',
 			'animated_video_poster',
+			// Web-safe transcode kept alongside the original video upload.
+			'optimized_video',
 		);
 	}
 
@@ -2758,13 +2760,28 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $post;
 		}
 
+		/** @var non-empty-string|non-empty-list<non-empty-string> $image_size */
+		$image_size = $request['image_size'];
+
+		/*
+		 * Sideloads extend an existing attachment with a file derived from it,
+		 * which is an image or PDF sub-size in every case but one: the web-safe
+		 * transcode of a video is sideloaded as a companion of the video
+		 * attachment it was produced from, so a video parent is valid for that
+		 * size and no other.
+		 */
+		$is_optimized_video_companion =
+			'optimized_video' === $image_size &&
+			wp_attachment_is( 'video', $post );
+
 		if (
 			! wp_attachment_is_image( $post ) &&
-			! wp_attachment_is( 'pdf', $post )
+			! wp_attachment_is( 'pdf', $post ) &&
+			! $is_optimized_video_companion
 		) {
 			return new WP_Error(
 				'rest_post_invalid_id',
-				__( 'Invalid post ID. Only images and PDFs can be sideloaded.' ),
+				__( 'Invalid post ID. Only images, PDFs and videos can be sideloaded.' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -2847,21 +2864,23 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$type = $file['type'];
 		$path = $file['file'];
 
-		/** @var non-empty-string|non-empty-list<non-empty-string> $image_size */
-		$image_size = $request['image_size'];
-
 		/*
-		 * Validate raster sub-sizes before storing them. Two companion sizes
+		 * Validate raster sub-sizes before storing them. Three companion sizes
 		 * are exempt because wp_getimagesize() may not be able to read the
-		 * file at all: the 'animated_video' companion of an animated GIF is a
-		 * video (MP4/WebM), and a source-format original (e.g. a HEIC or JXL
-		 * kept next to its JPEG derivative) may be an unreadable format. Their
+		 * file at all: the 'animated_video' companion of an animated GIF and
+		 * the 'optimized_video' companion of a video upload are videos
+		 * (MP4/WebM), and a source-format original (e.g. a HEIC or JXL kept
+		 * next to its JPEG derivative) may be an unreadable format. Their
 		 * dimensions are neither validated nor recorded. The
 		 * 'animated_video_poster' companion is a real image, so it is still
 		 * read and rejected if unreadable; validate_image_dimensions() skips
 		 * only the registered-size constraint for it.
 		 */
-		$skip_dimension_read = self::IMAGE_SIZE_SOURCE_ORIGINAL === $image_size || 'animated_video' === $image_size;
+		$skip_dimension_read = in_array(
+			$image_size,
+			array( self::IMAGE_SIZE_SOURCE_ORIGINAL, 'animated_video', 'optimized_video' ),
+			true
+		);
 		$size                = false;
 
 		if ( ! $skip_dimension_read ) {
@@ -2933,6 +2952,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			 * Converted-video companion of an animated GIF (the MP4/WebM or
 			 * its static first-frame poster). Record the filename so
 			 * finalize_item can store it under its dedicated meta key.
+			 */
+			$sub_size_data['file'] = wp_basename( $path );
+		} elseif ( 'optimized_video' === $image_size ) {
+			/*
+			 * Web-safe transcode of a video upload. The original video stays
+			 * the attachment; record the companion's filename so finalize_item
+			 * can store it under its dedicated meta key.
 			 */
 			$sub_size_data['file'] = wp_basename( $path );
 		} elseif ( 'scaled' === $image_size || 'original' === $image_size ) {
@@ -3165,6 +3191,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				$metadata[ self::META_KEY_SOURCE_IMAGE ] ?? null,
 				$metadata['animated_video'] ?? null,
 				$metadata['animated_video_poster'] ?? null,
+				$metadata['optimized_video'] ?? null,
 			);
 
 			if ( ! empty( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
@@ -3379,6 +3406,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 				// Static first-frame poster for the converted video.
 				$metadata['animated_video_poster'] = $sub_size['file'];
+			} elseif ( 'optimized_video' === $image_size ) {
+				if ( empty( $sub_size['file'] ) ) {
+					continue;
+				}
+
+				/*
+				 * Web-safe transcode of a video upload. Stored under its own
+				 * meta key; the original video stays the attachment. Cleanup on
+				 * attachment delete is handled by wp_delete_attachment_files().
+				 */
+				$metadata['optimized_video'] = $sub_size['file'];
 			} else {
 				if ( empty( $sub_size['file'] ) ) {
 					continue;
