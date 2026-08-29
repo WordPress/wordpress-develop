@@ -141,7 +141,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		// last_changed and num_queries should bump.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
 		$this->assertCount( 3, $terms );
-		$time1 = wp_cache_get( 'last_changed', 'terms' );
+		$time1 = wp_cache_get( 'last_changed', 'term-queries' );
 		$this->assertNotEmpty( $time1 );
 		$this->assertSame( $num_queries + 2, get_num_queries() );
 
@@ -150,7 +150,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
 		$this->assertCount( 3, $terms );
-		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'term-queries' ) );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
