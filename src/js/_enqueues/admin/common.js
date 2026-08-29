@@ -1407,7 +1407,7 @@ $( function() {
 		var el = e.target, selStart, selEnd, val, scroll, sel;
 
 		// After pressing escape key (keyCode: 27), the tab key should tab out of the textarea.
-		if ( e.keyCode == 27 ) {
+		if ( e.key == 'Escape' ) {
 			// When pressing Escape: Opera 12 and 27 blur form fields, IE 8 clears them.
 			e.preventDefault();
 			$(el).data('tab-out', true);
@@ -1415,7 +1415,7 @@ $( function() {
 		}
 
 		// Only listen for plain tab key (keyCode: 9) without any modifiers.
-		if ( e.keyCode != 9 || e.ctrlKey || e.altKey || e.shiftKey )
+		if ( e.key != 'Tab' || e.ctrlKey || e.altKey || e.shiftKey )
 			return;
 
 		// After tabbing out, reset it so next time the tab key can be used again.
@@ -1805,11 +1805,11 @@ $( function() {
 				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
 				    return;
 				}
-				if ( 27 === event.keyCode ) {
+				if ( 'Escape' === event.key ) {
 					$( toggleButton ).trigger( 'click.wp-responsive' );
 					$( toggleButton ).find( 'a' ).trigger( 'focus' );
 				} else {
-					if ( 9 === event.keyCode ) {
+					if ( 'Tab' === event.key ) {
 						var sidebar        = $( '#adminmenuwrap' )[0];
 						var focusedElement = event.relatedTarget || document.activeElement;
 						// A brief delay is required to allow focus to switch to another element.

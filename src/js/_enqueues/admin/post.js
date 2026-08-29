@@ -608,7 +608,7 @@ jQuery( function($) {
 
 		// On [Enter] submit the taxonomy.
 		$('#new' + taxonomy).on( 'keypress', function(event){
-			if( 13 === event.keyCode ) {
+			if( 'Enter' === event.key ) {
 				event.preventDefault();
 				$('#' + taxonomy + '-add-submit').trigger( 'click' );
 			}

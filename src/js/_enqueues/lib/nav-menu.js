@@ -1110,7 +1110,7 @@
 				$( '#custom-menu-item-url' ).removeAttr( 'aria-invalid' ).removeAttr( 'aria-describedby' );
 				$( '#custom-url-error' ).hide();
 
-				if ( e.keyCode === 13 ) {
+				if ( e.key === 'Enter' ) {
 					e.preventDefault();
 					$( '#submit-customlinkdiv' ).trigger( 'click' );
 				}

@@ -550,11 +550,11 @@
 			var fn, id;
 
 			// Escape key.
-			if ( 27 === event.keyCode ) {
+			if ( 'Escape' === event.key ) {
 				wpLink.close();
 				event.stopImmediatePropagation();
 			// Tab key.
-			} else if ( 9 === event.keyCode ) {
+			} else if ( 'Tab' === event.key ) {
 				id = event.target.id;
 
 				// wp-link-submit must always be the last focusable element in the dialog.
@@ -569,7 +569,7 @@
 			}
 
 			// Up Arrow and Down Arrow keys.
-			if ( event.shiftKey || ( 38 !== event.keyCode && 40 !== event.keyCode ) ) {
+			if ( event.shiftKey || ( 'ArrowUp' !== event.key && 'ArrowDown' !== event.key ) ) {
 				return;
 			}
 
@@ -579,7 +579,7 @@
 			}
 
 			// Up Arrow key.
-			fn = 38 === event.keyCode ? 'prev' : 'next';
+			fn = 'ArrowUp' === event.key ? 'prev' : 'next';
 			clearInterval( wpLink.keyInterval );
 			wpLink[ fn ]();
 			wpLink.keyInterval = setInterval( wpLink[ fn ], wpLink.keySensitivity );
@@ -588,7 +588,7 @@
 
 		keyup: function( event ) {
 			// Up Arrow and Down Arrow keys.
-			if ( 38 === event.keyCode || 40 === event.keyCode ) {
+			if ( 'ArrowUp' === event.key || 'ArrowDown' === event.key ) {
 				clearInterval( wpLink.keyInterval );
 				event.preventDefault();
 			}
