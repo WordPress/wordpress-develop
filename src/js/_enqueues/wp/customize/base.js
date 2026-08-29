@@ -753,7 +753,7 @@ window.wp = window.wp || {};
 		 *
 		 * @param {Object} params               - Parameters to configure the messenger.
 		 * @param {string} params.url           - The URL to communicate with.
-		 * @param {window} params.targetWindow  - The window instance to communicate with. Default window.parent.
+		 * @param {Window} params.targetWindow  - The window instance to communicate with. Default window.parent.
 		 * @param {string} [params.channel]     - If provided, will send the channel with each message and only accept messages a matching channel.
 		 * @param {Object} options              - Extend any instance parameter or method with this object.
 		 */

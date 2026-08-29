@@ -1,11 +1,12 @@
 /**
  * @output wp-includes/js/customize-views.js
- *
- * @param {jQuery} $  The jQuery object.
- * @param {wp}     wp The WordPress global object.
- * @param {_}      _  The Underscore.js object.
  */
 
+/**
+ * @param {JQueryStatic} $  The jQuery object.
+ * @param {Object}       wp The WordPress global object.
+ * @param {Object}       _  The Underscore.js object.
+ */
 (function( $, wp, _ ) {
 
 	if ( ! wp || ! wp.customize ) { return; }
