@@ -8,9 +8,9 @@
 /**
  *  Adds common WordPress functionality to the window.
  *
- *  @param {JQueryStatic} $  The jQuery object.
- *  @param {Object} window   The window object.
- *  @param {mixed} undefined Unused.
+ *  @param {JQueryStatic} $         The jQuery object.
+ *  @param {Object}       window    The window object.
+ *  @param {*}            undefined Unused.
  */
 ( function( $, window, undefined ) {
 	var $document = $( document ),
