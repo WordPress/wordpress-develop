@@ -25,9 +25,6 @@ on:
       SLACK_GHA_FAILURE_WEBHOOK:
         description: 'The Slack webhook URL for a failed build.'
         required: true
-      SLACK_GHA_TIMEOUT_WEBHOOK:
-        description: 'The Slack webhook URL for a timed out build.'
-        required: false
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -60,7 +57,6 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
       previous_conclusion: ${{ steps.previous-attempt-result.outputs.result }}
-      timed_out: ${{ steps.timeout-check.outputs.result }}
       payload: ${{ steps.create-payload.outputs.payload }}
 
     steps:
@@ -271,13 +267,14 @@ jobs:
           webhook: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
           payload: ${{ needs.prepare.outputs.payload }}
 
+  # Posts notifications when a workflow is cancelled.
   cancelled:
     name: Cancelled notifications
     permissions: {}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [ prepare ]
-    if: ${{ ( inputs.calling_status == 'cancelled' && github.run_attempt == 2 && needs.prepare.outputs.timed_out != 'true' ) || cancelled() }}
+    if: ${{ inputs.calling_status == 'cancelled' && github.run_attempt == 2 || cancelled() }}
 
     steps:
       - name: Post cancelled notifications to Slack
@@ -285,20 +282,4 @@ jobs:
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
-          payload: ${{ needs.prepare.outputs.payload }}
-
-  timeout:
-    name: Timeout notifications
-    permissions: {}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'cancelled' && github.run_attempt == 2 && needs.prepare.outputs.timed_out == 'true' }}
-
-    steps:
-      - name: Post timeout notifications to Slack
-        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
-        with:
-          webhook-type: webhook-trigger
-          webhook: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
           payload: ${{ needs.prepare.outputs.payload }}
