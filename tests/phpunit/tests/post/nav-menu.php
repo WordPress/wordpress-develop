@@ -1392,4 +1392,103 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$post = get_post( $menu_item_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 	}
+
+	/**
+	 * Post type archive menu items should receive current_page_parent on public CPT single views.
+	 *
+	 * @ticket 38836
+	 */
+	public function test_post_type_archive_menu_item_gets_current_page_parent_on_public_cpt_single() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Test Page',
+			)
+		);
+
+		register_post_type(
+			'cpt38836',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+
+		$cpt_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'cpt38836',
+				'post_name'   => 'cpt-name',
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'   => 'post_type_archive',
+				'menu-item-object' => 'cpt38836',
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $page_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$this->go_to( get_permalink( $cpt_id ) );
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$this->assertContains( 'current_page_parent', $menu_items[0]->classes, 'Archive item should be marked parent on CPT single.' );
+		$this->assertNotContains( 'current_page_parent', $menu_items[1]->classes, 'Unrelated page item should not get the class.' );
+	}
+
+	/**
+	 * Non-public CPT singles should not add current_page_parent to the archive menu item.
+	 *
+	 * @ticket 38836
+	 */
+	public function test_post_type_archive_menu_item_is_not_current_page_parent_for_non_public_cpt_single() {
+		register_post_type(
+			'cpt38836b',
+			array(
+				'has_archive' => true,
+			)
+		);
+
+		$cpt_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'cpt38836b',
+				'post_name'   => 'cpt-name',
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'   => 'post_type_archive',
+				'menu-item-object' => 'cpt38836b',
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		$this->go_to( get_permalink( $cpt_id ) );
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$cpt_archive_classes = $menu_items[0]->classes;
+		$this->assertNotContains( 'current_page_parent', $cpt_archive_classes );
+	}
 }
