@@ -541,6 +541,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		</label>
 		<select name="post_format" id="filter-by-format">
 			<option<?php selected( $displayed_post_format, '' ); ?> value=""><?php _e( 'All formats' ); ?></option>
+			<option<?php selected( $displayed_post_format, 'standard' ); ?> value="standard"><?php echo esc_html( get_post_format_string( 'standard' ) ); ?></option>
 			<?php
 			foreach ( $used_post_formats as $used_post_format ) {
 				// Post format slug.
