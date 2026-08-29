@@ -273,10 +273,12 @@ function _cleanup_image_add_caption( $matches ) {
  */
 function media_send_to_editor( $html ) {
 	?>
-	<script>
-	var win = window.dialogArguments || opener || parent || top;
-	win.send_to_editor( <?php echo wp_json_encode( $html, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
-	</script>
+	<?php
+	wp_print_inline_script_tag(
+		"var win = window.dialogArguments || opener || parent || top;\n"
+		. "\twin.send_to_editor( " . wp_json_encode( $html, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ' );'
+	);
+	?>
 	<?php
 	exit;
 }
@@ -568,11 +570,13 @@ function wp_iframe( $content_func, ...$args ) {
 	}
 
 	?>
-	<script>
-	addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-	var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',
-	isRtl = <?php echo (int) is_rtl(); ?>;
-	</script>
+	<?php
+	wp_print_inline_script_tag(
+		"addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};\n"
+		. "var ajaxurl = '" . esc_js( admin_url( 'admin-ajax.php', 'relative' ) ) . "', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',\n"
+		. 'isRtl = ' . (int) is_rtl() . ';'
+	);
+	?>
 	<?php
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', 'media-upload-popup' );
@@ -630,9 +634,11 @@ function wp_iframe( $content_func, ...$args ) {
 	?>
 	</head>
 	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js <?php echo 'admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' ); ?>">
-	<script>
-	document.body.className = document.body.className.replace('no-js', 'js');
-	</script>
+	<?php
+	wp_print_inline_script_tag(
+		"document.body.className = document.body.className.replace('no-js', 'js');"
+	);
+	?>
 	<?php
 
 	call_user_func_array( $content_func, $args );
@@ -641,7 +647,7 @@ function wp_iframe( $content_func, ...$args ) {
 	do_action( 'admin_print_footer_scripts' );
 
 	?>
-	<script>if(typeof wpOnload==='function')wpOnload();</script>
+	<?php wp_print_inline_script_tag( "if(typeof wpOnload==='function')wpOnload();" ); ?>
 	</body>
 	</html>
 	<?php
@@ -839,10 +845,11 @@ function media_upload_form_handler() {
 
 	if ( isset( $_POST['insert-gallery'] ) || isset( $_POST['update-gallery'] ) ) {
 		?>
-		<script>
-		var win = window.dialogArguments || opener || parent || top;
-		win.tb_remove();
-		</script>
+		<?php
+		wp_print_inline_script_tag(
+			"var win = window.dialogArguments || opener || parent || top;\n\t\twin.tb_remove();"
+		);
+		?>
 		<?php
 
 		exit;
@@ -2099,7 +2106,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 function media_upload_header() {
 	$post_id = isset( $_REQUEST['post_id'] ) ? (int) $_REQUEST['post_id'] : 0;
 
-	echo '<script>post_id = ' . $post_id . ';</script>';
+	wp_print_inline_script_tag( 'post_id = ' . $post_id . ';' );
 
 	if ( empty( $_GET['chromeless'] ) ) {
 		echo '<div id="media-upload-header">';
@@ -2248,7 +2255,6 @@ function media_upload_form( $errors = null ) {
 	$plupload_init = apply_filters( 'plupload_init', $plupload_init );
 
 	?>
-	<script>
 	<?php
 	// Verify size is an int. If not return default value.
 	$large_size_h = absint( get_option( 'large_size_h' ) );
@@ -2263,10 +2269,11 @@ function media_upload_form( $errors = null ) {
 		$large_size_w = 1024;
 	}
 
+	wp_print_inline_script_tag(
+		"var resize_height = {$large_size_h}, resize_width = {$large_size_w},\n"
+		. 'wpUploaderInit = ' . wp_json_encode( $plupload_init, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';'
+	);
 	?>
-	var resize_height = <?php echo $large_size_h; ?>, resize_width = <?php echo $large_size_w; ?>,
-	wpUploaderInit = <?php echo wp_json_encode( $plupload_init, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
-	</script>
 
 	<div id="plupload-upload-ui" class="hide-if-no-js">
 	<?php
@@ -2390,15 +2397,17 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
 
 	<?php media_upload_form( $errors ); ?>
 
-	<script>
-	jQuery(function($){
-		var preloaded = $(".media-item.preloaded");
-		if ( preloaded.length > 0 ) {
-			preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
-		}
-		updateMediaForm();
-	});
-	</script>
+	<?php
+	wp_print_inline_script_tag(
+		"jQuery(function($){\n"
+		. "\t\tvar preloaded = $(\".media-item.preloaded\");\n"
+		. "\t\tif ( preloaded.length > 0 ) {\n"
+		. "\t\t\tpreloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});\n"
+		. "\t\t}\n"
+		. "\t\tupdateMediaForm();\n"
+		. '});'
+	);
+	?>
 	<div id="media-items">
 	<?php
 
@@ -2597,15 +2606,17 @@ function media_upload_gallery_form( $errors ) {
 	}
 
 	?>
-	<script>
-	jQuery(function($){
-		var preloaded = $(".media-item.preloaded");
-		if ( preloaded.length > 0 ) {
-			preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
-			updateMediaForm();
-		}
-	});
-	</script>
+	<?php
+	wp_print_inline_script_tag(
+		"jQuery(function($){\n"
+		. "\t\tvar preloaded = $(\".media-item.preloaded\");\n"
+		. "\t\tif ( preloaded.length > 0 ) {\n"
+		. "\t\t\tpreloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});\n"
+		. "\t\t\tupdateMediaForm();\n"
+		. "\t\t}\n"
+		. '});'
+	);
+	?>
 	<div id="sort-buttons" class="hide-if-no-js">
 	<span>
 		<?php _e( 'All Tabs:' ); ?>
@@ -2925,15 +2936,17 @@ function media_upload_library_form( $errors ) {
 	<form enctype="multipart/form-data" method="post" action="<?php echo esc_url( $form_action_url ); ?>" class="<?php echo $form_class; ?>" id="library-form">
 	<?php wp_nonce_field( 'media-form' ); ?>
 
-	<script>
-	jQuery(function($){
-		var preloaded = $(".media-item.preloaded");
-		if ( preloaded.length > 0 ) {
-			preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
-			updateMediaForm();
-		}
-	});
-	</script>
+	<?php
+	wp_print_inline_script_tag(
+		"jQuery(function($){\n"
+		. "\t\tvar preloaded = $(\".media-item.preloaded\");\n"
+		. "\t\tif ( preloaded.length > 0 ) {\n"
+		. "\t\t\tpreloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});\n"
+		. "\t\t\tupdateMediaForm();\n"
+		. "\t\t}\n"
+		. '});'
+	);
+	?>
 
 	<div id="media-items">
 		<?php add_filter( 'attachment_fields_to_edit', 'media_post_single_attachment_fields_to_edit', 10, 2 ); ?>
