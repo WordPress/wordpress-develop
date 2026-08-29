@@ -853,7 +853,6 @@ function delete_user_option( $user_id, $option_name, $is_global = false ) {
  * @since 6.7.0
  *
  * @param int $user_id User ID.
- *
  * @return WP_User|false WP_User object on success, false on failure.
  */
 function get_user( $user_id ) {
@@ -1014,7 +1013,10 @@ function wp_list_users( $args = array() ) {
 	if ( ! $parsed_args['echo'] ) {
 		return $return;
 	}
+
 	echo $return;
+
+	return null;
 }
 
 /**

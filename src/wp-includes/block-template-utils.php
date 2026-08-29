@@ -31,7 +31,6 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_NAVIGATION_OVERLAY' ) ) {
  * @since 5.9.0
  *
  * @param string $theme_stylesheet The stylesheet. Default is to leverage the main theme root.
- *
  * @return string[] {
  *     Folder names used by block themes.
  *
@@ -416,8 +415,8 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			$template_base_path = $template_base_paths[ $template_type ];
 			$template_slug      = substr(
 				$template_file,
-				// Starting position of slug.
-				strpos( $template_file, $template_base_path . DIRECTORY_SEPARATOR ) + 1 + strlen( $template_base_path ),
+				// Starting position of the slug - the theme directory and the template base path.
+				strlen( $theme_dir . DIRECTORY_SEPARATOR . $template_base_path . DIRECTORY_SEPARATOR ),
 				// Subtract ending '.html'.
 				-5
 			);
@@ -730,7 +729,8 @@ function _wp_build_title_and_description_for_single_post_type_block_template( $p
 	);
 
 	$args = array(
-		'title' => $post_title,
+		'title'          => $post_title,
+		'posts_per_page' => 2,
 	);
 	$args = wp_parse_args( $args, $default_args );
 
