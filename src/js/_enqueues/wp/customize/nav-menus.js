@@ -2603,7 +2603,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {Object.<string,boolean>} selections A map of location selections.
+		 * @param {Object.<string, boolean>} selections A map of location selections.
 		 * @return {void}
 		 */
 		setSelections: function( selections ) {

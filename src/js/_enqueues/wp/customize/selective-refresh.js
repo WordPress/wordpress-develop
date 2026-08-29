@@ -679,7 +679,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * Currently-requested partials and their associated deferreds.
 	 *
 	 * @since 4.5.0
-	 * @type {Object<string, { deferred: jQuery.Promise, partial: wp.customize.selectiveRefresh.Partial }>}
+	 * @type {Object.<string, { deferred: jQuery.Promise, partial: wp.customize.selectiveRefresh.Partial }>}
 	 */
 	self._pendingPartialRequests = {};
 
