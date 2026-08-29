@@ -414,9 +414,10 @@ HTML
 			'Should have modified the text at the target node.'
 		);
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$transformed,
 			$processor->get_updated_html(),
+			'<body>',
 			"Should have transformed the HTML as expected when modifying the target node's modifiable text."
 		);
 	}
