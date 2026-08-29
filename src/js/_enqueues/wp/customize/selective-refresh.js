@@ -258,7 +258,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @return {Array.<Placement>} The placements for this partial in the document.
+		 * @return {Array.<wp.customize.selectiveRefresh.Placement>} The placements for this partial in the document.
 		 */
 		placements: function() {
 			var partial = this, selector;
@@ -600,9 +600,9 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * DOM node(s) removed when the partial is refreshed.
 		 *
 		 * If the partial is containerInclusive, then the removedNodes will be
-		 * the single Element that was the partial's former placement. If the
+		 * the jQuery object for the partial's former placement. If the
 		 * partial is not containerInclusive, then the removedNodes will be a
-		 * documentFragment containing the nodes removed.
+		 * DocumentFragment containing the nodes removed.
 		 *
 		 * @member {jQuery|DocumentFragment}
 		 */

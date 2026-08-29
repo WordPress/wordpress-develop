@@ -87,7 +87,8 @@ window.wp = window.wp || {};
 	 *                    arguments for the initialize method, followed by an
 	 *                    optional object of properties to extend the instance
 	 *                    with.
-	 * @return {Object} The instance of the class.
+	 * @return {Object|Function} The instance of the class, which is a function when the class
+	 *                           defines an instance method, so that the instance is callable.
 	 */
 	api.Class = function( ...args ) {
 		var magic;
