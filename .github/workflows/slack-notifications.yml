@@ -179,13 +179,14 @@ jobs:
                 { ids: batch.map( ( job ) => job.node_id ) }
               );
 
-              console.log( nodes );
+              console.log( JSON.stringify( nodes, null, 2 ) );
 
               const timedOut = nodes.some( ( node ) => node && node.annotations.nodes.some(
                 ( annotation ) => /exceeded the maximum execution time/i.test( annotation.message )
               ) );
 
               if ( timedOut ) {
+                console.log( 'A timeout was detected' );
                 return 'true';
               }
             }
