@@ -514,8 +514,8 @@ window.wp = window.wp || {};
 		/**
 		 * Iterate over all items in the collection invoking the provided callback.
 		 *
-		 * @param {Function} callback Function to invoke.
-		 * @param {Object}   context  Object context to invoke the function with. Optional.
+		 * @param {Function} callback  Function to invoke.
+		 * @param {Object}   [context] Object context to invoke the function with.
 		 */
 		each: function( callback, context ) {
 			context = typeof context === 'undefined' ? this : context;
@@ -740,9 +740,9 @@ window.wp = window.wp || {};
 		/**
 		 * Create a new Value.
 		 *
-		 * @param {string} key     Unique identifier.
-		 * @param {*}      initial Initial value.
-		 * @param {*}      options Options hash. Optional.
+		 * @param {string} key       Unique identifier.
+		 * @param {*}      initial   Initial value.
+		 * @param {*}      [options] Options hash.
 		 * @return {wp.customize.Value} Class instance of the Value.
 		 */
 		add: function( key, initial, options ) {
@@ -856,8 +856,8 @@ window.wp = window.wp || {};
 		/**
 		 * Send data to the other window.
 		 *
-		 * @param {string} id   The event name.
-		 * @param {Object} data Data.
+		 * @param {string} id     The event name.
+		 * @param {*}      [data] Data.
 		 */
 		send: function( id, data ) {
 			var message;
