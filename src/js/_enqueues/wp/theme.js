@@ -1313,7 +1313,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 				$modal.find( '.notice-warning' )
 					.removeClass( 'notice-large' )
 					.addClass( 'updating-message' )
-					.find( 'p' ).text( wp.updates.l10n.updating );
+					.find( 'p' ).text( wp.i18n.__( 'Updating...' ) );
 			} else if ( $card.find( '.notice-error' ).length ) {
 				$modal.find( '.notice-warning' ).remove();
 			}

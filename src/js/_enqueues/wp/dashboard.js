@@ -828,20 +828,3 @@ jQuery( function( $ ) {
 	}
 });
 
-/**
- * Removed in 5.6.0, needed for back-compatibility.
- *
- * @since 4.8.0
- * @deprecated 5.6.0
- *
- * @type {object}
-*/
-window.communityEventsData.l10n = window.communityEventsData.l10n || {
-	enter_closest_city: '',
-	error_occurred_please_try_again: '',
-	attend_event_near_generic: '',
-	could_not_locate_city: '',
-	city_updated: ''
-};
-
-window.communityEventsData.l10n = window.wp.deprecateL10nObject( 'communityEventsData.l10n', window.communityEventsData.l10n, '5.6.0' );
