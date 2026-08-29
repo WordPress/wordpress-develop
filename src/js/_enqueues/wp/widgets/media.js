@@ -8,7 +8,7 @@
  * @namespace wp.mediaWidgets
  * @memberOf  wp
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 wp.mediaWidgets = ( function( $ ) {
 	'use strict';

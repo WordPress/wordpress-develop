@@ -9,7 +9,7 @@ if ( ! window.wp ) {
 }
 
 /**
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 wp.themePluginEditor = (function( $ ) {
 	'use strict';

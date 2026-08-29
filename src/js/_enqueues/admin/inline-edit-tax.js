@@ -17,7 +17,7 @@ window.wp = window.wp || {};
  * @property {string} what The type property with a hash prefixed and a dash
  *                         suffixed.
  *
- * @param {jQueryStatic} $  The jQuery object.
+ * @param {JQueryStatic} $  The jQuery object.
  * @param {Object}       wp The WordPress object.
  */
 ( function( $, wp ) {

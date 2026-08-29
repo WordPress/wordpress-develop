@@ -7,7 +7,7 @@
 /** @namespace wp.customize.selectiveRefresh */
 
 /**
- * @param {jQueryStatic} $   The jQuery object.
+ * @param {JQueryStatic} $   The jQuery object.
  * @param {Object}       api The Customizer API.
  */
 wp.customize.selectiveRefresh = ( function( $, api ) {

@@ -5,7 +5,7 @@
 /**
  * Initializes the wp-pointer widget using jQuery UI Widget Factory.
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 (function($){
 	var identifier = 0,

@@ -3,7 +3,7 @@
 /**
  * @output wp-admin/js/user-profile.js
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 
 (function($) {

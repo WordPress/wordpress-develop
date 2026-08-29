@@ -10,7 +10,7 @@
  /* global ajaxurl, wpAjax, showNotice, validateForm */
 
  /**
-  * @param {jQueryStatic} $ The jQuery object.
+  * @param {JQueryStatic} $ The jQuery object.
   */
 jQuery( function($) {
 

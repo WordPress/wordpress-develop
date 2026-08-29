@@ -8,7 +8,7 @@
  * @since 2.1.0
  * @output wp-admin/js/edit-comments.js
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 
 (function($) {

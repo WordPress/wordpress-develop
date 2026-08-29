@@ -8,7 +8,7 @@
 /**
  * @namespace wp.textWidgets
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 wp.textWidgets = ( function( $ ) {
 	'use strict';

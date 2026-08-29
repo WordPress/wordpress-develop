@@ -15,7 +15,7 @@ window.makeSlugeditClickable = window.editPermalink = function(){};
 window.wp = window.wp || {};
 
 /**
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {
 	var titleHasFocus = false,
@@ -258,7 +258,7 @@ window.wp = window.wp || {};
 /**
  * Heartbeat refresh nonces.
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {
 	var check, timeout;
@@ -306,7 +306,7 @@ window.wp = window.wp || {};
 /**
  * All post and postbox controls and functionality.
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 jQuery( function($) {
 	var stamp, visibility, $submitButtons, updateVisibility, updateText,
@@ -1330,7 +1330,7 @@ jQuery( function($) {
 /**
  * TinyMCE word count display
  *
- * @param {jQueryStatic}         $       The jQuery object.
+ * @param {JQueryStatic}         $       The jQuery object.
  * @param {wp.utils.WordCounter} counter The WordCounter object.
  */
 ( function( $, counter ) {

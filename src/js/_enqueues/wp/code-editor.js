@@ -138,7 +138,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  */
 
 /**
- * @param {JQueryStatic} $ - jQuery.
+ * @param {JQueryStatic} $ The jQuery object.
  * @param {Object & {
  *   codeEditor: WpCodeEditor,
  *   CodeMirror: typeof import('codemirror'),

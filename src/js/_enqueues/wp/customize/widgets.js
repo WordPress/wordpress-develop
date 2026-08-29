@@ -4,7 +4,7 @@
  * @output wp-admin/js/customize-widgets.js
  *
  * @param {wp}           wp The WordPress global object.
- * @param {jQueryStatic} $  The jQuery object.
+ * @param {JQueryStatic} $  The jQuery object.
  */
 (function( wp, $ ){
 

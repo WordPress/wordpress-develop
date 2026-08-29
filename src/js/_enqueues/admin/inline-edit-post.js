@@ -21,7 +21,7 @@ window.wp = window.wp || {};
  * @property {string} type The type of inline editor.
  * @property {string} what The prefix before the post ID.
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  * @param {wp}           wp The WordPress global object.
  *
  */

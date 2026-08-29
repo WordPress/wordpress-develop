@@ -8,7 +8,7 @@
 /* global pagenow, _wpThemeSettings */
 
 /**
- * @param {jQueryStatic} $                                        The jQuery object.
+ * @param {JQueryStatic} $                                        The jQuery object.
  * @param {Object}       wp                                       WP object.
  * @param {Object}       settings                                 WP Updates settings.
  * @param {string}       settings.ajax_nonce                      Ajax nonce.

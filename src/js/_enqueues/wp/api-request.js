@@ -13,7 +13,7 @@
  *              Added an "application/json" Accept header to all requests.
  * @output wp-includes/js/api-request.js
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 
 ( function( $ ) {

@@ -1,7 +1,7 @@
 /**
  * @output wp-admin/js/application-passwords.js
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 
 ( function( $ ) {

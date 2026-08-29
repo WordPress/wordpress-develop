@@ -2,7 +2,7 @@
  * @output wp-admin/js/editor-expand.js
  *
  * @param {Window}       window    The global window object.
- * @param {jQueryStatic} $         The jQuery object.
+ * @param {JQueryStatic} $         The jQuery object.
  * @param {undefined}    undefined The undefined value.
  */
 

@@ -3,7 +3,7 @@
  *
  * @output wp-admin/js/tags-suggest.js
  *
- * @param {jQueryStatic} $ The jQuery object.
+ * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {
 	var tempID = 0;
