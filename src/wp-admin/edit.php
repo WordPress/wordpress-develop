@@ -115,12 +115,14 @@ if ( $doaction ) {
 
 	switch ( $doaction ) {
 		case 'trash':
-			$trashed = 0;
-			$locked  = 0;
+			$trashed    = 0;
+			$locked     = 0;
+			$nottrashed = 0;
 
 			foreach ( (array) $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
-					wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ) );
+					++$nottrashed;
+					continue;
 				}
 
 				if ( wp_check_post_lock( $post_id ) ) {
@@ -129,7 +131,8 @@ if ( $doaction ) {
 				}
 
 				if ( ! wp_trash_post( $post_id ) ) {
-					wp_die( __( 'Error in moving the item to Trash.' ) );
+					++$nottrashed;
+					continue;
 				}
 
 				++$trashed;
@@ -137,15 +140,17 @@ if ( $doaction ) {
 
 			$sendback = add_query_arg(
 				array(
-					'trashed' => $trashed,
-					'ids'     => implode( ',', $post_ids ),
-					'locked'  => $locked,
+					'trashed'    => $trashed,
+					'nottrashed' => $nottrashed,
+					'ids'        => implode( ',', $post_ids ),
+					'locked'     => $locked,
 				),
 				$sendback
 			);
 			break;
 		case 'untrash':
-			$untrashed = 0;
+			$untrashed    = 0;
+			$notuntrashed = 0;
 
 			if ( isset( $_GET['doaction'] ) && ( 'undo' === $_GET['doaction'] ) ) {
 				add_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
@@ -153,41 +158,59 @@ if ( $doaction ) {
 
 			foreach ( (array) $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
-					wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ) );
+					++$notuntrashed;
+					continue;
 				}
 
 				if ( ! wp_untrash_post( $post_id ) ) {
-					wp_die( __( 'Error in restoring the item from Trash.' ) );
+					++$notuntrashed;
+					continue;
 				}
 
 				++$untrashed;
 			}
-			$sendback = add_query_arg( 'untrashed', $untrashed, $sendback );
+			$sendback = add_query_arg(
+				array(
+					'untrashed'    => $untrashed,
+					'notuntrashed' => $notuntrashed,
+				),
+				$sendback
+			);
 
 			remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10 );
 
 			break;
 		case 'delete':
-			$deleted = 0;
+			$deleted    = 0;
+			$notdeleted = 0;
 			foreach ( (array) $post_ids as $post_id ) {
 				$post_del = get_post( $post_id );
 
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
-					wp_die( __( 'Sorry, you are not allowed to delete this item.' ) );
+					++$notdeleted;
+					continue;
 				}
 
 				if ( 'attachment' === $post_del->post_type ) {
 					if ( ! wp_delete_attachment( $post_id ) ) {
-						wp_die( __( 'Error in deleting the attachment.' ) );
+						++$notdeleted;
+						continue;
 					}
 				} else {
 					if ( ! wp_delete_post( $post_id ) ) {
-						wp_die( __( 'Error in deleting the item.' ) );
+						++$notdeleted;
+						continue;
 					}
 				}
 				++$deleted;
 			}
-			$sendback = add_query_arg( 'deleted', $deleted, $sendback );
+			$sendback = add_query_arg(
+				array(
+					'deleted'    => $deleted,
+					'notdeleted' => $notdeleted,
+				),
+				$sendback
+			);
 			break;
 		case 'edit':
 			if ( isset( $_REQUEST['bulk_edit'] ) ) {
@@ -353,6 +376,12 @@ $bulk_counts = array(
 	'untrashed' => isset( $_REQUEST['untrashed'] ) ? absint( $_REQUEST['untrashed'] ) : 0,
 );
 
+$bulk_error_counts = array(
+	'notdeleted'   => isset( $_REQUEST['notdeleted'] ) ? absint( $_REQUEST['notdeleted'] ) : 0,
+	'nottrashed'   => isset( $_REQUEST['nottrashed'] ) ? absint( $_REQUEST['nottrashed'] ) : 0,
+	'notuntrashed' => isset( $_REQUEST['notuntrashed'] ) ? absint( $_REQUEST['notuntrashed'] ) : 0,
+);
+
 $bulk_messages             = array();
 $bulk_messages['post']     = array(
 	/* translators: %s: Number of posts. */
@@ -407,6 +436,46 @@ $bulk_messages['wp_block'] = array(
  */
 $bulk_messages = apply_filters( 'bulk_post_updated_messages', $bulk_messages, $bulk_counts );
 $bulk_counts   = array_filter( $bulk_counts );
+
+$bulk_error_messages             = array();
+$bulk_error_messages['post']     = array(
+	/* translators: %s: Number of posts. */
+	'notdeleted'   => _n( '%s post not permanently deleted.', '%s posts not permanently deleted.', $bulk_error_counts['notdeleted'] ),
+	/* translators: %s: Number of posts. */
+	'nottrashed'   => _n( '%s post not moved to the Trash.', '%s posts not moved to the Trash.', $bulk_error_counts['nottrashed'] ),
+	/* translators: %s: Number of posts. */
+	'notuntrashed' => _n( '%s post not restored from the Trash.', '%s posts not restored from the Trash.', $bulk_error_counts['notuntrashed'] ),
+);
+$bulk_error_messages['page']     = array(
+	/* translators: %s: Number of pages. */
+	'notdeleted'   => _n( '%s page not permanently deleted.', '%s pages not permanently deleted.', $bulk_error_counts['notdeleted'] ),
+	/* translators: %s: Number of pages. */
+	'nottrashed'   => _n( '%s page not moved to the Trash.', '%s pages not moved to the Trash.', $bulk_error_counts['nottrashed'] ),
+	/* translators: %s: Number of pages. */
+	'notuntrashed' => _n( '%s page not restored from the Trash.', '%s pages not restored from the Trash.', $bulk_error_counts['notuntrashed'] ),
+);
+$bulk_error_messages['wp_block'] = array(
+	/* translators: %s: Number of patterns. */
+	'notdeleted'   => _n( '%s pattern not permanently deleted.', '%s patterns not permanently deleted.', $bulk_error_counts['notdeleted'] ),
+	/* translators: %s: Number of patterns. */
+	'nottrashed'   => _n( '%s pattern not moved to the Trash.', '%s patterns not moved to the Trash.', $bulk_error_counts['nottrashed'] ),
+	/* translators: %s: Number of patterns. */
+	'notuntrashed' => _n( '%s pattern not restored from the Trash.', '%s patterns not restored from the Trash.', $bulk_error_counts['notuntrashed'] ),
+);
+
+/**
+ * Filters the bulk action error messages.
+ *
+ * By default, custom post types use the messages for the 'post' post type.
+ *
+ * @since 6.9.0
+ *
+ * @param array[] $bulk_error_messages Arrays of error messages, each keyed by the corresponding post type. Messages are
+ *                                      keyed with 'notdeleted', 'nottrashed', and 'notuntrashed'.
+ * @param int[]   $bulk_error_counts   Array of item counts for each message, used to build internationalized strings.
+ */
+$bulk_error_messages = apply_filters( 'bulk_post_updated_messages', $bulk_error_messages, $bulk_error_counts );
+$bulk_error_counts   = array_filter( $bulk_error_counts );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
@@ -480,7 +549,27 @@ if ( $messages ) {
 }
 unset( $messages );
 
-$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'locked', 'skipped', 'updated', 'deleted', 'trashed', 'untrashed' ), $_SERVER['REQUEST_URI'] );
+$error_messages = array();
+foreach ( $bulk_error_counts as $message => $count ) {
+	if ( isset( $bulk_error_messages[ $post_type ][ $message ] ) ) {
+		$error_messages[] = sprintf( $bulk_error_messages[ $post_type ][ $message ], number_format_i18n( $count ) );
+	} elseif ( isset( $bulk_error_messages['post'][ $message ] ) ) {
+		$error_messages[] = sprintf( $bulk_error_messages['post'][ $message ], number_format_i18n( $count ) );
+	}
+}
+if ( $error_messages ) {
+	wp_admin_notice(
+		implode( ' ', $error_messages ),
+		array(
+			'id'                 => 'errormessage',
+			'additional_classes' => array( 'error' ),
+			'dismissible'        => true,
+		)
+	);
+}
+unset( $error_messages );
+
+$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'locked', 'skipped', 'updated', 'deleted', 'trashed', 'untrashed', 'notdeleted', 'nottrashed', 'notuntrashed' ), $_SERVER['REQUEST_URI'] );
 ?>
 
 <?php $wp_list_table->views(); ?>
