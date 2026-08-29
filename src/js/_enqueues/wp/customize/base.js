@@ -401,7 +401,7 @@ window.wp = window.wp || {};
 		/**
 		 * The default constructor for items of the collection.
 		 *
-		 * @type {Object}
+		 * @type {Function}
 		 */
 		defaultConstructor: api.Value,
 

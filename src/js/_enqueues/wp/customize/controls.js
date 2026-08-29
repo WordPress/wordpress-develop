@@ -93,7 +93,7 @@
 		 * The default constructor for items of the collection.
 		 *
 		 * @since 4.9.0
-		 * @type {Object}
+		 * @type {Function}
 		 */
 		defaultConstructor: api.Notification,
 

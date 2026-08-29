@@ -925,7 +925,7 @@
 		 * @since 4.3.0
 		 * @private
 		 *
-		 * @return {Array} Fields (columns) that are hidden.
+		 * @return {string} Comma separated list of the fields (columns) that are hidden.
 		 */
 		hidden: function() {
 			return $( '.hide-column-tog' ).not( ':checked' ).map( function() {
