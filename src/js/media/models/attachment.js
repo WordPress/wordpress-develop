@@ -18,7 +18,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * @param {wp.media.model.Attachment} model
 	 * @param {Object} [options={}]
 	 *
-	 * @return {jQuery.Promise} A jQuery Promise that is resolved or rejected based on thesuccess of the sync operation. Returns a rejected Promise when `this.id` is undefined or when the `update` nonce is missing.
+	 * @return {jQuery.Promise} A jQuery Promise that is resolved or rejected based on the success of the sync operation.
 	 */
 	sync: function( method, model, options ) {
 		// If the attachment does not yet have an `id`, return an instantly
