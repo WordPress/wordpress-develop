@@ -2091,7 +2091,8 @@ function get_post_type_capabilities( $args ) {
  *
  * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
  *
- * @param string[] $capabilities Post type meta capabilities.
+ * @param array<string, string> $capabilities Map of core meta capability name to the custom
+ *                                            capability name it is registered under.
  */
 function _post_type_meta_capabilities( $capabilities = array() ): void {
 	global $post_type_meta_caps;
@@ -2124,7 +2125,7 @@ function _rebuild_post_type_meta_capabilities(): void {
 
 	foreach ( $wp_post_types as $post_type_object ) {
 		if ( $post_type_object->map_meta_cap ) {
-			_post_type_meta_capabilities( array_filter( get_object_vars( $post_type_object->cap ), 'is_string' ) );
+			_post_type_meta_capabilities( get_object_vars( $post_type_object->cap ) );
 		}
 	}
 }
