@@ -158,13 +158,12 @@
 		 * @param {MouseEvent} event
 		 */
 		function linkClickHandler( event ) {
-			var target = event.target,
-				href;
-			if ( target.hasAttribute( 'href' ) ) {
-				href = target.getAttribute( 'href' );
-			} else {
-				href = target.parentElement.getAttribute( 'href' );
-			}
+			/*
+			 * The href property resolves to an absolute URL, which the parent window requires.
+			 * Elements whose href is not a string, such as SVG anchors, are skipped.
+			 */
+			var link = event.target.closest( '[href]' ),
+				href = 'string' === typeof link?.href ? link.href : null;
 
 			// Only catch clicks from the primary mouse button, without any modifiers.
 			if ( event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ) {
