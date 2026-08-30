@@ -15,10 +15,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * Author user ID.
-	 *
-	 * @var int
 	 */
-	public static $author_id;
+	public static int $author_id;
 
 	/**
 	 * Sets up shared fixtures.
