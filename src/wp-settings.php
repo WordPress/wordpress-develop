@@ -319,6 +319,7 @@ require ABSPATH . WPINC . '/json-schema.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-server.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-response.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-request.php';
+require ABSPATH . WPINC . '/rest-api/class-wp-rest-resolvable-route.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-posts-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-attachments-controller.php';
