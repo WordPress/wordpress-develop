@@ -438,12 +438,13 @@ function wp_ajax_get_community_events() {
 function wp_ajax_dashboard_widgets() {
 	require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
-	$pagenow = $_GET['pagenow'];
+	$pagenow = isset( $_GET['pagenow'] ) ? sanitize_key( $_GET['pagenow'] ) : '';
 	if ( 'dashboard-user' === $pagenow || 'dashboard-network' === $pagenow || 'dashboard' === $pagenow ) {
 		set_current_screen( $pagenow );
 	}
 
-	switch ( $_GET['widget'] ) {
+	$widget = isset( $_GET['widget'] ) ? sanitize_key( $_GET['widget'] ) : '';
+	switch ( $widget ) {
 		case 'dashboard_primary':
 			wp_dashboard_primary();
 			break;
