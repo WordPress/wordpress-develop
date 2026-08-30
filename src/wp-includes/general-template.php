@@ -537,18 +537,17 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		// Tooltips are only used to visually display labels.
 		$label  = wp_strip_all_tags( $content, true );
 		$markup = sprintf(
-			'<span class="%1$s">
-				' . $button . '
-				<span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
-					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
-				'</span>' .
-			'</span>',
-			esc_attr( $classes ),
-			esc_attr( $id ),
-			esc_attr( $label ),
-			esc_attr( $icon ),
-			esc_html( $content ),
-		);
+            '<span class="%1$s"> %6$s <span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
+            '<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
+            '</span>' .
+            '</span>',
+            esc_attr( $classes ),
+            esc_attr( $id ),
+            esc_attr( $label ),
+            esc_attr( $icon ),
+            esc_html( $content ),
+            $button
+        );
 	} else {
 		/*
 		 * A `span` with `role="dialog"` is used instead of a `dialog` element to keep the
