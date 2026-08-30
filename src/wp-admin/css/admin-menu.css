@@ -667,9 +667,13 @@ li#wp-admin-bar-menu-toggle {
 }
 
 @media screen and (max-width: 782px) {
-	.auto-fold #wpcontent {
+	.auto-fold #wpcontent,
+	.auto-fold #wpfooter {
 		position: relative;
 		margin-left: 0;
+	}
+
+	.auto-fold #wpcontent {
 		padding-left: 10px;
 	}
 
