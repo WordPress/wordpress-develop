@@ -44,6 +44,96 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 60208
+	 *
+	 * @dataProvider data_wp_redirect_loop
+	 *
+	 * @covers ::wp_redirect
+	 * @covers ::wp_safe_redirect
+	 * @covers ::_wp_is_self_redirect
+	 *
+	 * @param string $location The path or URL to redirect to.
+	 * @param bool   $ssl like HTTPS
+	 * @param string $host like HTTP_HOST
+	 * @param string $request_uri like REQUEST_URI
+	 * @param bool   $expected true if it should redirect
+	 * @param bool   $safe_expected optional expected value of safe_redirect
+	 */
+	public function test_wp_redirect_loop( $location, $ssl, $host, $request_uri, $expected, $safe_expected = null ) {
+		$safe_expected        = $safe_expected ?? $expected;
+		$original_ssl         = $_SERVER['HTTPS'] ?? null;
+		$original_host        = $_SERVER['HTTP_HOST'] ?? null;
+		$original_request_uri = $_SERVER['REQUEST_URI'] ?? null;
+
+		if ( ! $original_ssl && $ssl ) {
+			$_SERVER['HTTPS'] = 'on';
+		} elseif ( $original_ssl && ! $ssl ) {
+			// technically not valid, just for this test
+			$_SERVER['HTTPS'] = 'off';
+		}
+
+		$_SERVER['HTTP_HOST']   = $host;
+		$_SERVER['REQUEST_URI'] = $request_uri;
+
+		$this->assertEquals( ! $expected, _wp_is_self_redirect( $location ) );
+
+		// can only test false cases, which won't redirect
+		// as otherwise error: Cannot modify header information - headers already sent
+		if ( false === $expected ) {
+			$this->assertEquals( $expected, wp_redirect( $location ) );
+		}
+
+		if ( false === $safe_expected ) {
+			$this->assertEquals( $safe_expected, wp_safe_redirect( $location ) );
+		}
+
+		if ( null === $original_host ) {
+			unset( $_SERVER['HTTP_HOST'] );
+		} else {
+			$_SERVER['HTTP_HOST'] = $original_host;
+		}
+
+		if ( null === $original_ssl && isset( $_SERVER['HTTPS'] ) ) {
+			unset( $_SERVER['HTTPS'] );
+		} elseif ( isset( $_SERVER['HTTPS'] ) ) {
+			$_SERVER['HTTPS'] = $original_ssl;
+		}
+
+		if ( null === $original_host ) {
+			unset( $_SERVER['HTTP_HOST'] );
+		} else {
+			$_SERVER['HTTP_HOST'] = $original_host;
+		}
+
+		if ( null === $original_request_uri ) {
+			unset( $_SERVER['REQUEST_URI'] );
+		} else {
+			$_SERVER['REQUEST_URI'] = $original_request_uri;
+		}
+	}
+
+	public function data_wp_redirect_loop() {
+		return array(
+			array( 'http://example.org/bar/', false, 'example.org', '/wp-admin/', true ),
+			array( '/bar/', false, 'example.org', '/wp-admin/', true ),
+			array( 'http://example.org/wp-admin/', false, 'example.org', '/wp-admin/', false ),
+			array( '/wp-admin/', false, 'example.org', '/wp-admin/', false ),
+			array( 'https://example.org/wp-admin/', false, 'example.org', '/wp-admin/', true ),
+			array( 'https://example.org/wp-admin/', true, 'example.org', '/wp-admin/', false ),
+			array( 'http://example.org/wp-admin/', true, 'example.org', '/wp-admin/', false ),
+			array( 'http://example.org/bar/', false, 'example.org', '/hello/', true ),
+			array( '/bar/', false, 'example.org', '/hello/', true ),
+			// safe redirect is true since the fallback url is wp-admin, therefore it will redirect
+			array( 'http://example.org/bar/', false, 'example.org', '/bar/', false, true ),
+			array( '/bar/', false, 'example.org', '/bar/', false, true ),
+			array( 'https://example.org/bar/', false, 'example.org', '/bar/', true ),
+			array( 'https://example.org/bar/', true, 'example.org', '/bar/', false, true ),
+			array( 'http://example.org/bar/', true, 'example.org', '/bar/', false, true ),
+			array( 'https://example.org/asdf/?hello=world&foo=bar', true, 'example.org', '/asdf/?hello=world&foo=bar', false, true ),
+		);
+	}
+
+	/**
 	 * @covers ::wp_sanitize_redirect
 	 */
 	public function test_wp_sanitize_redirect() {
