@@ -2084,16 +2084,16 @@ function get_post_type_capabilities( $args ) {
 }
 
 /**
- * Stores or returns a list of post type meta caps for map_meta_cap().
+ * Stores a list of post type meta caps for map_meta_cap().
  *
  * @since 3.1.0
  * @access private
  *
- * @global array $post_type_meta_caps Used to store meta capabilities.
+ * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
  *
  * @param string[] $capabilities Post type meta capabilities.
  */
-function _post_type_meta_capabilities( $capabilities = null ) {
+function _post_type_meta_capabilities( $capabilities = array() ): void {
 	global $post_type_meta_caps;
 
 	foreach ( $capabilities as $core => $custom ) {
