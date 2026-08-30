@@ -753,6 +753,40 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 }
 
 /**
+ * Determines whether the active theme provides one of the given template files.
+ *
+ * Unlike locate_template(), this ignores the deprecated fallbacks in wp-includes/theme-compat/,
+ * so a caller can tell a template the theme actually ships from one of those.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string[] $template_names Template file names to look for, in order of priority.
+ * @return bool Whether the theme, or its parent, provides one of the templates.
+ */
+function _wp_theme_has_template( $template_names ) {
+	$stylesheet_path = get_stylesheet_directory();
+	$template_path   = get_template_directory();
+	$is_child_theme  = $stylesheet_path !== $template_path;
+
+	foreach ( (array) $template_names as $template_name ) {
+		if ( ! $template_name ) {
+			continue;
+		}
+
+		if ( file_exists( $stylesheet_path . '/' . $template_name ) ) {
+			return true;
+		}
+
+		if ( $is_child_theme && file_exists( $template_path . '/' . $template_name ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Requires the template file with WordPress environment.
  *
  * The globals are set up for the template file to ensure that the WordPress
