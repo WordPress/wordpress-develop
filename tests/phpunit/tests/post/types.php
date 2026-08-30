@@ -14,6 +14,22 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public $post_type;
 
 	/**
+	 * Author user ID.
+	 *
+	 * @var int
+	 */
+	public static $author_id;
+
+	/**
+	 * Sets up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$author_id = $factory->user->create( array( 'role' => 'author' ) );
+	}
+
+	/**
 	 * Set up.
 	 *
 	 * @since 4.5.0
@@ -417,6 +433,146 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'read_bar', $post_type_meta_caps );
 		$this->assertArrayNotHasKey( 'delete_bar', $post_type_meta_caps );
 		$this->assertArrayNotHasKey( 'edit_bar', $post_type_meta_caps );
+	}
+
+	/**
+	 * Tests that meta capabilities shared with another registered post type are retained.
+	 *
+	 * Meta capabilities are stored keyed by the custom capability name, so post types
+	 * sharing a capability type resolve to the same entries. Unregistering one of them
+	 * must not remove the entries the others still rely on.
+	 *
+	 * @ticket 00000
+	 *
+	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
+	 */
+	public function test_unregister_post_type_retains_meta_capabilities_shared_with_another_post_type() {
+		global $post_type_meta_caps;
+
+		$args = array(
+			'public'          => true,
+			'capability_type' => 'publication',
+			'map_meta_cap'    => true,
+		);
+
+		register_post_type( 'book', $args );
+		register_post_type( 'magazine', $args );
+
+		$this->assertSame( 'read_post', $post_type_meta_caps['read_publication'], 'The read meta capability was not registered.' );
+		$this->assertSame( 'delete_post', $post_type_meta_caps['delete_publication'], 'The delete meta capability was not registered.' );
+		$this->assertSame( 'edit_post', $post_type_meta_caps['edit_publication'], 'The edit meta capability was not registered.' );
+
+		$this->assertTrue( unregister_post_type( 'book' ) );
+
+		$this->assertSame( 'read_post', $post_type_meta_caps['read_publication'], 'The read meta capability of the remaining post type was removed.' );
+		$this->assertSame( 'delete_post', $post_type_meta_caps['delete_publication'], 'The delete meta capability of the remaining post type was removed.' );
+		$this->assertSame( 'edit_post', $post_type_meta_caps['edit_publication'], 'The edit meta capability of the remaining post type was removed.' );
+	}
+
+	/**
+	 * Tests that a remaining post type's meta capabilities still map down to primitive capabilities.
+	 *
+	 * @ticket 00000
+	 */
+	public function test_unregister_post_type_retains_meta_capability_mapping_for_another_post_type() {
+		$args = array(
+			'public'          => true,
+			'capability_type' => 'publication',
+			'map_meta_cap'    => true,
+		);
+
+		register_post_type( 'book', $args );
+		register_post_type( 'magazine', $args );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'magazine',
+				'post_status' => 'publish',
+				'post_author' => self::$author_id,
+			)
+		);
+
+		$this->assertSame(
+			array( 'edit_published_publications' ),
+			map_meta_cap( 'edit_publication', self::$author_id, $post_id ),
+			'The meta capability did not map to a primitive capability.'
+		);
+
+		$this->assertTrue( unregister_post_type( 'book' ) );
+
+		$this->assertSame(
+			array( 'edit_published_publications' ),
+			map_meta_cap( 'edit_publication', self::$author_id, $post_id ),
+			'The meta capability of the remaining post type no longer maps to a primitive capability.'
+		);
+	}
+
+	/**
+	 * Tests that a post type which does not map meta capabilities removes none on unregistration.
+	 *
+	 * Such a post type never stores any meta capabilities, so it must not remove the
+	 * identically named entries belonging to the built-in post types.
+	 *
+	 * @ticket 00000
+	 *
+	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
+	 */
+	public function test_unregister_post_type_retains_meta_capabilities_when_not_mapping_meta_caps() {
+		global $post_type_meta_caps;
+
+		register_post_type(
+			'foo',
+			array(
+				'public'       => true,
+				'map_meta_cap' => false,
+			)
+		);
+
+		$this->assertTrue( unregister_post_type( 'foo' ) );
+
+		$this->assertSame( 'read_post', $post_type_meta_caps['read_post'], 'The built-in read meta capability was removed.' );
+		$this->assertSame( 'delete_post', $post_type_meta_caps['delete_post'], 'The built-in delete meta capability was removed.' );
+		$this->assertSame( 'edit_post', $post_type_meta_caps['edit_post'], 'The built-in edit meta capability was removed.' );
+	}
+
+	/**
+	 * Tests that primitive capabilities are not treated as meta capabilities on unregistration.
+	 *
+	 * Only the read, delete and edit capabilities are stored as meta capabilities. A post type
+	 * using one of those names as a primitive capability must not remove another post type's
+	 * meta capability of the same name.
+	 *
+	 * @ticket 00000
+	 *
+	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
+	 */
+	public function test_unregister_post_type_retains_meta_capabilities_matching_primitive_capabilities() {
+		global $post_type_meta_caps;
+
+		register_post_type(
+			'book',
+			array(
+				'public'          => true,
+				'capability_type' => 'book',
+				'map_meta_cap'    => true,
+			)
+		);
+
+		// For this post type 'edit_book' is a primitive capability, not a meta capability.
+		register_post_type(
+			'shelf',
+			array(
+				'public'       => true,
+				'map_meta_cap' => false,
+				'capabilities' => array(
+					'edit_posts' => 'edit_book',
+				),
+			)
+		);
+
+		$this->assertTrue( unregister_post_type( 'shelf' ) );
+
+		$this->assertSame( 'edit_post', $post_type_meta_caps['edit_book'], 'The meta capability of another post type was removed.' );
 	}
 
 	/**
