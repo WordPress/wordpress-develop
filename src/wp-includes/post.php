@@ -1917,13 +1917,14 @@ function register_post_type( $post_type, $args = array() ) {
  *
  * @since 4.5.0
  *
- * @global array<string, WP_Post_Type> $wp_post_types List of post types.
+ * @global array<string, string>       $post_type_meta_caps Used to store meta capabilities.
+ * @global array<string, WP_Post_Type> $wp_post_types       List of post types.
  *
  * @param string $post_type Post type to unregister.
  * @return true|WP_Error True on success, WP_Error on failure or if the post type doesn't exist.
  */
 function unregister_post_type( $post_type ) {
-	global $wp_post_types;
+	global $post_type_meta_caps, $wp_post_types;
 
 	$post_type_object = get_post_type_object( $post_type );
 	if ( ! $post_type_object ) {
@@ -1943,8 +1944,20 @@ function unregister_post_type( $post_type ) {
 
 	unset( $wp_post_types[ $post_type ] );
 
-	// Rebuild the meta capabilities registry now that the post type is gone.
-	_rebuild_post_type_meta_capabilities();
+	/*
+	 * Rebuild the meta capabilities of the post types that remain.
+	 *
+	 * They are keyed by the custom capability name, so a single entry may be owed to any
+	 * number of registered post types. Removing the entries for this post type alone could
+	 * therefore remove entries that the others still depend on.
+	 */
+	$post_type_meta_caps = array();
+
+	foreach ( $wp_post_types as $registered_post_type ) {
+		if ( $registered_post_type->map_meta_cap ) {
+			_post_type_meta_capabilities( get_object_vars( $registered_post_type->cap ) );
+		}
+	}
 
 	/**
 	 * Fires after a post type was unregistered.
@@ -2099,32 +2112,6 @@ function _post_type_meta_capabilities( $capabilities = array() ): void {
 	foreach ( $capabilities as $core => $custom ) {
 		if ( in_array( $core, array( 'read_post', 'delete_post', 'edit_post' ), true ) ) {
 			$post_type_meta_caps[ $custom ] = $core;
-		}
-	}
-}
-
-/**
- * Rebuilds the list of post type meta caps for map_meta_cap() from the registered post types.
- *
- * The meta capabilities stored by _post_type_meta_capabilities() are keyed by the custom
- * capability name, so a single entry may be owed to any number of registered post types.
- * Unregistering one of them therefore cannot simply remove that post type's entries, as
- * other post types may still depend on them. The list is rebuilt from scratch instead.
- *
- * @since 7.2.0
- * @access private
- *
- * @global array<string, string>       $post_type_meta_caps Used to store meta capabilities.
- * @global array<string, WP_Post_Type> $wp_post_types       List of post types.
- */
-function _rebuild_post_type_meta_capabilities(): void {
-	global $post_type_meta_caps, $wp_post_types;
-
-	$post_type_meta_caps = array();
-
-	foreach ( $wp_post_types as $post_type_object ) {
-		if ( $post_type_object->map_meta_cap ) {
-			_post_type_meta_capabilities( get_object_vars( $post_type_object->cap ) );
 		}
 	}
 }
