@@ -330,6 +330,9 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 
 		// Remove feed icon link from legacy RSS widget.
 		add_filter( 'rss_widget_feed_link', '__return_empty_string' );
+
+		// Add support for block borders.
+		add_theme_support( 'border' );
 	}
 }
 add_action( 'after_setup_theme', 'twenty_twenty_one_setup' );
