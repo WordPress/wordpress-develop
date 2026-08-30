@@ -797,6 +797,8 @@ final class WP_Post_Type {
 	 * Removes any rewrite rules, permastructs, and rules for the post type.
 	 *
 	 * @since 4.6.0
+	 * @since 7.2.0 Registered meta capabilities are no longer removed here. They are rebuilt
+	 *              from the post types that remain by {@see unregister_post_type()}.
 	 *
 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 * @global WP         $wp         Current WordPress environment instance.
