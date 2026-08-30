@@ -6498,6 +6498,7 @@ function get_page_uri( $page = 0 ) {
  *
  * @since 1.5.0
  * @since 6.3.0 Use WP_Query internally.
+ * @since 6.8.0 Added 'any' as an accepted `$post_status`.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to retrieve pages.
@@ -6530,7 +6531,8 @@ function get_page_uri( $page = 0 ) {
  *                                      Default 0.
  *     @type string       $post_type    The post type to query. Default 'page'.
  *     @type string|array $post_status  A comma-separated list or array of post statuses to include.
- *                                      Default 'publish'.
+ *                                      Default 'publish'. If `$post_status` includes 'any' then any status
+ *                                      post status with 'exclude_from_search' will also be included.
  * }
  * @return WP_Post[]|false Array of pages (or hierarchical post type items). Boolean false if the
  *                         specified post type is not hierarchical or the specified status is not
@@ -6581,6 +6583,16 @@ function get_pages( $args = array() ) {
 	if ( ! is_array( $post_status ) ) {
 		$post_status = explode( ',', $post_status );
 	}
+
+	if ( in_array( 'any', $post_status ) ) {
+		$post_status = array_unique(
+			array_merge(
+				array_diff( $post_status, array( 'any' ) ),
+				array_keys( get_post_stati( array( 'exclude_from_search' => false ) ) )
+			)
+		);
+	}
+
 	if ( array_diff( $post_status, get_post_stati() ) ) {
 		return false;
 	}
