@@ -1952,7 +1952,6 @@ function unregister_post_type( $post_type ) {
 	 * therefore remove entries that the others still depend on.
 	 */
 	$post_type_meta_caps = array();
-
 	foreach ( $wp_post_types as $registered_post_type ) {
 		if ( $registered_post_type->map_meta_cap ) {
 			_post_type_meta_capabilities( get_object_vars( $registered_post_type->cap ) );
