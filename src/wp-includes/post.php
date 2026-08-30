@@ -2095,9 +2095,12 @@ function get_post_type_capabilities( $args ) {
 }
 
 /**
- * Stores a list of post type meta caps for map_meta_cap().
+ * Stores a list of post type meta caps for {@see map_meta_cap()}.
  *
  * @since 3.1.0
+ * @since 4.5.0 The list moved to the `$post_type_meta_caps` global and the function
+ *              no longer returns it when called without arguments.
+ * @since 7.2.0 The `$capabilities` parameter defaults to an empty array rather than `null`.
  * @access private
  *
  * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
