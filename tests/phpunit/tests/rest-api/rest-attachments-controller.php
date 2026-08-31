@@ -6091,6 +6091,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 65987
 	 */
+	public function test_original_attachment_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response = rest_get_server()->dispatch( $request );
+		$schema   = $response->get_data()['schema']['properties']['original_attachment'];
+
+		$this->assertSame( 'integer', $schema['type'] );
+		$this->assertSame( array( 'edit' ), $schema['context'] );
+		$this->assertTrue( $schema['readonly'] );
+	}
+
+	/**
+	 * @ticket 65987
+	 */
 	public function test_get_original_attachment_id_returns_same_id_for_an_upload() {
 		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
 
@@ -6165,6 +6178,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$links = $response->get_links();
 		$this->assertArrayHasKey( 'https://api.w.org/original-attachment', $links );
+		$this->assertCount(
+			1,
+			$links['https://api.w.org/original-attachment'],
+			'The link should be added once.'
+		);
 
 		$link = $links['https://api.w.org/original-attachment'][0];
 		$this->assertStringEndsWith( '/wp/v2/media/' . $attachment, $link['href'] );
@@ -6198,15 +6216,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 65987
 	 */
-	public function test_uploaded_image_response_omits_the_original_attachment() {
+	public function test_uploaded_image_reports_no_original_attachment() {
 		wp_set_current_user( self::$superadmin_id );
 		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
 
 		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
 		$request->set_param( 'context', 'edit' );
-		$data = rest_do_request( $request )->get_data();
+		$response = rest_do_request( $request );
 
-		$this->assertArrayNotHasKey( 'original_attachment', $data );
+		$this->assertSame( 0, $response->get_data()['original_attachment'] );
+		$this->assertArrayNotHasKey(
+			'https://api.w.org/original-attachment',
+			$response->get_links(),
+			'An image with no original should carry no link.'
+		);
 	}
 
 	/**
@@ -6248,11 +6271,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * An attachment recorded as its own original is a broken record, not a chain,
-	 * so nothing should be reported for it.
+	 * so it reports no original.
 	 *
 	 * @ticket 65987
 	 */
-	public function test_attachment_recorded_as_its_own_original_omits_the_field() {
+	public function test_attachment_recorded_as_its_own_original_reports_none() {
 		wp_set_current_user( self::$superadmin_id );
 		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
 
@@ -6262,7 +6285,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'edit' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertArrayNotHasKey( 'original_attachment', $data );
+		$this->assertSame( 0, $data['original_attachment'] );
 	}
 
 	/**
