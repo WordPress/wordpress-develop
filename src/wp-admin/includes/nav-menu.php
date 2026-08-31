@@ -636,6 +636,9 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 				);
 				$most_recent = $get_posts->query( $recent_args );
 
+				// Added important pages in Most recent tab at top.
+				$most_recent = array_merge( $important_pages, $most_recent );
+
 				$args['walker'] = $walker;
 
 				/**
