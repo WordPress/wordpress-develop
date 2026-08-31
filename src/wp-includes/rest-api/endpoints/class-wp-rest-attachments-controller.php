@@ -1356,6 +1356,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'file'          => _wp_relative_upload_path( $image_file ),
 		);
 
+		/*
+		 * Record the attachment this chain of edits started from, so the original can be
+		 * found in one lookup from any image later in the chain. The new attachment inherits
+		 * the original recorded on the image being edited, or that image itself when it was
+		 * uploaded rather than edited.
+		 */
+		update_post_meta(
+			$new_attachment_id,
+			'_wp_attachment_original_id',
+			wp_get_original_attachment_id( $attachment_id )
+		);
+
 		/**
 		 * Filters the meta data for the new image created by editing an existing image.
 		 *
@@ -1502,6 +1514,31 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				}
 			} else {
 				$data['media_details']['sizes'] = new stdClass();
+			}
+
+			/*
+			 * Point an image created by editing another one back at the attachment its chain
+			 * of edits started from, so editors can offer a way to get back to the original.
+			 *
+			 * Only sent in the `edit` context: this is for people editing the image, and it
+			 * would otherwise tell visitors which images were made from which.
+			 *
+			 * Left out when the attachment was not created by editing another one, and when
+			 * the original no longer has a URL, which happens if its file is missing.
+			 */
+			if ( 'edit' === $request['context'] && is_array( $data['media_details'] ) ) {
+				$original_id = wp_get_original_attachment_id( $post->ID );
+
+				if ( $original_id !== (int) $post->ID ) {
+					$original_url = wp_get_attachment_url( $original_id );
+
+					if ( is_string( $original_url ) && '' !== $original_url ) {
+						$data['media_details']['original_attachment'] = array(
+							'attachment_id' => $original_id,
+							'source_url'    => $original_url,
+						);
+					}
+				}
 			}
 		}
 
@@ -1797,6 +1834,29 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'type'        => 'object',
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'readonly'    => true,
+			'properties'  => array(
+				'original_attachment' => array(
+					'description' => __( 'The attachment this image was originally created from by editing. Only present for images created by editing another image.' ),
+					'type'        => 'object',
+					'context'     => array( 'edit' ),
+					'readonly'    => true,
+					'properties'  => array(
+						'attachment_id' => array(
+							'description' => __( 'The ID of the original attachment.' ),
+							'type'        => 'integer',
+							'context'     => array( 'edit' ),
+							'readonly'    => true,
+						),
+						'source_url'    => array(
+							'description' => __( 'URL to the original attachment file.' ),
+							'type'        => 'string',
+							'format'      => 'uri',
+							'context'     => array( 'edit' ),
+							'readonly'    => true,
+						),
+					),
+				),
+			),
 		);
 
 		$schema['properties']['post'] = array(
