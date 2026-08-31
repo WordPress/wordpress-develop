@@ -5563,6 +5563,98 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies that the URL sideload path enforces the site's maximum upload
+	 * size on single site as well as multisite.
+	 *
+	 * check_upload_size() returns early when ! is_multisite(), so before this
+	 * check a single site had no ceiling at all on this path.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 */
+	public function test_create_item_from_url_exceeds_max_upload_size() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		// The fixture the download is mocked with is comfortably larger than this.
+		add_filter( 'upload_size_limit', array( $this, 'filter_small_upload_size_limit' ), 20 );
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/too-big.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$this->assertErrorResponse( 'rest_upload_file_too_big', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the download itself is bounded, so an oversized remote file
+	 * is not written to disk in full before the size check rejects it.
+	 *
+	 * @ticket 65517
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 */
+	public function test_create_item_from_url_limits_the_download_size() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$request_args = null;
+
+		$capture_args = static function ( $response, $args, $url ) use ( &$request_args ) {
+			$request_args = $args;
+
+			if ( ! empty( $args['filename'] ) ) {
+				copy( DIR_TESTDATA . '/images/canola.jpg', $args['filename'] );
+			}
+
+			return array(
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+				'headers'  => array(),
+				'cookies'  => array(),
+				'body'     => '',
+			);
+		};
+
+		add_filter( 'pre_http_request', $capture_args, 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/photo.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $capture_args, 10 );
+
+		$this->assertIsArray( $request_args, 'The download request should have been made.' );
+		$this->assertSame(
+			(int) wp_max_upload_size() + 1,
+			$request_args['limit_response_size'],
+			'The download should be capped one byte past the maximum upload size.'
+		);
+	}
+
+	/**
+	 * Filters the maximum upload size down to a value smaller than the image
+	 * fixture used to mock the download.
+	 *
+	 * @return int A deliberately small upload size limit, in bytes.
+	 */
+	public function filter_small_upload_size_limit() {
+		return 1024;
+	}
+
+	/**
 	 * Verifies that a URL with no usable path bails with a 400 before any
 	 * download is attempted, rather than handing an empty filename to the
 	 * sideload handler.
