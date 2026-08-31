@@ -126,8 +126,8 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
-  # - Publish PHPUnit timing metrics to CodeVitals.
   # - Flags slow PHPUnit tests with GitHub Actions annotations and a run summary.
+  # - Publish PHPUnit timing metrics to CodeVitals.
   # - Upload the code coverage report to Codecov.io.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
@@ -274,6 +274,28 @@ jobs:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
           MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
 
+      - name: Flag slow PHPUnit tests
+        # Runs when the test step succeeds or fails, but skips cancelled jobs.
+        # This step never fails the job itself (continue-on-error), because the
+        # slow-test signal is advisory only.
+        if: >-
+          ${{
+            ! cancelled() && inputs.report && inputs.php == '8.5' &&
+            ( github.event_name == 'pull_request' ||
+              ( github.event_name == 'push' && github.ref == 'refs/heads/trunk' ) )
+          }}
+        continue-on-error: true
+        run: |
+          if [ -f tests/phpunit/build/logs/junit.xml ]; then
+            php tests/phpunit/prepare-slow-test-annotations.php \
+              tests/phpunit/build/logs/junit.xml \
+              1.0 \
+              20 \
+              "$RUNNER_TEMP/phpunit-timing-metrics.json"
+          else
+            echo 'PHPUnit JUnit report not found; skipping slow-test annotations.'
+          fi
+
       - name: Publish PHPUnit timing metrics
         continue-on-error: true
         if: |
@@ -296,6 +318,7 @@ jobs:
               trunk \
               "$GITHUB_SHA" \
               "$COMMITTED_AT" \
+              "$RUNNER_TEMP/phpunit-timing-metrics.json" \
               | curl --fail-with-body --silent --show-error \
                 --request POST \
                 --header 'Content-Type: application/json' \
@@ -307,24 +330,6 @@ jobs:
             exit 1
           fi
           echo 'Published six PHPUnit timing metrics to CodeVitals.'
-
-      - name: Flag slow PHPUnit tests
-        # Runs when the test step succeeds or fails, but skips cancelled jobs.
-        # This step never fails the job itself (continue-on-error), because the
-        # slow-test signal is advisory only.
-        if: >-
-          ${{
-            ! cancelled() && inputs.report && inputs.php == '8.5' &&
-            ( github.event_name == 'pull_request' ||
-              ( github.event_name == 'push' && github.ref == 'refs/heads/trunk' ) )
-          }}
-        continue-on-error: true
-        run: |
-          if [ -f tests/phpunit/build/logs/junit.xml ]; then
-            php tests/phpunit/prepare-slow-test-annotations.php tests/phpunit/build/logs/junit.xml
-           else
-             echo 'PHPUnit JUnit report not found; skipping slow-test annotations.'
-           fi
 
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}

@@ -7,11 +7,13 @@
  * Usage:
  *
  *     php tests/phpunit/prepare-slow-test-annotations.php <junit-file> \
- *         [threshold-seconds] [max-summary-tests]
+ *         [threshold-seconds] [max-summary-tests] [timing-metrics-file]
  *
  * @package WordPress
  * @subpackage UnitTests
  */
+
+require_once __DIR__ . '/includes/class-wp-phpunit-timing-metrics.php';
 
 /**
  * Escapes a GitHub Actions workflow command message.
@@ -106,11 +108,11 @@ function wp_phpunit_write_summary( $summary ) {
 	}
 }
 
-if ( $argc < 2 || $argc > 4 ) {
+if ( $argc < 2 || $argc > 5 ) {
 	fwrite(
 		STDERR,
 		'Usage: php tests/phpunit/prepare-slow-test-annotations.php <junit-file> '
-		. "[threshold-seconds] [max-summary-tests]\n"
+		. "[threshold-seconds] [max-summary-tests] [timing-metrics-file]\n"
 	);
 	exit( 1 );
 }
@@ -119,6 +121,7 @@ try {
 	$file                    = $argv[1];
 	$threshold_value         = $argv[2] ?? '1.0';
 	$max_summary_tests_value = $argv[3] ?? '20';
+	$timing_metrics_file     = $argv[4] ?? null;
 
 	if ( ! is_numeric( $threshold_value ) || (float) $threshold_value < 0 ) {
 		throw new RuntimeException( 'The slow-test threshold must be a non-negative number.' );
@@ -128,66 +131,26 @@ try {
 		throw new RuntimeException( 'The maximum summary test count must be a positive integer.' );
 	}
 
-	if ( ! is_readable( $file ) ) {
-		throw new RuntimeException( 'The JUnit report could not be read.' );
-	}
-
-	$threshold             = (float) $threshold_value;
-	$max_summary_tests     = (int) $max_summary_tests_value;
-	$reader                = new XMLReader();
-	$previous_libxml_state = libxml_use_internal_errors( true );
-	$reader_is_open        = false;
-
-	libxml_clear_errors();
-
-	try {
-		if ( ! $reader->open( $file, null, LIBXML_NONET | LIBXML_COMPACT ) ) {
-			throw new RuntimeException( 'The JUnit report could not be opened.' );
-		}
-
-		$reader_is_open = true;
-		$slow_tests     = array();
-
-		while ( $reader->read() ) {
-			if ( XMLReader::ELEMENT !== $reader->nodeType || 'testcase' !== $reader->name ) {
-				continue;
+	$threshold         = (float) $threshold_value;
+	$max_summary_tests = (int) $max_summary_tests_value;
+	$slow_tests        = array();
+	$timing_metrics    = WP_PHPUnit_Timing_Metrics::from_file(
+		$file,
+		static function ( $testcase ) use ( &$slow_tests, $threshold ) {
+			if ( $testcase['time'] <= $threshold ) {
+				return;
 			}
 
-			$time = $reader->getAttribute( 'time' );
-
-			// A testcase without numeric timing (for example a skipped test) carries
-			// no slow-test signal, so it is ignored rather than treated as an error.
-			if ( ! is_numeric( $time ) ) {
-				continue;
-			}
-
-			if ( (float) $time <= $threshold ) {
-				continue;
-			}
-
-			$slow_tests[] = array(
-				'name'         => (string) $reader->getAttribute( 'name' ),
-				'class'        => (string) $reader->getAttribute( 'class' ),
-				'file'         => wp_phpunit_relative_path( (string) $reader->getAttribute( 'file' ) ),
-				'line'         => (string) $reader->getAttribute( 'line' ),
-				'time'         => (float) $time,
-				'time_display' => $time,
-			);
+			$testcase['file'] = wp_phpunit_relative_path( $testcase['file'] );
+			$slow_tests[]     = $testcase;
 		}
+	);
 
-		$xml_errors = libxml_get_errors();
-	} finally {
-		if ( $reader_is_open ) {
-			$reader->close();
-		}
+	if ( null !== $timing_metrics_file ) {
+		$timing_metrics_json = json_encode( $timing_metrics, JSON_THROW_ON_ERROR );
 
-		libxml_clear_errors();
-		libxml_use_internal_errors( $previous_libxml_state );
-	}
-
-	foreach ( $xml_errors as $xml_error ) {
-		if ( LIBXML_ERR_WARNING < $xml_error->level ) {
-			throw new RuntimeException( 'The JUnit report contains invalid XML.' );
+		if ( false === file_put_contents( $timing_metrics_file, $timing_metrics_json . "\n" ) ) {
+			throw new RuntimeException( 'The PHPUnit timing metrics file could not be written.' );
 		}
 	}
 
