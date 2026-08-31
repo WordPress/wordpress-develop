@@ -581,7 +581,7 @@ switch ( $action ) {
 
 							<?php
 							$new_email = get_user_meta( $current_user->ID, '_new_email', true );
-							if ( $new_email && $new_email['newemail'] !== $current_user->user_email && $profile_user->ID === $current_user->ID ) :
+							if ( $new_email && 0 !== strcasecmp( $new_email['newemail'], $current_user->user_email ) && $profile_user->ID === $current_user->ID ) :
 
 								$pending_change_message = sprintf(
 									/* translators: %s: New email. */
