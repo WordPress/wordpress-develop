@@ -5964,6 +5964,121 @@ function wp_spaces_regexp() {
 }
 
 /**
+ * Recursively sanitizes data by detecting the data type and applying appropriate sanitization.
+ *
+ * This function iterates through each value in arrays and objects, detects the data type,
+ * and executes the sanitization function that best fits the data. It provides a comprehensive
+ * solution for plugin developers to sanitize complex data structures without having to
+ * manually handle each data type.
+ *
+ * The function supports custom sanitization contexts through the $context parameter:
+ * - 'text': Uses sanitize_text_field() for strings
+ * - 'textarea': Uses sanitize_textarea_field() for strings (preserves newlines)
+ * - 'email': Uses sanitize_email() for strings
+ * - 'url': Uses sanitize_url() for strings
+ * - 'key': Uses sanitize_key() for strings
+ * - 'title': Uses sanitize_title() for strings
+ * - 'html_class': Uses sanitize_html_class() for strings
+ * - 'mime_type': Uses sanitize_mime_type() for strings
+ * - 'auto' (default): Auto-detects the best sanitization method
+ *
+ * @since 6.5.0
+ *
+ * @param mixed  $data    The data to sanitize. Can be string, array, object, or other types.
+ * @param string $context Optional. The sanitization context. Default 'auto'.
+ * @param int    $depth   Optional. Internal recursion depth counter. Default 0.
+ * @return mixed Sanitized data in the same structure as the input.
+ */
+function recursively_sanitize( $data, $context = 'auto', $depth = 0 ) {
+	// Prevent infinite recursion - limit to reasonable depth.
+	if ( $depth > 50 ) {
+		return null;
+	}
+
+	// Handle arrays recursively.
+	if ( is_array( $data ) ) {
+		$sanitized = array();
+		foreach ( $data as $key => $value ) {
+			$sanitized_key               = sanitize_key( $key );
+			$sanitized[ $sanitized_key ] = recursively_sanitize( $value, $context, $depth + 1 );
+		}
+		return $sanitized;
+	}
+
+	// Handle objects recursively.
+	if ( is_object( $data ) ) {
+		$sanitized = new stdClass();
+		foreach ( $data as $key => $value ) {
+			$sanitized_key             = sanitize_key( $key );
+			$sanitized->$sanitized_key = recursively_sanitize( $value, $context, $depth + 1 );
+		}
+		return $sanitized;
+	}
+
+	// Handle null, boolean, and numeric values.
+	if ( is_null( $data ) || is_bool( $data ) || is_numeric( $data ) ) {
+		return $data;
+	}
+
+	// Handle string sanitization based on context.
+	if ( is_string( $data ) ) {
+		switch ( $context ) {
+			case 'text':
+				$sanitized = sanitize_text_field( $data );
+				break;
+			case 'textarea':
+				$sanitized = sanitize_textarea_field( $data );
+				break;
+			case 'email':
+				$sanitized = sanitize_email( $data );
+				break;
+			case 'url':
+				$sanitized = sanitize_url( $data );
+				break;
+			case 'key':
+				$sanitized = sanitize_key( $data );
+				break;
+			case 'title':
+				$sanitized = sanitize_title( $data );
+				break;
+			case 'html_class':
+				$sanitized = sanitize_html_class( $data );
+				break;
+			case 'mime_type':
+				$sanitized = sanitize_mime_type( $data );
+				break;
+			case 'auto':
+			default:
+				// Auto-detect best sanitization method.
+				if ( is_email( $data ) ) {
+					$sanitized = sanitize_email( $data );
+				} elseif ( wp_http_validate_url( $data ) ) {
+					$sanitized = sanitize_url( $data );
+				} else {
+					// Default to text field sanitization.
+					$sanitized = sanitize_text_field( $data );
+				}
+				break;
+		}
+	} else {
+		$sanitized = sanitize_text_field( (string) $data );
+	}
+
+	/**
+	 * Filters the recursively sanitized data.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param mixed  $sanitized The sanitized data.
+	 * @param mixed  $data      The original data before sanitization.
+	 * @param string $context   The sanitization context used.
+	 * @param int    $depth     The current recursion depth.
+	 */
+	return apply_filters( 'recursively_sanitize', $sanitized, $data, $context, $depth );
+}
+
+
+/**
  * Enqueues the important emoji-related styles.
  *
  * @since 6.4.0
