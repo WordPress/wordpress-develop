@@ -396,7 +396,7 @@
 		 * @since 4.7.0 Changed function signature to take list of item types instead of single type/object.
 		 * @access private
 		 *
-		 * @param {Array.<Object>} itemTypes List of objects containing type and key.
+		 * @param {Object[]} itemTypes List of objects containing type and key.
 		 * @param {string} deprecated Formerly the object parameter.
 		 * @return {void}
 		 */
@@ -1147,7 +1147,7 @@
 		},
 
 		/**
-		 * @param {Array} themeLocationSlugs Theme location slugs.
+		 * @param {string[]} themeLocationSlugs Theme location slugs.
 		 */
 		updateAssignedLocationsInSectionTitle: function( themeLocationSlugs ) {
 			var section = this,
@@ -3276,9 +3276,9 @@
 	 *
 	 * @alias wp.customize.Menus.applySavedData
 	 *
-	 * @param {Object} data
-	 * @param {Array} data.nav_menu_updates
-	 * @param {Array} data.nav_menu_item_updates
+	 * @param {Object}   data
+	 * @param {Object[]} data.nav_menu_updates
+	 * @param {Object[]} data.nav_menu_item_updates
 	 */
 	api.Menus.applySavedData = function( data ) {
 

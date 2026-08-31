@@ -1097,7 +1097,7 @@
 		 * Get the state for an input depending on its type.
 		 *
 		 * @param {jQuery|Element} input
-		 * @return {string|boolean|Array|*} State of the input.
+		 * @return {string|boolean|string[]|*} State of the input.
 		 * @private
 		 */
 		_getInputState: function( input ) {
@@ -1117,7 +1117,7 @@
 		 * Update an input's state based on its type.
 		 *
 		 * @param {jQuery|Element} input
-		 * @param {string|boolean|Array|*} state
+		 * @param {string|boolean|string[]|*} state
 		 * @private
 		 */
 		_setInputState: function ( input, state ) {

@@ -292,8 +292,8 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 *
 		 * @since 4.5.0
 		 *
-		 * @return {Array} An array containing placement objects for each of the
-		 *                 dynamic sidebar boundary nodes.
+		 * @return {wp.customize.selectiveRefresh.Placement[]} A placement for each of the dynamic
+		 *                                                     sidebar boundary nodes.
 		 */
 		placements: function() {
 			var partial = this;
@@ -319,7 +319,7 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 * @throws {Error} If the setting doesn't exist in the API.
 		 * @throws {Error} If the API doesn't pass an array of widget IDs.
 		 *
-		 * @return {Array} A shallow copy of the array containing widget IDs.
+		 * @return {string[]} A shallow copy of the array containing widget IDs.
 		 */
 		getWidgetIds: function() {
 			var sidebarPartial = this, settingId, widgetIds;
@@ -343,7 +343,7 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 *
 		 * @since 4.5.0
 		 *
-		 * @return {Array.<wp.customize.selectiveRefresh.Placement>} List of placements
+		 * @return {wp.customize.selectiveRefresh.Placement[]} List of placements
 		 *                                                           that were reflowed.
 		 */
 		reflowWidgets: function() {
@@ -476,8 +476,8 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {Array} newWidgetIds New widget IDs.
-		 * @param {Array} oldWidgetIds Old widget IDs.
+		 * @param {string[]} newWidgetIds New widget IDs.
+		 * @param {string[]} oldWidgetIds Old widget IDs.
 		 *
 		 * @return {void}
 		 */

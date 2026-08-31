@@ -187,7 +187,7 @@
 		 * @since 4.9.0
 		 * @param {Object}  args              Args.
 		 * @param {boolean} [args.sort=false] Whether to return the notifications sorted.
-		 * @return {Array.<wp.customize.Notification>} Notifications.
+		 * @return {wp.customize.Notification[]} Notifications.
 		 */
 		get: function( args ) {
 			var collection = this, notifications, errorTypePriorities, params;
@@ -677,7 +677,7 @@
 	 * @since 4.1.0
 	 *
 	 * @param {wp.customize.Class} instance
-	 * @param {Array}              properties The names of the Value instances to watch.
+	 * @param {string[]}           properties The names of the Value instances to watch.
 	 */
 	api.utils.bubbleChildValueChanges = function ( instance, properties ) {
 		$.each( properties, function ( i, key ) {
@@ -790,8 +790,8 @@
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param {Array|jQuery} listA First list of elements.
-	 * @param {Array|jQuery} listB Second list of elements.
+	 * @param {jQuery[]|jQuery} listA First list of elements.
+	 * @param {jQuery[]|jQuery} listB Second list of elements.
 	 * @return {boolean} True if the two lists are equal, false otherwise.
 	 */
 	api.utils.areElementListsEqual = function ( listA, listB ) {
@@ -1080,7 +1080,7 @@
 		 *
 		 * @param {string} parentType
 		 * @param {string} childType
-		 * @return {Array} Array of child models sorted by priority.
+		 * @return {wp.customize.Class[]} Array of child models sorted by priority.
 		 */
 		_children: function ( parentType, childType ) {
 			var parent = this,
@@ -1599,7 +1599,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @return {Array} Array of control models sorted by priority.
+		 * @return {wp.customize.Control[]} Array of control models sorted by priority.
 		 */
 		controls: function () {
 			return this._children( 'section', 'control' );
@@ -2212,8 +2212,8 @@
 		 * Loads controls into the section from data received from loadThemes().
 		 *
 		 * @since 4.9.0
-		 * @param {Array}  themes Array of theme data to create controls with.
-		 * @param {number} page   Page of results being loaded.
+		 * @param {Object[]} themes Array of theme data to create controls with.
+		 * @param {number}   page   Page of results being loaded.
 		 * @return {void}
 		 */
 		loadControls: function( themes, page ) {
@@ -2369,8 +2369,8 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {string} newTerm New term.
-		 * @param {Array}  newTags New tags.
+		 * @param {string}   newTerm New term.
+		 * @param {string[]} newTags New tags.
 		 * @return {void}
 		 */
 		initializeNewQuery: function( newTerm, newTags ) {
@@ -2923,7 +2923,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @return {Array} Array of sections.
+		 * @return {wp.customize.Section[]} Array of sections.
 		 */
 		sections: function () {
 			return this._children( 'panel', 'section' );
@@ -5264,7 +5264,7 @@
 		 * Show or hide the theme based on the presence of the term in the title, description, tags, and author.
 		 *
 		 * @since 4.2.0
-		 * @param {Array} terms An array of terms to search for.
+		 * @param {string[]} terms An array of terms to search for.
 		 * @return {boolean} Whether a theme control was activated or not.
 		 */
 		filter: function( terms ) {
@@ -5583,7 +5583,7 @@
 		 * Update error notice.
 		 *
 		 * @since 4.9.0
-		 * @param {Array} errorAnnotations Error annotations.
+		 * @param {Object[]} errorAnnotations Error annotations.
 		 * @return {void}
 		 */
 		onUpdateErrorNotice: function onUpdateErrorNotice( errorAnnotations ) {
@@ -8395,7 +8395,7 @@
 			/**
 			 * Remove parameter from the URL.
 			 *
-			 * @param {Array} params Parameter names to remove.
+			 * @param {string[]} params Parameter names to remove.
 			 * @return {void}
 			 */
 			function stripParamsFromLocation( params ) {

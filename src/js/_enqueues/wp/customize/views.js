@@ -255,7 +255,7 @@
 		/**
 		 * Initialize.
 		 *
-		 * @param {Array} collections Collections.
+		 * @param {Backbone.Collection[]} collections Collections.
 		 */
 		initialize: function(collections) {
 			this.collections = collections;
