@@ -3,9 +3,9 @@
  */
 
 /**
- * @param {JQueryStatic} $  The jQuery object.
- * @param {Object}       wp The WordPress global object.
- * @param {Object}       _  The Underscore.js object.
+ * @param {JQueryStatic}       $  The jQuery object.
+ * @param {Object}             wp The WordPress global object.
+ * @param {_.UnderscoreStatic} _  The Underscore.js object.
  */
 (function( $, wp, _ ) {
 

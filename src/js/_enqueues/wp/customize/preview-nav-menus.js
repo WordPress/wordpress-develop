@@ -7,10 +7,10 @@
 /** @namespace wp.customize.navMenusPreview */
 
 /**
- * @param {JQueryStatic} $   The jQuery object.
- * @param {Object}       _   The Underscore.js object.
- * @param {Object}       wp  The WordPress global object.
- * @param {Object}       api The Customizer API.
+ * @param {JQueryStatic}       $   The jQuery object.
+ * @param {_.UnderscoreStatic} _   The Underscore.js object.
+ * @param {Object}             wp  The WordPress global object.
+ * @param {Object}             api The Customizer API.
  */
 wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function( $, _, wp, api ) {
 	'use strict';

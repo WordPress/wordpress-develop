@@ -2595,7 +2595,7 @@
 		 *
 		 * @deprecated
 		 * @param {string} themeId Theme ID.
-		 * @return {jQuery.promise} Promise.
+		 * @return {jQuery.Promise} Promise.
 		 */
 		loadThemePreview: function( themeId ) {
 			return api.ThemesPanel.prototype.loadThemePreview.call( this, themeId );
@@ -3233,7 +3233,7 @@
 		 * @since 4.9.0
 		 *
 		 * @param {jQuery.Event} event Event.
-		 * @return {jQuery.promise} Promise.
+		 * @return {jQuery.Promise} Promise.
 		 */
 		installTheme: function( event ) {
 			var panel = this, preview, onInstallSuccess, slug = $( event.target ).data( 'slug' ), deferred = $.Deferred(), request;
@@ -3338,7 +3338,7 @@
 		 * @since 4.9.0
 		 *
 		 * @param {string} themeId Theme ID.
-		 * @return {jQuery.promise} Promise.
+		 * @return {jQuery.Promise} Promise.
 		 */
 		loadThemePreview: function( themeId ) {
 			var panel = this, deferred = $.Deferred(), onceProcessingComplete, urlParser, queryParams;
@@ -6153,7 +6153,7 @@
 	 * @type {Function}
 	 * @param {...string}                             ids        One or more ids for controls to obtain.
 	 * @param {wp.customize.deferredControlsCallback} [callback] Function called when all supplied controls exist.
-	 * @return {wp.customize.Control|undefined|jQuery.promise} Control instance or undefined (if function called with one id param),
+	 * @return {wp.customize.Control|undefined|jQuery.Promise} Control instance or undefined (if function called with one id param),
 	 *                                                         or promise resolving to requested controls.
 	 *
 	 * @example <caption>Loop over all registered controls.</caption>
@@ -6215,7 +6215,7 @@
 	 * @type {Function}
 	 * @param {...string}                             ids        One or more ids for sections to obtain.
 	 * @param {wp.customize.deferredSectionsCallback} [callback] Function called when all supplied sections exist.
-	 * @return {wp.customize.Section|undefined|jQuery.promise} Section instance or undefined (if function called with one id param),
+	 * @return {wp.customize.Section|undefined|jQuery.Promise} Section instance or undefined (if function called with one id param),
 	 *                                                         or promise resolving to requested sections.
 	 *
 	 * @example <caption>Loop over all registered sections.</caption>
@@ -6250,7 +6250,7 @@
 	 * @type {Function}
 	 * @param {...string}                           ids        One or more ids for panels to obtain.
 	 * @param {wp.customize.deferredPanelsCallback} [callback] Function called when all supplied panels exist.
-	 * @return {wp.customize.Panel|undefined|jQuery.promise} Panel instance or undefined (if function called with one id param),
+	 * @return {wp.customize.Panel|undefined|jQuery.Promise} Panel instance or undefined (if function called with one id param),
 	 *                                                       or promise resolving to requested panels.
 	 *
 	 * @example <caption>Loop over all registered panels.</caption>
@@ -6285,7 +6285,7 @@
 	 * @type {Function}
 	 * @param {...string}                                  codes      One or more codes for notifications to obtain.
 	 * @param {wp.customize.deferredNotificationsCallback} [callback] Function called when all supplied notifications exist.
-	 * @return {wp.customize.Notification|undefined|jQuery.promise} Notification instance or undefined (if function called with one code param),
+	 * @return {wp.customize.Notification|undefined|jQuery.Promise} Notification instance or undefined (if function called with one code param),
 	 *                                                              or promise resolving to requested notifications.
 	 *
 	 * @example <caption>Check if existing notification</caption>
@@ -7548,7 +7548,7 @@
 			 * @param {string} [args.status=publish] Status.
 			 * @param {string} [args.date]           Date, in local time in MySQL format.
 			 * @param {string} [args.title]          Title.
-			 * @return {jQuery.promise} Promise.
+			 * @return {jQuery.Promise} Promise.
 			 */
 			save: function( args ) {
 				var previewer = this,

@@ -11,10 +11,10 @@
  *
  * @namespace wp.customize.widgetsPreview
  *
- * @param {JQueryStatic} $   The jQuery object.
- * @param {Object}       _   The Underscore.js object.
- * @param {Object}       wp  The WordPress global object.
- * @param {Object}       api The Customizer API.
+ * @param {JQueryStatic}       $   The jQuery object.
+ * @param {_.UnderscoreStatic} _   The Underscore.js object.
+ * @param {Object}             wp  The WordPress global object.
+ * @param {Object}             api The Customizer API.
  *
  * @return {Object} Widget-related variables.
  */
