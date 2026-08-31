@@ -440,7 +440,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * sharing a capability type resolve to the same entries. Unregistering one of them
 	 * must not remove the entries the others still rely on.
 	 *
-	 * @ticket 00000
+	 * @ticket 66008
 	 *
 	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
 	 */
@@ -470,7 +470,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * Tests that a remaining post type's meta capabilities still map down to primitive capabilities.
 	 *
-	 * @ticket 00000
+	 * @ticket 66008
 	 */
 	public function test_unregister_post_type_retains_meta_capability_mapping_for_another_post_type() {
 		$args = array(
@@ -511,7 +511,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * Such a post type never stores any meta capabilities, so it must not remove the
 	 * identically named entries belonging to the built-in post types.
 	 *
-	 * @ticket 00000
+	 * @ticket 66008
 	 *
 	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
 	 */
@@ -540,7 +540,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * using one of those names as a primitive capability must not remove another post type's
 	 * meta capability of the same name.
 	 *
-	 * @ticket 00000
+	 * @ticket 66008
 	 *
 	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
 	 */
