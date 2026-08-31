@@ -25,6 +25,62 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 		this._createModes();
 	},
 
+	/**
+	 * Create a safe DOM element with attributes
+	 * @param {string} tag HTML tag name
+	 * @param {Object} attrs Attributes for the element
+	 * @param {string|Node} content Inner content
+	 * @return {HTMLElement} Created element
+	 */
+	createElement: function(tag, attrs, content) {
+		const element = document.createElement(tag);
+		if (attrs) {
+			Object.keys(attrs).forEach(key => {
+				element.setAttribute(key, attrs[key]);
+			});
+		}
+		if (content) {
+			if (typeof content === 'string') {
+				element.textContent = content;
+			} else {
+				element.appendChild(content);
+			}
+		}
+		return element;
+	},
+
+	/**
+	 * Create frame template without using unsafe-eval
+	 * @param {Object} data Template data
+	 * @return {HTMLElement} Created frame element
+	 */
+	createFrameTemplate: function(data) {
+		const frame = this.createElement('div', {
+			'class': 'media-frame',
+			'role': 'dialog'
+		});
+
+		// Create title
+		const title = this.createElement('div', {
+			'class': 'media-frame-title'
+		}, data.title || '');
+		frame.appendChild(title);
+
+		// Create content
+		const content = this.createElement('div', {
+			'class': 'media-frame-content'
+		});
+		frame.appendChild(content);
+
+		// Create toolbar
+		const toolbar = this.createElement('div', {
+			'class': 'media-frame-toolbar'
+		});
+		frame.appendChild(toolbar);
+
+		return frame;
+	},
+
 	_createRegions: function() {
 		// Clone the regions array.
 		this.regions = this.regions ? this.regions.slice() : [];
@@ -161,6 +217,23 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	 */
 	isModeActive: function( mode ) {
 		return Boolean( this.activeModes.where( { id: mode } ).length );
+	},
+
+	/**
+     * Render the frame
+     *
+     * @return {wp.media.view.Frame} Returns itself to allow chaining.
+     */
+	render: function() {
+		const frameElement = this.createFrameTemplate({
+			title: this.options.title || ''
+		});
+		
+		// Use innerHTML to set content (safer than html())
+		this.el.innerHTML = '';
+		this.el.appendChild(frameElement);
+		
+		return this;
 	}
 });
 
