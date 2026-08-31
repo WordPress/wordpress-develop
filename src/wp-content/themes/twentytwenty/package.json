@@ -22,7 +22,7 @@
 		"npm": ">=9.8.1"
 	},
 	"devDependencies": {
-		"@double-great/stylelint-a11y": "^3.5.2",
+		"@double-great/stylelint-a11y": "~3.4.15",
 		"@wordpress/browserslist-config": "^6.34.0",
 		"@wordpress/scripts": "^30.27.0",
 		"autoprefixer": "^10.4.22",
