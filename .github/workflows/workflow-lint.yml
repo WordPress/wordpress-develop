@@ -32,8 +32,15 @@ permissions: {}
 jobs:
   lint:
     name: Lint GitHub Action files
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-workflow-lint.yml@trunk
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/reusable-workflow-lint.yml
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
     permissions:
       security-events: write
       actions: read
