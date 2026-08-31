@@ -369,7 +369,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * @since 4.5.0
 		 *
 		 * @this {wp.customize.selectiveRefresh.Partial}
-		 * @return {jQuery.Promise} Promise for the request to render the partial.
+		 * @return {JQuery.Promise<*>} Promise for the request to render the partial.
 		 */
 		refresh: function() {
 			var partial = this, refreshPromise;
@@ -679,7 +679,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * Currently-requested partials and their associated deferreds.
 	 *
 	 * @since 4.5.0
-	 * @type {Object.<string, { deferred: jQuery.Promise, partial: wp.customize.selectiveRefresh.Partial }>}
+	 * @type {Object.<string, { deferred: JQuery.Promise<*>, partial: wp.customize.selectiveRefresh.Partial }>}
 	 */
 	self._pendingPartialRequests = {};
 
@@ -696,7 +696,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * Current jqXHR for the request to the partials.
 	 *
 	 * @since 4.5.0
-	 * @type {jQuery.jqXHR|null}
+	 * @type {JQuery.jqXHR|null}
 	 * @private
 	 */
 	self._currentRequest = null;
@@ -719,7 +719,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * @since 4.5.0
 	 *
 	 * @param {wp.customize.selectiveRefresh.Partial} partial
-	 * @return {jQuery.Promise} Promise for the request to render the partial.
+	 * @return {JQuery.Promise<*>} Promise for the request to render the partial.
 	 */
 	self.requestPartial = function( partial ) {
 		var partialRequest;

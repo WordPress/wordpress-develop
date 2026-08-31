@@ -83,7 +83,7 @@ window.wp = window.wp || {};
 		/**
 		 * Handle popstate event.
 		 *
-		 * @param {jQuery.Event} e The popstate event.
+		 * @param {JQuery.Event} e The popstate event.
 		 * @return {void}
 		 */
 		popstate: function( e ) {

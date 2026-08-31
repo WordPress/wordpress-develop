@@ -150,7 +150,7 @@
 		 * @since 4.7.0
 		 * @access public
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 * @return {void}
 		 */
 		handleLinkClick: function( event ) {
@@ -197,7 +197,7 @@
 		 * @since 4.7.0
 		 * @access public
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 * @return {void}
 		 */
 		handleFormSubmit: function( event ) {

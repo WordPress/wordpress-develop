@@ -567,7 +567,7 @@ window.wp = window.wp || {};
 		 *
 		 * @param {...(string|Function)} ids Zero or more IDs of items to wait for, optionally followed by
 		 *                                  a callback function to invoke once they are all available.
-		 * @return {jQuery.Promise} A promise that is resolved when all of the requested values exist.
+		 * @return {JQuery.Promise<*>} A promise that is resolved when all of the requested values exist.
 		 */
 		when: function( ...ids ) {
 			var self = this,
@@ -821,7 +821,7 @@ window.wp = window.wp || {};
 		/**
 		 * Receive data from the other window.
 		 *
-		 * @param {jQuery.Event} event Event with embedded data.
+		 * @param {JQuery.Event} event Event with embedded data.
 		 */
 		receive: function( event ) {
 			var message;

@@ -104,7 +104,7 @@
 	 * @param {Object} params            Parameters for the draft post to create.
 	 * @param {string} params.post_type  Post type to add.
 	 * @param {string} params.post_title Post title to use.
-	 * @return {jQuery.Promise} Promise resolved with the added post.
+	 * @return {JQuery.Promise<*>} Promise resolved with the added post.
 	 */
 	api.Menus.insertAutoDraftPost = function insertAutoDraftPost( params ) {
 		var request, deferred = $.Deferred();
@@ -636,7 +636,7 @@
 		 * @since 4.7.0
 		 * @private
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 * @return {void}
 		 */
 		_submitNew: function( event ) {

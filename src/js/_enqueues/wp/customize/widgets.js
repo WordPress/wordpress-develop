@@ -301,7 +301,7 @@
 		/**
 		 * Highlights a widget on focus.
 		 *
-		 * @param {jQuery.Event} event The focus event.
+		 * @param {JQuery.Event} event The focus event.
 		 */
 		focus: function( event ) {
 			this.select( $( event.currentTarget ) );
@@ -310,7 +310,7 @@
 		/**
 		 * Handles submit for keypress and click on widget.
 		 *
-		 * @param {jQuery.Event} event The keypress or click event.
+		 * @param {JQuery.Event} event The keypress or click event.
 		 */
 		_submit: function( event ) {
 			// Only proceed with keypress if it is Enter or Spacebar.
@@ -407,7 +407,7 @@
 		/**
 		 * Adds keyboard accessibility to the panel.
 		 *
-		 * @param {jQuery.Event} event The keydown event.
+		 * @param {JQuery.Event} event The keydown event.
 		 */
 		keyboardAccessible: function( event ) {
 			var isEnter = ( event.which === 13 ),
@@ -476,7 +476,7 @@
 	api.Widgets.formSyncHandlers = {
 
 		/**
-		 * @param {jQuery.Event} e
+		 * @param {JQuery.Event} e
 		 * @param {jQuery} widget
 		 * @param {string} newForm
 		 */

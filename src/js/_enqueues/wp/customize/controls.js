@@ -65,7 +65,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 * @return {void}
 		 */
 		handleEscape: function( event ) {
@@ -314,7 +314,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 * @return {void}
 		 */
 		constrainFocus: function constrainFocus( event ) {
@@ -546,7 +546,7 @@
 	 * @param {boolean} [args.force=false]    Send request to update even when there are no changes to submit. This can be used to request the latest status of the changeset on the server.
 	 * @param {string}  [args.title]          Title to update in the changeset. Optional.
 	 * @param {string}  [args.date]           Date to update in the changeset. Optional.
-	 * @return {jQuery.Promise} Promise resolving with the response data.
+	 * @return {JQuery.Promise<*>} Promise resolving with the response data.
 	 */
 	api.requestChangesetUpdate = function requestChangesetUpdate( changes, args ) {
 		var deferred, request, submittedChanges = {}, data, submittedArgs;
@@ -776,7 +776,7 @@
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param {jQuery.Event} event Event object.
+	 * @param {JQuery.Event} event Event object.
 	 * @return {boolean} True if the event is a keydown event but not the Enter key, false otherwise.
 	 */
 	api.utils.isKeydownButNotEnterEvent = function ( event ) {
@@ -2595,7 +2595,7 @@
 		 *
 		 * @deprecated
 		 * @param {string} themeId Theme ID.
-		 * @return {jQuery.Promise} Promise.
+		 * @return {JQuery.Promise<*>} Promise.
 		 */
 		loadThemePreview: function( themeId ) {
 			return api.ThemesPanel.prototype.loadThemePreview.call( this, themeId );
@@ -3232,8 +3232,8 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {jQuery.Event} event Event.
-		 * @return {jQuery.Promise} Promise.
+		 * @param {JQuery.Event} event Event.
+		 * @return {JQuery.Promise<*>} Promise.
 		 */
 		installTheme: function( event ) {
 			var panel = this, preview, onInstallSuccess, slug = $( event.target ).data( 'slug' ), deferred = $.Deferred(), request;
@@ -3338,7 +3338,7 @@
 		 * @since 4.9.0
 		 *
 		 * @param {string} themeId Theme ID.
-		 * @return {jQuery.Promise} Promise.
+		 * @return {JQuery.Promise<*>} Promise.
 		 */
 		loadThemePreview: function( themeId ) {
 			var panel = this, deferred = $.Deferred(), onceProcessingComplete, urlParser, queryParams;
@@ -3413,7 +3413,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 * @return {void}
 		 */
 		updateTheme: function( event ) {
@@ -3443,7 +3443,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 * @return {void}
 		 */
 		deleteTheme: function( event ) {
@@ -5065,7 +5065,7 @@
 		 * current theme, a cropping step after selection may be required or
 		 * skippable.
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 */
 		openMedia: function(event) {
 			var l10n = _wpMediaViewsL10n;
@@ -6153,7 +6153,7 @@
 	 * @type {Function}
 	 * @param {...string}                             ids        One or more ids for controls to obtain.
 	 * @param {wp.customize.deferredControlsCallback} [callback] Function called when all supplied controls exist.
-	 * @return {wp.customize.Control|undefined|jQuery.Promise} Control instance or undefined (if function called with one id param),
+	 * @return {wp.customize.Control|undefined|JQuery.Promise<*>} Control instance or undefined (if function called with one id param),
 	 *                                                         or promise resolving to requested controls.
 	 *
 	 * @example <caption>Loop over all registered controls.</caption>
@@ -6215,7 +6215,7 @@
 	 * @type {Function}
 	 * @param {...string}                             ids        One or more ids for sections to obtain.
 	 * @param {wp.customize.deferredSectionsCallback} [callback] Function called when all supplied sections exist.
-	 * @return {wp.customize.Section|undefined|jQuery.Promise} Section instance or undefined (if function called with one id param),
+	 * @return {wp.customize.Section|undefined|JQuery.Promise<*>} Section instance or undefined (if function called with one id param),
 	 *                                                         or promise resolving to requested sections.
 	 *
 	 * @example <caption>Loop over all registered sections.</caption>
@@ -6250,7 +6250,7 @@
 	 * @type {Function}
 	 * @param {...string}                           ids        One or more ids for panels to obtain.
 	 * @param {wp.customize.deferredPanelsCallback} [callback] Function called when all supplied panels exist.
-	 * @return {wp.customize.Panel|undefined|jQuery.Promise} Panel instance or undefined (if function called with one id param),
+	 * @return {wp.customize.Panel|undefined|JQuery.Promise<*>} Panel instance or undefined (if function called with one id param),
 	 *                                                       or promise resolving to requested panels.
 	 *
 	 * @example <caption>Loop over all registered panels.</caption>
@@ -6285,7 +6285,7 @@
 	 * @type {Function}
 	 * @param {...string}                                  codes      One or more codes for notifications to obtain.
 	 * @param {wp.customize.deferredNotificationsCallback} [callback] Function called when all supplied notifications exist.
-	 * @return {wp.customize.Notification|undefined|jQuery.Promise} Notification instance or undefined (if function called with one code param),
+	 * @return {wp.customize.Notification|undefined|JQuery.Promise<*>} Notification instance or undefined (if function called with one code param),
 	 *                                                              or promise resolving to requested notifications.
 	 *
 	 * @example <caption>Check if existing notification</caption>
@@ -7548,7 +7548,7 @@
 			 * @param {string} [args.status=publish] Status.
 			 * @param {string} [args.date]           Date, in local time in MySQL format.
 			 * @param {string} [args.title]          Title.
-			 * @return {jQuery.Promise} Promise.
+			 * @return {JQuery.Promise<*>} Promise.
 			 */
 			save: function( args ) {
 				var previewer = this,
