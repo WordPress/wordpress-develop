@@ -52,6 +52,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'delete_items' ),
 					'permission_callback' => array( $this, 'delete_items_permissions_check' ),
+					'args'                => $this->get_delete_collection_params(),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -385,6 +386,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * Deletes all application passwords for a user.
 	 *
 	 * @since 5.6.0
+	 * @since 7.1.0 Supports deleting application passwords by app ID.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -396,7 +398,11 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			return $user;
 		}
 
-		$deleted = WP_Application_Passwords::delete_all_application_passwords( $user->ID );
+		if ( ! empty( $request['app_id'] ) ) {
+			$deleted = WP_Application_Passwords::delete_application_passwords_by_app_id( $user->ID, $request['app_id'] );
+		} else {
+			$deleted = WP_Application_Passwords::delete_all_application_passwords( $user->ID );
+		}
 
 		if ( is_wp_error( $deleted ) ) {
 			return $deleted;
@@ -407,6 +413,25 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 				'deleted' => true,
 				'count'   => $deleted,
 			)
+		);
+	}
+
+	/**
+	 * Retrieves the query params for deleting a collection of application passwords.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return array Query parameters for the delete collection endpoint.
+	 */
+	protected function get_delete_collection_params() {
+		return array(
+			'app_id' => array(
+				'description'       => __( 'The app ID of application passwords to delete.' ),
+				'type'              => 'string',
+				'format'            => 'uuid',
+				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
 		);
 	}
 
