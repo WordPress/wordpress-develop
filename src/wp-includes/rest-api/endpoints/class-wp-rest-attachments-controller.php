@@ -1515,35 +1515,37 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			} else {
 				$data['media_details']['sizes'] = new stdClass();
 			}
-
-			/*
-			 * Point an image created by editing another one back at the attachment its chain
-			 * of edits started from, so editors can offer a way to get back to the original.
-			 *
-			 * Only sent in the `edit` context: this is for people editing the image, and it
-			 * would otherwise tell visitors which images were made from which.
-			 *
-			 * Left out when the attachment was not created by editing another one, and when
-			 * the original no longer has a URL, which happens if its file is missing.
-			 */
-			if ( 'edit' === $request['context'] && is_array( $data['media_details'] ) ) {
-				$original_id = wp_get_original_attachment_id( $post->ID );
-
-				if ( $original_id !== (int) $post->ID ) {
-					$original_url = wp_get_attachment_url( $original_id );
-
-					if ( is_string( $original_url ) && '' !== $original_url ) {
-						$data['media_details']['original_attachment'] = array(
-							'attachment_id' => $original_id,
-							'source_url'    => $original_url,
-						);
-					}
-				}
-			}
 		}
 
 		if ( in_array( 'post', $fields, true ) ) {
 			$data['post'] = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
+		}
+
+		/*
+		 * Point an image created by editing another one back at the attachment its chain of
+		 * edits started from, so editors can offer a way to get back to the original. This
+		 * describes a relationship to another attachment rather than anything about this
+		 * image's own file, so it sits alongside `post` rather than inside `media_details`.
+		 *
+		 * Only sent in the `edit` context: this is for people editing the image, and it would
+		 * otherwise tell visitors which images were made from which.
+		 *
+		 * Left out when the attachment was not created by editing another one, and when the
+		 * original no longer has a URL, which happens if its file is missing.
+		 */
+		if ( in_array( 'original_attachment', $fields, true ) && 'edit' === $request['context'] ) {
+			$original_id = wp_get_original_attachment_id( $post->ID );
+
+			if ( $original_id !== (int) $post->ID ) {
+				$original_url = wp_get_attachment_url( $original_id );
+
+				if ( is_string( $original_url ) && '' !== $original_url ) {
+					$data['original_attachment'] = array(
+						'attachment_id' => $original_id,
+						'source_url'    => $original_url,
+					);
+				}
+			}
 		}
 
 		if ( in_array( 'source_url', $fields, true ) ) {
@@ -1834,35 +1836,34 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'type'        => 'object',
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'readonly'    => true,
-			'properties'  => array(
-				'original_attachment' => array(
-					'description' => __( 'The attachment this image was originally created from by editing. Only present for images created by editing another image.' ),
-					'type'        => 'object',
-					'context'     => array( 'edit' ),
-					'readonly'    => true,
-					'properties'  => array(
-						'attachment_id' => array(
-							'description' => __( 'The ID of the original attachment.' ),
-							'type'        => 'integer',
-							'context'     => array( 'edit' ),
-							'readonly'    => true,
-						),
-						'source_url'    => array(
-							'description' => __( 'URL to the original attachment file.' ),
-							'type'        => 'string',
-							'format'      => 'uri',
-							'context'     => array( 'edit' ),
-							'readonly'    => true,
-						),
-					),
-				),
-			),
 		);
 
 		$schema['properties']['post'] = array(
 			'description' => __( 'The ID for the associated post of the attachment.' ),
 			'type'        => 'integer',
 			'context'     => array( 'view', 'edit' ),
+		);
+
+		$schema['properties']['original_attachment'] = array(
+			'description' => __( 'The attachment this image was created from by editing. Only present for images created by editing another image.' ),
+			'type'        => 'object',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
+			'properties'  => array(
+				'attachment_id' => array(
+					'description' => __( 'The ID of the original attachment.' ),
+					'type'        => 'integer',
+					'context'     => array( 'edit' ),
+					'readonly'    => true,
+				),
+				'source_url'    => array(
+					'description' => __( 'URL to the original attachment file.' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'edit' ),
+					'readonly'    => true,
+				),
+			),
 		);
 
 		$schema['properties']['source_url'] = array(
