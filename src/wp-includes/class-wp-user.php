@@ -33,6 +33,8 @@
  * @property string     $display_name
  * @property string     $spam
  * @property string     $deleted
+ * @property string     $comment_shortcuts
+ * @property string     $infinite_scrolling
  * @property string     $locale
  * @property string     $rich_editing
  * @property string     $syntax_highlighting
@@ -830,7 +832,7 @@ class WP_User {
 		unset( $capabilities['do_not_allow'] );
 
 		// Must have ALL requested caps.
-		return array_all( (array) $caps, fn( $cap, $key ) => ! empty( $capabilities[ $cap ] ) );
+		return array_all( (array) $caps, fn( $cap ) => ! empty( $capabilities[ $cap ] ) );
 	}
 
 	/**
