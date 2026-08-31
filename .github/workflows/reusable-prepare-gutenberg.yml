@@ -32,7 +32,8 @@ jobs:
   prepare-gutenberg:
     name: Gutenberg
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # Two download attempts of up to six minutes each, where download.js retries internally.
+    timeout-minutes: 15
     outputs:
       gutenberg-sha: ${{ steps.download.outputs.gutenberg-sha }}
     permissions:
@@ -66,15 +67,15 @@ jobs:
         run: |
           # Branches whose download.js predates the in-script retry stream the blob straight
           # into tar in a single attempt, so an interrupted stream fails the run outright.
-          for attempt in 1 2 3; do
-            node tools/gutenberg/download.js && break
-            if [ "$attempt" = 3 ]; then
-              echo "Gutenberg download failed after $attempt attempts." >&2
-              exit 1
-            fi
-            echo "Gutenberg download failed; retrying in 5 seconds..."
+          # One retry, not two: where download.js does retry, it already allows three tries of
+          # two minutes each, and a third attempt here would outrun `timeout-minutes` and have
+          # the job killed rather than reported.
+          if ! node tools/gutenberg/download.js; then
+            echo 'Gutenberg download failed; retrying in 5 seconds...'
             sleep 5
-          done
+            node tools/gutenberg/download.js
+          fi
+
           gutenberg_sha="$(tr -d '\n' < gutenberg/.gutenberg-hash)"
           if [[ ! "$gutenberg_sha" =~ ^[a-fA-F0-9]{40}$ ]]; then
             echo "Expected a 40-character Gutenberg SHA, received: $gutenberg_sha" >&2
