@@ -9487,7 +9487,7 @@ Regards,
 ###SITENAME###'
 	);
 
-	$application_password_create_email = array(
+	$email = array(
 		'to'      => $user->user_email,
 		/* translators: Application password creation email subject. %s: Site title. */
 		'subject' => __( '[%s] Application Password Created' ),
@@ -9503,7 +9503,7 @@ Regards,
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array   $application_password_create_email {
+	 * @param array   $email {
 	 *     Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient.
@@ -9519,20 +9519,20 @@ Regards,
 	 * @param WP_User $user     The user object.
 	 * @param array   $new_item The created application password details.
 	 */
-	$application_password_create_email = apply_filters( 'wp_application_password_created_email', $application_password_create_email, $user, $new_item );
+	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
 
-	$application_password_create_email['message'] = str_replace( '###USER_DISPLAY_NAME###', $user->display_name, $application_password_create_email['message'] );
-	$application_password_create_email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $application_password_create_email['message'] );
-	$application_password_create_email['message'] = str_replace( '###SITENAME###', $site_name, $application_password_create_email['message'] );
-	$application_password_create_email['message'] = str_replace( '###SITEURL###', home_url(), $application_password_create_email['message'] );
+	$email['message'] = str_replace( '###USER_DISPLAY_NAME###', $user->display_name, $email['message'] );
+	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
+	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
+	$email['message'] = str_replace( '###SITEURL###', home_url(), $email['message'] );
 
 	wp_mail(
-		$application_password_create_email['to'],
+		$email['to'],
 		sprintf(
-			$application_password_create_email['subject'],
+			$email['subject'],
 			$site_name
 		),
-		$application_password_create_email['message'],
-		$application_password_create_email['headers']
+		$email['message'],
+		$email['headers']
 	);
 }
