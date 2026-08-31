@@ -1,6 +1,6 @@
 {
 	"extends": [
-		"stylelint-config-wordpress"
+		"@wordpress/stylelint-config"
 	],
 	"plugins": ["@double-great/stylelint-a11y"],
 	"rules": {
