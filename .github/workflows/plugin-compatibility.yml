@@ -15,6 +15,10 @@
 # which is the intended way to use it as part of the pre-release checklist: point it at the beta or RC and give
 # it a count.
 #
+# A dispatched run can also name the plugins to test instead of taking them from the directory, which is how to
+# check a single plugin against a release candidate, or to reproduce a failure from an earlier run without
+# waiting for the other plugins in its shard.
+#
 # This workflow is not meant to test wordpress-develop checkouts, but rather versions officially available on
 # WordPress.org.
 ##
@@ -45,15 +49,22 @@ on:
         type: string
         default: 'nightly'
       plugin-count:
-        description: 'Number of most popular plugins to test. Accepts any number from 1 to 1000, eg. 10, 50, or 250.'
+        description: 'Number of most popular plugins to test. Accepts any number from 1 to 1000, eg. 10, 50, or 250. Ignored when plugin-slugs is given.'
         type: string
         default: '100'
+      plugin-slugs:
+        description: 'Optional. Test these WordPress.org plugin slugs instead of the most popular ones. Accepts a comma or space separated list, eg. "woocommerce, classic-editor".'
+        type: string
+        default: ''
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ inputs.wp-version || github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  #
+  # Dispatched runs are grouped by run instead, so that testing one plugin list does not cancel a run someone
+  # else started with a different one against the same version of WordPress.
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -64,25 +75,31 @@ jobs:
   # Builds the list of plugins to test and splits it into shards for the test matrix.
   #
   # The list is fetched at run time so that it never goes stale, and it is ordered by popularity so that a
-  # smaller count still tests the plugins with the widest reach.
+  # smaller count still tests the plugins with the widest reach. A dispatched run can name the plugins to test
+  # instead, in which case the directory is not queried at all.
   #
   # Performs the following steps:
-  # - Queries the WordPress.org plugin directory API for the most popular plugins.
+  # - Queries the WordPress.org plugin directory API for the most popular plugins, or reads the plugin-slugs input.
   # - Splits the resulting slugs into shards and returns them as a job output.
   build-plugin-matrix:
     name: Build plugin matrix
     permissions:
       contents: read
     runs-on: ubuntu-24.04
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    # Dispatched runs are allowed anywhere so that this can be run from a fork, which is the only way for
+    # someone without write access to the repository to try it against a plugin of their choosing.
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'workflow_dispatch' }}
     timeout-minutes: 5
     outputs:
       shards: ${{ steps.plugin-shards.outputs.shards }}
 
     steps:
-      - name: Fetch the most popular plugins
+      - name: Build the list of plugins to test
         id: plugin-shards
         env:
+          # An explicit list of slugs to test in place of the most popular ones. Empty for everything but a
+          # dispatched run that filled the input in.
+          PLUGIN_SLUGS: ${{ inputs.plugin-slugs }}
           # Runs that carry no inputs fall back to the defaults. Pull request and push runs exist to test
           # this workflow rather than the ecosystem, so they use a small count. See the note on the
           # plugin-compatibility-tests job below.
@@ -100,65 +117,94 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Guard against a non-numeric value being passed to the API.
-          if ! printf '%s' "${PLUGIN_COUNT}" | grep -Eq '^[0-9]+$'; then
-            printf 'The plugin-count input must be a positive integer, got "%s".\n' "${PLUGIN_COUNT}"
-            exit 1
-          fi
-
-          if [ "${PLUGIN_COUNT}" -lt 1 ] || [ "${PLUGIN_COUNT}" -gt "${MAX_PLUGIN_COUNT}" ]; then
-            printf 'The plugin-count input must be between 1 and %s, got %s.\n' "${MAX_PLUGIN_COUNT}" "${PLUGIN_COUNT}"
-            printf 'Testing more than %s plugins will not fit in the wall time this workflow targets.\n' "${MAX_PLUGIN_COUNT}"
-            exit 1
-          fi
-
           RAW_SLUGS="${RUNNER_TEMP}/slugs-raw.txt"
           DEDUPED_SLUGS="${RUNNER_TEMP}/slugs.txt"
           : > "${RAW_SLUGS}"
-          PAGE=1
-          UNIQUE_COUNT=0
 
-          while : ; do
-            # The bracketed `request[...]` parameters are URL encoded by curl rather than written inline.
-            # The unneeded response fields are turned off to keep the payload small.
-            curl -sS --fail --retry 3 --retry-delay 5 \
-              --get 'https://api.wordpress.org/plugins/info/1.2/' \
-              --data-urlencode 'action=query_plugins' \
-              --data-urlencode 'request[browse]=popular' \
-              --data-urlencode "request[per_page]=${PAGE_SIZE}" \
-              --data-urlencode "request[page]=${PAGE}" \
-              --data-urlencode 'request[fields][short_description]=0' \
-              --data-urlencode 'request[fields][sections]=0' \
-              --data-urlencode 'request[fields][icons]=0' \
-              --data-urlencode 'request[fields][banners]=0' \
-              --data-urlencode 'request[fields][ratings]=0' \
-              --data-urlencode 'request[fields][tags]=0' \
-              --data-urlencode 'request[fields][compatibility]=0' \
-              --data-urlencode 'request[fields][screenshots]=0' \
-              -o "${RUNNER_TEMP}/plugins-page.json"
-
-            PAGE_COUNT="$( jq '.plugins | length' "${RUNNER_TEMP}/plugins-page.json" )"
-            jq -r '.plugins[] | .slug // empty' "${RUNNER_TEMP}/plugins-page.json" >> "${RAW_SLUGS}"
-
-            # Popularity ordering can shift between two requests, so the same slug can turn up on more than
-            # one page. Duplicates are dropped while the first occurrence keeps its position.
+          if [ -n "${PLUGIN_SLUGS}" ]; then
+            # A named list replaces the popularity query entirely. Commas and whitespace both separate slugs,
+            # so a list can be pasted in however it was written down.
+            printf '%s' "${PLUGIN_SLUGS}" | tr ',[:space:]' '\n' > "${RAW_SLUGS}"
             awk '!seen[$0]++ && NF > 0' "${RAW_SLUGS}" > "${DEDUPED_SLUGS}"
-            UNIQUE_COUNT="$( wc -l < "${DEDUPED_SLUGS}" | tr -d ' ' )"
 
-            printf 'Page %s returned %s plugins, %s unique slugs collected so far.\n' "${PAGE}" "${PAGE_COUNT}" "${UNIQUE_COUNT}"
-
-            if [ "${UNIQUE_COUNT}" -ge "${PLUGIN_COUNT}" ]; then
-              break
+            # A value outside the character set the directory uses is a typo worth stopping for now, rather
+            # than a plugin reported as impossible to download several minutes from now.
+            if INVALID_SLUGS="$( grep -Ev '^[a-z0-9-]+$' "${DEDUPED_SLUGS}" )"; then
+              printf 'The plugin-slugs input contains values that are not WordPress.org plugin slugs:\n%s\n' "${INVALID_SLUGS}"
+              exit 1
             fi
 
-            # A short page means the directory has nothing left to give.
-            if [ "${PAGE_COUNT}" -lt "${PAGE_SIZE}" ]; then
-              printf 'The API returned fewer than %s plugins on page %s, so %s is everything available.\n' "${PAGE_SIZE}" "${PAGE}" "${UNIQUE_COUNT}"
-              break
+            PLUGIN_COUNT="$( wc -l < "${DEDUPED_SLUGS}" | tr -d ' ' )"
+
+            if [ "${PLUGIN_COUNT}" -lt 1 ]; then
+              printf 'The plugin-slugs input did not contain any plugin slugs.\n'
+              exit 1
             fi
 
-            PAGE=$(( PAGE + 1 ))
-          done
+            if [ "${PLUGIN_COUNT}" -gt "${MAX_PLUGIN_COUNT}" ]; then
+              printf 'The plugin-slugs input names %s plugins, more than the %s this workflow will test in one run.\n' "${PLUGIN_COUNT}" "${MAX_PLUGIN_COUNT}"
+              exit 1
+            fi
+
+            printf 'Testing the %s plugin(s) named in the plugin-slugs input.\n' "${PLUGIN_COUNT}"
+          else
+            # Guard against a non-numeric value being passed to the API.
+            if ! printf '%s' "${PLUGIN_COUNT}" | grep -Eq '^[0-9]+$'; then
+              printf 'The plugin-count input must be a positive integer, got "%s".\n' "${PLUGIN_COUNT}"
+              exit 1
+            fi
+
+            if [ "${PLUGIN_COUNT}" -lt 1 ] || [ "${PLUGIN_COUNT}" -gt "${MAX_PLUGIN_COUNT}" ]; then
+              printf 'The plugin-count input must be between 1 and %s, got %s.\n' "${MAX_PLUGIN_COUNT}" "${PLUGIN_COUNT}"
+              printf 'Testing more than %s plugins will not fit in the wall time this workflow targets.\n' "${MAX_PLUGIN_COUNT}"
+              exit 1
+            fi
+
+            PAGE=1
+            UNIQUE_COUNT=0
+
+            while : ; do
+              # The bracketed `request[...]` parameters are URL encoded by curl rather than written inline.
+              # The unneeded response fields are turned off to keep the payload small.
+              curl -sS --fail --retry 3 --retry-delay 5 \
+                --get 'https://api.wordpress.org/plugins/info/1.2/' \
+                --data-urlencode 'action=query_plugins' \
+                --data-urlencode 'request[browse]=popular' \
+                --data-urlencode "request[per_page]=${PAGE_SIZE}" \
+                --data-urlencode "request[page]=${PAGE}" \
+                --data-urlencode 'request[fields][short_description]=0' \
+                --data-urlencode 'request[fields][sections]=0' \
+                --data-urlencode 'request[fields][icons]=0' \
+                --data-urlencode 'request[fields][banners]=0' \
+                --data-urlencode 'request[fields][ratings]=0' \
+                --data-urlencode 'request[fields][tags]=0' \
+                --data-urlencode 'request[fields][compatibility]=0' \
+                --data-urlencode 'request[fields][screenshots]=0' \
+                -o "${RUNNER_TEMP}/plugins-page.json"
+
+              PAGE_COUNT="$( jq '.plugins | length' "${RUNNER_TEMP}/plugins-page.json" )"
+              jq -r '.plugins[] | .slug // empty' "${RUNNER_TEMP}/plugins-page.json" >> "${RAW_SLUGS}"
+
+              # Popularity ordering can shift between two requests, so the same slug can turn up on more than
+              # one page. Duplicates are dropped while the first occurrence keeps its position.
+              awk '!seen[$0]++ && NF > 0' "${RAW_SLUGS}" > "${DEDUPED_SLUGS}"
+              UNIQUE_COUNT="$( wc -l < "${DEDUPED_SLUGS}" | tr -d ' ' )"
+
+              printf 'Page %s returned %s plugins, %s unique slugs collected so far.\n' "${PAGE}" "${PAGE_COUNT}" "${UNIQUE_COUNT}"
+
+              if [ "${UNIQUE_COUNT}" -ge "${PLUGIN_COUNT}" ]; then
+                break
+              fi
+
+              # A short page means the directory has nothing left to give.
+              if [ "${PAGE_COUNT}" -lt "${PAGE_SIZE}" ]; then
+                printf 'The API returned fewer than %s plugins on page %s, so %s is everything available.\n' "${PAGE_SIZE}" "${PAGE}" "${UNIQUE_COUNT}"
+                break
+              fi
+
+              PAGE=$(( PAGE + 1 ))
+            done
+          fi
 
           SLUGS="$( head -n "${PLUGIN_COUNT}" "${DEDUPED_SLUGS}" | jq -R -s -c 'split( "\n" ) | map( select( . != "" ) )' )"
           TOTAL="$( printf '%s' "${SLUGS}" | jq 'length' )"
@@ -213,7 +259,7 @@ jobs:
     permissions:
       contents: read
     needs: [ build-plugin-matrix ]
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
