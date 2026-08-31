@@ -301,7 +301,7 @@ jobs:
                 --data-binary @- \
                 "https://codevitals.run/api/log?token=${CODEVITALS_PROJECT_TOKEN}"
           )"
-          if ! jq --exit-status '.status == "ok" and .count == 6' <<< "$RESPONSE" > /dev/null; then
+          if ! php -r "\$d = json_decode(file_get_contents('php://stdin'), true); exit(is_array(\$d) && (\$d['status'] ?? null) === 'ok' && (int) (\$d['count'] ?? 0) === 6 ? 0 : 1);" <<< "$RESPONSE"; then
             echo 'CodeVitals did not accept all six PHPUnit timing metrics.'
             exit 1
           fi
