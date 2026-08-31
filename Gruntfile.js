@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
@@ -1068,6 +1067,17 @@ module.exports = function(grunt) {
 				src: [
 					'**/*.js',
 					'!**/*.min.js'
+				],
+				// Prevent traversal into these directories during glob expansion.
+				// This is much faster than using negation patterns alone.
+				ignore: [
+					'**/build/**',
+					'**/dist/**',
+					'**/gutenberg/**',
+					'**/node_modules/**',
+					'**/packages/**',
+					'**/test/**',
+					'**/vendor/**'
 				],
 				/*
 				 * Limit JSHint's run to a single specified plugin directory:
@@ -2279,8 +2289,8 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'qunit', 'Runs QUnit tests.', function() {
 		var done = this.async();
 		grunt.util.spawn( {
-			cmd: 'npx',
-			args: [ 'playwright', 'test', '--config', 'tests/qunit/playwright.config.js' ],
+			cmd: 'npm',
+			args: [ 'exec', '--no', '--', 'playwright', 'test', '--config', 'tests/qunit/playwright.config.js' ],
 			opts: { stdio: 'inherit' }
 		}, function( error, result, code ) {
 			if ( code !== 0 ) {
@@ -2363,15 +2373,15 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'wp-packages:update', 'Update WordPress packages', function() {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating WordPress packages (--dist-tag=${distTag})` );
-		spawn( 'npx', [ 'wp-scripts', 'packages-update', `--dist-tag=${distTag}` ], {
+		spawn( 'npm', [ 'exec', '--no', '--', 'wp-scripts', 'packages-update', `--dist-tag=${distTag}` ], {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
 	} );
 
 	grunt.registerTask( 'browserslist:update', 'Update the local database of browser supports', function() {
-		grunt.log.writeln( `Updating browsers list` );
-		spawn( 'npx', [ 'update-browserslist-db@latest' ], {
+		grunt.log.writeln( 'Updating browsers list' );
+		spawn( 'npm', [ 'exec', '--no', '--', 'update-browserslist-db' ], {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
