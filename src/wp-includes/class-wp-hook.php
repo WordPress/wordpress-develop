@@ -324,7 +324,9 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @param mixed       $value The value to filter.
 	 * @param list<mixed> $args  Additional parameters to pass to the callback functions.
-	 *                           This array is expected to include $value at index 0.
+	 *                           When filtering, this array is expected to include $value
+	 *                           at index 0. When called for an action by WP_Hook::do_action(),
+	 *                           it contains only the action arguments.
 	 * @return mixed The filtered value after all hooked functions are applied to it.
 	 */
 	public function apply_filters( $value, $args ) {
