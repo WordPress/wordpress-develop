@@ -900,6 +900,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert IXR_Error $actual
 	 */
 	public function assertIXRError( $actual, $message = '' ) {
 		$this->assertInstanceOf( 'IXR_Error', $actual, $message );
@@ -910,6 +912,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert !IXR_Error $actual
 	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
 		if ( $actual instanceof IXR_Error ) {
