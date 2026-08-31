@@ -51,6 +51,16 @@
 		return $ !== undefined && el instanceof $ ? el[0] : el;
 	};
 
+	// Since MediaElement.js 7.0, `remove()` no longer removes the destroyed player
+	// from the `mejs.players` registry; restore that behavior so code iterating the
+	// registry (e.g. `wp.media.mixin.removeAllPlayers()`) does not act on dead players.
+	var remove = MediaElementPlayer.prototype.remove;
+	MediaElementPlayer.prototype.remove = function () {
+		var id = this.id;
+		remove.apply( this, arguments );
+		delete mejs.players[ id ];
+	};
+
 	// Add jQuery ONLY to most of custom features' arguments for backward compatibility; default features rely 100%
 	// on the arguments being HTML elements to work properly
 	MediaElementPlayer.prototype.buildfeatures = function ( player, controls, layers, media ) {
