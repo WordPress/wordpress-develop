@@ -2,7 +2,9 @@
 
 /**
  * @output wp-admin/js/customize-widgets.js
- *
+ */
+
+/**
  * @param {Object}       wp The WordPress global object.
  * @param {JQueryStatic} $  The jQuery object.
  */

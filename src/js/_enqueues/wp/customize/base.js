@@ -5,6 +5,10 @@
 /** @namespace wp */
 window.wp = window.wp || {};
 
+/**
+ * @param {Object}       exports The WordPress global object.
+ * @param {JQueryStatic} $       The jQuery object.
+ */
 (function( exports, $ ){
 	var api = {}, ctor, inherits;
 

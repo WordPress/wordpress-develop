@@ -3,6 +3,11 @@
  */
 
 /* global _wpCustomizeHeader */
+
+/**
+ * @param {JQueryStatic} $  The jQuery object.
+ * @param {Object}       wp The WordPress global object.
+ */
 (function( $, wp ) {
 	var api = wp.customize;
 	/** @namespace wp.customize.HeaderTool */

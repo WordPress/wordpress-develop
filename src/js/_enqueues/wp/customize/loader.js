@@ -12,6 +12,10 @@
  */
 window.wp = window.wp || {};
 
+/**
+ * @param {Object}       wp The WordPress global object.
+ * @param {JQueryStatic} $  The jQuery object.
+ */
 (function( wp, $ ){
 	var api = wp.customize,
 		Loader;
