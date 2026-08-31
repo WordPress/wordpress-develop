@@ -273,8 +273,14 @@ final class WP_Comment {
 				return false;
 			}
 
-			// Not wp_cache_add(), since an unusable cached value may still be present and must be replaced.
-			wp_cache_set( $_comment->comment_ID, $_comment, 'comment' );
+			/*
+			 * Not wp_cache_add(), since an unusable cached value may still be present and must be
+			 * replaced. add() checks wp_suspend_cache_addition() and set() does not, so the check
+			 * moves to the call site.
+			 */
+			if ( ! wp_suspend_cache_addition() ) {
+				wp_cache_set( $_comment->comment_ID, $_comment, 'comment' );
+			}
 		}
 
 		return new WP_Comment( $_comment );

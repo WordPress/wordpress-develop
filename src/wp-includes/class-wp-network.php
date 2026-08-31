@@ -119,8 +119,14 @@ class WP_Network {
 				$_network = -1;
 			}
 
-			// Not wp_cache_add(), since an unusable cached value may still be present and must be replaced.
-			wp_cache_set( $network_id, $_network, 'networks' );
+			/*
+			 * Not wp_cache_add(), since an unusable cached value may still be present and must be
+			 * replaced. add() checks wp_suspend_cache_addition() and set() does not, so the check
+			 * moves to the call site.
+			 */
+			if ( ! wp_suspend_cache_addition() ) {
+				wp_cache_set( $network_id, $_network, 'networks' );
+			}
 		}
 
 		if ( is_numeric( $_network ) ) {

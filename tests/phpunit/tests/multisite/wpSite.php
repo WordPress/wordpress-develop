@@ -307,4 +307,25 @@ class Tests_Multisite_wpSite extends WP_UnitTestCase {
 			'a float as a string'  => array( '3.5' ),
 		);
 	}
+
+	/**
+	 * Tests that a cache miss is not stored while cache addition is suspended.
+	 *
+	 * @ticket 66006
+	 */
+	public function test_get_instance_does_not_cache_a_miss_while_cache_addition_is_suspended(): void {
+		clean_blog_cache( self::$site_id );
+		$this->assertFalse( wp_cache_get( self::$site_id, 'sites' ), 'The site was cached before the test began.' );
+
+		$suspend = wp_suspend_cache_addition();
+		wp_suspend_cache_addition( true );
+
+		$site = WP_Site::get_instance( self::$site_id );
+
+		wp_suspend_cache_addition( $suspend );
+
+		$this->assertInstanceOf( WP_Site::class, $site, 'A site object was not returned.' );
+		$this->assertSame( self::$site_id, (int) $site->blog_id, 'The wrong site was returned.' );
+		$this->assertFalse( wp_cache_get( self::$site_id, 'sites' ), 'The site was added to the cache.' );
+	}
 }
