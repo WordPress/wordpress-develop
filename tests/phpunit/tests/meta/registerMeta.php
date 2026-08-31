@@ -1134,6 +1134,14 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44387
+	 * @group ms-excluded
+	 */
+	public function test_get_object_subtype_for_blog_returns_empty_string_no_multisite() {
+		$this->assertSame( '', get_object_subtype( 'blog', 0 ) );
+	}
+
+	/**
+	 * @ticket 44387
 	 * @group ms-required
 	 */
 	public function test_get_object_subtype_for_blog_with_registered_meta() {
@@ -1190,5 +1198,35 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		);
 
 		$this->assertFalse( $register );
+	}
+
+	/**
+	 * @ticket 44387
+	 * @group ms-required
+	 */
+	public function test_register_site_meta_returns_true_on_success() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
+		}
+
+		$result = register_site_meta( 'test_site_meta_key', array( 'single' => true ) );
+		unregister_site_meta( 'test_site_meta_key' );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * @ticket 44387
+	 * @group ms-required
+	 */
+	public function test_unregister_site_meta_returns_true_on_success() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
+		}
+
+		register_site_meta( 'test_site_meta_key', array( 'single' => true ) );
+		$result = unregister_site_meta( 'test_site_meta_key' );
+
+		$this->assertTrue( $result );
 	}
 }
