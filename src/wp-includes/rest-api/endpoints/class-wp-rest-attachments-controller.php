@@ -1523,9 +1523,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		/*
 		 * Point an image created by editing another one back at the attachment its chain of
-		 * edits started from, so editors can offer a way to get back to the original. This
-		 * describes a relationship to another attachment rather than anything about this
-		 * image's own file, so it sits alongside `post` rather than inside `media_details`.
+		 * edits started from, so editors can offer a way to get back to the original. Just
+		 * the ID, like `featured_media`: this describes a relationship to another attachment
+		 * rather than anything about this image's own file, so it sits alongside `post`
+		 * rather than inside `media_details`. The link added below lets clients fetch the
+		 * original's URL and dimensions with `_embed`.
 		 *
 		 * Only sent in the `edit` context: this is for people editing the image, and it would
 		 * otherwise tell visitors which images were made from which.
@@ -1540,10 +1542,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				$original_url = wp_get_attachment_url( $original_id );
 
 				if ( is_string( $original_url ) && '' !== $original_url ) {
-					$data['original_attachment'] = array(
-						'attachment_id' => $original_id,
-						'source_url'    => $original_url,
-					);
+					$data['original_attachment'] = $original_id;
 				}
 			}
 		}
@@ -1706,6 +1705,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		/*
+		 * Let clients fetch the original attachment in the same request with `_embed`,
+		 * the way `featured_media` is paired with its own link. Added here rather than in
+		 * `prepare_links()` because that method cannot see the request, and this belongs
+		 * in the `edit` context only, alongside the field itself.
+		 */
+		if ( isset( $data['original_attachment'] ) ) {
+			$response->add_link(
+				'https://api.w.org/original-attachment',
+				rest_url( rest_get_route_for_post( $data['original_attachment'] ) ),
+				array( 'embeddable' => true )
+			);
+		}
+
 		/**
 		 * Filters an attachment returned from the REST API.
 		 *
@@ -1845,25 +1858,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 
 		$schema['properties']['original_attachment'] = array(
-			'description' => __( 'The attachment this image was created from by editing. Only present for images created by editing another image.' ),
-			'type'        => 'object',
+			'description' => __( 'The ID of the attachment this image was created from by editing. Only present for images created by editing another image.' ),
+			'type'        => 'integer',
 			'context'     => array( 'edit' ),
 			'readonly'    => true,
-			'properties'  => array(
-				'attachment_id' => array(
-					'description' => __( 'The ID of the original attachment.' ),
-					'type'        => 'integer',
-					'context'     => array( 'edit' ),
-					'readonly'    => true,
-				),
-				'source_url'    => array(
-					'description' => __( 'URL to the original attachment file.' ),
-					'type'        => 'string',
-					'format'      => 'uri',
-					'context'     => array( 'edit' ),
-					'readonly'    => true,
-				),
-			),
 		);
 
 		$schema['properties']['source_url'] = array(
