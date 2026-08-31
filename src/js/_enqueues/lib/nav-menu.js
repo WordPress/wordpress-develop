@@ -34,7 +34,6 @@
 		menusChanged : false,
 		isRTL: !! ( 'undefined' != typeof isRtl && isRtl ),
 		negateIfRTL: ( 'undefined' != typeof isRtl && isRtl ) ? -1 : 1,
-		lastSearch: '',
 
 		// Functions that run on init.
 		init : function() {
@@ -1380,70 +1379,176 @@
 		},
 
 		attachQuickSearchListeners : function() {
-			var searchTimer;
-
 			// Prevent form submission.
 			$( '#nav-menu-meta' ).on( 'submit', function( event ) {
 				event.preventDefault();
 			});
 
 			$( '#nav-menu-meta' ).on( 'input', '.quick-search', function() {
-				var $this = $( this );
+				var input = $( this ),
+					panel = input.parents( '.tabs-panel' ),
+					checklist = $( '.categorychecklist', panel ),
+					loadMore = $( '.quick-search-load-more', panel ),
+					previousState = panel.data( 'quick-search-state' ) || {},
+					q = input.val(),
+					state;
 
-				$this.attr( 'autocomplete', 'off' );
+				input.attr( 'autocomplete', 'off' );
 
-				if ( searchTimer ) {
-					clearTimeout( searchTimer );
+				if ( previousState.query === q ) {
+					return;
 				}
 
-				searchTimer = setTimeout( function() {
-					api.updateQuickSearchResults( $this );
+				if ( previousState.timer ) {
+					clearTimeout( previousState.timer );
+				}
+
+				state = {
+					query: q,
+					page: 0,
+					hasMore: false,
+					loading: false,
+					retry: false
+				};
+				panel.data( 'quick-search-state', state );
+
+				if ( previousState.request ) {
+					previousState.request.abort();
+				}
+
+				$( '.spinner', panel ).removeClass( 'is-active' );
+				checklist.removeAttr( 'aria-busy' ).empty();
+				loadMore
+					.removeAttr( 'aria-disabled' )
+					.removeClass( 'disabled' )
+					.prop( 'hidden', true )
+					.text( loadMore.data( 'load-more-text' ) );
+
+				if ( q.length <= 1 ) {
+					wp.a11y.speak( wp.i18n.__( 'Search results cleared' ) );
+					return;
+				}
+
+				state.timer = setTimeout( function() {
+					state.timer = null;
+					api.updateQuickSearchResults( input );
 				}, 500 );
-			}).on( 'blur', '.quick-search', function() {
-				api.lastSearch = '';
+			}).on( 'click', '.quick-search-load-more', function() {
+				var panel = $( this ).parents( '.tabs-panel' ),
+					state = panel.data( 'quick-search-state' );
+
+				api.updateQuickSearchResults( panel.find( '.quick-search' ), ! state || ! state.retry );
 			});
 		},
 
-		updateQuickSearchResults : function(input) {
-			var panel, params,
-				minSearchLength = 1,
+		/**
+		 * Updates menu quick search results.
+		 *
+		 * @param {jQuery} input  Search input.
+		 * @param {boolean} append Whether to append the next page of results.
+		 */
+		updateQuickSearchResults : function( input, append ) {
+			var params, request, previousState, firstNewItem, loadMoreHadFocus,
 				q = input.val(),
-				pageSearchChecklist = $( '#page-search-checklist' );
+				panel = input.parents( '.tabs-panel' ),
+				checklist = $( '.categorychecklist', panel ),
+				loadMore = $( '.quick-search-load-more', panel ),
+				state = panel.data( 'quick-search-state' ),
+				itemCount = checklist.children( 'li' ).length,
+				paged;
 
-			/*
-			 * Avoid a new Ajax search when the pressed key (e.g. arrows)
-			 * doesn't change the searched term.
-			 */
-			if ( api.lastSearch == q ) {
+			if ( ! append && ( ! state || state.query !== q ) ) {
+				previousState = state;
+				state = {
+					query: q,
+					page: 0,
+					hasMore: false,
+					loading: false,
+					retry: false
+				};
+				panel.data( 'quick-search-state', state );
+				loadMore
+					.removeAttr( 'aria-disabled' )
+					.removeClass( 'disabled' )
+					.prop( 'hidden', true )
+					.text( loadMore.data( 'load-more-text' ) );
+
+				if ( previousState && previousState.timer ) {
+					clearTimeout( previousState.timer );
+				}
+				if ( previousState && previousState.request ) {
+					previousState.request.abort();
+				}
+			}
+
+			if ( ! state || state.loading || ( append && ( state.query !== q || ! state.hasMore ) ) ) {
 				return;
 			}
 
-			/*
-			 * Reset results when search is less than or equal to 
-			 * minimum characters for searched term.
-			 */
-			if ( q.length <= minSearchLength ) {
-				pageSearchChecklist.empty();
+			if ( q.length <= 1 ) {
+				checklist.removeAttr( 'aria-busy' ).empty();
+				$( '.spinner', panel ).removeClass( 'is-active' );
 				wp.a11y.speak( wp.i18n.__( 'Search results cleared' ) );
 				return;
 			}
 
-			api.lastSearch = q;
-
-			panel = input.parents('.tabs-panel');
+			paged = append ? state.page + 1 : 1;
 			params = {
 				'action': 'menu-quick-search',
 				'response-format': 'markup',
-				'menu': $('#menu').val(),
-				'menu-settings-column-nonce': $('#menu-settings-column-nonce').val(),
+				'menu': $( '#menu' ).val(),
+				'menu-settings-column-nonce': $( '#menu-settings-column-nonce' ).val(),
 				'q': q,
-				'type': input.attr('name')
+				'type': input.attr( 'name' ),
+				'paged': paged
 			};
 
+			state.loading = true;
+			state.retry = false;
+			checklist.attr( 'aria-busy', 'true' );
 			$( '.spinner', panel ).addClass( 'is-active' );
+			loadMore
+				.attr( 'aria-disabled', 'true' )
+				.addClass( 'disabled' )
+				.text( loadMore.data( 'load-more-text' ) );
 
-			$.post( ajaxurl, params, function(menuMarkup) {
-				api.processQuickSearchQueryResponse(menuMarkup, params, panel);
+			request = $.post( ajaxurl, params );
+			state.request = request;
+
+			request.done( function( menuMarkup, textStatus, response ) {
+				var added;
+
+				if ( panel.data( 'quick-search-state' ) !== state || state.request !== request ) {
+					return;
+				}
+
+				loadMoreHadFocus = loadMore.is( ':focus' );
+				added = api.processQuickSearchQueryResponse( menuMarkup, params, panel, append );
+				state.page = paged;
+				state.hasMore = '1' === response.getResponseHeader( 'X-WP-Menu-Quick-Search-Has-More' );
+				loadMore.prop( 'hidden', ! state.hasMore );
+
+				if ( ! state.hasMore && loadMoreHadFocus ) {
+					firstNewItem = checklist.children( 'li' ).eq( append ? itemCount : 0 ).find( ':input' ).first();
+					( added ? firstNewItem : input ).trigger( 'focus' );
+				}
+			}).fail( function( response, status ) {
+				if ( 'abort' !== status && panel.data( 'quick-search-state' ) === state ) {
+					loadMore.prop( 'hidden', false );
+					if ( ! append ) {
+						state.retry = true;
+						loadMore.text( wp.i18n.__( 'Try again' ) );
+					}
+					wp.a11y.speak( wp.i18n.__( 'An error occurred. Please try again.' ), 'assertive' );
+				}
+			}).always( function() {
+				if ( panel.data( 'quick-search-state' ) === state && state.request === request ) {
+					state.loading = false;
+					state.request = null;
+					checklist.removeAttr( 'aria-busy' );
+					$( '.spinner', panel ).removeClass( 'is-active' );
+					loadMore.removeAttr( 'aria-disabled' ).removeClass( 'disabled' );
+				}
 			});
 		},
 
@@ -1764,64 +1869,84 @@
 		},
 
 		/**
-		 * Process the quick search response into a search result
+		 * Process the quick search response into search results.
 		 *
-		 * @param string resp The server response to the query.
-		 * @param object req The request arguments.
-		 * @param jQuery panel The tabs panel we're searching in.
+		 * @param {string}  resp   The server response to the query.
+		 * @param {Object}  req    The request arguments.
+		 * @param {jQuery}  panel  The tabs panel being searched.
+		 * @param {boolean} append Whether to append the results.
+		 * @return {number} Number of results added.
 		 */
-		processQuickSearchQueryResponse : function(resp, req, panel) {
-			var matched, newID,
-			takenIDs = {},
-			form = document.getElementById('nav-menu-meta'),
-			pattern = /menu-item[(\[^]\]*/,
-			$items = $('<div>').html(resp).find('li'),
-			wrapper = panel.closest( '.accordion-section-content' ),
-			selectAll = wrapper.find( '.button-controls .select-all' ),
-			$item;
+		processQuickSearchQueryResponse : function( resp, req, panel, append ) {
+			var matched, newID, message,
+				takenIDs = {},
+				form = document.getElementById( 'nav-menu-meta' ),
+				pattern = /menu-item\[(-?\d+)\]/,
+				$items = $( '<div>' ).html( resp ).find( 'li' ),
+				wrapper = panel.closest( '.accordion-section-content' ),
+				checklist = $( '.categorychecklist', panel ),
+				selectAll = wrapper.find( '.button-controls .select-all' ),
+				$item;
 
-			if( ! $items.length ) {
-				let noResults = wp.i18n.__( 'No results found.' );
-				const li = $( '<li>' );
-				const p = $( '<p>', { text: noResults } );
-				li.append( p );
-				$('.categorychecklist', panel).empty().append( li );
-				$( '.spinner', panel ).removeClass( 'is-active' );
+			if ( ! $items.length ) {
+				if ( append ) {
+					wp.a11y.speak( wp.i18n.__( 'No more results found.' ) );
+					return 0;
+				}
+
+				message = wp.i18n.__( 'No results found.' );
+				checklist.empty().append(
+					$( '<li>' ).append( $( '<p>', { text: message } ) )
+				);
 				wrapper.addClass( 'has-no-menu-item' );
-				wp.a11y.speak( noResults, 'assertive' );
-				return;
+				wp.a11y.speak( message, 'assertive' );
+				return 0;
 			}
 
-			$items.each(function(){
-				$item = $(this);
+			$items.each( function() {
+				$item = $( this );
 
 				// Make a unique DB ID number.
-				matched = pattern.exec($item.html());
+				matched = pattern.exec( $item.html() );
 
 				if ( matched && matched[1] ) {
 					newID = matched[1];
-					while( form.elements['menu-item[' + newID + '][menu-item-type]'] || takenIDs[ newID ] ) {
+					while ( form.elements['menu-item[' + newID + '][menu-item-type]'] || takenIDs[ newID ] ) {
 						newID--;
 					}
 
-					takenIDs[newID] = true;
+					takenIDs[ newID ] = true;
 					if ( newID != matched[1] ) {
-						$item.html( $item.html().replace(new RegExp(
-							'menu-item\\[' + matched[1] + '\\]', 'g'),
+						$item.html( $item.html().replace( new RegExp(
+							'menu-item\\[' + matched[1] + '\\]', 'g' ),
 							'menu-item[' + newID + ']'
 						) );
 					}
 				}
 			});
 
-			$('.categorychecklist', panel).html( $items );
-			wp.a11y.speak( wp.i18n.sprintf( wp.i18n.__( '%d Search Results Found' ), $items.length ), 'assertive' );
-			$( '.spinner', panel ).removeClass( 'is-active' );
+			if ( append ) {
+				checklist.append( $items );
+				message = wp.i18n.sprintf(
+					wp.i18n._n( '%d additional search result loaded.', '%d additional search results loaded.', $items.length ),
+					$items.length
+				);
+			} else {
+				checklist.html( $items );
+				message = wp.i18n.sprintf(
+					wp.i18n._n( '%d search result found.', '%d search results found.', $items.length ),
+					$items.length
+				);
+			}
+
+			wp.a11y.speak( message );
 			wrapper.removeClass( 'has-no-menu-item' );
 
 			if ( selectAll.is( ':checked' ) ) {
 				selectAll.prop( 'checked', false );
 			}
+
+			return $items.length;
 		},
 
 		/**
