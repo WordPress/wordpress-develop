@@ -6143,14 +6143,56 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$data = rest_do_request( $request )->get_data();
 
 		$this->assertArrayHasKey( 'original_attachment', $data );
+		$this->assertSame( $attachment, $data['original_attachment'] );
+	}
+
+	/**
+	 * The response carries only the ID, so the original is offered as an embeddable
+	 * link in the same way as a featured image.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_original_attachment_is_embeddable() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'https://api.w.org/original-attachment', $links );
+
+		$link = $links['https://api.w.org/original-attachment'][0];
+		$this->assertStringEndsWith( '/wp/v2/media/' . $attachment, $link['href'] );
+		$this->assertTrue( $link['attributes']['embeddable'] );
+
+		// Requesting `_embed` hydrates the original alongside the edited image.
+		$embedded = rest_get_server()->response_to_data( $response, true );
 		$this->assertSame(
 			$attachment,
-			$data['original_attachment']['attachment_id']
+			$embedded['_embedded']['wp:original-attachment'][0]['id']
 		);
-		$this->assertSame(
-			wp_get_attachment_url( $attachment ),
-			$data['original_attachment']['source_url']
-		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_view_context_omits_the_original_attachment_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'view' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/original-attachment', $links );
 	}
 
 	/**
@@ -6201,7 +6243,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertArrayHasKey( 'original_attachment', $data );
 		$this->assertArrayNotHasKey( 'media_details', $data, 'Only the requested fields should be returned.' );
-		$this->assertSame( $attachment, $data['original_attachment']['attachment_id'] );
+		$this->assertSame( $attachment, $data['original_attachment'] );
 	}
 
 	/**
