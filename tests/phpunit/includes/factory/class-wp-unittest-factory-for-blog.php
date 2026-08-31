@@ -27,7 +27,6 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 * Creates a site object.
 	 *
 	 * @param array $args Arguments for the site object.
-	 *
 	 * @return int|WP_Error The site ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
@@ -80,7 +79,6 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves a site by a given ID.
 	 *
 	 * @param int $blog_id ID of the site to retrieve.
-	 *
 	 * @return WP_Site|null The site object on success, null on failure.
 	 */
 	public function get_object_by_id( $blog_id ) {
