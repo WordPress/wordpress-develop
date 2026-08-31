@@ -1188,7 +1188,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						// Apply special filtering for block comment delimiters with JSON attributes.
 						$comment         = substr( $this->html, $here->start, $here->length );
 						$block_processor = new WP_Block_Processor( $comment );
+						$is_a_block      = false;
 						if ( $block_processor->next_token() && $block_processor->opens_block() ) {
+							$is_a_block          = true;
 							$original_attributes = $block_processor->allocate_and_return_parsed_attributes();
 
 							if ( isset( $original_attributes ) ) {
@@ -1212,7 +1214,24 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							}
 						}
 
-						$output .= "<!--{$text}-->";
+						/*
+						 * Ensure that normalization does not create a block where none
+						 * previously existed. Should this be the case, there are two
+						 * options: leave the incorrect-closed-comment in place; or
+						 * remove the entire comment.
+						 *
+						 * For the sake of sanitization, remove the comment entirely.
+						 */
+						$was_incorrectly_closed = '!' === $comment[ strlen( $comment ) - 2 ];
+						$normalized             = "<!--{$text}-->";
+						if ( $was_incorrectly_closed ) {
+							$block_processor = new WP_Block_Processor( $normalized );
+							if ( $block_processor->next_token() && ! $block_processor->is_html() ) {
+								break;
+							}
+						}
+
+						$output .= $normalized;
 						break;
 
 					/*
