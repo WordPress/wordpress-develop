@@ -2072,13 +2072,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 35, $properties );
+		$this->assertCount( 36, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'exif_orientation', $properties );
 		$this->assertArrayHasKey( 'image_quality', $properties );
 		$this->assertArrayHasKey( 'image_output_format', $properties );
 		$this->assertArrayHasKey( 'image_save_progressive', $properties );
+		$this->assertArrayHasKey( 'original_attachment', $properties );
 		$this->assertArrayHasKey( 'filename', $properties );
 		$this->assertArrayHasKey( 'filesize', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -6141,14 +6142,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'edit' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertArrayHasKey( 'original_attachment', $data['media_details'] );
+		$this->assertArrayHasKey( 'original_attachment', $data );
 		$this->assertSame(
 			$attachment,
-			$data['media_details']['original_attachment']['attachment_id']
+			$data['original_attachment']['attachment_id']
 		);
 		$this->assertSame(
 			wp_get_attachment_url( $attachment ),
-			$data['media_details']['original_attachment']['source_url']
+			$data['original_attachment']['source_url']
 		);
 	}
 
@@ -6163,7 +6164,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'edit' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertArrayNotHasKey( 'original_attachment', $data['media_details'] );
+		$this->assertArrayNotHasKey( 'original_attachment', $data );
 	}
 
 	/**
@@ -6180,7 +6181,27 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'view' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertArrayNotHasKey( 'original_attachment', $data['media_details'] );
+		$this->assertArrayNotHasKey( 'original_attachment', $data );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_original_attachment_can_be_requested_on_its_own() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,original_attachment' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayHasKey( 'original_attachment', $data );
+		$this->assertArrayNotHasKey( 'media_details', $data, 'Only the requested fields should be returned.' );
+		$this->assertSame( $attachment, $data['original_attachment']['attachment_id'] );
 	}
 
 	/**
@@ -6199,7 +6220,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'edit' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertArrayNotHasKey( 'original_attachment', $data['media_details'] );
+		$this->assertArrayNotHasKey( 'original_attachment', $data );
 	}
 
 	/**
