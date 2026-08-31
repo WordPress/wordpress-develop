@@ -152,7 +152,7 @@ window.wpCookies = {
 	 *
 	 * This is done by setting it to an empty value and setting the expiration time in the past.
 	 *
-	 * @param {string}  name     The name of th  e cookie.
+	 * @param {string}  name     The name of the cookie.
 	 * @param {string}  [path]   Optional. The path on the server in which the cookie will be available on.
 	 * @param {string}  [domain] Optional. The domain that the cookie is available to.
 	 * @param {boolean} [secure] Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.

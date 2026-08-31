@@ -2325,12 +2325,12 @@
 	 *
 	 * If the response deems to be invalid, an admin notice is being displayed.
 	 *
-	 * @param {(Object|string)} response              Response from the server.
-	 * @param {Function}        response.always       Optional. Callback for when the Deferred is resolved or rejected.
-	 * @param {string}          response.statusText   Optional. Status message corresponding to the status code.
-	 * @param {string}          response.responseText Optional. Request response as text.
-	 * @param {string}          action                Type of action the response is referring to. Can be 'delete',
-	 *                                                'update' or 'install'.
+	 * @param {(Object|string)} response                Response from the server.
+	 * @param {Function}        [response.always]       Optional. Callback for when the Deferred is resolved or rejected.
+	 * @param {string}          [response.statusText]   Optional. Status message corresponding to the status code.
+	 * @param {string}          [response.responseText] Optional. Request response as text.
+	 * @param {string}          action                  Type of action the response is referring to. Can be 'delete',
+	 *                                                  'update' or 'install'.
 	 * @return {boolean} Whether the response is valid or not.
 	 */
 	wp.updates.isValidResponse = function( response, action ) {

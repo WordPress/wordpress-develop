@@ -92,7 +92,7 @@
 			i, source, secret;
 
 		for ( i = 0; i < iframes.length; i++ ) {
-			/** @member {IframeElement} */
+			/** @type {HTMLIFrameElement}} */
 			source = iframes[ i ];
 
 			secret = source.getAttribute( 'data-secret' );

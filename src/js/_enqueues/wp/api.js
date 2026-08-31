@@ -156,7 +156,6 @@
 	 * Helper for capitalizing strings.
 	 *
 	 * @param {string} str The string to capitalize.
-	 *
 	 * @return {string} The capitalized string.
 	 */
 	wp.api.utils.capitalize = function( str ) {
@@ -856,8 +855,8 @@
 			/**
 			 * Set nonce header before every Backbone sync.
 			 *
-			 * @param {string}          method The CRUD method ("create", "read", "update", or "delete") to be performed.
-			 * @param {Backbone.Model}  model The model to be synced.
+			 * @param {string}          method  The CRUD method ("create", "read", "update", or "delete") to be performed.
+			 * @param {Backbone.Model}  model   The model to be synced.
 			 * @param {{beforeSend}, *} options Additional options for the sync.
 			 * @return {*}.
 			 */
@@ -1016,8 +1015,8 @@
 			 *
 			 * Set nonce header before every Backbone sync.
 			 *
-			 * @param {string}         method The CRUD method ("create", "read", "update", or "delete") to be performed.
-			 * @param {Backbone.Model} model The model to be synced.
+			 * @param {string}         method  The CRUD method ("create", "read", "update", or "delete") to be performed.
+			 * @param {Backbone.Model} model   The model to be synced.
 			 * @param {{success}, *}   options Additional options for the sync.
 			 * @return {*}.
 			 */

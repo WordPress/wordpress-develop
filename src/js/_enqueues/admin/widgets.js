@@ -11,7 +11,7 @@ window.wpWidgets = {
 	/**
 	 * A closed Sidebar that gets a Widget dragged over it.
 	 *
-	 * @member {element|null}
+	 * @member {jQuery|null}
 	 */
 	hoveredSidebar: null,
 

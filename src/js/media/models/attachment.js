@@ -118,7 +118,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 *
 	 * @this Backbone.Model
 	 *
-	 * @return {Promise} A jQuery Promise that is resolved or rejected based on the success of the sync operation.
+	 * @return {jQuery.Promise} A jQuery Promise that is resolved or rejected based on the success of the sync operation.
 	 */
 	saveCompat: function( data, options ) {
 		var model = this;
