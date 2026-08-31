@@ -178,7 +178,7 @@ class Tests_Multisite_Bootstrap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Even if a matching network is available, it should not match if the the filtered
+	 * Even if a matching network is available, it should not match if the filtered
 	 * value for network path segments is fewer than the number of paths passed.
 	 */
 	public function test_get_network_by_path_with_forced_single_path_segment_returns_single_path_network() {

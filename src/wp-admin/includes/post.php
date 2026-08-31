@@ -122,11 +122,7 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		$post_data['post_status'] = 'pending';
 	}
 
-	if ( isset( $post_data['ID'] ) ) {
-		$post_id = $post_data['ID'];
-	} else {
-		$post_id = false;
-	}
+	$post_id         = $post_data['ID'] ?? false;
 	$previous_status = $post_id ? get_post_field( 'post_status', $post_id ) : false;
 
 	if ( isset( $post_data['post_status'] ) && 'private' === $post_data['post_status'] && ! current_user_can( $ptype->cap->publish_posts ) ) {
@@ -429,7 +425,7 @@ function edit_post( $post_data = null ) {
 			}
 		}
 
-		$attachment_data = isset( $post_data['attachments'][ $post_id ] ) ? $post_data['attachments'][ $post_id ] : array();
+		$attachment_data = $post_data['attachments'][ $post_id ] ?? array();
 
 		/** This filter is documented in wp-admin/includes/media.php */
 		$translated = apply_filters( 'attachment_fields_to_save', $translated, $attachment_data );
@@ -764,7 +760,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 	if ( $create_in_db ) {
 		$post_id = wp_insert_post(
 			array(
-				'post_title'  => __( 'Auto Draft' ),
+				'post_title'  => post_type_supports( $post_type, 'title' ) ? __( 'Auto Draft' ) : '',
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
 			),
@@ -986,15 +982,15 @@ function wp_write_post() {
  *
  * @since 2.0.0
  *
- * @return int|void Post ID on success, void on failure.
+ * @return int Post ID on success. Dies on failure.
  */
 function write_post() {
 	$result = wp_write_post();
 	if ( is_wp_error( $result ) ) {
 		wp_die( $result->get_error_message() );
-	} else {
-		return $result;
 	}
+
+	return $result;
 }
 
 //
@@ -1014,7 +1010,7 @@ function add_meta( $post_id ) {
 
 	$metakeyselect = isset( $_POST['metakeyselect'] ) ? wp_unslash( trim( $_POST['metakeyselect'] ) ) : '';
 	$metakeyinput  = isset( $_POST['metakeyinput'] ) ? wp_unslash( trim( $_POST['metakeyinput'] ) ) : '';
-	$metavalue     = isset( $_POST['metavalue'] ) ? $_POST['metavalue'] : '';
+	$metavalue     = $_POST['metavalue'] ?? '';
 	if ( is_string( $metavalue ) ) {
 		$metavalue = trim( $metavalue );
 	}
@@ -1648,7 +1644,7 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 
 	$post               = get_post( $post );
 	$post_type_object   = get_post_type_object( $post->post_type );
-	$set_thumbnail_link = '<p class="hide-if-no-js"><a href="%s" id="set-post-thumbnail"%s class="thickbox">%s</a></p>';
+	$set_thumbnail_link = '<p class="hide-if-no-js"><a href="%s" id="set-post-thumbnail"%s class="thickbox" role="button" aria-haspopup="dialog" aria-controls="wp-media-modal">%s</a></p>';
 	$upload_iframe_src  = get_upload_iframe_src( 'image', $post->ID );
 
 	$content = sprintf(
@@ -1687,7 +1683,7 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 				$thumbnail_html
 			);
 			$content .= '<p class="hide-if-no-js howto" id="set-post-thumbnail-desc">' . __( 'Click the image to edit or update' ) . '</p>';
-			$content .= '<p class="hide-if-no-js"><a href="#" id="remove-post-thumbnail">' . esc_html( $post_type_object->labels->remove_featured_image ) . '</a></p>';
+			$content .= '<p class="hide-if-no-js"><a href="#" id="remove-post-thumbnail" role="button">' . esc_html( $post_type_object->labels->remove_featured_image ) . '</a></p>';
 		}
 	}
 
@@ -1894,7 +1890,7 @@ function _admin_notice_post_locked() {
 		 * Fires inside the post locked dialog before the buttons are displayed.
 		 *
 		 * @since 3.6.0
-		 * @since 5.4.0 The $user parameter was added.
+		 * @since 5.4.0 The `$user` parameter was added.
 		 *
 		 * @param WP_Post $post Post object.
 		 * @param WP_User $user The user with the lock for the post.
@@ -1904,7 +1900,7 @@ function _admin_notice_post_locked() {
 		<p>
 		<a class="button" href="<?php echo esc_url( $sendback ); ?>"><?php echo $sendback_text; ?></a>
 		<?php if ( $preview_link ) { ?>
-		<a class="button<?php echo $tab_last; ?>" href="<?php echo esc_url( $preview_link ); ?>"><?php _e( 'Preview' ); ?></a>
+		<a class="button<?php echo $tab_last; ?>" href="<?php echo esc_url( $preview_link ); ?>"><?php echo esc_html_x( 'Preview', 'verb' ); ?></a>
 			<?php
 		}
 
@@ -1984,13 +1980,8 @@ function wp_create_post_autosave( $post_data ) {
 		$post = get_post( $post_id );
 
 		// If the new autosave has the same content as the post, delete the autosave.
-		$autosave_is_different = false;
-		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-				$autosave_is_different = true;
-				break;
-			}
-		}
+		$fields                = array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) );
+		$autosave_is_different = array_any( $fields, fn( $field ) => normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) );
 
 		if ( ! $autosave_is_different ) {
 			wp_delete_post_revision( $old_autosave->ID );
@@ -2043,7 +2034,7 @@ function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 	 * Ignoring sanitization to avoid altering meta. Ignoring the nonce check because
 	 * this is hooked on inner core hooks where a valid nonce was already checked.
 	 */
-	$posted_data = isset( $_POST['data']['wp_autosave'] ) ? $_POST['data']['wp_autosave'] : $_POST;
+	$posted_data = $_POST['data']['wp_autosave'] ?? $_POST;
 
 	$post_type = get_post_type( $new_autosave['post_parent'] );
 
@@ -2192,6 +2183,7 @@ function wp_autosave( $post_data ) {
  * @since 2.7.0
  *
  * @param int $post_id Optional. Post ID.
+ * @return never
  */
 function redirect_post( $post_id = 0 ) {
 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
@@ -2460,7 +2452,7 @@ function the_block_editor_meta_boxes() {
 	 * will not be printed again after this point.
 	 */
 	if ( wp_script_is( 'wp-edit-post', 'done' ) ) {
-		printf( "<script type='text/javascript'>\n%s\n</script>\n", trim( $script ) );
+		printf( "<script>\n%s\n</script>\n", trim( $script ) );
 	}
 
 	/*
@@ -2568,7 +2560,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	$classic_output = ob_get_clean();
 
 	$classic_elements = wp_html_split( $classic_output );
-	$hidden_inputs    = '';
+
 	foreach ( $classic_elements as $element ) {
 		if ( ! str_starts_with( $element, '<input ' ) ) {
 			continue;

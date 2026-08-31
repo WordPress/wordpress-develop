@@ -12,8 +12,6 @@ require_once __DIR__ . '/admin.php';
 // Used in the HTML title tag.
 $title = __( 'Get Involved' );
 
-list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
-
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap about__container">

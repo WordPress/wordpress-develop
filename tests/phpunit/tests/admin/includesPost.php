@@ -549,6 +549,38 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that default post title is present when a CPT has title support, and is empty otherwise.
+	 *
+	 * @ticket 45516
+	 *
+	 * @covers ::get_default_post_to_edit
+	 */
+	public function test_get_default_post_to_edit_with_and_without_title_support() {
+		register_post_type(
+			'yes_title',
+			array(
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+		register_post_type(
+			'no_title',
+			array(
+				'supports' => array( 'editor' ),
+			)
+		);
+
+		/*
+		 * The ID is obtained because get_default_post_to_edit() will force the post_title
+		 * to be overridden on the returned WP_Post object.
+		 */
+		$default_yes_title_post_id = get_default_post_to_edit( 'yes_title', true )->ID;
+		$default_no_title_post_id  = get_default_post_to_edit( 'no_title', true )->ID;
+
+		$this->assertSame( __( 'Auto Draft' ), get_post( $default_yes_title_post_id )->post_title, 'Expected post_title to be the default title.' );
+		$this->assertSame( '', get_post( $default_no_title_post_id )->post_title, 'Expected post_title to be an empty string.' );
+	}
+
+	/**
 	 * @ticket 38293
 	 */
 	public function test_user_cant_delete_protected_meta() {

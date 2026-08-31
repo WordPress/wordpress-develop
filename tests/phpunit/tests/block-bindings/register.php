@@ -75,6 +75,7 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 			'core/post-data'         => get_block_bindings_source( 'core/post-data' ),
 			'core/post-meta'         => get_block_bindings_source( 'core/post-meta' ),
 			'core/pattern-overrides' => get_block_bindings_source( 'core/pattern-overrides' ),
+			'core/term-data'         => get_block_bindings_source( 'core/term-data' ),
 		);
 
 		$registered = get_all_registered_block_bindings_sources();

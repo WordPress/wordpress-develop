@@ -5,12 +5,14 @@
  * @version 2.0.0
  *
  * @package WordPress
- * @subpackage Administration
  * @output wp-admin/js/nav-menu.js
  */
 
 /* global menus, postboxes, columns, isRtl, ajaxurl, wpNavMenu */
 
+/**
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 (function($) {
 
 	var api;
@@ -178,7 +180,7 @@
 				 *
 				 * @ignore
 				 *
-				 * @param jQuery metabox The metabox jQuery object.
+				 * @param {Function} processMethod The method to use for adding the menu items. Defaults to api.addMenuItemToBottom.
 				 */
 				addSelectedToMenu : function(processMethod) {
 					if ( 0 === $('#menu-to-edit').length ) {
@@ -298,46 +300,48 @@
 
 						$.each( parentDropdowns, function() {
 							var parentDropdown = $( this ),
-								$html = '',
-								$selected = '',
-								currentItemID = parentDropdown.closest( 'li.menu-item' ).find( '.menu-item-data-db-id' ).val(),
-								currentparentID = parentDropdown.closest( 'li.menu-item' ).find( '.menu-item-data-parent-id' ).val(),
+								currentItemID = parseInt( parentDropdown.closest( 'li.menu-item' ).find( '.menu-item-data-db-id' ).val() ),
+								currentParentID = parseInt( parentDropdown.closest( 'li.menu-item' ).find( '.menu-item-data-parent-id' ).val() ),
 								currentItem = parentDropdown.closest( 'li.menu-item' ),
 								currentMenuItemChild = currentItem.childMenuItems(),
-								excludeMenuItem = [ currentItemID ];
+								excludeMenuItem =  /** @type {number[]} */ [ currentItemID ];
+
+							parentDropdown.empty();
 
 							if ( currentMenuItemChild.length > 0 ) {
 								$.each( currentMenuItemChild, function(){
 									var childItem = $(this),
-										childID = childItem.find( '.menu-item-data-db-id' ).val();
+										childID = parseInt( childItem.find( '.menu-item-data-db-id' ).val() );
 
 									excludeMenuItem.push( childID );
 								});
 							}
 
-							if ( currentparentID == 0 ) {
-								$selected = 'selected';
-							}
-
-							$html += '<option ' + $selected + ' value="0">' + wp.i18n._x( 'No Parent', 'menu item without a parent in navigation menu' ) + '</option>';
+							parentDropdown.append(
+								$( '<option>', {
+									value: '0',
+									selected: currentParentID === 0,
+									text: wp.i18n._x( 'No Parent', 'menu item without a parent in navigation menu' ),
+								} )
+							);
 
 							$.each( menuItems, function() {
 								var menuItem = $(this),
-								$selected = '',
-								menuID = menuItem.find( '.menu-item-data-db-id' ).val(),
+								menuID = parseInt( menuItem.find( '.menu-item-data-db-id' ).val() ),
 								menuTitle = menuItem.find( '.edit-menu-item-title' ).val();
 
 								if ( ! excludeMenuItem.includes( menuID ) ) {
-									if ( currentparentID == menuID ) {
-										$selected = 'selected';
-									}
-									$html += '<option ' + $selected + ' value="' + menuID + '">' + menuTitle + '</option>';
+									parentDropdown.append(
+										$( '<option>', {
+											value: menuID.toString(),
+											selected: currentParentID === menuID,
+											text: menuTitle,
+										} )
+									);
 								}
 							});
-
-							parentDropdown.html( $html );
 						});
-						
+
 					});
 				},
 				updateOrderDropdown : function() {
@@ -349,9 +353,9 @@
 							var orderDropdown = $( this ),
 								menuItem = orderDropdown.closest( 'li.menu-item' ).first(),
 								depth = menuItem.menuItemDepth(),
-								isPrimaryMenuItem = ( 0 === depth ),
-								$html = '',
-								$selected = '';
+								isPrimaryMenuItem = ( 0 === depth );
+
+							orderDropdown.empty();
 
 							if ( isPrimaryMenuItem ) {
 								var primaryItems = $( '.menu-item-depth-0' ),
@@ -360,17 +364,19 @@
 								itemPosition = primaryItems.index( menuItem ) + 1;
 
 								for ( let i = 1; i < totalMenuItems + 1; i++ ) {
-									$selected = '';
-									if ( i == itemPosition ) { 
-										$selected = 'selected';
-									}
-									var itemString = wp.i18n.sprintf( 
+									var itemString = wp.i18n.sprintf(
 										/* translators: 1: The current menu item number, 2: The total number of menu items. */
 										wp.i18n._x( '%1$s of %2$s', 'part of a total number of menu items' ),
 										i,
 										totalMenuItems
 									);
-									$html += '<option ' + $selected + ' value="' + i + '">' + itemString + '</option>';
+									orderDropdown.append(
+										$( '<option>', {
+											selected: i === itemPosition,
+											value: i.toString(),
+											text: itemString,
+										} )
+									);
 								}
 
 							} else {
@@ -382,24 +388,24 @@
 								itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
 								for ( let i = 1; i < totalSubMenuItems + 1; i++ ) {
-									$selected = '';
-									if ( i == itemPosition ) {
-										$selected = 'selected';
-									}
-									var submenuString = wp.i18n.sprintf( 
+									var submenuString = wp.i18n.sprintf(
 										/* translators: 1: The current submenu item number, 2: The total number of submenu items. */
 										wp.i18n._x( '%1$s of %2$s', 'part of a total number of menu items' ),
 										i,
 										totalSubMenuItems
 									);
-									$html += '<option ' + $selected + ' value="' + i + '">' + submenuString + '</option>';
+									orderDropdown.append(
+										$( '<option>', {
+											selected: i === itemPosition,
+											value: i.toString(),
+											text: submenuString,
+										} )
+									);
 								}
 
 							}
-
-							orderDropdown.html( $html );
 						});
-						
+
 					});
 				}
 			});
@@ -556,7 +562,7 @@
 			menu.on( 'change', '.edit-menu-item-parent', function() {
 				api.changeMenuParent( $( this ) );
 			});
-			
+
 			// Update menu item order when value is changed.
 			menu.on( 'change', '.edit-menu-item-order', function() {
 				api.changeMenuOrder( $( this ) );
@@ -565,10 +571,10 @@
 
 		/**
 		 * changeMenuParent( [parentDropdown] )
-		 * 
+		 *
 		 * @since 6.7.0
 		 *
-		 * @param {object} parentDropdown select field
+		 * @param {Object} parentDropdown select field
 		 */
 		changeMenuParent : function( parentDropdown ) {
 			var menuItemNewPosition,
@@ -621,10 +627,10 @@
 
 		/**
 		 * changeMenuOrder( [OrderDropdown] )
-		 * 
+		 *
 		 * @since 6.7.0
 		 *
-		 * @param {object} orderDropdown select field
+		 * @param {Object} orderDropdown select field
 		 */
 		changeMenuOrder : function( orderDropdown ) {
 			var menuItems = $( '#menu-to-edit li' ),
@@ -1155,7 +1161,7 @@
 		 * Handle toggling bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachBulkSelectButtonListeners : function() {
 			var that = this;
 
@@ -1174,7 +1180,7 @@
 		 * Enable bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		enableBulkSelection : function() {
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
 
@@ -1191,7 +1197,7 @@
 		 * Disable bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		disableBulkSelection : function() {
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
 
@@ -1215,7 +1221,7 @@
 		 * Listen for state changes on bulk action checkboxes.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachMenuCheckBoxListeners : function() {
 			var that = this;
 
@@ -1228,7 +1234,7 @@
 		 * Create delete button to remove menu items from collection.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachMenuItemDeleteButton : function() {
 			var that = this;
 
@@ -1271,7 +1277,7 @@
 		 * List menu items awaiting deletion.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachPendingMenuItemsListForDeletion : function() {
 			$( '#post-body-content' ).on( 'change', '.menu-item-checkbox', function() {
 				var menuItemName, menuItemType, menuItemID, listedMenuItem;
@@ -1290,13 +1296,18 @@
 				}
 
 				if ( this.checked === true ) {
-					$( '#pending-menu-items-to-delete ul' ).append(
-						'<li data-menu-item-id="' + menuItemID + '">' +
-							'<span class="pending-menu-item-name">' + menuItemName + '</span> ' +
-							'<span class="pending-menu-item-type">(' + menuItemType + ')</span>' +
-							'<span class="separator"></span>' +
-						'</li>'
-					);
+					const $li = $( '<li>', { 'data-menu-item-id': menuItemID } );
+					$li.append( $( '<span>', {
+						'class': 'pending-menu-item-name',
+						text: menuItemName
+					} ) );
+					$li.append( ' ' );
+					$li.append( $( '<span>', {
+						'class': 'pending-menu-item-type',
+						text: '(' + menuItemType + ')',
+					} ) );
+					$li.append( $( '<span>', { 'class': 'separator' } ) );
+					$( '#pending-menu-items-to-delete ul' ).append( $li );
 				}
 
 				$( '#pending-menu-items-to-delete li .separator' ).html( ', ' );
@@ -1308,7 +1319,7 @@
 		 * Set status of bulk delete checkbox.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		setBulkDeleteCheckboxStatus : function() {
 			var that = this;
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
@@ -1332,7 +1343,7 @@
 		 * Set status of menu items removal button.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		setRemoveSelectedButtonStatus : function() {
 			var button = $( '.menu-items-delete' );
 
@@ -1397,14 +1408,25 @@
 
 		updateQuickSearchResults : function(input) {
 			var panel, params,
-				minSearchLength = 2,
-				q = input.val();
+				minSearchLength = 1,
+				q = input.val(),
+				pageSearchChecklist = $( '#page-search-checklist' );
 
 			/*
-			 * Minimum characters for a search. Also avoid a new Ajax search when
-			 * the pressed key (e.g. arrows) doesn't change the searched term.
+			 * Avoid a new Ajax search when the pressed key (e.g. arrows)
+			 * doesn't change the searched term.
 			 */
-			if ( q.length < minSearchLength || api.lastSearch == q ) {
+			if ( api.lastSearch == q ) {
+				return;
+			}
+
+			/*
+			 * Reset results when search is less than or equal to
+			 * minimum characters for searched term.
+			 */
+			if ( q.length <= minSearchLength ) {
+				pageSearchChecklist.empty();
+				wp.a11y.speak( wp.i18n.__( 'Search results cleared' ) );
 				return;
 			}
 
@@ -1699,9 +1721,8 @@
 		},
 
 		eventOnClickMenuSave : function() {
-			var locs = '',
-			menuName = $('#menu-name'),
-			menuNameVal = menuName.val();
+			var menuName = $('#menu-name'),
+				menuNameVal = menuName.val();
 
 			// Cancel and warn if invalid menu name.
 			if ( ! menuNameVal || ! menuNameVal.replace( /\s+/, '' ) ) {
@@ -1709,10 +1730,17 @@
 				return false;
 			}
 			// Copy menu theme locations.
+			// Note: This appears to be dead code since #nav-menu-theme-locations no longer exists, perhaps removed in r32842.
+			var $updateNavMenu = $('#update-nav-menu');
 			$('#nav-menu-theme-locations select').each(function() {
-				locs += '<input type="hidden" name="' + this.name + '" value="' + $(this).val() + '" />';
+				$updateNavMenu.append(
+					$( '<input>', {
+						type: 'hidden',
+						name: this.name,
+						value: $( this ).val(),
+					} )
+				);
 			});
-			$('#update-nav-menu').append( locs );
 			// Update menu item position data.
 			api.menuList.find('.menu-item-data-position').val( function(index) { return index + 1; } );
 			window.onbeforeunload = null;
@@ -1740,9 +1768,9 @@
 		/**
 		 * Process the quick search response into a search result
 		 *
-		 * @param string resp The server response to the query.
-		 * @param object req The request arguments.
-		 * @param jQuery panel The tabs panel we're searching in.
+		 * @param {string} resp  The server response to the query.
+		 * @param {Object} req   The request arguments.
+		 * @param {jQuery} panel The tabs panel we're searching in.
 		 */
 		processQuickSearchQueryResponse : function(resp, req, panel) {
 			var matched, newID,
@@ -1755,9 +1783,14 @@
 			$item;
 
 			if( ! $items.length ) {
-				$('.categorychecklist', panel).html( '<li><p>' + wp.i18n.__( 'No results found.' ) + '</p></li>' );
+				let noResults = wp.i18n.__( 'No results found.' );
+				const li = $( '<li>' );
+				const p = $( '<p>', { text: noResults } );
+				li.append( p );
+				$('.categorychecklist', panel).empty().append( li );
 				$( '.spinner', panel ).removeClass( 'is-active' );
 				wrapper.addClass( 'has-no-menu-item' );
+				wp.a11y.speak( noResults, 'assertive' );
 				return;
 			}
 
@@ -1784,6 +1817,7 @@
 			});
 
 			$('.categorychecklist', panel).html( $items );
+			wp.a11y.speak( wp.i18n.sprintf( wp.i18n.__( '%d Search Results Found' ), $items.length ), 'assertive' );
 			$( '.spinner', panel ).removeClass( 'is-active' );
 			wrapper.removeClass( 'has-no-menu-item' );
 

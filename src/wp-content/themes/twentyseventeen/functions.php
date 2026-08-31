@@ -11,6 +11,8 @@
 
 /**
  * Twenty Seventeen only works in WordPress 4.7 or later.
+ *
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -23,6 +25,10 @@ if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '<' ) ) {
  * Note that this function is hooked into the after_setup_theme hook, which
  * runs before the init hook. The init hook is too late for some features, such
  * as indicating support for post thumbnails.
+ *
+ * @since Twenty Seventeen 1.0
+ *
+ * @global int $content_width Content width.
  */
 function twentyseventeen_setup() {
 
@@ -248,7 +254,7 @@ add_action( 'after_setup_theme', 'twentyseventeen_setup' );
  *
  * Priority 0 to make it available to lower priority callbacks.
  *
- * @global int $content_width
+ * @global int $content_width Content width.
  */
 function twentyseventeen_content_width() {
 
@@ -289,7 +295,7 @@ if ( ! function_exists( 'twentyseventeen_fonts_url' ) ) :
 	 * @since Twenty Seventeen 1.0
 	 * @since Twenty Seventeen 3.2 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Fonts URL for the theme.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentyseventeen_fonts_url() {
 		$fonts_url = '';
@@ -406,7 +412,14 @@ add_filter( 'excerpt_more', 'twentyseventeen_excerpt_more' );
  * @since Twenty Seventeen 1.0
  */
 function twentyseventeen_javascript_detection() {
-	echo "<script>(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>\n";
+	$js  = "(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);";
+	$js .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
+
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+		wp_print_inline_script_tag( $js );
+	} else {
+		echo "<script>$js</script>\n";
+	}
 }
 add_action( 'wp_head', 'twentyseventeen_javascript_detection', 0 );
 
@@ -436,7 +449,7 @@ function twentyseventeen_colors_css_wrap() {
 		$customize_preview_data_hue = 'data-hue="' . $hue . '"';
 	}
 	?>
-	<style type="text/css" id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
+	<style id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
 		<?php echo twentyseventeen_custom_colors_css(); ?>
 	</style>
 	<?php
@@ -454,7 +467,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20250415' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20260819' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20240729' );
@@ -464,21 +477,12 @@ function twentyseventeen_scripts() {
 		wp_enqueue_style( 'twentyseventeen-colors-dark', get_theme_file_uri( '/assets/css/colors-dark.css' ), array( 'twentyseventeen-style' ), '20240412' );
 	}
 
-	// Register the Internet Explorer 9 specific stylesheet, to fix display issues in the Customizer.
+	// Register handles for removed stylesheets and scripts.
 	if ( is_customize_preview() ) {
-		wp_register_style( 'twentyseventeen-ie9', get_theme_file_uri( '/assets/css/ie9.css' ), array( 'twentyseventeen-style' ), '20161202' );
-		wp_style_add_data( 'twentyseventeen-ie9', 'conditional', 'IE 9' );
+		wp_register_style( 'twentyseventeen-ie9', false, array( 'twentyseventeen-style' ) );
 	}
-
-	// Register the Internet Explorer 8 specific stylesheet.
-	wp_register_style( 'twentyseventeen-ie8', get_theme_file_uri( '/assets/css/ie8.css' ), array( 'twentyseventeen-style' ), '20161202' );
-	wp_style_add_data( 'twentyseventeen-ie8', 'conditional', 'lt IE 9' );
-
-	// Register the html5 shiv.
-	wp_register_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '20161020' );
-	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
-
-	// Skip-link fix is no longer enqueued by default.
+	wp_register_style( 'twentyseventeen-ie8', false, array( 'twentyseventeen-style' ) );
+	wp_register_script( 'html5', false );
 	wp_register_script( 'twentyseventeen-skip-link-focus-fix', get_theme_file_uri( '/assets/js/skip-link-focus-fix.js' ), array(), '20161114', array( 'in_footer' => true ) );
 
 	wp_enqueue_script(
@@ -683,7 +687,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Seventeen 3.0
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */

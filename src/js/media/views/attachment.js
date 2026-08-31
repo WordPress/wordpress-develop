@@ -18,10 +18,20 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	template:  wp.template('attachment'),
 
 	attributes: function() {
+		var ariaLabel = this.model.get( 'title' );
+
+		if ( ! ariaLabel ) {
+			if ( this.model.get( 'uploading' ) ) {
+				ariaLabel = wp.i18n.__( 'uploading…' );
+			} else {
+				ariaLabel = wp.i18n.__( '(no title)' );
+			}
+		}
+
 		return {
 			'tabIndex':     0,
 			'role':         'checkbox',
-			'aria-label':   this.model.get( 'title' ),
+			'aria-label':   ariaLabel,
 			'aria-checked': false,
 			'data-id':      this.model.get( 'id' )
 		};
@@ -69,6 +79,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this.listenTo( this.controller.states, 'attachment:compat:waiting attachment:compat:ready', this.updateSave );
 	},
 	/**
+	 * Update the view after the model has been saved.
+	 *
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	dispose: function() {
@@ -87,6 +99,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		return this;
 	},
 	/**
+	 * Renders the attachment view.
+	 *
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -157,6 +171,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	},
 
 	/**
+	 * Toggles the selection state of the attachment.
+	 *
 	 * @param {Object} event
 	 */
 	toggleSelectionHandler: function( event ) {
@@ -211,6 +227,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this.controller.trigger( 'selection:toggle' );
 	},
 	/**
+	 * Toggles the selection state of the attachment.
+	 *
 	 * @param {Object} options
 	 */
 	toggleSelection: function( options ) {
@@ -291,7 +309,9 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this[ this.selected() ? 'select' : 'deselect' ]();
 	},
 	/**
-	 * @return {unresolved|boolean}
+	 * Checks if the model is selected in the selection.
+	 *
+	 * @return {void|boolean} True if the model is selected in the selection, false otherwise.
 	 */
 	selected: function() {
 		var selection = this.options.selection;
@@ -300,6 +320,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		}
 	},
 	/**
+	 * Selects the model in the selection.
+	 *
 	 * @param {Backbone.Model} model
 	 * @param {Backbone.Collection} collection
 	 */
@@ -329,6 +351,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		}
 	},
 	/**
+	 * Deselects the model in the selection.
+	 *
 	 * @param {Backbone.Model} model
 	 * @param {Backbone.Collection} collection
 	 */
@@ -347,6 +371,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 			.find( '.check' ).attr( 'tabindex', '-1' );
 	},
 	/**
+	 * Updates the view to reflect whether the model is the single model in the selection.
+	 *
 	 * @param {Backbone.Model} model
 	 * @param {Backbone.Collection} collection
 	 */
@@ -362,8 +388,10 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this.$el.toggleClass( 'details', details === this.model );
 	},
 	/**
+	 * Gets the image size object for the specified size.
+	 *
 	 * @param {string} size
-	 * @return {Object}
+	 * @return {Object} Returns an object containing the image size information.
 	 */
 	imageSize: function( size ) {
 		var sizes = this.model.get('sizes'), matched = false;
@@ -395,6 +423,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		};
 	},
 	/**
+	 * Update the model's setting with the value from the input.
+	 *
 	 * @param {Object} event
 	 */
 	updateSetting: function( event ) {
@@ -446,6 +476,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		});
 	},
 	/**
+	 * Updates the view's save status.
+	 *
 	 * @param {string} status
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
@@ -488,6 +520,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		}
 	},
 	/**
+	 * Removes the model from the collection.
+	 *
 	 * @param {Object} event
 	 */
 	removeFromLibrary: function( event ) {
@@ -503,11 +537,11 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	},
 
 	/**
-	 * Add the model if it isn't in the selection, if it is in the selection,
-	 * remove it.
+	 * Adds the model if it isn't in the selection, if it is in the selection,
+	 * removes it.
 	 *
-	 * @param {[type]} event [description]
-	 * @return {[type]} [description]
+	 * @param {Object} event
+	 * @return {void}
 	 */
 	checkClickHandler: function ( event ) {
 		var selection = this.options.selection;

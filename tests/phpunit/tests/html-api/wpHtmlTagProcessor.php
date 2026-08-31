@@ -73,6 +73,23 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63854
+	 *
+	 * @covers WP_HTML_Tag_Processor::__construct
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::__construct
+	 */
+	public function test_constructor_validates_html_parameter() {
+		// Test that passing null triggers _doing_it_wrong and sets HTML to empty string.
+		$processor = new WP_HTML_Tag_Processor( null );
+
+		// Verify that the HTML was set to an empty string.
+		$this->assertSame( '', $processor->get_updated_html(), 'HTML should be set to empty string when null is passed' );
+
+		// Verify that next_token() works without errors (indicating the processor is in a valid state).
+		$this->assertFalse( $processor->next_token(), 'next_token() should work without errors when HTML is empty string' );
+	}
+
+	/**
 	 * Data provider. HTML tags which might have a self-closing flag, and an indicator if they do.
 	 *
 	 * @return array[]
@@ -94,10 +111,14 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
 			// These involve syntax peculiarities.
 			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
-			'Self-closing flag after attribute'          => array( '<div id=test/>', true ),
+			'Self-closing flag after attribute'          => array( '<div id=test />', true ),
+			'Slash inside unquoted attribute value'      => array( '<div id=test/>', false ),
+			'Slash only unquoted attribute value'        => array( '<div attr=/>', false ),
+			'Attribute "=" with value ""'                => array( '<div =/>', true ),
+			'Attribute "=" with value "/"'               => array( '<div ==/>', false ),
 			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
 			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
-			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
+			'Ignored "/" and whitespace'                 => array( '<div / >', false ),
 		);
 	}
 
@@ -295,6 +316,68 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that set_attribute doesn’t allow setting an
+	 * attribute with an invalid name and thus break syntax.
+	 *
+	 * @ticket 63863
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_attribute
+	 *
+	 * @dataProvider data_invalid_attribute_names
+	 *
+	 * @param string $invalid_name Invalid attribute name.
+	 */
+	public function test_set_attribute_rejects_invalid_names( $invalid_name ) {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
+
+		$this->assertFalse(
+			$processor->set_attribute( $invalid_name, true ),
+			'Should have rejected invalid attribute name.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_invalid_attribute_names() {
+		$invalid_names = array(
+			'Empty' => array( '' ),
+		);
+
+		// Syntax-like characters.
+		foreach ( str_split( '"\'>&</ =' ) as $c ) {
+			$invalid_names[ $c ] = array( "too{$c}late" );
+		}
+
+		// C0 controls.
+		for ( $i = 0; $i <= 0x1F; $i++ ) {
+			$c                                    = chr( $i );
+			$invalid_names[ "C0 Controls: {$i}" ] = array( "shut{$c}down" );
+		}
+
+		// Noncharacters.
+		for ( $i = 0xFDD0; $i <= 0xFDEF; $i++ ) {
+			$h                                       = dechex( $i );
+			$c                                       = mb_chr( $i );
+			$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+		}
+
+		for ( $b = 0; $b <= 16; $b++ ) {
+			for ( $x = 0xFFFE; $x <= 0xFFFF; $x++ ) {
+				$i                                       = ( $b << 16 ) + $x;
+				$h                                       = dechex( $i );
+				$c                                       = mb_chr( $i );
+				$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+			}
+		}
+
+		return $invalid_names;
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
@@ -379,6 +462,214 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			$processor->get_attribute_names_with_prefix( 'data-' ),
 			"Accessing attribute names doesn't find attribute added via set_attribute"
 		);
+	}
+
+	/**
+	 * Ensures that a new attribute added via set_attribute() is reported by
+	 * get_attribute_names_with_prefix() immediately after being added.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_new_attributes() {
+		$processor = new WP_HTML_Tag_Processor( '<div existing>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report existing attribute names: check test setup.'
+		);
+
+		$processor->set_attribute( 'new', true );
+
+		$this->assertSame(
+			array( 'new', 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report newly-added attribute.'
+		);
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( 'exist' ),
+			'Should have only reported existing attribute matching given prefix.'
+		);
+	}
+
+	/**
+	 * Ensures that changes enqueued for modifiable text do not get reported as added attributes.
+	 *
+	 * This is a fairly-specific test against an internal implementation detail, but is worth
+	 * adding to catch potential regressions since modifiable text updates share a namespace with
+	 * attribute updates.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_ignores_immediately_added_modifiable_text() {
+		$processor = new WP_HTML_Tag_Processor( '<title existing></title>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report existing attribute names: check test setup.'
+		);
+
+		$processor->set_modifiable_text( 'content!' );
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report that the attributes were unchanged.'
+		);
+	}
+
+	/**
+	 * Ensures that an attribute removed via remove_attribute() is no longer reported
+	 * by get_attribute_names_with_prefix() immediately after being removed.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_removed_attributes() {
+		$processor = new WP_HTML_Tag_Processor( '<div existing data-removed>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'existing', 'data-removed' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report all existing attributes: check test setup.'
+		);
+
+		$processor->remove_attribute( 'data-removed' );
+
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
+			'Expected no custom data attributes after removing the only one.'
+		);
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Expected to report only the attribute which wasn’t removed.'
+		);
+	}
+
+	/**
+	 * Ensures that when the `class` attribute is newly added via add_class(), that
+	 * it’s reported by get_attribute_names_with_prefix() immediately after being added.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_class_after_adding_classes() {
+		$processor = new WP_HTML_Tag_Processor( '<div existing>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Expected to only report the existing attribute: check test setup.'
+		);
+
+		$processor->add_class( 'added' );
+
+		$this->assertSame(
+			array( 'class' ),
+			$processor->get_attribute_names_with_prefix( 'class' ),
+			'Failed to report the newly-added `class` attribute.'
+		);
+	}
+
+	/**
+	 * Ensures that when the `class` attribute is emptied via remove_class(), that
+	 * it’s reported by get_attribute_names_with_prefix() immediately after being added.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_class_after_removing_all_classes() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="red green" existing class class=duplicate>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'class', 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Expected to find proper existing attributes: check test setup.'
+		);
+
+		$processor->remove_class( 'red' );
+
+		$this->assertSame(
+			array( 'class', 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Should have the same attributes after removing one of two classes.'
+		);
+
+		$processor->remove_class( 'green' );
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Should have removed the `class` attribute after removing all class names.'
+		);
+	}
+
+	/**
+	 * Ensures get_attribute_names_with_prefix() agrees with get_attribute()
+	 * after pending updates, returning each name once with no stale entries.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_agrees_with_get_attribute_after_updates() {
+		$processor = new WP_HTML_Tag_Processor( '<div data-keep="1" data-drop="2">Test</div>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'data-keep', 'data-drop' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to find expected existing attributes: check test setup.'
+		);
+
+		$this->assertSame(
+			'1',
+			$processor->get_attribute( 'data-keep' ),
+			'Failed to find expected existing `data-keep` attribute value: check test setup.'
+		);
+
+		$this->assertSame(
+			'2',
+			$processor->get_attribute( 'data-drop' ),
+			'Failed to find expected existing `data-drop` attribute value: check test setup.'
+		);
+
+		$processor->set_attribute( 'data-keep', 'updated' );
+		$processor->set_attribute( 'data-add', 'new' );
+		$processor->remove_attribute( 'data-drop' );
+
+		$names = $processor->get_attribute_names_with_prefix( 'data-' );
+
+		$this->assertSame(
+			array( 'data-add', 'data-keep' ),
+			$names,
+			'Failed to report the expected attribute names after removing and adding attributes.'
+		);
+
+		foreach ( $names as $name ) {
+			$this->assertNotNull(
+				$processor->get_attribute( $name ),
+				"get_attribute_names_with_prefix() reported '{$name}' but get_attribute() did not agree."
+			);
+		}
 	}
 
 	/**
@@ -574,7 +865,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Abruptly closed comment'       => array( '<!-->', 1, '<!-->' ),
 			'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
 			'Funky comment'                 => array( '</_ funk >', 1, '</_ funk >' ),
-			'PI lookalike comment'          => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
+			'Processing instruction'        => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
+			'PI lookalike comment'          => array( '<?xml version="1.0"?>', 1, '<?xml version="1.0"?>' ),
 			'CDATA lookalike comment'       => array( '<![CDATA[ see? data ]]>', 1, '<![CDATA[ see? data ]]>' ),
 		);
 	}
@@ -807,11 +1099,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *     $processor = new WP_HTML_Tag_Processor( '<div class="header"></div>' );
 	 *     $processor->next_tag();
 	 *     $processor->set_attribute('class', '" onclick="alert');
-	 *     echo $p;
+	 *     echo $processor->get_updated_html();
 	 *     // <div class="" onclick="alert"></div>
 	 * ```
 	 *
-	 * To prevent it, `set_attribute` calls `esc_attr()` on its given values.
+	 * To prevent it, `set_attribute` escapes HTML syntax characters like `"` using
+	 * HTML character references.
 	 *
 	 * ```php
 	 *    <div class="&quot; onclick=&quot;alert"></div>
@@ -824,7 +1117,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @param string $attribute_value A value with potential XSS exploit.
 	 */
-	public function test_set_attribute_prevents_xss( $attribute_value ) {
+	public function test_set_attribute_prevents_xss( $attribute_value, $escaped_attribute_value = null ) {
 		$processor = new WP_HTML_Tag_Processor( '<div></div>' );
 		$processor->next_tag();
 		$processor->set_attribute( 'test', $attribute_value );
@@ -844,7 +1137,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		preg_match( '~^<div test=(.*)></div>$~', $processor->get_updated_html(), $match );
 		list( , $actual_value ) = $match;
 
-		$this->assertSame( '"' . esc_attr( $attribute_value ) . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
+		$this->assertSame( '"' . $escaped_attribute_value . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
 	}
 
 	/**
@@ -854,15 +1147,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_set_attribute_prevents_xss() {
 		return array(
-			array( '"' ),
-			array( '&quot;' ),
-			array( '&' ),
-			array( '&amp;' ),
-			array( '&euro;' ),
-			array( "'" ),
-			array( '<>' ),
-			array( '&quot";' ),
-			array( '" onclick="alert(\'1\');"><span onclick=""></span><script>alert("1")</script>' ),
+			array( '"', '&quot;' ),
+			array( '&quot;', '&amp;quot;' ),
+			array( '&', '&amp;' ),
+			array( '&amp;', '&amp;amp;' ),
+			array( '&euro;', '&amp;euro;' ),
+			array( "'", '&apos;' ),
+			array( '<>', '&lt;&gt;' ),
+			array( '&quot";', '&amp;quot&quot;;' ),
+			array(
+				'" onclick="alert(\'1\');"><span onclick=""></span><script>alert("1")</script>',
+				'&quot; onclick=&quot;alert(&apos;1&apos;);&quot;&gt;&lt;span onclick=&quot;&quot;&gt;&lt;/span&gt;&lt;script&gt;alert(&quot;1&quot;)&lt;/script&gt;',
+			),
 		);
 	}
 
@@ -886,6 +1182,21 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			$processor->get_attribute( 'test-attribute' ),
 			'get_attribute() (called after get_updated_html()) did not return attribute added via set_attribute()'
 		);
+	}
+
+	/**
+	 * Ensure that attribute values that appear to contain HTML character references are correctly
+	 * encoded and preserve the original value.
+	 *
+	 * @ticket 64054
+	 */
+	public function test_set_attribute_encodes_html_character_references() {
+		$original  = 'HTML character references: &lt; &gt; &amp;';
+		$processor = new WP_HTML_Tag_Processor( '<span>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-attr', $original );
+		$this->assertSame( $original, $processor->get_attribute( 'data-attr' ) );
+		$this->assertEqualHTML( '<span data-attr="HTML character references: &amp;lt; &amp;gt; &amp;amp;">', $processor->get_updated_html() );
 	}
 
 	/**
@@ -1426,11 +1737,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$this->assertSame(
 			'<div  id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
-			'Updated HTML does not reflect class attribute removed via subesequent remove_class() calls'
+			'Updated HTML does not reflect class attribute removed via subsequent remove_class() calls'
 		);
 		$this->assertNull(
 			$processor->get_attribute( 'class' ),
-			"get_attribute( 'class' ) did not return null for class attribute removed via subesequent remove_class() calls"
+			"get_attribute( 'class' ) did not return null for class attribute removed via subsequent remove_class() calls"
 		);
 	}
 
@@ -2019,6 +2330,8 @@ HTML;
 			yield 'Script tag with </script\f> close'             => array( "<script></script\f>", true );
 			yield 'Script tag with </script\r> close'             => array( "<script></script\r>", true );
 			yield 'Script with type attribute'                    => array( '<script type="text/javascript"></script>', true );
+			yield 'Script text less-than'                         => array( '<script><</script>', true );
+			yield 'Script text less-than solidus'                 => array( '<script></</script>', true );
 			yield 'Script data escaped'                           => array( '<script><!--</script>', true );
 			yield 'Script data double-escaped exit (comment)'     => array( '<script><!--<script>--></script>', true );
 			yield 'Script data double-escaped exit (closed ">")'  => array( '<script><!--<script></script></script>', true );
@@ -2054,6 +2367,54 @@ HTML;
 			yield 'Script tag double-escaped with <script\t'      => array( "<script><!--<script\t</script>", false );
 			yield 'Script tag double-escaped with <script\f'      => array( "<script><!--<script\f</script>", false );
 			yield 'Script tag double-escaped with <script\r'      => array( "<script><!--<script\r</script>", false );
+	}
+
+	/**
+	 * Ensures that tag-name-terminating characters close RCDATA and RAWTEXT elements.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_rcdata_and_rawtext_tag_name_terminators
+	 *
+	 * @param non-falsy-string $tag_name            The RCDATA or RAWTEXT tag name.
+	 * @param non-falsy-string $tag_name_terminator The tag-name-terminating character.
+	 */
+	public function test_rcdata_and_rawtext_end_tags_accept_tag_name_terminators( string $tag_name, string $tag_name_terminator ): void {
+		$end_tag_closer = '>' === $tag_name_terminator ? '' : '>';
+		$processor      = new WP_HTML_Tag_Processor( "<{$tag_name}>content</{$tag_name}{$tag_name_terminator}{$end_tag_closer}<div>" );
+
+		$this->assertTrue( $processor->next_token(), "Expected to find complete {$tag_name} tag." );
+		$this->assertSame( strtoupper( $tag_name ), $processor->get_tag() );
+		$this->assertSame( 'content', $processor->get_modifiable_text() );
+		$this->assertTrue( $processor->next_tag( 'DIV' ), "Expected to find DIV after the {$tag_name} element." );
+	}
+
+	/**
+	 * Provides every RCDATA and RAWTEXT tag with every tag-name-terminating character.
+	 *
+	 * @return Generator<non-falsy-string, array{non-falsy-string, non-falsy-string}> Test cases.
+	 */
+	public static function data_rcdata_and_rawtext_tag_name_terminators(): Generator {
+		foreach ( array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'STYLE', 'XMP', 'TEXTAREA', 'TITLE' ) as $tag_name ) {
+			foreach ( self::data_tag_name_terminators() as $terminator_name => $terminator_data ) {
+				yield "{$tag_name} + {$terminator_name}" => array( strtolower( $tag_name ), $terminator_data[0] );
+			}
+		}
+	}
+
+	/**
+	 * Provides tag-name-terminating characters.
+	 *
+	 * @return Generator<non-falsy-string, array{non-falsy-string}> Test cases.
+	 */
+	public static function data_tag_name_terminators(): Generator {
+		yield 'SPACE'             => array( ' ' );
+		yield 'TAB'               => array( "\t" );
+		yield 'LINE FEED'         => array( "\n" );
+		yield 'FORM FEED'         => array( "\f" );
+		yield 'CARRIAGE RETURN'   => array( "\r" );
+		yield 'SOLIDUS'           => array( '/' );
+		yield 'GREATER-THAN SIGN' => array( '>' );
 	}
 
 	/**
@@ -2769,9 +3130,10 @@ HTML;
 		$processor->next_tag();
 		$processor->add_class( 'secondTag' );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected,
 			$processor->get_updated_html(),
+			'<body>',
 			'Did not properly update attributes and classnames given malformed input'
 		);
 	}
@@ -2927,6 +3289,50 @@ HTML
 				'input'    => '<hr id a  =5><span>test</span>',
 				'expected' => '<hr class="firstTag" foo="bar" id a  =5><span class="secondTag">test</span>',
 			),
+		);
+	}
+
+	/**
+	 * @ticket 64340
+	 */
+	public function test_class_changes_produce_correct_html() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="&amp;">' );
+		$processor->next_tag();
+
+		$processor->add_class( '"' );
+		$processor->get_updated_html();
+
+		$processor->add_class( 'OK' );
+		$processor->get_updated_html();
+
+		$this->assertTrue( $processor->has_class( '&' ), 'Missing expected "&" class.' );
+		$this->assertTrue( $processor->has_class( '"' ), 'Missing expected \'"\' class.' );
+		$this->assertTrue( $processor->has_class( 'OK' ), 'Missing expected "OK" class.' );
+
+		$expected = '<div class="&amp; &quot; OK">';
+		$this->assertEqualHTML(
+			$expected,
+			$processor->get_updated_html(),
+			'<body>',
+			'HTML was not correctly updated after adding classes.'
+		);
+
+		$processor->remove_class( '&' );
+		$processor->get_updated_html();
+
+		$processor->remove_class( '"' );
+		$processor->get_updated_html();
+
+		$this->assertFalse( $processor->has_class( '&' ) );
+		$this->assertFalse( $processor->has_class( '"' ) );
+		$this->assertTrue( $processor->has_class( 'OK' ) );
+
+		$expected = '<div class="OK">';
+		$this->assertEqualHTML(
+			$expected,
+			$processor->get_updated_html(),
+			'<body>',
+			'HTML was not correctly updated after removing classes.'
 		);
 	}
 

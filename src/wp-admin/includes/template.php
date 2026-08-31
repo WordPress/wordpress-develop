@@ -316,11 +316,13 @@ function get_inline_data( $post ) {
 
 	$title = esc_textarea( trim( $post->post_title ) );
 
+	/** This filter is documented in wp-admin/edit-tag-form.php */
+	$editable_slug = apply_filters( 'editable_slug', $post->post_name, $post );
+
 	echo '
 <div class="hidden" id="inline_' . $post->ID . '">
-	<div class="post_title">' . $title . '</div>' .
-	/** This filter is documented in wp-admin/edit-tag-form.php */
-	'<div class="post_name">' . apply_filters( 'editable_slug', $post->post_name, $post ) . '</div>
+	<div class="post_title">' . $title . '</div>
+	<div class="post_name">' . $editable_slug . '</div>
 	<div class="post_author">' . $post->post_author . '</div>
 	<div class="comment_status">' . esc_html( $post->comment_status ) . '</div>
 	<div class="ping_status">' . esc_html( $post->ping_status ) . '</div>
@@ -493,7 +495,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 
 		<div class="inside">
 		<label for="author-email"><?php _e( 'Email' ); ?></label>
-		<input type="text" name="newcomment_author_email" size="50" value="" id="author-email" />
+		<input type="text" name="newcomment_author_email" size="50" class="code" value="" id="author-email" />
 		</div>
 
 		<div class="inside">
@@ -967,13 +969,18 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
  * Prints out option HTML elements for role selectors.
  *
  * @since 2.1.0
+ * @since 7.0.0 Added $editable_roles parameter.
  *
- * @param string $selected Slug for the role that should be already selected.
+ * @param string $selected       Slug for the role that should be already selected.
+ * @param array  $editable_roles Array of roles to include in the dropdown. Defaults to all
+ *                               roles the current user is allowed to edit.
  */
-function wp_dropdown_roles( $selected = '' ) {
+function wp_dropdown_roles( $selected = '', $editable_roles = null ) {
 	$r = '';
 
-	$editable_roles = array_reverse( get_editable_roles() );
+	if ( null === $editable_roles ) {
+		$editable_roles = array_reverse( get_editable_roles() );
+	}
 
 	foreach ( $editable_roles as $role => $details ) {
 		$name = translate_user_role( $details['name'] );
@@ -1367,10 +1374,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					++$i;
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
-					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
+					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . ' role="region" aria-label="' . esc_attr( wp_strip_all_tags( $box['title'] ) ) . '">' . "\n";
 
 					echo '<div class="postbox-header">';
-					echo '<h2 class="hndle">';
+					echo '<h2 class="hndle" id="' . $box['id'] . '-title">';
 					if ( 'dashboard_php_nag' === $box['id'] ) {
 						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
 						echo '<span class="screen-reader-text">' .
@@ -1392,40 +1399,35 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 						echo '<div class="handle-actions hide-if-no-js">';
 
-						echo '<button type="button" class="handle-order-higher" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-higher-description">';
-						echo '<span class="screen-reader-text">' .
-							/* translators: Hidden accessibility text. */
-							__( 'Move up' ) .
-						'</span>';
-						echo '<span class="order-higher-indicator" aria-hidden="true"></span>';
-						echo '</button>';
-						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-higher-description">' . sprintf(
-							/* translators: %s: Meta box title. */
-							__( 'Move %s box up' ),
-							$widget_title
-						) . '</span>';
+						$move_up_button = '<button type="button" class="handle-order-higher" aria-describedby="' . $box['id'] . '-title">
+							<span class="screen-reader-text">' . __( 'Move up' ) . '</span>
+							<span class="order-higher-indicator" aria-hidden="true"></span>
+						</button>';
+						$move_up_args   = array(
+							'id'     => $box['id'] . '-handle-order-higher-description',
+							'button' => $move_up_button,
+						);
+						echo wp_get_tooltip( __( 'Move up' ), $move_up_args );
 
-						echo '<button type="button" class="handle-order-lower" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-lower-description">';
-						echo '<span class="screen-reader-text">' .
-							/* translators: Hidden accessibility text. */
-							__( 'Move down' ) .
-						'</span>';
-						echo '<span class="order-lower-indicator" aria-hidden="true"></span>';
-						echo '</button>';
-						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-lower-description">' . sprintf(
-							/* translators: %s: Meta box title. */
-							__( 'Move %s box down' ),
-							$widget_title
-						) . '</span>';
+						$move_down_button = '<button type="button" class="handle-order-lower" aria-describedby="' . $box['id'] . '-title">
+							<span class="screen-reader-text">' . __( 'Move down' ) . '</span>
+							<span class="order-lower-indicator" aria-hidden="true"></span>
+						</button>';
+						$move_down_args   = array(
+							'id'     => $box['id'] . '-handle-order-lower-description',
+							'button' => $move_down_button,
+						);
+						echo wp_get_tooltip( __( 'Move down' ), $move_down_args );
 
-						echo '<button type="button" class="handlediv" aria-expanded="true">';
-						echo '<span class="screen-reader-text">' . sprintf(
-							/* translators: %s: Hidden accessibility text. Meta box title. */
-							__( 'Toggle panel: %s' ),
-							$widget_title
-						) . '</span>';
-						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
-						echo '</button>';
+						$show_hide_button = '<button type="button" class="handlediv" aria-expanded="true" aria-describedby="' . $box['id'] . '-title">
+							<span class="screen-reader-text">' . __( 'Show or hide panel' ) . '</span>
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>';
+						$show_hide_args   = array(
+							'id'     => $box['id'] . '-handlediv',
+							'button' => $show_hide_button,
+						);
+						echo wp_get_tooltip( __( 'Show or hide panel' ), $show_hide_args );
 
 						echo '</div>';
 					}
@@ -1616,7 +1618,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  *
  * @param string   $id       Slug-name to identify the section. Used in the 'id' attribute of tags.
  * @param string   $title    Formatted title of the section. Shown as the heading for the section.
- * @param callable $callback Function that echos out any content at the top of the section (between heading and fields).
+ * @param callable $callback Function that displays any content at the top of the section (between heading and fields).
  * @param string   $page     The slug-name of the settings page on which to show the section. Built-in pages include
  *                           'general', 'reading', 'writing', 'discussion', 'media', etc. Create your own using
  *                           add_options_page();
@@ -1775,7 +1777,8 @@ function do_settings_sections( $page ) {
 		}
 
 		if ( $section['title'] ) {
-			echo "<h2>{$section['title']}</h2>\n";
+			$unique_id = wp_unique_id( 'wp-settings-section-' . $section['id'] . '-' );
+			echo '<h2 id="' . esc_attr( $unique_id ) . '">' . $section['title'] . "</h2>\n";
 		}
 
 		if ( $section['callback'] ) {
@@ -2138,7 +2141,7 @@ function iframe_header( $title = '', $deprecated = false ) {
 	<?php
 	wp_enqueue_style( 'colors' );
 	?>
-<script type="text/javascript">
+<script>
 addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
@@ -2172,6 +2175,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	do_action( 'admin_head' );
 
 	$admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
+	$admin_body_class .= ' admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' );
 
 	if ( is_rtl() ) {
 		$admin_body_class .= ' rtl';
@@ -2187,7 +2191,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 	?>
 <body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo esc_attr( $admin_body_classes ); ?>">
-<script type="text/javascript">
+<script>
 (function(){
 var c = document.body.className;
 c = c.replace(/no-js/, 'js');
@@ -2226,7 +2230,7 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
+<script>if(typeof wpOnload==='function')wpOnload();</script>
 </body>
 </html>
 	<?php
@@ -2246,30 +2250,44 @@ function iframe_footer() {
  * @return string Post states string.
  */
 function _post_states( $post, $display = true ) {
-	$post_states        = get_post_states( $post );
-	$post_states_string = '';
+	$post_states      = get_post_states( $post );
+	$post_states_html = '';
 
 	if ( ! empty( $post_states ) ) {
 		$state_count = count( $post_states );
+		$separator   = wp_get_list_item_separator();
 
 		$i = 0;
 
-		$post_states_string .= ' &mdash; ';
+		$post_states_html .= ' &mdash; ';
 
 		foreach ( $post_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? ', ' : '';
+			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$post_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
+			$post_states_html .= "<span class='post-state'>{$state}{$suffix}</span>";
 		}
 	}
 
+	/**
+	 * Filters the HTML string of post states.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string                 $post_states_html All relevant post states combined into an HTML string for display.
+	 *                                                 E.g. `&mdash; <span class='post-state'>Draft, </span><span class='post-state'>Sticky</span>`.
+	 * @param array<string, string>  $post_states      A mapping of post state slugs to translated post state labels.
+	 *                                                 E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
+	 * @param WP_Post                $post             The current post object.
+	 */
+	$post_states_html = apply_filters( 'post_states_html', $post_states_html, $post_states, $post );
+
 	if ( $display ) {
-		echo $post_states_string;
+		echo $post_states_html;
 	}
 
-	return $post_states_string;
+	return $post_states_html;
 }
 
 /**
@@ -2282,12 +2300,11 @@ function _post_states( $post, $display = true ) {
  */
 function get_post_states( $post ) {
 	$post_states = array();
-
-	if ( isset( $_REQUEST['post_status'] ) ) {
-		$post_status = $_REQUEST['post_status'];
-	} else {
-		$post_status = '';
+	if ( ! $post instanceof WP_Post ) {
+		return $post_states;
 	}
+
+	$post_status = $_REQUEST['post_status'] ?? '';
 
 	if ( ! empty( $post->post_password ) ) {
 		$post_states['protected'] = _x( 'Password protected', 'post status' );
@@ -2342,8 +2359,9 @@ function get_post_states( $post ) {
 	 *              are used within the filter, their existence should be checked
 	 *              with `function_exists()` before being used.
 	 *
-	 * @param string[] $post_states An array of post display states.
-	 * @param WP_Post  $post        The current post object.
+	 * @param array<string, string>  $post_states A mapping of post state slugs to translated post state labels.
+	 *                                            E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
+	 * @param WP_Post                $post        The current post object.
 	 */
 	return apply_filters( 'display_post_states', $post_states, $post );
 }
@@ -2365,6 +2383,7 @@ function _media_states( $post, $display = true ) {
 
 	if ( ! empty( $media_states ) ) {
 		$state_count = count( $media_states );
+		$separator   = wp_get_list_item_separator();
 
 		$i = 0;
 
@@ -2373,9 +2392,9 @@ function _media_states( $post, $display = true ) {
 		foreach ( $media_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? ', ' : '';
+			$suffix = ( $i < $state_count ) ? $separator : '';
 
-			$media_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
+			$media_states_string .= "<span class='post-state'>{$state}{$suffix}</span>";
 		}
 	}
 
@@ -2479,7 +2498,7 @@ function get_media_states( $post ) {
  */
 function compression_test() {
 	?>
-	<script type="text/javascript">
+	<script>
 	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	var testCompression = {
 		get : function(test) {
@@ -2540,7 +2559,7 @@ function compression_test() {
  *
  * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
- *                                       include 'primary', 'small', and 'large'. Default 'primary'.
+ *                                       include 'primary', 'small', 'compact' and 'large'. Default 'primary'.
  * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
  *                                       is given in the `$other_attributes` parameter, `$name` will be used
  *                                       as the button's `id`. Default 'submit'.
@@ -2564,7 +2583,7 @@ function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap =
  *
  * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
- *                                       include 'primary', 'small', and 'large'. Default 'primary large'.
+ *                                       include 'primary', 'small', 'compact' and 'large'. Default 'primary large'.
  * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
  *                                       is given in the `$other_attributes` parameter, `$name` will be used
  *                                       as the button's `id`. Default 'submit'.
@@ -2583,7 +2602,7 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 		$type = explode( ' ', $type );
 	}
 
-	$button_shorthand = array( 'primary', 'small', 'large' );
+	$button_shorthand = array( 'primary', 'small', 'large', 'compact' );
 	$classes          = array( 'button' );
 
 	foreach ( $type as $t ) {
