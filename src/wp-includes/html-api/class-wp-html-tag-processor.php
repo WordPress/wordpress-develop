@@ -4645,18 +4645,29 @@ class WP_HTML_Tag_Processor {
 			 *
 			 * @see https://html.spec.whatwg.org/#attributes-3
 			 */
-			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes(), true )
-				? esc_url( $value )
-				: strtr(
-					$value,
-					array(
-						'<' => '&lt;',
-						'>' => '&gt;',
-						'&' => '&amp;',
-						'"' => '&quot;',
-						"'" => '&apos;',
-					)
-				);
+			$syntax_characters = array(
+				'<' => '&lt;',
+				'>' => '&gt;',
+				'&' => '&amp;',
+				'"' => '&quot;',
+				"'" => '&apos;',
+			);
+
+			if ( in_array( $comparable_name, wp_kses_multi_uri_attributes(), true ) ) {
+				/*
+				 * Multi-URI attributes such as srcset contain a comma-separated list
+				 * of URLs with optional width/density descriptors, not a single URL.
+				 * Passing the whole value through esc_url() would encode the
+				 * descriptor spaces and corrupt the list, so each URL in the list
+				 * is sanitized individually before the value receives the standard
+				 * attribute escaping.
+				 */
+				$escaped_new_value = strtr( wp_kses_sanitize_uris( $comparable_name, $value, wp_allowed_protocols() ), $syntax_characters );
+			} elseif ( in_array( $comparable_name, wp_kses_uri_attributes(), true ) ) {
+				$escaped_new_value = esc_url( $value );
+			} else {
+				$escaped_new_value = strtr( $value, $syntax_characters );
+			}
 
 			// If the escaping functions wiped out the update, reject it and indicate it was rejected.
 			if ( '' === $escaped_new_value && '' !== $value ) {
