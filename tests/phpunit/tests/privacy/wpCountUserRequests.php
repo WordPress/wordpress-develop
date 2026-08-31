@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage UnitTests
- * @since 6.8.0
+ * @since 7.2.0
  *
  * @group privacy
  * @covers ::wp_count_user_requests
@@ -14,7 +14,7 @@ class Tests_Privacy_wpCountUserRequests extends WP_UnitTestCase {
 	/**
 	 * Export request ID.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @var int $export_request_id
 	 */
@@ -23,7 +23,7 @@ class Tests_Privacy_wpCountUserRequests extends WP_UnitTestCase {
 	/**
 	 * Erase request ID.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @var int $erase_request_id
 	 */
@@ -32,7 +32,7 @@ class Tests_Privacy_wpCountUserRequests extends WP_UnitTestCase {
 	/**
 	 * Create fixtures.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
@@ -59,7 +59,7 @@ class Tests_Privacy_wpCountUserRequests extends WP_UnitTestCase {
 	/**
 	 * Set up before each test.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 */
 	public function set_up() {
 		parent::set_up();

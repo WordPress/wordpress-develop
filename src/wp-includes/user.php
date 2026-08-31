@@ -4848,7 +4848,7 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 /**
  * Counts the number of user requests for a given request type, grouped by status.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -4904,7 +4904,7 @@ function wp_count_user_requests( $type = '' ) {
 	/**
 	 * Filters the number of user requests for a given type, by status.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param stdClass $counts Number of requests for each status.
 	 * @param string   $type   Request type.
