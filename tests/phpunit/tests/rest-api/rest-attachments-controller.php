@@ -6224,6 +6224,90 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Trashing is not deleting. `delete_attachment` does not fire for a trashed
+	 * attachment, and the record is deliberately left in place so that untrashing
+	 * the original restores the relationship intact.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_trashing_an_original_keeps_the_record_on_the_images_edited_from_it() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		wp_trash_post( $attachment );
+
+		$this->assertSame(
+			'trash',
+			get_post_status( $attachment ),
+			'The original should have been trashed rather than deleted.'
+		);
+		$this->assertSame(
+			$attachment,
+			wp_get_original_attachment_id( $edited ),
+			'Trashing the original should leave the record in place.'
+		);
+
+		wp_untrash_post( $attachment );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_original_attachment_id( $edited ),
+			'Untrashing the original should leave the relationship intact.'
+		);
+	}
+
+	/**
+	 * Once the original is gone its record is cleared, so a further edit has no
+	 * lineage to inherit and starts a new chain from the image being edited.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_editing_again_after_the_original_is_deleted_starts_a_new_chain() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		wp_delete_attachment( $attachment, true );
+
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		$this->assertSame(
+			$edited,
+			wp_get_original_attachment_id( $edited_again ),
+			'The new image should point at the image it was edited from.'
+		);
+	}
+
+	/**
+	 * Deleting an image from the middle of a chain does not orphan the images
+	 * edited from it, because every image records the start of the chain rather
+	 * than the image directly above it.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_deleting_a_middle_image_leaves_the_rest_of_the_chain_intact() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment   = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited       = $this->edit_image_and_get_new_id( $attachment );
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		wp_delete_attachment( $edited, true );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_original_attachment_id( $edited_again ),
+			'The remaining image should still point at the start of the chain.'
+		);
+	}
+
+	/**
 	 * @ticket 65987
 	 * @requires function imagejpeg
 	 */
