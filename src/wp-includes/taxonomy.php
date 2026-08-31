@@ -2429,6 +2429,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @since 2.3.0
+ * @since 7.2.0 Returns a `WP_Error` object when a database write is rejected.
  *
  * @param string       $term     The term name to add.
  * @param string       $taxonomy The taxonomy to which to add the term.
@@ -2637,7 +2638,10 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 
 		/** This action is documented in wp-includes/taxonomy.php */
 		do_action( 'edit_terms', $term_id, $taxonomy, $args );
-		$wpdb->update( $wpdb->terms, compact( 'slug' ), compact( 'term_id' ) );
+
+		if ( false === $wpdb->update( $wpdb->terms, compact( 'slug' ), compact( 'term_id' ) ) ) {
+			return new WP_Error( 'db_update_error', __( 'Could not update term in the database.' ), $wpdb->last_error );
+		}
 
 		/** This action is documented in wp-includes/taxonomy.php */
 		do_action( 'edited_terms', $term_id, $taxonomy, $args );
@@ -3235,6 +3239,7 @@ function wp_unique_term_slug( $slug, $term ) {
  * If you don't pass any slug, then a unique one will be created.
  *
  * @since 2.3.0
+ * @since 7.2.0 Returns a `WP_Error` object when a database write is rejected.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -3415,11 +3420,16 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	 */
 	$data = apply_filters( 'wp_update_term_data', $data, $term_id, $taxonomy, $args );
 
-	$wpdb->update( $wpdb->terms, $data, compact( 'term_id' ) );
+	if ( false === $wpdb->update( $wpdb->terms, $data, compact( 'term_id' ) ) ) {
+		return new WP_Error( 'db_update_error', __( 'Could not update term in the database.' ), $wpdb->last_error );
+	}
 
 	if ( empty( $slug ) ) {
 		$slug = sanitize_title( $name, $term_id );
-		$wpdb->update( $wpdb->terms, compact( 'slug' ), compact( 'term_id' ) );
+
+		if ( false === $wpdb->update( $wpdb->terms, compact( 'slug' ), compact( 'term_id' ) ) ) {
+			return new WP_Error( 'db_update_error', __( 'Could not update term in the database.' ), $wpdb->last_error );
+		}
 	}
 
 	/**
@@ -3447,7 +3457,9 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	 */
 	do_action( 'edit_term_taxonomy', $tt_id, $taxonomy, $args );
 
-	$wpdb->update( $wpdb->term_taxonomy, compact( 'term_id', 'taxonomy', 'description', 'parent' ), array( 'term_taxonomy_id' => $tt_id ) );
+	if ( false === $wpdb->update( $wpdb->term_taxonomy, compact( 'term_id', 'taxonomy', 'description', 'parent' ), array( 'term_taxonomy_id' => $tt_id ) ) ) {
+		return new WP_Error( 'db_update_error', __( 'Could not update term taxonomy in the database.' ), $wpdb->last_error );
+	}
 
 	/**
 	 * Fires immediately after a term-taxonomy relationship is updated.
