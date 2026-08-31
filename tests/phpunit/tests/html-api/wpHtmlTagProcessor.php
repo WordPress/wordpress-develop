@@ -465,6 +465,214 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a new attribute added via set_attribute() is reported by
+	 * get_attribute_names_with_prefix() immediately after being added.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_new_attributes() {
+		$processor = new WP_HTML_Tag_Processor( '<div existing>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report existing attribute names: check test setup.'
+		);
+
+		$processor->set_attribute( 'new', true );
+
+		$this->assertSame(
+			array( 'new', 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report newly-added attribute.'
+		);
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( 'exist' ),
+			'Should have only reported existing attribute matching given prefix.'
+		);
+	}
+
+	/**
+	 * Ensures that changes enqueued for modifiable text do not get reported as added attributes.
+	 *
+	 * This is a fairly-specific test against an internal implementation detail, but is worth
+	 * adding to catch potential regressions since modifiable text updates share a namespace with
+	 * attribute updates.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_ignores_immediately_added_modifiable_text() {
+		$processor = new WP_HTML_Tag_Processor( '<title existing></title>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report existing attribute names: check test setup.'
+		);
+
+		$processor->set_modifiable_text( 'content!' );
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report that the attributes were unchanged.'
+		);
+	}
+
+	/**
+	 * Ensures that an attribute removed via remove_attribute() is no longer reported
+	 * by get_attribute_names_with_prefix() immediately after being removed.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_removed_attributes() {
+		$processor = new WP_HTML_Tag_Processor( '<div existing data-removed>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'existing', 'data-removed' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report all existing attributes: check test setup.'
+		);
+
+		$processor->remove_attribute( 'data-removed' );
+
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
+			'Expected no custom data attributes after removing the only one.'
+		);
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Expected to report only the attribute which wasn’t removed.'
+		);
+	}
+
+	/**
+	 * Ensures that when the `class` attribute is newly added via add_class(), that
+	 * it’s reported by get_attribute_names_with_prefix() immediately after being added.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_class_after_adding_classes() {
+		$processor = new WP_HTML_Tag_Processor( '<div existing>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Expected to only report the existing attribute: check test setup.'
+		);
+
+		$processor->add_class( 'added' );
+
+		$this->assertSame(
+			array( 'class' ),
+			$processor->get_attribute_names_with_prefix( 'class' ),
+			'Failed to report the newly-added `class` attribute.'
+		);
+	}
+
+	/**
+	 * Ensures that when the `class` attribute is emptied via remove_class(), that
+	 * it’s reported by get_attribute_names_with_prefix() immediately after being added.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_class_after_removing_all_classes() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="red green" existing class class=duplicate>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'class', 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Expected to find proper existing attributes: check test setup.'
+		);
+
+		$processor->remove_class( 'red' );
+
+		$this->assertSame(
+			array( 'class', 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Should have the same attributes after removing one of two classes.'
+		);
+
+		$processor->remove_class( 'green' );
+
+		$this->assertSame(
+			array( 'existing' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Should have removed the `class` attribute after removing all class names.'
+		);
+	}
+
+	/**
+	 * Ensures get_attribute_names_with_prefix() agrees with get_attribute()
+	 * after pending updates, returning each name once with no stale entries.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_agrees_with_get_attribute_after_updates() {
+		$processor = new WP_HTML_Tag_Processor( '<div data-keep="1" data-drop="2">Test</div>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'data-keep', 'data-drop' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to find expected existing attributes: check test setup.'
+		);
+
+		$this->assertSame(
+			'1',
+			$processor->get_attribute( 'data-keep' ),
+			'Failed to find expected existing `data-keep` attribute value: check test setup.'
+		);
+
+		$this->assertSame(
+			'2',
+			$processor->get_attribute( 'data-drop' ),
+			'Failed to find expected existing `data-drop` attribute value: check test setup.'
+		);
+
+		$processor->set_attribute( 'data-keep', 'updated' );
+		$processor->set_attribute( 'data-add', 'new' );
+		$processor->remove_attribute( 'data-drop' );
+
+		$names = $processor->get_attribute_names_with_prefix( 'data-' );
+
+		$this->assertSame(
+			array( 'data-add', 'data-keep' ),
+			$names,
+			'Failed to report the expected attribute names after removing and adding attributes.'
+		);
+
+		foreach ( $names as $name ) {
+			$this->assertNotNull(
+				$processor->get_attribute( $name ),
+				"get_attribute_names_with_prefix() reported '{$name}' but get_attribute() did not agree."
+			);
+		}
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::__toString
