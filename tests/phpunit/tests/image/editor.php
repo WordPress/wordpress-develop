@@ -170,7 +170,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * will be converted to WEBP (if the image editor in PHP supports it).
 	 *
 	 * @param array $formats
-	 *
 	 * @return array
 	 */
 	public function image_editor_output_formats( $formats ) {

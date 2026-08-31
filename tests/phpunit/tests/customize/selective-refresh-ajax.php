@@ -358,7 +358,6 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 *
 	 * @param array  $partial_args Partial args.
 	 * @param string $partial_id   Partial ID.
-	 *
 	 * @return array|false Args.
 	 */
 	public function filter_customize_dynamic_partial_args( $partial_args, $partial_id ) {

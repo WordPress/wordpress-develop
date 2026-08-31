@@ -351,7 +351,6 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 *
 	 * @param mixed $default_value
 	 * @param WP_Customize_Setting $setting
-	 *
 	 * @return mixed|null
 	 */
 	public function custom_type_value_filter( $default_value, $setting = null ) {
@@ -740,7 +739,6 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 *
 	 * @param WP_Error $validity Validity.
 	 * @param string   $value    Value.
-	 *
 	 * @return WP_Error
 	 */
 	public function filter_validate_for_test_validate( $validity, $value ) {

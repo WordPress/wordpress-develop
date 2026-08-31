@@ -212,7 +212,6 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @param WP_Post $attachment
-	 *
 	 * @return string
 	 */
 	private function get_attachment_filename( WP_Post $attachment ) {

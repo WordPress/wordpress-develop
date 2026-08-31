@@ -3251,7 +3251,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_widgets( $components, $customize_manager ) {
@@ -3268,7 +3267,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_nav_menus( $components, $customize_manager ) {
@@ -3560,7 +3558,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Callback for the customize_previewable_devices filter.
 	 *
 	 * @param array $devices The list of devices.
-	 *
 	 * @return array
 	 */
 	public function filter_customize_previewable_devices( $devices ) {
