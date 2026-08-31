@@ -195,6 +195,48 @@ class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 		$this->assertSameSets( $this->get_fields( $get_all ), $result );
 	}
 
+	/**
+	 * @ticket 63518
+	 */
+	public function test_get_blog_details_get_all_true_then_false_returns_short() {
+		$site_id = self::$site_ids['wordpress.org/'];
+
+		// Ensure a clean cache state.
+		wp_cache_delete( $site_id, 'blog-details' );
+		wp_cache_delete( $site_id . 'short', 'blog-details' );
+
+		// Populate the full cache first.
+		$full = get_blog_details( $site_id, true );
+		$this->assertSameSets( $this->get_fields( true ), array_keys( get_object_vars( $full ) ) );
+
+		// A subsequent short request must not return the full result.
+		$short = get_blog_details( $site_id, false );
+		$this->assertSameSets( $this->get_fields( false ), array_keys( get_object_vars( $short ) ) );
+	}
+
+	/**
+	 * @ticket 63518
+	 */
+	public function test_get_blog_details_false_true_false_returns_correct_fields() {
+		$site_id = self::$site_ids['wordpress.org/'];
+
+		// Ensure a clean cache state.
+		wp_cache_delete( $site_id, 'blog-details' );
+		wp_cache_delete( $site_id . 'short', 'blog-details' );
+
+		// Short first.
+		$short1 = get_blog_details( $site_id, false );
+		$this->assertSameSets( $this->get_fields( false ), array_keys( get_object_vars( $short1 ) ) );
+
+		// Full second.
+		$full = get_blog_details( $site_id, true );
+		$this->assertSameSets( $this->get_fields( true ), array_keys( get_object_vars( $full ) ) );
+
+		// Short again — must still return short fields.
+		$short2 = get_blog_details( $site_id, false );
+		$this->assertSameSets( $this->get_fields( false ), array_keys( get_object_vars( $short2 ) ) );
+	}
+
 	public function data_get_all() {
 		return array(
 			array( false ),
