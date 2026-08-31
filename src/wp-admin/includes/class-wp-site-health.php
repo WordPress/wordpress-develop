@@ -2402,19 +2402,8 @@ class WP_Site_Health {
 				continue;
 			}
 
-			/*
-			 * Init a Reflection class to get the real path of the class.
-			 * This is performed inside an output buffer to avoid any errors
-			 * that might be thrown by the ReflectionClass constructor.
-			 */
-			try {
-				ob_start();
-				$reflection = new \ReflectionClass( $class_name );
-				ob_end_clean();
-			} catch ( \ReflectionException $e ) {
-				ob_end_clean();
-				continue;
-			}
+			// Init a Reflection class to get the real path of the class.
+			$reflection = new \ReflectionClass( $class_name );
 
 			// Normalize both paths so symlinks and directory separators do not cause false positives.
 			$reflection_path = wp_normalize_path( $reflection->getFileName() );

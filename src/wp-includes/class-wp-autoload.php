@@ -496,7 +496,7 @@ final class WP_Autoload {
 		 * cost of registering its autoloader on every request.
 		 */
 
-		spl_autoload_register( array( '\WpOrg\Requests\Autoload', 'load' ) );
+		\WpOrg\Requests\Autoload::register();
 		spl_autoload_register( array( __CLASS__, 'autoload_phpmailer' ) );
 	}
 
