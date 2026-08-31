@@ -2169,6 +2169,7 @@ function validate_username( $username ) {
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
  * @since 5.9.0 The `meta_input` field can be passed to `$userdata` to allow addition of user meta data.
+ * @since 7.2.0 A non-string `locale` field is ignored.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -2523,7 +2524,8 @@ function wp_insert_user( $userdata ) {
 
 	$meta['show_admin_bar_front'] = empty( $userdata['show_admin_bar_front'] ) ? 'true' : $userdata['show_admin_bar_front'];
 
-	$meta['locale'] = $userdata['locale'] ?? '';
+	// The row is read back by get_user_locale(), which is documented to return a string.
+	$meta['locale'] = isset( $userdata['locale'] ) && is_string( $userdata['locale'] ) ? $userdata['locale'] : '';
 
 	$compacted = compact( 'user_pass', 'user_nicename', 'user_email', 'user_url', 'user_registered', 'user_activation_key', 'display_name' );
 	$data      = wp_unslash( $compacted );

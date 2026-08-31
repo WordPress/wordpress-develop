@@ -146,4 +146,60 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		$user_locale = get_user_locale( 'string' );
 		$this->assertSame( get_locale(), $user_locale );
 	}
+
+	/**
+	 * A `locale` user meta row holding an array is truthy, so the `empty()`-style
+	 * guard passes it through and callers receive an array where the documented
+	 * return type is a string.
+	 *
+	 * @dataProvider data_non_string_user_locale_meta
+	 *
+	 * @param mixed $meta_value Value stored in the `locale` user meta row.
+	 */
+	public function test_returns_site_locale_for_non_string_user_locale_meta( $meta_value ) {
+		set_current_screen( 'dashboard' );
+		update_user_meta( self::$administrator_de_de, 'locale', $meta_value );
+
+		$this->assertSame( get_locale(), get_user_locale() );
+	}
+
+	/**
+	 * @dataProvider data_non_string_user_locale_meta
+	 *
+	 * @param mixed $meta_value Value stored in the `locale` user meta row.
+	 */
+	public function test_returns_a_string_for_non_string_user_locale_meta( $meta_value ) {
+		set_current_screen( 'dashboard' );
+		update_user_meta( self::$administrator_de_de, 'locale', $meta_value );
+
+		$this->assertIsString( get_user_locale() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_string_user_locale_meta() {
+		// Scalars survive the meta round trip as strings, so only arrays and
+		// objects can come back from get_user_meta() with the wrong type.
+		return array(
+			'a list'         => array( array( 'de_DE' ) ),
+			'a map'          => array( array( 'locale' => 'de_DE' ) ),
+			'an empty array' => array( array() ),
+			'an object'      => array( new stdClass() ),
+		);
+	}
+
+	/**
+	 * An array locale reaches WP_Textdomain_Registry::set(), which uses it as an
+	 * array key and throws a TypeError, so translating any string for an
+	 * unloaded text domain takes down the request.
+	 */
+	public function test_array_user_locale_meta_does_not_fatal_in_the_textdomain_registry() {
+		set_current_screen( 'dashboard' );
+		update_user_meta( self::$administrator_de_de, 'locale', array( 'de_DE' ) );
+
+		$this->assertSame( 'Some text', __( 'Some text', 'my-plugin' ) );
+	}
 }
