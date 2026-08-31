@@ -1372,6 +1372,10 @@ function wp_filter_default_autoload_value_via_option_size( $autoload, $option, $
 /**
  * Deletes a transient.
  *
+ * If an orphaned transient timeout option exists without a corresponding transient
+ * option, the timeout option is deleted, but the function returns false because
+ * no transient value option existed to be deleted.
+ *
  * @since 2.8.0
  *
  * @param string $transient Transient name. Expected to not be SQL-escaped.
@@ -1397,9 +1401,7 @@ function delete_transient( $transient ) {
 		$option         = '_transient_' . $transient;
 		$result         = delete_option( $option );
 
-		if ( $result ) {
-			delete_option( $option_timeout );
-		}
+		delete_option( $option_timeout );
 	}
 
 	if ( $result ) {
@@ -1655,6 +1657,19 @@ function delete_expired_transients( $force_db = false ) {
 		)
 	);
 
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE a FROM {$wpdb->options} a
+			LEFT JOIN {$wpdb->options} b
+				ON b.option_name = CONCAT( '_transient_', SUBSTRING( a.option_name, 20 ) )
+			WHERE a.option_name LIKE %s
+			AND a.option_value < %d
+			AND b.option_id IS NULL",
+			$wpdb->esc_like( '_transient_timeout_' ) . '%',
+			time()
+		)
+	);
+
 	if ( ! is_multisite() ) {
 		// Single site stores site transients in the options table.
 		$wpdb->query(
@@ -1669,6 +1684,19 @@ function delete_expired_transients( $force_db = false ) {
 				time()
 			)
 		);
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE a FROM {$wpdb->options} a
+				LEFT JOIN {$wpdb->options} b
+					ON b.option_name = CONCAT( '_site_transient_', SUBSTRING( a.option_name, 25 ) )
+				WHERE a.option_name LIKE %s
+				AND a.option_value < %d
+				AND b.option_id IS NULL",
+				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
+				time()
+			)
+		);
 	} elseif ( is_main_site() && is_main_network() ) {
 		// Multisite stores site transients in the sitemeta table.
 		$wpdb->query(
@@ -1677,8 +1705,23 @@ function delete_expired_transients( $force_db = false ) {
 				WHERE a.meta_key LIKE %s
 				AND a.meta_key NOT LIKE %s
 				AND b.meta_key = CONCAT( '_site_transient_timeout_', SUBSTRING( a.meta_key, 17 ) )
+				AND b.site_id = a.site_id
 				AND b.meta_value < %d",
 				$wpdb->esc_like( '_site_transient_' ) . '%',
+				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
+				time()
+			)
+		);
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE a FROM {$wpdb->sitemeta} a
+				LEFT JOIN {$wpdb->sitemeta} b
+					ON b.meta_key = CONCAT( '_site_transient_', SUBSTRING( a.meta_key, 25 ) )
+					AND b.site_id = a.site_id
+				WHERE a.meta_key LIKE %s
+				AND a.meta_value < %d
+				AND b.meta_id IS NULL",
 				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
 				time()
 			)
@@ -2503,9 +2546,13 @@ function update_network_option( $network_id, $option, $value ) {
 /**
  * Deletes a site transient.
  *
+ * If an orphaned site transient timeout option exists without a corresponding transient
+ * option, the timeout option is deleted, but the function returns false because
+ * no transient value option existed to be deleted.
+ *
  * @since 2.9.0
  *
- * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @param string $transient Site transient name. Expected to not be SQL-escaped.
  * @return bool True if the transient was deleted, false otherwise.
  */
 function delete_site_transient( $transient ) {
@@ -2528,9 +2575,7 @@ function delete_site_transient( $transient ) {
 		$option         = '_site_transient_' . $transient;
 		$result         = delete_site_option( $option );
 
-		if ( $result ) {
-			delete_site_option( $option_timeout );
-		}
+		delete_site_option( $option_timeout );
 	}
 
 	if ( $result ) {
