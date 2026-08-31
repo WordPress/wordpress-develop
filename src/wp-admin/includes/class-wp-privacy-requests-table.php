@@ -101,8 +101,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * Counts the number of requests for each status.
 	 *
 	 * @since 4.9.6
+	 * @since 7.2.0 Delegates to wp_count_user_requests().
 	 *
-	 * @return object Number of posts for each status.
+	 * @return stdClass Number of posts for each status.
 	 */
 	protected function get_request_counts() {
 		return wp_count_user_requests( $this->request_type );
