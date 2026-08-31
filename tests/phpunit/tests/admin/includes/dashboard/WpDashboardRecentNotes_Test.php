@@ -114,42 +114,16 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	}
 
 	/**
-	 * Returns the dates the rendered section starts each row with, in order and
-	 * without the trailing time.
+	 * Returns the relative times the rendered section starts each row with, in
+	 * order.
 	 *
 	 * @param string $output The rendered section.
-	 * @return string[] The rendered dates.
+	 * @return string[] The rendered relative times.
 	 */
-	private function get_rendered_days( $output ) {
+	private function get_rendered_dates( $output ) {
 		preg_match_all( '#<li><span>([^<]*)</span>#', $output, $matches );
 
-		return array_map(
-			static function ( $date ) {
-				$parts = explode( ', ', $date, 2 );
-
-				return $parts[0];
-			},
-			$matches[1]
-		);
-	}
-
-	/**
-	 * Returns a date that is in the current year whichever day the tests run on,
-	 * so that it is rendered without a year.
-	 *
-	 * @param string $modifier A relative date modifier, as accepted by strtotime().
-	 * @return DateTimeImmutable The date.
-	 */
-	private function date_in_the_current_year( $modifier ) {
-		$now  = current_datetime();
-		$date = $now->modify( $modifier );
-
-		if ( $date->format( 'Y' ) !== $now->format( 'Y' ) ) {
-			// Near the turn of the year, count in the other direction instead.
-			$date = $now->modify( str_replace( '-', '+', $modifier ) );
-		}
-
-		return $date;
+		return $matches[1];
 	}
 
 	/**
@@ -408,7 +382,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @ticket 65890
 	 */
 	public function test_should_show_the_date_of_the_most_recent_reply() {
-		$opened  = $this->date_in_the_current_year( '-13 days' );
+		$opened  = current_datetime()->modify( '-13 days' );
 		$replied = $opened->modify( '+10 days' );
 
 		$post_id = $this->create_post( 'A post with a reply' );
@@ -418,8 +392,8 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 		list( , $output ) = $this->render();
 
 		$this->assertSame(
-			array( date_i18n( 'M jS', $replied->getTimestamp() + $replied->getOffset() ) ),
-			$this->get_rendered_days( $output ),
+			array( '3 days ago' ),
+			$this->get_rendered_dates( $output ),
 			'The date was not the date of the most recent reply.'
 		);
 	}
@@ -428,7 +402,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @ticket 65890
 	 */
 	public function test_should_order_posts_by_their_most_recent_reply() {
-		$opened  = $this->date_in_the_current_year( '-13 days' );
+		$opened  = current_datetime()->modify( '-13 days' );
 		$replied = $opened->modify( '+10 days' );
 
 		$replied_to_id = $this->create_post( 'A post replied to recently' );

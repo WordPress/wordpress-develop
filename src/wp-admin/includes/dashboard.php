@@ -946,26 +946,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 function _wp_dashboard_recent_notes_row( $note, $open_notes = 1 ) {
 	$note_post_id = (int) $note->comment_post_ID;
 
-	$today    = current_time( 'Y-m-d' );
-	$tomorrow = current_datetime()->modify( '+1 day' )->format( 'Y-m-d' );
-	$year     = current_time( 'Y' );
-
-	$time = get_comment_date( 'U', $note );
-
-	if ( ! is_int( $time ) ) {
-		/* translators: Date and time format for recent notes on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-		$date = get_comment_date( __( 'M jS Y' ), $note );
-	} elseif ( gmdate( 'Y-m-d', $time ) === $today ) {
-		$date = __( 'Today' );
-	} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
-		$date = __( 'Tomorrow' );
-	} elseif ( gmdate( 'Y', $time ) !== $year ) {
-		/* translators: Date and time format for recent notes on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-		$date = date_i18n( __( 'M jS Y' ), $time );
-	} else {
-		/* translators: Date and time format for recent notes on the dashboard, see https://www.php.net/manual/datetime.format.php */
-		$date = date_i18n( __( 'M jS' ), $time );
-	}
+	$time = strtotime( $note->comment_date_gmt . ' +0000' );
 
 	$note_post_title = _draft_or_post_title( $note_post_id );
 
@@ -978,8 +959,8 @@ function _wp_dashboard_recent_notes_row( $note, $open_notes = 1 ) {
 
 	printf(
 		'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a> <span class="open-notes-count">%5$s</span></li>',
-		/* translators: 1: Relative date, 2: Time. */
-		sprintf( _x( '%1$s, %2$s', 'dashboard' ), $date, get_comment_time( '', false, true, $note ) ),
+		/* translators: %s: Human-readable time difference. */
+		sprintf( __( '%s ago' ), human_time_diff( $time ) ),
 		esc_url( $note_post_link ),
 		/* translators: %s: Post title. */
 		esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $note_post_title ) ),

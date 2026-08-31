@@ -97,7 +97,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 	}
 
 	/**
-	 * Returns the date and time a rendered row starts with.
+	 * Returns the relative time a rendered row starts with.
 	 *
 	 * @param string $output The rendered row.
 	 * @return string The contents of the date element.
@@ -108,18 +108,6 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 		$this->assertNotEmpty( $matches, 'The row did not render a date.' );
 
 		return $matches[1];
-	}
-
-	/**
-	 * Returns the relative date a rendered row ends with, without the time.
-	 *
-	 * @param string $output The rendered row.
-	 * @return string The date, without the trailing time.
-	 */
-	private function get_rendered_day( $output ) {
-		$date = explode( ', ', $this->get_rendered_date( $output ), 2 );
-
-		return $date[0];
 	}
 
 	/**
@@ -284,92 +272,21 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 
 	/**
 	 * @ticket 65890
+	 *
+	 * @dataProvider data_note_ages
+	 *
+	 * @param string $modifier A relative date modifier, as accepted by strtotime().
+	 * @param string $expected The expected relative time.
 	 */
-	public function test_should_render_a_note_from_today_as_today() {
-		$output = $this->render( $this->create_note() );
+	public function test_should_render_the_age_of_the_note( $modifier, $expected ) {
+		$date = current_datetime()->modify( $modifier )->format( 'Y-m-d H:i:s' );
+
+		$output = $this->render( $this->create_note( $date ) );
 
 		$this->assertSame(
-			'Today',
-			$this->get_rendered_day( $output ),
-			'A note added today was not rendered as today.'
-		);
-	}
-
-	/**
-	 * @ticket 65890
-	 */
-	public function test_should_render_a_note_from_tomorrow_as_tomorrow() {
-		$tomorrow = current_datetime()->modify( '+1 day' )->format( 'Y-m-d H:i:s' );
-
-		$output = $this->render( $this->create_note( $tomorrow ) );
-
-		$this->assertSame(
-			'Tomorrow',
-			$this->get_rendered_day( $output ),
-			'A note dated tomorrow was not rendered as tomorrow.'
-		);
-	}
-
-	/**
-	 * @ticket 65890
-	 */
-	public function test_should_omit_the_year_for_a_note_from_this_year() {
-		$now = current_datetime();
-
-		/*
-		 * A day that is neither today nor tomorrow, and is still in the current
-		 * year whether the tests run at the start or the end of it.
-		 */
-		$earlier = $now->modify( '-3 days' );
-
-		if ( $earlier->format( 'Y' ) !== $now->format( 'Y' ) ) {
-			$earlier = $now->modify( '+3 days' );
-		}
-
-		$output = $this->render( $this->create_note( $earlier->format( 'Y-m-d H:i:s' ) ) );
-
-		$this->assertDoesNotMatchRegularExpression(
-			'/\d{4}/',
-			$this->get_rendered_day( $output ),
-			'A note from this year was rendered with a year.'
-		);
-	}
-
-	/**
-	 * @ticket 65890
-	 */
-	public function test_should_include_the_year_for_a_note_from_a_previous_year() {
-		$last_year = current_datetime()->modify( '-1 year' );
-
-		$output = $this->render( $this->create_note( $last_year->format( 'Y-m-d H:i:s' ) ) );
-
-		$this->assertStringContainsString(
-			$last_year->format( 'Y' ),
-			$this->get_rendered_day( $output ),
-			'A note from a previous year was rendered without a year.'
-		);
-	}
-
-	/**
-	 * The relative date is the date in the timezone of the site, which can be a
-	 * day ahead of or behind UTC at the same moment.
-	 *
-	 * @ticket 65890
-	 *
-	 * @dataProvider data_timezones_where_the_local_date_differs_from_utc
-	 *
-	 * @param string $timezone The timezone of the site.
-	 * @param string $time     A local time of day on which UTC is on another date.
-	 */
-	public function test_should_use_the_timezone_of_the_site_for_the_relative_date( $timezone, $time ) {
-		update_option( 'timezone_string', $timezone );
-
-		$note = $this->create_note( current_time( 'Y-m-d' ) . ' ' . $time );
-
-		$this->assertSame(
-			'Today',
-			$this->get_rendered_day( $this->render( $note ) ),
-			'A note added today in the timezone of the site was not rendered as today.'
+			$expected,
+			$this->get_rendered_date( $output ),
+			'The age of the note was not rendered as expected.'
 		);
 	}
 
@@ -378,12 +295,64 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotesRow_Test extends WP_UnitTes
 	 *
 	 * @return array[]
 	 */
-	public function data_timezones_where_the_local_date_differs_from_utc() {
+	public function data_note_ages() {
 		return array(
-			// 14 hours ahead of UTC, so just after midnight is still yesterday in UTC.
-			'ahead of UTC' => array( 'Pacific/Kiritimati', '00:30:00' ),
-			// 11 hours behind UTC, so just before midnight is already tomorrow in UTC.
-			'behind UTC'   => array( 'Pacific/Niue', '23:30:00' ),
+			'minutes ago' => array( '-5 minutes', '5 minutes ago' ),
+			'hours ago'   => array( '-3 hours', '3 hours ago' ),
+			'days ago'    => array( '-2 days', '2 days ago' ),
+			'weeks ago'   => array( '-3 weeks', '3 weeks ago' ),
+			'a year ago'  => array( '-1 year', '1 year ago' ),
+		);
+	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_should_render_the_age_of_a_new_note_in_seconds() {
+		$output = $this->render( $this->create_note() );
+
+		$this->assertMatchesRegularExpression(
+			'/^\d+ seconds? ago$/',
+			$this->get_rendered_date( $output ),
+			'A note added just now was not rendered as seconds ago.'
+		);
+	}
+
+	/**
+	 * The relative time is computed from the GMT date of the note, so it does
+	 * not change with the timezone of the site.
+	 *
+	 * @ticket 65890
+	 *
+	 * @dataProvider data_timezones_away_from_utc
+	 *
+	 * @param string $timezone The timezone of the site.
+	 */
+	public function test_should_not_change_with_the_timezone_of_the_site( $timezone ) {
+		update_option( 'timezone_string', $timezone );
+
+		$date = current_datetime()->modify( '-3 hours' )->format( 'Y-m-d H:i:s' );
+
+		$note = $this->create_note( $date );
+
+		$this->assertSame(
+			'3 hours ago',
+			$this->get_rendered_date( $this->render( $note ) ),
+			'The age of the note changed with the timezone of the site.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_timezones_away_from_utc() {
+		return array(
+			// 14 hours ahead of UTC.
+			'ahead of UTC' => array( 'Pacific/Kiritimati' ),
+			// 11 hours behind UTC.
+			'behind UTC'   => array( 'Pacific/Niue' ),
 		);
 	}
 }
