@@ -82,6 +82,8 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	public static function data_edge_cases() {
 		return array(
 			'Single ampersand' => array( '&', '&' ),
+			'NULL byte'        => array( "\0", "\0" ),
+			'Unknown entity'   => array( '&unknown;', '&unknown;' ),
 		);
 	}
 
@@ -502,6 +504,173 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			array( 'http://wordpress.org', 'Http', 'ascii-case-insensitive', true ),
 			array( 'http://wordpress.org', 'https', 'case-sensitive', false ),
 			array( 'http://wordpress.org', 'https', 'ascii-case-insensitive', false ),
+		);
+	}
+
+	/**
+	 * Ensures strict decoding of named entities in attributes.
+	 *
+	 * @ticket 61072
+	 */
+	public function test_decode_attribute_decodes_named_entities() {
+		$this->assertSame( '&', WP_HTML_Decoder::decode_attribute( '&amp;' ) );
+		$this->assertSame( '&', WP_HTML_Decoder::decode_attribute( '&amp' ) );
+		$this->assertSame( '<', WP_HTML_Decoder::decode_attribute( '&lt;' ) );
+		$this->assertSame( '<', WP_HTML_Decoder::decode_attribute( '&lt' ) );
+		$this->assertSame( '>', WP_HTML_Decoder::decode_attribute( '&gt;' ) );
+		$this->assertSame( '>', WP_HTML_Decoder::decode_attribute( '&gt' ) );
+		$this->assertSame( '"', WP_HTML_Decoder::decode_attribute( '&quot;' ) );
+		$this->assertSame( '"', WP_HTML_Decoder::decode_attribute( '&quot' ) );
+		$this->assertSame( '©', WP_HTML_Decoder::decode_attribute( '&copy;' ) );
+		$this->assertSame( '©', WP_HTML_Decoder::decode_attribute( '&copy' ) );
+	}
+
+	/**
+	 * Ensures strict decoding of decimal numeric entities.
+	 *
+	 * @ticket 61072
+	 */
+	public function test_decode_attribute_decodes_decimal_numeric_entities() {
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#65;' ) );
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#065;' ) );
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#000065;' ) );
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#65' ) );
+	}
+
+	/**
+	 * Ensures strict decoding of hex numeric entities.
+	 *
+	 * @ticket 61072
+	 */
+	public function test_decode_attribute_decodes_hex_numeric_entities() {
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#x41;' ) );
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#x041;' ) );
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#x000041;' ) );
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#x41' ) );
+		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#X41;' ) );
+		$this->assertSame( '😀', WP_HTML_Decoder::decode_attribute( '&#x1F600;' ) );
+	}
+
+	/**
+	 * Ensures that Windows-1252 mapped characters are properly decoded.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_windows_1252_mapped_characters
+	 *
+	 * @param string $raw_text Raw numeric character reference.
+	 * @param string $expected Expected decoded character.
+	 */
+	public function test_decodes_windows_1252_mapped_characters( $raw_text, $expected ) {
+		$this->assertSame( $expected, WP_HTML_Decoder::decode_text_node( $raw_text ) );
+		$this->assertSame( $expected, WP_HTML_Decoder::decode_attribute( $raw_text ) );
+	}
+
+	/**
+	 * Data provider for Windows-1252 mapped characters.
+	 *
+	 * @return array[]
+	 */
+	public static function data_windows_1252_mapped_characters() {
+		return array(
+			'Euro sign'        => array( '&#x80;', '€' ),
+			'Single low-9'     => array( '&#x82;', '‚' ),
+			'F with hook'      => array( '&#x83;', 'ƒ' ),
+			'Double low-9'     => array( '&#x84;', '„' ),
+			'Ellipsis'         => array( '&#x85;', '…' ),
+			'Dagger'           => array( '&#x86;', '†' ),
+			'Double dagger'    => array( '&#x87;', '‡' ),
+			'Circumflex'       => array( '&#x88;', 'ˆ' ),
+			'Per mille'        => array( '&#x89;', '‰' ),
+			'S with caron'     => array( '&#x8A;', 'Š' ),
+			'Less single guil' => array( '&#x8B;', '‹' ),
+			'OE ligature'      => array( '&#x8C;', 'Œ' ),
+			'Z with caron'     => array( '&#x8E;', 'Ž' ),
+			'Left single quot' => array( '&#x91;', '‘' ),
+			'Right single quo' => array( '&#x92;', '’' ),
+			'Left double quot' => array( '&#x93;', '“' ),
+			'Right double quo' => array( '&#x94;', '”' ),
+			'Bullet'           => array( '&#x95;', '•' ),
+			'En dash'          => array( '&#x96;', '–' ),
+			'Em dash'          => array( '&#x97;', '—' ),
+			'Small tilde'      => array( '&#x98;', '˜' ),
+			'Trade mark'       => array( '&#x99;', '™' ),
+			's with caron'     => array( '&#x9A;', 'š' ),
+			'Right single gui' => array( '&#x9B;', '›' ),
+			'oe ligature'      => array( '&#x9C;', 'œ' ),
+			'z with caron'     => array( '&#x9E;', 'ž' ),
+			'Y with diaeresis' => array( '&#x9F;', 'Ÿ' ),
+		);
+	}
+
+	/**
+	 * Ensures decoding of invalid and special numeric character references.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_invalid_numeric_references
+	 *
+	 * @param string $raw_text Raw numeric character reference.
+	 * @param string $expected Expected decoded string.
+	 */
+	public function test_decodes_invalid_numeric_references( $raw_text, $expected ) {
+		$this->assertSame( $expected, WP_HTML_Decoder::decode_text_node( $raw_text ) );
+	}
+
+	/**
+	 * Data provider for invalid numeric references.
+	 *
+	 * @return array[]
+	 */
+	public static function data_invalid_numeric_references() {
+		$replacement = "\xEF\xBF\xBD";
+		return array(
+			'Null byte'             => array( '&#0;', $replacement ),
+			'Null byte (hex)'       => array( '&#x00;', $replacement ),
+			'Surrogate low'         => array( '&#xD800;', $replacement ),
+			'Surrogate mid'         => array( '&#xDABC;', $replacement ),
+			'Surrogate high'        => array( '&#xDFFF;', $replacement ),
+			'Out of range'          => array( '&#x110000;', $replacement ),
+			'No digits'             => array( '&#;', '&#;' ),
+			'No digits (hex)'       => array( '&#x;', '&#x;' ),
+			'Too many digits'       => array( '&#12345678;', $replacement ), // Limit is 7.
+			'Too many digits (hex)' => array( '&#x10FFFFF;', $replacement ), // Limit is 6.
+			'Only zeros'            => array( '&#0000;', $replacement ),
+		);
+	}
+
+	/**
+	 * Ensures proper decoding of ambiguous ampersands.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_ambiguous_ampersands
+	 *
+	 * @param string $context  'attribute' or 'data'.
+	 * @param string $raw_text Raw text.
+	 * @param string $expected Expected decoded string.
+	 */
+	public function test_decodes_ambiguous_ampersands( $context, $raw_text, $expected ) {
+		$this->assertSame( $expected, WP_HTML_Decoder::decode( $context, $raw_text ) );
+	}
+
+	/**
+	 * Data provider for ambiguous ampersands.
+	 *
+	 * @return array[]
+	 */
+	public static function data_ambiguous_ampersands() {
+		return array(
+			'Starting with logical AND'           => array( 'data', '&amp', '&' ),
+			'Starting with logical AND (attr)'    => array( 'attribute', '&amp', '&' ),
+			'Ambiguous with equals'               => array( 'data', '&not=', '¬=' ),
+			'Ambiguous with equals (attr)'        => array( 'attribute', '&not=', '&not=' ),
+			'Ambiguous with alphanumeric'         => array( 'data', '&notit', '¬it' ),
+			'Ambiguous with alphanumeric (attr)'  => array( 'attribute', '&notit', '&notit' ),
+			'Not ambiguous (semicolon)'           => array( 'data', '&not;', '¬' ),
+			'Not ambiguous (semicolon) (attr)'    => array( 'attribute', '&not;', '¬' ),
+			'Not ambiguous (non-alphanum)'        => array( 'data', '&not ', '¬ ' ),
+			'Not ambiguous (non-alphanum) (attr)' => array( 'attribute', '&not ', '¬ ' ),
 		);
 	}
 }
