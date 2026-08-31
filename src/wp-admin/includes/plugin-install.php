@@ -836,7 +836,15 @@ function install_plugin_information() {
 			)
 		);
 	} elseif ( ! $compatible_wp ) {
-		$compatible_wp_notice_message = __( '<strong>Error:</strong> This plugin <strong>requires a newer version of WordPress</strong>.' );
+		if ( ! empty( $requires_wp ) ) {
+			$compatible_wp_notice_message = sprintf(
+				/* translators: %s: Minimum required WordPress version. */
+				__( '<strong>Error:</strong> This plugin <strong>requires WordPress %s or higher</strong>.' ),
+				esc_html( $requires_wp )
+			);
+		} else {
+			$compatible_wp_notice_message = __( '<strong>Error:</strong> This plugin <strong>requires a newer version of WordPress</strong>.' );
+		}
 		if ( current_user_can( 'update_core' ) ) {
 			$compatible_wp_notice_message .= sprintf(
 				/* translators: %s: URL to WordPress Updates screen. */

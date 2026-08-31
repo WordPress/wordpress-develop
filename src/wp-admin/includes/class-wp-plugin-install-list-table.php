@@ -636,7 +636,15 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 						$incompatible_notice_message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 					}
 				} elseif ( ! $compatible_wp ) {
-					$incompatible_notice_message .= __( 'This plugin does not work with your version of WordPress.' );
+					if ( ! empty( $requires_wp ) ) {
+						$incompatible_notice_message .= sprintf(
+							/* translators: %s: Minimum required WordPress version. */
+							__( 'This plugin requires WordPress %s or higher.' ),
+							esc_html( $requires_wp )
+						);
+					} else {
+						$incompatible_notice_message .= __( 'This plugin does not work with your version of WordPress.' );
+					}
 					if ( current_user_can( 'update_core' ) ) {
 						$incompatible_notice_message .= sprintf(
 							/* translators: %s: URL to WordPress Updates screen. */
