@@ -986,6 +986,33 @@ window.wp = window.wp || {};
 	};
 
 	/**
+	 * Whether a URL pathname begins with one of the given excluded path prefixes.
+	 *
+	 * @since 7.2.0
+	 * @access public
+	 *
+	 * @alias wp.customize.utils.isExcludedPath
+	 *
+	 * @param {string} pathname        URL pathname to test.
+	 * @param {Array}  [excludedPaths] URL path prefixes, each with a trailing slash.
+	 * @return {boolean} Whether the pathname begins with an excluded path.
+	 */
+	api.utils.isExcludedPath = function isExcludedPath( pathname, excludedPaths ) {
+		var normalizedPathname;
+
+		if ( ! excludedPaths || ! excludedPaths.length ) {
+			return /\/wp-(admin|includes|content)(\/|$)/.test( pathname );
+		}
+
+		// Normalize so '/wp-admin' and '//wp-admin/' both match the '/wp-admin/' prefix.
+		normalizedPathname = ( pathname + '/' ).replace( /\/+/g, '/' );
+
+		return _.some( excludedPaths, function( excludedPath ) {
+			return 0 === normalizedPathname.indexOf( excludedPath );
+		} );
+	};
+
+	/**
 	 * Expose the API publicly on window.wp.customize
 	 *
 	 * @namespace wp.customize

@@ -2169,6 +2169,7 @@ final class WP_Customize_Manager {
 				'self'          => $self_url,
 				'allowed'       => array_map( 'sanitize_url', $this->get_allowed_urls() ),
 				'allowedHosts'  => array_unique( $allowed_hosts ),
+				'excludedPaths' => $this->get_excluded_url_paths(),
 				'isCrossDomain' => $this->is_cross_domain(),
 			),
 			'channel'           => $this->messenger_channel,
@@ -4688,6 +4689,52 @@ final class WP_Customize_Manager {
 	}
 
 	/**
+	 * Gets URL path prefixes which are excluded from being previewed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string[] URL path prefixes, each with a trailing slash.
+	 */
+	public function get_excluded_url_paths() {
+		$excluded_urls = array(
+			admin_url( '/' ),
+			includes_url( '/' ),
+			content_url( '/' ),
+			plugins_url( '/' ),
+			wp_get_upload_dir()['baseurl'],
+		);
+
+		$parsed_home = wp_parse_url( home_url( '/' ) );
+		$home_host   = strtolower( $parsed_home['host'] ?? '' ) . ':' . ( $parsed_home['port'] ?? '' );
+		$home_path   = trailingslashit( $parsed_home['path'] ?? '/' );
+
+		$excluded_paths = array();
+		foreach ( $excluded_urls as $excluded_url ) {
+			$parsed = wp_parse_url( $excluded_url );
+			if ( ! is_array( $parsed ) ) {
+				continue;
+			}
+
+			// Skip URLs served from another host, such as an uploads URL pointing to a CDN.
+			$host = strtolower( $parsed['host'] ?? '' ) . ':' . ( $parsed['port'] ?? '' );
+			if ( $host !== $home_host ) {
+				continue;
+			}
+
+			$path = trailingslashit( $parsed['path'] ?? '' );
+
+			// A path at or above the home path would exclude the whole site from being previewed.
+			if ( str_starts_with( $home_path, $path ) ) {
+				continue;
+			}
+
+			$excluded_paths[] = $path;
+		}
+
+		return array_values( array_unique( $excluded_paths ) );
+	}
+
+	/**
 	 * Gets messenger channel.
 	 *
 	 * @since 4.7.0
@@ -4946,6 +4993,7 @@ final class WP_Customize_Manager {
 				'activated'     => sanitize_url( home_url( '/' ) ),
 				'ajax'          => sanitize_url( admin_url( 'admin-ajax.php', 'relative' ) ),
 				'allowed'       => array_map( 'sanitize_url', $this->get_allowed_urls() ),
+				'excludedPaths' => $this->get_excluded_url_paths(),
 				'isCrossDomain' => $this->is_cross_domain(),
 				'home'          => sanitize_url( home_url( '/' ) ),
 				'login'         => sanitize_url( $login_url ),

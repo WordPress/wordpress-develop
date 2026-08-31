@@ -2290,6 +2290,134 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test WP_Customize_Manager::get_excluded_url_paths().
+	 *
+	 * @ticket 65030
+	 * @covers WP_Customize_Manager::get_excluded_url_paths
+	 */
+	public function test_get_excluded_url_paths() {
+		$wp_customize = new WP_Customize_Manager();
+
+		$this->assertSame(
+			array(
+				'/wp-admin/',
+				'/wp-includes/',
+				'/wp-content/',
+				'/wp-content/plugins/',
+				'/wp-content/uploads/',
+			),
+			$wp_customize->get_excluded_url_paths()
+		);
+	}
+
+	/**
+	 * Test WP_Customize_Manager::get_excluded_url_paths() for a subdirectory installation.
+	 *
+	 * @ticket 65030
+	 * @covers WP_Customize_Manager::get_excluded_url_paths
+	 */
+	public function test_get_excluded_url_paths_with_subdirectory_install() {
+		$home_url        = trailingslashit( home_url() );
+		$to_subdirectory = static function ( $url ) use ( $home_url ) {
+			return str_replace( $home_url, $home_url . 'wp-content/subsite/', $url );
+		};
+		add_filter( 'admin_url', $to_subdirectory );
+		add_filter( 'includes_url', $to_subdirectory );
+		add_filter( 'content_url', $to_subdirectory );
+		add_filter( 'plugins_url', $to_subdirectory );
+		add_filter(
+			'upload_dir',
+			static function ( $uploads ) use ( $to_subdirectory ) {
+				$uploads['baseurl'] = $to_subdirectory( $uploads['baseurl'] );
+				return $uploads;
+			}
+		);
+
+		$wp_customize = new WP_Customize_Manager();
+
+		// The site's own base path must not be excluded, only the WP directories under it.
+		$this->assertSame(
+			array(
+				'/wp-content/subsite/wp-admin/',
+				'/wp-content/subsite/wp-includes/',
+				'/wp-content/subsite/wp-content/',
+				'/wp-content/subsite/wp-content/plugins/',
+				'/wp-content/subsite/wp-content/uploads/',
+			),
+			$wp_customize->get_excluded_url_paths()
+		);
+	}
+
+	/**
+	 * Test that WP_Customize_Manager::get_excluded_url_paths() never excludes the site root.
+	 *
+	 * @ticket 65030
+	 * @covers WP_Customize_Manager::get_excluded_url_paths
+	 */
+	public function test_get_excluded_url_paths_skips_site_root() {
+		add_filter(
+			'content_url',
+			static function () {
+				return home_url( '/' );
+			}
+		);
+
+		$wp_customize = new WP_Customize_Manager();
+		$excluded     = $wp_customize->get_excluded_url_paths();
+
+		$this->assertNotContains( '/', $excluded );
+		$this->assertNotContains( '', $excluded );
+	}
+
+	/**
+	 * Test that WP_Customize_Manager::get_excluded_url_paths() never excludes an ancestor of the home path.
+	 *
+	 * @ticket 65030
+	 * @covers WP_Customize_Manager::get_excluded_url_paths
+	 */
+	public function test_get_excluded_url_paths_skips_ancestors_of_home_path() {
+		// Simulate a site installed under wp-content whose content directory is the shared parent.
+		$home_url = trailingslashit( home_url() );
+		add_filter(
+			'home_url',
+			static function ( $url ) use ( $home_url ) {
+				return str_replace( $home_url, $home_url . 'wp-content/subsite/', $url );
+			}
+		);
+
+		$wp_customize = new WP_Customize_Manager();
+		$excluded     = $wp_customize->get_excluded_url_paths();
+
+		// Excluding '/wp-content/' would exclude the whole site at '/wp-content/subsite/'.
+		$this->assertNotContains( '/wp-content/', $excluded );
+		$this->assertContains( '/wp-admin/', $excluded );
+	}
+
+	/**
+	 * Test that WP_Customize_Manager::get_excluded_url_paths() skips URLs served from another host.
+	 *
+	 * @ticket 65030
+	 * @covers WP_Customize_Manager::get_excluded_url_paths
+	 */
+	public function test_get_excluded_url_paths_skips_other_hosts() {
+		add_filter(
+			'upload_dir',
+			static function ( $uploads ) {
+				$uploads['baseurl'] = 'https://cdn.example.net/media';
+				return $uploads;
+			}
+		);
+
+		$wp_customize = new WP_Customize_Manager();
+		$excluded     = $wp_customize->get_excluded_url_paths();
+
+		// The CDN path must not block the site's own '/media/' pages, and the CDN itself is not previewable.
+		$this->assertNotContains( '/media/', $excluded );
+		$this->assertNotContains( '/wp-content/uploads/', $excluded );
+		$this->assertContains( '/wp-content/', $excluded );
+	}
+
+	/**
 	 * Test WP_Customize_Manager::doing_ajax().
 	 *
 	 * @group ajax
@@ -3147,6 +3275,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( $autofocus, $data['autofocus'] );
 		$this->assertArrayHasKey( 'save', $data['nonce'] );
 		$this->assertArrayHasKey( 'preview', $data['nonce'] );
+		$this->assertSame( $this->manager->get_excluded_url_paths(), $data['url']['excludedPaths'] );
 
 		$this->assertSameSets(
 			array(
@@ -3218,6 +3347,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'changeset', $settings );
 
 		$this->assertArrayHasKey( 'preview', $settings['nonce'] );
+		$this->assertSame( $this->manager->get_excluded_url_paths(), $settings['url']['excludedPaths'] );
 	}
 
 	/**
