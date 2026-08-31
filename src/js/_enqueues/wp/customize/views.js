@@ -1,9 +1,5 @@
 /**
  * @output wp-includes/js/customize-views.js
- *
- * @param {JQueryStatic} $  The jQuery object.
- * @param {wp}           wp The WordPress global object.
- * @param {_}            _  The Underscore.js object.
  */
 
 (function( $, wp, _ ) {
@@ -22,7 +18,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.CurrentView
 	 *
-	 * @class
+	 * @constructor
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.CurrentView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.CurrentView.prototype */{
@@ -68,7 +64,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.ChoiceView
 	 *
-	 * @class
+	 * @constructor
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.ChoiceView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.ChoiceView.prototype */{
@@ -146,7 +142,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.ChoiceListView
 	 *
-	 * @class
+	 * @constructor
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.ChoiceListView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.ChoiceListView.prototype */{
@@ -192,7 +188,7 @@
 	 * @memberOf wp.customize.HeaderTool
 	 * @alias wp.customize.HeaderTool.CombinedList
 	 *
-	 * @class
+	 * @constructor
 	 * @augments wp.Backbone.View
 	 */
 	api.HeaderTool.CombinedList = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.CombinedList.prototype */{

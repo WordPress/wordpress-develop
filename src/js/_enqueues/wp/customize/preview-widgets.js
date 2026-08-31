@@ -11,10 +11,10 @@
  *
  * @namespace wp.customize.widgetsPreview
  *
- * @param {JQueryStatic} $   The jQuery object.
- * @param {Object}       _   The utilities library.
- * @param {Object}       wp  Current WordPress environment instance.
- * @param {Object}       api Information from the API.
+ * @param {jQuery} $   The jQuery object.
+ * @param {Object} _   The utilities library.
+ * @param {Object} wp  Current WordPress environment instance.
+ * @param {Object} api Information from the API.
  *
  * @return {Object} Widget-related variables.
  */
