@@ -1076,14 +1076,149 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			return true;
 		}
 
+		private function could_potentially_escape_foreign_content() {
+			$token_name   = $this->get_token_name();
+			$is_closer    = $this->is_tag_closer();
+			$namespace    = $this->get_namespace();
+			$self_closing = ! $is_closer && $this->has_self_closing_flag();
+
+			if (
+				! $is_closer &&
+				in_array(
+					$token_name,
+					array(
+						'B',
+						'BIG',
+						'BLOCKQUOTE',
+						'BODY',
+						'BR',
+						'CENTER',
+						'CODE',
+						'DD',
+						'DIV',
+						'DL',
+						'DT',
+						'EM',
+						'EMBED',
+						'H1',
+						'H2',
+						'H3',
+						'H4',
+						'H5',
+						'H6',
+						'HEAD',
+						'HR',
+						'I',
+						'IMG',
+						'LI',
+						'LISTING',
+						'MENU',
+						'META',
+						'NOBR',
+						'OL',
+						'P',
+						'PRE',
+						'RUBY',
+						'S',
+						'SMALL',
+						'SPAN',
+						'STRONG',
+						'STRIKE',
+						'SUB',
+						'SUP',
+						'TABLE',
+						'TT',
+						'U',
+						'UL',
+						'VAR',
+
+						/*
+						 * This is technically only necessary when it contains one
+						 * of the `color`, `face`, or `size` attributes, but this
+						 * is already a conservative system so it’s okay to reject.
+						 */
+						'FONT',
+
+						/*
+						 * This will be parsed as 'IMG'. (Don’t ask.)
+						 */
+						'IMAGE',
+					),
+					true
+				) ||
+				(
+					$is_closer &&
+					in_array(
+						$token_name,
+						array(
+							'BR',
+							'P',
+						),
+						true
+					)
+				)
+			) {
+				return true;
+			}
+
+			if ( 'math' === $namespace && ! $self_closing ) {
+				if (
+					in_array(
+						$token_name,
+						array(
+							'MI',
+							'MO',
+							'MN',
+							'MS',
+							'MTEXT',
+						),
+						true
+					)
+				) {
+					return true;
+				}
+
+				$encoding = $this->get_attribute( 'encoding' );
+				if (
+					'ANNOTATION-XML' === $token_name &&
+					is_string( $encoding ) &&
+					(
+						0 === strcasecmp( $encoding, 'text/html' ) ||
+						0 === strcasecmp( $encoding, 'application/xhtml+xml' )
+					)
+				) {
+					return true;
+				}
+			}
+
+			if (
+				'svg' === $namespace &&
+				! $is_closer &&
+				in_array(
+					$token_name,
+					array(
+						'FOREIGNOBJECT',
+						'DESC',
+						'TITLE',
+					),
+					true
+				)
+			) {
+				return true;
+			}
+
+			return false;
+		}
+
 		/**
 		 * Returns a sanitized copy of the input HTML.
 		 *
 		 * @return string Sanitized copy of given input HTML.
 		 */
 		public function sanitize() {
-			$template_depth = 0;
-			$output         = '';
+			$template_depth            = 0;
+			$output                    = '';
+			$foreign_content_starts_at = PHP_INT_MAX;
 
 			/**
 			 * These are treated as void elements inside the HTML API
@@ -1103,21 +1238,23 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			while ( $this->next_token() ) {
 				$token_name = $this->get_token_name();
 				$token_type = $this->get_token_type();
+				$namespace  = $this->get_namespace();
 				$is_closer  = $this->is_tag_closer();
 				$text       = $this->get_modifiable_text();
 				$here       = $this->get_span();
 
 				/*
-				 * Without running the full HTML Processor, it’s not easy to know
-				 * when these sections end, and since they introduce different
-				 * parsing rules with the change of namespace, it’s best to end
-				 * processing entirely when encountering these.
+				 * Enter the foreign content and change the parsing namespace
+				 * so that the parser recognizes real self-closing elements.
 				 */
-				if ( ! $is_closer && in_array( $token_name, array( 'MATH', 'SVG' ), true ) ) {
-					return $output;
+				$is_svg_or_math        = 'MATH' === $token_name || 'SVG' === $token_name;
+				$has_self_closing_flag = ! $is_closer && $this->has_self_closing_flag();
+				if ( $is_svg_or_math && ! $is_closer && 'html' === $namespace ) {
+					$this->change_parsing_namespace( strtolower( $token_name ) );
+					$namespace = $this->get_namespace();
 				}
 
-				if ( 'TEMPLATE' === $token_name ) {
+				if ( 'TEMPLATE' === $token_name && 'html' === $namespace ) {
 					if ( $template_depth > 0 && $is_closer ) {
 						--$template_depth;
 					} elseif ( ! $is_closer ) {
@@ -1125,12 +1262,14 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					}
 				}
 
-				if ( $template_depth > 0 && ! isset( $this->allowed_html['template'] ) ) {
-					continue;
-				}
+				$skip_token = $template_depth > 0 && ! isset( $this->allowed_html['template'] );
 
 				switch ( $token_type ) {
 					case '#text':
+						if ( $skip_token ) {
+							break;
+						}
+
 						$text = strtr(
 							$text,
 							array(
@@ -1167,7 +1306,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					 * as they don’t contain potentially confusing syntax characters.
 					 */
 					case '#funky-comment':
-						if ( ! str_contains( $text, '<' ) ) {
+						if ( ! $skip_token && ! str_contains( $text, '<' ) ) {
 							$output .= substr( $this->html, $here->start, $here->length );
 						}
 						break;
@@ -1177,6 +1316,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					 * but the content is benign in a browser.
 					 */
 					case '#comment':
+						if ( $skip_token ) {
+							break;
+						}
+
 						/*
 						 * Disallow comment types as they are more prone to cause problems
 						 * for downstream parsers that might mistake them for non-comments.
@@ -1242,18 +1385,40 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					 * that exist for elements in the HTML namespace. Copy the token verbatim.
 					 */
 					case '#cdata-section':
-						$output .= substr( $this->html, $here->start, $here->length );
+						if ( ! $skip_token ) {
+							$output .= substr( $this->html, $here->start, $here->length );
+						}
 						break;
 
 					case '#tag':
+						/*
+						 * Any failures inside foreign content should return the part of
+						 * the post processed up until the entrance of the foreign content.
+						 * This is necessary because it’s only inside foreign content that
+						 * the self-closing flag indicates a self-closing element.
+						 *
+						 * While the HTML Processor can enter into SVG and MATH and track
+						 * when they close, it’s substantially more complicated and requires
+						 * considerable accounting. To avoid all of that, and to accept the
+						 * kind of content that is nominal and safe, track only when the
+						 * next tag _could_ lead to implicit changing of the parsing namespace
+						 * or insertion mode.
+						 */
+						if (
+							'html' !== $namespace &&
+							$this->could_potentially_escape_foreign_content()
+						) {
+							return substr( $output, 0, $foreign_content_starts_at );
+						}
+
+						if ( $skip_token ) {
+							break;
+						}
+
 						$tag_name = strtolower( $token_name );
 
 						// Skip unallowed elements by tag name
 						if ( ! isset( $this->allowed_html[ $tag_name ] ) ) {
-							if ( 'TEMPLATE' === $token_name && ! $is_closer ) {
-								$this->skip_opened_template();
-							}
-
 							break;
 						}
 
@@ -1262,13 +1427,18 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
-						$is_special_atomic_element = in_array( $token_name, $special_atomic_elements, true );
-
-						$expects_closer = ! (
-							WP_HTML_Processor::is_void( $token_name ) ||
-							$is_special_atomic_element
+						$is_special_atomic_element = (
+							'html' === $namespace &&
+							in_array( $token_name, $special_atomic_elements, true )
 						);
 
+						$expects_closer = ! (
+							'html' === $namespace
+								? ( WP_HTML_Processor::is_void( $token_name ) || $is_special_atomic_element )
+								: $has_self_closing_flag
+						);
+
+						$self_closer = ( 'html' !== $namespace && $has_self_closing_flag ) ? ' /' : '';
 						$closing_tag = $is_special_atomic_element ? "</{$tag_name}>" : '';
 
 						$attribute_names    = $this->get_attribute_names_with_prefix( '' );
@@ -1312,7 +1482,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						$tag_maker = new self(
-							"<{$tag_name}>{$closing_tag}",
+							"<{$tag_name}{$self_closer}>{$closing_tag}",
 							$this->allowed_html,
 							$this->allowed_protocols
 						);
@@ -1376,12 +1546,26 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
+						/*
+						 * Track the opening of the last transition into foreign
+						 * content so that it can be discarded when encountering
+						 * tags that would require more substantial parsing.
+						 */
+						if ( $is_svg_or_math ) {
+							$foreign_content_starts_at = strlen( $output );
+						}
+
 						if ( $is_special_atomic_element ) {
 							$tag_maker->set_modifiable_text( $text );
 						}
 
 						$output .= $tag_maker->get_updated_html();
 						break;
+				}
+
+				// Re-enter the HTML namespace.
+				if ( $is_svg_or_math && ( $is_closer || $has_self_closing_flag ) && 'html' !== $namespace ) {
+					$this->change_parsing_namespace( 'html' );
 				}
 			}
 
