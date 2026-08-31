@@ -57,7 +57,6 @@ includes:
 	- tests/phpstan/baselines/isset.property.neon
 	- tests/phpstan/baselines/method.childParameterType.neon
 	- tests/phpstan/baselines/method.nonObject.neon
-	- tests/phpstan/baselines/method.notFound.neon
 	- tests/phpstan/baselines/method.unused.neon
 	- tests/phpstan/baselines/notIdentical.alwaysTrue.neon
 	- tests/phpstan/baselines/nullCoalesce.offset.neon
