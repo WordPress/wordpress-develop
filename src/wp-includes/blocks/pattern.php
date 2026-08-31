@@ -23,6 +23,7 @@ function register_block_core_pattern() {
  * Renders the `core/pattern` block on the server.
  *
  * @since 6.3.0 Backwards compatibility: blocks with no `syncStatus` attribute do not receive block wrapper.
+ * @since 7.2.0 Processes shortcodes in pattern content.
  *
  * @global WP_Embed $wp_embed Used to process embedded content within patterns
  *
@@ -60,6 +61,8 @@ function render_block_core_pattern( $attributes ) {
 
 	$seen_refs[ $attributes['slug'] ] = true;
 
+	$content = shortcode_unautop( $content );
+	$content = do_shortcode( $content );
 	$content = do_blocks( $content );
 
 	global $wp_embed;
