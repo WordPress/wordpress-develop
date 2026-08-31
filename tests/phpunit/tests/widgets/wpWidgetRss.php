@@ -116,4 +116,47 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 			'filename' => null,
 		);
 	}
+
+	/**
+	 * @ticket 63611
+	 * @covers wp_widget_rss_output
+	 */
+	public function test_rss_title_html_entities_decoded() {
+		$mock_item = $this->getMockBuilder( 'SimplePie_Item' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		$mock_item->method( 'get_title' )
+			->willReturn( 'Title with &lt;em&gt;HTML entities&lt;/em&gt;' );
+
+		$mock_item->method( 'get_link' )
+			->willReturn( 'https://example.com' );
+
+		$mock_item->method( 'get_description' )
+			->willReturn( 'Description' );
+
+		$mock_item->method( 'get_date' )
+			->willReturn( false );
+
+		$mock_item->method( 'get_author' )
+			->willReturn( false );
+
+		$mock_rss = $this->getMockBuilder( 'SimplePie' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		$mock_rss->method( 'get_item_quantity' )
+			->willReturn( 1 );
+
+		$mock_rss->method( 'get_items' )
+			->willReturn( array( $mock_item ) );
+
+		ob_start();
+		wp_widget_rss_output( $mock_rss );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'Title with HTML entities', $output );
+		$this->assertStringNotContainsString( '&lt;em&gt;', $output );
+		$this->assertStringNotContainsString( '&lt;/em&gt;', $output );
+	}
 }
