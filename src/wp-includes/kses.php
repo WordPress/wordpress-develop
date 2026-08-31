@@ -1411,6 +1411,15 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						/*
+						 * Legacy `wp_kses()` recursively calls itself on the contents of comments.
+						 * Since comment content is not escaped, this changes the meaning of those
+						 * comments when parsed. Still, code often expects to find tag-like syntax
+						 * only when they are real tags. This legacy defect is preserved to avoid
+						 * presenting content that downstream parsers might misinterpret as markup.
+						 */
+						$text = strtr( $text, array( '<' => '&lt;' ) );
+
+						/*
 						 * Ensure that normalization does not create a block where none
 						 * previously existed. Should this be the case, there are two
 						 * options: leave the incorrect-closed-comment in place; or
