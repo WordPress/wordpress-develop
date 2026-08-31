@@ -2402,6 +2402,41 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 }
 
 /**
+ * Checks a term name against the maximum length allowed by the `wp_terms` table's `name` column.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $name Term name to check.
+ * @return true|WP_Error True if the name fits the column, WP_Error otherwise.
+ */
+function _wp_check_term_name_length( $name ) {
+	global $wpdb;
+
+	$max_length = 200;
+	$col_length = $wpdb->get_col_length( $wpdb->terms, 'name' );
+
+	if ( is_array( $col_length ) && ! empty( $col_length['length'] ) ) {
+		$max_length = (int) $col_length['length'];
+	}
+
+	if ( mb_strlen( $name ) > $max_length ) {
+		return new WP_Error(
+			'term_name_too_long',
+			sprintf(
+				/* translators: %d: Maximum number of characters. */
+				__( 'Term name may not be longer than %d characters.' ),
+				$max_length
+			)
+		);
+	}
+
+	return true;
+}
+
+/**
  * Adds a new term to the database.
  *
  * A non-existent term is inserted in the following sequence:
@@ -2518,6 +2553,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	// Sanitization could clean the name to an empty string that must be checked again.
 	if ( '' === $name ) {
 		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
+	}
+
+	$name_length_error = _wp_check_term_name_length( $name );
+	if ( is_wp_error( $name_length_error ) ) {
+		return $name_length_error;
 	}
 
 	$slug_provided = ! empty( $args['slug'] );
@@ -3310,6 +3350,11 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 
 	if ( '' === trim( $name ) ) {
 		return new WP_Error( 'empty_term_name', __( 'A name is required for this term.' ) );
+	}
+
+	$name_length_error = _wp_check_term_name_length( $name );
+	if ( is_wp_error( $name_length_error ) ) {
+		return $name_length_error;
 	}
 
 	if ( (int) $parsed_args['parent'] > 0 && ! term_exists( (int) $parsed_args['parent'] ) ) {
