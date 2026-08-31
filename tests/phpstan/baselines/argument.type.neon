@@ -829,11 +829,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Parameter \#3 \$args of class WP_Customize_Filter_Setting constructor expects array\{type\?\: string, capability\?\: string, theme_supports\?\: array\<string\>\|string, default\?\: string, transport\?\: string, validate_callback\?\: callable\(\)\: mixed, sanitize_callback\?\: callable\(\)\: mixed, sanitize_js_callback\?\: callable\(\)\: mixed, \.\.\., \.\.\.\}, array\{transport\: ''postMessage'', type\: ''option'', default\: array\{\}, sanitize_callback\: array\{\$this\(WP_Customize_Nav_Menus\), ''sanitize_nav_menus…''\}\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-nav-menus.php
-		-
 			message: '#^Parameter \#2 \$parent_query of method WP_Date_Query\:\:get_sql_for_clause\(\) expects array, string given\.$#'
 			identifier: argument.type
 			count: 1
