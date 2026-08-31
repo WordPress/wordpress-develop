@@ -16,7 +16,7 @@ var Library = wp.media.controller.Library,
  * @augments wp.media.controller.State
  * @augments Backbone.Model
  *
- * @param {object}                     [attributes]                      The attributes hash passed to the state.
+ * @param {Object}                     [attributes]                      The attributes hash passed to the state.
  * @param {string}                     attributes.title                  Title for the state. Displays in the media menu and the frame's title region.
  * @param {wp.media.model.Attachments} [attributes.library]              The attachments collection to edit.
  *                                                                       If one is not supplied, an empty media.model.Selection collection is created.
@@ -29,9 +29,9 @@ var Library = wp.media.controller.Library,
  * @param {boolean}                    [attributes.describe=true]        Whether to offer UI to describe the attachments - e.g. captioning images in a gallery.
  * @param {boolean}                    [attributes.dragInfo=true]        Whether to show instructional text about the attachments being sortable.
  * @param {boolean}                    [attributes.dragInfoText]         Instructional text about the attachments being sortable.
- * @param {int}                        [attributes.idealColumnWidth=170] The ideal column width in pixels for attachments.
+ * @param {number}                     [attributes.idealColumnWidth=170] The ideal column width in pixels for attachments.
  * @param {boolean}                    [attributes.editing=false]        Whether the gallery is being created, or editing an existing instance.
- * @param {int}                        [attributes.priority=60]          The priority for the state link in the media menu.
+ * @param {number}                     [attributes.priority=60]          The priority for the state link in the media menu.
  * @param {boolean}                    [attributes.syncSelection=false]  Whether the Attachments selection should be persisted from the last state.
  *                                                                       Defaults to false for this state, because the library passed in  *is* the selection.
  * @param {view}                       [attributes.SettingsView]         The view to edit the collection instance settings (e.g. Playlist settings with "Show tracklist" checkbox).
@@ -117,7 +117,7 @@ CollectionEdit = Library.extend(/** @lends wp.media.controller.CollectionEdit.pr
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param {wp.media.view.attachmentsBrowser} The attachments browser view.
+	 * @param {wp.media.view.attachmentsBrowser} attachmentsBrowserView The attachments browser view.
 	 */
 	renderSettings: function( attachmentsBrowserView ) {
 		var library = this.get('library'),

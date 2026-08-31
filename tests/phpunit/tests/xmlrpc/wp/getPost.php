@@ -147,4 +147,16 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $parent_page_id, $result['post_parent'] );
 		$this->assertSame( 2, $result['menu_order'] );
 	}
+
+	/**
+	 * Ensure a non-array `$fields` argument is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 65983
+	 */
+	public function test_non_array_fields_returns_error(): void {
+		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, 'post' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
 }

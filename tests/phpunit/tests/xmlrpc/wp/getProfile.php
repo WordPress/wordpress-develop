@@ -45,4 +45,18 @@ class Tests_XMLRPC_wp_getProfile extends WP_XMLRPC_UnitTestCase {
 		sort( $keys );
 		$this->assertSameSets( $expected_fields, $keys );
 	}
+
+	/**
+	 * Ensure a non-array `$fields` argument is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 65983
+	 */
+	public function test_non_array_fields_returns_error(): void {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->wp_getProfile( array( 1, 'editor', 'editor', 'all' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
 }
