@@ -1028,9 +1028,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 	/*
 	 * The explanation for this call is that “the quoting from `preg_replace(//e)`
 	 * requires” it, but this version of `wp_kses()` doesn’t rely on PCRE functions
-	 * to parse HTML. Given that this corrupts text, it should potentially be removed.
+	 * to parse HTML. Given that this corrupts text, it will be skipped.
 	 */
-	$content = wp_kses_stripslashes( $content );
+	//$content = wp_kses_stripslashes( $content );
 
 	$processor = new class( $content, $allowed_html, $allowed_protocols ) extends WP_HTML_Tag_Processor {
 		private $allowed_html;
@@ -1232,7 +1232,24 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							}
 						}
 
-						$output .= "<!--{$text}-->";
+						/*
+						 * Ensure that normalization does not create a block where none
+						 * previously existed. Should this be the case, there are two
+						 * options: leave the incorrect-closed-comment in place; or
+						 * remove the entire comment.
+						 *
+						 * For the sake of sanitization, remove the comment entirely.
+						 */
+						$was_incorrectly_closed = '!' === $comment[ strlen( $comment ) - 2 ];
+						$normalized             = "<!--{$text}-->";
+						if ( $was_incorrectly_closed ) {
+							$block_processor = new WP_Block_Processor( $normalized );
+							if ( $block_processor->next_token() && ! $block_processor->is_html() ) {
+								break;
+							}
+						}
+
+						$output .= $normalized;
 						break;
 
 					/*
