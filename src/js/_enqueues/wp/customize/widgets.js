@@ -1,8 +1,8 @@
-/* global _wpCustomizeWidgetsSettings */
-
 /**
  * @output wp-admin/js/customize-widgets.js
  */
+
+/* global _wpCustomizeWidgetsSettings */
 
 /**
  * @param {Object}       wp The WordPress global object.
