@@ -2,7 +2,7 @@
 	"extends": [
 		"stylelint-config-wordpress"
 	],
-	"plugins": ["stylelint-a11y"],
+	"plugins": ["@double-great/stylelint-a11y"],
 	"rules": {
 		"font-family-no-missing-generic-family-keyword": null,
 		"no-descending-specificity": null,
