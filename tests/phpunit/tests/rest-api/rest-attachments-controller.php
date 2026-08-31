@@ -2072,13 +2072,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 35, $properties );
+		$this->assertCount( 36, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'exif_orientation', $properties );
 		$this->assertArrayHasKey( 'image_quality', $properties );
 		$this->assertArrayHasKey( 'image_output_format', $properties );
 		$this->assertArrayHasKey( 'image_save_progressive', $properties );
+		$this->assertArrayHasKey( 'original_attachment', $properties );
 		$this->assertArrayHasKey( 'filename', $properties );
 		$this->assertArrayHasKey( 'filesize', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -6062,5 +6063,339 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->assertSame( 'rest_invalid_url', $result->get_error_code() );
 			$this->assertSame( 400, $result->get_error_data()['status'] );
 		}
+	}
+
+	/**
+	 * Edits an image and returns the ID of the attachment the edit created.
+	 *
+	 * @param int $attachment_id Attachment to edit.
+	 * @return int New attachment ID.
+	 */
+	private function edit_image_and_get_new_id( $attachment_id ) {
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 60,
+				'src'      => wp_get_attachment_image_url( $attachment_id, 'full' ),
+			)
+		);
+
+		$response = rest_do_request( $request );
+		$this->assertSame( 201, $response->get_status(), 'The image edit should have succeeded.' );
+
+		$data = $response->get_data();
+
+		return $data['id'];
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_original_attachment_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response = rest_get_server()->dispatch( $request );
+		$schema   = $response->get_data()['schema']['properties']['original_attachment'];
+
+		$this->assertSame( 'integer', $schema['type'] );
+		$this->assertSame( array( 'edit' ), $schema['context'] );
+		$this->assertTrue( $schema['readonly'] );
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_get_original_attachment_id_returns_same_id_for_an_upload() {
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->assertSame( $attachment, wp_get_original_attachment_id( $attachment ) );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_records_the_edited_image_as_the_original() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$this->assertSame( $attachment, wp_get_original_attachment_id( $edited ) );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_editing_an_edited_image_keeps_the_first_original() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited       = $this->edit_image_and_get_new_id( $attachment );
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_original_attachment_id( $edited_again ),
+			'An edit of an edit should still point at the image the chain started from.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edited_image_response_includes_the_original_attachment() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayHasKey( 'original_attachment', $data );
+		$this->assertSame( $attachment, $data['original_attachment'] );
+	}
+
+	/**
+	 * The response carries only the ID, so the original is offered as an embeddable
+	 * link in the same way as a featured image.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_original_attachment_is_embeddable() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'https://api.w.org/original-attachment', $links );
+		$this->assertCount(
+			1,
+			$links['https://api.w.org/original-attachment'],
+			'The link should be added once.'
+		);
+
+		$link = $links['https://api.w.org/original-attachment'][0];
+		$this->assertStringEndsWith( '/wp/v2/media/' . $attachment, $link['href'] );
+		$this->assertTrue( $link['attributes']['embeddable'] );
+
+		// Requesting `_embed` hydrates the original alongside the edited image.
+		$embedded = rest_get_server()->response_to_data( $response, true );
+		$this->assertSame(
+			$attachment,
+			$embedded['_embedded']['wp:original-attachment'][0]['id']
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_view_context_omits_the_original_attachment_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'view' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/original-attachment', $links );
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_uploaded_image_reports_no_original_attachment() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 0, $response->get_data()['original_attachment'] );
+		$this->assertArrayNotHasKey(
+			'https://api.w.org/original-attachment',
+			$response->get_links(),
+			'An image with no original should carry no link.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_view_context_omits_the_original_attachment() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'view' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayNotHasKey( 'original_attachment', $data );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_original_attachment_can_be_requested_on_its_own() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,original_attachment' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayHasKey( 'original_attachment', $data );
+		$this->assertArrayNotHasKey( 'media_details', $data, 'Only the requested fields should be returned.' );
+		$this->assertSame( $attachment, $data['original_attachment'] );
+	}
+
+	/**
+	 * An attachment recorded as its own original is a broken record, not a chain,
+	 * so it reports no original.
+	 *
+	 * @ticket 65987
+	 */
+	public function test_attachment_recorded_as_its_own_original_reports_none() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		update_post_meta( $attachment, '_wp_attachment_original_id', $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertSame( 0, $data['original_attachment'] );
+	}
+
+	/**
+	 * Trashing is not deleting. `delete_attachment` does not fire for a trashed
+	 * attachment, and the record is deliberately left in place so that untrashing
+	 * the original restores the relationship intact.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_trashing_an_original_keeps_the_record_on_the_images_edited_from_it() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		wp_trash_post( $attachment );
+
+		$this->assertSame(
+			'trash',
+			get_post_status( $attachment ),
+			'The original should have been trashed rather than deleted.'
+		);
+		$this->assertSame(
+			$attachment,
+			wp_get_original_attachment_id( $edited ),
+			'Trashing the original should leave the record in place.'
+		);
+
+		wp_untrash_post( $attachment );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_original_attachment_id( $edited ),
+			'Untrashing the original should leave the relationship intact.'
+		);
+	}
+
+	/**
+	 * Once the original is gone its record is cleared, so a further edit has no
+	 * lineage to inherit and starts a new chain from the image being edited.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_editing_again_after_the_original_is_deleted_starts_a_new_chain() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		wp_delete_attachment( $attachment, true );
+
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		$this->assertSame(
+			$edited,
+			wp_get_original_attachment_id( $edited_again ),
+			'The new image should point at the image it was edited from.'
+		);
+	}
+
+	/**
+	 * Deleting an image from the middle of a chain does not orphan the images
+	 * edited from it, because every image records the start of the chain rather
+	 * than the image directly above it.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_deleting_a_middle_image_leaves_the_rest_of_the_chain_intact() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment   = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited       = $this->edit_image_and_get_new_id( $attachment );
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		wp_delete_attachment( $edited, true );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_original_attachment_id( $edited_again ),
+			'The remaining image should still point at the start of the chain.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_deleting_an_original_clears_it_from_the_images_edited_from_it() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		$unrelated        = self::factory()->attachment->create_upload_object( self::$test_file );
+		$unrelated_edited = $this->edit_image_and_get_new_id( $unrelated );
+
+		wp_delete_attachment( $attachment, true );
+
+		$this->assertSame(
+			'',
+			get_post_meta( $edited, '_wp_attachment_original_id', true ),
+			'The record pointing at the deleted attachment should have been cleared.'
+		);
+		$this->assertSame(
+			$unrelated,
+			wp_get_original_attachment_id( $unrelated_edited ),
+			'An unrelated image should have kept its record.'
+		);
 	}
 }

@@ -1356,6 +1356,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'file'          => _wp_relative_upload_path( $image_file ),
 		);
 
+		/*
+		 * Record the attachment this chain of edits started from, so the original can be
+		 * found in one lookup from any image later in the chain. The new attachment inherits
+		 * the original recorded on the image being edited, or that image itself when it was
+		 * uploaded rather than edited.
+		 */
+		update_post_meta(
+			$new_attachment_id,
+			'_wp_attachment_original_id',
+			wp_get_original_attachment_id( $attachment_id )
+		);
+
 		/**
 		 * Filters the meta data for the new image created by editing an existing image.
 		 *
@@ -1507,6 +1519,29 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( in_array( 'post', $fields, true ) ) {
 			$data['post'] = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
+		}
+
+		/*
+		 * Point an image created by editing another one back at the attachment its chain of
+		 * edits started from, so editors can offer a way to get back to the original. Just
+		 * the ID, like `featured_media`, with `0` meaning the image was not created by
+		 * editing another one: this describes a relationship to another attachment rather
+		 * than anything about this image's own file, so it sits alongside `post` rather than
+		 * inside `media_details`. The link added below lets clients fetch the original's URL
+		 * and dimensions with `_embed`.
+		 *
+		 * Only sent in the `edit` context: this is for people editing the image, and it would
+		 * otherwise tell visitors which images were made from which.
+		 *
+		 * The stored ID is trusted rather than checked against the original's file, because
+		 * deleting an attachment clears it from everything edited from it. A client that
+		 * follows a stale ID, such as one whose original is in the trash, simply gets no
+		 * record back.
+		 */
+		if ( in_array( 'original_attachment', $fields, true ) && 'edit' === $request['context'] ) {
+			$original_id = wp_get_original_attachment_id( $post->ID );
+
+			$data['original_attachment'] = $original_id !== (int) $post->ID ? $original_id : 0;
 		}
 
 		if ( in_array( 'source_url', $fields, true ) ) {
@@ -1667,6 +1702,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		/*
+		 * Let clients fetch the original attachment in the same request with `_embed`,
+		 * the way `featured_media` is paired with its own link. Added here rather than in
+		 * `prepare_links()` because that method cannot see the request, and this belongs
+		 * in the `edit` context only, alongside the field itself.
+		 */
+		if ( ! empty( $data['original_attachment'] ) ) {
+			$response->add_link(
+				'https://api.w.org/original-attachment',
+				rest_url( rest_get_route_for_post( $data['original_attachment'] ) ),
+				array( 'embeddable' => true )
+			);
+		}
+
 		/**
 		 * Filters an attachment returned from the REST API.
 		 *
@@ -1803,6 +1852,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description' => __( 'The ID for the associated post of the attachment.' ),
 			'type'        => 'integer',
 			'context'     => array( 'view', 'edit' ),
+		);
+
+		$schema['properties']['original_attachment'] = array(
+			'description' => __( 'The ID of the attachment this image was created from by editing, or 0 if it was not created by editing another image.' ),
+			'type'        => 'integer',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
 		);
 
 		$schema['properties']['source_url'] = array(
