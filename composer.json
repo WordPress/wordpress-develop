@@ -22,7 +22,7 @@
 		"ext-ssh2": "*"
 	},
 	"require-dev": {
-		"composer/ca-bundle": "1.5.12",
+		"composer/ca-bundle": "1.5.13",
 		"squizlabs/php_codesniffer": "3.13.5",
 		"wp-coding-standards/wpcs": "~3.4.1",
 		"phpcompatibility/phpcompatibility-wp": "~2.1.3",
