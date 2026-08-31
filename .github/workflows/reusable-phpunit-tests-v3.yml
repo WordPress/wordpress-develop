@@ -83,6 +83,9 @@ on:
         type: string
         default: ''
     secrets:
+      CODEVITALS_PROJECT_TOKEN:
+        description: 'The authorization token for publishing results to CodeVitals.'
+        required: false
       CODECOV_TOKEN:
         description: 'The Codecov token required for uploading reports.'
         required: false
@@ -123,6 +126,7 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
+  # - Publish PHPUnit timing metrics to CodeVitals.
   # - Upload the code coverage report to Codecov.io.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
@@ -268,6 +272,40 @@ jobs:
         env:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
           MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
+
+      - name: Publish PHPUnit timing metrics
+        continue-on-error: true
+        if: |
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/trunk' &&
+          inputs.php == '8.5' &&
+          inputs.report
+        env:
+          CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$CODEVITALS_PROJECT_TOKEN" ]; then
+            echo "PHPUnit timing metrics could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set"
+            exit 1
+          fi
+          COMMITTED_AT="$(git show -s "$GITHUB_SHA" --format='%cI')"
+          RESPONSE="$(
+            php tests/phpunit/prepare-timing-results.php \
+              tests/phpunit/build/logs/junit.xml \
+              trunk \
+              "$GITHUB_SHA" \
+              "$COMMITTED_AT" \
+              | curl --fail-with-body --silent --show-error \
+                --request POST \
+                --header 'Content-Type: application/json' \
+                --data-binary @- \
+                "https://codevitals.run/api/log?token=${CODEVITALS_PROJECT_TOKEN}"
+          )"
+          if ! php -r "\$d = json_decode(file_get_contents('php://stdin'), true); exit(is_array(\$d) && (\$d['status'] ?? null) === 'ok' && (int) (\$d['count'] ?? 0) === 6 ? 0 : 1);" <<< "$RESPONSE"; then
+            echo 'CodeVitals did not accept all six PHPUnit timing metrics.'
+            exit 1
+          fi
+          echo 'Published six PHPUnit timing metrics to CodeVitals.'
 
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
