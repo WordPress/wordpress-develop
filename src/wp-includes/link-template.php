@@ -1164,11 +1164,13 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 	 */
 	$link = $before . apply_filters( 'edit_term_link', $link, $term->term_id ) . $after;
 
-	if ( $display ) {
-		echo $link;
-	} else {
+	if ( ! $display ) {
 		return $link;
 	}
+
+	echo $link;
+
+	return null;
 }
 
 /**
@@ -2291,7 +2293,7 @@ function previous_post_link( $format = '&laquo; %link', $link = '%title', $in_sa
  *
  * @since 3.7.0
  *
- * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
+ * @param string       $format         Optional. Link anchor format. Default '%link &raquo;'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
  * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
  *                                     Default false.
@@ -2311,7 +2313,7 @@ function get_next_post_link( $format = '%link &raquo;', $link = '%title', $in_sa
  *
  * @see get_next_post_link()
  *
- * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
+ * @param string       $format         Optional. Link anchor format. Default '%link &raquo;'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
  * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
  *                                     Default false.
@@ -2530,6 +2532,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
 			return get_pagenum_link( $next_page );
 		}
 	}
+
+	return null;
 }
 
 /**
@@ -2545,11 +2549,13 @@ function next_posts( $max_page = 0, $display = true ) {
 	$link   = get_next_posts_page_link( $max_page );
 	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+
+	echo $output;
+
+	return null;
 }
 
 /**
@@ -2598,6 +2604,8 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
 		);
 	}
+
+	return null;
 }
 
 /**
@@ -2637,6 +2645,8 @@ function get_previous_posts_page_link() {
 
 		return get_pagenum_link( $previous_page );
 	}
+
+	return null;
 }
 
 /**
@@ -2651,11 +2661,13 @@ function previous_posts( $display = true ) {
 	$link   = get_previous_posts_page_link();
 	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+
+	echo $output;
+
+	return null;
 }
 
 /**
@@ -2692,6 +2704,8 @@ function get_previous_posts_link( $label = null ) {
 			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
 		);
 	}
+
+	return null;
 }
 
 /**
@@ -3993,7 +4007,7 @@ function get_dashboard_url( $user_id = 0, $path = '', $scheme = 'admin' ) {
 	} else {
 		$current_blog = get_current_blog_id();
 
-		if ( $current_blog && ( user_can( $user_id, 'manage_network' ) || in_array( $current_blog, array_keys( $blogs ), true ) ) ) {
+		if ( $current_blog && ( user_can( $user_id, 'manage_network' ) || isset( $blogs[ $current_blog ] ) ) ) {
 			$url = admin_url( $path, $scheme );
 		} else {
 			$active = get_active_blog_for_user( $user_id );
@@ -4579,7 +4593,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 			}
 		} elseif ( $id_or_email instanceof WP_Comment ) {
 			$name = $id_or_email->comment_author;
-		} elseif ( is_string( $id_or_email ) && false !== strpos( $id_or_email, '@' ) ) {
+		} elseif ( is_string( $id_or_email ) && str_contains( $id_or_email, '@' ) ) {
 			$name = str_replace( array( '.', '_', '-' ), ' ', substr( $id_or_email, 0, strpos( $id_or_email, '@' ) ) );
 		}
 

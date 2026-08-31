@@ -192,15 +192,21 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the constructor allows overriding the default request timeout.
+	 * Test that the constructor allows overriding the default request timeout with a valid value.
 	 *
 	 * @ticket 64591
+	 * @ticket 65094
+	 *
+	 * @dataProvider data_valid_request_timeout_overrides
+	 *
+	 * @param mixed $input    The timeout value returned by the filter.
+	 * @param float $expected The expected timeout stored on the request options.
 	 */
-	public function test_constructor_allows_overriding_request_timeout() {
+	public function test_constructor_allows_overriding_request_timeout_with_valid_timeout( $input, float $expected ) {
 		add_filter(
 			'wp_ai_client_default_request_timeout',
-			static function () {
-				return 45;
+			static function () use ( $input ) {
+				return $input;
 			}
 		);
 
@@ -210,7 +216,63 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
-		$this->assertSame( 45.0, $request_options->getTimeout() );
+		$this->assertSame( $expected, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_allows_overriding_request_timeout_with_valid_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed, 1: float}>
+	 */
+	public function data_valid_request_timeout_overrides(): array {
+		return array(
+			'float'    => array( 45.5, 45.5 ),
+			'integer'  => array( 67, 67.0 ),
+			'string'   => array( '20', 20.0 ),
+			'infinity' => array( INF, INF ),
+			'zero'     => array( 0.0, 0.0 ),
+		);
+	}
+
+	/**
+	 * Test that the constructor disallows overriding the default request timeout with an invalid value.
+	 *
+	 * @ticket 65094
+	 *
+	 * @dataProvider data_invalid_request_timeouts
+	 *
+	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 *
+	 * @param mixed $timeout The invalid timeout value returned by the filter.
+	 */
+	public function test_constructor_disallows_overriding_with_invalid_request_timeout( $timeout ) {
+		add_filter(
+			'wp_ai_client_default_request_timeout',
+			static function () use ( $timeout ) {
+				return $timeout;
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		/** @var RequestOptions $request_options */
+		$request_options = $this->get_wrapped_prompt_builder_property_value( $builder, 'requestOptions' );
+
+		$this->assertInstanceOf( RequestOptions::class, $request_options );
+		$this->assertSame( 30.0, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_constructor_disallows_overriding_with_invalid_request_timeout()}.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_request_timeouts(): array {
+		return array(
+			'negative number' => array( -1 ),
+			'array'           => array( array() ),
+			'null'            => array( null ),
+		);
 	}
 
 	/**
@@ -2318,6 +2380,8 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertNotNull( $params );
 		$this->assertArrayHasKey( 'properties', $params );
 		$this->assertArrayHasKey( 'title', $params['properties'] );
+		$this->assertSame( array( 'title' ), $params['required'] );
+		$this->assertArrayNotHasKey( 'required', $params['properties']['title'] );
 	}
 
 	/**
@@ -2500,6 +2564,23 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that generate_result returns WP_Error when AI is not supported.
+	 *
+	 * @ticket 65422
+	 */
+	public function test_generate_result_returns_wp_error_when_ai_not_supported() {
+		add_filter( 'wp_supports_ai', '__return_false' );
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Test prompt' );
+
+		$result = $builder->generate_result();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'prompt_prevented', $result->get_error_code() );
+		$this->assertSame( 'AI features are not supported in this environment.', $result->get_error_message() );
+	}
+
+	/**
 	 * Tests that prevent prompt filter receives a clone of the builder instance.
 	 *
 	 * @ticket 64591
@@ -2530,6 +2611,75 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$builder2->generate_result();
 		$this->assertNotSame( $builder2, $captured_builder, 'Filter should receive a clone, not the same instance' );
 		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $captured_builder );
+	}
+
+	/**
+	 * Returns the text of every message part held by a prompt builder.
+	 *
+	 * @param WP_AI_Client_Prompt_Builder $builder The prompt builder to read.
+	 * @return string[] The text of each message part, in order.
+	 */
+	private function get_prompt_parts( WP_AI_Client_Prompt_Builder $builder ): array {
+		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $wrapped );
+		$inner = $wrapped->getValue( $builder );
+
+		$messages = new ReflectionProperty( $inner, 'messages' );
+		self::set_accessible( $messages );
+
+		$parts = array();
+		foreach ( $messages->getValue( $inner ) as $message ) {
+			foreach ( $message->getParts() as $part ) {
+				$parts[] = (string) $part->getText();
+			}
+		}
+
+		return $parts;
+	}
+
+	/**
+	 * Tests that a clone does not share the wrapped builder with the original.
+	 *
+	 * @ticket 65782
+	 */
+	public function test_clone_does_not_share_the_wrapped_builder() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
+		$clone   = clone $builder;
+
+		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $wrapped );
+
+		$this->assertNotSame(
+			$wrapped->getValue( $builder ),
+			$wrapped->getValue( $clone ),
+			'A clone should wrap its own builder instance'
+		);
+
+		$clone->with_text( 'Added to the clone' );
+
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'Changing the clone should not change the original' );
+	}
+
+	/**
+	 * Tests that the clone passed to the prevent prompt filter cannot change the prompt.
+	 *
+	 * @ticket 65782
+	 */
+	public function test_prevent_prompt_filter_cannot_mutate_the_original_prompt() {
+		add_filter(
+			'wp_ai_client_prevent_prompt',
+			static function ( $prevent, $builder ) {
+				$builder->with_text( 'Added by the filter' );
+				return $prevent;
+			},
+			10,
+			2
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
+		$builder->is_supported();
+
+		$this->assertSame( array( 'Original prompt' ), $this->get_prompt_parts( $builder ), 'A filter should not be able to change the prompt' );
 	}
 
 	/**
@@ -2565,6 +2715,86 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertFalse( $prompt_builder->is_supported(), 'is_supported should return false when in error state' );
 		$this->assertFalse( $prompt_builder->is_supported_for_text_generation(), 'is_supported_for_text_generation should return false when in error state' );
+	}
+
+	/**
+	 * Tests that support check methods return false when the wrapped builder throws.
+	 *
+	 * @ticket 65781
+	 *
+	 * @dataProvider data_support_check_methods
+	 *
+	 * @param string $method         The support check method on the wrapper.
+	 * @param string $wrapped_method The matching method on the wrapped builder.
+	 */
+	public function test_support_check_methods_return_false_when_builder_throws( $method, $wrapped_method ) {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		$wrapped_builder = $this->createMock( PromptBuilder::class );
+		$wrapped_builder->method( $wrapped_method )
+			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
+
+		$builder_property = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		self::set_accessible( $builder_property );
+		$builder_property->setValue( $prompt_builder, $wrapped_builder );
+
+		$result = $prompt_builder->{$method}();
+
+		$this->assertFalse( $result, $method . ' should return false when the wrapped builder throws' );
+
+		// The error is still recorded, so a generating method returns it.
+		$error = $prompt_builder->generate_text();
+		$this->assertWPError( $error, 'The caught error should still be returned by generating methods' );
+		$this->assertSame(
+			'prompt_builder_error',
+			$error->get_error_code(),
+			'The recorded error should be the one thrown by the wrapped builder'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Support check method names, keyed by the method on the wrapper.
+	 */
+	public static function data_support_check_methods(): array {
+		return array(
+			'is_supported'                               => array( 'is_supported', 'isSupported' ),
+			'is_supported_for_text_generation'           => array( 'is_supported_for_text_generation', 'isSupportedForTextGeneration' ),
+			'is_supported_for_image_generation'          => array( 'is_supported_for_image_generation', 'isSupportedForImageGeneration' ),
+			'is_supported_for_text_to_speech_conversion' => array( 'is_supported_for_text_to_speech_conversion', 'isSupportedForTextToSpeechConversion' ),
+			'is_supported_for_video_generation'          => array( 'is_supported_for_video_generation', 'isSupportedForVideoGeneration' ),
+			'is_supported_for_speech_generation'         => array( 'is_supported_for_speech_generation', 'isSupportedForSpeechGeneration' ),
+			'is_supported_for_music_generation'          => array( 'is_supported_for_music_generation', 'isSupportedForMusicGeneration' ),
+			'is_supported_for_embedding_generation'      => array( 'is_supported_for_embedding_generation', 'isSupportedForEmbeddingGeneration' ),
+		);
+	}
+
+	/**
+	 * Tests that a throw from the bundled client during a support check is handled.
+	 *
+	 * This covers the route reported on the ticket. The document modality has no
+	 * capability to infer, so the wrapped builder throws while determining whether
+	 * the prompt is supported.
+	 *
+	 * @ticket 65781
+	 */
+	public function test_is_supported_returns_false_when_the_bundled_builder_throws() {
+		$registry       = AiClient::defaultRegistry();
+		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry, 'Test text' );
+
+		$result = $prompt_builder->as_output_modalities( ModalityEnum::document() )->is_supported();
+
+		$this->assertFalse( $result, 'is_supported should return false when the wrapped builder throws' );
+
+		$error = $prompt_builder->generate_text();
+		$this->assertWPError( $error, 'The caught error should still be returned by generating methods' );
+		$this->assertSame(
+			'prompt_builder_error',
+			$error->get_error_code(),
+			'The document modality should still throw from the wrapped builder. If it no longer does, this test needs another route to a throw'
+		);
 	}
 
 	/**
@@ -2681,18 +2911,18 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the private exception_to_wp_error method via reflection.
+	 * Invokes the private throwable_to_wp_error method via reflection.
 	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder   The builder instance.
-	 * @param Exception                   $exception The exception to convert.
+	 * @param Throwable                   $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error.
 	 */
-	private function invoke_exception_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Exception $exception ): WP_Error {
+	private function invoke_throwable_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Throwable $throwable ): WP_Error {
 		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$method     = $reflection->getMethod( 'exception_to_wp_error' );
+		$method     = $reflection->getMethod( 'throwable_to_wp_error' );
 		self::set_accessible( $method );
 
-		return $method->invoke( $builder, $exception );
+		return $method->invoke( $builder, $throwable );
 	}
 
 	/**
@@ -2702,7 +2932,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_network_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new NetworkException( 'Connection timed out' )
 		);
@@ -2720,7 +2950,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_client_exception_with_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ClientException( 'Unauthorized', 401 )
 		);
@@ -2738,7 +2968,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_client_exception_without_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ClientException( 'Bad request' )
 		);
@@ -2755,7 +2985,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_server_exception_with_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ServerException( 'Bad gateway', 502 )
 		);
@@ -2773,7 +3003,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_server_exception_without_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ServerException( 'Internal server error' )
 		);
@@ -2790,7 +3020,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_token_limit_reached_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new TokenLimitReachedException( 'Token limit exceeded', 4096 )
 		);
@@ -2808,7 +3038,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_invalid_argument_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new AiClientInvalidArgumentException( 'Invalid model parameter' )
 		);
@@ -2826,7 +3056,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_generic_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new Exception( 'Something went wrong' )
 		);
@@ -2835,6 +3065,51 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertSame( 'Something went wrong', $error->get_error_message() );
 		$this->assertSame( 500, $error->get_error_data()['status'] );
 		$this->assertSame( 'Exception', $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps an Error (e.g. TypeError) to a generic builder error.
+	 *
+	 * A TypeError extends Error, not Exception, so this guards against the
+	 * conversion only accepting Exception instances.
+	 *
+	 * @ticket 65505
+	 */
+	public function test_exception_to_wp_error_type_error() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_throwable_to_wp_error(
+			$builder,
+			new TypeError( 'Argument must be of type float' )
+		);
+
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
+		$this->assertSame( 'Argument must be of type float', $error->get_error_message() );
+		$this->assertSame( 500, $error->get_error_data()['status'] );
+		$this->assertSame( 'TypeError', $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests that a TypeError thrown by the wrapped SDK is caught and returned as a WP_Error.
+	 *
+	 * Passing an argument of the wrong type to a strict-typed SDK method throws a
+	 * TypeError (which extends Error, not Exception). The builder must catch it and
+	 * place itself in an error state instead of letting it fatal the request.
+	 *
+	 * @ticket 65505
+	 */
+	public function test_call_catches_type_error_from_invalid_argument_type() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Test prompt' );
+
+		// usingTemperature() expects a float; an array can never be coerced and throws a TypeError.
+		$result = $builder->using_temperature( array( 0.7 ) );
+
+		// The builder is returned (fluent interface preserved), now in an error state.
+		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $result );
+
+		// A generating method now surfaces the stored WP_Error rather than fataling.
+		$error = $result->generate_text();
+		$this->assertWPError( $error );
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
 	}
 
 	/**
@@ -2848,7 +3123,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_error_data_structure( Exception $exception ) {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error( $builder, $exception );
+		$error   = $this->invoke_throwable_to_wp_error( $builder, $exception );
 
 		$data = $error->get_error_data();
 		$this->assertIsArray( $data );

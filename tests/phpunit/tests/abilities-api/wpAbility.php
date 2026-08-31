@@ -25,7 +25,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			'output_schema'       => array(
 				'type'        => 'number',
 				'description' => 'The result of performing a math operation.',
-				'required'    => true,
 			),
 			'execute_callback'    => static function (): int {
 				return 0;
@@ -264,6 +263,125 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `public` metadata seeds `show_in_rest` to true when it is not set explicitly.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_public_true_defaults_show_in_rest_to_true() {
+		$args    = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'public' => true,
+				),
+			)
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertTrue(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` metadata should default to the `public` value.'
+		);
+		$this->assertTrue(
+			$ability->get_meta_item( 'public' ),
+			'`public` metadata should be stored as provided.'
+		);
+	}
+
+	/**
+	 * Tests that an explicit `show_in_rest` value of false wins over `public` set to true.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_explicit_show_in_rest_false_wins_over_public_true() {
+		$args    = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'public'       => true,
+					'show_in_rest' => false,
+				),
+			)
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertFalse(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'An explicit `show_in_rest` value of false should win over `public` set to true.'
+		);
+	}
+
+	/**
+	 * Tests that `public` metadata defaults to false when not provided.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_public_defaults_to_false_when_unset() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertArrayHasKey(
+			'public',
+			$ability->get_meta(),
+			'`public` metadata should always be present in the stored meta.'
+		);
+		$this->assertFalse(
+			$ability->get_meta_item( 'public' ),
+			'`public` metadata should default to false when not provided.'
+		);
+		$this->assertFalse(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` metadata should still default to false.'
+		);
+	}
+
+	/**
+	 * Tests that a null `public` value is treated as unset.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_public_null_is_treated_as_unset() {
+		$args    = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'public' => null,
+				),
+			)
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertFalse(
+			$ability->get_meta_item( 'public' ),
+			'A null `public` value should use the default value of false.'
+		);
+		$this->assertFalse(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` should use its default value when `public` is null.'
+		);
+	}
+
+	/**
+	 * Tests that invalid `public` value throws an exception.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_public_throws_exception_for_non_boolean() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'public' => 5,
+				),
+			)
+		);
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability meta should provide a valid `public` boolean.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
 	 * Data provider for testing the execution of the ability.
 	 *
 	 * @return array<string, array{0: array, 1: callable, 2: mixed, 3: mixed}> Data sets with different configurations.
@@ -274,7 +392,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => array( 'null', 'integer' ),
 					'description' => 'The null or integer to convert to integer.',
-					'required'    => true,
 				),
 				static function ( $input ): int {
 					return null === $input ? 0 : (int) $input;
@@ -286,7 +403,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'boolean',
 					'description' => 'The boolean to convert to integer.',
-					'required'    => true,
 				),
 				static function ( bool $input ): int {
 					return $input ? 1 : 0;
@@ -298,7 +414,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'integer',
 					'description' => 'The integer to add 5 to.',
-					'required'    => true,
 				),
 				static function ( int $input ): int {
 					return 5 + $input;
@@ -310,7 +425,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'number',
 					'description' => 'The floating number to round.',
-					'required'    => true,
 				),
 				static function ( float $input ): int {
 					return (int) round( $input );
@@ -322,7 +436,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'string',
 					'description' => 'The string to measure the length of.',
-					'required'    => true,
 				),
 				static function ( string $input ): int {
 					return strlen( $input );
@@ -361,7 +474,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array(
 					'type'        => 'array',
 					'description' => 'An array containing two numbers to add.',
-					'required'    => true,
 					'minItems'    => 2,
 					'maxItems'    => 2,
 					'items'       => array(
@@ -401,6 +513,100 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 
 		$this->assertSame( $result, $ability->execute( $input ) );
+	}
+
+	/**
+	 * Data provider for top-level `required` validation behavior.
+	 *
+	 * Each schema variant is paired with both a valid and an invalid input so the
+	 * inert behavior of a top-level `required` boolean — and the meaningful
+	 * behavior of a draft-04 `required` array on an object — are sealed.
+	 *
+	 * @return array<string, array{0: array, 1: mixed, 2: bool}> Data sets.
+	 */
+	public function data_validate_input_top_level_required() {
+		$required_true   = array(
+			'type'     => 'string',
+			'required' => true,
+		);
+		$required_false  = array(
+			'type'     => 'string',
+			'required' => false,
+		);
+		$required_unset  = array(
+			'type' => 'string',
+		);
+		$object_required = array(
+			'type'       => 'object',
+			'properties' => array(
+				'a' => array( 'type' => 'integer' ),
+				'b' => array( 'type' => 'integer' ),
+			),
+			'required'   => array( 'a', 'b' ),
+		);
+
+		return array(
+			// A top-level `required: true` is inert: only `type` is enforced.
+			'required true: valid input'           => array( $required_true, 'hello', true ),
+			'required true: invalid input'         => array( $required_true, 123, false ),
+
+			// A top-level `required: false` is equally inert and does not permit null.
+			'required false: valid input'          => array( $required_false, 'hello', true ),
+			'required false: invalid input'        => array( $required_false, 123, false ),
+			'required false: null still invalid'   => array( $required_false, null, false ),
+
+			// Omitting `required` behaves identically to setting it.
+			'required unset: valid input'          => array( $required_unset, 'hello', true ),
+			'required unset: invalid input'        => array( $required_unset, 123, false ),
+
+			// A draft-04 `required` array on an object type IS honored.
+			'object required array: valid input'   => array(
+				$object_required,
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				true,
+			),
+			'object required array: invalid input' => array( $object_required, array( 'a' => 1 ), false ),
+		);
+	}
+
+	/**
+	 * Tests how a top-level `required` keyword is handled during input validation.
+	 *
+	 * For a non-object root type, a top-level `required` flag is inert: validation
+	 * gates solely on `type`, so the outcome is identical whether `required` is
+	 * `true`, `false`, or omitted — and `required: false` notably does not make a
+	 * `null` value acceptable. For an object root type, a draft-04 `required` array
+	 * of property names is honored and enforces the presence of those properties.
+	 *
+	 * @ticket 64955
+	 *
+	 * @covers WP_Ability::validate_input
+	 *
+	 * @dataProvider data_validate_input_top_level_required
+	 *
+	 * @param array $input_schema The input schema under test.
+	 * @param mixed $input        The input value to validate.
+	 * @param bool  $is_valid     Whether the input is expected to pass validation.
+	 */
+	public function test_validate_input_top_level_required( $input_schema, $input, $is_valid ) {
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array( 'input_schema' => $input_schema )
+			)
+		);
+
+		$result = $ability->validate_input( $input );
+
+		if ( $is_valid ) {
+			$this->assertTrue( $result, 'Expected the input to pass validation.' );
+		} else {
+			$this->assertWPError( $result, 'Expected the input to fail validation.' );
+		}
 	}
 
 	/**
@@ -466,7 +672,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'string',
 					'description' => 'Test input string.',
-					'required'    => true,
 				),
 				'execute_callback' => $execute_callback,
 			)
@@ -553,6 +758,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public function test_before_execute_ability_action() {
 		$action_ability_name = null;
 		$action_input        = null;
+		$action_ability      = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -560,7 +766,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'integer',
 					'description' => 'Test input parameter.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( int $input ): int {
 					return $input * 2;
@@ -568,20 +773,23 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$callback = static function ( $ability_name, $input ) use ( &$action_ability_name, &$action_input ) {
-			$action_ability_name = $ability_name;
-			$action_input        = $input;
-		};
-
-		add_action( 'wp_before_execute_ability', $callback, 10, 2 );
+		add_action(
+			'wp_before_execute_ability',
+			static function ( $ability_name, $input, $ability ) use ( &$action_ability_name, &$action_input, &$action_ability ) {
+				$action_ability_name = $ability_name;
+				$action_input        = $input;
+				$action_ability      = $ability;
+			},
+			10,
+			3
+		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute( 5 );
 
-		remove_action( 'wp_before_execute_ability', $callback );
-
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertSame( 5, $action_input, 'Action should receive correct input' );
+		$this->assertSame( $ability, $action_ability, 'Action should receive the ability instance' );
 		$this->assertSame( 10, $result, 'Ability should execute correctly' );
 	}
 
@@ -593,6 +801,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public function test_before_execute_ability_action_no_input() {
 		$action_ability_name = null;
 		$action_input        = null;
+		$action_ability      = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -603,20 +812,23 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$callback = static function ( $ability_name, $input ) use ( &$action_ability_name, &$action_input ) {
-			$action_ability_name = $ability_name;
-			$action_input        = $input;
-		};
-
-		add_action( 'wp_before_execute_ability', $callback, 10, 2 );
+		add_action(
+			'wp_before_execute_ability',
+			static function ( $ability_name, $input, $ability ) use ( &$action_ability_name, &$action_input, &$action_ability ) {
+				$action_ability_name = $ability_name;
+				$action_input        = $input;
+				$action_ability      = $ability;
+			},
+			10,
+			3
+		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		remove_action( 'wp_before_execute_ability', $callback );
-
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertNull( $action_input, 'Action should receive null input when no input provided' );
+		$this->assertSame( $ability, $action_ability, 'Action should receive the ability instance' );
 		$this->assertSame( 42, $result, 'Ability should execute correctly' );
 	}
 
@@ -629,6 +841,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$action_ability_name = null;
 		$action_input        = null;
 		$action_result       = null;
+		$action_ability      = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -636,7 +849,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input_schema'     => array(
 					'type'        => 'integer',
 					'description' => 'Test input parameter.',
-					'required'    => true,
 				),
 				'execute_callback' => static function ( int $input ): int {
 					return $input * 3;
@@ -644,22 +856,25 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$callback = static function ( $ability_name, $input, $result ) use ( &$action_ability_name, &$action_input, &$action_result ) {
-			$action_ability_name = $ability_name;
-			$action_input        = $input;
-			$action_result       = $result;
-		};
-
-		add_action( 'wp_after_execute_ability', $callback, 10, 3 );
+		add_action(
+			'wp_after_execute_ability',
+			static function ( $ability_name, $input, $result, $ability ) use ( &$action_ability_name, &$action_input, &$action_result, &$action_ability ) {
+				$action_ability_name = $ability_name;
+				$action_input        = $input;
+				$action_result       = $result;
+				$action_ability      = $ability;
+			},
+			10,
+			4
+		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute( 7 );
 
-		remove_action( 'wp_after_execute_ability', $callback );
-
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertSame( 7, $action_input, 'Action should receive correct input' );
 		$this->assertSame( 21, $action_result, 'Action should receive correct result' );
+		$this->assertSame( $ability, $action_ability, 'Action should receive the ability instance' );
 		$this->assertSame( 21, $result, 'Ability should execute correctly' );
 	}
 
@@ -672,6 +887,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$action_ability_name = null;
 		$action_input        = null;
 		$action_result       = null;
+		$action_ability      = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -683,22 +899,25 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$callback = static function ( $ability_name, $input, $result ) use ( &$action_ability_name, &$action_input, &$action_result ) {
-			$action_ability_name = $ability_name;
-			$action_input        = $input;
-			$action_result       = $result;
-		};
-
-		add_action( 'wp_after_execute_ability', $callback, 10, 3 );
+		add_action(
+			'wp_after_execute_ability',
+			static function ( $ability_name, $input, $result, $ability ) use ( &$action_ability_name, &$action_input, &$action_result, &$action_ability ) {
+				$action_ability_name = $ability_name;
+				$action_input        = $input;
+				$action_result       = $result;
+				$action_ability      = $ability;
+			},
+			10,
+			4
+		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		remove_action( 'wp_after_execute_ability', $callback );
-
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertNull( $action_input, 'Action should receive null input when no input provided' );
 		$this->assertSame( 'test-result', $action_result, 'Action should receive correct result' );
+		$this->assertSame( $ability, $action_ability, 'Action should receive the ability instance' );
 		$this->assertSame( 'test-result', $result, 'Ability should execute correctly' );
 	}
 
@@ -720,22 +939,22 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$before_callback = static function () use ( &$before_action_fired ) {
-			$before_action_fired = true;
-		};
+		add_action(
+			'wp_before_execute_ability',
+			static function () use ( &$before_action_fired ) {
+				$before_action_fired = true;
+			}
+		);
 
-		$after_callback = static function () use ( &$after_action_fired ) {
-			$after_action_fired = true;
-		};
-
-		add_action( 'wp_before_execute_ability', $before_callback );
-		add_action( 'wp_after_execute_ability', $after_callback );
+		add_action(
+			'wp_after_execute_ability',
+			static function () use ( &$after_action_fired ) {
+				$after_action_fired = true;
+			}
+		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
-
-		remove_action( 'wp_before_execute_ability', $before_callback );
-		remove_action( 'wp_after_execute_ability', $after_callback );
 
 		$this->assertFalse( $before_action_fired, 'before_execute_ability action should not be fired on permission failure' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired on permission failure' );
@@ -760,22 +979,22 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$before_callback = static function () use ( &$before_action_fired ) {
-			$before_action_fired = true;
-		};
+		add_action(
+			'wp_before_execute_ability',
+			static function () use ( &$before_action_fired ) {
+				$before_action_fired = true;
+			}
+		);
 
-		$after_callback = static function () use ( &$after_action_fired ) {
-			$after_action_fired = true;
-		};
-
-		add_action( 'wp_before_execute_ability', $before_callback );
-		add_action( 'wp_after_execute_ability', $after_callback );
+		add_action(
+			'wp_after_execute_ability',
+			static function () use ( &$after_action_fired ) {
+				$after_action_fired = true;
+			}
+		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
-
-		remove_action( 'wp_before_execute_ability', $before_callback );
-		remove_action( 'wp_after_execute_ability', $after_callback );
 
 		$this->assertTrue( $before_action_fired, 'before_execute_ability action should be fired even if execution fails' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired when execution returns WP_Error' );
@@ -797,7 +1016,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'output_schema'    => array(
 					'type'        => 'string',
 					'description' => 'Expected string output.',
-					'required'    => true,
 				),
 				'execute_callback' => static function (): int {
 					return 42;
@@ -805,25 +1023,1100 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$before_callback = static function () use ( &$before_action_fired ) {
-			$before_action_fired = true;
-		};
+		add_action(
+			'wp_before_execute_ability',
+			static function () use ( &$before_action_fired ) {
+				$before_action_fired = true;
+			}
+		);
 
-		$after_callback = static function () use ( &$after_action_fired ) {
-			$after_action_fired = true;
-		};
-
-		add_action( 'wp_before_execute_ability', $before_callback );
-		add_action( 'wp_after_execute_ability', $after_callback );
+		add_action(
+			'wp_after_execute_ability',
+			static function () use ( &$after_action_fired ) {
+				$after_action_fired = true;
+			}
+		);
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		remove_action( 'wp_before_execute_ability', $before_callback );
-		remove_action( 'wp_after_execute_ability', $after_callback );
-
 		$this->assertTrue( $before_action_fired, 'before_execute_ability action should be fired even if output validation fails' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired when output validation fails' );
 		$this->assertInstanceOf( WP_Error::class, $result, 'Should return WP_Error for output validation failure' );
+	}
+
+	/**
+	 * Tests that the wp_ability_normalize_input filter can transform input and receives the
+	 * expected ability name and instance (verified via args-as-guards on the transformation).
+	 *
+	 * @ticket 64989
+	 */
+	public function test_normalize_input_filter_can_transform_input() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'string',
+					'description' => 'Test input string.',
+				),
+				'output_schema'    => array(
+					'type'        => 'integer',
+					'description' => 'Result integer.',
+				),
+				'execute_callback' => static function ( string $input ): int {
+					return strlen( $input );
+				},
+			)
+		);
+
+		$callback = static function ( $input, $ability_name, $ability ) {
+			if ( self::$test_ability_name !== $ability_name || ! $ability instanceof WP_Ability ) {
+				return $input;
+			}
+			return $input . '-transformed';
+		};
+
+		add_filter( 'wp_ability_normalize_input', $callback, 10, 3 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 'hello' );
+
+		remove_filter( 'wp_ability_normalize_input', $callback, 10 );
+
+		$this->assertSame( strlen( 'hello-transformed' ), $result, 'Result should reflect the transformed input flowing through the execute callback.' );
+	}
+
+	/**
+	 * Tests that returning a WP_Error from wp_ability_normalize_input halts execution.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_normalize_input_filter_wp_error_halts_execution() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'string',
+					'description' => 'Test input string.',
+				),
+				'execute_callback' => static function ( string $input ) {
+					return strlen( $input );
+				},
+			)
+		);
+
+		$filter = static function () {
+			return new WP_Error( 'normalize_halt', 'Halted from filter.' );
+		};
+
+		add_filter( 'wp_ability_normalize_input', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 'hello' );
+
+		remove_filter( 'wp_ability_normalize_input', $filter );
+
+		$this->assertInstanceOf( WP_Error::class, $result, 'Filter returning WP_Error should propagate as the execute() result.' );
+		$this->assertSame( 'normalize_halt', $result->get_error_code(), 'WP_Error code should be preserved.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter can grant permission that the
+	 * callback denied, with the filter's args verified via args-as-guards.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_can_grant_permission() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'        => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+				),
+				'output_schema'       => array(
+					'type'        => 'integer',
+					'description' => 'Result integer.',
+				),
+				'execute_callback'    => static function ( int $input ): int {
+					return $input;
+				},
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+
+		$filter = static function ( $permission, $ability_name, $input, $ability ) {
+			if ( false !== $permission ) {
+				return $permission;
+			}
+			if ( self::$test_ability_name !== $ability_name || 7 !== $input || ! $ability instanceof WP_Ability ) {
+				return $permission;
+			}
+			return true;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter, 10, 4 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 7 );
+
+		remove_filter( 'wp_ability_permission_result', $filter, 10 );
+
+		$this->assertSame( 7, $result, 'Filter should override the permission denial; reaching the execute callback proves all args matched expectations.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter can deny permission granted by the callback.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_can_deny_permission() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): bool {
+					return true;
+				},
+			)
+		);
+
+		$filter = static function () {
+			return false;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_permission_result', $filter );
+
+		$this->assertInstanceOf( WP_Error::class, $result, 'Denied permission should produce a WP_Error.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter can convert a WP_Error denial from the
+	 * callback into a grant, proving the filter receives the WP_Error verbatim.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_can_convert_wp_error_to_grant() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): WP_Error {
+					return new WP_Error( 'callback_denied', 'Denied by callback.' );
+				},
+			)
+		);
+
+		$filter = static function ( $permission ) {
+			if ( ! is_wp_error( $permission ) || 'callback_denied' !== $permission->get_error_code() ) {
+				return $permission;
+			}
+			return true;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_permission_result', $filter );
+
+		$this->assertSame( 1, $result, 'Filter received the WP_Error denial and converted it to a grant; execute callback returned its value.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter fires when check_permissions() is
+	 * called directly (not via execute()).
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_fires_on_direct_check_permissions_call() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'permission_callback' => static function (): bool {
+					return true;
+				},
+			)
+		);
+
+		$filter = static function () {
+			return false;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->check_permissions();
+
+		remove_filter( 'wp_ability_permission_result', $filter );
+
+		$this->assertFalse( $result, 'check_permissions() should return the filtered value when called directly.' );
+	}
+
+	/**
+	 * Tests that a non-bool, non-WP_Error return from the wp_ability_permission_result filter is
+	 * coerced to false so check_permissions() honors its documented bool|WP_Error return type.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_result_filter_invalid_value_coerced_to_false() {
+		$filter = static function () {
+			return 'not-a-bool';
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+		$result  = $ability->check_permissions();
+
+		remove_filter( 'wp_ability_permission_result', $filter );
+
+		$this->assertFalse( $result, 'Non-bool, non-WP_Error filter return is coerced to false.' );
+	}
+
+	/**
+	 * Tests that returning a custom value from wp_pre_execute_ability short-circuits the
+	 * pipeline. The pipeline is configured to fail (permission denial) so a real run would
+	 * surface a WP_Error; receiving the short-circuit value proves the bypass. Filter args
+	 * are verified via args-as-guards on the short-circuit value.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_short_circuits_pipeline() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'        => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+				),
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+
+		$filter = static function ( $pre, $ability_name, $input, $ability ) {
+			if ( self::$test_ability_name !== $ability_name || 99 !== $input || ! $ability instanceof WP_Ability ) {
+				return $pre;
+			}
+			return 'short-circuited';
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter, 10, 4 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 99 );
+
+		remove_filter( 'wp_pre_execute_ability', $filter, 10 );
+
+		$this->assertSame( 'short-circuited', $result, 'Short-circuit value bypasses the pipeline; matching args allowed the filter to set it.' );
+	}
+
+	/**
+	 * Tests that returning the default value from wp_pre_execute_ability lets the pipeline run.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_default_value_runs_pipeline() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): int {
+					return 5;
+				},
+			)
+		);
+
+		$filter = static function ( $pre ) {
+			return $pre;
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_pre_execute_ability', $filter );
+
+		$this->assertSame( 5, $result, 'Pipeline should run and return the execute_callback value when filter returns the default value.' );
+	}
+
+	/**
+	 * Tests that returning null explicitly from wp_pre_execute_ability short-circuits with null.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_null_short_circuits() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+
+		$filter = static function () {
+			return null;
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_pre_execute_ability', $filter );
+
+		$this->assertNull( $result, 'Null from filter should be returned as-is and bypass the pipeline.' );
+	}
+
+	/**
+	 * Tests that returning a freshly constructed object from wp_pre_execute_ability is treated as a
+	 * short-circuit value, not confused with the WP_Filter_Sentinel default. This proves the
+	 * sentinel disambiguates arbitrary object returns.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_object_short_circuits() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+
+		$envelope = (object) array( 'status' => 'approval_pending' );
+		$filter   = static function () use ( $envelope ) {
+			return $envelope;
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_pre_execute_ability', $filter );
+
+		$this->assertSame( $envelope, $result, 'Object from filter is returned as-is; WP_Filter_Sentinel keeps it distinct from the default.' );
+	}
+
+	/**
+	 * Tests that returning a WP_Error from wp_pre_execute_ability short-circuits with the error.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_pre_execute_ability_filter_wp_error_short_circuits() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): int {
+					return 1;
+				},
+			)
+		);
+
+		$filter = static function () {
+			return new WP_Error( 'pre_short_circuit', 'Cached error.' );
+		};
+
+		add_filter( 'wp_pre_execute_ability', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_pre_execute_ability', $filter );
+
+		$this->assertInstanceOf( WP_Error::class, $result, 'WP_Error from filter should be returned as-is.' );
+		$this->assertSame( 'pre_short_circuit', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that the wp_ability_execute_result filter can transform the result, with all
+	 * filter args verified via args-as-guards.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_execute_result_filter_can_transform_result() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+				),
+				'execute_callback' => static function ( int $input ): int {
+					return $input * 2;
+				},
+			)
+		);
+
+		$filter = static function ( $result, $ability_name, $input, $ability ) {
+			if ( 10 !== $result ) {
+				return $result;
+			}
+			if ( self::$test_ability_name !== $ability_name || 5 !== $input || ! $ability instanceof WP_Ability ) {
+				return $result;
+			}
+			return 99;
+		};
+
+		add_filter( 'wp_ability_execute_result', $filter, 10, 4 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 5 );
+
+		remove_filter( 'wp_ability_execute_result', $filter, 10 );
+
+		$this->assertSame( 99, $result, 'Filter received expected args and transformed the result.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_execute_result filter can repair an invalid execute result so
+	 * output validation passes — also proves the filter runs before output validation.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_execute_result_filter_can_fix_invalid_output() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): string {
+					return 'not-a-number';
+				},
+			)
+		);
+
+		$filter = static function () {
+			return 42;
+		};
+
+		add_filter( 'wp_ability_execute_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_execute_result', $filter );
+
+		$this->assertSame( 42, $result, 'Filter should repair invalid output before validation runs.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_execute_result filter runs before the wp_after_execute_ability action.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_execute_result_filter_runs_before_after_execute_action() {
+		$order = array();
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function (): int {
+					return 1;
+				},
+			)
+		);
+
+		$filter = static function ( $result ) use ( &$order ) {
+			$order[] = 'filter';
+			return $result;
+		};
+
+		$action = static function () use ( &$order ) {
+			$order[] = 'action';
+		};
+
+		add_filter( 'wp_ability_execute_result', $filter );
+		add_action( 'wp_after_execute_ability', $action );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute();
+
+		remove_filter( 'wp_ability_execute_result', $filter );
+		remove_action( 'wp_after_execute_ability', $action );
+
+		$this->assertSame( array( 'filter', 'action' ), $order, 'execute_result filter must run before wp_after_execute_ability action.' );
+	}
+
+	/**
+	 * Tests that the wp_ability_execute_result filter receives a WP_Error from the execute
+	 * callback and can pass it through (verified via args-as-guards on the WP_Error code).
+	 *
+	 * @ticket 64989
+	 */
+	public function test_execute_result_filter_receives_wp_error_from_do_execute() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback' => static function () {
+					return new WP_Error( 'execute_failed', 'Something went wrong.' );
+				},
+			)
+		);
+
+		$filter = static function ( $result ) {
+			if ( ! is_wp_error( $result ) || 'execute_failed' !== $result->get_error_code() ) {
+				return new WP_Error( 'unexpected_input' );
+			}
+			return $result;
+		};
+
+		add_filter( 'wp_ability_execute_result', $filter );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_execute_result', $filter );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'execute_failed', $result->get_error_code(), 'Filter saw the expected WP_Error and passed it through.' );
+	}
+
+	/**
+	 * Tests wp_ability_validate_input filter receives all parameters.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_receives_all_parameters() {
+		$captured = array();
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'string',
+					'description' => 'Test input string.',
+				),
+				'execute_callback' => static function ( string $input ): int {
+					return strlen( $input );
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $is_valid, $input, $ability_name ) use ( &$captured ) {
+				$captured = array( $is_valid, $input, $ability_name );
+				return $is_valid;
+			},
+			10,
+			3
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute( 'hello' );
+
+		$this->assertTrue( $captured[0] );
+		$this->assertSame( 'hello', $captured[1] );
+		$this->assertSame( self::$test_ability_name, $captured[2] );
+	}
+
+	/**
+	 * Tests wp_ability_validate_input filter can override validation failure.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_overrides_validation_failure() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+				),
+				'output_schema'    => array(
+					'type'        => 'integer',
+					'description' => 'Result integer.',
+				),
+				'execute_callback' => static function () {
+					return 99;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $is_valid ) {
+				return true;
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 'invalid' );
+
+		$this->assertSame( 99, $result );
+	}
+
+	/**
+	 * Tests wp_ability_validate_input filter receives WP_Error on validation failure.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_receives_error_on_invalid_input() {
+		$error_code = null;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+				),
+				'execute_callback' => static function ( int $input ): int {
+					return $input * 2;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $is_valid ) use ( &$error_code ) {
+				if ( is_wp_error( $is_valid ) ) {
+					$error_code = $is_valid->get_error_code();
+				}
+				return $is_valid;
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute( 'invalid' );
+
+		$this->assertSame( 'ability_invalid_input', $error_code );
+	}
+
+	/**
+	 * Tests wp_ability_validate_input filter can replace error with custom error.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_replaces_error_with_custom() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+				),
+				'execute_callback' => static function ( int $input ): int {
+					return $input * 2;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_input',
+			static function () {
+				return new WP_Error( 'custom_error', 'Custom message.' );
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 'invalid' );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'custom_error', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests wp_ability_validate_output filter receives all parameters.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_receives_all_parameters() {
+		$captured = array();
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'integer',
+					'description' => 'The result integer.',
+				),
+				'execute_callback' => static function (): int {
+					return 42;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_output',
+			static function ( $is_valid, $output, $ability_name ) use ( &$captured ) {
+				$captured = array( $is_valid, $output, $ability_name );
+				return $is_valid;
+			},
+			10,
+			3
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute();
+
+		$this->assertTrue( $captured[0] );
+		$this->assertSame( 42, $captured[1] );
+		$this->assertSame( self::$test_ability_name, $captured[2] );
+	}
+
+	/**
+	 * Tests wp_ability_validate_output filter can override validation failure.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_overrides_validation_failure() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'string',
+					'description' => 'The result string.',
+				),
+				'execute_callback' => static function (): int {
+					return 42;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_output',
+			static function () {
+				return true;
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		$this->assertSame( 42, $result );
+	}
+
+	/**
+	 * Tests wp_ability_validate_output filter receives WP_Error on validation failure.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_receives_error_on_invalid_output() {
+		$error_code = null;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'string',
+					'description' => 'The result string.',
+				),
+				'execute_callback' => static function (): int {
+					return 42;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_output',
+			static function ( $is_valid ) use ( &$error_code ) {
+				if ( is_wp_error( $is_valid ) ) {
+					$error_code = $is_valid->get_error_code();
+				}
+				return $is_valid;
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute();
+
+		$this->assertSame( 'ability_invalid_output', $error_code );
+	}
+
+	/**
+	 * Tests wp_ability_validate_output filter can replace error with custom error.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_replaces_error_with_custom() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'string',
+					'description' => 'The result string.',
+				),
+				'execute_callback' => static function (): int {
+					return 42;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_output',
+			static function () {
+				return new WP_Error( 'custom_output_error', 'Custom output message.' );
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'custom_output_error', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that wp_ability_invoked action fires with correct parameters and raw input before normalization.
+	 *
+	 * @ticket 65248
+	 */
+	public function test_ability_invoked_action_fires_with_correct_params() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input parameter.',
+					'default'     => 42,
+				),
+				'execute_callback' => static function ( int $input ): int {
+					return $input;
+				},
+			)
+		);
+
+		$action = new MockAction();
+		add_action( 'wp_ability_invoked', array( $action, 'action' ), 10, 3 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute();
+
+		$action_args = $action->get_args();
+		$this->assertSame( self::$test_ability_name, $action_args[0][0], 'Action should receive correct ability name.' );
+		$this->assertNull( $action_args[0][1], 'Action should receive raw null input, not the schema default.' );
+		$this->assertSame( $ability, $action_args[0][2], 'Action should receive the ability instance.' );
+	}
+
+	/**
+	 * Tests that wp_ability_invoked action fires when execution is short-circuited.
+	 *
+	 * @ticket 65248
+	 */
+	public function test_ability_invoked_action_fires_on_pre_execute_short_circuit() {
+		$action = new MockAction();
+		add_action( 'wp_ability_invoked', array( $action, 'action' ) );
+
+		add_filter(
+			'wp_pre_execute_ability',
+			static function () {
+				return 'short-circuited';
+			}
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+		$ability->execute();
+
+		$this->assertSame( 1, $action->get_call_count(), 'wp_ability_invoked should fire before a pre-execute short-circuit.' );
+	}
+
+	/**
+	 * Tests that wp_ability_invoked action fires on permission failure.
+	 *
+	 * @ticket 65248
+	 */
+	public function test_ability_invoked_action_fires_on_permission_failure() {
+		$action = new MockAction();
+		add_action( 'wp_ability_invoked', array( $action, 'action' ) );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'permission_callback' => static function (): bool {
+						return false;
+					},
+				)
+			)
+		);
+		$ability->execute();
+
+		$this->assertSame( 1, $action->get_call_count(), 'wp_ability_invoked should fire before permission failure.' );
+	}
+
+	/**
+	 * Tests that wp_ability_invoked action fires on input validation failure.
+	 *
+	 * @ticket 65248
+	 */
+	public function test_ability_invoked_action_fires_on_validation_failure() {
+		$action = new MockAction();
+		add_action( 'wp_ability_invoked', array( $action, 'action' ) );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'input_schema'     => array(
+						'type'        => 'integer',
+						'description' => 'Int input.',
+					),
+					'execute_callback' => static function ( int $input ): int {
+						return $input;
+					},
+				)
+			)
+		);
+		$ability->execute( 'not_an_integer' );
+
+		$this->assertSame( 1, $action->get_call_count(), 'wp_ability_invoked should fire before input validation failure.' );
+	}
+
+	/**
+	 * Tests that a `validate_callback` in an input schema is ignored.
+	 *
+	 * The REST API invokes a `validate_callback` per request argument, so it is a
+	 * reasonable thing to expect here too — but abilities do not reuse that
+	 * request-layer machinery, and a server-only PHP callback could not be honored
+	 * by the clients that consume the schema anyway. Custom validation belongs in
+	 * the `wp_ability_validate_input` filter.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_validate_input_ignores_schema_validate_callback() {
+		$callback_invoked = false;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema' => array(
+					'type'              => 'string',
+					'validate_callback' => static function () use ( &$callback_invoked ) {
+						$callback_invoked = true;
+						return new WP_Error( 'should_not_run', 'Schema validate_callback must not be invoked.' );
+					},
+				),
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		// 'hello' satisfies the JSON Schema (type string); the validate_callback would
+		// reject every value if it were ever invoked.
+		$result = $ability->validate_input( 'hello' );
+
+		$this->assertTrue( $result, 'Input should pass on JSON Schema alone.' );
+		$this->assertFalse( $callback_invoked, 'Schema validate_callback must not run during input validation.' );
+	}
+
+	/**
+	 * Tests that a `validate_callback` in an output schema is ignored.
+	 *
+	 * Output is validated the same way as input, so the same reasoning applies: the
+	 * schema callback never runs. Custom output validation belongs in the
+	 * `wp_ability_validate_output` filter.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_validate_output_ignores_schema_validate_callback() {
+		$callback_invoked = false;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'              => 'string',
+					'validate_callback' => static function () use ( &$callback_invoked ) {
+						$callback_invoked = true;
+						return new WP_Error( 'should_not_run', 'Schema validate_callback must not be invoked.' );
+					},
+				),
+				'execute_callback' => static function (): string {
+					return 'result';
+				},
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		// The execute callback returns a valid string; the output validate_callback would
+		// reject it if it ran, so a returned result proves the callback was ignored.
+		$result = $ability->execute();
+
+		$this->assertSame( 'result', $result, 'Output should pass on JSON Schema alone, so execute() returns the result.' );
+		$this->assertFalse( $callback_invoked, 'Schema validate_callback must not run during output validation.' );
+	}
+
+	/**
+	 * Tests that a `sanitize_callback` is ignored and input is never sanitized.
+	 *
+	 * REST cleans and type-coerces arguments in a sanitization step; abilities have
+	 * no such step, so a `sanitize_callback` never runs and a mistyped value is
+	 * rejected rather than coerced. This is the easiest REST assumption to carry
+	 * over by mistake, so it is pinned explicitly.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_execute_ignores_schema_sanitize_callback() {
+		$callback_invoked = false;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'              => 'string',
+					'sanitize_callback' => static function ( $value ) use ( &$callback_invoked ) {
+						$callback_invoked = true;
+						return 'sanitized';
+					},
+				),
+				'output_schema'    => array(
+					'type' => 'string',
+				),
+				'execute_callback' => static function ( $input ): string {
+					return $input;
+				},
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		// The execute callback echoes its input, so an unmodified return value proves
+		// the sanitize_callback never ran and no sanitization pass took place.
+		$result = $ability->execute( 'raw value' );
+
+		$this->assertSame( 'raw value', $result, 'Input should reach the execute callback unmodified (no sanitization).' );
+		$this->assertFalse( $callback_invoked, 'Schema sanitize_callback must not run.' );
 	}
 }

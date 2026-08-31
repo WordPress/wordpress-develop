@@ -206,7 +206,6 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -220,8 +219,6 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * Test getting a non-existent ability category returns 404.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/non-existent' );
