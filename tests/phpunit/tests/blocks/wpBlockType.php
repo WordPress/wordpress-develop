@@ -202,6 +202,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 * @ticket 61406
 	 */
 	public function test_prepare_attributes() {
 		$attributes = array(
@@ -211,6 +212,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			/* missingDefaulted */
 			'undefined'          => 'include',
 			'intendedNull'       => null,
+			'richTextCorrect'    => 'actually just a string',
+			'richTextWrong'      => 5,
 		);
 
 		$block_type = new WP_Block_Type(
@@ -235,6 +238,12 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 						'type'    => array( 'string', 'null' ),
 						'default' => 'wrong',
 					),
+					'richTextCorrect'    => array(
+						'type' => 'rich-text',
+					),
+					'richTextWrong'      => array(
+						'type' => 'rich-text',
+					),
 				),
 			)
 		);
@@ -249,6 +258,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 				'missingDefaulted'   => 'define',
 				'undefined'          => 'include',
 				'intendedNull'       => null,
+				'richTextCorrect'    => 'actually just a string',
+				/* richTextWrong */
 			),
 			$prepared_attributes
 		);
