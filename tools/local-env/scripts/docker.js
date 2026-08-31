@@ -5,6 +5,8 @@ const dotenvExpand = require( 'dotenv-expand' );
 const { spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
 
+local_env_utils.ensure_env_file();
+
 dotenvExpand.expand( dotenv.config() );
 
 const composeFiles = local_env_utils.get_compose_files();
@@ -60,4 +62,13 @@ for ( let attempt = 1; attempt <= maxAttempts; attempt++ ) {
 	Atomics.wait( new Int32Array( new SharedArrayBuffer( 4 ) ), 0, 0, delay * 1000 );
 }
 
-process.exit( returns.status );
+if ( returns.error ) {
+	console.error( `Could not run Docker Compose. ${ returns.error.message }` );
+} else if ( returns.signal && returns.signal !== 'SIGINT' ) {
+	console.error( `Docker Compose was terminated by ${ returns.signal }.` );
+}
+
+// `status` is null when Docker could not be spawned at all, or was killed by a signal. SIGINT is
+// how a long-running command such as `env:logs` is normally ended, so it is not a failure worth an
+// npm error block. Every other signal means the command was killed before it finished.
+process.exit( returns.signal === 'SIGINT' ? 0 : ( returns.status ?? 1 ) );

@@ -4,12 +4,8 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync, spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
-const { copyFileSync, existsSync } = require( 'node:fs' );
 
-// Copy the default .env file when one is not present.
-if ( ! existsSync( '.env' ) ) {
-	copyFileSync( '.env.example', '.env' );
-}
+local_env_utils.ensure_env_file();
 
 dotenvExpand.expand( dotenv.config() );
 
@@ -32,7 +28,7 @@ if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 	containers.push( 'memcached' );
 }
 
-spawnSync(
+const up = spawnSync(
 	'docker',
 	[
 		'compose',
@@ -44,6 +40,17 @@ spawnSync(
 	],
 	{ stdio: 'inherit' }
 );
+
+// No signal is exempt here, unlike in `docker.js`: `env:start` runs `composer update -W` next, and
+// that must not run against containers that never came up.
+if ( up.status !== 0 ) {
+	const reason = up.signal ? `It was terminated by ${ up.signal }.` : up.error?.message ?? '';
+
+	console.error( `Could not start the Docker containers. ${ reason }`.trim() );
+
+	// `status` is null when Docker could not be spawned at all, or was killed by a signal.
+	process.exit( up.status ?? 1 );
+}
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
