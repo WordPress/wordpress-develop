@@ -118,9 +118,10 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  *                                      Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
  *     @type int        $limit          Amount of bookmarks to display. Accepts any positive number or
  *                                      -1 for all.  Default -1.
- *     @type int|string $category       Comma-separated list of category IDs to include links from.
- *                                      Default empty.
- *     @type string     $category_name  Category to retrieve links for by name. Default empty.
+ *     @type int|string $category       A category ID, or a comma-separated list of category IDs to include
+ *                                      links from. Ignored if `$category_name` is passed. Default empty.
+ *     @type string     $category_name  Category to retrieve links for by name. Takes precedence over
+ *                                      `$category`. Default empty.
  *     @type int|bool   $hide_invisible Whether to show or hide links marked as 'invisible'. Accepts
  *                                      1|true or 0|false. Default 1|true.
  *     @type int|bool   $show_updated   Whether to display the time the bookmark was last updated.
