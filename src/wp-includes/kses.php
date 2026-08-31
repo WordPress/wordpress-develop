@@ -1181,9 +1181,12 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				}
 
 				$encoding = $this->get_attribute( 'encoding' );
+				$encoding = is_string( $encoding )
+					? wp_remove_unwanted_c0_controls( $encoding )
+					: '';
+
 				if (
 					'ANNOTATION-XML' === $token_name &&
-					is_string( $encoding ) &&
 					(
 						0 === strcasecmp( $encoding, 'text/html' ) ||
 						0 === strcasecmp( $encoding, 'application/xhtml+xml' )
@@ -1322,6 +1325,14 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						if ( $skip_token ) {
 							break;
 						}
+
+						/*
+						 * At this point, C0 controls exist in a decoded text node,
+						 * and the output will be re-escaped. This means that removing
+						 * these characters cannot join together previously-separated
+						 * syntax characters.
+						 */
+						$text = wp_remove_unwanted_c0_controls( $text );
 
 						$text = strtr(
 							$text,
@@ -1560,6 +1571,14 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 								$raw_value = $this->get_attribute( $name );
 								$value     = is_string( $raw_value ) ? $raw_value : '';
+
+								/*
+								 * At this point, C0 controls exist in a decoded attribute value,
+								 * and the output will be re-escaped. This means that removing
+								 * these characters cannot join together previously-separated
+								 * syntax characters.
+								 */
+								$value = wp_remove_unwanted_c0_controls( $value );
 
 								// Process the style attribute through CSS sanitization.
 								if ( 'style' === $name && is_string( $raw_value ) ) {
@@ -2706,6 +2725,69 @@ function wp_kses_no_null( $content, $options = null ) {
 	}
 
 	return $content;
+}
+
+/**
+ * Removes unwanted C0 control characters from already-un-escaped HTML content,
+ * where only U+09 (`\t`), U+0A (`\n`), U+0D (`\r`), and U+20 (` `) are wanted.
+ *
+ * Note! It’s important to never run this on raw HTML, as that could create
+ *       situations in which two parts of the text were safe while separated
+ *       by the characters, but when joined together through their removal,
+ *       that the two pieces form risky content as a result.
+ *
+ * Consider instead escaping the C0 controls with numeric character references,
+ * which will preserve them on the page render while avoiding potential issues
+ * from parsers what aren’t expecting them.
+ *
+ * Returns the original string when no C0 controls are present.
+ *
+ * Example:
+ *
+ *     'beforeafter' === wp_remove_c0_controls( "before\x05after" );
+ *
+ * @since {WP_VERSION}
+ *
+ * @access private
+ *
+ * @param string $decoded_html_content Remove C0 controls from this decoded HTML content.
+ * @return string Updated content without the C0 control characters.
+ */
+function wp_remove_unwanted_c0_controls( $decoded_html_content ) {
+	return strtr(
+		$decoded_html_content,
+		array(
+			"\x00" => '',
+			"\x01" => '',
+			"\x02" => '',
+			"\x03" => '',
+			"\x04" => '',
+			"\x05" => '',
+			"\x06" => '',
+			"\x07" => '',
+			"\x08" => '',
+			"\x0B" => '',
+			"\x0C" => '',
+			"\x0E" => '',
+			"\x0F" => '',
+			"\x10" => '',
+			"\x11" => '',
+			"\x12" => '',
+			"\x13" => '',
+			"\x14" => '',
+			"\x15" => '',
+			"\x16" => '',
+			"\x17" => '',
+			"\x18" => '',
+			"\x19" => '',
+			"\x1A" => '',
+			"\x1B" => '',
+			"\x1C" => '',
+			"\x1D" => '',
+			"\x1E" => '',
+			"\x1F" => '',
+		)
+	);
 }
 
 /**
