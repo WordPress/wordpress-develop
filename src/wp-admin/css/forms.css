@@ -1490,12 +1490,11 @@ table.form-table td .updated p {
 
 .privacy_requests thead td:first-child,
 .privacy_requests tfoot td:first-child {
-	border-left: 4px solid #fff;
+	border-left: 4px solid transparent;
 }
 
 .privacy_requests tbody td.check-column {
-	border-left: 4px solid #fff;
-	background: #fff;
+	border-left: 4px solid transparent;
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -1517,12 +1516,21 @@ table.form-table td .updated p {
 
 .privacy_requests tbody td:not(.check-column),
 .privacy_requests tbody th {
-	background: #fff;
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .privacy_requests tbody .has-request-results td {
 	box-shadow: none;
+}
+
+/*
+ * The results row is injected after its request row by privacy-tools.js, so the
+ * two rows fall on opposite sides of the zebra striping. Give the pair a single
+ * shared background so an expanded request still reads as one unit.
+ */
+.privacy_requests tbody tr.has-request-results > *,
+.privacy_requests tbody tr.request-results > * {
+	background-color: #fff;
 }
 
 .privacy_requests .next_steps .button {
@@ -1531,12 +1539,10 @@ table.form-table td .updated p {
 }
 
 .privacy_requests tr.status-request-confirmed td.check-column {
-	background-color: #fff;
 	border-left-color: #3858e9;
 }
 
 .privacy_requests tr.status-request-failed td.check-column {
-	background-color: #f6f7f7;
 	border-left-color: #cc1818;
 }
 
