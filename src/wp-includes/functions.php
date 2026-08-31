@@ -9431,7 +9431,7 @@ function wp_verify_fast_hash(
 /**
  * Sends an email to the user when a new application password is created.
  *
- * @since n.e.x.t
+ * @since 7.2.0
  *
  * @param int   $user_id  The user ID.
  * @param array $new_item The created application password details.
@@ -9458,7 +9458,7 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 	/**
 	 * Filters whether to send the application password created notification email.
 	 *
-	 * @since 5.6.0
+	 * @since 7.2.0
 	 *
 	 * @param bool    $send  Whether to send the email notification.
 	 * @param WP_User $user  The user object.
@@ -9501,7 +9501,7 @@ Regards,
 	/**
 	 * Filters the contents of the email notification sent when a new application password is created.
 	 *
-	 * @since n.e.x.t
+	 * @since 7.2.0
 	 *
 	 * @param array   $application_password_create_email {
 	 *     Used to build wp_mail().
