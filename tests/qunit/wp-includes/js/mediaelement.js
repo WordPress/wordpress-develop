@@ -90,3 +90,33 @@ QUnit.test( 'instantiating a player builds controls from the icon sprite', funct
 	player.remove();
 	assert.strictEqual( typeof mejs.players[ player.id ], 'undefined', 'player.remove() unregisters the player' );
 } );
+
+QUnit.test( 'a fluid-width player initializes in responsive mode', function( assert ) {
+	// Playlists and themes render players with percentage widths, which sends
+	// MediaElement.js 7.x through setResponsiveMode() where it calls native DOM
+	// methods on player.container. This guards against back-compat shims
+	// converting those properties to jQuery objects.
+	var audio = document.createElement( 'audio' ),
+		successCalled = false,
+		player;
+
+	audio.setAttribute( 'src', '/relative/test.mp3' );
+	audio.setAttribute( 'type', 'audio/mp3' );
+	audio.style.width = '100%';
+	document.getElementById( 'qunit-fixture' ).appendChild( audio );
+
+	player = new MediaElementPlayer( audio, {
+		iconSprite: '/wp-includes/js/mediaelement/mejs-controls.svg',
+		classPrefix: 'mejs-',
+		features: [ 'playpause', 'progress', 'volume' ],
+		success: function() {
+			successCalled = true;
+		}
+	} );
+
+	assert.ok( successCalled, 'the success callback fired (player.container survived responsive sizing)' );
+	assert.ok( player.container instanceof window.HTMLElement, 'player.container is an HTML element' );
+	assert.ok( player.$container instanceof jQuery, 'player.$container provides the jQuery wrapper for back compat' );
+
+	player.remove();
+} );

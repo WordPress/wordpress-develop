@@ -38,11 +38,16 @@
 		init.call( this );
 	};
 
+	// `player.container`, `player.controls`, and `player.layers` must remain HTML
+	// elements: MediaElement.js 7.x internals call native DOM methods on them
+	// (e.g. `setResponsiveMode()` calls `container.querySelector()` for players
+	// with percentage-based widths, such as playlists). Expose jQuery wrappers
+	// under separate names for code written against the 4.x jQuery API.
 	var ready = MediaElementPlayer.prototype._meReady;
 	MediaElementPlayer.prototype._meReady = function () {
-		this.container = $( this.container) ;
-		this.controls = $( this.controls );
-		this.layers = $( this.layers );
+		this.$container = $( this.container );
+		this.$controls = $( this.controls );
+		this.$layers = $( this.layers );
 		ready.apply( this, arguments );
 	};
 
