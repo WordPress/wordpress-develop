@@ -2463,6 +2463,14 @@ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
  *
  * @param string|null $time Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See wp_upload_dir()
+ * @phpstan-return array{
+ *                     path: non-empty-string,
+ *                     url: non-empty-string,
+ *                     subdir: string,
+ *                     basedir: non-empty-string,
+ *                     baseurl: non-empty-string,
+ *                     error: false,
+ *                 }
  */
 function _wp_upload_dir( $time = null ) {
 	$siteurl     = get_option( 'siteurl' );
