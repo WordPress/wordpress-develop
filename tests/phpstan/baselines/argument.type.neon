@@ -56,12 +56,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
 			identifier: argument.type
-			count: 3
-			path: ../../../src/wp-admin/edit-comments.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
-			identifier: argument.type
-			count: 1
+			count: 4
 			path: ../../../src/wp-admin/edit-comments.php
 		-
 			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<min, \-1\>\|int\<1, max\> given\.$#'
@@ -574,7 +569,7 @@ parameters:
 			count: 5
 			path: ../../../src/wp-admin/nav-menus.php
 		-
-			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int\<0, max\> given\.$#'
+			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/nav-menus.php
@@ -714,7 +709,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/widgets.php
@@ -779,7 +774,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyfourteen/inc/widgets.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyfourteen/inc/widgets.php
@@ -809,7 +804,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentynineteen/template-parts/post/author-bio.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyseventeen/inc/color-patterns.php

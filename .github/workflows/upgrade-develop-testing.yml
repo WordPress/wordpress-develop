@@ -43,7 +43,7 @@ jobs:
   # Build WordPress from the current branch ready for the upgrade tests.
   build:
     name: Build
-    uses: ./.github/workflows/reusable-build-package.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-build-package.yml@trunk
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     permissions:
       contents: read
@@ -59,7 +59,7 @@ jobs:
 #   being updated to keep the matrix as small as is reasonable.
   upgrade-tests-develop:
     name: Upgrade from ${{ matrix.wp }}
-    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     needs: [ build ]
     permissions:
@@ -72,7 +72,7 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
         # WordPress 5.3 is the oldest version that supports PHP 7.4.
-        wp: [ '5.3', '6.9', '7.0' ]
+        wp: [ '5.3', '6.9', '7.0', '7.1-RC2' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -86,7 +86,7 @@ jobs:
   # Run a limited set of upgrade tests for the current branch on forks.
   upgrade-tests-develop-forks:
     name: Upgrade from ${{ matrix.wp }}
-    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository != 'WordPress/wordpress-develop' }}
     needs: [ build ]
     permissions:
@@ -98,7 +98,7 @@ jobs:
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        wp: [ '6.9', '7.0' ]
+        wp: [ '6.9', '7.0', '7.1-RC2' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -111,7 +111,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
