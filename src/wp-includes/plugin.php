@@ -223,8 +223,8 @@ function apply_filters( $hook_name, $value, ...$args ) {
  * @global int[]     $wp_filters        Stores the number of times each filter was triggered.
  * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
  *
- * @param string      $hook_name The name of the filter hook.
- * @param list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
+ * @param string                $hook_name The name of the filter hook.
+ * @param non-empty-list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_ref_array( $hook_name, $args ) {
@@ -719,11 +719,11 @@ function did_action( $hook_name ) {
  *
  * @see _deprecated_hook()
  *
- * @param string      $hook_name   The name of the filter hook.
- * @param list<mixed> $args        Array of additional function arguments to be passed to apply_filters().
- * @param string      $version     The version of WordPress that deprecated the hook.
- * @param string      $replacement Optional. The hook that should have been used. Default empty.
- * @param string      $message     Optional. A message regarding the change. Default empty.
+ * @param string                $hook_name   The name of the filter hook.
+ * @param non-empty-list<mixed> $args        Array of additional function arguments to be passed to apply_filters().
+ * @param string                $version     The version of WordPress that deprecated the hook.
+ * @param string                $replacement Optional. The hook that should have been used. Default empty.
+ * @param string                $message     Optional. A message regarding the change. Default empty.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
