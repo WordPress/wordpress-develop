@@ -418,7 +418,7 @@ div.editor-styles-wrapper .wp-block-list:where(.has-background) {
 
 /* Captions */
 
-[class^="wp-block-"] figcaption {
+figure[class*="wp-block-"] > figcaption {
 	color: #707070;
 	font-family: "Noto Sans", sans-serif;
 	font-size: 12px;
@@ -426,36 +426,36 @@ div.editor-styles-wrapper .wp-block-list:where(.has-background) {
 	padding: 0.5em 0;
 }
 
-.editor-block-list__block [class^="wp-block-"] figcaption {
+.editor-styles-wrapper figure[class*="wp-block-"] > figcaption {
 	line-height: 1.5;
 }
 
 @media screen and (min-width: 46.25em) {
-	[class^="wp-block-"] figcaption {
+	figure[class*="wp-block-"] > figcaption {
 		font-size: 14px;
 	}
 }
 
 @media screen and (min-width: 55em) {
-	[class^="wp-block-"] figcaption {
+	figure[class*="wp-block-"] > figcaption {
 		font-size: 16px;
 	}
 }
 
 @media screen and (min-width: 59.6875em) {
-	[class^="wp-block-"] figcaption {
+	figure[class*="wp-block-"] > figcaption {
 		font-size: 12px;
 	}
 }
 
 @media screen and (min-width: 68.75em) {
-	[class^="wp-block-"] figcaption {
+	figure[class*="wp-block-"] > figcaption {
 		font-size: 14px;
 	}
 }
 
 @media screen and (min-width: 77.5em) {
-	[class^="wp-block-"] figcaption {
+	figure[class*="wp-block-"] > figcaption {
 		font-size: 16px;
 	}
 }
