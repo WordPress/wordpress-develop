@@ -20,9 +20,17 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 }
 
 /**
+ * @typedef {object} CodeMirrorSearchState
+ * @property {string|RegExp|null} query - Current search query.
+ * @property {import('codemirror').Position|null} posFrom - Current result start.
+ * @property {import('codemirror').Position|null} posTo - Current result end.
+ */
+
+/**
  * @typedef {object} CodeMirrorState
  * @property {boolean} [completionActive] - Whether completion is active.
  * @property {boolean} [focused] - Whether the editor is focused.
+ * @property {CodeMirrorSearchState} [search] - Search state.
  */
 
 /**
@@ -397,6 +405,63 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	}
 
 	/**
+	 * Mark the current persistent search result while its search field has focus.
+	 *
+	 * @param {CodeMirrorEditor} codemirror - Editor.
+	 */
+	function configurePersistentSearchHighlight( codemirror ) {
+		const wrapper = codemirror.getWrapperElement();
+		/** @type {import('codemirror').TextMarker|null} */
+		let activeSearchResult = null;
+
+		function clear() {
+			if ( activeSearchResult ) {
+				activeSearchResult.clear();
+				activeSearchResult = null;
+			}
+		}
+
+		function update() {
+			clear();
+
+			const state = codemirror.state.search;
+			if (
+				! wrapper.querySelector( '.CodeMirror-search-field:focus' ) ||
+				! state?.query ||
+				! state.posFrom ||
+				! state.posTo
+			) {
+				return;
+			}
+
+			const from = codemirror.getCursor( 'from' );
+			const to = codemirror.getCursor( 'to' );
+			if (
+				from.line !== state.posFrom.line ||
+				from.ch !== state.posFrom.ch ||
+				to.line !== state.posTo.line ||
+				to.ch !== state.posTo.ch
+			) {
+				return;
+			}
+
+			activeSearchResult = codemirror.markText(
+				state.posFrom,
+				state.posTo,
+				{ className: 'CodeMirror-searching-selected' }
+			);
+		}
+
+		codemirror.on( 'cursorActivity', function() {
+			if ( wrapper.querySelector( '.CodeMirror-search-field:focus' ) ) {
+				window.setTimeout( update );
+			}
+		} );
+		wrapper.addEventListener( 'focusin', update );
+		wrapper.addEventListener( 'focusout', clear );
+	}
+
+	/**
 	 * @typedef {object} LintingController
 	 * @property {() => CombinedLintOptions|false} getLintOptions - Get lint options.
 	 * @property {(editor: CodeMirrorEditor) => void} init - Initialize.
@@ -505,6 +570,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 
 		// Facilitate tabbing out of the editor.
 		configureTabbing( codemirror, instanceSettings );
+		configurePersistentSearchHighlight( codemirror );
 
 		return instance;
 	};
