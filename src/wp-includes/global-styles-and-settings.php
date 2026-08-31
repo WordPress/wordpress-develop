@@ -39,10 +39,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	 * for clearing the cache appropriately.
 	 */
 	$origin = 'custom';
-	if (
-		! wp_theme_has_theme_json() ||
-		( isset( $context['origin'] ) && 'base' === $context['origin'] )
-	) {
+	if ( isset( $context['origin'] ) && 'base' === $context['origin'] ) {
 		$origin = 'theme';
 	}
 
@@ -140,12 +137,12 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * @since 5.9.0
  * @since 6.1.0 Added 'base-layout-styles' support.
  * @since 6.6.0 Resolves relative paths in theme.json styles to theme absolute paths.
+ * @since 7.0.0 Deprecated 'base-layout-styles' type; classic themes now receive full styles
+ *              with layout-specific alignment rules skipped via `base_layout_styles` option.
  *
  * @param array $types Optional. Types of styles to load.
- *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
- *                     If empty, it'll load the following:
- *                     - for themes without theme.json: 'variables', 'presets', 'base-layout-styles'.
- *                     - for themes with theme.json: 'variables', 'presets', 'styles'.
+ *                     See {@see 'WP_Theme_JSON::get_stylesheet'} for all valid types.
+ *                     If empty, will load: 'variables', 'presets', 'styles'.
  * @return string Stylesheet.
  */
 function wp_get_global_stylesheet( $types = array() ) {
@@ -180,13 +177,19 @@ function wp_get_global_stylesheet( $types = array() ) {
 		}
 	}
 
-	$tree                = WP_Theme_JSON_Resolver::resolve_theme_file_uris( WP_Theme_JSON_Resolver::get_merged_data() );
-	$supports_theme_json = wp_theme_has_theme_json();
+	$tree = WP_Theme_JSON_Resolver::resolve_theme_file_uris( WP_Theme_JSON_Resolver::get_merged_data() );
 
-	if ( empty( $types ) && ! $supports_theme_json ) {
-		$types = array( 'variables', 'presets', 'base-layout-styles' );
-	} elseif ( empty( $types ) ) {
+	if ( empty( $types ) ) {
 		$types = array( 'variables', 'styles', 'presets' );
+	}
+
+	/*
+	 * Enable base layout styles only mode for classic themes without theme.json.
+	 * This skips alignment styles that target .wp-site-blocks which is only used by block themes.
+	 */
+	$options = array();
+	if ( ! wp_is_block_theme() && ! wp_theme_has_theme_json() ) {
+		$options['base_layout_styles'] = true;
 	}
 
 	/*
@@ -204,7 +207,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 		 * @see wp_add_global_styles_for_blocks
 		 */
 		$origins          = array( 'default', 'theme', 'custom' );
-		$styles_variables = $tree->get_stylesheet( array( 'variables' ), $origins );
+		$styles_variables = $tree->get_stylesheet( array( 'variables' ), $origins, $options );
 		$types            = array_diff( $types, array( 'variables' ) );
 	}
 
@@ -222,17 +225,8 @@ function wp_get_global_stylesheet( $types = array() ) {
 		 * (i.e. in the render cycle). Here, only the ones in use are rendered.
 		 * @see wp_add_global_styles_for_blocks
 		 */
-		$origins = array( 'default', 'theme', 'custom' );
-		/*
-		 * If the theme doesn't have theme.json but supports both appearance tools and color palette,
-		 * the 'theme' origin should be included so color palette presets are also output.
-		 */
-		if ( ! $supports_theme_json && ( current_theme_supports( 'appearance-tools' ) || current_theme_supports( 'border' ) ) && current_theme_supports( 'editor-color-palette' ) ) {
-			$origins = array( 'default', 'theme' );
-		} elseif ( ! $supports_theme_json ) {
-			$origins = array( 'default' );
-		}
-		$styles_rest = $tree->get_stylesheet( $types, $origins );
+		$origins     = array( 'default', 'theme', 'custom' );
+		$styles_rest = $tree->get_stylesheet( $types, $origins, $options );
 	}
 
 	$stylesheet = $styles_variables . $styles_rest;
@@ -244,61 +238,10 @@ function wp_get_global_stylesheet( $types = array() ) {
 }
 
 /**
- * Gets the global styles custom CSS from theme.json.
- *
- * @since 6.2.0
- *
- * @return string The global styles custom CSS.
- */
-function wp_get_global_styles_custom_css() {
-	if ( ! wp_theme_has_theme_json() ) {
-		return '';
-	}
-	/*
-	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
-	 * developer's workflow.
-	 */
-	$can_use_cached = ! wp_is_development_mode( 'theme' );
-
-	/*
-	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
-	 * @see `wp_cache_add_non_persistent_groups()`.
-	 *
-	 * The rationale for this is to make sure derived data from theme.json
-	 * is always fresh from the potential modifications done via hooks
-	 * that can use dynamic data (modify the stylesheet depending on some option,
-	 * settings depending on user permissions, etc.).
-	 * See some of the existing hooks to modify theme.json behavior:
-	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
-	 *
-	 * A different alternative considered was to invalidate the cache upon certain
-	 * events such as options add/update/delete, user meta, etc.
-	 * It was judged not enough, hence this approach.
-	 * @see https://github.com/WordPress/gutenberg/pull/45372
-	 */
-	$cache_key   = 'wp_get_global_styles_custom_css';
-	$cache_group = 'theme_json';
-	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
-		if ( $cached ) {
-			return $cached;
-		}
-	}
-
-	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
-	$stylesheet = $tree->get_custom_css();
-
-	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $stylesheet, $cache_group );
-	}
-
-	return $stylesheet;
-}
-
-/**
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
+ * @since 6.7.0 Resolve relative paths in block styles.
  *
  * @global WP_Styles $wp_styles
  */
@@ -306,11 +249,50 @@ function wp_add_global_styles_for_blocks() {
 	global $wp_styles;
 
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
+	$tree        = WP_Theme_JSON_Resolver::resolve_theme_file_uris( $tree );
 	$block_nodes = $tree->get_styles_block_nodes();
-	foreach ( $block_nodes as $metadata ) {
-		$block_css = $tree->get_styles_for_block( $metadata );
 
-		if ( ! wp_should_load_separate_core_block_assets() ) {
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+	$update_cache   = false;
+
+	if ( $can_use_cached ) {
+		// Hash the merged WP_Theme_JSON data to bust cache on settings or styles change.
+		$cache_hash = md5( wp_json_encode( $tree->get_raw_data() ) );
+		$cache_key  = 'wp_styles_for_blocks';
+		$cached     = get_transient( $cache_key );
+
+		// Reset the cached data if there is no value or if the hash has changed.
+		if ( ! is_array( $cached ) || $cached['hash'] !== $cache_hash ) {
+			$cached = array(
+				'hash'   => $cache_hash,
+				'blocks' => array(),
+			);
+
+			// Update the cache if the hash has changed.
+			$update_cache = true;
+		}
+	}
+
+	foreach ( $block_nodes as $metadata ) {
+
+		if ( $can_use_cached ) {
+			// Generate a unique cache key based on the full metadata to ensure pseudo-selectors and other variations get unique keys.
+			$cache_node_key = md5( wp_json_encode( $metadata ) );
+
+			if ( isset( $cached['blocks'][ $cache_node_key ] ) ) {
+				$block_css = $cached['blocks'][ $cache_node_key ];
+			} else {
+				$block_css                           = $tree->get_styles_for_block( $metadata );
+				$cached['blocks'][ $cache_node_key ] = $block_css;
+
+				// Update the cache if the cache contents have changed.
+				$update_cache = true;
+			}
+		} else {
+			$block_css = $tree->get_styles_for_block( $metadata );
+		}
+
+		if ( ! wp_should_load_block_assets_on_demand() ) {
 			wp_add_inline_style( 'global-styles', $block_css );
 			continue;
 		}
@@ -318,13 +300,14 @@ function wp_add_global_styles_for_blocks() {
 		$stylesheet_handle = 'global-styles';
 
 		/*
-		 * When `wp_should_load_separate_core_block_assets()` is true, block styles are
+		 * When `wp_should_load_block_assets_on_demand()` is true, block styles are
 		 * enqueued for each block on the page in class WP_Block's render function.
 		 * This means there will be a handle in the styles queue for each of those blocks.
 		 * Block-specific global styles should be attached to the global-styles handle, but
 		 * only for blocks on the page, thus we check if the block's handle is in the queue
 		 * before adding the inline style.
 		 * This conditional loading only applies to core blocks.
+		 * TODO: Explore how this could be expanded to third-party blocks as well.
 		 */
 		if ( isset( $metadata['name'] ) ) {
 			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
@@ -353,6 +336,10 @@ function wp_add_global_styles_for_blocks() {
 				}
 			}
 		}
+	}
+
+	if ( $update_cache ) {
+		set_transient( $cache_key, $cached );
 	}
 }
 
@@ -391,10 +378,7 @@ function wp_get_block_name_from_theme_json_path( $path ) {
 			}
 		)
 	);
-	if ( isset( $result[0] ) ) {
-		return $result[0];
-	}
-	return '';
+	return $result[0] ?? '';
 }
 
 /**
@@ -490,7 +474,6 @@ function wp_get_theme_data_template_parts() {
 	$cache_key      = 'wp_get_theme_data_template_parts';
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
-	$metadata = false;
 	if ( $can_use_cached ) {
 		$metadata = wp_cache_get( $cache_key, $cache_group );
 		if ( false !== $metadata ) {
@@ -498,11 +481,9 @@ function wp_get_theme_data_template_parts() {
 		}
 	}
 
-	if ( false === $metadata ) {
-		$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
-		if ( $can_use_cached ) {
-			wp_cache_set( $cache_key, $metadata, $cache_group );
-		}
+	$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $metadata, $cache_group );
 	}
 
 	return $metadata;
@@ -517,7 +498,6 @@ function wp_get_theme_data_template_parts() {
  * @param WP_Block_Type $block_type The block's type.
  * @param string|array  $target     The desired selector's target, `root` or array path.
  * @param boolean       $fallback   Whether to fall back to broader selector.
- *
  * @return string|null CSS selector or `null` if no selector available.
  */
 function wp_get_block_css_selector( $block_type, $target = 'root', $fallback = false ) {

@@ -493,6 +493,8 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
 
+		custom_i18n_load_textdomain();
+
 		$actual = custom_i18n_plugin_test();
 
 		switch_to_locale( 'es_ES' );

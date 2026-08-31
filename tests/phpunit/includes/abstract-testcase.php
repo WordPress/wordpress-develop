@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/build-visual-html-tree.php';
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
 
@@ -13,12 +14,13 @@ require_once __DIR__ . '/trac.php';
  * All WordPress unit tests should inherit from this class.
  */
 abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
-
 	protected static $forced_tickets   = array();
 	protected $expected_deprecated     = array();
 	protected $caught_deprecated       = array();
 	protected $expected_doing_it_wrong = array();
-	protected $caught_doing_it_wrong   = array();
+
+	/** @var non-empty-string[] */
+	protected $caught_doing_it_wrong = array();
 
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
@@ -58,6 +60,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Runs the routine before setting up all tests.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public static function set_up_before_class() {
 		global $wpdb;
@@ -98,8 +102,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Runs the routine before each test is executed.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 */
 	public function set_up() {
+		global $wp_rewrite;
+
 		set_time_limit( 0 );
 
 		$this->factory = static::factory();
@@ -111,8 +119,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		if ( ! self::$hooks_saved ) {
 			$this->_backup_hooks();
 		}
-
-		global $wp_rewrite;
 
 		$this->clean_up_global_scope();
 
@@ -136,14 +142,36 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->start_transaction();
 		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
+		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 1, 2 );
+	}
+
+	/**
+	 * Sets the bcrypt cost option for password hashing during tests.
+	 *
+	 * @param array  $options   The options for password hashing.
+	 * @param string $algorithm The algorithm to use for hashing.
+	 */
+	public function wp_hash_password_options( array $options, string $algorithm ): array {
+		if ( PASSWORD_BCRYPT === $algorithm ) {
+			$options['cost'] = 5;
+		}
+
+		return $options;
 	}
 
 	/**
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
+	 *
+	 * @global wpdb     $wpdb         WordPress database abstraction object.
+	 * @global WP_Query $wp_the_query Main WordPress query object.
+	 * @global WP_Query $wp_query     WordPress query object.
+	 * @global WP       $wp           WordPress environment object.
 	 */
 	public function tear_down() {
 		global $wpdb, $wp_the_query, $wp_query, $wp;
+
 		$wpdb->query( 'ROLLBACK' );
+
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
 				restore_current_blog();
@@ -203,6 +231,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		wp_set_current_user( 0 );
 
 		$this->reset_lazyload_queue();
+
+		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
 	/**
@@ -342,10 +372,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Stores $wp_filter, $wp_actions, $wp_filters, and $wp_current_filter
 	 * on a class variable so they can be restored on tear_down() using _restore_hooks().
 	 *
-	 * @global array $wp_filter
-	 * @global array $wp_actions
-	 * @global array $wp_filters
-	 * @global array $wp_current_filter
+	 * @global array $wp_filter         All of the filters and actions.
+	 * @global array $wp_actions        The number of times each action was triggered.
+	 * @global array $wp_filters        The number of times each filter was triggered.
+	 * @global array $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _backup_hooks() {
 		self::$hooks_saved['wp_filter'] = array();
@@ -365,10 +395,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Restores the hook-related globals to their state at set_up()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
-	 * @global array $wp_filter
-	 * @global array $wp_actions
-	 * @global array $wp_filters
-	 * @global array $wp_current_filter
+	 * @global array $wp_filter         All of the filters and actions.
+	 * @global array $wp_actions        The number of times each action was triggered.
+	 * @global array $wp_filters        The number of times each filter was triggered.
+	 * @global array $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _restore_hooks() {
 		if ( isset( self::$hooks_saved['wp_filter'] ) ) {
@@ -390,6 +420,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Flushes the WordPress object cache.
+	 *
+	 * @global WP_Object_Cache $wp_object_cache WordPress Object Cache object.
 	 */
 	public static function flush_cache() {
 		global $wp_object_cache;
@@ -435,13 +467,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @global array $wp_meta_keys
+	 * @global array $wp_meta_keys Global registry for meta keys.
 	 */
 	public function unregister_all_meta_keys() {
 		global $wp_meta_keys;
+
 		if ( ! is_array( $wp_meta_keys ) ) {
 			return;
 		}
+
 		foreach ( $wp_meta_keys as $object_type => $type_keys ) {
 			foreach ( $type_keys as $object_subtype => $subtype_keys ) {
 				foreach ( $subtype_keys as $key => $value ) {
@@ -453,11 +487,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Starts a database transaction.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function start_transaction() {
 		global $wpdb;
+
 		$wpdb->query( 'SET autocommit = 0;' );
 		$wpdb->query( 'START TRANSACTION;' );
+
 		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 	}
@@ -466,9 +504,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Commits the queries in a transaction.
 	 *
 	 * @since 4.1.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public static function commit_transaction() {
 		global $wpdb;
+
 		$wpdb->query( 'COMMIT;' );
 	}
 
@@ -833,6 +874,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert WP_Error $actual
 	 */
 	public function assertWPError( $actual, $message = '' ) {
 		$this->assertInstanceOf( 'WP_Error', $actual, $message );
@@ -843,6 +886,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert !WP_Error $actual
 	 */
 	public function assertNotWPError( $actual, $message = '' ) {
 		if ( is_wp_error( $actual ) ) {
@@ -857,6 +902,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert IXR_Error $actual
 	 */
 	public function assertIXRError( $actual, $message = '' ) {
 		$this->assertInstanceOf( 'IXR_Error', $actual, $message );
@@ -867,6 +914,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert !IXR_Error $actual
 	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
 		if ( $actual instanceof IXR_Error ) {
@@ -1071,6 +1120,40 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Assert that two text strings representing file paths are the same, while ignoring
+	 * OS-specific differences in the directory separators.
+	 *
+	 * This allows for tests to be compatible for running on both *nix based as well as Windows OS.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $path_a File or directory path.
+	 * @param string $path_b File or directory path.
+	 */
+	public function assertSamePathIgnoringDirectorySeparators( $path_a, $path_b ) {
+		$path_a = $this->normalizeDirectorySeparatorsInPath( $path_a );
+		$path_b = $this->normalizeDirectorySeparatorsInPath( $path_b );
+
+		$this->assertSame( $path_a, $path_b );
+	}
+
+	/**
+	 * Normalize directory separators in a file path to be a forward slash.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $path File or directory path.
+	 * @return string The normalized file or directory path.
+	 */
+	public function normalizeDirectorySeparatorsInPath( $path ) {
+		if ( ! is_string( $path ) || PHP_OS_FAMILY !== 'Windows' ) {
+			return $path;
+		}
+
+		return strtr( $path, '\\', '/' );
+	}
+
+	/**
 	 * Checks each of the WP_Query is_* functions/properties against expected boolean value.
 	 *
 	 * Any properties that are listed by name as parameters will be expected to be true; all others are
@@ -1081,6 +1164,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 3.8.0 Moved from `Tests_Query_Conditionals` to `WP_UnitTestCase`.
 	 * @since 5.3.0 Formalized the existing `...$prop` parameter by adding it
 	 *              to the function signature.
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
 	 *
 	 * @param string ...$prop Any number of WP_Query properties that are expected to be true for the current request.
 	 */
@@ -1110,6 +1195,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			'is_preview',
 			'is_robots',
 			'is_favicon',
+			'is_sitemap',
 			'is_search',
 			'is_single',
 			'is_singular',
@@ -1144,6 +1230,44 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		if ( ! $passed ) {
 			$this->fail( $message );
 		}
+	}
+
+	/**
+	 * Check HTML markup (including blocks) for semantic equivalence.
+	 *
+	 * Given two markup strings, assert that they translate to the same semantic HTML tree,
+	 * normalizing tag names, attribute names, and attribute order. Furthermore, attributes
+	 * and class names are sorted and deduplicated, and whitespace in style attributes
+	 * is normalized. Finally, block delimiter comments are recognized and normalized,
+	 * applying the same principles.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string      $expected         The expected HTML.
+	 * @param string      $actual           The actual HTML.
+	 * @param string|null $fragment_context Optional. The fragment context, for example "<td>" expected HTML
+	 *                                      must occur within "<table><tr>" fragment context. Default "<body>".
+	 *                                      Only "<body>" or `null` are supported at this time.
+	 *                                      Set to `null` to parse a full HTML document.
+	 * @param string|null $message          Optional. The assertion error message.
+	 */
+	public function assertEqualHTML( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
+		try {
+			$tree_expected = build_visual_html_tree( $expected, $fragment_context );
+			$tree_actual   = build_visual_html_tree( $actual, $fragment_context );
+		} catch ( Exception $e ) {
+			// For PHP 8.4+, we can retry, using the built-in DOM\HTMLDocument parser.
+			if ( class_exists( 'DOM\HtmlDocument' ) ) {
+				$dom_expected  = DOM\HtmlDocument::createFromString( $expected, LIBXML_NOERROR );
+				$tree_expected = build_visual_html_tree( $dom_expected->saveHtml(), $fragment_context );
+				$dom_actual    = DOM\HtmlDocument::createFromString( $actual, LIBXML_NOERROR );
+				$tree_actual   = build_visual_html_tree( $dom_actual->saveHtml(), $fragment_context );
+			} else {
+				throw $e;
+			}
+		}
+
+		$this->assertSame( $tree_expected, $tree_actual, $message );
 	}
 
 	/**
@@ -1224,7 +1348,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 		$parts = parse_url( $url );
 		if ( isset( $parts['scheme'] ) ) {
-			$req = isset( $parts['path'] ) ? $parts['path'] : '';
+			$req = $parts['path'] ?? '';
 			if ( isset( $parts['query'] ) ) {
 				$req .= '?' . $parts['query'];
 				// Parse the URL query vars into $_GET.
@@ -1428,7 +1552,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 4.0.0
 	 *
 	 * @param string $dir Path to the directory to scan.
-	 * @return array List of file paths.
+	 * @return string[] List of file paths.
 	 */
 	public function files_in_dir( $dir ) {
 		$files = array();
@@ -1449,7 +1573,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @return array List of file paths.
+	 * @return string[] List of file paths.
 	 */
 	public function scan_user_uploads() {
 		static $files = array();
@@ -1506,14 +1630,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			}
 		}
 
-		/*
-		 * Compatibility check for PHP < 7.4, where array_merge() expects at least one array.
-		 * See: https://3v4l.org/BIQMA
-		 */
-		if ( array() === $matched_dirs ) {
-			return array();
-		}
-
 		return array_merge( ...$matched_dirs );
 	}
 
@@ -1551,7 +1667,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @global WP_Rewrite $wp_rewrite
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 *
 	 * @param string $structure Optional. Permalink structure to set. Default empty.
 	 */
@@ -1659,5 +1775,120 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		touch( $file );
+	}
+
+	/**
+	 * Wrapper for `wp_safe_remote_request()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_safe_remote_request( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_safe_remote_request', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_safe_remote_get()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_safe_remote_get( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_safe_remote_get', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_safe_remote_post()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_safe_remote_post( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_safe_remote_post', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_safe_remote_head()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_safe_remote_head( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_safe_remote_head', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_remote_request()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_remote_request( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_remote_request', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_remote_get()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_remote_get( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_remote_get', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_remote_post()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_remote_post( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_remote_post', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_remote_head()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_remote_head( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_remote_head', $url, $args );
+	}
+
+	/**
+	 * Retries an HTTP API request up to three times and skips the test on timeout.
+	 *
+	 * @param callable $callback The HTTP API request function to call.
+	 * @param string   $url      URL to retrieve.
+	 * @param array    $args     Request arguments.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	private function retry_on_error( callable $callback, $url, $args ) {
+		$attempts = 0;
+
+		while ( $attempts < 3 ) {
+			$result = call_user_func( $callback, $url, $args );
+
+			if ( ! is_wp_error( $result ) ) {
+				return $result;
+			}
+
+			++$attempts;
+			sleep( 5 );
+		}
+
+		$this->skipTestOnTimeout( $result );
+
+		return $result;
 	}
 }

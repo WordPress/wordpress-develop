@@ -100,6 +100,8 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		);
 		$results2 = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter2 ) );
 		$this->assertNotIXRError( $results2 );
+		$this->assertNotEmpty( $results2 );
+
 		$last_comment_count = 100;
 		foreach ( $results2 as $post ) {
 			$comment_count = (int) get_comments_number( $post['post_id'] );
@@ -166,5 +168,19 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );
 		$this->assertCount( 1, $results );
+	}
+
+	/**
+	 * Ensure a non-array `$fields` argument is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 65983
+	 */
+	public function test_non_array_fields_returns_error(): void {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', array(), 'post' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
 	}
 }

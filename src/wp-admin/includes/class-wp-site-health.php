@@ -18,7 +18,7 @@ class WP_Site_Health {
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
 	private $mysql_recommended_version   = '8.0';
-	private $mariadb_recommended_version = '10.4';
+	private $mariadb_recommended_version = '10.11';
 
 	public $php_memory_limit;
 
@@ -150,9 +150,9 @@ class WP_Site_Health {
 				if ( is_string( $test['test'] ) ) {
 					$health_check_js_variables['site_status']['async'][] = array(
 						'test'      => $test['test'],
-						'has_rest'  => ( isset( $test['has_rest'] ) ? $test['has_rest'] : false ),
+						'has_rest'  => $test['has_rest'] ?? false,
 						'completed' => false,
-						'headers'   => isset( $test['headers'] ) ? $test['headers'] : array(),
+						'headers'   => $test['headers'] ?? array(),
 					);
 				}
 			}
@@ -167,7 +167,17 @@ class WP_Site_Health {
 	 * @since 5.4.0
 	 *
 	 * @param callable $callback
-	 * @return mixed|void
+	 * @return array{
+	 *     label: string,
+	 *     status: 'good'|'recommended'|'critical',
+	 *     badge: array{
+	 *         label: string,
+	 *         color: string,
+	 *     },
+	 *     description: string,
+	 *     actions: string,
+	 *     test: string,
+	 * }
 	 */
 	private function perform_test( $callback ) {
 		/**
@@ -264,7 +274,7 @@ class WP_Site_Health {
 			'test'        => 'wordpress_version',
 		);
 
-		$core_current_version = get_bloginfo( 'version' );
+		$core_current_version = wp_get_wp_version();
 		$core_updates         = get_core_updates();
 
 		if ( ! is_array( $core_updates ) ) {
@@ -728,8 +738,8 @@ class WP_Site_Health {
 
 		$result = array(
 			'label'       => sprintf(
-				/* translators: %s: The current PHP version. */
-				__( 'Your site is running the current version of PHP (%s)' ),
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running PHP %s' ),
 				PHP_VERSION
 			),
 			'status'      => 'good',
@@ -739,14 +749,10 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				sprintf(
-					/* translators: %s: The minimum recommended PHP version. */
-					__( 'PHP is one of the programming languages used to build WordPress. Newer versions of PHP receive regular security updates and may increase your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
-					$response ? $response['recommended_version'] : ''
-				)
+				__( 'PHP is one of the programming languages used to build WordPress. Newer versions of PHP receive regular security updates and may increase your site&#8217;s performance.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( wp_get_update_php_url() ),
 				__( 'Learn more about updating PHP' ),
 				/* translators: Hidden accessibility text. */
@@ -755,8 +761,36 @@ class WP_Site_Health {
 			'test'        => 'php_version',
 		);
 
+		if ( ! $response ) {
+			$result['label'] = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Unable to determine the status of the current PHP version (%s)' ),
+				PHP_VERSION
+			);
+			$result['status']      = 'recommended';
+			$result['description'] = '<p><em>' . sprintf(
+				/* translators: %s is the URL to the Serve Happy docs page. */
+				__( 'Unable to access the WordPress.org API for <a href="%s">Serve Happy</a>.' ),
+				'https://codex.wordpress.org/WordPress.org_API#Serve_Happy'
+			) . '</em></p>' . $result['description'];
+			return $result;
+		}
+
+		$result['description'] .= '<p>' . sprintf(
+			/* translators: %s: The minimum recommended PHP version. */
+			__( 'The minimum recommended version of PHP is %s.' ),
+			$response['recommended_version']
+		) . '</p>';
+
 		// PHP is up to date.
-		if ( ! $response || version_compare( PHP_VERSION, $response['recommended_version'], '>=' ) ) {
+		if ( version_compare( PHP_VERSION, $response['recommended_version'], '>=' ) ) {
+			$result['label'] = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running a recommended version of PHP (%s)' ),
+				PHP_VERSION
+			);
+			$result['status'] = 'good';
+
 			return $result;
 		}
 
@@ -892,7 +926,7 @@ class WP_Site_Health {
 					__( 'The WordPress Hosting Team maintains a list of those modules, both recommended and required, in <a href="%1$s" %2$s>the team handbook%3$s</a>.' ),
 					/* translators: Localized team handbook, if one exists. */
 					esc_url( __( 'https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions' ) ),
-					'target="_blank" rel="noopener"',
+					'target="_blank"',
 					sprintf(
 						'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
 						/* translators: Hidden accessibility text. */
@@ -923,7 +957,7 @@ class WP_Site_Health {
 			),
 			'hash'      => array(
 				'function' => 'hash',
-				'required' => false,
+				'required' => true,
 			),
 			'imagick'   => array(
 				'extension' => 'imagick',
@@ -941,6 +975,7 @@ class WP_Site_Health {
 				'function' => 'mysqli_connect',
 				'required' => false,
 			),
+			// Sodium was introduced in PHP 7.2, but the extension may not be enabled.
 			'libsodium' => array(
 				'constant'            => 'SODIUM_LIBRARY_VERSION',
 				'required'            => false,
@@ -1028,10 +1063,10 @@ class WP_Site_Health {
 		$failures = array();
 
 		foreach ( $modules as $library => $module ) {
-			$extension_name = ( isset( $module['extension'] ) ? $module['extension'] : null );
-			$function_name  = ( isset( $module['function'] ) ? $module['function'] : null );
-			$constant_name  = ( isset( $module['constant'] ) ? $module['constant'] : null );
-			$class_name     = ( isset( $module['class'] ) ? $module['class'] : null );
+			$extension_name = $module['extension'] ?? null;
+			$function_name  = $module['function'] ?? null;
+			$constant_name  = $module['constant'] ?? null;
+			$class_name     = $module['class'] ?? null;
 
 			// If this module is a fallback for another function, check if that other function passed.
 			if ( isset( $module['fallback_for'] ) ) {
@@ -1076,7 +1111,7 @@ class WP_Site_Health {
 					$result['status'] = 'recommended';
 				}
 
-				$failures[ $library ] = "<span class='dashicons $class'><span class='screen-reader-text'>$screen_reader</span></span> $message";
+				$failures[ $library ] = "<span class='dashicons $class' aria-hidden='true'></span><span class='screen-reader-text'>$screen_reader</span> $message";
 			}
 		}
 
@@ -1218,7 +1253,7 @@ class WP_Site_Health {
 				__( 'The SQL server is a required piece of software for the database WordPress uses to store all your site&#8217;s content and settings.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Localized version of WordPress requirements if one exists. */
 				esc_url( __( 'https://wordpress.org/about/requirements/' ) ),
 				__( 'Learn more about what WordPress requires to run.' ),
@@ -1322,7 +1357,7 @@ class WP_Site_Health {
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
 				sprintf(
-					'<span class="error"><span class="screen-reader-text">%s</span></span> %s',
+					'<span class="dashicons error" aria-hidden="true"></span><span class="screen-reader-text">%s</span> %s',
 					/* translators: Hidden accessibility text. */
 					__( 'Error' ),
 					sprintf(
@@ -1335,7 +1370,7 @@ class WP_Site_Health {
 			);
 
 			$result['actions'] = sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Localized Support reference. */
 				esc_url( __( 'https://wordpress.org/support/forums/' ) ),
 				__( 'Get help resolving this issue.' ),
@@ -1373,7 +1408,7 @@ class WP_Site_Health {
 				__( 'Debug mode is often enabled to gather more details about an error or site failure, but may contain sensitive information which should not be available on a publicly available website.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Documentation explaining debugging in WordPress. */
 				esc_url( __( 'https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/' ) ),
 				__( 'Learn more about debugging in WordPress.' ),
@@ -1455,7 +1490,7 @@ class WP_Site_Health {
 				__( 'An HTTPS connection is a more secure way of browsing the web. Many services now have HTTPS as a requirement. HTTPS allows you to take advantage of new features that can increase site speed, improve search rankings, and gain the trust of your visitors by helping to protect their online privacy.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( $default_update_url ),
 				__( 'Learn more about why you should use HTTPS' ),
 				/* translators: Hidden accessibility text. */
@@ -1539,7 +1574,7 @@ class WP_Site_Health {
 
 					if ( ! empty( $direct_update_url ) ) {
 						$result['actions'] = sprintf(
-							'<p class="button-container"><a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+							'<p class="button-container"><a class="button button-primary" href="%1$s" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 							esc_url( $direct_update_url ),
 							__( 'Update your site to use HTTPS' ),
 							/* translators: Hidden accessibility text. */
@@ -1558,7 +1593,7 @@ class WP_Site_Health {
 				$update_url = wp_get_update_https_url();
 				if ( $update_url !== $default_update_url ) {
 					$result['description'] .= sprintf(
-						'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+						'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 						esc_url( $update_url ),
 						__( 'Talk to your web host about supporting HTTPS for your website.' ),
 						/* translators: Hidden accessibility text. */
@@ -1817,7 +1852,7 @@ class WP_Site_Health {
 	 * @return array The test results.
 	 */
 	public function get_test_available_updates_disk_space() {
-		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : false;
+		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
 		$result = array(
 			'label'       => __( 'Disk space available to safely perform updates' ),
@@ -1844,14 +1879,50 @@ class WP_Site_Health {
 				__( 'Available disk space is critically low, less than %s available. Proceed with caution, updates may fail.' ),
 				size_format( 20 * MB_IN_BYTES )
 			);
-			$result['status']      = 'critical';
+			$result['status'] = 'critical';
 		} elseif ( $available_space < 100 * MB_IN_BYTES ) {
 			$result['description'] = sprintf(
 				/* translators: %s: Available disk space in MB or GB. */
 				__( 'Available disk space is low, less than %s available.' ),
 				size_format( 100 * MB_IN_BYTES )
 			);
-			$result['status']      = 'recommended';
+			$result['status'] = 'recommended';
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if registration is open to everyone and the default role is privileged.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_insecure_registration() {
+		$users_can_register = get_option( 'users_can_register' );
+		$default_role       = get_option( 'default_role' );
+
+		$result = array(
+			'label'       => __( 'Open Registration with privileged default role' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => '<p>' . __( 'The combination of open registration setting and the default user role may lead to security issues.' ) . '</p>',
+			'actions'     => '',
+			'test'        => 'insecure_registration',
+		);
+
+		if ( $users_can_register && in_array( $default_role, array( 'editor', 'administrator' ), true ) ) {
+			$result['description'] = __( 'Registration is open to anyone, and the default role is set to a privileged role.' );
+			$result['status']      = 'critical';
+			$result['actions']     = sprintf(
+				'<p><a href="%s">%s</a></p>',
+				esc_url( admin_url( 'options-general.php' ) ),
+				__( 'Change these settings' )
+			);
 		}
 
 		return $result;
@@ -1886,7 +1957,7 @@ class WP_Site_Health {
 		);
 
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
 		ob_start();
@@ -2141,9 +2212,6 @@ class WP_Site_Health {
 			'Cache-Control' => 'no-cache',
 			'X-WP-Nonce'    => wp_create_nonce( 'wp_rest' ),
 		);
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
-
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
@@ -2158,6 +2226,9 @@ class WP_Site_Health {
 			),
 			$url
 		);
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
 
 		$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
@@ -2250,16 +2321,6 @@ class WP_Site_Health {
 			'actions'     => '',
 			'test'        => 'file_uploads',
 		);
-
-		if ( ! function_exists( 'ini_get' ) ) {
-			$result['status']       = 'critical';
-			$result['description'] .= sprintf(
-				/* translators: %s: ini_get() */
-				__( 'The %s function has been disabled, some media settings are unavailable because of this.' ),
-				'<code>ini_get()</code>'
-			);
-			return $result;
-		}
 
 		if ( empty( ini_get( 'file_uploads' ) ) ) {
 			$result['status']       = 'critical';
@@ -2364,7 +2425,7 @@ class WP_Site_Health {
 			);
 		} else {
 			$result['actions'] .= sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				__( 'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working' ),
 				__( 'Learn how to configure the Authorization header.' ),
 				/* translators: Hidden accessibility text. */
@@ -2397,7 +2458,7 @@ class WP_Site_Health {
 			'status'      => 'good',
 			'label'       => '',
 			'actions'     => sprintf(
-				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%1$s" target="_blank" rel="noreferrer">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#caching' ),
 				__( 'Learn more about page cache' ),
 				/* translators: Hidden accessibility text. */
@@ -2440,19 +2501,19 @@ class WP_Site_Health {
 		$page_cache_test_summary = array();
 
 		if ( empty( $page_cache_detail['response_time'] ) ) {
-			$page_cache_test_summary[] = '<span class="dashicons dashicons-dismiss"></span> ' . __( 'Server response time could not be determined. Verify that loopback requests are working.' );
+			$page_cache_test_summary[] = '<span class="dashicons dashicons-dismiss" aria-hidden="true"></span> ' . __( 'Server response time could not be determined. Verify that loopback requests are working.' );
 		} else {
 
 			$threshold = $this->get_good_response_time_threshold();
 			if ( $page_cache_detail['response_time'] < $threshold ) {
-				$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . sprintf(
+				$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span> ' . sprintf(
 					/* translators: 1: The response time in milliseconds, 2: The recommended threshold in milliseconds. */
 					__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s milliseconds threshold.' ),
 					number_format_i18n( $page_cache_detail['response_time'] ),
 					number_format_i18n( $threshold )
 				);
 			} else {
-				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . sprintf(
+				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning" aria-hidden="true"></span> ' . sprintf(
 					/* translators: 1: The response time in milliseconds, 2: The recommended threshold in milliseconds. */
 					__( 'Median server response time was %1$s milliseconds. It should be less than the recommended %2$s milliseconds threshold.' ),
 					number_format_i18n( $page_cache_detail['response_time'] ),
@@ -2461,9 +2522,9 @@ class WP_Site_Health {
 			}
 
 			if ( empty( $page_cache_detail['headers'] ) ) {
-				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'No client caching response headers were detected.' );
+				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning" aria-hidden="true"></span> ' . __( 'No client caching response headers were detected.' );
 			} else {
-				$headers_summary  = '<span class="dashicons dashicons-yes-alt"></span>';
+				$headers_summary  = '<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>';
 				$headers_summary .= ' ' . sprintf(
 					/* translators: %d: Number of caching headers. */
 					_n(
@@ -2479,10 +2540,10 @@ class WP_Site_Health {
 		}
 
 		if ( $page_cache_detail['advanced_cache_present'] ) {
-			$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . __( 'A page cache plugin was detected.' );
+			$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span> ' . __( 'A page cache plugin was detected.' );
 		} elseif ( ! ( is_array( $page_cache_detail ) && ! empty( $page_cache_detail['headers'] ) ) ) {
 			// Note: This message is not shown if client caching response headers were present since an external caching layer may be employed.
-			$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'A page cache plugin was not detected.' );
+			$page_cache_test_summary[] = '<span class="dashicons dashicons-warning" aria-hidden="true"></span> ' . __( 'A page cache plugin was not detected.' );
 		}
 
 		$result['description'] .= '<ul><li>' . implode( '</li><li>', $page_cache_test_summary ) . '</li></ul>';
@@ -2507,7 +2568,7 @@ class WP_Site_Health {
 		$action_url = apply_filters(
 			'site_status_persistent_object_cache_url',
 			/* translators: Localized Support reference. */
-			__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#persistent-object-cache' )
+			__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#object-caching' )
 		);
 
 		$result = array(
@@ -2523,7 +2584,7 @@ class WP_Site_Health {
 				__( 'A persistent object cache makes your site&#8217;s database more efficient, resulting in faster load times because WordPress can retrieve your site&#8217;s content and settings much more quickly.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( $action_url ),
 				__( 'Learn more about persistent object caching.' ),
 				/* translators: Hidden accessibility text. */
@@ -2582,6 +2643,196 @@ class WP_Site_Health {
 				)
 			)
 		);
+
+		return $result;
+	}
+
+	/**
+	 * Calculates total amount of autoloaded data.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return int Autoloaded data in bytes.
+	 */
+	public function get_autoloaded_options_size() {
+		$alloptions = wp_load_alloptions();
+
+		$total_length = 0;
+
+		foreach ( $alloptions as $option_value ) {
+			if ( is_array( $option_value ) || is_object( $option_value ) ) {
+				$option_value = maybe_serialize( $option_value );
+			}
+			$total_length += strlen( (string) $option_value );
+		}
+
+		return $total_length;
+	}
+
+	/**
+	 * Tests the number of autoloaded options.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_autoloaded_options() {
+		$autoloaded_options_size  = $this->get_autoloaded_options_size();
+		$autoloaded_options_count = count( wp_load_alloptions() );
+
+		$base_description = __( 'Autoloaded options are configuration settings for plugins and themes that are automatically loaded with every page load in WordPress. Having too many autoloaded options can slow down your site.' );
+
+		$result = array(
+			'label'       => __( 'Autoloaded options are acceptable' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				/* translators: 1: Number of autoloaded options, 2: Autoloaded options size. */
+				'<p>' . esc_html( $base_description ) . ' ' . __( 'Your site has %1$s autoloaded options (size: %2$s) in the options table, which is acceptable.' ) . '</p>',
+				$autoloaded_options_count,
+				size_format( $autoloaded_options_size )
+			),
+			'actions'     => '',
+			'test'        => 'autoloaded_options',
+		);
+
+		/**
+		 * Filters max bytes threshold to trigger warning in Site Health.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param int $limit Autoloaded options threshold size. Default 800000.
+		 */
+		$limit = apply_filters( 'site_status_autoloaded_options_size_limit', 800000 );
+
+		if ( $autoloaded_options_size < $limit ) {
+			return $result;
+		}
+
+		$result['status']      = 'critical';
+		$result['label']       = __( 'Autoloaded options could affect performance' );
+		$result['description'] = sprintf(
+			/* translators: 1: Number of autoloaded options, 2: Autoloaded options size. */
+			'<p>' . esc_html( $base_description ) . ' ' . __( 'Your site has %1$s autoloaded options (size: %2$s) in the options table, which could cause your site to be slow. You can review the options being autoloaded in your database and remove any options that are no longer needed by your site.' ) . '</p>',
+			$autoloaded_options_count,
+			size_format( $autoloaded_options_size )
+		);
+
+		/**
+		 * Filters description to be shown on Site Health warning when threshold is met.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string $description Description message when autoloaded options bigger than threshold.
+		 */
+		$result['description'] = apply_filters( 'site_status_autoloaded_options_limit_description', $result['description'] );
+
+		$result['actions'] = sprintf(
+			/* translators: 1: HelpHub URL, 2: Link description. */
+			'<p><a target="_blank" href="%1$s">%2$s</a></p>',
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#autoloaded-options' ) ),
+			__( 'More info about optimizing autoloaded options' )
+		);
+
+		/**
+		 * Filters actionable information to tackle the problem. It can be a link to an external guide.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string $actions Call to Action to be used to point to the right direction to solve the issue.
+		 */
+		$result['actions'] = apply_filters( 'site_status_autoloaded_options_action_to_perform', $result['actions'] );
+		return $result;
+	}
+
+	/**
+	 * Tests whether search engine indexing is enabled.
+	 *
+	 * Surfaces as “good” if `blog_public === 1`, or “recommended” if `blog_public === 0`.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_search_engine_visibility() {
+		$result = array(
+			'label'       => __( 'Search engine indexing is enabled.' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Privacy' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Search engines can crawl and index your site. No action needed.' )
+			),
+			'actions'     => sprintf(
+				'<p><a href="%1$s">%2$s</a></p>',
+				esc_url( admin_url( 'options-reading.php#blog_public' ) ),
+				__( 'Review your visibility settings' )
+			),
+			'test'        => 'search_engine_visibility',
+		);
+
+		// If indexing is discouraged, flip to “recommended”:
+		if ( ! get_option( 'blog_public' ) ) {
+			$result['status']         = 'recommended';
+			$result['label']          = __( 'Search engines are discouraged from indexing this site.' );
+			$result['badge']['color'] = 'blue';
+			$result['description']    = sprintf(
+				'<p>%s</p>',
+				__( 'Your site is hidden from search engines. Consider enabling indexing if this is a public site.' )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if opcode cache is enabled and available.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return array<string, string|array<string, string>> The test result.
+	 */
+	public function get_test_opcode_cache(): array {
+		$opcode_cache_enabled = false;
+		if ( function_exists( 'opcache_get_status' ) ) {
+			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+			if ( $status && true === $status['opcache_enabled'] ) {
+				$opcode_cache_enabled = true;
+			}
+		}
+
+		$result = array(
+			'label'       => __( 'Opcode cache is enabled' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Opcode cache improves PHP performance by storing precompiled script bytecode in memory, reducing the need for PHP to load and parse scripts on each request.' )
+			),
+			'actions'     => sprintf(
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				esc_url( 'https://www.php.net/manual/en/book.opcache.php' ),
+				__( 'Learn more about OPcache.' ),
+				/* translators: Hidden accessibility text. */
+				__( '(opens in a new tab)' )
+			),
+			'test'        => 'opcode_cache',
+		);
+
+		if ( ! $opcode_cache_enabled ) {
+			$result['status']       = 'recommended';
+			$result['label']        = __( 'Opcode cache is not enabled' );
+			$result['description'] .= '<p>' . __( 'Enabling this cache can significantly improve the performance of your site.' ) . '</p>';
+		}
 
 		return $result;
 	}
@@ -2669,6 +2920,22 @@ class WP_Site_Health {
 				'available_updates_disk_space' => array(
 					'label' => __( 'Available disk space' ),
 					'test'  => 'available_updates_disk_space',
+				),
+				'autoloaded_options'           => array(
+					'label' => __( 'Autoloaded options' ),
+					'test'  => 'autoloaded_options',
+				),
+				'insecure_registration'        => array(
+					'label' => __( 'Open Registration with privileged default role' ),
+					'test'  => 'insecure_registration',
+				),
+				'search_engine_visibility'     => array(
+					'label' => __( 'Search Engine Visibility' ),
+					'test'  => 'search_engine_visibility',
+				),
+				'opcode_cache'                 => array(
+					'label' => __( 'Opcode cache' ),
+					'test'  => 'opcode_cache',
 				),
 			),
 			'async'  => array(
@@ -2847,7 +3114,7 @@ class WP_Site_Health {
 						'sig'      => $sig,
 						'args'     => $data['args'],
 						'schedule' => $data['schedule'],
-						'interval' => isset( $data['interval'] ) ? $data['interval'] : null,
+						'interval' => $data['interval'] ?? null,
 					);
 
 				}
@@ -3012,8 +3279,6 @@ class WP_Site_Health {
 		$headers = array(
 			'Cache-Control' => 'no-cache',
 		);
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
 
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
@@ -3021,6 +3286,9 @@ class WP_Site_Health {
 		}
 
 		$url = site_url( 'wp-cron.php' );
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
 
 		/*
 		 * A post request is used for the wp-cron.php loopback test to cause the file
@@ -3201,22 +3469,21 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Returns a list of headers and its verification callback to verify if page cache is enabled or not.
-	 *
-	 * Note: key is header name and value could be callable function to verify header value.
-	 * Empty value mean existence of header detect page cache is enabled.
+	 * Returns a mapping from response headers to an optional callback to verify if page cache is enabled or not.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array List of client caching headers and their (optional) verification callbacks.
+	 * @return array<string, ?callable> Mapping of page caching headers and their (optional) verification callbacks.
+	 *                                  A null value means a simple existence check is used for the header.
 	 */
-	public function get_page_cache_headers() {
+	public function get_page_cache_headers(): array {
 
 		$cache_hit_callback = static function ( $header_value ) {
-			return str_contains( strtolower( $header_value ), 'hit' );
+			return 1 === preg_match( '/(^| |,)HIT(,| |$)/i', $header_value );
 		};
 
 		$cache_headers = array(
+			// Standard HTTP caching headers.
 			'cache-control'          => static function ( $header_value ) {
 				return (bool) preg_match( '/max-age=[1-9]/', $header_value );
 			},
@@ -3226,26 +3493,107 @@ class WP_Site_Health {
 			'age'                    => static function ( $header_value ) {
 				return is_numeric( $header_value ) && $header_value > 0;
 			},
-			'last-modified'          => '',
-			'etag'                   => '',
+			'last-modified'          => null,
+			'etag'                   => null,
+			'via'                    => null,
+
+			/**
+			 * Custom caching headers.
+			 *
+			 * These do not seem to be actually used by any caching layers. There were first introduced in a Site Health
+			 * test in the AMP plugin. They were copied into the Performance Lab plugin's Site Health test before they
+			 * were merged into core.
+			 *
+			 * @link https://github.com/ampproject/amp-wp/pull/6849
+			 * @link https://github.com/WordPress/performance/pull/263
+			 * @link https://core.trac.wordpress.org/changeset/54043
+			 */
 			'x-cache-enabled'        => static function ( $header_value ) {
-				return 'true' === strtolower( $header_value );
+				return ( 'true' === strtolower( $header_value ) );
 			},
 			'x-cache-disabled'       => static function ( $header_value ) {
 				return ( 'on' !== strtolower( $header_value ) );
 			},
-			'x-srcache-store-status' => $cache_hit_callback,
+
+			/**
+			 * CloudFlare.
+			 *
+			 * @link https://developers.cloudflare.com/cache/concepts/cache-responses/
+			 */
+			'cf-cache-status'        => $cache_hit_callback,
+
+			/**
+			 * Fastly.
+			 *
+			 * @link https://www.fastly.com/documentation/reference/http/http-headers/X-Cache/
+			 */
+			'x-cache'                => $cache_hit_callback,
+
+			/**
+			 * LightSpeed.
+			 *
+			 * @link https://docs.litespeedtech.com/lscache/devguide/controls/#x-litespeed-cache
+			 */
+			'x-litespeed-cache'      => $cache_hit_callback,
+
+			/**
+			 * OpenResty srcache-nginx-module.
+			 *
+			 * The `x-srcache-store-status` header indicates if the response was stored in the cache.
+			 * Valid values include `STORE` and `BYPASS`.
+			 *
+			 * The `x-srcache-fetch-status` header indicates if the response was fetched from the cache.
+			 * Valid values include `HIT`, `MISS`, and `BYPASS`.
+			 *
+			 * @link https://github.com/openresty/srcache-nginx-module
+			 */
+			'x-srcache-store-status' => static function ( $header_value ) {
+				return 'store' === strtolower( $header_value );
+			},
 			'x-srcache-fetch-status' => $cache_hit_callback,
+
+			/**
+			 * Nginx.
+			 *
+			 * @link https://blog.nginx.org/blog/nginx-caching-guide
+			 * @link https://www.inmotionhosting.com/support/website/nginx-cache-management/
+			 */
+			'x-cache-status'         => $cache_hit_callback,
+			'x-proxy-cache'          => $cache_hit_callback,
+
+			/**
+			 * Varnish Cache.
+			 *
+			 * A header with a single number indicates it was not cached. If there are two numbers (or more), then this
+			 * indicates the response was cached.
+			 *
+			 * @link https://vinyl-cache.org/docs/2.1/faq/http.html
+			 * @link https://www.fastly.com/documentation/reference/http/http-headers/X-Varnish/
+			 * @link https://www.linuxjournal.com/content/speed-your-web-site-varnish
+			 */
+			'x-varnish'              => static function ( $header_value ) {
+				return 1 === preg_match( '/^\d+ \d+/', $header_value );
+			},
 		);
 
 		/**
 		 * Filters the list of cache headers supported by core.
 		 *
+		 * This list indicates how each of the specified headers will be checked to indicate if a page cache is enabled
+		 * or not. WordPress checks for each of the headers in the returned array. If the callback is provided, it will
+		 * be passed the value for the corresponding header and return a boolean value indicating if the header suggests
+		 * that a cache is active. If the value is `null` for the header, then WordPress will assume that a cache is
+		 * active if the header is present, regardless of its value.
+		 *
 		 * @since 6.1.0
 		 *
-		 * @param array $cache_headers Array of supported cache headers.
+		 * @param array<string, ?callable> $cache_headers Mapping from cache-related HTTP headers to whether they
+		 *                                                indicate if a page cache is enabled for the site. `null`
+		 *                                                indicates caching in the presence of the header; a callback is
+		 *                                                provided the header’s value and should return `true` if it
+		 *                                                implies that a cache is active.
 		 */
-		return apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
+		return (array) apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
 	}
 
 	/**
@@ -3264,7 +3612,7 @@ class WP_Site_Health {
 	private function check_for_page_caching() {
 
 		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, home_url( '/' ) );
 
 		$headers = array();
 
@@ -3389,9 +3737,9 @@ class WP_Site_Health {
 		 *
 		 * The default is based on https://web.dev/time-to-first-byte/.
 		 *
-		 * @param int $threshold Threshold in milliseconds. Default 600.
-		 *
 		 * @since 6.1.0
+		 *
+		 * @param int $threshold Threshold in milliseconds. Default 600.
 		 */
 		return (int) apply_filters( 'site_status_good_response_time_threshold', 600 );
 	}
@@ -3477,13 +3825,7 @@ class WP_Site_Health {
 			'users_count'    => $wpdb->users,
 		);
 
-		foreach ( $threshold_map as $threshold => $table ) {
-			if ( $thresholds[ $threshold ] <= $results[ $table ]->rows ) {
-				return true;
-			}
-		}
-
-		return false;
+		return array_any( $threshold_map, fn( $table, $threshold ) => $thresholds[ $threshold ] <= $results[ $table ]->rows );
 	}
 
 	/**

@@ -63,8 +63,11 @@ class WP_Textdomain_Registry {
 	 * Holds a cached list of domains with translations to improve performance.
 	 *
 	 * @since 6.2.0
+	 * @since 7.2.0 This property is no longer used.
 	 *
 	 * @var string[]
+	 *
+	 * @deprecated
 	 */
 	protected $domains_with_translations = array();
 
@@ -87,7 +90,6 @@ class WP_Textdomain_Registry {
 	 *
 	 * @param string $domain Text domain.
 	 * @param string $locale Locale.
-	 *
 	 * @return string|false Languages directory path or false if there is none available.
 	 */
 	public function get( $domain, $locale ) {
@@ -101,7 +103,7 @@ class WP_Textdomain_Registry {
 		 * @param string|false $path   Languages directory path for the given domain and locale.
 		 * @param string       $domain Text domain.
 		 * @param string       $locale Locale.
-		 **/
+		 */
 		return apply_filters( 'lang_dir_for_domain', $path, $domain, $locale );
 	}
 
@@ -109,10 +111,14 @@ class WP_Textdomain_Registry {
 	 * Determines whether any MO file paths are available for the domain.
 	 *
 	 * This is the case if a path has been set for the current locale,
-	 * or if there is no information stored yet, in which case
-	 * {@see _load_textdomain_just_in_time()} will fetch the information first.
+	 * if there is no information stored yet, in which case
+	 * {@see _load_textdomain_just_in_time()} will fetch the information first,
+	 * or if a custom path has been registered via {@see load_plugin_textdomain()}
+	 * or {@see load_theme_textdomain()}, which is always worth looking at.
 	 *
 	 * @since 6.1.0
+	 * @since 7.2.0 Checks for a registered custom path instead of the
+	 *              `$domains_with_translations` property.
 	 *
 	 * @param string $domain Text domain.
 	 * @return bool Whether any MO file paths are available for the domain.
@@ -121,7 +127,7 @@ class WP_Textdomain_Registry {
 		return (
 			isset( $this->current[ $domain ] ) ||
 			empty( $this->all[ $domain ] ) ||
-			in_array( $domain, $this->domains_with_translations, true )
+			isset( $this->custom_paths[ $domain ] )
 		);
 	}
 
@@ -153,6 +159,16 @@ class WP_Textdomain_Registry {
 	 * @param string $path   Language directory path.
 	 */
 	public function set_custom_path( $domain, $path ) {
+		// If just-in-time loading was triggered before, reset the entry so it can be tried again.
+
+		if ( isset( $this->all[ $domain ] ) ) {
+			$this->all[ $domain ] = array_filter( $this->all[ $domain ] );
+		}
+
+		if ( empty( $this->current[ $domain ] ) ) {
+			unset( $this->current[ $domain ] );
+		}
+
 		$this->custom_paths[ $domain ] = rtrim( $path, '/' );
 	}
 
@@ -182,8 +198,8 @@ class WP_Textdomain_Registry {
 		 * @since 6.5.0
 		 *
 		 * @param null|array $files List of translation files. Default null.
-		 * @param string $path The path from which translation files are being fetched.
-		 **/
+		 * @param string     $path  The path from which translation files are being fetched.
+		 */
 		$files = apply_filters( 'pre_get_language_files_from_path', null, $path );
 
 		if ( null !== $files ) {
@@ -312,13 +328,6 @@ class WP_Textdomain_Registry {
 			$php_path = "$location/$domain-$locale.l10n.php";
 
 			foreach ( $files as $file_path ) {
-				if (
-					! in_array( $domain, $this->domains_with_translations, true ) &&
-					str_starts_with( str_replace( "$location/", '', $file_path ), "$domain-" )
-				) {
-					$this->domains_with_translations[] = $domain;
-				}
-
 				if ( $file_path === $mo_path || $file_path === $php_path ) {
 					$found_location = rtrim( $location, '/' ) . '/';
 					break 2;
@@ -336,7 +345,7 @@ class WP_Textdomain_Registry {
 		 * If no path is found for the given locale and a custom path has been set
 		 * using load_plugin_textdomain/load_theme_textdomain, use that one.
 		 */
-		if ( 'en_US' !== $locale && isset( $this->custom_paths[ $domain ] ) ) {
+		if ( isset( $this->custom_paths[ $domain ] ) ) {
 			$fallback_location = rtrim( $this->custom_paths[ $domain ], '/' ) . '/';
 			$this->set( $domain, $locale, $fallback_location );
 			return $fallback_location;

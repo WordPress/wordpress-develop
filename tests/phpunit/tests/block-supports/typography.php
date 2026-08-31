@@ -58,6 +58,9 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 
+		// Resets script modules enqueued while rendering fit text.
+		$GLOBALS['wp_script_modules'] = null;
+
 		parent::tear_down();
 	}
 
@@ -295,6 +298,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @ticket 57065
 	 * @ticket 58523
 	 * @ticket 61118
+	 * @ticket 61932
 	 *
 	 * @covers ::wp_get_typography_font_size_value
 	 *
@@ -359,7 +363,11 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'font_size_preset' => array(
 					'size' => null,
 				),
-				'settings'         => null,
+				'settings'         => array(
+					'typography' => array(
+						'fluid' => true,
+					),
+				),
 				'expected_output'  => null,
 			),
 
@@ -429,8 +437,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 			'returns already clamped value'              => array(
 				'font_size_preset' => array(
-					'size'  => 'clamp(21px, 1.313rem + ((1vw - 7.68px) * 2.524), 42px)',
-					'fluid' => false,
+					'size' => 'clamp(21px, 1.313rem + ((1vw - 7.68px) * 2.524), 42px)',
 				),
 				'settings'         => array(
 					'typography' => array(
@@ -442,8 +449,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 
 			'returns value with unsupported unit'        => array(
 				'font_size_preset' => array(
-					'size'  => '1000%',
-					'fluid' => false,
+					'size' => '1000%',
 				),
 				'settings'         => array(
 					'typography' => array(
@@ -772,6 +778,33 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					),
 				),
 				'expected_output' => 'clamp(100px, 6.25rem + ((1vw - 3.2px) * 7.813), 200px)',
+			),
+
+			// Individual preset settings override global settings.
+			'should convert individual preset size to fluid if fluid is disabled in global settings' => array(
+				'font_size'       => array(
+					'size'  => '17px',
+					'fluid' => true,
+				),
+				'settings'        => array(
+					'typography' => array(),
+				),
+				'expected_output' => 'clamp(14px, 0.875rem + ((1vw - 3.2px) * 0.234), 17px)',
+			),
+			'should use individual preset settings if fluid is disabled in global settings' => array(
+				'font_size'       => array(
+					'size'  => '17px',
+					'fluid' => array(
+						'min' => '16px',
+						'max' => '26px',
+					),
+				),
+				'settings'        => array(
+					'typography' => array(
+						'fluid' => false,
+					),
+				),
+				'expected_output' => 'clamp(16px, 1rem + ((1vw - 3.2px) * 0.781), 26px)',
 			),
 		);
 	}
@@ -1103,6 +1136,80 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'expected_output'             => "<div class=\"wp-block-group\" style=\"font-size:clamp(0.984em, 0.984rem + ((1vw - 0.2em) * 0.645), 1.5em);\"> \n \n<p style=\"font-size:1.5em\">A paragraph inside a group</p></div>",
 			),
 		);
+	}
+
+	/**
+	 * Tests that the `has-fit-text` class name is added to the block wrapper when the
+	 * `fitText` attribute is set.
+	 *
+	 * @ticket 65973
+	 *
+	 * @covers ::wp_render_typography_support
+	 *
+	 * @dataProvider data_should_add_fit_text_class_name
+	 *
+	 * @param non-falsy-string $block_content  HTML block content.
+	 * @param non-falsy-string $expected_class Expected value of the class attribute on the block wrapper.
+	 */
+	public function test_should_add_fit_text_class_name( string $block_content, string $expected_class ) {
+		$block = array(
+			'blockName' => 'core/site-title',
+			'attrs'     => array(
+				'fitText' => true,
+			),
+		);
+
+		$actual = wp_render_typography_support( $block_content, $block );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$processor->next_tag();
+
+		$this->assertSame( $expected_class, $processor->get_attribute( 'class' ), 'The block wrapper does not have the expected class names.' );
+		$this->assertSame( 1, substr_count( $actual, 'has-fit-text' ), 'The class name should be added exactly once, to the outermost tag only.' );
+	}
+
+	/**
+	 * Data provider for test_should_add_fit_text_class_name().
+	 *
+	 * @return array<non-falsy-string, array{ block_content: non-falsy-string, expected_class: non-falsy-string }>
+	 */
+	public function data_should_add_fit_text_class_name(): array {
+		return array(
+			'wrapper without a class attribute' => array(
+				'block_content'  => '<h1>Site Title</h1>',
+				'expected_class' => 'has-fit-text',
+			),
+			'wrapper with existing class names' => array(
+				'block_content'  => '<h1 class="wp-block-site-title"><a href="https://example.com">Site Title</a></h1>',
+				'expected_class' => 'wp-block-site-title has-fit-text',
+			),
+			'wrapper with an already serialized class name' => array(
+				'block_content'  => '<p class="has-fit-text">A paragraph</p>',
+				'expected_class' => 'has-fit-text',
+			),
+			'wrapper with inner blocks'         => array(
+				'block_content'  => '<div class="wp-block-group"><p>A paragraph inside a group</p></div>',
+				'expected_class' => 'wp-block-group has-fit-text',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the `has-fit-text` class name is not added when the block does not
+	 * opt in to the fit text support.
+	 *
+	 * @ticket 65973
+	 *
+	 * @covers ::wp_render_typography_support
+	 */
+	public function test_should_not_add_fit_text_class_name_without_fit_text_attribute() {
+		$block_content = '<h1 class="wp-block-site-title">Site Title</h1>';
+		$block         = array(
+			'blockName' => 'core/site-title',
+			'attrs'     => array(),
+		);
+
+		$this->assertSame( $block_content, wp_render_typography_support( $block_content, $block ) );
 	}
 
 	/**

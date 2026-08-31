@@ -89,7 +89,7 @@ final class WP_Screen {
 	 * have a `$parent_base` of 'edit'.
 	 *
 	 * @since 3.3.0
-	 * @var string|null
+	 * @var ?string
 	 */
 	public $parent_base;
 
@@ -99,7 +99,7 @@ final class WP_Screen {
 	 * Some `$parent_file` values are 'edit.php?post_type=page', 'edit.php', and 'options-general.php'.
 	 *
 	 * @since 3.3.0
-	 * @var string|null
+	 * @var ?string
 	 */
 	public $parent_file;
 
@@ -175,8 +175,10 @@ final class WP_Screen {
 	/**
 	 * Stores the result of the public show_screen_options function.
 	 *
+	 * Set when calling {@see self::show_screen_options()} for the first time.
+	 *
 	 * @since 3.3.0
-	 * @var bool
+	 * @var ?bool
 	 */
 	private $_show_screen_options;
 
@@ -184,7 +186,7 @@ final class WP_Screen {
 	 * Stores the 'screen_settings' section of screen options.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var ?string
 	 */
 	private $_screen_settings;
 
@@ -545,17 +547,14 @@ final class WP_Screen {
 	 * @param string       $option Option name.
 	 * @param string|false $key    Optional. Specific array key for when the option is an array.
 	 *                             Default false.
-	 * @return string The option value if set, null otherwise.
+	 * @return ?string The option value if set, null otherwise.
 	 */
 	public function get_option( $option, $key = false ) {
 		if ( ! isset( $this->_options[ $option ] ) ) {
 			return null;
 		}
 		if ( $key ) {
-			if ( isset( $this->_options[ $option ][ $key ] ) ) {
-				return $this->_options[ $option ][ $key ];
-			}
-			return null;
+			return $this->_options[ $option ][ $key ] ?? null;
 		}
 		return $this->_options[ $option ];
 	}
@@ -598,7 +597,7 @@ final class WP_Screen {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Help Tab ID.
-	 * @return array Help tab arguments.
+	 * @return ?array Help tab arguments, or null if no help tabs added.
 	 */
 	public function get_help_tab( $id ) {
 		if ( ! isset( $this->_help_tabs[ $id ] ) ) {
@@ -733,7 +732,7 @@ final class WP_Screen {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Screen reader text array named key.
-	 * @return string Screen reader text string.
+	 * @return ?string Screen reader text string, or null if no text is associated with the key.
 	 */
 	public function get_screen_reader_text( $key ) {
 		if ( ! isset( $this->_screen_reader_content[ $key ] ) ) {
@@ -793,8 +792,9 @@ final class WP_Screen {
 		 * Filters the legacy contextual help list.
 		 *
 		 * @since 2.7.0
-		 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
-		 *                   {@see get_current_screen()->remove_help_tab()} instead.
+		 * @deprecated 3.3.0 Use {@see get_current_screen()} with
+		 *                   {@see WP_Screen::add_help_tab()} or
+		 *                   {@see WP_Screen::remove_help_tab()} instead.
 		 *
 		 * @param array     $old_compat_help Old contextual help.
 		 * @param WP_Screen $screen          Current WP_Screen instance.
@@ -806,14 +806,15 @@ final class WP_Screen {
 			'get_current_screen()->add_help_tab(), get_current_screen()->remove_help_tab()'
 		);
 
-		$old_help = isset( self::$_old_compat_help[ $this->id ] ) ? self::$_old_compat_help[ $this->id ] : '';
+		$old_help = self::$_old_compat_help[ $this->id ] ?? '';
 
 		/**
 		 * Filters the legacy contextual help text.
 		 *
 		 * @since 2.7.0
-		 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
-		 *                   {@see get_current_screen()->remove_help_tab()} instead.
+		 * @deprecated 3.3.0 Use {@see get_current_screen()} with
+		 *                   {@see WP_Screen::add_help_tab()} or
+		 *                   {@see WP_Screen::remove_help_tab()} instead.
 		 *
 		 * @param string    $old_help  Help text that appears on the screen.
 		 * @param string    $screen_id Screen ID.
@@ -833,8 +834,9 @@ final class WP_Screen {
 			 * Filters the default legacy contextual help text.
 			 *
 			 * @since 2.8.0
-			 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
-			 *                   {@see get_current_screen()->remove_help_tab()} instead.
+			 * @deprecated 3.3.0 Use {@see get_current_screen()} with
+			 *                   {@see WP_Screen::add_help_tab()} or
+			 *                   {@see WP_Screen::remove_help_tab()} instead.
 			 *
 			 * @param string $old_help_default Default contextual help text.
 			 */
@@ -949,8 +951,9 @@ final class WP_Screen {
 		if ( $this->get_option( 'layout_columns' ) ) {
 			$this->columns = (int) get_user_option( "screen_layout_$this->id" );
 
-			if ( ! $this->columns && $this->get_option( 'layout_columns', 'default' ) ) {
-				$this->columns = $this->get_option( 'layout_columns', 'default' );
+			$layout_columns = (int) $this->get_option( 'layout_columns', 'default' );
+			if ( ! $this->columns && $layout_columns ) {
+				$this->columns = $layout_columns;
 			}
 		}
 		$GLOBALS['screen_layout_columns'] = $this->columns; // Set the global for back-compat.
@@ -969,14 +972,14 @@ final class WP_Screen {
 		<div id="screen-meta-links">
 		<?php if ( $this->show_screen_options() ) : ?>
 			<div id="screen-options-link-wrap" class="hide-if-no-js screen-meta-toggle">
-			<button type="button" id="show-settings-link" class="button show-settings" aria-controls="screen-options-wrap" aria-expanded="false"><?php _e( 'Screen Options' ); ?></button>
+			<button type="button" id="show-settings-link" class="button button-compact show-settings" aria-controls="screen-options-wrap" aria-expanded="false"><?php _e( 'Screen Options' ); ?></button>
 			</div>
 			<?php
 		endif;
 		if ( $this->get_help_tabs() ) :
 			?>
 			<div id="contextual-help-link-wrap" class="hide-if-no-js screen-meta-toggle">
-			<button type="button" id="contextual-help-link" class="button show-settings" aria-controls="contextual-help-wrap" aria-expanded="false"><?php _e( 'Help' ); ?></button>
+			<button type="button" id="contextual-help-link" class="button button-compact show-settings" aria-controls="contextual-help-wrap" aria-expanded="false"><?php _e( 'Help' ); ?></button>
 			</div>
 		<?php endif; ?>
 		</div>
@@ -984,9 +987,11 @@ final class WP_Screen {
 	}
 
 	/**
-	 * @global array $wp_meta_boxes
+	 * @since 3.3.0
 	 *
-	 * @return bool
+	 * @global array $wp_meta_boxes Global meta box state.
+	 *
+	 * @return bool Whether to show the Screen Options tab for the current screen.
 	 */
 	public function show_screen_options() {
 		global $wp_meta_boxes;
@@ -1103,7 +1108,7 @@ final class WP_Screen {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @global array $wp_meta_boxes
+	 * @global array $wp_meta_boxes Global meta box state.
 	 */
 	public function render_meta_boxes_preferences() {
 		global $wp_meta_boxes;
@@ -1252,7 +1257,7 @@ final class WP_Screen {
 		}
 
 		if ( 'edit_comments_per_page' === $option ) {
-			$comment_status = isset( $_REQUEST['comment_status'] ) ? $_REQUEST['comment_status'] : 'all';
+			$comment_status = $_REQUEST['comment_status'] ?? 'all';
 
 			/** This filter is documented in wp-admin/includes/class-wp-comments-list-table.php */
 			$per_page = apply_filters( 'comments_per_page', $per_page, $comment_status );
@@ -1278,7 +1283,7 @@ final class WP_Screen {
 		<legend><?php _e( 'Pagination' ); ?></legend>
 			<?php if ( $per_page_label ) : ?>
 				<label for="<?php echo esc_attr( $option ); ?>"><?php echo $per_page_label; ?></label>
-				<input type="number" step="1" min="1" max="999" class="screen-per-page" name="wp_screen_options[value]"
+				<input type="number" step="1" min="1" max="999" class="screen-per-page small-text" name="wp_screen_options[value]"
 					id="<?php echo esc_attr( $option ); ?>"
 					value="<?php echo esc_attr( $per_page ); ?>" />
 			<?php endif; ?>

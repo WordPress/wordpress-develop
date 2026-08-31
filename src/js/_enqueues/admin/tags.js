@@ -31,6 +31,12 @@ jQuery( function($) {
 		if ( r ) {
 			data = t.attr('href').replace(/[^?]*\?/, '').replace(/action=delete/, 'action=delete-tag');
 
+			tr.children().css('backgroundColor', '#faafaa');
+
+			// Disable pointer events and all form controls/links in the row
+			tr.css('pointer-events', 'none');
+			tr.find(':input, a').prop('disabled', true).attr('tabindex', -1);
+
 			/**
 			 * Makes a request to the server to delete the term that corresponds to the
 			 * delete term button.
@@ -40,9 +46,23 @@ jQuery( function($) {
 			 * @return {void}
 			 */
 			$.post(ajaxurl, data, function(r){
+				var message;
 				if ( '1' == r ) {
 					$('#ajax-response').empty();
-					tr.fadeOut('normal', function(){ tr.remove(); });
+					let nextFocus = tr.next( 'tr' ).find( 'a.row-title' );
+					let prevFocus = tr.prev( 'tr' ).find( 'a.row-title' );
+					// If there is neither a next row or a previous row, focus the tag input field.
+					if ( nextFocus.length < 1 && prevFocus.length < 1 ) {
+						nextFocus = $( '#tag-name' ).trigger( 'focus' );
+					} else {
+						if ( nextFocus.length < 1 ) {
+							nextFocus = prevFocus;
+						}
+					}
+					tr.fadeOut('normal', function() {
+						tr.remove();
+						updateTableNavCount();
+					});
 
 					/**
 					 * Removes the term from the parent box and the tag cloud.
@@ -53,22 +73,84 @@ jQuery( function($) {
 					 */
 					$('select#parent option[value="' + data.match(/tag_ID=(\d+)/)[1] + '"]').remove();
 					$('a.tag-link-' + data.match(/tag_ID=(\d+)/)[1]).remove();
+					nextFocus.trigger( 'focus' );
+					message = wp.i18n.__( 'The selected tag has been deleted.' );
 
 				} else if ( '-1' == r ) {
-					$('#ajax-response').empty().append('<div class="error"><p>' + wp.i18n.__( 'Sorry, you are not allowed to do that.' ) + '</p></div>');
-					tr.children().css('backgroundColor', '');
+					message = wp.i18n.__( 'Sorry, you are not allowed to do that.' );
+					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + message + '</p></div>');
+					resetRowAfterFailure( tr );
 
 				} else {
-					$('#ajax-response').empty().append('<div class="error"><p>' + wp.i18n.__( 'Something went wrong.' ) + '</p></div>');
-					tr.children().css('backgroundColor', '');
+					message = wp.i18n.__( 'An error occurred while processing your request. Please try again later.' );
+					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + message + '</p></div>');
+					resetRowAfterFailure( tr );
 				}
+				wp.a11y.speak( message, 'assertive' );
 			});
-
-			tr.children().css('backgroundColor', '#f33');
 		}
 
 		return false;
 	});
+
+	/**
+	 * Restores the original UI state of a table row after an AJAX failure.
+	 *
+	 * @param {jQuery} tr The table row to reset.
+	 * @return {void}
+	 */
+	function resetRowAfterFailure( tr ) {
+		tr.children().css( 'backgroundColor', '' );
+		tr.css( 'pointer-events', '' );
+		tr.find( ':input, a' ).prop( 'disabled', false ).removeAttr( 'tabindex' );
+	}
+
+	/**
+	 * Updates the item count and table navigation after a tag is added or removed.
+	 *
+	 * Tags are added and removed client-side, but the item count, the `.tablenav`
+	 * regions, the search box, and the empty-state row are otherwise only
+	 * reconciled by PHP on a full page reload. This keeps them in sync.
+	 *
+	 * @param {string} [action] Pass 'add' when a tag was added. Any other value,
+	 *                          including none, is treated as a removal.
+	 *
+	 * @return {void}
+	 */
+	function updateTableNavCount( action ) {
+		var $displayingNum = $( '.tablenav-pages .displaying-num' ),
+			currentCount   = parseInt( $displayingNum.first().text().replace( /[^0-9]/g, '' ), 10 ) || 0,
+			itemCount      = ( 'add' === action ) ? currentCount + 1 : Math.max( currentCount - 1, 0 ),
+			formattedCount = itemCount.toLocaleString();
+
+		$displayingNum.text(
+			wp.i18n.sprintf(
+				/* translators: %s: Number of items. */
+				wp.i18n._n( '%s item', '%s items', itemCount ),
+				formattedCount
+			)
+		);
+
+		if ( itemCount < 1 ) {
+			// No tags remain: show the empty-state row and hide the navigation.
+			var $list = $( '#the-list' );
+
+ 			if ( ! $list.find( 'tr.no-items' ).length ) {
+ 				var colspan = $list.closest( 'table' ).find( 'thead > tr' ).first().children( ':not(.hidden)' ).length;
+ 				$list.append(
+ 					'<tr class="no-items"><td class="colspanchange" colspan="' + colspan + '">' +
+ 					wp.i18n.__( 'No tags found.' ) +
+ 					'</td></tr>'
+ 				);
+ 			}
+			$( '.tablenav > *' ).hide();
+			$( 'p.search-box' ).hide();
+		} else {
+			$( '#the-list' ).find( 'tr.no-items' ).remove();
+			$( '.tablenav > *' ).show();
+			$( 'p.search-box' ).show();
+		}
+	}
 
 	/**
 	 * Adds a deletion confirmation when removing a tag.
@@ -159,6 +241,8 @@ jQuery( function($) {
 			}
 
 			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
+
+			updateTableNavCount( 'add' );
 		});
 
 		return false;

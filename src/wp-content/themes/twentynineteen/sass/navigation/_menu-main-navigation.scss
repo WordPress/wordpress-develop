@@ -56,7 +56,7 @@
 		> li {
 
 			color: $color__link;
-			display: inline;
+			display: inline-block;
 			position: relative;
 
 			> a {
@@ -433,9 +433,13 @@
 			white-space: inherit;
 		}
 
+		&:not(:has(.sub-menu.expanded-true)) {
+			overflow-y: scroll;
+		}
+
 		&.expanded-true {
 
-			display: table;
+			display: block;
 			margin-top: 0;
 			opacity: 1;
 			padding-left: 0;

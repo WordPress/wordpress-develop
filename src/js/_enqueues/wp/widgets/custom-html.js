@@ -148,7 +148,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 					} ) );
 				}
 			} else if ( 0 !== errorAnnotations.length ) {
-				errorNotice = $( '<div class="inline notice notice-error notice-alt"></div>' );
+				errorNotice = $( '<div class="inline notice notice-error notice-alt" role="alert"></div>' );
 				errorNotice.append( $( '<p></p>', {
 					text: message
 				} ) );
@@ -307,7 +307,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 
 		/*
 		 * Create a container element for the widget control fields.
-		 * This is inserted into the DOM immediately before the the .widget-content
+		 * This is inserted into the DOM immediately before the .widget-content
 		 * element because the contents of this element are essentially "managed"
 		 * by PHP, where each widget update cause the entire element to be emptied
 		 * and replaced with the rendered output of WP_Widget::form() which is
@@ -333,7 +333,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 		 * This ensures that the textarea is visible and the editor can be initialized.
 		 */
 		renderWhenAnimationDone = function() {
-			if ( ! ( wp.customize ? widgetContainer.parent().hasClass( 'expanded' ) : widgetContainer.hasClass( 'open' ) ) ) { // Core merge: The wp.customize condition can be eliminated with this change being in core: https://github.com/xwp/wordpress-develop/pull/247/commits/5322387d
+			if ( ! ( wp.customize ? widgetContainer.parent().hasClass( 'expanded' ) : widgetContainer.hasClass( 'open' ) ) ) { // Core merge: The wp.customize condition can be eliminated with this change being in core: https://core.trac.wordpress.org/changeset/41260
 				setTimeout( renderWhenAnimationDone, animatedCheckDelay );
 			} else {
 				widgetControl.initializeEditor();

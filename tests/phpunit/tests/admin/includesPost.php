@@ -240,10 +240,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$request = array(
 			'post_type'      => 'post',
-			'post_author'    => -1,
-			'ping_status'    => -1,
-			'comment_status' => -1,
-			'_status'        => -1,
+			'post_author'    => '-1',
+			'ping_status'    => '-1',
+			'comment_status' => '-1',
+			'_status'        => '-1',
 			'post'           => array( $post1, $post2 ),
 		);
 
@@ -273,8 +273,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		set_post_format( $post_ids[1], 'aside' );
 
 		$request = array(
-			'post_format' => -1, // Don't change the post format.
-			'_status'     => -1,
+			'post_format' => '-1', // Don't change the post format.
+			'_status'     => '-1',
 			'post'        => $post_ids,
 		);
 
@@ -367,7 +367,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$request = array(
 			'post_format' => 'aside',
-			'_status'     => -1,
+			'_status'     => '-1',
 			'post'        => array( self::$post_id ),
 		);
 
@@ -532,6 +532,52 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 1, $action->get_call_count() );
+	}
+
+	/**
+	 * Tests that get_default_post_to_edit() calls wp_die() if wp_insert_post() returns a WP_Error.
+	 *
+	 * @ticket 37441
+	 *
+	 * @covers ::get_default_post_to_edit
+	 */
+	public function test_get_default_post_to_edit_with_wp_insert_post_error() {
+		add_filter( 'wp_insert_post_empty_content', '__return_true' );
+
+		$this->expectException( 'WPDieException' );
+		get_default_post_to_edit( 'post', true );
+	}
+
+	/**
+	 * Tests that default post title is present when a CPT has title support, and is empty otherwise.
+	 *
+	 * @ticket 45516
+	 *
+	 * @covers ::get_default_post_to_edit
+	 */
+	public function test_get_default_post_to_edit_with_and_without_title_support() {
+		register_post_type(
+			'yes_title',
+			array(
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+		register_post_type(
+			'no_title',
+			array(
+				'supports' => array( 'editor' ),
+			)
+		);
+
+		/*
+		 * The ID is obtained because get_default_post_to_edit() will force the post_title
+		 * to be overridden on the returned WP_Post object.
+		 */
+		$default_yes_title_post_id = get_default_post_to_edit( 'yes_title', true )->ID;
+		$default_no_title_post_id  = get_default_post_to_edit( 'no_title', true )->ID;
+
+		$this->assertSame( __( 'Auto Draft' ), get_post( $default_yes_title_post_id )->post_title, 'Expected post_title to be the default title.' );
+		$this->assertSame( '', get_post( $default_no_title_post_id )->post_title, 'Expected post_title to be an empty string.' );
 	}
 
 	/**

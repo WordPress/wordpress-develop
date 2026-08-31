@@ -25,6 +25,8 @@
  * @since 6.4.0 Added support for background.backgroundImage.
  * @since 6.5.0 Added support for background.backgroundPosition,
  *              background.backgroundRepeat and dimensions.aspectRatio.
+ * @since 6.7.0 Added support for typography.writingMode.
+ * @since 7.0.0 Added support for typography.textIndent.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -46,34 +48,53 @@ final class WP_Style_Engine {
 	 *  - value_func    => (string) the name of a function to generate a CSS definition array for a particular style object. The output of this function should be `array( "$property" => "$value", ... )`.
 	 *
 	 * @since 6.1.0
+	 * @since 7.1.0 Added `background.gradient` property.
 	 * @var array
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
 		'background' => array(
-			'backgroundImage'    => array(
+			'backgroundImage'      => array(
 				'property_keys' => array(
 					'default' => 'background-image',
 				),
 				'value_func'    => array( self::class, 'get_url_or_value_css_declaration' ),
 				'path'          => array( 'background', 'backgroundImage' ),
 			),
-			'backgroundPosition' => array(
+			'backgroundPosition'   => array(
 				'property_keys' => array(
 					'default' => 'background-position',
 				),
 				'path'          => array( 'background', 'backgroundPosition' ),
 			),
-			'backgroundRepeat'   => array(
+			'backgroundRepeat'     => array(
 				'property_keys' => array(
 					'default' => 'background-repeat',
 				),
 				'path'          => array( 'background', 'backgroundRepeat' ),
 			),
-			'backgroundSize'     => array(
+			'backgroundSize'       => array(
 				'property_keys' => array(
 					'default' => 'background-size',
 				),
 				'path'          => array( 'background', 'backgroundSize' ),
+			),
+			'backgroundAttachment' => array(
+				'property_keys' => array(
+					'default' => 'background-attachment',
+				),
+				'path'          => array( 'background', 'backgroundAttachment' ),
+			),
+			'gradient'             => array(
+				'property_keys' => array(
+					'default' => 'background-image',
+				),
+				'css_vars'      => array(
+					'gradient' => '--wp--preset--gradient--$slug',
+				),
+				'path'          => array( 'background', 'gradient' ),
+				'classnames'    => array(
+					'has-background' => true,
+				),
 			),
 		),
 		'color'      => array(
@@ -135,6 +156,9 @@ final class WP_Style_Engine {
 					'individual' => 'border-%s-radius',
 				),
 				'path'          => array( 'border', 'radius' ),
+				'css_vars'      => array(
+					'border-radius' => '--wp--preset--border-radius--$slug',
+				),
 			),
 			'style'  => array(
 				'property_keys' => array(
@@ -200,13 +224,46 @@ final class WP_Style_Engine {
 					'has-aspect-ratio' => true,
 				),
 			),
+			'height'      => array(
+				'property_keys' => array(
+					'default' => 'height',
+				),
+				'path'          => array( 'dimensions', 'height' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
 			'minHeight'   => array(
 				'property_keys' => array(
 					'default' => 'min-height',
 				),
 				'path'          => array( 'dimensions', 'minHeight' ),
 				'css_vars'      => array(
-					'spacing' => '--wp--preset--spacing--$slug',
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
+			'minWidth'    => array(
+				'property_keys' => array(
+					'default' => 'min-width',
+				),
+				'path'          => array( 'dimensions', 'minWidth' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
+			'objectFit'   => array(
+				'property_keys' => array(
+					'default' => 'object-fit',
+				),
+				'path'          => array( 'dimensions', 'objectFit' ),
+			),
+			'width'       => array(
+				'property_keys' => array(
+					'default' => 'width',
+				),
+				'path'          => array( 'dimensions', 'width' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
 				),
 			),
 		),
@@ -287,6 +344,12 @@ final class WP_Style_Engine {
 				),
 				'path'          => array( 'typography', 'textDecoration' ),
 			),
+			'textIndent'     => array(
+				'property_keys' => array(
+					'default' => 'text-indent',
+				),
+				'path'          => array( 'typography', 'textIndent' ),
+			),
 			'textTransform'  => array(
 				'property_keys' => array(
 					'default' => 'text-transform',
@@ -298,6 +361,12 @@ final class WP_Style_Engine {
 					'default' => 'letter-spacing',
 				),
 				'path'          => array( 'typography', 'letterSpacing' ),
+			),
+			'writingMode'    => array(
+				'property_keys' => array(
+					'default' => 'writing-mode',
+				),
+				'path'          => array( 'typography', 'writingMode' ),
 			),
 		),
 	);
@@ -365,15 +434,18 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 * @since 6.6.0 Added the `$rules_group` parameter.
+	 * @since 7.1.0 Extended `$css_declarations` parameter to accept `WP_Style_Engine_CSS_Declarations` object.
 	 *
-	 * @param string   $store_name       A valid store key.
-	 * @param string   $css_selector     When a selector is passed, the function will return
-	 *                                   a full CSS rule `$selector { ...rules }`
-	 *                                   otherwise a concatenated string of properties and values.
-	 * @param string[] $css_declarations An associative array of CSS definitions,
-	 *                                   e.g. `array( "$property" => "$value", "$property" => "$value" )`.
-	 * @param string $rules_group        Optional. A parent CSS selector in the case of nested CSS, or a CSS nested @rule,
-	 *                                   such as `@media (min-width: 80rem)` or `@layer module`.
+	 * @param string                                    $store_name       A valid store key.
+	 * @param string                                    $css_selector     When a selector is passed, the function will return
+	 *                                                                    a full CSS rule `$selector { ...rules }`
+	 *                                                                    otherwise a concatenated string of properties and values.
+	 * @param string[]|WP_Style_Engine_CSS_Declarations $css_declarations An associative array of CSS definitions,
+	 *                                                                    e.g. `array( "$property" => "$value", "$property" => "$value" )`,
+	 *                                                                    or a WP_Style_Engine_CSS_Declarations object.
+	 * @param string                                    $rules_group      Optional. A parent CSS selector in the case of nested CSS,
+	 *                                                                    or a CSS nested @rule, such as `@media (min-width: 80rem)`
+	 *                                                                    or `@layer module`.
 	 */
 	public static function store_css_rule( $store_name, $css_selector, $css_declarations, $rules_group = '' ) {
 		if ( empty( $store_name ) || empty( $css_selector ) || empty( $css_declarations ) ) {
@@ -441,8 +513,22 @@ final class WP_Style_Engine {
 					continue;
 				}
 
-				$parsed_styles['classnames']   = array_merge( $parsed_styles['classnames'], static::get_classnames( $style_value, $style_definition ) );
-				$parsed_styles['declarations'] = array_merge( $parsed_styles['declarations'], static::get_css_declarations( $style_value, $style_definition, $options ) );
+				$classnames = static::get_classnames( $style_value, $style_definition );
+				if ( ! empty( $classnames ) ) {
+					$parsed_styles['classnames'] = array_merge( $parsed_styles['classnames'], $classnames );
+				}
+
+				$css_declarations = static::get_css_declarations( $style_value, $style_definition, $options );
+				if ( ! empty( $css_declarations ) ) {
+					/*
+					 * Combine background gradient and background image into a single
+					 * comma-separated background-image value, matching the JS style engine.
+					 */
+					if ( isset( $css_declarations['background-image'] ) && isset( $parsed_styles['declarations']['background-image'] ) ) {
+						$css_declarations['background-image'] = $css_declarations['background-image'] . ', ' . $parsed_styles['declarations']['background-image'];
+					}
+					$parsed_styles['declarations'] = array_merge( $parsed_styles['declarations'], $css_declarations );
+				}
 			}
 		}
 
@@ -470,6 +556,7 @@ final class WP_Style_Engine {
 			foreach ( $style_definition['classnames'] as $classname => $property_key ) {
 				if ( true === $property_key ) {
 					$classnames[] = $classname;
+					continue;
 				}
 
 				$slug = static::get_slug_from_preset_value( $style_value, $property_key );

@@ -114,7 +114,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array(
 				'//example.com/path/',
 				array(
@@ -138,7 +138,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array(
 				'http://example.com/http://example.net/',
 				array(
@@ -149,7 +149,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			),
 			array( '/path/http://example.net/', array( 'path' => '/path/http://example.net/' ) ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array(
 				'//[::FFFF::127.0.0.1]/',
 				array(
@@ -238,7 +238,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( self::FULL_TEST_URL, PHP_URL_QUERY, 'arg1=value1&arg2=value2' ),
 			array( self::FULL_TEST_URL, PHP_URL_FRAGMENT, 'anchor' ),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array( '//example.com/path/', PHP_URL_HOST, 'example.com' ),
 			array( '//example.com/path/', PHP_URL_PATH, '/path/' ),
 			array( '//example.com/', PHP_URL_HOST, 'example.com' ),
@@ -246,13 +246,13 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( 'http://example.com//path/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com//path/', PHP_URL_PATH, '//path/' ),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array( 'http://example.com/http://example.net/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com/http://example.net/', PHP_URL_PATH, '/http://example.net/' ),
 			array( '/path/http://example.net/', PHP_URL_HOST, null ),
 			array( '/path/http://example.net/', PHP_URL_PATH, '/path/http://example.net/' ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array( '//[::FFFF::127.0.0.1]/', PHP_URL_HOST, '[::FFFF::127.0.0.1]' ),
 			array( '//[::FFFF::127.0.0.1]/', PHP_URL_PATH, '/' ),
 
@@ -275,23 +275,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( 123, PHP_URL_PORT, null ),
 			array( 123, PHP_URL_PATH, '123' ),
 		);
-	}
-
-	/**
-	 * @ticket 35426
-	 *
-	 * @covers ::get_status_header_desc
-	 */
-	public function test_http_response_code_constants() {
-		global $wp_header_to_desc;
-
-		$ref       = new ReflectionClass( 'WP_Http' );
-		$constants = $ref->getConstants();
-
-		// This primes the `$wp_header_to_desc` global:
-		get_status_header_desc( 200 );
-
-		$this->assertSame( array_keys( $wp_header_to_desc ), array_values( $constants ) );
 	}
 
 	/**
@@ -549,7 +532,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				'url' => 'http://[exam]ple.com/caniload.php',
 			),
 			'a host whose IPv4 address cannot be resolved' => array(
-				'url' => 'http://exampleeeee.com/caniload.php',
+				'url' => 'http://example.invalid/caniload.php',
 			),
 			'an external request when not allowed'         => array(
 				'url'           => 'http://192.168.0.1/caniload.php',

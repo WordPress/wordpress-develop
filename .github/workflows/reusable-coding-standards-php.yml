@@ -11,6 +11,15 @@ on:
         required: false
         type: 'string'
         default: 'latest'
+      old-branch:
+        description: 'Whether this is an old branch that runs phpcbf instead of phpcs'
+        required: false
+        type: 'boolean'
+        default: false
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
 
 jobs:
   # Runs the PHP coding standards checks.
@@ -20,6 +29,7 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
+  # - Gets last Monday's date for use in cache keys.
   # - Configures caching for PHPCS scans.
   # - Installs Composer dependencies.
   # - Make Composer packages available globally.
@@ -29,20 +39,21 @@ jobs:
   # - Generate a report for displaying `test` directory issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
   phpcs:
-    name: Run coding standards checks
-    runs-on: ubuntu-latest
+    name: PHP checks
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     timeout-minutes: 20
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ inputs.php-version }}
           coverage: none
@@ -52,10 +63,10 @@ jobs:
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: "Get last Monday's date"
         id: get-date
-        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             .cache/phpcs-src.json
@@ -65,15 +76,16 @@ jobs:
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
         with:
           custom-cache-suffix: ${{ steps.get-date.outputs.date }}
 
       - name: Make Composer packages available globally
-        run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
+        run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
 
       - name: Run PHPCS on all Core files
         id: phpcs-core
+        if: ${{ ! inputs.old-branch }}
         run: phpcs -n --report-full --cache=./.cache/phpcs-src.json --report-checkstyle=./.cache/phpcs-report.xml
 
       - name: Show PHPCS results in PR
@@ -82,11 +94,16 @@ jobs:
 
       - name: Check test suite files for warnings
         id: phpcs-tests
+        if: ${{ ! inputs.old-branch }}
         run: phpcs tests --report-full --cache=./.cache/phpcs-tests.json --report-checkstyle=./.cache/phpcs-tests-report.xml
 
       - name: Show test suite scan results in PR
         if: ${{ always() && steps.phpcs-tests.outcome == 'failure' }}
         run: cs2pr ./.cache/phpcs-tests-report.xml
+
+      - name: Run PHPCBF on all Core files (old branches)
+        if: ${{ inputs.old-branch }}
+        run: phpcbf
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code

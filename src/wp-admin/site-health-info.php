@@ -6,8 +6,9 @@
  * @subpackage Administration
  */
 
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die();
+	exit;
 }
 
 if ( ! class_exists( 'WP_Debug_Data' ) ) {
@@ -64,7 +65,7 @@ wp_admin_notice(
 
 		<?php
 
-		$sizes_fields = array( 'uploads_size', 'themes_size', 'plugins_size', 'wordpress_size', 'database_size', 'total_size' );
+		$sizes_fields = array( 'uploads_size', 'themes_size', 'plugins_size', 'fonts_size', 'wordpress_size', 'database_size', 'total_size' );
 
 		foreach ( $info as $section => $details ) {
 			if ( ! isset( $details['fields'] ) || empty( $details['fields'] ) ) {
@@ -73,7 +74,7 @@ wp_admin_notice(
 
 			?>
 			<h3 class="health-check-accordion-heading">
-				<button aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-<?php echo esc_attr( $section ); ?>" type="button">
+				<button id="health-check-section-<?php echo esc_attr( $section ); ?>" aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-<?php echo esc_attr( $section ); ?>" type="button">
 					<span class="title">
 						<?php echo esc_html( $details['label'] ); ?>
 						<?php
@@ -108,7 +109,7 @@ wp_admin_notice(
 				}
 
 				?>
-				<table class="widefat striped health-check-table" role="presentation">
+				<table class="widefat striped health-check-table">
 					<tbody>
 					<?php
 
@@ -126,9 +127,9 @@ wp_admin_notice(
 						}
 
 						if ( in_array( $field_name, $sizes_fields, true ) ) {
-							printf( '<tr><td>%s</td><td class="%s">%s</td></tr>', esc_html( $field['label'] ), esc_attr( $field_name ), $values );
+							printf( '<tr><th scope="row">%s</th><td class="%s">%s</td></tr>', esc_html( $field['label'] ), esc_attr( $field_name ), $values );
 						} else {
-							printf( '<tr><td>%s</td><td>%s</td></tr>', esc_html( $field['label'] ), $values );
+							printf( '<tr><th scope="row">%s</th><td>%s</td></tr>', esc_html( $field['label'] ), $values );
 						}
 					}
 

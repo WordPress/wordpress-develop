@@ -47,27 +47,6 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	protected static $admin_user;
 
 	/**
-	 * Reset the mocked phpmailer instance before each test method.
-	 *
-	 * @since 4.9.6
-	 */
-	public function set_up() {
-		parent::set_up();
-		reset_phpmailer_instance();
-	}
-
-	/**
-	 * Reset the mocked phpmailer instance after each test method.
-	 *
-	 * @since 4.9.6
-	 */
-	public function tear_down() {
-		reset_phpmailer_instance();
-		restore_previous_locale();
-		parent::tear_down();
-	}
-
-	/**
 	 * Create user request fixtures shared by test methods.
 	 *
 	 * @since 4.9.6
@@ -95,9 +74,78 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	}
 
 	/**
+	 * Reset the mocked phpmailer instance before each test method.
+	 *
+	 * @since 4.9.6
+	 */
+	public function set_up() {
+		parent::set_up();
+		reset_phpmailer_instance();
+	}
+
+	/**
+	 * Reset the mocked phpmailer instance after each test method.
+	 *
+	 * @since 4.9.6
+	 */
+	public function tear_down() {
+		reset_phpmailer_instance();
+		restore_previous_locale();
+		parent::tear_down();
+	}
+
+	/**
+	 * The function should error when the request ID does not exist.
+	 *
+	 * @since 4.9.6
+	 */
+	public function test_should_return_wp_error_when_not_a_valid_request_id() {
+		$request_id = 0;
+		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
+		$this->assertWPError( $email_sent );
+		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
+
+		$request_id = PHP_INT_MAX;
+		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
+		$this->assertWPError( $email_sent );
+		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
+	}
+
+	/**
+	 * The function should error when the ID passed does not correspond to a user request.
+	 *
+	 * @since 6.7.0
+	 * @ticket 46560
+	 */
+	public function test_should_return_wp_error_when_not_a_user_request() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type' => 'post', // Should be 'user_request'.
+			)
+		);
+
+		$email_sent = wp_privacy_send_personal_data_export_email( $post_id );
+		$this->assertWPError( $email_sent );
+		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
+	}
+
+	/**
+	 * The function should error when the email was not sent.
+	 *
+	 * @since 4.9.6
+	 */
+	public function test_should_return_wp_error_when_sending_fails() {
+		add_filter( 'wp_mail_from', '__return_empty_string' ); // Cause `wp_mail()` to return false.
+		$email_sent = wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$this->assertWPError( $email_sent );
+		$this->assertSame( 'privacy_email_error', $email_sent->get_error_code() );
+	}
+
+	/**
 	 * The function should send an export link to the requester when the user request is confirmed.
 	 */
-	public function test_function_should_send_export_link_to_requester() {
+	public function test_should_send_export_link_to_requester() {
 		$exports_url      = wp_privacy_exports_url();
 		$export_file_name = 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
 		$export_file_url  = $exports_url . $export_file_name;
@@ -112,36 +160,6 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 		$this->assertStringContainsString( $export_file_url, $mailer->get_sent()->body );
 		$this->assertStringContainsString( 'please download it', $mailer->get_sent()->body );
 		$this->assertTrue( $email_sent );
-	}
-
-	/**
-	 * The function should error when the request ID is invalid.
-	 *
-	 * @since 4.9.6
-	 */
-	public function test_function_should_error_when_request_id_invalid() {
-		$request_id = 0;
-		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
-		$this->assertWPError( $email_sent );
-		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
-
-		$request_id = PHP_INT_MAX;
-		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
-		$this->assertWPError( $email_sent );
-		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
-	}
-
-	/**
-	 * The function should error when the email was not sent.
-	 *
-	 * @since 4.9.6
-	 */
-	public function test_return_wp_error_when_send_fails() {
-		add_filter( 'wp_mail_from', '__return_empty_string' ); // Cause `wp_mail()` to return false.
-		$email_sent = wp_privacy_send_personal_data_export_email( self::$request_id );
-
-		$this->assertWPError( $email_sent );
-		$this->assertSame( 'privacy_email_error', $email_sent->get_error_code() );
 	}
 
 	/**

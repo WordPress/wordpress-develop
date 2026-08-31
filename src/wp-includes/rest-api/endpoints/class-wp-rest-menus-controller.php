@@ -84,6 +84,12 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @return true|WP_Error True if the current user has permission, WP_Error object otherwise.
 	 */
 	protected function check_has_read_only_access( $request ) {
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php */
+		$read_only_access = apply_filters( 'rest_menu_read_access', false, $request, $this );
+		if ( $read_only_access ) {
+			return true;
+		}
+
 		if ( current_user_can( 'edit_theme_options' ) ) {
 			return true;
 		}
@@ -447,7 +453,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		$update = update_option( 'nav_menu_options', $nav_menu_option );
 
 		/** This action is documented in wp-includes/nav-menu.php */
-		do_action( 'wp_update_nav_menu', $menu_id );
+		do_action( 'wp_update_nav_menu', $menu_id, array() );
 
 		return $update;
 	}
