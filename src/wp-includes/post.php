@@ -2126,7 +2126,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @access private
  *
  * @param object|WP_Post_Type $post_type_object Post type object.
- * @return object {
+ * @return stdClass {
  *     Post type labels object. The first default value is for non-hierarchical post types
  *     (like posts) and the second one is for hierarchical post types (like pages).
  *
