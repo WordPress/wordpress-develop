@@ -12,6 +12,8 @@ on:
         required: false
         type: 'string'
         default: ''
+      # Names the uploaded build too, so it must also be a valid artifact name: no slashes,
+      # and none of : < > | * ? " — a `refs/heads/trunk` or `feature/x` value fails the upload.
       ref:
         description: 'The branch, tag, or SHA to check out. Defaults to the commit that started the calling workflow run.'
         required: false

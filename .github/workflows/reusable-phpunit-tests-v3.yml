@@ -18,6 +18,8 @@ on:
         required: false
         type: 'string'
         default: ''
+      # Also composes the Gutenberg build name, under the producer's constraint: a valid
+      # artifact name, so no slashes and none of : < > | * ? "
       ref:
         description: 'The branch, tag, or SHA to check out. Defaults to the ref that triggered the calling workflow.'
         required: false
