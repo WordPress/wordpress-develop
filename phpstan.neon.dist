@@ -78,7 +78,6 @@ includes:
 	- tests/phpstan/baselines/return.type.neon
 	- tests/phpstan/baselines/return.unusedType.neon
 	- tests/phpstan/baselines/smallerOrEqual.alwaysTrue.neon
-	- tests/phpstan/baselines/staticClassAccess.privateMethod.neon
 	- tests/phpstan/baselines/ternary.alwaysTrue.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
