@@ -184,7 +184,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			do_action( 'wp_authorize_application_password_form_approved_no_js', $new_password, $request, $user );
 		else :
 			?>
-			<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post" class="form-wrap">
+			<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post">
 				<?php wp_nonce_field( 'authorize_application_password' ); ?>
 				<input type="hidden" name="action" value="authorize_application_password" />
 				<input type="hidden" name="app_id" value="<?php echo esc_attr( $app_id ); ?>" />
