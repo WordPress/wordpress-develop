@@ -129,6 +129,7 @@ jobs:
   # Runs the PHPUnit tests for WordPress.
   #
   # Performs the following steps:
+  # - Requires a ref when the caller points at another repository.
   # - Sets environment variables.
   # - Checks out the repository.
   # - Unpacks the caller-provided overlay artifact over the checkout, if any.
@@ -158,6 +159,14 @@ jobs:
       contents: read
 
     steps:
+      # `ref` otherwise falls back to checkout's own default, which for another repository is
+      # its default branch: a "WordPress 6.2" job would test trunk and report green.
+      - name: Require a ref when testing another repository
+        if: ${{ inputs.repository != '' && inputs.ref == '' }}
+        run: |
+          echo 'Testing another repository needs an explicit ref.' >&2
+          exit 1
+
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
