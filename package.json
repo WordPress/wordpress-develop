@@ -28,6 +28,7 @@
 		"last 2 Opera versions"
 	],
 	"devDependencies": {
+		"@axe-core/playwright": "4.13.0",
 		"@lodder/grunt-postcss": "^3.1.1",
 		"@playwright/test": "1.61.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
