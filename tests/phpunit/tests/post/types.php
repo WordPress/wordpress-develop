@@ -626,7 +626,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		remove_post_type_support( 'foo', 'autosave' );
 		$post_type_object = get_post_type_object( 'foo' );
-		$this->assertSame( null, $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be removed.' );
+		$this->assertNull( $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be removed.' );
 		_unregister_post_type( 'foo' );
 	}
 
