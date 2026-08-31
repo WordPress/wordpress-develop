@@ -39,7 +39,7 @@ jobs:
   # Runs PHP compatibility testing.
   php-compatibility:
     name: Check PHP compatibility
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-php-compatibility.yml@trunk
+    uses: ./.github/workflows/reusable-php-compatibility.yml
     permissions:
       contents: read
     if: |
@@ -53,7 +53,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
