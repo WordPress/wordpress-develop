@@ -17,10 +17,10 @@
 		"npm": ">=10.2.3"
 	},
 	"devDependencies": {
-		"@wordpress/browserslist-config": "^6.34.0",
-		"postcss": "^8.5.6",
+		"@wordpress/browserslist-config": "^6.52.0",
+		"postcss": "^8.5.25",
 		"postcss-cli": "^11.0.1",
-		"cssnano": "^7.1.2"
+		"cssnano": "^7.1.9"
 	},
 	"browserslist": [
 		"extends @wordpress/browserslist-config"
