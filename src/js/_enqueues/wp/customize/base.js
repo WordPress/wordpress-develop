@@ -6,10 +6,10 @@
 window.wp = window.wp || {};
 
 /**
- * @param {Object}       exports The WordPress global object.
- * @param {JQueryStatic} $       The jQuery object.
+ * @param {Object}       wp The WordPress global object.
+ * @param {JQueryStatic} $  The jQuery object.
  */
-(function( exports, $ ){
+(function( wp, $ ){
 	var api = {}, ctor, inherits;
 
 	// Shared empty constructor function to aid in prototype-chain creation.
@@ -1063,5 +1063,5 @@ window.wp = window.wp || {};
 	 *
 	 * @namespace wp.customize
 	 */
-	exports.customize = api;
+	wp.customize = api;
 })( wp, jQuery );
