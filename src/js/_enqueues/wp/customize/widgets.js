@@ -476,9 +476,9 @@
 	api.Widgets.formSyncHandlers = {
 
 		/**
-		 * @param {JQuery.Event} e
-		 * @param {jQuery}       widget
-		 * @param {string}       newForm
+		 * @param {JQuery.Event} e       The widget-synced event.
+		 * @param {jQuery}       widget  The widget root element.
+		 * @param {string}       newForm The HTML for the updated widget form.
 		 */
 		rss: function( e, widget, newForm ) {
 			var oldWidgetError = widget.find( '.widget-error:first' ),
@@ -1116,8 +1116,8 @@
 		/**
 		 * Update an input's state based on its type.
 		 *
-		 * @param {jQuery|Element}            input
-		 * @param {string|boolean|string[]|*} state
+		 * @param {jQuery|Element}            input The input element to update.
+		 * @param {string|boolean|string[]|*} state The state to apply: the checked state for checkboxes and radio buttons, an array of values for multi-selects, and otherwise the input's value.
 		 * @private
 		 */
 		_setInputState: function ( input, state ) {
@@ -1167,8 +1167,8 @@
 		 * Submit the widget form via Ajax and get back the updated instance,
 		 * along with the new widget control form to render.
 		 *
-		 * @param {Object}        [args]
-		 * @param {Object|null}   [args.instance=null]             When the model changes, the instance is sent here; otherwise, the inputs from the form are used
+		 * @param {Object}        [args]                           Arguments for the update.
+		 * @param {Object|null}   [args.instance=null]             When the model changes, the instance is sent here; otherwise, the inputs from the form are used.
 		 * @param {Function|null} [args.complete=null]             Function which is called when the request finishes. Context is bound to the control. First argument is any error. Following arguments are for success.
 		 * @param {boolean}       [args.ignoreActiveElement=false] Whether or not updating a field will be deferred if focus is still on the element.
 		 */
@@ -1365,8 +1365,8 @@
 		/**
 		 * @since 4.1.0
 		 *
-		 * @param {boolean} expanded
-		 * @param {Object}  [params]
+		 * @param {boolean} expanded The new state to apply.
+		 * @param {Object}  [params] Object containing options for expand/collapse.
 		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
@@ -1524,7 +1524,7 @@
 		/**
 		 * Get the position (index) of the widget in the containing sidebar
 		 *
-		 * @return {number|void} Index of the widget in the sidebar, or undefined if not found
+		 * @return {number|void} Index of the widget in the sidebar, or undefined if not found.
 		 */
 		getWidgetSidebarPosition: function() {
 			var sidebarWidgetIds, position;
@@ -2363,7 +2363,7 @@
 
 	/**
 	 * @param {string} widgetId
-	 * @return {Object} Parsed widget ID with id_base and number properties
+	 * @return {Object} Parsed widget ID with id_base and number properties.
 	 */
 	function parseWidgetId( widgetId ) {
 		var matches, parsed = {

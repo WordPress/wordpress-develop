@@ -285,7 +285,7 @@
 	 * @param {string}                            element.search                 Query string.
 	 * @param {string}                            element.pathname               Path.
 	 * @param {string}                            element.host                   Host.
-	 * @param {Object}                            [options]
+	 * @param {Object}                            [options]                      Options.
 	 * @param {Object}                            [options.allowAdminAjax=false] Allow admin-ajax.php requests.
 	 * @return {boolean} Is appropriate for changeset link.
 	 */

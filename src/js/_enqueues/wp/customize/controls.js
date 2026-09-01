@@ -3527,7 +3527,7 @@
 		 *
 		 * @param {string} id                       Unique identifier for the control instance.
 		 * @param {Object} options                  Options hash for the control instance.
-		 * @param {Object} options.type             Type of control (e.g. text, radio, dropdown-pages, etc.)
+		 * @param {Object} options.type             Type of control (e.g. text, radio, dropdown-pages, etc.).
 		 * @param {string} [options.content]        The HTML content for the control or at least its container. This should normally be left blank and instead supplying a templateId.
 		 * @param {string} [options.templateId]     Template ID for control's content.
 		 * @param {string} [options.priority=10]    Order of priority to show the control within the section.

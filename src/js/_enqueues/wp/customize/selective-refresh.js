@@ -66,7 +66,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @param {string}   id                        Unique identifier for the partial instance.
 		 * @param {Object}   [options]                 Options hash for the partial instance.
-		 * @param {string}   [options.type]            Type of partial (e.g. nav_menu, widget, etc)
+		 * @param {string}   [options.type]            Type of partial (e.g. nav_menu, widget, etc.).
 		 * @param {string}   [options.selector]        jQuery selector to find the container element in the page.
 		 * @param {string[]} [options.settings]        The IDs for the settings the partial relates to.
 		 * @param {string}   [options.primarySetting]  The ID for the primary setting the partial renders.
@@ -1027,7 +1027,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		/**
 		 * Handle rendering of partials.
 		 *
-		 * @param {wp.customize.selectiveRefresh.Placement} placement
+		 * @param {wp.customize.selectiveRefresh.Placement} placement The placement whose content was rendered.
 		 */
 		api.selectiveRefresh.bind( 'partial-content-rendered', function( placement ) {
 			if ( placement.container ) {

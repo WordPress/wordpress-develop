@@ -2136,8 +2136,8 @@
 		/**
 		 * @since 4.6.0
 		 *
-		 * @param {boolean} expanded
-		 * @param {Object}  [params]
+		 * @param {boolean} expanded The new state to apply.
+		 * @param {Object}  [params] Object containing options for expand/collapse.
 		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
@@ -2188,7 +2188,7 @@
 		 * @deprecated this is poor naming, and it is better to directly set control.expanded( showOrHide )
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {boolean}  [showOrHide]              If not supplied, will be inverse of current visibility
+		 * @param {boolean}  [showOrHide]              If not supplied, will be inverse of current visibility.
 		 * @param {Object}   [params]                  Optional params.
 		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
@@ -2207,7 +2207,7 @@
 		 * Expand or collapse the menu item control.
 		 *
 		 * @since 4.6.0
-		 * @param {boolean}  [showOrHide]              If not supplied, will be inverse of current visibility
+		 * @param {boolean}  [showOrHide]              If not supplied, will be inverse of current visibility.
 		 * @param {Object}   [params]                  Optional params.
 		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
@@ -3276,9 +3276,9 @@
 	 *
 	 * @alias wp.customize.Menus.applySavedData
 	 *
-	 * @param {Object}   data
-	 * @param {Object[]} data.nav_menu_updates
-	 * @param {Object[]} data.nav_menu_item_updates
+	 * @param {Object}   data                       Data returned in the customize_save response.
+	 * @param {Object[]} data.nav_menu_updates      Result of saving each nav menu, with term_id, previous_term_id, error, status, and saved_value properties.
+	 * @param {Object[]} data.nav_menu_item_updates Result of saving each nav menu item, with post_id, previous_post_id, error, and status properties.
 	 */
 	api.Menus.applySavedData = function( data ) {
 
