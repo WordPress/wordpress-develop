@@ -222,4 +222,52 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'private' ),
 		);
 	}
+
+	/**
+	 * Ensure `get_post_status()` resolves 'inherit' to the parent's status for non-attachment post types.
+	 *
+	 * @ticket 26365
+	 * @dataProvider data_get_post_status_resolves_inherit_for_non_attachment
+	 *
+	 * @param string $parent_status The post status of the parent post.
+	 * @param string $expected      The expected return value of `get_post_status()` for the child.
+	 */
+	public function test_get_post_status_resolves_inherit_for_non_attachment( $parent_status, $expected ) {
+		register_post_type( 'inherit_test_cpt' );
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'inherit_test_cpt',
+				'post_status' => $parent_status,
+			)
+		);
+
+		$child_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'inherit_test_cpt',
+				'post_status' => 'inherit',
+				'post_parent' => $parent_id,
+			)
+		);
+
+		$this->assertSame( $expected, get_post_status( $child_id ) );
+
+		unregister_post_type( 'inherit_test_cpt' );
+	}
+
+	/**
+	 * Data provider for test_get_post_status_resolves_inherit_for_non_attachment().
+	 *
+	 * @return array[] {
+	 *     @type string $parent_status The post status of the parent post.
+	 *     @type string $expected      The expected return value of `get_post_status()` for the child.
+	 * }
+	 */
+	public static function data_get_post_status_resolves_inherit_for_non_attachment() {
+		return array(
+			'parent published' => array( 'publish', 'publish' ),
+			'parent draft'     => array( 'draft', 'draft' ),
+			'parent private'   => array( 'private', 'private' ),
+		);
+	}
 }
