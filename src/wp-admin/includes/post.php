@@ -1471,15 +1471,15 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 
 	$ptype = get_post_type_object( $post->post_type );
 
-	$original_status = $post->post_status;
 	$original_date   = $post->post_date;
 	$original_name   = $post->post_name;
 	$original_filter = $post->filter;
+	$post_status     = $post->post_status;
 
-	// Hack: get_permalink() would return plain permalink for drafts, so we will fake that our post is published.
+	// Drafts do not have unique slugs, so use a published status when determining the sample slug.
 	if ( in_array( $post->post_status, array( 'auto-draft', 'draft', 'pending', 'future' ), true ) ) {
-		$post->post_status = 'publish';
-		$post->post_name   = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, $post->ID );
+		$post_status     = 'publish';
+		$post->post_name = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, $post->ID );
 	}
 
 	/*
@@ -1490,9 +1490,8 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 		$post->post_name = sanitize_title( $name ? $name : $title, $post->ID );
 	}
 
-	$post->post_name = wp_unique_post_slug( $post->post_name, $post->ID, $post->post_status, $post->post_type, $post->post_parent );
-
-	$post->filter = 'sample';
+	$post->post_name = wp_unique_post_slug( $post->post_name, $post->ID, $post_status, $post->post_type, $post->post_parent );
+	$post->filter    = 'sample';
 
 	$permalink = get_permalink( $post, true );
 
@@ -1517,11 +1516,10 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 	}
 
 	/** This filter is documented in wp-admin/edit-tag-form.php */
-	$permalink         = array( $permalink, apply_filters( 'editable_slug', $post->post_name, $post ) );
-	$post->post_status = $original_status;
-	$post->post_date   = $original_date;
-	$post->post_name   = $original_name;
-	$post->filter      = $original_filter;
+	$permalink       = array( $permalink, apply_filters( 'editable_slug', $post->post_name, $post ) );
+	$post->post_date = $original_date;
+	$post->post_name = $original_name;
+	$post->filter    = $original_filter;
 
 	/**
 	 * Filters the sample permalink.
