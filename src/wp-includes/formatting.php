@@ -444,7 +444,9 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
  * @return string Text which has been converted into correct paragraph tags.
  */
 function wpautop( $text, $br = true ) {
-	$pre_tags = array();
+	$pre_tags                 = array();
+	$has_block_anchor         = false;
+	$block_anchor_placeholder = '';
 
 	if ( '' === trim( $text ) ) {
 		return '';
@@ -485,6 +487,29 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( '|<br\s*/?>\s*<br\s*/?>|', "\n\n", $text );
 
 	$allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
+
+	/*
+	 * Anchors can contain block-level elements. Replace their tags with temporary
+	 * block-level placeholders so the paragraph cleanup does not split the anchor.
+	 */
+	if ( str_contains( $text, '<a' ) ) {
+		$block_anchor_placeholder = 'wp-autop-block-anchor';
+
+		while ( str_contains( $text, '<' . $block_anchor_placeholder ) ) {
+			$block_anchor_placeholder .= '-';
+		}
+
+		$text             = preg_replace(
+			'~<a(\b[^>]*)>(?=\s*<' . $allblocks . '[\s/>])(.*?)(</a>)~s',
+			'<' . $block_anchor_placeholder . '$1>$2</' . $block_anchor_placeholder . '>',
+			$text
+		);
+		$has_block_anchor = str_contains( $text, '<' . $block_anchor_placeholder );
+
+		if ( $has_block_anchor ) {
+			$allblocks = substr( $allblocks, 0, -1 ) . '|' . $block_anchor_placeholder . ')';
+		}
+	}
 
 	// Add a double line break above block-level opening tags.
 	$text = preg_replace( '!(<' . $allblocks . '[\s/>])!', "\n\n$1", $text );
@@ -563,6 +588,13 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( '|<p><blockquote([^>]*)>|i', '<blockquote$1><p>', $text );
 	$text = str_replace( '</blockquote></p>', '</p></blockquote>', $text );
 
+	// Move paragraphs inside anchors that contain block-level elements.
+	if ( $has_block_anchor ) {
+		$text = preg_replace( '|<p>(<' . $block_anchor_placeholder . '[^>]*>)|', '$1<p>', $text );
+		$text = preg_replace( '|(</' . $block_anchor_placeholder . '>)</p>|', '</p>$1', $text );
+		$text = preg_replace( '|<p>\s*</p>|', '', $text );
+	}
+
 	// If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
 	$text = preg_replace( '!<p>\s*(</?' . $allblocks . '[^>]*>)!', '$1', $text );
 
@@ -599,6 +631,11 @@ function wpautop( $text, $br = true ) {
 	// Restore newlines in all elements.
 	if ( str_contains( $text, '<!-- wpnl -->' ) ) {
 		$text = str_replace( array( ' <!-- wpnl --> ', '<!-- wpnl -->' ), "\n", $text );
+	}
+
+	// Restore anchors that contain block-level elements.
+	if ( $has_block_anchor ) {
+		$text = str_replace( array( '<' . $block_anchor_placeholder, '</' . $block_anchor_placeholder . '>' ), array( '<a', '</a>' ), $text );
 	}
 
 	return $text;
