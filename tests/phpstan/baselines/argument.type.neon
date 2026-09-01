@@ -364,7 +364,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/template.php
 		-
-			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, stdClass given\.$#'
+			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, object\{language\: string, version\: string, updated\: string, english_name\: string, native_name\: string, package\: string, iso\: array\<string\>, strings\: array\}&stdClass given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/translation-install.php
@@ -499,7 +499,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
 		-
-			message: '#^Parameter \#3 \$args of function register_setting expects array, string given\.$#'
+			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: \(callable\(\)\: mixed\)\|null, show_in_rest\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
@@ -804,7 +804,17 @@ parameters:
 			count: 6
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
+			message: '#^Parameter \#1 \$args of method WP_Customize_Manager\:\:get_changeset_posts\(\) expects array\{posts_per_page\?\: int, author\?\: int, post_status\?\: string, exclude_restore_dismissed\?\: bool, \.\.\.\}, array\{post_status\: array\<non\-falsy\-string, non\-falsy\-string\>, exclude_restore_dismissed\: false, author\: ''any'', posts_per_page\: 1, order\: ''DESC'', orderby\: ''date''\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-customize-manager.php
+		-
 			message: '#^Parameter \#1 \$month of function wp_checkdate expects int, \(string\|false\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-customize-manager.php
+		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\|string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
@@ -843,6 +853,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-duotone.php
+		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/class-wp-embed.php
 		-
 			message: '#^Parameter \#3 \$priority of function _wp_filter_build_unique_id expects int, false given\.$#'
 			identifier: argument.type
@@ -935,6 +950,11 @@ parameters:
 			path: ../../../src/wp-includes/class-wp-widget.php
 		-
 			message: '#^Parameter \#1 \$post of function get_the_title expects int\|WP_Post, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
+		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: int\|string, post_date_gmt\: int\|string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
@@ -1234,6 +1254,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/nav-menu.php
 		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{menu_order\: mixed, ping_status\: 0, post_content\: mixed, post_excerpt\: mixed, post_parent\: int\|string\|WP_Error\|null, post_title\: mixed, post_type\: ''nav_menu_item'', post_date\?\: non\-falsy\-string, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/nav-menu.php
+		-
 			message: '#^Parameter \#2 \$value of function setcookie expects string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1273,6 +1298,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/pluggable.php
+		-
+			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/post-template.php
 		-
 			message: '#^Parameter \#1 \$attachment of function is_attachment expects array\<int\|string\>\|int\|string, WP_Post given\.$#'
 			identifier: argument.type
@@ -1381,7 +1411,12 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$data_object of method WP_REST_Controller\:\:update_additional_fields_for_object\(\) expects object, array given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
+			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php
+		-
+			message: '#^Parameter \#1 \$data_object of method WP_REST_Controller\:\:update_additional_fields_for_object\(\) expects object, array\<string, int\|string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php
 		-
 			message: '#^Parameter \#1 \$comment_id of function get_comment_type expects int\|WP_Comment, string given\.$#'
@@ -1573,6 +1608,11 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/user.php
+		-
+			message: '#^Parameter \#1 \$args of function register_sidebar expects array\{name\?\: string, id\?\: string, description\?\: string, class\?\: string, before_widget\?\: string, after_widget\?\: string, before_title\?\: string, after_title\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array\<int\|string, array\<mixed\>\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/widgets.php
 		-
 			message: '#^Parameter \#3 \$control_callback of function wp_register_widget_control expects callable\(\)\: mixed, '''' given\.$#'
 			identifier: argument.type
