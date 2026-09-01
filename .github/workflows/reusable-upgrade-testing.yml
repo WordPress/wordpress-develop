@@ -157,12 +157,11 @@ jobs:
           # Cron spawns a request back to this server, which then has nothing left to serve it.
           wp config set DISABLE_WP_CRON true --raw
 
-          wp server --host=127.0.0.1 --port="${SITE_PORT}" > "${server_log}" 2>&1 &
+          php -S "127.0.0.1:${SITE_PORT}" -t . > "${server_log}" 2>&1 &
           server_pid=$!
 
           stop_server() {
             local status=$?
-            pkill -P "${server_pid}" || true
             kill "${server_pid}" 2> /dev/null || true
             [ "${status}" -eq 0 ] || cat "${server_log}" || true
             exit "${status}"
@@ -191,18 +190,14 @@ jobs:
               "$@" "${site_url}${path}" > "${code}" || status=$?
             http_code="$(cat "${code}")"
             if [ "${status}" -ne 0 ] && [ "${status}" -ne 22 ]; then
-              # Two facts, because the process holding the port is a grandchild of this one:
-              # a status of 128 and up names a signal, and the socket says who is left listening.
               if kill -0 "${server_pid}" 2> /dev/null; then
-                server_state='is up'
-              else
-                server_status=0
-                wait "${server_pid}" || server_status=$?
-                server_state="left ${server_status}"
+                fail "${path} got no reply, curl exited ${status}, and the server is still up"
               fi
-              port_state='nothing listens on the port'
-              ss -ltnH "sport = :${SITE_PORT}" | grep -q . && port_state='the port still listens'
-              fail "${path} got no reply, curl exited ${status}. The server ${server_state}, ${port_state}."
+              # The server is this step's own child, so its status is the one that killed it:
+              # 128 and up is 128 plus the signal number.
+              server_status=0
+              wait "${server_pid}" || server_status=$?
+              fail "${path} got no reply and the server exited ${server_status}"
             fi
             return "${status}"
           }
