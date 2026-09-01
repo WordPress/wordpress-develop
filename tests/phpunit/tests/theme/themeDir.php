@@ -319,4 +319,40 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		rmdir( WP_CONTENT_DIR . '/themes/foo' );
 		rmdir( WP_CONTENT_DIR . '/themes/foo-themes' );
 	}
+
+	/**
+	 * @ticket 29051
+	 */
+	public function test_register_theme_directory_stores_normalized_path() {
+		@mkdir( WP_CONTENT_DIR . '/themes/custom-win-dir', 0777, true );
+
+		$dir = WP_CONTENT_DIR . '/themes/custom-win-dir';
+		register_theme_directory( $dir );
+
+		// Stored path must equal wp_normalize_path() output (no backslashes on any OS).
+		$stored = end( $GLOBALS['wp_theme_directories'] );
+		$this->assertSame( wp_normalize_path( $dir ), $stored );
+		$this->assertStringNotContainsString( '\\', $stored, 'Backslashes must not appear in registered theme dirs.' );
+
+		rmdir( WP_CONTENT_DIR . '/themes/custom-win-dir' );
+	}
+
+	/**
+	 * @ticket 29051
+	 */
+	public function test_search_theme_directories_finds_themes_under_content_dir() {
+		// self::THEME_ROOT is outside WP_CONTENT_DIR — themes there must still be found.
+		$results = search_theme_directories( true );
+
+		$this->assertIsArray( $results );
+
+		// Every result must carry a 'theme_root' key.
+		foreach ( $results as $slug => $data ) {
+			$this->assertArrayHasKey( 'theme_root', $data, "theme_root missing for slug: $slug" );
+		}
+
+		// At least one theme from self::THEME_ROOT must be present.
+		$roots = array_column( $results, 'theme_root' );
+		$this->assertContains( self::THEME_ROOT, $roots, 'Themes from non-content-dir root must be discoverable.' );
+	}
 }
