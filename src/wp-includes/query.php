@@ -1075,8 +1075,12 @@ function the_comment() {
  * Attempts to find the current slug from the past slugs.
  *
  * @since 2.1.0
+ *
+ * @global WP $wp Current WordPress environment instance.
  */
 function wp_old_slug_redirect() {
+	global $wp;
+
 	if ( is_404() && '' !== get_query_var( 'name' ) ) {
 		// Guess the current post type based on the query vars.
 		if ( get_query_var( 'post_type' ) ) {
@@ -1126,6 +1130,11 @@ function wp_old_slug_redirect() {
 			$link = user_trailingslashit( trailingslashit( $link ) . 'page/' . get_query_var( 'paged' ) );
 		} elseif ( is_embed() ) {
 			$link = user_trailingslashit( trailingslashit( $link ) . 'embed' );
+		}
+
+		$query_args = array_diff_key( wp_unslash( $_GET ), array_flip( $wp->public_query_vars ) );
+		if ( $query_args ) {
+			$link = add_query_arg( $query_args, $link );
 		}
 
 		/**
