@@ -145,65 +145,106 @@ jobs:
         # A network keeps its domain in wp-config.php and the database, not just an option.
         if: ${{ ! inputs.multisite }}
         run: |
-          wp option update home "${SITE_URL}"
-          wp option update siteurl "${SITE_URL}"
+          site_url="http://127.0.0.1:${SITE_PORT}"
+          server_log="${RUNNER_TEMP}/wp-server.log"
+          jar="${RUNNER_TEMP}/cookies.txt"
+          response="${RUNNER_TEMP}/response.txt"
+          code="${RUNNER_TEMP}/http-code.txt"
+
+          # Moving the site and turning off cron are not undone, so this step has to stay last.
+          wp option update home "${site_url}"
+          wp option update siteurl "${site_url}"
           # Cron spawns a request back to this server, which then has nothing left to serve it.
           wp config set DISABLE_WP_CRON true --raw
 
-          wp server --host=127.0.0.1 --port="${SITE_URL##*:}" > "${RUNNER_TEMP}/wp-server.log" 2>&1 &
+          wp server --host=127.0.0.1 --port="${SITE_PORT}" > "${server_log}" 2>&1 &
           server_pid=$!
 
           stop_server() {
-            local code=$?
+            local status=$?
             pkill -P "${server_pid}" || true
             kill "${server_pid}" 2> /dev/null || true
-            [ "${code}" -eq 0 ] || cat "${RUNNER_TEMP}/wp-server.log"
-            exit "${code}"
+            [ "${status}" -eq 0 ] || cat "${server_log}"
+            exit "${status}"
           }
           trap stop_server EXIT
 
-          timeout 30 bash -c "until curl --silent --output /dev/null \"${SITE_URL}/\"; do kill -0 ${server_pid} 2> /dev/null || exit 1; sleep 1; done"
+          timeout 30 bash -c "until curl --silent --output /dev/null \"${site_url}/\"; do kill -0 ${server_pid} 2> /dev/null || exit 1; sleep 1; done"
 
-          jar="${RUNNER_TEMP}/cookies.txt"
+          # Prints what came back and fails the step.
+          fail() {
+            echo "::error::${1}"
+            head -n 20 "${response}"
+            exit 1
+          }
 
-          # Fetches a path and fails the step unless the response body contains the given string.
-          check() {
-            local body
-            body="$(curl --silent --show-error --fail --max-time 30 --cookie "${jar}" --cookie-jar "${jar}" "${SITE_URL}${1}")"
-            if ! grep -qF "${2}" <<< "${body}"; then
-              echo "::error::${1} did not contain: ${2}"
-              head -n 20 <<< "${body}"
-              exit 1
+          # Requests a path, leaving the body in ${response} and the status in ${http_code}. An
+          # HTTP error is a result and comes back to the caller. No reply at all is not: the
+          # step says whether the server is still up, because that tells the two causes apart.
+          fetch() {
+            local path="${1}" status=0
+            shift
+            : > "${response}"
+            curl --silent --show-error --max-time 30 --output "${response}" \
+              --write-out '%{http_code}' --cookie "${jar}" --cookie-jar "${jar}" \
+              "$@" "${site_url}${path}" > "${code}" || status=$?
+            http_code="$(cat "${code}")"
+            if [ "${status}" -ne 0 ] && [ "${status}" -ne 22 ]; then
+              if ! kill -0 "${server_pid}" 2> /dev/null; then
+                # 139 here means a signal 11, so the page brought the interpreter down with it.
+                server_status=0
+                wait "${server_pid}" || server_status=$?
+                fail "${path} took the server down, which left ${server_status}"
+              fi
+              fail "${path} got no reply, curl exited ${status}"
             fi
-            echo "ok  ${1}"
+            return "${status}"
+          }
+
+          # Fails the step unless the response arrives whole and contains every given string.
+          check() {
+            local path="${1}" marker status=0
+            shift
+            fetch "${path}" --fail-with-body || status=$?
+            [ "${status}" -eq 0 ] || fail "${path} returned HTTP ${http_code}"
+            for marker in "$@"; do
+              grep -qF "${marker}" "${response}" || fail "${path} did not contain: ${marker}"
+            done
+            echo "ok  ${path}"
           }
 
           version="$(wp core version)"
 
-          check '/' "content=\"WordPress ${version}\""
-          check '/?p=1' 'Hello world!'
+          # A fatal after the first bytes leaves a 200 holding half a page, so every check also
+          # asks for the end of the document. Unlike an error string, that cannot be reworded.
+          check '/' "content=\"WordPress ${version}\"" '</html>'
+          check '/?p=1' 'Hello world!' '</html>'
+
           check '/?rest_route=/' '"name":"Upgrade Test"'
-          check '/wp-admin/upgrade.php' 'No Update Required'
-          check '/wp-login.php' 'id="loginform"'
+          jq -e . "${response}" > /dev/null || fail 'the REST index was not whole JSON'
 
-          status="$(curl --silent --output /dev/null --max-time 30 --write-out '%{http_code}' "${SITE_URL}/?p=99999999")"
-          if [ "${status}" != '404' ]; then
-            echo "::error::a missing post returned ${status}, expected 404"
-            exit 1
-          fi
-          echo "ok  404 handling"
+          check '/wp-admin/upgrade.php' 'No Update Required' '</html>'
+          check '/wp-login.php' 'id="loginform"' '</html>'
 
-          curl --silent --show-error --fail --max-time 30 --output /dev/null \
-            --cookie "${jar}" --cookie-jar "${jar}" \
-            --data-urlencode "log=${WP_ADMIN_USER}" --data-urlencode "pwd=${WP_ADMIN_PASSWORD}" \
-            "${SITE_URL}/wp-login.php"
-          if ! grep -q 'wordpress_logged_in_' "${jar}"; then
-            echo '::error::logging in did not set an authentication cookie'
-            exit 1
-          fi
+          fetch '/?p=99999999'
+          [ "${http_code}" = '404' ] || fail "a missing post returned ${http_code}, expected 404"
+          echo 'ok  404 handling'
+
+          login_status=0
+          fetch '/wp-login.php' --fail-with-body \
+            --data-urlencode "log=${WP_ADMIN_USER}" --data-urlencode "pwd=${WP_ADMIN_PASSWORD}" || login_status=$?
+          [ "${login_status}" -eq 0 ] || fail "logging in returned HTTP ${http_code}"
+          grep -q 'wordpress_logged_in_' "${jar}" || fail 'logging in did not set an authentication cookie'
           echo 'ok  login'
 
           # The admin bar only renders for a logged-in user, and /wp-admin/ redirects when logged out.
-          check '/wp-admin/' 'id="wpadminbar"'
+          check '/wp-admin/' 'id="wpadminbar"' '</html>'
+
+          # A fatal that lands after the markers, or during shutdown, still leaves a broken site.
+          if grep -qE 'Fatal error|Uncaught|Segmentation fault' "${server_log}"; then
+            echo '::error::the server logged a fatal error'
+            exit 1
+          fi
+          echo 'ok  server log'
         env:
-          SITE_URL: http://127.0.0.1:8889
+          SITE_PORT: 8889
