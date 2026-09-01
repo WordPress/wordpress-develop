@@ -24,7 +24,10 @@
  */
 function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs = false, $dst_file = false ) {
 	$src_file = $src;
-	if ( is_numeric( $src ) ) { // Handle int as attachment ID.
+	$tmp_file = false;
+
+	// Handle int as attachment ID.
+	if ( is_numeric( $src ) ) {
 		$src_file = get_attached_file( $src );
 
 		if ( ! file_exists( $src_file ) ) {
@@ -38,7 +41,29 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
 		}
 	}
 
+	if ( wp_http_validate_url( $src ) ) {
+		if ( ! function_exists( 'download_url' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		$tmp_file = download_url( $src );
+		if ( is_wp_error( $tmp_file ) ) {
+			return $tmp_file;
+		}
+
+		if ( wp_http_validate_url( $src_file ) ) {
+			$src_file = $tmp_file;
+		}
+
+		$src = $tmp_file;
+	}
+
 	$editor = wp_get_image_editor( $src );
+
+	if ( $tmp_file ) {
+		wp_delete_file( $tmp_file );
+	}
+
 	if ( is_wp_error( $editor ) ) {
 		return $editor;
 	}
