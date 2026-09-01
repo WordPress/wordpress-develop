@@ -19,16 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_Comment\:\:\$comment_ID \(numeric\-string\) does not accept int\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/wp-admin/includes/comment.php
-		-
-			message: '#^Property WP_Comment\:\:\$comment_post_ID \(numeric\-string\) does not accept int\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/wp-admin/includes/comment.php
-		-
 			message: '#^Property WP_Block_Template\:\:\$author \(int\|null\) does not accept string\.$#'
 			identifier: assign.propertyType
 			count: 1
