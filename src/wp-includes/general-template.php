@@ -236,7 +236,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
  *                              multiple search forms on the same page and improve
  *                              accessibility. Default empty.
  * }
- * @return void|string Void if 'echo' argument is true, search form HTML if 'echo' is false.
+ * @return string|void Search form HTML if 'echo' is false, nothing otherwise.
+ * @phpstan-return ( $args is array{ echo: false|0|''|'0', ... } ? string : void )
  */
 function get_search_form( $args = array() ) {
 	/**
@@ -722,7 +723,8 @@ function wp_registration_url() {
  *                                     Default false.
  *
  * }
- * @return void|string Void if 'echo' argument is true, login form HTML if 'echo' is false.
+ * @return string|void Login form HTML if 'echo' is false, nothing otherwise.
+ * @phpstan-return ( $args is array{ echo: false|0|''|'0', ... } ? string : void )
  */
 function wp_login_form( $args = array() ) {
 	$defaults = array(
@@ -2222,7 +2224,12 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *     @type string     $day             Day. Default current day.
  *     @type string     $w               Week. Default current week.
  * }
- * @return void|string Void if 'echo' argument is true, archive links if 'echo' is false.
+ * @return string|void Archive links if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string|void
+ *         : ( $args is ''|array ? void : string|void )
+ * )
  */
 function wp_get_archives( $args = '' ) {
 	global $wpdb, $wp_locale;
@@ -2492,7 +2499,8 @@ function calendar_week_mod( $num ) {
  *     @type bool   $display   Whether to display the calendar output. Default true.
  *     @type string $post_type Optional. Post type. Default 'post'.
  * }
- * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
+ * @return string|void Calendar HTML if `$display` is false, nothing otherwise.
+ * @phpstan-return ( $args is array{ display: false|0|''|'0', ... } ? string|void : void )
  */
 function get_calendar( $args = array() ) {
 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;

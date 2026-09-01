@@ -2229,8 +2229,13 @@ function _get_comment_reply_id( $post = null ) {
  *     @type bool     $echo              Whether to echo the output or return it. Default true.
  * }
  * @param WP_Comment[] $comments Optional. Array of WP_Comment objects. Default null.
- * @return void|string Void if 'echo' argument is true, or no comments to list.
- *                     Otherwise, HTML list of comments.
+ * @return string|void HTML list of comments if 'echo' is false, nothing otherwise
+ *                     or when there are no comments to list.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string|void
+ *         : ( $args is ''|array ? void : string|void )
+ * )
  */
 function wp_list_comments( $args = array(), $comments = null ) {
 	global $wp_query, $comment_alt, $comment_depth, $comment_thread_alt, $overridden_cpage, $in_comment_loop;

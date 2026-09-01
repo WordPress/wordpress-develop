@@ -77,7 +77,13 @@ function the_title( $before = '', $after = '', $display = true ) {
  *     @type bool    $echo   Whether to echo or return the title. Default true for echo.
  *     @type WP_Post $post   Current post object to retrieve the title for.
  * }
- * @return void|string Void if 'echo' argument is true, the title attribute if 'echo' is false.
+ * @return string|void The title attribute if 'echo' is false, nothing otherwise
+ *                     or when the title is empty.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string|void
+ *         : ( $args is ''|array ? void : string|void )
+ * )
  */
 function the_title_attribute( $args = '' ) {
 	$defaults    = array(
@@ -1299,7 +1305,12 @@ function wp_dropdown_pages( $args = '' ) {
  *     @type Walker            $walker       Walker instance to use for listing pages. Default empty which results in a
  *                                           Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML list of pages if 'echo' is false.
+ * @return string|void HTML list of pages if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|array ? void : string|null )
+ * )
  */
 function wp_list_pages( $args = '' ) {
 	$defaults = array(
@@ -1422,7 +1433,12 @@ function wp_list_pages( $args = '' ) {
  *     @type Walker          $walker       Walker instance to use for listing pages. Default empty which results in a
  *                                         Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML menu if 'echo' is false.
+ * @return string|void HTML menu if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|array ? void : string|null )
+ * )
  */
 function wp_page_menu( $args = array() ) {
 	$defaults = array(

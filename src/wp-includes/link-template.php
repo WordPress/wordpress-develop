@@ -3265,10 +3265,17 @@ function previous_comments_link( $label = '' ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string|array $args Optional args. See paginate_links(). Default empty array.
- * @return void|string|array Void if 'echo' argument is true and 'type' is not an array,
- *                           or if the query is not for an existing single post of any post type.
- *                           Otherwise, markup for comment page links or array of comment page links,
- *                           depending on 'type' argument.
+ * @return string|string[]|void Markup for comment page links, or an array of them when the 'type'
+ *                              argument is 'array'. Nothing when 'echo' is true and 'type' is not
+ *                              'array', or if the query is not for an existing single post of any
+ *                              post type.
+ * @phpstan-return (
+ *     $args is array{ type: 'array', ... }
+ *         ? string[]|void
+ *         : ( $args is array{ echo: false|0|''|'0', ... }
+ *             ? string|void
+ *             : ( $args is ''|array ? void : string|string[]|void ) )
+ * )
  */
 function paginate_comments_links( $args = array() ) {
 	global $wp_rewrite;
