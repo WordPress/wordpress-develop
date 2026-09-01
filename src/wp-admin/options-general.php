@@ -249,9 +249,10 @@ if ( ! is_multisite() ) {
 <p class="description" id="home-description">
 		<?php
 		printf(
-			/* translators: %s: Documentation URL. */
-			__( 'Enter the same address here unless you <a href="%s">want your site home page to be different from your WordPress installation directory</a>.' ),
-			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
+			/* translators: 1: Documentation URL. 2: Accessibility text (do not translate). */
+			__( 'Enter the same address here unless you <a href="%1$s" target="_blank" rel="noopener noreferrer">want your site home page to be different from your WordPress installation directory%2$s</a>.' ),
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' ) ),
+			'<span class="screen-reader-text"> ' . /* translators: Hidden accessibility text. */ __( '(opens in a new tab)' ) . '</span><span aria-hidden="true" class="dashicons dashicons-external"></span>'
 		);
 		?>
 </p>
@@ -568,8 +569,14 @@ foreach ( $time_formats as $format ) {
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'time_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
 
-	echo "\t<p class='date-time-doc'>" . __( '<a href="https://wordpress.org/documentation/article/customize-date-and-time-format/">Documentation on date and time formatting</a>.' ) . "</p>\n";
-?>
+	printf(
+		"\t<p class='date-time-doc'><a href=\"%1\$s\" target=\"_blank\" rel=\"noopener noreferrer\">%2\$s<span class=\"screen-reader-text\"> %3\$s</span><span aria-hidden=\"true\" class=\"dashicons dashicons-external\"></span></a>.</p>\n",
+		'https://wordpress.org/documentation/article/customize-date-and-time-format/',
+		__( 'Documentation on date and time formatting' ),
+		/* translators: Hidden accessibility text. */
+		__( '(opens in a new tab)' )
+	);
+	?>
 	</fieldset>
 </td>
 </tr>
