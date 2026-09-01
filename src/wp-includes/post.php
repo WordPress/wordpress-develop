@@ -8376,7 +8376,23 @@ function set_post_thumbnail( $post, $thumbnail_id ) {
 	$thumbnail_id = absint( $thumbnail_id );
 	if ( $post && $thumbnail_id && get_post( $thumbnail_id ) ) {
 		if ( wp_get_attachment_image( $thumbnail_id, 'thumbnail' ) ) {
-			return update_post_meta( $post->ID, '_thumbnail_id', $thumbnail_id );
+			// Set the thumbnail meta
+			$result = update_post_meta( $post->ID, '_thumbnail_id', $thumbnail_id );
+
+			$attachment = get_post( $thumbnail_id );
+			if ( $attachment && 'attachment' === $attachment->post_type ) {
+				// Only update post_parent if it's not already set to this post
+				if ( (int) $attachment->post_parent !== (int) $post->ID ) {
+					wp_update_post(
+						array(
+							'ID'          => $thumbnail_id,
+							'post_parent' => $post->ID,
+						)
+					);
+				}
+			}
+
+			return $result;
 		} else {
 			return delete_post_meta( $post->ID, '_thumbnail_id' );
 		}
@@ -8395,7 +8411,23 @@ function set_post_thumbnail( $post, $thumbnail_id ) {
 function delete_post_thumbnail( $post ) {
 	$post = get_post( $post );
 	if ( $post ) {
-		return delete_post_meta( $post->ID, '_thumbnail_id' );
+		$thumbnail_id = get_post_thumbnail_id( $post->ID );
+
+		$result = delete_post_meta( $post->ID, '_thumbnail_id' );
+
+		if ( $result && $thumbnail_id ) {
+			$attachment = get_post( $thumbnail_id );
+			if ( $attachment && 'attachment' === $attachment->post_type && (int) $attachment->post_parent === (int) $post->ID ) {
+				wp_update_post(
+					array(
+						'ID'          => $thumbnail_id,
+						'post_parent' => 0,
+					)
+				);
+			}
+		}
+
+		return $result;
 	}
 	return false;
 }
