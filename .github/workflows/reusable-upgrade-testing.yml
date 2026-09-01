@@ -164,12 +164,13 @@ jobs:
             local status=$?
             pkill -P "${server_pid}" || true
             kill "${server_pid}" 2> /dev/null || true
-            [ "${status}" -eq 0 ] || cat "${server_log}"
+            [ "${status}" -eq 0 ] || cat "${server_log}" || true
             exit "${status}"
           }
           trap stop_server EXIT
 
-          timeout 30 bash -c "until curl --silent --output /dev/null \"${site_url}/\"; do kill -0 ${server_pid} 2> /dev/null || exit 1; sleep 1; done"
+          timeout 30 bash -c "until curl --silent --output /dev/null \"${site_url}/\"; do kill -0 ${server_pid} 2> /dev/null || exit 1; sleep 1; done" \
+            || { echo '::error::the server never answered'; exit 1; }
 
           # Prints what came back and fails the step.
           fail() {
@@ -190,13 +191,18 @@ jobs:
               "$@" "${site_url}${path}" > "${code}" || status=$?
             http_code="$(cat "${code}")"
             if [ "${status}" -ne 0 ] && [ "${status}" -ne 22 ]; then
-              if ! kill -0 "${server_pid}" 2> /dev/null; then
-                # 139 here means a signal 11, so the page brought the interpreter down with it.
+              # Two facts, because the process holding the port is a grandchild of this one:
+              # a status of 128 and up names a signal, and the socket says who is left listening.
+              if kill -0 "${server_pid}" 2> /dev/null; then
+                server_state='is up'
+              else
                 server_status=0
                 wait "${server_pid}" || server_status=$?
-                fail "${path} took the server down, which left ${server_status}"
+                server_state="left ${server_status}"
               fi
-              fail "${path} got no reply, curl exited ${status}"
+              port_state='nothing listens on the port'
+              ss -ltnH "sport = :${SITE_PORT}" | grep -q . && port_state='the port still listens'
+              fail "${path} got no reply, curl exited ${status}. The server ${server_state}, ${port_state}."
             fi
             return "${status}"
           }
@@ -220,21 +226,24 @@ jobs:
           check '/' "content=\"WordPress ${version}\"" '</html>'
           check '/?p=1' 'Hello world!' '</html>'
 
-          check '/?rest_route=/' '"name":"Upgrade Test"'
-          jq -e . "${response}" > /dev/null || fail 'the REST index was not whole JSON'
+          fetch '/?rest_route=/' --fail-with-body || fail "/?rest_route=/ returned HTTP ${http_code}"
+          jq -e '.name == "Upgrade Test"' "${response}" > /dev/null \
+            || fail 'the REST index was not the expected JSON'
+          echo 'ok  /?rest_route=/'
 
           check '/wp-admin/upgrade.php' 'No Update Required' '</html>'
           check '/wp-login.php' 'id="loginform"' '</html>'
 
           fetch '/?p=99999999'
           [ "${http_code}" = '404' ] || fail "a missing post returned ${http_code}, expected 404"
+          grep -qF '</html>' "${response}" || fail 'the 404 page was cut short'
           echo 'ok  404 handling'
 
           login_status=0
           fetch '/wp-login.php' --fail-with-body \
             --data-urlencode "log=${WP_ADMIN_USER}" --data-urlencode "pwd=${WP_ADMIN_PASSWORD}" || login_status=$?
           [ "${login_status}" -eq 0 ] || fail "logging in returned HTTP ${http_code}"
-          grep -q 'wordpress_logged_in_' "${jar}" || fail 'logging in did not set an authentication cookie'
+          grep -qF 'wordpress_logged_in_' "${jar}" || fail 'logging in did not set an authentication cookie'
           echo 'ok  login'
 
           # The admin bar only renders for a logged-in user, and /wp-admin/ redirects when logged out.
