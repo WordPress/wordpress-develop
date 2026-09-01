@@ -1844,7 +1844,14 @@ class WP_Rewrite {
 			$struct = $this->root . $struct;
 		}
 
-		$args['struct'] = $struct;
+		$args['struct'] = preg_replace_callback(
+			'/(?:%[0-9A-F]{2})+/',
+			static function ( $matches ) {
+				$decoded = rawurldecode( $matches[0] );
+				return wp_is_valid_utf8( $decoded ) ? $decoded : $matches[0];
+			},
+			$struct
+		);
 
 		$this->extra_permastructs[ $name ] = $args;
 	}
