@@ -81,6 +81,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * Retrieves all abilities.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 Added support for the `eligibility_context` query parameter.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Response object on success.
@@ -101,6 +102,10 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		if ( ! empty( $request['meta'] ) ) {
 			// Merge caller meta first so the forced show_in_rest filter wins. This keeps a caller from using meta to reveal abilities hidden from REST.
 			$query_args['meta'] = array_merge( $request['meta'], $query_args['meta'] );
+		}
+
+		if ( ! empty( $request['eligibility_context'] ) ) {
+			$query_args['eligibility_context'] = $request['eligibility_context'];
 		}
 
 		$abilities = wp_get_abilities( $query_args );
@@ -332,38 +337,44 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `namespace` and `meta` parameters and the `rest_abilities_collection_params` filter.
+	 * @since 7.2.0 Added the `eligibility_context` parameter.
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
 	public function get_collection_params(): array {
 		$query_params = array(
-			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
-			'page'      => array(
+			'context'             => $this->get_context_param( array( 'default' => 'view' ) ),
+			'page'                => array(
 				'description' => __( 'Current page of the collection.' ),
 				'type'        => 'integer',
 				'default'     => 1,
 				'minimum'     => 1,
 			),
-			'per_page'  => array(
+			'per_page'            => array(
 				'description' => __( 'Maximum number of items to be returned in result set.' ),
 				'type'        => 'integer',
 				'default'     => 50,
 				'minimum'     => 1,
 				'maximum'     => 100,
 			),
-			'category'  => array(
+			'category'            => array(
 				'description'       => __( 'Limit results to abilities in specific ability category.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'namespace' => array(
+			'namespace'           => array(
 				'description'       => __( 'Limit results to abilities in a specific namespace.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'meta'      => array(
+			'eligibility_context' => array(
+				'description'          => __( 'Limit results to abilities eligible in the given usage context. The keys and values are agreed on between clients and ability authors. They are provided by the client and are not verified.' ),
+				'type'                 => 'object',
+				'additionalProperties' => true,
+			),
+			'meta'                => array(
 				'description'          => __( 'Limit results to abilities matching all of the given meta fields.' ),
 				'type'                 => 'object',
 				'properties'           => array(

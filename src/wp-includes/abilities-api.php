@@ -234,6 +234,7 @@ declare( strict_types = 1 );
  * @since 6.9.0
  * @since 7.1.0 Added the `public` meta argument.
  * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
+ * @since 7.2.0 Added the `eligibility_callback` argument.
  *
  * @see WP_Abilities_Registry::register()
  * @see wp_register_ability_category()
@@ -258,6 +259,14 @@ declare( strict_types = 1 );
  *                                                     Receives optional mixed input data (same as `execute_callback`) and
  *                                                     must return `true`/`false` for simple checks, or `WP_Error` for
  *                                                     detailed error responses.
+ *     @type callable             $eligibility_callback Optional. A callback function that decides whether the ability
+ *                                                     applies in a given usage context, such as a specific admin screen
+ *                                                     or frontend page. Receives an associative array of context values
+ *                                                     and must return a boolean. Consulted only when listing abilities,
+ *                                                     never on execution, and it is not a security boundary because the
+ *                                                     context values come from the caller unverified. When the context
+ *                                                     lacks a key the callback cares about, the callback should return
+ *                                                     true, so passing more context can only narrow a result.
  *     @type array<string, mixed> $input_schema        Optional. JSON Schema definition for validating the ability's input.
  *                                                     Must be a valid JSON Schema object defining the structure and
  *                                                     constraints for input data. Used for automatic validation and
@@ -423,13 +432,15 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  * 1. Declarative filters (`category`, `namespace`, `meta`) — per-item, AND logic between
  *    arg types.
- * 2. `item_include_callback` — per-item, caller-scoped. Return true to include, false to exclude.
- * 3. `wp_get_abilities_item_include` filter — per-item, ecosystem-scoped. Plugins can enforce
+ * 2. Eligibility — per-item, ability-scoped. When an `eligibility_context` is passed, each
+ *    ability's `eligibility_callback` decides whether the ability applies in that context.
+ * 3. `item_include_callback` — per-item, caller-scoped. Return true to include, false to exclude.
+ * 4. `wp_get_abilities_item_include` filter — per-item, ecosystem-scoped. Plugins can enforce
  *    universal inclusion rules regardless of what the caller passed.
- * 4. `result_callback` — on the full matched array, caller-scoped. Sort, slice, or reshape.
- * 5. `wp_get_abilities_result` filter — on the full array, ecosystem-scoped.
+ * 5. `result_callback` — on the full matched array, caller-scoped. Sort, slice, or reshape.
+ * 6. `wp_get_abilities_result` filter — on the full array, ecosystem-scoped.
  *
- * Steps 1–3 run inside a single loop over the registry — no extra iteration.
+ * Steps 1–4 run inside a single loop over the registry — no extra iteration.
  *
  * Examples:
  *
@@ -450,6 +461,14 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *         'category'  => 'content',
  *         'namespace' => 'core',
  *         'meta'      => array( 'show_in_rest' => true ),
+ *     ) );
+ *
+ *     // Narrow to abilities eligible in a usage context.
+ *     $abilities = wp_get_abilities( array(
+ *         'eligibility_context' => array(
+ *             'surface'   => 'webmcp-admin',
+ *             'post_type' => 'product',
+ *         ),
  *     ) );
  *
  *     // Caller-scoped per-item callback.
@@ -475,6 +494,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  * @since 6.9.0
  * @since 7.1.0 Added the `$args` parameter for filtering support.
+ * @since 7.2.0 Added the `eligibility_context` argument.
  *
  * @see WP_Abilities_Registry::get_all_registered()
  *
@@ -489,6 +509,16 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *     @type array           $meta                  Filter by meta key/value pairs. All conditions must
  *                                                  match (AND logic). Supports nested arrays for structured
  *                                                  meta, e.g. `array( 'mcp' => array( 'public' => true ) )`.
+ *     @type array           $eligibility_context   Optional. An associative array describing the caller's
+ *                                                  usage context, e.g. `array( 'surface' => 'webmcp-admin' )`.
+ *                                                  Core does not define the keys. Callers and ability authors
+ *                                                  agree on them, and plugin specific keys should be
+ *                                                  namespaced like `plugin-slug/key`. Abilities whose
+ *                                                  `eligibility_callback` returns false for this context are
+ *                                                  excluded. When omitted or empty, eligibility is not
+ *                                                  evaluated and every ability is kept, so a context can
+ *                                                  only narrow the result. The context values come from the
+ *                                                  caller unverified, so this is not a security boundary.
  *     @type callable        $item_include_callback Optional. A callback invoked per ability after declarative
  *                                                  filters. Receives a WP_Ability instance, returns bool.
  *                                                  Return true to include, false to exclude.
@@ -512,6 +542,7 @@ function wp_get_abilities( array $args = array() ): array {
 	$category              = isset( $args['category'] ) && is_string( $args['category'] ) ? $args['category'] : '';
 	$namespace             = isset( $args['namespace'] ) && is_string( $args['namespace'] ) ? rtrim( $args['namespace'], '/' ) . '/' : '';
 	$meta                  = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
+	$eligibility_context   = isset( $args['eligibility_context'] ) && is_array( $args['eligibility_context'] ) ? $args['eligibility_context'] : array();
 	$item_include_callback = isset( $args['item_include_callback'] ) && is_callable( $args['item_include_callback'] ) ? $args['item_include_callback'] : null;
 	$result_callback       = isset( $args['result_callback'] ) && is_callable( $args['result_callback'] ) ? $args['result_callback'] : null;
 
@@ -533,7 +564,16 @@ function wp_get_abilities( array $args = array() ): array {
 			continue;
 		}
 
-		// Step 2: Caller-scoped per-item callback.
+		/*
+		 * Step 2: Ability-scoped eligibility for the given usage context.
+		 * Skipped entirely when no context is passed, so a context can only
+		 * narrow the result relative to a call without one.
+		 */
+		if ( array() !== $eligibility_context && ! $ability->is_eligible( $eligibility_context ) ) {
+			continue;
+		}
+
+		// Step 3: Caller-scoped per-item callback.
 		$include = true;
 		if ( null !== $item_include_callback ) {
 			$include = (bool) call_user_func( $item_include_callback, $ability );
@@ -542,7 +582,8 @@ function wp_get_abilities( array $args = array() ): array {
 		/**
 		 * Filters whether an individual ability should be included in the result set.
 		 *
-		 * Fires after the declarative filters and the caller-scoped item_include_callback.
+		 * Fires after the declarative filters, the eligibility check, and the
+		 * caller-scoped item_include_callback.
 		 * Plugins can use this to enforce universal inclusion rules regardless of
 		 * what the caller passed in $args.
 		 *
@@ -559,7 +600,7 @@ function wp_get_abilities( array $args = array() ): array {
 		}
 	}
 
-	// Step 4: Caller-scoped result callback.
+	// Step 5: Caller-scoped result callback.
 	if ( null !== $result_callback ) {
 		$matched = (array) call_user_func( $result_callback, $matched );
 	}
