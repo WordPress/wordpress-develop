@@ -401,7 +401,7 @@ jobs:
   #
   # The number testing combinations is very limited because PHP 8.6 is still in beta/RC.
   pre-release-php-8-6:
-    name: PHP 8.6
+    name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
