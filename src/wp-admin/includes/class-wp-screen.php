@@ -1006,11 +1006,23 @@ final class WP_Screen {
 
 		$this->_screen_settings = '';
 
+		$additional_settings = '';
+
+		if ( $this->show_meta_box_reordering_options() ) {
+			$additional_settings .= $this->get_meta_box_reordering_option();
+		}
+
 		if ( 'post' === $this->base ) {
-			$expand                 = '<fieldset class="editor-expand hidden"><legend>' . __( 'Additional settings' ) . '</legend><label for="editor-expand-toggle">';
-			$expand                .= '<input type="checkbox" id="editor-expand-toggle"' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . ' />';
-			$expand                .= __( 'Enable full-height editor and distraction-free functionality.' ) . '</label></fieldset>';
-			$this->_screen_settings = $expand;
+			$additional_settings .= '<label class="editor-expand hidden" for="editor-expand-toggle">';
+			$additional_settings .= '<input type="checkbox" id="editor-expand-toggle"' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . ' /> ';
+			$additional_settings .= __( 'Enable full-height editor and distraction-free functionality.' ) . '</label>';
+		}
+
+		if ( $additional_settings ) {
+			$this->_screen_settings  = '<fieldset class="metabox-prefs additional-settings-prefs">';
+			$this->_screen_settings .= '<legend>' . __( 'Additional settings' ) . '</legend>';
+			$this->_screen_settings .= $additional_settings;
+			$this->_screen_settings .= '</fieldset>';
 		}
 
 		/**
@@ -1023,7 +1035,7 @@ final class WP_Screen {
 		 */
 		$this->_screen_settings = apply_filters( 'screen_settings', $this->_screen_settings, $this );
 
-		if ( $this->_screen_settings || $this->_options ) {
+		if ( $this->_screen_settings || $this->_options || $this->show_meta_box_reordering_options() ) {
 			$show_screen = true;
 		}
 
@@ -1120,8 +1132,8 @@ final class WP_Screen {
 		<fieldset class="metabox-prefs">
 		<legend><?php _e( 'Screen elements' ); ?></legend>
 		<p>
-			<?php _e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ?>
-			<?php _e( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.' ); ?>
+			<?php _e( 'Use the checkboxes to show or hide screen elements.' ); ?>
+			<?php _e( 'Expand or collapse screen elements by clicking their headings.' ); ?>
 		</p>
 		<div class="metabox-prefs-container">
 		<?php
@@ -1146,6 +1158,53 @@ final class WP_Screen {
 		</div>
 		</fieldset>
 		<?php
+	}
+
+	/**
+	 * Renders the option to enable or disable meta box reordering.
+	 *
+	 * @since 7.1.0
+	 */
+	public function render_meta_box_reordering_options() {
+		if ( ! $this->show_meta_box_reordering_options() ) {
+			return;
+		}
+
+		?>
+		<fieldset class="metabox-prefs additional-settings-prefs">
+		<legend><?php _e( 'Additional settings' ); ?></legend>
+		<?php echo $this->get_meta_box_reordering_option(); ?>
+		</fieldset>
+		<?php
+	}
+
+	/**
+	 * Gets the option to enable or disable meta box reordering.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return string Meta box reordering option markup.
+	 */
+	private function get_meta_box_reordering_option() {
+		return '<label for="meta-box-reordering">'
+			. '<input class="meta-box-reordering-toggle" name="meta-box-reordering" type="checkbox" id="meta-box-reordering" value="enabled" ' . checked( wp_is_meta_box_reordering_enabled(), true, false ) . ' /> '
+			. __( 'Enable box reordering' )
+			. '</label>';
+	}
+
+	/**
+	 * Determines whether to show the meta box reordering option.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global array $wp_meta_boxes Global meta box state.
+	 *
+	 * @return bool Whether to show the option.
+	 */
+	private function show_meta_box_reordering_options() {
+		global $wp_meta_boxes;
+
+		return ! empty( $wp_meta_boxes[ $this->id ] );
 	}
 
 	/**
