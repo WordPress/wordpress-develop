@@ -61,6 +61,55 @@ class Tests_Includes_JUnit_Timing_Metrics extends WP_UnitTestCase {
 		$this->assertSame( 0.6, $metrics['phpunit-suite-time'] );
 	}
 
+	public function test_passes_timed_testcase_details_to_callback() {
+		$file      = $this->create_junit_file( array( 0.25, 1.5 ), 1.75 );
+		$testcases = array();
+
+		WP_PHPUnit_Timing_Metrics::from_file(
+			$file,
+			static function ( $testcase ) use ( &$testcases ) {
+				$testcases[] = $testcase;
+			}
+		);
+
+		$this->assertSame(
+			array(
+				array(
+					'name'         => 'test_0',
+					'class'        => 'Tests_Example',
+					'file'         => '/var/www/tests/phpunit/tests/example.php',
+					'line'         => '100',
+					'time'         => 0.25,
+					'time_display' => '0.25',
+				),
+				array(
+					'name'         => 'test_1',
+					'class'        => 'Tests_Example',
+					'file'         => '/var/www/tests/phpunit/tests/example.php',
+					'line'         => '101',
+					'time'         => 1.5,
+					'time_display' => '1.5',
+				),
+			),
+			$testcases
+		);
+	}
+
+	public function test_ignores_testcase_without_numeric_timing() {
+		$file      = $this->create_junit_file( array( 0.5, null, 1.5 ), 2.0 );
+		$testcases = array();
+
+		$metrics = WP_PHPUnit_Timing_Metrics::from_file(
+			$file,
+			static function ( $testcase ) use ( &$testcases ) {
+				$testcases[] = $testcase;
+			}
+		);
+
+		$this->assertCount( 2, $testcases );
+		$this->assertSame( 1500.0, $metrics['phpunit-max-test-time'] );
+	}
+
 	public function test_rejects_report_without_testcases() {
 		$file = $this->create_junit_file( array(), 0.0 );
 
@@ -70,14 +119,48 @@ class Tests_Includes_JUnit_Timing_Metrics extends WP_UnitTestCase {
 		WP_PHPUnit_Timing_Metrics::from_file( $file );
 	}
 
+	public function test_rejects_invalid_xml() {
+		$file = $this->create_temporary_file( '<?xml version="1.0"?><testsuites><testsuite><testcase time="1">' );
+
+		$this->expectException( RuntimeException::class );
+		$this->expectExceptionMessage( 'The JUnit timing report contains invalid XML.' );
+
+		WP_PHPUnit_Timing_Metrics::from_file( $file );
+	}
+
 	/**
 	 * Creates a JUnit XML file for a test.
 	 *
-	 * @param float[]   $times      Testcase times in seconds.
-	 * @param float|int $suite_time Optional testsuite time in seconds.
+	 * @param array<float|null> $times      Testcase times in seconds. Null omits the timing attribute.
+	 * @param float|int|null    $suite_time Optional testsuite time in seconds.
 	 * @return string Path to the temporary file.
 	 */
 	private function create_junit_file( $times, $suite_time = null ) {
+		$suite_time_attribute = null === $suite_time ? '' : sprintf( ' time="%s"', $suite_time );
+		$testcases            = '';
+
+		foreach ( $times as $index => $time ) {
+			$time_attribute = null === $time ? '' : sprintf( ' time="%s"', $time );
+			$testcases     .= sprintf(
+				'<testcase name="test_%1$d" class="Tests_Example" file="/var/www/tests/phpunit/tests/example.php" line="%2$d"%3$s/>',
+				$index,
+				100 + $index,
+				$time_attribute
+			);
+		}
+
+		return $this->create_temporary_file(
+			sprintf( '<?xml version="1.0"?><testsuites><testsuite tests="%1$d"%2$s>%3$s</testsuite></testsuites>', count( $times ), $suite_time_attribute, $testcases )
+		);
+	}
+
+	/**
+	 * Creates a temporary file containing the provided data.
+	 *
+	 * @param string $data File contents.
+	 * @return string Path to the temporary file.
+	 */
+	private function create_temporary_file( $data ) {
 		$file = tempnam( sys_get_temp_dir(), 'junit-timing-' );
 
 		if ( false === $file ) {
@@ -85,17 +168,7 @@ class Tests_Includes_JUnit_Timing_Metrics extends WP_UnitTestCase {
 		}
 
 		$this->temporary_files[] = $file;
-		$suite_time_attribute    = null === $suite_time ? '' : sprintf( ' time="%s"', $suite_time );
-		$testcases               = '';
-
-		foreach ( $times as $index => $time ) {
-			$testcases .= sprintf( '<testcase name="test_%1$d" time="%2$s"/>', $index, $time );
-		}
-
-		file_put_contents(
-			$file,
-			sprintf( '<?xml version="1.0"?><testsuites><testsuite tests="%1$d"%2$s>%3$s</testsuite></testsuites>', count( $times ), $suite_time_attribute, $testcases )
-		);
+		file_put_contents( $file, $data );
 
 		return $file;
 	}
