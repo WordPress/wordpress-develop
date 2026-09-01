@@ -223,6 +223,8 @@ function get_comment_to_edit( $id ) {
  *
  * @since 2.3.0
  * @since 6.9.0 Exclude the 'note' comment type from the count.
+ * @since 7.2.0 The excluded comment types are derived from the
+ *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -242,7 +244,11 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' AND comment_type != 'note' GROUP BY comment_post_ID", ARRAY_A );
+	$type_not_in = _wp_get_excluded_comment_types_clause();
+
+	// $post_id_in is built from integers and $type_not_in is prepared above.
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0'$type_not_in GROUP BY comment_post_ID", ARRAY_A );
 
 	if ( $single ) {
 		if ( empty( $pending ) ) {

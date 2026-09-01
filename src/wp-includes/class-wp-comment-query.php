@@ -67,6 +67,17 @@ class WP_Comment_Query {
 	protected $filtered_where_clause;
 
 	/**
+	 * Comment types excluded from the results by default.
+	 *
+	 * Resolved once per query in get_comments(), so that the set folded into the cache
+	 * key is the same one get_comment_ids() builds the SQL from. Null until resolved.
+	 *
+	 * @since 7.2.0
+	 * @var string[]|null
+	 */
+	protected $default_excluded_comment_types = null;
+
+	/**
 	 * Date query container
 	 *
 	 * @since 3.7.0
@@ -455,6 +466,18 @@ class WP_Comment_Query {
 		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
 
+		/*
+		 * The default-excluded types are not query vars, but they do change the results,
+		 * so they belong in the key. Without them a persistent object cache would keep
+		 * serving entries built before a plugin changed the excluded set, since changing
+		 * it does not touch the comment 'last_changed' value the key is salted with.
+		 *
+		 * The resolved set is reused in get_comment_ids() so the filter runs once per query.
+		 */
+		$this->default_excluded_comment_types = wp_get_default_excluded_comment_types( $this );
+
+		$_args['default_excluded_comment_types'] = $this->default_excluded_comment_types;
+
 		$key          = md5( serialize( $_args ) );
 		$last_changed = wp_cache_get_last_changed( 'comment' );
 
@@ -544,6 +567,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
+	 * @since 7.2.0 The default-excluded comment types are filterable via {@see 'default_excluded_comment_types'}.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -779,13 +803,47 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
-		// Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
-		if (
-			! in_array( 'all', $raw_types['IN'], true ) &&
-			! in_array( 'note', $raw_types['IN'], true ) &&
-			! in_array( 'note', $raw_types['NOT IN'], true )
-		) {
-			$raw_types['NOT IN'][] = 'note';
+		// Resolved in get_comments() when the cache key is built; resolve here for direct calls.
+		if ( null === $this->default_excluded_comment_types ) {
+			$this->default_excluded_comment_types = wp_get_default_excluded_comment_types( $this );
+		}
+
+		$excluded_types = $this->default_excluded_comment_types;
+
+		/*
+		 * Unless all types are requested, exclude each default-excluded type
+		 * that the query does not explicitly request. The special type tokens
+		 * in the request ('comment', 'comments', 'pings') are first expanded to
+		 * the literal comment_type values they represent, so a type requested
+		 * via an alias (for example 'pings' for 'pingback' and 'trackback') is
+		 * still treated as explicitly requested and is not excluded.
+		 */
+		if ( ! in_array( 'all', $raw_types['IN'], true ) ) {
+			$requested_types = array();
+			foreach ( $raw_types['IN'] as $requested_type ) {
+				switch ( $requested_type ) {
+					case 'comment':
+					case 'comments':
+						$requested_types[] = '';
+						$requested_types[] = 'comment';
+						break;
+
+					case 'pings':
+						$requested_types[] = 'pingback';
+						$requested_types[] = 'trackback';
+						break;
+
+					default:
+						$requested_types[] = $requested_type;
+						break;
+				}
+			}
+
+			foreach ( $excluded_types as $excluded_type ) {
+				if ( ! in_array( $excluded_type, $requested_types, true ) ) {
+					$raw_types['NOT IN'][] = $excluded_type;
+				}
+			}
 		}
 
 		$comment_types = array();
