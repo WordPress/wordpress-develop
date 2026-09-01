@@ -179,6 +179,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		Select.prototype.bindHandlers.apply( this, arguments );
 
 		this.on( 'activate', this.activate, this );
+		this.on( 'close', this.resetCreateGalleryState, this );
 
 		// Only bother checking media type counts if one of the counts is zero.
 		checkCounts = _.find( this.counts, function( type ) {
@@ -232,6 +233,30 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 				this.on( region + ':render:' + handler, this[ callback ], this );
 			}, this );
 		}, this );
+	},
+
+	/**
+	 * Clears transient gallery state when a new gallery is abandoned.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return {void}
+	 */
+	resetCreateGalleryState: function() {
+		var state = this.state(),
+			edit;
+
+		if ( ! state || ! _.contains( [ 'gallery', 'gallery-edit', 'gallery-library' ], state.get( 'id' ) ) ) {
+			return;
+		}
+
+		edit = this.state( 'gallery-edit' );
+
+		if ( edit && ! edit.get( 'editing' ) ) {
+			edit.get( 'library' ).reset();
+			this.state( 'gallery' ).get( 'selection' ).reset();
+			this.state( 'gallery-library' ).get( 'selection' ).reset();
+		}
 	},
 
 	activate: function() {
