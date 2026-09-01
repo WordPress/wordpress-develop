@@ -888,7 +888,12 @@ switch ( $action ) {
 
 		?>
 
-		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
+		<form name="lostpasswordform" id="lostpasswordform" action="
+		<?php
+		list( $lostpassword_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
+		echo esc_url( add_query_arg( 'action', 'lostpassword', $lostpassword_path ) );
+		?>
+		" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
@@ -958,9 +963,25 @@ switch ( $action ) {
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 
 			if ( $user && $user->get_error_code() === 'expired_key' ) {
-				wp_redirect( site_url( 'wp-login.php?action=lostpassword&error=expiredkey' ) );
+				wp_redirect(
+					add_query_arg(
+						array(
+							'action' => 'lostpassword',
+							'error'  => 'expiredkey',
+						),
+						$rp_path
+					)
+				);
 			} else {
-				wp_redirect( site_url( 'wp-login.php?action=lostpassword&error=invalidkey' ) );
+				wp_redirect(
+					add_query_arg(
+						array(
+							'action' => 'lostpassword',
+							'error'  => 'invalidkey',
+						),
+						$rp_path
+					)
+				);
 			}
 
 			exit;
@@ -1024,7 +1045,12 @@ switch ( $action ) {
 		);
 
 		?>
-		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=resetpass', 'login_post' ) ); ?>" method="post" autocomplete="off">
+		<form name="resetpassform" id="resetpassform" action="
+		<?php
+		list( $resetpass_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
+		echo esc_url( add_query_arg( 'action', 'resetpass', $resetpass_path ) );
+		?>
+		" method="post" autocomplete="off">
 			<input type="hidden" id="user_login" value="<?php echo esc_attr( $rp_login ); ?>" autocomplete="off" />
 
 			<div class="user-pass1-wrap">
