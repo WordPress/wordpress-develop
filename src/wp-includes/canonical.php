@@ -757,9 +757,19 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$compare_redirect[] = $redirect['query'];
 	}
 
+	if (
+		$compare_original !== $compare_redirect
+		&& $original['host'] === $redirect['host']
+		&& $original['path'] === $redirect['path']
+		&& ( $original['port'] ?? '' ) === ( $redirect['port'] ?? '' )
+		&& redirect_canonical_query_args_are_equivalent( $original['query'], $redirect['query'] )
+	) {
+		$compare_original = $compare_redirect;
+		$redirect_url     = false;
+	}
+
 	if ( $compare_original !== $compare_redirect ) {
 		$redirect_url = $redirect['scheme'] . '://' . $redirect['host'];
-
 		if ( ! empty( $redirect['port'] ) ) {
 			$redirect_url .= ':' . $redirect['port'];
 		}
@@ -889,7 +899,6 @@ function _remove_qs_args_if_not_in_url( $query_string, array $args_to_check, $ur
  */
 function strip_fragment_from_url( $url ) {
 	$parsed_url = wp_parse_url( $url );
-
 	if ( ! empty( $parsed_url['host'] ) ) {
 		$url = '';
 
@@ -913,6 +922,30 @@ function strip_fragment_from_url( $url ) {
 	}
 
 	return $url;
+}
+
+/**
+ * Determines whether two query strings resolve to the same query variables.
+ *
+ * This allows redirect_canonical() to avoid redirects that only re-encode
+ * query arguments, such as converting `+` to `%20`.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $original_query The original query string.
+ * @param string $redirect_query The redirected query string.
+ * @return bool True when both query strings resolve to the same arguments, false otherwise.
+ */
+function redirect_canonical_query_args_are_equivalent( $original_query, $redirect_query ) {
+	if ( $original_query === $redirect_query ) {
+		return true;
+	}
+
+	parse_str( $original_query, $parsed_original_query );
+	parse_str( $redirect_query, $parsed_redirect_query );
+
+	return $parsed_original_query === $parsed_redirect_query;
 }
 
 /**
