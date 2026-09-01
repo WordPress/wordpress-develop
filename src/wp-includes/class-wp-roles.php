@@ -380,13 +380,88 @@ class WP_Roles {
 		if ( is_multisite() && get_current_blog_id() !== $this->site_id ) {
 			remove_action( 'switch_blog', 'wp_switch_roles_and_user', 1 );
 
-			$roles = get_blog_option( $this->site_id, $this->role_key, array() );
+			switch_to_blog( $this->site_id );
+			$roles = $this->get_roles_option_value();
+			restore_current_blog();
 
 			add_action( 'switch_blog', 'wp_switch_roles_and_user', 1, 2 );
 
 			return $roles;
 		}
 
-		return get_option( $this->role_key, array() );
+		return $this->get_roles_option_value();
+	}
+
+	/**
+	 * Retrieves the roles option for the current site.
+	 *
+	 * @since TBD
+	 *
+	 * @return array Roles array.
+	 */
+	protected function get_roles_option_value() {
+		$roles = get_option( $this->role_key, array() );
+
+		if ( ! empty( $roles ) ) {
+			return $roles;
+		}
+
+		return $this->maybe_fix_misnamed_user_roles_option( $roles );
+	}
+
+	/**
+	 * Migrates misnamed user roles options after a table prefix change.
+	 *
+	 * In multisite, user roles for a site are stored in that site's options table
+	 * using an option name that includes the site ID (e.g. `wp_3_user_roles`). When
+	 * the database table prefix is changed, migration tools may update table names
+	 * but fail to update these option names, leaving roles inaccessible.
+	 *
+	 * @since TBD
+	 *
+	 * @param array $roles Current roles array, usually empty.
+	 * @return array Roles array.
+	 */
+	protected function maybe_fix_misnamed_user_roles_option( $roles = array() ) {
+		global $wpdb;
+
+		if ( ! $this->use_db ) {
+			return $roles;
+		}
+
+		if ( is_multisite() && 1 !== $this->site_id ) {
+			$suffix = $this->site_id . '_user_roles';
+		} else {
+			$suffix = 'user_roles';
+		}
+
+		$legacy_option_name = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name != %s LIMIT 1",
+				'%' . $wpdb->esc_like( $suffix ),
+				$this->role_key
+			)
+		);
+
+		if ( ! $legacy_option_name ) {
+			return $roles;
+		}
+
+		$legacy_roles = get_option( $legacy_option_name, array() );
+
+		if ( ! is_array( $legacy_roles ) || empty( $legacy_roles ) ) {
+			return $roles;
+		}
+
+		foreach ( $legacy_roles as $role_data ) {
+			if ( ! is_array( $role_data ) || ! isset( $role_data['capabilities'] ) ) {
+				return $roles;
+			}
+		}
+
+		update_option( $this->role_key, $legacy_roles, true );
+		delete_option( $legacy_option_name );
+
+		return $legacy_roles;
 	}
 }
