@@ -63,6 +63,7 @@ jobs:
       ! contains( github.event.before, '00000000' )
     permissions:
       actions: read
+      contents: read
     env:
       TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
     outputs:
@@ -79,12 +80,40 @@ jobs:
         id: set-subjects
         with:
           script: |
+            function compareReleaseBranches( a, b ) {
+              const [ aMajor, aMinor ] = a.split( '.' ).map( Number );
+              const [ bMajor, bMinor ] = b.split( '.' ).map( Number );
+
+              if ( aMajor !== bMajor ) {
+                return bMajor - aMajor;
+              }
+
+              return bMinor - aMinor;
+            }
+
             const artifacts = await github.rest.actions.listArtifactsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'wordpress-build-' + process.env.TARGET_SHA,
             });
             const has_previous_build = !! artifacts.data.artifacts[0];
+            const targetRef = context.eventName === 'pull_request'
+              ? context.payload.pull_request.base.ref
+              : context.ref.replace( 'refs/heads/', '' );
+            const releaseBranches = ( await github.paginate(
+              github.rest.repos.listBranches,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 100,
+              }
+            ) )
+              .map( ( { name } ) => name )
+              .filter( ( name ) => /^\d+\.\d+$/.test( name ) )
+              .sort( compareReleaseBranches );
+            const latestReleaseBranch = releaseBranches[0];
+            const requiresPreviousBuild =
+              targetRef === 'trunk' || targetRef === latestReleaseBranch;
 
             const subjects = [
               'current',
@@ -94,6 +123,16 @@ jobs:
               subjects.push( 'base' );
             } else if ( has_previous_build ) {
               subjects.push( 'before' );
+            } else if ( requiresPreviousBuild ) {
+              core.setFailed(
+                `No artifact found for the target commit ${ process.env.TARGET_SHA } on ${ targetRef }.`
+              );
+              return;
+            } else {
+              core.warning(
+                `No artifact found for the target commit ${ process.env.TARGET_SHA } on ${ targetRef }. ` +
+                `Skipping previous-build comparison for this older branch.`
+              );
             }
 
             return subjects;
