@@ -1123,6 +1123,10 @@ body #dashboard-widgets .postbox form .submit {
 	color: #646970;
 }
 
+#latest-comments #the-comment-list .comment-meta a {
+	text-decoration: underline;
+}
+
 #latest-comments #the-comment-list .comment-meta cite {
 	font-style: normal;
 	font-weight: 400;
