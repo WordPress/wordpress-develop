@@ -399,7 +399,7 @@ jobs:
 
   # Runs the PHPUnit test suite with PHP 8.6.
   #
-  # The number testing combinations is very limited because PHP 8.6 is still in beta/RC.
+  # The number of testing combinations is intentionally limited because PHP 8.6 is still in beta/RC.
   pre-release-php-8-6:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
