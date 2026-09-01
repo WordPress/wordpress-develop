@@ -310,17 +310,17 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 		return new WP_Error( 'upload_error', $file['error'] );
 	}
 
-	$name = $_FILES[ $file_id ]['name'];
-	$ext  = pathinfo( $name, PATHINFO_EXTENSION );
-	$name = wp_basename( $name, ".$ext" );
+	$name      = $_FILES[ $file_id ]['name'];
+	$extension = pathinfo( $name, PATHINFO_EXTENSION );
+	$name      = wp_basename( $name, ".$extension" );
 
-	$url     = $file['url'];
-	$type    = $file['type'];
-	$file    = $file['file'];
-	$title   = sanitize_text_field( $name );
-	$content = '';
-	$excerpt = '';
-	$alt     = '';
+	$url       = $file['url'];
+	$type      = $file['type'];
+	$file      = $file['file'];
+	$title     = sanitize_text_field( $name );
+	$content   = '';
+	$excerpt   = '';
+	$alt       = '';
 
 	if ( preg_match( '#^audio#', $type ) ) {
 		$meta = wp_read_audio_metadata( $file );
@@ -922,12 +922,12 @@ function wp_media_upload_handler() {
 			}
 
 			$type = 'file';
-			$ext  = preg_replace( '/^.+?\.([^.]+)$/', '$1', $src );
+			$extension = preg_replace( '/^.+?\.([^.]+)$/', '$1', $src );
 
-			if ( $ext ) {
-				$ext_type = wp_ext2type( $ext );
-				if ( 'audio' === $ext_type || 'video' === $ext_type ) {
-					$type = $ext_type;
+			if ( $extension ) {
+				$extension_type = wp_ext2type( $extension );
+				if ( 'audio' === $extension_type || 'video' === $extension_type ) {
+					$type = $extension_type;
 				}
 			}
 
