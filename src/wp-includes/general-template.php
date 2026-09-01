@@ -1780,7 +1780,7 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving, nothing when displaying or on failure.
- * @phpstan-return ( $display is true ? void : string|void )
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_cat_title( $prefix = '', $display = true ) {
 	if ( ! $display ) {
@@ -1802,7 +1802,7 @@ function single_cat_title( $prefix = '', $display = true ) {
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving, nothing when displaying or on failure.
- * @phpstan-return ( $display is true ? void : string|void )
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_tag_title( $prefix = '', $display = true ) {
 	if ( ! $display ) {
