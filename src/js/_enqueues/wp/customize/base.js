@@ -223,6 +223,7 @@ window.wp = window.wp || {};
 	 * @alias wp.customize.Value
 	 *
 	 * @class
+	 * @augments wp.customize.Class
 	 */
 	api.Value = api.Class.extend(/** @lends wp.customize.Value.prototype */{
 		/**

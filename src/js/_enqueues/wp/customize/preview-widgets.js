@@ -162,7 +162,7 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 *
 		 * @since 4.5.0
 		 *
-		 * @class
+		 * @constructs
 		 * @augments wp.customize.selectiveRefresh.Partial
 		 *
 		 * @memberOf wp.customize.widgetsPreview

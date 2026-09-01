@@ -1631,7 +1631,7 @@
 	 * @class    wp.customize.Widgets.WidgetsPanel
 	 * @augments wp.customize.Panel
 	 */
-	api.Widgets.WidgetsPanel = api.Panel.extend(/** @lends wp.customize.Widgets.WigetsPanel.prototype */{
+	api.Widgets.WidgetsPanel = api.Panel.extend(/** @lends wp.customize.Widgets.WidgetsPanel.prototype */{
 
 		/**
 		 * Add and manage the display of the no-rendered-areas notice.
