@@ -696,7 +696,126 @@ jQuery( function($) {
 
 	// Custom Fields postbox.
 	if ( $('#postcustom').length ) {
-		$( '#the-list' ).wpList( {
+		var $postCustom = $( '#postcustom' ),
+			$newMeta = $postCustom.find( '#newmeta' ),
+			$addCustomFieldButton = $postCustom.find( '#add-custom-field-button' ),
+			$addCustomFieldHeading = $postCustom.find( '.custom-field-add-heading' ),
+			$addCustomFieldSubmit = $postCustom.find( '#postcustomstuff .add-custom-field' ),
+			$cancelNewMetaButton = $postCustom.find( '#newmeta-cancel' ),
+			$customFieldsNotice = $postCustom.find( '.custom-fields-notice' ),
+			$customFieldsNoticeMessage,
+			$enterNewMetaButton = $postCustom.find( '#newmeta-button' ),
+			$listTable = $postCustom.find( '#list-table' ),
+			$metaKeyInput = $postCustom.find( '#metakeyinput' ),
+			$metaKeySelect = $postCustom.find( '#metakeyselect' ),
+			$metaValue = $postCustom.find( '#metavalue' ),
+			clearNewMeta,
+			hideNewMeta,
+			resetMetaKeyInput,
+			showCustomFieldsNotice,
+			showMetaKeyInput,
+			showNewMeta;
+
+		if ( ! $customFieldsNotice.length ) {
+			$customFieldsNotice = $( '<div class="custom-fields-notice notice notice-success is-dismissible hidden"><p></p><button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button></div>' );
+			$customFieldsNotice.find( '.screen-reader-text' ).text( __( 'Dismiss this notice.' ) );
+			$postCustom.find( '#postcustomstuff' ).before( $customFieldsNotice );
+		}
+
+		$customFieldsNoticeMessage = $customFieldsNotice.find( 'p' );
+
+		showCustomFieldsNotice = function( message ) {
+			if ( ! $customFieldsNotice.length ) {
+				return;
+			}
+
+			$customFieldsNoticeMessage.text( message );
+			$customFieldsNotice.removeClass( 'hidden' );
+
+			wp.a11y.speak( message );
+		};
+
+		resetMetaKeyInput = function() {
+			if ( $metaKeySelect.length ) {
+				$metaKeySelect.prop( 'selectedIndex', 0 ).removeClass( 'hidden' );
+				$metaKeyInput.val( '' ).addClass( 'hidden' );
+				$postCustom.find( '#enternew' ).removeClass( 'hidden' );
+				$postCustom.find( '#cancelnew' ).addClass( 'hidden' );
+			}
+		};
+
+		showMetaKeyInput = function() {
+			$metaKeySelect.addClass( 'hidden' );
+			$metaKeyInput.removeClass( 'hidden' );
+			$postCustom.find( '#enternew' ).addClass( 'hidden' );
+			$postCustom.find( '#cancelnew' ).removeClass( 'hidden' );
+			$metaKeyInput.trigger( 'focus' );
+		};
+
+		clearNewMeta = function() {
+			$metaValue.val( '' );
+			resetMetaKeyInput();
+
+			if ( ! $metaKeySelect.length ) {
+				$metaKeyInput.val( '' );
+			}
+		};
+
+		showNewMeta = function( shouldFocus ) {
+			$newMeta.addClass( 'is-visible' ).show();
+			$addCustomFieldHeading.addClass( 'is-visible' );
+			$addCustomFieldSubmit.addClass( 'is-visible' );
+			$addCustomFieldButton.attr( 'aria-expanded', 'true' );
+
+			if ( false !== shouldFocus ) {
+				( $metaKeySelect.is( ':visible' ) ? $metaKeySelect : $metaKeyInput ).trigger( 'focus' );
+			}
+		};
+
+		hideNewMeta = function( shouldFocus ) {
+			clearNewMeta();
+			$newMeta.removeClass( 'is-visible' ).hide();
+			$addCustomFieldHeading.removeClass( 'is-visible' );
+			$addCustomFieldSubmit.removeClass( 'is-visible' );
+			$addCustomFieldButton.attr( 'aria-expanded', 'false' );
+
+			if ( false !== shouldFocus ) {
+				$addCustomFieldButton.trigger( 'focus' );
+			}
+		};
+
+		$addCustomFieldButton.on( 'click', function( event ) {
+			event.preventDefault();
+			showNewMeta();
+		} );
+
+		$enterNewMetaButton.on( 'click', function( event ) {
+			event.preventDefault();
+
+			if ( $metaKeyInput.hasClass( 'hidden' ) ) {
+				showMetaKeyInput();
+			} else {
+				resetMetaKeyInput();
+				$metaKeySelect.trigger( 'focus' );
+			}
+		} );
+
+		$cancelNewMetaButton.on( 'click', function( event ) {
+			event.preventDefault();
+			hideNewMeta();
+		} );
+
+		$customFieldsNotice.on( 'click', '.notice-dismiss', function() {
+			$customFieldsNotice.addClass( 'hidden' );
+		} );
+
+		if ( $listTable.hasClass( 'is-empty' ) ) {
+			showNewMeta( false );
+		}
+
+		$postCustom.find( '#the-list' ).wpList( {
+			addColor: 'none',
+			delColor: 'none',
 			/**
 			 * Add current post_ID to request to fetch custom fields
 			 *
@@ -707,7 +826,7 @@ jQuery( function($) {
 			 * @return {Object} Data modified with post_ID attached.
 			 */
 			addBefore: function( s ) {
-				s.data += '&post_id=' + $('#post_ID').val();
+				s.data += '&post_id=' + $( '#post_ID' ).val();
 				return s;
 			},
 			/**
@@ -715,8 +834,31 @@ jQuery( function($) {
 			 *
 			 * @ignore
 			 */
-			addAfter: function() {
-				$('table#list-table').show();
+			addAfter: function( returnedResponse, settings ) {
+				var message = 'newmeta' === settings.element ? __( 'Custom field added.' ) : __( 'Custom field updated.' );
+
+				if ( true === settings.parsed || ! settings.parsed || settings.parsed.errors ) {
+					return;
+				}
+
+				$listTable.removeClass( 'is-empty' ).addClass( 'has-fields' ).show();
+				showCustomFieldsNotice( message );
+
+				if ( 'newmeta' === settings.element ) {
+					hideNewMeta();
+				}
+			},
+			delAfter: function( returnedResponse, settings ) {
+				if ( ! settings.parsed || settings.parsed.errors ) {
+					return;
+				}
+
+				$postCustom.find( '#' + settings.element ).remove();
+				showCustomFieldsNotice( __( 'Custom field deleted.' ) );
+
+				if ( ! $postCustom.find( '#the-list tr.is-saved' ).length ) {
+					$listTable.removeClass( 'has-fields' ).addClass( 'is-empty' ).hide();
+				}
 			}
 		});
 	}

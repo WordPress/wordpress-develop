@@ -1145,34 +1145,19 @@ form#tags-filter {
   11.1 - Custom Fields
 ------------------------------------------------------------------------------*/
 
+#postcustom .inside {
+	margin-top: 0;
+	padding: 12px;
+}
+
+.block-editor-page .edit-post-meta-boxes-area #postcustom .inside {
+	padding-right: 24px;
+	padding-left: 24px;
+}
+
 #postcustomstuff thead th {
 	padding: 5px 8px 8px;
 	background-color: #f0f0f1;
-}
-
-#postcustom #postcustomstuff .submit {
-	border: 0 none;
-	float: none;
-	padding: 0 8px 8px;
-}
-
-#postcustom #postcustomstuff .add-custom-field {
-	padding: 12px 8px 8px;
-}
-
-#side-sortables #postcustom #postcustomstuff .submit {
-	margin: 0;
-	padding: 0;
-}
-
-#side-sortables #postcustom #postcustomstuff #the-list textarea {
-	height: 85px;
-}
-
-#side-sortables #postcustom #postcustomstuff td.left input,
-#side-sortables #postcustom #postcustomstuff td.left select,
-#side-sortables #postcustomstuff #newmetaleft a {
-	margin: 3px 3px 0;
 }
 
 #postcustomstuff table {
@@ -1187,38 +1172,193 @@ form#tags-filter {
 	vertical-align: top;
 }
 
-#postcustomstuff table input,
-#postcustomstuff table select,
-#postcustomstuff table textarea {
-	width: 96%;
-	margin: 8px;
+#postcustomstuff #list-table,
+#postcustomstuff #newmeta {
+	border: 0;
+	border-spacing: 0;
+	background: transparent;
 }
 
-#side-sortables #postcustomstuff table input,
-#side-sortables #postcustomstuff table select,
-#side-sortables #postcustomstuff table textarea {
-	margin: 3px;
+#postcustomstuff #list-table tbody,
+#postcustomstuff #newmeta tbody {
+	display: block;
+}
+
+#postcustomstuff #list-table thead,
+#postcustomstuff #newmeta thead {
+	display: none;
+}
+
+#postcustomstuff .custom-field-add-heading {
+	margin: 0 0 8px;
+}
+
+.js #postcustomstuff .custom-field-add-heading {
+	display: none;
+}
+
+.js #postcustomstuff .custom-field-add-heading.is-visible {
+	display: block;
+}
+
+#postcustomstuff #list-table.has-fields ~ .custom-field-add-heading.is-visible {
+	padding-top: 16px;
+	border-top: 1px solid #dcdcde;
+}
+
+#postcustomstuff .custom-field-row,
+#postcustomstuff #newmeta tbody tr {
+	display: grid;
+	gap: 8px 12px;
+	padding: 0;
+	border-bottom: 1px solid #dcdcde;
+	background: transparent;
+}
+
+#postcustomstuff .custom-field-row {
+	grid-template-columns: minmax(160px, 24%) minmax(0, 1fr) auto;
+}
+
+#postcustomstuff #newmeta tbody tr {
+	grid-template-columns: minmax(160px, 24%) minmax(0, 1fr) auto;
+}
+
+#postcustomstuff .custom-field-row.is-saved {
+	padding: 0 0 16px;
+	border-bottom: 0;
+}
+
+#postcustom .custom-fields-notice {
+	margin: 0 0 12px;
+}
+
+#postcustom .custom-fields-notice p {
+	margin: 0.5em 0;
+}
+
+#postcustomstuff #newmeta {
+	border-bottom: 0;
+}
+
+#postcustomstuff #newmeta tbody tr {
+	border-bottom: 0;
+}
+
+#postcustomstuff #list-table.has-fields ~ #newmeta.is-visible tbody tr {
+	padding-top: 0;
+}
+
+.js #postcustomstuff #newmeta {
+	display: none;
+}
+
+.js #postcustomstuff #newmeta.is-visible {
+	display: table;
+}
+
+#postcustomstuff .custom-field-row td,
+#postcustomstuff #newmeta td {
+	display: block;
+	padding: 0;
+}
+
+#postcustomstuff .custom-field-label {
+	display: block;
+	margin: 0;
+	padding: 2px 0;
+}
+
+#postcustomstuff .custom-field-key,
+#postcustomstuff .custom-field-value-field {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+
+#postcustomstuff .custom-field-value-field {
+	min-height: 40px;
+}
+
+#postcustomstuff .custom-field-key.hidden {
+	display: none;
 }
 
 #postcustomstuff th.left,
 #postcustomstuff td.left {
-	width: 38%;
+	width: auto;
 }
 
-#postcustomstuff .submit input {
+#postcustomstuff .custom-field-actions,
+#postcustom #postcustomstuff .submit {
+	margin: 8px 0 0;
+	padding: 0;
+	border: 0;
+	float: none;
+}
+
+#postcustom #postcustomstuff .custom-field-row .custom-field-actions {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	align-self: start;
+	justify-content: flex-end;
+	margin: 0;
+	padding-top: 22px;
+	padding-right: 4px;
+	white-space: nowrap;
+}
+
+#postcustomstuff .custom-field-actions button,
+#postcustomstuff .custom-field-actions input {
 	margin: 0;
 	width: auto;
 }
 
-#postcustomstuff #newmetaleft a,
-#postcustomstuff #newmeta-button {
+#postcustomstuff .custom-field-enter-new {
 	display: inline-block;
-	margin: 0 8px 8px;
-	text-decoration: none;
+	margin-top: 8px;
+}
+
+#postcustomstuff .custom-field-enter-new.hidden {
+	display: none;
+}
+
+#postcustom #postcustomstuff .add-custom-field {
+	display: flex;
+}
+
+.js #postcustom #postcustomstuff .add-custom-field {
+	display: none;
+}
+
+.js #postcustom #postcustomstuff .add-custom-field.is-visible {
+	display: flex;
+}
+
+#postcustomstuff .custom-field-add-toggle {
+	margin: 0;
+}
+
+.js #postcustomstuff .custom-field-add-toggle[aria-expanded="true"] {
+	display: none;
 }
 
 .no-js #postcustomstuff #enternew {
 	display: none;
+}
+
+#side-sortables #postcustomstuff .custom-field-row,
+#side-sortables #postcustomstuff #newmeta tbody tr {
+	grid-template-columns: 1fr;
+}
+
+@media screen and (max-width: 782px) {
+	#postcustomstuff .custom-field-row,
+	#postcustomstuff #newmeta tbody tr {
+		grid-template-columns: 1fr;
+	}
 }
 
 #post-body-content .compat-attachment-fields {
