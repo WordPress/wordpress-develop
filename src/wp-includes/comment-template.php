@@ -1240,10 +1240,14 @@ function get_trackback_url() {
  * Displays the current post's trackback URL.
  *
  * @since 0.71
+ * @since 2.5.0 Deprecated the `$deprecated_echo` argument.
  *
- * @param bool $deprecated_echo Not used.
- * @return void|string Should only be used to echo the trackback URL, use get_trackback_url()
- *                     for the result instead.
+ * @see get_trackback_url()
+ *
+ * @param bool $deprecated_echo Deprecated. Use {@see get_trackback_url()}. Echo the URL or
+ *                              return it. Default true.
+ * @return string|void The trackback URL when `$deprecated_echo` is false, nothing otherwise.
+ * @phpstan-return ( $deprecated_echo is true ? void : string )
  */
 function trackback_url( $deprecated_echo = true ) {
 	if ( true !== $deprecated_echo ) {
