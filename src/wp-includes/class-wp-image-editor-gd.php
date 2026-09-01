@@ -99,22 +99,32 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		// Set artificially high because GD uses uncompressed images in memory.
 		wp_raise_memory_limit( 'image' );
 
-		$file_contents = @file_get_contents( $this->file );
+		$size = wp_getimagesize( $this->file );
 
-		if ( ! $file_contents ) {
-			return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
+		if ( ! $size ) {
+			return new WP_Error( 'invalid_image', __( 'Could not read image size.' ), $this->file );
+		}
+
+		if ( ! $this->has_memory_for_image( $size ) ) {
+			return new WP_Error( 'image_memory_exceeded', __( 'Image size exceeds the memory limit.' ), $this->file );
 		}
 
 		// Handle WebP and AVIF mime types explicitly, falling back to imagecreatefromstring.
 		if (
-			function_exists( 'imagecreatefromwebp' ) && ( 'image/webp' === wp_get_image_mime( $this->file ) )
+			function_exists( 'imagecreatefromwebp' ) && ( 'image/webp' === $size['mime'] )
 		) {
 			$this->image = @imagecreatefromwebp( $this->file );
 		} elseif (
-			function_exists( 'imagecreatefromavif' ) && ( 'image/avif' === wp_get_image_mime( $this->file ) )
+			function_exists( 'imagecreatefromavif' ) && ( 'image/avif' === $size['mime'] )
 		) {
 			$this->image = @imagecreatefromavif( $this->file );
 		} else {
+			$file_contents = @file_get_contents( $this->file );
+
+			if ( ! $file_contents ) {
+				return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
+			}
+
 			$this->image = @imagecreatefromstring( $file_contents );
 		}
 
@@ -122,21 +132,51 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
 		}
 
-		$size = wp_getimagesize( $this->file );
-
-		if ( ! $size ) {
-			return new WP_Error( 'invalid_image', __( 'Could not read image size.' ), $this->file );
-		}
-
 		if ( function_exists( 'imagealphablending' ) && function_exists( 'imagesavealpha' ) ) {
 			imagealphablending( $this->image, false );
 			imagesavealpha( $this->image, true );
 		}
-
 		$this->update_size( $size[0], $size[1] );
 		$this->mime_type = $size['mime'];
 
 		return $this->set_quality();
+	}
+
+	/**
+	 * Checks whether the current memory limit can accommodate a GD image resource.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $size {
+	 *     Image size data from wp_getimagesize().
+	 *
+	 *     @type int $0        Image width.
+	 *     @type int $1        Image height.
+	 *     @type int $bits     Optional. Number of bits per color.
+	 *     @type int $channels Optional. Number of channels.
+	 * }
+	 * @return bool Whether there is enough memory to load the image.
+	 */
+	protected function has_memory_for_image( $size ) {
+		$memory_limit = wp_convert_hr_to_bytes( ini_get( 'memory_limit' ) );
+
+		if ( -1 === $memory_limit ) {
+			return true;
+		}
+
+		$width    = isset( $size[0] ) ? (int) $size[0] : 0;
+		$height   = isset( $size[1] ) ? (int) $size[1] : 0;
+		$bits     = isset( $size['bits'] ) ? (int) $size['bits'] : 8;
+		$channels = isset( $size['channels'] ) ? (int) $size['channels'] : 4;
+
+		if ( $width <= 0 || $height <= 0 || $bits <= 0 || $channels <= 0 ) {
+			return false;
+		}
+
+		$required_memory  = ( ( $width * $height * $bits * $channels ) / 8 + 65536 ) * 1.65;
+		$available_memory = $memory_limit - memory_get_usage( true );
+
+		return $required_memory <= $available_memory;
 	}
 
 	/**
