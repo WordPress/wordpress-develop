@@ -1061,6 +1061,18 @@ if ( 'upgrade-core' === $action ) {
 	$force_check = ! empty( $_GET['force-check'] );
 	wp_version_check( array(), $force_check );
 
+	if ( $force_check ) {
+		if ( current_user_can( 'update_plugins' ) ) {
+			delete_site_transient( 'update_plugins' );
+			wp_update_plugins();
+		}
+
+		if ( current_user_can( 'update_themes' ) ) {
+			delete_site_transient( 'update_themes' );
+			wp_update_themes();
+		}
+	}
+
 	require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 	<div class="wrap">
