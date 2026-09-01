@@ -1836,6 +1836,56 @@ class WP_Query {
 	}
 
 	/**
+	 * Determines whether an 'orderby' value can never produce two equal rows.
+	 *
+	 * Ordering by ID, by an explicit list of IDs, or at random already gives every
+	 * post a distinct position, so no tie-breaker is needed on top of it.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $orderby Single 'orderby' value, before it is parsed into SQL.
+	 * @return bool Whether the value orders posts uniquely.
+	 */
+	protected function is_unique_orderby( $orderby ) {
+		$unique_orderby = array(
+			'ID',
+			'rand',
+			'post__in',
+			'post_name__in',
+			'post_parent__in',
+		);
+
+		if ( in_array( $orderby, $unique_orderby, true ) ) {
+			return true;
+		}
+
+		// Seeded random, for example 'RAND(5)', is handled by parse_orderby().
+		return 1 === preg_match( '/^RAND\(\s*[0-9]*\s*\)$/i', $orderby );
+	}
+
+	/**
+	 * Works out which direction the ID tie-breaker should sort in.
+	 *
+	 * The tie-breaker follows the direction of the last clause it is appended to, so
+	 * that reversing a query's 'order' also reverses the sequence of tied posts.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string[] $orderby_array ORDER BY clauses built so far, each ending in a direction.
+	 * @param string   $order         The query's 'order' value, used when no clause carries one.
+	 * @return string Either 'ASC' or 'DESC'.
+	 */
+	protected function parse_tiebreaker_order( $orderby_array, $order ) {
+		$last_clause = end( $orderby_array );
+
+		if ( is_string( $last_clause ) && preg_match( '/\s(ASC|DESC)\s*$/i', $last_clause, $matches ) ) {
+			return strtoupper( $matches[1] );
+		}
+
+		return $this->parse_order( $order );
+	}
+
+	/**
 	 * Sets the 404 property and saves whether query is feed.
 	 *
 	 * @since 2.0.0
@@ -2505,17 +2555,7 @@ class WP_Query {
 			$query_vars['order'] = '';
 		}
 
-		/*
-		 * Order by.
-		 * Store metadata for deterministic ordering to be applied after filters.
-		 */
-		$deterministic_orderby_meta = array(
-			'needed'   => false,
-			'has_id'   => false,
-			'order'    => $query_vars['order'],
-			'original' => '', // Store original orderby to detect filter modifications.
-		);
-
+		// Order by.
 		if ( empty( $query_vars['orderby'] ) ) {
 			/*
 			 * Boolean false or empty array blanks out ORDER BY,
@@ -2525,42 +2565,29 @@ class WP_Query {
 				$orderby = '';
 			} else {
 				/*
-				 * Ensure deterministic ordering to prevent duplicate records across pages.
-				 * When multiple posts have the same value for a field, add ID as secondary sort to guarantee consistent ordering.
-				 * Note: this is to circumvent a bug that is currently being tracked in https://core.trac.wordpress.org/ticket/44349.
-				 *
-				 * Build base orderby without ID tie-breaker for filters, then add it after filters.
+				 * Sorting by post_date alone is not stable: posts sharing a date can be
+				 * returned in a different sequence each time the query runs, so a post
+				 * can appear on two pages at once or be skipped entirely. Appending the
+				 * ID breaks those ties and gives every page a fixed sequence.
 				 */
-				$orderby                              = "{$wpdb->posts}.post_date " . $query_vars['order'];
-				$deterministic_orderby_meta['needed'] = true;
+				$orderby = "{$wpdb->posts}.post_date {$query_vars['order']}, {$wpdb->posts}.ID {$query_vars['order']}";
 			}
-			// See get_pages(): when sort_column is 'none', the get_pages() function should not generate any ORDER BY clause.
-			// Should it rather be handled in the get_pages() function?
-			// src/wp-includes/post.php L6496
 		} elseif ( 'none' === $query_vars['orderby'] || isset( $query_vars['orderby']['none'] ) ) {
+			/*
+			 * 'none' blanks out ORDER BY. It arrives as a bare string from WP_Query, and
+			 * as an array key from get_pages(), which turns its 'sort_column' into
+			 * array( 'none' => $sort_order ).
+			 */
 			$orderby = '';
 		} else {
-			/*
-			 * Ensure deterministic ordering to prevent duplicate records across pages.
-			 * When multiple posts have the same value for a field, add ID as secondary sort to guarantee consistent ordering.
-			 * Note: this is to circumvent a bug that is currently being tracked in https://core.trac.wordpress.org/ticket/44349.
-			 *
-			 * Use a blacklist approach: add ID as tie-breaker for all orderby fields except those that are
-			 * already deterministic (ID itself, random ordering, or search relevance).
-			 *
-			 * Build base orderby without ID tie-breaker for filters, then add it after filters.
-			 */
-			$fields_excluding_deterministic_orderby = array(
-				'ID',
-				'rand',
-				'relevance',
-				'post__in',
-				'post_name__in',
-				'post_parent__in',
-				'include',
-			);
-
 			$orderby_array = array();
+
+			/*
+			 * Tracks whether the requested ordering already ends in a unique value.
+			 * Ordering by ID, by an explicit list of IDs, or at random cannot produce
+			 * ties, so those need no tie-breaker appended.
+			 */
+			$found_unique_orderby = false;
 
 			if ( is_array( $query_vars['orderby'] ) ) {
 				foreach ( $query_vars['orderby'] as $_orderby => $order ) {
@@ -2573,13 +2600,8 @@ class WP_Query {
 
 					$orderby_array[] = $parsed . ' ' . $this->parse_order( $order );
 
-					// Check if this field should have deterministic ordering (not in blacklist).
-					if ( ! in_array( $_orderby, $fields_excluding_deterministic_orderby, true ) ) {
-						$deterministic_orderby_meta['needed'] = true;
-						// Use the order from the array for ID tie-breaker.
-						$deterministic_orderby_meta['order'] = $this->parse_order( $order );
-					} elseif ( 'ID' === $_orderby ) {
-						$deterministic_orderby_meta['has_id'] = true;
+					if ( $this->is_unique_orderby( $orderby ) ) {
+						$found_unique_orderby = true;
 					}
 				}
 			} else {
@@ -2595,22 +2617,27 @@ class WP_Query {
 
 					$orderby_array[] = $parsed . ' ' . $query_vars['order'];
 
-					// Check if this field should have deterministic ordering (not in blacklist).
-					if ( ! in_array( $orderby, $fields_excluding_deterministic_orderby, true ) ) {
-						$deterministic_orderby_meta['needed'] = true;
-					} elseif ( 'ID' === $orderby ) {
-						$deterministic_orderby_meta['has_id'] = true;
+					if ( $this->is_unique_orderby( $orderby ) ) {
+						$found_unique_orderby = true;
 					}
 				}
 			}
 
-			// Build the base orderby string (without ID tie-breaker) for filters.
 			if ( empty( $orderby_array ) ) {
-				$orderby                              = "{$wpdb->posts}.post_date " . $query_vars['order'];
-				$deterministic_orderby_meta['needed'] = true;
-			} else {
-				$orderby = trim( implode( ', ', $orderby_array ) );
+				$orderby_array[] = "{$wpdb->posts}.post_date " . $query_vars['order'];
 			}
+
+			/*
+			 * Posts sharing the same value for the requested column can be returned in
+			 * a different sequence each time the query runs, so a post can appear on two
+			 * pages at once or be skipped entirely. Appending the ID breaks those ties.
+			 * Skipped when the ordering already ends in a unique value.
+			 */
+			if ( ! $found_unique_orderby ) {
+				$orderby_array[] = "{$wpdb->posts}.ID " . $this->parse_tiebreaker_order( $orderby_array, $query_vars['order'] );
+			}
+
+			$orderby = trim( implode( ', ', $orderby_array ) );
 		}
 
 		// Order search results by relevance only when another "orderby" is not specified in the query.
@@ -2635,11 +2662,6 @@ class WP_Query {
 			if ( $search_orderby ) {
 				$orderby = $orderby ? $search_orderby . ', ' . $orderby : $search_orderby;
 			}
-		}
-
-		// Store the original orderby after all core modifications but before filters modify it.
-		if ( $deterministic_orderby_meta['needed'] ) {
-			$deterministic_orderby_meta['original'] = $orderby;
 		}
 
 		if ( is_array( $post_type ) && count( $post_type ) > 1 ) {
@@ -3231,31 +3253,15 @@ class WP_Query {
 			$where   = $clauses['where'] ?? '';
 			$groupby = $clauses['groupby'] ?? '';
 			$join    = $clauses['join'] ?? '';
-			// Preserve orderby from posts_orderby_request if posts_clauses_request doesn't provide one.
+			/*
+			 * Keep the ORDER BY built above, and any change the 'posts_orderby_request'
+			 * filter made to it, when this filter returns no 'orderby' of its own.
+			 * Dropping it here would leave the query with no ORDER BY at all.
+			 */
 			$orderby  = $clauses['orderby'] ?? $orderby;
 			$distinct = $clauses['distinct'] ?? '';
 			$fields   = $clauses['fields'] ?? '';
 			$limits   = $clauses['limits'] ?? '';
-		}
-
-		/*
-		 * Ensure deterministic ordering to prevent duplicate records across pages.
-		 * Add ID tie-breaker after filters have been applied, so filters receive
-		 * the original orderby value (for backward compatibility) and the tie-breaker
-		 * is preserved even if filters modify the orderby.
-		 *
-		 * Note: this is to circumvent a bug that is currently being tracked in
-		 * https://core.trac.wordpress.org/ticket/44349.
-		 */
-		if ( ! empty( $orderby ) && $deterministic_orderby_meta['needed'] ) {
-			/*
-			 * Only add ID tie-breaker if no filter modified the orderby.
-			 * If a filter modified it, we assume they know what they're doing and don't interfere.
-			 */
-			if ( ! empty( $deterministic_orderby_meta['original'] ) && $orderby === $deterministic_orderby_meta['original'] ) {
-				// Add ID as tie-breaker at the end.
-				$orderby .= ', ' . "{$wpdb->posts}.ID " . $deterministic_orderby_meta['order'];
-			}
 		}
 
 		if ( ! empty( $groupby ) ) {
