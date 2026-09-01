@@ -2229,12 +2229,12 @@ function _get_comment_reply_id( $post = null ) {
  *     @type bool     $echo              Whether to echo the output or return it. Default true.
  * }
  * @param WP_Comment[] $comments Optional. Array of WP_Comment objects. Default null.
- * @return string|void HTML list of comments if 'echo' is false, nothing otherwise
- *                     or when there are no comments to list.
+ * @return string|void HTML list of comments when 'echo' is false, null when there are no
+ *                     comments to list. Nothing otherwise.
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
- *         ? string|void
- *         : ( $args is ''|array ? void : string|void )
+ *         ? string|null
+ *         : ( $args is ''|array ? void : string|null )
  * )
  */
 function wp_list_comments( $args = array(), $comments = null ) {
@@ -2280,12 +2280,12 @@ function wp_list_comments( $args = array(), $comments = null ) {
 	if ( null !== $comments ) {
 		$comments = (array) $comments;
 		if ( empty( $comments ) ) {
-			return;
+			return null;
 		}
 		if ( 'all' !== $parsed_args['type'] ) {
 			$comments_by_type = separate_comments( $comments );
 			if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
-				return;
+				return null;
 			}
 			$_comments = $comments_by_type[ $parsed_args['type'] ];
 		} else {
@@ -2326,7 +2326,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 				if ( 'all' !== $parsed_args['type'] ) {
 					$comments_by_type = separate_comments( $comments );
 					if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
-						return;
+						return null;
 					}
 
 					$_comments = $comments_by_type[ $parsed_args['type'] ];
@@ -2338,14 +2338,14 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			// Otherwise, fall back on the comments from `$wp_query->comments`.
 		} else {
 			if ( empty( $wp_query->comments ) ) {
-				return;
+				return null;
 			}
 			if ( 'all' !== $parsed_args['type'] ) {
 				if ( empty( $wp_query->comments_by_type ) ) {
 					$wp_query->comments_by_type = separate_comments( $wp_query->comments );
 				}
 				if ( empty( $wp_query->comments_by_type[ $parsed_args['type'] ] ) ) {
-					return;
+					return null;
 				}
 				$_comments = $wp_query->comments_by_type[ $parsed_args['type'] ];
 			} else {

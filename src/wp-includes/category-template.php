@@ -711,14 +711,14 @@ function wp_list_categories( $args = '' ) {
  *     @type bool   $echo      Whether or not to echo the return value. Default true.
  * }
  * @return string|string[]|void Tag cloud as a string, or as an array when the 'format' argument
- *                              is 'array'. Nothing when 'echo' is true and 'format' is not
- *                              'array', or on failure.
+ *                              is 'array'. Null on failure. Nothing when 'echo' is true and
+ *                              'format' is not 'array'.
  * @phpstan-return (
  *     $args is array{ format: 'array', ... }
- *         ? string[]|void
+ *         ? string[]|null
  *         : ( $args is array{ echo: false|0|''|'0', ... }
- *             ? string|void
- *             : ( $args is ''|array ? void : string|string[]|void ) )
+ *             ? string|null
+ *             : ( $args is ''|array ? void : string|string[]|null ) )
  * )
  */
 function wp_tag_cloud( $args = '' ) {
@@ -753,7 +753,7 @@ function wp_tag_cloud( $args = '' ) {
 	); // Always query top tags.
 
 	if ( empty( $tags ) || is_wp_error( $tags ) ) {
-		return;
+		return null;
 	}
 
 	foreach ( $tags as $key => $tag ) {
@@ -764,7 +764,7 @@ function wp_tag_cloud( $args = '' ) {
 		}
 
 		if ( is_wp_error( $link ) ) {
-			return;
+			return null;
 		}
 
 		$tags[ $key ]->link = $link;

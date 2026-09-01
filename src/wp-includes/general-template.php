@@ -1699,14 +1699,15 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, nothing when displaying or on failure.
- * @phpstan-return ( $display is true ? void : string|void )
+ * @return string|void Title when retrieving, null on failure.
+ *                     Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_post_title( $prefix = '', $display = true ) {
 	$_post = get_queried_object();
 
 	if ( ! isset( $_post->post_title ) ) {
-		return;
+		return null;
 	}
 
 	/**
@@ -1736,12 +1737,13 @@ function single_post_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, nothing when displaying or on failure.
- * @phpstan-return ( $display is true ? void : string|void )
+ * @return string|void Title when retrieving, null on failure.
+ *                     Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function post_type_archive_title( $prefix = '', $display = true ) {
 	if ( ! is_post_type_archive() ) {
-		return;
+		return null;
 	}
 
 	$post_type = get_query_var( 'post_type' );
@@ -1779,7 +1781,8 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, nothing when displaying or on failure.
+ * @return string|void Title when retrieving, null on failure.
+ *                     Nothing when displaying.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_cat_title( $prefix = '', $display = true ) {
@@ -1801,7 +1804,8 @@ function single_cat_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, nothing when displaying or on failure.
+ * @return string|void Title when retrieving, null on failure.
+ *                     Nothing when displaying.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_tag_title( $prefix = '', $display = true ) {
@@ -1823,14 +1827,15 @@ function single_tag_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, nothing when displaying or on failure.
- * @phpstan-return ( $display is true ? void : string|void )
+ * @return string|void Title when retrieving, null on failure.
+ *                     Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_term_title( $prefix = '', $display = true ) {
 	$term = get_queried_object();
 
 	if ( ! $term ) {
-		return;
+		return null;
 	}
 
 	if ( is_category() ) {
@@ -1861,11 +1866,11 @@ function single_term_title( $prefix = '', $display = true ) {
 		 */
 		$term_name = apply_filters( 'single_term_title', $term->name );
 	} else {
-		return;
+		return null;
 	}
 
 	if ( empty( $term_name ) ) {
-		return;
+		return null;
 	}
 
 	if ( ! $display ) {
@@ -2224,11 +2229,12 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *     @type string     $day             Day. Default current day.
  *     @type string     $w               Week. Default current week.
  * }
- * @return string|void Archive links if 'echo' is false, nothing otherwise.
+ * @return string|void Archive links when 'echo' is false, null when the post type is
+ *                     not viewable. Nothing otherwise.
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
- *         ? string|void
- *         : ( $args is ''|array ? void : string|void )
+ *         ? string|null
+ *         : ( $args is ''|array ? void : string|null )
  * )
  */
 function wp_get_archives( $args = '' ) {
@@ -2265,7 +2271,7 @@ function wp_get_archives( $args = '' ) {
 
 	$post_type_object = get_post_type_object( $parsed_args['post_type'] );
 	if ( ! is_post_type_viewable( $post_type_object ) ) {
-		return;
+		return null;
 	}
 
 	$parsed_args['post_type'] = $post_type_object->name;
@@ -2499,8 +2505,9 @@ function calendar_week_mod( $num ) {
  *     @type bool   $display   Whether to display the calendar output. Default true.
  *     @type string $post_type Optional. Post type. Default 'post'.
  * }
- * @return string|void Calendar HTML if `$display` is false, nothing otherwise.
- * @phpstan-return ( $args is array{ display: false|0|''|'0', ... } ? string|void : void )
+ * @return string|void Calendar HTML when `$display` is false, null when the site has
+ *                     no posts. Nothing otherwise.
+ * @phpstan-return ( $args is array{ display: false|0|''|'0', ... } ? string|null : void )
  */
 function get_calendar( $args = array() ) {
 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
@@ -2611,7 +2618,7 @@ function get_calendar( $args = array() ) {
 		if ( ! $gotsome ) {
 			$cache[ $key ] = '';
 			wp_cache_set( 'get_calendar', $cache, 'calendar' );
-			return;
+			return null;
 		}
 	}
 

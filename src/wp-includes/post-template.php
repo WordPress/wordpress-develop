@@ -37,15 +37,15 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return string|void Current post title if `$display` is false, nothing otherwise
- *                     or when the title is empty.
- * @phpstan-return ( $display is true ? void : string|void )
+ * @return string|void Current post title when `$display` is false, null when the title
+ *                     is empty. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $before . $title . $after;
@@ -77,12 +77,12 @@ function the_title( $before = '', $after = '', $display = true ) {
  *     @type bool    $echo   Whether to echo or return the title. Default true for echo.
  *     @type WP_Post $post   Current post object to retrieve the title for.
  * }
- * @return string|void The title attribute if 'echo' is false, nothing otherwise
- *                     or when the title is empty.
+ * @return string|void The title attribute when 'echo' is false, null when the title is
+ *                     empty. Nothing otherwise.
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
- *         ? string|void
- *         : ( $args is ''|array ? void : string|void )
+ *         ? string|null
+ *         : ( $args is ''|array ? void : string|null )
  * )
  */
 function the_title_attribute( $args = '' ) {
@@ -97,7 +97,7 @@ function the_title_attribute( $args = '' ) {
 	$title = get_the_title( $parsed_args['post'] );
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
