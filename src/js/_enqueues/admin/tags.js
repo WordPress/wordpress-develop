@@ -138,14 +138,14 @@ jQuery( function($) {
 			// No tags remain: show the empty-state row and hide the navigation.
 			var $list = $( '#the-list' );
 
-			if ( ! $list.find( 'tr.no-items' ).length ) {
-				var colspan = $list.closest( 'table' ).find( 'thead > tr' ).first().children( ':not(.hidden)' ).length;
-				$list.append(
-					'<tr class="no-items"><td class="colspanchange" colspan="' + colspan + '">' +
-					wp.i18n.__( 'No tags found.' ) +
-					'</td></tr>'
-				);
-			}
+ 			if ( ! $list.find( 'tr.no-items' ).length ) {
+ 				var colspan = $list.closest( 'table' ).find( 'thead > tr' ).first().children( ':not(.hidden)' ).length;
+ 				$list.append(
+ 					'<tr class="no-items"><td class="colspanchange" colspan="' + colspan + '">' +
+ 					wp.i18n.__( 'No tags found.' ) +
+ 					'</td></tr>'
+ 				);
+ 			}
 			$( '.tablenav > *' ).hide();
 			$( 'p.search-box' ).hide();
 		} else {
