@@ -1020,7 +1020,7 @@
 			/**
 			 * Update the active field class for the content container for a given checkbox toggle.
 			 *
-			 * @this {jQuery}
+			 * @this {HTMLInputElement}
 			 * @return {void}
 			 */
 			handleFieldActiveToggle = function() {
