@@ -949,6 +949,53 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_sample_permalink() passes the original post status to permalink filters.
+	 *
+	 * @ticket 50002
+	 *
+	 * @covers ::get_sample_permalink
+	 */
+	public function test_get_sample_permalink_should_pass_original_post_status_to_permalink_filters() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+				'post_title'  => 'A Draft Post',
+			)
+		);
+
+		$pre_post_link_status = null;
+		$post_link_status     = null;
+
+		add_filter(
+			'pre_post_link',
+			function ( $permalink, $filtered_post ) use ( &$pre_post_link_status ) {
+				$pre_post_link_status = $filtered_post->post_status;
+				return $permalink;
+			},
+			10,
+			2
+		);
+		add_filter(
+			'post_link',
+			function ( $permalink, $filtered_post ) use ( &$post_link_status ) {
+				$post_link_status = $filtered_post->post_status;
+				return $permalink;
+			},
+			10,
+			2
+		);
+
+		$actual = get_sample_permalink( $post );
+
+		$this->assertSame( 'draft', $pre_post_link_status );
+		$this->assertSame( 'draft', $post_link_status );
+		$this->assertSame( home_url( '/%postname%/' ), $actual[0] );
+		$this->assertSame( 'a-draft-post', $actual[1] );
+	}
+
+	/**
 	 * Tests that get_sample_permalink() preserves the original WP_Post properties.
 	 *
 	 * @ticket 54736

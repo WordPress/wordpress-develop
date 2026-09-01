@@ -1972,10 +1972,7 @@ function wp_ajax_wp_link_ajax() {
 		wp_die( 0 );
 	}
 
-	echo wp_json_encode( $results );
-	echo "\n";
-
-	wp_die();
+	wp_send_json( $results );
 }
 
 /**
