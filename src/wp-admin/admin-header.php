@@ -100,8 +100,7 @@ wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
-?>
-<?php
+
 // Print the global admin inline scripts through the script tag API so the
 // `wp_inline_script_attributes` filter (e.g. a CSP nonce) applies.
 wp_print_inline_script_tag(
@@ -134,13 +133,11 @@ wp_print_inline_script_tag(
 				'adminpage'          => $admin_body_class,
 				'thousandsSeparator' => $wp_locale->number_format['thousands_sep'],
 				'decimalPoint'       => $wp_locale->number_format['decimal_point'],
-				'isRtl'              => (bool) is_rtl(),
+				'isRtl'              => (int) is_rtl(),
 			)
 		)
 	)
 );
-?>
-<?php
 
 /**
  * Fires when enqueuing scripts for all admin pages.
@@ -284,11 +281,11 @@ $admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 <body class="wp-admin wp-core-ui no-js <?php echo esc_attr( $admin_body_classes ); ?>">
 <?php
 wp_print_inline_script_tag(
-	"document.body.className = document.body.className.replace('no-js','js');"
+	<<<'JS'
+	document.body.className = document.body.className.replace( 'no-js', 'js' );
+	JS
 );
-?>
 
-<?php
 // Make sure the customize body classes are correct as early as possible.
 if ( current_user_can( 'customize' ) ) {
 	wp_customize_support_script();

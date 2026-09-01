@@ -272,14 +272,12 @@ function _cleanup_image_add_caption( $matches ) {
  * @return never
  */
 function media_send_to_editor( $html ) {
-	?>
-	<?php
 	wp_print_inline_script_tag(
-		"var win = window.dialogArguments || opener || parent || top;\n"
-		. "\twin.send_to_editor( " . wp_json_encode( $html, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ' );'
+		sprintf(
+			'( window.dialogArguments || opener || parent || top ).send_to_editor( %s );',
+			wp_json_encode( $html, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+		)
 	);
-	?>
-	<?php
 	exit;
 }
 
@@ -569,15 +567,39 @@ function wp_iframe( $content_func, ...$args ) {
 		wp_enqueue_style( 'deprecated-media' );
 	}
 
-	?>
-	<?php
 	wp_print_inline_script_tag(
-		"addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};\n"
-		. "var ajaxurl = '" . esc_js( admin_url( 'admin-ajax.php', 'relative' ) ) . "', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',\n"
-		. 'isRtl = ' . (int) is_rtl() . ';'
+		<<<'JS'
+		function addLoadEvent(func) {
+			if (typeof jQuery !== 'undefined') {
+				jQuery(function () {
+					func();
+				});
+			} else if (typeof wpOnload !== 'function') {
+				window.wpOnload = func;
+			} else {
+				const oldonload = wpOnload;
+				window.wpOnload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		JS
 	);
-	?>
-	<?php
+	wp_print_inline_script_tag(
+		sprintf(
+			'Object.assign( window, %s );',
+			wp_json_encode(
+				array(
+					'ajaxurl'   => admin_url( 'admin-ajax.php', 'relative' ),
+					'pagenow'   => 'media-upload-popup',
+					'adminpage' => 'media-upload-popup',
+					'isRtl'     => (int) is_rtl(),
+				),
+				0 | JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS
+			)
+		)
+	);
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', 'media-upload-popup' );
 
@@ -638,8 +660,6 @@ function wp_iframe( $content_func, ...$args ) {
 	wp_print_inline_script_tag(
 		"document.body.className = document.body.className.replace('no-js', 'js');"
 	);
-	?>
-	<?php
 
 	call_user_func_array( $content_func, $args );
 
@@ -844,13 +864,9 @@ function media_upload_form_handler() {
 	}
 
 	if ( isset( $_POST['insert-gallery'] ) || isset( $_POST['update-gallery'] ) ) {
-		?>
-		<?php
 		wp_print_inline_script_tag(
 			"var win = window.dialogArguments || opener || parent || top;\n\t\twin.tb_remove();"
 		);
-		?>
-		<?php
 
 		exit;
 	}
@@ -2399,13 +2415,15 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
 
 	<?php
 	wp_print_inline_script_tag(
-		"jQuery(function($){\n"
-		. "\t\tvar preloaded = $(\".media-item.preloaded\");\n"
-		. "\t\tif ( preloaded.length > 0 ) {\n"
-		. "\t\t\tpreloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});\n"
-		. "\t\t}\n"
-		. "\t\tupdateMediaForm();\n"
-		. '});'
+		<<<'JS'
+		jQuery(function($){
+			var preloaded = $(".media-item.preloaded");
+			if ( preloaded.length > 0 ) {
+				preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
+			}
+			updateMediaForm();
+		});
+		JS
 	);
 	?>
 	<div id="media-items">
@@ -2605,16 +2623,16 @@ function media_upload_gallery_form( $errors ) {
 		$form_class .= ' html-uploader';
 	}
 
-	?>
-	<?php
 	wp_print_inline_script_tag(
-		"jQuery(function($){\n"
-		. "\t\tvar preloaded = $(\".media-item.preloaded\");\n"
-		. "\t\tif ( preloaded.length > 0 ) {\n"
-		. "\t\t\tpreloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});\n"
-		. "\t\t\tupdateMediaForm();\n"
-		. "\t\t}\n"
-		. '});'
+		<<<'JS'
+		jQuery(function($){
+			var preloaded = $(".media-item.preloaded");
+			if ( preloaded.length > 0 ) {
+				preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
+				updateMediaForm();
+			}
+		});
+		JS
 	);
 	?>
 	<div id="sort-buttons" class="hide-if-no-js">
@@ -2938,13 +2956,15 @@ function media_upload_library_form( $errors ) {
 
 	<?php
 	wp_print_inline_script_tag(
-		"jQuery(function($){\n"
-		. "\t\tvar preloaded = $(\".media-item.preloaded\");\n"
-		. "\t\tif ( preloaded.length > 0 ) {\n"
-		. "\t\t\tpreloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});\n"
-		. "\t\t\tupdateMediaForm();\n"
-		. "\t\t}\n"
-		. '});'
+		<<<'JS'
+		jQuery(function($){
+			var preloaded = $(".media-item.preloaded");
+			if ( preloaded.length > 0 ) {
+				preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
+				updateMediaForm();
+			}
+		});
+		JS
 	);
 	?>
 
