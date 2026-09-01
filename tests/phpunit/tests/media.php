@@ -1953,6 +1953,95 @@ VIDEO;
 	}
 
 	/**
+	 * @ticket 35593
+	 */
+	public function test_media_handle_upload_generates_metadata_for_updated_file() {
+		$test_file = DIR_TESTDATA . '/images/test-image.jpg';
+		$tmp_name  = wp_tempnam( $test_file );
+
+		copy( $test_file, $tmp_name );
+
+		$_FILES['upload'] = array(
+			'tmp_name' => $tmp_name,
+			'name'     => 'test-image.jpg',
+			'type'     => 'image/jpeg',
+			'error'    => 0,
+			'size'     => filesize( $test_file ),
+		);
+
+		$updated_file = null;
+		$action       = function ( $attachment_id ) use ( &$updated_file ) {
+			$original_file = get_attached_file( $attachment_id );
+			$updated_file  = $original_file . '-updated.jpg';
+
+			rename( $original_file, $updated_file );
+			update_attached_file( $attachment_id, $updated_file );
+		};
+		add_action( 'add_attachment', $action );
+
+		$attachment_id = media_handle_upload(
+			'upload',
+			0,
+			array(),
+			array(
+				'action'    => 'test_upload_updated_file',
+				'test_form' => false,
+			)
+		);
+
+		remove_action( 'add_attachment', $action );
+		unset( $_FILES['upload'] );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertFileExists( $updated_file );
+		$this->assertIsArray( $metadata );
+		$this->assertSame( wp_basename( $updated_file ), wp_basename( $metadata['file'] ) );
+
+		wp_delete_attachment( $attachment_id, true );
+	}
+
+	/**
+	 * @ticket 35593
+	 */
+	public function test_media_handle_sideload_generates_metadata_for_updated_file() {
+		$test_file = DIR_TESTDATA . '/images/test-image.jpg';
+		$tmp_name  = wp_tempnam( $test_file );
+
+		copy( $test_file, $tmp_name );
+
+		$file_array = array(
+			'tmp_name' => $tmp_name,
+			'name'     => 'test-image.jpg',
+			'type'     => 'image/jpeg',
+			'error'    => 0,
+			'size'     => filesize( $test_file ),
+		);
+
+		$updated_file = null;
+		$action       = function ( $attachment_id ) use ( &$updated_file ) {
+			$original_file = get_attached_file( $attachment_id );
+			$updated_file  = $original_file . '-updated.jpg';
+
+			rename( $original_file, $updated_file );
+			update_attached_file( $attachment_id, $updated_file );
+		};
+		add_action( 'add_attachment', $action );
+
+		$attachment_id = media_handle_sideload( $file_array );
+
+		remove_action( 'add_attachment', $action );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertFileExists( $updated_file );
+		$this->assertIsArray( $metadata );
+		$this->assertSame( wp_basename( $updated_file ), wp_basename( $metadata['file'] ) );
+
+		wp_delete_attachment( $attachment_id, true );
+	}
+
+	/**
 	 * @ticket 33016
 	 */
 	public function test_multiline_cdata() {
