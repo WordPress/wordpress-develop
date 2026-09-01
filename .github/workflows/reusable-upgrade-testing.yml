@@ -143,17 +143,19 @@ jobs:
         run: |
           wp option update home "${SITE_URL}"
           wp option update siteurl "${SITE_URL}"
+          # Cron spawns a request back to this server, which then has nothing left to serve it.
+          wp config set DISABLE_WP_CRON true --raw
 
           wp server --host=127.0.0.1 --port=8889 > "${RUNNER_TEMP}/wp-server.log" 2>&1 &
           trap '[ $? -eq 0 ] || cat "${RUNNER_TEMP}/wp-server.log"' EXIT
-          timeout 30 bash -c 'until curl --silent --output /dev/null "${SITE_URL}/"; do sleep 1; done'
+          timeout 30 bash -c "until curl --silent --output /dev/null \"${SITE_URL}/\"; do sleep 1; done"
 
           jar="${RUNNER_TEMP}/cookies.txt"
 
           # Fetches a path and fails the step unless the response body contains the given string.
           check() {
             local body
-            body="$(curl --silent --show-error --fail --cookie "${jar}" --cookie-jar "${jar}" "${SITE_URL}${1}")"
+            body="$(curl --silent --show-error --fail --max-time 30 --cookie "${jar}" --cookie-jar "${jar}" "${SITE_URL}${1}")"
             if ! grep -qF "${2}" <<< "${body}"; then
               echo "::error::${1} did not contain: ${2}"
               exit 1
@@ -169,14 +171,14 @@ jobs:
           check '/wp-admin/upgrade.php' 'No Update Required'
           check '/wp-login.php' 'id="loginform"'
 
-          status="$(curl --silent --output /dev/null --write-out '%{http_code}' "${SITE_URL}/?p=99999999")"
+          status="$(curl --silent --output /dev/null --max-time 30 --write-out '%{http_code}' "${SITE_URL}/?p=99999999")"
           if [ "${status}" != '404' ]; then
             echo "::error::a missing post returned ${status}, expected 404"
             exit 1
           fi
           echo "ok  404 handling"
 
-          curl --silent --show-error --fail --output /dev/null \
+          curl --silent --show-error --fail --max-time 30 --output /dev/null \
             --cookie "${jar}" --cookie-jar "${jar}" \
             --data-urlencode 'log=admin' --data-urlencode 'pwd=password' \
             "${SITE_URL}/wp-login.php"
@@ -190,5 +192,3 @@ jobs:
           check '/wp-admin/' 'id="wpadminbar"'
         env:
           SITE_URL: http://127.0.0.1:8889
-          # PHP's built-in server is single threaded, and WordPress makes loopback requests.
-          PHP_CLI_SERVER_WORKERS: 4
