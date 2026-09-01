@@ -581,7 +581,8 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
  *
  * @param string $redirect Optional path to redirect to on login/logout.
  * @param bool   $display  Default to echo and not return the link.
- * @return void|string Void if `$display` argument is true, log in/out link if `$display` is false.
+ * @return string|void Log in/out link if `$display` is false, nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_loginout( $redirect = '', $display = true ) {
 	if ( ! is_user_logged_in() ) {
@@ -901,8 +902,9 @@ function wp_lostpassword_url( $redirect = '' ) {
  * @param string $before  Text to output before the link. Default `<li>`.
  * @param string $after   Text to output after the link. Default `</li>`.
  * @param bool   $display Default to echo and not return the link.
- * @return void|string Void if `$display` argument is true, registration or admin link
- *                     if `$display` is false.
+ * @return string|void Registration or admin link if `$display` is false,
+ *                     nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_register( $before = '<li>', $after = '</li>', $display = true ) {
 	if ( ! is_user_logged_in() ) {
