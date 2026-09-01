@@ -30,6 +30,22 @@ class WP_Site_Health {
 	private $timeout_late_cron   = null;
 
 	/**
+	 * @since 7.1.0
+	 */
+	private bool $wp_debug;
+
+	/**
+	 * @since 7.1.0
+	 */
+	private ?bool $wp_debug_display;
+
+	/**
+	 * @since 7.1.0
+	 * @var string|bool
+	 */
+	private $wp_debug_log;
+
+	/**
 	 * WP_Site_Health constructor.
 	 *
 	 * @since 5.2.0
@@ -54,6 +70,28 @@ class WP_Site_Health {
 		add_action( 'wp_site_health_scheduled_check', array( $this, 'wp_cron_scheduled_check' ) );
 
 		add_action( 'site_health_tab_content', array( $this, 'show_site_health_tab' ) );
+
+		$this->wp_debug = defined( 'WP_DEBUG' ) && WP_DEBUG;
+
+		/*
+		 * The debug constants are evaluated the same way as in wp_debug_mode(),
+		 * so that Site Health reflects the behavior WordPress actually applies.
+		 */
+		if ( ! defined( 'WP_DEBUG_LOG' ) ) {
+			$this->wp_debug_log = false;
+		} elseif ( is_scalar( WP_DEBUG_LOG ) && in_array( strtolower( (string) WP_DEBUG_LOG ), array( 'true', '1' ), true ) ) {
+			$this->wp_debug_log = true;
+		} elseif ( is_string( WP_DEBUG_LOG ) ) {
+			$this->wp_debug_log = WP_DEBUG_LOG;
+		} else {
+			$this->wp_debug_log = false;
+		}
+
+		if ( defined( 'WP_DEBUG_DISPLAY' ) && null !== WP_DEBUG_DISPLAY ) {
+			$this->wp_debug_display = (bool) WP_DEBUG_DISPLAY;
+		} else {
+			$this->wp_debug_display = null;
+		}
 	}
 
 	/**
@@ -1393,7 +1431,17 @@ class WP_Site_Health {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array The test results.
+	 * @return array{
+	 *     label: string,
+	 *     status: string,
+	 *     badge: array{
+	 *         label: string,
+	 *         color: string
+	 *     },
+	 *     description: string,
+	 *     actions: string,
+	 *     test: string
+	 * } The test results.
 	 */
 	public function get_test_is_in_debug_mode() {
 		$result = array(
@@ -1418,23 +1466,80 @@ class WP_Site_Health {
 			'test'        => 'is_in_debug_mode',
 		);
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-				$result['label'] = __( 'Your site is set to log errors to a potentially public file' );
+		if ( $this->wp_debug ) {
+			if ( ! empty( ini_get( 'error_log' ) ) ) {
+				$debug_log_dir = realpath( dirname( ini_get( 'error_log' ) ) );
+				$absolute_path = realpath( ABSPATH ) . DIRECTORY_SEPARATOR;
 
-				$result['status'] = str_starts_with( ini_get( 'error_log' ), ABSPATH ) ? 'critical' : 'recommended';
+				if ( false === $debug_log_dir ) {
+					$log_path_status = 'error';
+				} elseif ( str_starts_with( $debug_log_dir . DIRECTORY_SEPARATOR, $absolute_path ) ) {
+					$log_path_status = 'public';
+				} else {
+					$log_path_status = 'private';
+				}
 
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: WP_DEBUG_LOG */
-						__( 'The value, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is potentially available to all users.' ),
-						'<code>WP_DEBUG_LOG</code>'
-					)
-				);
+				if ( 'public' === $log_path_status ) {
+					$result['label']  = __( 'Your site is set to log errors to a potentially public file' );
+					$result['status'] = 'critical';
+
+					if ( $this->wp_debug_log ) {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							sprintf(
+								/* translators: %s: WP_DEBUG_LOG */
+								__( 'The constant, %s, has been added to this website&#8217;s configuration file. This means any errors on the site will be written to a file which is likely publicly accessible.' ),
+								'<code>WP_DEBUG_LOG</code>'
+							)
+						);
+					} else {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							__( 'The error log path has been configured to a file within the WordPress directory. This means any errors on the site will be written to a file which is likely publicly accessible.' )
+						);
+					}
+				} elseif ( 'private' === $log_path_status ) {
+					$result['label']  = __( 'Your site is set to log errors to a file outside the WordPress directory' );
+					$result['status'] = 'good';
+
+					if ( $this->wp_debug_log ) {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							sprintf(
+								/* translators: %s: WP_DEBUG_LOG */
+								__( 'The configuration constant, %s, is enabled. In addition, your site is set to write errors to a file outside the WordPress directory, which is a good practice as the log file should not be publicly accessible.' ),
+								'<code>WP_DEBUG_LOG</code>'
+							)
+						);
+					} else {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							__( 'The error log path has been configured to a file outside the WordPress directory. This is a good practice as the log file should not be publicly accessible.' )
+						);
+					}
+				} else {
+					$result['label']  = __( 'Unable to determine error log file location' );
+					$result['status'] = 'critical';
+
+					if ( $this->wp_debug_log ) {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							sprintf(
+								/* translators: %s: WP_DEBUG_LOG */
+								__( 'The configuration constant, %s, is enabled, but the log file location could not be determined.' ),
+								'<code>WP_DEBUG_LOG</code>'
+							)
+						);
+					} else {
+						$result['description'] .= sprintf(
+							'<p>%s</p>',
+							__( 'The error log path could not be determined. Please check your PHP configuration.' )
+						);
+					}
+				}
 			}
 
-			if ( defined( 'WP_DEBUG_DISPLAY' ) && WP_DEBUG_DISPLAY ) {
+			if ( $this->wp_debug_display ) {
 				$result['label'] = __( 'Your site is set to display errors to site visitors' );
 
 				$result['status'] = 'critical';
