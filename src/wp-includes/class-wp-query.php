@@ -1841,7 +1841,7 @@ class WP_Query {
 	 * Ordering by ID, by an explicit list of IDs, or at random already gives every
 	 * post a distinct position, so no tie-breaker is needed on top of it.
 	 *
-	 * @since 7.0.0
+	 * @since 7.2.0
 	 *
 	 * @param string $orderby Single 'orderby' value, before it is parsed into SQL.
 	 * @return bool Whether the value orders posts uniquely.
@@ -1869,7 +1869,7 @@ class WP_Query {
 	 * The tie-breaker follows the direction of the last clause it is appended to, so
 	 * that reversing a query's 'order' also reverses the sequence of tied posts.
 	 *
-	 * @since 7.0.0
+	 * @since 7.2.0
 	 *
 	 * @param string[] $orderby_array ORDER BY clauses built so far, each ending in a direction.
 	 * @param string   $order         The query's 'order' value, used when no clause carries one.
@@ -1942,7 +1942,8 @@ class WP_Query {
 	 * database query.
 	 *
 	 * @since 1.5.0
-	 * @since x.x.x Adds deterministic ordering to prevent duplicate records across pages.
+	 * @since 7.2.0 Adds the post ID to ORDER BY so that paginated queries do not
+	 *              return the same post on more than one page.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
