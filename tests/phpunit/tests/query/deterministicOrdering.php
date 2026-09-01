@@ -666,9 +666,9 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 
 		remove_filter( 'posts_orderby', $filter_callback );
 
-		// Filter should receive orderby without ID tie-breaker.
-		$expected_orderby = "{$wpdb->posts}.post_date ASC";
-		$this->assertEquals( $expected_orderby, $received_orderby, 'posts_orderby filter should receive original orderby without ID tie-breaker' );
+		// The filter receives the complete ORDER BY, tie-breaker included.
+		$expected_orderby = "{$wpdb->posts}.post_date ASC, {$wpdb->posts}.ID ASC";
+		$this->assertSame( $expected_orderby, $received_orderby, 'posts_orderby filter should receive the ORDER BY that will run, including the ID tie-breaker' );
 	}
 
 	/**
@@ -733,9 +733,9 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 
 		remove_filter( 'posts_clauses', $filter_callback );
 
-		// Filter should receive orderby without ID tie-breaker.
-		$expected_orderby = "{$wpdb->posts}.post_date ASC";
-		$this->assertEquals( $expected_orderby, $received_orderby, 'posts_clauses filter should receive original orderby without ID tie-breaker' );
+		// The filter receives the complete ORDER BY, tie-breaker included.
+		$expected_orderby = "{$wpdb->posts}.post_date ASC, {$wpdb->posts}.ID ASC";
+		$this->assertSame( $expected_orderby, $received_orderby, 'posts_clauses filter should receive the ORDER BY that will run, including the ID tie-breaker' );
 	}
 
 	/**
@@ -800,8 +800,15 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		// Verify filter modification is preserved in the final query.
 		$this->assertStringContainsString( 'post_title ASC', $query->request, 'Filter modification to orderby should be preserved' );
 
-		// Verify ID tie-breaker is NOT added when filter modifies orderby.
-		$this->assertStringNotContainsString( ', ' . $GLOBALS['wpdb']->posts . '.ID ASC', $query->request, 'ID tie-breaker should not be added when filter modifies orderby' );
+		/*
+		 * The filter appended to a clause that already carried the tie-breaker, so the
+		 * query runs exactly what the filter returned. Nothing is added afterwards.
+		 */
+		$this->assertStringContainsString(
+			"{$GLOBALS['wpdb']->posts}.post_date ASC, {$GLOBALS['wpdb']->posts}.ID ASC, {$GLOBALS['wpdb']->posts}.post_title ASC",
+			$query->request,
+			'The query should run exactly the ORDER BY the filter returned'
+		);
 	}
 
 	/**

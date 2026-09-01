@@ -488,7 +488,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
 		}
 
-		$this->assertPostsOrderedBy( '{posts}.post_date DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_date DESC, {posts}.ID DESC' );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
@@ -544,7 +544,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( self::$editor_id, $data[1]['author'] );
 		$this->assertSame( self::$editor_id, $data[2]['author'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_author DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_author DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_orderby_modified_query() {
@@ -568,7 +568,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $id3, $data[1]['id'] );
 		$this->assertSame( $id2, $data[2]['id'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_modified DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_modified DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_orderby_parent_query() {
@@ -606,7 +606,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $data[1]['parent'] );
 		$this->assertSame( 0, $data[2]['parent'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_parent DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_parent DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_exclude_query() {
@@ -976,14 +976,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'Apple Sauce', $data[0]['title']['rendered'] );
-		$this->assertPostsOrderedBy( '{posts}.post_title DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_title DESC, {posts}.ID DESC' );
 
 		// 'order' => 'asc'.
 		$request->set_param( 'order', 'asc' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'Apple Cobbler', $data[0]['title']['rendered'] );
-		$this->assertPostsOrderedBy( '{posts}.post_title ASC' );
+		$this->assertPostsOrderedBy( '{posts}.post_title ASC, {posts}.ID ASC' );
 
 		// 'order' => 'asc,id' should error.
 		$request->set_param( 'order', 'asc,id' );
@@ -1068,7 +1068,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Default ORDER is DESC.
 		$this->assertSame( 'xyz', $data[0]['slug'] );
 		$this->assertSame( 'abc', $data[1]['slug'] );
-		$this->assertPostsOrderedBy( '{posts}.post_name DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_name DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_with_orderby_slugs() {
@@ -1120,7 +1120,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 2, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 		$this->assertSame( $id2, $data[1]['id'] );
-		$this->assertPostsOrderedBy( '{posts}.post_title LIKE \'%relevant%\' DESC, {posts}.post_date DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_title LIKE \'%relevant%\' DESC, {posts}.post_date DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_with_orderby_relevance_two_terms() {
@@ -1148,7 +1148,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 2, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 		$this->assertSame( $id2, $data[1]['id'] );
-		$this->assertPostsOrderedBy( '(CASE WHEN {posts}.post_title LIKE \'%relevant content%\' THEN 1 WHEN {posts}.post_title LIKE \'%relevant%\' AND {posts}.post_title LIKE \'%content%\' THEN 2 WHEN {posts}.post_title LIKE \'%relevant%\' OR {posts}.post_title LIKE \'%content%\' THEN 3 WHEN {posts}.post_excerpt LIKE \'%relevant content%\' THEN 4 WHEN {posts}.post_content LIKE \'%relevant content%\' THEN 5 ELSE 6 END), {posts}.post_date DESC' );
+		$this->assertPostsOrderedBy( '(CASE WHEN {posts}.post_title LIKE \'%relevant content%\' THEN 1 WHEN {posts}.post_title LIKE \'%relevant%\' AND {posts}.post_title LIKE \'%content%\' THEN 2 WHEN {posts}.post_title LIKE \'%relevant%\' OR {posts}.post_title LIKE \'%content%\' THEN 3 WHEN {posts}.post_excerpt LIKE \'%relevant content%\' THEN 4 WHEN {posts}.post_content LIKE \'%relevant content%\' THEN 5 ELSE 6 END), {posts}.post_date DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_with_orderby_relevance_missing_search() {
@@ -1156,80 +1156,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'orderby', 'relevance' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_search_term_defined', $response, 400 );
-	}
-
-	/**
-	 * Test that ID tie-breaker is added to final SQL query for deterministic ordering.
-	 *
-	 * This test verifies that the ID tie-breaker is present in the final SQL query,
-	 * even though filters receive the orderby without ID (for backward compatibility).
-	 *
-	 * @ticket xxxxx
-	 */
-	public function test_id_tie_breaker_in_final_sql_query() {
-		global $wpdb;
-
-		$identical_date = '2023-01-01 10:00:00';
-		$post_ids       = array();
-		for ( $i = 1; $i <= 5; $i++ ) {
-			$post_ids[] = self::factory()->post->create(
-				array(
-					'post_status' => 'publish',
-					'post_date'   => $identical_date,
-				)
-			);
-		}
-
-		/*
-		 * Capture the WP_Query instance via posts_clauses filter.
-		 * We use the same hook as other tests in this class (save_posts_clauses),
-		 * but we need to capture the query instance to access $query->request after execution.
-		 * The existing save_posts_clauses method stores clauses but not the query instance.
-		 */
-		$captured_query  = null;
-		$filter_callback = function ( $clauses, $query ) use ( &$captured_query ) {
-			/*
-			 * Short-circuit: only capture the query on the first call.
-			 * The posts_clauses filter may be called multiple times (e.g., for main query
-			 * and sub-queries), but we only need the main query instance once.
-			 */
-			if ( null === $captured_query ) {
-				$captured_query = $query;
-			}
-			return $clauses;
-		};
-		add_filter( 'posts_clauses', $filter_callback, 10, 2 );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'order', 'desc' );
-		$request->set_param( 'per_page', 100 );
-
-		$response = rest_get_server()->dispatch( $request );
-
-		remove_filter( 'posts_clauses', $filter_callback );
-
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertNotNull( $captured_query, 'WP_Query should be captured' );
-		$this->assertInstanceOf( 'WP_Query', $captured_query, 'Captured query should be a WP_Query instance' );
-
-		/** @var WP_Query $captured_query */
-		$sql         = $captured_query->request;
-		$posts_table = preg_quote( $wpdb->posts, '/' );
-
-		$orderby_pattern = '/ORDER\s+BY\s+.*' . $posts_table . '\.ID\s+(?:ASC|DESC)/i';
-		$this->assertMatchesRegularExpression(
-			$orderby_pattern,
-			$sql,
-			'Final SQL query should include ID tie-breaker in ORDER BY clause'
-		);
-
-		$this->assertCount( 1, $this->posts_clauses );
-		$filter_orderby = $this->posts_clauses[0]['orderby'];
-		$this->assertStringNotContainsString(
-			'ID',
-			$filter_orderby,
-			'Filters should receive orderby without ID tie-breaker for backward compatibility'
-		);
 	}
 
 	public function test_get_items_offset_query() {
