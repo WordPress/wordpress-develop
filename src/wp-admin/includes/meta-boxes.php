@@ -289,7 +289,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 					<?php printf( $stamp, '<b>' . $date . '</b>' ); ?>
 				</span>
 				<a href="#edit_timestamp" class="edit-timestamp hide-if-no-js" role="button">
-					<span aria-hidden="true"><?php _e( 'Edit' ); ?></span>
+					<span aria-hidden="true" class="edit-timestamp-label"><?php _e( 'Edit' ); ?></span>
 					<span class="screen-reader-text">
 						<?php
 						/* translators: Hidden accessibility text. */
