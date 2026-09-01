@@ -241,7 +241,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}).render() );
 
 			// DateFilter is a <select>, a label element needs to be rendered before.
-			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
+			// Re-introduce the bug fixed in https://core.trac.wordpress.org/changeset/62851 for axe-core testing purposes.
+			this.toolbar.set( 'dateFilter', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
 					'for': 'media-attachment-date-filters'
