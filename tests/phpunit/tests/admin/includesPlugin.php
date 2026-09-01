@@ -21,6 +21,12 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		self::_restore_mu_plugins();
 	}
 
+	public function tear_down() {
+		unset( $GLOBALS['plugin_page'], $GLOBALS['admin_page_parent'], $GLOBALS['_registered_pages'] );
+
+		parent::tear_down();
+	}
+
 	public function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
@@ -72,6 +78,45 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		}
 
 		wp_set_current_user( $current_user );
+	}
+
+	/**
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_when_no_plugin_page_is_set() {
+		global $plugin_page;
+
+		unset( $plugin_page );
+
+		$this->assertTrue( wp_admin_page_exists() );
+	}
+
+	/**
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_for_a_registered_page() {
+		global $admin_page_parent, $plugin_page, $_registered_pages;
+
+		$admin_page_parent = 'options-general.php';
+		$plugin_page       = 'testsettings';
+		$_registered_pages = array(
+			get_plugin_page_hookname( $plugin_page, $admin_page_parent ) => true,
+		);
+
+		$this->assertTrue( wp_admin_page_exists() );
+	}
+
+	/**
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_false_for_an_unregistered_page() {
+		global $admin_page_parent, $plugin_page, $_registered_pages;
+
+		$admin_page_parent = 'options-general.php';
+		$plugin_page       = 'does-not-exist';
+		$_registered_pages = array();
+
+		$this->assertFalse( wp_admin_page_exists() );
 	}
 
 	/**
