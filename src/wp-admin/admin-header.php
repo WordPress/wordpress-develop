@@ -104,16 +104,41 @@ $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 <?php
 // Print the global admin inline scripts through the script tag API so the
 // `wp_inline_script_attributes` filter (e.g. a CSP nonce) applies.
-$admin_inline_js  = "addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};\n";
-$admin_inline_js .= "var ajaxurl = '" . esc_js( admin_url( 'admin-ajax.php', 'relative' ) ) . "',\n";
-$admin_inline_js .= "\tpagenow = '" . esc_js( $current_screen->id ) . "',\n";
-$admin_inline_js .= "\ttypenow = '" . esc_js( $current_screen->post_type ) . "',\n";
-$admin_inline_js .= "\tadminpage = '" . esc_js( $admin_body_class ) . "',\n";
-$admin_inline_js .= "\tthousandsSeparator = '" . esc_js( $wp_locale->number_format['thousands_sep'] ) . "',\n";
-$admin_inline_js .= "\tdecimalPoint = '" . esc_js( $wp_locale->number_format['decimal_point'] ) . "',\n";
-$admin_inline_js .= "\tisRtl = " . (int) is_rtl() . ";\n";
-
-wp_print_inline_script_tag( $admin_inline_js );
+wp_print_inline_script_tag(
+	<<<'JS'
+	function addLoadEvent(func) {
+		if (typeof jQuery !== 'undefined') {
+			jQuery(function () {
+				func();
+			});
+		} else if (typeof wpOnload !== 'function') {
+			window.wpOnload = func;
+		} else {
+			const oldonload = wpOnload;
+			window.wpOnload = function () {
+				oldonload();
+				func();
+			}
+		}
+	}
+	JS
+);
+wp_print_inline_script_tag(
+	sprintf(
+		'Object.assign( window, %s );',
+		wp_json_encode(
+			array(
+				'ajaxurl'            => admin_url( 'admin-ajax.php', 'relative' ),
+				'pagenow'            => $current_screen->id,
+				'typenow'            => $current_screen->post_type,
+				'adminpage'          => $admin_body_class,
+				'thousandsSeparator' => $wp_locale->number_format['thousands_sep'],
+				'decimalPoint'       => $wp_locale->number_format['decimal_point'],
+				'isRtl'              => (bool) is_rtl(),
+			)
+		)
+	)
+);
 ?>
 <?php
 
