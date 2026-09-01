@@ -108,6 +108,61 @@
 		if ( adminBarLogout ) {
 			adminBarLogout.addEventListener( 'click', emptySessionStorage );
 		}
+
+		/*
+		 * My Sites fly-out positioning.
+		 *
+		 * When the My Sites dropdown is scrollable (overflow-y: auto), the nested
+		 * fly-out submenus (Dashboard, New Post, etc.) are clipped by the scroll
+		 * container. The CSS switches them to position: fixed, and this JS computes
+		 * their coordinates from getBoundingClientRect() so they appear next to
+		 * the hovered site. The fly-out is clamped so it never extends below the
+		 * viewport.
+		 *
+		 * @since 7.0.0
+		 * @see https://core.trac.wordpress.org/ticket/15317
+		 */
+		var mySitesWrapper = document.querySelector( '#wp-admin-bar-my-sites > .ab-sub-wrapper' );
+
+		if ( mySitesWrapper ) {
+			mySitesWrapper.addEventListener( 'mouseover', function( e ) {
+				var li  = getClosest( e.target, '.menupop' );
+
+				if ( ! li || li.id === 'wp-admin-bar-my-sites' ) {
+					return;
+				}
+
+				var sub = li.querySelector( ':scope > .ab-sub-wrapper' );
+
+				if ( ! sub ) {
+					return;
+				}
+
+				var rect = li.getBoundingClientRect();
+				var top  = rect.top;
+				var isRTL = ( document.documentElement.dir === 'rtl' );
+
+				// Measure the fly-out to keep it inside the viewport.
+				sub.style.visibility = 'hidden';
+				sub.style.display    = 'block';
+				var subHeight = sub.offsetHeight;
+				var subWidth  = sub.offsetWidth;
+				sub.style.removeProperty( 'visibility' );
+				sub.style.removeProperty( 'display' );
+
+				if ( top + subHeight > window.innerHeight ) {
+					top = Math.max( 0, window.innerHeight - subHeight );
+				}
+
+				li.style.setProperty( '--msf-top', top + 'px' );
+
+				if ( isRTL ) {
+					li.style.setProperty( '--msf-left', Math.max( 0, rect.left - subWidth ) + 'px' );
+				} else {
+					li.style.setProperty( '--msf-left', rect.right + 'px' );
+				}
+			} );
+		}
 	} );
 
 	/**

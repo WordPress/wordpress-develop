@@ -1082,6 +1082,57 @@ function get_blogs_of_user( $user_id, $all = false ) {
 		return $sites;
 	}
 
+	/*
+	 * Super admins have implicit access to all sites on the network,
+	 * but only have explicit `_capabilities` meta rows for sites they
+	 * were individually added to. Use get_sites() so they see every site.
+	 *
+	 * @since 7.0.0
+	 */
+	if ( is_super_admin( $user_id ) ) {
+		$args = array(
+			'orderby' => 'path',
+			'number'  => 0, // All sites.
+		);
+		if ( ! $all ) {
+			$args['archived'] = 0;
+			$args['spam']     = 0;
+			$args['deleted']  = 0;
+			$args['mature']   = 0;
+		}
+
+		$_sites = get_sites( $args );
+
+		$_site_ids = array_map(
+			function ( $s ) {
+				return (int) $s->id;
+			},
+			$_sites
+		);
+
+		$_site_options = _batch_get_site_options( $_site_ids, array( 'blogname', 'siteurl' ) );
+
+		$sites = array();
+		foreach ( $_sites as $site ) {
+			$id           = (int) $site->id;
+			$sites[ $id ] = (object) array(
+				'userblog_id' => $id,
+				'blogname'    => isset( $_site_options[ $id ]['blogname'] ) ? $_site_options[ $id ]['blogname'] : '',
+				'domain'      => $site->domain,
+				'path'        => $site->path,
+				'site_id'     => (int) $site->network_id,
+				'siteurl'     => isset( $_site_options[ $id ]['siteurl'] ) ? $_site_options[ $id ]['siteurl'] : '',
+				'archived'    => $site->archived,
+				'mature'      => $site->mature,
+				'spam'        => $site->spam,
+				'deleted'     => $site->deleted,
+			);
+		}
+
+		/** This filter is documented in wp-includes/user.php */
+		return apply_filters( 'get_blogs_of_user', $sites, $user_id, $all );
+	}
+
 	$site_ids = array();
 
 	if ( isset( $keys[ $wpdb->base_prefix . 'capabilities' ] ) && defined( 'MULTISITE' ) ) {
@@ -1121,14 +1172,36 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 		$_sites = get_sites( $args );
 
+		/*
+		 * Batch-fetch blogname and siteurl for all sites in a single query.
+		 *
+		 * Accessing $site->blogname or $site->siteurl on a WP_Site object
+		 * triggers WP_Site::get_details(), which calls switch_to_blog()
+		 * internally for each site. On large networks this is expensive.
+		 *
+		 * Instead, build a UNION ALL query across per-site options tables
+		 * to fetch both values for all sites at once.
+		 *
+		 * @since 7.0.0
+		 */
+		$_site_ids = array_map(
+			function ( $s ) {
+				return (int) $s->id;
+			},
+			$_sites
+		);
+
+		$_site_options = _batch_get_site_options( $_site_ids, array( 'blogname', 'siteurl' ) );
+
 		foreach ( $_sites as $site ) {
-			$sites[ $site->id ] = (object) array(
-				'userblog_id' => $site->id,
-				'blogname'    => $site->blogname,
+			$id           = (int) $site->id;
+			$sites[ $id ] = (object) array(
+				'userblog_id' => $id,
+				'blogname'    => isset( $_site_options[ $id ]['blogname'] ) ? $_site_options[ $id ]['blogname'] : '',
 				'domain'      => $site->domain,
 				'path'        => $site->path,
 				'site_id'     => $site->network_id,
-				'siteurl'     => $site->siteurl,
+				'siteurl'     => isset( $_site_options[ $id ]['siteurl'] ) ? $_site_options[ $id ]['siteurl'] : '',
 				'archived'    => $site->archived,
 				'mature'      => $site->mature,
 				'spam'        => $site->spam,
@@ -1148,6 +1221,57 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	 *                          those flagged for deletion, archived, or marked as spam.
 	 */
 	return apply_filters( 'get_blogs_of_user', $sites, $user_id, $all );
+}
+
+/**
+ * Batch-fetch option values for multiple sites in a single SQL query.
+ *
+ * Uses $wpdb->get_blog_prefix() (a pure function with no side effects) to
+ * build a UNION ALL query across per-site options tables. This avoids the
+ * hidden switch_to_blog() calls triggered by WP_Site::get_details() when
+ * accessing magic properties like blogname or siteurl.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int[]    $site_ids     Array of site IDs.
+ * @param string[] $option_names Array of option names to fetch.
+ * @return array<int, array<string, string>> Keyed by site ID, then option name.
+ */
+function _batch_get_site_options( array $site_ids, array $option_names ) {
+	if ( empty( $site_ids ) || empty( $option_names ) ) {
+		return array();
+	}
+
+	global $wpdb;
+
+	$name_placeholders = implode( ',', array_fill( 0, count( $option_names ), '%s' ) );
+
+	$union_parts = array();
+	foreach ( $site_ids as $site_id ) {
+		$site_id = (int) $site_id;
+		$prefix  = $wpdb->get_blog_prefix( $site_id );
+		$table   = $prefix . 'options';
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->get_blog_prefix().
+		$union_parts[] = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table and $name_placeholders are safe.
+			"SELECT %d AS blog_id, option_name, option_value FROM {$table} WHERE option_name IN ({$name_placeholders})",
+			array_merge( array( $site_id ), $option_names )
+		);
+	}
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- each part is prepared above.
+	$rows = $wpdb->get_results( implode( ' UNION ALL ', $union_parts ) );
+
+	$options = array();
+	foreach ( $rows as $row ) {
+		$options[ (int) $row->blog_id ][ $row->option_name ] = $row->option_value;
+	}
+
+	return $options;
 }
 
 /**

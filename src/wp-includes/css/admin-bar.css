@@ -782,6 +782,32 @@ html:lang(he-il) .rtl #wpadminbar * {
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
 }
 
+/*
+ * My Sites scrollable dropdown.
+ *
+ * When the site list exceeds the viewport height, allow the menu to scroll.
+ * Fly-out submenus use position: fixed to escape the scroll container's
+ * overflow clipping. Coordinates are set via CSS custom properties from JS.
+ *
+ * @since 7.0.0
+ * @see https://core.trac.wordpress.org/ticket/15317
+ */
+@media screen and (min-width: 783px) {
+	#wpadminbar .ab-top-menu > li#wp-admin-bar-my-sites > .ab-sub-wrapper {
+		max-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
+		overflow-y: auto;
+	}
+
+	/* Fly-out submenus: fixed position to escape the scroll container. */
+	#wpadminbar #wp-admin-bar-my-sites .ab-sub-wrapper .menupop > .ab-sub-wrapper {
+		position: fixed !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		top: var(--msf-top, 0);
+		left: var(--msf-left, 0);
+	}
+}
+
 @media screen and (max-width: 782px) {
 	html {
 		--wp-admin--admin-bar--height: 46px;

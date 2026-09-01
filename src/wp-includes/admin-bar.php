@@ -695,18 +695,30 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	 *
 	 * @param bool $show_site_icons Whether site icons should be shown in the toolbar. Default true.
 	 */
-	$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
+	$blogs           = (array) $wp_admin_bar->user->blogs;
+	$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', count( $blogs ) <= 20 );
 
-	foreach ( (array) $wp_admin_bar->user->blogs as $blog ) {
-		switch_to_blog( $blog->userblog_id );
+	foreach ( $blogs as $blog ) {
+		$blog_id  = (int) $blog->userblog_id;
+		$siteurl  = untrailingslashit( $blog->siteurl );
+		$adminurl = $siteurl . '/wp-admin';
+		$homeurl  = esc_url( set_url_scheme( 'http://' . $blog->domain . $blog->path ) );
 
-		if ( true === $show_site_icons && has_site_icon() ) {
-			$blavatar = sprintf(
-				'<img class="blavatar" src="%s" srcset="%s 2x" alt="" width="16" height="16"%s />',
-				esc_url( get_site_icon_url( 16 ) ),
-				esc_url( get_site_icon_url( 32 ) ),
-				( wp_lazy_loading_enabled( 'img', 'site_icon_in_toolbar' ) ? ' loading="lazy"' : '' )
-			);
+		if ( $show_site_icons ) {
+			switch_to_blog( $blog_id );
+
+			if ( has_site_icon() ) {
+				$blavatar = sprintf(
+					'<img class="blavatar" src="%s" srcset="%s 2x" alt="" width="16" height="16"%s />',
+					esc_url( get_site_icon_url( 16 ) ),
+					esc_url( get_site_icon_url( 32 ) ),
+					( wp_lazy_loading_enabled( 'img', 'site_icon_in_toolbar' ) ? ' loading="lazy"' : '' )
+				);
+			} else {
+				$blavatar = '<div class="blavatar"></div>';
+			}
+
+			restore_current_blog();
 		} else {
 			$blavatar = '<div class="blavatar"></div>';
 		}
@@ -714,72 +726,55 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 		$blogname = $blog->blogname;
 
 		if ( ! $blogname ) {
-			$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
+			$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', $siteurl );
 		}
 
-		$menu_id = 'blog-' . $blog->userblog_id;
+		$menu_id = 'blog-' . $blog_id;
 
-		if ( current_user_can( 'read' ) ) {
-			$wp_admin_bar->add_node(
-				array(
-					'parent' => 'my-sites-list',
-					'id'     => $menu_id,
-					'title'  => $blavatar . $blogname,
-					'href'   => admin_url(),
-				)
-			);
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => 'my-sites-list',
+				'id'     => $menu_id,
+				'title'  => $blavatar . esc_html( $blogname ),
+				'href'   => $adminurl,
+			)
+		);
 
-			$wp_admin_bar->add_node(
-				array(
-					'parent' => $menu_id,
-					'id'     => $menu_id . '-d',
-					'title'  => __( 'Dashboard' ),
-					'href'   => admin_url(),
-				)
-			);
-		} else {
-			$wp_admin_bar->add_node(
-				array(
-					'parent' => 'my-sites-list',
-					'id'     => $menu_id,
-					'title'  => $blavatar . $blogname,
-					'href'   => home_url(),
-				)
-			);
-		}
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => $menu_id,
+				'id'     => $menu_id . '-d',
+				'title'  => __( 'Dashboard' ),
+				'href'   => $adminurl,
+			)
+		);
 
-		if ( current_user_can( get_post_type_object( 'post' )->cap->create_posts ) ) {
-			$wp_admin_bar->add_node(
-				array(
-					'parent' => $menu_id,
-					'id'     => $menu_id . '-n',
-					'title'  => get_post_type_object( 'post' )->labels->new_item,
-					'href'   => admin_url( 'post-new.php' ),
-				)
-			);
-		}
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => $menu_id,
+				'id'     => $menu_id . '-n',
+				'title'  => __( 'New Post' ),
+				'href'   => $adminurl . '/post-new.php',
+			)
+		);
 
-		if ( current_user_can( 'edit_posts' ) ) {
-			$wp_admin_bar->add_node(
-				array(
-					'parent' => $menu_id,
-					'id'     => $menu_id . '-c',
-					'title'  => __( 'Manage Comments' ),
-					'href'   => admin_url( 'edit-comments.php' ),
-				)
-			);
-		}
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => $menu_id,
+				'id'     => $menu_id . '-c',
+				'title'  => __( 'Manage Comments' ),
+				'href'   => $adminurl . '/edit-comments.php',
+			)
+		);
 
 		$wp_admin_bar->add_node(
 			array(
 				'parent' => $menu_id,
 				'id'     => $menu_id . '-v',
 				'title'  => __( 'Visit Site' ),
-				'href'   => home_url( '/' ),
+				'href'   => $homeurl,
 			)
 		);
-
-		restore_current_blog();
 	}
 }
 
