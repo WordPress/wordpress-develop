@@ -343,8 +343,7 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 *
 		 * @since 4.5.0
 		 *
-		 * @return {wp.customize.selectiveRefresh.Placement[]} List of placements
-		 *                                                           that were reflowed.
+		 * @return {wp.customize.selectiveRefresh.Placement[]} List of placements that were reflowed.
 		 */
 		reflowWidgets: function() {
 			var sidebarPartial = this, sidebarPlacements, widgetIds, widgetPartials, sortedSidebarContainers = [];

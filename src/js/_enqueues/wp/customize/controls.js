@@ -6154,7 +6154,7 @@
 	 * @param {...string}                             ids        One or more ids for controls to obtain.
 	 * @param {wp.customize.deferredControlsCallback} [callback] Function called when all supplied controls exist.
 	 * @return {wp.customize.Control|undefined|JQuery.Promise<*>} Control instance or undefined (if function called with one id param),
-	 *                                                         or promise resolving to requested controls.
+	 *                                                            or promise resolving to requested controls.
 	 *
 	 * @example <caption>Loop over all registered controls.</caption>
 	 * wp.customize.control.each( function( control ) { ... } );
@@ -6216,7 +6216,7 @@
 	 * @param {...string}                             ids        One or more ids for sections to obtain.
 	 * @param {wp.customize.deferredSectionsCallback} [callback] Function called when all supplied sections exist.
 	 * @return {wp.customize.Section|undefined|JQuery.Promise<*>} Section instance or undefined (if function called with one id param),
-	 *                                                         or promise resolving to requested sections.
+	 *                                                            or promise resolving to requested sections.
 	 *
 	 * @example <caption>Loop over all registered sections.</caption>
 	 * wp.customize.section.each( function( section ) { ... } )
@@ -6251,7 +6251,7 @@
 	 * @param {...string}                           ids        One or more ids for panels to obtain.
 	 * @param {wp.customize.deferredPanelsCallback} [callback] Function called when all supplied panels exist.
 	 * @return {wp.customize.Panel|undefined|JQuery.Promise<*>} Panel instance or undefined (if function called with one id param),
-	 *                                                       or promise resolving to requested panels.
+	 *                                                          or promise resolving to requested panels.
 	 *
 	 * @example <caption>Loop over all registered panels.</caption>
 	 * wp.customize.panel.each( function( panel ) { ... } )
@@ -6286,7 +6286,7 @@
 	 * @param {...string}                                  codes      One or more codes for notifications to obtain.
 	 * @param {wp.customize.deferredNotificationsCallback} [callback] Function called when all supplied notifications exist.
 	 * @return {wp.customize.Notification|undefined|JQuery.Promise<*>} Notification instance or undefined (if function called with one code param),
-	 *                                                              or promise resolving to requested notifications.
+	 *                                                                 or promise resolving to requested notifications.
 	 *
 	 * @example <caption>Check if existing notification</caption>
 	 * exists = wp.customize.notifications.has( 'a_new_day_arrived' );
