@@ -109,6 +109,51 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that repeated runs return the same result.
+	 *
+	 * @ticket 65984
+	 *
+	 * @dataProvider data_wp_kses_idempotent_inputs
+	 *
+	 * @param string $input                 Process this HTML.
+	 * @param array|null $allowed_html      Optional. If provided, will be passed into `wp_kses()`.
+	 *                                      Default is to rely on the WordPress defaults.
+	 * @param array|null $allowed_protocols Optional. If provided, will be passed into `wp_kses()`.
+	 *                                      Default is to rely on the WordPress defaults.
+	 * @return void
+	 */
+	public function test_wp_kses_is_idempotent( string $input, ?array $allowed_html = null, ?array $allowed_protocols = null ): void {
+		$output = wp_kses( $input, $allowed_html, $allowed_protocols );
+
+		$this->assertSame(
+			$output,
+			wp_kses( $output, $allowed_html, $allowed_protocols ),
+			'Should have produced the same output after running the given input back through `wp_kses()`'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_kses_idempotent_inputs(): array {
+		return array(
+			array(
+				'<div>a < b</div>',
+			),
+			array(
+				'<div id="a < b">',
+				array(
+					'div' => array(
+						'id' => true,
+					),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Test video tag.
 	 *
 	 * @ticket 50167
