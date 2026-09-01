@@ -310,6 +310,7 @@ window.wp = window.wp || {};
  */
 jQuery( function($) {
 	var stamp, visibility, $submitButtons, updateVisibility, updateText,
+		updateFieldsFromNativeTimestamp, setupNativeTimestampFields, updateNativeTimestampFields,
 		$textarea = $('#content'),
 		$document = $(document),
 		postId = $('#post_ID').val() || 0,
@@ -317,6 +318,7 @@ jQuery( function($) {
 		releaseLock = true,
 		$postVisibilitySelect = $('#post-visibility-select'),
 		$timestampdiv = $('#timestampdiv'),
+		$timestampEdit = $timestampdiv.closest( '.misc-pub-curtime' ).find( 'a.edit-timestamp' ),
 		$postStatusSelect = $('#post-status-select'),
 		isMac = window.navigator.platform ? window.navigator.platform.indexOf( 'Mac' ) !== -1 : false,
 		copyAttachmentURLClipboard = new ClipboardJS( '.copy-attachment-url.edit-media' ),
@@ -791,10 +793,10 @@ jQuery( function($) {
 				attemptedDate.getDate() != jj ||
 				attemptedDate.getMinutes() != mn
 			) {
-				$timestampdiv.find('.timestamp-wrap').addClass('form-invalid');
+				$timestampdiv.find( '.timestamp-wrap, #publish-date-native' ).addClass( 'form-invalid' );
 				return false;
 			} else {
-				$timestampdiv.find('.timestamp-wrap').removeClass('form-invalid');
+				$timestampdiv.find( '.timestamp-wrap, .timestamp-native-wrap input' ).removeClass( 'form-invalid' );
 			}
 
 			// Determine what the publish should be depending on the date and post status.
@@ -873,6 +875,79 @@ jQuery( function($) {
 			return true;
 		};
 
+		updateFieldsFromNativeTimestamp = updateText;
+		updateNativeTimestampFields = function() {};
+
+		setupNativeTimestampFields = function() {
+			var dateInput = document.createElement( 'input' ),
+				timeInput = document.createElement( 'input' ),
+				$timestampwrap = $timestampdiv.find( '.timestamp-wrap' ),
+				$nativeTimestampWrap = $timestampdiv.find( '.timestamp-native-wrap' ),
+				$dateInput, $timeInput,
+				toDateValue, toTimeValue;
+
+			dateInput.setAttribute( 'type', 'date' );
+			timeInput.setAttribute( 'type', 'time' );
+			if (
+				'date' !== dateInput.type ||
+				'time' !== timeInput.type ||
+				! $timestampwrap.length ||
+				! $nativeTimestampWrap.length
+			) {
+				return;
+			}
+
+			toDateValue = function() {
+				return $( '#aa' ).val() + '-' +
+					( '00' + $( '#mm' ).val() ).slice( -2 ) + '-' +
+					( '00' + $( '#jj' ).val() ).slice( -2 );
+			};
+
+			toTimeValue = function() {
+				return ( '00' + $( '#hh' ).val() ).slice( -2 ) + ':' +
+					( '00' + $( '#mn' ).val() ).slice( -2 );
+			};
+
+			$dateInput = $nativeTimestampWrap.find( '#publish-date-native' );
+			$timeInput = $nativeTimestampWrap.find( '#publish-time-native' );
+
+			updateFieldsFromNativeTimestamp = function() {
+				var dateMatches = $dateInput.val().match( /^(\d{4})-(\d{2})-(\d{2})$/ ),
+					timeMatches = $timeInput.val().match( /^(\d{2}):(\d{2})$/ );
+
+				$dateInput.toggleClass( 'form-invalid', ! dateMatches );
+				$timeInput.toggleClass( 'form-invalid', ! timeMatches );
+
+				if ( ! dateMatches || ! timeMatches ) {
+					$timestampwrap.addClass( 'form-invalid' );
+					return false;
+				}
+
+				$( '#aa' ).val( dateMatches[1] );
+				$( '#mm' ).val( dateMatches[2] );
+				$( '#jj' ).val( dateMatches[3] );
+				$( '#hh' ).val( timeMatches[1] );
+				$( '#mn' ).val( timeMatches[2] );
+
+				// Seconds remain in the existing hidden field, matching the legacy timestamp UI.
+				return updateText();
+			};
+
+			updateNativeTimestampFields = function() {
+				$dateInput.val( toDateValue() );
+				$timeInput.val( toTimeValue() );
+			};
+
+			updateNativeTimestampFields();
+			$timestampdiv.addClass( 'has-native-timestamp-fields' );
+			$timestampwrap.hide();
+			$nativeTimestampWrap.removeAttr( 'hidden' );
+			$nativeTimestampWrap.find( 'input' ).on( 'change', updateFieldsFromNativeTimestamp );
+			$timestampwrap.find( 'input, select' ).on( 'change', updateNativeTimestampFields );
+		};
+
+		setupNativeTimestampFields();
+
 		// Show the visibility options and hide the toggle button when opened.
 		$( '#visibility .edit-visibility').on( 'click', function( e ) {
 			e.preventDefault();
@@ -931,10 +1006,13 @@ jQuery( function($) {
 		});
 
 		// Edit publish time click.
-		$timestampdiv.siblings('a.edit-timestamp').on( 'click', function( event ) {
+		$timestampEdit.on( 'click', function( event ) {
 			if ( $timestampdiv.is( ':hidden' ) ) {
 				$timestampdiv.slideDown( 'fast', function() {
-					$( 'input, select', $timestampdiv.find( '.timestamp-wrap' ) ).first().trigger( 'focus' );
+					$timestampdiv.find( '.timestamp-native-wrap input, .timestamp-wrap input, .timestamp-wrap select' )
+						.filter( ':visible' )
+						.first()
+						.trigger( 'focus' );
 				} );
 				$(this).hide();
 			}
@@ -943,21 +1021,23 @@ jQuery( function($) {
 
 		// Cancel editing the publish time and hide the settings.
 		$timestampdiv.find('.cancel-timestamp').on( 'click', function( event ) {
-			$timestampdiv.slideUp('fast').siblings('a.edit-timestamp').show().trigger( 'focus' );
+			$timestampdiv.slideUp('fast');
+			$timestampEdit.show().trigger( 'focus' );
 			$('#mm').val($('#hidden_mm').val());
 			$('#jj').val($('#hidden_jj').val());
 			$('#aa').val($('#hidden_aa').val());
 			$('#hh').val($('#hidden_hh').val());
 			$('#mn').val($('#hidden_mn').val());
+			updateNativeTimestampFields();
 			updateText();
 			event.preventDefault();
 		});
 
 		// Save the changed timestamp.
 		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
-			if ( updateText() ) {
+			if ( updateFieldsFromNativeTimestamp() ) {
 				$timestampdiv.slideUp('fast');
-				$timestampdiv.siblings('a.edit-timestamp').show().trigger( 'focus' );
+				$timestampEdit.show().trigger( 'focus' );
 			}
 			event.preventDefault();
 		});
