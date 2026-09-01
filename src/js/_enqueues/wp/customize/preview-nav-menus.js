@@ -97,15 +97,22 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			/**
 			 * Constructor.
 			 *
+			 * The nav menu arguments are normally given as the container context, which is what the
+			 * partial is constructed with when the document is scanned, and they may also be passed
+			 * in the params. Either way they have to be present and to carry an args_hmac matching
+			 * the one named in the ID, since the constructor throws when they do not.
+			 *
 			 * @since 4.5.0
+			 *
 			 * @param {string} id                                          Partial ID.
-			 * @param {Object} [options]
-			 * @param {Object} [options.params]
-			 * @param {Object} [options.params.navMenuArgs]
-			 * @param {string} options.params.navMenuArgs.args_hmac
-			 * @param {string} [options.params.navMenuArgs.theme_location]
-			 * @param {number} [options.params.navMenuArgs.menu]
-			 * @param {Object} [options.constructingContainerContext]
+			 * @param {Object} options                                     Options.
+			 * @param {Object} options.params                              Parameters for the partial.
+			 * @param {Object} options.params.navMenuArgs                  Arguments the nav menu was rendered with.
+			 * @param {string} options.params.navMenuArgs.args_hmac        HMAC of those arguments, which has to match the ID.
+			 * @param {string} [options.params.navMenuArgs.theme_location] Theme location the menu is assigned to.
+			 * @param {number} [options.params.navMenuArgs.menu]           ID of the menu.
+			 * @param {Object} [options.constructingContainerContext]      Context of the container element, used as the nav
+			 *                                                             menu arguments when no params are supplied.
 			 */
 			initialize: function( id, options ) {
 				var partial = this, matches, argsHmac;
