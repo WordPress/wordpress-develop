@@ -39,7 +39,7 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
  * @return string|void Current post title if `$display` is false, nothing otherwise
  *                     or when the title is empty.
- * @phpstan-return ( $display is true ? void : string|null )
+ * @phpstan-return ( $display is true ? void : string|void )
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();

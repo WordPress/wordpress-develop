@@ -1131,8 +1131,9 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
  * @param string           $after   Optional. Display after edit link. Default empty.
  * @param int|WP_Term|null $term    Optional. Term ID or object. If null, the queried object will be inspected. Default null.
  * @param bool             $display Optional. Whether or not to echo the return. Default true.
- * @return string|void HTML content.
- * @phpstan-return ( $display is true ? void : string|null )
+ * @return string|void HTML content when retrieving, nothing when displaying,
+ *                     on failure, or without the capability to edit the term.
+ * @phpstan-return ( $display is true ? void : string|void )
  */
 function edit_term_link( $link = '', $before = '', $after = '', $term = null, $display = true ) {
 	if ( is_null( $term ) ) {

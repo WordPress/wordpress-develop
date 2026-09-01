@@ -1699,8 +1699,8 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
- * @phpstan-return ( $display is true ? void : string|null )
+ * @return string|void Title when retrieving, nothing when displaying or on failure.
+ * @phpstan-return ( $display is true ? void : string|void )
  */
 function single_post_title( $prefix = '', $display = true ) {
 	$_post = get_queried_object();
@@ -1737,7 +1737,7 @@ function single_post_title( $prefix = '', $display = true ) {
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving, nothing when displaying or on failure.
- * @phpstan-return ( $display is true ? void : string|null )
+ * @phpstan-return ( $display is true ? void : string|void )
  */
 function post_type_archive_title( $prefix = '', $display = true ) {
 	if ( ! is_post_type_archive() ) {
@@ -1779,8 +1779,8 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
- * @phpstan-return ( $display is true ? void : string|null )
+ * @return string|void Title when retrieving, nothing when displaying or on failure.
+ * @phpstan-return ( $display is true ? void : string|void )
  */
 function single_cat_title( $prefix = '', $display = true ) {
 	if ( ! $display ) {
@@ -1801,8 +1801,8 @@ function single_cat_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
- * @phpstan-return ( $display is true ? void : string|null )
+ * @return string|void Title when retrieving, nothing when displaying or on failure.
+ * @phpstan-return ( $display is true ? void : string|void )
  */
 function single_tag_title( $prefix = '', $display = true ) {
 	if ( ! $display ) {
@@ -1823,8 +1823,8 @@ function single_tag_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving.
- * @phpstan-return ( $display is true ? void : string|null )
+ * @return string|void Title when retrieving, nothing when displaying or on failure.
+ * @phpstan-return ( $display is true ? void : string|void )
  */
 function single_term_title( $prefix = '', $display = true ) {
 	$term = get_queried_object();
