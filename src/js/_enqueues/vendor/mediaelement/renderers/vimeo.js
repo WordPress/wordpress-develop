@@ -3,7 +3,7 @@
  * http://www.mediaelementjs.com/
  *
  * Wrapper that mimics native HTML5 MediaElement (audio and video)
- * using a variety of technologies (pure JavaScript, Flash, iframe)
+ * using a variety of technologies (pure JavaScript, iframe)
  *
  * Copyright 2010-2017, John Dyer (http://j.hn/)
  * License: MIT
@@ -360,7 +360,7 @@ var vimeoIframeRenderer = {
 			events = ['rendererready', 'loadedmetadata', 'loadeddata', 'canplay'];
 
 			for (var _i4 = 0, _total4 = events.length; _i4 < _total4; _i4++) {
-				var event = mejs.Utils.createEvent(events[_i4], vimeo);
+				var event = mejs.Utils.createEvent(events[_i4], vimeo, true);
 				mediaElement.dispatchEvent(event);
 			}
 		};
