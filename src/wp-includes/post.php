@@ -4900,17 +4900,19 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 	/*
 	 * If the post is being untrashed and it has a desired slug stored in post meta,
-	 * reassign it.
+	 * reassign it, unless a new slug was provided during the update.
 	 */
 	if ( 'trash' === $previous_status && 'trash' !== $post_status ) {
 		$desired_post_slug = get_post_meta( $post_id, '_wp_desired_post_slug', true );
 
 		if ( $desired_post_slug ) {
 			delete_post_meta( $post_id, '_wp_desired_post_slug' );
-			$post_name = $desired_post_slug;
+
+			if ( ! $post_before || $post_name === $post_before->post_name ) {
+				$post_name = $desired_post_slug;
+			}
 		}
 	}
-
 	// If a trashed post has the desired slug, change it and let this post have it.
 	if ( 'trash' !== $post_status && $post_name ) {
 		/**
@@ -4932,8 +4934,10 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	// When trashing an existing post, change its slug to allow non-trashed posts to use it.
 	if ( 'trash' === $post_status && 'trash' !== $previous_status && 'new' !== $previous_status ) {
 		$post_name = wp_add_trashed_suffix_to_post_name_for_post( $post_id );
+		// When changing the slug of a trashed post, keep the desired slug in post meta.
+	} elseif ( 'trash' === $post_status && 'trash' === $previous_status && isset( $postarr['post_name'] ) ) {
+		$post_name = wp_add_trashed_suffix_to_post_name_for_post( $post_id, $post_name );
 	}
-
 	$post_name = wp_unique_post_slug( $post_name, $post_id, $post_status, $post_type, $post_parent );
 
 	// Don't unslash.
@@ -8638,19 +8642,26 @@ function wp_add_trashed_suffix_to_post_name_for_trashed_posts( $post_name, $post
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param WP_Post $post The post.
+ * @param WP_Post $post      The post.
+ * @param string  $post_name Optional. The desired post slug to preserve while the post remains
+ *                           trashed. Default empty string.
  * @return string New slug for the post.
  */
-function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
+function wp_add_trashed_suffix_to_post_name_for_post( $post, $post_name = '' ) {
 	global $wpdb;
 
 	$post = get_post( $post );
 
-	if ( str_ends_with( $post->post_name, '__trashed' ) ) {
-		return $post->post_name;
+	if ( empty( $post_name ) ) {
+		$post_name = $post->post_name;
 	}
-	add_post_meta( $post->ID, '_wp_desired_post_slug', $post->post_name );
-	$post_name = _truncate_post_slug( $post->post_name, 191 ) . '__trashed';
+
+	if ( str_ends_with( $post_name, '__trashed' ) ) {
+		return $post_name;
+	}
+
+	update_post_meta( $post->ID, '_wp_desired_post_slug', $post_name );
+	$post_name = _truncate_post_slug( $post_name, 191 ) . '__trashed';
 	$wpdb->update( $wpdb->posts, array( 'post_name' => $post_name ), array( 'ID' => $post->ID ) );
 	clean_post_cache( $post->ID );
 	return $post_name;
