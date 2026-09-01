@@ -6283,7 +6283,6 @@ EOF;
 		$temp_dir = get_temp_dir();
 		$file     = $temp_dir . '/test-square-150.jpg';
 		copy( DIR_TESTDATA . '/images/test-square-150.jpg', $file );
-
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -6311,6 +6310,58 @@ EOF;
 			150,
 			$metadata['height'],
 			'The height should be 150 (integer)'
+		);
+	}
+
+	/**
+	 * Tests that sizes with matching dimensions but different crop modes get distinct filenames.
+	 *
+	 * @ticket 62388
+	 */
+	public function test_wp_generate_attachment_metadata_adds_unique_suffixes_for_duplicate_cropped_sizes() {
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/test-image-62388.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		add_filter( 'intermediate_image_sizes_advanced', array( $this, 'filter_duplicate_cropped_subsizes' ) );
+
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
+
+		remove_filter( 'intermediate_image_sizes_advanced', array( $this, 'filter_duplicate_cropped_subsizes' ) );
+
+		$this->assertArrayHasKey( 'cropped_default', $metadata['sizes'] );
+		$this->assertArrayHasKey( 'cropped_right_bottom', $metadata['sizes'] );
+		$this->assertNotSame( $metadata['sizes']['cropped_default']['file'], $metadata['sizes']['cropped_right_bottom']['file'] );
+		$this->assertStringContainsString( '150x150-crop', $metadata['sizes']['cropped_default']['file'] );
+		$this->assertStringContainsString( '150x150-crop-right-bottom', $metadata['sizes']['cropped_right_bottom']['file'] );
+		$this->assertFileExists( dirname( $file ) . '/' . $metadata['sizes']['cropped_default']['file'] );
+		$this->assertFileExists( dirname( $file ) . '/' . $metadata['sizes']['cropped_right_bottom']['file'] );
+	}
+
+	/**
+	 * Filters generated sub-sizes for testing duplicate dimension crops.
+	 *
+	 * @return array[]
+	 */
+	public function filter_duplicate_cropped_subsizes() {
+		return array(
+			'cropped_default'      => array(
+				'width'  => 150,
+				'height' => 150,
+				'crop'   => true,
+			),
+			'cropped_right_bottom' => array(
+				'width'  => 150,
+				'height' => 150,
+				'crop'   => array( 'right', 'bottom' ),
+			),
 		);
 	}
 

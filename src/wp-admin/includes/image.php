@@ -413,6 +413,66 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 }
 
 /**
+ * Adds explicit filename suffixes for sub-size requests that would otherwise collide.
+ *
+ * When multiple requested sizes share the same target dimensions, cropped variants
+ * can produce different images while still resolving to the same default filename
+ * based on those width and height values. In that case, add a crop-specific suffix
+ * to the cropped variants only.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param array $new_sizes Registered image sub-sizes keyed by size name.
+ * @return array
+ */
+function _wp_add_subsize_suffixes( $new_sizes ) {
+	$sizes_by_dimensions = array();
+
+	foreach ( $new_sizes as $size_name => $size_data ) {
+		$width  = isset( $size_data['width'] ) ? (int) $size_data['width'] : 0;
+		$height = isset( $size_data['height'] ) ? (int) $size_data['height'] : 0;
+
+		$sizes_by_dimensions[ "{$width}x{$height}" ][] = $size_name;
+	}
+
+	foreach ( $sizes_by_dimensions as $dimensions => $size_names ) {
+		if ( count( $size_names ) < 2 ) {
+			continue;
+		}
+
+		$used_suffixes = array();
+
+		foreach ( $size_names as $size_name ) {
+			$crop = $new_sizes[ $size_name ]['crop'] ?? false;
+
+			if ( false === $crop ) {
+				continue;
+			}
+
+			$crop_suffix = 'crop';
+
+			if ( is_array( $crop ) ) {
+				$crop_suffix .= '-' . implode( '-', array_map( 'sanitize_key', $crop ) );
+			}
+
+			$suffix = "{$dimensions}-{$crop_suffix}";
+			$index  = 2;
+
+			while ( in_array( $suffix, $used_suffixes, true ) ) {
+				$suffix = "{$dimensions}-{$crop_suffix}-{$index}";
+				++$index;
+			}
+
+			$new_sizes[ $size_name ]['suffix'] = $suffix;
+			$used_suffixes[]                   = $suffix;
+		}
+	}
+
+	return $new_sizes;
+}
+
+/**
  * Low-level function to create image sub-sizes.
  *
  * Updates the image meta after each sub-size is created.
@@ -467,9 +527,9 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	);
 
 	$new_sizes = array_filter( array_merge( $priority, $new_sizes ) );
+	$new_sizes = _wp_add_subsize_suffixes( $new_sizes );
 
 	$editor = wp_get_image_editor( $file );
-
 	if ( is_wp_error( $editor ) ) {
 		// The image cannot be edited.
 		return $image_meta;

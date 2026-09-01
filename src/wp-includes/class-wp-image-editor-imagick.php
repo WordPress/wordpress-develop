@@ -896,7 +896,13 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( is_wp_error( $resized ) ) {
 			$saved = $resized;
 		} else {
-			$saved = $this->_save( $this->image );
+			$filename = null;
+
+			if ( ! empty( $size_data['suffix'] ) ) {
+				$filename = $this->generate_filename( $size_data['suffix'] );
+			}
+
+			$saved = $this->_save( $this->image, $filename );
 
 			$this->image->clear();
 			$this->image->destroy();
