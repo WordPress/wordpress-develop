@@ -85,6 +85,98 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Sends a test email to the current user's email address.
+	 *
+	 * A successful result means that WordPress handed the message to the mail
+	 * system without an immediate error. It does not confirm delivery.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return true|WP_Error True on success, or a WP_Error on failure.
+	 */
+	public function send_email_delivery_test() {
+		$user  = wp_get_current_user();
+		$email = $user->user_email;
+
+		if ( ! $user->exists() || ! is_email( $email ) ) {
+			return new WP_Error( 'invalid-address' );
+		}
+
+		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		$subject   = sprintf(
+			/* translators: %s: Site title. */
+			__( '[%s] Email delivery test' ),
+			$site_name
+		);
+		$message = sprintf(
+			/* translators: 1: Site title. 2: Site URL. */
+			__( "This is a test email sent from your WordPress site, %1\$s.\n\nReceiving this message confirms that it reached this inbox. Review the message headers to confirm that the sender details are correct.\n\nSite URL: %2\$s" ),
+			$site_name,
+			home_url( '/' )
+		);
+
+		if ( ! wp_mail( $email, $subject, $message ) ) {
+			return new WP_Error( 'send-failed' );
+		}
+
+		update_option(
+			'email_delivery_last_tested',
+			array(
+				'timestamp' => time(),
+				'user_id'   => $user->ID,
+				'email'     => $email,
+			),
+			false
+		);
+
+		return true;
+	}
+
+	/**
+	 * Gets the timestamp of the most recent valid email delivery test.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return int The test timestamp, or 0 if no valid timestamp exists.
+	 */
+	private function get_email_delivery_last_tested() {
+		$last_tested = get_option( 'email_delivery_last_tested' );
+
+		if (
+			! is_array( $last_tested ) ||
+			! isset( $last_tested['timestamp'], $last_tested['user_id'], $last_tested['email'] ) ||
+			! is_numeric( $last_tested['timestamp'] ) ||
+			0 >= (int) $last_tested['timestamp'] ||
+			(int) $last_tested['timestamp'] > time() ||
+			! is_numeric( $last_tested['user_id'] ) ||
+			0 >= (int) $last_tested['user_id'] ||
+			! is_string( $last_tested['email'] ) ||
+			! is_email( $last_tested['email'] )
+		) {
+			return 0;
+		}
+
+		$user = get_userdata( (int) $last_tested['user_id'] );
+
+		if ( ! $user || 0 !== strcasecmp( $user->user_email, $last_tested['email'] ) ) {
+			return 0;
+		}
+
+		return (int) $last_tested['timestamp'];
+	}
+
+	/**
+	 * Determines whether the most recent email delivery test is current.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether email delivery was tested within the required period.
+	 */
+	private function is_email_delivery_test_current() {
+		return $this->get_email_delivery_last_tested() > time() - ( 3 * MONTH_IN_SECONDS );
+	}
+
+	/**
 	 * Enqueues the site health scripts.
 	 *
 	 * @since 5.2.0
@@ -2792,6 +2884,49 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests whether email delivery has been tested recently.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_email_delivery() {
+		$was_tested_recently = $this->is_email_delivery_test_current();
+		$action              = sprintf(
+			'<form method="post" action="%1$s"><input type="hidden" name="action" value="verify_email_delivery" />%2$s<button type="submit" class="button button-secondary" aria-describedby="email-delivery-test-description">%3$s</button></form>',
+			esc_url( admin_url( 'site-health.php' ) ),
+			wp_nonce_field( 'verify-email-delivery', '_wpnonce', true, false ),
+			esc_html__( 'Verify email delivery' )
+		);
+
+		$result = array(
+			'label'       => __( 'Email delivery was recently tested' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p id="email-delivery-test-description">%s</p>',
+				__( 'WordPress recently handed a test email to the mail system without an immediate error. This does not guarantee that the message reached the inbox.' )
+			),
+			'actions'     => $action,
+			'test'        => 'email_delivery',
+		);
+
+		if ( ! $was_tested_recently ) {
+			$result['label']       = __( 'Email delivery should be tested' );
+			$result['status']      = 'recommended';
+			$result['description'] = sprintf(
+				'<p id="email-delivery-test-description">%s</p>',
+				__( 'WordPress relies on email for important site administration messages. Send a test email to your user account, then confirm that it reaches the inbox and that its sender headers are correct.' )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Tests if opcode cache is enabled and available.
 	 *
 	 * @since 7.0.0
@@ -2895,6 +3030,10 @@ class WP_Site_Health {
 				'http_requests'                => array(
 					'label' => __( 'HTTP Requests' ),
 					'test'  => 'http_requests',
+				),
+				'email_delivery'               => array(
+					'label' => __( 'Email delivery' ),
+					'test'  => 'email_delivery',
 				),
 				'rest_availability'            => array(
 					'label'     => __( 'REST API availability' ),
