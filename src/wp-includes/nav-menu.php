@@ -148,7 +148,18 @@ function register_nav_menu( $location, $description ) {
  */
 function get_registered_nav_menus() {
 	global $_wp_registered_nav_menus;
-	return $_wp_registered_nav_menus ?? array();
+
+	$menus = $_wp_registered_nav_menus ?? array();
+
+	/**
+	 * Filters the list of registered navigation menu locations.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string[] $menus Associative array of registered navigation menu descriptions
+	 *                        keyed by their location. If none are registered, an empty array.
+	 */
+	return (array) apply_filters( 'wp_nav_menus_registered', $menus );
 }
 
 /**
