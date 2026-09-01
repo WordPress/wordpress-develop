@@ -69,6 +69,8 @@ $help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/for
 get_current_screen()->set_help_sidebar( $help_sidebar_content );
 unset( $help_sidebar_content );
 
+wp_enqueue_script( 'wp-admin-unsaved-changes-confirmation' );
+
 $home_path           = get_home_path();
 $iis7_permalinks     = iis7_supports_permalinks();
 $permalink_structure = get_option( 'permalink_structure' );
