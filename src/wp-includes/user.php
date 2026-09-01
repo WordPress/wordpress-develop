@@ -5096,10 +5096,6 @@ function wp_validate_user_request_key(
 		return new WP_Error( 'invalid_request', __( 'Invalid personal data request.' ) );
 	}
 
-	if ( ! in_array( $request->status, array( 'request-pending', 'request-failed' ), true ) ) {
-		return new WP_Error( 'expired_request', __( 'This personal data request has expired.' ) );
-	}
-
 	if ( empty( $key ) ) {
 		return new WP_Error( 'missing_key', __( 'The confirmation key is missing from this personal data request.' ) );
 	}
@@ -5116,6 +5112,14 @@ function wp_validate_user_request_key(
 
 	if ( ! wp_verify_fast_hash( $key, $saved_key ) ) {
 		return new WP_Error( 'invalid_key', __( 'The confirmation key is invalid for this personal data request.' ) );
+	}
+
+	if ( in_array( $request->status, array( 'request-confirmed', 'request-completed' ), true ) ) {
+		return new WP_Error( 'confirmed_request', __( 'This personal data request has already been confirmed.' ) );
+	}
+
+	if ( ! in_array( $request->status, array( 'request-pending', 'request-failed' ), true ) ) {
+		return new WP_Error( 'expired_request', __( 'This personal data request has expired.' ) );
 	}
 
 	if ( ! $expiration_time || time() > $expiration_time ) {
