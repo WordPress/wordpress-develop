@@ -508,6 +508,20 @@ class WP_Block_Type {
 
 			$schema = $this->attributes[ $attribute_name ];
 
+			// Block metadata supports "rich-text" for editor attributes, but
+			// REST validation expects a valid JSON Schema type.
+			if ( isset( $schema['type'] ) ) {
+				if ( 'rich-text' === $schema['type'] ) {
+					$schema['type'] = 'string';
+				} elseif ( is_array( $schema['type'] ) ) {
+					foreach ( $schema['type'] as $type_index => $type ) {
+						if ( 'rich-text' === $type ) {
+							$schema['type'][ $type_index ] = 'string';
+						}
+					}
+				}
+			}
+
 			// Validate value by JSON schema. An invalid value should revert to
 			// its default, if one exists. This occurs by virtue of the missing
 			// attributes loop immediately following. If there is not a default
