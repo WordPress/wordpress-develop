@@ -64,6 +64,10 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
+    env:
+      WP_ADMIN_USER: admin
+      WP_ADMIN_PASSWORD: password
+
     services:
       database:
         image: ${{ inputs.db-type }}:${{ inputs.db-version }}
@@ -98,8 +102,8 @@ jobs:
       - name: Install WordPress
         run: |
           wp core ${{ inputs.multisite && 'multisite-install' || 'install' }} \
-          --url=http://localhost/ --title="Upgrade Test" --admin_user=admin \
-          --admin_password=password --admin_email=me@example.org --skip-email
+          --url=http://localhost/ --title="Upgrade Test" --admin_user="${WP_ADMIN_USER}" \
+          --admin_password="${WP_ADMIN_PASSWORD}" --admin_email=me@example.org --skip-email
 
       - name: Pre-upgrade version check
         run: wp core version
@@ -146,9 +150,19 @@ jobs:
           # Cron spawns a request back to this server, which then has nothing left to serve it.
           wp config set DISABLE_WP_CRON true --raw
 
-          wp server --host=127.0.0.1 --port=8889 > "${RUNNER_TEMP}/wp-server.log" 2>&1 &
-          trap '[ $? -eq 0 ] || cat "${RUNNER_TEMP}/wp-server.log"' EXIT
-          timeout 30 bash -c "until curl --silent --output /dev/null \"${SITE_URL}/\"; do sleep 1; done"
+          wp server --host=127.0.0.1 --port="${SITE_URL##*:}" > "${RUNNER_TEMP}/wp-server.log" 2>&1 &
+          server_pid=$!
+
+          stop_server() {
+            local code=$?
+            pkill -P "${server_pid}" || true
+            kill "${server_pid}" 2> /dev/null || true
+            [ "${code}" -eq 0 ] || cat "${RUNNER_TEMP}/wp-server.log"
+            exit "${code}"
+          }
+          trap stop_server EXIT
+
+          timeout 30 bash -c "until curl --silent --output /dev/null \"${SITE_URL}/\"; do kill -0 ${server_pid} 2> /dev/null || exit 1; sleep 1; done"
 
           jar="${RUNNER_TEMP}/cookies.txt"
 
@@ -158,6 +172,7 @@ jobs:
             body="$(curl --silent --show-error --fail --max-time 30 --cookie "${jar}" --cookie-jar "${jar}" "${SITE_URL}${1}")"
             if ! grep -qF "${2}" <<< "${body}"; then
               echo "::error::${1} did not contain: ${2}"
+              head -n 20 <<< "${body}"
               exit 1
             fi
             echo "ok  ${1}"
@@ -165,7 +180,7 @@ jobs:
 
           version="$(wp core version)"
 
-          check '/' "<meta name=\"generator\" content=\"WordPress ${version}\" />"
+          check '/' "content=\"WordPress ${version}\""
           check '/?p=1' 'Hello world!'
           check '/?rest_route=/' '"name":"Upgrade Test"'
           check '/wp-admin/upgrade.php' 'No Update Required'
@@ -180,7 +195,7 @@ jobs:
 
           curl --silent --show-error --fail --max-time 30 --output /dev/null \
             --cookie "${jar}" --cookie-jar "${jar}" \
-            --data-urlencode 'log=admin' --data-urlencode 'pwd=password' \
+            --data-urlencode "log=${WP_ADMIN_USER}" --data-urlencode "pwd=${WP_ADMIN_PASSWORD}" \
             "${SITE_URL}/wp-login.php"
           if ! grep -q 'wordpress_logged_in_' "${jar}"; then
             echo '::error::logging in did not set an authentication cookie'
