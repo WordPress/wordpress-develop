@@ -20,6 +20,7 @@ window.wp = window.wp || {};
  *
  * @property {string} type The type of inline editor.
  * @property {string} what The prefix before the post ID.
+ * @property {boolean} saving Whether a save request is active.
  *
  * @param {JQueryStatic} $ The jQuery object.
  * @param {wp}           wp The WordPress global object.
@@ -28,6 +29,13 @@ window.wp = window.wp || {};
 ( function( $, wp ) {
 
 	window.inlineEditPost = {
+
+		/**
+		 * Whether a save request is active.
+		 *
+		 * @type {boolean}
+		 */
+		saving: false,
 
 	/**
 	 * Initializes the inline and bulk post editor.
@@ -498,6 +506,11 @@ window.wp = window.wp || {};
 	save : function(id) {
 		var params, fields, page = $('.post_status_page').val() || '';
 
+		if ( this.saving ) {
+			return false;
+		}
+		this.saving = true;
+
 		if ( typeof(id) === 'object' ) {
 			id = this.getId(id);
 		}
@@ -546,7 +559,10 @@ window.wp = window.wp || {};
 					wp.a11y.speak( wp.i18n.__( 'Error while saving the changes.' ) );
 				}
 			},
-		'html');
+			'html'
+		).always( function() {
+			inlineEditPost.saving = false;
+		} );
 
 		// Prevent submitting the form when pressing Enter on a focused field.
 		return false;

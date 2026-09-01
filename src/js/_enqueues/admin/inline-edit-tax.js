@@ -23,6 +23,12 @@ window.wp = window.wp || {};
 ( function( $, wp ) {
 
 window.inlineEditTax = {
+	/**
+	 * Whether a save request is active.
+	 *
+	 * @type {boolean}
+	 */
+	saving: false,
 
 	/**
 	 * Initializes the inline taxonomy editor by adding event handlers to be able to
@@ -170,6 +176,11 @@ window.inlineEditTax = {
 	save : function(id) {
 		var params, fields, tax = $('input[name="taxonomy"]').val() || '';
 
+		if ( this.saving ) {
+			return false;
+		}
+		this.saving = true;
+
 		// Makes sure we can pass an HTMLElement as the ID.
 		if( typeof(id) === 'object' ) {
 			id = this.getId(id);
@@ -245,7 +256,9 @@ window.inlineEditTax = {
 					wp.a11y.speak( wp.i18n.__( 'Error while saving the changes.' ) );
 				}
 			}
-		);
+		).always( function() {
+			inlineEditTax.saving = false;
+		} );
 
 		// Prevent submitting the form when pressing Enter on a focused field.
 		return false;
