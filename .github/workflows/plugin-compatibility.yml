@@ -19,6 +19,10 @@
 # check a single plugin against a release candidate, or to reproduce a failure from an earlier run without
 # waiting for the other plugins in its shard.
 #
+# The checks each shard runs live in `tools/plugin-compatibility/test-plugins.sh`. Running that script from a
+# terminal runs exactly what a shard here runs, which is the quickest way to reproduce a result from a run
+# without waiting on Actions.
+#
 # This workflow is not meant to test wordpress-develop checkouts, but rather versions officially available on
 # WordPress.org.
 ##
@@ -32,6 +36,7 @@ on:
     paths:
       - '.github/workflows/plugin-compatibility.yml'
       - '.github/workflows/reusable-plugin-compatibility.yml'
+      - 'tools/plugin-compatibility/**'
   pull_request:
     # This workflow is only meant to run from trunk. Pull requests changing this file with different BASE branches should be ignored.
     branches:
@@ -40,6 +45,7 @@ on:
     paths:
       - '.github/workflows/plugin-compatibility.yml'
       - '.github/workflows/reusable-plugin-compatibility.yml'
+      - 'tools/plugin-compatibility/**'
   schedule:
     - cron: '0 2 * * 1'
   workflow_dispatch:
