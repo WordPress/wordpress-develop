@@ -80,6 +80,7 @@ wp_localize_script(
 );
 
 wp_enqueue_script( 'theme' );
+wp_set_script_translations( 'theme' );
 wp_enqueue_script( 'updates' );
 
 if ( $tab ) {

@@ -245,6 +245,7 @@ wp_localize_script(
 
 add_thickbox();
 wp_enqueue_script( 'theme' );
+wp_set_script_translations( 'theme' );
 wp_enqueue_script( 'updates' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
