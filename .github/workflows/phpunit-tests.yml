@@ -81,6 +81,7 @@ jobs:
     permissions:
       contents: read
     secrets:
+      CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
