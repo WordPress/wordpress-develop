@@ -491,13 +491,16 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	 *  - `delete_user_meta`
 	 *
 	 * @since 3.1.0
+	 * @since 7.2.0 The `$delete_all` parameter was added.
 	 *
 	 * @param string[] $meta_ids    An array of metadata entry IDs to delete.
 	 * @param int      $object_id   ID of the object metadata is for.
 	 * @param string   $meta_key    Metadata key.
 	 * @param mixed    $_meta_value Metadata value.
+	 * @param bool     $delete_all  Whether the matching metadata entries are deleted
+	 *                              for all objects, ignoring the specified $object_id.
 	 */
-	do_action( "delete_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value );
+	do_action( "delete_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value, $delete_all );
 
 	// Old-style action.
 	if ( 'post' === $meta_type ) {
@@ -541,13 +544,16 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	 *  - `deleted_user_meta`
 	 *
 	 * @since 2.9.0
+	 * @since 7.2.0 The `$delete_all` parameter was added.
 	 *
 	 * @param string[] $meta_ids    An array of metadata entry IDs to delete.
 	 * @param int      $object_id   ID of the object metadata is for.
 	 * @param string   $meta_key    Metadata key.
 	 * @param mixed    $_meta_value Metadata value.
+	 * @param bool     $delete_all  Whether the matching metadata entries are deleted
+	 *                              for all objects, ignoring the specified $object_id.
 	 */
-	do_action( "deleted_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value );
+	do_action( "deleted_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value, $delete_all );
 
 	// Old-style action.
 	if ( 'post' === $meta_type ) {
@@ -1063,7 +1069,7 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 		$object_id = (int) $meta->{$column};
 
 		/** This action is documented in wp-includes/meta.php */
-		do_action( "delete_{$meta_type}_meta", (array) $meta_id, $object_id, $meta->meta_key, $meta->meta_value );
+		do_action( "delete_{$meta_type}_meta", (array) $meta_id, $object_id, $meta->meta_key, $meta->meta_value, false );
 
 		// Old-style action.
 		if ( 'post' === $meta_type || 'comment' === $meta_type ) {
@@ -1092,7 +1098,7 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 		wp_cache_delete( $object_id, $meta_type . '_meta' );
 
 		/** This action is documented in wp-includes/meta.php */
-		do_action( "deleted_{$meta_type}_meta", (array) $meta_id, $object_id, $meta->meta_key, $meta->meta_value );
+		do_action( "deleted_{$meta_type}_meta", (array) $meta_id, $object_id, $meta->meta_key, $meta->meta_value, false );
 
 		// Old-style action.
 		if ( 'post' === $meta_type || 'comment' === $meta_type ) {
