@@ -2045,7 +2045,7 @@ function find_posts_div( $found_action = '' ) {
 					<input type="hidden" name="found_action" value="<?php echo esc_attr( $found_action ); ?>" />
 				<?php } ?>
 				<input type="hidden" name="affected" id="affected" value="" />
-				<?php wp_nonce_field( 'find-posts', '_ajax_nonce', false ); ?>
+				<?php wp_nonce_field( 'find-posts', '_ajax_nonce-find-posts', false ); ?>
 				<label class="screen-reader-text" for="find-posts-input">
 					<?php
 					/* translators: Hidden accessibility text. */
