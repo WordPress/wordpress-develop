@@ -769,6 +769,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		if ( ! empty( $redirect['query'] ) ) {
 			$redirect_url .= '?' . $redirect['query'];
 		}
+	} elseif ( $original['scheme'] === $redirect['scheme'] ) {
+		$redirect_url = null;
 	}
 
 	if ( ! $redirect_url || $redirect_url === $requested_url ) {
