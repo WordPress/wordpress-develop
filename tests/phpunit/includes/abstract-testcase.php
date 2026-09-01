@@ -110,6 +110,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		set_time_limit( 0 );
 
+		$this->skip_default_excluded_groups();
+
 		$this->factory = static::factory();
 
 		if ( ! self::$ignore_files ) {
@@ -143,6 +145,43 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 1, 2 );
+	}
+
+	/**
+	 * Skips tests that belong to groups excluded by default unless those groups were explicitly requested.
+	 */
+	protected function skip_default_excluded_groups() {
+		$skipped_groups = self::get_default_excluded_groups_for_test( $this->getGroups() );
+
+		if ( $skipped_groups ) {
+			$this->markTestSkipped(
+				sprintf(
+					'This test belongs to a group that is skipped by default: %s. Use --group %s to run it.',
+					implode( ', ', $skipped_groups ),
+					$skipped_groups[0]
+				)
+			);
+		}
+	}
+
+	/**
+	 * Returns the default-excluded groups that apply to a test and were not explicitly requested.
+	 *
+	 * @param string[] $groups Test groups.
+	 * @return string[] Matching excluded groups.
+	 */
+	public static function get_default_excluded_groups_for_test( array $groups ) {
+		$default_excluded_groups = WP_PHPUnit_Util_Getopt::get_skipped_groups();
+
+		return array_values(
+			array_filter(
+				$groups,
+				static function ( $group ) use ( $default_excluded_groups ) {
+					return in_array( $group, $default_excluded_groups, true )
+						&& ! WP_PHPUnit_Util_Getopt::is_group_requested( $group );
+				}
+			)
+		);
 	}
 
 	/**
