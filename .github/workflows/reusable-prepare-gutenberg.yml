@@ -47,6 +47,19 @@ jobs:
           echo 'Preparing another repository needs an explicit ref.' >&2
           exit 1
 
+      # The upload names the artifact after `ref` and is this job's last step, so an unusable
+      # value would otherwise fail only once the whole download and verify has already run.
+      - name: Require a ref the artifact name accepts
+        if: ${{ inputs.ref != '' }}
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          invalid='[/:<>|*?"\]'
+          if [[ "$REF" =~ $invalid ]]; then
+            echo "A ref that names an artifact cannot contain / : < > | * ? \" \\ - received: $REF" >&2
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:

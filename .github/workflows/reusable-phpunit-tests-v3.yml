@@ -167,6 +167,19 @@ jobs:
           echo 'Testing another repository needs an explicit ref.' >&2
           exit 1
 
+      # `ref` also composes the Gutenberg artifact name, so reject what that name cannot carry
+      # here rather than at a download step the job only reaches minutes later.
+      - name: Require a ref the artifact name accepts
+        if: ${{ inputs.ref != '' }}
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          invalid='[/:<>|*?"\]'
+          if [[ "$REF" =~ $invalid ]]; then
+            echo "A ref that names an artifact cannot contain / : < > | * ? \" \\ - received: $REF" >&2
+            exit 1
+          fi
+
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
