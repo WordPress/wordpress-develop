@@ -1,38 +1,63 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const AxeBuilder = require( '@axe-core/playwright' ).default;
 
-test.describe( 'PHP Page Accessibility Tests', () => {
-	test( 'should not have any automatically detectable accessibility violations', async ( { admin, page, requestUtils } ) => {
+test.describe( 'Page Accessibility Tests', () => {
+	test( 'should not have any automatically detectable accessibility violations', async ( { admin, page } ) => {
 
-	// await requestUtils.login();
-	// await page.goto( 'http://localhost:8889/wp-admin/edit.php');
-	await admin.visitAdminPage( '/edit.php' );
+	// The page to be scanned.
+	await admin.visitAdminPage( '/upload.php?mode=grid' );
 
-	// 2. Run the axe scan on the rendered page
-	const scanResults = await new AxeBuilder({ page }).analyze();
+	const scanResults = await new AxeBuilder( { page } )
+		.options(
+			{
+				runOnly: [ 'wcag2a', 'wcag2aa' ],
+				rules: {
+					// This is only to test how to disable a rule.
+					'aria-allowed-role': { enabled: false },
+				}
+			}
+		)
+		.analyze();
 
-	// 3. Format and print violations individually if any are found
-	if (scanResults.violations.length > 0) {
-		console.log(`\n❌ Found ${scanResults.violations.length} accessibility violation(s):\n`);
+	const violationsAmount = scanResults.violations.length;
 
-	scanResults.violations.forEach((violation, index) => {
-		console.log(`--- Violation #${index + 1} ---`);
-		console.log(`Rule ID:   ${violation.id}`);
-		console.log(`Impact:    ${violation.impact.toUpperCase()}`);
-		console.log(`Failure:   ${violation.description}`);
-		console.log(`Help Link: ${violation.helpUrl}`);
+	if ( violationsAmount > 0 ) {
+		console.log(`\nFound ${ violationsAmount } accessibility violation(s):\n`);
 
-		// List every specific HTML element failing this rule
-		console.log('Failing Elements:');
-		violation.nodes.forEach((node) => {
-			console.log(`  - Target Selector:  ${node.target.join(', ')}`);
-			console.log(`    HTML Snippet:     ${node.html}`);
-		});
-		console.log('\n');
-		});
+		/*
+		 * Result Object documentation: https://github.com/dequelabs/axe-core/blob/master/doc/API.md#results-object
+		 * This object has four components:
+		 *   - a `passes` array:        keeps track of all the passed tests,
+		 *                              along with detailed information on each one.
+		 *   - a `violations` array:    keeps track of all the failed tests,
+		 *                              along with detailed information on each one.
+		 *   - an `incomplete` array:   indicates which nodes could neither be
+		 *                              determined to definitively pass or definitively
+		 *                              fail. They are separated out in order that
+		 *                              a user interface can display these to the
+		 *                              user for manual review
+		 *   - an `inapplicable` array: lists all the rules for which no matching
+		 *                              elements were found on the page.
+		 */
+		scanResults.violations.forEach( ( violation, index ) => {
+			console.log( `--- Violation #${ index + 1 } ---` );
+			console.log( `Rule ID:   ${ violation.id }` );
+			console.log( `Impact:    ${ violation.impact.toUpperCase() }` );
+			console.log( `Failure:   ${ violation.description }` );
+			console.log( `Help:      ${ violation.help }` );
+			console.log( `Help link: ${ violation.helpUrl }` );
+
+			// List every specific HTML element failing a failing rule.
+			console.log( 'Failing elements:' );
+			violation.nodes.forEach( ( node ) => {
+				console.log( `  - Target Selector: ${ node.target.join( ', ' ) }` );
+				console.log( `  - HTML Snippet:\n${ node.html }` );
+			} );
+			console.log('\n');
+		} );
 	}
 
-	// 3. Assert that the violations list is empty
-	expect(scanResults.violations).toEqual([]);
-  });
-});
+	// Assert that there are no violations.
+	expect( violationsAmount ).toEqual( 0 );
+  } );
+} );
