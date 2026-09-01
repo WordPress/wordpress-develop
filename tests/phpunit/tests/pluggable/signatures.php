@@ -180,6 +180,15 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			),
 			'wp_sanitize_redirect'            => array( 'location' ),
 			'_wp_sanitize_utf8_in_redirect'   => array( 'matches' ),
+			'wp_is_internal_url'              => array( 'url' ),
+			'wp_create_preload_header'        => array(
+				'url',
+				'type' => 'document',
+			),
+			'wp_add_preload_header'           => array(
+				'url',
+				'type' => 'document',
+			),
 			'wp_safe_redirect'                => array(
 				'location',
 				'status'        => 302,

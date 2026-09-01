@@ -1539,6 +1539,8 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 			header( "X-Redirect-By: $x_redirect_by" );
 		}
 
+		wp_add_preload_header( $location );
+
 		header( "Location: $location", true, $status );
 
 		return true;
@@ -1593,6 +1595,81 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 	 */
 	function _wp_sanitize_utf8_in_redirect( $matches ) {
 		return urlencode( $matches[0] );
+	}
+endif;
+
+if ( ! function_exists( 'wp_is_internal_url' ) ) :
+	/**
+	 * Checks whether a URL is internal to the site.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $url The URL to check.
+	 * @return bool True if the URL is relative or matches the site URL, false otherwise.
+	 */
+	function wp_is_internal_url( $url ) {
+		if ( '/' === substr( $url, 0, 1 ) ) {
+			return true;
+		}
+
+		if ( ! is_blog_installed() ) {
+			return false;
+		}
+
+		$site_url = site_url();
+
+		return substr( $url, 0, strlen( $site_url ) ) === $site_url;
+	}
+endif;
+
+if ( ! function_exists( 'wp_create_preload_header' ) ) :
+	/**
+	 * Creates a preload Link header string for the given URL.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $url  The URL to preload.
+	 * @param string $type Optional. The preload type. Default 'document'.
+	 * @return string The Link header string, or an empty string if not applicable.
+	 */
+	function wp_create_preload_header( $url, $type = 'document' ) {
+		if ( ! wp_is_internal_url( $url ) ) {
+			return '';
+		}
+
+		$parts = parse_url( $url );
+		$path  = isset( $parts['path'] ) ? $parts['path'] : '';
+
+		if ( '/' !== substr( $path, -1 ) &&
+			'.php' !== substr( $path, -4 ) &&
+			'.html' !== substr( $path, -5 ) ) {
+			return '';
+		}
+
+		$link = $path;
+		if ( isset( $parts['query'] ) ) {
+			$link .= '?' . $parts['query'];
+		}
+
+		return "Link: <{$link}>; rel=preload; as={$type}";
+	}
+endif;
+
+if ( ! function_exists( 'wp_add_preload_header' ) ) :
+	/**
+	 * Sends a preload Link header for the given URL if it is an internal URL.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $url  The URL to preload.
+	 * @param string $type Optional. The preload type. Default 'document'.
+	 */
+	function wp_add_preload_header( $url, $type = 'document' ) {
+		$header = wp_create_preload_header( $url, $type );
+
+		if ( $header ) {
+			header( $header, false );
+		}
 	}
 endif;
 
