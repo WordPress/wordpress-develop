@@ -35,6 +35,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * A partial provides a rendering of one or more settings according to a template.
 	 *
 	 * @memberOf wp.customize.selectiveRefresh
+	 * @alias wp.customize.selectiveRefresh.Partial
 	 *
 	 * @see PHP class WP_Customize_Partial.
 	 *
@@ -531,8 +532,9 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * The placement is conceptually similar to a DOM Range or MutationRecord.
 	 *
 	 * @memberOf wp.customize.selectiveRefresh
+	 * @alias wp.customize.selectiveRefresh.Placement
 	 *
-	 * @class Placement
+	 * @class
 	 * @augments wp.customize.Class
 	 * @since 4.5.0
 	 */
