@@ -123,7 +123,7 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 *
 		 * @since 4.5.0
 		 *
-		 * @return {Promise|void} Either a promise postponing the refresh, or void.
+		 * @return {JQuery.Promise<*>} Promise for the request to render the partial.
 		 */
 		refresh: function() {
 			var partial = this, refreshDeferred;
@@ -532,7 +532,7 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 *
 		 * @since 4.5.0
 		 *
-		 * @return {Promise} A promise postponing the refresh.
+		 * @return {JQuery.Promise<*>} Promise resolved once the sidebar's widgets have been reflowed, or rejected when the sidebar has no placements.
 		 */
 		refresh: function() {
 			var partial = this, deferred = $.Deferred();

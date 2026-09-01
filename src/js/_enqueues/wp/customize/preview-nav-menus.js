@@ -224,7 +224,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			 *
 			 * @since 4.5.0
 			 *
-			 * @return {Promise} A promise that is resolved when the refresh is complete, or rejected if the partial is no longer associated with a menu.
+			 * @return {JQuery.Promise<*>} Promise that is resolved when the refresh is complete, or rejected if the partial is no longer associated with a menu.
 			 */
 			refresh: function() {
 				var partial = this, menuId, deferred = $.Deferred();
