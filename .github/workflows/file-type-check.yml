@@ -1,0 +1,213 @@
+name: File Type Check
+
+on:
+  push:
+    branches:
+      - trunk
+      - '7.[1-9]'
+      - '[8-9].[0-9]'
+    paths:
+      # Inward check: files added to CSS/JS directories.
+      - 'src/wp-includes/css/**'
+      - 'src/wp-includes/js/**'
+      - 'src/wp-admin/css/**'
+      - 'src/wp-admin/js/**'
+      # Outward check: CSS/JS files placed outside designated directories.
+      - 'src/wp-includes/**/*.css'
+      - 'src/wp-includes/**/*.js'
+      - 'src/wp-admin/**/*.css'
+      - 'src/wp-admin/**/*.js'
+      # Confirm any changes to the workflow file itself.
+      - '.github/workflows/file-type-check.yml'
+  pull_request:
+    branches:
+      - trunk
+      - '7.[1-9]'
+      - '[8-9].[0-9]'
+    paths:
+      - 'src/wp-includes/css/**'
+      - 'src/wp-includes/js/**'
+      - 'src/wp-admin/css/**'
+      - 'src/wp-admin/js/**'
+      - 'src/wp-includes/**/*.css'
+      - 'src/wp-includes/**/*.js'
+      - 'src/wp-admin/**/*.css'
+      - 'src/wp-admin/**/*.js'
+      # Confirm any changes to the workflow file itself.
+      - '.github/workflows/file-type-check.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Verifies that CSS directories only contain CSS files and JS directories only
+  # contain JS files among version-controlled sources.
+  #
+  # Note: Many non-CSS/JS files exist in these directories as build artifacts
+  # (e.g., registry.php, *.asset.php, TinyMCE skins/fonts). These are all
+  # gitignored and never present in the checkout, so they do not need to be
+  # allow-listed here. The local Grunt verify:file-types task handles those.
+  #
+  # The only tracked non-CSS files are the SCSS sources in wp-admin/css/colors/.
+  check-file-types:
+    name: Verify file types in CSS/JS directories
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Check for disallowed file types
+        run: |
+          violations=""
+
+          ##
+          # src/wp-includes/css — only .css files allowed.
+          ##
+          if [ -d "src/wp-includes/css" ]; then
+            found=$(find src/wp-includes/css -type f \
+              ! -name '*.css' \
+              2>/dev/null)
+            if [ -n "$found" ]; then
+              violations="${violations}${found}"$'\n'
+            fi
+          fi
+
+          ##
+          # src/wp-includes/js — only .js files allowed.
+          ##
+          if [ -d "src/wp-includes/js" ]; then
+            found=$(find src/wp-includes/js -type f \
+              ! -name '*.js' \
+              2>/dev/null)
+            if [ -n "$found" ]; then
+              violations="${violations}${found}"$'\n'
+            fi
+          fi
+
+          ##
+          # src/wp-admin/css — only .css and .scss files allowed.
+          # .scss files are tracked sources for admin color schemes.
+          ##
+          if [ -d "src/wp-admin/css" ]; then
+            found=$(find src/wp-admin/css -type f \
+              ! -name '*.css' \
+              ! -name '*.scss' \
+              2>/dev/null)
+            if [ -n "$found" ]; then
+              violations="${violations}${found}"$'\n'
+            fi
+          fi
+
+          ##
+          # src/wp-admin/js — only .js files allowed.
+          ##
+          if [ -d "src/wp-admin/js" ]; then
+            found=$(find src/wp-admin/js -type f \
+              ! -name '*.js' \
+              2>/dev/null)
+            if [ -n "$found" ]; then
+              violations="${violations}${found}"$'\n'
+            fi
+          fi
+
+          ##
+          # OUTWARD CHECK
+          # Ensure .css and .js files DO NOT exist outside their designated folders.
+          # Excluded directories that legitimately contain CSS/JS:
+          #   - src/wp-includes/blocks/ : Gutenberg block-specific assets.
+          #   - src/wp-includes/build/  : Routes/pages build system JS files.
+          ##
+          outward_found=$(find src/wp-includes src/wp-admin -type f \( -name '*.css' -o -name '*.js' \) \
+            ! -path 'src/wp-includes/css/*' \
+            ! -path 'src/wp-includes/js/*' \
+            ! -path 'src/wp-admin/css/*' \
+            ! -path 'src/wp-admin/js/*' \
+            ! -path 'src/wp-includes/blocks/*' \
+            ! -path 'src/wp-includes/build/*' \
+            2>/dev/null)
+          if [ -n "$outward_found" ]; then
+            violations="${violations}${outward_found}"$'\n'
+          fi
+
+          # Report results.
+          if [ -n "$violations" ]; then
+            echo "::error::File type placement violations found."
+            echo ""
+            echo "The following files violate file type placement rules:"
+            echo "$violations"
+            echo ""
+            echo "Inward: CSS directories should only contain .css files and JS directories should only contain .js files."
+            echo "Outward: .css and .js files should only exist in their designated css/ and js/ directories."
+            echo "If a file is a legitimate exception, update the allow-list in both:"
+            echo "  - .github/workflows/file-type-check.yml"
+            echo "  - Gruntfile.js (verify:file-types task)"
+            exit 1
+          fi
+
+          echo "All files in CSS/JS directories have correct file types."
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ check-file-types ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    needs: [ check-file-types, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: `${context.runId}`,
+              }
+            });

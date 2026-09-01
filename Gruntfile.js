@@ -2062,6 +2062,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:build', [
 		'verify:old-files',
 		'verify:source-maps',
+		'verify:file-types',
 	] );
 
 	/**
@@ -2162,6 +2163,230 @@ module.exports = function(grunt) {
 					`The ${ file } file must not contain a sourceMappingURL.`
 				);
 			} );
+	} );
+
+	/**
+	 * Verify file type placement rules:
+	 *
+	 * 1. Inward check: CSS directories should only contain CSS files and
+	 *    JS directories should only contain JS files. Third-party library
+	 *    assets and build-generated files are covered by an allow-list.
+	 *
+	 * 2. Outward check: CSS and JS files should only exist inside their
+	 *    designated directories, not scattered elsewhere in wp-includes/
+	 *    or wp-admin/. Gutenberg block assets (wp-includes/blocks/) and
+	 *    the routes/pages build system (wp-includes/build/) are excluded
+	 *    as they legitimately contain CSS/JS files.
+	 */
+	grunt.registerTask( 'verify:file-types', function() {
+		var minimatch = require( 'minimatch' );
+		var violations = [];
+
+		/*
+		 * =====================================================================
+		 * INWARD CHECK
+		 * Ensures CSS/JS directories only contain their respective file types.
+		 * =====================================================================
+		 *
+		 * Each entry maps a directory (relative to SOURCE_DIR) to its expected
+		 * file extension and a list of glob patterns (relative to that directory)
+		 * for files that are legitimate exceptions to the rule.
+		 *
+		 * Note: Many of the allow-listed files below are gitignored build
+		 * artifacts that only exist locally after running `build:dev`. They
+		 * are never committed to the repository. The GitHub Actions workflow
+		 * does not need these allow-list entries since it operates on a clean
+		 * checkout that does not contain build artifacts.
+		 */
+		var inwardRules = [
+			{
+				dir: 'wp-includes/css',
+				allowedExt: '.css',
+				allowList: [
+					// Auto-generated style registry (gitignored build artifact).
+					'dist/registry.php',
+				],
+			},
+			{
+				dir: 'wp-includes/js',
+				allowedExt: '.js',
+				allowList: [
+					// TinyMCE PHP wrapper that serves concatenated JS (gitignored).
+					'tinymce/wp-tinymce.php',
+					// Build-generated asset dependency manifests (gitignored).
+					'dist/script-modules/**/*.asset.php',
+					// Build-generated script module registry (gitignored).
+					'dist/script-modules/registry.php',
+					// TinyMCE skin CSS files (gitignored).
+					'tinymce/skins/**/*.css',
+					// TinyMCE skin images (gitignored).
+					'tinymce/skins/**/*.png',
+					'tinymce/skins/**/*.gif',
+					'tinymce/skins/**/*.svg',
+					// TinyMCE font files (gitignored).
+					'tinymce/skins/**/fonts/*.ttf',
+					'tinymce/skins/**/fonts/*.woff',
+					'tinymce/skins/**/fonts/*.eot',
+					// TinyMCE compat plugin CSS (gitignored).
+					'tinymce/plugins/compat3x/css/*.css',
+					// License files (gitignored).
+					'tinymce/license.txt',
+					'swfupload/license.txt',
+					'plupload/license.txt',
+					// CodeMirror CSS bundled with JS (gitignored).
+					'codemirror/codemirror.min.css',
+					// Jcrop library assets (gitignored).
+					'jcrop/jquery.Jcrop.min.css',
+					'jcrop/Jcrop.gif',
+					// Crop library assets (gitignored).
+					'crop/cropper.css',
+					'crop/marqueeVert.gif',
+					'crop/marqueeHoriz.gif',
+					// Media element player assets (gitignored).
+					'mediaelement/*.css',
+					'mediaelement/*.png',
+					'mediaelement/*.svg',
+					// Thickbox library assets (gitignored).
+					'thickbox/thickbox.css',
+					'thickbox/*.gif',
+					'thickbox/*.png',
+					// imgAreaSelect library assets (gitignored).
+					'imgareaselect/imgareaselect.css',
+					'imgareaselect/*.gif',
+				],
+			},
+			{
+				dir: 'wp-admin/css',
+				allowedExt: '.css',
+				allowList: [
+					// SCSS source files for admin color schemes.
+					'colors/**/*.scss',
+				],
+			},
+			{
+				dir: 'wp-admin/js',
+				allowedExt: '.js',
+				allowList: [],
+			},
+		];
+
+		inwardRules.forEach( function( rule ) {
+			var baseDir = SOURCE_DIR + rule.dir;
+
+			if ( ! fs.existsSync( baseDir ) ) {
+				return;
+			}
+
+			// Recursively find all files in the directory.
+			var allFiles = glob.sync( '**/*', {
+				cwd: baseDir,
+				nodir: true,
+				dot: false,
+			} );
+
+			allFiles.forEach( function( file ) {
+				// Skip files that already have the correct extension.
+				var ext = path.extname( file );
+				if ( ext === rule.allowedExt || ext === '.min' + rule.allowedExt.slice( 1 ) ) {
+					return;
+				}
+
+				// Handle compound extensions like `.min.css` or `.min.js`.
+				if ( file.endsWith( '.min' + rule.allowedExt ) ) {
+					return;
+				}
+
+				// Check if the file matches any allow-list pattern.
+				var isAllowed = rule.allowList.some( function( pattern ) {
+					return minimatch( file, pattern, { matchBase: false } );
+				} );
+
+				if ( ! isAllowed ) {
+					violations.push( '(inward) ' + baseDir + '/' + file );
+				}
+			} );
+		} );
+
+		/*
+		 * =====================================================================
+		 * OUTWARD CHECK
+		 * Ensures CSS/JS files only exist inside their designated directories.
+		 * =====================================================================
+		 *
+		 * Directories that legitimately contain CSS/JS files outside the
+		 * designated folders:
+		 * - wp-includes/blocks/ : Gutenberg block-specific assets.
+		 * - wp-includes/build/  : Routes/pages build system JS files.
+		 */
+		var outwardDirs = [
+			SOURCE_DIR + 'wp-includes',
+			SOURCE_DIR + 'wp-admin',
+		];
+
+		// Directories where CSS/JS files are expected.
+		var designatedDirs = [
+			SOURCE_DIR + 'wp-includes/css',
+			SOURCE_DIR + 'wp-includes/js',
+			SOURCE_DIR + 'wp-admin/css',
+			SOURCE_DIR + 'wp-admin/js',
+		];
+
+		// Directories that legitimately contain CSS/JS outside the designated folders.
+		var outwardExcludeDirs = [
+			SOURCE_DIR + 'wp-includes/blocks',
+			SOURCE_DIR + 'wp-includes/build',
+		];
+
+		outwardDirs.forEach( function( searchDir ) {
+			if ( ! fs.existsSync( searchDir ) ) {
+				return;
+			}
+
+			var allFiles = glob.sync( '**/*.{css,js}', {
+				cwd: searchDir,
+				nodir: true,
+				dot: false,
+			} );
+
+			allFiles.forEach( function( file ) {
+				var fullPath = searchDir + '/' + file;
+
+				// Skip files inside designated CSS/JS directories.
+				var inDesignated = designatedDirs.some( function( dir ) {
+					return fullPath.indexOf( dir + '/' ) === 0;
+				} );
+
+				if ( inDesignated ) {
+					return;
+				}
+
+				// Skip files inside excluded directories (blocks, build).
+				var inExcluded = outwardExcludeDirs.some( function( dir ) {
+					return fullPath.indexOf( dir + '/' ) === 0;
+				} );
+
+				if ( inExcluded ) {
+					return;
+				}
+
+				violations.push( '(outward) ' + fullPath );
+			} );
+		} );
+
+		if ( violations.length > 0 ) {
+			grunt.log.errorlns( 'File type placement violations found:' );
+			violations.forEach( function( entry ) {
+				grunt.log.errorlns( '  ' + entry );
+			} );
+			grunt.fatal(
+				violations.length + ' file(s) with placement violations found.\n' +
+				'Inward: CSS directories should only contain .css files and JS directories should only contain .js files.\n' +
+				'Outward: .css and .js files should only exist in their designated css/ and js/ directories.\n' +
+				'If a file is a legitimate exception, update the verify:file-types task in Gruntfile.js.'
+			);
+		}
+
+		grunt.log.ok( 'All CSS/JS files are correctly placed.' );
 	} );
 
 	grunt.registerTask( 'routes:setup', 'Reads the routes registry and configures the copy:routes task.', function() {
