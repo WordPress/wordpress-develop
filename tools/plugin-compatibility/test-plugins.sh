@@ -8,6 +8,9 @@
 # that declares `Requires Plugins` has those dependencies installed and activated alongside it, because core
 # refuses to activate it otherwise.
 #
+# What a real request does is what decides whether a plugin passed. The WP-CLI check runs last and only ever
+# adds a note, because WP-CLI loads WordPress in a way a visitor never does.
+#
 # This is the same code the Plugin Compatibility Tests workflow runs. Running it here is how to reproduce a
 # failure from a workflow run, or to check a plugin against a release candidate, without waiting on Actions.
 #
@@ -590,29 +593,8 @@ test_plugins() {
 			fi
 		fi
 
-		# Step 6: boot all of core plus the active plugin in a CLI context.
-		if [ "${STATUS}" = "PASS" ]; then
-			EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )"
-
-			if [ "${EVAL_OUTPUT#*loaded-ok}" = "${EVAL_OUTPUT}" ]; then
-				printf '%s\n' "${EVAL_OUTPUT}"
-
-				case "${EVAL_OUTPUT}" in
-					*"Fatal error"* | *"PHP Fatal"* | *"Uncaught"* )
-						STATUS="FAIL"
-						REASON="A fatal error occurred while WP-CLI loaded WordPress with the plugin active"
-						;;
-					# Some plugins redirect or exit while loading, which stops WP-CLI without anything being
-					# broken. Only a fatal counts as a failure here. Everything else is left to the HTTP and
-					# debug log checks below, which see the same code in a real request.
-					* )
-						printf 'WP-CLI did not finish loading WordPress, but no fatal error was reported.\n'
-						;;
-				esac
-			fi
-		fi
-
-		# Step 7: request the front page and the login screen through the PHP built-in server.
+		# Step 6: request the front page and the login screen through the PHP built-in server. A real request
+		# is what decides whether a plugin passed, because it is what a visitor gets.
 		if [ "${STATUS}" = "PASS" ]; then
 			for URL_PATH in "/" "/wp-login.php"; do
 				HTTP_REASON="$( check_url "${URL_PATH}" )"
@@ -625,12 +607,42 @@ test_plugins() {
 			done
 		fi
 
-		# Step 8: a fatal can be logged without changing the HTTP status, for example during a shutdown
+		# Step 7: a fatal can be logged without changing the HTTP status, for example during a shutdown
 		# hook, so the debug log is checked separately.
 		if [ "${STATUS}" = "PASS" ] && [ -f "${WP_DIR}/wp-content/debug.log" ] && grep -q 'PHP Fatal' "${WP_DIR}/wp-content/debug.log"; then
 			grep 'PHP Fatal' "${WP_DIR}/wp-content/debug.log"
 			STATUS="FAIL"
 			REASON="A fatal error was logged: $( grep -m 1 'PHP Fatal' "${WP_DIR}/wp-content/debug.log" | cut -c 1-200 )"
+		fi
+
+		# Step 8: boot all of core plus the active plugin through WP-CLI. This runs last and cannot fail a
+		# plugin on its own.
+		#
+		# WP-CLI requires `wp-settings.php` from inside a method, so a plugin that assigns a variable at file
+		# scope and reads it back with `global` later finds nothing there. Plenty of plugins do exactly that,
+		# and the resulting fatal happens only under WP-CLI - a visitor never sees it. Failing a plugin for
+		# it would report breakage that does not exist on a real site, so it is recorded as a note against a
+		# plugin that is otherwise healthy. Anything that genuinely fatals on load fails the HTTP checks
+		# above.
+		#
+		# The fatal is written to the debug log too, which is why this comes after the log has been checked.
+		if [ "${STATUS}" = "PASS" ]; then
+			EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )"
+
+			if [ "${EVAL_OUTPUT#*loaded-ok}" = "${EVAL_OUTPUT}" ]; then
+				printf '%s\n' "${EVAL_OUTPUT}"
+
+				case "${EVAL_OUTPUT}" in
+					*"Fatal error"* | *"PHP Fatal"* | *"Uncaught"* )
+						REASON="The site is healthy over HTTP, but WP-CLI fatals when it loads WordPress with the plugin active"
+						;;
+					# Some plugins redirect or exit while loading, which stops WP-CLI without anything being
+					# broken.
+					* )
+						printf 'WP-CLI did not finish loading WordPress, but no fatal error was reported.\n'
+						;;
+				esac
+			fi
 		fi
 
 		# Step 9: record the outcome and put the site back the way it was found.
