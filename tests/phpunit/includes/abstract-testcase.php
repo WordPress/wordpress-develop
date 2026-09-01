@@ -183,6 +183,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$wp_query     = $wp_the_query;
 		$wp           = new WP();
 
+		if ( isset( $GLOBALS['_wp_tests_initial_public_query_vars'] ) ) {
+			$wp->public_query_vars = $GLOBALS['_wp_tests_initial_public_query_vars'];
+		}
+
 		// Reset globals related to the post loop and `setup_postdata()`.
 		$post_globals = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
 		foreach ( $post_globals as $global ) {
