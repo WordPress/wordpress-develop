@@ -3357,8 +3357,18 @@ class WP_Query {
 		}
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
-			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
-			$cache_key   = $this->generate_cache_key( $query_vars, $new_request );
+			/*
+			 * Normalise the selected columns so that queries differing only in 'fields'
+			 * share a cache key. Only the first occurrence is replaced: the same column
+			 * names also appear in ORDER BY, and rewriting them there would give the
+			 * same query two different keys.
+			 */
+			$pos         = strpos( $this->request, $fields );
+			$new_request = false === $pos
+				? $this->request
+				: substr_replace( $this->request, "{$wpdb->posts}.*", $pos, strlen( $fields ) );
+
+			$cache_key = $this->generate_cache_key( $query_vars, $new_request );
 
 			$cache_found = false;
 			if ( null === $this->posts ) {
