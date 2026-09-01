@@ -1104,6 +1104,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/pluggable.php
 		-
+			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/post-template.php
+		-
 			message: '#^Parameter \#1 \$attachment of function is_attachment expects array\<int\|string\>\|int\|string, WP_Post given\.$#'
 			identifier: argument.type
 			count: 1
