@@ -463,6 +463,13 @@ function wp_authenticate_application_password(
 
 		$error = new WP_Error();
 
+		if ( ! empty( $item['expires'] ) && time() > $item['expires'] ) {
+			$error->add(
+				'application_password_expired',
+				__( 'The provided application password has expired.' )
+			);
+		}
+
 		/**
 		 * Fires when an application password has been successfully checked as valid.
 		 *
