@@ -2807,6 +2807,18 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 			wp_enqueue_script( $script_handle );
 		}
 
+		/**
+		 * Enqueue view script modules when block assets are loaded eagerly.
+		 *
+		 * This ensures parity with script and style handles, as modules are not
+		 * automatically handled elsewhere when on-demand loading is disabled.
+		 */
+		if ( ! empty( $block_type->view_script_module_ids ) && function_exists( 'wp_enqueue_script_module' ) ) {
+			foreach ( $block_type->view_script_module_ids as $view_script_module_id ) {
+				wp_enqueue_script_module( $view_script_module_id );
+			}
+		}
+
 		if ( $load_editor_scripts_and_styles ) {
 			// Editor styles.
 			foreach ( $block_type->editor_style_handles as $editor_style_handle ) {
