@@ -1440,6 +1440,26 @@ class WP_Query {
 		if ( empty( $_GET['s'] ) && $this->is_main_query() ) {
 			$query_vars['s'] = urldecode( $query_vars['s'] );
 		}
+		// Admin post titles are texturized before display, so copied smart quotes should still match stored titles.
+		$query_vars['s'] = strtr(
+			$query_vars['s'],
+			array(
+				"\u{00A0}" => ' ',
+				"\u{202F}" => ' ',
+				"\u{00AB}" => '"',
+				"\u{00BB}" => '"',
+				"\u{2018}" => "'",
+				"\u{2019}" => "'",
+				"\u{201A}" => "'",
+				"\u{201B}" => "'",
+				"\u{201C}" => '"',
+				"\u{201D}" => '"',
+				"\u{201E}" => '"',
+				"\u{201F}" => '"',
+				"\u{2039}" => "'",
+				"\u{203A}" => "'",
+			)
+		);
 		// There are no line breaks in <input /> fields.
 		$query_vars['s']                  = str_replace( array( "\r", "\n" ), '', $query_vars['s'] );
 		$query_vars['search_terms_count'] = 1;
