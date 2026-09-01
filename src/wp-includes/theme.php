@@ -401,6 +401,28 @@ function get_theme_roots() {
 }
 
 /**
+ * Registers the default theme directory roots.
+ *
+ * This includes the active content directory's themes root and the bundled core
+ * themes root when they differ, allowing bundled themes to remain available when
+ * `WP_CONTENT_DIR` points somewhere else.
+ *
+ * @since 7.1.0
+ *
+ * @global string[] $wp_theme_directories
+ */
+function wp_register_default_theme_directories() {
+	$theme_root         = get_theme_root();
+	$bundled_theme_root = ABSPATH . 'wp-content/themes';
+
+	if ( untrailingslashit( $bundled_theme_root ) !== untrailingslashit( $theme_root ) ) {
+		register_theme_directory( $bundled_theme_root );
+	}
+
+	register_theme_directory( $theme_root );
+}
+
+/**
  * Registers a directory that contains themes.
  *
  * @since 2.9.0
