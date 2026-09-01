@@ -82,6 +82,11 @@ on:
         required: false
         type: string
         default: ''
+      wordpress-build-artifact:
+        description: 'The name of a same-workflow artifact containing the pre-built WordPress assets. Optional: callers that omit it build per job.'
+        required: false
+        type: string
+        default: ''
     secrets:
       CODEVITALS_PROJECT_TOKEN:
         description: 'The authorization token for publishing results to CodeVitals.'
@@ -189,7 +194,23 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      - name: Download WordPress build
+        id: download-wordpress
+        continue-on-error: ${{ github.run_attempt != '1' }}
+        if: inputs.wordpress-build-artifact != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ inputs.wordpress-build-artifact }}
+          path: /tmp/wordpress-build
+          digest-mismatch: error
+
+      - name: Apply WordPress build
+        if: steps.download-wordpress.outcome == 'success'
+        run: |
+          tar -xzf /tmp/wordpress-build/wordpress-build.tar.gz
+
       - name: Build WordPress
+        if: inputs.wordpress-build-artifact == '' || steps.download-wordpress.outcome != 'success'
         run: npm run build:dev
         env:
           # The producer resolved this once. Matrix jobs must not re-resolve mutable GHCR tags.
