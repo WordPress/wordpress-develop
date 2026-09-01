@@ -629,8 +629,8 @@ window.wp = window.wp || {};
 	/**
 	 * Cast a string to a jQuery object if it isn't already.
 	 *
-	 * @param {string|jQuery} element A selector or an existing jQuery collection.
-	 * @return {jQuery} The jQuery collection.
+	 * @param {string|JQuery} element A selector or an existing jQuery collection.
+	 * @return {JQuery} The jQuery collection.
 	 */
 	api.ensure = function( element ) {
 		return typeof element === 'string' ? $( element ) : element;
@@ -970,7 +970,7 @@ window.wp = window.wp || {};
 		 *
 		 * @since 4.9.0
 		 *
-		 * @return {jQuery} Notification container element.
+		 * @return {JQuery} Notification container element.
 		 */
 		render: function() {
 			var notification = this, container, data;

@@ -52,7 +52,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @return {jQuery} Notification container.
+		 * @return {JQuery} Notification container.
 		 */
 		render: function() {
 			var li = api.Notification.prototype.render.call( this );
@@ -106,7 +106,7 @@
 		 * @augments   wp.customize.Values
 		 *
 		 * @param {Object}  options             Options.
-		 * @param {jQuery}  [options.container] Container element for notifications. This can be injected later.
+		 * @param {JQuery}  [options.container] Container element for notifications. This can be injected later.
 		 * @param {boolean} [options.alt]       Whether alternative style should be used when rendering notifications.
 		 *
 		 * @return {void}
@@ -790,8 +790,8 @@
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param {jQuery[]|jQuery} listA First list of elements.
-	 * @param {jQuery[]|jQuery} listB Second list of elements.
+	 * @param {JQuery[]|JQuery} listA First list of elements.
+	 * @param {JQuery[]|JQuery} listB Second list of elements.
 	 * @return {boolean} True if the two lists are equal, false otherwise.
 	 */
 	api.utils.areElementListsEqual = function ( listA, listB ) {
@@ -818,10 +818,10 @@
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param {jQuery} button                The element to highlight.
+	 * @param {JQuery} button                The element to highlight.
 	 * @param {Object} [options]             Options.
 	 * @param {number} [options.delay=0]     Delay in milliseconds.
-	 * @param {jQuery} [options.focusTarget] A target for user focus that defaults to the highlighted element.
+	 * @param {JQuery} [options.focusTarget] A target for user focus that defaults to the highlighted element.
 	 *                                       If the user focuses the target before the delay passes, the reminder
 	 *                                       is canceled. This option exists to accommodate compound buttons
 	 *                                       containing auxiliary UI, such as the Publish button augmented with a
@@ -1038,7 +1038,7 @@
 		 * Get the element that will contain the notifications.
 		 *
 		 * @since 4.9.0
-		 * @return {jQuery} Notification container element.
+		 * @return {JQuery} Notification container element.
 		 */
 		getNotificationsContainerElement: function() {
 			var container = this;
@@ -1399,7 +1399,7 @@
 		 * @since 4.7.0
 		 * @access public
 		 *
-		 * @return {jQuery} Detached content element.
+		 * @return {JQuery} Detached content element.
 		 */
 		getContent: function() {
 			var construct = this,
@@ -2091,7 +2091,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @return {jQuery} The section's content element.
+		 * @return {JQuery} The section's content element.
 		 */
 		getContent: function() {
 			return this.container.find( '.control-section-content' );
@@ -2660,7 +2660,7 @@
 		 *
 		 * @since 4.2.0
 		 *
-		 * @param {jQuery} el Element to contain focus.
+		 * @param {JQuery} el Element to contain focus.
 		 * @return {void}
 		 */
 		containFocus: function( el ) {
@@ -3788,7 +3788,7 @@
 		 * including special handling for nav menu items and widgets.
 		 *
 		 * @since 4.6.0
-		 * @return {jQuery} Setting validation message element.
+		 * @return {JQuery} Setting validation message element.
 		 */
 		getNotificationsContainerElement: function() {
 			var control = this, controlTitle, notificationsContainer;
@@ -8247,7 +8247,7 @@
 				 *
 				 * @since 4.9.0
 				 *
-				 * @return {jQuery} Notification container.
+				 * @return {JQuery} Notification container.
 				 */
 				render: function() {
 					var notification = this, li, data, takeOverButton, request;

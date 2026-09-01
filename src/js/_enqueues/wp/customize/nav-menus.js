@@ -662,7 +662,7 @@
 		 * @since 4.7.0
 		 * @private
 		 *
-		 * @param {jQuery} container
+		 * @param {JQuery} container
 		 * @return {void}
 		 */
 		submitNew: function( container ) {

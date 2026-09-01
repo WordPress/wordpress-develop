@@ -290,7 +290,7 @@
 		/**
 		 * Highlights a widget.
 		 *
-		 * @param {jQuery} widgetTpl The widget template to highlight.
+		 * @param {JQuery} widgetTpl The widget template to highlight.
 		 */
 		select: function( widgetTpl ) {
 			this.selected = $( widgetTpl );
@@ -324,7 +324,7 @@
 		/**
 		 * Adds a selected widget to the sidebar.
 		 *
-		 * @param {jQuery} widgetTpl The widget template to add.
+		 * @param {JQuery} widgetTpl The widget template to add.
 		 */
 		submit: function( widgetTpl ) {
 			var widgetId, widget, widgetFormControl;
@@ -477,7 +477,7 @@
 
 		/**
 		 * @param {JQuery.Event} e       The widget-synced event.
-		 * @param {jQuery}       widget  The widget root element.
+		 * @param {JQuery}       widget  The widget root element.
 		 * @param {string}       newForm The HTML for the updated widget form.
 		 */
 		rss: function( e, widget, newForm ) {
@@ -768,7 +768,7 @@
 			/**
 			 * select the provided sidebar list item in the move widget area
 			 *
-			 * @param {jQuery} li
+			 * @param {JQuery} li
 			 */
 			selectSidebarItem = function( li ) {
 				li.siblings( '.selected' ).removeClass( 'selected' );
@@ -1061,8 +1061,8 @@
 		 * are passed into this._getInputsSignature(), and they are iterated
 		 * over when copying sanitized values over to the form loaded.
 		 *
-		 * @param {jQuery} container element in which to look for inputs
-		 * @return {jQuery} inputs
+		 * @param {JQuery} container element in which to look for inputs
+		 * @return {JQuery} inputs
 		 * @private
 		 */
 		_getInputs: function( container ) {
@@ -1073,7 +1073,7 @@
 		 * Iterate over supplied inputs and create a signature string for all of them together.
 		 * This string can be used to compare whether or not the form has all of the same fields.
 		 *
-		 * @param {jQuery} inputs
+		 * @param {JQuery} inputs
 		 * @return {string} Signature string for the inputs.
 		 * @private
 		 */
@@ -1096,7 +1096,7 @@
 		/**
 		 * Get the state for an input depending on its type.
 		 *
-		 * @param {jQuery|Element} input
+		 * @param {JQuery|Element} input
 		 * @return {string|boolean|string[]|*} State of the input.
 		 * @private
 		 */
@@ -1116,7 +1116,7 @@
 		/**
 		 * Update an input's state based on its type.
 		 *
-		 * @param {jQuery|Element}            input The input element to update.
+		 * @param {JQuery|Element}            input The input element to update.
 		 * @param {string|boolean|string[]|*} state The state to apply: the checked state for checkboxes and radio buttons, an array of values for multi-selects, and otherwise the input's value.
 		 * @private
 		 */
