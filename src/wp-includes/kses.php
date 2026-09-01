@@ -1009,6 +1009,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 		private $allowed_protocols;
 
+		private $foreign_content_stack = array();
+
 		private $uris;
 
 		public function __construct( $html, $allowed_html, $allowed_protocols ) {
@@ -1189,6 +1191,19 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				) {
 					return true;
 				}
+
+				/*
+				 * When SVG becomes a direct descendant of a MathML ANNOTATION-XML,
+				 * the namespace remains `math` but there could be an SVG element
+				 * with an HTML integration point. Conservatively reject any child
+				 * SVG element inside a MathML ANNOTATION-XML to prevent this.
+				 */
+				if (
+					'SVG' === $token_name &&
+					in_array( 'ANNOTATION-XML', $this->foreign_content_stack, true )
+				) {
+					return true;
+				}
 			}
 
 			if (
@@ -1254,15 +1269,53 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					$namespace = $this->get_namespace();
 				}
 
-				if ( 'TEMPLATE' === $token_name && 'html' === $namespace ) {
-					if ( $template_depth > 0 && $is_closer ) {
-						--$template_depth;
-					} elseif ( ! $is_closer ) {
-						++$template_depth;
+				if ( 'html' !== $namespace && '#tag' === $token_type ) {
+					/*
+					 * Ensure that only well-formed foreign content is allowed.
+					 * Since un-balanced closing tags might implicitly close the
+					 * open foreign-content element, these must be rejected.
+					 */
+					if ( $is_closer ) {
+						$open_element = array_pop( $this->foreign_content_stack );
+						if ( null === $open_element || $token_name !== $open_element ) {
+							return substr( $output, 0, $foreign_content_starts_at );
+						}
+
+						/*
+						 * Reset the foreign content tracker so it doesn’t truncate
+						 * unintentionally after foreign content has properly closed.
+						 */
+						if ( empty( $this->foreign_content_stack ) ) {
+							$foreign_content_starts_at = PHP_INT_MAX;
+						}
+					} else {
+						/*
+						 * Track the opening of the last transition into foreign
+						 * content so that it can be discarded when encountering
+						 * tags that would require more substantial parsing.
+						 */
+						if ( empty( $this->foreign_content_stack ) ) {
+							$foreign_content_starts_at = strlen( $output );
+						}
+
+						$this->foreign_content_stack[] = $token_name;
 					}
 				}
 
-				$skip_token = $template_depth > 0 && ! isset( $this->allowed_html['template'] );
+				if ( 'TEMPLATE' === $token_name && 'html' === $namespace && ! $is_closer ) {
+					++$template_depth;
+				}
+
+				$skip_token = (
+					(
+						$template_depth > 0 &&
+						! isset( $this->allowed_html['template'] )
+					) ||
+					(
+						! empty( $this->foreign_content_stack ) &&
+						! isset( $this->allowed_html[ strtolower( $this->foreign_content_stack[0] ) ] )
+					)
+				);
 
 				switch ( $token_type ) {
 					case '#text':
@@ -1546,15 +1599,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
-						/*
-						 * Track the opening of the last transition into foreign
-						 * content so that it can be discarded when encountering
-						 * tags that would require more substantial parsing.
-						 */
-						if ( $is_svg_or_math ) {
-							$foreign_content_starts_at = strlen( $output );
-						}
-
 						if ( $is_special_atomic_element ) {
 							$tag_maker->set_modifiable_text( $text );
 						}
@@ -1564,8 +1608,19 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				}
 
 				// Re-enter the HTML namespace.
-				if ( $is_svg_or_math && ( $is_closer || $has_self_closing_flag ) && 'html' !== $namespace ) {
-					$this->change_parsing_namespace( 'html' );
+				if ( 'html' !== $namespace ) {
+					if ( $has_self_closing_flag ) {
+						array_pop( $this->foreign_content_stack );
+					}
+
+					if ( empty( $this->foreign_content_stack ) ) {
+						$this->change_parsing_namespace( 'html' );
+						$foreign_content_starts_at = PHP_INT_MAX;
+					}
+				}
+
+				if ( 'TEMPLATE' === $token_name && $template_depth > 0 && $is_closer && 'html' === $namespace ) {
+					--$template_depth;
 				}
 			}
 
@@ -1578,7 +1633,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			 * of the page’s HTML structure.
 			 */
 
-			return $output;
+			return substr( $output, 0, $foreign_content_starts_at );
 		}
 	};
 
