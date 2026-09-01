@@ -1330,12 +1330,22 @@
 	 *                     decorated with an abort() method.
 	 */
 	wp.updates.deletePlugin = function( args ) {
-		var $link = $( '[data-plugin="' + args.plugin + '"]' ).find( '.row-actions a.delete' );
+		var errorCallback,
+			$link = $( '[data-plugin="' + args.plugin + '"]' ).find( '.row-actions a.delete' );
 
 		args = _.extend( {
 			success: wp.updates.deletePluginSuccess,
 			error: wp.updates.deletePluginError
 		}, args );
+
+		errorCallback = args.error;
+		if ( errorCallback ) {
+			args.error = function() {
+				$link.html( $link.data( 'originaltext' ) );
+
+				errorCallback.apply( this, arguments );
+			};
+		}
 
 		if ( $link.html() !== __( 'Deleting...' ) ) {
 			$link
@@ -1488,12 +1498,7 @@
 	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.deletePluginError = function( response ) {
-		var $plugin, $pluginUpdateRow,
-			pluginUpdateRow  = wp.template( 'item-update-row' ),
-			noticeContent    = wp.updates.adminNotice( {
-				className: 'update-message notice-error notice-alt',
-				message:   response.errorMessage
-			} );
+		var $deleteLink, $plugin, $pluginUpdateRow, noticeContent, pluginUpdateRow;
 
 		if ( response.plugin ) {
 			$plugin          = $( 'tr.inactive[data-plugin="' + response.plugin + '"]' );
@@ -1503,6 +1508,9 @@
 			$pluginUpdateRow = $plugin.siblings( '[data-slug="' + response.slug + '"]' );
 		}
 
+		$deleteLink = $plugin.find( '.row-actions a.delete' );
+		$deleteLink.text( $deleteLink.data( 'originaltext' ) );
+
 		if ( ! wp.updates.isValidResponse( response, 'delete' ) ) {
 			return;
 		}
@@ -1510,6 +1518,12 @@
 		if ( wp.updates.maybeHandleCredentialError( response, 'delete-plugin' ) ) {
 			return;
 		}
+
+		pluginUpdateRow = wp.template( 'item-update-row' );
+		noticeContent   = wp.updates.adminNotice( {
+			className: 'update-message notice-error notice-alt',
+			message:   response.errorMessage
+		} );
 
 		// Add a plugin update row if it doesn't exist yet.
 		if ( ! $pluginUpdateRow.length ) {
@@ -1908,7 +1922,7 @@
 	 *                     decorated with an abort() method.
 	 */
 	wp.updates.deleteTheme = function( args ) {
-		var $button;
+		var $button, errorCallback;
 
 		if ( 'themes' === pagenow ) {
 			$button = $( '.theme-actions .delete-theme' );
@@ -1920,6 +1934,17 @@
 			success: wp.updates.deleteThemeSuccess,
 			error: wp.updates.deleteThemeError
 		}, args );
+
+		errorCallback = args.error;
+		if ( errorCallback ) {
+			args.error = function() {
+				if ( $button ) {
+					$button.html( $button.data( 'originaltext' ) );
+				}
+
+				errorCallback.apply( this, arguments );
+			};
+		}
 
 		if ( $button && $button.html() !== __( 'Deleting...' ) ) {
 			$button
@@ -2034,23 +2059,36 @@
 	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.deleteThemeError = function( response ) {
-		var $themeRow    = $( 'tr.inactive[data-slug="' + response.slug + '"]' ),
-			$button      = $( '.theme-actions .delete-theme' ),
-			updateRow    = wp.template( 'item-update-row' ),
-			$updateRow   = $themeRow.siblings( '#' + response.slug + '-update' ),
-			errorMessage = sprintf(
-				/* translators: %s: Error string for a failed deletion. */
-				__( 'Deletion failed: %s' ),
-				response.errorMessage
-			),
-			$message     = wp.updates.adminNotice( {
-				className: 'update-message notice-error notice-alt',
-				message:   errorMessage
-			} );
+		var $button, $message, errorMessage, updateRow,
+			$themeRow  = $( 'tr.inactive[data-slug="' + response.slug + '"]' ),
+			$updateRow = $themeRow.siblings( '#' + response.slug + '-update' );
+
+		if ( 'themes-network' === pagenow ) {
+			$button = $themeRow.find( '.row-actions a.delete' );
+		} else {
+			$button = $( '.theme-actions .delete-theme' );
+		}
+
+		$button.html( $button.data( 'originaltext' ) );
+
+		if ( ! wp.updates.isValidResponse( response, 'delete' ) ) {
+			return;
+		}
 
 		if ( wp.updates.maybeHandleCredentialError( response, 'delete-theme' ) ) {
 			return;
 		}
+
+		updateRow    = wp.template( 'item-update-row' );
+		errorMessage = sprintf(
+			/* translators: %s: Error string for a failed deletion. */
+			__( 'Deletion failed: %s' ),
+			response.errorMessage
+		);
+		$message     = wp.updates.adminNotice( {
+			className: 'update-message notice-error notice-alt',
+			message:   errorMessage
+		} );
 
 		if ( 'themes-network' === pagenow ) {
 			if ( ! $updateRow.length ) {
@@ -2069,8 +2107,6 @@
 		} else {
 			$( '.theme-info .theme-description' ).before( $message );
 		}
-
-		$button.html( $button.data( 'originaltext' ) );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
@@ -3420,7 +3456,7 @@
 						if ( response.data && response.data.error ) {
 							errorMessage = response.data.error;
 						} else {
-							errorMessage = __( 'The request could not be completed.' );
+							errorMessage = __( 'The request could not be completed. Please try again.' );
 						}
 
 						$parent.find( '.notice.notice-error' ).removeClass( 'hidden' ).find( 'p' ).text( errorMessage );
@@ -3484,11 +3520,15 @@
 					$parent.find( '.notice.notice-error' )
 						.removeClass( 'hidden' )
 						.find( 'p' )
-						.text( __( 'The request could not be completed.' ) );
+						.text( __( 'The request could not be completed. Please try again.' ) );
 
-					wp.a11y.speak( __( 'The request could not be completed.' ), 'assertive' );
+					wp.a11y.speak( __( 'The request could not be completed. Please try again.' ), 'assertive' );
 				} )
 				.always( function() {
+					if ( action === $toggler.attr( 'data-wp-action' ) ) {
+						$label.text( 'enable' === action ? __( 'Enable auto-updates' ) : __( 'Disable auto-updates' ) );
+					}
+
 					$toggler.removeAttr( 'data-doing-ajax' ).find( '.dashicons-update' ).addClass( 'hidden' );
 				} );
 			}
