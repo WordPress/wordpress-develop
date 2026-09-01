@@ -804,7 +804,7 @@ parameters:
 			count: 6
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Parameter \#1 \$args of method WP_Customize_Manager\:\:get_changeset_posts\(\) expects array\{posts_per_page\?\: int, author\?\: int, post_status\?\: string, exclude_restore_dismissed\?\: bool, \.\.\.\}, array\{post_status\: array\<stdClass\|string\>, exclude_restore_dismissed\: false, author\: ''any'', posts_per_page\: 1, order\: ''DESC'', orderby\: ''date''\} given\.$#'
+			message: '#^Parameter \#1 \$args of method WP_Customize_Manager\:\:get_changeset_posts\(\) expects array\{posts_per_page\?\: int, author\?\: int, post_status\?\: string, exclude_restore_dismissed\?\: bool, \.\.\.\}, array\{post_status\: array\<non\-falsy\-string, non\-falsy\-string\>, exclude_restore_dismissed\: false, author\: ''any'', posts_per_page\: 1, order\: ''DESC'', orderby\: ''date''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
