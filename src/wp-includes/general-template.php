@@ -1543,7 +1543,8 @@ function _wp_render_title_tag() {
  *                            Default '&raquo;'.
  * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
  * @param string $seplocation Optional. Location of the separator (either 'left' or 'right').
- * @return string|null String when `$display` is false, null otherwise.
+ * @return string|void String when `$display` is false, nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	global $wp_locale;
@@ -1678,8 +1679,6 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	}
 
 	echo $title;
-
-	return null;
 }
 
 /**
@@ -1696,13 +1695,14 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|void Title when retrieving.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_post_title( $prefix = '', $display = true ) {
 	$_post = get_queried_object();
 
 	if ( ! isset( $_post->post_title ) ) {
-		return null;
+		return;
 	}
 
 	/**
@@ -1720,8 +1720,6 @@ function single_post_title( $prefix = '', $display = true ) {
 	}
 
 	echo $prefix . $title;
-
-	return null;
 }
 
 /**
@@ -1734,11 +1732,12 @@ function single_post_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving, null when displaying or on failure.
+ * @return string|void Title when retrieving, nothing when displaying or on failure.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function post_type_archive_title( $prefix = '', $display = true ) {
 	if ( ! is_post_type_archive() ) {
-		return null;
+		return;
 	}
 
 	$post_type = get_query_var( 'post_type' );
@@ -1763,8 +1762,6 @@ function post_type_archive_title( $prefix = '', $display = true ) {
 	}
 
 	echo $prefix . $title;
-
-	return null;
 }
 
 /**
@@ -1778,10 +1775,15 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|void Title when retrieving.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_cat_title( $prefix = '', $display = true ) {
-	return single_term_title( $prefix, $display );
+	if ( ! $display ) {
+		return single_term_title( $prefix, false );
+	}
+
+	single_term_title( $prefix, true );
 }
 
 /**
@@ -1795,10 +1797,15 @@ function single_cat_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|void Title when retrieving.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_tag_title( $prefix = '', $display = true ) {
-	return single_term_title( $prefix, $display );
+	if ( ! $display ) {
+		return single_term_title( $prefix, false );
+	}
+
+	single_term_title( $prefix, true );
 }
 
 /**
@@ -1812,13 +1819,14 @@ function single_tag_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|void Title when retrieving.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_term_title( $prefix = '', $display = true ) {
 	$term = get_queried_object();
 
 	if ( ! $term ) {
-		return null;
+		return;
 	}
 
 	if ( is_category() ) {
@@ -1849,11 +1857,11 @@ function single_term_title( $prefix = '', $display = true ) {
 		 */
 		$term_name = apply_filters( 'single_term_title', $term->name );
 	} else {
-		return null;
+		return;
 	}
 
 	if ( empty( $term_name ) ) {
-		return null;
+		return;
 	}
 
 	if ( ! $display ) {
@@ -1861,8 +1869,6 @@ function single_term_title( $prefix = '', $display = true ) {
 	}
 
 	echo $prefix . $term_name;
-
-	return null;
 }
 
 /**
@@ -2898,7 +2904,8 @@ function the_date_xml() {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|null String if retrieving.
+ * @return string|void String if retrieving.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	global $currentday, $previousday;
@@ -2927,8 +2934,6 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	}
 
 	echo $the_date;
-
-	return null;
 }
 
 /**
@@ -2975,7 +2980,8 @@ function get_the_date( $format = '', $post = null ) {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|null String if retrieving.
+ * @return string|void String if retrieving.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function the_modified_date( $format = '', $before = '', $after = '', $display = true ) {
 	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
@@ -2997,8 +3003,6 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
 	}
 
 	echo $the_modified_date;
-
-	return null;
 }
 
 /**

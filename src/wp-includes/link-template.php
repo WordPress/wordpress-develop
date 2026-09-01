@@ -1131,7 +1131,8 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
  * @param string           $after   Optional. Display after edit link. Default empty.
  * @param int|WP_Term|null $term    Optional. Term ID or object. If null, the queried object will be inspected. Default null.
  * @param bool             $display Optional. Whether or not to echo the return. Default true.
- * @return string|null HTML content.
+ * @return string|void HTML content.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function edit_term_link( $link = '', $before = '', $after = '', $term = null, $display = true ) {
 	if ( is_null( $term ) ) {
@@ -1141,11 +1142,11 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 	}
 
 	if ( ! $term ) {
-		return null;
+		return;
 	}
 
 	if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
-		return null;
+		return;
 	}
 
 	if ( empty( $link ) ) {
@@ -1169,8 +1170,6 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 	}
 
 	echo $link;
-
-	return null;
 }
 
 /**
@@ -2543,7 +2542,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
  *
  * @param int  $max_page Optional. Max pages. Default 0.
  * @param bool $display  Optional. Whether to echo the link. Default true.
- * @return string|null The link URL for next posts page if `$display = false`.
+ * @return string|void The link URL for next posts page if `$display = false`.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function next_posts( $max_page = 0, $display = true ) {
 	$link   = get_next_posts_page_link( $max_page );
@@ -2554,8 +2554,6 @@ function next_posts( $max_page = 0, $display = true ) {
 	}
 
 	echo $output;
-
-	return null;
 }
 
 /**
@@ -2655,7 +2653,8 @@ function get_previous_posts_page_link() {
  * @since 0.71
  *
  * @param bool $display Optional. Whether to echo the link. Default true.
- * @return string|null The previous posts page link if `$display = false`.
+ * @return string|void The previous posts page link if `$display = false`.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function previous_posts( $display = true ) {
 	$link   = get_previous_posts_page_link();
@@ -2666,8 +2665,6 @@ function previous_posts( $display = true ) {
 	}
 
 	echo $output;
-
-	return null;
 }
 
 /**
