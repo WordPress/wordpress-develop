@@ -5,9 +5,18 @@
  * @group template
  * @ticket 42438
  * @covers ::wp_preload_resources
+ * @covers ::wp_add_preload_links
  */
 class Tests_General_wpPreloadResources extends WP_UnitTestCase {
+	/**
+	 * Set up.
+	 */
+	public function set_up() {
+		parent::set_up();
 
+		global $wp_preload_resources;
+		$wp_preload_resources = array();
+	}
 	/**
 	 * @dataProvider data_preload_resources
 	 *
@@ -22,6 +31,19 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 		$actual = get_echo( 'wp_preload_resources' );
 		remove_filter( 'wp_preload_resources', $callback );
 
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Test the `wp_add_preload_links()` function.
+	 *
+	 * @dataProvider data_preload_resources
+	 *
+	 * @ticket 42438
+	 */
+	public function test_wp_add_preload_resources( $expected, $preload_resources ) {
+		wp_add_preload_resources( $preload_resources );
+		$actual = get_echo( 'wp_preload_resources' );
 		$this->assertSame( $expected, $actual );
 	}
 
