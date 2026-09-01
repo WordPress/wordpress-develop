@@ -1042,10 +1042,6 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 		$actions['media-new.php'] = array( $cpts['attachment']->labels->name_admin_bar, 'new-media' );
 	}
 
-	if ( current_user_can( 'manage_links' ) ) {
-		$actions['link-add.php'] = array( _x( 'Link', 'add new from admin bar' ), 'new-link' );
-	}
-
 	if ( isset( $cpts['page'] ) && current_user_can( $cpts['page']->cap->create_posts ) ) {
 		$actions['post-new.php?post_type=page'] = array( $cpts['page']->labels->name_admin_bar, 'new-page' );
 	}

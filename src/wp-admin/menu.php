@@ -86,11 +86,7 @@ foreach ( get_taxonomies_for_attachments( 'objects' ) as $taxonomy ) {
 
 	unset( $taxonomy, $submenu_index );
 
-$menu[15] = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
 
-	$submenu['link-manager.php'][5]  = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
-	$submenu['link-manager.php'][10] = array( __( 'Add Link' ), 'manage_links', 'link-add.php' );
-	$submenu['link-manager.php'][15] = array( __( 'Link Categories' ), 'manage_categories', 'edit-tags.php?taxonomy=link_category' );
 
 // $menu[20] = Pages.
 

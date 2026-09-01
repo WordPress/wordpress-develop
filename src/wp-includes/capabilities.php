@@ -688,13 +688,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				$caps[] = 'do_not_allow';
 			}
 			break;
-		case 'manage_links':
-			if ( get_option( 'link_manager_enabled' ) ) {
-				$caps[] = $cap;
-			} else {
-				$caps[] = 'do_not_allow';
-			}
-			break;
 		case 'customize':
 			$caps[] = 'edit_theme_options';
 			break;
