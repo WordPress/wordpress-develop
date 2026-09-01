@@ -2997,6 +2997,10 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		}
 	}
 
+	// Store last modified timestamps as comment meta.
+	update_comment_meta( $comment_id, 'comment_modified', current_time( 'mysql' ) );
+	update_comment_meta( $comment_id, 'comment_modified_gmt', current_time( 'mysql', true ) );
+
 	clean_comment_cache( $comment_id );
 	wp_update_comment_count( $comment_post_id );
 
