@@ -477,8 +477,8 @@
 
 		/**
 		 * @param {JQuery.Event} e
-		 * @param {jQuery} widget
-		 * @param {string} newForm
+		 * @param {jQuery}       widget
+		 * @param {string}       newForm
 		 */
 		rss: function( e, widget, newForm ) {
 			var oldWidgetError = widget.find( '.widget-error:first' ),
@@ -1116,7 +1116,7 @@
 		/**
 		 * Update an input's state based on its type.
 		 *
-		 * @param {jQuery|Element} input
+		 * @param {jQuery|Element}            input
 		 * @param {string|boolean|string[]|*} state
 		 * @private
 		 */
@@ -1167,10 +1167,10 @@
 		 * Submit the widget form via Ajax and get back the updated instance,
 		 * along with the new widget control form to render.
 		 *
-		 * @param {Object} [args]
-		 * @param {Object|null} [args.instance=null]  When the model changes, the instance is sent here; otherwise, the inputs from the form are used
-		 * @param {Function|null} [args.complete=null]  Function which is called when the request finishes. Context is bound to the control. First argument is any error. Following arguments are for success.
-		 * @param {boolean} [args.ignoreActiveElement=false] Whether or not updating a field will be deferred if focus is still on the element.
+		 * @param {Object}        [args]
+		 * @param {Object|null}   [args.instance=null]             When the model changes, the instance is sent here; otherwise, the inputs from the form are used
+		 * @param {Function|null} [args.complete=null]             Function which is called when the request finishes. Context is bound to the control. First argument is any error. Following arguments are for success.
+		 * @param {boolean}       [args.ignoreActiveElement=false] Whether or not updating a field will be deferred if focus is still on the element.
 		 */
 		updateWidget: function( args ) {
 			var self = this, instanceOverride, completeCallback, $widgetRoot, $widgetContent,
@@ -1366,7 +1366,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {boolean} expanded
-		 * @param {Object} [params]
+		 * @param {Object}  [params]
 		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
@@ -1423,7 +1423,7 @@
 		 * Respond to change in the expanded state.
 		 *
 		 * @param {boolean} expanded
-		 * @param {Object} args  merged on top of this.defaultActiveArguments
+		 * @param {Object}  args     merged on top of this.defaultActiveArguments
 		 */
 		onChangeExpanded: function ( expanded, args ) {
 			var self = this, $widget, $inside, complete, prevComplete, expandControl, $toggleBtn;

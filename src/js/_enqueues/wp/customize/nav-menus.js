@@ -396,8 +396,8 @@
 		 * @since 4.7.0 Changed function signature to take list of item types instead of single type/object.
 		 * @access private
 		 *
-		 * @param {Object[]} itemTypes List of objects containing type and key.
-		 * @param {string} deprecated Formerly the object parameter.
+		 * @param {Object[]} itemTypes  List of objects containing type and key.
+		 * @param {string}   deprecated Formerly the object parameter.
 		 * @return {void}
 		 */
 		loadItems: function( itemTypes, deprecated ) {
@@ -2137,7 +2137,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {boolean} expanded
-		 * @param {Object} [params]
+		 * @param {Object}  [params]
 		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
@@ -3201,8 +3201,8 @@
 		 * @since 4.9.0
 		 *
 		 * @param {wp.customize.Menus.MenuItemControl[]} [optionalMenuItemControls] The menu item controls to
-		 *                                                                        consider. Defaults to all of
-		 *                                                                        this menu's item controls.
+		 *                                                                          consider. Defaults to all of
+		 *                                                                          this menu's item controls.
 		 */
 		updateInvitationVisibility: function ( optionalMenuItemControls ) {
 			var menuItemControls = optionalMenuItemControls || this.getMenuItemControls();

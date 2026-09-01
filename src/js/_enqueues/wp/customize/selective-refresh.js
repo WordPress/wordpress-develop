@@ -308,7 +308,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {wp.customize.Value|string} setting  ID or object for setting.
+		 * @param {wp.customize.Value|string} setting ID or object for setting.
 		 * @return {boolean} Whether the setting is related to the partial.
 		 */
 		isRelatedSetting: function( setting /*... newValue, oldValue */ ) {
@@ -1038,7 +1038,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		/**
 		 * Handle setting validities in partial refresh response.
 		 *
-		 * @param {Object} data Response data.
+		 * @param {Object} data                    Response data.
 		 * @param {Object} data.setting_validities Setting validities.
 		 */
 		api.selectiveRefresh.bind( 'render-partials-response', function handleSettingValiditiesResponse( data ) {

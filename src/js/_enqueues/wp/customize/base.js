@@ -176,8 +176,8 @@ window.wp = window.wp || {};
 		/**
 		 * Trigger an event, invoking all of the callbacks bound to it.
 		 *
-		 * @param {string} id      ID of the event to trigger.
-		 * @param {...*}   [args]  Zero or more arguments to pass to the bound callbacks.
+		 * @param {string} id     ID of the event to trigger.
+		 * @param {...*}   [args] Zero or more arguments to pass to the bound callbacks.
 		 * @return {Object} The instance the mixin is applied to.
 		 */
 		trigger: function( id, ...args ) {
@@ -259,8 +259,8 @@ window.wp = window.wp || {};
 		/**
 		 * Set the value and trigger all bound callbacks.
 		 *
-		 * @param {*}      to     New value.
-		 * @param {...*}   [args] Zero or more additional arguments to pass to the setter.
+		 * @param {*}    to     New value.
+		 * @param {...*} [args] Zero or more additional arguments to pass to the setter.
 		 * @return {wp.customize.Value} The instance of the Value.
 		 */
 		set: function( to, ...args ) {
@@ -566,7 +566,7 @@ window.wp = window.wp || {};
 		 *     when( id1, id2, id3, function( value1, value2, value3 ) {} );
 		 *
 		 * @param {...(string|Function)} ids Zero or more IDs of items to wait for, optionally followed by
-		 *                                  a callback function to invoke once they are all available.
+		 *                                   a callback function to invoke once they are all available.
 		 * @return {JQuery.Promise<*>} A promise that is resolved when all of the requested values exist.
 		 */
 		when: function( ...ids ) {

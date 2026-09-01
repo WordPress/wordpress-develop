@@ -281,12 +281,12 @@
 	 * @since 4.7.0
 	 * @access public
 	 *
-	 * @param {HTMLAnchorElement|HTMLAreaElement} element Link element.
-	 * @param {string} element.search Query string.
-	 * @param {string} element.pathname Path.
-	 * @param {string} element.host Host.
-	 * @param {Object} [options]
-	 * @param {Object} [options.allowAdminAjax=false] Allow admin-ajax.php requests.
+	 * @param {HTMLAnchorElement|HTMLAreaElement} element                        Link element.
+	 * @param {string}                            element.search                 Query string.
+	 * @param {string}                            element.pathname               Path.
+	 * @param {string}                            element.host                   Host.
+	 * @param {Object}                            [options]
+	 * @param {Object}                            [options.allowAdminAjax=false] Allow admin-ajax.php requests.
 	 * @return {boolean} Is appropriate for changeset link.
 	 */
 	api.isLinkPreviewable = function isLinkPreviewable( element, options ) {
@@ -337,10 +337,10 @@
 	 * @since 4.7.0
 	 * @access protected
 	 *
-	 * @param {HTMLAnchorElement|HTMLAreaElement} element Link element.
-	 * @param {string} element.search Query string.
-	 * @param {string} element.host Host.
-	 * @param {string} element.protocol Protocol.
+	 * @param {HTMLAnchorElement|HTMLAreaElement} element          Link element.
+	 * @param {string}                            element.search   Query string.
+	 * @param {string}                            element.host     Host.
+	 * @param {string}                            element.protocol Protocol.
 	 * @return {void}
 	 */
 	api.prepareLinkPreview = function prepareLinkPreview( element ) {
@@ -408,11 +408,11 @@
 		/**
 		 * Rewrite Ajax requests to inject customizer state.
 		 *
-		 * @param {Object} options Options.
-		 * @param {string} options.type Type.
-		 * @param {string} options.url URL.
-		 * @param {Object} originalOptions Original options.
-		 * @param {XMLHttpRequest} xhr XHR.
+		 * @param {Object}         options         Options.
+		 * @param {string}         options.type    Type.
+		 * @param {string}         options.url     URL.
+		 * @param {Object}         originalOptions Original options.
+		 * @param {XMLHttpRequest} xhr             XHR.
 		 * @return {void}
 		 */
 		var prefilterAjax = function( options, originalOptions, xhr ) {

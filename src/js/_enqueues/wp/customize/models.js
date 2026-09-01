@@ -31,7 +31,7 @@
 	 */
 	api.HeaderTool.ImageModel = Backbone.Model.extend(/** @lends wp.customize.HeaderTool.ImageModel.prototype */{
 		/**
-		 * Default attributes.
+		 * Returns the default attributes for a header image.
 		 *
 		 * @return {Object} Default attributes.
 		 */
@@ -50,14 +50,14 @@
 		},
 
 		/**
-		 * Initialize.
+		 * Initializes the model, hiding the header when asked to.
 		 */
 		initialize: function() {
 			this.on('hide', this.hide, this);
 		},
 
 		/**
-		 * Hide.
+		 * Hides the header image, removing it from the site.
 		 */
 		hide: function() {
 			this.set('choice', '');
@@ -66,7 +66,7 @@
 		},
 
 		/**
-		 * Destroy.
+		 * Removes the image, hiding the header first if it is the current one.
 		 */
 		destroy: function() {
 			var data = this.get('header'),
@@ -89,7 +89,7 @@
 		},
 
 		/**
-		 * Save.
+		 * Makes this image the current header image.
 		 */
 		save: function() {
 			if (this.get('random')) {
@@ -109,7 +109,7 @@
 		},
 
 		/**
-		 * Import image.
+		 * Adds the image to the theme's uploaded headers.
 		 */
 		importImage: function() {
 			var data = this.get('header');
@@ -126,7 +126,7 @@
 		},
 
 		/**
-		 * Should be cropped.
+		 * Returns whether the image needs cropping for this theme.
 		 *
 		 * @return {boolean} Whether the image should be cropped.
 		 */
@@ -173,7 +173,7 @@
 		model: api.HeaderTool.ImageModel,
 
 		/**
-		 * Comparator which orders the collection from most recently used to least.
+		 * Orders the collection from most recently used to least.
 		 *
 		 * @param {Backbone.Model} model The model to sort.
 		 * @return {number} The sort order.
@@ -183,7 +183,7 @@
 		},
 
 		/**
-		 * Initialize.
+		 * Initializes the collection from the uploaded header images.
 		 */
 		initialize: function() {
 			var current = api.HeaderTool.currentHeader.get('choice').replace(/^https?:\/\//, ''),
@@ -231,7 +231,7 @@
 		},
 
 		/**
-		 * Maybe remove old crop.
+		 * Removes an image's previous crop once it has been replaced.
 		 *
 		 * @param {Backbone.Model} model Model.
 		 */
@@ -255,7 +255,7 @@
 		},
 
 		/**
-		 * Maybe add random choice.
+		 * Adds the random choice once a single image is left.
 		 */
 		maybeAddRandomChoice: function() {
 			if (this.size() === 1) {
@@ -264,7 +264,7 @@
 		},
 
 		/**
-		 * Add random choice.
+		 * Adds the random image choice to the collection.
 		 *
 		 * @param {string} initialChoice Initial choice.
 		 */
@@ -286,7 +286,7 @@
 		},
 
 		/**
-		 * Is random choice?
+		 * Returns whether a choice is one of the random image choices.
 		 *
 		 * @param {string} choice Choice.
 		 * @return {boolean} Whether the choice is random.
@@ -296,7 +296,7 @@
 		},
 
 		/**
-		 * Should hide title?
+		 * Returns whether the list title should be hidden.
 		 *
 		 * @return {boolean} Whether the title should be hidden.
 		 */
@@ -305,7 +305,7 @@
 		},
 
 		/**
-		 * Set image.
+		 * Marks a single image as the selected one.
 		 *
 		 * @param {Backbone.Model} model Model.
 		 */
@@ -320,7 +320,7 @@
 		},
 
 		/**
-		 * Remove image.
+		 * Clears the selection.
 		 */
 		removeImage: function() {
 			this.each(function(m) {
@@ -342,7 +342,7 @@
 	 */
 	api.HeaderTool.DefaultsList = api.HeaderTool.ChoiceList.extend({
 		/**
-		 * Initialize.
+		 * Initializes the collection from the theme's default header images.
 		 */
 		initialize: function() {
 			this.type = 'default';

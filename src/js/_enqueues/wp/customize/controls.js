@@ -146,8 +146,8 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {string|wp.customize.Notification} notification  Notification object to add. Alternatively code may be supplied, and in that case the second notificationObject argument must be supplied.
-		 * @param {wp.customize.Notification} [notificationObject] Notification to add when first argument is the code string.
+		 * @param {string|wp.customize.Notification} notification         Notification object to add. Alternatively code may be supplied, and in that case the second notificationObject argument must be supplied.
+		 * @param {wp.customize.Notification}        [notificationObject] Notification to add when first argument is the code string.
 		 * @return {wp.customize.Notification} Added notification (or existing instance if it was already added).
 		 */
 		add: function( notification, notificationObject ) {
@@ -506,7 +506,7 @@
 	 * @since 4.7.0
 	 * @access public
 	 *
-	 * @param {Object} [options] Options.
+	 * @param {Object}  [options]               Options.
 	 * @param {boolean} [options.unsaved=false] Whether only values not saved yet into a changeset will be returned (differential changes).
 	 * @return {Object} Dirty setting values.
 	 */
@@ -4335,7 +4335,7 @@
 		/**
 		 * Open the media modal.
 		 *
-		 * @param {Object} event jQuery Event object
+		 * @param {JQuery.Event} event Event.
 		 */
 		openFrame: function( event ) {
 			if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
@@ -4400,7 +4400,7 @@
 		/**
 		 * Reset the setting to the default value.
 		 *
-		 * @param {Object} event jQuery Event object.
+		 * @param {JQuery.Event} event Event.
 		 */
 		restoreDefault: function( event ) {
 			if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
@@ -4415,7 +4415,7 @@
 		/**
 		 * Called when the "Remove" link is clicked. Empties the setting.
 		 *
-		 * @param {Object} event jQuery Event object.
+		 * @param {JQuery.Event} event Event.
 		 */
 		removeFile: function( event ) {
 			if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
@@ -4565,7 +4565,7 @@
 		/**
 		 * Open the media modal to the library state.
 		 *
-		 * @param {Object} event jQuery Event object.
+		 * @param {JQuery.Event} event Event.
 		 */
 		openFrame: function( event ) {
 			if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
@@ -4901,7 +4901,7 @@
 		/**
 		 * Called when the "Remove" link is clicked. Empties the setting.
 		 *
-		 * @param {Object} event jQuery Event object.
+		 * @param {JQuery.Event} event Event.
 		 */
 		removeFile: function( event ) {
 			if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
@@ -6564,9 +6564,9 @@
 		 * @param {string[]} params.allowedUrls An array of allowed URLs for the preview.
 		 * @param {string}   params.container   A selector or jQuery element for the preview
 		 *                                      frame to be placed.
-		 * @param {string} params.form 	        A selector or jQuery element for the form to be used for POSTing data to the preview frame.
-		 * @param {string} params.previewUrl    The URL to preview.
-		 * @param {Object} options              The options object.
+		 * @param {string}   params.form        A selector or jQuery element for the form to be used for POSTing data to the preview frame.
+		 * @param {string}   params.previewUrl  The URL to preview.
+		 * @param {Object}   options            The options object.
 		 */
 		initialize: function( params, options ) {
 			var previewer = this,
@@ -8313,8 +8313,8 @@
 			 *
 			 * @since 4.9.0
 			 *
-			 * @param {Object} [args]                      Args.
-			 * @param {Object} [args.lockUser]             Lock user data.
+			 * @param {Object}  [args]                     Args.
+			 * @param {Object}  [args.lockUser]            Lock user data.
 			 * @param {boolean} [args.allowOverride=false] Whether override is allowed.
 			 * @return {void}
 			 */

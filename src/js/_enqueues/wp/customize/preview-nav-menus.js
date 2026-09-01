@@ -98,7 +98,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			 * Constructor.
 			 *
 			 * @since 4.5.0
-			 * @param {string} id Partial ID.
+			 * @param {string} id                                          Partial ID.
 			 * @param {Object} [options]
 			 * @param {Object} [options.params]
 			 * @param {Object} [options.params.navMenuArgs]

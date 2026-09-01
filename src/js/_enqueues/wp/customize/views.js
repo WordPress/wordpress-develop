@@ -30,7 +30,7 @@
 		template: wp.template('header-current'),
 
 		/**
-		 * Initialize.
+		 * Initializes the view, rendering it whenever the model changes.
 		 */
 		initialize: function() {
 			this.listenTo(this.model, 'change', this.render);
@@ -38,7 +38,7 @@
 		},
 
 		/**
-		 * Render.
+		 * Renders the currently selected header image.
 		 *
 		 * @return {wp.customize.HeaderTool.CurrentView} Current view.
 		 */
@@ -49,7 +49,7 @@
 		},
 
 		/**
-		 * Set buttons.
+		 * Shows or hides the header's action buttons.
 		 */
 		setButtons: function() {
 			var elements = $('#customize-control-header_image .actions .remove');
@@ -94,7 +94,7 @@
 		},
 
 		/**
-		 * Initialize.
+		 * Initializes the view, marking it current when it matches the header image.
 		 */
 		initialize: function() {
 			var properties = [
@@ -110,7 +110,7 @@
 		},
 
 		/**
-		 * Render.
+		 * Renders the choice.
 		 *
 		 * @return {wp.customize.HeaderTool.ChoiceView} Choice view.
 		 */
@@ -122,14 +122,14 @@
 		},
 
 		/**
-		 * Toggle selected.
+		 * Toggles the selected class on the choice.
 		 */
 		toggleSelected: function() {
 			this.$el.toggleClass('selected', this.model.get('selected'));
 		},
 
 		/**
-		 * Extended model.
+		 * Returns the model's attributes together with its collection type.
 		 *
 		 * @return {Object} Extended model.
 		 */
@@ -141,7 +141,7 @@
 		},
 
 		/**
-		 * Select.
+		 * Selects the choice as the header image.
 		 */
 		select: function() {
 			this.preventJump();
@@ -150,7 +150,7 @@
 		},
 
 		/**
-		 * Prevent jump.
+		 * Keeps the sidebar at its current scroll position.
 		 */
 		preventJump: function() {
 			var container = $('.wp-full-overlay-sidebar-content'),
@@ -162,9 +162,9 @@
 		},
 
 		/**
-		 * Remove image.
+		 * Removes the image from the collection.
 		 *
-		 * @param {Event} e Event.
+		 * @param {JQuery.Event} e Event.
 		 */
 		removeImage: function(e) {
 			e.stopPropagation();
@@ -190,7 +190,7 @@
 	 */
 	api.HeaderTool.ChoiceListView = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.ChoiceListView.prototype */{
 		/**
-		 * Initialize.
+		 * Initializes the view, rendering it as the collection changes.
 		 */
 		initialize: function() {
 			this.listenTo(this.collection, 'add', this.addOne);
@@ -201,7 +201,7 @@
 		},
 
 		/**
-		 * Render.
+		 * Renders each choice in the collection.
 		 *
 		 * @return {wp.customize.HeaderTool.ChoiceListView} Choice list view.
 		 */
@@ -213,7 +213,7 @@
 		},
 
 		/**
-		 * Add one.
+		 * Renders a single choice into the list.
 		 *
 		 * @param {Backbone.Model} choice Choice.
 		 */
@@ -225,7 +225,7 @@
 		},
 
 		/**
-		 * Toggle list.
+		 * Shows or hides the list title and the random button.
 		 */
 		toggleList: function() {
 			var title = this.$el.parents().prev('.customize-control-title'),
@@ -253,7 +253,7 @@
 	 */
 	api.HeaderTool.CombinedList = wp.Backbone.View.extend(/** @lends wp.customize.HeaderTool.CombinedList.prototype */{
 		/**
-		 * Initialize.
+		 * Initializes the view with the collections to combine.
 		 *
 		 * @param {Backbone.Collection[]} collections Collections.
 		 */
@@ -263,7 +263,7 @@
 		},
 
 		/**
-		 * Propagate event.
+		 * Passes an event on to each of the combined collections.
 		 *
 		 * @param {string} event Event.
 		 * @param {*}      arg   Argument.
