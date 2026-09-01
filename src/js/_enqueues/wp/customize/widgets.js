@@ -1422,8 +1422,10 @@
 		/**
 		 * Respond to change in the expanded state.
 		 *
-		 * @param {boolean} expanded
-		 * @param {Object}  args     merged on top of this.defaultActiveArguments
+		 * @param {boolean}  expanded              The expanded state to transition to.
+		 * @param {Object}   args                  Object containing options for expand/collapse, merged on top of this.defaultExpandedArguments.
+		 * @param {boolean}  [args.unchanged]      Whether the expanded state is unchanged.
+		 * @param {Function} args.completeCallback Callback to be executed once the expand/collapse action is complete.
 		 */
 		onChangeExpanded: function ( expanded, args ) {
 			var self = this, $widget, $inside, complete, prevComplete, expandControl, $toggleBtn;

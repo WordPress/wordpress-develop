@@ -142,8 +142,7 @@ wp.customize.widgetsPreview = wp.customize.WidgetCustomizerPreview = (function( 
 		 * removed from the widget control.
 		 *
 		 * @inheritDoc
-		 * @param {wp.customize.selectiveRefresh.Placement} placement The placement
-		 *                                                            function.
+		 * @param {wp.customize.selectiveRefresh.Placement} placement The placement to render into.
 		 *
 		 * @return {void}
 		 */
