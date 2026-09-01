@@ -636,10 +636,8 @@ class WP_Theme_JSON {
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
 	 *
-	 * The order of the selectors should be: link, any-link, visited, hover, focus, focus-visible, active.
-	 * This is to ensure the user action (hover, focus and active) styles have a higher
-	 * specificity than the visited styles, which in turn have a higher specificity than
-	 * the unvisited styles.
+	 * The selector order controls the cascade when multiple states match. Link and button
+	 * selectors follow the LVHA order, with focus-visible immediately after focus.
 	 *
 	 * See https://core.trac.wordpress.org/ticket/56928.
 	 * Note: this will affect both top-level and block-level elements.
@@ -648,11 +646,13 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
 	 * @since 6.8.0 Added support for ':focus-visible'.
 	 * @since 6.9.0 Added `textInput` and `select` elements.
+	 * @since 7.2.0 Added support for text input pseudo-selectors.
 	 * @var array
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
-		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'link'      => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'button'    => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'textInput' => array( ':required', ':valid', ':invalid', ':focus', ':focus-visible', '::placeholder' ),
 	);
 
 	/**
@@ -4123,9 +4123,10 @@ class WP_Theme_JSON {
 			static::ELEMENTS[ $current_element ] === $selector
 		);
 
-		// 2. Generate and append the rules that use the general selector.
-		$general_selector = $element_only_selector ? $selector : ":root :where($selector)";
-		$block_rules     .= static::to_ruleset( $general_selector, $declarations );
+		// Pseudo-elements are not valid inside :where(), so output their selectors directly.
+		$is_pseudo_element = $pseudo_selector && str_starts_with( $pseudo_selector, '::' );
+		$general_selector  = $element_only_selector || $is_pseudo_element ? $selector : ":root :where($selector)";
+		$block_rules      .= static::to_ruleset( $general_selector, $declarations );
 
 		// 3. Generate and append the rules that use the duotone selector.
 		if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
