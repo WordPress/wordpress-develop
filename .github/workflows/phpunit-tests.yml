@@ -99,7 +99,7 @@ jobs:
       matrix:
         os: [ ubuntu-24.04 ]
         # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
-        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5","8.6"]') || fromJSON('["7.4","8.0","8.5","8.6"]') }}
+        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4', '9.7' ]
         tests-domain: [ 'example.org' ]
@@ -155,7 +155,6 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
-      allow-errors: ${{ matrix.php == '8.6' && true || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
@@ -191,8 +190,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major. PHP 8.6 is in pre-release and always tested.
-        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5","8.6"]') || fromJSON('["7.4","8.0","8.5","8.6"]') }}
+        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
+        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
         db-type: [ 'mariadb' ]
         db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
         multisite: [ false, true ]
@@ -221,7 +220,6 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: false
-      allow-errors: ${{ matrix.php == '8.6' && true || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
@@ -259,8 +257,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major. PHP 8.6 is in pre-release and always tested.
-        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5","8.6"]') || fromJSON('["7.4","8.0","8.5","8.6"]') }}
+        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
+        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '12.1' ]
         multisite: [ false, true ]
@@ -281,7 +279,6 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: false
-      allow-errors: ${{ matrix.php == '8.6' && true || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
@@ -315,7 +312,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '7.4', '8.0', '8.4', '8.6' ]
+        php: [ '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
         phpunit-test-groups: [ 'html-api-web-platform-tests' ]
@@ -326,7 +323,6 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
-      allow-errors: ${{ matrix.php == '8.6' && true || false }}
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
@@ -401,13 +397,56 @@ jobs:
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
+  # Runs the PHPUnit test suite with PHP 8.6.
+  #
+  # The number testing combinations is very limited because PHP 8.6 is still in beta/RC.
+  pre-release-php-8-6:
+    name: PHP 8.6
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: prepare-gutenberg
+    permissions:
+      contents: read
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.6' ]
+        db-version: [ '9.7', '11.8' ]
+        db-type: [ 'mysql', 'mariadb' ]
+        multisite: [ true, false ]
+
+        exclude:
+          - db-type: 'mysql'
+            db-version: '11.8'
+          - db-type: 'mariadb'
+            db-version: '9.7'
+
+    with:
+      php: ${{ matrix.php }}
+      db-version: ${{ matrix.db-version }}
+      db-type: ${{ matrix.db-type }}
+      multisite: ${{ matrix.multisite }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      allow-errors: true
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+
   slack-notifications:
     name: Slack Notifications
     uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
-    needs: [ prepare-gutenberg, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
+    needs: [ prepare-gutenberg, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks, pre-release-php-8-6 ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
