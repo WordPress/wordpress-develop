@@ -137,15 +137,8 @@ jobs:
       - name: Post-upgrade version check
         run: wp core version
 
-      # `wp core version` reads a string off the filesystem, and nothing else in this job makes an
-      # HTTP request, so a site that upgrades and then fatals on every page still reports green.
-      # Every assertion below is for something a working install must produce, not for the absence
-      # of an error string, which stops matching the moment the error is reworded.
-      #
-      # Multisite is excluded for now: the network domain is stored in `wp-config.php` and the
-      # `site` and `blogs` tables, and only `:80` and `:443` are stripped from the host when
-      # matching a network, so moving the site to another port takes more than an option update.
       - name: Post-upgrade smoke check
+        # A network keeps its domain in wp-config.php and the database, not just an option.
         if: ${{ ! inputs.multisite }}
         run: |
           wp option update home "${SITE_URL}"
