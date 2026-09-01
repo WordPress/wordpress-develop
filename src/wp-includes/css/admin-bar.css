@@ -1099,15 +1099,15 @@ html:lang(he-il) .rtl #wpadminbar * {
 		margin-right: 0;
 	}
 
+	#wpadminbar .menupop .menupop > .ab-item .wp-admin-bar-arrow:before {
+		top: 11px;
+	}
+
 	/* Realign arrows on taller responsive submenus */
 
 	#wpadminbar .ab-top-secondary .menupop .menupop > .ab-item .wp-admin-bar-arrow:before {
 		top: 10px;
 		left: 0;
-	}
-
-	#wpadminbar .menupop .menupop > .ab-item .wp-admin-bar-arrow:before {
-		top: 10px;
 	}
 }
 
