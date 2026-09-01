@@ -9434,7 +9434,7 @@ function wp_verify_fast_hash(
  * @since 7.2.0
  *
  * @param int   $user_id  The user ID.
- * @param array $new_item The created application password details.
+ * @param array $new_item The application password details.
  */
 function wp_application_password_created_notification( $user_id, $new_item ) {
 	$send = true;
@@ -9462,7 +9462,7 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 	 *
 	 * @param bool    $send  Whether to send the email notification.
 	 * @param WP_User $user  The user object.
-	 * @param array   $new_item The created application password details.
+	 * @param array   $new_item The application password details.
 	 */
 	$send = apply_filters( 'wp_send_application_password_created_email', $send, $user, $new_item );
 
@@ -9470,21 +9470,25 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 		return;
 	}
 
-	/* translators: Do not translate USER_DISPLAY_NAME, APPLICATION_PASSWORD_NAME, SITENAME, SITEURL: those are placeholders. */
+	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
-		'Hello ###USER_DISPLAY_NAME###,
+		'Hi ###USERNAME###,
 
-A new application password named "###APPLICATION_PASSWORD_NAME###" was added to your account on ###SITENAME###. This password allows access to your account via the REST API.
+A new application password was added to your account on ###SITENAME###. This password allows access to your account via the REST API.
 
-If you did not expect this, please review your account security and revoke the password immediately.
+If you did not expect this, please contact the Site Administrator at
+###ADMIN_EMAIL###
 
 Application password name: ###APPLICATION_PASSWORD_NAME###
 Site: ###SITEURL###
 
 You can manage your application passwords in your account settings.
 
+This email has been sent to ###EMAIL###
+
 Regards,
-###SITENAME###'
+All at ###SITENAME###
+###SITEURL###'
 	);
 
 	$email = array(
@@ -9499,30 +9503,32 @@ Regards,
 	$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
 	/**
-	 * Filters the contents of the email notification sent when a new application password is created.
+	 * Filters the contents of the email notification sent to a user when a new application password is created.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param array   $email {
 	 *     Used to build wp_mail().
 	 *
-	 *     @type string $to      The intended recipient.
+	 *     @type string $to      The email address of the intended recipient.
 	 *     @type string $subject The subject of the email.
 	 *     @type string $message The content of the email.
 	 *         The following strings have a special meaning and will get replaced dynamically:
-	 *          - `###USER_DISPLAY_NAME###` The user's display name.
+	 *          - `###USERNAME###`                  The user's display name.
 	 *          - `###APPLICATION_PASSWORD_NAME###` The name of the application password.
-	 *          - `###SITENAME###`  The name of the site.
-	 *          - `###SITEURL###`   The URL to the site.
+	 *          - `###EMAIL###`                     The user's email address.
+	 *          - `###SITENAME###`                  The name of the site.
+	 *          - `###SITEURL###`                   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
 	 * @param WP_User $user     The user object.
-	 * @param array   $new_item The created application password details.
+	 * @param array   $new_item The application password details.
 	 */
 	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
 
-	$email['message'] = str_replace( '###USER_DISPLAY_NAME###', $user->display_name, $email['message'] );
+	$email['message'] = str_replace( '###USERNAME###', $user->display_name, $email['message'] );
 	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
+	$email['message'] = str_replace( '###EMAIL###', $user->user_email, $email['message'] );
 	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
 	$email['message'] = str_replace( '###SITEURL###', home_url(), $email['message'] );
 
