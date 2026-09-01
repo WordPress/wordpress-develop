@@ -1405,6 +1405,7 @@ class WP_Rewrite {
 		$page_rewrite = apply_filters( 'page_rewrite_rules', $page_rewrite );
 
 		// Extra permastructs.
+		$permastruct_rewrite = array();
 		foreach ( $this->extra_permastructs as $permastructname => $struct ) {
 			if ( is_array( $struct ) ) {
 				if ( count( $struct ) === 2 ) {
@@ -1447,14 +1448,14 @@ class WP_Rewrite {
 				$rules = apply_filters_deprecated( 'tag_rewrite_rules', array( $rules ), '3.1.0', 'post_tag_rewrite_rules' );
 			}
 
-			$this->extra_rules_top = array_merge( $this->extra_rules_top, $rules );
+			$permastruct_rewrite = array_merge( $permastruct_rewrite, $rules );
 		}
 
 		// Put them together.
 		if ( $this->use_verbose_page_rules ) {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top + $permastruct_rewrite, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
 		} else {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top + $permastruct_rewrite, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
 		}
 
 		/**
