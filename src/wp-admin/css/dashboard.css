@@ -39,7 +39,7 @@
 }
 
 #dashboard-widgets-wrap {
-	overflow: hidden;
+	overflow: visible;
 	margin: 0 -8px;
 }
 
@@ -67,22 +67,32 @@
 }
 
 #dashboard-widgets .postbox-container .empty-container {
-	outline: 2px dashed rgb(0, 0, 0, 0.15);
-	outline-offset: -2px;
+	height: auto;
+	min-height: 100px;
+	outline: 3px dashed #8c8f94;
+	outline-offset: -3px;
 	border-radius: 8px;
-	height: 250px;
 	margin: 4px;
+}
+
+#dashboard-widgets .sortable-placeholder,
+.is-dragging-metaboxes #dashboard-widgets .meta-box-sortables {
+	outline: 3px dashed #8c8f94;
+	outline-offset: -3px;
+}
+
+#dashboard-widgets .sortable-placeholder {
+	box-sizing: border-box;
+	margin-bottom: 20px;
 }
 
 /* Only highlight drop zones when dragging. */
 .is-dragging-metaboxes #dashboard-widgets .meta-box-sortables {
 	border-radius: 8px;
-	background: rgb(var(--wp-admin-theme-color--rgb), 0.04);
+	/* Prevent margin on the child from collapsing with margin on the parent. */
+	background: transparent;
+	display: flow-root;
 	min-height: 100px;
-}
-
-.is-dragging-metaboxes #dashboard-widgets .postbox-container .empty-container {
-	background: rgb(0, 0, 0, 0.01);
 }
 
 #dashboard-widgets .postbox-container .empty-container:after {
