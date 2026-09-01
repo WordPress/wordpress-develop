@@ -1768,6 +1768,59 @@ function post_type_archive_title( $prefix = '', $display = true ) {
 }
 
 /**
+ * Displays or retrieves the description for a post type archive.
+ *
+ * This is optimized for archive.php and archive-{$post_type}.php template files
+ * for displaying the description of the post type.
+ *
+ * @since 7.1.0
+ *
+ * @param string $post_type Optional. Post type.
+ * @param bool   $display   Optional. Whether to display or retrieve description. Default true.
+ * @return string|void Description when retrieving, void when displaying or on failure.
+ */
+function post_type_archive_description( $post_type = '', $display = true ) {
+	if ( is_bool( $post_type ) ) {
+		$display   = $post_type;
+		$post_type = '';
+	}
+
+	if ( ! $post_type && ! is_post_type_archive() ) {
+		return;
+	}
+
+	if ( ! $post_type ) {
+		$post_type = get_query_var( 'post_type' );
+		if ( is_array( $post_type ) ) {
+			$post_type = reset( $post_type );
+		}
+	}
+
+	$post_type_obj = get_post_type_object( $post_type );
+	if ( ! $post_type_obj ) {
+		return;
+	}
+
+	$description = $post_type_obj->description;
+
+	/**
+	 * Filters the post type archive description.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $description Post type 'description' argument.
+	 * @param string $post_type   Post type.
+	 */
+	$description = apply_filters( 'post_type_archive_description', $description, $post_type );
+
+	if ( $display ) {
+		echo $description;
+	} else {
+		return $description;
+	}
+}
+
+/**
  * Displays or retrieves page title for category archive.
  *
  * Useful for category template files for displaying the category page title.
