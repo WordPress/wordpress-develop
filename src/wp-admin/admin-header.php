@@ -134,7 +134,8 @@ wp_print_inline_script_tag(
 				'thousandsSeparator' => $wp_locale->number_format['thousands_sep'],
 				'decimalPoint'       => $wp_locale->number_format['decimal_point'],
 				'isRtl'              => (int) is_rtl(),
-			)
+			),
+			0 | JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS
 		)
 	)
 );

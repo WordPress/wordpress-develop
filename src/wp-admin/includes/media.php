@@ -658,7 +658,9 @@ function wp_iframe( $content_func, ...$args ) {
 	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js <?php echo 'admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' ); ?>">
 	<?php
 	wp_print_inline_script_tag(
-		"document.body.className = document.body.className.replace('no-js', 'js');"
+		<<<'JS'
+		document.body.className = document.body.className.replace( 'no-js', 'js' );
+		JS
 	);
 
 	call_user_func_array( $content_func, $args );
@@ -667,7 +669,15 @@ function wp_iframe( $content_func, ...$args ) {
 	do_action( 'admin_print_footer_scripts' );
 
 	?>
-	<?php wp_print_inline_script_tag( "if(typeof wpOnload==='function')wpOnload();" ); ?>
+	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		if( typeof wpOnload === 'function' ) {
+			wpOnload();
+		}
+		JS
+	);
+	?>
 	</body>
 	</html>
 	<?php
@@ -865,7 +875,9 @@ function media_upload_form_handler() {
 
 	if ( isset( $_POST['insert-gallery'] ) || isset( $_POST['update-gallery'] ) ) {
 		wp_print_inline_script_tag(
-			"var win = window.dialogArguments || opener || parent || top;\n\t\twin.tb_remove();"
+			<<<'JS'
+			( window.dialogArguments || opener || parent || top ).tb_remove();
+			JS
 		);
 
 		exit;
@@ -2122,7 +2134,9 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 function media_upload_header() {
 	$post_id = isset( $_REQUEST['post_id'] ) ? (int) $_REQUEST['post_id'] : 0;
 
-	wp_print_inline_script_tag( 'post_id = ' . $post_id . ';' );
+	wp_print_inline_script_tag(
+		sprintf( 'var post_id = %s;', wp_json_encode( $post_id ) )
+	);
 
 	if ( empty( $_GET['chromeless'] ) ) {
 		echo '<div id="media-upload-header">';
@@ -2286,8 +2300,17 @@ function media_upload_form( $errors = null ) {
 	}
 
 	wp_print_inline_script_tag(
-		"var resize_height = {$large_size_h}, resize_width = {$large_size_w},\n"
-		. 'wpUploaderInit = ' . wp_json_encode( $plupload_init, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';'
+		sprintf(
+			'Object.assign( window, %s );',
+			wp_json_encode(
+				array(
+					'resize_height'  => $large_size_h,
+					'resize_width'   => $large_size_w,
+					'wpUploaderInit' => $plupload_init,
+				),
+				0 | JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS
+			)
+		)
 	);
 	?>
 
