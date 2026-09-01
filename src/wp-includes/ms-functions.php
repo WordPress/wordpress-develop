@@ -968,9 +968,9 @@ function wpmu_signup_blog_notification(
 
 	// Send email with activation link.
 	if ( ! is_subdomain_install() || get_current_network_id() !== 1 ) {
-		$activate_url = network_site_url( "wp-activate.php?key=$key" );
+		$activate_url = network_site_url( "wp-activate.php?key=$key&new_blog=1" );
 	} else {
-		$activate_url = "http://{$domain}{$path}wp-activate.php?key=$key"; // @todo Use *_url() API.
+		$activate_url = "http://{$domain}{$path}wp-activate.php?key=$key&new_blog=1"; // @todo Use *_url() API.
 	}
 
 	$activate_url = esc_url( $activate_url );
