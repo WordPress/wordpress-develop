@@ -155,6 +155,55 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_signon() unslashes the password from $_POST.
+	 *
+	 * @ticket 13655
+	 */
+	public function test_wp_signon_unslashes_password() {
+		$password = "pa'ss";
+		wp_set_password( $password, $this->user->ID );
+
+		$_POST['log']  = $this->user->user_login;
+		$_POST['pwd']  = wp_slash( $password );
+		$_POST['test'] = 1;
+
+		$authed_user = wp_signon();
+
+		unset( $_POST['log'], $_POST['pwd'], $_POST['test'] );
+
+		$this->assertNotWPError( $authed_user );
+		$this->assertInstanceOf( 'WP_User', $authed_user );
+		$this->assertSame( $this->user->ID, $authed_user->ID );
+	}
+
+	/**
+	 * Tests that a password hashed with slashes intact is migrated on login.
+	 *
+	 * @ticket 13655
+	 */
+	public function test_slashed_password_hash_is_migrated_on_login() {
+		$password = "pa'ss";
+
+		// Simulate a legacy hash of the slashed password.
+		$slashed_hash = wp_hash_password( wp_slash( $password ) );
+		wp_update_user(
+			array(
+				'ID'        => $this->user->ID,
+				'user_pass' => $slashed_hash,
+			)
+		);
+
+		$authed_user = wp_authenticate( $this->user->user_login, $password );
+
+		$this->assertNotWPError( $authed_user );
+		$this->assertSame( $this->user->ID, $authed_user->ID );
+
+		// The hash should now be of the unslashed password.
+		$user = get_user_by( 'id', $this->user->ID );
+		$this->assertTrue( wp_check_password( $password, $user->user_pass, $user->ID ) );
+	}
+
+	/**
 	 * Tests hooking into wp_set_password().
 	 *
 	 * @ticket 57436
