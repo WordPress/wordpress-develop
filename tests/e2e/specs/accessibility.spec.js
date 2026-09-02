@@ -10,7 +10,7 @@ const ignoresAndknownFalsePositives = require( '../utils/accessibility-ignores-a
  * See: https://github.com/dequelabs/axe-core/blob/master/doc/API.md#options-parameter
  */
 const globalRules = {
-	runOnly: [ 'wcag2a', 'wcag2aa' ],
+	runOnly: [ 'wcag2a', 'wcag2aa', 'best-practice' ],
 };
 
 /**
