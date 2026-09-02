@@ -4685,6 +4685,12 @@ function wp_send_json_error( $value = null, $status_code = null, $flags = 0 ) {
 						'message' => $message,
 					);
 				}
+				if ( is_null( $status_code ) ) {
+					$error_data = $value->get_error_data( $code );
+					if ( ! empty( $error_data['status'] ) ) {
+						$status_code = $error_data['status'];
+					}
+				}
 			}
 
 			$response['data'] = $result;
