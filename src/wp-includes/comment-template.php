@@ -955,6 +955,11 @@ function comments_number( $zero = false, $one = false, $more = false, $post = 0 
  * @param string|false $more Optional. Text for more than one comment. Default false.
  * @param int|WP_Post  $post Optional. Post ID or WP_Post object. Default is the global `$post`.
  * @return string Language string for the number of comments a post has.
+ *
+ * When comment number declension is enabled for the locale, a `$more` string whose visible
+ * text is a single word accompanying the % placeholder (for example '% Comments') is rewritten
+ * using the correct plural form for the count. All other strings have only the % character
+ * replaced with the number.
  */
 function get_comments_number_text( $zero = false, $one = false, $more = false, $post = 0 ) {
 	$comments_number = (int) get_comments_number( $post );
@@ -978,7 +983,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 				$text = trim( strip_tags( $text ), '% ' );
 
 				// Replace '% Comments' with a proper plural form.
-				if ( $text && ! preg_match( '/[0-9]+/', $text ) && str_contains( $more, '%' ) ) {
+				if ( $text && ! preg_match( '/[0-9]+/', $text ) && ! preg_match( '/\s/', $text ) && str_contains( $more, '%' ) ) {
 					/* translators: %s: Number of comments. */
 					$new_text = _n( '%s Comment', '%s Comments', $comments_number );
 					$new_text = trim( sprintf( $new_text, '' ) );
