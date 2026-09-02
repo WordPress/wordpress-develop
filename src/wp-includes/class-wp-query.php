@@ -1859,8 +1859,12 @@ class WP_Query {
 			return true;
 		}
 
-		// Seeded random, for example 'RAND(5)', is handled by parse_orderby().
-		return 1 === preg_match( '/^RAND\(\s*[0-9]*\s*\)$/i', $orderby );
+		/*
+		 * Random ordering with a seed, for example 'RAND(5)'. The seed is there to get
+		 * the same shuffle back on every page, which a sort on ID afterwards would undo.
+		 * Matches the pattern parse_orderby() accepts the seed with.
+		 */
+		return 1 === preg_match( '/RAND\(([0-9]+)\)/i', $orderby );
 	}
 
 	/**

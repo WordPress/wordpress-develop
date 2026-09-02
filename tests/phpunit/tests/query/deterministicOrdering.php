@@ -367,8 +367,32 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 */
 	public function data_random_orderby() {
 		return array(
-			'unseeded' => array( 'rand' ),
-			'seeded'   => array( 'RAND(5)' ),
+			'unseeded'             => array( 'rand' ),
+			'seeded'               => array( 'RAND(5)' ),
+			'seeded with zero'     => array( 'RAND(0)' ),
+			'seeded, lower case'   => array( 'rand(5)' ),
+			'seeded, large number' => array( 'RAND(99999999999)' ),
+		);
+	}
+
+	/**
+	 * A seed returns the same shuffle on every page.
+	 *
+	 * @ticket 44349
+	 */
+	public function test_a_random_seed_gives_the_same_order_each_time() {
+		$args = array(
+			'post_type'      => 'page',
+			'post__in'       => self::$menu_order_ids,
+			'orderby'        => 'RAND(5)',
+			'posts_per_page' => 5,
+			'paged'          => 1,
+		);
+
+		$this->assertSame(
+			$this->get_page_of_ids( $args ),
+			$this->get_page_of_ids( $args ),
+			'A seeded random order changed between two runs of the same query'
 		);
 	}
 
