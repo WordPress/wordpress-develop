@@ -1838,22 +1838,22 @@ class WP_Query {
 	/**
 	 * Determines whether an 'orderby' value already puts posts in a fixed sequence.
 	 *
-	 * True for the ID and for an explicit list of IDs, which give every post a
-	 * distinct position, and for random ordering, where sorting by ID afterwards
-	 * would either change nothing or undo a seeded shuffle.
+	 * True for the ID, for an explicit list of IDs, and for random ordering, where
+	 * an ID clause would either change nothing or undo a seeded shuffle.
+	 *
+	 * Not true for 'post_parent__in' or 'post_name__in': several posts can share
+	 * one parent, or one slug across post types, so those orderings can tie.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $orderby Single 'orderby' value, before it is parsed into SQL.
-	 * @return bool Whether an ID clause would make any difference.
+	 * @return bool Whether the ordering is already determinate, making an ID clause unnecessary.
 	 */
 	protected function is_orderby_id( $orderby ) {
 		$orderby_id = array(
 			'ID',
 			'rand',
 			'post__in',
-			'post_name__in',
-			'post_parent__in',
 		);
 
 		if ( in_array( $orderby, $orderby_id, true ) ) {
@@ -2622,7 +2622,12 @@ class WP_Query {
 			 * pages at once or be missed entirely.
 			 */
 			if ( ! $found_orderby_id ) {
-				$orderby_array[] = "{$wpdb->posts}.ID " . $this->parse_order( $last_order );
+				/*
+				 * $last_order is already 'ASC', 'DESC', or '' here. Blank stays blank:
+				 * 'order' is forced empty for the FIELD()-based orderings, whose clauses
+				 * sort implicitly ascending, and the ID should sort the same way.
+				 */
+				$orderby_array[] = trim( "{$wpdb->posts}.ID " . $last_order );
 			}
 
 			$orderby = trim( implode( ', ', $orderby_array ) );

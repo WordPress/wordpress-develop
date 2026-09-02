@@ -418,6 +418,90 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ordering by a list of parents or slugs still gets the ID clause.
+	 *
+	 * Unlike post__in, these lists do not order posts uniquely: several posts can
+	 * share one parent, or one slug across post types.
+	 *
+	 * @ticket 44349
+	 */
+	public function test_field_orderings_get_the_id_clause() {
+		$parent = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'FIELD parent',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent,
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent,
+			)
+		);
+
+		$query = new WP_Query(
+			array(
+				'post_type'       => 'page',
+				'post_parent__in' => array( $parent ),
+				'orderby'         => 'post_parent__in',
+				'posts_per_page'  => 5,
+			)
+		);
+
+		global $wpdb;
+		preg_match( '/ORDER BY(.*?)LIMIT/s', $query->request, $matches );
+
+		$this->assertStringContainsString( "FIELD( {$wpdb->posts}.post_parent,", $matches[1] );
+		$this->assertStringContainsString( "{$wpdb->posts}.ID", $matches[1] );
+	}
+
+	/**
+	 * Paging posts that all share one parent returns each post exactly once.
+	 *
+	 * FIELD( wp_posts.post_parent, ... ) gives every child of the same parent the
+	 * same sort value, so without the ID clause the whole result set is one tie.
+	 *
+	 * @ticket 44349
+	 */
+	public function test_paging_by_post_parent__in_returns_each_post_once() {
+		$parent = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Shared parent',
+			)
+		);
+
+		$children = array();
+		for ( $i = 1; $i <= 12; $i++ ) {
+			$children[] = self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_title'  => "Child $i",
+					'post_parent' => $parent,
+				)
+			);
+		}
+
+		$this->assertPagesDoNotRepeatPosts(
+			array(
+				'post_type'       => 'page',
+				'post_parent__in' => array( $parent ),
+				'orderby'         => 'post_parent__in',
+			),
+			5,
+			3,
+			12,
+			'Ordering by post_parent__in'
+		);
+	}
+
+	/**
 	 * An 'orderby' of 'none' still produces no ORDER BY.
 	 *
 	 * @ticket 44349
