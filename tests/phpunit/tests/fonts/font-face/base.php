@@ -69,6 +69,7 @@ abstract class WP_Font_Face_UnitTestCase extends WP_UnitTestCase {
 	public static function tear_down_after_class() {
 		// Reset static flags.
 		self::$requires_switch_theme_fixtures = false;
+		self::$theme_root                     = null;
 
 		parent::tear_down_after_class();
 	}

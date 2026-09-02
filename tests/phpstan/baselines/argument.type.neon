@@ -29,26 +29,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/admin-header.php
 		-
-			message: '#^Parameter \#1 \$post of function get_edit_post_link expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/comment.php
-		-
-			message: '#^Parameter \#1 \$post of function get_post_status expects int\|WP_Post\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/comment.php
-		-
-			message: '#^Parameter \#1 \$post of function get_the_title expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/comment.php
-		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects float\|int\|string, bool given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/customize.php
-		-
 			message: '#^Parameter \#1 \$position of function wp_comment_reply expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -58,16 +38,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-admin/edit-form-advanced.php
-		-
-			message: '#^Parameter \#1 \$post of function get_edit_post_link expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/edit-form-comment.php
-		-
-			message: '#^Parameter \#1 \$post of function get_the_title expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-admin/edit-form-comment.php
 		-
 			message: '#^Parameter \#1 \$screen of function do_meta_boxes expects string\|WP_Screen, null given\.$#'
 			identifier: argument.type
@@ -97,11 +67,6 @@ parameters:
 			message: '#^Parameter \#1 \$attachment of function wp_get_attachment_id3_keys expects WP_Post, stdClass given\.$#'
 			identifier: argument.type
 			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
-			message: '#^Parameter \#1 \$comment_id of function _wp_ajax_delete_comment_response expects int, string given\.$#'
-			identifier: argument.type
-			count: 2
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
 			message: '#^Parameter \#2 \$compare_from of function wp_get_revision_ui_diff expects int, string given\.$#'
@@ -144,16 +109,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
 		-
-			message: '#^Parameter \#1 \$post of function post_password_required expects int\|WP_Post\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-comments-list-table.php
-		-
-			message: '#^Parameter \#3 \$post of function get_comment_class expects int\|WP_Post\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-comments-list-table.php
-		-
 			message: '#^Parameter \#3 \$number of function _nx expects int, float given\.$#'
 			identifier: argument.type
 			count: 1
@@ -183,21 +138,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-upgrader.php
-		-
-			message: '#^Parameter \#1 \$post of function _draft_or_post_title expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/dashboard.php
-		-
-			message: '#^Parameter \#1 \$post of function get_the_permalink expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/dashboard.php
-		-
-			message: '#^Parameter \#1 \$post of function post_password_required expects int\|WP_Post\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/dashboard.php
 		-
 			message: '#^Parameter \#3 \$name of function submit_button expects string, false given\.$#'
 			identifier: argument.type
@@ -369,7 +309,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/template.php
 		-
-			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, stdClass given\.$#'
+			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, object\{language\: string, version\: string, updated\: string, english_name\: string, native_name\: string, package\: string, iso\: array\<string\>, strings\: array\}&stdClass given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/translation-install.php
@@ -449,11 +389,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/network/site-users.php
 		-
-			message: '#^Parameter \#1 \$text of function esc_attr expects float\|int\|string, bool given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/options-general.php
-		-
 			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(mixed\)\: bool\)\|null, ''validate_file'' given\.$#'
 			identifier: argument.type
 			count: 1
@@ -489,11 +424,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/functions.php
 		-
-			message: '#^Parameter \#1 \$comment of function get_comment_link expects int\|WP_Comment\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyeleven/functions.php
-		-
 			message: '#^Parameter \#1 \$size of function next_image_link expects array\<int\>\|string, false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -509,7 +439,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
 		-
-			message: '#^Parameter \#3 \$args of function register_setting expects array, string given\.$#'
+			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: \(callable\(\)\: mixed\)\|null, show_in_rest\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
@@ -629,11 +559,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyten/functions.php
 		-
-			message: '#^Parameter \#1 \$comment of function get_comment_link expects int\|WP_Comment\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyten/functions.php
-		-
 			message: '#^Parameter \#1 \$wp_head_callback of function add_custom_image_header expects callable\(\)\: mixed, '''' given\.$#'
 			identifier: argument.type
 			count: 1
@@ -695,11 +620,6 @@ parameters:
 			path: ../../../src/wp-content/themes/twentytwelve/content.php
 		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentytwelve/functions.php
-		-
-			message: '#^Parameter \#1 \$comment of function get_comment_link expects int\|WP_Comment\|null, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentytwelve/functions.php
@@ -799,22 +719,22 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-block-parser.php
 		-
-			message: '#^Parameter \#1 \$child_id of method WP_Comment\:\:get_child\(\) expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-comment-query.php
-		-
-			message: '#^Parameter \#1 \$ids of function _prime_post_caches expects array\<int\>, list\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-comment-query.php
-		-
 			message: '#^Parameter \#1 \$ajax_message of method WP_Customize_Manager\:\:wp_die\(\) expects string\|WP_Error, int given\.$#'
 			identifier: argument.type
 			count: 6
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
+			message: '#^Parameter \#1 \$args of method WP_Customize_Manager\:\:get_changeset_posts\(\) expects array\{posts_per_page\?\: int, author\?\: int, post_status\?\: string, exclude_restore_dismissed\?\: bool, \.\.\.\}, array\{post_status\: array\<non\-falsy\-string, non\-falsy\-string\>, exclude_restore_dismissed\: false, author\: ''any'', posts_per_page\: 1, order\: ''DESC'', orderby\: ''date''\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-customize-manager.php
+		-
 			message: '#^Parameter \#1 \$month of function wp_checkdate expects int, \(string\|false\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-customize-manager.php
+		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\|string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
@@ -853,6 +773,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-duotone.php
+		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/class-wp-embed.php
 		-
 			message: '#^Parameter \#3 \$value of function curl_setopt expects int, string given\.$#'
 			identifier: argument.type
@@ -904,21 +829,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-site.php
 		-
-			message: '#^Parameter \#1 \$metadata of method WP_Theme_JSON\:\:get_feature_declarations_for_node\(\) expects object, array given\.$#'
-			identifier: argument.type
-			count: 4
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Parameter \#1 \$node of method WP_Theme_JSON\:\:process_pseudo_selectors\(\) expects array, object given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
-			message: '#^Parameter \#1 \$styles of static method WP_Theme_JSON\:\:compute_style_properties\(\) expects array, object given\.$#'
-			identifier: argument.type
-			count: 3
-			path: ../../../src/wp-includes/class-wp-theme-json.php
-		-
 			message: '#^Parameter \#2 \$data of method WP_Theme\:\:cache_add\(\) expects array\|string, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -939,7 +849,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php
 		-
-			message: '#^Parameter \#1 \$post of function get_the_title expects int\|WP_Post, string given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: int\|string, post_date_gmt\: int\|string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
@@ -954,45 +864,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
 		-
-			message: '#^Parameter \#1 \$comment_id of function get_page_of_comment expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/comment-template.php
-		-
-			message: '#^Parameter \#1 \$post of function get_permalink expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/comment-template.php
-		-
-			message: '#^Parameter \#1 \$post of function post_password_required expects int\|WP_Post\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/comment-template.php
-		-
 			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/comment-template.php
-		-
-			message: '#^Parameter \#1 \$comment of function get_comment_link expects int\|WP_Comment\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/comment.php
-		-
-			message: '#^Parameter \#1 \$comment_id of function add_comment_meta expects int, string given\.$#'
-			identifier: argument.type
-			count: 5
-			path: ../../../src/wp-includes/comment.php
-		-
-			message: '#^Parameter \#1 \$comment_id of function delete_comment_meta expects int, string given\.$#'
-			identifier: argument.type
-			count: 8
-			path: ../../../src/wp-includes/comment.php
-		-
-			message: '#^Parameter \#1 \$comment_id of function get_comment_text expects int\|WP_Comment, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/comment.php
 		-
 			message: '#^Parameter \#1 \$comment_id of function get_page_of_comment expects int, string given\.$#'
 			identifier: argument.type
@@ -1009,22 +884,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/comment.php
 		-
-			message: '#^Parameter \#1 \$ids of function clean_comment_cache expects array\|int, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/comment.php
-		-
-			message: '#^Parameter \#1 \$post_id of function wp_update_comment_count expects int\|null, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/comment.php
-		-
 			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/comment.php
-		-
-			message: '#^Parameter \#2 \$object_ids of function update_meta_cache expects array\<int\>\|string, list\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/comment.php
@@ -1058,11 +918,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/feed-rss2.php
-		-
-			message: '#^Parameter \#1 \$post of function get_the_guid expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/feed.php
 		-
 			message: '#^Parameter \#2 \$message of class WP_Error constructor expects string, list\<string\> given\.$#'
 			identifier: argument.type
@@ -1154,11 +1009,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
 		-
-			message: '#^Parameter \#4 \$length of function substr_compare expects int, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
 			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1239,6 +1089,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/nav-menu.php
 		-
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{menu_order\: mixed, ping_status\: 0, post_content\: mixed, post_excerpt\: mixed, post_parent\: int\|string\|WP_Error\|null, post_title\: mixed, post_type\: ''nav_menu_item'', post_date\?\: non\-falsy\-string, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/nav-menu.php
+		-
 			message: '#^Parameter \#2 \$value of function setcookie expects string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1252,16 +1107,6 @@ parameters:
 			message: '#^Parameter \#1 \$number of function number_format_i18n expects float, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
-			path: ../../../src/wp-includes/pluggable.php
-		-
-			message: '#^Parameter \#1 \$post of function get_edit_post_link expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/pluggable.php
-		-
-			message: '#^Parameter \#1 \$post of function get_permalink expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 4
 			path: ../../../src/wp-includes/pluggable.php
 		-
 			message: '#^Parameter \#1 \$user of function user_can expects int\|WP_User, string given\.$#'
@@ -1278,6 +1123,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/pluggable.php
+		-
+			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/post-template.php
 		-
 			message: '#^Parameter \#1 \$attachment of function is_attachment expects array\<int\|string\>\|int\|string, WP_Post given\.$#'
 			identifier: argument.type
@@ -1386,38 +1236,13 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$data_object of method WP_REST_Controller\:\:update_additional_fields_for_object\(\) expects object, array given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php
 		-
-			message: '#^Parameter \#1 \$comment_id of function get_comment_type expects int\|WP_Comment, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
-		-
-			message: '#^Parameter \#1 \$comment_id of function wp_delete_comment expects int\|WP_Comment, string given\.$#'
+			message: '#^Parameter \#1 \$data_object of method WP_REST_Controller\:\:update_additional_fields_for_object\(\) expects object, array\<string, int\|string\|null\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
-		-
-			message: '#^Parameter \#1 \$comment_id of function wp_trash_comment expects int\|WP_Comment, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
-		-
-			message: '#^Parameter \#1 \$object_id of method WP_REST_Meta_Fields\:\:get_value\(\) expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
-		-
-			message: '#^Parameter \#2 \$comment_id of method WP_REST_Comments_Controller\:\:handle_status_param\(\) expects int, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
-		-
-			message: '#^Parameter \#2 \$object_id of method WP_REST_Meta_Fields\:\:update_value\(\) expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
+			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php
 		-
 			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int given\.$#'
 			identifier: argument.type
@@ -1579,6 +1404,11 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/user.php
 		-
+			message: '#^Parameter \#1 \$args of function register_sidebar expects array\{name\?\: string, id\?\: string, description\?\: string, class\?\: string, before_widget\?\: string, after_widget\?\: string, before_title\?\: string, after_title\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array\<int\|string, array\<mixed\>\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/widgets.php
+		-
 			message: '#^Parameter \#3 \$control_callback of function wp_register_widget_control expects callable\(\)\: mixed, '''' given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1588,8 +1418,3 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/widgets.php
-		-
-			message: '#^Parameter \#1 \$post of function get_the_title expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/widgets/class-wp-widget-recent-comments.php
