@@ -66,7 +66,7 @@ class WP_Sitemaps {
 		// These will all fire on the init hook.
 		$this->register_rewrites();
 
-		add_action( 'template_redirect', array( $this, 'render_sitemaps' ) );
+		add_action( 'parse_request', array( $this, 'render_sitemaps' ) );
 
 		if ( ! $this->sitemaps_enabled() ) {
 			return;
@@ -159,14 +159,33 @@ class WP_Sitemaps {
 	 * @since 5.5.0
 	 *
 	 * @global WP_Query $wp_query WordPress Query object.
+	 *
+	 * @param WP|null $wp Optional. Current WordPress environment instance.
 	 */
-	public function render_sitemaps() {
+	public function render_sitemaps( $wp = null ) {
 		global $wp_query;
 
-		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
-		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
-		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
-		$paged           = absint( get_query_var( 'paged' ) );
+		$query_vars = $wp instanceof WP ? $wp->query_vars : $wp_query->query_vars;
+
+		$sitemap = '';
+		if ( ! empty( $query_vars['sitemap'] ) && is_scalar( $query_vars['sitemap'] ) ) {
+			$sitemap = sanitize_text_field( $query_vars['sitemap'] );
+		}
+
+		$object_subtype = '';
+		if ( ! empty( $query_vars['sitemap-subtype'] ) && is_scalar( $query_vars['sitemap-subtype'] ) ) {
+			$object_subtype = sanitize_text_field( $query_vars['sitemap-subtype'] );
+		}
+
+		$stylesheet_type = '';
+		if ( ! empty( $query_vars['sitemap-stylesheet'] ) && is_scalar( $query_vars['sitemap-stylesheet'] ) ) {
+			$stylesheet_type = sanitize_text_field( $query_vars['sitemap-stylesheet'] );
+		}
+
+		$paged = 0;
+		if ( ! empty( $query_vars['paged'] ) && is_scalar( $query_vars['paged'] ) ) {
+			$paged = absint( $query_vars['paged'] );
+		}
 
 		// Bail early if this isn't a sitemap or stylesheet route.
 		if ( ! ( $sitemap || $stylesheet_type ) ) {
@@ -176,7 +195,16 @@ class WP_Sitemaps {
 		if ( ! $this->sitemaps_enabled() ) {
 			$wp_query->set_404();
 			status_header( 404 );
+
+			if ( $wp instanceof WP ) {
+				exit;
+			}
+
 			return;
+		}
+
+		if ( $wp instanceof WP ) {
+			$this->redirect_sitemap_to_canonical_url( $sitemap, $object_subtype, $stylesheet_type, $paged );
 		}
 
 		// Render stylesheet if this is stylesheet route.
@@ -198,6 +226,13 @@ class WP_Sitemaps {
 		$provider = $this->registry->get_provider( $sitemap );
 
 		if ( ! $provider ) {
+			$wp_query->set_404();
+			status_header( 404 );
+
+			if ( $wp instanceof WP ) {
+				exit;
+			}
+
 			return;
 		}
 
@@ -211,11 +246,80 @@ class WP_Sitemaps {
 		if ( empty( $url_list ) ) {
 			$wp_query->set_404();
 			status_header( 404 );
+
+			if ( $wp instanceof WP ) {
+				exit;
+			}
+
 			return;
 		}
 
 		$this->renderer->render_sitemap( $url_list );
 		exit;
+	}
+
+	/**
+	 * Redirects sitemap requests to their canonical URL.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param string $sitemap         Sitemap name.
+	 * @param string $object_subtype  Sitemap object subtype.
+	 * @param string $stylesheet_type Sitemap stylesheet type.
+	 * @param int    $paged           Sitemap page number.
+	 */
+	private function redirect_sitemap_to_canonical_url( $sitemap, $object_subtype, $stylesheet_type, $paged ) {
+		global $wp_rewrite;
+
+		if (
+			! $wp_rewrite->using_permalinks()
+			|| empty( $_SERVER['HTTP_HOST'] )
+			|| ! is_scalar( $_SERVER['HTTP_HOST'] )
+			|| empty( $_SERVER['REQUEST_URI'] )
+			|| ! is_scalar( $_SERVER['REQUEST_URI'] )
+		) {
+			return;
+		}
+
+		$redirect_url = '';
+
+		if ( $sitemap ) {
+			$redirect_url = get_sitemap_url( $sitemap, $object_subtype, $paged );
+		} elseif ( 'sitemap' === $stylesheet_type ) {
+			$redirect_url = home_url( '/wp-sitemap.xsl' );
+		} elseif ( 'index' === $stylesheet_type ) {
+			$redirect_url = home_url( '/wp-sitemap-index.xsl' );
+		}
+
+		if ( ! $redirect_url ) {
+			return;
+		}
+
+		$request_uri  = (string) wp_unslash( $_SERVER['REQUEST_URI'] );
+		$query_string = wp_parse_url( $request_uri, PHP_URL_QUERY );
+
+		if ( is_string( $query_string ) && '' !== $query_string ) {
+			wp_parse_str( $query_string, $query_args );
+			$redirect_url = add_query_arg(
+				array_diff_key(
+					$query_args,
+					array_flip( array( 'sitemap', 'sitemap-subtype', 'sitemap-stylesheet', 'paged' ) )
+				),
+				$redirect_url
+			);
+		}
+
+		$requested_url  = is_ssl() ? 'https://' : 'http://';
+		$requested_url .= (string) wp_unslash( $_SERVER['HTTP_HOST'] );
+		$requested_url .= $request_uri;
+
+		if ( $requested_url === $redirect_url ) {
+			return;
+		}
+
+		if ( wp_redirect( $redirect_url, 301 ) ) {
+			exit;
+		}
 	}
 
 	/**
