@@ -20,7 +20,7 @@
  * Becomes:
  *
  *     &#8217;cause today&#8217;s effort makes it worth tomorrow&#8217;s &#8220;holiday&#8221; &#8230;
- *
+ *f
  * Code within certain HTML blocks are skipped.
  *
  * Do not use this function before the {@see 'init'} action hook; everything will break.
@@ -5664,18 +5664,13 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
  * @return string Sanitized string.
  */
 function sanitize_text_field( $str ) {
-	$filtered = _sanitize_text_fields( $str, false );
+ if ( ! is_string( $str ) ) {
+        return '';
+    }
 
-	/**
-	 * Filters a sanitized text field string.
-	 *
-	 * @since 2.9.0
-	 *
-	 * @param string $filtered The sanitized string.
-	 * @param string $str      The string prior to being sanitized.
-	 */
-	return apply_filters( 'sanitize_text_field', $filtered, $str );
-}
+    $filtered = _sanitize_text_fields( $str, false );
+    return apply_filters( 'sanitize_text_field', $filtered, $str );
+}	
 
 /**
  * Sanitizes a multiline string from user input or from the database.
