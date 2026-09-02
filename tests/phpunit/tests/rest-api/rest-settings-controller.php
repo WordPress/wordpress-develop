@@ -796,4 +796,111 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'Site title.', $title['description'] );
 		$this->assertNull( $title['default'] );
 	}
+
+	/**
+	 * Test that sending an empty body returns 400.
+	 *
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_empty_body_returns_400() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_body( '' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_empty_request', $response, 400 );
+	}
+
+	/**
+	 * Test that sending ONLY internal params (like _locale) still returns 400
+	 * because no actual settings were changed.
+	 *
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_only_internal_params_returns_400() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_query_params( array( '_locale' => 'en_US' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_empty_request', $response, 400 );
+	}
+
+	/**
+	 * Test that sending a mix of valid settings and invalid parameters returns 400.
+	 *
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_mixed_valid_and_invalid_params_returns_400() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_query_params( array( 'title' => 'New Title' ) );
+		$request->set_body( json_encode( array( 'junk' => 'data' ) ) );
+		$request->set_header( 'Content-Type', 'application/json' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Test that sending only an unregistered setting key returns 400.
+	 *
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_only_unknown_setting_returns_400() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_query_params( array( 'this_setting_does_not_exist' => 'value' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Test that sending an unregistered setting key via PUT returns 400.
+	 *
+	 * @ticket 41604
+	 */
+	public function test_update_item_via_put_with_unknown_setting_returns_400() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_query_params( array( 'this_setting_does_not_exist' => 'value' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Test that a valid setting combined with an internal parameter (e.g. `_locale`)
+	 * still succeeds and updates the setting, confirming internal params don't get
+	 * mistaken for unknown settings.
+	 *
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_valid_setting_and_internal_param_succeeds() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_query_params( array( '_locale' => 'en_US' ) );
+		$request->set_body( json_encode( array( 'title' => 'New Title' ) ) );
+		$request->set_header( 'Content-Type', 'application/json' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertNotWPError( $response->as_error() );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'New Title', $data['title'] );
+		$this->assertSame( 'New Title', get_option( 'blogname' ) );
+	}
 }
