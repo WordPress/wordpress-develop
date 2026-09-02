@@ -4963,7 +4963,7 @@
 		 *
 		 * @since 4.2.0
 		 *
-		 * @return {Object} Options
+		 * @return {wp.customize.HeaderTool.ImageModel} Model for the currently saved header image, or an empty model when none is set.
 		 */
 		getInitialHeaderImage: function() {
 			if ( ! api.get().header_image || ! api.get().header_image_data || _.contains( [ 'remove-header', 'random-default-image', 'random-uploaded-image' ], api.get().header_image ) ) {
