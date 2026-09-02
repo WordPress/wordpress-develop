@@ -2249,8 +2249,8 @@ function get_post_type_labels( $post_type_object ) {
 }
 
 /**
- * Builds an object with custom-something object (post type, taxonomy) labels
- * out of a custom-something object
+ * Builds an object with custom-something object (post type, taxonomy, comment type)
+ * labels out of a custom-something object
  *
  * @since 3.0.0
  * @access private
