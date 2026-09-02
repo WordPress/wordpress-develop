@@ -72,7 +72,8 @@ function edit_comment() {
 		$_POST['comment_content'] = $_POST['content'];
 	}
 	if ( isset( $_POST['comment_ID'] ) ) {
-		$_POST['comment_ID'] = (int) $_POST['comment_ID'];
+		$comment_id_int      = (int) $_POST['comment_ID'];
+		$_POST['comment_ID'] = (string) $comment_id_int;
 	}
 
 	if ( isset( $_POST['comment_parent'] ) ) {

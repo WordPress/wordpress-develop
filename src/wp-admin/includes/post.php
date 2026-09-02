@@ -24,8 +24,12 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		$post_data = &$_POST;
 	}
 
+	$return_data = is_array( $post_data ) ? $post_data : array();
+
 	if ( $update ) {
-		$post_data['ID'] = (int) $post_data['post_ID'];
+		$post_id_int       = (int) $post_data['post_ID'];
+		$post_data['ID']   = (string) $post_id_int;
+		$return_data['ID'] = $post_id_int;
 	}
 
 	$ptype = get_post_type_object( $post_data['post_type'] );
@@ -53,22 +57,32 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 	}
 
 	if ( isset( $post_data['parent_id'] ) ) {
-		$post_data['post_parent'] = (int) $post_data['parent_id'];
+		$parent_id_int              = (int) $post_data['parent_id'];
+		$post_data['post_parent']   = (string) $parent_id_int;
+		$return_data['post_parent'] = $parent_id_int;
 	}
 
 	if ( isset( $post_data['trackback_url'] ) ) {
 		$post_data['to_ping'] = $post_data['trackback_url'];
 	}
 
-	$post_data['user_ID'] = get_current_user_id();
+	$user_id                = get_current_user_id();
+	$post_data['user_ID']   = (string) $user_id;
+	$return_data['user_ID'] = $user_id;
 
 	if ( ! empty( $post_data['post_author_override'] ) ) {
-		$post_data['post_author'] = (int) $post_data['post_author_override'];
+		$author_int                 = (int) $post_data['post_author_override'];
+		$post_data['post_author']   = (string) $author_int;
+		$return_data['post_author'] = $author_int;
 	} else {
 		if ( ! empty( $post_data['post_author'] ) ) {
-			$post_data['post_author'] = (int) $post_data['post_author'];
+			$author_int                 = (int) $post_data['post_author'];
+			$post_data['post_author']   = (string) $author_int;
+			$return_data['post_author'] = $author_int;
 		} else {
-			$post_data['post_author'] = (int) $post_data['user_ID'];
+			$author_int                 = (int) $post_data['user_ID'];
+			$post_data['post_author']   = (string) $author_int;
+			$return_data['post_author'] = $author_int;
 		}
 	}
 
@@ -211,7 +225,14 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		}
 	}
 
-	return $post_data;
+	// Update return_data with all the latest values from post_data.
+	foreach ( $post_data as $key => $value ) {
+		if ( ! isset( $return_data[ $key ] ) ) {
+			$return_data[ $key ] = $value;
+		}
+	}
+
+	return $return_data;
 }
 
 /**
@@ -2074,7 +2095,7 @@ function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 function post_preview() {
 
 	$post_id     = (int) $_POST['post_ID'];
-	$_POST['ID'] = $post_id;
+	$_POST['ID'] = (string) $post_id;
 
 	$post = get_post( $post_id );
 
