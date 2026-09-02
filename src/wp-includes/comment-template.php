@@ -1657,13 +1657,16 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 	}
 
 	if ( false === $more ) {
+		// Replace '%' characters with a placeholder to prevent them from being replaced with the comments number.
+		$_post_title = str_replace( '%', '__PERCENT__', $post_title );
+
 		/* translators: 1: Number of comments, 2: Post title. */
 		$more = _n(
 			'%1$s Comment<span class="screen-reader-text"> on %2$s</span>',
 			'%1$s Comments<span class="screen-reader-text"> on %2$s</span>',
 			$comments_number
 		);
-		$more = sprintf( $more, number_format_i18n( $comments_number ), $post_title );
+		$more = sprintf( $more, number_format_i18n( $comments_number ), $_post_title );
 	}
 
 	if ( false === $none ) {
@@ -1711,12 +1714,19 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 	 */
 	$link_attributes = apply_filters( 'comments_popup_link_attributes', $link_attributes );
 
+	$_comments_number_text = get_comments_number_text( $zero, $one, $more );
+
+	// Restore the '%' characters in the post title.
+	if ( isset( $_post_title ) ) {
+		$_comments_number_text = str_replace( '__PERCENT__', '%', $_comments_number_text );
+	}
+
 	printf(
 		'<a href="%1$s"%2$s%3$s>%4$s</a>',
 		esc_url( $comments_link ),
 		! empty( $css_class ) ? ' class="' . $css_class . '" ' : '',
 		$link_attributes,
-		get_comments_number_text( $zero, $one, $more )
+		$_comments_number_text
 	);
 }
 
