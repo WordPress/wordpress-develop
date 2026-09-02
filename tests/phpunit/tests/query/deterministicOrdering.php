@@ -528,10 +528,11 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 */
 	public function data_orderby_that_blanks_the_clause() {
 		return array(
-			'the string none'      => array( 'none' ),
-			'none as an array key' => array( array( 'none' => 'DESC' ) ),
-			'an empty array'       => array( array() ),
-			'false'                => array( false ),
+			'the string none'                 => array( 'none' ),
+			'none as an array key'            => array( array( 'none' => 'DESC' ) ),
+			'an empty array'                  => array( array() ),
+			'false'                           => array( false ),
+			'an array of only invalid fields' => array( array( 'a_column_that_does_not_exist' => 'ASC' ) ),
 		);
 	}
 
