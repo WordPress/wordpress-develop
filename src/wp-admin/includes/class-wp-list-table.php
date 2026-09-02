@@ -416,7 +416,7 @@ class WP_List_Table {
 <p class="search-box">
 	<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
 	<input type="search" id="<?php echo esc_attr( $input_id ); ?>" name="s" value="<?php _admin_search_query(); ?>" />
-		<?php submit_button( $text, 'button-compact', '', false, array( 'id' => 'search-submit' ) ); ?>
+		<?php submit_button( $text, 'compact', '', false, array( 'id' => 'search-submit' ) ); ?>
 </p>
 		<?php
 	}
@@ -427,11 +427,15 @@ class WP_List_Table {
 	 * @since 6.1.0
 	 *
 	 * @param array $link_data {
-	 *     An array of link data.
+	 *     An array of link data, keyed by view.
 	 *
-	 *     @type string $url     The link URL.
-	 *     @type string $label   The link label.
-	 *     @type bool   $current Optional. Whether this is the currently selected view.
+	 *     @type array ...$0 {
+	 *         Data for a single view link.
+	 *
+	 *         @type string $url     The link URL.
+	 *         @type string $label   The link label.
+	 *         @type bool   $current Optional. Whether this is the currently selected view.
+	 *     }
 	 * }
 	 * @return string[] An array of link markup. Keys match the `$link_data` input array.
 	 */
@@ -632,7 +636,7 @@ class WP_List_Table {
 
 		echo "</select>\n";
 
-		submit_button( __( 'Apply' ), 'action button-compact', 'bulk_action', false, array( 'id' => "doaction$two" ) );
+		submit_button( __( 'Apply' ), 'action compact', 'bulk_action', false, array( 'id' => "doaction$two" ) );
 		echo "\n";
 	}
 
@@ -1029,6 +1033,8 @@ class WP_List_Table {
 	 */
 	protected function pagination( $which ) {
 		if ( empty( $this->_pagination_args['total_items'] ) ) {
+			// translators: Number is a fixed value. This is default text when no items are found.
+			echo '<div class="tablenav-pages no-pages"><span class="displaying-num">' . __( '0 items' ) . '</span></div>';
 			return;
 		}
 
@@ -1685,12 +1691,16 @@ class WP_List_Table {
 		?>
 	<div class="tablenav <?php echo esc_attr( $which ); ?>">
 
-		<?php if ( $this->has_items() ) : ?>
-		<div class="alignleft actions bulkactions">
+		<?php
+		$visibility = ' hidden';
+		if ( $this->has_items() ) {
+			$visibility = '';
+		}
+		?>
+		<div class="alignleft actions bulkactions<?php echo $visibility; ?>">
 			<?php $this->bulk_actions( $which ); ?>
 		</div>
-			<?php
-		endif;
+		<?php
 		$this->extra_tablenav( $which );
 		$this->pagination( $which );
 		?>
@@ -1768,6 +1778,26 @@ class WP_List_Table {
 	protected function column_cb( $item ) {}
 
 	/**
+	 * Returns a clean, human-readable label for the primary column's row header.
+	 *
+	 * Used as the `aria-label` attribute value on the `<th scope="row">` element,
+	 * giving screen readers a concise cell name instead of computing it from
+	 * the full cell content (which may include row action links, excerpts, etc.).
+	 *
+	 * Subclasses should override this method to return the item's primary
+	 * identifier (e.g. post title, plugin name, username). Return an empty string
+	 * to omit the attribute.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param object|array $item The current item.
+	 * @return string The aria-label value, or an empty string.
+	 */
+	protected function get_primary_column_aria_label( $item ) {
+		return '';
+	}
+
+	/**
 	 * Generates the columns for a single row of the table.
 	 *
 	 * @since 3.1.0
@@ -1796,9 +1826,9 @@ class WP_List_Table {
 			$attributes = "class='$classes' $data";
 
 			if ( 'cb' === $column_name ) {
-				echo '<th scope="row" class="check-column">';
+				echo '<td class="check-column">';
 				echo $this->column_cb( $item );
-				echo '</th>';
+				echo '</td>';
 			} elseif ( method_exists( $this, '_column_' . $column_name ) ) {
 				echo call_user_func(
 					array( $this, '_column_' . $column_name ),
@@ -1807,16 +1837,29 @@ class WP_List_Table {
 					$data,
 					$primary
 				);
-			} elseif ( method_exists( $this, 'column_' . $column_name ) ) {
-				echo "<td $attributes>";
-				echo call_user_func( array( $this, 'column_' . $column_name ), $item );
-				echo $this->handle_row_actions( $item, $column_name, $primary );
-				echo '</td>';
 			} else {
-				echo "<td $attributes>";
-				echo $this->column_default( $item, $column_name );
+				$is_primary = ( $primary === $column_name );
+				$tag        = $is_primary ? 'th' : 'td';
+				$scope      = $is_primary ? ' scope="row"' : '';
+
+				$aria_label = '';
+				if ( $is_primary ) {
+					$label = $this->get_primary_column_aria_label( $item );
+					if ( '' !== $label ) {
+						$aria_label = ' aria-label="' . esc_attr( $label ) . '"';
+					}
+				}
+
+				echo "<$tag $attributes$scope$aria_label>";
+
+				if ( method_exists( $this, 'column_' . $column_name ) ) {
+					echo call_user_func( array( $this, 'column_' . $column_name ), $item );
+				} else {
+					echo $this->column_default( $item, $column_name );
+				}
+
 				echo $this->handle_row_actions( $item, $column_name, $primary );
-				echo '</td>';
+				echo "</$tag>";
 			}
 		}
 	}
@@ -1843,6 +1886,8 @@ class WP_List_Table {
 	 * Handles an incoming ajax request (called from admin-ajax.php)
 	 *
 	 * @since 3.1.0
+	 *
+	 * @return never
 	 */
 	public function ajax_response() {
 		$this->prepare_items();

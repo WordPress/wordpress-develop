@@ -349,6 +349,8 @@ HTML
 	 *
 	 * @dataProvider data_tokens_not_supporting_modifiable_text_updates
 	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
+	 *
 	 * @param string $html             Contains HTML with a token not supporting modifiable text updates.
 	 * @param int    $advance_n_tokens Count of times to run `next_token()` before reaching target node.
 	 */
@@ -412,9 +414,10 @@ HTML
 			'Should have modified the text at the target node.'
 		);
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$transformed,
 			$processor->get_updated_html(),
+			'<body>',
 			"Should have transformed the HTML as expected when modifying the target node's modifiable text."
 		);
 	}
@@ -428,8 +431,14 @@ HTML
 		return array(
 			'Text node (start)'       => array( 'Text', 1, 'Blubber', 'Blubber' ),
 			'Text node (middle)'      => array( '<em>Bold move</em>', 2, 'yo', '<em>yo</em>' ),
+			'PI node'                 => array( 'before<?wp-bit data?>after', 2, 'other', 'before<?wp-bit other?>after' ),
+			'PI node (no separator)'  => array( '<?wp-bit?>', 1, '{"just": "kidding"}', '<?wp-bit {"just": "kidding"}?>' ),
 			'Text node (end)'         => array( '<img>of a dog', 2, 'of a cat', '<img>of a cat' ),
 			'Encoded text node'       => array( '<figcaption>birds and dogs</figcaption>', 2, '<birds> & <dogs>', '<figcaption>&lt;birds&gt; &amp; &lt;dogs&gt;</figcaption>' ),
+			'IFRAME tag'              => array( 'before<iframe>old content</iframe>after', 2, '<p>raw & text</p>', 'before<iframe><p>raw & text</p></iframe>after' ),
+			'NOEMBED tag'             => array( 'before<noembed>old content</noembed>after', 2, '<p>raw & text</p>', 'before<noembed><p>raw & text</p></noembed>after' ),
+			'NOFRAMES tag'            => array( 'before<noframes>old content</noframes>after', 2, '<p>raw & text</p>', 'before<noframes><p>raw & text</p></noframes>after' ),
+			'XMP tag'                 => array( 'before<xmp>old content</xmp>after', 2, '<p>raw & text</p>', 'before<xmp><p>raw & text</p></xmp>after' ),
 			'SCRIPT tag'              => array( 'before<script></script>after', 2, 'const img = "<img> & <br>";', 'before<script>const img = "<img> & <br>";</script>after' ),
 			'STYLE tag'               => array( '<style></style>', 1, 'p::before { content: "<img> & </style>"; }', '<style>p::before { content: "<img> & \3c\2fstyle>"; }</style>' ),
 			'TEXTAREA tag'            => array( 'a<textarea>has no need to escape</textarea>b', 2, "so it <doesn't>", "a<textarea>so it <doesn't></textarea>b" ),
@@ -438,6 +447,207 @@ HTML
 			'TITLE tag'               => array( 'a<title>has no need to escape</title>b', 2, "so it <doesn't>", "a<title>so it <doesn't></title>b" ),
 			'TITLE (escape)'          => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title>', 'a<title>but it does for &lt;/title></title>b' ),
 			'TITLE (escape+attrs)'    => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title not an="attribute">', 'a<title>but it does for &lt;/title not an="attribute"></title>b' ),
+		);
+	}
+
+	/**
+	 * Ensures that processing instruction data updates re-parse to the value which was set.
+	 *
+	 * The processing instruction syntax cannot represent every data value verbatim:
+	 * a separating space must be added when the data would abut the target, and
+	 * the update always writes the `?>` form of the closer, whose `?` is dropped
+	 * when parsing, so that data ending in `?` remains intact.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instruction_data_updates
+	 *
+	 * @param string $html     Contains a processing instruction as its first token.
+	 * @param string $new_data Data to set on the processing instruction.
+	 * @param string $expected Expected document after the update.
+	 */
+	public function test_sets_processing_instruction_data( string $html, string $new_data, string $expected ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_token();
+
+		$this->assertSame(
+			'#processing-instruction',
+			$processor->get_token_name(),
+			'Should have found a processing instruction: check test setup.'
+		);
+
+		$target = $processor->get_tag();
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( $new_data ),
+			'Should have set the processing instruction data.'
+		);
+
+		$this->assertSame(
+			$new_data,
+			$processor->get_modifiable_text(),
+			'Should have read back the enqueued data before flushing the update.'
+		);
+
+		$this->assertSame(
+			$expected,
+			$processor->get_updated_html(),
+			'Should have updated the document as expected.'
+		);
+
+		$this->assertSame(
+			$new_data,
+			$processor->get_modifiable_text(),
+			'Should have read back the data after flushing the update.'
+		);
+
+		$this->assertSame(
+			$target,
+			$processor->get_tag(),
+			'Should not have changed the processing instruction target.'
+		);
+
+		$reparsed = new WP_HTML_Tag_Processor( $expected );
+		$reparsed->next_token();
+
+		$this->assertSame(
+			'#processing-instruction',
+			$reparsed->get_token_name(),
+			'Should have found a processing instruction when re-parsing the updated document.'
+		);
+
+		$this->assertSame(
+			$target,
+			$reparsed->get_tag(),
+			'Should have preserved the target when re-parsing the updated document.'
+		);
+
+		$this->assertSame(
+			$new_data,
+			$reparsed->get_modifiable_text(),
+			'Should have found the set data when re-parsing the updated document.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string}>
+	 */
+	public static function data_processing_instruction_data_updates(): array {
+		return array(
+			'Replace data'                     => array( '<?wp-bit before?>', 'after', '<?wp-bit after?>' ),
+			'Bare closer rewritten'            => array( '<?wp-bit before>', 'after', '<?wp-bit after?>' ),
+			'Separator inserted'               => array( '<?wp-bit?>', '{"just": "kidding"}', '<?wp-bit {"just": "kidding"}?>' ),
+			'Separator inserted (bare closer)' => array( '<?wp-bit>', 'data', '<?wp-bit data?>' ),
+			'Data abutting target'             => array( '<?wp-bit?data>', 'x', '<?wp-bit x?>' ),
+			'Data ending in ?'                 => array( '<?wp-bit d>', 'd?', '<?wp-bit d??>' ),
+			'Data ending in ? (?> closer)'     => array( '<?wp-bit x?>', 'd?', '<?wp-bit d??>' ),
+			'Data of only ?'                   => array( '<?wp-bit?>', '?', '<?wp-bit ??>' ),
+			'Emptied (?> closer)'              => array( '<?wp-bit data?>', '', '<?wp-bit ?>' ),
+			'Emptied (bare closer)'            => array( '<?wp-bit data>', '', '<?wp-bit ?>' ),
+			'Empty data set on empty data'     => array( '<?wp-bit?>', '', '<?wp-bit ?>' ),
+			'Whitespace run normalized'        => array( "<?wp-bit \t\n old?>", 'new', '<?wp-bit new?>' ),
+		);
+	}
+
+	/**
+	 * Ensures that repeated processing instruction data updates replace
+	 * each other instead of accumulating syntax adjustments.
+	 *
+	 * @ticket 61530
+	 */
+	public function test_replaces_previous_processing_instruction_data_update(): void {
+		$processor = new WP_HTML_Tag_Processor( '<?wp-bit?>' );
+		$processor->next_token();
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( 'first?' ),
+			'Should have set the initial processing instruction data.'
+		);
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( 'second' ),
+			'Should have replaced the pending processing instruction data.'
+		);
+
+		$this->assertSame(
+			'<?wp-bit second?>',
+			$processor->get_updated_html(),
+			'Should have applied only the last update to the document.'
+		);
+	}
+
+	/**
+	 * Ensures that RCDATA contents are eagerly escaped, despite being
+	 * optional, to protect downstream parsers from misparsing.
+	 *
+	 * @ticket 65984
+	 *
+	 * @dataProvider data_rcdata_element_names
+	 *
+	 * @param 'TITLE'|'TEXTAREA' $element_name Which RCDATA element to verify.
+	 */
+	public function test_escapes_rcdata_content( string $element_name ): void {
+		$text      = 'the <img> is text';
+		$html      = "<{$element_name}>{$text}</{$element_name}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		$this->assertTrue(
+			$processor->next_token(),
+			"Failed to advance into the {$element_name} element: check test setup."
+		);
+
+		/*
+		 * While this may look like a no-op, it should change the inner text
+		 * from `<img>` to `&lt;img&gt;`, which will be asserted below.
+		 */
+		$this->assertTrue(
+			$processor->set_modifiable_text( $text ),
+			'Failed to set the modifiable text: check test setup.'
+		);
+
+		$output = $processor->get_updated_html();
+
+		// The updated output must still remain equivalent to the input.
+		$this->assertEqualHTML(
+			$html,
+			$output,
+			'<body>',
+			'Failed to update modifiable text without changing the parsed HTML.'
+		);
+
+		// Ensure that the content is not left unescaped.
+		$this->assertStringNotContainsString(
+			'<img>',
+			$output,
+			'Should have escaped the <img> into &lt;img&lt;.'
+		);
+
+		// Finally, ensure that weaker parsers still interpret this correctly.
+		if ( class_exists( '\DOMDocument' ) ) {
+			$dom = new \DOMDocument();
+			$dom->loadHTML( $output, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING );
+
+			$first_child = $dom->getElementsByTagName( strtolower( $element_name ) )->item( 0 )->childNodes[0];
+
+			$this->assertSame(
+				$first_child->nodeValue,
+				$text,
+				'Failed to protect weaker parsers from detecting elements as RCDATA content.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_rcdata_element_names(): array {
+		return array(
+			array( 'TEXTAREA' ),
+			array( 'TITLE' ),
 		);
 	}
 
@@ -452,6 +662,8 @@ HTML
 	 * @ticket 62797
 	 *
 	 * @dataProvider data_unallowed_modifiable_text_updates
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
 	 *
 	 * @param string $html_with_nonempty_modifiable_text Will be used to find the test element.
 	 * @param string $invalid_update                     Update containing possibly-compromising text.
@@ -490,6 +702,14 @@ HTML
 		return array(
 			'Comment with -->'                        => array( '<!-- this is a comment -->', 'Comments end in -->' ),
 			'Comment with --!>'                       => array( '<!-- this is a comment -->', 'Invalid but legitimate comments end in --!>' ),
+			'IFRAME with </iframe>'                   => array( '<iframe>Replace me</iframe>', 'Just a </iframe>' ),
+			'NOEMBED with </NOEMBED>'                 => array( '<noembed>Replace me</noembed>', 'Just a </NOEMBED>' ),
+			'NOFRAMES with </noframes attributes>'    => array( '<noframes>Replace me</noframes>', 'before</noframes sneaky>after' ),
+			'XMP with </xmp>'                         => array( '<xmp>Replace me</xmp>', 'Just a </xmp>' ),
+			'PI with >'                               => array( '<?wp-bit some data?>', 'Processing instructions end at the first >' ),
+			'PI with leading space'                   => array( '<?wp-bit some data?>', ' leading whitespace is skipped after the target' ),
+			'PI with leading tab'                     => array( '<?wp-bit some data?>', "\tleading whitespace is skipped after the target" ),
+			'PI with only whitespace'                 => array( '<?wp-bit some data?>', ' ' ),
 			'Non-JS SCRIPT with <script>'             => array( '<script type="text/html">Replace me</script>', '<!-- Just a <script>' ),
 			'Non-JS SCRIPT with </script>'            => array( '<script type="text/plain">Replace me</script>', 'Just a </script>' ),
 			'Non-JS SCRIPT with <script attributes>'  => array( '<script language="text">Replace me</script>', '<!-- <script sneaky>after' ),
@@ -673,6 +893,8 @@ HTML;
 	 *
 	 * @ticket 64751
 	 * @dataProvider data_set_modifiable_fails_non_atomic_tags
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
 	 */
 	public function test_set_modifiable_fails_non_atomic_tags(
 		string $html,

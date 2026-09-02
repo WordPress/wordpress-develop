@@ -1272,31 +1272,31 @@ function wp_dropdown_pages( $args = '' ) {
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a list of pages. See get_pages() for additional arguments.
  *
- *     @type int          $child_of     Display only the sub-pages of a single page by ID. Default 0 (all pages).
- *     @type string       $authors      Comma-separated list of author IDs. Default empty (all authors).
- *     @type string       $date_format  PHP date format to use for the listed pages. Relies on the 'show_date' parameter.
- *                                      Default is the value of 'date_format' option.
- *     @type int          $depth        Number of levels in the hierarchy of pages to include in the generated list.
- *                                      Accepts -1 (any depth), 0 (all pages), 1 (top-level pages only), and n (pages to
- *                                      the given n depth). Default 0.
- *     @type bool         $echo         Whether or not to echo the list of pages. Default true.
- *     @type string       $exclude      Comma-separated list of page IDs to exclude. Default empty.
- *     @type array        $include      Comma-separated list of page IDs to include. Default empty.
- *     @type string       $link_after   Text or HTML to follow the page link label. Default null.
- *     @type string       $link_before  Text or HTML to precede the page link label. Default null.
- *     @type string       $post_type    Post type to query for. Default 'page'.
- *     @type string|array $post_status  Comma-separated list or array of post statuses to include. Default 'publish'.
- *     @type string       $show_date    Whether to display the page publish or modified date for each page. Accepts
- *                                      'modified' or any other value. An empty value hides the date. Default empty.
- *     @type string       $sort_column  Comma-separated list of column names to sort the pages by. Accepts 'post_author',
- *                                      'post_date', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt',
- *                                      'menu_order', 'post_parent', 'ID', 'rand', or 'comment_count'. Default 'post_title'.
- *     @type string       $title_li     List heading. Passing a null or empty value will result in no heading, and the list
- *                                      will not be wrapped with unordered list `<ul>` tags. Default 'Pages'.
- *     @type string       $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'.
- *                                      Default 'preserve'.
- *     @type Walker       $walker       Walker instance to use for listing pages. Default empty which results in a
- *                                      Walker_Page instance being used.
+ *     @type int               $child_of     Display only the sub-pages of a single page by ID. Default 0 (all pages).
+ *     @type string            $authors      Comma-separated list of author IDs. Default empty (all authors).
+ *     @type string            $date_format  PHP date format to use for the listed pages. Relies on the 'show_date' parameter.
+ *                                           Default is the value of 'date_format' option.
+ *     @type int               $depth        Number of levels in the hierarchy of pages to include in the generated list.
+ *                                           Accepts -1 (any depth), 0 (all pages), 1 (top-level pages only), and n (pages to
+ *                                           the given n depth). Default 0.
+ *     @type bool              $echo         Whether or not to echo the list of pages. Default true.
+ *     @type string            $exclude      Comma-separated list of page IDs to exclude. Default empty.
+ *     @type array             $include      Comma-separated list of page IDs to include. Default empty.
+ *     @type string            $link_after   Text or HTML to follow the page link label. Default null.
+ *     @type string            $link_before  Text or HTML to precede the page link label. Default null.
+ *     @type string            $post_type    Post type to query for. Default 'page'.
+ *     @type string|array      $post_status  Comma-separated list or array of post statuses to include. Default 'publish'.
+ *     @type string            $show_date    Whether to display the page publish or modified date for each page. Accepts
+ *                                           'modified' or any other value. An empty value hides the date. Default empty.
+ *     @type string            $sort_column  Comma-separated list of column names to sort the pages by. Accepts 'post_author',
+ *                                           'post_date', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt',
+ *                                           'menu_order', 'post_parent', 'ID', 'rand', or 'comment_count'. Default 'post_title'.
+ *     @type string|false|null $title_li     List heading. Passing a null or empty value will result in no heading, and the list
+ *                                           will not be wrapped with unordered list `<ul>` tags. Default 'Pages'.
+ *     @type string            $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'.
+ *                                           Default 'preserve'.
+ *     @type Walker            $walker       Walker instance to use for listing pages. Default empty which results in a
+ *                                           Walker_Page instance being used.
  * }
  * @return void|string Void if 'echo' argument is true, HTML list of pages if 'echo' is false.
  */
@@ -1809,9 +1809,23 @@ function get_the_password_form( $post = 0 ) {
 		);
 	}
 
+	$button_class         = '';
+	$button_wrapper_open  = '';
+	$button_wrapper_close = '';
+
+	if ( wp_is_block_theme() ) {
+		$button_class         = ' class="wp-block-button__link ' . wp_theme_get_element_class_name( 'button' ) . '"';
+		$button_wrapper_open  = '<span class="wp-block-button">';
+		$button_wrapper_close = '</span>';
+
+		if ( wp_style_is( 'wp-block-button', 'registered' ) ) {
+			wp_enqueue_style( 'wp-block-button' );
+		}
+	}
+
 	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form' . $class . '" method="post">' . $redirect_field . $invalid_password_html . '
 	<p>' . __( 'This content is password-protected. To view it, please enter the password below.' ) . '</p>
-	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> <input type="submit" name="Submit" value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
+	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> ' . $button_wrapper_open . '<input type="submit" name="Submit"' . $button_class . ' value="' . esc_attr_x( 'Enter', 'post password form' ) . '" />' . $button_wrapper_close . '</p></form>
 	';
 
 	/**

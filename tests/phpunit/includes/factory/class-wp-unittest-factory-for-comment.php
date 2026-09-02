@@ -31,7 +31,6 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param array $args The comment details.
-	 *
 	 * @return int|WP_Error The comment ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
@@ -58,7 +57,6 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int   $comment_id The comment ID.
 	 * @param array $fields     The comment details.
-	 *
 	 * @return int|WP_Error The value 1 if the comment was updated, 0 if not updated.
 	 *                      WP_Error object on failure.
 	 */
@@ -76,7 +74,6 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * @param int   $count                  Total amount of comments to create.
 	 * @param array $args                   The comment details.
 	 * @param null  $generation_definitions Default values.
-	 *
 	 * @return int[] Array with the comment IDs.
 	 */
 	public function create_post_comments( $post_id, $count = 1, $args = array(), $generation_definitions = null ) {
@@ -90,7 +87,6 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param int $comment_id ID of the comment to retrieve.
-	 *
 	 * @return WP_Comment|null WP_Comment object on success, null on failure.
 	 */
 	public function get_object_by_id( $comment_id ) {

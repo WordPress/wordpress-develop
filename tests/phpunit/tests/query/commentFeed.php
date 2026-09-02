@@ -6,8 +6,12 @@
  * @group feeds
  */
 class Tests_Query_CommentFeed extends WP_UnitTestCase {
-	public static $post_type   = 'post';
-	protected static $post_ids = array();
+	public static string $post_type = 'post';
+
+	/**
+	 * @var int[]
+	 */
+	protected static array $post_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many(
@@ -80,6 +84,96 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 
 		$comment_count = $q2->comment_count;
 		$this->assertSame( 20, $comment_count );
+	}
+
+	/**
+	 * @ticket 65613
+	 */
+	public function test_main_comment_feed_should_exclude_notes(): void {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_ids[0],
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$q = new WP_Query();
+		$q->query(
+			array(
+				'withcomments' => 1,
+				'feed'         => 'comments-rss',
+			)
+		);
+
+		$this->assertTrue( $q->is_comment_feed() );
+		$this->assertFalse( $q->is_singular() );
+
+		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$this->assertNotContains( $note_id, $comment_ids, 'Comments feed should not include notes.' );
+		$this->assertSame( 15, $q->comment_count, 'Comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * @ticket 65613
+	 */
+	public function test_archive_comment_feed_should_exclude_notes(): void {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_ids[0],
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$q = new WP_Query();
+		$q->query(
+			array(
+				'withcomments' => 1,
+				'feed'         => 'comments-rss',
+				'year'         => (int) get_the_date( 'Y', self::$post_ids[0] ),
+			)
+		);
+
+		$this->assertTrue( $q->is_comment_feed() );
+		$this->assertTrue( $q->is_archive() );
+
+		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$this->assertNotContains( $note_id, $comment_ids, 'Archive comments feed should not include notes.' );
+		$this->assertSame( 15, $q->comment_count, 'Archive comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * @ticket 65613
+	 */
+	public function test_single_comment_feed_should_exclude_notes(): void {
+		$post = get_post( self::$post_ids[0] );
+		$this->assertInstanceOf( WP_Post::class, $post );
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post->ID,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$q = new WP_Query();
+		$q->query(
+			array(
+				'withcomments' => 1,
+				'feed'         => 'comments-rss',
+				'post_type'    => $post->post_type,
+				'name'         => $post->post_name,
+			)
+		);
+
+		$this->assertTrue( $q->is_comment_feed() );
+		$this->assertTrue( $q->is_singular() );
+
+		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$this->assertNotContains( $note_id, $comment_ids, 'Singular comments feed should not include notes.' );
+		$this->assertSame( 5, $q->comment_count, 'Singular comments feed should include all regular comments.' );
 	}
 
 	/**

@@ -765,7 +765,7 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
  *                            Default empty array.
  * @param int|null $timestamp Optional. Unix timestamp (UTC) of the event. If not specified, the next scheduled event
  *                            is returned. Default null.
- * @return object|false {
+ * @return stdClass|false {
  *     The event object. False if the event does not exist.
  *
  *     @type string       $hook      Action hook to execute when the event is run.
@@ -958,6 +958,8 @@ function spawn_cron( $gmt_time = 0 ) {
 	$doing_wp_cron = sprintf( '%.22F', $gmt_time );
 	set_transient( 'doing_cron', $doing_wp_cron );
 
+	$cron_url = add_query_arg( 'doing_wp_cron', $doing_wp_cron, site_url( 'wp-cron.php' ) );
+
 	/**
 	 * Filters the cron request arguments.
 	 *
@@ -982,13 +984,13 @@ function spawn_cron( $gmt_time = 0 ) {
 	$cron_request = apply_filters(
 		'cron_request',
 		array(
-			'url'  => add_query_arg( 'doing_wp_cron', $doing_wp_cron, site_url( 'wp-cron.php' ) ),
+			'url'  => $cron_url,
 			'key'  => $doing_wp_cron,
 			'args' => array(
 				'timeout'   => 0.01,
 				'blocking'  => false,
 				/** This filter is documented in wp-includes/class-wp-http-streams.php */
-				'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
+				'sslverify' => apply_filters( 'https_local_ssl_verify', false, $cron_url ),
 			),
 		),
 		$doing_wp_cron

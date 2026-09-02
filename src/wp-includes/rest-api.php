@@ -429,6 +429,10 @@ function create_initial_rest_routes() {
 	$icons_controller = new WP_REST_Icons_Controller();
 	$icons_controller->register_routes();
 
+	// Icon Collections.
+	$icon_collections_controller = new WP_REST_Icon_Collections_Controller();
+	$icon_collections_controller->register_routes();
+
 	// View Config.
 	$view_config_controller = new WP_REST_View_Config_Controller();
 	$view_config_controller->register_routes();
@@ -443,6 +447,15 @@ function create_initial_rest_routes() {
  */
 function rest_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+		return;
+	}
+
+	// Short-circuit before define()/die() if a REST dispatch is already in flight.
+	// serve_request() enforces this too; guarding here avoids the trailing die().
+	if ( isset( $GLOBALS['wp_rest_server'] )
+		&& $GLOBALS['wp_rest_server'] instanceof WP_REST_Server
+		&& $GLOBALS['wp_rest_server']->is_dispatching()
+	) {
 		return;
 	}
 
@@ -3445,7 +3458,6 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * @since 5.7.0
  *
  * @param WP_Error $error WP_Error instance.
- *
  * @return WP_REST_Response List of associative arrays with code and message keys.
  */
 function rest_convert_error_to_response( $error ) {

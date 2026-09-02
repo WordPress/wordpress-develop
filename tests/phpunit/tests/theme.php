@@ -94,8 +94,9 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		foreach ( array_keys( $themes ) as $name ) {
 			$theme = get_theme( $name );
-			// WP_Theme implements ArrayAccess. Even ArrayObject returns false for is_array().
-			$this->assertFalse( is_array( $theme ) );
+			// WP_Theme implements ArrayAccess, but that does not make it an array:
+			// is_array() returns false for ArrayObject.
+			$this->assertIsNotArray( $theme );
 			$this->assertInstanceOf( 'WP_Theme', $theme );
 			$this->assertSame( $theme, $themes[ $name ] );
 		}
@@ -457,7 +458,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $theme['Stylesheet'], get_stylesheet() );
 
 				$root_fs = $theme->get_theme_root();
-				$this->assertTrue( is_dir( $root_fs ) );
+				$this->assertDirectoryExists( $root_fs );
 
 				$root_uri = $theme->get_theme_root_uri();
 				$this->assertNotEmpty( $root_uri );
