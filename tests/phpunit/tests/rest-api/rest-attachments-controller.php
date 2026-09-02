@@ -463,7 +463,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		}
 
 		$this->assertSameSets( array_unique( $seen ), $seen, 'An attachment was returned on more than one page' );
-		$this->assertCount( $expected, $seen, 'The pages did not add up to every attachment' );
+		$this->assertCount( $expected, array_unique( $seen ), 'The pages did not add up to every attachment' );
 	}
 
 	public function test_get_items_logged_in_editor() {

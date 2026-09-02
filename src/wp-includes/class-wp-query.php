@@ -3357,7 +3357,7 @@ class WP_Query {
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
 			/*
-			 * Normalise the selected columns so that queries differing only in 'fields'
+			 * Normalize the selected columns so that queries differing only in 'fields'
 			 * share a cache key. Only the first occurrence is replaced: the same column
 			 * names also appear in ORDER BY, and rewriting them there would give the
 			 * same query two different keys.
