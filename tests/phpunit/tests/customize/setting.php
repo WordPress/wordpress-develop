@@ -17,6 +17,22 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	public $undefined;
 
+	/**
+	 * Shared admin user ID for the tests.
+	 *
+	 * @var int
+	 */
+	public static $admin_id = 0;
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
@@ -137,7 +153,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Setting::value()
 	 */
 	public function test_preview_standard_types_non_multidimensional() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		$_POST['customized'] = wp_slash( wp_json_encode( $this->post_data_overrides ) );
 
 		// Try non-multidimensional settings.
@@ -216,7 +232,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Setting::value()
 	 */
 	public function test_preview_standard_types_multidimensional() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		$_POST['customized'] = wp_slash( wp_json_encode( $this->post_data_overrides ) );
 
 		foreach ( $this->standard_type_configs as $type => $type_options ) {
@@ -362,7 +378,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Setting::preview()
 	 */
 	public function test_preview_custom_type() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		$type                = 'custom_type';
 		$post_data_overrides = array(
 			"unset_{$type}_with_post_value" => "unset_{$type}_without_post_value\\o/",
@@ -513,7 +529,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->assertTrue( 0 === did_action( 'customize_save_foo' ) );
 
 		// Satisfy all requirements for save to happen.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		$this->assertNotFalse( $setting->save() );
 		$this->assertTrue( 1 === did_action( 'customize_update_custom' ) );
 		$this->assertTrue( 1 === did_action( 'customize_save_foo' ) );
@@ -551,7 +567,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @ticket 31428
 	 */
 	public function test_is_current_blog_previewed() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		$type       = 'option';
 		$name       = 'blogname';
 		$post_value = __FUNCTION__;
@@ -573,7 +589,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_previewing_with_switch_to_blog() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		$type       = 'option';
 		$name       = 'blogdescription';
 		$post_value = __FUNCTION__;
@@ -596,7 +612,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	public function test_option_autoloading() {
 		global $wpdb;
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 
 		$name    = 'autoloaded1';
 		$setting = new WP_Customize_Setting(
@@ -743,7 +759,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @ticket 37294
 	 */
 	public function test_multidimensional_value_when_previewed() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		WP_Customize_Setting::reset_aggregated_multidimensionals();
 
 		$initial_value = 456;
