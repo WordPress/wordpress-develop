@@ -536,6 +536,34 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	}
 
 	/**
+	 * 'none' next to real columns does not blank the ordering.
+	 *
+	 * get_pages( array( 'sort_column' => 'post_title,none' ) ) produces
+	 * array( 'post_title' => ..., 'none' => ... ); only the 'none' part is
+	 * dropped, the rest orders as requested.
+	 *
+	 * @ticket 44349
+	 */
+	public function test_none_beside_real_columns_keeps_the_ordering() {
+		global $wpdb;
+
+		$query = new WP_Query(
+			array(
+				'orderby'        => array(
+					'title' => 'ASC',
+					'none'  => 'DESC',
+				),
+				'posts_per_page' => 5,
+			)
+		);
+
+		$this->assertStringContainsString(
+			"ORDER BY {$wpdb->posts}.post_title ASC, {$wpdb->posts}.ID ASC",
+			$query->request
+		);
+	}
+
+	/**
 	 * get_pages() can still ask for no ordering.
 	 *
 	 * It passes 'sort_column' through as an array key rather than a bare string.

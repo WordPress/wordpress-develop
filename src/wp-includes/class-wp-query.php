@@ -2552,11 +2552,13 @@ class WP_Query {
 				 */
 				$orderby = "{$wpdb->posts}.post_date {$query_vars['order']}, {$wpdb->posts}.ID {$query_vars['order']}";
 			}
-		} elseif ( 'none' === $query_vars['orderby'] || isset( $query_vars['orderby']['none'] ) ) {
+		} elseif ( 'none' === $query_vars['orderby'] || array( 'none' ) === array_keys( (array) $query_vars['orderby'] ) ) {
 			/*
 			 * 'none' blanks out ORDER BY. It arrives as a bare string from WP_Query, and
-			 * as an array key from get_pages(), which turns its 'sort_column' into
-			 * array( 'none' => $sort_order ).
+			 * as the array's only key from get_pages(), which turns its 'sort_column'
+			 * into array( 'none' => $sort_order ). When 'none' appears in an array next
+			 * to real columns it is not the whole ordering, so it falls through and is
+			 * skipped below like any other unparseable key.
 			 */
 			$orderby = '';
 		} else {
