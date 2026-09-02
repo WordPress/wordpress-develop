@@ -26,6 +26,7 @@ on:
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/gutenberg/**'
+      - 'tools/local-env/**'
       - 'tools/vendors/**'
       - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the outcome.

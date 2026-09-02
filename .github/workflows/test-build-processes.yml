@@ -17,6 +17,7 @@ on:
       - 'src/**.js'
       - 'src/**.json'
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       - 'src/**.pem'
       - 'src/**.crt'
       # These files configure npm and the task runner. Changes could affect the outcome.
