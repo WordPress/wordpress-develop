@@ -718,7 +718,7 @@ function wp_list_categories( $args = '' ) {
  *         ? string[]|null
  *         : ( $args is array{ echo: false|0|''|'0', ... }
  *             ? string|null
- *             : ( $args is ''|array ? void : string|string[]|null ) )
+ *             : ( $args is ''|'0'|array ? void : string|string[]|null ) )
  * )
  */
 function wp_tag_cloud( $args = '' ) {

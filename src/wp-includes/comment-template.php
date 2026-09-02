@@ -2238,7 +2238,7 @@ function _get_comment_reply_id( $post = null ) {
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string|null
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function wp_list_comments( $args = array(), $comments = null ) {

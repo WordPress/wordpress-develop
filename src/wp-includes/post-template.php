@@ -82,7 +82,7 @@ function the_title( $before = '', $after = '', $display = true ) {
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string|null
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function the_title_attribute( $args = '' ) {
@@ -1309,7 +1309,7 @@ function wp_dropdown_pages( $args = '' ) {
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function wp_list_pages( $args = '' ) {
@@ -1437,7 +1437,7 @@ function wp_list_pages( $args = '' ) {
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function wp_page_menu( $args = array() ) {

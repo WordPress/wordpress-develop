@@ -2240,7 +2240,7 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string|null
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function wp_get_archives( $args = '' ) {
