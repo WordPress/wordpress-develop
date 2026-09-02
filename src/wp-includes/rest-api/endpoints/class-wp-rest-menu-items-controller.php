@@ -467,6 +467,16 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		// Placeholder items require a title and must not have a URL.
+		if ( 'placeholder' === $prepared_nav_item['menu-item-type'] ) {
+			if ( '' === $prepared_nav_item['menu-item-title'] ) {
+				$error->add( 'rest_title_required', __( 'The title is required when using a placeholder menu item type.' ), array( 'status' => 400 ) );
+			}
+			if ( ! empty( $prepared_nav_item['menu-item-url'] ) ) {
+				$error->add( 'rest_placeholder_url_invalid', __( 'A placeholder menu item type must not have a URL.' ), array( 'status' => 400 ) );
+			}
+		}
+
 		if ( $error->has_errors() ) {
 			return $error;
 		}
@@ -774,7 +784,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		$schema['properties']['type'] = array(
 			'description' => __( 'The family of objects originally represented, such as "post_type" or "taxonomy".' ),
 			'type'        => 'string',
-			'enum'        => array( 'taxonomy', 'post_type', 'post_type_archive', 'custom' ),
+			'enum'        => array( 'taxonomy', 'post_type', 'post_type_archive', 'custom', 'placeholder' ),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'default'     => 'custom',
 		);

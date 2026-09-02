@@ -1118,6 +1118,18 @@
 				}
 			});
 
+			$( '#custom-menu-item-placeholder' ).on( 'change', function() {
+				if ( $( this ).is( ':checked' ) ) {
+					$( '#menu-item-url-wrap' ).hide().removeClass( 'has-error' );
+					$( '#custom-menu-item-type' ).val( 'placeholder' );
+					$( '#custom-menu-item-url' ).removeClass( 'form-invalid' ).removeAttr( 'aria-invalid' ).removeAttr( 'aria-describedby' );
+					$( '#custom-url-error' ).hide();
+				} else {
+					$( '#menu-item-url-wrap' ).show();
+					$( '#custom-menu-item-type' ).val( 'custom' );
+				}
+			});
+
 			$( '#submit-customlinkdiv' ).on( 'click', function (e) {
 				var urlInput = $( '#custom-menu-item-url' ),
 					url = urlInput.val().trim(),
@@ -1128,6 +1140,11 @@
 				// Hide the error message initially
 				errorMessage.hide();
 				urlWrap.removeClass( 'has-error' );
+
+				// Placeholder items intentionally have no URL; skip validation.
+				if ( $( '#custom-menu-item-placeholder' ).is( ':checked' ) ) {
+					return;
+				}
 
 				/*
 				 * Allow URLs including:
@@ -1459,6 +1476,22 @@
 			}
 
 			processMethod = processMethod || api.addMenuItemToBottom;
+
+			// Placeholder items skip URL validation and use an empty URL.
+			if ( $( '#custom-menu-item-placeholder' ).is( ':checked' ) ) {
+				$( '.customlinkdiv .spinner' ).addClass( 'is-active' );
+				api.addItemToMenu(
+					{'-1': {'menu-item-type': 'placeholder', 'menu-item-url': '', 'menu-item-title': label, 'menu-item-db-id': 0, 'menu-item-object': 'custom', 'menu-item-parent-id': 0}},
+					processMethod,
+					function() {
+						$( '.customlinkdiv .spinner' ).removeClass( 'is-active' );
+						$('#custom-menu-item-name').val('').trigger( 'blur' );
+						$( '#custom-menu-item-url' ).val( '' ).attr( 'placeholder', 'https://' );
+						$( '#custom-menu-item-placeholder' ).prop( 'checked', false ).trigger( 'change' );
+					}
+				);
+				return;
+			}
 
 			/*
 			 * Allow URLs including:

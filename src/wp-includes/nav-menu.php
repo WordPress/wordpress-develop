@@ -475,7 +475,10 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 
 	$original_parent = 0 < $menu_item_db_id ? get_post_field( 'post_parent', $menu_item_db_id ) : 0;
 
-	if ( 'custom' === $args['menu-item-type'] ) {
+	if ( 'placeholder' === $args['menu-item-type'] ) {
+		// Placeholder items intentionally have no URL.
+		$args['menu-item-url'] = '';
+	} elseif ( 'custom' === $args['menu-item-type'] ) {
 		// If custom menu item, trim the URL.
 		$args['menu-item-url'] = trim( $args['menu-item-url'] );
 	} else {
@@ -573,9 +576,9 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		}
 	}
 
-	if ( 'custom' === $args['menu-item-type'] ) {
+	if ( 'custom' === $args['menu-item-type'] || 'placeholder' === $args['menu-item-type'] ) {
 		$args['menu-item-object-id'] = $menu_item_db_id;
-		$args['menu-item-object']    = 'custom';
+		$args['menu-item-object']    = $args['menu-item-type'];
 	}
 
 	$menu_item_db_id = (int) $menu_item_db_id;
@@ -950,6 +953,10 @@ function wp_setup_nav_menu_item( $menu_item ) {
 
 				$menu_item->title = ( '' === $menu_item->post_title ) ? $original_title : $menu_item->post_title;
 
+			} elseif ( 'placeholder' === $menu_item->type ) {
+				$menu_item->type_label = __( 'Placeholder' );
+				$menu_item->title      = $menu_item->post_title;
+				$menu_item->url        = '';
 			} else {
 				$menu_item->type_label = __( 'Custom Link' );
 				$menu_item->title      = $menu_item->post_title;

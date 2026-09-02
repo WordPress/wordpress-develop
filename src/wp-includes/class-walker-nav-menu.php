@@ -248,60 +248,99 @@ class Walker_Nav_Menu extends Walker {
 		 */
 		$title = apply_filters( 'nav_menu_item_title', $title, $menu_item, $args, $depth );
 
-		$atts           = array();
-		$atts['target'] = ! empty( $menu_item->target ) ? $menu_item->target : '';
-		$atts['rel']    = ! empty( $menu_item->xfn ) ? $menu_item->xfn : '';
+		$menu_item_type = isset( $menu_item->type ) ? $menu_item->type : '';
 
-		if ( ! empty( $menu_item->url ) ) {
-			if ( $this->privacy_policy_url === $menu_item->url ) {
-				$atts['rel'] = empty( $atts['rel'] ) ? 'privacy-policy' : $atts['rel'] . ' privacy-policy';
+		if ( 'placeholder' === $menu_item_type ) {
+			/*
+			 * Placeholder items render as a non-interactive `<span>` rather than an `<a>`.
+			 * Because most themes style nav links via selectors like `> a`, the `<span>`
+			 * will not automatically inherit those styles. Themes that wish to display
+			 * placeholders consistently with their other nav items should target the
+			 * `menu-item-type-placeholder` class that is added to the parent `<li>`:
+			 *
+			 *   .menu-item-type-placeholder > span {
+			 *       display: block;
+			 *       cursor: default;
+			 *   }
+			 *
+			 * Use the `nav_menu_placeholder_attributes` filter to add custom attributes
+			 * or classes directly to the `<span>` element.
+			 */
+
+			/**
+			 * Filters the HTML attributes applied to a placeholder menu item's span element.
+			 *
+			 * @since x.x.x
+			 *
+			 * @param array    $atts      The HTML attributes applied to the span element, empty strings are ignored.
+			 * @param WP_Post  $menu_item The current menu item object.
+			 * @param stdClass $args      An object of wp_nav_menu() arguments.
+			 * @param int      $depth     Depth of menu item. Used for padding.
+			 */
+			$span_atts  = apply_filters( 'nav_menu_placeholder_attributes', array(), $menu_item, $args, $depth );
+			$attributes = $this->build_atts( $span_atts );
+
+			$item_output  = $args->before;
+			$item_output .= '<span' . $attributes . '>';
+			$item_output .= $args->link_before . $title . $args->link_after;
+			$item_output .= '</span>';
+			$item_output .= $args->after;
+		} else {
+			$atts           = array();
+			$atts['target'] = ! empty( $menu_item->target ) ? $menu_item->target : '';
+			$atts['rel']    = ! empty( $menu_item->xfn ) ? $menu_item->xfn : '';
+
+			if ( ! empty( $menu_item->url ) ) {
+				if ( $this->privacy_policy_url === $menu_item->url ) {
+					$atts['rel'] = empty( $atts['rel'] ) ? 'privacy-policy' : $atts['rel'] . ' privacy-policy';
+				}
+
+				$atts['href'] = $menu_item->url;
+			} else {
+				$atts['href'] = '';
 			}
 
-			$atts['href'] = $menu_item->url;
-		} else {
-			$atts['href'] = '';
+			$atts['aria-current'] = $menu_item->current ? 'page' : '';
+
+			// Add title attribute only if it does not match the link text (before or after filtering).
+			if ( ! empty( $menu_item->attr_title )
+				&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $menu_item->title ) )
+				&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $the_title_filtered ) )
+				&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $title ) )
+			) {
+				$atts['title'] = $menu_item->attr_title;
+			} else {
+				$atts['title'] = '';
+			}
+
+			/**
+			 * Filters the HTML attributes applied to a menu item's anchor element.
+			 *
+			 * @since 3.6.0
+			 * @since 4.1.0 The `$depth` parameter was added.
+			 *
+			 * @param array $atts {
+			 *     The HTML attributes applied to the menu item's `<a>` element, empty strings are ignored.
+			 *
+			 *     @type string $title        Title attribute.
+			 *     @type string $target       Target attribute.
+			 *     @type string $rel          The rel attribute.
+			 *     @type string $href         The href attribute.
+			 *     @type string $aria-current The aria-current attribute.
+			 * }
+			 * @param WP_Post  $menu_item The current menu item object.
+			 * @param stdClass $args      An object of wp_nav_menu() arguments.
+			 * @param int      $depth     Depth of menu item. Used for padding.
+			 */
+			$atts       = apply_filters( 'nav_menu_link_attributes', $atts, $menu_item, $args, $depth );
+			$attributes = $this->build_atts( $atts );
+
+			$item_output  = $args->before;
+			$item_output .= '<a' . $attributes . '>';
+			$item_output .= $args->link_before . $title . $args->link_after;
+			$item_output .= '</a>';
+			$item_output .= $args->after;
 		}
-
-		$atts['aria-current'] = $menu_item->current ? 'page' : '';
-
-		// Add title attribute only if it does not match the link text (before or after filtering).
-		if ( ! empty( $menu_item->attr_title )
-			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $menu_item->title ) )
-			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $the_title_filtered ) )
-			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $title ) )
-		) {
-			$atts['title'] = $menu_item->attr_title;
-		} else {
-			$atts['title'] = '';
-		}
-
-		/**
-		 * Filters the HTML attributes applied to a menu item's anchor element.
-		 *
-		 * @since 3.6.0
-		 * @since 4.1.0 The `$depth` parameter was added.
-		 *
-		 * @param array $atts {
-		 *     The HTML attributes applied to the menu item's `<a>` element, empty strings are ignored.
-		 *
-		 *     @type string $title        Title attribute.
-		 *     @type string $target       Target attribute.
-		 *     @type string $rel          The rel attribute.
-		 *     @type string $href         The href attribute.
-		 *     @type string $aria-current The aria-current attribute.
-		 * }
-		 * @param WP_Post  $menu_item The current menu item object.
-		 * @param stdClass $args      An object of wp_nav_menu() arguments.
-		 * @param int      $depth     Depth of menu item. Used for padding.
-		 */
-		$atts       = apply_filters( 'nav_menu_link_attributes', $atts, $menu_item, $args, $depth );
-		$attributes = $this->build_atts( $atts );
-
-		$item_output  = $args->before;
-		$item_output .= '<a' . $attributes . '>';
-		$item_output .= $args->link_before . $title . $args->link_after;
-		$item_output .= '</a>';
-		$item_output .= $args->after;
 
 		/**
 		 * Filters a menu item's starting output.
