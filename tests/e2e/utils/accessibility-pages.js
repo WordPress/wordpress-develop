@@ -56,34 +56,14 @@
 const { filterByStatus } = require( './admin-interactions' );
 
 const pages = [
-	// Media.
+	// Dashboard.
 	{
-		id: 'media-library-grid',
-		path: '/upload.php?mode=grid',
-		name: 'Media Library (Grid View)',
-		stateVariants: [
-			{
-				name: 'default',
-			},
-			{
-				name: 'image-modal-open',
-				setup: async ( page ) => {
-					// Click the image to open the attachment modal.
-					const imageLink = page.locator( '.attachment' ).first();
-					await imageLink.click();
-					// Wait for modal to appear.
-					await page.waitForSelector( '.media-modal' );
-				},
-			},
-		],
-	},
-	{
-		id: 'media-library-list',
-		path: '/upload.php?mode=list',
-		name: 'Media Library (List View)',
+		id: 'dashboard',
+		path: '/',
+		name: 'Dashboard',
 	},
 
-	// Posts & pages.
+	// Posts & Pages.
 	{
 		id: 'posts-list',
 		path: '/edit.php?post_type=post',
@@ -116,12 +96,122 @@ const pages = [
 		path: '/edit.php?post_type=page',
 		name: 'Pages',
 	},
+	{
+		id: 'post-categories-list',
+		path: '/edit-tags.php?taxonomy=category',
+		name: 'Categories',
+	},
+	{
+		id: 'post-tags-list',
+		path: '/edit-tags.php?taxonomy=post_tag',
+		name: 'Tags',
+	},
+
+	// Media.
+	{
+		id: 'media-library-grid',
+		path: '/upload.php?mode=grid',
+		name: 'Media Library (Grid View)',
+		stateVariants: [
+			{
+				name: 'default',
+			},
+			{
+				name: 'image-modal-open',
+				setup: async ( page ) => {
+					// Click the image to open the attachment modal.
+					const imageLink = page.locator( '.attachment' ).first();
+					await imageLink.click();
+					// Wait for modal to appear.
+					await page.waitForSelector( '.media-modal' );
+				},
+			},
+		],
+	},
+	{
+		id: 'media-library-list',
+		path: '/upload.php?mode=list',
+		name: 'Media Library (List View)',
+	},
 
 	// Comments.
 	{
-		id: 'comments-all',
+		id: 'comments',
 		path: '/edit-comments.php',
 		name: 'Comments',
+	},
+
+	// Appearance.
+	{
+		id: 'themes',
+		path: '/themes.php',
+		name: 'Themes',
+	},
+	{
+		id: 'add-themes',
+		path: '/theme-install.php?browse=popular',
+		name: 'Add Themes',
+	},
+	{
+		id: 'fonts-list',
+		path: '/font-library.php?p=%2Ffont-list',
+		name: 'Fonts',
+	},
+
+	// Plugins.
+	{
+		id: 'installed-plugins',
+		path: '/plugins.php',
+		name: 'Plugins',
+	},
+	{
+		id: 'add-plugins',
+		path: '/plugin-install.php',
+		name: 'Add Plugins',
+	},
+
+	// Users.
+	{
+		id: 'users-list',
+		path: '/users.php',
+		name: 'Users',
+	},
+	{
+		id: 'add-user',
+		path: '/user-new.php',
+		name: 'Add User',
+	},
+
+	// Tools.
+	{
+		id: 'tools',
+		path: '/tools.php',
+		name: 'Tools',
+	},
+	{
+		id: 'tools-import',
+		path: '/import.php',
+		name: 'Tools - Import',
+	},
+	{
+		id: 'tools-export',
+		path: '/export.php',
+		name: 'Tools - Export',
+	},
+	{
+		id: 'site-health',
+		path: '/site-health.php',
+		name: 'Tools - Site Health',
+	},
+	{
+		id: 'export-personal-data',
+		path: '/export-personal-data.php',
+		name: 'Tools - Export Personal Data',
+	},
+	{
+		id: 'erase-personal-data',
+		path: '/erase-personal-data.php',
+		name: 'Tools - Erase Personal Data',
 	},
 
 	// Settings.
@@ -171,32 +261,6 @@ const pages = [
 		id: 'settings-privacy',
 		path: '/options-privacy.php',
 		name: 'Settings - Privacy',
-	},
-
-	// Users.
-	{
-		id: 'users-list',
-		path: '/users.php',
-		name: 'Users',
-	},
-
-	// Dashboard & tools.
-	{
-		id: 'dashboard',
-		path: '/',
-		name: 'Dashboard',
-	},
-
-	{
-		id: 'tools-import',
-		path: '/import.php',
-		name: 'Tools - Import',
-	},
-
-	{
-		id: 'tools-export',
-		path: '/export.php',
-		name: 'Tools - Export',
 	},
 
 	// Admin profile.
