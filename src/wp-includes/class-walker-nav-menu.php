@@ -148,7 +148,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @see Walker::start_el()
 	 *
 	 * @param string   $output            Used to append additional content (passed by reference).
-	 * @param WP_Post  $data_object       Menu item data object.
+	 * @param object   $data_object       Menu item data object.
 	 * @param int      $depth             Depth of menu item. Used for padding.
 	 * @param stdClass $args              An object of wp_nav_menu() arguments.
 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
