@@ -215,27 +215,30 @@ OPTIONS;
 	}
 
 	/**
-	 * Verify that the comments table never shows the note comment_type.
+	 * Verify that the comments table never shows internal comment types.
 	 *
 	 * @ticket 64198
 	 * @ticket 64474
+	 * @ticket 63191
 	 *
 	 * @dataProvider data_comment_type
 	 *
 	 * @param string $comment_type The comment_type parameter value to test.
 	 */
-	public function test_comments_list_table_does_not_show_note_comment_type( string $comment_type ) {
+	public function test_comments_list_table_does_not_show_internal_comment_types( string $comment_type ) {
 		$post_id = self::factory()->post->create();
-		self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_content'  => 'This is a note.',
-				'comment_type'     => 'note',
-				'comment_approved' => '1',
-				'comment_date'     => '2024-01-01 10:00:00',
-				'comment_date_gmt' => '2024-01-01 10:00:00',
-			)
-		);
+		foreach ( wp_get_internal_comment_types() as $internal_type ) {
+			self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $post_id,
+					'comment_content'  => 'This is a ' . $internal_type . '.',
+					'comment_type'     => $internal_type,
+					'comment_approved' => '1',
+					'comment_date'     => '2024-01-01 10:00:00',
+					'comment_date_gmt' => '2024-01-01 10:00:00',
+				)
+			);
+		}
 		$regular_comment_id       = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
@@ -265,14 +268,15 @@ OPTIONS;
 	}
 
 	/**
-	 * Data provider for test_comments_list_table_does_not_show_note_comment_type().
+	 * Data provider for test_comments_list_table_does_not_show_internal_comment_types().
 	 *
 	 * @return array<string, string[]>
 	 */
 	public function data_comment_type(): array {
 		return array(
-			'note type explicitly requested' => array( 'note' ),
-			'all type requested'             => array( 'all' ),
+			'note type explicitly requested'     => array( 'note' ),
+			'reaction type explicitly requested' => array( 'reaction' ),
+			'all type requested'                 => array( 'all' ),
 		);
 	}
 }

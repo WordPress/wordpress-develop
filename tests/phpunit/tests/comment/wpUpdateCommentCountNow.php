@@ -78,6 +78,20 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 				'comment_approved' => 1,
 			)
 		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_approved' => 0,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_approved' => 1,
+			)
+		);
 
 		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
 		$this->assertSame( '1', get_comments_number( $post_id ) );
