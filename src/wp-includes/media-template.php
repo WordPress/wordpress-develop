@@ -1579,10 +1579,9 @@ function wp_print_media_templates() {
 						<img id="preview-favicon" src="{{ data.url }}" class="browser-icon-preview" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>" />
 					</div>
 					<div class="site-icon-preview-site-title" aria-hidden="true"><# print( '<?php echo esc_js( get_bloginfo( 'name' ) ); ?>' ) #></div>
-						<svg role="img" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg" class="close-button">
-							<path d="M12 13.0607L15.7123 16.773L16.773 15.7123L13.0607 12L16.773 8.28772L15.7123 7.22706L12 10.9394L8.28771 7.22705L7.22705 8.28771L10.9394 12L7.22706 15.7123L8.28772 16.773L12 13.0607Z" />
-						</svg>
-					</div>
+					<svg role="img" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg" class="close-button">
+						<path d="M12 13.0607L15.7123 16.773L16.773 15.7123L13.0607 12L16.773 8.28772L15.7123 7.22706L12 10.9394L8.28771 7.22705L7.22705 8.28771L10.9394 12L7.22706 15.7123L8.28772 16.773L12 13.0607Z" />
+					</svg>
 				</div>
 			</div>
 		</div>
