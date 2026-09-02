@@ -1838,7 +1838,7 @@ Thanks! -- The WordPress Team"
 			$result       = json_decode( trim( $error_output ), true );
 		}
 
-		if ( is_array( $result ) && ! empty( $result['message'] ) ) {
+		if ( is_array( $result ) && ! empty( $result['message'] ) && is_string( $result['message'] ) ) {
 			$fatal_error = sprintf(
 				'PHP Fatal error: %s in %s on line %d',
 				$result['message'],
