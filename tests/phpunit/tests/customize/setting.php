@@ -188,14 +188,14 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 			$message = 'Initial value should be overridden because initial preview() was no-op due to setting having existing value and/or post value was absent.';
 			$this->assertSame( $overridden_value, call_user_func( $type_options['getter'], $name ), $message );
 			$this->assertSame( $overridden_value, $setting->value(), $message );
-			$this->assertNotEquals( $initial_value, $setting->value(), $message );
+			$this->assertNotSame( $initial_value, $setting->value(), $message );
 
 			// Non-multidimensional: Ensure that setting a post value *after* preview() is called results in the post value being seen (deferred preview).
 			$post_value = "post_value_for_{$setting->id}_set_after_preview_called";
 			$this->assertSame( 0, did_action( "customize_post_value_set_{$setting->id}" ) );
 			$this->manager->set_post_value( $setting->id, $post_value );
 			$this->assertSame( 1, did_action( "customize_post_value_set_{$setting->id}" ) );
-			$this->assertNotEquals( $overridden_value, $setting->value() );
+			$this->assertNotSame( $overridden_value, $setting->value() );
 			$this->assertSame( $post_value, call_user_func( $type_options['getter'], $name ) );
 			$this->assertSame( $post_value, $setting->value() );
 

@@ -2583,7 +2583,7 @@ HTML;
 		$preload_links  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$script_modules = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'static1'  => '/static1.js',
 				'dynamic1' => '/dynamic1.js',
