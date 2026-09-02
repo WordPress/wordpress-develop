@@ -1705,8 +1705,8 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, null on failure.
- *                     Nothing when displaying.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_post_title( $prefix = '', $display = true ) {
@@ -1743,8 +1743,8 @@ function single_post_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, null on failure.
- *                     Nothing when displaying.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function post_type_archive_title( $prefix = '', $display = true ) {
@@ -1787,8 +1787,8 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, null on failure.
- *                     Nothing when displaying.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_cat_title( $prefix = '', $display = true ) {
@@ -1810,8 +1810,8 @@ function single_cat_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, null on failure.
- *                     Nothing when displaying.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_tag_title( $prefix = '', $display = true ) {
@@ -1833,8 +1833,8 @@ function single_tag_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|void Title when retrieving, null on failure.
- *                     Nothing when displaying.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_term_title( $prefix = '', $display = true ) {
@@ -2235,8 +2235,8 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *     @type string     $day             Day. Default current day.
  *     @type string     $w               Week. Default current week.
  * }
- * @return string|void Archive links when 'echo' is false, null when the post type is
- *                     not viewable. Nothing otherwise.
+ * @return string|null|void Archive links when 'echo' is false, null when the post type is
+ *                          not viewable. Nothing otherwise.
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string|null
@@ -2511,8 +2511,8 @@ function calendar_week_mod( $num ) {
  *     @type bool   $display   Whether to display the calendar output. Default true.
  *     @type string $post_type Optional. Post type. Default 'post'.
  * }
- * @return string|void Calendar HTML when `$display` is false, null when the site has
- *                     no posts. Nothing otherwise.
+ * @return string|null|void Calendar HTML when `$display` is false, null when the site has
+ *                          no posts. Nothing otherwise.
  * @phpstan-return ( $args is array{ display: false|0|''|'0', ... } ? string|null : void )
  */
 function get_calendar( $args = array() ) {

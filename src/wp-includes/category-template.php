@@ -710,9 +710,9 @@ function wp_list_categories( $args = '' ) {
  *                             associated with the taxonomy.
  *     @type bool   $echo      Whether or not to echo the return value. Default true.
  * }
- * @return string|string[]|void Tag cloud as a string, or as an array when the 'format' argument
- *                              is 'array'. Null on failure. Nothing when 'echo' is true and
- *                              'format' is not 'array'.
+ * @return string|string[]|null|void Tag cloud as a string, or as an array when the 'format'
+ *                                   argument is 'array'. Null on failure. Nothing when 'echo' is
+ *                                   true and 'format' is not 'array'.
  * @phpstan-return (
  *     $args is array{ format: 'array', ... }
  *         ? string[]|null
