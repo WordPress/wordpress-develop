@@ -2293,10 +2293,23 @@ html.wp-toolbar {
 	color: #a7aaad;
 }
 
-.sortable-placeholder:not(.empty-container .sortable-placeholder) {
-	border: 1px dashed #c3c4c7;
+.sortable-placeholder {
+	box-sizing: border-box;
+	border: 2px dashed var(--wp-admin-theme-color, #c3c4c7);
+	background: rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.08);
 	border-radius: 8px;
 	margin-bottom: 20px;
+}
+
+/*
+ * Empty containers render their own drop outline, so the placeholder inside
+ * them is redundant. Kept as a separate rule (instead of a `:not()` with a
+ * descendant combinator) so unsupported-selector engines can't drop the main
+ * placeholder styles and leave the drop indicator invisible.
+ */
+.empty-container .sortable-placeholder {
+	border: none;
+	background: none;
 }
 
 .postbox,
