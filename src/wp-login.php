@@ -406,7 +406,7 @@ function login_footer( $input_id = '' ) {
 						<input type="hidden" name="interim-login" value="1" />
 					<?php } ?>
 
-					<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
+					<?php if ( isset( $_GET['redirect_to'] ) && is_string( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
 						<input type="hidden" name="redirect_to" value="<?php echo sanitize_url( $_GET['redirect_to'] ); ?>" />
 					<?php } ?>
 
