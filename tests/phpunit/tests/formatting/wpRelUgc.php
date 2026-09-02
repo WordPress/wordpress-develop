@@ -12,8 +12,8 @@ class Tests_Formatting_wpRelUgc extends WP_UnitTestCase {
 	 */
 	public function test_add_ugc() {
 		$content  = '<p>This is some cool <a href="/">Code</a></p>';
-		$expected = '<p>This is some cool <a href=\"/\" rel=\"nofollow ugc\">Code</a></p>';
-		$this->assertSame( $expected, wp_rel_ugc( $content ) );
+		$expected = '<p>This is some cool <a href="/" rel="nofollow ugc">Code</a></p>';
+		$this->assertEqualHTML( $expected, stripslashes( wp_rel_ugc( $content ) ) );
 	}
 
 	/**
@@ -21,8 +21,8 @@ class Tests_Formatting_wpRelUgc extends WP_UnitTestCase {
 	 */
 	public function test_convert_ugc() {
 		$content  = '<p>This is some cool <a href="/" rel="weird">Code</a></p>';
-		$expected = '<p>This is some cool <a href=\"/\" rel=\"weird nofollow ugc\">Code</a></p>';
-		$this->assertSame( $expected, wp_rel_ugc( $content ) );
+		$expected = '<p>This is some cool <a href="/" rel="weird nofollow ugc">Code</a></p>';
+		$this->assertEqualHTML( $expected, stripslashes( wp_rel_ugc( $content ) ) );
 	}
 
 	/**
@@ -30,7 +30,7 @@ class Tests_Formatting_wpRelUgc extends WP_UnitTestCase {
 	 * @dataProvider data_wp_rel_ugc
 	 */
 	public function test_wp_rel_ugc( $input, $output, $expect_deprecation = false ) {
-		$this->assertSame( wp_slash( $output ), wp_rel_ugc( $input ) );
+		$this->assertEqualHTML( $output, stripslashes( wp_rel_ugc( $input ) ) );
 	}
 
 	public function data_wp_rel_ugc() {
@@ -81,7 +81,7 @@ class Tests_Formatting_wpRelUgc extends WP_UnitTestCase {
 	public function test_append_ugc_with_valueless_attribute() {
 
 		$content  = '<p>This is some cool <a href="demo.com" download rel="hola">Code</a></p>';
-		$expected = '<p>This is some cool <a href=\"demo.com\" download rel=\"hola nofollow ugc\">Code</a></p>';
-		$this->assertSame( $expected, wp_rel_ugc( $content ) );
+		$expected = '<p>This is some cool <a href="demo.com" download rel="hola nofollow ugc">Code</a></p>';
+		$this->assertEqualHTML( $expected, stripslashes( wp_rel_ugc( $content ) ) );
 	}
 }

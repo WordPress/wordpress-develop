@@ -25,25 +25,34 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( array( $val ), $args );
 	}
 
+	/**
+	 * @covers ::remove_filter
+	 */
 	public function test_remove_filter() {
 		$a         = new MockAction();
 		$hook_name = __FUNCTION__;
 		$val       = __FUNCTION__ . '_val';
 
 		add_filter( $hook_name, array( $a, 'filter' ) );
+		add_filter( $hook_name, array( $a, 'filter' ), 100 );
 		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
 
 		// Make sure our hook was called correctly.
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
+		$this->assertSame( 2, $a->get_call_count() );
+		$this->assertSame( array( $hook_name, $hook_name ), $a->get_hook_names() );
 
 		// Now remove the filter, do it again, and make sure it's not called this time.
 		remove_filter( $hook_name, array( $a, 'filter' ) );
+		remove_filter( $hook_name, array( $a, 'filter' ), 100 );
 		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
+		$this->assertSame( 2, $a->get_call_count() );
+		$this->assertSame( array( $hook_name, $hook_name ), $a->get_hook_names() );
 	}
 
+	/**
+	 * @ticket 64186
+	 * @covers ::has_filter
+	 */
 	public function test_has_filter() {
 		$hook_name = __FUNCTION__;
 		$callback  = __FUNCTION__ . '_func';
@@ -53,7 +62,20 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		add_filter( $hook_name, $callback );
 		$this->assertSame( 10, has_filter( $hook_name, $callback ) );
+		$this->assertFalse( has_filter( $hook_name, $callback, 9 ) );
 		$this->assertTrue( has_filter( $hook_name ) );
+
+		add_filter( $hook_name, $callback, 9 );
+		add_filter( $hook_name, $callback, 11 );
+		$this->assertSame( 9, has_filter( $hook_name, $callback ) );
+		$this->assertTrue( has_filter( $hook_name, $callback, 9 ) );
+		$this->assertTrue( has_filter( $hook_name, $callback, 10 ) );
+		$this->assertTrue( has_filter( $hook_name, $callback, 11 ) );
+		$this->assertTrue( has_filter( $hook_name ) );
+
+		remove_filter( $hook_name, $callback, 9 );
+		remove_filter( $hook_name, $callback, 11 );
+		$this->assertSame( 10, has_filter( $hook_name, $callback ) );
 
 		remove_filter( $hook_name, $callback );
 		$this->assertFalse( has_filter( $hook_name, $callback ) );

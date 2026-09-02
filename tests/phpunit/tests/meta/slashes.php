@@ -44,16 +44,10 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 	public function test_edit_post() {
 		$post_id = self::$post_id;
 
-		if ( function_exists( 'wp_add_post_meta' ) ) {
-			$meta_1 = wp_add_post_meta( $post_id, 'slash_test_1', 'foo' );
-			$meta_2 = wp_add_post_meta( $post_id, 'slash_test_2', 'foo' );
-			$meta_3 = wp_add_post_meta( $post_id, 'slash_test_3', 'foo' );
-		} else {
-			// Expects slashed data.
-			$meta_1 = add_post_meta( $post_id, 'slash_test_1', addslashes( 'foo' ) );
-			$meta_2 = add_post_meta( $post_id, 'slash_test_2', addslashes( 'foo' ) );
-			$meta_3 = add_post_meta( $post_id, 'slash_test_3', addslashes( 'foo' ) );
-		}
+		// Expects slashed data.
+		$meta_1 = add_post_meta( $post_id, 'slash_test_1', addslashes( 'foo' ) );
+		$meta_2 = add_post_meta( $post_id, 'slash_test_2', addslashes( 'foo' ) );
+		$meta_3 = add_post_meta( $post_id, 'slash_test_3', addslashes( 'foo' ) );
 
 		$_POST                  = array();
 		$_POST['post_ID']       = $post_id;

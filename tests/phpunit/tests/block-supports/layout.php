@@ -42,6 +42,22 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		/*
+		 * Register a style variation with a custom blockGap value for testing.
+		 */
+		register_block_style(
+			'core/group',
+			array(
+				'name'       => 'custom-gap',
+				'label'      => 'Custom Gap',
+				'style_data' => array(
+					'spacing' => array(
+						'blockGap' => '99px',
+					),
+				),
+			)
+		);
 	}
 
 	public function tear_down() {
@@ -54,11 +70,36 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		// Clean up variation test data.
+		unregister_block_style( 'core/group', 'custom-gap' );
+		WP_Theme_JSON_Resolver::clean_cached_data();
+
 		parent::tear_down();
 	}
 
 	public function filter_set_theme_root() {
 		return $this->theme_root;
+	}
+
+	/**
+	 * @ticket 65667
+	 *
+	 * @covers ::wp_sanitize_block_gap_value
+	 */
+	public function test_sanitize_block_gap_value_rejects_nested_array_values() {
+		$this->assertSame(
+			array(
+				'top'  => null,
+				'left' => '2rem',
+			),
+			wp_sanitize_block_gap_value(
+				array(
+					'top'  => array( '1rem' ),
+					'left' => '2rem',
+				)
+			)
+		);
 	}
 
 	/**
@@ -74,7 +115,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"/></figure>';
 		$expected      = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"/></figure>';
 
-		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+		$this->assertEqualHTML( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}
 
 	/**
@@ -90,7 +131,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		$block_content = '<figure class="wp-block-image alignright size-full"><img src="/my-image.jpg"/></figure>';
 		$expected      = '<div class="wp-block-image"><figure class="alignright size-full"><img src="/my-image.jpg"/></figure></div>';
 
-		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+		$this->assertEqualHTML( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}
 
 	/**
@@ -111,7 +152,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertSame( $expected, wp_restore_image_outer_container( $block_image_html, $block ) );
+		$this->assertEqualHTML( $expected, wp_restore_image_outer_container( $block_image_html, $block ) );
 	}
 
 	/**
@@ -165,7 +206,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		$block_content = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
 		$expected      = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
 
-		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+		$this->assertEqualHTML( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}
 
 	/**
@@ -173,6 +214,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * @ticket 58548
 	 * @ticket 60292
 	 * @ticket 61111
+	 * @ticket 65101
 	 *
 	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
 	 *
@@ -184,7 +226,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	public function test_layout_support_flag_renders_classnames_on_wrapper( $args, $expected_output ) {
 		switch_theme( 'default' );
 		$actual_output = wp_render_layout_support_flag( $args['block_content'], $args['block'] );
-		$this->assertSame( $expected_output, $actual_output );
+		$this->assertEqualHTML( $expected_output, $actual_output );
 	}
 
 	/**
@@ -202,6 +244,32 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'attrs'        => array(
 							'layout' => array(
 								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"></div>',
+			),
+			'single wrapper block layout with malformed axial block gap' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+							'style'  => array(
+								'spacing' => array(
+									'blockGap' => array(
+										'top' => array( '1rem' ),
+									),
+								),
 							),
 						),
 						'innerBlocks'  => array(),
@@ -272,7 +340,47 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<p class="wp-container-content-1">Some text.</p>', // The generated classname number assumes `wp_unique_prefixed_id( 'wp-container-content-' )` will not have run previously in this test.
+				'expected_output' => '<p class="wp-container-content-b7aa651c">Some text.</p>',
+			),
+			'single wrapper block layout with flex type'   => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type'        => 'flex',
+								'orientation' => 'horizontal',
+								'flexWrap'    => 'nowrap',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-horizontal is-nowrap is-layout-flex wp-container-core-group-is-layout-ee7b5020 wp-block-group-is-layout-flex"></div>',
+			),
+			'single wrapper block layout with grid type'   => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'grid',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-grid wp-container-core-group-is-layout-9d260ee2 wp-block-group-is-layout-grid"></div>',
 			),
 			'skip classname output if block does not support layout and there are no child layout classes to be output' => array(
 				'args'            => array(
@@ -292,6 +400,27 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 					),
 				),
 				'expected_output' => '<p>A paragraph</p>',
+			),
+			'outer wrapper targeted when sibling element precedes inner blocks' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"><div class="wp-block-group__header">Header</div><p>Inner block</p></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"><div class="wp-block-group__header">Header</div><p>Inner block</p></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"><div class="wp-block-group__header">Header</div>',
+							null,
+							'</div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"><div class="wp-block-group__header">Header</div><p>Inner block</p></div>',
 			),
 		);
 	}
@@ -387,6 +516,162 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Check that wp_get_child_layout_style_rules() renders flex child sizing styles.
+	 *
+	 * @dataProvider data_wp_get_child_layout_style_rules
+	 *
+	 * @covers ::wp_get_child_layout_style_rules
+	 *
+	 * @param array      $child_layout       Child layout values.
+	 * @param array|null $viewport_overrides Optional child viewport layout overrides.
+	 * @param array      $expected_output    The expected output.
+	 */
+	public function test_wp_get_child_layout_style_rules( $child_layout, $viewport_overrides, $expected_output ) {
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			$child_layout,
+			array(),
+			$viewport_overrides
+		);
+
+		$this->assertSame( $expected_output, $actual_output );
+	}
+
+	/**
+	 * Data provider for test_wp_get_child_layout_style_rules().
+	 *
+	 * @return array
+	 */
+	public function data_wp_get_child_layout_style_rules() {
+		return array(
+			'legacy fixed sizing remains shrinkable'      => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixed',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => null,
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis' => '320px',
+							'box-sizing' => 'border-box',
+						),
+					),
+				),
+			),
+			'fixed sizing can opt out of shrinking'       => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixedNoShrink',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => null,
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis'  => '320px',
+							'flex-shrink' => '0',
+							'box-sizing'  => 'border-box',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixedNoShrink to max' => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixedNoShrink',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fixed',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis'  => '320px',
+							'flex-shrink' => 'unset',
+							'box-sizing'  => 'border-box',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixedNoShrink to fit' => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixedNoShrink',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fit',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis'  => 'unset',
+							'flex-shrink' => 'unset',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixed to fit'  => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixed',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fit',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis' => 'unset',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixedNoShrink to grow' => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixedNoShrink',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fill',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis'  => 'unset',
+							'flex-shrink' => 'unset',
+							'flex-grow'   => '1',
+						),
+					),
+				),
+			),
+			'viewport overrides can switch fixed to grow' => array(
+				'child_layout'       => array(
+					'selfStretch' => 'fixed',
+					'flexSize'    => '320px',
+				),
+				'viewport_overrides' => array(
+					'selfStretch' => 'fill',
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'flex-basis' => 'unset',
+							'flex-grow'  => '1',
+						),
+					),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Checks that `wp_add_parent_layout_to_parsed_block` adds the parent layout attribute to the block object.
 	 *
 	 * @ticket 61111
@@ -461,6 +746,683 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 					),
 				),
 			),
+		);
+	}
+
+	/**
+	 * Check that wp_render_layout_support_flag() renders consistent hashes
+	 * for the container class when the relevant layout properties are the same.
+	 *
+	 * @dataProvider data_layout_support_flag_renders_consistent_container_hash
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @param array $block_attrs     Dataset to test.
+	 * @param array $expected_class  Class generated for the passed dataset.
+	 */
+	public function test_layout_support_flag_renders_consistent_container_hash( $block_attrs, $expected_class ) {
+		switch_theme( 'default' );
+
+		$block_content = '<div class="wp-block-group"></div>';
+		$block         = array(
+			'blockName'    => 'core/group',
+			'innerBlocks'  => array(),
+			'innerHTML'    => '<div class="wp-block-group"></div>',
+			'innerContent' => array(
+				'<div class="wp-block-group"></div>',
+			),
+			'attrs'        => $block_attrs,
+		);
+
+		/*
+		 * The `appearance-tools` theme support is temporarily added to ensure
+		 * that the block gap support is enabled during rendering, which is
+		 * necessary to compute styles for layouts with block gap values.
+		 */
+		add_theme_support( 'appearance-tools' );
+		$output = wp_render_layout_support_flag( $block_content, $block );
+		remove_theme_support( 'appearance-tools' );
+
+		// Process the output and look for the expected class in the first rendered element.
+		$processor = new WP_HTML_Tag_Processor( $output );
+		$processor->next_tag();
+
+		// Extract the actual container class from the output for better error messages.
+		$actual_class = '';
+		foreach ( $processor->class_list() as $class_name ) {
+			if ( str_starts_with( $class_name, 'wp-container-core-group-is-layout-' ) ) {
+				$actual_class = $class_name;
+				break;
+			}
+		}
+
+		$this->assertEquals(
+			$expected_class,
+			$actual_class,
+			'Expected class not found in the rendered output, probably because of a different hash.'
+		);
+	}
+
+	/**
+	 * Data provider for test_layout_support_flag_renders_consistent_container_hash.
+	 *
+	 * @return array
+	 */
+	public function data_layout_support_flag_renders_consistent_container_hash() {
+		return array(
+			'default type block gap 12px'      => array(
+				'block_attributes' => array(
+					'layout' => array(
+						'type' => 'default',
+					),
+					'style'  => array(
+						'spacing' => array(
+							'blockGap' => '12px',
+						),
+					),
+				),
+				'expected_class'   => 'wp-container-core-group-is-layout-a6248535',
+			),
+			'default type block gap 24px'      => array(
+				'block_attributes' => array(
+					'layout' => array(
+						'type' => 'default',
+					),
+					'style'  => array(
+						'spacing' => array(
+							'blockGap' => '24px',
+						),
+					),
+				),
+				'expected_class'   => 'wp-container-core-group-is-layout-61b496ee',
+			),
+			'constrained type justified left'  => array(
+				'block_attributes' => array(
+					'layout' => array(
+						'type'           => 'constrained',
+						'justifyContent' => 'left',
+					),
+				),
+				'expected_class'   => 'wp-container-core-group-is-layout-54d22900',
+			),
+			'constrained type justified right' => array(
+				'block_attributes' => array(
+					'layout' => array(
+						'type'           => 'constrained',
+						'justifyContent' => 'right',
+					),
+				),
+				'expected_class'   => 'wp-container-core-group-is-layout-2910ada7',
+			),
+			'flex type horizontal'             => array(
+				'block_attributes' => array(
+					'layout' => array(
+						'type'        => 'flex',
+						'orientation' => 'horizontal',
+						'flexWrap'    => 'nowrap',
+					),
+				),
+				'expected_class'   => 'wp-container-core-group-is-layout-f5d79bea',
+			),
+			'flex type vertical'               => array(
+				'block_attributes' => array(
+					'layout' => array(
+						'type'        => 'flex',
+						'orientation' => 'vertical',
+					),
+				),
+				'expected_class'   => 'wp-container-core-group-is-layout-2c90304e',
+			),
+			'grid type'                        => array(
+				'block_attributes' => array(
+					'layout' => array(
+						'type' => 'grid',
+					),
+				),
+				'expected_class'   => 'wp-container-core-group-is-layout-5a23bf8e',
+			),
+			'grid type 3 columns'              => array(
+				'block_attributes' => array(
+					'layout' => array(
+						'type'        => 'grid',
+						'columnCount' => 3,
+					),
+				),
+				'expected_class'   => 'wp-container-core-group-is-layout-cda6dc4f',
+			),
+		);
+	}
+
+	/**
+	 * Tests that custom blocks include namespace in layout classnames.
+	 *
+	 * When layout support is enabled for custom blocks, the generated
+	 * layout classname should include the full block namespace to ensure
+	 * that CSS selectors match correctly.
+	 *
+	 * @ticket 63839
+	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @dataProvider data_layout_classname_with_custom_blocks
+	 */
+	public function test_layout_classname_includes_namespace_for_custom_blocks( $block_name, $layout_type, $expected_class, $should_not_contain ) {
+		switch_theme( 'default' );
+
+		register_block_type(
+			$block_name,
+			array(
+				'supports' => array(
+					'layout' => true,
+				),
+			)
+		);
+
+		$block_content = '<div class="wp-block-test"><p>Content</p></div>';
+		$block         = array(
+			'blockName' => $block_name,
+			'attrs'     => array(
+				'layout' => array(
+					'type' => $layout_type,
+				),
+			),
+		);
+
+		$output = wp_render_layout_support_flag( $block_content, $block );
+
+		// Assert that the expected class is present.
+		$this->assertStringContainsString( $expected_class, $output );
+
+		// Assert that the old buggy class is not present.
+		$this->assertStringNotContainsString( $should_not_contain, $output );
+
+		// Clean up the registered block type.
+		unregister_block_type( $block_name );
+	}
+
+	/**
+	 * Data provider for test_layout_classname_includes_namespace_for_custom_blocks.
+	 *
+	 * @return array
+	 */
+	public function data_layout_classname_with_custom_blocks() {
+		return array(
+			'custom block with constrained layout' => array(
+				'block_name'         => 'foo/bar',
+				'layout_type'        => 'constrained',
+				'expected_class'     => 'wp-block-foo-bar-is-layout-constrained',
+				'should_not_contain' => 'wp-block-bar-is-layout-constrained',
+			),
+			'custom block with default layout'     => array(
+				'block_name'         => 'foo/bar',
+				'layout_type'        => 'default',
+				'expected_class'     => 'wp-block-foo-bar-is-layout-flow',
+				'should_not_contain' => 'wp-block-bar-is-layout-flow',
+			),
+			'custom block with flex layout'        => array(
+				'block_name'         => 'foo/bar',
+				'layout_type'        => 'flex',
+				'expected_class'     => 'wp-block-foo-bar-is-layout-flex',
+				'should_not_contain' => 'wp-block-bar-is-layout-flex',
+			),
+			'custom block with grid layout'        => array(
+				'block_name'         => 'foo/bar',
+				'layout_type'        => 'grid',
+				'expected_class'     => 'wp-block-foo-bar-is-layout-grid',
+				'should_not_contain' => 'wp-block-bar-is-layout-grid',
+			),
+		);
+	}
+
+	/**
+	 * Tests that block style variations with blockGap values are applied to layout styles.
+	 *
+	 * @ticket 64624
+	 * @covers ::wp_render_layout_support_flag
+	 */
+	public function test_layout_support_flag_uses_variation_block_gap_value() {
+		switch_theme( 'block-theme' );
+
+		$block_content = '<div class="wp-block-group is-style-custom-gap"></div>';
+		$block         = array(
+			'blockName'    => 'core/group',
+			'attrs'        => array(
+				'className' => 'is-style-custom-gap',
+				'layout'    => array(
+					'type'               => 'grid',
+					'columnCount'        => 3,
+					'minimumColumnWidth' => '12rem',
+				),
+			),
+			'innerBlocks'  => array(),
+			'innerHTML'    => '<div class="wp-block-group is-style-custom-gap"></div>',
+			'innerContent' => array(
+				'<div class="wp-block-group is-style-custom-gap"></div>',
+			),
+		);
+
+		wp_render_layout_support_flag( $block_content, $block );
+
+		// Get the generated CSS from the style engine.
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		// The CSS grid declaration should contain the variation's blockGap value of 99px.
+		$this->assertStringContainsString(
+			'grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (99px * (3 - 1))) /3), 1fr))',
+			$actual_stylesheet,
+			'Generated CSS should contain the variation blockGap value of 99px.'
+		);
+	}
+
+	/**
+	 * Tests that wp_get_block_style_variation_name_from_registered_style correctly extracts variation names from class strings.
+	 *
+	 * @ticket 64624
+	 * @covers ::wp_get_block_style_variation_name_from_registered_style
+	 *
+	 * @dataProvider data_get_block_style_variation_name_from_registered_style
+	 *
+	 * @param string      $class_name        CSS class string to test.
+	 * @param array       $registered_styles Registered block styles.
+	 * @param string|null $expected_result   Expected variation name or null.
+	 */
+	public function test_get_block_style_variation_name_from_registered_style( $class_name, $registered_styles, $expected_result ) {
+		$result = wp_get_block_style_variation_name_from_registered_style( $class_name, $registered_styles );
+		$this->assertSame( $expected_result, $result );
+	}
+
+	/**
+	 * Data provider for test_get_block_style_variation_name_from_registered_style.
+	 *
+	 * @return array
+	 */
+	public function data_get_block_style_variation_name_from_registered_style() {
+		return array(
+			'empty class name'                             => array(
+				'class_name'        => '',
+				'registered_styles' => array(),
+				'expected_result'   => null,
+			),
+			'no matching registered styles'                => array(
+				'class_name'        => 'is-style-shadowed wp-block-button',
+				'registered_styles' => array(
+					array( 'name' => 'rounded' ),
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => null,
+			),
+			'single matching variation found'              => array(
+				'class_name'        => 'wp-block-button is-style-rounded',
+				'registered_styles' => array(
+					array( 'name' => 'rounded' ),
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => 'rounded',
+			),
+			'ignores default style only'                   => array(
+				'class_name'        => 'is-style-default wp-block-button',
+				'registered_styles' => array(
+					array( 'name' => 'default' ),
+					array( 'name' => 'rounded' ),
+				),
+				'expected_result'   => null,
+			),
+			'ignores default and returns next variation'   => array(
+				'class_name'        => 'is-style-default is-style-rounded wp-block-button',
+				'registered_styles' => array(
+					array( 'name' => 'default' ),
+					array( 'name' => 'rounded' ),
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => 'rounded',
+			),
+			'returns first matching variation when multiple present' => array(
+				'class_name'        => 'is-style-shadowed is-style-rounded',
+				'registered_styles' => array(
+					array( 'name' => 'rounded' ),
+					array( 'name' => 'outlined' ),
+					array( 'name' => 'shadowed' ),
+				),
+				'expected_result'   => 'shadowed',
+			),
+			'empty registered styles array'                => array(
+				'class_name'        => 'is-style-rounded',
+				'registered_styles' => array(),
+				'expected_result'   => null,
+			),
+			'registered styles with missing name property' => array(
+				'class_name'        => 'is-style-outlined wp-block-button',
+				'registered_styles' => array(
+					array( 'label' => 'Rounded' ),
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => 'outlined',
+			),
+		);
+	}
+
+	/**
+	 * Tests that a non-string `className` attribute does not cause a fatal
+	 * when checking for style variation layout styles.
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 */
+	public function test_layout_support_flag_with_non_string_class_name() {
+		$block_content = '<div class="wp-block-group 0 1"></div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'className' => array( '0', '1' ),
+				'layout'    => array(
+					'type' => 'constrained',
+				),
+			),
+		);
+
+		$this->assertSame(
+			'<div class="wp-block-group 0 1 is-layout-constrained wp-block-group-is-layout-constrained"></div>',
+			wp_render_layout_support_flag( $block_content, $block ),
+			'Layout support should render the expected markup when className is not a string'
+		);
+	}
+
+	/**
+	 * Tests that layout support returns early, without resolving global settings,
+	 * for a block that cannot produce any layout output.
+	 *
+	 * Resolving global settings reads the user's `wp_global_styles` post with a
+	 * `WP_Query`, which fires `the_posts`. A callback on that hook that renders
+	 * blocks re-enters this filter, so the bail-out has to happen before the
+	 * lookup or the recursion has no base case.
+	 *
+	 * @ticket 65741
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 */
+	public function test_layout_support_flag_returns_early_before_resolving_global_settings() {
+		$user_data_resolutions = 0;
+		add_filter(
+			'wp_theme_json_data_user',
+			static function ( $theme_json ) use ( &$user_data_resolutions ) {
+				++$user_data_resolutions;
+				return $theme_json;
+			}
+		);
+
+		// A block with no layout support and no child layout, as produced by
+		// parsing content that has no block delimiters.
+		$block_content = '<p>Not a block.</p>';
+		$block         = array(
+			'blockName' => null,
+			'attrs'     => array(),
+		);
+
+		// Start from a cold cache, as on a front-end request.
+		wp_clean_theme_json_cache();
+
+		$this->assertSame(
+			$block_content,
+			wp_render_layout_support_flag( $block_content, $block ),
+			'Block content should be returned unchanged when the block has no layout support.'
+		);
+		$this->assertSame(
+			0,
+			$user_data_resolutions,
+			'Global settings should not be resolved for a block that cannot produce layout output.'
+		);
+
+		// A block that does support layout still resolves global settings, which
+		// confirms the assertion above is not passing because of a warm cache.
+		wp_clean_theme_json_cache();
+
+		wp_render_layout_support_flag(
+			'<div class="wp-block-group"></div>',
+			array(
+				'blockName' => 'core/group',
+				'attrs'     => array( 'layout' => array( 'type' => 'constrained' ) ),
+			)
+		);
+
+		$this->assertGreaterThan(
+			0,
+			$user_data_resolutions,
+			'Global settings should still be resolved for a block that supports layout.'
+		);
+	}
+
+	/**
+	 * Tests that a constrained layout with non-string contentSize/wideSize/justifyContent
+	 * values (e.g. from hand-edited, imported, or AI-generated content) does not cause a
+	 * fatal error in the explode() calls.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_with_non_string_constrained_sizes() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'constrained',
+				'contentSize'    => array( '800px' ),
+				'wideSize'       => array( '1200px' ),
+				'justifyContent' => array( 'center' ),
+			)
+		);
+
+		$this->assertIsString( $layout_styles, 'Constrained layout should not fatal when sizes are not strings.' );
+		$this->assertStringNotContainsString( 'Array', $layout_styles, 'A non-string size value should not leak into the output.' );
+	}
+
+	/**
+	 * Tests that a flex layout with non-string justifyContent/verticalAlignment values
+	 * does not cause a fatal error in the array_key_exists() calls.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_with_non_string_flex_alignment() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'              => 'flex',
+				'orientation'       => 'horizontal',
+				'justifyContent'    => array( 'right' ),
+				'verticalAlignment' => array( 'center' ),
+			)
+		);
+
+		$this->assertIsString( $layout_styles, 'Flex layout should not fatal when alignment values are not strings.' );
+	}
+
+	/**
+	 * Tests that a responsive grid child with a non-string parent minimumColumnWidth
+	 * does not cause a fatal error in the explode() call.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_child_layout_style_rules
+	 */
+	public function test_wp_get_child_layout_style_rules_with_non_string_minimum_column_width() {
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			array( 'columnSpan' => '2' ),
+			array( 'minimumColumnWidth' => array( '12rem' ) ),
+			null
+		);
+
+		$this->assertIsArray( $actual_output, 'Child layout rules should not fatal when minimumColumnWidth is not a string.' );
+	}
+
+	/**
+	 * Tests that layout classname generation does not fatal when the layout type,
+	 * orientation, or justifyContent attributes are not strings.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_render_layout_support_flag
+	 */
+	public function test_layout_support_flag_with_non_string_layout_values() {
+		$block_content = '<div class="wp-block-group"></div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'layout' => array(
+					'type'           => array( 'constrained' ),
+					'orientation'    => array( 'horizontal' ),
+					'justifyContent' => array( 'center' ),
+				),
+			),
+		);
+
+		$this->assertIsString(
+			wp_render_layout_support_flag( $block_content, $block ),
+			'Layout support should not fatal when layout values are not strings.'
+		);
+	}
+
+	/**
+	 * Tests that restoring the group inner container does not fatal when the tagName
+	 * attribute is not a string (which would break the preg_quote() calls).
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_restore_group_inner_container
+	 */
+	public function test_restore_group_inner_container_with_non_string_tag_name() {
+		// The "default" theme doesn't have theme.json support, so the preg_quote() path runs.
+		switch_theme( 'default' );
+		$block_content = '<div class="wp-block-group"><p>Test</p></div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'tagName' => array( 'div' ),
+			),
+		);
+
+		$this->assertIsString(
+			wp_restore_group_inner_container( $block_content, $block ),
+			'Group inner container restore should not fatal when tagName is not a string.'
+		);
+	}
+
+	/**
+	 * Tests that non-numeric grid placement values are dropped rather than being
+	 * interpolated into the `grid-column` and `grid-row` declarations.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_child_layout_style_rules
+	 */
+	public function test_get_child_layout_style_rules_with_non_numeric_grid_placement() {
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			array(
+				'columnStart' => array( 2 ),
+				'columnSpan'  => array( 3 ),
+				'rowStart'    => array( 1 ),
+				'rowSpan'     => array( 2 ),
+			),
+			array(),
+			null
+		);
+
+		$this->assertSame(
+			array(),
+			$actual_output,
+			'Non-numeric grid placement values should not produce any child layout rules.'
+		);
+	}
+
+	/**
+	 * Tests that grid placement values saved as numeric strings (WordPress 6.3 to 6.6)
+	 * produce the same declarations as numbers.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_child_layout_style_rules
+	 */
+	public function test_get_child_layout_style_rules_with_numeric_string_grid_placement() {
+		$expected_output = array(
+			array(
+				'selector'     => '.wp-container-content-test',
+				'declarations' => array(
+					'grid-column' => '2 / span 3',
+					'grid-row'    => '1 / span 2',
+				),
+			),
+		);
+
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			array(
+				'columnStart' => '2',
+				'columnSpan'  => '3',
+				'rowStart'    => '1',
+				'rowSpan'     => '2',
+			),
+			array( 'columnCount' => '3' ),
+			null
+		);
+
+		$this->assertSame( $expected_output, $actual_output );
+	}
+
+	/**
+	 * Tests that non-numeric grid counts are treated as absent instead of leaking into the
+	 * CSS. The rowCount case keeps columnCount valid, because the row track rule is only
+	 * reached when there is a column count.
+	 *
+	 * @dataProvider data_get_layout_style_with_non_numeric_grid_counts
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_layout_style
+	 *
+	 * @param array  $layout          Grid layout values.
+	 * @param string $expected_output The expected output.
+	 */
+	public function test_get_layout_style_with_non_numeric_grid_counts( $layout, $expected_output ) {
+		$this->assertSame( $expected_output, wp_get_layout_style( '.wp-layout', $layout ) );
+	}
+
+	/**
+	 * Data provider for test_get_layout_style_with_non_numeric_grid_counts().
+	 *
+	 * @return array
+	 */
+	public function data_get_layout_style_with_non_numeric_grid_counts() {
+		return array(
+			'non-numeric columnCount falls back to the responsive default' => array(
+				'layout'          => array(
+					'type'        => 'grid',
+					'columnCount' => array( 3 ),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(min(12rem, 100%), 1fr));container-type:inline-size;}',
+			),
+			'non-numeric rowCount drops the row track rule' => array(
+				'layout'          => array(
+					'type'        => 'grid',
+					'columnCount' => 3,
+					'rowCount'    => array( 2 ),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(3, minmax(0, 1fr));}',
+			),
+		);
+	}
+
+	/**
+	 * Tests that grid counts saved as numeric strings (WordPress 6.3 to 6.6) produce the
+	 * same CSS as numbers.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_get_layout_style_with_numeric_string_grid_counts() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'        => 'grid',
+				'columnCount' => '3',
+				'rowCount'    => '2',
+			)
+		);
+
+		$this->assertSame(
+			'.wp-layout{grid-template-columns:repeat(3, minmax(0, 1fr));grid-template-rows:repeat(2, minmax(1rem, auto));}',
+			$layout_styles
 		);
 	}
 }

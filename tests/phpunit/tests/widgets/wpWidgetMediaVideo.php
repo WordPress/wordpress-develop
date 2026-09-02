@@ -277,7 +277,7 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 
 		// Custom attributes.
 		$this->assertStringContainsString( 'preload="metadata"', $output );
-		$this->assertStringContainsString( 'loop="1"', $output );
+		$this->assertStringContainsString( 'loop', $output );
 
 		// Externally hosted video.
 		ob_start();
@@ -344,6 +344,9 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 	 * @covers WP_Widget_Media_Video::render_control_template_scripts
 	 */
 	public function test_render_control_template_scripts() {
+		// Provides wp_underscore_video_template(), normally loaded by wp_enqueue_media().
+		require_once ABSPATH . WPINC . '/media-template.php';
+
 		$widget = new WP_Widget_Media_Video();
 
 		ob_start();

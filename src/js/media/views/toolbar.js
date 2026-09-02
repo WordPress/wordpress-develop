@@ -109,8 +109,10 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		return this;
 	},
 	/**
+	 * Retrieves a view by its ID.
+	 *
 	 * @param {string} id
-	 * @return {wp.media.view.Button}
+	 * @return {wp.media.view.Button} The view associated with the given ID, or undefined if no view is found.
 	 */
 	get: function( id ) {
 		return this._views[ id ];
@@ -143,13 +145,17 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 			}
 
 			var requires = button.options.requires,
-				disabled = false;
+				disabled = false,
+				modelsUploading = library && ! _.isEmpty( library.findWhere( { 'uploading': true } ) );
 
 			// Prevent insertion of attachments if any of them are still uploading.
 			if ( selection && selection.models ) {
 				disabled = _.some( selection.models, function( attachment ) {
 					return attachment.get('uploading') === true;
 				});
+			}
+			if ( requires.uploadingComplete && modelsUploading ) {
+				disabled = true;
 			}
 
 			if ( requires.selection && selection && ! selection.length ) {

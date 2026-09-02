@@ -1,20 +1,20 @@
-/**
- * Handles updating and editing comments.
- *
- * @file This file contains functionality for the admin comments page.
- * @since 2.1.0
- * @output wp-admin/js/edit-comments.js
- */
-
 /* global adminCommentsSettings, thousandsSeparator, list_args, QTags, ajaxurl, wpAjax */
 /* global commentReply, theExtraList, theList, setCommentsList */
 
+/**
+ * Handles updating and editing comments.
+ * @output wp-admin/js/edit-comments.js
+ */
+
+/**
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 (function($) {
 var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	updateHtmlTitle, updateDashboardText, updateInModerationText, adminTitle = document.title,
 	isDashboard = $('#dashboard_right_now').length,
 	titleDiv, titleRegEx,
-	__ = wp.i18n.__;
+	__ = wp.i18n.__, _x = wp.i18n._x;
 
 	/**
 	 * Extracts a number from the content of a jQuery element.
@@ -370,7 +370,8 @@ window.setCommentsList = function() {
 
 		} else {
 			if ( settings.data.id == replyID )
-				replyButton.text( __( 'Reply' ) );
+				/* translators: Comment reply button text. */
+				replyButton.text( _x( 'Reply', 'verb' ) );
 
 			c.find( '.row-actions span.view' ).removeClass( 'hidden' ).end()
 				.find( 'div.comment_status' ).html( '1' );
@@ -1012,7 +1013,8 @@ window.commentReply = {
 			if ( c.hasClass('unapproved') ) {
 				replyButton.text( __( 'Approve and Reply' ) );
 			} else {
-				replyButton.text( __( 'Reply' ) );
+				/* translators: Comment reply button text. */
+				replyButton.text( _x( 'Reply', 'verb' ) );
 			}
 
 			$('#replyrow').fadeIn(300, function(){ $(this).show(); });
