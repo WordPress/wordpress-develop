@@ -4688,6 +4688,10 @@ function wp_send_json_error( $value = null, $status_code = null, $flags = 0 ) {
 			}
 
 			$response['data'] = $result;
+			if ( is_null( $status_code ) ) {
+				// Sets the status code as the status of the first error if the status code is null
+				$status_code = $value->get_error_code();
+			}
 		} else {
 			$response['data'] = $value;
 		}
