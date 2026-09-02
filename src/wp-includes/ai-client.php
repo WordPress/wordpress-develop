@@ -60,3 +60,72 @@ function wp_supports_ai(): bool {
 function wp_ai_client_prompt( $prompt = null ): WP_AI_Client_Prompt_Builder {
 	return new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), $prompt );
 }
+
+/**
+ * Renders a credential input field for the AI Services settings page.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @param array $args {
+ *     Field arguments set up during add_settings_field().
+ *
+ *     @type string $type        Input type. Default 'text'.
+ *     @type string $id          Field ID attribute.
+ *     @type string $name        Field name attribute, may include array notation.
+ *     @type string $description Optional. Field description HTML.
+ * }
+ */
+function wp_ai_client_render_credential_field( $args ) {
+	$type           = isset( $args['type'] ) ? $args['type'] : 'text';
+	$id             = isset( $args['id'] ) ? $args['id'] : '';
+	$name           = isset( $args['name'] ) ? $args['name'] : '';
+	$description    = isset( $args['description'] ) ? $args['description'] : '';
+	$description_id = $id . '_description';
+
+	if ( str_contains( $name, '[' ) ) {
+		$parts  = explode( '[', $name, 2 );
+		$option = get_option( $parts[0] );
+		$subkey = trim( $parts[1], ']' );
+		if ( is_array( $option ) && isset( $option[ $subkey ] ) && is_string( $option[ $subkey ] ) ) {
+			$value = $option[ $subkey ];
+		} else {
+			$value = '';
+		}
+	} else {
+		$option = get_option( $name );
+		$value  = is_string( $option ) ? $option : '';
+	}
+
+	?>
+	<input
+		type="<?php echo esc_attr( $type ); ?>"
+		id="<?php echo esc_attr( $id ); ?>"
+		name="<?php echo esc_attr( $name ); ?>"
+		value="<?php echo esc_attr( $value ); ?>"
+		class="regular-text"
+		<?php echo $description ? 'aria-describedby="' . esc_attr( $description_id ) . '"' : ''; ?>
+	>
+	<?php
+
+	if ( $description ) {
+		$allowed_html = array(
+			'a'      => array(
+				'class'  => array(),
+				'href'   => array(),
+				'target' => array(),
+				'rel'    => array(),
+			),
+			'strong' => array(),
+			'em'     => array(),
+			'span'   => array(
+				'class' => array(),
+			),
+		);
+		?>
+		<p id="<?php echo esc_attr( $description_id ); ?>" class="description">
+			<?php echo wp_kses( $description, $allowed_html ); ?>
+		</p>
+		<?php
+	}
+}

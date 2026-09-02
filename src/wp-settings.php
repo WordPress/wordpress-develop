@@ -293,6 +293,8 @@ require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-http-client.ph
 require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-cache.php';
 require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-discovery-strategy.php';
 require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-event-dispatcher.php';
+require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-capabilities.php';
+require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-json-schema-converter.php';
 require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-ability-function-resolver.php';
 require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-prompt-builder.php';
 require ABSPATH . WPINC . '/ai-client.php';
@@ -366,6 +368,8 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-view-config-control
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-ai-v1-generate-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-ai-v1-providers-controller.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';
@@ -483,6 +487,8 @@ $GLOBALS['wp_textdomain_registry']->init();
 WP_AI_Client_Discovery_Strategy::init();
 WordPress\AiClient\AiClient::setCache( new WP_AI_Client_Cache() );
 WordPress\AiClient\AiClient::setEventDispatcher( new WP_AI_Client_Event_Dispatcher() );
+require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-credentials-manager.php';
+$GLOBALS['wp_ai_client_credentials_manager'] = new WP_AI_Client_Credentials_Manager();
 
 // Load multisite-specific files.
 if ( is_multisite() ) {
@@ -788,6 +794,10 @@ $GLOBALS['wp']->init();
  * @since 1.5.0
  */
 do_action( 'init' );
+
+// WP AI Client - Collect providers and pass credentials after plugins have loaded.
+$GLOBALS['wp_ai_client_credentials_manager']->collect_providers();
+$GLOBALS['wp_ai_client_credentials_manager']->pass_credentials_to_client();
 
 // Check site status.
 if ( is_multisite() ) {

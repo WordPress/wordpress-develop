@@ -425,6 +425,12 @@ function create_initial_rest_routes() {
 	$abilities_list_controller = new WP_REST_Abilities_V1_List_Controller();
 	$abilities_list_controller->register_routes();
 
+	// AI Client.
+	$ai_generate_controller = new WP_REST_AI_V1_Generate_Controller();
+	$ai_generate_controller->register_routes();
+	$ai_providers_controller = new WP_REST_AI_V1_Providers_Controller();
+	$ai_providers_controller->register_routes();
+
 	// Icons.
 	$icons_controller = new WP_REST_Icons_Controller();
 	$icons_controller->register_routes();

@@ -332,6 +332,9 @@ function wp_default_packages_scripts( $scripts ) {
 			$scripts->add_inline_script( $handle, $script, 'after' );
 		}
 	}
+
+	// AI Client script (built separately from Gutenberg packages).
+	$scripts->add( 'wp-ai-client', "/wp-includes/js/dist/ai-client{$suffix}.js", array( 'wp-api-fetch', 'wp-data' ), false, 1 );
 }
 
 /**

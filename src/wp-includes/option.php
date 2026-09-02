@@ -2959,6 +2959,8 @@ function register_initial_settings() {
 			'description'  => __( 'Allow people to submit comments on new posts.' ),
 		)
 	);
+
+	$GLOBALS['wp_ai_client_credentials_manager']->register_settings();
 }
 
 /**

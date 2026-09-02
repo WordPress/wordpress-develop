@@ -158,6 +158,7 @@ $allowed_options            = array(
 $allowed_options['misc']    = array();
 $allowed_options['options'] = array();
 $allowed_options['privacy'] = array();
+$allowed_options['ai']      = array();
 
 /**
  * Filters whether the post-by-email functionality is enabled.

@@ -545,6 +545,7 @@ add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
 add_action( 'init', 'rest_api_init' );
 add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
 add_action( 'rest_api_init', 'register_initial_settings', 10 );
+add_action( 'admin_init', 'register_initial_settings' );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 99 );
 add_action( 'parse_request', 'rest_api_loaded' );
 
@@ -771,6 +772,8 @@ add_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10, 3 );
 add_filter( 'user_has_cap', 'wp_maybe_grant_install_languages_cap', 1 );
 add_filter( 'user_has_cap', 'wp_maybe_grant_resume_extensions_caps', 1 );
 add_filter( 'user_has_cap', 'wp_maybe_grant_site_health_caps', 1, 4 );
+add_filter( 'user_has_cap', array( 'WP_AI_Client_Capabilities', 'grant_prompt_ai_to_administrators' ) );
+add_filter( 'user_has_cap', array( 'WP_AI_Client_Capabilities', 'grant_list_ai_providers_models_to_administrators' ) );
 
 // Block templates post type and rendering.
 add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );
