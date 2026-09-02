@@ -88,11 +88,11 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	/**
 	 * Asserts that paging through a query returns every post exactly once.
 	 *
-	 * @param array $args     Query arguments, without 'posts_per_page' or 'paged'.
-	 * @param int   $per_page Posts per page.
-	 * @param int   $pages    Number of pages to walk.
-	 * @param int   $expected Total number of posts expected across those pages.
-	 * @param string $message Message describing the ordering under test.
+	 * @param array  $args     Query arguments, without 'posts_per_page' or 'paged'.
+	 * @param int    $per_page Posts per page.
+	 * @param int    $pages    Number of pages to walk.
+	 * @param int    $expected Total number of posts expected across those pages.
+	 * @param string $message  Message describing the ordering under test.
 	 */
 	private function assertPagesDoNotRepeatPosts( $args, $per_page, $pages, $expected, $message ) {
 		$seen = array();
@@ -113,7 +113,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		}
 
 		$this->assertSameSets( array_unique( $seen ), $seen, $message . ': a post appeared on more than one page' );
-		$this->assertCount( $expected, $seen, $message . ': the pages did not add up to every post' );
+		$this->assertCount( $expected, array_unique( $seen ), $message . ': the pages did not add up to every post' );
 	}
 
 	/**
@@ -182,6 +182,36 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ordering by a meta value is stable when posts share the value.
+	 *
+	 * @ticket 44349
+	 */
+	public function test_paging_by_meta_value_returns_each_post_once() {
+		global $wpdb;
+
+		$post_ids = array();
+		for ( $i = 1; $i <= 12; $i++ ) {
+			$post_id = self::factory()->post->create( array( 'post_title' => "Meta post $i" ) );
+			add_post_meta( $post_id, 'shared_value', 'identical' );
+			$post_ids[] = $post_id;
+		}
+
+		$args = array(
+			'post_type' => 'post',
+			'post__in'  => $post_ids,
+			'meta_key'  => 'shared_value',
+			'orderby'   => 'meta_value',
+			'order'     => 'ASC',
+		);
+
+		$this->assertPagesDoNotRepeatPosts( $args, 5, 3, 12, 'Ordering by meta_value' );
+
+		// The ID clause follows the meta clause in the SQL.
+		$query = new WP_Query( array_merge( $args, array( 'posts_per_page' => 5 ) ) );
+		$this->assertStringContainsString( ".meta_value ASC, {$wpdb->posts}.ID ASC", $query->request );
+	}
+
+	/**
 	 * The same query run twice returns the same page in the same order.
 	 *
 	 * @ticket 44349
@@ -194,6 +224,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 			'order'          => 'ASC',
 			'posts_per_page' => 10,
 			'paged'          => 1,
+			'cache_results'  => false, // Make the second run hit the database, not the query cache.
 		);
 
 		$this->assertSame(
@@ -654,7 +685,8 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	/**
 	 * A filter returning an unchanged clause keeps the ID clause.
 	 *
-	 * Trailing whitespace used to be enough to lose it.
+	 * Incidental changes such as added trailing whitespace must not matter: the
+	 * ID clause is part of the value the filter receives, not compared against it.
 	 *
 	 * @ticket 44349
 	 *
