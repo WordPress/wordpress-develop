@@ -56,8 +56,9 @@ if ( isset( $_GET['action'] ) ) {
 
 				$doaction     = $_POST['action'];
 				$userfunction = '';
+				$allusers     = (array) $_POST['allusers'];
 
-				foreach ( (array) $_POST['allusers'] as $user_id ) {
+				foreach ( $allusers as $user_id ) {
 					if ( ! empty( $user_id ) ) {
 						switch ( $doaction ) {
 							case 'delete':
@@ -72,7 +73,7 @@ if ( isset( $_GET['action'] ) ) {
 								require_once ABSPATH . 'wp-admin/admin-header.php';
 
 								echo '<div class="wrap">';
-								confirm_delete_users( $_POST['allusers'] );
+								confirm_delete_users( $allusers );
 								echo '</div>';
 
 								require_once ABSPATH . 'wp-admin/admin-footer.php';
@@ -86,16 +87,27 @@ if ( isset( $_GET['action'] ) ) {
 											/* translators: %s: User login. */
 											__( 'Warning! User cannot be modified. The user %s is a network administrator.' ),
 											esc_html( $user->user_login )
-										)
+										),
+										403
 									);
 								}
 
 								$userfunction = 'all_spam';
-								$blogs        = get_blogs_of_user( $user_id, true );
 
-								foreach ( (array) $blogs as $details ) {
-									if ( ! is_main_site( $details->userblog_id ) ) { // Main site is not a spam!
-										update_blog_status( $details->userblog_id, 'spam', '1' );
+								/**
+								 * Filters whether to propagate the blog status when a user is marked as spam.
+								 *
+								 * @since 7.0.0
+								 *
+								 * @param bool $propagate Whether to propagate the blog status. Default false.
+								 * @param int  $user_id   User ID.
+								 */
+								if ( apply_filters( 'propagate_network_user_spam_to_blogs', false, $user_id ) ) {
+									foreach ( get_blogs_of_user( $user_id, true ) as $details ) {
+										// Assuming the main site is not a spam.
+										if ( ! is_main_site( $details->userblog_id ) ) {
+											update_blog_status( $details->userblog_id, 'spam', '1' );
+										}
 									}
 								}
 
@@ -108,11 +120,28 @@ if ( isset( $_GET['action'] ) ) {
 							case 'notspam':
 								$user = get_userdata( $user_id );
 
+								if ( is_super_admin( $user->ID ) ) {
+									wp_die(
+										sprintf(
+											/* translators: %s: User login. */
+											__( 'Warning! User cannot be modified. The user %s is a network administrator.' ),
+											esc_html( $user->user_login )
+										),
+										403
+									);
+								}
+
 								$userfunction = 'all_notspam';
 								$blogs        = get_blogs_of_user( $user_id, true );
 
-								foreach ( (array) $blogs as $details ) {
-									update_blog_status( $details->userblog_id, 'spam', '0' );
+								/** This filter is documented in wp-admin/network/users.php */
+								if ( apply_filters( 'propagate_network_user_spam_to_blogs', false, $user_id ) ) {
+									foreach ( get_blogs_of_user( $user_id, true ) as $details ) {
+										if ( ! is_main_site( $details->userblog_id ) && get_current_network_id() === $details->site_id ) {
+											// Assuming main site is never a spam and part of the current network.
+											update_blog_status( $details->userblog_id, 'spam', '0' );
+										}
+									}
 								}
 
 								$user_data         = $user->to_array();
@@ -129,7 +158,7 @@ if ( isset( $_GET['action'] ) ) {
 					$user_ids = (array) $_POST['allusers'];
 
 					/** This action is documented in wp-admin/network/site-themes.php */
-					$sendback = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $sendback, $doaction, $user_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+					$sendback = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $sendback, $doaction, $user_ids, 0 ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 					wp_safe_redirect( $sendback );
 					exit;
@@ -158,6 +187,32 @@ if ( isset( $_GET['action'] ) ) {
 			check_admin_referer( 'ms-users-delete' );
 			if ( ! ( current_user_can( 'manage_network_users' ) && current_user_can( 'delete_users' ) ) ) {
 				wp_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
+			}
+
+			/*
+			 * Validate that every "reassign" choice has a real target before making
+			 * any changes. The confirmation form blocks this client-side, so this is
+			 * a defense-in-depth guard against an invalid reassignment (e.g. content
+			 * reassigned to the non-existent user "-1") when JavaScript is bypassed.
+			 * Bail out entirely so the deletion is all-or-nothing.
+			 */
+			if ( ! empty( $_POST['blog'] ) && is_array( $_POST['blog'] ) && ! empty( $_POST['delete'] ) ) {
+				foreach ( $_POST['blog'] as $id => $blogs ) {
+					foreach ( $blogs as $blogid => $reassign_user_id ) {
+						if ( isset( $_POST['delete'][ $blogid ][ $id ] )
+							&& 'reassign' === $_POST['delete'][ $blogid ][ $id ]
+							&& (int) $reassign_user_id < 1
+						) {
+							wp_redirect(
+								add_query_arg(
+									array( 'error' => 'missing_reassign' ),
+									network_admin_url( 'users.php' )
+								)
+							);
+							exit;
+						}
+					}
+				}
 			}
 
 			if ( ! empty( $_POST['blog'] ) && is_array( $_POST['blog'] ) ) {
@@ -282,6 +337,17 @@ if ( isset( $_REQUEST['updated'] ) && 'true' === $_REQUEST['updated'] && ! empty
 		)
 	);
 }
+
+if ( isset( $_REQUEST['error'] ) && 'missing_reassign' === $_REQUEST['error'] ) {
+	wp_admin_notice(
+		__( 'No users were deleted because no user was selected for content reassignment.' ),
+		array(
+			'type'        => 'error',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
+}
 ?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Users' ); ?></h1>
@@ -289,7 +355,7 @@ if ( isset( $_REQUEST['updated'] ) && 'true' === $_REQUEST['updated'] && ! empty
 	<?php
 	if ( current_user_can( 'create_users' ) ) :
 		?>
-		<a href="<?php echo esc_url( network_admin_url( 'user-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add New User' ); ?></a>
+		<a href="<?php echo esc_url( network_admin_url( 'user-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add User' ); ?></a>
 		<?php
 	endif;
 

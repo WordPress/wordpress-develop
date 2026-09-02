@@ -23,8 +23,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 	public function __destruct() {
 		if ( $this->image ) {
-			// We don't need the original in memory anymore.
-			imagedestroy( $this->image );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				// We don't need the original in memory anymore.
+				imagedestroy( $this->image );
+			}
 		}
 	}
 
@@ -142,11 +144,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int $width
-	 * @param int $height
+	 * @param int|null $width  Image width.
+	 * @param int|null $height Image height.
 	 * @return true
 	 */
-	protected function update_size( $width = false, $height = false ) {
+	protected function update_size( $width = null, $height = null ) {
 		if ( ! $width ) {
 			$width = imagesx( $this->image );
 		}
@@ -188,8 +190,12 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$resized = $this->_resize( $max_w, $max_h, $crop );
 
 		if ( is_gd_image( $resized ) ) {
-			imagedestroy( $this->image );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $this->image );
+			}
+
 			$this->image = $resized;
+
 			return true;
 
 		} elseif ( is_wp_error( $resized ) ) {
@@ -220,6 +226,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		}
 
 		list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
+
+		$this->set_quality(
+			null,
+			array(
+				'width'  => $dst_w,
+				'height' => $dst_h,
+			)
+		);
 
 		$resized = wp_imagecreatetruecolor( $dst_w, $dst_h );
 		imagecopyresampled( $resized, $this->image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
@@ -316,7 +330,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$saved = $resized;
 		} else {
 			$saved = $this->_save( $resized );
-			imagedestroy( $resized );
+
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $resized );
+			}
 		}
 
 		$this->size = $orig_size;
@@ -374,9 +391,13 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		imagecopyresampled( $dst, $this->image, 0, 0, (int) $src_x, (int) $src_y, (int) $dst_w, (int) $dst_h, (int) $src_w, (int) $src_h );
 
 		if ( is_gd_image( $dst ) ) {
-			imagedestroy( $this->image );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $this->image );
+			}
+
 			$this->image = $dst;
 			$this->update_size();
+
 			return true;
 		}
 
@@ -400,9 +421,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			if ( is_gd_image( $rotated ) ) {
 				imagealphablending( $rotated, true );
 				imagesavealpha( $rotated, true );
-				imagedestroy( $this->image );
+
+				if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+					imagedestroy( $this->image );
+				}
+
 				$this->image = $rotated;
 				$this->update_size();
+
 				return true;
 			}
 		}
@@ -431,8 +457,12 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$sh = $horz ? -$h : $h;
 
 			if ( imagecopyresampled( $dst, $this->image, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
-				imagedestroy( $this->image );
+				if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+					imagedestroy( $this->image );
+				}
+
 				$this->image = $dst;
+
 				return true;
 			}
 		}
@@ -568,12 +598,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * Sets Image Compression quality on a 1-100% scale. Handles WebP lossless images.
 	 *
 	 * @since 6.7.0
+	 * @since 6.8.0 The `$dims` parameter was added.
 	 *
-	 * @param int $quality Compression Quality. Range: [1,100]
+	 * @param int   $quality Compression Quality. Range: [1,100]
+	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
 	 */
-	public function set_quality( $quality = null ) {
-		$quality_result = parent::set_quality( $quality );
+	public function set_quality( $quality = null, $dims = array() ) {
+		$quality_result = parent::set_quality( $quality, $dims );
 		if ( is_wp_error( $quality_result ) ) {
 			return $quality_result;
 		} else {
@@ -586,7 +618,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				$webp_info = wp_get_webp_info( $this->file );
 				if ( ! empty( $webp_info['type'] ) && 'lossless' === $webp_info['type'] ) {
 					$quality = IMG_WEBP_LOSSLESS;
-					parent::set_quality( $quality );
+					parent::set_quality( $quality, $dims );
 				}
 			}
 		} catch ( Exception $e ) {

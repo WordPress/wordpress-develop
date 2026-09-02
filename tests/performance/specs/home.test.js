@@ -6,7 +6,7 @@ import { test } from '@wordpress/e2e-test-utils-playwright';
 /**
  * Internal dependencies
  */
-import { camelCaseDashes } from '../utils';
+import { camelCaseDashes, themes, locales } from '../utils';
 
 const results = {
 	timeToFirstByte: [],
@@ -14,11 +14,7 @@ const results = {
 	lcpMinusTtfb: [],
 };
 
-const themes = [ 'twentytwentyone', 'twentytwentythree', 'twentytwentyfour' ];
-
-const locales = [ 'en_US', 'de_DE' ];
-
-test.describe( 'Front End', () => {
+test.describe( 'Homepage', () => {
 	test.use( {
 		storageState: {}, // User will be logged out.
 	} );
@@ -54,6 +50,10 @@ test.describe( 'Front End', () => {
 						page,
 						metrics,
 					} ) => {
+						// Clear caches using the clear-cache.php mu-plugin. Not actually loading the page.
+						await page.goto( '/?clear_cache' );
+
+						// This is the actual page to test.
 						await page.goto( '/' );
 
 						const serverTiming = await metrics.getServerTiming();

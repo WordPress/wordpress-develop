@@ -144,6 +144,26 @@ class Tests_Robots extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'noindex', $output );
 	}
 
+	/**
+	 * @ticket 63467
+	 */
+	public function test_do_robots_uses_filtered_admin_url_paths(): void {
+		add_filter(
+			'admin_url',
+			static function ( string $url, string $path, ?int $blog_id, string $scheme ): string {
+				return home_url( "/control/$path", $scheme );
+			},
+			10,
+			4
+		);
+
+		$output = get_echo( 'do_robots' );
+
+		$this->assertStringNotContainsString( 'wp-admin', $output );
+		$this->assertStringContainsString( "Disallow: /control/\n", $output );
+		$this->assertStringContainsString( "Allow: /control/admin-ajax.php\n", $output );
+	}
+
 	public function add_noindex_directive( array $robots ) {
 		$robots['noindex'] = true;
 		return $robots;

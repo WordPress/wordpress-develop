@@ -8,9 +8,6 @@
 	"keywords": [ "title", "subtitle" ],
 	"textdomain": "default",
 	"attributes": {
-		"textAlign": {
-			"type": "string"
-		},
 		"content": {
 			"type": "rich-text",
 			"source": "rich-text",
@@ -37,13 +34,7 @@
 			"color": true,
 			"radius": true,
 			"style": true,
-			"width": true,
-			"__experimentalDefaultControls": {
-				"color": true,
-				"radius": true,
-				"style": true,
-				"width": true
-			}
+			"width": true
 		},
 		"color": {
 			"gradients": true,
@@ -64,6 +55,7 @@
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
+			"textAlign": true,
 			"__experimentalFontFamily": true,
 			"__experimentalFontStyle": true,
 			"__experimentalFontWeight": true,
@@ -71,6 +63,7 @@
 			"__experimentalTextTransform": true,
 			"__experimentalTextDecoration": true,
 			"__experimentalWritingMode": true,
+			"fitText": true,
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}

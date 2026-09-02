@@ -8,7 +8,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 /**
@@ -114,6 +114,6 @@ if ( function_exists( 'get_site_option' )
 ?>
 
 <div class="clear"></div></div><!-- wpwrap -->
-<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
+<script>if(typeof wpOnload==='function')wpOnload();</script>
 </body>
 </html>

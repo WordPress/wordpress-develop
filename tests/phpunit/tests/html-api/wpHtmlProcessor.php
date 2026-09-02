@@ -37,6 +37,28 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63854
+	 *
+	 * @covers ::create_fragment
+	 * @expectedIncorrectUsage WP_HTML_Processor::create_fragment
+	 */
+	public function test_create_fragment_validates_html_parameter() {
+		$processor = WP_HTML_Processor::create_fragment( null );
+		$this->assertNull( $processor );
+	}
+
+	/**
+	 * @ticket 63854
+	 *
+	 * @covers ::create_full_parser
+	 * @expectedIncorrectUsage WP_HTML_Processor::create_full_parser
+	 */
+	public function test_create_full_parser_validates_html_parameter() {
+		$processor = WP_HTML_Processor::create_full_parser( null );
+		$this->assertNull( $processor );
+	}
+
+	/**
 	 * Once stepping to the end of the document, WP_HTML_Processor::get_tag
 	 * should no longer report a tag. It should report `null` because there
 	 * is no tag matched or open.
@@ -281,16 +303,18 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string}>
 	 */
-	public static function data_self_contained_node_tokens() {
+	public static function data_self_contained_node_tokens(): array {
 		$self_contained_nodes = array(
-			'Normative comment'                => array( '<!-- comment -->' ),
-			'Comment with invalid closing'     => array( '<!-- comment --!>' ),
-			'CDATA Section lookalike'          => array( '<![CDATA[ comment ]]>' ),
-			'Processing Instruction lookalike' => array( '<?ok comment ?>' ),
-			'Funky comment'                    => array( '<//wp:post-meta key=isbn>' ),
-			'Text node'                        => array( 'Trombone' ),
+			'Normative comment'              => array( '<!-- comment -->' ),
+			'Comment with invalid closing'   => array( '<!-- comment --!>' ),
+			'CDATA Section lookalike'        => array( '<![CDATA[ comment ]]>' ),
+			'Processing Instruction'         => array( '<?ok pi ?>' ),
+			'Bogus PI-lookalike xml comment' => array( '<?xml version="1.0"?>' ),
+			'Bogus comment'                  => array( '<?🔥?>' ),
+			'Funky comment'                  => array( '<//wp:post-meta key=isbn>' ),
+			'Text node'                      => array( 'Trombone' ),
 		);
 
 		foreach ( self::data_void_tags_not_ignored_in_body() as $tag_name => $_name ) {
@@ -562,6 +586,29 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures a slash-only unquoted attribute value does not close foreign content.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_unquoted_slash_attribute_does_not_self_close_foreign_content(): void {
+		$processor = WP_HTML_Processor::create_fragment( '<math><mi a=/>math:mi is not self-closing, it has [a="/"] attribute.' );
+
+		$this->assertTrue( $processor->next_tag( 'MI' ), 'Failed to find the MI tag: check test setup.' );
+		$this->assertSame( '/', $processor->get_attribute( 'a' ), 'Failed to treat the slash as the unquoted attribute value.' );
+		$this->assertFalse(
+			$processor->has_self_closing_flag(),
+			'Failed to avoid interpreting the slash-only unquoted attribute value as a self-closing flag.'
+		);
+
+		$this->assertTrue( $processor->next_token(), 'Failed to find text following the MI tag: check test setup.' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'MATH', 'MI', '#text' ),
+			$processor->get_breadcrumbs(),
+			'Failed to keep text following the MI tag inside the MI element.'
+		);
+	}
+
+	/**
 	 * Ensures that expects_closer works for void-like elements in foreign content.
 	 *
 	 * For example, `<svg><input>text` creates an `svg:input` that contains a text node.
@@ -599,7 +646,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that the HTML Processor correctly handles TEMPLATE tag closing and namespaces.
 	 *
-	 * This is a tricky test case that corresponds to the html5lib tests "template/line1466".
+	 * This is a tricky test case that corresponds to the Web Platform Tests fixture "template/line1466".
 	 *
 	 * When the `</template>` token is reached it is in the HTML namespace (thanks to the
 	 * SVG `foreignObject` element). It is not handled as foreign content; therefore, it
@@ -607,7 +654,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * SVG `TEMPLATE` element (the second `<template>` token).
 	 *
 	 * The test is included here because it may show up as unsupported markup and be skipped by
-	 * the html5lib test suite.
+	 * the Web Platform Tests suite.
 	 *
 	 * @ticket 61576
 	 */
@@ -618,6 +665,26 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$this->assertSame( array( 'HTML', 'BODY', 'TEMPLATE', 'SVG', 'TEMPLATE', 'FOREIGNOBJECT', 'DIV' ), $processor->get_breadcrumbs() );
 		$this->assertTrue( $processor->next_tag( 'DIV' ) );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $processor->get_breadcrumbs() );
+	}
+
+	/**
+	 * Ensures foreign TEMPLATE elements do not satisfy HTML template handling.
+	 *
+	 * @ticket 65372
+	 */
+	public function test_unmatched_template_closer_after_mathml_template_is_ignored() {
+		$processor = WP_HTML_Processor::create_fragment( '<math><template><mi><c></template>here' );
+
+		$this->assertTrue( $processor->next_tag( 'C' ), 'Failed to find C tag.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to advance past the C tag.' );
+
+		// Closing HTML </template> tag should be ignored, advancing to "here" text without modifying breadcrumbs.
+		$this->assertSame( '#text', $processor->get_token_type(), 'Failed to reach text node.' );
+		$this->assertSame( 'here', $processor->get_modifiable_text() );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'MATH', 'TEMPLATE', 'MI', 'C', '#text' ),
+			$processor->get_breadcrumbs(),
+		);
 	}
 
 	/**
@@ -1044,94 +1111,119 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 62357
-	 */
-	public function test_create_fragment_at_current_node_in_foreign_content() {
-		$processor = WP_HTML_Processor::create_full_parser( '<svg>' );
-		$this->assertTrue( $processor->next_tag( 'SVG' ) );
-
-		$fragment = $processor->create_fragment_at_current_node( "\0preceded-by-nul-byte<rect /><circle></circle><foreignobject><div></div></foreignobject><g>" );
-
-		$this->assertSame( 'svg', $fragment->get_namespace() );
-		$this->assertTrue( $fragment->next_token() );
-
-		/*
-		 * In HTML parsing, a nul byte would be ignored.
-		 * In SVG it should be replaced with a replacement character.
-		 */
-		$this->assertSame( '#text', $fragment->get_token_type() );
-		$this->assertSame( "\u{FFFD}", $fragment->get_modifiable_text() );
-
-		$this->assertTrue( $fragment->next_tag( 'RECT' ) );
-		$this->assertSame( 'svg', $fragment->get_namespace() );
-
-		$this->assertTrue( $fragment->next_tag( 'CIRCLE' ) );
-		$this->assertSame( array( 'HTML', 'SVG', 'CIRCLE' ), $fragment->get_breadcrumbs() );
-		$this->assertTrue( $fragment->next_tag( 'foreignObject' ) );
-		$this->assertSame( 'svg', $fragment->get_namespace() );
-	}
-
-	/**
-	 * @ticket 62357
-	 */
-	public function test_create_fragment_at_current_node_in_foreign_content_integration_point() {
-		$processor = WP_HTML_Processor::create_full_parser( '<svg><foreignObject>' );
-		$this->assertTrue( $processor->next_tag( 'foreignObject' ) );
-
-		$fragment = $processor->create_fragment_at_current_node( "<image>\0not-preceded-by-nul-byte<rect />" );
-
-		// Nothing has been processed, the html namespace should be used for parsing as an integration point.
-		$this->assertSame( 'html', $fragment->get_namespace() );
-
-		// HTML parsing transforms IMAGE into IMG.
-		$this->assertTrue( $fragment->next_tag( 'IMG' ) );
-
-		$this->assertTrue( $fragment->next_token() );
-
-		// In HTML parsing, the nul byte is ignored and the text is reached.
-		$this->assertSame( '#text', $fragment->get_token_type() );
-		$this->assertSame( 'not-preceded-by-nul-byte', $fragment->get_modifiable_text() );
-
-		/*
-		 * svg:foreignObject is an HTML integration point, so the processor should be in the HTML namespace.
-		 * RECT is an HTML element here, meaning it may have the self-closing flag but does not self-close.
-		 */
-		$this->assertTrue( $fragment->next_tag( 'RECT' ) );
-		$this->assertSame( array( 'HTML', 'FOREIGNOBJECT', 'RECT' ), $fragment->get_breadcrumbs() );
-		$this->assertSame( 'html', $fragment->get_namespace() );
-		$this->assertTrue( $fragment->has_self_closing_flag() );
-		$this->assertTrue( $fragment->expects_closer() );
-	}
-
-	/**
-	 * @ticket 62357
-	 */
-	public function test_prevent_fragment_creation_on_closers() {
-		$processor = WP_HTML_Processor::create_full_parser( '<p></p>' );
-		$processor->next_tag( 'P' );
-		$processor->next_tag(
-			array(
-				'tag_name'    => 'P',
-				'tag_closers' => 'visit',
-			)
-		);
-		$this->assertSame( 'P', $processor->get_tag() );
-		$this->assertTrue( $processor->is_tag_closer() );
-		$this->assertNull( $processor->create_fragment_at_current_node( '<i>fragment HTML</i>' ) );
-	}
-
-	/**
 	 * Ensure that lowercased tag_name query matches tags case-insensitively.
 	 *
-	 * @group 62427
+	 * @ticket 62427
 	 */
 	public function test_next_tag_lowercase_tag_name() {
-		// The upper case <DIV> is irrelevant but illustrates the case-insentivity.
+		// The upper case <DIV> is irrelevant but illustrates the case-insensitivity.
 		$processor = WP_HTML_Processor::create_fragment( '<section><DIV>' );
 		$this->assertTrue( $processor->next_tag( array( 'tag_name' => 'div' ) ) );
 
-		// The upper case <RECT> is irrelevant but illustrates the case-insentivity.
+		// The upper case <RECT> is irrelevant but illustrates the case-insensitivity.
 		$processor = WP_HTML_Processor::create_fragment( '<svg><RECT>' );
 		$this->assertTrue( $processor->next_tag( array( 'tag_name' => 'rect' ) ) );
+	}
+
+	/**
+	 * Ensure that the processor does not throw errors in cases of extreme HTML nesting.
+	 *
+	 * @ticket 64394
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 */
+	public function test_deep_nesting_fails_process_without_error() {
+		$html      = str_repeat( '<i>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		while ( $processor->next_token() ) {
+			// Process tokens.
+		}
+
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_EXCEEDED_MAX_BOOKMARKS,
+			$processor->get_last_error(),
+			'Failed to report exceeded-max-bookmarks error.'
+		);
+	}
+
+	/**
+	 * @ticket 64394
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 */
+	public function test_deep_nesting_fails_processing_virtual_tokens_without_error() {
+		/*
+		 * This test has some variability depending on how the virtual tokens align.
+		 * In order to ensure that bookmarks are exhausted on a virtual token
+		 * without throwing an error, 3 documents are parsed with different "offsets"
+		 * to ensure that the bookmarks are exhaused on a virtual token in at least one of the runs.
+		 *
+		 * "<table><td><table><td>…" produces:
+		 * └─TABLE (real)
+		 *   └─TBODY (virtual)
+		 *     └─TR (virtual)
+		 *       └─TD (real)
+		 *         └─TABLE (real)
+		 *           └─TBODY (virtual)
+		 *             └─TR (virtual)
+		 *               └─TD (real)
+		 *                 └─…
+		 */
+		$html_table_td = str_repeat( '<table><td>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
+
+		// Offset 0
+		$processor = WP_HTML_Processor::create_fragment( $html_table_td );
+		while ( $processor->next_token() ) {
+			// Process tokens.
+		}
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_EXCEEDED_MAX_BOOKMARKS,
+			$processor->get_last_error(),
+			'Failed to report exceeded-max-bookmarks error.'
+		);
+
+		// Offset 1
+		$processor = WP_HTML_Processor::create_fragment( "<div>{$html_table_td}" );
+		while ( $processor->next_token() ) {
+			// Process tokens.
+		}
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_EXCEEDED_MAX_BOOKMARKS,
+			$processor->get_last_error(),
+			'Failed to report exceeded-max-bookmarks error.'
+		);
+
+		// Offset 2
+		$processor = WP_HTML_Processor::create_fragment( "<div><div>{$html_table_td}" );
+		while ( $processor->next_token() ) {
+			// Process tokens.
+		}
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_EXCEEDED_MAX_BOOKMARKS,
+			$processor->get_last_error(),
+			'Failed to report exceeded-max-bookmarks error.'
+		);
+	}
+
+	/**
+	 * @ticket 64394
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 */
+	public function test_prevents_unbounded_bookmarking() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><html>' );
+		$processor->next_tag();
+
+		// This might fail before the MAX_BOOKMARK limit, which is okay.
+		foreach ( range( 0, WP_HTML_Processor::MAX_BOOKMARKS ) as $n ) {
+			if ( ! $processor->set_bookmark( "{$n}" ) ) {
+				break;
+			}
+		}
+
+		$this->assertFalse(
+			$processor->set_bookmark( 'beyond the limit' )
+		);
 	}
 }

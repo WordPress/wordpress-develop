@@ -350,6 +350,12 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 			$this->fseek(max($info['avdataend'] - $this->getid3->fread_buffer_size(), 0));
 			$LastChunkOfOgg = strrev($this->fread($this->getid3->fread_buffer_size()));
 			if ($LastOggSpostion = strpos($LastChunkOfOgg, 'SggO')) {
+				if (substr($LastChunkOfOgg, 13, 8) === "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF") {
+					// https://github.com/JamesHeinrich/getID3/issues/450
+					// "Sometimes, Opus encoders (WhatsApp voice registrations and others) add a special last header with a granule duration of 0xFFFFFFFFFFFFFF.
+					// This value indicates "this is the end," but must be ignored; otherwise, it makes calculations wrong."
+					$LastOggSpostion = strpos($LastChunkOfOgg, 'SggO', $LastOggSpostion + 1);
+				}
 				$this->fseek($info['avdataend'] - ($LastOggSpostion + strlen('SggO')));
 				$info['avdataend'] = $this->ftell();
 				$info['ogg']['pageheader']['eos'] = $this->ParseOggPageHeader();
@@ -787,29 +793,29 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 				switch ($index) {
 					case 'rg_audiophile':
 					case 'replaygain_album_gain':
-						$info['replay_gain']['album']['adjustment'] = (double) $commentvalue[0];
+						$info['replay_gain']['album']['adjustment'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
 					case 'rg_radio':
 					case 'replaygain_track_gain':
-						$info['replay_gain']['track']['adjustment'] = (double) $commentvalue[0];
+						$info['replay_gain']['track']['adjustment'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
 					case 'replaygain_album_peak':
-						$info['replay_gain']['album']['peak'] = (double) $commentvalue[0];
+						$info['replay_gain']['album']['peak'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
 					case 'rg_peak':
 					case 'replaygain_track_peak':
-						$info['replay_gain']['track']['peak'] = (double) $commentvalue[0];
+						$info['replay_gain']['track']['peak'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
 					case 'replaygain_reference_loudness':
-						$info['replay_gain']['reference_volume'] = (double) $commentvalue[0];
+						$info['replay_gain']['reference_volume'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 

@@ -135,10 +135,14 @@
  * in the document that the parser had already processed, this parser does not support
  * these situations and will bail.
  *
+ * The parser does not implement the "maybe clone an option into selectedcontent" algorithm.
+ * SELECTEDCONTENT elements may not reflect the actual selected content.
+ *
  * @since 6.4.0
  *
  * @see WP_HTML_Tag_Processor
- * @see https://html.spec.whatwg.org/
+ * @link https://html.spec.whatwg.org/
+ * @phpstan-consistent-constructor
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
@@ -148,10 +152,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * so this class constant from the Tag Processor is overwritten.
 	 *
 	 * @since 6.4.0
+	 * @since 7.0.0 Increased from 100 to 10,000
 	 *
 	 * @var int
 	 */
-	const MAX_BOOKMARKS = 100;
+	const MAX_BOOKMARKS = 10_000;
 
 	/**
 	 * Holds the working state of the parser, including the stack of
@@ -297,34 +302,35 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$processor                             = new static( $html, self::CONSTRUCTOR_UNLOCK_CODE );
-		$processor->state->context_node        = array( 'BODY', array() );
-		$processor->state->insertion_mode      = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
-		$processor->state->encoding            = $encoding;
-		$processor->state->encoding_confidence = 'certain';
+		if ( ! is_string( $html ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The HTML parameter must be a string.' ),
+				'6.9.0'
+			);
+			return null;
+		}
 
-		// @todo Create "fake" bookmarks for non-existent but implied nodes.
-		$processor->bookmarks['root-node']    = new WP_HTML_Span( 0, 0 );
-		$processor->bookmarks['context-node'] = new WP_HTML_Span( 0, 0 );
+		$context_processor = static::create_full_parser( "<!DOCTYPE html>{$context}", $encoding );
+		if ( null === $context_processor ) {
+			return null;
+		}
 
-		$root_node = new WP_HTML_Token(
-			'root-node',
-			'HTML',
-			false
-		);
+		while ( $context_processor->next_tag() ) {
+			if ( ! $context_processor->is_virtual() ) {
+				$context_processor->set_bookmark( 'final_node' );
+			}
+		}
 
-		$processor->state->stack_of_open_elements->push( $root_node );
+		if (
+			! $context_processor->has_bookmark( 'final_node' ) ||
+			! $context_processor->seek( 'final_node' )
+		) {
+			_doing_it_wrong( __METHOD__, __( 'No valid context element was detected.' ), '6.8.0' );
+			return null;
+		}
 
-		$context_node = new WP_HTML_Token(
-			'context-node',
-			$processor->state->context_node[0],
-			false
-		);
-
-		$processor->context_node = $context_node;
-		$processor->breadcrumbs  = array( 'HTML', $context_node->node_name );
-
-		return $processor;
+		return $context_processor->create_fragment_at_current_node( $html );
 	}
 
 	/**
@@ -334,9 +340,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * entire HTML document from start to finish. Consider a fragment parser with
 	 * a context node of `<body>`.
 	 *
-	 * Since UTF-8 is the only currently-accepted charset, if working with a
-	 * document that isn't UTF-8, it's important to convert the document before
-	 * creating the processor: pass in the converted HTML.
+	 * UTF-8 is the only allowed encoding. If working with a document that
+	 * isn't UTF-8, first convert the document to UTF-8, then pass in the
+	 * converted HTML.
+	 *
+	 * @since 6.7.0
 	 *
 	 * @param string      $html                    Input HTML document to process.
 	 * @param string|null $known_definite_encoding Optional. If provided, specifies the charset used
@@ -345,6 +353,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public static function create_full_parser( $html, $known_definite_encoding = 'UTF-8' ) {
 		if ( 'UTF-8' !== $known_definite_encoding ) {
+			return null;
+		}
+		if ( ! is_string( $html ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The HTML parameter must be a string.' ),
+				'6.9.0'
+			);
 			return null;
 		}
 
@@ -460,15 +476,36 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-parsing-algorithm
 	 *
+	 * @since 6.8.0
+	 *
 	 * @param string $html Input HTML fragment to process.
 	 * @return static|null The created processor if successful, otherwise null.
 	 */
-	public function create_fragment_at_current_node( string $html ) {
+	private function create_fragment_at_current_node( string $html ) {
 		if ( $this->get_token_type() !== '#tag' || $this->is_tag_closer() ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The context element must be a start tag.' ),
+				'6.8.0'
+			);
 			return null;
 		}
 
+		$tag_name  = $this->current_element->token->node_name;
 		$namespace = $this->current_element->token->namespace;
+
+		if ( 'html' === $namespace && self::is_void( $tag_name ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					// translators: %s: A tag name like INPUT or BR.
+					__( 'The context element cannot be a void element, found "%s".' ),
+					$tag_name
+				),
+				'6.8.0'
+			);
+			return null;
+		}
 
 		/*
 		 * Prevent creating fragments at nodes that require a special tokenizer state.
@@ -476,30 +513,37 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if (
 			'html' === $namespace &&
-			in_array( $this->current_element->token->node_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP', 'PLAINTEXT' ), true )
+			in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP', 'PLAINTEXT' ), true )
 		) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					// translators: %s: A tag name like IFRAME or TEXTAREA.
+					__( 'The context element "%s" is not supported.' ),
+					$tag_name
+				),
+				'6.8.0'
+			);
 			return null;
 		}
 
-		$fragment_processor = static::create_fragment( $html );
-		if ( null === $fragment_processor ) {
-			return null;
-		}
+		$fragment_processor = new static( $html, self::CONSTRUCTOR_UNLOCK_CODE );
 
 		$fragment_processor->compat_mode = $this->compat_mode;
 
-		$fragment_processor->context_node                = clone $this->state->current_token;
+		// @todo Create "fake" bookmarks for non-existent but implied nodes.
+		$fragment_processor->bookmarks['root-node'] = new WP_HTML_Span( 0, 0 );
+		$root_node                                  = new WP_HTML_Token(
+			'root-node',
+			'HTML',
+			false
+		);
+		$fragment_processor->state->stack_of_open_elements->push( $root_node );
+
+		$fragment_processor->bookmarks['context-node']   = new WP_HTML_Span( 0, 0 );
+		$fragment_processor->context_node                = clone $this->current_element->token;
 		$fragment_processor->context_node->bookmark_name = 'context-node';
 		$fragment_processor->context_node->on_destroy    = null;
-
-		$fragment_processor->state->context_node = array( $fragment_processor->context_node->node_name, array() );
-
-		$attribute_names = $this->get_attribute_names_with_prefix( '' );
-		if ( null !== $attribute_names ) {
-			foreach ( $attribute_names as $name ) {
-				$fragment_processor->state->context_node[1][ $name ] = $this->get_attribute( $name );
-			}
-		}
 
 		$fragment_processor->breadcrumbs = array( 'HTML', $fragment_processor->context_node->node_name );
 
@@ -544,8 +588,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws WP_HTML_Unsupported_Exception Halts execution of the parser.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @param string $message Explains support is missing in order to parse the current node.
+	 * @return never
 	 */
 	private function bail( string $message ) {
 		$here  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
@@ -729,7 +775,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * WP_HTML_Tag_Processor instead.
 	 *
 	 * @since 6.5.0 Added for internal support; do not use.
-	 * @since 6.7.1 Refactored so subclasses may extend.
+	 * @since 6.7.2 Refactored so subclasses may extend.
 	 *
 	 * @return bool Whether a token was parsed.
 	 */
@@ -750,9 +796,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * this method similarly to how {@see WP_HTML_Tag_Processor::next_token()}
 	 * calls the {@see WP_HTML_Tag_Processor::base_class_next_token()} method.
 	 *
-	 * @since 6.7.1 Added for internal support.
-	 *
-	 * @access private
+	 * @since 6.7.2 Added for internal support.
+	 * @ignore
 	 *
 	 * @return bool
 	 */
@@ -773,8 +818,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 *       until there are events or until there are no more
 		 *       tokens works in the meantime and isn't obviously wrong.
 		 */
-		if ( empty( $this->element_queue ) && $this->step() ) {
-			return $this->next_visitable_token();
+		if ( empty( $this->element_queue ) ) {
+			if ( $this->step() ) {
+				return $this->next_visitable_token();
+			}
+
+			if ( isset( $this->last_error ) ) {
+				return false;
+			}
 		}
 
 		// Process the next event on the queue.
@@ -841,6 +892,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * while processing HTML, rather than a token found in the HTML text itself.
 	 *
 	 * @since 6.6.0
+	 * @ignore
 	 *
 	 * @return bool Whether the current token is virtual.
 	 */
@@ -910,7 +962,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * token, or if it will self-close on the next step.
 	 *
 	 * Most HTML elements expect a closer, such as a P element or
-	 * a DIV element. Others, like an IMG element are void and don't
+	 * a DIV element. Others, like an IMG element, are void and don't
 	 * have a closing tag. Special elements, such as SCRIPT and STYLE,
 	 * are treated just like void tags. Text nodes and self-closing
 	 * foreign content will also act just like a void tag, immediately
@@ -950,7 +1002,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Steps through the HTML document and stop at the next tag, if any.
 	 *
+	 * This is an internal method. The relevant public methods are
+	 * {@see WP_HTML_Processor::next_tag()} and {@see WP_HTML_Processor::next_token()}.
+	 *
 	 * @since 6.4.0
+	 *
+	 * @access private
 	 *
 	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
@@ -1003,8 +1060,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$token_name            = $this->get_token_name();
 
 		if ( self::REPROCESS_CURRENT_NODE !== $node_to_process ) {
+			try {
+				$bookmark_name = $this->bookmark_token();
+			} catch ( Exception $e ) {
+				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+					return false;
+				}
+				throw $e;
+			}
+
 			$this->state->current_token = new WP_HTML_Token(
-				$this->bookmark_token(),
+				$bookmark_name,
 				$token_name,
 				$this->has_self_closing_flag(),
 				$this->release_internal_bookmark_on_destruct
@@ -1080,12 +1146,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
 					return $this->step_in_cell();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
-					return $this->step_in_select();
-
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE:
-					return $this->step_in_select_in_table();
-
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE:
 					return $this->step_in_template();
 
@@ -1114,6 +1174,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * otherwise might involve messier calling and return conventions.
 			 */
 			return false;
+		} catch ( Exception $e ) {
+			if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+				return false;
+			}
+			// Rethrow any other exceptions for higher-level handling.
+			throw $e;
 		}
 	}
 
@@ -1123,11 +1189,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Breadcrumbs start at the outermost parent and descend toward the matched element.
 	 * They always include the entire path from the root HTML node to the matched element.
 	 *
-	 * @todo It could be more efficient to expose a generator-based version of this function
-	 *       to avoid creating the array copy on tag iteration. If this is done, it would likely
-	 *       be more useful to walk up the stack when yielding instead of starting at the top.
-	 *
-	 * Example
+	 * Example:
 	 *
 	 *     $processor = WP_HTML_Processor::create_fragment( '<p><strong><em><img></em></strong></p>' );
 	 *     $processor->next_tag( 'IMG' );
@@ -1135,9 +1197,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
+	 * @return string[] Array of tag names representing path to matched node.
 	 */
-	public function get_breadcrumbs(): ?array {
+	public function get_breadcrumbs(): array {
 		return $this->breadcrumbs;
 	}
 
@@ -1205,7 +1267,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $html Input HTML to normalize.
-	 *
 	 * @return string|null Normalized output, or `null` if unable to normalize.
 	 */
 	public static function normalize( string $html ): ?string {
@@ -1288,10 +1349,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see static::serialize()
 	 *
 	 * @since 6.7.0
+	 * @since 6.9.0 Converted from protected to public method.
 	 *
 	 * @return string Serialization of token, or empty string if no serialization exists.
 	 */
-	protected function serialize_token(): string {
+	public function serialize_token(): string {
 		$html       = '';
 		$token_type = $this->get_token_type();
 
@@ -1324,7 +1386,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				break;
 
 			case '#text':
-				$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+				$html .= self::escape_text_for_serialization( $this->get_modifiable_text() );
 				break;
 
 			// Unlike the `<>` which is interpreted as plaintext, this is ignored entirely.
@@ -1336,6 +1398,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$html .= "<!--{$this->get_full_comment_text()}-->";
 				break;
 
+			/**
+			 * Processing instructions are serialized as `"<?" target " " data "?>"`.
+			 *
+			 * @link https://html.spec.whatwg.org/multipage/parsing.html#serialising-html-fragments
+			 */
+			case '#processing-instruction':
+				$html .= "<?{$this->get_tag()} {$this->get_modifiable_text()}?>";
+				break;
+
 			case '#cdata-section':
 				$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
 				break;
@@ -1345,7 +1416,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return $html;
 		}
 
-		$tag_name       = str_replace( "\x00", "\u{FFFD}", $this->get_tag() );
+		$tag_name       = $this->get_tag();
 		$in_html        = 'html' === $this->get_namespace();
 		$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
 
@@ -1361,15 +1432,39 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$html .= "<{$qualified_name}";
+
+		$previous_attribute_was_true = false;
+		$seen_attribute_names        = array();
 		foreach ( $attribute_names as $attribute_name ) {
-			$html .= " {$this->get_qualified_attribute_name( $attribute_name )}";
+			$qualified_attribute_name = $this->get_qualified_attribute_name( $attribute_name );
+			$qualified_attribute_name = wp_scrub_utf8( $qualified_attribute_name );
+			/**
+			 * Spaces only appear via the foreign attribute adjustment table.
+			 * @see WP_HTML_Tag_Processor::get_qualified_attribute_name()
+			 */
+			$serialized_attribute_name = str_replace( ' ', ':', $qualified_attribute_name );
+			if ( isset( $seen_attribute_names[ $qualified_attribute_name ] ) ) {
+				continue;
+			} else {
+				$seen_attribute_names[ $qualified_attribute_name ] = true;
+			}
+
+			if (
+				$previous_attribute_was_true &&
+				isset( $serialized_attribute_name[0] ) &&
+				'=' === $serialized_attribute_name[0]
+			) {
+				$html .= '=""';
+			}
+
+			$html .= " {$serialized_attribute_name}";
 			$value = $this->get_attribute( $attribute_name );
 
 			if ( is_string( $value ) ) {
-				$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
+				$html .= '="' . self::escape_text_for_serialization( $value ) . '"';
 			}
 
-			$html = str_replace( "\x00", "\u{FFFD}", $html );
+			$previous_attribute_was_true = true === $value;
 		}
 
 		if ( ! $in_html && $this->has_self_closing_flag() ) {
@@ -1377,6 +1472,32 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$html .= '>';
+
+		/*
+		 * The HTML parser strips a leading newline immediately after the start
+		 * tag of TEXTAREA, PRE, and LISTING elements in HTML content. When serializing,
+		 * prepend a leading newline to ensure the semantic HTML content is preserved.
+		 *
+		 * For example, `<pre>\n\nX</pre>` must not become `<pre>\nX</pre>` because its content
+		 * has changed. However, `<pre>X</pre>` and `<pre>\nX</pre>` are _equivalent_.
+		 *
+		 * > A start tag whose tag name is "textarea"
+		 * >   …
+		 * >   If the next token is a U+000A LINE FEED (LF) character token, then ignore
+		 * >   that token and move on to the next one. (Newlines at the start of textarea
+		 * >   elements are ignored as an authoring convenience.)
+		 *
+		 * > A start tag whose tag name is one of: "pre", "listing"
+		 * >   …
+		 * >   If the next token is a U+000A LINE FEED (LF) character token, then ignore
+		 * >   that token and move on to the next one. (Newlines at the start of pre blocks
+		 * >   are ignored as an authoring convenience.)
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html
+		 */
+		if ( $in_html && ( 'TEXTAREA' === $tag_name || 'PRE' === $tag_name || 'LISTING' === $tag_name ) ) {
+			$html .= "\n";
+		}
 
 		// Flush out self-contained elements.
 		if ( $in_html && in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
@@ -1386,15 +1507,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'IFRAME':
 				case 'NOEMBED':
 				case 'NOFRAMES':
-					$text = '';
-					break;
-
 				case 'SCRIPT':
 				case 'STYLE':
+				case 'XMP':
 					break;
 
 				default:
-					$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+					$text = self::escape_text_for_serialization( $text );
 			}
 
 			$html .= "{$text}</{$qualified_name}>";
@@ -1404,12 +1523,40 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Escapes decoded text for HTML serialization.
+	 *
+	 * Use for:
+	 * - Attribute values.
+	 * - Text in ordinary (data-state) elements and in the RCDATA elements
+	 *   (TITLE and TEXTAREA).
+	 * - Text in foreign content (elements not in the HTML namespace).
+	 *
+	 * Do not use for text in the RAWTEXT elements (STYLE, XMP, IFRAME,
+	 * NOEMBED, NOFRAMES), HTML SCRIPT elements, or PLAINTEXT elements,
+	 * whose contents serialize without escaping.
+	 *
+	 * @since 7.1.0
+	 * @ignore
+	 *
+	 * @param string $text Decoded text to escape.
+	 * @return string Escaped text.
+	 */
+	private static function escape_text_for_serialization( string $text ): string {
+		$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+
+		$text = str_replace( "\r", '&#xD;', $text );
+
+		return str_replace( "\x00", "\u{FFFD}", $text );
+	}
+
+	/**
 	 * Parses next element in the 'initial' insertion mode.
 	 *
 	 * This internal function performs the 'initial' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1441,10 +1588,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1453,7 +1602,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				$doctype = $this->get_doctype_info();
-				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
+				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatibility_mode ) {
 					$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 				}
 
@@ -1481,6 +1630,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1506,10 +1656,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1577,7 +1729,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'before head' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1610,10 +1763,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1675,6 +1830,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1708,10 +1864,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1744,6 +1902,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+META':
 				$this->insert_html_element( $this->state->current_token );
 
+				// All following conditions depend on "tentative" encoding confidence.
+				if ( 'tentative' !== $this->state->encoding_confidence ) {
+					return true;
+				}
+
 				/*
 				 * > If the active speculative HTML parser is null, then:
 				 * >   - If the element has a charset attribute, and getting an encoding from
@@ -1751,7 +1914,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * >     tentative, then change the encoding to the resulting encoding.
 				 */
 				$charset = $this->get_attribute( 'charset' );
-				if ( is_string( $charset ) && 'tentative' === $this->state->encoding_confidence ) {
+				if ( is_string( $charset ) ) {
 					$this->bail( 'Cannot yet process META tags with charset to determine encoding.' );
 				}
 
@@ -1768,8 +1931,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if (
 					is_string( $http_equiv ) &&
 					is_string( $content ) &&
-					0 === strcasecmp( $http_equiv, 'Content-Type' ) &&
-					'tentative' === $this->state->encoding_confidence
+					0 === strcasecmp( $http_equiv, 'Content-Type' )
 				) {
 					$this->bail( 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' );
 				}
@@ -1892,7 +2054,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'in head noscript' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1947,13 +2110,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
-			 * >
+			 * > A processing instruction token
 			 * > A start tag whose tag name is one of: "basefont", "bgsound",
 			 * > "link", "meta", "noframes", "style"
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 			case '+BASEFONT':
 			case '+BGSOUND':
 			case '+LINK':
@@ -1995,7 +2159,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'after head' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -2028,10 +2193,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -2140,6 +2307,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.4.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -2187,6 +2355,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -2300,7 +2469,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY;
-				return true;
+				/*
+				 * The BODY element is not removed from the stack of open elements.
+				 * Only internal state has changed, this does not qualify as a "step"
+				 * in terms of advancing through the document to another token.
+				 * Nothing has been pushed or popped.
+				 * Proceed to parse the next item.
+				 */
+				return $this->step();
 
 			/*
 			 * > An end tag whose tag name is "html"
@@ -2523,7 +2699,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is one of: "address", "article", "aside", "blockquote",
 			 * > "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset",
 			 * > "figcaption", "figure", "footer", "header", "hgroup", "listing", "main",
-			 * > "menu", "nav", "ol", "pre", "search", "section", "summary", "ul"
+			 * > "menu", "nav", "ol", "pre", "search", "section", "select", "summary", "ul"
 			 */
 			case '-ADDRESS':
 			case '-ARTICLE':
@@ -2550,6 +2726,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-PRE':
 			case '-SEARCH':
 			case '-SECTION':
+			case '-SELECT':
 			case '-SUMMARY':
 			case '-UL':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
@@ -2570,8 +2747,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-FORM':
 				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
-					$node                      = $this->state->form_element;
-					$this->state->form_element = null;
+					$node = $this->state->form_element;
 
 					/*
 					 * > If node is null or if the stack of open elements does not have node
@@ -2584,9 +2760,19 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						null === $node ||
 						! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' )
 					) {
-						// Parse error: ignore the token.
+						/*
+						 * Parse error: ignore the token.
+						 *
+						 * Keep the form pointer intact when the end tag is ignored, such as
+						 * when a FORM closing tag appears inside an SVG TITLE integration
+						 * point. Otherwise the ignored token changes parser state in a way
+						 * that serialization cannot represent, allowing a later FORM opener
+						 * to appear in the first normalization pass and disappear on the second.
+						 */
 						return $this->step();
 					}
+
+					$this->state->form_element = null;
 
 					$this->generate_implied_end_tags();
 					if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
@@ -2859,6 +3045,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "input"
 			 */
 			case '+INPUT':
+				/*
+				 * > If the parser was created as part of the HTML fragment parsing algorithm
+				 * > (fragment case) and the context element passed to that algorithm is a
+				 * > select element:
+				 * >   1. Parse error.
+				 * >   2. Ignore the token.
+				 * >   3. Return.
+				 */
+				if ( isset( $this->context_node ) && 'SELECT' === $this->context_node->node_name ) {
+					return $this->step();
+				}
+
+				/*
+				 * > If the stack of open elements has a select element in scope:
+				 * >   1. Parse error.
+				 * >   2. Pop elements from the stack of open elements until a select element
+				 * >      has been popped from the stack.
+				 */
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					$this->state->stack_of_open_elements->pop_until( 'SELECT' );
+				}
+
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 
@@ -2890,6 +3098,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
+
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					$this->generate_implied_end_tags();
+					/*
+					 * > If the stack of open elements has an option element in scope or has
+					 * > an optgroup element in scope, then this is a parse error.
+					 *
+					 * @todo Indicate a parse error once it's possible.
+					 */
+				}
+
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
 				return true;
@@ -2976,40 +3195,69 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "select"
 			 */
 			case '+SELECT':
+				/*
+				 * > If the parser was created as part of the HTML fragment parsing algorithm
+				 * > (fragment case) and the context element passed to that algorithm is a
+				 * > select element:
+				 * >   1. Parse error.
+				 * >   2. Ignore the token.
+				 */
+				if ( isset( $this->context_node ) && 'SELECT' === $this->context_node->node_name ) {
+					// @todo Indicate a parse error once it's possible.
+					return $this->step();
+				}
+				/*
+				 * > Otherwise, if the stack of open elements has a select element in scope:
+				 * >   1. Parse error.
+				 * >   2. Ignore the token.
+				 * >   3. Pop elements from the stack of open elements until a select element
+				 * >      has been popped from the stack.
+				 */
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					// @todo Indicate a parse error once it's possible.
+					$this->state->stack_of_open_elements->pop_until( 'SELECT' );
+					return $this->step();
+				}
+
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
-
-				switch ( $this->state->insertion_mode ) {
-					/*
-					 * > If the insertion mode is one of "in table", "in caption", "in table body", "in row",
-					 * > or "in cell", then switch the insertion mode to "in select in table".
-					 */
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
-						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
-						break;
-
-					/*
-					 * > Otherwise, switch the insertion mode to "in select".
-					 */
-					default:
-						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
-						break;
-				}
 				return true;
 
 			/*
-			 * > A start tag whose tag name is one of: "optgroup", "option"
+			 * > A start tag whose tag name is "option"
 			 */
-			case '+OPTGROUP':
 			case '+OPTION':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					$this->generate_implied_end_tags( 'OPTGROUP' );
+					/*
+					 * > If the stack of open elements has an option element in scope, then this
+					 * > is a parse error.
+					 * @todo Indicate a parse error once it's possible.
+					 */
+				} elseif ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
 					$this->state->stack_of_open_elements->pop();
 				}
+
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "optgroup"
+			 */
+			case '+OPTGROUP':
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					$this->generate_implied_end_tags();
+					/*
+					 * > If the stack of open elements has an option element in scope or has an
+					 * > optgroup element in scope, then this is a parse error.
+					 * @todo Indicate a parse error once it's possible.
+					 */
+				} elseif ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 				return true;
@@ -3115,38 +3363,60 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other end tag
 			 */
-
-			/*
-			 * Find the corresponding tag opener in the stack of open elements, if
-			 * it exists before reaching a special element, which provides a kind
-			 * of boundary in the stack. For example, a `</custom-tag>` should not
-			 * close anything beyond its containing `P` or `DIV` element.
-			 */
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
-				if ( 'html' === $node->namespace && $token_name === $node->node_name ) {
-					break;
-				}
-
-				if ( self::is_special( $node ) ) {
-					// This is a parse error, ignore the token.
-					return $this->step();
-				}
-			}
-
-			$this->generate_implied_end_tags( $token_name );
-			if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
-				// @todo Record parse error: this error doesn't impact parsing.
-			}
-
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-				$this->state->stack_of_open_elements->pop();
-				if ( $node === $item ) {
-					return true;
-				}
-			}
+			return $this->in_body_any_other_end_tag();
 		}
 
 		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
+	}
+
+	/**
+	 * Applies the "any other end tag" parsing instructions for the IN BODY insertion mode.
+	 *
+	 * @since 7.1.0
+	 * @ignore
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
+	 * @see WP_HTML_Processor::step_in_body
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function in_body_any_other_end_tag(): bool {
+		$token_name = $this->get_token_name();
+
+		/*
+		 * Find the corresponding tag opener in the stack of open elements, if
+		 * it exists before reaching a special element, which provides a kind
+		 * of boundary in the stack. For example, a `</custom-tag>` should not
+		 * close anything beyond its containing `P` or `DIV` element.
+		 */
+		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+			if ( 'html' === $node->namespace && $token_name === $node->node_name ) {
+				break;
+			}
+
+			if ( self::is_special( $node ) ) {
+				// This is a parse error, ignore the token.
+				return $this->step();
+			}
+		}
+
+		$this->generate_implied_end_tags( $token_name );
+		if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
+			// @todo Record parse error: this error doesn't impact parsing.
+		}
+
+		foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+			$this->state->stack_of_open_elements->pop();
+			if ( $node === $item ) {
+				return true;
+			}
+		}
+
+		$this->bail( 'Should not have been able to reach end of "any other end tag" IN BODY processing. Check HTML API code.' );
 		// This unnecessary return prevents tools from inaccurately reporting type errors.
 		return false;
 	}
@@ -3158,6 +3428,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -3230,10 +3501,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -3414,6 +3687,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0 Stub implementation.
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -3433,6 +3707,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -3517,6 +3792,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -3548,10 +3824,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -3624,6 +3902,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -3727,6 +4006,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -3837,6 +4117,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -3935,251 +4216,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Parses next element in the 'in select' insertion mode.
-	 *
-	 * This internal function performs the 'in select' insertion mode
-	 * logic for the generalized WP_HTML_Processor::step() function.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselect
-	 * @see WP_HTML_Processor::step
-	 *
-	 * @return bool Whether an element was found.
-	 */
-	private function step_in_select(): bool {
-		$token_name = $this->get_token_name();
-		$token_type = $this->get_token_type();
-		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
-		$op         = "{$op_sigil}{$token_name}";
-
-		switch ( $op ) {
-			/*
-			 * > Any other character token
-			 */
-			case '#text':
-				/*
-				 * > A character token that is U+0000 NULL
-				 *
-				 * If a text node only comprises null bytes then it should be
-				 * entirely ignored and should not return to calling code.
-				 */
-				if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
-					// Parse error: ignore the token.
-					return $this->step();
-				}
-
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-
-			/*
-			 * > A comment token
-			 */
-			case '#comment':
-			case '#funky-comment':
-			case '#presumptuous-tag':
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-
-			/*
-			 * > A DOCTYPE token
-			 */
-			case 'html':
-				// Parse error: ignore the token.
-				return $this->step();
-
-			/*
-			 * > A start tag whose tag name is "html"
-			 */
-			case '+HTML':
-				return $this->step_in_body();
-
-			/*
-			 * > A start tag whose tag name is "option"
-			 */
-			case '+OPTION':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
-					$this->state->stack_of_open_elements->pop();
-				}
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-
-			/*
-			 * > A start tag whose tag name is "optgroup"
-			 * > A start tag whose tag name is "hr"
-			 *
-			 * These rules are identical except for the treatment of the self-closing flag and
-			 * the subsequent pop of the HR void element, all of which is handled elsewhere in the processor.
-			 */
-			case '+OPTGROUP':
-			case '+HR':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
-					$this->state->stack_of_open_elements->pop();
-				}
-
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTGROUP' ) ) {
-					$this->state->stack_of_open_elements->pop();
-				}
-
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-
-			/*
-			 * > An end tag whose tag name is "optgroup"
-			 */
-			case '-OPTGROUP':
-				$current_node = $this->state->stack_of_open_elements->current_node();
-				if ( $current_node && 'OPTION' === $current_node->node_name ) {
-					foreach ( $this->state->stack_of_open_elements->walk_up( $current_node ) as $parent ) {
-						break;
-					}
-					if ( $parent && 'OPTGROUP' === $parent->node_name ) {
-						$this->state->stack_of_open_elements->pop();
-					}
-				}
-
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTGROUP' ) ) {
-					$this->state->stack_of_open_elements->pop();
-					return true;
-				}
-
-				// Parse error: ignore the token.
-				return $this->step();
-
-			/*
-			 * > An end tag whose tag name is "option"
-			 */
-			case '-OPTION':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
-					$this->state->stack_of_open_elements->pop();
-					return true;
-				}
-
-				// Parse error: ignore the token.
-				return $this->step();
-
-			/*
-			 * > An end tag whose tag name is "select"
-			 * > A start tag whose tag name is "select"
-			 *
-			 * > It just gets treated like an end tag.
-			 */
-			case '-SELECT':
-			case '+SELECT':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
-					// Parse error: ignore the token.
-					return $this->step();
-				}
-				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode_appropriately();
-				return true;
-
-			/*
-			 * > A start tag whose tag name is one of: "input", "keygen", "textarea"
-			 *
-			 * All three of these tags are considered a parse error when found in this insertion mode.
-			 */
-			case '+INPUT':
-			case '+KEYGEN':
-			case '+TEXTAREA':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
-					// Ignore the token.
-					return $this->step();
-				}
-				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode_appropriately();
-				return $this->step( self::REPROCESS_CURRENT_NODE );
-
-			/*
-			 * > A start tag whose tag name is one of: "script", "template"
-			 * > An end tag whose tag name is "template"
-			 */
-			case '+SCRIPT':
-			case '+TEMPLATE':
-			case '-TEMPLATE':
-				return $this->step_in_head();
-		}
-
-		/*
-		 * > Anything else
-		 * >   Parse error: ignore the token.
-		 */
-		return $this->step();
-	}
-
-	/**
-	 * Parses next element in the 'in select in table' insertion mode.
-	 *
-	 * This internal function performs the 'in select in table' insertion mode
-	 * logic for the generalized WP_HTML_Processor::step() function.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
-	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselectintable
-	 * @see WP_HTML_Processor::step
-	 *
-	 * @return bool Whether an element was found.
-	 */
-	private function step_in_select_in_table(): bool {
-		$token_name = $this->get_token_name();
-		$token_type = $this->get_token_type();
-		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
-		$op         = "{$op_sigil}{$token_name}";
-
-		switch ( $op ) {
-			/*
-			 * > A start tag whose tag name is one of: "caption", "table", "tbody", "tfoot", "thead", "tr", "td", "th"
-			 */
-			case '+CAPTION':
-			case '+TABLE':
-			case '+TBODY':
-			case '+TFOOT':
-			case '+THEAD':
-			case '+TR':
-			case '+TD':
-			case '+TH':
-				// @todo Indicate a parse error once it's possible.
-				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode_appropriately();
-				return $this->step( self::REPROCESS_CURRENT_NODE );
-
-			/*
-			 * > An end tag whose tag name is one of: "caption", "table", "tbody", "tfoot", "thead", "tr", "td", "th"
-			 */
-			case '-CAPTION':
-			case '-TABLE':
-			case '-TBODY':
-			case '-TFOOT':
-			case '-THEAD':
-			case '-TR':
-			case '-TD':
-			case '-TH':
-				// @todo Indicate a parse error once it's possible.
-				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $token_name ) ) {
-					return $this->step();
-				}
-				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode_appropriately();
-				return $this->step( self::REPROCESS_CURRENT_NODE );
-		}
-
-		/*
-		 * > Anything else
-		 */
-		return $this->step_in_select();
-	}
-
-	/**
 	 * Parses next element in the 'in template' insertion mode.
 	 *
 	 * This internal function performs the 'in template' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -4199,12 +4242,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token
 			 * > A comment token
+			 * > A processing instruction token
 			 * > A DOCTYPE token
 			 */
 			case '#text':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 			case 'html':
 				return $this->step_in_body();
 
@@ -4308,7 +4353,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'after body' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -4339,10 +4385,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->bail( 'Content outside of BODY is unsupported.' );
 				break;
 
@@ -4373,7 +4421,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY;
-				return true;
+				/*
+				 * The HTML element is not removed from the stack of open elements.
+				 * Only internal state has changed, this does not qualify as a "step"
+				 * in terms of advancing through the document to another token.
+				 * Nothing has been pushed or popped.
+				 * Proceed to parse the next item.
+				 */
+				return $this->step();
 		}
 
 		/*
@@ -4390,7 +4445,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'in frameset' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -4424,10 +4480,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4509,7 +4567,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'after frameset' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -4543,10 +4602,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4568,7 +4629,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-HTML':
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET;
-				return true;
+				/*
+				 * The HTML element is not removed from the stack of open elements.
+				 * Only internal state has changed, this does not qualify as a "step"
+				 * in terms of advancing through the document to another token.
+				 * Nothing has been pushed or popped.
+				 * Proceed to parse the next item.
+				 */
+				return $this->step();
 
 			/*
 			 * > A start tag whose tag name is "noframes"
@@ -4587,7 +4655,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'after after body' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -4605,10 +4674,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		switch ( $op ) {
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->bail( 'Content outside of HTML is unsupported.' );
 				break;
 
@@ -4650,7 +4721,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'after after frameset' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -4668,10 +4740,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		switch ( $op ) {
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->bail( 'Content outside of HTML is unsupported.' );
 				break;
 
@@ -4718,7 +4792,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'in foreign content' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -4790,10 +4865,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 * > A processing instruction token
 			 */
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+			case '#processing-instruction':
 				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
@@ -4996,12 +5073,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
 					return $this->step_in_cell();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
-					return $this->step_in_select();
-
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE:
-					return $this->step_in_select_in_table();
-
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE:
 					return $this->step_in_template();
 
@@ -5040,10 +5111,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 * @since 6.5.0 Renamed from bookmark_tag() to bookmark_token().
+	 * @ignore
 	 *
 	 * @throws Exception When unable to allocate requested bookmark.
 	 *
-	 * @return string|false Name of created bookmark, or false if unable to create.
+	 * @return string Name of created bookmark.
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
@@ -5106,8 +5178,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		/*
 		 * > A start tag whose tag name is "image"
 		 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
+		 *
+		 * This only applies to tags; a processing instruction target or a
+		 * comment which looks like a processing instruction may also report
+		 * a tag name and must not be rewritten.
 		 */
-		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() )
+		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() && '#tag' === $this->get_token_type() )
 			? 'IMG'
 			: $tag_name;
 	}
@@ -5176,8 +5252,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *  - `#doctype` when matched on a DOCTYPE declaration.
 	 *  - `#presumptuous-tag` when matched on an empty tag closer.
 	 *  - `#funky-comment` when matched on a funky comment.
+	 *  - `#processing-instruction` when matched on a processing instruction.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 * @since 7.1.0 Recognize processing instructions according to an HTML
+	 *              specification update.
 	 *
 	 * @return string|null What kind of token is matched, or null.
 	 */
@@ -5231,13 +5310,30 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
-	 * For boolean attributes special handling is provided:
+	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
+	 * The HTML API will encode the strings appropriately so that the browser will interpret them
+	 * as the intended value.
+	 *
+	 * Example:
+	 *
+	 *     // Renders “Eggs & Milk” in a browser, encoded as `<abbr title="Eggs &amp; Milk">`.
+	 *     $processor->set_attribute( 'title', 'Eggs & Milk' );
+	 *
+	 *     // Renders “Eggs &amp; Milk” in a browser, encoded as `<abbr title="Eggs &amp;amp; Milk">`.
+	 *     $processor->set_attribute( 'title', 'Eggs &amp; Milk' );
+	 *
+	 *     // Renders `true` as `<abbr title>`.
+	 *     $processor->set_attribute( 'title', true );
+	 *
+	 *     // Renders without the attribute for `false` as `<abbr>`.
+	 *     $processor->set_attribute( 'title', false );
+	 *
+	 * Special handling is provided for boolean attribute values:
 	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
 	 *  - When `false` is passed, the attribute gets removed if it existed before.
 	 *
-	 * For string attributes, the value is escaped using the `esc_attr` function.
-	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 *
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
@@ -5334,14 +5430,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
-	 * Example:
-	 *
-	 *     $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&lt;\tlang-en'>" );
-	 *     $p->next_tag();
-	 *     foreach ( $p->class_list() as $class_name ) {
-	 *         echo "{$class_name} ";
-	 *     }
-	 *     // Outputs: "free <egg> lang-en "
+	 * ```php interactive
+	 * <?php
+	 * require '/wordpress/wp-load.php';
+	 * $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&gt;\tlang-en'>" );
+	 * $p->next_tag();
+	 * foreach ( $p->class_list() as $class_name ) {
+	 *   var_dump( $class_name );
+	 * }
+	 * ```
+	 * ```expected-output
+	 * string(4) "free"
+	 * string(5) "<egg>"
+	 * string(7) "lang-en"
+	 * ```
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 */
@@ -5634,12 +5736,25 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * reaching for it, as inappropriate use could lead to broken
 	 * HTML structure or unwanted processing overhead.
 	 *
+	 * Bookmarks cannot be set on tokens that do no appear in the original
+	 * HTML text. For example, the HTML `<table><td>` stops at tags `TABLE`,
+	 * `TBODY`, `TR`, and `TD`. The `TBODY` and `TR` tags do not appear in
+	 * the original HTML and cannot be used as bookmarks.
+	 *
 	 * @since 6.4.0
 	 *
 	 * @param string $bookmark_name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
 	 */
 	public function set_bookmark( $bookmark_name ): bool {
+		if ( $this->is_virtual() ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Cannot set bookmarks on tokens that do no appear in the original HTML text.' ),
+				'6.8.0'
+			);
+			return false;
+		}
 		return parent::set_bookmark( "_{$bookmark_name}" );
 	}
 
@@ -5663,6 +5778,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Closes a P element.
 	 *
 	 * @since 6.4.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -5678,6 +5794,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 * @since 6.7.0 Full spec support.
+	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 *
@@ -5715,6 +5832,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 * @since 6.7.0 Full spec support.
+	 * @ignore
 	 *
 	 * @see WP_HTML_Processor::generate_implied_end_tags
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
@@ -5757,6 +5875,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see https://html.spec.whatwg.org/#adjusted-current-node
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @return WP_HTML_Token|null The adjusted current node.
 	 */
@@ -5776,6 +5895,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * > been explicitly closed.
 	 *
 	 * @since 6.4.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -5818,6 +5938,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Runs the reset the insertion mode appropriately algorithm.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
 	 */
@@ -5855,46 +5976,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			switch ( $node->node_name ) {
 				/*
-				 * > 4. If node is a `select` element, run these substeps:
-				 * >   1. If _last_ is true, jump to the step below labeled done.
-				 * >   2. Let _ancestor_ be _node_.
-				 * >   3. _Loop_: If _ancestor_ is the first node in the stack of open elements,
-				 * >      jump to the step below labeled done.
-				 * >   4. Let ancestor be the node before ancestor in the stack of open elements.
-				 * >   …
-				 * >   7. Jump back to the step labeled _loop_.
-				 * >   8. _Done_: Switch the insertion mode to "in select" and return.
-				 */
-				case 'SELECT':
-					if ( ! $last ) {
-						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
-							if ( 'html' !== $ancestor->namespace ) {
-								continue;
-							}
-
-							switch ( $ancestor->node_name ) {
-								/*
-								 * > 5. If _ancestor_ is a `template` node, jump to the step below
-								 * >    labeled _done_.
-								 */
-								case 'TEMPLATE':
-									break 2;
-
-								/*
-								 * > 6. If _ancestor_ is a `table` node, switch the insertion mode to
-								 * >    "in select in table" and return.
-								 */
-								case 'TABLE':
-									$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
-									return;
-							}
-						}
-					}
-					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
-					return;
-
-				/*
-				 * > 5. If _node_ is a `td` or `th` element and _last_ is false, then switch the
+				 * > 4. If _node_ is a `td` or `th` element and _last_ is false, then switch the
 				 * >    insertion mode to "in cell" and return.
 				 */
 				case 'TD':
@@ -5905,16 +5987,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					}
 					break;
 
-					/*
-					* > 6. If _node_ is a `tr` element, then switch the insertion mode to "in row"
-					* >    and return.
-					*/
+				/*
+				* > 5. If _node_ is a `tr` element, then switch the insertion mode to "in row"
+				* >    and return.
+				*/
 				case 'TR':
 					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
 					return;
 
 				/*
-				 * > 7. If _node_ is a `tbody`, `thead`, or `tfoot` element, then switch the
+				 * > 6. If _node_ is a `tbody`, `thead`, or `tfoot` element, then switch the
 				 * >    insertion mode to "in table body" and return.
 				 */
 				case 'TBODY':
@@ -5924,7 +6006,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 8. If _node_ is a `caption` element, then switch the insertion mode to
+				 * > 7. If _node_ is a `caption` element, then switch the insertion mode to
 				 * >    "in caption" and return.
 				 */
 				case 'CAPTION':
@@ -5932,7 +6014,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 9. If _node_ is a `colgroup` element, then switch the insertion mode to
+				 * > 8. If _node_ is a `colgroup` element, then switch the insertion mode to
 				 * >    "in column group" and return.
 				 */
 				case 'COLGROUP':
@@ -5940,15 +6022,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 10. If _node_ is a `table` element, then switch the insertion mode to
-				 * >     "in table" and return.
+				 * > 9. If _node_ is a `table` element, then switch the insertion mode to
+				 * >    "in table" and return.
 				 */
 				case 'TABLE':
 					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
 					return;
 
 				/*
-				 * > 11. If _node_ is a `template` element, then switch the insertion mode to the
+				 * > 10. If _node_ is a `template` element, then switch the insertion mode to the
 				 * >     current template insertion mode and return.
 				 */
 				case 'TEMPLATE':
@@ -5956,7 +6038,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 12. If _node_ is a `head` element and _last_ is false, then switch the
+				 * > 11. If _node_ is a `head` element and _last_ is false, then switch the
 				 * >     insertion mode to "in head" and return.
 				 */
 				case 'HEAD':
@@ -5967,7 +6049,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					break;
 
 				/*
-				 * > 13. If _node_ is a `body` element, then switch the insertion mode to "in body"
+				 * > 12. If _node_ is a `body` element, then switch the insertion mode to "in body"
 				 * >     and return.
 				 */
 				case 'BODY':
@@ -5975,7 +6057,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 14. If _node_ is a `frameset` element, then switch the insertion mode to
+				 * > 13. If _node_ is a `frameset` element, then switch the insertion mode to
 				 * >     "in frameset" and return. (fragment case)
 				 */
 				case 'FRAMESET':
@@ -5983,7 +6065,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 15. If _node_ is an `html` element, run these substeps:
+				 * > 14. If _node_ is an `html` element, run these substeps:
 				 * >     1. If the head element pointer is null, switch the insertion mode to
 				 * >        "before head" and return. (fragment case)
 				 * >     2. Otherwise, the head element pointer is not null, switch the insertion
@@ -5998,7 +6080,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		/*
-		 * > 16. If _last_ is true, then switch the insertion mode to "in body"
+		 * > 15. If _last_ is true, then switch the insertion mode to "in body"
 		 * >     and return. (fragment case)
 		 *
 		 * This is only reachable if `$last` is true, as per the fragment parsing case.
@@ -6010,6 +6092,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Runs the adoption agency algorithm.
 	 *
 	 * @since 6.4.0
+	 * @ignore
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -6127,6 +6210,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#close-the-cell
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 */
 	private function close_cell(): void {
 		$this->generate_implied_end_tags();
@@ -6145,6 +6229,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Inserts an HTML element on the stack of open elements.
 	 *
 	 * @since 6.4.0
+	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/#insert-a-foreign-element
 	 *
@@ -6158,6 +6243,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Inserts a foreign element on to the stack of open elements.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/#insert-a-foreign-element
 	 *
@@ -6197,6 +6283,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Inserts a virtual element on the stack of open elements.
 	 *
 	 * @since 6.7.0
+	 * @ignore
+	 *
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
 	 * @param string      $token_name    Name of token to create and insert into the stack of open elements.
 	 * @param string|null $bookmark_name Optional. Name to give bookmark for created virtual node.
@@ -6222,6 +6311,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Indicates if the current token is a MathML integration point.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/#mathml-text-integration-point
 	 *
@@ -6258,6 +6348,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * no other accounting is overlooked.
 	 *
 	 * @since 6.7.0
+	 * @ignore
 	 *
 	 * @see https://html.spec.whatwg.org/#html-integration-point
 	 *

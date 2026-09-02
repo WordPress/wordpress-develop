@@ -166,8 +166,8 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return WP_Error|null|true WP_Error indicates unsuccessful login, null indicates successful
-	 *                            or no authentication provided
+	 * @return WP_Error|null|true WP_Error if authentication error occurred, null if authentication
+	 *                            method wasn't used, true if authentication succeeded.
 	 */
 	public function check_authentication() {
 		/**
@@ -191,7 +191,7 @@ class WP_REST_Server {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param WP_Error|null|true $errors WP_Error if authentication error, null if authentication
+		 * @param WP_Error|null|true $errors WP_Error if authentication error occurred, null if authentication
 		 *                                   method wasn't used, true if authentication succeeded.
 		 */
 		return apply_filters( 'rest_authentication_errors', null );
@@ -224,10 +224,10 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $code    WP_Error-style code.
-	 * @param string $message Human-readable message.
-	 * @param int    $status  Optional. HTTP status code to send. Default null.
-	 * @return string JSON representation of the error
+	 * @param string   $code    WP_Error-style code.
+	 * @param string   $message Human-readable message.
+	 * @param int|null $status  Optional. HTTP status code to send. Default null.
+	 * @return string JSON representation of the error.
 	 */
 	protected function json_error( $code, $message, $status = null ) {
 		if ( $status ) {
@@ -245,7 +245,6 @@ class WP_REST_Server {
 	 * @since 6.1.0
 	 *
 	 * @param \WP_REST_Request $request The current request object.
-	 *
 	 * @return int The JSON encode options.
 	 */
 	protected function get_json_encode_options( WP_REST_Request $request ) {
@@ -278,11 +277,17 @@ class WP_REST_Server {
 	 *
 	 * @global WP_User $current_user The currently authenticated user.
 	 *
-	 * @param string $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
-	 *                     Default null.
+	 * @param string|null $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
+	 *                          Default null.
 	 * @return null|false Null if not served and a HEAD request, false otherwise.
 	 */
 	public function serve_request( $path = null ) {
+		// Refuse to start a fresh top-level REST cycle while another dispatch
+		// is already in flight. Internal sub-requests must use dispatch().
+		if ( $this->is_dispatching() ) {
+			return false;
+		}
+
 		/* @var WP_User|null $current_user */
 		global $current_user;
 
@@ -364,11 +369,7 @@ class WP_REST_Server {
 		}
 
 		if ( empty( $path ) ) {
-			if ( isset( $_SERVER['PATH_INFO'] ) ) {
-				$path = $_SERVER['PATH_INFO'];
-			} else {
-				$path = '/';
-			}
+			$path = $_SERVER['PATH_INFO'] ?? '/';
 		}
 
 		$request = new WP_REST_Request( $_SERVER['REQUEST_METHOD'], $path );
@@ -506,8 +507,7 @@ class WP_REST_Server {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param bool             $served  Whether the request has already been served.
-		 *                                           Default false.
+		 * @param bool             $served  Whether the request has already been served. Default false.
 		 * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
 		 * @param WP_REST_Request  $request Request used to generate the response.
 		 * @param WP_REST_Server   $server  Server instance.
@@ -655,12 +655,11 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Gets the target links for a REST API Link.
+	 * Gets the target hints for a REST API Link.
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param array $link
-	 *
+	 * @param array $link The link to get target hints for.
 	 * @return array|null
 	 */
 	protected static function get_target_hints_for_link( $link ) {
@@ -764,6 +763,7 @@ class WP_REST_Server {
 	 *
 	 * @param array         $data  Data from the request.
 	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations.
+	 *                             Default true.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
@@ -1339,9 +1339,7 @@ class WP_REST_Server {
 	 * @return false|string Boolean false or string error message.
 	 */
 	protected function get_json_last_error() {
-		$last_error_code = json_last_error();
-
-		if ( JSON_ERROR_NONE === $last_error_code || empty( $last_error_code ) ) {
+		if ( JSON_ERROR_NONE === json_last_error() ) {
 			return false;
 		}
 
@@ -1355,11 +1353,7 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $request {
-	 *     Request.
-	 *
-	 *     @type string $context Context.
-	 * }
+	 * @param WP_REST_Request $request Request data.
 	 * @return WP_REST_Response The API root index data.
 	 */
 	public function get_index( $request ) {
@@ -1371,14 +1365,43 @@ class WP_REST_Server {
 			'home'            => home_url(),
 			'gmt_offset'      => get_option( 'gmt_offset' ),
 			'timezone_string' => get_option( 'timezone_string' ),
+			'page_for_posts'  => (int) get_option( 'page_for_posts' ),
+			'page_on_front'   => (int) get_option( 'page_on_front' ),
+			'show_on_front'   => get_option( 'show_on_front' ),
 			'namespaces'      => array_keys( $this->namespaces ),
 			'authentication'  => array(),
 			'routes'          => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),
 		);
 
+		// Add media processing settings for users who can upload files.
+		if ( wp_is_client_side_media_processing_enabled() && current_user_can( 'upload_files' ) ) {
+			// Image sizes keyed by name for client-side media processing.
+			$available['image_sizes'] = array();
+			foreach ( wp_get_registered_image_subsizes() as $name => $size ) {
+				$available['image_sizes'][ $name ] = $size;
+			}
+
+			/** This filter is documented in wp-admin/includes/image.php */
+			$available['image_size_threshold'] = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
+
+			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+			$available['image_strip_meta'] = (bool) apply_filters( 'image_strip_meta', true );
+
+			/*
+			 * On the server, this filter receives the decoded image's actual bit depth.
+			 * The client path never decodes the image on the server, so the filter is
+			 * applied with 16 (the maximum depth the client encoder can produce) as
+			 * both the value and the current depth. The client caps its output bit
+			 * depth at the filtered value, so a plugin lowering it (e.g. to 8) takes
+			 * effect on client-generated images too.
+			 */
+			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+			$available['image_max_bit_depth'] = (int) apply_filters( 'image_max_bit_depth', 16, 16 );
+		}
+
 		$response = new WP_REST_Response( $available );
 
-		$fields = isset( $request['_fields'] ) ? $request['_fields'] : '';
+		$fields = $request['_fields'] ?? '';
 		$fields = wp_parse_list( $fields );
 		if ( empty( $fields ) ) {
 			$fields[] = '_links';
@@ -1622,14 +1645,14 @@ class WP_REST_Server {
 				$data['namespace'] = $options['namespace'];
 			}
 
-			$allow_batch = isset( $options['allow_batch'] ) ? $options['allow_batch'] : false;
+			$allow_batch = $options['allow_batch'] ?? false;
 
 			if ( isset( $options['schema'] ) && 'help' === $context ) {
 				$data['schema'] = call_user_func( $options['schema'] );
 			}
 		}
 
-		$allowed_schema_keywords = array_flip( rest_get_allowed_schema_keywords() );
+		$allowed_schema_keywords = array_flip( wp_get_json_schema_allowed_keywords( 'rest-api' ) );
 
 		$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 
@@ -1644,7 +1667,7 @@ class WP_REST_Server {
 				'methods' => array_keys( $callback['methods'] ),
 			);
 
-			$callback_batch = isset( $callback['allow_batch'] ) ? $callback['allow_batch'] : $allow_batch;
+			$callback_batch = $callback['allow_batch'] ?? $allow_batch;
 
 			if ( $callback_batch ) {
 				$endpoint_data['allow_batch'] = $callback_batch;
@@ -1726,7 +1749,7 @@ class WP_REST_Server {
 				continue;
 			}
 
-			$single_request = new WP_REST_Request( isset( $args['method'] ) ? $args['method'] : 'POST', $parsed_url['path'] );
+			$single_request = new WP_REST_Request( $args['method'] ?? 'POST', $parsed_url['path'] );
 
 			if ( ! empty( $parsed_url['query'] ) ) {
 				$query_args = array();
@@ -1750,6 +1773,13 @@ class WP_REST_Server {
 		$has_error  = false;
 
 		foreach ( $requests as $single_request ) {
+			if ( is_wp_error( $single_request ) ) {
+				$has_error    = true;
+				$matches[]    = $single_request;
+				$validation[] = $single_request;
+				continue;
+			}
+
 			$match     = $this->match_request_to_handler( $single_request );
 			$matches[] = $match;
 			$error     = null;
@@ -1765,7 +1795,7 @@ class WP_REST_Server {
 					$allow_batch = $handler['allow_batch'];
 				} else {
 					$route_options = $this->get_route_options( $route );
-					$allow_batch   = isset( $route_options['allow_batch'] ) ? $route_options['allow_batch'] : false;
+					$allow_batch   = $route_options['allow_batch'] ?? false;
 				}
 
 				if ( ! is_array( $allow_batch ) || empty( $allow_batch['v1'] ) ) {
@@ -1820,6 +1850,12 @@ class WP_REST_Server {
 		}
 
 		foreach ( $requests as $i => $single_request ) {
+			if ( is_wp_error( $single_request ) ) {
+				$result      = $this->error_to_response( $single_request );
+				$responses[] = $this->envelope_response( $result, false )->get_data();
+				continue;
+			}
+
 			$clean_request = clone $single_request;
 			$clean_request->set_url_params( array() );
 			$clean_request->set_attributes( array() );
@@ -1963,7 +1999,7 @@ class WP_REST_Server {
 			} elseif ( 'REDIRECT_HTTP_AUTHORIZATION' === $key && empty( $server['HTTP_AUTHORIZATION'] ) ) {
 				/*
 				 * In some server configurations, the authorization header is passed in this alternate location.
-				 * Since it would not be passed in in both places we do not check for both headers and resolve.
+				 * Since it would not be passed in both places we do not check for both headers and resolve.
 				 */
 				$headers['AUTHORIZATION'] = $value;
 			} elseif ( isset( $additional[ $key ] ) ) {

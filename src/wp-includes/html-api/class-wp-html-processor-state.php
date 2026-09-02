@@ -16,6 +16,7 @@
  * @since 6.4.0
  *
  * @access private
+ * @ignore
  *
  * @see WP_HTML_Processor
  */
@@ -208,7 +209,9 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselect
+	 * @deprecated 7.1.0 The "in select" insertion mode was removed from the standard.
+	 * @ignore
+	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -220,7 +223,9 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselectintable
+	 * @deprecated 7.1.0 The "in select in table" insertion mode was removed from the standard.
+	 * @ignore
+	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -360,10 +365,9 @@ class WP_HTML_Processor_State {
 	 * Context node initializing fragment parser, if created as a fragment parser.
 	 *
 	 * @since 6.4.0
+	 * @deprecated 6.8.0 WP_HTML_Processor tracks the context_node internally.
 	 *
-	 * @see https://html.spec.whatwg.org/#concept-frag-parse-context
-	 *
-	 * @var [string, array]|null
+	 * @var null
 	 */
 	public $context_node = null;
 
