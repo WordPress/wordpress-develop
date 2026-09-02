@@ -1868,28 +1868,6 @@ class WP_Query {
 	}
 
 	/**
-	 * Works out which direction the ID tie-breaker should sort in.
-	 *
-	 * The tie-breaker follows the direction of the last clause it is appended to, so
-	 * that reversing a query's 'order' also reverses the sequence of tied posts.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string[] $orderby_array ORDER BY clauses built so far, each ending in a direction.
-	 * @param string   $order         The query's 'order' value, used when no clause carries one.
-	 * @return string Either 'ASC' or 'DESC'.
-	 */
-	protected function parse_tiebreaker_order( $orderby_array, $order ) {
-		$last_clause = end( $orderby_array );
-
-		if ( is_string( $last_clause ) && preg_match( '/\s(ASC|DESC)\s*$/i', $last_clause, $matches ) ) {
-			return strtoupper( $matches[1] );
-		}
-
-		return $this->parse_order( $order );
-	}
-
-	/**
 	 * Sets the 404 property and saves whether query is feed.
 	 *
 	 * @since 2.0.0
@@ -2594,6 +2572,14 @@ class WP_Query {
 			 */
 			$found_unique_orderby = false;
 
+			/*
+			 * Direction of the last clause added. The tie-breaker follows it, so that
+			 * reversing the column it breaks ties for also reverses the tied posts.
+			 * Each clause of an array 'orderby' carries its own direction, so the
+			 * query's 'order' is not necessarily the last one used.
+			 */
+			$last_order = $query_vars['order'];
+
 			if ( is_array( $query_vars['orderby'] ) ) {
 				foreach ( $query_vars['orderby'] as $_orderby => $order ) {
 					$orderby = wp_slash( urldecode( $_orderby ) );
@@ -2603,7 +2589,8 @@ class WP_Query {
 						continue;
 					}
 
-					$orderby_array[] = $parsed . ' ' . $this->parse_order( $order );
+					$last_order      = $this->parse_order( $order );
+					$orderby_array[] = $parsed . ' ' . $last_order;
 
 					if ( $this->is_unique_orderby( $orderby ) ) {
 						$found_unique_orderby = true;
@@ -2639,7 +2626,7 @@ class WP_Query {
 			 * Skipped when the ordering already ends in a unique value.
 			 */
 			if ( ! $found_unique_orderby ) {
-				$orderby_array[] = "{$wpdb->posts}.ID " . $this->parse_tiebreaker_order( $orderby_array, $query_vars['order'] );
+				$orderby_array[] = "{$wpdb->posts}.ID " . $this->parse_order( $last_order );
 			}
 
 			$orderby = trim( implode( ', ', $orderby_array ) );
