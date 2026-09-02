@@ -766,9 +766,9 @@
 				$reorderNav, updateAvailableSidebars, template;
 
 			/**
-			 * select the provided sidebar list item in the move widget area
+			 * Selects the provided sidebar list item in the move widget area.
 			 *
-			 * @param {JQuery} li
+			 * @param {JQuery} li The sidebar list item to select.
 			 */
 			selectSidebarItem = function( li ) {
 				li.siblings( '.selected' ).removeClass( 'selected' );
@@ -1061,8 +1061,8 @@
 		 * are passed into this._getInputsSignature(), and they are iterated
 		 * over when copying sanitized values over to the form loaded.
 		 *
-		 * @param {JQuery} container element in which to look for inputs
-		 * @return {JQuery} inputs
+		 * @param {JQuery} container Element in which to look for inputs.
+		 * @return {JQuery} The inputs found within the container.
 		 * @private
 		 */
 		_getInputs: function( container ) {
@@ -1073,7 +1073,7 @@
 		 * Iterate over supplied inputs and create a signature string for all of them together.
 		 * This string can be used to compare whether or not the form has all of the same fields.
 		 *
-		 * @param {JQuery} inputs
+		 * @param {JQuery} inputs The inputs to build a signature from.
 		 * @return {string} Signature string for the inputs.
 		 * @private
 		 */
@@ -1410,7 +1410,7 @@
 		 *
 		 * @deprecated this is poor naming, and it is better to directly set control.expanded( showOrHide )
 		 *
-		 * @param {boolean|undefined} [showOrHide] If not supplied, will be inverse of current visibility
+		 * @param {boolean|undefined} [showOrHide] If not supplied, will be inverse of current visibility.
 		 */
 		toggleForm: function( showOrHide ) {
 			if ( typeof showOrHide === 'undefined' ) {
@@ -1556,7 +1556,7 @@
 		/**
 		 * @private
 		 *
-		 * @param {number} offset 1|-1
+		 * @param {number} offset The number of positions to move the widget, either 1 or -1.
 		 */
 		_moveWidgetByOne: function( offset ) {
 			var i, sidebarWidgetsSetting, sidebarWidgetIds,	adjacentWidgetId;
@@ -2034,7 +2034,7 @@
 		/**
 		 * Enable/disable the reordering UI
 		 *
-		 * @param {boolean} showOrHide to enable/disable reordering
+		 * @param {boolean} showOrHide Whether to enable or disable reordering.
 		 *
 		 * @todo We should have a reordering state instead and rename this to onChangeReordering
 		 */
@@ -2384,8 +2384,8 @@
 	}
 
 	/**
-	 * @param {string} widgetId
-	 * @return {string} settingId
+	 * @param {string} widgetId The widget ID.
+	 * @return {string} The setting ID for the widget.
 	 */
 	function widgetIdToSettingId( widgetId ) {
 		var parsed = parseWidgetId( widgetId ), settingId;

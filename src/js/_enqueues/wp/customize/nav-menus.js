@@ -1648,7 +1648,7 @@
 		 * Refreshes advanced accessibility buttons for one menu item.
 		 * Shows or hides buttons based on the location of the menu item.
 		 *
-		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
+		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed.
 		 *
 		 * @since 6.6.0
 		 */
@@ -2347,7 +2347,7 @@
 		 *
 		 * @private
 		 *
-		 * @param {number} offset 1|-1
+		 * @param {number} offset The number of positions to move the item, either 1 or -1.
 		 */
 		_changePosition: function( offset ) {
 			var control = this,
@@ -2407,7 +2407,7 @@
 		 *
 		 * @private
 		 *
-		 * @param {number} offset 1|-1
+		 * @param {number} offset The number of levels to change the depth by, either 1 or -1.
 		 */
 		_changeDepth: function( offset ) {
 			if ( 1 !== offset && -1 !== offset ) {
@@ -2992,7 +2992,7 @@
 		/**
 		 * Enable/disable the reordering UI
 		 *
-		 * @param {boolean} showOrHide to enable/disable reordering
+		 * @param {boolean} showOrHide Whether to enable or disable reordering.
 		 */
 		toggleReordering: function( showOrHide ) {
 			var addNewItemBtn = this.container.find( '.add-new-menu-item' ),

@@ -4640,7 +4640,7 @@
 		 *
 		 * @param {wp.media.model.Attachment}   attachment The attachment to be cropped.
 		 * @param {wp.media.controller.Cropper} controller The cropper controller.
-		 * @return {Object} Options
+		 * @return {Object} Options for the imgAreaSelect plugin.
 		 */
 		calculateImageSelectOptions: function( attachment, controller ) {
 			var control       = controller.get( 'control' ),
@@ -4996,7 +4996,7 @@
 		 *
 		 * @param {wp.media.model.Attachment}   attachment The attachment to be cropped.
 		 * @param {wp.media.controller.Cropper} controller The cropper controller.
-		 * @return {Object} Options
+		 * @return {Object} Options for the imgAreaSelect plugin.
 		 */
 		calculateImageSelectOptions: function(attachment, controller) {
 			var xInit = parseInt(_wpCustomizeHeader.data.width, 10),
