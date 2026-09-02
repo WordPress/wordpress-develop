@@ -1836,18 +1836,19 @@ class WP_Query {
 	}
 
 	/**
-	 * Determines whether an 'orderby' value can never produce two equal rows.
+	 * Determines whether an 'orderby' value already puts posts in a fixed sequence.
 	 *
-	 * Ordering by ID, by an explicit list of IDs, or at random already gives every
-	 * post a distinct position, so no tie-breaker is needed on top of it.
+	 * True for the ID and for an explicit list of IDs, which give every post a
+	 * distinct position, and for random ordering, where sorting by ID afterwards
+	 * would either change nothing or undo a seeded shuffle.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $orderby Single 'orderby' value, before it is parsed into SQL.
-	 * @return bool Whether the value orders posts uniquely.
+	 * @return bool Whether an ID clause would make any difference.
 	 */
-	protected function is_unique_orderby( $orderby ) {
-		$unique_orderby = array(
+	protected function is_orderby_id( $orderby ) {
+		$orderby_id = array(
 			'ID',
 			'rand',
 			'post__in',
@@ -1855,15 +1856,11 @@ class WP_Query {
 			'post_parent__in',
 		);
 
-		if ( in_array( $orderby, $unique_orderby, true ) ) {
+		if ( in_array( $orderby, $orderby_id, true ) ) {
 			return true;
 		}
 
-		/*
-		 * Random ordering with a seed, for example 'RAND(5)'. The seed is there to get
-		 * the same shuffle back on every page, which a sort on ID afterwards would undo.
-		 * Matches the pattern parse_orderby() accepts the seed with.
-		 */
+		// Random ordering with a seed, for example 'RAND(5)', as parse_orderby() accepts it.
 		return 1 === preg_match( '/RAND\(([0-9]+)\)/i', $orderby );
 	}
 
@@ -2548,10 +2545,10 @@ class WP_Query {
 				$orderby = '';
 			} else {
 				/*
-				 * Sorting by post_date alone is not stable: posts sharing a date can be
+				 * Sorting by post_date alone is not determinate: posts sharing a date are
 				 * returned in a different sequence each time the query runs, so a post
-				 * can appear on two pages at once or be skipped entirely. Appending the
-				 * ID breaks those ties and gives every page a fixed sequence.
+				 * can appear on two pages at once or be missed entirely. The ID clause
+				 * gives every page a fixed sequence.
 				 */
 				$orderby = "{$wpdb->posts}.post_date {$query_vars['order']}, {$wpdb->posts}.ID {$query_vars['order']}";
 			}
@@ -2566,17 +2563,16 @@ class WP_Query {
 			$orderby_array = array();
 
 			/*
-			 * Tracks whether the requested ordering already ends in a unique value.
-			 * Ordering by ID, by an explicit list of IDs, or at random cannot produce
-			 * ties, so those need no tie-breaker appended.
+			 * Whether the ordering already puts the posts in a fixed sequence, in which
+			 * case an ID clause would make no difference.
 			 */
-			$found_unique_orderby = false;
+			$found_orderby_id = false;
 
 			/*
-			 * Direction of the last clause added. The tie-breaker follows it, so that
-			 * reversing the column it breaks ties for also reverses the tied posts.
-			 * Each clause of an array 'orderby' carries its own direction, so the
-			 * query's 'order' is not necessarily the last one used.
+			 * An array 'orderby' gives each column its own direction, so the query's
+			 * 'order' is not necessarily the one the last column used. Track it, so the
+			 * ID sorts the same way as the column above it and reversing the query
+			 * reverses the whole page.
 			 */
 			$last_order = $query_vars['order'];
 
@@ -2592,8 +2588,8 @@ class WP_Query {
 					$last_order      = $this->parse_order( $order );
 					$orderby_array[] = $parsed . ' ' . $last_order;
 
-					if ( $this->is_unique_orderby( $orderby ) ) {
-						$found_unique_orderby = true;
+					if ( $this->is_orderby_id( $orderby ) ) {
+						$found_orderby_id = true;
 					}
 				}
 			} else {
@@ -2609,8 +2605,8 @@ class WP_Query {
 
 					$orderby_array[] = $parsed . ' ' . $query_vars['order'];
 
-					if ( $this->is_unique_orderby( $orderby ) ) {
-						$found_unique_orderby = true;
+					if ( $this->is_orderby_id( $orderby ) ) {
+						$found_orderby_id = true;
 					}
 				}
 			}
@@ -2620,12 +2616,12 @@ class WP_Query {
 			}
 
 			/*
-			 * Posts sharing the same value for the requested column can be returned in
-			 * a different sequence each time the query runs, so a post can appear on two
-			 * pages at once or be skipped entirely. Appending the ID breaks those ties.
-			 * Skipped when the ordering already ends in a unique value.
+			 * To ensure determinate sorting, always include an ID clause. Posts sharing
+			 * the same value for the requested column are otherwise returned in a
+			 * different sequence each time the query runs, so a post can appear on two
+			 * pages at once or be missed entirely.
 			 */
-			if ( ! $found_unique_orderby ) {
+			if ( ! $found_orderby_id ) {
 				$orderby_array[] = "{$wpdb->posts}.ID " . $this->parse_order( $last_order );
 			}
 

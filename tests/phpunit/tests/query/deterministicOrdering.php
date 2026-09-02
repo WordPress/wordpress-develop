@@ -41,7 +41,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		/*
 		 * Every post here shares one date. Splitting them across two statuses stops
 		 * the database using the type_status_date index, which happens to end in ID
-		 * and would otherwise hide the missing tie-breaker.
+		 * and would otherwise hide the missing ID clause.
 		 */
 		for ( $i = 1; $i <= 20; $i++ ) {
 			self::$mixed_status_ids[] = $factory->post->create(
@@ -204,16 +204,16 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The ID tie-breaker follows the direction of the clause it is added to.
+	 * The ID clause sorts the same way as the column above it.
 	 *
 	 * @ticket 44349
 	 *
-	 * @dataProvider data_tiebreaker_directions
+	 * @dataProvider data_orderby_directions
 	 *
 	 * @param array  $args     Query arguments.
 	 * @param string $expected Expected ORDER BY clause, with {posts} standing in for the table name.
 	 */
-	public function test_tiebreaker_follows_the_sort_direction( $args, $expected ) {
+	public function test_id_clause_follows_the_sort_direction( $args, $expected ) {
 		global $wpdb;
 
 		$query = new WP_Query( array_merge( $args, array( 'posts_per_page' => 5 ) ) );
@@ -229,7 +229,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_tiebreaker_directions() {
+	public function data_orderby_directions() {
 		return array(
 			'descending date'      => array(
 				array(
@@ -273,15 +273,15 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ordering that is already unique gets no tie-breaker added to it.
+	 * Ordering that already fixes the sequence gets no extra ID clause.
 	 *
 	 * @ticket 44349
 	 *
-	 * @dataProvider data_orderby_that_is_already_unique
+	 * @dataProvider data_orderby_that_fixes_the_sequence
 	 *
 	 * @param array $args Query arguments.
 	 */
-	public function test_unique_orderby_gets_no_tiebreaker( $args ) {
+	public function test_orderby_id_gets_no_extra_id_clause( $args ) {
 		global $wpdb;
 
 		$query = new WP_Query( array_merge( $args, array( 'posts_per_page' => 5 ) ) );
@@ -301,7 +301,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_orderby_that_is_already_unique() {
+	public function data_orderby_that_fixes_the_sequence() {
 		return array(
 			'ID'                      => array(
 				array(
@@ -345,7 +345,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 *
 	 * @param string $orderby The 'orderby' value.
 	 */
-	public function test_random_ordering_gets_no_tiebreaker( $orderby ) {
+	public function test_random_ordering_gets_no_id_clause( $orderby ) {
 		global $wpdb;
 
 		$query = new WP_Query(
@@ -539,7 +539,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A filter returning an unchanged clause keeps the tie-breaker.
+	 * A filter returning an unchanged clause keeps the ID clause.
 	 *
 	 * Trailing whitespace used to be enough to lose it.
 	 *
@@ -549,7 +549,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 *
 	 * @param callable $callback Filter callback.
 	 */
-	public function test_a_filter_that_changes_nothing_keeps_the_tiebreaker( $callback ) {
+	public function test_a_filter_that_changes_nothing_keeps_the_id_clause( $callback ) {
 		global $wpdb;
 
 		add_filter( 'posts_orderby', $callback );
