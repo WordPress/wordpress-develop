@@ -1669,67 +1669,7 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
 	echo $before . apply_filters( 'edit_comment_link', $link, $comment->comment_ID, $text ) . $after;
 }
 
-/**
- * Displays the edit bookmark link.
- *
- * @since 2.7.0
- *
- * @param int|stdClass $link Optional. Bookmark ID. Default is the ID of the current bookmark.
- * @return string|null The edit bookmark link URL.
- */
-function get_edit_bookmark_link( $link = 0 ) {
-	$link = get_bookmark( $link );
 
-	if ( ! current_user_can( 'manage_links' ) ) {
-		return null;
-	}
-
-	$location = admin_url( 'link.php?action=edit&amp;link_id=' ) . $link->link_id;
-
-	/**
-	 * Filters the bookmark edit link.
-	 *
-	 * @since 2.7.0
-	 *
-	 * @param string $location The edit link.
-	 * @param int    $link_id  Bookmark ID.
-	 */
-	return apply_filters( 'get_edit_bookmark_link', $location, $link->link_id );
-}
-
-/**
- * Displays the edit bookmark link anchor content.
- *
- * @since 2.7.0
- *
- * @param string $link     Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
- * @param string $before   Optional. Display before edit link. Default empty.
- * @param string $after    Optional. Display after edit link. Default empty.
- * @param int    $bookmark Optional. Bookmark ID. Default is the current bookmark.
- */
-function edit_bookmark_link( $link = '', $before = '', $after = '', $bookmark = null ) {
-	$bookmark = get_bookmark( $bookmark );
-
-	if ( ! current_user_can( 'manage_links' ) ) {
-		return;
-	}
-
-	if ( empty( $link ) ) {
-		$link = __( 'Edit This' );
-	}
-
-	$link = '<a href="' . esc_url( get_edit_bookmark_link( $bookmark ) ) . '">' . $link . '</a>';
-
-	/**
-	 * Filters the bookmark edit link anchor tag.
-	 *
-	 * @since 2.7.0
-	 *
-	 * @param string $link    Anchor tag for the edit link.
-	 * @param int    $link_id Bookmark ID.
-	 */
-	echo $before . apply_filters( 'edit_bookmark_link', $link, $bookmark->link_id ) . $after;
-}
 
 /**
  * Retrieves the edit user link.

@@ -135,8 +135,6 @@ _deprecated_file(
 		</ul>
 		<ul>
 				<?php if ( is_home() || is_page() ) { /* If this is the frontpage */ ?>
-					<?php wp_list_bookmarks(); ?>
-
 				<li><h2><?php _e( 'Meta' ); ?></h2>
 				<ul>
 					<?php wp_register(); ?>

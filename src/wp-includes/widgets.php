@@ -1844,9 +1844,6 @@ function wp_widgets_init() {
 
 	register_widget( 'WP_Widget_Archives' );
 
-	if ( get_option( 'link_manager_enabled' ) ) {
-		register_widget( 'WP_Widget_Links' );
-	}
 
 	register_widget( 'WP_Widget_Media_Audio' );
 

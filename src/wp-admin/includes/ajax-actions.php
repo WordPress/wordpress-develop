@@ -834,27 +834,6 @@ function wp_ajax_delete_tag() {
  *
  * @since 3.1.0
  */
-function wp_ajax_delete_link() {
-	$id = isset( $_POST['id'] ) ? (int) $_POST['id'] : 0;
-
-	check_ajax_referer( "delete-bookmark_$id" );
-
-	if ( ! current_user_can( 'manage_links' ) ) {
-		wp_die( -1 );
-	}
-
-	$link = get_bookmark( $id );
-	if ( ! $link || is_wp_error( $link ) ) {
-		wp_die( 1 );
-	}
-
-	if ( wp_delete_link( $id ) ) {
-		wp_die( 1 );
-	} else {
-		wp_die( 0 );
-	}
-}
-
 /**
  * Handles deleting meta via AJAX.
  *
@@ -1046,60 +1025,6 @@ function wp_ajax_dim_comment() {
 	// Decide if we need to send back '1' or a more complicated response including page links and comment counts.
 	_wp_ajax_delete_comment_response( $comment->comment_ID );
 	wp_die( 0 );
-}
-
-/**
- * Handles adding a link category via AJAX.
- *
- * @since 3.1.0
- *
- * @param string $action Action to perform.
- */
-function wp_ajax_add_link_category( $action ) {
-	if ( empty( $action ) ) {
-		$action = 'add-link-category';
-	}
-
-	check_ajax_referer( $action );
-
-	$taxonomy_object = get_taxonomy( 'link_category' );
-
-	if ( ! current_user_can( $taxonomy_object->cap->manage_terms ) ) {
-		wp_die( -1 );
-	}
-
-	$names    = explode( ',', wp_unslash( $_POST['newcat'] ) );
-	$response = new WP_Ajax_Response();
-
-	foreach ( $names as $category_name ) {
-		$category_name = trim( $category_name );
-		$slug          = sanitize_title( $category_name );
-
-		if ( '' === $slug ) {
-			continue;
-		}
-
-		$category_id = wp_insert_term( $category_name, 'link_category' );
-
-		if ( ! $category_id || is_wp_error( $category_id ) ) {
-			continue;
-		} else {
-			$category_id = $category_id['term_id'];
-		}
-
-		$category_name = esc_html( $category_name );
-
-		$response->add(
-			array(
-				'what'     => 'link-category',
-				'id'       => $category_id,
-				'data'     => "<li id='link-category-$category_id'><label for='in-link-category-$category_id' class='selectit'><input value='" . esc_attr( $category_id ) . "' type='checkbox' checked='checked' name='link_category[]' id='in-link-category-$category_id'/> $category_name</label></li>",
-				'position' => -1,
-			)
-		);
-	}
-
-	$response->send();
 }
 
 /**
