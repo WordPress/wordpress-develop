@@ -156,14 +156,20 @@ function wp_underscore_video_template() {
 function wp_print_media_templates() {
 	$class = 'media-modal wp-core-ui';
 
+	$is_cross_origin_isolation_enabled = wp_is_client_side_media_processing_enabled();
+
+	if ( $is_cross_origin_isolation_enabled ) {
+		ob_start();
+	}
+
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
 		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 		/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
 		esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
-		'target="_blank" rel="noopener"',
+		'target="_blank"',
 		sprintf(
-			'<span class="screen-reader-text"> %s</span>',
+			'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
 			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		)
@@ -195,14 +201,14 @@ function wp_print_media_templates() {
 
 	<?php // Template for the media modal. ?>
 	<script type="text/html" id="tmpl-media-modal">
-		<div tabindex="0" class="<?php echo $class; ?>" role="dialog" aria-labelledby="media-frame-title">
+		<div id="wp-media-modal" tabindex="0" class="<?php echo $class; ?>" role="dialog" aria-labelledby="media-frame-title">
 			<# if ( data.hasCloseButton ) { #>
-				<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text">
+				<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. */
 					_e( 'Close dialog' );
 					?>
-				</span></span></button>
+				</span></button>
 			<# } #>
 			<div class="media-modal-content" role="document"></div>
 		</div>
@@ -223,7 +229,7 @@ function wp_print_media_templates() {
 		</div>
 	</script>
 
-	<?php // Template for the inline uploader, used for example in the Media Library admin page - Add New. ?>
+	<?php // Template for the inline uploader, used for example in the Media Library admin page - Add. ?>
 	<script type="text/html" id="tmpl-uploader-inline">
 		<# var messageClass = data.message ? 'has-upload-message' : 'no-upload-message'; #>
 		<# if ( data.canClose ) { #>
@@ -263,7 +269,7 @@ function wp_print_media_templates() {
 			<div class="upload-ui">
 				<h2 class="upload-instructions drop-instructions"><?php _e( 'Drop files to upload' ); ?></h2>
 				<p class="upload-instructions drop-instructions"><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files' ); ?></p>
-				<button type="button" class="browser button button-hero" aria-labelledby="post-upload-info"><?php _e( 'Select Files' ); ?></button>
+				<button type="button" class="browser button button-hero" aria-describedby="post-upload-info"><?php _e( 'Select Files' ); ?></button>
 			</div>
 
 			<div class="upload-inline-status"></div>
@@ -356,7 +362,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the uploading status errors. ?>
 	<script type="text/html" id="tmpl-uploader-status-error">
-		<span class="upload-error-filename">{{{ data.filename }}}</span>
+		<span class="upload-error-filename word-wrap-break-word">{{{ data.filename }}}</span>
 		<span class="upload-error-message">{{ data.message }}</span>
 	</script>
 
@@ -365,7 +371,7 @@ function wp_print_media_templates() {
 		<div class="edit-media-header">
 			<button class="left dashicons"<# if ( ! data.hasPrevious ) { #> disabled<# } #>><span class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Edit previous media item' ); ?></span></button>
 			<button class="right dashicons"<# if ( ! data.hasNext ) { #> disabled<# } #>><span class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Edit next media item' ); ?></span></button>
-			<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text"><?php _e( 'Close dialog' ); ?></span></span></button>
+			<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text"><?php _e( 'Close dialog' ); ?></span></button>
 		</div>
 		<div class="media-frame-title"></div>
 		<div class="media-frame-content"></div>
@@ -443,7 +449,7 @@ function wp_print_media_templates() {
 					?>
 				</h2>
 				<div class="uploaded"><strong><?php _e( 'Uploaded on:' ); ?></strong> {{ data.dateFormatted }}</div>
-				<div class="uploaded-by">
+				<div class="uploaded-by word-wrap-break-word">
 					<strong><?php _e( 'Uploaded by:' ); ?></strong>
 						<# if ( data.authorLink ) { #>
 							<a href="{{ data.authorLink }}">{{ data.authorName }}</a>
@@ -538,7 +544,11 @@ function wp_print_media_templates() {
 				<?php endforeach; ?>
 				<# } #>
 				<span class="setting" data-setting="caption">
-					<label for="attachment-details-two-column-caption" class="name"><?php _e( 'Caption' ); ?></label>
+					<# if ( 'image' === data.type ) { #>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
+					<# } else { #>
+					<label for="attachment-details-two-column-caption" class="name"><?php esc_html_e( 'Short Description' ); ?></label>
+					<# } #>
 					<textarea id="attachment-details-two-column-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 				</span>
 				<span class="setting" data-setting="description">
@@ -547,7 +557,7 @@ function wp_print_media_templates() {
 				</span>
 				<span class="setting" data-setting="url">
 					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
-					<input type="text" class="attachment-details-copy-link" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
+					<input type="text" class="attachment-details-copy-link ltr" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
 					<span class="copy-to-clipboard-container">
 						<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-two-column-copy-link"><?php _e( 'Copy URL to clipboard' ); ?></button>
 						<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
@@ -605,8 +615,12 @@ function wp_print_media_templates() {
 					<div class="centered">
 						<# if ( data.image && data.image.src && data.image.src !== data.icon ) { #>
 							<img src="{{ data.image.src }}" class="thumbnail" draggable="false" alt="" />
-						<# } else if ( data.sizes && data.sizes.medium ) { #>
-							<img src="{{ data.sizes.medium.url }}" class="thumbnail" draggable="false" alt="" />
+						<# } else if ( data.sizes ) {
+								if ( data.sizes.medium ) { #>
+									<img src="{{ data.sizes.medium.url }}" class="thumbnail" draggable="false" alt="" />
+								<# } else { #>
+									<img src="{{ data.sizes.full.url }}" class="thumbnail" draggable="false" alt="" />
+								<# } #>
 						<# } else { #>
 							<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
 						<# } #>
@@ -617,7 +631,7 @@ function wp_print_media_templates() {
 				<# } #>
 			</div>
 			<# if ( data.buttons.close ) { #>
-				<button type="button" class="button-link attachment-close media-modal-icon"><span class="screen-reader-text">
+				<button type="button" class="button-link attachment-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. */
 					_e( 'Remove' );
@@ -626,7 +640,7 @@ function wp_print_media_templates() {
 			<# } #>
 		</div>
 		<# if ( data.buttons.check ) { #>
-			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">
+			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
 				_e( 'Deselect' );
@@ -786,7 +800,11 @@ function wp_print_media_templates() {
 		<?php endforeach; ?>
 		<# } #>
 		<span class="setting" data-setting="caption">
-			<label for="attachment-details-caption" class="name"><?php _e( 'Caption' ); ?></label>
+			<# if ( 'image' === data.type ) { #>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Image Caption' ); ?></label>
+			<# } else { #>
+			<label for="attachment-details-caption" class="name"><?php esc_html_e( 'Short Description' ); ?></label>
+			<# } #>
 			<textarea id="attachment-details-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 		</span>
 		<span class="setting" data-setting="description">
@@ -795,7 +813,7 @@ function wp_print_media_templates() {
 		</span>
 		<span class="setting" data-setting="url">
 			<label for="attachment-details-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
-			<input type="text" class="attachment-details-copy-link" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
+			<input type="text" class="attachment-details-copy-link ltr" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
 			<div class="copy-to-clipboard-container">
 				<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-copy-link"><?php _e( 'Copy URL to clipboard' ); ?></button>
 				<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
@@ -1578,4 +1596,48 @@ function wp_print_media_templates() {
 	 * @since 3.5.0
 	 */
 	do_action( 'print_media_templates' );
+
+	if ( $is_cross_origin_isolation_enabled ) {
+		$html = (string) ob_get_clean();
+
+		/*
+		 * The media templates are inside <script type="text/html"> tags,
+		 * whose content is treated as raw text by the HTML Tag Processor.
+		 * Extract each script block's content, process it separately,
+		 * then reassemble the full output.
+		 */
+		$script_processor = new WP_HTML_Tag_Processor( $html );
+		while ( $script_processor->next_tag( 'SCRIPT' ) ) {
+			if ( 'text/html' !== $script_processor->get_attribute( 'type' ) ) {
+				continue;
+			}
+			/*
+			 * Unlike wp_add_crossorigin_attributes(), this does not check whether
+			 * URLs are actually cross-origin. Media templates use Underscore.js
+			 * template expressions (e.g. {{ data.url }}) as placeholder URLs,
+			 * so actual URLs are not available at parse time.
+			 * The crossorigin attribute is added unconditionally to all relevant
+			 * media tags to ensure cross-origin isolation works regardless of
+			 * the final URL value at render time.
+			 *
+			 * IMG is intentionally excluded, matching wp_add_crossorigin_attributes().
+			 * Under Document-Isolation-Policy: isolate-and-credentialless the browser
+			 * loads cross-origin images in credentialless mode without CORS headers,
+			 * so adding crossorigin="anonymous" would force a CORS request and break
+			 * previews of images served without Access-Control-Allow-Origin headers.
+			 */
+			$template_processor = new WP_HTML_Tag_Processor( $script_processor->get_modifiable_text() );
+			while ( $template_processor->next_tag() ) {
+				if (
+					in_array( $template_processor->get_tag(), array( 'AUDIO', 'VIDEO' ), true )
+					&& ! is_string( $template_processor->get_attribute( 'crossorigin' ) )
+				) {
+					$template_processor->set_attribute( 'crossorigin', 'anonymous' );
+				}
+			}
+			$script_processor->set_modifiable_text( $template_processor->get_updated_html() );
+		}
+
+		echo $script_processor->get_updated_html();
+	}
 }

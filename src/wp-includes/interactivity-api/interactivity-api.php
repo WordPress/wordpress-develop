@@ -53,9 +53,9 @@ function wp_interactivity_process_directives( string $html ): string {
  * @since 6.5.0
  * @since 6.6.0 The namespace can be omitted when called inside derived state getters.
  *
- * @param string $store_namespace The unique store namespace identifier.
- * @param array  $state           Optional. The array that will be merged with the existing state for the specified
- *                                store namespace.
+ * @param string|null $store_namespace The unique store namespace identifier.
+ * @param array       $state           Optional. The array that will be merged with the existing state for the specified
+ *                                     store namespace.
  * @return array The state for the specified store namespace. This will be the updated state if a $state argument was
  *               provided.
  */
@@ -119,9 +119,22 @@ function wp_interactivity_data_wp_context( array $context, string $store_namespa
  *
  * @since 6.6.0
  *
- * @param string $store_namespace Optional. The unique store namespace identifier.
+ * @param string|null $store_namespace Optional. The unique store namespace identifier.
  * @return array The context for the specified store namespace.
  */
 function wp_interactivity_get_context( ?string $store_namespace = null ): array {
 	return wp_interactivity()->get_context( $store_namespace );
+}
+
+/**
+ * Returns an array representation of the current element being processed.
+ *
+ * The function should be used only during directive processing.
+ *
+ * @since 6.7.0
+ *
+ * @return array{attributes: array<string, string|bool>}|null Current element.
+ */
+function wp_interactivity_get_element(): ?array {
+	return wp_interactivity()->get_element();
 }

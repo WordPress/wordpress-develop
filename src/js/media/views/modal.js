@@ -37,7 +37,9 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		});
 	},
 	/**
-	 * @return {Object}
+	 * Prepares the data for the modal template.
+	 *
+	 * @return {Object} The prepared data.
 	 */
 	prepare: function() {
 		return {
@@ -47,6 +49,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
+	 * Attaches the modal to the DOM and triggers the ready event.
+	 *
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	attach: function() {
@@ -68,6 +72,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
+	 * Detaches the modal from the DOM and triggers the detach event.
+	 *
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	detach: function() {
@@ -81,6 +87,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
+	 * Opens the modal and triggers the open event.
+	 *
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	open: function() {
@@ -124,6 +132,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
+	 * Closes the modal and triggers the close event.
+	 *
 	 * @param {Object} options
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
@@ -167,12 +177,16 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		return this;
 	},
 	/**
+	 * Closes the modal and triggers the escape event.
+	 *
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	escape: function() {
 		return this.close({ escape: true });
 	},
 	/**
+	 * Handles the escape key press event to close the modal.
+	 *
 	 * @param {Object} event
 	 */
 	escapeHandler: function( event ) {
@@ -181,6 +195,31 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
+	 * Handles the selection of attachments when the command or control key is pressed with the enter key.
+	 *
+	 * @since 6.7
+	 *
+	 * @param {Object} event The keydown event object.
+	 */
+	selectHandler: function( event ) {
+		var selection = this.controller.state().get( 'selection' );
+
+		if ( selection.length <= 0 ) {
+			return;
+		}
+
+		if ( 'insert' === this.controller.options.state ) {
+			this.controller.trigger( 'insert', selection );
+		} else {
+			this.controller.trigger( 'select', selection );
+			event.preventDefault();
+			this.escape();
+		}
+	},
+
+	/**
+	 * Sets the content of the modal by registering views to the '.media-modal-content' selector.
+	 *
 	 * @param {Array|Object} content Views to register to '.media-modal-content'
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
@@ -206,6 +245,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		return this;
 	},
 	/**
+	 * Handles keydown events within the modal.
+	 *
 	 * @param {Object} event
 	 */
 	keydown: function( event ) {
@@ -214,6 +255,13 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			this.escape();
 			event.stopImmediatePropagation();
 		}
+
+		// Select the attachment when command or control and enter are pressed.
+		if ( ( 13 === event.which || 10 === event.which ) && ( event.metaKey || event.ctrlKey ) ) {
+			this.selectHandler( event );
+			event.stopImmediatePropagation();
+		}
+
 	}
 });
 

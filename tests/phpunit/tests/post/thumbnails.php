@@ -68,9 +68,19 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertSame( self::$attachment_id, get_post_thumbnail_id() );
 	}
 
-	public function test_update_post_thumbnail_cache() {
+	/**
+	 * Ensure `update_post_thumbnail_cache()` works when querying post objects.
+	 *
+	 * @ticket 59521
+	 * @ticket 30017
+	 * @ticket 33968
+	 *
+	 * @covers ::update_post_thumbnail_cache
+	 */
+	public function test_update_post_thumbnail_cache_when_querying_full_post_objects() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
+		// Test case where `$query->posts` should return Array of post objects.
 		$query = new WP_Query(
 			array(
 				'post_type' => 'any',
@@ -79,11 +89,38 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertFalse( $query->thumbnails_cached );
+		$this->assertFalse( $query->thumbnails_cached, 'Thumbnails should not be cached prior to calling update_post_thumbnail_cache().' );
 
 		update_post_thumbnail_cache( $query );
 
-		$this->assertTrue( $query->thumbnails_cached );
+		$this->assertTrue( $query->thumbnails_cached, 'Thumbnails should be cached after calling update_post_thumbnail_cache().' );
+	}
+
+	/**
+	 * Ensure `update_post_thumbnail_cache()` works when querying post IDs.
+	 *
+	 * @ticket 59521
+	 *
+	 * @covers ::update_post_thumbnail_cache
+	 */
+	public function test_update_post_thumbnail_cache_when_querying_post_id_field() {
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		// Test case where `$query2->posts` should return Array of post IDs.
+		$query = new WP_Query(
+			array(
+				'post_type' => 'any',
+				'post__in'  => array( self::$post->ID ),
+				'orderby'   => 'post__in',
+				'fields'    => 'ids',
+			)
+		);
+
+		$this->assertFalse( $query->thumbnails_cached, 'Thumbnails should not be cached prior to calling update_post_thumbnail_cache().' );
+
+		update_post_thumbnail_cache( $query );
+
+		$this->assertTrue( $query->thumbnails_cached, 'Thumbnails should be cached after calling update_post_thumbnail_cache().' );
 	}
 
 	/**
@@ -250,7 +287,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 * @ticket 12922
 	 */
 	public function test__wp_preview_post_thumbnail_filter() {
-		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$old_post = $GLOBALS['post'] ?? null;
 
 		$GLOBALS['post']           = self::$post;
 		$_REQUEST['_thumbnail_id'] = self::$attachment_id;
@@ -270,7 +307,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 * @ticket 37697
 	 */
 	public function test__wp_preview_post_thumbnail_filter_secondary_post() {
-		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$old_post = $GLOBALS['post'] ?? null;
 
 		$secondary_post = self::factory()->post->create(
 			array(

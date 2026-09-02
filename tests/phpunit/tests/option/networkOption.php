@@ -381,14 +381,18 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::get_network_option
 	 */
 	public function test_get_network_option_does_not_use_single_site_notoptions_cache_for_networks() {
+		$network_notoptions_cache_before     = wp_cache_get( '1:notoptions', 'site-options' );
+		$single_site_notoptions_cache_before = wp_cache_get( 'notoptions', 'options' );
+
 		get_network_option( 1, 'ticket_61730_notoption' );
 
-		$network_notoptions_cache     = wp_cache_get( '1:notoptions', 'site-options' );
-		$single_site_notoptions_cache = wp_cache_get( 'notoptions', 'options' );
+		$network_notoptions_cache_after     = wp_cache_get( '1:notoptions', 'site-options' );
+		$single_site_notoptions_cache_after = wp_cache_get( 'notoptions', 'options' );
 
-		$this->assertEmpty( $single_site_notoptions_cache, 'Single site notoptions cache should not be set for multisite installs.' );
-		$this->assertIsArray( $network_notoptions_cache, 'Multisite notoptions cache should be set.' );
-		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache, 'The option should be in the notoptions cache.' );
+		$this->assertSame( $single_site_notoptions_cache_before, $single_site_notoptions_cache_after, 'Single site notoptions cache should not change for multisite installs.' );
+		$this->assertNotSame( $network_notoptions_cache_before, $network_notoptions_cache_after, 'Multisite notoptions cache should change.' );
+		$this->assertIsArray( $network_notoptions_cache_after, 'Multisite notoptions cache should be set.' );
+		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache_after, 'The option should be in the notoptions cache.' );
 	}
 
 	/**
@@ -402,14 +406,68 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::delete_network_option
 	 */
 	public function test_delete_network_option_does_not_use_single_site_notoptions_cache_for_networks() {
+		$network_notoptions_cache_before     = wp_cache_get( '1:notoptions', 'site-options' );
+		$single_site_notoptions_cache_before = wp_cache_get( 'notoptions', 'options' );
+
 		add_network_option( 1, 'ticket_61730_notoption', 'value' );
 		delete_network_option( 1, 'ticket_61730_notoption' );
 
-		$network_notoptions_cache     = wp_cache_get( '1:notoptions', 'site-options' );
-		$single_site_notoptions_cache = wp_cache_get( 'notoptions', 'options' );
+		$network_notoptions_cache_after     = wp_cache_get( '1:notoptions', 'site-options' );
+		$single_site_notoptions_cache_after = wp_cache_get( 'notoptions', 'options' );
 
-		$this->assertEmpty( $single_site_notoptions_cache, 'Single site notoptions cache should not be set for multisite installs.' );
-		$this->assertIsArray( $network_notoptions_cache, 'Multisite notoptions cache should be set.' );
-		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache, 'The option should be in the notoptions cache.' );
+		$this->assertSame( $single_site_notoptions_cache_before, $single_site_notoptions_cache_after, 'Single site notoptions cache should not change for multisite installs.' );
+		$this->assertNotSame( $network_notoptions_cache_before, $network_notoptions_cache_after, 'Multisite notoptions cache should change.' );
+		$this->assertIsArray( $network_notoptions_cache_after, 'Multisite notoptions cache should be set.' );
+		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache_after, 'The option should be in the notoptions cache.' );
+	}
+
+	/**
+	 * Assert that the 'pre_site_option' hook is called once per call to get_network_option().
+	 *
+	 * @ticket 56870
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::get_network_option
+	 */
+	public function test_get_network_option_should_call_pre_site_option_filter() {
+		$filter = new MockAction();
+
+		add_filter( 'pre_site_option', array( $filter, 'filter' ) );
+
+		get_network_option( get_current_network_id(), 'ignored' );
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Verifies that the global 'pre_site_option' filter short-circuits get_network_option().
+	 *
+	 * @ticket 56870
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::get_network_option
+	 */
+	public function test_pre_site_option_filter_short_circuits_get_network_option() {
+		$option       = 'ticket_56870_pre_site_option_short_circuit';
+		$network_id   = get_current_network_id();
+		$default_val  = 'default-value';
+		$expected_val = 'filtered-value';
+
+		$callback = function ( $pre, $opt, $net_id ) use ( $option, $network_id, $expected_val ) {
+			// Ensure the filter is invoked for the requested option and network, then short-circuit.
+			if ( $opt === $option && (int) $net_id === (int) $network_id ) {
+				return $expected_val;
+			}
+			return $pre;
+		};
+
+		add_filter( 'pre_site_option', $callback, 10, 3 );
+
+		$actual_val = get_network_option( $network_id, $option, $default_val );
+
+		// The global pre filter should short-circuit and return $expected_val regardless of storage or default.
+		$this->assertSame( $expected_val, $actual_val );
 	}
 }

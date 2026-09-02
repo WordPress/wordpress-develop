@@ -44,6 +44,8 @@ function edit_user( $user_id = 0 ) {
 		$user->user_login = sanitize_user( wp_unslash( $_POST['user_login'] ), true );
 	}
 
+	$errors = new WP_Error();
+
 	$pass1 = '';
 	$pass2 = '';
 	if ( isset( $_POST['pass1'] ) ) {
@@ -62,7 +64,7 @@ function edit_user( $user_id = 0 ) {
 			wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
 		}
 
-		$potential_role = isset( $wp_roles->role_objects[ $new_role ] ) ? $wp_roles->role_objects[ $new_role ] : false;
+		$potential_role = $wp_roles->role_objects[ $new_role ] ?? false;
 
 		/*
 		 * Don't let anyone with 'promote_users' edit their own role to something without it.
@@ -78,7 +80,12 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	if ( isset( $_POST['email'] ) ) {
-		$user->user_email = sanitize_text_field( wp_unslash( $_POST['email'] ) );
+		$maybe_email = wp_unslash( $_POST['email'] );
+		if ( is_string( $maybe_email ) && is_email( $maybe_email ) ) {
+			$user->user_email = $maybe_email;
+		} else {
+			$errors->add( 'invalid_email', __( '<strong>Error:</strong> The email address is not correct.' ), array( 'form-field' => 'email' ) );
+		}
 	}
 	if ( isset( $_POST['url'] ) ) {
 		if ( empty( $_POST['url'] ) || 'http://' === $_POST['url'] ) {
@@ -134,7 +141,8 @@ function edit_user( $user_id = 0 ) {
 	if ( $update ) {
 		$user->rich_editing         = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
 		$user->syntax_highlighting  = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
-		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'fresh';
+		$user->infinite_scrolling   = isset( $_POST['infinite_scrolling'] ) && 'false' === $_POST['infinite_scrolling'] ? 'false' : 'true';
+		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'modern';
 		$user->show_admin_bar_front = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
 	}
 
@@ -144,8 +152,6 @@ function edit_user( $user_id = 0 ) {
 	if ( ! empty( $_POST['use_ssl'] ) ) {
 		$user->use_ssl = 1;
 	}
-
-	$errors = new WP_Error();
 
 	/* checking that username has been typed */
 	if ( '' === $user->user_login ) {
@@ -306,14 +312,14 @@ function get_user_to_edit( $user_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID.
- * @return array
+ * @return object[] The user's draft posts, with 'ID' and 'post_title' keys.
  */
 function get_users_drafts( $user_id ) {
 	global $wpdb;
 	$query = $wpdb->prepare( "SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'draft' AND post_author = %d ORDER BY post_modified DESC", $user_id );
 
 	/**
-	 * Filters the user's drafts query string.
+	 * Filters the SQL query string for the user's drafts query.
 	 *
 	 * @since 2.0.0
 	 *
@@ -482,7 +488,7 @@ function wp_revoke_user( $id ) {
 /**
  * @since 2.8.0
  *
- * @global int $user_ID
+ * @global int $user_ID Current user ID.
  *
  * @param false $errors Deprecated.
  */
@@ -505,8 +511,8 @@ function default_password_nag_handler( $errors = false ) {
 /**
  * @since 2.8.0
  *
- * @param int     $user_ID
- * @param WP_User $old_data
+ * @param int     $user_ID  User ID.
+ * @param WP_User $old_data The user object before the update.
  */
 function default_password_nag_edit_user( $user_ID, $old_data ) {
 	// Short-circuit it.
@@ -562,26 +568,6 @@ function default_password_nag() {
 }
 
 /**
- * @since 3.5.0
- * @access private
- */
-function delete_users_add_js() {
-	?>
-<script>
-jQuery( function($) {
-	var submit = $('#submit').prop('disabled', true);
-	$('input[name="delete_option"]').one('change', function() {
-		submit.prop('disabled', false);
-	});
-	$('#reassign_user').focus( function() {
-		$('#delete_option1').prop('checked', true).trigger('change');
-	});
-} );
-</script>
-	<?php
-}
-
-/**
  * Optional SSL preference that can be turned on by hooking to the 'personal_options' action.
  *
  * See the {@see 'personal_options'} action.
@@ -602,8 +588,8 @@ function use_ssl_preference( $user ) {
 /**
  * @since MU (3.0.0)
  *
- * @param string $text
- * @return string
+ * @param string $text The email body text.
+ * @return string User site invitation email message.
  */
 function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
@@ -700,7 +686,10 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 }
 
 /**
- * Validates the redirect URL protocol scheme. The protocol can be anything except `http` and `javascript`.
+ * Validates the redirect URL protocol scheme.
+ *
+ * The `http` scheme is allowed for loopback IP addresses (127.0.0.1, [::1])
+ * and local environments. The `javascript` and `data` protocols are always rejected.
  *
  * @since 6.3.2
  *
@@ -745,7 +734,14 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 		);
 	}
 
-	if ( 'http' === $scheme && ! $is_local ) {
+	// Allow insecure HTTP connections to locally hosted applications.
+	$is_loopback = in_array(
+		strtolower( $host ),
+		array( '127.0.0.1', '[::1]' ),
+		true
+	);
+
+	if ( 'http' === $scheme && ! $is_local && ! $is_loopback ) {
 		return new WP_Error(
 			'invalid_redirect_scheme',
 			__( 'The URL must be served over a secure connection.' )

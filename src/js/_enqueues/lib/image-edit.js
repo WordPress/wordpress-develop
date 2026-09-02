@@ -1,12 +1,13 @@
+ /* global ajaxurl, confirm */
+
 /**
  * The functions necessary for editing images.
  *
  * @since 2.9.0
  * @output wp-admin/js/image-edit.js
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
-
- /* global ajaxurl, confirm */
-
 (function($) {
 	var __ = wp.i18n.__;
 
@@ -23,6 +24,10 @@
 
 	/**
 	 * Enable crop tool.
+	 *
+	 * @param {number}      postid     The post ID.
+	 * @param {string}      nonce      The nonce to verify the request.
+	 * @param {HTMLElement} cropButton The crop button element.
 	 */
 	toggleCropTool: function( postid, nonce, cropButton ) {
 		var img = $( '#image-preview-' + postid ),
@@ -64,6 +69,10 @@
 
 	/**
 	 * Handle crop tool clicks.
+	 *
+	 * @param {number}      postid     The post ID.
+	 * @param {string}      nonce      The nonce to verify the request.
+	 * @param {HTMLElement} cropButton The crop button element.
 	 */
 	handleCropToolClick: function( postid, nonce, cropButton ) {
 
@@ -269,8 +278,6 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {HTMLElement} el The activated control element.
-	 *
 	 * @return {boolean} Always returns false.
 	 */
 	monitorPopup : function() {
@@ -296,14 +303,16 @@
 	 * Navigate popup menu by arrow keys.
 	 *
 	 * @since 6.3.0
+	 * @since 6.7.0 Added the event parameter.
 	 *
 	 * @memberof imageEdit
 	 *
+	 * @param {Event} event The key or click event.
 	 * @param {HTMLElement} el The current element.
 	 *
 	 * @return {boolean} Always returns false.
 	 */
-	browsePopup : function(el) {
+	browsePopup : function(event, el) {
 		var $el = $( el );
 		var $collection = $( el ).parent( '.imgedit-popup-menu' ).find( 'button' );
 		var $index = $collection.index( $el );
@@ -316,14 +325,14 @@
 		if ( $next === $last ) {
 			$next = 0;
 		}
-		var $target = false;
+		var target = false;
 		if ( event.keyCode === 40 ) {
-			$target = $collection.get( $next );
+			target = $collection.get( $next );
 		} else if ( event.keyCode === 38 ) {
-			$target = $collection.get( $prev );
+			target = $collection.get( $prev );
 		}
-		if ( $target ) {
-			$target.focus();
+		if ( target ) {
+			target.focus();
 			event.preventDefault();
 		}
 
@@ -565,7 +574,7 @@
 	 *
 	 * @param {number}   postid   The post ID.
 	 * @param {string}   nonce    The nonce to verify the request.
-	 * @param {function} callback Function to execute when the image is loaded.
+	 * @param {Function} callback Function to execute when the image is loaded.
 	 *
 	 * @return {void}
 	 */
@@ -1000,7 +1009,7 @@
 			 * @param {Object} img jQuery object representing the image.
 			 * @param {Object} c   The selection.
 			 *
-			 * @return {Object}
+			 * @return {void}
 			 */
 			onSelectEnd: function(img, c) {
 				imageEdit.setCropSelection(postid, c);
@@ -1045,7 +1054,7 @@
 	 * @param {number} postid The post ID.
 	 * @param {Object} c      The selection.
 	 *
-	 * @return {boolean}
+	 * @return {boolean|void} Returns false if the selection is invalid.
 	 */
 	setCropSelection : function(postid, c) {
 		var sel,
@@ -1195,7 +1204,7 @@
 	 * @param {string} nonce  The nonce.
 	 * @param {Object} t      The target element.
 	 *
-	 * @return {boolean}
+	 * @return {boolean|void} Returns false if the rotate button is disabled.
 	 */
 	rotate : function(angle, postid, nonce, t) {
 		if ( $(t).hasClass('disabled') ) {
@@ -1222,7 +1231,7 @@
 	 * @param {string} nonce  The nonce.
 	 * @param {Object} t      The target element.
 	 *
-	 * @return {boolean}
+	 * @return {boolean|void} Returns false if the flip button is disabled.
 	 */
 	flip : function (axis, postid, nonce, t) {
 		if ( $(t).hasClass('disabled') ) {

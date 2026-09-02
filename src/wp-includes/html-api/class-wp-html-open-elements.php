@@ -23,6 +23,7 @@
  * @since 6.4.0
  *
  * @access private
+ * @ignore
  *
  * @see https://html.spec.whatwg.org/#stack-of-open-elements
  * @see WP_HTML_Processor
@@ -77,7 +78,7 @@ class WP_HTML_Open_Elements {
 	 * Sets a pop handler that will be called when an item is popped off the stack of
 	 * open elements.
 	 *
-	 * The function will be called with the pushed item as its argument.
+	 * The function will be called with the popped item as its argument.
 	 *
 	 * @since 6.6.0
 	 *
@@ -102,7 +103,7 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
-	 * Returns the name of the node at the nth position on the stack
+	 * Returns the node at the nth position on the stack
 	 * of open elements, or `null` if no such position exists.
 	 *
 	 * Note that this uses a 1-based index, which represents the
@@ -113,7 +114,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param int $nth Retrieve the nth item on the stack, with 1 being
 	 *                 the top element, 2 being the second, etc...
-	 * @return WP_HTML_Token|null Name of the node on the stack at the given location,
+	 * @return WP_HTML_Token|null The node on the stack at the given location,
 	 *                            or `null` if the location isn't on the stack.
 	 */
 	public function at( int $nth ): ?WP_HTML_Token {
@@ -127,16 +128,16 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
-	 * Reports if a node of a given name is in the stack of open elements.
+	 * Reports if an HTML element of a given name is on the stack of open elements.
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string $node_name Name of node for which to check.
+	 * @param string $node_name Name of HTML element for which to check.
 	 * @return bool Whether a node of the given name is in the stack of open elements.
 	 */
 	public function contains( string $node_name ): bool {
 		foreach ( $this->walk_up() as $item ) {
-			if ( $node_name === $item->node_name ) {
+			if ( 'html' === $item->namespace && $node_name === $item->node_name ) {
 				return true;
 			}
 		}
@@ -167,7 +168,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return int How many node are in the stack of open elements.
+	 * @return int How many nodes are in the stack of open elements.
 	 */
 	public function count(): int {
 		return count( $this->stack );
@@ -280,6 +281,7 @@ class WP_HTML_Open_Elements {
 	 * >   - th
 	 * >   - marquee
 	 * >   - object
+	 * >   - select
 	 * >   - template
 	 * >   - MathML mi
 	 * >   - MathML mo
@@ -311,6 +313,7 @@ class WP_HTML_Open_Elements {
 				'TH',
 				'MARQUEE',
 				'OBJECT',
+				'SELECT',
 				'TEMPLATE',
 
 				'math MI',
@@ -361,6 +364,7 @@ class WP_HTML_Open_Elements {
 				'MARQUEE',
 				'OBJECT',
 				'OL',
+				'SELECT',
 				'TEMPLATE',
 				'UL',
 
@@ -409,6 +413,7 @@ class WP_HTML_Open_Elements {
 				'TH',
 				'MARQUEE',
 				'OBJECT',
+				'SELECT',
 				'TEMPLATE',
 
 				'math MI',
@@ -458,9 +463,8 @@ class WP_HTML_Open_Elements {
 	/**
 	 * Returns whether a particular element is in select scope.
 	 *
-	 * This test differs from the others like it, in that its rules are inverted.
-	 * Instead of arriving at a match when one of any tag in a termination group
-	 * is reached, this one terminates if any other tag is reached.
+	 * The "select scope" concept was removed from the HTML standard along with the
+	 * customizable `<select>` changes, so nothing is ever in select scope.
 	 *
 	 * > The stack of open elements is said to have a particular element in select scope when it has
 	 * > that element in the specific scope consisting of all element types except the following:
@@ -470,24 +474,14 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0 Stub implementation (throws).
 	 * @since 6.7.0 Full implementation.
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-select-scope
+	 * @deprecated 7.1.0 This method is no longer part of the HTML standard.
+	 * @ignore
 	 *
 	 * @param string $tag_name Name of tag to check.
-	 * @return bool Whether the given element is in SELECT scope.
+	 * @return bool Always false; select scope no longer exists.
 	 */
 	public function has_element_in_select_scope( string $tag_name ): bool {
-		foreach ( $this->walk_up() as $node ) {
-			if ( $node->node_name === $tag_name ) {
-				return true;
-			}
-
-			if (
-				'OPTION' !== $node->node_name &&
-				'OPTGROUP' !== $node->node_name
-			) {
-				return false;
-			}
-		}
+		_deprecated_function( __METHOD__, '7.1.0' );
 
 		return false;
 	}
@@ -520,41 +514,36 @@ class WP_HTML_Open_Elements {
 			return false;
 		}
 
-		if ( 'context-node' === $item->bookmark_name ) {
-			$this->stack[] = $item;
-			return false;
-		}
-
 		$this->after_element_pop( $item );
 		return true;
 	}
 
 	/**
-	 * Pops nodes off of the stack of open elements until one with the given tag name has been popped.
+	 * Pops nodes off of the stack of open elements until an HTML tag with the given name has been popped.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @see WP_HTML_Open_Elements::pop
 	 *
-	 * @param string $tag_name Name of tag that needs to be popped off of the stack of open elements.
+	 * @param string $html_tag_name Name of tag that needs to be popped off of the stack of open elements.
 	 * @return bool Whether a tag of the given name was found and popped off of the stack of open elements.
 	 */
-	public function pop_until( string $tag_name ): bool {
+	public function pop_until( string $html_tag_name ): bool {
 		foreach ( $this->walk_up() as $item ) {
-			if ( 'context-node' === $item->bookmark_name ) {
-				return true;
-			}
-
 			$this->pop();
 
+			if ( 'html' !== $item->namespace ) {
+				continue;
+			}
+
 			if (
-				'(internal: H1 through H6 - do not use)' === $tag_name &&
+				'(internal: H1 through H6 - do not use)' === $html_tag_name &&
 				in_array( $item->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
 			) {
 				return true;
 			}
 
-			if ( $tag_name === $item->node_name ) {
+			if ( $html_tag_name === $item->node_name ) {
 				return true;
 			}
 		}
@@ -585,10 +574,6 @@ class WP_HTML_Open_Elements {
 	 * @return bool Whether the node was found and removed from the stack of open elements.
 	 */
 	public function remove_node( WP_HTML_Token $token ): bool {
-		if ( 'context-node' === $token->bookmark_name ) {
-			return false;
-		}
-
 		foreach ( $this->walk_up() as $position_from_end => $item ) {
 			if ( $token->bookmark_name !== $item->bookmark_name ) {
 				continue;
@@ -705,6 +690,7 @@ class WP_HTML_Open_Elements {
 			case 'TH':
 			case 'MARQUEE':
 			case 'OBJECT':
+			case 'SELECT':
 			case 'TEMPLATE':
 			case 'math MI':
 			case 'math MO':
@@ -724,7 +710,7 @@ class WP_HTML_Open_Elements {
 		}
 
 		if ( null !== $this->push_handler ) {
-			( $this->push_handler )( $item );
+			call_user_func( $this->push_handler, $item );
 		}
 	}
 
@@ -746,7 +732,11 @@ class WP_HTML_Open_Elements {
 		 * When adding support for new elements, expand this switch to trap
 		 * cases where the precalculated value needs to change.
 		 */
-		switch ( $item->node_name ) {
+		$namespaced_name = 'html' === $item->namespace
+			? $item->node_name
+			: "{$item->namespace} {$item->node_name}";
+
+		switch ( $namespaced_name ) {
 			case 'APPLET':
 			case 'BUTTON':
 			case 'CAPTION':
@@ -757,6 +747,7 @@ class WP_HTML_Open_Elements {
 			case 'TH':
 			case 'MARQUEE':
 			case 'OBJECT':
+			case 'SELECT':
 			case 'TEMPLATE':
 			case 'math MI':
 			case 'math MO':
@@ -772,7 +763,7 @@ class WP_HTML_Open_Elements {
 		}
 
 		if ( null !== $this->pop_handler ) {
-			( $this->pop_handler )( $item );
+			call_user_func( $this->pop_handler, $item );
 		}
 	}
 

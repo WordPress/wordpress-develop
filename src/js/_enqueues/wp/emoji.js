@@ -2,6 +2,8 @@
  * wp-emoji.js is used to replace emoji with images in browsers when the browser
  * doesn't support emoji natively.
  *
+ * @param {Window} window The global window object.
+ * @param {Object} settings The settings object.
  * @output wp-includes/js/wp-emoji.js
  */
 
@@ -277,16 +279,7 @@
 			return twemoji.parse( object, params );
 		}
 
-		/**
-		 * Initialize our emoji support, and set up listeners.
-		 */
-		if ( settings ) {
-			if ( settings.DOMReady ) {
-				load();
-			} else {
-				settings.readyCallback = load;
-			}
-		}
+		load();
 
 		return {
 			parse: parse,

@@ -43,6 +43,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( 'date_format', 'F j, Y', 'F j, Y' ),
 			array( 'date_format', 'F j, Y', 'F j, <strong>Y</strong>' ),
 			array( 'ping_sites', 'http://rpc.pingomatic.com/', 'http://rpc.pingomatic.com/' ),
+			array( 'ping_sites', 'https://rpc.pingomatic.com/', 'https://rpc.pingomatic.com/' ),
 			array( 'ping_sites', "http://www.example.com\nhttp://example.org", "www.example.com \n\texample.org\n\n" ),
 			array( 'gmt_offset', '0', 0 ),
 			array( 'gmt_offset', '1.5', '1.5' ),

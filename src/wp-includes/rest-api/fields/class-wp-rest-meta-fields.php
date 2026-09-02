@@ -478,8 +478,9 @@ abstract class WP_REST_Meta_Fields {
 
 			$default_schema = array(
 				'type'        => $default_args['type'],
+				'title'       => empty( $args['label'] ) ? '' : $args['label'],
 				'description' => empty( $args['description'] ) ? '' : $args['description'],
-				'default'     => isset( $args['default'] ) ? $args['default'] : null,
+				'default'     => $args['default'] ?? null,
 			);
 
 			$rest_args           = array_merge( $default_args, $rest_args );

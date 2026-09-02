@@ -76,7 +76,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		parent::__construct(
 			array(
 				'plural' => 'posts',
-				'screen' => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen' => $args['screen'] ?? null,
 			)
 		);
 
@@ -437,7 +437,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			if ( $this->is_trash ) {
 				$actions['untrash'] = __( 'Restore' );
 			} else {
-				$actions['edit'] = __( 'Edit' );
+				$actions['edit'] = _x( 'Bulk edit', 'verb' );
 			}
 		}
 
@@ -496,7 +496,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Displays a formats drop-down for filtering items.
 	 *
 	 * @since 5.2.0
-	 * @access protected
 	 *
 	 * @param string $post_type Post type slug.
 	 */
@@ -532,7 +531,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$displayed_post_format = isset( $_GET['post_format'] ) ? $_GET['post_format'] : '';
+		$displayed_post_format = $_GET['post_format'] ?? '';
 		?>
 		<label for="filter-by-format" class="screen-reader-text">
 			<?php
@@ -597,7 +596,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			if ( ! empty( $output ) ) {
 				echo $output;
-				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
 		}
 
@@ -723,7 +722,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 *
 			 * @since 2.5.0
 			 *
-			 * @param string[] $post_columns An associative array of column headings.
+			 * @param string[] $posts_columns An associative array of column headings.
 			 */
 			$posts_columns = apply_filters( 'manage_pages_columns', $posts_columns );
 		} else {
@@ -733,8 +732,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 *
 			 * @since 1.5.0
 			 *
-			 * @param string[] $post_columns An associative array of column headings.
-			 * @param string   $post_type    The post type slug.
+			 * @param string[] $posts_columns An associative array of column headings.
+			 * @param string   $post_type     The post type slug.
 			 */
 			$posts_columns = apply_filters( 'manage_posts_columns', $posts_columns, $post_type );
 		}
@@ -751,7 +750,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 *
 		 * @since 3.0.0
 		 *
-		 * @param string[] $post_columns An associative array of column headings.
+		 * @param string[] $posts_columns An associative array of column headings.
 		 */
 		return apply_filters( "manage_{$post_type}_posts_columns", $posts_columns );
 	}
@@ -1014,10 +1013,44 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets a trimmed excerpt to display in place of a missing post title.
+	 *
+	 * Only returns text in the Compact list view for posts that have no title,
+	 * do not require a password, and that the current user is allowed to read.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global string $mode List table view mode.
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 * @return string The escaped, trimmed excerpt, or an empty string.
+	 */
+	protected function get_no_title_excerpt( $post ) {
+		global $mode;
+
+		if ( 'excerpt' === $mode
+			|| '' !== get_the_title( $post )
+			|| post_password_required( $post )
+			|| ! current_user_can( 'read_post', $post->ID )
+		) {
+			return '';
+		}
+
+		$excerpt = get_the_excerpt( $post );
+
+		if ( '' === $excerpt || ! is_string( $excerpt ) ) {
+			return '';
+		}
+
+		return esc_html( wp_trim_words( $excerpt, 15 ) );
+	}
+
+	/**
 	 * Handles the checkbox column output.
 	 *
 	 * @since 4.3.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
+	 * @since 7.1.0 Includes a trimmed excerpt for untitled posts in Compact view.
 	 *
 	 * @param WP_Post $item The current WP_Post object.
 	 */
@@ -1038,13 +1071,21 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param WP_Post $post The current WP_Post object.
 		 */
 		if ( apply_filters( 'wp_list_table_show_post_checkbox', $show, $post ) ) :
+
+			$post_title = _draft_or_post_title();
+
+			// If the post has no title, try adding part of the excerpt.
+			$no_title_excerpt = $this->get_no_title_excerpt( $post );
+			if ( '' !== $no_title_excerpt ) {
+				$post_title .= ' ' . $no_title_excerpt;
+			}
 			?>
 			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
 			<label for="cb-select-<?php the_ID(); ?>">
 				<span class="screen-reader-text">
 				<?php
 					/* translators: %s: Post title. */
-					printf( __( 'Select %s' ), _draft_or_post_title() );
+					printf( __( 'Select %s' ), $post_title );
 				?>
 				</span>
 			</label>
@@ -1055,7 +1096,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				printf(
 					/* translators: Hidden accessibility text. %s: Post title. */
 					__( '&#8220;%s&#8221; is locked' ),
-					_draft_or_post_title()
+					$post_title
 				);
 				?>
 				</span>
@@ -1073,16 +1114,35 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param string  $primary
 	 */
 	protected function _column_title( $post, $classes, $data, $primary ) {
-		echo '<td class="' . $classes . ' page-title" ', $data, '>';
+		$aria_label = $this->get_primary_column_aria_label( $post );
+		$aria_attr  = ( '' !== $aria_label ) ? ' aria-label="' . esc_attr( $aria_label ) . '"' : '';
+		echo '<th scope="row" class="' . $classes . ' page-title" ', $data, $aria_attr, '>';
 		echo $this->column_title( $post );
 		echo $this->handle_row_actions( $post, 'title', $primary );
-		echo '</td>';
+		echo '</th>';
+	}
+
+	/**
+	 * Returns a clean label for the primary (title) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the post title as the row header name,
+	 * preventing them from computing the name from the full cell content
+	 * (which includes row action links, post states, and possibly an excerpt).
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Post $item The current post object.
+	 * @return string The post title, or 'no title' if no title.
+	 */
+	protected function get_primary_column_aria_label( $item ) {
+		return ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
 	}
 
 	/**
 	 * Handles the title column output.
 	 *
 	 * @since 4.3.0
+	 * @since 7.1.0 Includes a trimmed excerpt for untitled posts in Compact view.
 	 *
 	 * @global string $mode List table view mode.
 	 *
@@ -1132,25 +1192,63 @@ class WP_Posts_List_Table extends WP_List_Table {
 			echo '<div class="locked-info"><span class="locked-avatar">' . $locked_avatar . '</span> <span class="locked-text">' . $locked_text . "</span></div>\n";
 		}
 
-		$pad = str_repeat( '&#8212; ', $this->current_level );
+		$pad               = str_repeat(
+			'<span aria-hidden="true">&#8212;</span> ',
+			$this->current_level
+		);
+		$described_by_attr = '';
+		$hierarchy_linked  = '';
+		$hierarchy_nolink  = '';
+
+		if ( $post->post_parent ) {
+			$parent = get_post( $post->post_parent );
+
+			if ( $parent ) {
+				/** This filter is documented in wp-includes/post-template.php */
+				$parent_title = apply_filters( 'the_title', $parent->post_title, $parent->ID );
+
+				$hierarchy_id      = 'post-hierarchy-' . $post->ID;
+				$described_by_attr = sprintf( ' aria-describedby="%s"', esc_attr( $hierarchy_id ) );
+				$hierarchy_linked  = sprintf(
+					'<span id="%1$s" class="hidden">%2$s</span>',
+					esc_attr( $hierarchy_id ),
+					/* translators: %s: Parent post title. */
+					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
+				);
+				$hierarchy_nolink = sprintf(
+					'<span id="%1$s" class="screen-reader-text"> (%2$s)</span>',
+					esc_attr( $hierarchy_id ),
+					/* translators: %s: Parent post title. */
+					esc_html( sprintf( __( 'Child of %s' ), wp_strip_all_tags( $parent_title ) ) )
+				);
+			}
+		}
+
 		echo '<strong>';
 
 		$title = _draft_or_post_title();
 
+		// If the post has no title, try adding part of the excerpt.
+		$no_title_excerpt = $this->get_no_title_excerpt( $post );
+		if ( '' !== $no_title_excerpt ) {
+			$title .= ' <span class="trimmed-post-excerpt">' . $no_title_excerpt . '</span>';
+		}
+
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
-				'<a class="row-title" href="%s" aria-label="%s">%s%s</a>',
-				get_edit_post_link( $post->ID ),
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) ),
+				'%1$s<a class="row-title" href="%2$s"%3$s>%4$s</a>%5$s',
 				$pad,
-				$title
+				get_edit_post_link( $post->ID ),
+				$described_by_attr,
+				$title,
+				$hierarchy_linked
 			);
 		} else {
 			printf(
-				'<span>%s%s</span>',
+				'%1$s<span>%2$s%3$s</span>',
 				$pad,
-				$title
+				$title,
+				$hierarchy_nolink
 			);
 		}
 		_post_states( $post );
@@ -1265,7 +1363,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		?>
 		<div class="post-com-count-wrapper">
 		<?php
-			$pending_comments = isset( $this->comment_pending_count[ $post->ID ] ) ? $this->comment_pending_count[ $post->ID ] : 0;
+			$pending_comments = $this->comment_pending_count[ $post->ID ] ?? 0;
 
 			$this->comments_bubble( $post->ID, $pending_comments );
 		?>
@@ -1277,15 +1375,22 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Handles the post author column output.
 	 *
 	 * @since 4.3.0
+	 * @since 6.8.0 Added fallback text when author's name is unknown.
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_author( $post ) {
-		$args = array(
-			'post_type' => $post->post_type,
-			'author'    => get_the_author_meta( 'ID' ),
-		);
-		echo $this->get_edit_link( $args, get_the_author() );
+		$author = get_the_author();
+
+		if ( ! empty( $author ) ) {
+			$args = array(
+				'post_type' => $post->post_type,
+				'author'    => get_the_author_meta( 'ID' ),
+			);
+			echo $this->get_edit_link( $args, esc_html( $author ) );
+		} else {
+			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( '(no author)' ) . '</span>';
+		}
 	}
 
 	/**
@@ -1544,7 +1649,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						esc_url( $preview_link ),
 						/* translators: %s: Post title. */
 						esc_attr( sprintf( __( 'Preview &#8220;%s&#8221;' ), $title ) ),
-						__( 'Preview' )
+						_x( 'Preview', 'verb' )
 					);
 				}
 			} elseif ( 'trash' !== $post->post_status ) {
@@ -1775,7 +1880,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<div class="inline-edit-group wp-clearfix">
 						<label class="alignleft">
 							<span class="title"><?php _e( 'Password' ); ?></span>
-							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input" value="" /></span>
+							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input ltr" value="" /></span>
 						</label>
 
 						<span class="alignleft inline-edit-or">
@@ -1980,20 +2085,42 @@ class WP_Posts_List_Table extends WP_List_Table {
 						<label class="inline-edit-status alignleft">
 							<span class="title"><?php _e( 'Status' ); ?></span>
 							<select name="_status">
-								<?php if ( $bulk ) : ?>
-									<option value="-1"><?php _e( '&mdash; No Change &mdash;' ); ?></option>
-								<?php endif; // $bulk ?>
+								<?php
+								$inline_edit_statuses = array();
+								if ( $bulk ) {
+									$inline_edit_statuses['-1'] = __( '&mdash; No Change &mdash;' );
+								}
+								// Contributors only get "Unpublished" and "Pending Review".
+								if ( $can_publish ) {
+									$inline_edit_statuses['publish'] = __( 'Published' );
+									$inline_edit_statuses['future']  = __( 'Scheduled' );
+									// There is already a checkbox for Private in Single Post Quick Edit. See #63612.
+									if ( $bulk ) {
+										$inline_edit_statuses['private'] = __( 'Private' );
+									}
+								}
 
-								<?php if ( $can_publish ) : // Contributors only get "Unpublished" and "Pending Review". ?>
-									<option value="publish"><?php _e( 'Published' ); ?></option>
-									<option value="future"><?php _e( 'Scheduled' ); ?></option>
-									<?php if ( $bulk ) : ?>
-										<option value="private"><?php _e( 'Private' ); ?></option>
-									<?php endif; // $bulk ?>
-								<?php endif; ?>
+								$inline_edit_statuses['pending'] = __( 'Pending Review' );
+								$inline_edit_statuses['draft']   = __( 'Draft' );
 
-								<option value="pending"><?php _e( 'Pending Review' ); ?></option>
-								<option value="draft"><?php _e( 'Draft' ); ?></option>
+								/**
+								 * Filters the statuses available in the Quick Edit and Bulk Edit UI.
+								 *
+								 * @since 6.9.0
+								 *
+								 * @param array<string,string> $inline_edit_statuses An array of statuses available in the Quick Edit UI.
+								 * @param string               $post_type            The post type slug.
+								 * @param bool                 $bulk                 A flag to denote if it's a bulk action.
+								 * @param bool                 $can_publish          A flag to denote if the user can publish posts.
+								 */
+								$inline_edit_statuses = apply_filters( 'quick_edit_statuses', $inline_edit_statuses, $screen->post_type, $bulk, $can_publish );
+
+								foreach ( $inline_edit_statuses as $inline_status_value => $inline_status_text ) :
+									?>
+									<option value="<?php echo esc_attr( $inline_status_value ); ?>"><?php echo esc_attr( $inline_status_text ); ?></option>
+									<?php
+								endforeach;
+								?>
 							</select>
 						</label>
 

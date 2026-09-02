@@ -144,7 +144,7 @@ class WP_Theme_JSON_Resolver {
 	protected static function translate( $theme_json, $domain = 'default' ) {
 		if ( null === static::$i18n_schema ) {
 			$i18n_schema         = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
-			static::$i18n_schema = null === $i18n_schema ? array() : $i18n_schema;
+			static::$i18n_schema = $i18n_schema ?? array();
 		}
 
 		return translate_settings_using_i18n_schema( static::$i18n_schema, $theme_json, $domain );
@@ -279,8 +279,8 @@ class WP_Theme_JSON_Resolver {
 			 * See test_add_registered_block_styles_to_theme_data and test_unwraps_block_style_variations.
 			 *
 			 */
-			$theme_json_data = static::inject_variations_from_block_style_variation_files( $theme_json_data, $variations );
-			$theme_json_data = static::inject_variations_from_block_styles_registry( $theme_json_data );
+			$theme_json_data = self::inject_variations_from_block_style_variation_files( $theme_json_data, $variations );
+			$theme_json_data = self::inject_variations_from_block_styles_registry( $theme_json_data );
 
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
@@ -400,7 +400,7 @@ class WP_Theme_JSON_Resolver {
 		$config = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 		foreach ( $blocks as $block_name => $block_type ) {
 			if ( isset( $block_type->supports['__experimentalStyle'] ) ) {
-				$config['styles']['blocks'][ $block_name ] = static::remove_json_comments( $block_type->supports['__experimentalStyle'] );
+				$config['styles']['blocks'][ $block_name ] = self::remove_json_comments( $block_type->supports['__experimentalStyle'] );
 			}
 
 			if (
@@ -450,7 +450,7 @@ class WP_Theme_JSON_Resolver {
 		unset( $input_array['//'] );
 		foreach ( $input_array as $k => $v ) {
 			if ( is_array( $v ) ) {
-				$input_array[ $k ] = static::remove_json_comments( $v );
+				$input_array[ $k ] = self::remove_json_comments( $v );
 			}
 		}
 
@@ -480,17 +480,6 @@ class WP_Theme_JSON_Resolver {
 			$theme = wp_get_theme();
 		}
 
-		/*
-		 * Bail early if the theme does not support a theme.json.
-		 *
-		 * Since wp_theme_has_theme_json() only supports the active
-		 * theme, the extra condition for whether $theme is the active theme is
-		 * present here.
-		 */
-		if ( $theme->get_stylesheet() === get_stylesheet() && ! wp_theme_has_theme_json() ) {
-			return array();
-		}
-
 		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
 		$stylesheet       = $theme->get_stylesheet();
@@ -515,7 +504,7 @@ class WP_Theme_JSON_Resolver {
 
 		$global_style_query = new WP_Query();
 		$recent_posts       = $global_style_query->query( $args );
-		if ( count( $recent_posts ) === 1 ) {
+		if ( count( $recent_posts ) === 1 && $recent_posts[0] instanceof WP_Post ) {
 			$user_cpt = get_object_vars( $recent_posts[0] );
 		} elseif ( $create_post ) {
 			$cpt_post_id = wp_insert_post(
@@ -532,7 +521,10 @@ class WP_Theme_JSON_Resolver {
 				true
 			);
 			if ( ! is_wp_error( $cpt_post_id ) ) {
-				$user_cpt = get_object_vars( get_post( $cpt_post_id ) );
+				$post = get_post( $cpt_post_id );
+				if ( $post instanceof WP_Post ) {
+					$user_cpt = get_object_vars( $post );
+				}
 			}
 		}
 
@@ -681,7 +673,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return integer|null
+	 * @return int|null ID for a post of type `wp_global_styles`, or null if not available.
 	 */
 	public static function get_user_global_styles_post_id() {
 		if ( null !== static::$user_custom_post_type_id ) {
@@ -704,7 +696,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.9.0 Added a check in the parent theme.
 	 * @deprecated 6.2.0 Use wp_theme_has_theme_json() instead.
 	 *
-	 * @return bool
+	 * @return bool Whether the active theme has a theme.json file.
 	 */
 	public static function theme_has_support() {
 		_deprecated_function( __METHOD__, '6.2.0', 'wp_theme_has_theme_json()' );
@@ -780,7 +772,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @param array  $variation Theme.json shaped style variation object.
 	 * @param string $scope     Scope to check e.g. theme, block etc.
-	 * @return boolean
+	 * @return bool Whether the supplied style variation matches the provided scope.
 	 */
 	private static function style_variation_has_scope( $variation, $scope ) {
 		if ( 'block' === $scope ) {
@@ -805,7 +797,7 @@ class WP_Theme_JSON_Resolver {
 	 *              Added basic caching for read theme.json partial files.
 	 *
 	 * @param string $scope The scope or type of style variation to retrieve e.g. theme, block etc.
-	 * @return array
+	 * @return array The style variations defined by the theme.
 	 */
 	public static function get_style_variations( $scope = 'theme' ) {
 		$variation_files    = array();
@@ -813,10 +805,10 @@ class WP_Theme_JSON_Resolver {
 		$base_directory     = get_stylesheet_directory() . '/styles';
 		$template_directory = get_template_directory() . '/styles';
 		if ( is_dir( $base_directory ) ) {
-			$variation_files = static::recursively_iterate_json( $base_directory );
+			$variation_files = self::recursively_iterate_json( $base_directory );
 		}
 		if ( is_dir( $template_directory ) && $template_directory !== $base_directory ) {
-			$variation_files_parent = static::recursively_iterate_json( $template_directory );
+			$variation_files_parent = self::recursively_iterate_json( $template_directory );
 			// If the child and parent variation file basename are the same, only include the child theme's.
 			foreach ( $variation_files_parent as $parent_path => $parent ) {
 				foreach ( $variation_files as $child_path => $child ) {
@@ -830,7 +822,7 @@ class WP_Theme_JSON_Resolver {
 		ksort( $variation_files );
 		foreach ( $variation_files as $path => $file ) {
 			$decoded_file = self::read_json_file( $path );
-			if ( is_array( $decoded_file ) && static::style_variation_has_scope( $decoded_file, $scope ) ) {
+			if ( is_array( $decoded_file ) && self::style_variation_has_scope( $decoded_file, $scope ) ) {
 				$translated = static::translate( $decoded_file, wp_get_theme()->get( 'TextDomain' ) );
 				$variation  = ( new WP_Theme_JSON( $translated ) )->get_raw_data();
 				if ( empty( $variation['title'] ) ) {
@@ -933,18 +925,14 @@ class WP_Theme_JSON_Resolver {
 			return $theme_json;
 		}
 
-		$resolved_theme_json_data = array(
-			'version' => WP_Theme_JSON::LATEST_SCHEMA,
-		);
+		$resolved_theme_json_data = $theme_json->get_raw_data();
 
 		foreach ( $resolved_urls as $resolved_url ) {
 			$path = explode( '.', $resolved_url['target'] );
 			_wp_array_set( $resolved_theme_json_data, $path, $resolved_url['href'] );
 		}
 
-		$theme_json->merge( new WP_Theme_JSON( $resolved_theme_json_data ) );
-
-		return $theme_json;
+		return new WP_Theme_JSON( $resolved_theme_json_data );
 	}
 
 	/**

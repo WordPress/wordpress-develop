@@ -20,9 +20,9 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	 * @param string $message          The message to test.
 	 * @param string $expected_message The expected error message.
 	 */
-	public function test_should_trigger_error( $function_name, $message, $expected_message ) {
-		$this->expectError();
-		$this->expectErrorMessage( $expected_message );
+	public function test_should_throw_exception( $function_name, $message, $expected_message ) {
+		$this->expectException( WP_Exception::class );
+		$this->expectExceptionMessage( $expected_message );
 
 		wp_trigger_error( $function_name, $message, E_USER_ERROR );
 	}
