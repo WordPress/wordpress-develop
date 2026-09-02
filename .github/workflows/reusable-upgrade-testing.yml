@@ -146,96 +146,41 @@ jobs:
         if: ${{ ! inputs.multisite }}
         run: |
           site_url="http://127.0.0.1:${SITE_PORT}"
-          fpm_conf="${RUNNER_TEMP}/php-fpm.conf"
-          fpm_log="${RUNNER_TEMP}/php-fpm.log"
-          fpm_sock="${RUNNER_TEMP}/php-fpm.sock"
-          nginx_conf="${RUNNER_TEMP}/nginx.conf"
-          nginx_log="${RUNNER_TEMP}/nginx.log"
+          server_log="${RUNNER_TEMP}/server.log"
           jar="${RUNNER_TEMP}/cookies.txt"
           response="${RUNNER_TEMP}/response.txt"
           code="${RUNNER_TEMP}/http-code.txt"
           http_code=''
 
-          # Moving the site and turning off cron are not undone, so this step has to stay last.
+          # None of these three are undone, so this step has to stay last.
           wp option update home "${site_url}"
           wp option update siteurl "${site_url}"
-          # A cron spawn and the update checks both make requests the checks did not ask for,
-          # and the update checks leave the runner for api.wordpress.org.
+          # A cron spawn and the update checks both make requests no check asked for, and the
+          # update checks leave the runner for api.wordpress.org.
           wp config set DISABLE_WP_CRON true --raw
           wp config set WP_HTTP_BLOCK_EXTERNAL true --raw
 
-          # The pool is the step's own. The packaged one runs as www-data and needs root.
-          cat > "${fpm_conf}" <<CONF
-          [global]
-          error_log = ${fpm_log}
-          [www]
-          listen = ${fpm_sock}
-          pm = static
-          pm.max_children = 5
-          catch_workers_output = yes
-          php_admin_flag[log_errors] = On
-          php_admin_value[error_log] = ${fpm_log}
-          ; The runner turns the JIT on, which stock PHP does not. It crashes the worker on
-          ; about five percent of cold pools, so the check runs what a site runs instead.
-          php_admin_value[opcache.jit] = disable
-          CONF
-
-          cat > "${nginx_conf}" <<CONF
-          daemon off;
-          pid ${RUNNER_TEMP}/nginx.pid;
-          events {}
-          http {
-            access_log off;
-            client_body_temp_path ${RUNNER_TEMP}/nginx-body;
-            fastcgi_temp_path ${RUNNER_TEMP}/nginx-fastcgi;
-            proxy_temp_path ${RUNNER_TEMP}/nginx-proxy;
-            scgi_temp_path ${RUNNER_TEMP}/nginx-scgi;
-            uwsgi_temp_path ${RUNNER_TEMP}/nginx-uwsgi;
-            server {
-              listen 127.0.0.1:${SITE_PORT};
-              root ${PWD};
-              index index.php;
-              location / {
-                try_files \$uri \$uri/ /index.php?\$args;
-              }
-              location ~ \.php\$ {
-                include /etc/nginx/fastcgi.conf;
-                fastcgi_pass unix:${fpm_sock};
-              }
-            }
-          }
-          CONF
-
-          fpm_pid=''
-          nginx_pid=''
+          # opcache counts the built-in server as a web SAPI, not as the CLI, so it runs the
+          # JIT that the runner turns on and stock PHP does not. That JIT crashed the server
+          # on 38 of 1600 runs. With it off, none of 1600 crashed.
+          php -d opcache.jit=disable -S "127.0.0.1:${SITE_PORT}" -t . > "${server_log}" 2>&1 &
+          server_pid=$!
 
           stop_server() {
             local status=$?
-            kill "${nginx_pid}" "${fpm_pid}" 2> /dev/null || true
-            wait "${nginx_pid}" "${fpm_pid}" 2> /dev/null || true
-            [ "${status}" -eq 0 ] || tail -n +1 "${nginx_log}" "${fpm_log}" || true
+            kill "${server_pid}" 2> /dev/null || true
+            wait "${server_pid}" 2> /dev/null || true
+            [ "${status}" -eq 0 ] || cat "${server_log}" || true
             exit "${status}"
           }
           trap stop_server EXIT
 
-          # setup-php registers the unversioned name only when it installs PHP itself, and it
-          # installs nothing when the runner image already carries the version being tested.
-          command -v "php-fpm${PHP_VERSION}" > /dev/null \
-            || { echo "::error::php-fpm${PHP_VERSION} is not on PATH"; exit 1; }
-          "php-fpm${PHP_VERSION}" --nodaemonize --fpm-config "${fpm_conf}" &
-          fpm_pid=$!
-          nginx -c "${nginx_conf}" -e "${nginx_log}" &
-          nginx_pid=$!
-
-          # nginx answers a request before the pool is listening, and that answer is a 502.
-          # Neither that nor an unanswered request is a result a check can read.
+          # A poll that cannot connect prints 000 and exits 7, which would end the step here.
           deadline=$(( SECONDS + 30 ))
           while :; do
-            # A poll that cannot connect prints 000 and exits 7, which would end the step here.
             ready_code="$(curl --silent --max-time 5 --output /dev/null --write-out '%{http_code}' "${site_url}/" || true)"
-            [ "${ready_code}" = '000' ] || [ "${ready_code}" = '502' ] || break
-            [ "${SECONDS}" -lt "${deadline}" ] \
-              || { echo "::error::the site did not come up, and the last status was ${ready_code}"; exit 1; }
+            [ "${ready_code}" = '000' ] || break
+            [ "${SECONDS}" -lt "${deadline}" ] || { echo '::error::the server never answered'; exit 1; }
             sleep 1
           done
 
@@ -246,9 +191,9 @@ jobs:
             exit 1
           }
 
-          # Requests a path, leaving the body in ${response} and the status in ${http_code}. An
-          # HTTP error is a result and comes back to the caller. No reply at all is not. nginx
-          # answers a request even when PHP cannot, so no reply means nginx itself stopped.
+          # Requests a path, leaving the body in ${response} and the status in ${http_code}.
+          # An HTTP error is a result and comes back to the caller. No reply at all is not:
+          # the server is gone, and the log the trap prints says why.
           fetch() {
             local path="${1}" status=0
             shift
@@ -307,13 +252,12 @@ jobs:
           check '/wp-admin/' 'id="wpadminbar"' '</html>'
 
           # A fatal that lands after the markers, or during shutdown, still leaves a broken site.
-          # The pool always writes a start line, so an empty log means the check reads nothing.
-          [ -s "${fpm_log}" ] || { echo '::error::the server wrote no log'; exit 1; }
-          if grep -qE 'Fatal error|Uncaught|Segmentation fault|exited on signal' "${fpm_log}"; then
+          # The server always writes a start line, so an empty log means the check reads nothing.
+          [ -s "${server_log}" ] || { echo '::error::the server wrote no log'; exit 1; }
+          if grep -qE 'Fatal error|Uncaught|Segmentation fault' "${server_log}"; then
             echo '::error::the server logged a fatal error'
             exit 1
           fi
           echo 'ok  server log'
         env:
-          PHP_VERSION: ${{ inputs.php }}
           SITE_PORT: 8889
