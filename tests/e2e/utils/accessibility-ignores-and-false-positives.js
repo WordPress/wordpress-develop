@@ -18,6 +18,7 @@ module.exports = {
 		// Post title links in list tables may have surrounding text and are only distinguished by color.
 		// We consider this acceptable as these links can be distinguished by the context.
 		'strong > .row-title',
+		'a[aria-label="Edit',
 	],
 	'aria-allowed-role': [
 		// The "group" role for the admin bar list items is flagged as invalid by axe-core.
