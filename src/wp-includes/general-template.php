@@ -909,8 +909,9 @@ function wp_lostpassword_url( $redirect = '' ) {
  * @param string $before  Text to output before the link. Default `<li>`.
  * @param string $after   Text to output after the link. Default `</li>`.
  * @param bool   $display Default to echo and not return the link.
- * @return string|void Registration or admin link if `$display` is false,
- *                     nothing otherwise.
+ * @return string|void The registration or admin link when `$display` is false, or an empty
+ *                     string when registration is disabled or the logged-in user cannot
+ *                     access the dashboard. Nothing otherwise.
  * @phpstan-return ( $display is true ? void : string )
  */
 function wp_register( $before = '<li>', $after = '</li>', $display = true ) {

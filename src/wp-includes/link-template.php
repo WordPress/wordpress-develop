@@ -2543,7 +2543,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
  *
  * @param int  $max_page Optional. Max pages. Default 0.
  * @param bool $display  Optional. Whether to echo the link. Default true.
- * @return string|void The link URL for next posts page if `$display = false`.
+ * @return string|void The next posts page link when `$display` is false, or an empty
+ *                     string when there is no next page. Nothing otherwise.
  * @phpstan-return ( $display is true ? void : string )
  */
 function next_posts( $max_page = 0, $display = true ) {
@@ -2654,7 +2655,8 @@ function get_previous_posts_page_link() {
  * @since 0.71
  *
  * @param bool $display Optional. Whether to echo the link. Default true.
- * @return string|void The previous posts page link if `$display = false`.
+ * @return string|void The previous posts page link when `$display` is false, or an empty
+ *                     string when there is no previous page. Nothing otherwise.
  * @phpstan-return ( $display is true ? void : string )
  */
 function previous_posts( $display = true ) {
