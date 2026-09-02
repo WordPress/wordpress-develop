@@ -101,6 +101,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			)
 		);
 
+		$user_id = get_current_user_id();
+
 		/**
 		 * Filters the number of posts authored by the current user.
 		 *
@@ -114,7 +116,28 @@ class WP_Posts_List_Table extends WP_List_Table {
 			'user_posts_count',
 			$this->user_posts_count,
 			$post_type,
-			get_current_user_id()
+			$user_id
+		);
+
+		/**
+		 * Filters the number of posts authored by the current user for a specific post type.
+		 *
+		 * The dynamic portion of the hook name, `$post_type`, refers to the post type.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `user_posts_post_count`
+		 *  - `user_posts_page_count`
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param int $user_posts_count Number of posts authored by the current user.
+		 * @param int $user_id           The current user ID.
+		 */
+		$this->user_posts_count = (int) apply_filters(
+			"user_posts_{$post_type}_count",
+			$this->user_posts_count,
+			$user_id
 		);
 
 		if ( $this->user_posts_count

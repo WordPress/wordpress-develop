@@ -343,17 +343,26 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
-		$filter = function ( $count, $post_type, $current_user_id ) use ( $user_id ) {
+		$filter           = function ( $count, $post_type, $current_user_id ) use ( $user_id ) {
 			$this->assertSame( 0, $count );
 			$this->assertSame( 'page', $post_type );
 			$this->assertSame( $user_id, $current_user_id );
 
 			return 1;
 		};
+		$post_type_filter = function ( $count, $current_user_id ) use ( $user_id ) {
+			$this->assertSame( 1, $count );
+			$this->assertSame( $user_id, $current_user_id );
+
+			return 2;
+		};
 
 		add_filter( 'user_posts_count', $filter, 10, 3 );
+		add_filter( 'user_posts_page_count', $post_type_filter, 10, 2 );
 		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-page' ) );
 		remove_filter( 'user_posts_count', $filter );
+
+		remove_filter( 'user_posts_page_count', $post_type_filter );
 
 		$avail_post_stati_backup = $avail_post_stati;
 		$avail_post_stati        = get_available_post_statuses();
@@ -362,7 +371,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$avail_post_stati = $avail_post_stati_backup;
 
 		$this->assertSame(
-			'<a href="edit.php?post_type=page&#038;author=' . $user_id . '">Mine <span class="count">(1)</span></a>',
+			'<a href="edit.php?post_type=page&#038;author=' . $user_id . '">Mine <span class="count">(2)</span></a>',
 			$actual['mine']
 		);
 	}
