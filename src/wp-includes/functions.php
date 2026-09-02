@@ -5008,6 +5008,27 @@ function smilies_init() {
 }
 
 /**
+ * Parses a string into variables to be stored in an array.
+ *
+ * @since 2.2.1
+ *
+ * @param string $input_string The string to be parsed.
+ * @param array  $result       Variables will be stored in this array.
+ */
+function wp_parse_str( $input_string, &$result ) {
+	parse_str( (string) $input_string, $result );
+
+	/**
+	 * Filters the array of variables derived from a parsed string.
+	 *
+	 * @since 2.2.1
+	 *
+	 * @param array $result The array populated with variables.
+	 */
+	$result = apply_filters( 'wp_parse_str', $result );
+}
+
+/**
  * Merges user defined arguments into defaults array.
  *
  * This function is used throughout WordPress to allow for both string or array
