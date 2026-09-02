@@ -2279,6 +2279,104 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Uploads an image through the REST API, optionally as an edit of another attachment.
+	 *
+	 * @param int|null $parent_image Attachment the upload was edited from.
+	 * @return WP_REST_Response Response.
+	 */
+	private function create_edited_image_response( ?int $parent_image = null ): WP_REST_Response {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-edited.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		if ( null !== $parent_image ) {
+			$request->set_param( 'parent_image', $parent_image );
+		}
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		return rest_get_server()->dispatch( $request );
+	}
+
+	/**
+	 * A client-side edit records its source attachment like the edit endpoint does.
+	 *
+	 * @ticket 66027
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 */
+	public function test_create_item_records_parent_image(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$parent_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$parent_metadata                              = wp_get_attachment_metadata( $parent_id );
+		$parent_metadata['image_meta']['credit']      = 'Photographer';
+		$parent_metadata['image_meta']['orientation'] = 6;
+		wp_update_attachment_metadata( $parent_id, $parent_metadata );
+
+		$response = $this->create_edited_image_response( $parent_id );
+		$this->assertSame( 201, $response->get_status() );
+
+		$data     = $response->get_data();
+		$metadata = wp_get_attachment_metadata( $data['id'] );
+		$expected = array(
+			'attachment_id' => $parent_id,
+			'file'          => _wp_relative_upload_path( wp_get_original_image_path( $parent_id ) ),
+		);
+
+		$this->assertSame( $expected, $metadata['parent_image'], 'The metadata records the source attachment.' );
+		$this->assertSame( $expected, $data['media_details']['parent_image'], 'The response reflects the source attachment.' );
+		$this->assertSame( 'Photographer', $metadata['image_meta']['credit'], 'EXIF fields the new file lacks are copied from the source.' );
+		$this->assertSame( 1, $metadata['image_meta']['orientation'], 'The edited pixels are upright.' );
+	}
+
+	/**
+	 * @ticket 66027
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 */
+	public function test_create_item_without_parent_image_records_nothing(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$response = $this->create_edited_image_response();
+		$this->assertSame( 201, $response->get_status() );
+
+		$metadata = wp_get_attachment_metadata( $response->get_data()['id'] );
+		$this->assertArrayNotHasKey( 'parent_image', $metadata );
+	}
+
+	/**
+	 * @ticket 66027
+	 *
+	 * @covers WP_REST_Attachments_Controller::get_endpoint_args_for_item_schema
+	 */
+	public function test_create_item_rejects_a_parent_image_that_is_not_an_image(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$post_id  = self::factory()->post->create();
+		$response = $this->create_edited_image_response( $post_id );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * @ticket 66027
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item_permissions_check
+	 */
+	public function test_create_item_requires_permission_to_edit_the_parent_image(): void {
+		wp_set_current_user( self::$superadmin_id );
+		$parent_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		// Authors can upload, but cannot edit another user's attachment.
+		wp_set_current_user( self::$author_id );
+
+		$response = $this->create_edited_image_response( $parent_id );
+
+		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 403 );
+	}
+
+	/**
 	 * Verifies image_output_format reflects an image_editor_output_format filter
 	 * that remaps JPEG to WebP, and that the filter sees the real attached
 	 * filename and MIME type.
