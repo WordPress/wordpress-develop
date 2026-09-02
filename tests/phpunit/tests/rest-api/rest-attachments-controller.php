@@ -423,6 +423,49 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->check_get_posts_response( $response );
 	}
 
+	/**
+	 * Paging through media ordered by a shared column returns each item once.
+	 *
+	 * Unattached uploads all have a post_parent of 0, so ordering by it leaves
+	 * every attachment tied. The media library and its DataViews table sort on
+	 * that column, which is where this surfaced.
+	 *
+	 * @ticket 44349
+	 * @ticket 46294
+	 */
+	public function test_get_items_paged_by_parent_returns_each_attachment_once() {
+		wp_set_current_user( self::$editor_id );
+
+		$expected = 10;
+		for ( $i = 0; $i < $expected; $i++ ) {
+			self::factory()->attachment->create_object(
+				array(
+					'file'           => "image-$i.jpg",
+					'post_parent'    => 0,
+					'post_mime_type' => 'image/jpeg',
+					'post_status'    => 'inherit',
+				)
+			);
+		}
+
+		$seen = array();
+		for ( $page = 1; $page <= 2; $page++ ) {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+			$request->set_param( 'orderby', 'parent' );
+			$request->set_param( 'order', 'asc' );
+			$request->set_param( 'per_page', 5 );
+			$request->set_param( 'page', $page );
+
+			$response = rest_get_server()->dispatch( $request );
+			$this->assertSame( 200, $response->get_status() );
+
+			$seen = array_merge( $seen, wp_list_pluck( $response->get_data(), 'id' ) );
+		}
+
+		$this->assertSameSets( array_unique( $seen ), $seen, 'An attachment was returned on more than one page' );
+		$this->assertCount( $expected, $seen, 'The pages did not add up to every attachment' );
+	}
+
 	public function test_get_items_logged_in_editor() {
 		wp_set_current_user( self::$editor_id );
 		$id1            = self::factory()->attachment->create_object(
