@@ -2611,10 +2611,11 @@ class WP_Query {
 						$found_orderby_id = true;
 					}
 				}
-			}
 
-			if ( empty( $orderby_array ) ) {
-				$orderby_array[] = "{$wpdb->posts}.post_date " . $query_vars['order'];
+				// If no valid clauses were found, order by post_date.
+				if ( empty( $orderby_array ) ) {
+					$orderby_array[] = "{$wpdb->posts}.post_date " . $query_vars['order'];
+				}
 			}
 
 			/*
@@ -2622,8 +2623,11 @@ class WP_Query {
 			 * the same value for the requested column are otherwise returned in a
 			 * different sequence each time the query runs, so a post can appear on two
 			 * pages at once or be missed entirely.
+			 *
+			 * An array 'orderby' whose keys all failed to parse stays empty here and
+			 * produces no ORDER BY at all, as it always has.
 			 */
-			if ( ! $found_orderby_id ) {
+			if ( ! $found_orderby_id && ! empty( $orderby_array ) ) {
 				/*
 				 * $last_order is already 'ASC', 'DESC', or '' here. Blank stays blank:
 				 * 'order' is forced empty for the FIELD()-based orderings, whose clauses
