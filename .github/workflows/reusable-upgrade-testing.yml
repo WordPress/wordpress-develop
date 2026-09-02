@@ -175,6 +175,9 @@ jobs:
           catch_workers_output = yes
           php_admin_flag[log_errors] = On
           php_admin_value[error_log] = ${fpm_log}
+          ; The runner turns the JIT on, which stock PHP does not. It crashes the worker on
+          ; about five percent of cold pools, so the check runs what a site runs instead.
+          php_admin_value[opcache.jit] = disable
           CONF
 
           cat > "${nginx_conf}" <<CONF
