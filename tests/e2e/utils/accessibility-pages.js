@@ -61,6 +61,21 @@ const pages = [
 		id: 'media-library-grid',
 		path: '/upload.php?mode=grid',
 		name: 'Media Library (Grid View)',
+		stateVariants: [
+			{
+				name: 'default',
+			},
+			{
+				name: 'image-modal-open',
+				setup: async ( page ) => {
+					// Click the image to open the attachment modal.
+					const imageLink = page.locator( '.attachment' ).first();
+					await imageLink.click();
+					// Wait for modal to appear.
+					await page.waitForSelector( '.media-modal' );
+				},
+			},
+		],
 	},
 	{
 		id: 'media-library-list',
