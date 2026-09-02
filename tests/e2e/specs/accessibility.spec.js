@@ -80,6 +80,40 @@ async function scanAndAssert( page, pageSpec, variant = null ) {
 }
 
 test.describe( 'Admin Pages Accessibility', () => {
+	let mediaAttachmentId = null;
+
+	test.beforeAll( async ( { requestUtils } ) => {
+		// Upload sample image to media library for testing.
+		const fs = require( 'fs' );
+		const path = require( 'path' );
+
+		const imagePath = path.join( __dirname, '../assets/sample.png' );
+		const imageBuffer = fs.readFileSync( imagePath );
+
+		const response = await requestUtils.rest( {
+			method: 'POST',
+			path: 'wp/v2/media',
+			data: imageBuffer,
+			headers: {
+				'Content-Disposition': 'attachment; filename="sample.png"',
+				'Content-Type': 'image/png',
+			},
+		} );
+
+		// Store the ID for cleanup later.
+		mediaAttachmentId = response.id;
+	} );
+
+	test.afterAll( async ( { requestUtils } ) => {
+		// Delete the uploaded image to restore initial state
+		if ( mediaAttachmentId ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `wp/v2/media/${ mediaAttachmentId }?force=true`,
+			} );
+		}
+	} );
+
 	pages.forEach( ( pageSpec ) => {
 		// Normalize: pages without stateVariants get a default variant.
 		const variants = pageSpec.stateVariants || [ { name: 'default' } ];
