@@ -2927,7 +2927,8 @@ function the_date_xml() {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|void String if retrieving.
+ * @return string|void The date when `$display` is false, or an empty string when the post's
+ *                     date matches the previously output one. Nothing otherwise.
  * @phpstan-return ( $display is true ? void : string )
  */
 function the_date( $format = '', $before = '', $after = '', $display = true ) {
@@ -3003,7 +3004,7 @@ function get_the_date( $format = '', $post = null ) {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|void String if retrieving.
+ * @return string|void The modified date when `$display` is false, nothing otherwise.
  * @phpstan-return ( $display is true ? void : string )
  */
 function the_modified_date( $format = '', $before = '', $after = '', $display = true ) {
