@@ -237,7 +237,12 @@ function get_template_part( $slug, $name = null, $args = array() ) {
  *                              accessibility. Default empty.
  * }
  * @return string|void Search form HTML if 'echo' is false, nothing otherwise.
- * @phpstan-return ( $args is array{ echo: false|0|''|'0', ... } ? string : void )
+ * @phpstan-param array<string, mixed>|bool $args
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is false|0|''|'0' ? string : void )
+ * )
  */
 function get_search_form( $args = array() ) {
 	/**
