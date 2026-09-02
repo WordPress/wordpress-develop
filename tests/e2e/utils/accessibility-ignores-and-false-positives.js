@@ -19,4 +19,14 @@ module.exports = {
 		// We consider this acceptable as these links can be distinguished by the context.
 		'strong > .row-title',
 	],
+	'aria-allowed-role': [
+		// The "group" role for the admin bar list items is flagged as invalid by axe-core.
+		// This is a known false positive in axe-core and can be ignored. Note
+		// that the 'aria-allowed-role' rule is part of the 'best-practice' rules group.
+		'#wp-admin-bar-',
+	],
+	'region': [
+		// Visually hidden text that clarifies what the ARIA live regions are about.
+		'#a11y-speak-intro-text',
+	],
 };
