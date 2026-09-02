@@ -414,9 +414,10 @@ HTML
 			'Should have modified the text at the target node.'
 		);
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$transformed,
 			$processor->get_updated_html(),
+			'<body>',
 			"Should have transformed the HTML as expected when modifying the target node's modifiable text."
 		);
 	}
@@ -574,6 +575,79 @@ HTML
 			'<?wp-bit second?>',
 			$processor->get_updated_html(),
 			'Should have applied only the last update to the document.'
+		);
+	}
+
+	/**
+	 * Ensures that RCDATA contents are eagerly escaped, despite being
+	 * optional, to protect downstream parsers from misparsing.
+	 *
+	 * @ticket 65984
+	 *
+	 * @dataProvider data_rcdata_element_names
+	 *
+	 * @param 'TITLE'|'TEXTAREA' $element_name Which RCDATA element to verify.
+	 */
+	public function test_escapes_rcdata_content( string $element_name ): void {
+		$text      = 'the <img> is text';
+		$html      = "<{$element_name}>{$text}</{$element_name}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		$this->assertTrue(
+			$processor->next_token(),
+			"Failed to advance into the {$element_name} element: check test setup."
+		);
+
+		/*
+		 * While this may look like a no-op, it should change the inner text
+		 * from `<img>` to `&lt;img&gt;`, which will be asserted below.
+		 */
+		$this->assertTrue(
+			$processor->set_modifiable_text( $text ),
+			'Failed to set the modifiable text: check test setup.'
+		);
+
+		$output = $processor->get_updated_html();
+
+		// The updated output must still remain equivalent to the input.
+		$this->assertEqualHTML(
+			$html,
+			$output,
+			'<body>',
+			'Failed to update modifiable text without changing the parsed HTML.'
+		);
+
+		// Ensure that the content is not left unescaped.
+		$this->assertStringNotContainsString(
+			'<img>',
+			$output,
+			'Should have escaped the <img> into &lt;img&lt;.'
+		);
+
+		// Finally, ensure that weaker parsers still interpret this correctly.
+		if ( class_exists( '\DOMDocument' ) ) {
+			$dom = new \DOMDocument();
+			$dom->loadHTML( $output, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING );
+
+			$first_child = $dom->getElementsByTagName( strtolower( $element_name ) )->item( 0 )->childNodes[0];
+
+			$this->assertSame(
+				$first_child->nodeValue,
+				$text,
+				'Failed to protect weaker parsers from detecting elements as RCDATA content.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_rcdata_element_names(): array {
+		return array(
+			array( 'TEXTAREA' ),
+			array( 'TITLE' ),
 		);
 	}
 
