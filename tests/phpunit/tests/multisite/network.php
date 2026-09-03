@@ -11,7 +11,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 	protected $plugin_hook_count = 0;
 
-	protected static $different_network_id;
+	protected static int $different_network_id;
 	protected static $different_site_ids = array();
 
 	public function tear_down() {
@@ -682,6 +682,73 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		$fetched_network = get_network( $new_network_id );
 		$this->assertInstanceOf( 'WP_Network', $fetched_network );
 		$this->assertSame( $new_network_id, $fetched_network->id );
+	}
+
+	/**
+	 * Tests that a cached value which is neither a network object nor the miss sentinel is treated as a cache miss.
+	 *
+	 * @ticket 65962
+	 *
+	 * @dataProvider data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss
+	 *
+	 * @param mixed $cache_value Value to poison the object cache with.
+	 */
+	public function test_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss( $cache_value ): void {
+		wp_cache_set( self::$different_network_id, $cache_value, 'networks' );
+
+		$network = WP_Network::get_instance( self::$different_network_id );
+
+		$this->assertInstanceOf( WP_Network::class, $network, 'A network object was not returned.' );
+		$this->assertSame( self::$different_network_id, $network->id, 'The wrong network was returned.' );
+	}
+
+	/**
+	 * Tests that the refetched network replaces the poisoned cache value.
+	 *
+	 * Otherwise the poisoned value survives and every subsequent lookup queries the database again.
+	 *
+	 * @ticket 65962
+	 *
+	 * @dataProvider data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss
+	 *
+	 * @param mixed $cache_value Value to poison the object cache with.
+	 */
+	public function test_get_instance_replaces_a_poisoned_cache_value( $cache_value ): void {
+		wp_cache_set( self::$different_network_id, $cache_value, 'networks' );
+
+		// Prime the object cache, replacing the poisoned value.
+		WP_Network::get_instance( self::$different_network_id );
+
+		$cached = wp_cache_get( self::$different_network_id, 'networks' );
+
+		$this->assertInstanceOf( stdClass::class, $cached, 'The poisoned value was not replaced in the object cache.' );
+		$this->assertSame( self::$different_network_id, (int) $cached->id, 'The wrong network was added to the object cache.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ mixed }>
+	 */
+	public function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
+		return array(
+			'true'                     => array( true ),
+			'a non-numeric string'     => array( 'not-a-network' ),
+			'an empty array'           => array( array() ),
+			'an array of network data' => array(
+				array(
+					'id'     => '1',
+					'domain' => 'wordpress.org',
+					'path'   => '/',
+				),
+			),
+			'an object without an id'  => array(
+				(object) array(
+					'domain' => 'wordpress.org',
+					'path'   => '/',
+				),
+			),
+		);
 	}
 
 	/**
