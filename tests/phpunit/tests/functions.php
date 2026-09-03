@@ -2121,6 +2121,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Test stream URL validation.
 	 *
+	 * @ticket 65870
+	 *
 	 * @dataProvider data_wp_is_stream
 	 *
 	 * @param string $path     The resource path or URL.
@@ -2151,6 +2153,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'https://example.com', true ),
 			array( 'ftp://example.com', true ),
 			array( 'file:///path/to/some/file', true ),
+			array( 'FILE:///path/to/some/file', true ),
 			array( 'php://some/php/file.php', true ),
 
 			// Non-stream examples.
@@ -2159,6 +2162,25 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'some/other/relative/path', false ),
 			array( '/leading/relative/path', false ),
 		);
+	}
+
+	/**
+	 * Tests that a wrapper registered under a mixed case scheme is not
+	 * reachable under a lowercased scheme.
+	 *
+	 * @ticket 65870
+	 */
+	public function test_wp_is_stream_does_not_lowercase_registered_wrappers() {
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+		stream_wrapper_register( 'wpTestMixedCase', 'WP_Test_Stream' );
+
+		$exact      = wp_is_stream( 'wpTestMixedCase://foo' );
+		$lowercased = wp_is_stream( 'wptestmixedcase://foo' );
+
+		stream_wrapper_unregister( 'wpTestMixedCase' );
+
+		$this->assertTrue( $exact, 'The scheme was not matched as registered.' );
+		$this->assertFalse( $lowercased, 'A lowercased scheme matched a mixed case wrapper.' );
 	}
 
 	/**

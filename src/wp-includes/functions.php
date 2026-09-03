@@ -7532,6 +7532,7 @@ function _device_can_upload() {
  * Tests if a given path is a stream URL
  *
  * @since 3.5.0
+ * @since 7.2.0 A lowercased scheme is accepted as a fallback, matching PHP.
  *
  * @param string $path The resource path or URL.
  * @return bool True if the path is a stream URL.
@@ -7544,9 +7545,15 @@ function wp_is_stream( $path ) {
 		return false;
 	}
 
-	$stream = substr( $path, 0, $scheme_separator );
+	$stream   = substr( $path, 0, $scheme_separator );
+	$wrappers = stream_get_wrappers();
 
-	return in_array( $stream, stream_get_wrappers(), true );
+	/*
+	 * PHP looks the scheme up as given, then retries once with it lowercased.
+	 * This is not a case-insensitive match: a wrapper registered as `MyStream`
+	 * is not reachable as `mystream`.
+	 */
+	return in_array( $stream, $wrappers, true ) || in_array( strtolower( $stream ), $wrappers, true );
 }
 
 /**
