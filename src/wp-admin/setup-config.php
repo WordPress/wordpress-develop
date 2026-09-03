@@ -358,7 +358,7 @@ switch ( $step ) {
 			$no_api = isset( $_POST['noapi'] );
 
 			if ( ! $no_api ) {
-				$secret_keys = wp_remote_get( 'https://api.wordpress.org/secret-key/1.1/salt/' );
+				$secret_keys = wp_remote_get( wp_get_api_hostname() . '/secret-key/1.1/salt/' );
 			}
 
 			if ( $no_api || is_wp_error( $secret_keys ) ) {
