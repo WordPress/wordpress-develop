@@ -68,9 +68,14 @@ test.describe( 'WordPress installation process', () => {
 
 
 	test.beforeEach( async () => {
+		// Read this before the cleanup call below, which can throw. Otherwise,
+		// if it does, `afterEach` runs anyway (Playwright always runs it) and
+		// crashes trying to restore `wp-config.php` from an unset variable,
+		// masking the real cleanup error behind a confusing second one.
+		wpConfigOriginal = readFileSync( wpConfig, 'utf-8' );
+
 		dropE2eTables();
 
-		wpConfigOriginal = readFileSync( wpConfig, 'utf-8' );
 		// Changing the table prefix tricks WP into new install mode.
 		writeFileSync(
 			wpConfig,
