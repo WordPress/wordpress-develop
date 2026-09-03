@@ -27,11 +27,8 @@ test( 'Test dismissing failed upload works correctly', async ({ page, admin, req
 		page.getByText('“sample.svg” has failed to upload.')
 	).toBeVisible();
 
-	// Ensure the error message is dismissed. The dismiss control is a button
-	// in the server-rendered async-upload.php error notice and a link in the
-	// standard per-file error UI, which client-side rejections (including the
-	// client-side media pipeline) render.
-	await page.locator('.media-item .dismiss').click();
+	// Ensure the error message is dismissed.
+	await page.getByRole('button', { name: 'Dismiss' }).click();
 	await expect(
 		page.getByText('“sample.svg” has failed to upload.')
 	).not.toBeVisible();

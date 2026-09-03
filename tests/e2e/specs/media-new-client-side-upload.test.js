@@ -12,6 +12,10 @@ import path from 'path';
 // (thumbnail, medium) so the pipeline generates and sideloads thumbnails.
 const TEST_IMAGE_PATH = path.join( __dirname, '../assets/test-image.jpg' );
 
+// A short WAV file: audio stays on the classic upload path so it keeps the
+// ID3-derived title and description that media_handle_upload() sets.
+const TEST_AUDIO_PATH = path.join( __dirname, '../assets/test-audio.wav' );
+
 // The plupload HTML5 runtime creates this hidden file input over the
 // "Select Files" browse button; setting files on it triggers FilesAdded.
 const FILE_INPUT_SELECTOR = '.moxie-shim-html5 input[type="file"]';
@@ -482,5 +486,185 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		await expect( item.locator( '.error-div' ) ).toContainText(
 			'test-image.jpg'
 		);
+	} );
+	test( 'uploads unattached when post_id is not a valid post', async ( {
+		page,
+		admin,
+		requestUtils,
+	} ) => {
+		// media_upload_form() hands plupload the raw post_id, but the screen
+		// validates it and prints the validated value; async-upload.php
+		// silently attaches to nothing, so the pipeline must do the same
+		// instead of sending the REST API a parent it will reject.
+		await admin.visitAdminPage( 'media-new.php', 'post_id=999999999' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+		await expect( page.locator( '.media-item .error-div' ) ).toHaveCount(
+			0
+		);
+
+		const [ attachment ] = await requestUtils.rest( {
+			path: '/wp/v2/media',
+			params: { per_page: 1 },
+		} );
+		expect( attachment.post ).toBeNull();
+	} );
+
+	test( 'forwards plupload multipart params to the REST upload', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		// A plugin adding a field through plupload_default_params or
+		// uploader.settings.multipart_params reads it back from $_POST on
+		// the classic path; the REST request must carry it the same way.
+		// The browser does not expose multipart bodies that carry a file,
+		// so record the FormData handed to fetch() from inside the page.
+		await page.evaluate( () => {
+			window.uploader.settings.multipart_params.e2e_custom_param =
+				'forwarded';
+
+			window.__e2eCreateBodies = [];
+			const originalFetch = window.fetch;
+			window.fetch = function ( input, init ) {
+				const url = typeof input === 'string' ? input : input.url;
+				if (
+					init &&
+					init.body instanceof FormData &&
+					/\/wp\/v2\/media(?:[?&]|$)/.test( decodeURIComponent( url ) )
+				) {
+					const fields = {};
+					init.body.forEach( ( value, key ) => {
+						fields[ key ] =
+							value instanceof Blob ? '[file]' : String( value );
+					} );
+					window.__e2eCreateBodies.push( fields );
+				}
+				return originalFetch.apply( this, arguments );
+			};
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		const bodies = await page.evaluate( () => window.__e2eCreateBodies );
+		expect( bodies.length ).toBeGreaterThanOrEqual( 1 );
+		const fields = bodies[ 0 ];
+		expect( fields.e2e_custom_param ).toBe( 'forwarded' );
+		expect( fields.file ).toBe( '[file]' );
+		// The classic transport's own fields stay behind.
+		expect( fields ).not.toHaveProperty( '_wpnonce' );
+		expect( fields ).not.toHaveProperty( 'action' );
+	} );
+
+	test( 'leaves audio files to the classic uploader', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		let asyncFileUploads = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				if ( ! /(^|&)fetch=/.test( request.postData() || '' ) ) {
+					asyncFileUploads++;
+				}
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_AUDIO_PATH );
+
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		expect( asyncFileUploads ).toBeGreaterThanOrEqual( 1 );
+		expect( restUploadCount ).toBe( 0 );
+	} );
+
+	test( 'renders a failed upload with an accessible Dismiss button', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		await failMediaCreate( page );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		// Same markup as a server-side failure from async-upload.php: a
+		// real button, described by the notice it dismisses.
+		const notice = page.locator( '.media-item .error-div' ).first();
+		await expect( notice ).toBeVisible( { timeout: 60_000 } );
+		const dismiss = notice.getByRole( 'button', { name: 'Dismiss' } );
+		await expect( dismiss ).toBeVisible();
+		await expect( dismiss ).toHaveAttribute(
+			'aria-describedby',
+			await notice.getAttribute( 'id' )
+		);
+		await expect( notice ).toContainText(
+			'“test-image.jpg” has failed to upload.'
+		);
+
+		// Dismissing removes the item and returns focus to the browse button.
+		await dismiss.click();
+		await expect( notice ).toHaveCount( 0 );
+		await expect( page.locator( '#plupload-browse-button' ) ).toBeFocused();
 	} );
 } );

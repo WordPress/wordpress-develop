@@ -118,7 +118,7 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The script depends on media-views and wp-upload-media, not
+	 * The script depends on media-views and the shared pipeline glue, not
 	 * wp-block-editor, so block editor bundles are not dragged onto
 	 * the Media Library page.
 	 *
@@ -129,8 +129,15 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 
 		$script = wp_scripts()->registered['media-library-upload'];
 		$this->assertContains( 'media-views', $script->deps );
-		$this->assertContains( 'wp-upload-media', $script->deps );
+		$this->assertContains( 'media-upload-pipeline', $script->deps );
 		$this->assertNotContains( 'wp-block-editor', $script->deps );
+
+		// The pipeline packages are pulled in through the shared glue script.
+		$pipeline = wp_scripts()->registered['media-upload-pipeline'];
+		$this->assertContains( 'wp-upload-media', $pipeline->deps );
+		$this->assertContains( 'wp-media-utils', $pipeline->deps );
+		$this->assertNotContains( 'wp-block-editor', $pipeline->deps );
+		$this->assertNotContains( 'media-views', $pipeline->deps );
 	}
 
 	/**
@@ -139,10 +146,10 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	public function test_inline_settings_expose_all_keys() {
 		wp_enqueue_media_library_upload();
 
-		$before = wp_scripts()->get_data( 'media-library-upload', 'before' );
+		$before = wp_scripts()->get_data( 'media-upload-pipeline', 'before' );
 		$inline = implode( "\n", (array) $before );
 
-		$this->assertStringContainsString( 'window._wpMediaLibraryUploadSettings', $inline );
+		$this->assertStringContainsString( 'window._wpMediaUploadPipelineSettings', $inline );
 
 		foreach ( array(
 			'maxUploadFileSize',
@@ -166,7 +173,7 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	public function test_inline_settings_match_upload_settings() {
 		wp_enqueue_media_library_upload();
 
-		$before = wp_scripts()->get_data( 'media-library-upload', 'before' );
+		$before = wp_scripts()->get_data( 'media-upload-pipeline', 'before' );
 		$inline = implode( "\n", (array) $before );
 
 		$this->assertStringContainsString(

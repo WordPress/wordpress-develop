@@ -12,6 +12,10 @@ import path from 'path';
 // (thumbnail, medium) so the pipeline generates and sideloads thumbnails.
 const TEST_IMAGE_PATH = path.join( __dirname, '../assets/test-image.jpg' );
 
+// A short WAV file: audio stays on the classic upload path so it keeps the
+// ID3-derived title and description that media_handle_upload() sets.
+const TEST_AUDIO_PATH = path.join( __dirname, '../assets/test-audio.wav' );
+
 // The plupload HTML5 runtime creates this hidden file input over the
 // "Add New" browse button; setting files on it triggers FilesAdded.
 const FILE_INPUT_SELECTOR = '.moxie-shim-html5 input[type="file"]';
@@ -470,5 +474,45 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( page.locator( 'li.attachment.uploading' ) ).toHaveCount(
 			0
 		);
+	} );
+	test( 'leaves audio files to the classic uploader', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		let asyncUploadCount = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				asyncUploadCount++;
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_AUDIO_PATH );
+
+		await expect(
+			page.locator( 'li.attachment:not(.uploading)' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
+		expect( restUploadCount ).toBe( 0 );
 	} );
 } );

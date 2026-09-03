@@ -6608,9 +6608,7 @@ function wp_set_client_side_media_processing_flag(): void {
 
 	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true;', 'before' );
 
-	$chromium_version = wp_get_chromium_major_version();
-
-	if ( null !== $chromium_version && $chromium_version >= 137 ) {
+	if ( wp_is_document_isolation_policy_supported() ) {
 		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
 	}
 }
@@ -6632,6 +6630,25 @@ function wp_get_chromium_major_version(): ?int {
 		return (int) $matches[1];
 	}
 	return null;
+}
+
+/**
+ * Determines whether the current request's browser honors the
+ * Document-Isolation-Policy header.
+ *
+ * Document-Isolation-Policy is how WordPress makes a page cross-origin
+ * isolated for client-side media processing. Chromium 137+ is the only
+ * engine that implements it; other browsers ignore the header, so the
+ * page never becomes isolated and the client-side pipeline cannot run.
+ *
+ * @since 7.2.0
+ *
+ * @return bool True when the browser is Chromium 137 or newer.
+ */
+function wp_is_document_isolation_policy_supported(): bool {
+	$chromium_version = wp_get_chromium_major_version();
+
+	return null !== $chromium_version && $chromium_version >= 137;
 }
 
 /**
@@ -6814,67 +6831,59 @@ function wp_get_media_library_upload_settings(): array {
 }
 
 /**
- * Enqueues the script that routes Media Library grid uploads through
- * the client-side media processing pipeline.
+ * Enqueues a screen's client-side upload integration script along with the
+ * shared pipeline glue and its settings.
  *
- * The script self-guards: when the browser is not cross-origin isolated
- * or lacks client-side media support, it no-ops and the classic plupload
- * flow keeps handling uploads.
+ * Nothing is enqueued unless client-side media processing is enabled and the
+ * browser honors Document-Isolation-Policy: without isolation the page never
+ * becomes cross-origin isolated, the script would no-op, and the whole
+ * wp-upload-media dependency chain would be loaded for nothing.
+ *
+ * The screen script self-guards at runtime too: when the browser turns out
+ * not to be isolated or lacks client-side media support, it no-ops and the
+ * classic plupload flow keeps handling uploads.
  *
  * @since 7.2.0
+ * @access private
+ *
+ * @param string $handle The screen script to enqueue.
  */
-function wp_enqueue_media_library_upload(): void {
+function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
 		return;
 	}
 
-	$chromium_version = wp_get_chromium_major_version();
-	if ( null === $chromium_version || $chromium_version < 137 ) {
+	if ( ! wp_is_document_isolation_policy_supported() ) {
 		return;
 	}
 
-	wp_enqueue_script( 'media-library-upload' );
+	wp_enqueue_script( $handle );
 
 	wp_add_inline_script(
-		'media-library-upload',
-		'window._wpMediaLibraryUploadSettings = ' . wp_json_encode( wp_get_media_library_upload_settings() ) . ';',
+		'media-upload-pipeline',
+		'window._wpMediaUploadPipelineSettings = ' . wp_json_encode( wp_get_media_library_upload_settings() ) . ';',
 		'before'
 	);
+}
+
+/**
+ * Enqueues the script that routes Media Library grid uploads through
+ * the client-side media processing pipeline.
+ *
+ * @since 7.2.0
+ */
+function wp_enqueue_media_library_upload(): void {
+	_wp_enqueue_media_upload_pipeline_script( 'media-library-upload' );
 }
 
 /**
  * Enqueues the script that routes "Add New Media File" screen uploads
  * through the client-side media processing pipeline.
  *
- * The script self-guards: when the browser is not cross-origin isolated
- * or lacks client-side media support, it no-ops and the classic plupload
- * flow keeps handling uploads.
- *
  * @since 7.2.0
  */
 function wp_enqueue_media_new_upload(): void {
-	if ( ! wp_is_client_side_media_processing_enabled() ) {
-		return;
-	}
-
-	/*
-	 * Cross-origin isolation relies on Document-Isolation-Policy, which only
-	 * Chromium 137+ honors. Without it the page is never isolated, the script
-	 * no-ops, and the whole wp-upload-media dependency chain would be loaded
-	 * for nothing.
-	 */
-	$chromium_version = wp_get_chromium_major_version();
-	if ( null === $chromium_version || $chromium_version < 137 ) {
-		return;
-	}
-
-	wp_enqueue_script( 'media-new-upload' );
-
-	wp_add_inline_script(
-		'media-new-upload',
-		'window._wpMediaNewUploadSettings = ' . wp_json_encode( wp_get_media_library_upload_settings() ) . ';',
-		'before'
-	);
+	_wp_enqueue_media_upload_pipeline_script( 'media-new-upload' );
 }
 
 /**
@@ -6885,9 +6894,7 @@ function wp_enqueue_media_new_upload(): void {
  * @since 7.1.0
  */
 function wp_start_cross_origin_isolation_output_buffer(): void {
-	$chromium_version = wp_get_chromium_major_version();
-
-	if ( null === $chromium_version || $chromium_version < 137 ) {
+	if ( ! wp_is_document_isolation_policy_supported() ) {
 		return;
 	}
 
