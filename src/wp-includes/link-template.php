@@ -3818,6 +3818,56 @@ function network_home_url( $path = '', $scheme = null ) {
 }
 
 /**
+ * Builds a full URL for the current request using the site's configured host.
+ *
+ * Replaces raw `$_SERVER['HTTP_HOST']` with the host from `home_url()`, which
+ * respects the DB-configured site address. This is important behind reverse
+ * proxies or load balancers where `HTTP_HOST` may not match the public host.
+ *
+ * If the request URI already contains the home path (standard setup), only the
+ * scheme and host are swapped. If the home path is missing from the request URI
+ * (e.g. a reverse proxy stripped a path prefix), the home path is prepended
+ * automatically.
+ *
+ * @since 6.9.0
+ *
+ * @see https://core.trac.wordpress.org/ticket/53998
+ *
+ * @param string|null $request_uri Optional. The request URI to use. Defaults to
+ *                                 `$_SERVER['REQUEST_URI']`.
+ * @return string Full URL of the current request.
+ */
+function wp_get_current_request_url( $request_uri = null ) {
+	if ( null === $request_uri ) {
+		$request_uri = $_SERVER['REQUEST_URI'];
+	}
+
+	$home      = home_url( '/' );
+	$home_path = wp_parse_url( $home, PHP_URL_PATH );
+
+	if ( ! $home_path ) {
+		$home_path = '/';
+	}
+
+	if ( str_starts_with( $request_uri, $home_path ) ) {
+		// Standard case: REQUEST_URI already includes the home path.
+		// Just replace scheme + host, keep the request URI as-is.
+		$parsed = wp_parse_url( $home );
+		$host   = isset( $parsed['host'] ) ? $parsed['host'] : $_SERVER['HTTP_HOST'];
+		if ( isset( $parsed['port'] ) ) {
+			$host .= ':' . $parsed['port'];
+		}
+		$url = set_url_scheme( 'http://' . $host . $request_uri );
+	} else {
+		// Reverse-proxy case: REQUEST_URI is missing the home path prefix.
+		// Let home_url() prepend it.
+		$url = home_url( $request_uri );
+	}
+
+	return $url;
+}
+
+/**
  * Retrieves the URL to the admin area for the network.
  *
  * @since 3.0.0
