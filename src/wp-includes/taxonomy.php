@@ -2309,6 +2309,8 @@ function wp_delete_category( $cat_id ) {
  * @since 4.7.0 Refactored to use WP_Term_Query, and to support any WP_Term_Query arguments.
  * @since 6.3.0 Passing `update_term_meta_cache` argument value false by default resulting in get_terms() to not
  *              prime the term meta cache.
+ * @since 7.2.0 A count is returned as a numeric string when `$fields` is 'count'. Previously requesting
+ *              a count resulted in an error.
  *
  * @param int|int[]       $object_ids The ID(s) of the object(s) to retrieve.
  * @param string|string[] $taxonomies The taxonomy names to retrieve terms from.
@@ -2411,6 +2413,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 
 	// Taxonomies registered without an 'args' param are handled here.
 	if ( ! empty( $taxonomies ) ) {
+		// Cast because a count is returned as a numeric string. The counts are summed below.
 		$terms_from_remaining_taxonomies = (array) get_terms( $args );
 
 		// Array keys should be preserved for values of $fields that use term_id for keys.
