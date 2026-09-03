@@ -2414,7 +2414,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 		}
 	}
 
-	if ( array_key_exists( 'fields', $args ) && 'count' === $args['fields'] ) {
+	if ( isset( $args['fields'] ) && 'count' === $args['fields'] ) {
 		$terms = (string) array_sum( $terms );
 	}
 
