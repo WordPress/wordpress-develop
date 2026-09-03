@@ -5106,7 +5106,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		clean_post_cache( $post_id );
 	}
 
-	if ( is_object_in_taxonomy( $post_type, 'category' ) ) {
+	if ( is_object_in_taxonomy( $post_type, 'category' ) && ( ! $update || isset( $postarr['post_category'] ) ) ) {
 		wp_set_post_categories( $post_id, $post_category );
 	}
 
