@@ -10,10 +10,13 @@
  * Adds a link using values provided in $_POST.
  *
  * @since 2.0.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @return int The link ID on success. The value 0 on failure.
  */
 function add_link() {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	return edit_link();
 }
 
@@ -21,11 +24,14 @@ function add_link() {
  * Updates or inserts a link using values provided in $_POST.
  *
  * @since 2.0.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param int $link_id Optional. ID of the link to edit. Default 0.
  * @return int The link ID on success. The value 0 on failure.
  */
 function edit_link( $link_id = 0 ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	if ( ! current_user_can( 'manage_links' ) ) {
 		wp_die(
 			'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
@@ -54,10 +60,13 @@ function edit_link( $link_id = 0 ) {
  * Retrieves the default link for editing.
  *
  * @since 2.0.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @return stdClass Default link object.
  */
 function get_default_link_to_edit() {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$link = new stdClass();
 	if ( isset( $_GET['linkurl'] ) ) {
 		$link->link_url = esc_url( wp_unslash( $_GET['linkurl'] ) );
@@ -80,6 +89,7 @@ function get_default_link_to_edit() {
  * Deletes a specified link from the database.
  *
  * @since 2.0.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -87,6 +97,8 @@ function get_default_link_to_edit() {
  * @return true Always true.
  */
 function wp_delete_link( $link_id ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	global $wpdb;
 	/**
 	 * Fires before a link is deleted.
@@ -119,11 +131,14 @@ function wp_delete_link( $link_id ) {
  * Retrieves the link category IDs associated with the link specified.
  *
  * @since 2.1.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param int $link_id Link ID to look up.
  * @return int[] The IDs of the requested link's categories.
  */
 function wp_get_link_cats( $link_id = 0 ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );
 	return array_unique( $cats );
 }
@@ -132,11 +147,14 @@ function wp_get_link_cats( $link_id = 0 ) {
  * Retrieves link data based on its ID.
  *
  * @since 2.0.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param int|stdClass $link Link ID or object to retrieve.
  * @return object Link object for editing.
  */
 function get_link_to_edit( $link ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	return get_bookmark( $link, OBJECT, 'edit' );
 }
 
@@ -147,6 +165,7 @@ function get_link_to_edit( $link ) {
  * and finally saves the link.
  *
  * @since 2.0.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -172,6 +191,8 @@ function get_link_to_edit( $link ) {
  * @return int|WP_Error The link ID on success. The value 0 or WP_Error on failure.
  */
 function wp_insert_link( $linkdata, $wp_error = false ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	global $wpdb;
 
 	$defaults = array(
@@ -271,11 +292,14 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
  * Updates link with the specified link categories.
  *
  * @since 2.1.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param int   $link_id         ID of the link to update.
  * @param int[] $link_categories Array of link category IDs to add the link to.
  */
 function wp_set_link_cats( $link_id = 0, $link_categories = array() ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	// If $link_categories isn't already an array, make it one:
 	if ( ! is_array( $link_categories ) || 0 === count( $link_categories ) ) {
 		$link_categories = array( get_option( 'default_link_category' ) );
@@ -293,11 +317,14 @@ function wp_set_link_cats( $link_id = 0, $link_categories = array() ) {
  * Updates a link in the database.
  *
  * @since 2.0.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param array $linkdata Link data to update. See wp_insert_link() for accepted arguments.
  * @return int The updated link ID on success. The value 0 on failure.
  */
 function wp_update_link( $linkdata ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$link_id = (int) $linkdata['link_id'];
 
 	$link = get_bookmark( $link_id, ARRAY_A );
