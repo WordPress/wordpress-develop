@@ -155,4 +155,65 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$this->assertNull( $option, 'Querying option table should not return transient on multisite.' );
 	}
+
+	/**
+	 * Tests that delete_expired_transients() does not delete site transients on another network.
+	 *
+	 * @ticket 65969
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::delete_expired_transients
+	 */
+	public function test_delete_expired_transients_does_not_cross_networks() {
+		global $wpdb;
+
+		$other_network_id = self::factory()->network->create();
+		$key              = 'cross_network_test';
+		$value_key        = '_site_transient_' . $key;
+		$timeout_key      = '_site_transient_timeout_' . $key;
+
+		// Main network: valid, unexpired transient (1 hour in the future).
+		add_site_option( $value_key, 'main_network_value' );
+		add_site_option( $timeout_key, time() + HOUR_IN_SECONDS );
+
+		// Other network: same transient name, already expired.
+		add_network_option( $other_network_id, $value_key, 'other_network_value' );
+		add_network_option( $other_network_id, $timeout_key, time() - 1 );
+
+		delete_expired_transients();
+
+		$main_network_rows = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT meta_key FROM {$wpdb->sitemeta} WHERE site_id = %d AND meta_key IN ( %s, %s )",
+				get_current_network_id(),
+				$value_key,
+				$timeout_key
+			)
+		);
+
+		$other_network_rows = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT meta_key FROM {$wpdb->sitemeta} WHERE site_id = %d AND meta_key IN ( %s, %s )",
+				$other_network_id,
+				$value_key,
+				$timeout_key
+			)
+		);
+
+		$this->assertContains(
+			$value_key,
+			$main_network_rows,
+			'An unexpired site transient on the main network must not be deleted because one of the same name expired on another network.'
+		);
+		$this->assertContains(
+			$timeout_key,
+			$main_network_rows,
+			'The timeout row for an unexpired site transient on the main network must remain.'
+		);
+		$this->assertEmpty(
+			$other_network_rows,
+			'The expired site transient and timeout on the other network should be deleted.'
+		);
+	}
 }
