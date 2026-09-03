@@ -12,6 +12,14 @@ services:
 		tags:
 			- phpstan.parser.richParserNodeVisitor
 
+	# Bridges WordPress core's hash notation, the nested `@type` list documenting the
+	# contents of an array or object, to PHPStan's array and object shapes.
+	# See tests/phpstan/HashNotationVisitor.php.
+	-
+		class: WordPress\PHPStan\HashNotationVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
 	# Attaches the docblock documenting a hook to the hook's call, so that the return
 	# type extension and the rules below can all read it.
 	-
@@ -75,16 +83,27 @@ parameters:
 		- ALLOW_SUBDIRECTORY_INSTALL
 		- AUTH_SALT
 		- AUTOMATIC_UPDATER_DISABLED
+		- BACKGROUND_COLOR
+		- BACKGROUND_IMAGE
 		- COOKIEPATH
 		- CUSTOM_TAGS
+		- DB_COLLATE
 		- DISALLOW_FILE_EDIT
 		- DISALLOW_UNFILTERED_HTML
+		- DOING_AJAX
+		- DOING_CRON
 		- EMPTY_TRASH_DAYS
 		- ENFORCE_GZIP
 		- FORCE_SSL_LOGIN
+		- HEADER_IMAGE
+		- HEADER_IMAGE_HEIGHT
+		- HEADER_IMAGE_WIDTH
+		- HEADER_TEXTCOLOR
 		- MEDIA_TRASH
 		- MULTISITE
+		- NO_HEADER_TEXT
 		- NOBLOGREDIRECT
+		- REST_REQUEST
 		- SAVEQUERIES
 		- SCRIPT_DEBUG
 		- SECRET_KEY
@@ -97,9 +116,13 @@ parameters:
 		- WP_DEBUG
 		- WP_DEBUG_DISPLAY
 		- WP_DEBUG_LOG
+		- WP_DEVELOPMENT_MODE
+		- WP_INSTALLING
+		- WP_INSTALLING_NETWORK
 		- WP_LANG_DIR
 		- WP_NETWORK_ADMIN
 		- WP_POST_REVISIONS
+		- WP_REPAIRING
 		- WP_SITEURL
 		- WP_USE_THEMES
 		- WP_USER_ADMIN
@@ -107,6 +130,7 @@ parameters:
 		- WPMU_ACCEL_REDIRECT
 		- WPMU_PLUGIN_DIR
 		- WPMU_SENDFILE
+		- XMLRPC_REQUEST
 
 	# What directories and files should be scanned.
 	paths:
@@ -141,6 +165,7 @@ parameters:
 		- ../../src/wp-trackback.php
 		- ../../src/xmlrpc.php
 		- GlobalDocBlockVisitor.php
+		- HashNotationVisitor.php
 		- HookDocsVisitor.php
 		- HookDocBlock.php
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php

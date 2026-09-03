@@ -6,6 +6,19 @@ name: Prepare Gutenberg build
 
 on:
   workflow_call:
+    inputs:
+      repository:
+        description: 'The repository to check out. Defaults to the repository calling this workflow.'
+        required: false
+        type: 'string'
+        default: ''
+      # Names the uploaded build too, so it must also be a valid artifact name: no slashes,
+      # and none of : < > | * ? " — a `refs/heads/trunk` or `feature/x` value fails the upload.
+      ref:
+        description: 'The branch, tag, or SHA to check out. Defaults to the commit that started the calling workflow run.'
+        required: false
+        type: 'string'
+        default: ''
     outputs:
       gutenberg-sha:
         description: 'The immutable Gutenberg source SHA verified by this workflow.'
@@ -19,18 +32,41 @@ jobs:
   prepare-gutenberg:
     name: Gutenberg
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # Two download attempts of up to six minutes each, where download.js retries internally.
+    timeout-minutes: 15
     outputs:
       gutenberg-sha: ${{ steps.download.outputs.gutenberg-sha }}
     permissions:
       contents: read
 
     steps:
+      # `ref` otherwise falls back to this run's commit, which another repository does not have.
+      - name: Require a ref when preparing another repository
+        if: ${{ inputs.repository != '' && inputs.ref == '' }}
+        run: |
+          echo 'Preparing another repository needs an explicit ref.' >&2
+          exit 1
+
+      # The upload names the artifact after `ref` and is this job's last step, so an unusable
+      # value would otherwise fail only once the whole download and verify has already run.
+      - name: Require a ref the artifact name accepts
+        if: ${{ inputs.ref != '' }}
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          invalid='[/:<>|*?"\]'
+          if [[ "$REF" =~ $invalid ]]; then
+            echo "A ref that names an artifact cannot contain / : < > | * ? \" \\ - received: $REF" >&2
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # Resolve the Gutenberg ref from the exact commit that started this workflow run.
-          ref: ${{ github.sha }}
+          repository: ${{ inputs.repository || github.repository }}
+          # Resolve the Gutenberg ref from the exact commit that started this workflow run,
+          # unless the caller is preparing a build for a repository or branch of its own.
+          ref: ${{ inputs.ref || github.sha }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
@@ -42,7 +78,17 @@ jobs:
       - name: Download and verify Gutenberg build
         id: download
         run: |
-          node tools/gutenberg/download.js
+          # Branches whose download.js predates the in-script retry stream the blob straight
+          # into tar in a single attempt, so an interrupted stream fails the run outright.
+          # One retry, not two: where download.js does retry, it already allows three tries of
+          # two minutes each, and a third attempt here would outrun `timeout-minutes` and have
+          # the job killed rather than reported.
+          if ! node tools/gutenberg/download.js; then
+            echo 'Gutenberg download failed; retrying in 5 seconds...'
+            sleep 5
+            node tools/gutenberg/download.js
+          fi
+
           gutenberg_sha="$(tr -d '\n' < gutenberg/.gutenberg-hash)"
           if [[ ! "$gutenberg_sha" =~ ^[a-fA-F0-9]{40}$ ]]; then
             echo "Expected a 40-character Gutenberg SHA, received: $gutenberg_sha" >&2
@@ -53,7 +99,10 @@ jobs:
       - name: Upload Gutenberg build
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gutenberg-build
+          # Every branch in a run shares one artifact namespace, so name the build after the
+          # ref it came from. The PHPUnit consumer composes the same name from its own `ref`,
+          # so the name is never passed between them.
+          name: gutenberg-build${{ inputs.ref && format( '-{0}', inputs.ref ) || '' }}
           path: gutenberg/
           if-no-files-found: error
           include-hidden-files: true
