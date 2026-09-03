@@ -269,7 +269,7 @@ class WP_Sitemaps {
 	 * Prevents core from issuing a 404 status header on valid sitemap requests
 	 * when no standard blog posts exist.
 	 *
-	 * @since 6.8.0
+	 * @since 7.1.1
 	 *
 	 * @param bool     $preempt Whether to short-circuit default 404 handling.
 	 * @param WP_Query $query   The global WP_Query object.
