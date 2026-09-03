@@ -3574,7 +3574,7 @@ function wp_ajax_heartbeat() {
  * @since 3.6.0
  */
 function wp_ajax_get_revision_diffs() {
-	require ABSPATH . 'wp-admin/includes/revision.php';
+	require_once ABSPATH . 'wp-admin/includes/revision.php';
 
 	$post = get_post( (int) $_REQUEST['post_id'] );
 	if ( ! $post ) {
@@ -3598,7 +3598,7 @@ function wp_ajax_get_revision_diffs() {
 		set_time_limit( 5 * MINUTE_IN_SECONDS );
 	}
 
-	foreach ( $_REQUEST['compare'] as $compare_key ) {
+	foreach ( (array) $_REQUEST['compare'] as $compare_key ) {
 		list( $compare_from, $compare_to ) = explode( ':', $compare_key ); // from:to
 
 		$return[] = array(
