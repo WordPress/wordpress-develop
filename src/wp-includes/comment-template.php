@@ -1244,10 +1244,12 @@ function get_trackback_url() {
  *
  * @see get_trackback_url()
  *
- * @param bool $deprecated_echo Deprecated. Use {@see get_trackback_url()}. Echo the URL or
+ * @param true $deprecated_echo Deprecated. Use {@see get_trackback_url()}. Echo the URL or
  *                              return it. Default true.
  * @return string|void The trackback URL when `$deprecated_echo` is false, nothing otherwise.
  * @phpstan-return ( $deprecated_echo is true ? void : string )
+ *
+ * @phpstan-ignore conditionalType.alwaysTrue (Typed `true` to flag the deprecated argument.)
  */
 function trackback_url( $deprecated_echo = true ) {
 	if ( true !== $deprecated_echo ) {
