@@ -4988,18 +4988,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		'guid'
 	);
 
-	$emoji_fields = array( 'post_title', 'post_content', 'post_excerpt' );
-
-	foreach ( $emoji_fields as $emoji_field ) {
-		if ( isset( $data[ $emoji_field ] ) ) {
-			$charset = $wpdb->get_col_charset( $wpdb->posts, $emoji_field );
-
-			// The 'utf8' character set is a deprecated alias of 'utf8mb3'. See <https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html>.
-			if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
-				$data[ $emoji_field ] = wp_encode_emoji( $data[ $emoji_field ] );
-			}
-		}
-	}
+	$data = _wp_encode_emoji_in_fields( $data, $wpdb->posts, array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 	if ( 'attachment' === $post_type ) {
 		/**
