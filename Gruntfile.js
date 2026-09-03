@@ -925,6 +925,11 @@ module.exports = function(grunt) {
 							{
 								expr: /content/im,
 								action: function( prop, value ) {
+									// Alternative text, as in `content: "\f141" / '';`, is not part of the icon.
+									var altText = ( value.match( /\s*\/\s*(?:'[^']*'|"[^"]*")\s*$/ ) || [ '' ] )[ 0 ];
+
+									value = value.slice( 0, value.length - altText.length );
+
 									if ( value === '"\\f141"' ) { // dashicons-arrow-left
 										value = '"\\f139"';
 									} else if ( value === '"\\f340"' ) { // dashicons-arrow-left-alt
@@ -938,7 +943,7 @@ module.exports = function(grunt) {
 									} else if ( value === '"\\f345"' ) { // dashicons-arrow-right-alt2
 										value = '"\\f341"';
 									}
-									return { prop: prop, value: value };
+									return { prop: prop, value: value + altText };
 								}
 							}
 						]
