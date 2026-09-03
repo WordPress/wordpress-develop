@@ -105,19 +105,19 @@ $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 // `wp_inline_script_attributes` filter (e.g. a CSP nonce) applies.
 wp_print_inline_script_tag(
 	<<<'JS'
-	function addLoadEvent(func) {
-		if (typeof jQuery !== 'undefined') {
-			jQuery(function () {
+	function addLoadEvent( func ) {
+		if ( typeof jQuery !== 'undefined' ) {
+			jQuery( function () {
 				func();
-			});
-		} else if (typeof wpOnload !== 'function') {
+			} );
+		} else if ( typeof wpOnload !== 'function' ) {
 			window.wpOnload = func;
 		} else {
-			const oldonload = wpOnload;
+			const oldOnload = window.wpOnload;
 			window.wpOnload = function () {
-				oldonload();
+				oldOnload();
 				func();
-			}
+			};
 		}
 	}
 	JS
