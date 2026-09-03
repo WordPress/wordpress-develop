@@ -2133,7 +2133,7 @@ function media_upload_header() {
 	$post_id = isset( $_REQUEST['post_id'] ) ? (int) $_REQUEST['post_id'] : 0;
 
 	wp_print_inline_script_tag(
-		sprintf( 'var post_id = %s;', wp_json_encode( $post_id ) )
+		sprintf( 'var post_id = %s;', wp_json_encode( $post_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) )
 	);
 
 	if ( empty( $_GET['chromeless'] ) ) {
