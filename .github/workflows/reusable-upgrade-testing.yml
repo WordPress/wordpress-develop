@@ -141,18 +141,10 @@ jobs:
       - name: Post-upgrade version check
         run: wp core version
 
-      - name: Check out the smoke check action
-        if: ${{ ! inputs.multisite }}
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          path: ci-tools
-          sparse-checkout: .github/actions
-          persist-credentials: false
-
       - name: Post-upgrade smoke check
         # A network's domain lives in wp-config.php and the database, not just an option.
         if: ${{ ! inputs.multisite }}
-        uses: ./ci-tools/.github/actions/smoke-check
+        uses: WordPress/wordpress-develop/.github/actions/smoke-check@trunk
         with:
           admin-user: ${{ env.WP_ADMIN_USER }}
           admin-password: ${{ env.WP_ADMIN_PASSWORD }}
