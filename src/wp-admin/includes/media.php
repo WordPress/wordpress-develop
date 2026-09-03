@@ -596,7 +596,7 @@ function wp_iframe( $content_func, ...$args ) {
 					'adminpage' => 'media-upload-popup',
 					'isRtl'     => (int) is_rtl(),
 				),
-				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
 			)
 		)
 	);
@@ -2306,7 +2306,7 @@ function media_upload_form( $errors = null ) {
 					'resize_width'   => $large_size_w,
 					'wpUploaderInit' => $plupload_init,
 				),
-				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
 			)
 		)
 	);
