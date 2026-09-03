@@ -291,6 +291,8 @@ body.js .theme-browser.search-loading {
 
 .theme-browser .theme.active .theme-actions .button:not(.button-primary):focus {
 	background: #fff;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) #fff;
+	outline: 1px solid transparent;
 }
 
 .theme-browser .theme .theme-author {
