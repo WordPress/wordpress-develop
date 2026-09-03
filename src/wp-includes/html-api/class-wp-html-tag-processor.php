@@ -1206,14 +1206,20 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
-	 * Example:
-	 *
-	 *     $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&lt;\tlang-en'>" );
-	 *     $p->next_tag();
-	 *     foreach ( $p->class_list() as $class_name ) {
-	 *         echo "{$class_name} ";
-	 *     }
-	 *     // Outputs: "free <egg> lang-en "
+	 * ```php interactive
+	 * <?php
+	 * require '/wordpress/wp-load.php';
+	 * $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&gt;\tlang-en'>" );
+	 * $p->next_tag();
+	 * foreach ( $p->class_list() as $class_name ) {
+	 *   var_dump( $class_name );
+	 * }
+	 * ```
+	 * ```expected-output
+	 * string(4) "free"
+	 * string(5) "<egg>"
+	 * string(7) "lang-en"
+	 * ```
 	 *
 	 * @since 6.4.0
 	 *
@@ -1503,7 +1509,7 @@ class WP_HTML_Tag_Processor {
 			 * though "textarea" is found within the text.
 			 */
 			$c = $html[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
+			if ( ' ' !== $c && "\t" !== $c && "\f" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
 				continue;
 			}
 
@@ -1750,6 +1756,8 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @return bool Whether a tag was found before the end of the document.
+	 *
+	 * @phpstan-impure
 	 */
 	private function parse_next_tag(): bool {
 		$this->after_tag();
@@ -3253,7 +3261,6 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $attribute_name Which attribute to adjust.
-	 *
 	 * @return string|null
 	 */
 	public function get_qualified_attribute_name( $attribute_name ): ?string {
@@ -3836,7 +3843,7 @@ class WP_HTML_Tag_Processor {
 			? $this->lexical_updates['modifiable text']->text
 			: substr( $this->html, $this->text_starts_at, $this->text_length );
 
-		/*
+		/**
 		 * An enqueued processing instruction update holds normalized raw
 		 * syntax spanning from the end of the target through the end of
 		 * the token: a separating space, the data, and the `?>` closer.
@@ -3980,6 +3987,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 * @since 7.1.0 Supports setting processing instruction data.
+	 * @since 7.2.0 Escapes content inside TITLE and TEXTAREA elements.
 	 *
 	 * @param string $plaintext_content New text content to represent in the matched token.
 	 * @return bool Whether the text was able to update.
@@ -4182,12 +4190,19 @@ class WP_HTML_Tag_Processor {
 
 			case 'TEXTAREA':
 			case 'TITLE':
-				$plaintext_content = preg_replace_callback(
-					"~</(?P<TAG_NAME>{$this->get_tag()})~i",
-					static function ( $tag_match ) {
-						return "&lt;/{$tag_match['TAG_NAME']}";
-					},
-					$plaintext_content
+				/**
+				 * While not expressly required, escaping syntax characters in these
+				 * elements will help avoid problems with downstream parser which
+				 * attempt to parse tags and other markup within. {@see \DOMDocument},
+				 * for example, will claim to find elements as children of a `TITLE`.
+				 */
+				$plaintext_content = strtr(
+					$plaintext_content,
+					array(
+						'<' => '&lt;',
+						'&' => '&amp;',
+						'>' => '&gt;',
+					)
 				);
 
 				/*
@@ -4220,7 +4235,7 @@ class WP_HTML_Tag_Processor {
 
 		_doing_it_wrong(
 			__METHOD__,
-			__( 'This tag does not support setting modifiable text.' ),
+			__( 'Only the IFRAME, NOEMBED, NOFRAMES, SCRIPT, STYLE, TEXTAREA, TITLE, and XMP tags support setting modifiable text.' ),
 			'7.1.0'
 		);
 		return false;

@@ -114,7 +114,7 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		if ( (int) $content_width > 0 ) {
 			$max_width = min( (int) $content_width, $max_width );
 		}
-	} elseif ( ! empty( $_wp_additional_image_sizes ) && in_array( $size, array_keys( $_wp_additional_image_sizes ), true ) ) {
+	} elseif ( isset( $_wp_additional_image_sizes[ $size ] ) ) {
 		$max_width  = (int) $_wp_additional_image_sizes[ $size ]['width'];
 		$max_height = (int) $_wp_additional_image_sizes[ $size ]['height'];
 		// Only in admin. Assume that theme authors know what they're doing.
@@ -4160,6 +4160,7 @@ function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false )
  *                                     or 'objects' to return an array of taxonomy objects.
  *                                     Default is 'names'.
  * @return string[]|WP_Taxonomy[] List of taxonomies or taxonomy names. Empty array on failure.
+ * @phpstan-return ( $output is 'names' ? list<non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	if ( is_int( $attachment ) ) {
@@ -4204,7 +4205,9 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	}
 
 	if ( 'names' === $output ) {
-		$taxonomies = array_unique( $taxonomies );
+		/** @var non-falsy-string[] $taxonomies */
+		$unique_taxonomies = array_values( array_unique( $taxonomies ) );
+		$taxonomies        = $unique_taxonomies;
 	}
 
 	return $taxonomies;
@@ -4222,6 +4225,7 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
  * @param string $output Optional. The type of taxonomy output to return. Accepts 'names' or 'objects'.
  *                       Default 'names'.
  * @return string[]|WP_Taxonomy[] Array of names or objects of registered taxonomies for attachments.
+ * @phpstan-return ( $output is 'names' ? list<non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_taxonomies_for_attachments( $output = 'names' ) {
 	$taxonomies = array();
@@ -5873,13 +5877,13 @@ function _wp_add_additional_image_sizes() {
  * @since 6.7.0 The default behavior is to enable heic uploads as long as the server
  *              supports the format. The uploads are converted to JPEG's by default.
  *
- * @param array[] $plupload_settings The settings for Plupload.js.
- * @return array[] Modified settings for Plupload.js.
+ * @param array<string, mixed> $plupload_settings The settings for Plupload.js.
+ * @return array<string, mixed> Modified settings for Plupload.js.
  */
 function wp_show_heic_upload_error( $plupload_settings ) {
 	// Check if HEIC images can be edited.
 	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/heic' ) ) ) {
-		$plupload_init['heic_upload_error'] = true;
+		$plupload_settings['heic_upload_error'] = true;
 	}
 	return $plupload_settings;
 }
