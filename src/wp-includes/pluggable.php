@@ -77,7 +77,7 @@ if ( ! function_exists( 'get_userdata' ) ) :
 	 *
 	 * @since 0.71
 	 *
-	 * @param int $user_id User ID
+	 * @param int $user_id User ID.
 	 * @return WP_User|false WP_User object on success, false on failure.
 	 */
 	function get_userdata( $user_id ) {
@@ -120,7 +120,7 @@ if ( ! function_exists( 'cache_users' ) ) :
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int[] $user_ids User ID numbers list
+	 * @param int[] $user_ids User ID numbers list.
 	 */
 	function cache_users( $user_ids ) {
 		global $wpdb;
