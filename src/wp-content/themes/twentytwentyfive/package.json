@@ -13,8 +13,8 @@
 	},
 	"homepage": "https://wordpress.org/themes/twentytwentyfive/",
 	"engines": {
-		"node": ">=20.10.0",
-		"npm": ">=10.2.3"
+		"node": ">=24.18.0",
+		"npm": ">=11.16.0"
 	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^6.34.0",
@@ -25,8 +25,8 @@
 	"browserslist": [
 		"extends @wordpress/browserslist-config"
 	],
-  "scripts": {
-    "build": "postcss style.css --use cssnano -o style.min.css --no-map",
-    "watch": "postcss style.css --use cssnano -o style.min.css --no-map --watch"
-  }
+	"scripts": {
+		"build": "postcss style.css --use cssnano -o style.min.css --no-map",
+		"watch": "postcss style.css --use cssnano -o style.min.css --no-map --watch"
+	}
 }
