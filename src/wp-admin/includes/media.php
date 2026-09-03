@@ -2506,6 +2506,7 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 
 	<h3 class="media-title"><?php _e( 'Insert media from another website' ); ?></h3>
 
+	<?php ob_start(); ?>
 	<script>
 	var addExtImage = {
 
@@ -2599,6 +2600,7 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 		});
 	} );
 	</script>
+	<?php wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( (string) ob_get_clean() ) ); ?>
 
 	<div id="media-items">
 	<div class="media-item media-blank">
