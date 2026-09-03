@@ -4,7 +4,7 @@
  * Tests for cross-origin isolation on the "Add New Media File" screen.
  *
  * @group media
- * @covers ::wp_set_up_media_new_cross_origin_isolation
+ * @covers ::wp_set_up_cross_origin_isolation
  */
 class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 
@@ -43,6 +43,7 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 		}
 
 		remove_all_filters( 'wp_client_side_media_processing_enabled' );
+		unset( $GLOBALS['current_screen'] );
 		parent::tear_down();
 	}
 
@@ -66,7 +67,7 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 	 * @ticket 65662
 	 */
 	public function test_hooked_to_load_media_new() {
-		$this->assertSame( 10, has_action( 'load-media-new.php', 'wp_set_up_media_new_cross_origin_isolation' ) );
+		$this->assertSame( 10, has_action( 'load-media-new.php', 'wp_set_up_cross_origin_isolation' ) );
 	}
 
 	/**
@@ -78,7 +79,8 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
 
 		$level_before = ob_get_level();
-		wp_set_up_media_new_cross_origin_isolation();
+		set_current_screen( 'media' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after );
@@ -93,7 +95,8 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 
 		$level_before = ob_get_level();
-		wp_set_up_media_new_cross_origin_isolation();
+		set_current_screen( 'media' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after );
@@ -108,7 +111,8 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		$level_before = ob_get_level();
-		wp_set_up_media_new_cross_origin_isolation();
+		set_current_screen( 'media' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after );
@@ -128,7 +132,8 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 		$this->set_up_isolation_environment();
 
 		$level_before = ob_get_level();
-		wp_set_up_media_new_cross_origin_isolation();
+		set_current_screen( 'media' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before + 1, $level_after, 'Output buffer should be started on media-new.php for Chromium 137+.' );
@@ -144,7 +149,8 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
 
 		$level_before = ob_get_level();
-		wp_set_up_media_new_cross_origin_isolation();
+		set_current_screen( 'media' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for non-Chromium browsers.' );

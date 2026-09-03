@@ -5,7 +5,7 @@
  *
  * @group media
  * @covers ::wp_get_media_library_mode
- * @covers ::wp_set_up_media_library_cross_origin_isolation
+ * @covers ::wp_set_up_cross_origin_isolation
  */
 class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 
@@ -56,6 +56,7 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		}
 
 		remove_all_filters( 'wp_client_side_media_processing_enabled' );
+		unset( $GLOBALS['current_screen'] );
 		parent::tear_down();
 	}
 
@@ -79,7 +80,7 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 	 * @ticket 65661
 	 */
 	public function test_hooked_to_load_upload() {
-		$this->assertSame( 10, has_action( 'load-upload.php', 'wp_set_up_media_library_cross_origin_isolation' ) );
+		$this->assertSame( 10, has_action( 'load-upload.php', 'wp_set_up_cross_origin_isolation' ) );
 	}
 
 	/**
@@ -168,7 +169,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		update_user_option( get_current_user_id(), 'media_library_mode', 'cards' );
 
 		$level_before = ob_get_level();
-		wp_set_up_media_library_cross_origin_isolation();
+		set_current_screen( 'upload' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after );
@@ -184,7 +186,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
 
 		$level_before = ob_get_level();
-		wp_set_up_media_library_cross_origin_isolation();
+		set_current_screen( 'upload' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after );
@@ -198,7 +201,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		$_GET['mode'] = 'list';
 
 		$level_before = ob_get_level();
-		wp_set_up_media_library_cross_origin_isolation();
+		set_current_screen( 'upload' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after );
@@ -214,7 +218,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 
 		$level_before = ob_get_level();
-		wp_set_up_media_library_cross_origin_isolation();
+		set_current_screen( 'upload' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after );
@@ -230,7 +235,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		$level_before = ob_get_level();
-		wp_set_up_media_library_cross_origin_isolation();
+		set_current_screen( 'upload' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after );
@@ -251,7 +257,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		$_GET['mode'] = 'grid';
 
 		$level_before = ob_get_level();
-		wp_set_up_media_library_cross_origin_isolation();
+		set_current_screen( 'upload' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before + 1, $level_after, 'Output buffer should be started on the grid for Chromium 137+.' );
@@ -268,7 +275,8 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 		$_GET['mode']               = 'grid';
 
 		$level_before = ob_get_level();
-		wp_set_up_media_library_cross_origin_isolation();
+		set_current_screen( 'upload' );
+		wp_set_up_cross_origin_isolation();
 		$level_after = ob_get_level();
 
 		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for non-Chromium browsers.' );

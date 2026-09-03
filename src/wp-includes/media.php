@@ -6652,17 +6652,23 @@ function wp_is_document_isolation_policy_supported(): bool {
 }
 
 /**
- * Enables cross-origin isolation in the block editor.
+ * Enables cross-origin isolation on screens that upload media client-side.
  *
  * Required for enabling SharedArrayBuffer for WebAssembly-based
- * media processing in the editor. Uses Document-Isolation-Policy
+ * media processing in the block editor, the Media Library grid, and
+ * the "Add New Media File" screen. Uses Document-Isolation-Policy
  * on supported browsers (Chromium 137+).
+ *
+ * The Media Library is only isolated in grid mode: list mode has no
+ * client-side pipeline integration, its uploads go through the
+ * "Add New Media File" screen.
  *
  * Skips setup when a third-party page builder overrides the block
  * editor via a custom `action` query parameter, as DIP would block
  * same-origin iframe access that these editors rely on.
  *
  * @since 7.1.0
+ * @since 7.2.0 Also isolates the Media Library grid and the "Add New Media File" screen.
  */
 function wp_set_up_cross_origin_isolation(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
@@ -6675,7 +6681,9 @@ function wp_set_up_cross_origin_isolation(): void {
 		return;
 	}
 
-	if ( ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
+	$is_media_screen = 'media' === $screen->id || ( 'upload' === $screen->id && 'grid' === wp_get_media_library_mode() );
+
+	if ( ! $is_media_screen && ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
 		return;
 	}
 
@@ -6700,7 +6708,7 @@ function wp_set_up_cross_origin_isolation(): void {
 	 * DIP isolates the document into its own agent cluster,
 	 * which blocks same-origin iframe access that these editors rely on.
 	 */
-	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
+	if ( ! $is_media_screen && isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
 		return;
 	}
 
@@ -6738,54 +6746,6 @@ function wp_get_media_library_mode(): string {
 	$mode = get_user_option( 'media_library_mode', get_current_user_id() );
 
 	return ( is_string( $mode ) && '' !== $mode ) ? $mode : 'grid';
-}
-
-/**
- * Enables cross-origin isolation in the Media Library grid.
- *
- * Required for enabling SharedArrayBuffer for WebAssembly-based
- * media processing when uploading via the Media Library grid.
- * List mode has no client-side pipeline integration and is not
- * isolated.
- *
- * @since 7.2.0
- */
-function wp_set_up_media_library_cross_origin_isolation(): void {
-	if ( ! wp_is_client_side_media_processing_enabled() ) {
-		return;
-	}
-
-	if ( 'grid' !== wp_get_media_library_mode() ) {
-		return;
-	}
-
-	// Cross-origin isolation is not needed if users can't upload files anyway.
-	if ( ! current_user_can( 'upload_files' ) ) {
-		return;
-	}
-
-	wp_start_cross_origin_isolation_output_buffer();
-}
-
-/**
- * Enables cross-origin isolation on the "Add New Media File" screen.
- *
- * Required for enabling SharedArrayBuffer for WebAssembly-based
- * media processing when uploading via wp-admin/media-new.php.
- *
- * @since 7.2.0
- */
-function wp_set_up_media_new_cross_origin_isolation(): void {
-	if ( ! wp_is_client_side_media_processing_enabled() ) {
-		return;
-	}
-
-	// Cross-origin isolation is not needed if users can't upload files anyway.
-	if ( ! current_user_can( 'upload_files' ) ) {
-		return;
-	}
-
-	wp_start_cross_origin_isolation_output_buffer();
 }
 
 /**
