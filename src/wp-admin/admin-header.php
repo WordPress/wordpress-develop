@@ -78,6 +78,8 @@ if ( wp_is_recovery_mode() ) {
 	$admin_title = sprintf( __( 'Recovery Mode &#8212; %s' ), $admin_title );
 }
 
+wp_capture_admin_notices();
+
 /**
  * Filters the title tag content for an admin page.
  *
@@ -290,35 +292,7 @@ $current_screen->set_parentage( $parent_file );
 
 $current_screen->render_screen_meta();
 
-if ( is_network_admin() ) {
-	/**
-	 * Prints network admin screen notices.
-	 *
-	 * @since 3.1.0
-	 */
-	do_action( 'network_admin_notices' );
-} elseif ( is_user_admin() ) {
-	/**
-	 * Prints user admin screen notices.
-	 *
-	 * @since 3.1.0
-	 */
-	do_action( 'user_admin_notices' );
-} else {
-	/**
-	 * Prints admin screen notices.
-	 *
-	 * @since 3.1.0
-	 */
-	do_action( 'admin_notices' );
-}
-
-/**
- * Prints generic admin screen notices.
- *
- * @since 3.1.0
- */
-do_action( 'all_admin_notices' );
+wp_render_admin_notices();
 
 if ( 'options-general.php' === $parent_file ) {
 	require ABSPATH . 'wp-admin/options-head.php';
