@@ -3135,7 +3135,87 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type != 'note'", $post_id ) );
+		$comments       = (array) $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_parent, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_type != 'note'", $post_id ) );
+		$comments_by_id = array();
+
+		// Create a lookup array by comment ID.
+		foreach ( $comments as $comment ) {
+			$comments_by_id[ $comment->comment_ID ] = $comment;
+		}
+
+		$comment_count           = 0;
+		$ancestor_approval_cache = array();
+
+		foreach ( $comments as $comment ) {
+			if ( '1' !== $comment->comment_approved ) {
+				$ancestor_approval_cache[ (int) $comment->comment_ID ] = false;
+			}
+		}
+
+		foreach ( $comments as $comment ) {
+
+			if ( '1' !== $comment->comment_approved ) {
+				continue;
+			}
+
+			$comment_id = (int) $comment->comment_ID;
+
+			// Use cached result if this comment's ancestry was already resolved.
+			if ( isset( $ancestor_approval_cache[ $comment_id ] ) ) {
+				if ( $ancestor_approval_cache[ $comment_id ] ) {
+					++$comment_count;
+				}
+				continue;
+			}
+
+			// Walk the ancestor chain, collecting IDs to memoize afterwards.
+			$chain          = array( $comment_id );
+			$visited        = array(
+				$comment_id => true,
+			);
+			$parent_id      = (int) $comment->comment_parent;
+			$has_unapproved = false;
+
+			while ( 0 !== $parent_id ) {
+				if ( isset( $visited[ $parent_id ] ) ) {
+					$has_unapproved = true;
+					break;
+				}
+
+				if ( isset( $ancestor_approval_cache[ $parent_id ] ) ) {
+					if ( ! $ancestor_approval_cache[ $parent_id ] ) {
+						$has_unapproved = true;
+					}
+					break;
+				}
+
+				if ( ! isset( $comments_by_id[ $parent_id ] ) ) {
+					$has_unapproved = true;
+					break;
+				}
+
+				$parent_comment = $comments_by_id[ $parent_id ];
+
+				if ( '1' !== $parent_comment->comment_approved ) {
+					$has_unapproved = true;
+					break;
+				}
+
+				$visited[ $parent_id ] = true;
+				$chain[]               = $parent_id;
+				$parent_id             = (int) $parent_comment->comment_parent;
+			}
+
+			foreach ( $chain as $chain_id ) {
+				$ancestor_approval_cache[ $chain_id ] = ! $has_unapproved;
+			}
+
+			if ( ! $has_unapproved ) {
+				++$comment_count;
+			}
+		}
+
+		$new = $comment_count;
 	} else {
 		$new = (int) $new;
 	}

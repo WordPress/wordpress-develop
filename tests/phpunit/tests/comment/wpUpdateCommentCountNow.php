@@ -86,4 +86,126 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	public function _return_100() {
 		return 100;
 	}
+
+	/**
+	 * Test case where a trashed parent comment causes its child comments to be excluded from the comment count.
+	 *
+	 * @ticket 36409
+	 */
+	public function test_trashed_parent_comment_excludes_child_comments_from_count() {
+		$post_id = self::factory()->post->create();
+
+		// Create 2 top-level comments, 2 child comments for the first top-level comment, and a grandchild of that first comment.
+		$parent_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		$child_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $parent_comment_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $parent_comment_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $child_comment_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		$this->assertSame( '5', get_comments_number( $post_id ) );
+
+		wp_update_comment(
+			array(
+				'comment_ID'       => $parent_comment_id,
+				'comment_approved' => 'trash',
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		$this->assertSame( '1', get_comments_number( $post_id ) );
+	}
+
+	/**
+	 * Test case where an unapproved parent comment causes its child comments to be excluded from the comment count.
+	 *
+	 * @ticket 36409
+	 */
+	public function test_unapproved_parent_comment_excludes_child_comments_from_count() {
+		$post_id = self::factory()->post->create();
+
+		// Create 2 top-level comments, 2 child comments for the first top-level comment, and a grandchild of that first comment.
+		$parent_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		$child_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $parent_comment_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $parent_comment_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $child_comment_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		$this->assertSame( '5', get_comments_number( $post_id ) );
+
+		wp_update_comment(
+			array(
+				'comment_ID'       => $parent_comment_id,
+				'comment_approved' => '0',
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		$this->assertSame( '1', get_comments_number( $post_id ) );
+	}
 }
