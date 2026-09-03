@@ -2282,8 +2282,6 @@ function media_upload_form( $errors = null ) {
 	 */
 	$plupload_init = apply_filters( 'plupload_init', $plupload_init );
 
-	?>
-	<?php
 	// Verify size is an int. If not return default value.
 	$large_size_h = absint( get_option( 'large_size_h' ) );
 
