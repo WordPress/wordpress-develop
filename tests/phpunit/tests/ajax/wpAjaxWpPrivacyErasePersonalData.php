@@ -170,7 +170,6 @@ class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @since 5.2.0
 	 *
 	 * @param array $erasers List of data erasers.
-	 *
 	 * @return array Array of data erasers.
 	 */
 	public function filter_eraser_callback_value( $erasers ) {
@@ -197,7 +196,6 @@ class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @since 5.2.0
 	 *
 	 * @param array $erasers Erasers.
-	 *
 	 * @return array Erasers.
 	 */
 	public function filter_unset_eraser_index( $erasers ) {
@@ -229,7 +227,6 @@ class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
-	 *
 	 * @return array Export data.
 	 */
 	public function filter_unset_response_index( $email_address, $page = 1 ) {
@@ -639,7 +636,6 @@ class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
-	 *
 	 * @return array Export data.
 	 */
 	public function filter_response_messages_invalid( $email_address, $page = 1 ) {
@@ -741,7 +737,6 @@ class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @param int    $page            The page for this response.
 	 * @param int    $request_id      The privacy request post ID associated with this request.
 	 * @param string $eraser_key      The key (slug) of the eraser that provided this data.
-	 *
 	 * @return array Filtered erase response.
 	 */
 	public function filter_eraser_data_response( $response, $eraser_index, $email_address, $page, $request_id, $eraser_key ) {
@@ -760,7 +755,6 @@ class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @since 5.2.0
 	 *
 	 * @param array $erasers An array of personal data erasers.
-	 *
 	 * @return array An array of personal data erasers.
 	 */
 	public function register_custom_personal_data_eraser( $erasers ) {
@@ -778,7 +772,6 @@ class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param  string $email_address The comment author email address.
 	 * @param  int    $page          Page number.
-	 *
 	 * @return array Erase data.
 	 */
 	public function callback_personal_data_eraser( $email_address, $page = 1 ) {

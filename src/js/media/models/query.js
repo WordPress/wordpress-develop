@@ -15,10 +15,10 @@ var Attachments = wp.media.model.Attachments,
  * @augments wp.media.model.Attachments
  * @augments Backbone.Collection
  *
- * @param {array}  [models]                      Models to initialize with the collection.
- * @param {object} [options]                     Options hash.
- * @param {object} [options.args]                Attachments query arguments.
- * @param {object} [options.args.posts_per_page]
+ * @param {wp.media.model.Attachment[]} [models]                      Models to initialize with the collection.
+ * @param {Object}                      [options]                     Options hash.
+ * @param {Object}                      [options.args]                Attachments query arguments.
+ * @param {Object}                      [options.args.posts_per_page]
  */
 Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	/**
@@ -86,7 +86,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Whether there are more attachments that haven't been sync'd from the server
 	 * that match the collection's query.
 	 *
-	 * @return {boolean}
+	 * @return {boolean} True if there are more attachments to fetch, false otherwise.
 	 */
 	hasMore: function() {
 		return this._hasMore;
@@ -95,7 +95,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Fetch more attachments from the server for the collection.
 	 *
 	 * @param {Object} [options={}]
-	 * @return {Promise}
+	 * @return {Promise} A promise that resolves when the fetch is complete.
 	 */
 	more: function( options ) {
 		var query = this;
@@ -125,7 +125,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @param {string} method
 	 * @param {Backbone.Model} model
 	 * @param {Object} [options={}]
-	 * @return {Promise}
+	 * @return {Promise} A promise that resolves when the sync is complete.
 	 */
 	sync: function( method, model, options ) {
 		var args, fallback;
@@ -210,9 +210,9 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Caches query objects and reuses where possible.
 	 *
 	 * @static
-	 * @method
+	 * @function
 	 *
-	 * @param {object} [props]
+	 * @param {Object} [props]
 	 * @param {Object} [props.order]
 	 * @param {Object} [props.orderby]
 	 * @param {Object} [props.include]
@@ -236,7 +236,9 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		var queries = [];
 
 		/**
-		 * @return {Query}
+		 * @param {Object} [props]
+		 * @param {Object} [options]
+		 * @return {Query} A new Attachments Query collection.
 		 */
 		return function( props, options ) {
 			var args     = {},
