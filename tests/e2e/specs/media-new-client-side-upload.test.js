@@ -16,6 +16,42 @@ const TEST_IMAGE_PATH = path.join( __dirname, '../assets/test-image.jpg' );
 // "Select Files" browse button; setting files on it triggers FilesAdded.
 const FILE_INPUT_SELECTOR = '.moxie-shim-html5 input[type="file"]';
 
+// A REST error the pipeline surfaces as-is: its message matches none of the
+// transient patterns @wordpress/upload-media retries on.
+const SIMULATED_ERROR = {
+	code: 'rest_upload_simulated_failure',
+	message: 'Simulated server failure for testing',
+	data: { status: 500 },
+};
+
+/**
+ * Fails every REST media create request (not sideload/finalize).
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function failMediaCreate( page ) {
+	await page.route(
+		( url ) => {
+			const decoded = decodeURIComponent( url.href );
+			return (
+				/\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) &&
+				! /\/(sideload|finalize)/.test( decoded )
+			);
+		},
+		async ( route ) => {
+			if ( route.request().method() !== 'POST' ) {
+				await route.continue();
+				return;
+			}
+			await route.fulfill( {
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify( SIMULATED_ERROR ),
+			} );
+		}
+	);
+}
+
 test.describe( 'Add New Media File client-side uploads', () => {
 	test.afterEach( async ( { requestUtils } ) => {
 		await requestUtils.deleteAllMedia();
@@ -269,5 +305,182 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			params: { per_page: 1 },
 		} );
 		expect( attachment.post ).toBe( post.id );
+	} );
+	test( 'falls back to the classic uploader when the page is not isolated', async ( {
+		page,
+		admin,
+	} ) => {
+		// Blocking the Document-Isolation-Policy header reproduces every
+		// browser that ignores it: the page is not isolated, the script
+		// must no-op, and classic plupload must still upload the file.
+		await page.route(
+			( url ) => url.pathname.endsWith( '/wp-admin/media-new.php' ),
+			async ( route ) => {
+				const response = await route.fetch();
+				const headers = { ...response.headers() };
+				delete headers[ 'document-isolation-policy' ];
+				await route.fulfill( { response, headers } );
+			}
+		);
+
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		expect( isolated ).toBe( false );
+
+		let asyncFileUploads = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				// Ignore the markup fetch (fetch=3); count file uploads.
+				if ( ! /(^|&)fetch=/.test( request.postData() || '' ) ) {
+					asyncFileUploads++;
+				}
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		expect( asyncFileUploads ).toBeGreaterThanOrEqual( 1 );
+		expect( restUploadCount ).toBe( 0 );
+	} );
+
+	test( 'uploads several files at once, including duplicates', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		let finalizeCount = 0;
+		page.on( 'request', ( request ) => {
+			if (
+				request.method() === 'POST' &&
+				/\/wp\/v2\/media\/\d+\/finalize/.test(
+					decodeURIComponent( request.url() )
+				)
+			) {
+				finalizeCount++;
+			}
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_IMAGE_PATH ] );
+
+		// Each finished row carries the Edit link (the markup may repeat
+		// the class inside a row, so count rows rather than links).
+		await expect(
+			page.locator( '#media-items .media-item:has(.edit-attachment)' )
+		).toHaveCount( 2, { timeout: 90_000 } );
+		expect( finalizeCount ).toBe( 2 );
+	} );
+
+	test( 'reports pipeline progress on the item', async ( { page, admin } ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const heldRoutes = [];
+		let holding = true;
+		await page.route(
+			( url ) => decodeURIComponent( url.href ).includes( '/sideload' ),
+			async ( route ) => {
+				if ( holding ) {
+					heldRoutes.push( route );
+					return;
+				}
+				await route.continue();
+			}
+		);
+		const sideloadRequested = page.waitForRequest(
+			( request ) =>
+				decodeURIComponent( request.url() ).includes( '/sideload' ),
+			{ timeout: 60_000 }
+		);
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await sideloadRequested;
+
+		// The screen's own progress markup (from fileQueued) reflects the
+		// pipeline: past zero, not yet complete.
+		const item = page.locator( '#media-items .media-item' ).first();
+		await expect( item.locator( '.percent' ) ).toHaveText( /^[1-9]\d?%$/ );
+		await expect( item.locator( '.bar' ) ).toHaveAttribute(
+			'style',
+			/width:\s*[1-9]/
+		);
+
+		holding = false;
+		for ( const route of heldRoutes ) {
+			await route.continue();
+		}
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+	} );
+
+	test( 'surfaces a pipeline error with the server message', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		await failMediaCreate( page );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		// itemAjaxError() renders the message inside the item, alongside
+		// the file name, exactly as a classic upload error would.
+		const item = page.locator( '#media-items .media-item' ).first();
+		await expect( item.locator( '.error-div' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
+		await expect( item.locator( '.error-div' ) ).toContainText(
+			SIMULATED_ERROR.message
+		);
+		await expect( item.locator( '.error-div' ) ).toContainText(
+			'test-image.jpg'
+		);
 	} );
 } );
