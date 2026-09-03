@@ -2380,6 +2380,13 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	/*
 	 * When one or more queried taxonomies is registered with an 'args' array,
 	 * those params override the `$args` passed to this function.
+	 *
+	 * That array is for query modifiers such as 'orderby'. Overriding 'fields'
+	 * there does not work, because callers depend on the shape they asked for:
+	 * get_the_taxonomies() reads `$term->name` off the result, and
+	 * wp_set_object_terms() needs the 'tt_ids' it requested. A taxonomy that
+	 * overrides it also returns a different shape than the taxonomies queried
+	 * below, leaving the two merged into one another here.
 	 */
 	$terms = array();
 	if ( count( $taxonomies ) > 1 ) {
