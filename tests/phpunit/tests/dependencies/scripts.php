@@ -1069,6 +1069,31 @@ HTML
 HTML
 				,
 			),
+			'jquery-deferred-in-admin'                     => array(
+				'set_up'          => function () {
+					set_current_screen( 'dashboard' );
+
+					$wp_scripts = wp_scripts();
+					wp_default_scripts( $wp_scripts );
+					foreach ( $wp_scripts->registered['jquery']->deps as $jquery_dep ) {
+						$wp_scripts->registered[ $jquery_dep ]->add_data( 'strategy', 'defer' );
+						$wp_scripts->registered[ $jquery_dep ]->ver = null; // Just to avoid markup changes in the test when jQuery is upgraded.
+					}
+					wp_enqueue_script(
+						'admin-functions',
+						'https://example.com/admin-functions.js',
+						array( 'jquery' ),
+						null,
+						array( 'strategy' => 'defer' )
+					);
+				},
+				'expected_markup' => <<<HTML
+<script src='http://$wp_tests_domain/wp-includes/js/jquery/jquery.js' id='jquery-core-js'></script>
+<script src='http://$wp_tests_domain/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js'></script>
+<script src='https://example.com/admin-functions.js' id='admin-functions-js' defer data-wp-strategy='defer'></script>
+HTML
+				,
+			),
 			'nested-aliases'                               => array(
 				'set_up'          => function () {
 					$outer_alias_handle = 'outer-bundle-of-two';
