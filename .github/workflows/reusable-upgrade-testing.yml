@@ -142,7 +142,7 @@ jobs:
         run: wp core version
 
       - name: Post-upgrade smoke check
-        # A network keeps its domain in wp-config.php and the database, not just an option.
+        # A network's domain lives in wp-config.php and the database, not just an option.
         if: ${{ ! inputs.multisite }}
         run: |
           site_url="http://127.0.0.1:${SITE_PORT}"
@@ -152,17 +152,14 @@ jobs:
           code="${RUNNER_TEMP}/http-code.txt"
           http_code=''
 
-          # None of these three are undone, so this step has to stay last.
+          # Nothing undoes these, so this step stays last.
           wp option update home "${site_url}"
           wp option update siteurl "${site_url}"
-          # A cron spawn and the update checks both make requests no check asked for, and the
-          # update checks leave the runner for api.wordpress.org.
+          # Both make requests no check asked for, and the update checks call api.wordpress.org.
           wp config set DISABLE_WP_CRON true --raw
           wp config set WP_HTTP_BLOCK_EXTERNAL true --raw
 
-          # opcache counts the built-in server as a web SAPI, not as the CLI, so it runs the
-          # JIT that the runner turns on and stock PHP does not. That JIT crashed the server
-          # on 38 of 1600 runs. With it off, none of 1600 crashed.
+          # opcache counts php -S as a web SAPI, so the runner's JIT runs here and segfaults.
           php -d opcache.jit=disable -S "127.0.0.1:${SITE_PORT}" -t . > "${server_log}" 2>&1 &
           server_pid=$!
 
@@ -175,7 +172,7 @@ jobs:
           }
           trap stop_server EXIT
 
-          # A poll that cannot connect prints 000 and exits 7, which would end the step here.
+          # No connection prints 000 and exits 7, which set -e would take as fatal.
           deadline=$(( SECONDS + 30 ))
           while :; do
             ready_code="$(curl --silent --max-time 5 --output /dev/null --write-out '%{http_code}' "${site_url}/" || true)"
@@ -184,16 +181,13 @@ jobs:
             sleep 1
           done
 
-          # Prints what came back and fails the step.
           fail() {
             echo "::error::${1}"
             tail -n 20 "${response}"
             exit 1
           }
 
-          # Requests a path, leaving the body in ${response} and the status in ${http_code}.
-          # An HTTP error is a result and comes back to the caller. No reply at all is not:
-          # the server is gone, and the log the trap prints says why.
+          # An HTTP error returns to the caller. No reply at all is fatal.
           fetch() {
             local path="${1}" status=0
             shift
@@ -207,7 +201,6 @@ jobs:
             return "${status}"
           }
 
-          # Fails the step unless the response arrives whole and contains every given string.
           check() {
             local path="${1}" marker status=0
             shift
@@ -221,8 +214,7 @@ jobs:
 
           version="$(wp core version)"
 
-          # A fatal after the first bytes leaves a 200 holding half a page, so every check also
-          # asks for the end of the document. Unlike an error string, that cannot be reworded.
+          # A fatal mid-page still returns 200, so every check also asks for the closing tag.
           check '/' "content=\"WordPress ${version}\"" 'Hello world!' '</html>'
 
           fetch '/?rest_route=/' --fail-with-body || fail "/?rest_route=/ returned HTTP ${http_code}"
@@ -230,8 +222,7 @@ jobs:
             || fail 'the REST index was not the expected JSON'
           echo 'ok  /?rest_route=/'
 
-          # The page prints this for a database that needs no upgrade and for one that holds no
-          # install at all. The checks above have already ruled the second one out.
+          # It prints this for an empty database too, which the checks above rule out.
           check '/wp-admin/upgrade.php' 'No Update Required' '</html>'
 
           fetch '/?p=99999999' || true
@@ -246,11 +237,10 @@ jobs:
           grep -qF 'wordpress_logged_in_' "${jar}" || fail 'logging in did not set an authentication cookie'
           echo 'ok  login'
 
-          # The admin bar only renders for a logged-in user, and /wp-admin/ redirects when logged out.
+          # The admin bar renders only for a logged-in user.
           check '/wp-admin/' 'id="wpadminbar"' '</html>'
 
-          # A fatal that lands after the markers, or during shutdown, still leaves a broken site.
-          # The server always writes a start line, so an empty log means the check reads nothing.
+          # Catches a fatal during shutdown. An empty log would let the grep pass silently.
           [ -s "${server_log}" ] || { echo '::error::the server wrote no log'; exit 1; }
           if grep -qE 'Fatal error|Uncaught|Segmentation fault' "${server_log}"; then
             echo '::error::the server logged a fatal error'
