@@ -77,10 +77,24 @@ test.describe( 'WordPress installation process', () => {
 		dropE2eTables();
 
 		// Changing the table prefix tricks WP into new install mode.
-		writeFileSync(
-			wpConfig,
-			wpConfigOriginal.replace( `$table_prefix = 'wp_';`, `$table_prefix = '${ TEST_TABLE_PREFIX }';` )
+		const wpConfigPatched = wpConfigOriginal.replace(
+			`$table_prefix = 'wp_';`,
+			`$table_prefix = '${ TEST_TABLE_PREFIX }';`
 		);
+
+		// A prior run killed after this rewrite but before `afterEach` restores
+		// it leaves wp-config.php stranded on TEST_TABLE_PREFIX. `.replace()`
+		// then silently no-ops instead of throwing, and since the tables were
+		// just cleared above, the site looks freshly uninstalled under the
+		// already-stranded prefix — the test would pass while leaving the
+		// checkout stuck. Fail loudly here instead.
+		if ( wpConfigPatched === wpConfigOriginal ) {
+			throw new Error(
+				`wp-config.php does not contain the default table prefix. An interrupted run may have left it on '${ TEST_TABLE_PREFIX }'.`
+			);
+		}
+
+		writeFileSync( wpConfig, wpConfigPatched );
 	} );
 
 	test.afterEach( async () => {
