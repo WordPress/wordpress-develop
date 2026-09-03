@@ -1190,6 +1190,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			'is_month',
 			'is_page',
 			'is_paged',
+			'is_post_format_archive',
 			'is_post_type_archive',
 			'is_posts_page',
 			'is_preview',

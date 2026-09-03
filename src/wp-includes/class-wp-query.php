@@ -4422,6 +4422,27 @@ class WP_Query {
 	}
 
 	/**
+	 * Is the query for an existing post format archive page?
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|string[] $post_formats Optional. Post format or array of post formats
+	 *                                      to check against. Default empty.
+	 * @return bool Whether the query is for an existing post format archive page.
+	 */
+	public function is_post_format_archive( $post_formats = '' ) {
+		$prefixed_formats = array();
+
+		if ( $post_formats ) {
+			foreach ( (array) $post_formats as $post_format ) {
+				$prefixed_formats[] = 'post-format-' . sanitize_key( $post_format );
+			}
+		}
+
+		return $this->is_tax( 'post_format', $prefixed_formats );
+	}
+
+	/**
 	 * Determines whether the current URL is within the comments popup window.
 	 *
 	 * @since 3.1.0

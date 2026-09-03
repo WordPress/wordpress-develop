@@ -346,6 +346,35 @@ function is_tax( $taxonomy = '', $term = '' ) {
 }
 
 /**
+ * Determines whether the query is for an existing post format archive page.
+ *
+ * If the $post_formats parameter is specified, this function will additionally
+ * check if the query is for one of the post formats specified.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @param string|string[] $post_formats Optional. Post format or array of post formats
+ *                                      to check against. Default empty.
+ * @return bool Whether the query is for an existing post format archive page.
+ */
+function is_post_format_archive( $post_formats = '' ) {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1.0' );
+		return false;
+	}
+
+	return $wp_query->is_post_format_archive( $post_formats );
+}
+
+/**
  * Determines whether the query is for an existing date archive.
  *
  * For more information on this and similar theme functions, check out
