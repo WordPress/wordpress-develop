@@ -2150,11 +2150,11 @@ function wp_ajax_inline_save() {
 	}
 
 	if ( empty( $data['comment_status'] ) ) {
-		$data['comment_status'] = 'closed';
+		$data['comment_status'] = $post['comment_status'];
 	}
 
 	if ( empty( $data['ping_status'] ) ) {
-		$data['ping_status'] = 'closed';
+		$data['ping_status'] = $post['ping_status'];
 	}
 
 	// Exclude terms from taxonomies that are not supposed to appear in Quick Edit.
