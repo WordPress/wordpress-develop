@@ -27,7 +27,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	 * Clean up after each test.
 	 */
 	public function tear_down() {
-		unset( $this->taxonomies );
+		$this->taxonomies = null;
 
 		parent::tear_down();
 	}
