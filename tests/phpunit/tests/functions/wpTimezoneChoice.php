@@ -112,7 +112,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	 */
 	public function test_wp_timezone_choice_es( string $expected ): void {
 		$this->restore_timezone_translations = true;
-		$timezone_list = wp_timezone_choice( '', 'es_ES' );
+		$timezone_list                       = wp_timezone_choice( '', 'es_ES' );
 		$this->assertStringContainsString( $expected, $timezone_list );
 	}
 
