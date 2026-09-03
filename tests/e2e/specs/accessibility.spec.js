@@ -7,25 +7,22 @@ const ignoresAndknownFalsePositives = require( '../utils/accessibility-ignores-a
  * Global accessibility scan rules.
  * Applied to all pages defined in utils/accessibility-pages.
  *
+ * See the Axe Options parameter documentation.
  * See: https://github.com/dequelabs/axe-core/blob/master/doc/API.md#options-parameter
  */
 const globalRules = {
 	runOnly: [ 'wcag2a', 'wcag2aa', 'best-practice' ],
+	absolutePaths: true, // Report the absolute CSS target selector for better exclusions mechanism.
 };
 
 /**
  * Filters violations to remove violations we want to intentionally ignore and known false positives.
  * Only returns violations for nodes that don't match excluded selectors.
  *
- * SELECTOR MATCHING: Uses substring matching. An exclusion pattern matches a violation's
- * target selector if the pattern appears as a substring. For example:
- *   - A violation reports a Target Selector: "th[aria-label="Privacy Policy"] > strong > .row-title".
- *   - Pattern ".row-title" MATCHES (substring found).
- *   - Pattern "strong > .row-title" MATCHES (substring found).
- *   - Pattern ".column-title .row-title" does NOT match (not a substring).
+ * See more details in tests/e2e/utils/accessibility-ignores-and-false-positives.js.
  *
  * @param {Object} results    Axe results object.
- * @param {Object} exclusions Known false positives config (rule ID → selectors[]).
+ * @param {Object} exclusions Explicit exclusions and known false positives config (rule ID → selectors[]).
  * @return {Object} Filtered results.
  */
 function filterIgnoresAndFalsePositives( results, exclusions ) {
@@ -39,9 +36,20 @@ function filterIgnoresAndFalsePositives( results, exclusions ) {
 		// Filter out nodes matching excluded selectors.
 		violation.nodes = violation.nodes.filter( ( node ) => {
 			const targetSelector = node.target[ 0 ];
-			return ! excludedSelectors.some( ( excluded ) =>
-				targetSelector?.includes( excluded )
-			);
+
+			// Check if target selector matches any excluded selector pattern.
+			const isExcluded = excludedSelectors.some( ( excluded ) => {
+				const selectors = excluded.trim().split( ' ' ).filter( s => s.length > 0 );
+				return selectors.every( selector => {
+					// Escape special regex chars, then replace \* with .* for wildcard matching
+					const escaped = selector.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+					const wildcard = escaped.replace( /\\\*/g, '.*' );
+					const pattern = `(?:^| )${ wildcard }(?=[\\s>+~\\[]|$)`;
+					return new RegExp( pattern ).test( targetSelector );
+				} );
+			} );
+
+			return ! isExcluded;
 		} );
 
 		return violation;
