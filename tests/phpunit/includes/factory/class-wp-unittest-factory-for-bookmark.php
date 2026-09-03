@@ -29,7 +29,6 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 *
 	 * @param array $args Arguments for the link object.
-	 *
 	 * @return int|WP_Error The link ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
@@ -44,7 +43,6 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int   $link_id ID of the link to update.
 	 * @param array $fields  The fields to update.
-	 *
 	 * @return int|WP_Error The link ID on success, WP_Error object on failure.
 	 */
 	public function update_object( $link_id, $fields ) {
@@ -65,7 +63,6 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * @since 4.6.0
 	 *
 	 * @param int $link_id ID of the link to retrieve.
-	 *
 	 * @return object|null The link object on success, null on failure.
 	 */
 	public function get_object_by_id( $link_id ) {

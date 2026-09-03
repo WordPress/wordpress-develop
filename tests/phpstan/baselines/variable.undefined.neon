@@ -584,11 +584,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/users.php
 		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 6
-			path: ../../../src/wp-admin/users.php
-		-
 			message: '#^Variable \$title might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1

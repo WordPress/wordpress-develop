@@ -7,6 +7,8 @@ const { execSync } = require( 'child_process' );
 const { readFileSync, writeFileSync } = require( 'fs' );
 const local_env_utils = require( './utils' );
 
+local_env_utils.ensure_env_file();
+
 dotenvExpand.expand( dotenv.config() );
 
 // Create wp-config.php. This verifies the database connection, so retrying it doubles as the

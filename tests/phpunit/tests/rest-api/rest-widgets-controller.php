@@ -1733,7 +1733,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Helper to remove links key.
 	 *
 	 * @param array $data Array of data.
-	 *
 	 * @return array
 	 */
 	protected function remove_links( $data ) {
