@@ -117,4 +117,29 @@ class Tests_Theme_wpThemeGetPostTemplates extends WP_UnitTestCase {
 		// Verify the `extra_theme_headers` filter is called.
 		$this->assertGreaterThan( 0, $filter->get_call_count(), 'The `extra_theme_headers` filter should be called at least once.' );
 	}
+
+	/**
+	 * Templates should be ordered by their human-readable name, not by the file name.
+	 *
+	 * @ticket 49194
+	 */
+	public function test_get_post_templates_are_sorted_by_name() {
+		$theme = wp_get_theme( 'page-templates-sort' );
+		$this->assertNotEmpty( $theme );
+
+		$post_templates = $theme->get_post_templates();
+		$this->assertArrayHasKey( 'page', $post_templates );
+
+		// Templates are sorted by name (case-insensitive, natural order), keeping the file names as keys.
+		$this->assertSame(
+			array(
+				'c-template.php' => 'Apple Template',
+				'b-template.php' => 'mango template',
+				'section-2.php'  => 'Section 2',
+				'section-10.php' => 'Section 10',
+				'a-template.php' => 'Zebra Template',
+			),
+			$post_templates['page']
+		);
+	}
 }

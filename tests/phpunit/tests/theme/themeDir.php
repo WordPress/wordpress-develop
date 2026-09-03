@@ -169,6 +169,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'My Subdir Theme',                    // Theme in a subdirectory should work.
 			'Page Template Child Theme',          // Theme which inherits page templates.
 			'Page Template Theme',                // Theme with page templates for other test code.
+			'Page Template Sorting Theme',        // Theme for testing page templates are sorted by name.
 			'Theme with Spaces in the Directory',
 			'Internationalized Theme',
 			'Custom Internationalized Theme',
