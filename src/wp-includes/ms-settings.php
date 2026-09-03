@@ -99,6 +99,8 @@ if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 	wp_load_core_site_options( $site_id );
 }
 
+assert( isset( $wpdb ) );
+assert( isset( $table_prefix ) );
 $wpdb->set_prefix( $table_prefix, false ); // $table_prefix can be set in sunrise.php.
 $wpdb->set_blog_id( $current_blog->blog_id, $current_blog->site_id );
 $table_prefix       = $wpdb->get_blog_prefix();
