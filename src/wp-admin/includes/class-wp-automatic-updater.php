@@ -1540,6 +1540,16 @@ class WP_Automatic_Updater {
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
+		if ( 'fail' === $type || 'mixed' === $type ) {
+			$fatal_error = get_transient( 'wp_updater_last_fatal_error' );
+			if ( is_string( $fatal_error ) ) {
+				$email['body'] .= "\n\n=== " . __( 'Last fatal PHP error', 'default' ) . " ===\n";
+				$email['body'] .= '• ' . $fatal_error . "\n";
+				$email['body'] .= "========================================\n";
+				delete_transient( 'wp_updater_last_fatal_error' );
+			}
+		}
+
 		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
 
 		if ( $result ) {
@@ -1826,6 +1836,17 @@ Thanks! -- The WordPress Team"
 			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
+		}
+
+		if ( is_array( $result ) && ! empty( $result['message'] ) && is_string( $result['message'] ) ) {
+			$fatal_error = sprintf(
+				'PHP Fatal error: %s in %s on line %d',
+				$result['message'],
+				$result['file'] ?? 'unknown',
+				$result['line'] ?? 0
+			);
+
+			set_transient( 'wp_updater_last_fatal_error', $fatal_error, 5 * MINUTE_IN_SECONDS );
 		}
 
 		delete_transient( $transient );
