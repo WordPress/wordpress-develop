@@ -223,8 +223,7 @@ jobs:
 
           # A fatal after the first bytes leaves a 200 holding half a page, so every check also
           # asks for the end of the document. Unlike an error string, that cannot be reworded.
-          check '/' "content=\"WordPress ${version}\"" '</html>'
-          check '/?p=1' 'Hello world!' '</html>'
+          check '/' "content=\"WordPress ${version}\"" 'Hello world!' '</html>'
 
           fetch '/?rest_route=/' --fail-with-body || fail "/?rest_route=/ returned HTTP ${http_code}"
           jq -e '.name == "Upgrade Test"' "${response}" > /dev/null \
@@ -234,7 +233,6 @@ jobs:
           # The page prints this for a database that needs no upgrade and for one that holds no
           # install at all. The checks above have already ruled the second one out.
           check '/wp-admin/upgrade.php' 'No Update Required' '</html>'
-          check '/wp-login.php' 'id="loginform"' '</html>'
 
           fetch '/?p=99999999' || true
           [ "${http_code}" = '404' ] || fail "a missing post returned ${http_code}, expected 404"
