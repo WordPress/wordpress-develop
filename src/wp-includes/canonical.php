@@ -10,6 +10,54 @@
  */
 
 /**
+ * Normalizes space encoding in the query string portion of a URL.
+ *
+ * Converts '+' to '%20' in the query string only, so that URLs which differ
+ * solely by space encoding in their query string are treated as equivalent.
+ * Only the query portion is normalized; the path and fragment are left intact
+ * to avoid collapsing semantically distinct URLs that differ in how reserved
+ * characters (such as '/') are encoded.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $url The URL to normalize.
+ * @return string The URL with normalized query string space encoding.
+ */
+function _wp_normalize_query_space_encoding( $url ) {
+
+	// If there is no query string, return the URL as-is.
+	$qpos = strpos( $url, '?' );
+	if ( false === $qpos ) {
+		return $url;
+	}
+
+	/**
+	 * Split the URL into three parts:
+	 * - the base (up to and including '?'),
+	 * - the query string (between '?' and '#'),
+	 * - the fragment (from '#' to the end).
+	 *
+	 * This allows us to normalize the query string without affecting the path or fragment,
+	 * which may have their own encoding that should be preserved.
+	 */
+	$hashpos = strpos( $url, '#', $qpos );
+	if ( false === $hashpos ) {
+		$base     = substr( $url, 0, $qpos + 1 );
+		$query    = substr( $url, $qpos + 1 );
+		$fragment = '';
+	} else {
+		$base     = substr( $url, 0, $qpos + 1 );
+		$query    = substr( $url, $qpos + 1, $hashpos - ( $qpos + 1 ) );
+		$fragment = substr( $url, $hashpos );
+	}
+
+	$normalized_query = str_replace( '+', '%20', $query );
+
+	return $base . $normalized_query . $fragment;
+}
+
+/**
  * Redirects incoming links to the proper URL based on the site url.
  *
  * Search engines consider www.somedomain.com and somedomain.com to be two
@@ -772,6 +820,13 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	if ( ! $redirect_url || $redirect_url === $requested_url ) {
+		return null;
+	}
+
+	$normalized_redirect_url  = _wp_normalize_query_space_encoding( $redirect_url );
+	$normalized_requested_url = _wp_normalize_query_space_encoding( $requested_url );
+
+	if ( $normalized_redirect_url === $normalized_requested_url ) {
 		return null;
 	}
 
