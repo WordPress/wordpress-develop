@@ -1776,6 +1776,23 @@ HTML;
 	}
 
 	/**
+	 * Tests that the obsolete Flash-related MediaElement.js string is no longer localized.
+	 *
+	 * @ticket 65737
+	 *
+	 * @covers ::wp_default_scripts
+	 */
+	public function test_mediaelement_l10n_does_not_include_flash_message() {
+		$wp_scripts = wp_scripts();
+		wp_default_scripts( $wp_scripts );
+
+		$inline_script = implode( '', (array) $wp_scripts->get_data( 'mediaelement-core', 'before' ) );
+
+		$this->assertStringNotContainsString( 'mejs.install-flash', $inline_script );
+		$this->assertStringContainsString( 'mejs.play', $inline_script );
+	}
+
+	/**
 	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
 	 *
 	 * @ticket 61734
