@@ -15,12 +15,6 @@
 class Tests_Fonts_WpPrintFontFacesFromStyleVariations extends WP_Font_Face_UnitTestCase {
 	const FONTS_THEME = 'fonts-block-theme';
 
-	public static function set_up_before_class() {
-		self::$requires_switch_theme_fixtures = true;
-
-		parent::set_up_before_class();
-	}
-
 	/**
 	 * Ensure that no fonts are printed when the theme has no fonts.
 	 *
