@@ -183,7 +183,11 @@ $blog_details = get_site();
 
 			<div id="signup-welcome">
 			<p><span class="h3"><?php _e( 'Username:' ); ?></span> <?php echo esc_html( $user->user_login ); ?></p>
-			<p><span class="h3"><?php _e( 'Password:' ); ?></span> <?php echo esc_html( $result['password'] ); ?></p>
+			<?php if ( empty( $result['user_already_exists'] ) ) : ?>
+				<p><span class="h3"><?php _e( 'Password:' ); ?></span> <?php echo esc_html( $result['password'] ); ?></p>
+			<?php else : ?>
+				<p><?php _e( 'You already have an account, so this site has been added using your existing username and password.' ); ?></p>
+			<?php endif; ?>
 			</div>
 
 			<?php
