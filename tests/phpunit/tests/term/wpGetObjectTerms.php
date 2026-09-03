@@ -16,7 +16,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	 * Used in the `test_taxonomies_passed_to_wp_get_object_terms_filter_should_be_quoted()` method.
 	 * This is a SQL fragment of taxonomy names from which terms were retrieved.
 	 */
-	private ?string $taxonomies;
+	private ?string $taxonomies = null;
 
 	public function set_up() {
 		parent::set_up();
