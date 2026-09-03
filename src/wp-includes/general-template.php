@@ -862,6 +862,107 @@ function wp_login_form( $args = array() ) {
 }
 
 /**
+ * Outputs or returns the lost password form for use anywhere on a WordPress site.
+ *
+ * @since 7.1.0
+ *
+ * @param array $args {
+ *     Optional. Array of arguments to control the form output. Default empty array.
+ *
+ *     @type bool   $echo          Whether to display the form or return the output. Default true.
+ *     @type string $redirect      URL to redirect to after submitting the form. Default empty string.
+ *     @type string $form_id       ID attribute for the form element. Default 'lostpasswordform'.
+ *     @type string $id_username   ID attribute for the username input. Default 'user_login'.
+ *     @type string $id_submit     ID attribute for the submit button. Default 'wp-submit'.
+ *     @type string $label_username Label for the username input. Default 'Username or Email Address'.
+ *     @type string $label_submit  Label for the submit button. Default 'Get New Password'.
+ * }
+ * @return void|string Void if 'echo' argument is true, lost password form HTML if 'echo' is false.
+ */
+function wp_lostpassword_form( $args = array() ) {
+	$defaults = array(
+		'echo'           => true,
+		'redirect'       => '',
+		'form_id'        => 'lostpasswordform',
+		'id_username'    => 'user_login',
+		'id_submit'      => 'wp-submit',
+		'label_username' => __( 'Username or Email Address' ),
+		'label_submit'   => __( 'Get New Password' ),
+	);
+
+	/**
+	 * Filters the default lost password form arguments.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @see wp_lostpassword_form()
+	 *
+	 * @param array $defaults An array of default lost password form arguments.
+	 */
+	$args = wp_parse_args( $args, apply_filters( 'lostpassword_form_defaults', $defaults ) );
+
+	$user_login = '';
+	if ( isset( $_POST['user_login'] ) && is_string( $_POST['user_login'] ) ) {
+		$user_login = wp_unslash( $_POST['user_login'] );
+	}
+
+	/**
+	 * Filters content to display at the top of the lost password form.
+	 *
+	 * The filter evaluates just following the opening form tag element.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $content Content to display. Default empty.
+	 * @param array  $args    Array of lost password form arguments.
+	 */
+	$lostpassword_form_top = apply_filters( 'lostpassword_form_top', '', $args );
+
+	/**
+	 * Filters content to display at the bottom of the lost password form.
+	 *
+	 * The filter evaluates just preceding the closing form tag element.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $content Content to display. Default empty.
+	 * @param array  $args    Array of lost password form arguments.
+	 */
+	$lostpassword_form_bottom = apply_filters( 'lostpassword_form_bottom', '', $args );
+
+	ob_start();
+	?>
+	<form name="<?php echo esc_attr( $args['form_id'] ); ?>" id="<?php echo esc_attr( $args['form_id'] ); ?>" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
+		<?php echo $lostpassword_form_top; ?>
+		<p>
+			<label for="<?php echo esc_attr( $args['id_username'] ); ?>"><?php echo esc_html( $args['label_username'] ); ?></label>
+			<input type="text" name="user_login" id="<?php echo esc_attr( $args['id_username'] ); ?>" class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+		</p>
+		<?php
+		/**
+		 * Fires inside the lost password form tags, before the hidden fields.
+		 *
+		 * @since 2.1.0
+		 */
+		do_action( 'lostpassword_form' );
+		?>
+		<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $args['redirect'] ); ?>" />
+		<p class="submit">
+			<input type="submit" name="wp-submit" id="<?php echo esc_attr( $args['id_submit'] ); ?>" class="button button-primary button-large" value="<?php echo esc_attr( $args['label_submit'] ); ?>" />
+		</p>
+		<?php echo $lostpassword_form_bottom; ?>
+	</form>
+	<?php
+	$form = ob_get_clean();
+
+	if ( $args['echo'] ) {
+		echo $form;
+	} else {
+		return $form;
+	}
+}
+
+/**
  * Returns the URL that allows the user to reset the lost password.
  *
  * @since 2.8.0
