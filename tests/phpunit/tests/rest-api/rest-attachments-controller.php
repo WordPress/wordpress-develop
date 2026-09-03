@@ -2333,6 +2333,39 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 66027
 	 *
+	 * @covers WP_REST_Attachments_Controller::record_parent_image
+	 */
+	public function test_create_item_filters_the_edited_image_metadata(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$parent_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$received  = array();
+
+		add_filter(
+			'wp_edited_image_metadata',
+			static function ( $new_image_meta, $new_attachment_id, $attachment_id ) use ( &$received ) {
+				$received                        = compact( 'new_image_meta', 'new_attachment_id', 'attachment_id' );
+				$new_image_meta['original_root'] = $attachment_id;
+				return $new_image_meta;
+			},
+			10,
+			3
+		);
+
+		$response = $this->create_edited_image_response( $parent_id );
+		$this->assertSame( 201, $response->get_status() );
+
+		$new_id = $response->get_data()['id'];
+
+		$this->assertSame( $new_id, $received['new_attachment_id'], 'The filter receives the new attachment.' );
+		$this->assertSame( $parent_id, $received['attachment_id'], 'The filter receives the source attachment.' );
+		$this->assertSame( $parent_id, $received['new_image_meta']['parent_image']['attachment_id'], 'The filter sees the recorded source.' );
+		$this->assertSame( $parent_id, wp_get_attachment_metadata( $new_id )['original_root'], 'The filtered metadata is what gets saved.' );
+	}
+
+	/**
+	 * @ticket 66027
+	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
 	 */
 	public function test_create_item_without_parent_image_records_nothing(): void {

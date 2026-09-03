@@ -720,6 +720,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'file'          => $parent_file ? _wp_relative_upload_path( $parent_file ) : '',
 		);
 
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
+		$metadata = apply_filters( 'wp_edited_image_metadata', $metadata, $attachment_id, $parent_id );
+
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 	}
 
