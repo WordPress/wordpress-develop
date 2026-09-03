@@ -1081,6 +1081,41 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a count is summed across a taxonomy registered with an 'args' array.
+	 *
+	 * Such a taxonomy is queried by a recursive call rather than alongside the others,
+	 * and that call returns the count as a numeric string rather than as an array.
+	 *
+	 * @ticket 61936
+	 */
+	public function test_should_return_numeric_string_for_fields_count_with_taxonomy_registered_with_args() {
+		$taxonomy1 = 'wptests_tax';
+		$taxonomy2 = 'wptests_tax_2';
+
+		// Any non-empty 'args' array sends the taxonomy down the recursive path.
+		register_taxonomy( $taxonomy1, 'post', array( 'args' => array( 0 ) ) );
+		register_taxonomy( $taxonomy2, 'post' );
+
+		$post_id = self::factory()->post->create();
+		$this->assertIsInt( $post_id, 'The post was not created.' );
+
+		$term_1_id = self::factory()->term->create( array( 'taxonomy' => $taxonomy1 ) );
+		$this->assertIsInt( $term_1_id, 'The term in the first taxonomy was not created.' );
+
+		$term_2_id = self::factory()->term->create( array( 'taxonomy' => $taxonomy2 ) );
+		$this->assertIsInt( $term_2_id, 'The term in the second taxonomy was not created.' );
+
+		wp_set_object_terms( $post_id, $term_1_id, $taxonomy1 );
+		wp_set_object_terms( $post_id, $term_2_id, $taxonomy2 );
+
+		$terms_count = wp_get_object_terms( $post_id, $taxonomy1, array( 'fields' => 'count' ) );
+		$this->assertSame( '1', $terms_count, 'Incorrect term count with the single taxonomy registered with args.' );
+
+		$terms_count = wp_get_object_terms( $post_id, array( $taxonomy1, $taxonomy2 ), array( 'fields' => 'count' ) );
+		$this->assertSame( '2', $terms_count, 'Incorrect term count across both taxonomies.' );
+	}
+
+	/**
 	 * Verifies that the `id=>` values of the `fields` argument key the results by term ID.
 	 *
 	 * These are the values for which the results are merged with `+` rather than with

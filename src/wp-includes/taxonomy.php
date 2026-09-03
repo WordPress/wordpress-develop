@@ -2387,7 +2387,9 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 			$t = get_taxonomy( $taxonomy );
 			if ( isset( $t->args ) && is_array( $t->args ) && array_merge( $args, $t->args ) != $args ) {
 				unset( $taxonomies[ $index ] );
-				$terms = array_merge( $terms, wp_get_object_terms( $object_ids, $taxonomy, array_merge( $args, $t->args ) ) );
+
+				// Cast because a count is returned as a numeric string. The counts are summed below.
+				$terms = array_merge( $terms, (array) wp_get_object_terms( $object_ids, $taxonomy, array_merge( $args, $t->args ) ) );
 			}
 		}
 	} else {
