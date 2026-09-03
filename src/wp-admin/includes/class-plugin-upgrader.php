@@ -212,6 +212,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		add_filter( 'upgrader_pre_install', array( $this, 'active_before' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ), 10, 4 );
 		add_filter( 'upgrader_post_install', array( $this, 'active_after' ), 10, 2 );
+
 		/*
 		 * There's a Trac ticket to move up the directory for zips which are made a bit differently, useful for non-.org plugins.
 		 * 'source_selection' => array( $this, 'source_selection' ),
@@ -457,9 +458,10 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param string $source The path to the downloaded package source.
+	 * @param string $environment The environment in which the check is running (default, in-plugin-installer, etc).
 	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
 	 */
-	public function check_package( $source ) {
+	public function check_package( $source, $environment = 'default' ) {
 		global $wp_filesystem;
 
 		$wp_version            = wp_get_wp_version();
@@ -474,6 +476,27 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $source;
 		}
 
+		if ( 'default' === $environment ) {
+			$theme_upgrader = new Theme_Upgrader();
+			$theme_upgrader->init(); // Initialize strings from parent WP_Upgrader.
+			$theme_check = $theme_upgrader->check_package( $source, 'in-theme-installer' );
+
+			if ( ! is_a( $theme_check, 'WP_Error' ) ) {
+				return new WP_Error(
+					'incompatible_archive_plugin_is_theme',
+					$theme_upgrader->strings['incompatible_archive'] . ' ' . wp_kses(
+						sprintf(
+							/* translators: %s: URL to the theme installer page. */
+							__( 'This appears to be a theme package. <a href="%s">Go to the Theme Installer</a> to install themes.' ),
+							admin_url( 'theme-install.php' )
+						),
+						array(
+							'a' => array( 'href' => true ),
+						)
+					)
+				);
+			}
+		}
 		// Check that the folder contains at least 1 valid plugin.
 		$files = glob( $working_directory . '*.php' );
 		if ( $files ) {
