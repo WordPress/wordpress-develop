@@ -1365,12 +1365,13 @@ class wpdb {
 	 * Quotes an identifier such as a table or field name.
 	 *
 	 * @since 6.2.0
+	 * @deprecated {WP_VERSION} Use {@see self::schema_object_name_for_query()}.
 	 *
 	 * @param string $identifier Identifier to escape.
-	 * @return string Escaped identifier.
+	 * @return string|null Escaped and quoted identifier, if allowable, else `null`.
 	 */
 	public function quote_identifier( $identifier ) {
-		return '`' . $this->_escape_identifier_value( $identifier ) . '`';
+		return self::schema_object_name_for_query( $identifier, 'quote-always' );
 	}
 
 	/**
@@ -1382,13 +1383,168 @@ class wpdb {
 	 *
 	 * @since 6.2.0
 	 *
+	 * @deprecated {WP_VERSION} Use {@see self::schema_object_name_for_query()}.
+	 *
 	 * @link https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
 	 *
 	 * @param string $identifier Identifier to escape.
-	 * @return string Escaped identifier.
+	 * @return string|null Escaped and unquoted identifier, if allowable, else `null`.
 	 */
 	private function _escape_identifier_value( $identifier ) {
-		return str_replace( '`', '``', $identifier );
+		$escaped = self::schema_object_name_for_query( $identifier, 'quote-always' );
+
+		return isset( $escaped ) ? substr( $escaped, 1, -1 ) : null;
+	}
+
+	/**
+	 * Returns a version of a schema object name safe for directly including in a
+	 * query (with no additional escaping), or `null` if given an invalid name.
+	 *
+	 * Not all schema object names require quoting with a backtick: this function
+	 * only provides them when the name itself demands it. To always return the
+	 * quoted form, pass the appropriate option.
+	 *
+	 * Example:
+	 *
+	 *     'test'    === schema_object_name_for_query( 'test' );
+	 *     'te$st'   === schema_object_name_for_query( 'te$st' );
+	 *     '9dogs'   === schema_object_name_for_query( '9dogs' );
+	 *     '☂'       === schema_object_name_for_query( "\u{2602}" );
+	 *
+	 *     '`%`'     === schema_object_name_for_query( '%' );
+	 *     '````'    === schema_object_name_for_query( '`' );
+	 *     '`$test`' === schema_object_name_for_query( '$test' );
+	 *     '`1337`'  === schema_object_name_for_query( '1337' );
+	 *     '`a.b`'   === schema_object_name_for_query( 'a.b' );
+	 *
+	 *     // NUL bytes are not allowed.
+	 *     null === schema_object_name_for_query( "wp_posts\x00wp_users" );
+	 *
+	 *     // Supplementary characters are not allowed.
+	 *     null === schema_object_name_for_query( "be\u{1F170}" );
+	 *
+	 *     // Non-UTF8 encodings are not supported.
+	 *     null === schema_object_name_for_query( "t\xE9st" );
+	 *
+	 * @see https://dev.mysql.com/doc/refman/8.4/en/identifiers.html
+	 *
+	 * @todo Need to fall back to valid UTF-8 detection. See #6883.
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @param string                                   $name    Schema object name to include in a query.
+	 * @param ?('quote-always'|'quote-when-necessary') $quoting Optional. When set to `quote-always`, will return the
+	 *                                                          quoted form of the given schema object name. Default
+	 *                                                          is to only quote when necessary.
+	 * @return string|null Properly escaped form of the name, if allowable, else `null`.
+	 */
+	public static function schema_object_name_for_query( string $name, string $quoting = 'quote-when-necessary' ): ?string {
+		/**
+		 * Since object names are limited to 64 characters (except for
+		 * aliases and compound statement labels, which this code
+		 * overlooks), and since Supplementary Characters are not
+		 * permitted, the maximum length is 64 * 3 bytes, because
+		 * all Basic Multilingual Plane characters encode within
+		 * three bytes.
+		 *
+		 * @see https://dev.mysql.com/doc/refman/8.4/en/identifiers.html
+		 */
+		static $max_object_name_bytes = 192;
+
+		/**
+		 * MySQL interprets “characters” in an identifier as a UTF-8 code point.
+		 * The number of bytes may be more than the number of characters.
+		 *
+		 * Example:
+		 *
+		 *    "aaa" -> 3 bytes, 3 characters
+		 *    "アアア" -> 9 bytes, 3 characters
+		 *    "🏴󠁧󠁢󠁥󠁮󠁧󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿" -> 76 bytes, 19 character
+		 *
+		 * @see https://dev.mysql.com/doc/refman/8.4/en/identifiers.html
+		 */
+		static $max_object_name_chars = 64;
+
+		/*
+		 * > Internally, identifiers are converted to and are stored as Unicode (UTF-8).
+		 *
+		 * It’s not worth trying to convert encodings. If the given name isn’t
+		 * already UTF-8 it isn’t supported by this function, even if it might
+		 * be theoretically possible to convert it into UTF-8.
+		 */
+		if ( ! mb_check_encoding( $name, 'UTF-8' ) ) {
+			return null;
+		}
+
+		$name_length = strlen( $name );
+		if (
+			0 === $name_length ||
+			$name_length > $max_object_name_bytes ||
+			mb_strlen( $name, 'UTF-8' ) > $max_object_name_chars
+		) {
+			return null;
+		}
+
+		/*
+		 * > Database, table, and column names cannot
+		 * > end with space characters.
+		 */
+		if ( ' ' === $name[ $name_length - 1 ] ) {
+			return null;
+		}
+
+		$has_forbidden_characters = false;
+		$needs_quoting            = 'quote-always' === $quoting;
+		$has_non_digits           = false;
+
+		/*
+		 * > Use of the dollar sign as the first character in the unquoted
+		 * > name of a database, table, view, column, stored program, or
+		 * > alias is deprecated, including such names used with qualifiers
+		 */
+		$needs_quoting |= '$' === $name[0];
+
+		/*
+		 * > ASCII NUL (U+0000) and supplementary characters
+		 * > (U+10000 and higher) are not permitted in
+		 * > quoted or unquoted identifiers.
+		 */
+		for ( $i = 0; $i < $name_length; $i++ ) {
+			$c = $name[ $i ];
+			$o = ord( $c );
+
+			/*
+			 * > Identifiers may begin with a digit but unless
+			 * > quoted may not consist solely of digits.
+			 */
+			$is_digit        = $c >= '0' && $c <= '9';
+			$has_non_digits |= ! $is_digit;
+
+			/*
+			 * > Permitted characters in unquoted identifiers:
+			 * >   - ASCII: [0-9,a-z,A-Z$_]
+			 * >   - Extended: U+0080 .. U+FFFF
+			 */
+			$needs_quoting |= ! (
+				( $c >= 'A' && $c <= 'Z' ) ||
+				( $c >= 'a' && $c <= 'z' ) ||
+				$is_digit || '$' === $c || '_' === $c ||
+				$o >= 0x80
+			);
+
+			$has_forbidden_characters |= ( 0 === $o ) || ( ( $o & 0xF8 ) === 0xF0 );
+		}
+
+		if ( $has_forbidden_characters ) {
+			return null;
+		}
+
+		if ( ! $needs_quoting && $has_non_digits ) {
+			return $name;
+		}
+
+		$quoted_name = str_replace( '`', '``', $name );
+		return "`{$quoted_name}`";
 	}
 
 	/**
@@ -1730,7 +1886,22 @@ class wpdb {
 
 		foreach ( $args as $i => $value ) {
 			if ( in_array( $i, $arg_identifiers, true ) ) {
-				$args_escaped[] = $this->_escape_identifier_value( $value );
+				$quoted_identifier = self::schema_object_name_for_query( $value, 'quote-always' );
+				if ( ! isset( $quoted_identifier ) ) {
+					_doing_it_wrong(
+						'wpdb::prepare',
+						sprintf(
+							/* translators: 1: Name of database Identifier. */
+							__( 'The given identifier name is not allowed by MySQL: "%1$s".' ),
+							$value
+						),
+						'{WP_VERSION}'
+					);
+
+					return null;
+				}
+
+				$args_escaped[] = substr( $quoted_identifier, 1, -1 );
 			} elseif ( is_int( $value ) || is_float( $value ) ) {
 				$args_escaped[] = $value;
 			} else {
