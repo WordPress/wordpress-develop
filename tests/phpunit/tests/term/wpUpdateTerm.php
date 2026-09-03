@@ -802,4 +802,45 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		$this->assertWPError( $found );
 		$this->assertSame( 'invalid_term', $found->get_error_code() );
 	}
+
+	/**
+	 * @ticket 36610
+	 */
+	public function test_wp_update_term_name_too_long_should_return_wp_error() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+
+		$found = wp_update_term(
+			$t,
+			'wptests_tax',
+			array(
+				'name' => str_repeat( 'a', 201 ),
+			)
+		);
+
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'term_name_too_long', $found->get_error_code() );
+	}
+
+	/**
+	 * @ticket 36610
+	 */
+	public function test_wp_update_term_name_at_max_length_should_succeed() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+
+		$found = wp_update_term(
+			$t,
+			'wptests_tax',
+			array(
+				'name' => str_repeat( 'a', 200 ),
+			)
+		);
+
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertNotWPError( $found );
+	}
 }
