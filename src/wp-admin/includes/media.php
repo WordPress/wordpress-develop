@@ -2437,13 +2437,15 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
 	<?php
 	wp_print_inline_script_tag(
 		<<<'JS'
-		jQuery(function($){
-			var preloaded = $(".media-item.preloaded");
+		jQuery( function ( $ ) {
+			var preloaded = $( '.media-item.preloaded' );
 			if ( preloaded.length > 0 ) {
-				preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
+				preloaded.each( function () {
+					prepareMediaItem( { id: this.id.replace( /[^0-9]/g, '' ) }, '' );
+				} );
 			}
 			updateMediaForm();
-		});
+		} );
 		JS
 	);
 	?>
@@ -2646,13 +2648,15 @@ function media_upload_gallery_form( $errors ) {
 
 	wp_print_inline_script_tag(
 		<<<'JS'
-		jQuery(function($){
-			var preloaded = $(".media-item.preloaded");
+		jQuery( function ( $ ) {
+			var preloaded = $( '.media-item.preloaded' );
 			if ( preloaded.length > 0 ) {
-				preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
+				preloaded.each( function () {
+					prepareMediaItem( { id: this.id.replace( /[^0-9]/g, '' ) }, '' );
+				} );
 				updateMediaForm();
 			}
-		});
+		} );
 		JS
 	);
 	?>
@@ -2978,13 +2982,15 @@ function media_upload_library_form( $errors ) {
 	<?php
 	wp_print_inline_script_tag(
 		<<<'JS'
-		jQuery(function($){
-			var preloaded = $(".media-item.preloaded");
+		jQuery( function ( $ ) {
+			var preloaded = $( '.media-item.preloaded' );
 			if ( preloaded.length > 0 ) {
-				preloaded.each(function(){prepareMediaItem({id:this.id.replace(/[^0-9]/g, '')},'');});
+				preloaded.each( function () {
+					prepareMediaItem( { id: this.id.replace( /[^0-9]/g, '' ) }, '' );
+				} );
 				updateMediaForm();
 			}
-		});
+		} );
 		JS
 	);
 	?>
