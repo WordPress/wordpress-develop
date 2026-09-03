@@ -662,7 +662,7 @@
 		 * @since 4.7.0
 		 * @private
 		 *
-		 * @param {JQuery} container
+		 * @param {JQuery} container The container of the form for creating the new item.
 		 * @return {void}
 		 */
 		submitNew: function( container ) {
@@ -951,8 +951,8 @@
 		 *
 		 * @since 4.3.0
 		 *
-		 * @param {string} id
-		 * @param {Object} options
+		 * @param {string} id      The ID for the section.
+		 * @param {Object} options Options.
 		 */
 		initialize: function( id, options ) {
 			var section = this;
@@ -2145,7 +2145,7 @@
 		/**
 		 * @since 4.6.0
 		 *
-		 * @param {Object} [params]
+		 * @param {Object} [params] Object containing options for expansion.
 		 * @return {boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
@@ -2165,7 +2165,7 @@
 		/**
 		 * @since 4.6.0
 		 *
-		 * @param {Object} [params]
+		 * @param {Object} [params] Object containing options for collapse.
 		 * @return {boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
@@ -3508,7 +3508,7 @@
 	 *
 	 * @alias wp.customize.Menus.focusMenuItemControl
 	 *
-	 * @param {string} menuItemId
+	 * @param {string} menuItemId The ID of the menu item whose control to focus.
 	 */
 	api.Menus.focusMenuItemControl = function( menuItemId ) {
 		var control = api.Menus.getMenuItemControl( menuItemId );

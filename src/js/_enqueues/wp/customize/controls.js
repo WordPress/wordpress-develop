@@ -676,7 +676,7 @@
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param {wp.customize.Class} instance
+	 * @param {wp.customize.Class} instance   The instance whose Value properties are watched.
 	 * @param {string[]}           properties The names of the Value instances to watch.
 	 */
 	api.utils.bubbleChildValueChanges = function ( instance, properties ) {
@@ -696,8 +696,8 @@
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param {Object}   [params]
-	 * @param {Function} [params.completeCallback]
+	 * @param {Object}   [params]                  Object containing options for the focus.
+	 * @param {Function} [params.completeCallback] Function to call once the construct is expanded and focused.
 	 */
 	focus = function ( params ) {
 		var construct, completeCallback, focus, focusElement, sections;
@@ -757,8 +757,8 @@
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param {(wp.customize.Panel|wp.customize.Section|wp.customize.Control)} a
-	 * @param {(wp.customize.Panel|wp.customize.Section|wp.customize.Control)} b
+	 * @param {(wp.customize.Panel|wp.customize.Section|wp.customize.Control)} a The first construct to compare.
+	 * @param {(wp.customize.Panel|wp.customize.Section|wp.customize.Control)} b The second construct to compare.
 	 * @return {number} A negative number if a has lower priority than b, a positive number if a has higher priority than b, or zero if they have the same priority.
 	 */
 	api.utils.prioritySort = function ( a, b ) {
@@ -1078,8 +1078,8 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {string} parentType
-		 * @param {string} childType
+		 * @param {string} parentType The parent's type, which is also the name of the Value on each child that holds its parent's ID.
+		 * @param {string} childType  The children's type, which is also the name of the collection on wp.customize to iterate over.
 		 * @return {wp.customize.Class[]} Array of child models sorted by priority.
 		 */
 		_children: function ( parentType, childType ) {
@@ -2953,10 +2953,10 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {boolean}  expanded
-		 * @param {Object}   args
-		 * @param {boolean}  args.unchanged
-		 * @param {Function} args.completeCallback
+		 * @param {boolean}  expanded              The expanded state to transition to.
+		 * @param {Object}   args                  Object containing options for expand/collapse.
+		 * @param {boolean}  args.unchanged        Whether the expanded state is unchanged.
+		 * @param {Function} args.completeCallback Callback to be executed once the expand/collapse action is complete.
 		 * @return {void}
 		 */
 		onChangeExpanded: function ( expanded, args ) {
@@ -3944,10 +3944,10 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {boolean}  active
-		 * @param {Object}   args
-		 * @param {number}   args.duration
-		 * @param {Function} args.completeCallback
+		 * @param {boolean}  active                The active state to transition to.
+		 * @param {Object}   args                  Object containing options for showing or hiding the control.
+		 * @param {number}   args.duration         The duration for the slideUp/slideDown animation.
+		 * @param {Function} args.completeCallback Function to call when the slideUp/slideDown has completed.
 		 */
 		onChangeActive: function ( active, args ) {
 			if ( args.unchanged ) {
@@ -4768,7 +4768,7 @@
 		/**
 		 * Updates the setting and re-renders the control UI.
 		 *
-		 * @param {Object} attachment
+		 * @param {Object} attachment Attachment object for the selected image.
 		 */
 		setImageFromAttachment: function( attachment ) {
 			var control = this;
@@ -4863,7 +4863,7 @@
 		/**
 		 * Updates the setting and re-renders the control UI.
 		 *
-		 * @param {Object} attachment
+		 * @param {Object} attachment Attachment object for the selected image.
 		 */
 		setImageFromAttachment: function( attachment ) {
 			var control = this,
@@ -5124,7 +5124,7 @@
 		/**
 		 * If cropping was skipped, apply the image data directly to the setting.
 		 *
-		 * @param {Object} selection
+		 * @param {Object} selection The image selected in the media modal.
 		 */
 		onSkippedCrop: function(selection) {
 			var url = selection.get('url'),
@@ -5138,10 +5138,10 @@
 		 * header image data and inserts it into the user-uploaded headers
 		 * collection.
 		 *
-		 * @param {string} url
-		 * @param {number} attachmentId
-		 * @param {number} width
-		 * @param {number} height
+		 * @param {string} url          URL of the header image.
+		 * @param {number} attachmentId ID of the image attachment, when the image has one.
+		 * @param {number} width        Width of the image in pixels.
+		 * @param {number} height       Height of the image in pixels.
 		 */
 		setImageFromURL: function(url, attachmentId, width, height) {
 			var choice, data = {};
@@ -6543,7 +6543,7 @@
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param {string} documentTitle
+	 * @param {string} documentTitle The title to insert into the document title template.
 	 */
 	api.setDocumentTitle = function ( documentTitle ) {
 		var tmpl, title;
@@ -7022,9 +7022,9 @@
 	 * @since 4.6.0
 	 * @private
 	 *
-	 * @param {Object}  args
-	 * @param {Object}  args.settingValidities
-	 * @param {boolean} [args.focusInvalidControl=false]
+	 * @param {Object}  args                             Arguments.
+	 * @param {Object}  args.settingValidities           Mapping of setting IDs to true, or to a mapping of error codes to notification params.
+	 * @param {boolean} [args.focusInvalidControl=false] Whether to focus the first control that has an invalid setting.
 	 * @return {void}
 	 */
 	api._handleSettingValidities = function handleSettingValidities( args ) {

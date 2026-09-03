@@ -720,7 +720,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @param {wp.customize.selectiveRefresh.Partial} partial
+	 * @param {wp.customize.selectiveRefresh.Partial} partial The partial to re-render.
 	 * @return {JQuery.Promise<*>} Promise for the request to render the partial.
 	 */
 	self.requestPartial = function( partial ) {
@@ -982,7 +982,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * @since 4.5.0
 		 * @this {wp.customize.Values}
 		 *
-		 * @param {wp.customize.Setting} setting
+		 * @param {wp.customize.Setting} setting The setting that was added.
 		 */
 		watchSettingChange = function( setting ) {
 			handleSettingChange.call( setting, setting(), null );
@@ -995,7 +995,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * @since 4.5.0
 		 * @this {wp.customize.Values}
 		 *
-		 * @param {wp.customize.Setting} setting
+		 * @param {wp.customize.Setting} setting The setting that was removed.
 		 */
 		unwatchSettingChange = function( setting ) {
 			handleSettingChange.call( setting, null, setting() );

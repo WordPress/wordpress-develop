@@ -228,7 +228,7 @@ window.wp = window.wp || {};
 	api.Value = api.Class.extend(/** @lends wp.customize.Value.prototype */{
 		/**
 		 * @param {*}      initial The initial value.
-		 * @param {Object} options
+		 * @param {Object} options Options to extend the instance with.
 		 */
 		initialize: function( initial, options ) {
 			this._value = initial; // @todo Potentially change this to a this.set() call.

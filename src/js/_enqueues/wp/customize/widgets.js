@@ -1096,7 +1096,7 @@
 		/**
 		 * Get the state for an input depending on its type.
 		 *
-		 * @param {JQuery|Element} input
+		 * @param {JQuery|Element} input The input to read the state from.
 		 * @return {string|boolean|string[]|*} State of the input.
 		 * @private
 		 */
@@ -1374,7 +1374,7 @@
 		/**
 		 * @since 4.1.0
 		 *
-		 * @param {Object} [params]
+		 * @param {Object} [params] Object containing options for expansion.
 		 * @return {boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
@@ -1391,7 +1391,7 @@
 		/**
 		 * @since 4.1.0
 		 *
-		 * @param {Object} [params]
+		 * @param {Object} [params] Object containing options for collapse.
 		 * @return {boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
@@ -1575,7 +1575,7 @@
 		/**
 		 * Toggle visibility of the widget move area
 		 *
-		 * @param {boolean} [showOrHide]
+		 * @param {boolean} [showOrHide] If not supplied, will be inverse of current visibility.
 		 */
 		toggleWidgetMoveArea: function( showOrHide ) {
 			var self = this, $moveWidgetArea;
@@ -2249,7 +2249,7 @@
 	/**
 	 * Highlight a widget control.
 	 *
-	 * @param {string} widgetId
+	 * @param {string} widgetId The ID of the widget to highlight.
 	 */
 	api.Widgets.highlightWidgetFormControl = function( widgetId ) {
 		var control = api.Widgets.getWidgetFormControlForWidget( widgetId );
@@ -2262,7 +2262,7 @@
 	/**
 	 * Focus a widget control.
 	 *
-	 * @param {string} widgetId
+	 * @param {string} widgetId The ID of the widget to focus.
 	 */
 	api.Widgets.focusWidgetFormControl = function( widgetId ) {
 		var control = api.Widgets.getWidgetFormControlForWidget( widgetId );
@@ -2274,7 +2274,7 @@
 
 	/**
 	 * Given a widget control, find the sidebar widgets control that contains it.
-	 * @param {string} widgetId
+	 * @param {string} widgetId The ID of the widget to find the sidebar widgets control for.
 	 * @return {Object|null} Sidebar widgets control that contains the widget, or null if not found.
 	 */
 	api.Widgets.getSidebarWidgetControlContainingWidget = function( widgetId ) {
@@ -2293,7 +2293,7 @@
 	/**
 	 * Given a widget ID for a widget appearing in the preview, get the widget form control associated with it.
 	 *
-	 * @param {string} widgetId
+	 * @param {string} widgetId The ID of the widget to find the form control for.
 	 * @return {Object|null} Widget form control associated with the widget, or null if not found.
 	 */
 	api.Widgets.getWidgetFormControlForWidget = function( widgetId ) {
@@ -2362,7 +2362,7 @@
 	}
 
 	/**
-	 * @param {string} widgetId
+	 * @param {string} widgetId The widget ID to parse.
 	 * @return {Object} Parsed widget ID with id_base and number properties.
 	 */
 	function parseWidgetId( widgetId ) {

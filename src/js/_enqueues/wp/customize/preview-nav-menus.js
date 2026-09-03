@@ -248,7 +248,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 			 * Render content.
 			 *
 			 * @inheritdoc
-			 * @param {wp.customize.selectiveRefresh.Placement} placement
+			 * @param {wp.customize.selectiveRefresh.Placement} placement The placement to render into.
 			 */
 			renderContent: function( placement ) {
 				var partial = this, previousContainer = placement.container;
@@ -299,8 +299,8 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {wp.customize.Value} setting
-		 * @param {Object}             [options]
+		 * @param {wp.customize.Value} setting        The setting to listen to.
+		 * @param {Object}             [options]      Options.
 		 * @param {boolean}            [options.fire] Whether to invoke the callback after binding.
 		 *                                            This is used when a dynamic setting is added.
 		 * @return {boolean} Whether the setting was bound.
@@ -347,7 +347,7 @@ wp.customize.navMenusPreview = wp.customize.MenusCustomizerPreview = ( function(
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param {wp.customize.Value} setting
+		 * @param {wp.customize.Value} setting The setting to stop listening to.
 		 * @return {void}
 		 */
 		self.unbindSettingListener = function( setting ) {
