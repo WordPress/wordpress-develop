@@ -1315,9 +1315,29 @@ function get_term_to_edit( $id, $taxonomy ) {
  *                                 If present, this parameter will be interpreted as `$args`, and the first
  *                                 function parameter will be parsed as a taxonomy or array of taxonomies.
  *                                 Default empty.
- * @return WP_Term[]|int[]|string[]|string|WP_Error Array of terms, a count thereof as a numeric string,
- *                                                  or WP_Error if any of the taxonomies do not exist.
- *                                                  See the function description for more information.
+ * @return WP_Term[]|int[]|string[]|int|string|WP_Error Array of terms, a count thereof as a numeric string,
+ *                                                      the integer 0 when the queried parent term is not in
+ *                                                      the taxonomy hierarchy, or WP_Error if any of the
+ *                                                      taxonomies do not exist. See the function description
+ *                                                      for more information.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? 0|numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : ( $deprecated is ''
+ *                             ? ( $args is array
+ *                                 ? WP_Term[]|WP_Error
+ *                                 : WP_Term[]|int[]|string[]|int|string|WP_Error )
+ *                             : WP_Term[]|int[]|string[]|int|string|WP_Error ) ) ) ) )
+ * )
  */
 function get_terms( $args = array(), $deprecated = '' ) {
 	$term_query = new WP_Term_Query();
@@ -2296,6 +2316,22 @@ function wp_delete_category( $cat_id ) {
  * @return WP_Term[]|int[]|string[]|string|WP_Error Array of terms, a count thereof as a numeric string,
  *                                                  or WP_Error if any of the taxonomies do not exist.
  *                                                  See {@see WP_Term_Query::get_terms()} for more information.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : ( $args is array
+ *                             ? WP_Term[]|WP_Error
+ *                             : WP_Term[]|int[]|string[]|string|WP_Error ) ) ) ) )
+ * )
  */
 function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	if ( empty( $object_ids ) || empty( $taxonomies ) ) {

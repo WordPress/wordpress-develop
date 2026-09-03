@@ -19,6 +19,16 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Access to an undefined property WP_Term\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
+			message: '#^Access to an undefined property WP_Term\:\:\$link\.$#'
+			identifier: property.notFound
+			count: 1
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
 			message: '#^Access to an undefined property WP_Upgrader_Skin\:\:\$language_update\.$#'
 			identifier: property.notFound
 			count: 2

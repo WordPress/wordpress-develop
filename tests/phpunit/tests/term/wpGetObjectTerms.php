@@ -1050,4 +1050,69 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$terms_count = wp_get_object_terms( $post_ids, $taxonomies, $fields );
 		$this->assertSame( '3', $terms_count, 'Incorrect term count with multiple object_ids and multiple taxonomies.' );
 	}
+
+	/**
+	 * Verifies that the `id=>` values of the `fields` argument key the results by term ID.
+	 *
+	 * These are the values for which the results are merged with `+` rather than with
+	 * array_merge(), so that the term ID keys survive.
+	 *
+	 * @ticket 61936
+	 */
+	public function test_should_return_terms_keyed_by_term_id_for_id_fields() {
+		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
+
+		$parent_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'name'     => 'Parent',
+				'slug'     => 'parent',
+			)
+		);
+		$this->assertIsInt( $parent_id, 'The parent term was not created.' );
+
+		$child_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'name'     => 'Child',
+				'slug'     => 'child',
+				'parent'   => $parent_id,
+			)
+		);
+		$this->assertIsInt( $child_id, 'The child term was not created.' );
+
+		$post_id = self::factory()->post->create();
+		$this->assertIsInt( $post_id, 'The post was not created.' );
+
+		wp_set_object_terms( $post_id, array( $parent_id, $child_id ), 'wptests_tax_hierarchical' );
+
+		$expected = array(
+			'id=>parent' => array(
+				$parent_id => 0,
+				$child_id  => $parent_id,
+			),
+			'id=>name'   => array(
+				$parent_id => 'Parent',
+				$child_id  => 'Child',
+			),
+			'id=>slug'   => array(
+				$parent_id => 'parent',
+				$child_id  => 'child',
+			),
+		);
+
+		foreach ( $expected as $fields => $expected_terms ) {
+			$actual = wp_get_object_terms(
+				$post_id,
+				'wptests_tax_hierarchical',
+				array(
+					'fields'  => $fields,
+					'orderby' => 'term_id',
+					'order'   => 'ASC',
+				)
+			);
+
+			$this->assertSame( $expected_terms, $actual, "Incorrect terms for the '$fields' fields value." );
+		}
+	}
 }
