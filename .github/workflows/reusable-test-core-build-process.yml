@@ -21,6 +21,11 @@ on:
         required: false
         type: 'boolean'
         default: true
+      test-css:
+        description: 'Whether to run the precommit:css Grunt script.'
+        required: false
+        type: 'boolean'
+        default: true
       test-certificates:
         description: 'Whether to run the certificate related Grunt scripts.'
         required: false
@@ -113,7 +118,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run CSS precommit tasks
-        if: ${{ inputs.directory == 'src' }}
+        if: ${{ inputs.test-css && inputs.directory == 'src' }}
         run: npm run grunt precommit:css
 
       - name: Ensure certificates files are updated

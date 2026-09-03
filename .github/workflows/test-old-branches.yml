@@ -7,7 +7,7 @@ on:
       - trunk
     paths:
       - '.github/workflows/test-old-branches.yml'
-      - '.github/workflows/reusable-phpunit-tests-v[1-3].yml'
+      - '.github/workflows/reusable-*.yml'
   # Run twice a month on the 1st and 15th at 00:00 UTC.
   schedule:
     - cron: '0 0 1 * *'
@@ -158,4 +158,3 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
-      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
