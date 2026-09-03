@@ -5,6 +5,11 @@
  * @covers ::wp_get_object_terms
  */
 class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
+	/**
+	 * Name of the taxonomy registered for each test.
+	 *
+	 * @var string
+	 */
 	private $taxonomy = 'wptests_tax';
 
 	/**
@@ -1049,6 +1054,33 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		$terms_count = wp_get_object_terms( $post_ids, $taxonomies, $fields );
 		$this->assertSame( '3', $terms_count, 'Incorrect term count with multiple object_ids and multiple taxonomies.' );
+	}
+
+	/**
+	 * Ensures that a count can be requested with the `$args` parameter in query string form.
+	 *
+	 * An empty object ID or taxonomy list short-circuits before `$args` would otherwise be
+	 * parsed, so the query string has to be parsed up front for the `fields` value to be read.
+	 *
+	 * @ticket 61936
+	 */
+	public function test_should_return_numeric_string_for_fields_count_passed_as_query_string() {
+		$post_id = self::factory()->post->create();
+		$this->assertIsInt( $post_id, 'The post was not created.' );
+
+		$term_id = self::factory()->term->create( array( 'taxonomy' => $this->taxonomy ) );
+		$this->assertIsInt( $term_id, 'The term was not created.' );
+
+		wp_set_object_terms( $post_id, $term_id, $this->taxonomy );
+
+		$terms_count = wp_get_object_terms( 0, $this->taxonomy, 'fields=count' );
+		$this->assertSame( '0', $terms_count, 'Incorrect term count with empty object_ids.' );
+
+		$terms_count = wp_get_object_terms( $post_id, '', 'fields=count' );
+		$this->assertSame( '0', $terms_count, 'Incorrect term count with empty taxonomies.' );
+
+		$terms_count = wp_get_object_terms( $post_id, $this->taxonomy, 'fields=count' );
+		$this->assertSame( '1', $terms_count, 'Incorrect term count.' );
 	}
 
 	/**

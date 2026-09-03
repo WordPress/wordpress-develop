@@ -2334,11 +2334,14 @@ function wp_delete_category( $cat_id ) {
  * )
  */
 function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
+	$args = wp_parse_args( $args );
+
 	if ( empty( $object_ids ) || empty( $taxonomies ) ) {
-		if ( ! array_key_exists( 'fields', $args ) || 'count' !== $args['fields'] ) {
-			return array();
+		if ( isset( $args['fields'] ) && 'count' === $args['fields'] ) {
+			return '0';
 		}
-		return '0';
+
+		return array();
 	}
 
 	if ( ! is_array( $taxonomies ) ) {
