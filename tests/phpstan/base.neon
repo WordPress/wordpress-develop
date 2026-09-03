@@ -12,6 +12,14 @@ services:
 		tags:
 			- phpstan.parser.richParserNodeVisitor
 
+	# Bridges WordPress core's hash notation, the nested `@type` list documenting the
+	# contents of an array or object, to PHPStan's array and object shapes.
+	# See tests/phpstan/HashNotationVisitor.php.
+	-
+		class: WordPress\PHPStan\HashNotationVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
 	# Attaches the docblock documenting a hook to the hook's call, so that the return
 	# type extension and the rules below can all read it.
 	-
@@ -157,6 +165,7 @@ parameters:
 		- ../../src/wp-trackback.php
 		- ../../src/xmlrpc.php
 		- GlobalDocBlockVisitor.php
+		- HashNotationVisitor.php
 		- HookDocsVisitor.php
 		- HookDocBlock.php
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
@@ -217,3 +226,11 @@ parameters:
 			- ../../src/wp-includes/pomo
 			- ../../src/wp-includes/rss.php
 			- ../../src/wp-includes/sodium_compat
+	typeAliases:
+		# A callable that may not be defined in the current scope.
+		Maybe_Callable: '''
+			callable|string|array{
+				0: string|object,
+				1: string,
+			}
+		'''
