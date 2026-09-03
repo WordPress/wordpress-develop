@@ -1332,6 +1332,13 @@ class WP_Theme_JSON {
 		$schema_settings_blocks = array();
 		$breakpoint_states      = array_keys( $responsive_media_queries );
 
+		$common_block_settings = static::VALID_SETTINGS;
+		// `viewport` and `blockVisibility` are global-only settings and cannot be set per block for now.
+		unset(
+			$common_block_settings['viewport'],
+			$common_block_settings['blockVisibility']
+		);
+
 		/*
 		 * Generate a schema for blocks.
 		 * - Block styles can contain `elements`, `variations`, and responsive breakpoint state definitions.
@@ -1356,11 +1363,8 @@ class WP_Theme_JSON {
 		}
 
 		foreach ( $valid_block_names as $block ) {
-			$schema_settings_blocks[ $block ] = static::VALID_SETTINGS;
-			// `viewport` and `blockVisibility` are global-only settings and cannot be set per block for now.
-			unset( $schema_settings_blocks[ $block ]['viewport'] );
-			unset( $schema_settings_blocks[ $block ]['blockVisibility'] );
-			$schema_styles_blocks[ $block ] = $common_block_schema;
+			$schema_settings_blocks[ $block ] = $common_block_settings;
+			$schema_styles_blocks[ $block ]   = $common_block_schema;
 
 			// Add responsive pseudo-selectors only to blocks that support them.
 			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
