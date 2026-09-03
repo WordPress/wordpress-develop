@@ -232,6 +232,74 @@
 		);
 	}
 
+	// The pipeline never reports a numeric `progress` on its queue items
+	// (nothing dispatches updateItemProgress), so estimate one from the
+	// item's operation queue instead: each finished operation (prepare,
+	// transcode, upload, thumbnails, finalize) advances the bar, and the
+	// sub-sizes sideloaded so far advance it within thumbnail generation.
+	// `item.progress` is preferred whenever it is present.
+	var operationTotals = new Map();
+	var imageSizeCount = Object.keys( settings.allImageSizes || {} ).length;
+
+	/**
+	 * Estimates the progress (0-100) of a queue item.
+	 *
+	 * @param {Object} item The upload-media queue item.
+	 * @return {number} Estimated progress.
+	 */
+	function estimateProgress( item ) {
+		if ( typeof item.progress === 'number' ) {
+			return item.progress;
+		}
+
+		var remaining = item.operations ? item.operations.length : 0;
+		var totals = operationTotals.get( item.id );
+		if ( ! totals ) {
+			totals = { total: remaining, remaining: remaining };
+			operationTotals.set( item.id, totals );
+		}
+		// Operations are appended after preparation, so grow the total.
+		if ( remaining > totals.remaining ) {
+			totals.total += remaining - totals.remaining;
+		}
+		totals.remaining = remaining;
+
+		if ( totals.total === 0 ) {
+			return 0;
+		}
+
+		var completed = totals.total - remaining;
+		var fraction = 0;
+		if (
+			'THUMBNAIL_GENERATION' === item.currentOperation &&
+			imageSizeCount > 0
+		) {
+			fraction = Math.min(
+				1,
+				( item.subSizes || [] ).length / imageSizeCount
+			);
+		}
+
+		return ( ( completed + fraction ) / totals.total ) * 100;
+	}
+
+	/**
+	 * Drops progress bookkeeping for items that left the queue.
+	 *
+	 * @param {Array} items The current queue items.
+	 */
+	function pruneOperationTotals( items ) {
+		var ids = {};
+		items.forEach( function ( item ) {
+			ids[ item.id ] = true;
+		} );
+		operationTotals.forEach( function ( totals, id ) {
+			if ( ! ids[ id ] ) {
+				operationTotals.delete( id );
+			}
+		} );
+	}
+
 	// Configure the default-registry upload-media store once. Rendering the
 	// provider with useSubRegistry: false wires the settings into the store
 	// that wp.data.dispatch/select address (the block editor does the same).
@@ -518,17 +586,20 @@
 		}
 	} );
 
-	// Reflect pipeline progress onto the placeholder tiles. Progress is
-	// reported 0-100; hold at 99 until the model is marked done so the tile
-	// does not appear finished before the sync completes.
+	// Reflect pipeline progress onto the placeholder tiles. Hold at 99
+	// until the model is marked done so the tile does not appear finished
+	// before the sync completes.
 	wp.data.subscribe( function () {
 		if ( progressModels.size === 0 ) {
 			return;
 		}
 
 		var items = wp.data.select( uploadStore ).getItems();
+		pruneOperationTotals( items );
 		items.forEach( function ( item ) {
-			if ( ! item.sourceFile ) {
+			// Sub-size children carry the parent's file; only top-level
+			// items drive the tile.
+			if ( ! item.sourceFile || item.parentId ) {
 				return;
 			}
 
@@ -537,12 +608,12 @@
 				return;
 			}
 
-			if ( typeof item.progress === 'number' ) {
-				var percent = Math.min( 99, Math.round( item.progress ) );
-				models.forEach( function ( model ) {
+			var percent = Math.min( 99, Math.round( estimateProgress( item ) ) );
+			models.forEach( function ( model ) {
+				if ( model.get( 'percent' ) !== percent ) {
 					model.set( { percent: percent } );
-				} );
-			}
+				}
+			} );
 		} );
 	} );
 } )();
