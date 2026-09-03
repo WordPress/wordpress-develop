@@ -486,9 +486,8 @@ function size_format( $bytes, $decimals = 0 ) {
 		_x( 'B', 'unit symbol' )  => 1,
 	);
 
-	$bytes = is_numeric( $bytes ) ? (float) $bytes : $bytes;
-
-	if ( 0.0 === $bytes ) {
+	$bytes = (int) $bytes;
+	if ( 0 === $bytes ) {
 		/* translators: Unit symbol for byte. */
 		return number_format_i18n( 0, $decimals ) . ' ' . _x( 'B', 'unit symbol' );
 	}
