@@ -4797,6 +4797,30 @@ function esc_attr( $text ) {
 }
 
 /**
+ * Escaping for HTML attribute names.
+ *
+ * @since 7.2.0
+ *
+ * @param string $text The attribute name to escape.
+ * @return string The escaped attribute name.
+ */
+function esc_attr_name( $text ) {
+	$safe_text = wp_check_invalid_utf8( $text, true );
+
+	$safe_text = preg_replace( '/[^a-zA-Z0-9_.:\[\]-]+/u', '', $safe_text );
+
+	/**
+	 * Filters a string cleaned and escaped for output as an HTML attribute name.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $safe_text The attribute name after it has been escaped.
+	 * @param string $text      The attribute name prior to being escaped.
+	 */
+	return apply_filters( 'esc_attr_name', $safe_text, $text );
+}
+
+/**
  * Escaping for textarea values.
  *
  * @since 3.1.0
