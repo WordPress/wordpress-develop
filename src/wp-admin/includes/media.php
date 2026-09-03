@@ -668,11 +668,9 @@ function wp_iframe( $content_func, ...$args ) {
 	/** This action is documented in wp-admin/admin-footer.php */
 	do_action( 'admin_print_footer_scripts' );
 
-	?>
-	<?php
 	wp_print_inline_script_tag(
 		<<<'JS'
-		if( typeof wpOnload === 'function' ) {
+		if ( typeof wpOnload === 'function' ) {
 			wpOnload();
 		}
 		JS
