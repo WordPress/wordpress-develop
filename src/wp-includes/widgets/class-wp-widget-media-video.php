@@ -49,6 +49,11 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				'media_library_state_single' => __( 'Video Widget' ),
 				/* translators: %s: A list of valid video file extensions. */
 				'unsupported_file_type'      => sprintf( __( 'Sorry, the video at the supplied URL cannot be loaded. Please check that the URL is for a supported video file (%s) or stream (e.g. YouTube and Vimeo).' ), '<code>.' . implode( '</code>, <code>.', wp_get_video_extensions() ) . '</code>' ),
+				'invalid_url'                => __( 'Please enter a valid video URL. Supported formats include YouTube, Vimeo, or direct video file links.' ),
+				'youtube_error'              => __( 'This YouTube video cannot be displayed. It may be private, deleted, or restricted in your region.' ),
+				'vimeo_error'                => __( 'This Vimeo video cannot be displayed. It may be private, deleted, or require a password.' ),
+				'network_error'              => __( 'Unable to load the video due to a network error. Please check your internet connection and try again.' ),
+				'file_not_found'             => __( 'The video file could not be found. Please check the URL and make sure the file exists.' ),
 			)
 		);
 	}
@@ -126,13 +131,18 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 			return;
 		}
 
+		if ( ! filter_var( $src, FILTER_VALIDATE_URL ) ) {
+			$this->render_error_message( 'invalid_url' );
+			return;
+		}
+
 		$youtube_pattern = '#^https?://(?:www\.)?(?:youtube\.com/watch|youtu\.be/)#';
 		$vimeo_pattern   = '#^https?://(.+\.)?vimeo\.com/.*#';
 
 		if ( $attachment || preg_match( $youtube_pattern, $src ) || preg_match( $vimeo_pattern, $src ) ) {
 			add_filter( 'wp_video_shortcode', array( $this, 'inject_video_max_width_style' ) );
 
-			echo wp_video_shortcode(
+			$video_html = wp_video_shortcode(
 				array_merge(
 					$instance,
 					compact( 'src' )
@@ -141,8 +151,47 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 			);
 
 			remove_filter( 'wp_video_shortcode', array( $this, 'inject_video_max_width_style' ) );
+
+			if ( empty( $video_html ) || false !== strpos( $video_html, 'Sorry, this content isn\'t available right now' ) ) {
+				if ( preg_match( $youtube_pattern, $src ) ) {
+					$this->render_error_message( 'youtube_error' );
+				} elseif ( preg_match( $vimeo_pattern, $src ) ) {
+					$this->render_error_message( 'vimeo_error' );
+				} else {
+					$this->render_error_message( 'file_not_found' );
+				}
+			} else {
+				echo $video_html;
+			}
 		} else {
-			echo $this->inject_video_max_width_style( wp_oembed_get( $src ) );
+			$oembed_html = wp_oembed_get( $src );
+
+			if ( empty( $oembed_html ) ) {
+				$file_extension = pathinfo( parse_url( $src, PHP_URL_PATH ), PATHINFO_EXTENSION );
+				if ( in_array( strtolower( $file_extension ), wp_get_video_extensions(), true ) ) {
+					$this->render_error_message( 'file_not_found' );
+				} else {
+					$this->render_error_message( 'unsupported_file_type' );
+				}
+			} else {
+				echo $this->inject_video_max_width_style( $oembed_html );
+			}
+		}
+	}
+
+	/**
+	 * Render error message using notice classes.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $error_type The error type key from l10n array.
+	 */
+	private function render_error_message( $error_type ) {
+		if ( isset( $this->l10n[ $error_type ] ) ) {
+			printf(
+				'<div class="notice notice-error notice-alt"><p>%s</p></div>',
+				wp_kses_post( $this->l10n[ $error_type ] )
+			);
 		}
 	}
 
@@ -244,6 +293,46 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 					array(
 						'type'               => 'error',
 						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
+					)
+				);
+				?>
+			<# } else if ( data.error && 'invalid_url' === data.error ) { #>
+				<?php
+				wp_admin_notice(
+					$this->l10n['invalid_url'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
+			<# } else if ( data.error && 'youtube_error' === data.error ) { #>
+				<?php
+				wp_admin_notice(
+					$this->l10n['youtube_error'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
+			<# } else if ( data.error && 'vimeo_error' === data.error ) { #>
+				<?php
+				wp_admin_notice(
+					$this->l10n['vimeo_error'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
+			<# } else if ( data.error && 'file_not_found' === data.error ) { #>
+				<?php
+				wp_admin_notice(
+					$this->l10n['file_not_found'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
 					)
 				);
 				?>
