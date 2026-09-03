@@ -2771,11 +2771,47 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 	 * @param bool   $will_invalidate Whether WordPress will invalidate `$filepath`. Default true.
 	 * @param string $filepath        The path to the PHP file to invalidate.
 	 */
-	if ( apply_filters( 'wp_opcache_invalidate_file', true, $filepath ) ) {
-		return opcache_invalidate( $filepath, $force );
+	if ( ! apply_filters( 'wp_opcache_invalidate_file', true, $filepath ) ) {
+		return false;
 	}
 
-	return false;
+	$success = opcache_invalidate( $filepath, $force );
+
+	// Handle CLI scenario
+	if ( 'cli' === php_sapi_name() ) {
+		// Create a flag file to signal FPM processes
+		$flag_file = WP_CONTENT_DIR . '/opcache-reset-' . md5( $filepath ) . '.flag';
+		file_put_contents( $flag_file, time() );
+	}
+
+	// Handle file cache scenario
+	if ( ini_get( 'opcache.file_cache' ) ) {
+		// If file cache is enabled, we need to ensure complete invalidation
+		if ( function_exists( 'opcache_reset' ) ) {
+			opcache_reset();
+			$success = true;
+		}
+	}
+
+	// Check for reset flags in FPM context
+	if ( 'cli' !== php_sapi_name() ) {
+		$flags = glob( WP_CONTENT_DIR . '/opcache-reset-*.flag' );
+		if ( ! empty( $flags ) ) {
+			foreach ( $flags as $flag_file ) {
+				$flag_time = (int) file_get_contents( $flag_file );
+				// If flag is recent (within last minute)
+				if ( time() - $flag_time < 60 ) {
+					if ( function_exists( 'opcache_reset' ) ) {
+						opcache_reset();
+						$success = true;
+					}
+				}
+				@unlink( $flag_file );
+			}
+		}
+	}
+
+	return $success;
 }
 
 /**
@@ -2809,6 +2845,18 @@ function wp_opcache_invalidate_directory( $dir ) {
 
 	if ( empty( $dirlist ) ) {
 		return;
+	}
+
+	// Handle CLI scenario for directory invalidation
+	if ( 'cli' === php_sapi_name() ) {
+		$flag_file = WP_CONTENT_DIR . '/opcache-reset-dir-' . md5( $dir ) . '.flag';
+		file_put_contents( $flag_file, time() );
+	}
+
+	// Handle file cache for directory invalidation
+	$has_file_cache = ini_get( 'opcache.file_cache' );
+	if ( $has_file_cache && function_exists( 'opcache_reset' ) ) {
+		opcache_reset();
 	}
 
 	/*
