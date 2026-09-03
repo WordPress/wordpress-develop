@@ -115,3 +115,7 @@ Colorful Bokeh by HD Wallpapers, CC0. https://stocksnap.io/photo/colorful-bokeh-
 /* Media */
 
 @import "sass/media/media";
+
+/* Non-latin font fallbacks. Must be imported last, see the partial. */
+
+@import "sass/mixins/non-latin-fonts";
