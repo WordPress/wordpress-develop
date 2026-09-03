@@ -612,13 +612,15 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$quality = $this->get_quality();
 		}
 
+		// Use the output mime type if present, matching the fallback parent::set_quality() uses.
+		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
+
 		// Handle setting the quality for WebP lossless images, see https://php.watch/versions/8.1/gd-webp-lossless.
 		try {
-			if ( 'image/webp' === $this->mime_type && defined( 'IMG_WEBP_LOSSLESS' ) ) {
+			if ( 'image/webp' === $mime_type && defined( 'IMG_WEBP_LOSSLESS' ) ) {
 				$webp_info = wp_get_webp_info( $this->file );
 				if ( ! empty( $webp_info['type'] ) && 'lossless' === $webp_info['type'] ) {
 					$quality = IMG_WEBP_LOSSLESS;
-					parent::set_quality( $quality, $dims );
 				}
 			}
 		} catch ( Exception $e ) {
