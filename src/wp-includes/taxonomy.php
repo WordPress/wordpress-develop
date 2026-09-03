@@ -1977,7 +1977,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  * @since 2.3.0
  * @since 5.6.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
  *
- * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
+ * @param array|string $args       Optional. Array or string of arguments. See {@see WP_Term_Query::__construct()}
  *                                 for information on accepted arguments. Default empty array.
  * @param array|string $deprecated Optional. Argument array, when using the legacy function parameter format.
  *                                 If present, this parameter will be interpreted as `$args`, and the first
@@ -2437,7 +2437,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	 * @param int[]                           $object_ids Array of object IDs for which terms were retrieved.
 	 * @param string[]                        $taxonomies Array of taxonomy names from which terms were retrieved.
 	 * @param array                           $args       Array of arguments for retrieving terms for the given
-	 *                                                    object(s). See wp_get_object_terms() for details.
+	 *                                                    object(s). See {@see wp_get_object_terms()} for details.
 	 */
 	$terms = apply_filters( 'get_object_terms', $terms, $object_ids, $taxonomies, $args );
 
@@ -2456,7 +2456,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	 * @param string                          $object_ids Comma separated list of object IDs for which terms were retrieved.
 	 * @param string                          $taxonomies SQL fragment of taxonomy names from which terms were retrieved.
 	 * @param array                           $args       Array of arguments for retrieving terms for the given
-	 *                                                    object(s). See wp_get_object_terms() for details.
+	 *                                                    object(s). See {@see wp_get_object_terms()} for details.
 	 */
 	return apply_filters( 'wp_get_object_terms', $terms, $object_ids, $taxonomies, $args );
 }
