@@ -44,7 +44,7 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 
 		$this->registry                     = new WP_Block_Patterns_Registry();
 		$this->original_registered_patterns = $this->get_registered_patterns_variable_value();
-		$this->original_stylesheet           = get_stylesheet();
+		$this->original_stylesheet          = get_stylesheet();
 	}
 
 	/**
