@@ -100,8 +100,6 @@ jobs:
 
       - name: Install Playwright browsers
         if: ${{ inputs.install-playwright }}
-        # The runner image already provides every shared library Chromium needs. `--with-deps`
-        # only adds CJK, Thai, and Cyrillic fonts, which no spec in this suite renders.
         run: npm exec --no -- playwright install chromium
 
       - name: Build WordPress
