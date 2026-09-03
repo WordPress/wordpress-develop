@@ -120,12 +120,14 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 *  - `add_user_meta`
 	 *
 	 * @since 3.1.0
+	 * @since 7.2.0 The `$unique` parameter was added.
 	 *
 	 * @param int    $object_id   ID of the object metadata is for.
 	 * @param string $meta_key    Metadata key.
 	 * @param mixed  $_meta_value Metadata value.
+	 * @param bool   $unique      Whether the specified meta key should be unique for the object.
 	 */
-	do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $_meta_value );
+	do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $_meta_value, $unique );
 
 	$result = $wpdb->insert(
 		$table,
@@ -159,13 +161,15 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 *  - `added_user_meta`
 	 *
 	 * @since 2.9.0
+	 * @since 7.2.0 The `$unique` parameter was added.
 	 *
-	 * @param int    $mid         The meta ID after successful update.
+	 * @param int    $mid         The meta ID after successful addition.
 	 * @param int    $object_id   ID of the object metadata is for.
 	 * @param string $meta_key    Metadata key.
 	 * @param mixed  $_meta_value Metadata value.
+	 * @param bool   $unique      Whether the specified meta key should be unique for the object.
 	 */
-	do_action( "added_{$meta_type}_meta", $mid, $object_id, $meta_key, $_meta_value );
+	do_action( "added_{$meta_type}_meta", $mid, $object_id, $meta_key, $_meta_value, $unique );
 
 	return $mid;
 }
