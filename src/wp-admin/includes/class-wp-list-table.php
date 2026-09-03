@@ -1678,6 +1678,7 @@ class WP_List_Table {
 	 * Generates the table navigation above or below the table.
 	 *
 	 * @since 3.1.0
+	 * @since 6.9.0 The bottom navigation is no longer generated when the list table has no items.
 	 *
 	 * @param string $which The location of the navigation: Either 'top' or 'bottom'.
 	 */
