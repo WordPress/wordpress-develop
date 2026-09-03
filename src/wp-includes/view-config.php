@@ -76,6 +76,10 @@ function _wp_get_default_posttype_form() {
 			array(
 				'id'       => 'status',
 				'label'    => __( 'Status' ),
+				'layout'   => array(
+					'type'    => 'panel',
+					'summary' => 'status',
+				),
 				'children' => array(
 					array(
 						'id'     => 'status',
@@ -96,6 +100,10 @@ function _wp_get_default_posttype_form() {
 			array(
 				'id'       => 'discussion',
 				'label'    => __( 'Discussion' ),
+				'layout'   => array(
+					'type'    => 'panel',
+					'summary' => 'discussion',
+				),
 				'children' => array(
 					array(
 						'id'     => 'comment_status',
@@ -719,6 +727,13 @@ function _wp_get_entity_view_config_posttype_wp_template( $data ) {
 			),
 			array(
 				'id'     => 'description_readonly',
+				'layout' => array(
+					'type'          => 'regular',
+					'labelPosition' => 'none',
+				),
+			),
+			array(
+				'id'     => 'reading_settings',
 				'layout' => array(
 					'type'          => 'regular',
 					'labelPosition' => 'none',

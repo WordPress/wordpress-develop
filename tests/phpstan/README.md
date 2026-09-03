@@ -59,6 +59,41 @@ This directory also contains extensions that teach PHPStan conventions specific 
 
 Core documents the globals a function uses with `@global Type $varname`. `GlobalDocBlockVisitor` bridges that convention to PHPStan's variable type resolution, so those globals are typed rather than `mixed` inside the function.
 
+### Hash notation
+
+Core documents the contents of an array or object with a nested list of `@type` tags, [hash notation](https://developer.wordpress.org/coding-standards/inline-documentation-standards/php/#1-1-parameters-that-are-arrays):
+
+```php
+/**
+ * @param array $args {
+ *     Optional. An array of arguments.
+ *
+ *     @type string $post_type   Post type. Default 'post'.
+ *     @type int    $post_author Post author ID.
+ * }
+ */
+```
+
+PHPStan reads that hash as free text, so the value stays a plain `array` and nothing inside it is typed. `HashNotationVisitor` translates it into the array or object shape PHPStan understands, which for the example above is `array{post_type?: string, post_author?: int, ...}`, so the same documentation serves the reader and the analysis rather than each shape having to be written a second time as a `@phpstan-param`.
+
+A hash whose translation would be a guess is left alone, and the value keeps whatever type it has today. The visitor therefore only ever narrows a type, and never contradicts one:
+
+- A `@phpstan-param` or `@phpstan-return` written by hand always wins. Hash notation cannot express everything a type can — a function returning either of two shapes, or one whose return carries keys beyond those it documents, as `get_avatar_data()` returns the processed `$args` too — so a shape that has been tuned in the source is never overwritten by the derived one. Only the tag it was written for: a `@phpstan-param` for one parameter says nothing about the next, and a conditional `@phpstan-return` naming a parameter is not a shape for it.
+- The declared type has to name something a shape can be put on: a bare `array` or `object`, or a class, on its own or as one member of a union such as `string|array` or `array|WP_Error` — in a union the bare member is the one the hash is about, since a `WP_Error` carries no keys. A type that is already more specific than the hash, such as `array<string, string|bool>`, is left as written.
+- The hash has to be well formed: every `{` closed by a `}` on a line of its own, and every `@type` carrying a `$name` and a type that PHPStan's own type parser reads as one. Asking the parser rather than describing what a type may contain is what keeps `?string`, `(string|null)[]` and `callable(): void` from being turned away as malformed.
+- A hash on a bare `object` that would have to stay open is skipped, because PHPStan's object shapes have a fixed member list and no `...`, and sealing one would report every member the hash does not name. A hash on a named class is kept: `stdClass&object{...}` is not sealed, since the intersection leaves the class to say what else may be read and a `stdClass` accepts anything. That is what lets the theme data `WP_Theme_Install_List_Table::single_row()` documents keep its shape while the wordpress.org API is still free to add to it.
+- A parameter taken by reference is skipped, because PHPStan checks a by-reference argument in both directions, and a shape there would be a contract every caller's variable has to satisfy before the call rather than a description of what the function reads.
+
+Keys of a `@param` hash are optional, at every level, and the shape is left open with a trailing `...`, because the hash lists the keys core reads rather than the only keys a caller may pass. Keys of a `@return` hash are required and the shape is sealed, since they describe a value core itself builds. Numbered keys such as `$0` and `$1` are required in either case, because positional arguments are passed in order. A description opening with `Optional.` overrides all of that, and is the only thing that does: the word further into a description is prose, as in the "Optional self closing slash" of a match array whose every group is always set.
+
+Reading a key that a `@return` hash does not document is therefore reported rather than silently typed as `mixed` — unless the hash says otherwise itself, by listing a `...$N` entry beside its named keys, which is how core writes "and the rest" for the positional hashes of `wp_maybe_grant_site_health_caps()` and `WP_Meta_Query`.
+
+A hash on a class rather than on `array` or `object` produces an intersection, `stdClass&object{...}`, rather than a bare object shape. PHPStan's object shapes are structural, so a bare `object{...}` derived for a value core builds as a `stdClass` would no longer be assignable to a property declared `stdClass`. Intersecting keeps both: the value stays the class it is documented as, and its members are typed. This is why the returns that build one, such as `get_taxonomy_labels()`, document `stdClass` rather than `object`.
+
+One kind of hash is outside what the visitor covers today: **a `@var` hash on a property**. A property declaration is inherited by every subclass and has to accept its own default, so a shape there would say more than the hash does — that no subclass may widen the property, and that the declared default already has the shape.
+
+Hashes are also written on hook docblocks, where core documents `apply_filters()` and `do_action()`. Those are not attached to a function, so they are outside what this visitor sees, and the value a filter passes stays typed by [the hook extensions below](#hook-documentation).
+
 ### Hook documentation
 
 The remaining extensions read the docblock documenting a hook where the hook is fired, which is where WordPress documents its hooks. They cover `apply_filters()`, `do_action()` and their `_deprecated` and `_ref_array` variants.
@@ -163,5 +198,19 @@ PHPStan's own `--generate-baseline` is deliberately not used directly. It captur
 PHPStan can be resource-intensive, especially on large codebases like WordPress. If you encounter memory limit issues, you can increase the memory limit by passing the `--memory-limit` flag as shown [above](#running-the-tests).
 
 PHPStan caches analysis results to speed up subsequent runs. You can see information about the results cache by running `analyse` with the `-vv` or `-vvv` flag.
+
+### Clear the cache after changing anything in this directory
+
+The `.cache` directory holds more than the results. PHPStan also stores what it read out of each source file there, the docblocks and signatures it found, keyed by that file's contents and nothing else. The sources in this directory change what reading a file yields without changing the file: `HashNotationVisitor` rewrites a docblock in the syntax tree, and the bytes on disk stay as they were.
+
+A cache written before one of them changed therefore answers with what the old code saw. The run does not fail or warn; it reports against types that are no longer derived, so a visitor can look as though it does nothing, or as though it does less than it does. So clear the cache by hand after editing anything here:
+
+```bash
+rm -rf .cache
+```
+
+The results cache alone is not the problem. PHPStan invalidates that itself when the configuration changes, and [`HookDocsResultCacheMetaExtension`](HookDocsResultCacheMetaExtension.php) already folds every file in this directory into its key, so it is discarded when one of them is edited. What survives either is the per-file reflection, which is keyed by the source file's own contents and has no way to know that reading it now yields something else. CI keys its cache on these files for the same reason; see [`.github/workflows/reusable-phpstan-static-analysis-v1.yml`](../../.github/workflows/reusable-phpstan-static-analysis-v1.yml).
+
+The same cache is worth clearing after analysing a subset of the tree. A file named on the command line is analysed, but a file merely *read* on its behalf is parsed without these extensions, and the reflection stored for it carries no derived shape. A later full run reads that back and reports against a type that is no longer what the docblock says, which is the same silence as above arriving from the other direction.
 
 Sometimes, due to the lack of type information in legacy code, PHPStan may still struggle to analyze certain parts of the codebase. In such cases, you can use the `--debug` flag to disable caching and see which files are causing issues.
