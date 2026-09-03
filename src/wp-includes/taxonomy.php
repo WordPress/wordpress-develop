@@ -2398,7 +2398,14 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 				unset( $taxonomies[ $index ] );
 
 				// Cast because a count is returned as a numeric string. The counts are summed below.
-				$terms = array_merge( $terms, (array) wp_get_object_terms( $object_ids, $taxonomy, array_merge( $args, $t->args ) ) );
+				$terms_from_taxonomy = (array) wp_get_object_terms( $object_ids, $taxonomy, array_merge( $args, $t->args ) );
+
+				// Array keys should be preserved for values of $fields that use term_id for keys.
+				if ( ! empty( $args['fields'] ) && is_string( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
+					$terms = $terms + $terms_from_taxonomy;
+				} else {
+					$terms = array_merge( $terms, $terms_from_taxonomy );
+				}
 			}
 		}
 	} else {
@@ -2417,7 +2424,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 		$terms_from_remaining_taxonomies = (array) get_terms( $args );
 
 		// Array keys should be preserved for values of $fields that use term_id for keys.
-		if ( ! empty( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
+		if ( ! empty( $args['fields'] ) && is_string( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
 			$terms = $terms + $terms_from_remaining_taxonomies;
 		} else {
 			$terms = array_merge( $terms, $terms_from_remaining_taxonomies );

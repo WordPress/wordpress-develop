@@ -1179,4 +1179,56 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 			$this->assertSame( $expected_terms, $actual, "Incorrect terms for the '$fields' fields value." );
 		}
 	}
+
+	/**
+	 * Ensures the term ID keys survive for a taxonomy registered with an 'args' array.
+	 *
+	 * Such a taxonomy is queried by a recursive call, and those results were merged with
+	 * array_merge(), which renumbers the integer keys the `id=>` values rely on.
+	 *
+	 * @ticket 61936
+	 */
+	public function test_should_return_terms_keyed_by_term_id_for_id_fields_with_taxonomy_registered_with_args() {
+		$taxonomy1 = 'wptests_tax';
+		$taxonomy2 = 'wptests_tax_2';
+
+		// Any non-empty 'args' array sends the taxonomy down the recursive path.
+		register_taxonomy( $taxonomy1, 'post', array( 'args' => array( 0 ) ) );
+		register_taxonomy( $taxonomy2, 'post' );
+
+		$post_id = self::factory()->post->create();
+		$this->assertIsInt( $post_id, 'The post was not created.' );
+
+		$term_1_id = self::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy1,
+				'name'     => 'Alpha',
+			)
+		);
+		$this->assertIsInt( $term_1_id, 'The term in the first taxonomy was not created.' );
+
+		$term_2_id = self::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy2,
+				'name'     => 'Beta',
+			)
+		);
+		$this->assertIsInt( $term_2_id, 'The term in the second taxonomy was not created.' );
+
+		wp_set_object_terms( $post_id, $term_1_id, $taxonomy1 );
+		wp_set_object_terms( $post_id, $term_2_id, $taxonomy2 );
+
+		$actual = wp_get_object_terms(
+			$post_id,
+			array( $taxonomy1, $taxonomy2 ),
+			array( 'fields' => 'id=>name' )
+		);
+
+		$expected = array(
+			$term_1_id => 'Alpha',
+			$term_2_id => 'Beta',
+		);
+
+		$this->assertSame( $expected, $actual, 'Terms are not keyed by term ID.' );
+	}
 }
