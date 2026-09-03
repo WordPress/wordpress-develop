@@ -1965,6 +1965,39 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures a null 'orderby' falls back to term ID without a deprecation
+	 * notice on PHP 8.1 and above.
+	 *
+	 * @ticket 65679
+	 */
+	public function test_orderby_null_should_be_treated_as_term_id() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'ZZZ',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'AAA',
+			)
+		);
+
+		$found = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'orderby'    => null,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSame( array( $t1, $t2 ), $found );
+	}
+
+	/**
 	 * @ticket 34996
 	 */
 	public function test_orderby_meta_value() {
