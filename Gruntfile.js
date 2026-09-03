@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
@@ -1068,6 +1067,17 @@ module.exports = function(grunt) {
 				src: [
 					'**/*.js',
 					'!**/*.min.js'
+				],
+				// Prevent traversal into these directories during glob expansion.
+				// This is much faster than using negation patterns alone.
+				ignore: [
+					'**/build/**',
+					'**/dist/**',
+					'**/gutenberg/**',
+					'**/node_modules/**',
+					'**/packages/**',
+					'**/test/**',
+					'**/vendor/**'
 				],
 				/*
 				 * Limit JSHint's run to a single specified plugin directory:
