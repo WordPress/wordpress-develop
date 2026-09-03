@@ -12,12 +12,14 @@ on:
       - trunk
     # Always test the workflow after it's updated.
     paths:
+      - '.github/actions/smoke-check/**'
       - '.github/workflows/install-testing.yml'
       - '.version-support-*.json'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
   pull_request:
     # Always test the workflow when changes are suggested.
     paths:
+      - '.github/actions/smoke-check/**'
       - '.version-support-*.json'
       - '.github/workflows/install-testing.yml'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
@@ -60,14 +62,19 @@ jobs:
   # - Downloads the specified version of WordPress.
   # - Creates a `wp-config.php` file.
   # - Installs WordPress.
+  # - Serves the installed site and confirms it renders.
   install-tests-mysql:
     name: WP ${{ inputs.wp-version || 'nightly' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}
     permissions:
       contents: read
     runs-on: ${{ matrix.os }}
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: [ build-test-matrix ]
+
+    env:
+      WP_ADMIN_USER: admin
+      WP_ADMIN_PASSWORD: password
     strategy:
       fail-fast: false
       matrix:
@@ -135,7 +142,26 @@ jobs:
           DB_PORT: ${{ job.services.database.ports['3306'] }}
 
       - name: Install WordPress
-        run: wp core ${{ matrix.multisite && 'multisite-install' || 'install' }} --url=http://localhost/ --title="Upgrade Test" --admin_user=admin --admin_password=password --admin_email=me@example.org --skip-email
+        run: |
+          wp core ${{ matrix.multisite && 'multisite-install' || 'install' }} \
+          --url=http://localhost/ --title="Install Test" --admin_user="${WP_ADMIN_USER}" \
+          --admin_password="${WP_ADMIN_PASSWORD}" --admin_email=me@example.org --skip-email
+
+      - name: Check out the smoke check action
+        if: ${{ ! matrix.multisite }}
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: ci-tools
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Post-install smoke check
+        # A network's domain lives in wp-config.php and the database, not just an option.
+        if: ${{ ! matrix.multisite }}
+        uses: ./ci-tools/.github/actions/smoke-check
+        with:
+          admin-user: ${{ env.WP_ADMIN_USER }}
+          admin-password: ${{ env.WP_ADMIN_PASSWORD }}
 
   slack-notifications:
     name: Slack Notifications
