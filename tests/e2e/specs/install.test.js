@@ -17,6 +17,49 @@ let wpConfigOriginal;
 // cleanup query below.
 const TEST_TABLE_PREFIX = 'wp_e2e_';
 
+const TEST_TABLES = [
+	'commentmeta', 'comments', 'links', 'options', 'postmeta', 'posts',
+	'term_relationships', 'term_taxonomy', 'termmeta', 'terms', 'usermeta', 'users',
+];
+
+/**
+ * Drops any tables left over under TEST_TABLE_PREFIX.
+ *
+ * Called both before the prefix swap (in case a previous run crashed and
+ * left stale tables behind — otherwise this run fails once and only
+ * "self-heals" on the next run) and after it (so the next run starts clean).
+ *
+ * `wp eval` exits 0 even when a `$wpdb->query()` call inside it returns
+ * false, so each DROP's result is checked explicitly and reported via
+ * `WP_CLI::error()`, which does set a non-zero exit code — otherwise a
+ * failed cleanup would silently report as a passing test.
+ */
+function dropE2eTables() {
+	const dropTablesPhp = TEST_TABLES
+		.map( ( table ) => `
+			$result = $wpdb->query( "DROP TABLE IF EXISTS ${ TEST_TABLE_PREFIX }${ table }" );
+			if ( false === $result ) {
+				WP_CLI::error( "Failed to drop ${ TEST_TABLE_PREFIX }${ table }: {$wpdb->last_error}" );
+			}
+		` )
+		.join( '' );
+
+	execFileSync(
+		process.execPath,
+		[
+			join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
+			'exec',
+			'--user',
+			'wp_php',
+			'cli',
+			'wp',
+			'eval',
+			`global $wpdb; ${ dropTablesPhp }`,
+		],
+		{ stdio: 'inherit' }
+	);
+}
+
 test.describe( 'WordPress installation process', () => {
 	const wpConfig = join(
 		process.cwd(),
@@ -25,6 +68,8 @@ test.describe( 'WordPress installation process', () => {
 
 
 	test.beforeEach( async () => {
+		dropE2eTables();
+
 		wpConfigOriginal = readFileSync( wpConfig, 'utf-8' );
 		// Changing the table prefix tricks WP into new install mode.
 		writeFileSync(
@@ -36,31 +81,10 @@ test.describe( 'WordPress installation process', () => {
 	test.afterEach( async () => {
 		writeFileSync( wpConfig, wpConfigOriginal );
 
-		// The test completes a full install under the `TEST_TABLE_PREFIX`. Drop
-		// those tables, otherwise the next run finds a pre-existing install and
-		// never reaches the installation screen it's meant to be testing.
-		const tables = [
-			'commentmeta', 'comments', 'links', 'options', 'postmeta', 'posts',
-			'term_relationships', 'term_taxonomy', 'termmeta', 'terms', 'usermeta', 'users',
-		];
-		const dropTablesPhp = tables
-			.map( ( table ) => `global $wpdb; $wpdb->query( "DROP TABLE IF EXISTS ${ TEST_TABLE_PREFIX }${ table }" );` )
-			.join( ' ' );
-
-		execFileSync(
-			process.execPath,
-			[
-				join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
-				'exec',
-				'--user',
-				'wp_php',
-				'cli',
-				'wp',
-				'eval',
-				dropTablesPhp,
-			],
-			{ stdio: 'inherit' }
-		);
+		// The test completes a full install under TEST_TABLE_PREFIX. Drop
+		// those tables, otherwise the next run finds a pre-existing install
+		// and never reaches the installation screen it's meant to be testing.
+		dropE2eTables();
 	} );
 
 	test( 'should install WordPress with pre-existing database credentials', async ( { page } ) => {
