@@ -3395,7 +3395,7 @@ function retrieve_password( $user_login = '' ) {
 	 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
 	 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
 	 *
-	 * @see https://core.trac.wordpress.org/tickets/42957
+	 * @link https://core.trac.wordpress.org/tickets/42957
 	 */
 	$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
 
