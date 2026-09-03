@@ -227,8 +227,8 @@ window.wp = window.wp || {};
 	 */
 	api.Value = api.Class.extend(/** @lends wp.customize.Value.prototype */{
 		/**
-		 * @param {*}      initial The initial value.
-		 * @param {Object} options Options to extend the instance with.
+		 * @param {*}      initial   The initial value.
+		 * @param {Object} [options] Options to extend the instance with.
 		 */
 		initialize: function( initial, options ) {
 			this._value = initial; // @todo Potentially change this to a this.set() call.
@@ -761,7 +761,7 @@ window.wp = window.wp || {};
 		 * @param {string} params.url          The URL to communicate with.
 		 * @param {Window} params.targetWindow The window instance to communicate with. Default window.parent.
 		 * @param {string} [params.channel]    If provided, will send the channel with each message and only accept messages a matching channel.
-		 * @param {Object} options             Extend any instance parameter or method with this object.
+		 * @param {Object} [options]           Extend any instance parameter or method with this object.
 		 */
 		initialize: function( params, options ) {
 			// Target the parent frame by default, but only if a parent frame exists.

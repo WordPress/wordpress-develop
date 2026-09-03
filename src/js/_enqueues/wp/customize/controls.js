@@ -1114,7 +1114,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {boolean}  active                  The active state to transiution to.
+		 * @param {boolean}  active                  The active state to transition to.
 		 * @param {Object}   [args]                  Args.
 		 * @param {Object}   [args.duration]         The duration for the slideUp/slideDown animation.
 		 * @param {boolean}  [args.unchanged]        Whether the state is already known to not be changed, and so short-circuit with calling completeCallback early.
@@ -3944,10 +3944,11 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {boolean}  active                The active state to transition to.
-		 * @param {Object}   args                  Object containing options for showing or hiding the control.
-		 * @param {number}   args.duration         The duration for the slideUp/slideDown animation.
-		 * @param {Function} args.completeCallback Function to call when the slideUp/slideDown has completed.
+		 * @param {boolean}  active                  The active state to transition to.
+		 * @param {Object}   [args]                  Object containing options for showing or hiding the control.
+		 * @param {number}   [args.duration]         The duration for the slideUp/slideDown animation.
+		 * @param {boolean}  [args.unchanged]        Whether the state is already known to not be changed, and so short-circuit with calling completeCallback early.
+		 * @param {Function} [args.completeCallback] Function to call when the slideUp/slideDown has completed.
 		 */
 		onChangeActive: function ( active, args ) {
 			if ( args.unchanged ) {
@@ -5138,10 +5139,10 @@
 		 * header image data and inserts it into the user-uploaded headers
 		 * collection.
 		 *
-		 * @param {string} url          URL of the header image.
-		 * @param {number} attachmentId ID of the image attachment, when the image has one.
-		 * @param {number} width        Width of the image in pixels.
-		 * @param {number} height       Height of the image in pixels.
+		 * @param {string} url            URL of the header image.
+		 * @param {number} [attachmentId] ID of the image attachment, when the image has one.
+		 * @param {number} [width]        Width of the image in pixels.
+		 * @param {number} [height]       Height of the image in pixels.
 		 */
 		setImageFromURL: function(url, attachmentId, width, height) {
 			var choice, data = {};
@@ -6566,7 +6567,7 @@
 		 *                                      frame to be placed.
 		 * @param {string}   params.form        A selector or jQuery element for the form to be used for POSTing data to the preview frame.
 		 * @param {string}   params.previewUrl  The URL to preview.
-		 * @param {Object}   options            The options object.
+		 * @param {Object}   [options]          The options object.
 		 */
 		initialize: function( params, options ) {
 			var previewer = this,
