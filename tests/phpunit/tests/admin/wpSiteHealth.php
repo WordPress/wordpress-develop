@@ -682,6 +682,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * Tests get_test_opcode_cache() result when opcode cache is enabled or not.
 	 *
 	 * Covers: opcache enabled, disabled, not available, and opcache_get_status() returns false.
+	 * When enabled, status may be 'good' or 'recommended' if the cache appears saturated.
 	 *
 	 * @ticket 63697
 	 *
@@ -699,12 +700,202 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		}
 
 		if ( $opcache_enabled ) {
-			$this->assertSame( 'good', $result['status'], 'When opcache is enabled, status should be "good".' );
-			$this->assertSame( __( 'Opcode cache is enabled' ), $result['label'] );
+			$this->assertContains(
+				$result['status'],
+				array( 'good', 'recommended' ),
+				'When opcache is enabled, status should be "good" or "recommended" if saturated.'
+			);
+			$this->assertContains(
+				$result['label'],
+				array( __( 'Opcode cache is enabled' ), __( 'Opcode cache is enabled, but appears saturated' ) )
+			);
 		} else {
 			$this->assertSame( 'recommended', $result['status'] );
 			$this->assertSame( __( 'Opcode cache is not enabled' ), $result['label'] );
 			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
 		}
+	}
+
+	/**
+	 * Returns a minimal healthy OPcache status array for use in tests.
+	 *
+	 * @return array A status array with generous free space in all pools.
+	 */
+	private function get_healthy_opcache_status(): array {
+		return array(
+			'opcache_enabled'        => true,
+			'cache_full'             => false,
+			'memory_usage'           => array(
+				'used_memory'   => 10 * MB_IN_BYTES,
+				'free_memory'   => 118 * MB_IN_BYTES,
+				'wasted_memory' => 0,
+			),
+			'interned_strings_usage' => array(
+				'buffer_size' => 8 * MB_IN_BYTES,
+				'free_memory' => 7 * MB_IN_BYTES,
+			),
+			'opcache_statistics'     => array(
+				'num_cached_keys' => 110,
+				'max_cached_keys' => 16229,
+				'oom_restarts'    => 0,
+				'hash_restarts'   => 0,
+			),
+		);
+	}
+
+	/**
+	 * Tests get_test_opcode_cache() with a mocked OPcache status via the filter.
+	 *
+	 * @ticket 64854
+	 *
+	 * @dataProvider data_get_test_opcode_cache_saturation
+	 *
+	 * @covers ::get_test_opcode_cache()
+	 *
+	 * @param array  $status_overrides  Overrides to merge into the healthy base status.
+	 * @param string $expected_status   Expected 'status' value in the result.
+	 * @param string $expected_label    Expected 'label' value in the result.
+	 * @param string $expected_in_description  Substring expected in the description, or empty string to skip.
+	 */
+	public function test_get_test_opcode_cache_saturation( array $status_overrides, string $expected_status, string $expected_label, string $expected_in_description ) {
+		$base_status = $this->get_healthy_opcache_status();
+		$mock_status = array_replace_recursive( $base_status, $status_overrides );
+
+		add_filter(
+			'wp_site_health_opcache_status',
+			static function () use ( $mock_status ) {
+				return $mock_status;
+			}
+		);
+
+		$result = $this->instance->get_test_opcode_cache();
+
+		remove_all_filters( 'wp_site_health_opcache_status' );
+
+		$this->assertSame( $expected_status, $result['status'], "status mismatch for: $expected_label" );
+		$this->assertSame( $expected_label, $result['label'] );
+
+		if ( '' !== $expected_in_description ) {
+			$this->assertStringContainsString( $expected_in_description, $result['description'] );
+		}
+	}
+
+	/**
+	 * Data provider for test_get_test_opcode_cache_saturation().
+	 *
+	 * Each entry provides:
+	 * 1. array  Overrides to merge into the healthy base status.
+	 * 2. string Expected 'status' value.
+	 * 3. string Expected 'label' value.
+	 * 4. string Substring expected in description (empty to skip check).
+	 *
+	 * @return array[]
+	 */
+	public function data_get_test_opcode_cache_saturation(): array {
+		return array(
+			'healthy opcache is good'                     => array(
+				array(),
+				'good',
+				__( 'Opcode cache is enabled' ),
+				'',
+			),
+			'opcache disabled via filter'                 => array(
+				array( 'opcache_enabled' => false ),
+				'recommended',
+				__( 'Opcode cache is not enabled' ),
+				__( 'Enabling this cache can significantly improve the performance of your site.' ),
+			),
+			'cache_full flag set'                         => array(
+				array( 'cache_full' => true ),
+				'recommended',
+				__( 'Opcode cache is enabled, but appears saturated' ),
+				'opcache.memory_consumption',
+			),
+			'oom_restarts greater than zero'              => array(
+				array( 'opcache_statistics' => array( 'oom_restarts' => 3 ) ),
+				'recommended',
+				__( 'Opcode cache is enabled, but appears saturated' ),
+				'opcache.memory_consumption',
+			),
+			'memory usage above 90 percent'               => array(
+				array(
+					'memory_usage' => array(
+						'used_memory'   => 115 * MB_IN_BYTES,
+						'free_memory'   => 10 * MB_IN_BYTES,
+						'wasted_memory' => 3 * MB_IN_BYTES,
+					),
+				),
+				'recommended',
+				__( 'Opcode cache is enabled, but appears saturated' ),
+				'opcache.memory_consumption',
+			),
+			'memory usage at 90 percent is still good'    => array(
+				array(
+					'memory_usage' => array(
+						'used_memory'   => 90 * MB_IN_BYTES,
+						'free_memory'   => 10 * MB_IN_BYTES,
+						'wasted_memory' => 0,
+					),
+				),
+				'good',
+				__( 'Opcode cache is enabled' ),
+				'',
+			),
+			'interned strings below 10 percent free'      => array(
+				array(
+					'interned_strings_usage' => array(
+						'buffer_size' => 8 * MB_IN_BYTES,
+						'free_memory' => 700 * KB_IN_BYTES,
+						'used_memory' => ( 8 * MB_IN_BYTES ) - ( 700 * KB_IN_BYTES ),
+					),
+				),
+				'recommended',
+				__( 'Opcode cache is enabled, but appears saturated' ),
+				'opcache.interned_strings_buffer',
+			),
+			'interned strings at 10 percent free is good' => array(
+				array(
+					'interned_strings_usage' => array(
+						'buffer_size' => 10 * MB_IN_BYTES,
+						'free_memory' => 1 * MB_IN_BYTES,
+						'used_memory' => 9 * MB_IN_BYTES,
+					),
+				),
+				'good',
+				__( 'Opcode cache is enabled' ),
+				'',
+			),
+			'hash_restarts greater than zero'             => array(
+				array( 'opcache_statistics' => array( 'hash_restarts' => 1 ) ),
+				'recommended',
+				__( 'Opcode cache is enabled, but appears saturated' ),
+				'opcache.max_accelerated_files',
+			),
+			'key table above 90 percent full'             => array(
+				array(
+					'opcache_statistics' => array(
+						'num_cached_keys' => 14900,
+						'max_cached_keys' => 16229,
+					),
+				),
+				'recommended',
+				__( 'Opcode cache is enabled, but appears saturated' ),
+				'opcache.max_accelerated_files',
+			),
+			'multiple saturation issues at once'          => array(
+				array(
+					'cache_full'             => true,
+					'interned_strings_usage' => array(
+						'buffer_size' => 8 * MB_IN_BYTES,
+						'free_memory' => 100 * KB_IN_BYTES,
+						'used_memory' => ( 8 * MB_IN_BYTES ) - ( 100 * KB_IN_BYTES ),
+					),
+					'opcache_statistics'     => array( 'hash_restarts' => 2 ),
+				),
+				'recommended',
+				__( 'Opcode cache is enabled, but appears saturated' ),
+				'opcache.interned_strings_buffer',
+			),
+		);
 	}
 }
