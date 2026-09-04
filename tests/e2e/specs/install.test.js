@@ -17,11 +17,6 @@ let wpConfigOriginal;
 // cleanup query below.
 const TEST_TABLE_PREFIX = 'wp_e2e_';
 
-const TEST_TABLES = [
-	'commentmeta', 'comments', 'links', 'options', 'postmeta', 'posts',
-	'term_relationships', 'term_taxonomy', 'termmeta', 'terms', 'usermeta', 'users',
-];
-
 /**
  * Drops any tables left over under TEST_TABLE_PREFIX.
  *
@@ -29,20 +24,29 @@ const TEST_TABLES = [
  * left stale tables behind — otherwise this run fails once and only
  * "self-heals" on the next run) and after it (so the next run starts clean).
  *
+ * Queries the database for whatever `TEST_TABLE_PREFIX`-prefixed tables
+ * actually exist rather than maintaining a hardcoded list, so it can't miss
+ * a table WordPress core adds in the future.
+ *
  * `wp eval` exits 0 even when a `$wpdb->query()` call inside it returns
  * false, so each DROP's result is checked explicitly and reported via
  * `WP_CLI::error()`, which does set a non-zero exit code — otherwise a
  * failed cleanup would silently report as a passing test.
  */
 function dropE2eTables() {
-	const dropTablesPhp = TEST_TABLES
-		.map( ( table ) => `
-			$result = $wpdb->query( "DROP TABLE IF EXISTS ${ TEST_TABLE_PREFIX }${ table }" );
+	// `_` is a single-character wildcard in SQL LIKE, so it must be escaped
+	// to match the prefix's underscores literally.
+	const likePattern = `${ TEST_TABLE_PREFIX.replace( /_/g, '\\_' ) }%`;
+
+	const dropTablesPhp = `
+		global $wpdb;
+		foreach ( $wpdb->get_col( "SHOW TABLES LIKE '${ likePattern }'" ) as $table ) {
+			$result = $wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 			if ( false === $result ) {
-				WP_CLI::error( "Failed to drop ${ TEST_TABLE_PREFIX }${ table }: {$wpdb->last_error}" );
+				WP_CLI::error( "Failed to drop {$table}: {$wpdb->last_error}" );
 			}
-		` )
-		.join( '' );
+		}
+	`;
 
 	execFileSync(
 		process.execPath,
@@ -54,7 +58,7 @@ function dropE2eTables() {
 			'cli',
 			'wp',
 			'eval',
-			`global $wpdb; ${ dropTablesPhp }`,
+			dropTablesPhp,
 		],
 		{ stdio: 'inherit' }
 	);
