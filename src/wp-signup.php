@@ -500,7 +500,7 @@ function validate_another_blog_signup() {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $meta {
+	 * @param array $meta_defaults {
 	 *     An array of default site meta variables.
 	 *
 	 *     @type int $lang_id     The language ID.
