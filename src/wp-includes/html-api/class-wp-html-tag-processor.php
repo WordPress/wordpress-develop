@@ -540,21 +540,32 @@ class WP_HTML_Tag_Processor {
 	protected $compat_mode = self::NO_QUIRKS_MODE;
 
 	/**
-	 * Indicates whether the parser is inside foreign content,
-	 * e.g. inside an SVG or MathML element.
+	 * Indicates which namespace rules the tokenizer applies to the next token.
 	 *
 	 * One of 'html', 'svg', or 'math'.
 	 *
-	 * Several parsing rules change based on whether the parser
-	 * is inside foreign content, including whether CDATA sections
-	 * are allowed and whether a self-closing flag indicates that
-	 * an element has no content.
+	 * Integration points use HTML tokenizer rules despite belonging to a foreign
+	 * namespace. CDATA availability is tracked separately because it depends on
+	 * the adjusted current node's actual namespace.
 	 *
 	 * @since 6.7.0
 	 *
 	 * @var string
 	 */
 	private $parsing_namespace = 'html';
+
+	/**
+	 * Indicates whether CDATA sections are allowed at the adjusted current node.
+	 *
+	 * Integration points follow HTML tokenization for start tags and character
+	 * tokens, but CDATA sections remain available because the adjusted current
+	 * node is still in a foreign namespace.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var bool
+	 */
+	private $should_allow_cdata = false;
 
 	/**
 	 * What kind of syntax token became an HTML comment.
@@ -868,11 +879,28 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether the namespace was valid and changed.
 	 */
 	public function change_parsing_namespace( string $new_namespace ): bool {
-		if ( ! in_array( $new_namespace, array( 'html', 'math', 'svg' ), true ) ) {
+		return $this->set_tokenizer_context( $new_namespace, false );
+	}
+
+	/**
+	 * Sets tokenizer context from an adjusted current node.
+	 *
+	 * Integration points follow HTML tokenizer rules while retaining their actual
+	 * namespace for determining whether CDATA sections are allowed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $node_namespace       Actual namespace of the adjusted current node.
+	 * @param bool   $is_integration_point Whether the adjusted current node is an integration point.
+	 * @return bool Whether the namespace was valid and changed.
+	 */
+	final protected function set_tokenizer_context( string $node_namespace, bool $is_integration_point ): bool {
+		if ( ! in_array( $node_namespace, array( 'html', 'math', 'svg' ), true ) ) {
 			return false;
 		}
 
-		$this->parsing_namespace = $new_namespace;
+		$this->parsing_namespace  = $is_integration_point ? 'html' : $node_namespace;
+		$this->should_allow_cdata = 'html' !== $node_namespace;
 		return true;
 	}
 
@@ -1937,7 +1965,7 @@ class WP_HTML_Tag_Processor {
 				}
 
 				if (
-					'html' !== $this->parsing_namespace &&
+					$this->should_allow_cdata &&
 					strlen( $html ) > $at + 8 &&
 					'[' === $html[ $at + 2 ] &&
 					'C' === $html[ $at + 3 ] &&
@@ -3801,6 +3829,9 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.5.0
 	 * @since 6.7.0 Replaces NULL bytes (U+0000) and newlines appropriately.
+	 * @since 7.2.0 Removes NULL bytes from CDATA sections in the HTML namespace,
+	 *              such as at HTML and MathML integration points, instead of
+	 *              replacing them.
 	 *
 	 * @return string
 	 */
@@ -3841,9 +3872,20 @@ class WP_HTML_Tag_Processor {
 		$text = str_replace( "\r\n", "\n", $text );
 		$text = str_replace( "\r", "\n", $text );
 
+		/*
+		 * CDATA section data is not decoded. Its character tokens follow the
+		 * rules of wherever they are inserted: in the HTML namespace, which
+		 * includes HTML and MathML integration points, NULL bytes are ignored;
+		 * in foreign content they become the replacement character (U+FFFD).
+		 */
+		if ( self::STATE_CDATA_NODE === $this->parser_state ) {
+			return 'html' === $this->get_namespace()
+				? str_replace( "\x00", '', $text )
+				: str_replace( "\x00", "\u{FFFD}", $text );
+		}
+
 		// Comment and processing instruction data is not decoded.
 		if (
-			self::STATE_CDATA_NODE === $this->parser_state ||
 			self::STATE_COMMENT === $this->parser_state ||
 			self::STATE_DOCTYPE === $this->parser_state ||
 			self::STATE_FUNKY_COMMENT === $this->parser_state ||
@@ -3889,9 +3931,9 @@ class WP_HTML_Tag_Processor {
 		 * for security reasons (to avoid joining together strings that were safe
 		 * when separated, but not when joined).
 		 *
-		 * @todo Inside HTML integration points and MathML integration points, the
-		 *       text is processed according to the insertion mode, not according
-		 *       to the foreign content rules. This should strip the NULL bytes.
+		 * Text at HTML and MathML integration points is processed according to
+		 * the insertion mode, not the foreign content rules, so it reports the
+		 * HTML namespace and its NULL bytes are removed.
 		 */
 		return ( '#text' === $tag_name && 'html' === $this->get_namespace() )
 			? str_replace( "\x00", '', $decoded )
