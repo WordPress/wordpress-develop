@@ -162,9 +162,9 @@ if ( ! is_file( $file ) ) {
 $content = '';
 if ( ! empty( $posted_content ) ) {
 	$content = $posted_content;
-} elseif ( ! $error && filesize( $file ) > 0 ) {
+} elseif ( ! $error && wp_filesize( $file ) > 0 ) {
 	$f       = fopen( $file, 'r' );
-	$content = fread( $f, filesize( $file ) );
+	$content = fread( $f, wp_filesize( $file ) );
 
 	if ( str_ends_with( $file, '.php' ) ) {
 		$functions = wp_doc_link_parse( $content );

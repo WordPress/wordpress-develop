@@ -9043,7 +9043,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 				$path = $directory . '/' . $file;
 				if ( '.' !== $file && '..' !== $file ) {
 					if ( is_file( $path ) ) {
-						$size += filesize( $path );
+						$size += wp_filesize( $path );
 					} elseif ( is_dir( $path ) ) {
 						$handlesize = recurse_dirsize( $path, $exclude, $max_execution_time, $directory_cache );
 						if ( $handlesize > 0 ) {
