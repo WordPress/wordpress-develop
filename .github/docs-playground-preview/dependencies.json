@@ -1,0 +1,95 @@
+{
+	"schemaVersion": 1,
+	"cacheSchemaVersion": 1,
+	"toolchain": {
+		"nodeVersion": "20.20.2",
+		"npmVersion": "10.8.2",
+		"composerVersion": "2.8.12",
+		"yarnVersion": "1.22.22",
+		"wpScriptsVersion": "32.6.0",
+		"wpI18nVersion": "6.24.0"
+	},
+	"playground": {
+		"cliVersion": "3.1.48",
+		"phpVersion": "8.4",
+		"wordpressChannel": "beta",
+		"wordpressVersionApi": "https://api.wordpress.org/core/version-check/1.7/?channel=beta",
+		"blueprintSchema": "https://playground.wordpress.net/blueprint-schema.json"
+	},
+	"repositories": {
+		"phpdocParser": {
+			"repository": "WordPress/phpdoc-parser",
+			"commit": "1156399efccafd344818fa3b566ce5beafdc655e",
+			"path": "."
+		},
+		"wporgDeveloper": {
+			"repository": "WordPress/wporg-developer",
+			"commit": "f2b6b9c1fe788fb4a5441a296b591f6dff540607",
+			"path": "source/wp-content/themes/wporg-developer-2023"
+		},
+		"wporgParent2021": {
+			"repository": "WordPress/wporg-parent-2021",
+			"commit": "3b61f284dcc600dc5ad500e34d56108351909d32",
+			"path": "source/wp-content/themes/wporg-parent-2021"
+		},
+		"wporgMuPlugins": {
+			"repository": "WordPress/wporg-mu-plugins",
+			"commit": "f37f522a0ed78b64748fa0b390e58e9f74de32ea",
+			"path": "mu-plugins"
+		},
+		"postsToPosts": {
+			"repository": "scribu/wp-posts-to-posts",
+			"commit": "d2f297dbe257a09438da6ffe22c9a876acb7b49b",
+			"path": "."
+		},
+		"codeSyntaxBlock": {
+			"repository": "mkaz/code-syntax-block",
+			"commit": "7179d747eef70ca8760cf5e0c04d3877158fa350",
+			"path": "."
+		}
+	},
+	"limits": {
+		"snapshotBytes": 104857600,
+		"artifactRetentionDays": 1
+	},
+	"validation": {
+		"minimumSymbols": {
+			"classes": 400,
+			"methods": 3000,
+			"functions": 1800,
+			"hooks": 600,
+			"filters": 1000
+		},
+		"routes": {
+			"index": {
+				"path": "/reference/",
+				"expectedText": "Code Reference"
+			},
+			"class": {
+				"path": "/reference/classes/wp_html_tag_processor/",
+				"expectedText": "WP_HTML_Tag_Processor"
+			},
+			"method": {
+				"path": "/reference/classes/wp_html_tag_processor/next_tag/",
+				"expectedText": "next_tag"
+			},
+			"function": {
+				"path": "/reference/functions/wp_parse_args/",
+				"expectedText": "wp_parse_args"
+			},
+			"hook": {
+				"path": "/reference/hooks/init/",
+				"expectedText": "init"
+			},
+			"filter": {
+				"path": "/reference/hooks/the_content/",
+				"expectedText": "the_content"
+			}
+		},
+		"search": {
+			"path": "/?s=wp_parse_args&post_type=wp-parser-function",
+			"expectedText": "wp_parse_args",
+			"expectedPath": "/reference/functions/wp_parse_args/"
+		}
+	}
+}
