@@ -2717,7 +2717,13 @@
 			var $pluginRow = $( event.target ).parents( 'tr' ),
 				confirmMessage;
 
-			if ( $pluginRow.hasClass( 'is-uninstallable' ) ) {
+			if ( $pluginRow.hasClass( 'active' ) ) {
+				confirmMessage = sprintf(
+					/* translators: %s: Plugin name. */
+					__( 'You are about to delete %s.\n\nThis plugin is active and will be deactivated before deletion.\n\nAre you sure you want to proceed?' ),
+					$pluginRow.find( '.plugin-title strong' ).text()
+				);
+			} else if ( $pluginRow.hasClass( 'is-uninstallable' ) ) {
 				confirmMessage = sprintf(
 					/* translators: %s: Plugin name. */
 					__( 'Are you sure you want to delete %s and its data?' ),
@@ -2844,9 +2850,22 @@
 					break;
 
 				case 'delete-selected':
-					var confirmMessage = 'plugin' === type ?
-						__( 'Are you sure you want to delete the selected plugins and their data?' ) :
-						__( 'Caution: These themes may be active on other sites in the network. Are you sure you want to proceed?' );
+					var confirmMessage;
+					if ( 'plugin' === type ) {
+						var hasActivePlugins = false;
+						$bulkActionForm.find( 'input[name="checked[]"]:checked' ).each( function() {
+							if ( $( this ).parents( 'tr' ).hasClass( 'active' ) ) {
+								hasActivePlugins = true;
+							}
+						} );
+
+						confirmMessage = __( 'Are you sure you want to delete the selected plugins and their data?' );
+						if ( hasActivePlugins ) {
+							confirmMessage += '\n\n' + __( 'Note: Active plugins will be deactivated before deletion.' );
+						}
+					} else {
+						confirmMessage = __( 'Caution: These themes may be active on other sites in the network. Are you sure you want to proceed?' );
+					}
 
 					if ( ! window.confirm( confirmMessage ) ) {
 						event.preventDefault();

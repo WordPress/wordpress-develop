@@ -4779,9 +4779,8 @@ function wp_ajax_delete_plugin() {
 	$status['plugin']     = $plugin;
 	$status['pluginName'] = $plugin_data['Name'];
 
-	if ( is_plugin_active( $plugin ) ) {
-		$status['errorMessage'] = __( 'You cannot delete a plugin while it is active on the main site.' );
-		wp_send_json_error( $status );
+	if ( is_network_admin() ? is_plugin_active_for_network( $plugin ) : is_plugin_active( $plugin ) ) {
+		deactivate_plugins( $plugin, false, is_network_admin() );
 	}
 
 	// Check filesystem credentials. `delete_plugins()` will bail otherwise.
