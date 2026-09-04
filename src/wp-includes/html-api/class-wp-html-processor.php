@@ -2343,9 +2343,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$cdata_token  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 				$cdata_start  = $cdata_token->start + 9;
 				$cdata_length = $cdata_token->length - 12;
-				if ( $cdata_length === strspn( $this->html, "\0", $cdata_start, $cdata_length ) ) {
+				if ( strspn( $this->html, "\0", $cdata_start, $cdata_length ) === $cdata_length ) {
 					$this->text_node_classification = parent::TEXT_IS_NULL_SEQUENCE;
-				} elseif ( $cdata_length === strspn( $this->html, "\0 \t\n\f\r", $cdata_start, $cdata_length ) ) {
+				} elseif ( strspn( $this->html, "\0 \t\n\f\r", $cdata_start, $cdata_length ) === $cdata_length ) {
 					$this->text_node_classification = parent::TEXT_IS_WHITESPACE;
 				} else {
 					$this->text_node_classification = parent::TEXT_IS_GENERIC;
