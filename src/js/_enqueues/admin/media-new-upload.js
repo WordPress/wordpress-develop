@@ -47,12 +47,12 @@
 
 	window.__wpMediaNewUpload = true;
 
-	var __ = wp.i18n.__;
-	var sprintf = wp.i18n.sprintf;
+	const __ = wp.i18n.__;
+	const sprintf = wp.i18n.sprintf;
 
 	// Number of pipeline uploads currently in flight, used to fire
 	// uploadComplete() when the queue drains.
-	var inFlightCount = 0;
+	let inFlightCount = 0;
 
 	/**
 	 * Marks one pipeline upload as finished, firing uploadComplete() when
