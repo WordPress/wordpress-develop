@@ -609,8 +609,11 @@ function wp_reset_vars( $vars ) {
  * @since 2.1.0
  *
  * @param string|WP_Error $message The message to display, or a WP_Error object.
+ * @param bool            $echo    Optional. Whether to print the message and flush all output
+ *                                 buffers. Default true.
+ * @return string|void The message HTML if `$echo` is false.
  */
-function show_message( $message ) {
+function show_message( $message, $echo = true ) {
 	if ( is_wp_error( $message ) ) {
 		if ( $message->get_error_data() && is_string( $message->get_error_data() ) ) {
 			$message = $message->get_error_message() . ': ' . $message->get_error_data();
@@ -619,7 +622,13 @@ function show_message( $message ) {
 		}
 	}
 
-	echo "<p>$message</p>\n";
+	$output = "<p>$message</p>\n";
+
+	if ( ! $echo ) {
+		return $output;
+	}
+
+	echo $output;
 	wp_ob_end_flush_all();
 	flush();
 }
