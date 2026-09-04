@@ -160,6 +160,40 @@ class Tests_Media_wpMediaLibraryCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * upload.php treats any falsey saved value as unset and renders grid
+	 * mode, so a saved '0' must resolve to grid here too.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_falsey_user_option_mode_falls_back_to_grid() {
+		unset( $_GET['mode'] );
+
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $user_id );
+		update_user_option( $user_id, 'media_library_mode', '0' );
+
+		$this->assertSame( 'grid', wp_get_media_library_mode() );
+	}
+
+	/**
+	 * upload.php renders list mode for a truthy saved value that is not the
+	 * string 'grid'. Scalars come back from user meta as strings, so the only
+	 * non-string a plugin can store is an array or object, and that must
+	 * resolve to list rather than grid here.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_non_string_user_option_mode_resolves_to_list() {
+		unset( $_GET['mode'] );
+
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $user_id );
+		update_user_option( $user_id, 'media_library_mode', array( 'grid' ) );
+
+		$this->assertSame( 'list', wp_get_media_library_mode() );
+	}
+
+	/**
 	 * @ticket 65661
 	 */
 	public function test_no_buffer_for_unknown_user_option_mode() {
