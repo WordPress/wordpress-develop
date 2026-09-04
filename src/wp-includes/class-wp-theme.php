@@ -1394,6 +1394,17 @@ final class WP_Theme implements ArrayAccess {
 			}
 		}
 
+		foreach ( array_keys( $post_templates ) as $type ) {
+			if ( is_array( $post_templates[ $type ] ) ) {
+				uasort(
+					$post_templates[ $type ],
+					static function ( $a, $b ) {
+						return strnatcasecmp( $a, $b );
+					}
+				);
+			}
+		}
+
 		return $post_templates;
 	}
 
