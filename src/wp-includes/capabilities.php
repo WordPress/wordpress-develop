@@ -50,11 +50,30 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			// In multisite the user must be a super admin to remove themselves.
 			if ( isset( $args[0] ) && $user_id === (int) $args[0] && ! is_super_admin( $user_id ) ) {
 				$caps[] = 'do_not_allow';
+			} elseif (
+				isset( $args[0] )
+				&& user_can( (int) $args[0], 'self_protect' )
+				&& ! user_can( $user_id, 'manage_self_protected_users' )
+				&& ! user_can( $user_id, 'self_protect' )
+			) {
+				$caps[] = 'do_not_allow';
 			} else {
 				$caps[] = 'remove_users';
 			}
 			break;
 		case 'promote_user':
+			if (
+				isset( $args[0] )
+				&& user_can( (int) $args[0], 'self_protect' )
+				&& ! user_can( $user_id, 'manage_self_protected_users' )
+				&& ! user_can( $user_id, 'self_protect' )
+			) {
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
+			$caps[] = 'promote_users';
+			break;
 		case 'add_users':
 			$caps[] = 'promote_users';
 			break;
@@ -68,6 +87,17 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 			// Allow user to edit themselves.
 			if ( 'edit_user' === $cap && isset( $args[0] ) && $user_id === (int) $args[0] ) {
+				break;
+			}
+
+			if (
+				'edit_user' === $cap
+				&& isset( $args[0] )
+				&& user_can( (int) $args[0], 'self_protect' )
+				&& ! user_can( $user_id, 'manage_self_protected_users' )
+				&& ! user_can( $user_id, 'self_protect' )
+			) {
+				$caps[] = 'do_not_allow';
 				break;
 			}
 
@@ -672,6 +702,17 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			break;
 		case 'delete_user':
 		case 'delete_users':
+			if (
+				'delete_user' === $cap
+				&& isset( $args[0] )
+				&& user_can( (int) $args[0], 'self_protect' )
+				&& ! user_can( $user_id, 'manage_self_protected_users' )
+				&& ! user_can( $user_id, 'self_protect' )
+			) {
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			// If multisite only super admins can delete users.
 			if ( is_multisite() && ! is_super_admin( $user_id ) ) {
 				$caps[] = 'do_not_allow';

@@ -1911,6 +1911,73 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( user_can( self::$users['subscriber']->ID, 'delete_user', self::$users['subscriber']->ID ) );
 	}
 
+	/**
+	 * @ticket 14460
+	 *
+	 * @group ms-excluded
+	 */
+	public function test_user_cannot_manage_self_protected_user_without_override_cap() {
+		$admin  = self::$users['administrator'];
+		$target = self::$users['subscriber'];
+		$caps   = array( 'edit_user', 'delete_user', 'promote_user', 'remove_user' );
+
+		$target->add_cap( 'self_protect' );
+
+		try {
+			foreach ( $caps as $cap ) {
+				$this->assertFalse( user_can( $admin->ID, $cap, $target->ID ), "User should not have the {$cap} capability for a self-protected user." );
+			}
+
+			$admin->add_cap( 'self_protect' );
+
+			foreach ( $caps as $cap ) {
+				$this->assertTrue( user_can( $admin->ID, $cap, $target->ID ), "User should have the {$cap} capability for a self-protected user when they are also self-protected." );
+			}
+
+			$admin->remove_cap( 'self_protect' );
+			$admin->add_cap( 'manage_self_protected_users' );
+
+			foreach ( $caps as $cap ) {
+				$this->assertTrue( user_can( $admin->ID, $cap, $target->ID ), "User should have the {$cap} capability for a self-protected user when they have the override capability." );
+			}
+		} finally {
+			$admin->remove_cap( 'manage_self_protected_users' );
+			$admin->remove_cap( 'self_protect' );
+			$target->remove_cap( 'self_protect' );
+		}
+	}
+
+	/**
+	 * @ticket 14460
+	 *
+	 * @group ms-required
+	 */
+	public function test_multisite_admin_with_manage_network_users_cannot_edit_self_protected_user() {
+		$admin  = self::$users['administrator'];
+		$target = self::$users['subscriber'];
+
+		$admin->add_cap( 'manage_network_users' );
+		$target->add_cap( 'self_protect' );
+
+		try {
+			$this->assertFalse( user_can( $admin->ID, 'edit_user', $target->ID ) );
+
+			$admin->add_cap( 'self_protect' );
+
+			$this->assertTrue( user_can( $admin->ID, 'edit_user', $target->ID ) );
+
+			$admin->remove_cap( 'self_protect' );
+			$admin->add_cap( 'manage_self_protected_users' );
+
+			$this->assertTrue( user_can( $admin->ID, 'edit_user', $target->ID ) );
+		} finally {
+			$admin->remove_cap( 'manage_self_protected_users' );
+			$admin->remove_cap( 'self_protect' );
+			$admin->remove_cap( 'manage_network_users' );
+			$target->remove_cap( 'self_protect' );
+		}
+	}
+
 	public function test_only_admins_and_super_admins_can_promote_users() {
 		if ( is_multisite() ) {
 			$this->assertTrue( user_can( self::$super_admin->ID, 'promote_user', self::$users['subscriber']->ID ) );
