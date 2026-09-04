@@ -761,6 +761,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		$current_network_id = get_current_network_id();
+		$original_state = get_site_state();
 
 		foreach ( $blogs as $blog ) {
 			// Don't include blogs that aren't hosted at this site.
@@ -783,9 +784,10 @@ class wp_xmlrpc_server extends IXR_Server {
 				'blogName'  => get_option( 'blogname' ),
 				'xmlrpc'    => site_url( 'xmlrpc.php', 'rpc' ),
 			);
-
-			restore_current_blog();
 		}
+
+		// Restore the original site state once after processing all blogs.
+		$original_state->restore();
 
 		return $struct;
 	}

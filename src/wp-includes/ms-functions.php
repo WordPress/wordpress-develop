@@ -139,9 +139,12 @@ function get_blog_count( $network_id = null ) {
  * @return WP_Post|null WP_Post object on success, null on failure
  */
 function get_blog_post( $blog_id, $post_id ) {
+	$original_state = get_site_state();
+
 	switch_to_blog( $blog_id );
 	$post = get_post( $post_id );
-	restore_current_blog();
+
+	$original_state->restore();
 
 	return $post;
 }
