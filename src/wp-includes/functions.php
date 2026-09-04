@@ -6205,6 +6205,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  * Generates the message when `WP_DEBUG` is true.
  *
  * @since 6.4.0
+ * @since x.x.x The caller's file and line number are appended to the message.
  *
  * @param string $function_name The function that triggered the error.
  * @param string $message       The message explaining the error.
@@ -6276,6 +6277,22 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 		),
 		array( 'http', 'https' )
 	);
+
+	$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 5 );
+	foreach ( $trace as $frame ) {
+		if ( ! isset( $frame['file'], $frame['line'] ) ) {
+			continue;
+		}
+		if ( str_ends_with( wp_normalize_path( $frame['file'] ), 'wp-includes/functions.php' ) ) {
+			continue;
+		}
+		$message .= sprintf(
+			' (Called from %s on line %d.)',
+			esc_html( $frame['file'] ),
+			absint( $frame['line'] )
+		);
+		break;
+	}
 
 	if ( E_USER_ERROR === $error_level ) {
 		throw new WP_Exception( $message );
