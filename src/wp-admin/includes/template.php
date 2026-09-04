@@ -2497,6 +2497,9 @@ function get_media_states( $post ) {
  * @since 2.8.0
  */
 function compression_test() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
 	?>
 	<script>
 	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;

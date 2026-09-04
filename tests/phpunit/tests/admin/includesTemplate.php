@@ -547,4 +547,41 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			'raw button-compact unchanged' => array( 'button-compact', 'button button-compact' ),
 		);
 	}
+
+	/**
+	 * Tests that compression_test() has no effect for users who cannot
+	 * manage_options, matching its own documented behavior.
+	 *
+	 * @ticket 65750
+	 *
+	 * @covers ::compression_test
+	 */
+	public function test_compression_test_outputs_nothing_for_user_without_manage_options() {
+		wp_set_current_user( self::$editor_id );
+
+		ob_start();
+		compression_test();
+		$output = ob_get_clean();
+
+		$this->assertSame( '', $output );
+	}
+
+	/**
+	 * Tests that compression_test() still outputs the test script for
+	 * users who can manage_options.
+	 *
+	 * @ticket 65750
+	 *
+	 * @covers ::compression_test
+	 */
+	public function test_compression_test_outputs_script_for_user_with_manage_options() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		ob_start();
+		compression_test();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'testCompression', $output );
+	}
 }
