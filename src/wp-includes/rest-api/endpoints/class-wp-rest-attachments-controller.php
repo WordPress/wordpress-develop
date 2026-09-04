@@ -340,6 +340,29 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			},
 		);
 
+		$args['parent_image'] = array(
+			'type'              => 'integer',
+			'minimum'           => 1,
+			'description'       => __( 'ID of the attachment the uploaded image was edited from. Recorded in the new attachment\'s metadata, as the edit endpoint does.' ),
+			'validate_callback' => static function ( $value, $request, $param ) {
+				// Re-apply the schema checks a custom validate_callback replaces.
+				$valid = rest_validate_request_arg( $value, $request, $param );
+				if ( is_wp_error( $valid ) ) {
+					return $valid;
+				}
+
+				if ( ! wp_attachment_is_image( (int) $value ) ) {
+					return new WP_Error(
+						'rest_invalid_param',
+						__( 'Invalid parent image.' ),
+						array( 'status' => 400 )
+					);
+				}
+
+				return true;
+			},
+		);
+
 		return $args;
 	}
 
@@ -424,6 +447,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
+
+		// Recording an edit relation requires being allowed to edit the source, as the edit endpoint requires.
+		if ( ! empty( $request['parent_image'] ) && ! current_user_can( 'edit_post', (int) $request['parent_image'] ) ) {
+			return new WP_Error(
+				'rest_cannot_edit_image',
+				__( 'Sorry, you are not allowed to edit this image.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
 		$files = $request->get_file_params();
 
 		/**
@@ -503,6 +535,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 4.7.0
 	 * @since 7.1.0 Added the `generate_sub_sizes`, `convert_format`, and `url` parameters.
+	 * @since 7.2.0 Added the `parent_image` parameter.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -629,6 +662,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 
+		if ( ! empty( $request['parent_image'] ) ) {
+			$this->record_parent_image( $attachment_id, (int) $request['parent_image'] );
+		}
+
 		$this->remove_client_side_media_processing_filters();
 
 		$response = $this->prepare_item_for_response( $attachment, $request );
@@ -637,6 +674,56 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $attachment_id ) ) );
 
 		return $response;
+	}
+
+	/**
+	 * Records the attachment an uploaded image was edited from.
+	 *
+	 * Mirrors what the edit endpoint stores for the attachment it creates, so an
+	 * image edited in the browser relates to its source the same way: the
+	 * `parent_image` entry, the source's EXIF data for any field the new file
+	 * lacks, and an upright orientation, since the edited pixels are upright.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int $attachment_id ID of the new attachment.
+	 * @param int $parent_id     ID of the attachment it was edited from.
+	 */
+	private function record_parent_image( int $attachment_id, int $parent_id ): void {
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		if ( ! is_array( $metadata ) ) {
+			$metadata = array();
+		}
+
+		$parent_metadata = wp_get_attachment_metadata( $parent_id );
+		if ( isset( $parent_metadata['image_meta'] ) && is_array( $parent_metadata['image_meta'] ) ) {
+			if ( ! isset( $metadata['image_meta'] ) || ! is_array( $metadata['image_meta'] ) ) {
+				$metadata['image_meta'] = array();
+			}
+			// Merge but skip empty values, as the edit endpoint does.
+			foreach ( $parent_metadata['image_meta'] as $key => $value ) {
+				if ( empty( $metadata['image_meta'][ $key ] ) && ! empty( $value ) ) {
+					$metadata['image_meta'][ $key ] = $value;
+				}
+			}
+		}
+
+		if ( ! empty( $metadata['image_meta']['orientation'] ) ) {
+			$metadata['image_meta']['orientation'] = 1;
+		}
+
+		$parent_file = wp_get_original_image_path( $parent_id );
+
+		$metadata['parent_image'] = array(
+			'attachment_id' => $parent_id,
+			// Path to the originally uploaded image file relative to the uploads directory.
+			'file'          => $parent_file ? _wp_relative_upload_path( $parent_file ) : '',
+		);
+
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
+		$metadata = apply_filters( 'wp_edited_image_metadata', $metadata, $attachment_id, $parent_id );
+
+		wp_update_attachment_metadata( $attachment_id, $metadata );
 	}
 
 	/**
