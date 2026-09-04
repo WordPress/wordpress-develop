@@ -10,7 +10,7 @@
  * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {
-var getCount, updateCount, updateCountText, updatePending, updateApproved,
+var getCount, updateCount, updateCountText, updatePending, updateApproved, emptyComments,
 	updateHtmlTitle, updateDashboardText, updateInModerationText, adminTitle = document.title,
 	isDashboard = $('#dashboard_right_now').length,
 	titleDiv, titleRegEx,
@@ -176,6 +176,80 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 			$( '.comment-mod-count', '#dashboard_right_now' )
 				[ response.in_moderation > 0 ? 'removeClass' : 'addClass' ]( 'hidden' );
 		}
+	};
+
+	/**
+	 * Empty spam or trash comments in AJAX batches.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param {Event} event Submit button click event.
+	 *
+	 * @return {void}
+	 */
+	emptyComments = function( event ) {
+		var button = $( event.currentTarget ),
+			form = button.closest( 'form' ),
+			status = form.find( 'input[name="comment_status"]' ).val(),
+			nonce = form.find( 'input[name="_wpnonce"]' ).val(),
+			timestamp = form.find( 'input[name="pagegen_timestamp"]' ).val(),
+			originalText = button.val(),
+			totalDeleted = 0,
+			notice;
+
+		if ( -1 === $.inArray( status, [ 'spam', 'trash' ] ) ) {
+			return;
+		}
+
+		event.preventDefault();
+
+		button.prop( 'disabled', true );
+		notice = $( '<span />', {
+			'class': 'empty-comments-progress screen-reader-text',
+			'aria-live': 'polite'
+		} ).insertAfter( button );
+
+		function runBatch() {
+			$.post(
+				ajaxurl,
+				{
+					action: 'empty-comments',
+					_ajax_nonce: nonce,
+					comment_status: status,
+					pagegen_timestamp: timestamp
+				}
+			).done( function( response ) {
+				var deleted, message;
+
+				if ( ! response.success ) {
+					button.prop( 'disabled', false ).val( originalText );
+					notice.remove();
+					window.alert( response.data && response.data.message ? response.data.message : __( 'An error occurred while emptying comments.' ) );
+					return;
+				}
+
+				deleted = parseInt( response.data.deleted, 10 ) || 0;
+				totalDeleted += deleted;
+				message = __( 'Emptying comments...' ) + ' ' + totalDeleted;
+
+				button.val( message );
+				notice.text( message );
+				wp.a11y.speak( message );
+
+				if ( response.data.done ) {
+					window.location.reload();
+					return;
+				}
+
+				runBatch();
+			} ).fail( function() {
+				button.prop( 'disabled', false ).val( originalText );
+				notice.remove();
+				window.alert( __( 'An error occurred while emptying comments.' ) );
+			} );
+		}
+
+		runBatch();
 	};
 
 	/**
@@ -1257,6 +1331,8 @@ $( function(){
 	$(document).on( 'click', 'span.delete a.delete', function( e ) {
 		e.preventDefault();
 	});
+
+	$( 'input[name="delete_all"]' ).on( 'click', emptyComments );
 
 	if ( typeof $.table_hotkeys != 'undefined' ) {
 		/**
