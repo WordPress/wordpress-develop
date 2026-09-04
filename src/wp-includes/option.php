@@ -209,9 +209,17 @@ function get_option( $option, $default_value = false ) {
 				if ( is_object( $row ) ) {
 					$value = $row->option_value;
 					wp_cache_add( $option, $value, 'options' );
-				} else { // Option does not exist, so we must cache its non-existence.
-					$notoptions[ $option ] = true;
-					wp_cache_set( 'notoptions', $notoptions, 'options' );
+				} else {
+					/*
+					 * The query returns null both when the option does not exist and when
+					 * the query itself failed. Only cache the option's non-existence when
+					 * the query is known to have succeeded, otherwise a database error
+					 * would hide an option that is present.
+					 */
+					if ( ! $wpdb->last_error ) {
+						$notoptions[ $option ] = true;
+						wp_cache_set( 'notoptions', $notoptions, 'options' );
+					}
 
 					/** This filter is documented in wp-includes/option.php */
 					return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
@@ -1240,14 +1248,22 @@ function delete_option( $option ) {
 			wp_cache_delete( $option, 'options' );
 		}
 
-		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		/*
+		 * A false result indicates the delete query failed, in which case the
+		 * option may still exist in the database. A result of zero means no rows
+		 * were deleted, so the option is known to be absent and can be cached as
+		 * such.
+		 */
+		if ( false !== $result ) {
+			$notoptions = wp_cache_get( 'notoptions', 'options' );
 
-		if ( ! is_array( $notoptions ) ) {
-			$notoptions = array();
+			if ( ! is_array( $notoptions ) ) {
+				$notoptions = array();
+			}
+			$notoptions[ $option ] = true;
+
+			wp_cache_set( 'notoptions', $notoptions, 'options' );
 		}
-		$notoptions[ $option ] = true;
-
-		wp_cache_set( 'notoptions', $notoptions, 'options' );
 	}
 
 	if ( $result ) {
@@ -2100,12 +2116,20 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 				$value = maybe_unserialize( $value );
 				wp_cache_set( $cache_key, $value, 'site-options' );
 			} else {
-				if ( ! is_array( $notoptions ) ) {
-					$notoptions = array();
-				}
+				/*
+				 * The query returns null both when the option does not exist and when
+				 * the query itself failed. Only cache the option's non-existence when
+				 * the query is known to have succeeded, otherwise a database error
+				 * would hide an option that is present.
+				 */
+				if ( ! $wpdb->last_error ) {
+					if ( ! is_array( $notoptions ) ) {
+						$notoptions = array();
+					}
 
-				$notoptions[ $option ] = true;
-				wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
+					$notoptions[ $option ] = true;
+					wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
+				}
 
 				/** This filter is documented in wp-includes/option.php */
 				$value = apply_filters( 'default_site_option_' . $option, $default_value, $option, $network_id );
@@ -2323,7 +2347,13 @@ function delete_network_option( $network_id, $option ) {
 			)
 		);
 
-		if ( $result ) {
+		/*
+		 * A false result indicates the delete query failed, in which case the
+		 * option may still exist in the database. A result of zero means no rows
+		 * were deleted, so the option is known to be absent and can be cached as
+		 * such.
+		 */
+		if ( false !== $result ) {
 			$notoptions_key = "$network_id:notoptions";
 			$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
 
