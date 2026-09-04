@@ -888,6 +888,10 @@ class WP_Query {
 
 		$query_vars['attachment_id'] = is_scalar( $query_vars['attachment_id'] ) ? absint( $query_vars['attachment_id'] ) : 0;
 
+		if ( ! is_scalar( $query_vars['attachment'] ) ) {
+			$query_vars['attachment'] = '';
+		}
+
 		if ( ( '' !== $query_vars['attachment'] ) || ! empty( $query_vars['attachment_id'] ) ) {
 			$this->is_single     = true;
 			$this->is_attachment = true;
@@ -2162,11 +2166,15 @@ class WP_Query {
 
 				if ( ! $ptype_obj->hierarchical ) {
 					// Non-hierarchical post types can directly use 'name'.
-					$query_vars['name'] = $query_vars[ $ptype_obj->query_var ];
+					$query_vars['name'] = is_scalar( $query_vars[ $ptype_obj->query_var ] )
+						? $query_vars[ $ptype_obj->query_var ]
+						: '';
 				} else {
 					// Hierarchical post types will operate through 'pagename'.
-					$query_vars['pagename'] = $query_vars[ $ptype_obj->query_var ];
-					$query_vars['name']     = '';
+					if ( is_scalar( $query_vars[ $ptype_obj->query_var ] ) ) {
+						$query_vars['pagename'] = $query_vars[ $ptype_obj->query_var ];
+					}
+					$query_vars['name'] = '';
 				}
 
 				// Only one request for a slug is possible, this is why name & pagename are overwritten above.
