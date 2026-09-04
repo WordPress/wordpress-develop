@@ -139,4 +139,97 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Test that invalid XML control characters are stripped.
+	 *
+	 * @dataProvider data_strips_invalid_xml_characters
+	 *
+	 * @param string $source   The source string containing invalid XML characters.
+	 * @param string $expected The expected string with invalid characters removed.
+	 */
+	public function test_strips_invalid_xml_characters( $source, $expected ) {
+		update_option( 'blog_charset', 'UTF-8' );
+		$actual = esc_xml( $source );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for `test_strips_invalid_xml_characters()`.
+	 *
+	 * @return array {
+	 *     @type string $source   The source string containing invalid XML characters.
+	 *     @type string $expected The expected string with invalid characters removed.
+	 * }
+	 */
+	public function data_strips_invalid_xml_characters() {
+		return array(
+			// Vertical tab (0x0B) - invalid in XML.
+			array(
+				"This contains a vertical tab\x0Bcharacter",
+				'This contains a vertical tabcharacter',
+			),
+			// File separator (0x1C) - invalid in XML.
+			array(
+				"File separator\x1Ctest",
+				'File separatortest',
+			),
+			// NULL byte (0x00) - invalid in XML.
+			array(
+				"Text with\x00null byte",
+				'Text withnull byte',
+			),
+			// Bell character (0x07) - invalid in XML.
+			array(
+				"Bell\x07character",
+				'Bellcharacter',
+			),
+			// Multiple invalid characters.
+			array(
+				"Multiple\x00invalid\x0B\x1Ccharacters\x07here",
+				'Multipleinvalidcharactershere',
+			),
+			// Valid control characters should be preserved: tab (0x09), LF (0x0A), CR (0x0D).
+			array(
+				"Tab\tlinefeed\ncarriage return\rtest",
+				"Tab\tlinefeed\ncarriage return\rtest",
+			),
+			// Mix of valid and invalid.
+			array(
+				"Valid\ttab but\x0Binvalid vertical tab",
+				"Valid\ttab butinvalid vertical tab",
+			),
+			// Text without invalid characters should remain unchanged.
+			array(
+				'Normal text with spaces and punctuation!',
+				'Normal text with spaces and punctuation!',
+			),
+			// Unicode characters in valid range should be preserved.
+			array(
+				'Unicode: café, naïve, 日本語',
+				'Unicode: café, naïve, 日本語',
+			),
+		);
+	}
+
+	/**
+	 * Test that invalid XML characters within CDATA sections are also stripped.
+	 */
+	public function test_strips_invalid_xml_characters_outside_cdata() {
+		update_option( 'blog_charset', 'UTF-8' );
+		$source   = "Text\x0Bwith<![CDATA[valid <content>]]>and\x1Cmore\x00invalid";
+		$expected = 'Textwith<![CDATA[valid <content>]]>andmoreinvalid';
+		$actual   = esc_xml( $source );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Test that the function works correctly when charset is not UTF-8.
+	 */
+	public function test_non_utf8_charset_skips_invalid_character_stripping() {
+		update_option( 'blog_charset', 'ISO-8859-1' );
+		$source = "Test\x0Btext";
+		$actual = esc_xml( $source );
+		$this->assertIsString( $actual );
+	}
 }

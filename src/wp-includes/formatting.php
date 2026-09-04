@@ -4832,6 +4832,16 @@ function esc_xml( $text ) {
 	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 
+	// Strip invalid XML characters.
+	$is_utf8 = in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true );
+	if ( $is_utf8 ) {
+		$safe_text = preg_replace(
+			'/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u',
+			'',
+			$safe_text
+		);
+	}
+
 	$cdata_regex = '\<\!\[CDATA\[.*?\]\]\>';
 	$regex       = <<<EOF
 /
