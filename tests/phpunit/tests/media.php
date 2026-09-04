@@ -6184,10 +6184,7 @@ EOF;
 	 * Test AVIF quality filters.
 	 *
 	 * @ticket 61614
-	 *
-	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
-	 * See https://core.trac.wordpress.org/ticket/63932.
-	 * @requires PHP < 8.3
+	 * @ticket 63932
 	 */
 	public function test_quality_with_avif_conversion_file_sizes() {
 		$temp_dir = get_temp_dir();
@@ -6196,7 +6193,7 @@ EOF;
 
 		$editor = wp_get_image_editor( $file );
 		// Only continue if the server supports AVIF.
-		if ( ! $editor->supports_mime_type( 'image/avif' ) ) {
+		if ( is_wp_error( $editor ) || ! $editor->supports_output_mime_type( 'image/avif' ) ) {
 			$this->markTestSkipped( 'AVIF is not supported by the selected image editor.' );
 		}
 

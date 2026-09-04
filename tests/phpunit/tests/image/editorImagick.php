@@ -705,17 +705,14 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Test filter `image_max_bit_depth` correctly sets the maximum bit depth of resized images.
 	 *
 	 * @ticket 62285
-	 *
-	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
-	 * See https://core.trac.wordpress.org/ticket/63932.
-	 * @requires PHP < 8.3
+	 * @ticket 63932
 	 */
 	public function test_image_max_bit_depth() {
 		$file                 = DIR_TESTDATA . '/images/colors_hdr_p3.avif';
 		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
 
 		// Skip if AVIF not supported.
-		if ( ! $imagick_image_editor->supports_mime_type( 'image/avif' ) ) {
+		if ( ! $imagick_image_editor->supports_output_mime_type( 'image/avif' ) ) {
 			$this->markTestSkipped( 'The image editor does not support the AVIF mime type.' );
 		}
 

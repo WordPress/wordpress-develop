@@ -4423,6 +4423,15 @@ function _wp_image_editor_choose( $args = array() ) {
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 	require_once ABSPATH . WPINC . '/class-avif-info.php';
+
+	if ( isset( $args['mime_type'] ) && ! isset( $args['output_mime_type'] ) ) {
+		$default_output_format = wp_get_image_editor_default_output_format();
+
+		if ( isset( $default_output_format[ $args['mime_type'] ] ) ) {
+			$args['output_mime_type'] = $default_output_format[ $args['mime_type'] ];
+		}
+	}
+
 	/**
 	 * Filters the list of image editing library classes.
 	 *
@@ -4470,18 +4479,22 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
-		// Implementation should ideally support the output mime type as well if set and different than the passed type.
-		if (
-			isset( $args['mime_type'] ) &&
-			isset( $args['output_mime_type'] ) &&
-			$args['mime_type'] !== $args['output_mime_type'] &&
-			! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] )
-		) {
-			/*
-			 * This implementation supports the input type but not the output type.
-			 * Keep looking to see if we can find an implementation that supports both.
-			 */
-			$editor = $implementation;
+		// Implementation should support saving to the requested output mime type.
+		if ( isset( $args['mime_type'] ) ) {
+			$output_mime_type = isset( $args['output_mime_type'] ) ? $args['output_mime_type'] : $args['mime_type'];
+			$supports_output  = is_callable( array( $implementation, 'supports_output_mime_type' ) ) ?
+				call_user_func( array( $implementation, 'supports_output_mime_type' ), $output_mime_type ) :
+				call_user_func( array( $implementation, 'supports_mime_type' ), $output_mime_type );
+		}
+
+		if ( isset( $args['mime_type'] ) && ! $supports_output ) {
+			if (
+				isset( $args['output_mime_type'] ) &&
+				$args['mime_type'] !== $args['output_mime_type']
+			) {
+				$editor = $implementation;
+			}
+
 			continue;
 		}
 
@@ -6534,6 +6547,23 @@ function wp_high_priority_element_flag( $value = null ): bool {
 }
 
 /**
+ * Retrieves the default output format mappings for the image editor.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return string[] An array of mime type mappings.
+ */
+function wp_get_image_editor_default_output_format() {
+	return array(
+		'image/heic'          => 'image/jpeg',
+		'image/heif'          => 'image/jpeg',
+		'image/heic-sequence' => 'image/jpeg',
+		'image/heif-sequence' => 'image/jpeg',
+	);
+}
+
+/**
  * Determines the output format for the image editor.
  *
  * @since 6.7.0
@@ -6544,12 +6574,7 @@ function wp_high_priority_element_flag( $value = null ): bool {
  * @return array<string, string> An array of mime type mappings.
  */
 function wp_get_image_editor_output_format( $filename, $mime_type ) {
-	$output_format = array(
-		'image/heic'          => 'image/jpeg',
-		'image/heif'          => 'image/jpeg',
-		'image/heic-sequence' => 'image/jpeg',
-		'image/heif-sequence' => 'image/jpeg',
-	);
+	$output_format = wp_get_image_editor_default_output_format();
 
 	/**
 	 * Filters the image editor output format mapping.
