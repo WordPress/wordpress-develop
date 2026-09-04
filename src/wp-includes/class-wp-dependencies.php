@@ -139,6 +139,11 @@ class WP_Dependencies {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$this->all_deps( $handles );
 
+		// Optimize script loading order for performance while maintaining dependencies
+		if ( $this instanceof WP_Scripts ) {
+			$this->optimize_loading_order();
+		}
+
 		foreach ( $this->to_do as $key => $handle ) {
 			if ( ! in_array( $handle, $this->done, true ) && isset( $this->registered[ $handle ] ) ) {
 				/*

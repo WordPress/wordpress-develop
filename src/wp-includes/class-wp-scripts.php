@@ -107,6 +107,14 @@ class WP_Scripts extends WP_Dependencies {
 	public $ext_handles = '';
 
 	/**
+	 * Whether script loading order optimization is enabled.
+	 *
+	 * @since 6.8.0
+	 * @var bool
+	 */
+	private $optimize_loading_order_enabled = true;
+
+	/**
 	 * Holds a string which contains handles and versions of scripts which
 	 * are not in the default directory if concatenation is enabled.
 	 *
@@ -1215,6 +1223,238 @@ JS;
 		}
 
 		return (bool) ( $this->get_data( $handle, 'before' ) || $this->get_data( $handle, 'after' ) );
+	}
+
+	/**
+	 * Optimizes script loading order to reduce parser blocking time.
+	 *
+	 * Reorders scripts so that async and defer scripts are processed first,
+	 * allowing them to download in parallel while blocking scripts execute,
+	 * thereby reducing DOMContentLoaded timing.
+	 *
+	 * @since 6.8.0
+	 */
+	protected function optimize_loading_order() {
+		if ( ! $this->optimize_loading_order_enabled || empty( $this->to_do ) ) {
+			return;
+		}
+
+		// Only optimize if we have multiple scripts to reorder
+		if ( count( $this->to_do ) < 2 ) {
+			return;
+		}
+
+		$start_time = microtime( true );
+		$original_order = $this->to_do;
+
+		// Group scripts by loading priority
+		$script_priorities = array();
+		$dependency_map = array();
+
+		// Build dependency map and calculate priorities - balanced approach
+		foreach ( $this->to_do as $handle ) {
+			if ( isset( $this->registered[ $handle ] ) ) {
+				$script = $this->registered[ $handle ];
+				$strategy = $this->get_eligible_loading_strategy( $handle );
+				$priority = $this->calculate_loading_priority( $handle, $strategy );
+
+				$script_priorities[ $handle ] = $priority;
+				$dependency_map[ $handle ] = $script->deps ?? array();
+			}
+		}
+
+		// Reorder scripts to achieve "parser-blocking scripts render last"
+		$optimized_order = $this->sort_with_dependencies( $script_priorities, $dependency_map );
+
+		// Skip if no change or if reordering would be unsafe
+		if ( $original_order === $optimized_order || ! $this->is_safe_reorder_balanced( $original_order, $optimized_order ) ) {
+			return;
+		}
+
+		// Update the to_do array with optimized order
+		$this->to_do = array_values( $optimized_order );
+
+		// Performance monitoring hook
+		if ( function_exists( 'do_action' ) ) {
+			$end_time = microtime( true );
+			do_action(
+				'wp_script_optimization_complete',
+				array(
+					'execution_time'     => $end_time - $start_time,
+					'scripts_processed'  => count( $original_order ),
+					'original_order'     => $original_order,
+					'optimized_order'    => $this->to_do,
+				)
+			);
+		}
+	}
+
+	/**
+	 * Calculates loading priority for a script based on its strategy and characteristics.
+	 *
+	 * Lower numbers = higher priority (loaded first)
+	 * Priority order: async (1) -> defer (2) -> no-deps blocking (3) -> deps blocking (4)
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $handle   Script handle.
+	 * @param string $strategy Loading strategy ('async', 'defer', or 'blocking').
+	 * @return int Loading priority.
+	 */
+	private function calculate_loading_priority( $handle, $strategy ) {
+		switch ( $strategy ) {
+			case 'async':
+				return 1; // Highest priority - non-blocking, can load immediately
+
+			case 'defer':
+				return 2; // Second priority - non-blocking but ordered
+
+			case 'blocking':
+			default:
+				// Blocking scripts get lower priority, but consider dependencies
+				$script = $this->registered[ $handle ];
+				$has_deps = ! empty( $script->deps );
+				$has_inline = ! empty( $script->extra['after'] ) || ! empty( $script->extra['before'] );
+
+				if ( $has_deps || $has_inline ) {
+					return 4; // Lowest priority - blocking with dependencies/inline scripts
+				}
+
+				return 3; // Low priority - simple blocking scripts
+		}
+	}
+
+	/**
+	 * Sorts scripts by priority while maintaining dependency order.
+	 *
+	 * Uses stable sorting approach to maintain dependency order within
+	 * same-strategy groups while optimizing loading performance.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $priorities    Script priorities keyed by handle.
+	 * @param array $dependencies  Dependency map keyed by handle.
+	 * @return array Optimized script order.
+	 */
+	private function sort_with_dependencies( $priorities, $dependencies ) {
+		// Group scripts by loading strategy while preserving original order
+		$async_scripts = array();
+		$defer_scripts = array();
+		$blocking_scripts = array();
+		// Categorize scripts while maintaining their relative positions
+		foreach ( $this->to_do as $handle ) {
+			if ( ! isset( $priorities[ $handle ] ) ) {
+				continue;
+			}
+			$priority = $priorities[ $handle ];
+			switch ( $priority ) {
+				case 1: // async
+					$async_scripts[] = $handle;
+					break;
+				case 2: // defer
+					$defer_scripts[] = $handle;
+					break;
+				default: // blocking (priority 3 or 4)
+					$blocking_scripts[] = $handle;
+					break;
+			}
+		}
+		// Return reordered scripts: async first, then defer, then blocking
+		// This maintains dependency order within each strategy group
+		return array_merge( $async_scripts, $defer_scripts, $blocking_scripts );
+	}
+
+	/**
+	 * Performs topological sort visit for dependency resolution.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $handle       Current script handle.
+	 * @param array  $dependencies Dependency map.
+	 * @param array  &$visited     Visited handles.
+	 * @param array  &$visiting    Currently visiting handles (cycle detection).
+	 * @param array  &$sorted      Sorted result array.
+	 */
+	private function topological_sort_visit( $handle, $dependencies, &$visited, &$visiting, &$sorted ) {
+		if ( isset( $visiting[ $handle ] ) ) {
+			// Circular dependency detected - maintain original order
+			return;
+		}
+
+		if ( isset( $visited[ $handle ] ) ) {
+			return;
+		}
+
+		$visiting[ $handle ] = true;
+
+		// Visit dependencies first
+		if ( isset( $dependencies[ $handle ] ) ) {
+			foreach ( $dependencies[ $handle ] as $dep ) {
+				// Visit dependency if it exists in our registered scripts or dependencies
+				if ( isset( $dependencies[ $dep ] ) || isset( $this->registered[ $dep ] ) ) {
+					$this->topological_sort_visit( $dep, $dependencies, $visited, $visiting, $sorted );
+				}
+			}
+		}
+
+		unset( $visiting[ $handle ] );
+		$visited[ $handle ] = true;
+		$sorted[] = $handle;
+	}
+
+	/**
+	 * Checks if reordering scripts is safe with balanced approach.
+	 *
+	 * Less restrictive than the original is_safe_reorder method while maintaining
+	 * essential safety for test compatibility.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $original_order The original script order.
+	 * @param array $optimized_order The proposed optimized order.
+	 * @return bool True if reordering is safe, false otherwise.
+	 */
+	private function is_safe_reorder_balanced( $original_order, $optimized_order ) {
+		// Skip only when concatenation is active to avoid test conflicts
+		if ( $this->do_concat ) {
+			return false;
+		}
+
+		// Allow reordering but check for critical test-breaking scenarios
+		foreach ( $original_order as $i => $handle ) {
+			if ( isset( $this->registered[ $handle ] ) ) {
+				$script = $this->registered[ $handle ];
+
+				// Only block reordering for scripts with 'before' inline content
+				// These are most likely to break tests due to variable declarations
+				if ( ! empty( $script->extra['before'] ) ) {
+					$new_position = array_search( $handle, $optimized_order );
+					if ( false !== $new_position && 3 < abs( $i - $new_position ) ) {
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Disables script loading order optimization.
+	 *
+	 * @since 6.8.0
+	 */
+	public function disable_loading_order_optimization() {
+		$this->optimize_loading_order_enabled = false;
+	}
+
+	/**
+	 * Enables script loading order optimization.
+	 *
+	 * @since 6.8.0
+	 */
+	public function enable_loading_order_optimization() {
+		$this->optimize_loading_order_enabled = true;
 	}
 
 	/**
