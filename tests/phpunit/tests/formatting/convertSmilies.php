@@ -373,4 +373,15 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 		$text = '<p><img alt="" src="data:image/png;base64,' . str_repeat( 'iVBORw0KGgoAAAAN', 65536 ) . '="></p> :)';
 		$this->assertStringContainsString( "\xf0\x9f\x99\x82", convert_smilies( $text ) );
 	}
+
+	/**
+	 * @ticket 58476
+	 */
+	public function test_null_returns_empty_string() {
+		$this->assertSame( '', convert_smilies( null ) );
+
+		// With smilies disabled, the original value is returned untouched.
+		update_option( 'use_smilies', 0 );
+		$this->assertNull( convert_smilies( null ) );
+	}
 }

@@ -7476,6 +7476,9 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 			if ( $post ) {
 				$post_id = (int) $post->ID;
 				$file    = get_attached_file( $post_id );
+				if ( null === $file ) {
+					$file = '';
+				}
 				$ext     = preg_replace( '/^.+?\.([^.]+)$/', '$1', $file );
 				if ( ! empty( $ext ) ) {
 					$post_mimes[] = $ext;

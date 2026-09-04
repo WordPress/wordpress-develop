@@ -21,6 +21,14 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( 'http://example.com/?foo=one%20two%20three&#038;bar=four', esc_url( 'http://example.com/?foo=one%20two%20three&bar=four' ) );
 	}
 
+	/**
+	 * @ticket 61268
+	 */
+	public function test_null_returns_empty_string() {
+		$this->assertSame( '', esc_url( null ) );
+		$this->assertSame( '', esc_url_raw( null ) );
+	}
+
 	public function test_bad_characters() {
 		$this->assertSame( 'http://example.com/watchthelinefeedgo', esc_url( 'http://example.com/watchthelinefeed%0Ago' ) );
 		$this->assertSame( 'http://example.com/watchthelinefeedgo', esc_url( 'http://example.com/watchthelinefeed%0ago' ) );

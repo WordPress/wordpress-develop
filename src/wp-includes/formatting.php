@@ -3559,6 +3559,10 @@ function convert_smilies( $text ) {
 		return $text;
 	}
 
+	if ( null === $text ) {
+		$text = '';
+	}
+
 	// HTML loop taken from texturize function, could possible be consolidated.
 	$textarr = preg_split( '/(<[^>]*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
 
@@ -4550,6 +4554,10 @@ function esc_sql( $data ) {
  */
 function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$original_url = $url;
+
+	if ( null === $url ) {
+		$url = '';
+	}
 
 	if ( '' === $url ) {
 		return $url;
