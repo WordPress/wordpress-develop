@@ -1178,7 +1178,10 @@ function _find_post_by_old_slug( $post_type ) {
 	}
 
 	$key          = md5( $query );
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$last_changed = array(
+		wp_cache_get_last_changed( 'post-queries' ),
+		wp_cache_get_last_changed( 'post_meta' ),
+	);
 	$cache_key    = "find_post_by_old_slug:$key";
 	$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $cache ) {
@@ -1221,7 +1224,10 @@ function _find_post_by_old_date( $post_type ) {
 	if ( $date_query ) {
 		$query        = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) );
 		$key          = md5( $query );
-		$last_changed = wp_cache_get_last_changed( 'posts' );
+		$last_changed = array(
+			wp_cache_get_last_changed( 'post-queries' ),
+			wp_cache_get_last_changed( 'post_meta' ),
+		);
 		$cache_key    = "find_post_by_old_date:$key";
 		$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 		if ( false !== $cache ) {

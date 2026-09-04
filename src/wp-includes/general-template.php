@@ -2323,7 +2323,12 @@ function wp_get_archives( $args = '' ) {
 
 	$output = '';
 
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$last_changed = (array) wp_cache_get_last_changed( 'post-queries' );
+
+	// If this query has been filtered to include post meta table, then also include post meta last changed as part of the cache salt.
+	if ( str_contains( $join, $wpdb->postmeta ) ) {
+		$last_changed[] = wp_cache_get_last_changed( 'post_meta' );
+	}
 
 	$limit = $parsed_args['limit'];
 

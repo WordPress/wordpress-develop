@@ -6328,7 +6328,7 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
 function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	global $wpdb;
 
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$last_changed = wp_cache_get_last_changed( 'post-queries' );
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
 	$cache_key = "get_page_by_path:$hash";
@@ -8687,6 +8687,17 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
  */
 function wp_cache_set_posts_last_changed() {
 	wp_cache_set_last_changed( 'posts' );
+	wp_cache_set_last_changed( 'post-queries' );
+}
+
+/**
+ * Sets the last changed time for the 'posts' cache group.
+ *
+ * @since 7.0.0
+ */
+function wp_cache_set_post_meta_last_changed() {
+    wp_cache_set_last_changed( 'posts' );
+	wp_cache_set_last_changed( 'post_meta' );
 }
 
 /**
