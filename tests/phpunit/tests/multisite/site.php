@@ -683,6 +683,8 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * Tests returning an address for a given valid ID.
 	 */
 	public function test_get_blogaddress_by_id_with_valid_id() {
+		$this->setExpectedDeprecated( 'get_blogaddress_by_id' );
+
 		$blogaddress = get_blogaddress_by_id( 1 );
 		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/', $blogaddress );
 	}
@@ -691,6 +693,8 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * Tests returning an empty string for a non-existing ID.
 	 */
 	public function test_get_blogaddress_by_id_with_invalid_id() {
+		$this->setExpectedDeprecated( 'get_blogaddress_by_id' );
+
 		$blogaddress = get_blogaddress_by_id( PHP_INT_MAX );
 		$this->assertSame( '', $blogaddress );
 	}
@@ -699,6 +703,8 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 14867
 	 */
 	public function test_get_blogaddress_by_id_scheme_reflects_blog_scheme() {
+		$this->setExpectedDeprecated( 'get_blogaddress_by_id' );
+
 		$blog = self::factory()->blog->create();
 
 		$this->assertSame( 'http', parse_url( get_blogaddress_by_id( $blog ), PHP_URL_SCHEME ) );
@@ -712,6 +718,8 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 14867
 	 */
 	public function test_get_blogaddress_by_id_scheme_is_unaffected_by_request() {
+		$this->setExpectedDeprecated( 'get_blogaddress_by_id' );
+
 		$blog = self::factory()->blog->create();
 
 		$this->assertFalse( is_ssl() );
@@ -724,6 +732,45 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 
 		$this->assertTrue( $is_ssl );
 		$this->assertSame( 'http', $address );
+	}
+
+	/**
+	 * @ticket 37297
+	 */
+	public function test_wpmu_welcome_notification_uses_filtered_home_url() {
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'welcome@example.org',
+			)
+		);
+
+		$filter_home_url = static function ( $url, $path, $scheme, $current_blog_id ) use ( $blog_id ) {
+			if ( $blog_id === $current_blog_id ) {
+				return 'https://filtered.example.org/';
+			}
+
+			return $url;
+		};
+
+		$welcome_email        = null;
+		$filter_welcome_email = static function ( $email ) use ( &$welcome_email ) {
+			$welcome_email = $email;
+
+			return $email;
+		};
+
+		add_filter( 'home_url', $filter_home_url, 10, 4 );
+		add_filter( 'update_welcome_email', $filter_welcome_email );
+		add_filter( 'pre_wp_mail', '__return_true' );
+
+		wpmu_welcome_notification( $blog_id, $user_id, 'password', 'Site Title' );
+
+		remove_filter( 'home_url', $filter_home_url, 10 );
+		remove_filter( 'update_welcome_email', $filter_welcome_email );
+		remove_filter( 'pre_wp_mail', '__return_true' );
+
+		$this->assertStringContainsString( 'https://filtered.example.org/', $welcome_email );
 	}
 
 	/**

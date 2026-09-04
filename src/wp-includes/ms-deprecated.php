@@ -623,7 +623,13 @@ function install_blog( $blog_id, $blog_title = '' ) {
 	}
 	$wpdb->suppress_errors( $suppress );
 
-	$url = get_blogaddress_by_id( $blog_id );
+	// Get the site URL directly from get_site() instead of using get_blogaddress_by_id().
+	$site_info = get_site( $blog_id );
+	if ( ! empty( $site_info ) ) {
+		$url = 'http://' . $site_info->domain . $site_info->path;
+	} else {
+		$url = '';
+	}
 
 	// Set everything up.
 	make_db_current_silent( 'blog' );
