@@ -195,6 +195,7 @@ class WP_User {
 	 *
 	 * @since 3.3.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
+	 * @since 7.1.0 Non-existent users looked up by ID are now cached to prevent duplicate queries.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -256,6 +257,26 @@ class WP_User {
 			}
 		}
 
+		/*
+		 * For ID lookups, check whether this ID has already been cached as
+		 * non-existent to avoid repeating the database query.
+		 *
+		 * The cache key is salted with the 'users' group's last changed value.
+		 * Any user creation, update, or deletion calls clean_user_cache(), which
+		 * bumps that value and therefore invalidates every negative entry at once.
+		 * The expiration is only a backstop for out-of-band changes that bypass
+		 * the WordPress API (e.g. a direct SQL import), which should be followed
+		 * by a cache flush regardless.
+		 */
+		if ( 'id' === $field ) {
+			$last_changed = wp_cache_get_last_changed( 'users' );
+			$notuser_key  = "notuser:{$user_id}:{$last_changed}";
+
+			if ( wp_cache_get( $notuser_key, 'users' ) ) {
+				return false;
+			}
+		}
+
 		$user = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM $wpdb->users WHERE $db_field = %s LIMIT 1",
@@ -263,6 +284,9 @@ class WP_User {
 			)
 		);
 		if ( ! $user ) {
+			if ( 'id' === $field ) {
+				wp_cache_set( $notuser_key, true, 'users', DAY_IN_SECONDS );
+			}
 			return false;
 		}
 
