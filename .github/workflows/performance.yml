@@ -1,16 +1,12 @@
 name: Performance Tests
 
 on:
+  # Performance testing was introduced in WordPress 6.2.
   push:
     branches:
       - trunk
       - '6.[2-9]'
       - '[7-9].[0-9]'
-    tags:
-      - '[0-9]+.[0-9]'
-      - '[0-9]+.[0-9].[0-9]+'
-      - '![45].[0-9].[0-9]+'
-      - '!6.[01].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -23,8 +19,12 @@ on:
       - '**.php'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
       - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
@@ -32,7 +32,6 @@ on:
       - 'tests/performance/**'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/performance.yml'
-      - '.github/workflows/reusable-performance.yml'
       - '.github/workflows/reusable-performance-*.yml'
   workflow_dispatch:
 
@@ -51,8 +50,19 @@ jobs:
   determine-matrix:
     name: Determine Matrix
     runs-on: ubuntu-24.04
-    if: ${{ ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) && ! contains( github.event.before, '00000000' ) }}
-    permissions: {}
+    if: |
+      (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      ) &&
+      ! contains( github.event.before, '00000000' )
+    permissions:
+      actions: read
     env:
       TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
     outputs:
@@ -65,7 +75,7 @@ jobs:
         run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> "$GITHUB_ENV"
 
       - name: Set subjects
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         id: set-subjects
         with:
           script: |
@@ -98,7 +108,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        memcached: [ true, false ]
+        memcached: [ false, true ]
         multisite: [ true, false ]
         subject: ${{ fromJson( needs.determine-matrix.outputs.subjects ) }}
     with:
@@ -116,8 +126,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        memcached: [ true, false ]
+        memcached: [ false, true ]
         multisite: [ true, false ]
+        # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
         label: [ Compare ]
     with:
       memcached: ${{ matrix.memcached }}
@@ -161,7 +172,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

@@ -44,12 +44,30 @@ jQuery( function( $ ) {
 	$( '.health-check-accordion' ).on( 'click', '.health-check-accordion-trigger', function() {
 		var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
 
+		if ( $( this ).prop( 'id' ) ) {
+			window.location.hash = $( this ).prop( 'id' );
+		}
+
 		if ( isExpanded ) {
 			$( this ).attr( 'aria-expanded', 'false' );
 			$( '#' + $( this ).attr( 'aria-controls' ) ).attr( 'hidden', true );
 		} else {
 			$( this ).attr( 'aria-expanded', 'true' );
 			$( '#' + $( this ).attr( 'aria-controls' ) ).attr( 'hidden', false );
+		}
+	} );
+
+	/* global setTimeout */
+	wp.domReady( function() {
+		// Get hash from query string and open the related accordion.
+		var hash = window.location.hash;
+
+		if ( hash ) {
+			var requestedPanel = $( hash );
+
+			if ( requestedPanel.is( '.health-check-accordion-trigger' ) ) {
+				requestedPanel.trigger( 'click' );
+			}
 		}
 	} );
 
@@ -67,9 +85,9 @@ jQuery( function( $ ) {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param {Object} issue
+	 * @param {Object} issue The issue data to validate.
 	 *
-	 * @return {boolean}
+	 * @return {boolean} True if the issue data is valid, false otherwise.
 	 */
 	function validateIssueData( issue ) {
 		// Expected minimum format of a valid SiteHealth test response.
@@ -119,6 +137,7 @@ jQuery( function( $ ) {
 	 * @since 5.2.0
 	 *
 	 * @param {Object} issue The issue data.
+	 * @return {void|boolean} True if the issue was appended, false otherwise.
 	 */
 	function appendIssue( issue ) {
 		var template = wp.template( 'health-check-issue' ),
@@ -328,6 +347,8 @@ jQuery( function( $ ) {
 	/**
 	 * Add the details of a failed asynchronous test to the list of test results.
 	 *
+	 * @param {string} url
+	 * @param {string} description
 	 * @since 5.6.0
 	 */
 	function addFailedSiteHealthCheckNotice( url, description ) {

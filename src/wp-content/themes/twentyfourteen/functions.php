@@ -2,7 +2,7 @@
 /**
  * Twenty Fourteen functions and definitions
  *
- * Set up the theme and provides some helper functions, which are used in the
+ * Sets up the theme and provides some helper functions, which are used in the
  * theme as custom template tags. Others are attached to action and filter
  * hooks in WordPress to change core functionality.
  *
@@ -38,6 +38,8 @@ if ( ! isset( $content_width ) ) {
 
 /**
  * Twenty Fourteen only works in WordPress 3.6 or later.
+ *
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '3.6', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -54,6 +56,8 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 	 * as indicating support post thumbnails.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 *
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyfourteen_setup() {
 
@@ -223,9 +227,11 @@ endif; // twentyfourteen_setup()
 add_action( 'after_setup_theme', 'twentyfourteen_setup' );
 
 /**
- * Adjust content_width value for image attachment template.
+ * Adjusts content_width value for image attachment template.
  *
  * @since Twenty Fourteen 1.0
+ *
+ * @global int $content_width Content width.
  */
 function twentyfourteen_content_width() {
 	if ( is_attachment() && wp_attachment_is_image() ) {
@@ -264,7 +270,7 @@ function twentyfourteen_has_featured_posts() {
 }
 
 /**
- * Register three Twenty Fourteen widget areas.
+ * Registers three Twenty Fourteen widget areas.
  *
  * @since Twenty Fourteen 1.0
  */
@@ -310,12 +316,12 @@ add_action( 'widgets_init', 'twentyfourteen_widgets_init' );
 
 if ( ! function_exists( 'twentyfourteen_font_url' ) ) :
 	/**
-	 * Register Lato font for Twenty Fourteen.
+	 * Registers Lato font for Twenty Fourteen.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 * @since Twenty Fourteen 3.6 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentyfourteen_font_url() {
 		$font_url = '';
@@ -332,7 +338,7 @@ if ( ! function_exists( 'twentyfourteen_font_url' ) ) :
 endif;
 
 /**
- * Enqueue scripts and styles for the front end.
+ * Enqueues scripts and styles for the front end.
  *
  * @since Twenty Fourteen 1.0
  */
@@ -342,17 +348,16 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'twentyfourteen-lato', twentyfourteen_font_url(), array(), $font_version );
 
 	// Add Genericons font, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20250715' );
+	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20260819' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20250715' );
 
-	// Load the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20140711' );
-	wp_style_add_data( 'twentyfourteen-ie', 'conditional', 'lt IE 9' );
+	// Register the Internet Explorer specific stylesheet.
+	wp_register_style( 'twentyfourteen-ie', false, array( 'twentyfourteen-style' ) );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
@@ -391,7 +396,7 @@ function twentyfourteen_scripts() {
 		'twentyfourteen-script',
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
-		'20230526',
+		'20250729',
 		array(
 			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
@@ -401,7 +406,7 @@ function twentyfourteen_scripts() {
 add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
 
 /**
- * Enqueue font stylesheet to admin screen for custom header display.
+ * Enqueues font stylesheet to admin screen for custom header display.
  *
  * @since Twenty Fourteen 1.0
  */
@@ -412,10 +417,12 @@ function twentyfourteen_admin_fonts() {
 add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen_admin_fonts' );
 
 /**
- * Add preconnect for Google Fonts.
+ * Adds preconnect for Google Fonts.
  *
  * @since Twenty Fourteen 1.9
  * @deprecated Twenty Fourteen 3.6 Disabled filter because, by default, fonts are self-hosted.
+ *
+ * @global string $wp_version The WordPress version string.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.
@@ -438,7 +445,7 @@ function twentyfourteen_resource_hints( $urls, $relation_type ) {
 // add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
 
 /**
- * Enqueue styles for the block-based editor.
+ * Enqueues styles for the block-based editor.
  *
  * @since Twenty Fourteen 2.3
  */
@@ -453,7 +460,7 @@ add_action( 'enqueue_block_editor_assets', 'twentyfourteen_block_editor_styles' 
 
 if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 	/**
-	 * Print the attached image with a link to the next attached image.
+	 * Prints the attached image with a link to the next attached image.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 */
@@ -521,9 +528,11 @@ endif;
 
 if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 	/**
-	 * Print a list of all site contributors who published at least one post.
+	 * Prints a list of all site contributors who published at least one post.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 *
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyfourteen_list_authors() {
 		$args = array(
@@ -583,7 +592,7 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 endif;
 
 /**
- * Extend the default WordPress body classes.
+ * Extends the default WordPress body classes.
  *
  * Adds body classes to denote:
  * 1. Single or multiple authors.
@@ -595,6 +604,8 @@ endif;
  * 7. Featured content layout.
  *
  * @since Twenty Fourteen 1.0
+ *
+ * @global string $pagenow The filename of the current screen.
  *
  * @param array $classes A list of existing body class values.
  * @return array The filtered body class list.
@@ -640,7 +651,7 @@ function twentyfourteen_body_classes( $classes ) {
 add_filter( 'body_class', 'twentyfourteen_body_classes' );
 
 /**
- * Extend the default WordPress post classes.
+ * Extends the default WordPress post classes.
  *
  * Adds a post class to denote:
  * Non-password protected page with a post thumbnail.
@@ -660,13 +671,13 @@ function twentyfourteen_post_classes( $classes ) {
 add_filter( 'post_class', 'twentyfourteen_post_classes' );
 
 /**
- * Create a nicely formatted and more specific title element text for output
+ * Creates a nicely formatted and more specific title element text for output
  * in head of document, based on current view.
  *
  * @since Twenty Fourteen 1.0
  *
- * @global int $paged WordPress archive pagination page count.
- * @global int $page  WordPress paginated post page count.
+ * @global int $paged Page number of a list of posts.
+ * @global int $page  Page number of a single post.
  *
  * @param string $title Default title text for current view.
  * @param string $sep Optional separator.
@@ -729,7 +740,7 @@ require get_template_directory() . '/inc/template-tags.php';
 require get_template_directory() . '/inc/customizer.php';
 
 /**
- * Register block patterns and pattern categories.
+ * Registers block patterns and pattern categories.
  *
  * @since Twenty Fourteen 4.1
  */
@@ -744,18 +755,22 @@ add_action( 'init', 'twentyfourteen_register_block_patterns' );
  *
  * To overwrite in a plugin, define your own Featured_Content class on or
  * before the 'setup_theme' hook.
+ *
+ * @global string $pagenow The filename of the current screen.
  */
 if ( ! class_exists( 'Featured_Content' ) && 'plugins.php' !== $GLOBALS['pagenow'] ) {
 	require get_template_directory() . '/inc/featured-content.php';
 }
 
 /**
- * Add an `is_customize_preview` function if it is missing.
+ * Adds an `is_customize_preview` function if it is missing.
  *
  * Enables installing Twenty Fourteen in WordPress versions before 4.0.0 when the
  * `is_customize_preview` function was introduced.
  *
  * @global WP_Customize_Manager $wp_customize Customizer object.
+ *
+ * @return bool Whether the site is being previewed in the Customizer.
  */
 if ( ! function_exists( 'is_customize_preview' ) ) :
 	function is_customize_preview() {

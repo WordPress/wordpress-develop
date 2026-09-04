@@ -852,6 +852,53 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, wp_list_pluck( $found, 'term_id' ) );
 	}
 
+	/**
+	 * Tests that a call to WP_Term_Query::get_terms() does not result in a PHP warning
+	 * when get_term() returns null for a child term.
+	 *
+	 * The warning that we should not see:
+	 * `Warning: Attempt to read property "count" on null`.
+	 *
+	 * @ticket 63877
+	 */
+	public function test_null_child_term_should_not_throw_warning() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $t1,
+			)
+		);
+
+		$this->term_id = $t2;
+
+		add_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+		remove_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+
+		$this->assertIsArray( $q->terms, 'The result should be an array.' );
+		$this->assertEmpty( $q->terms, 'The result should be empty.' );
+	}
+
 	public function filter_term_to_null( $term ) {
 		if ( $this->term_id === $term->term_id ) {
 			return null;
@@ -1005,6 +1052,26 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 47719
+	 */
+	public function test_include_should_return_no_terms_when_0() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
+
+		$query = new WP_Term_Query(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'include'  => array( 0 ),
+			)
+		);
+
+		$expected = array();
+		$this->assertSame( $expected, $query->terms );
+		$this->assertSame( $expected, $query->get_terms() );
+	}
+
+	/**
 	 * Ensure cache keys are generated without WPDB placeholders.
 	 *
 	 * @ticket 57298
@@ -1021,7 +1088,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$request    = $query1->request;
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 
@@ -1137,5 +1206,52 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
+
+	/**
+	 * Verifies what WP_Term_Query::query() returns for the `id=>parent` fields value.
+	 *
+	 * Unlike WP_Query, both the uncached and the cached path run the results through
+	 * WP_Term_Query::format_terms(), so the parent IDs are keyed by term ID either way.
+	 *
+	 * The assertion is repeated for a second query so that the cached path is covered
+	 * both when an external object cache is in use and when it is not.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Term_Query::query
+	 */
+	public function test_id_and_parent_fields_should_return_parent_ids_keyed_by_term_id() {
+		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
+
+		$parent_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
+		$this->assertIsInt( $parent_id, 'The parent term was not created.' );
+
+		$child_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'parent'   => $parent_id,
+			)
+		);
+		$this->assertIsInt( $child_id, 'The child term was not created.' );
+
+		$query_args = array(
+			'taxonomy'   => 'wptests_tax_hierarchical',
+			'fields'     => 'id=>parent',
+			'hide_empty' => false,
+			'orderby'    => 'term_id',
+			'order'      => 'ASC',
+		);
+
+		$expected = array(
+			$parent_id => 0,
+			$child_id  => $parent_id,
+		);
+
+		$q1 = new WP_Term_Query();
+		$this->assertSame( $expected, $q1->query( $query_args ), 'First query is not of the expected form.' );
+
+		$q2 = new WP_Term_Query();
+		$this->assertSame( $expected, $q2->query( $query_args ), 'Second query is not of the expected form.' );
 	}
 }

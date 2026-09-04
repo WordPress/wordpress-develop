@@ -37,14 +37,15 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$display` argument is true or the title is empty,
- *                     current post title if `$display` is false.
+ * @return string|void Current post title when `$display` is false, null when the title
+ *                     is empty. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $before . $title . $after;
@@ -76,7 +77,13 @@ function the_title( $before = '', $after = '', $display = true ) {
  *     @type bool    $echo   Whether to echo or return the title. Default true for echo.
  *     @type WP_Post $post   Current post object to retrieve the title for.
  * }
- * @return void|string Void if 'echo' argument is true, the title attribute if 'echo' is false.
+ * @return string|void The title attribute when 'echo' is false, null when the title is
+ *                     empty. Nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string|null
+ *         : ( $args is ''|array ? void : string|null )
+ * )
  */
 function the_title_attribute( $args = '' ) {
 	$defaults    = array(
@@ -90,7 +97,7 @@ function the_title_attribute( $args = '' ) {
 	$title = get_the_title( $parsed_args['post'] );
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
@@ -118,8 +125,8 @@ function the_title_attribute( $args = '' ) {
 function get_the_title( $post = 0 ) {
 	$post = get_post( $post );
 
-	$post_title = isset( $post->post_title ) ? $post->post_title : '';
-	$post_id    = isset( $post->ID ) ? $post->ID : 0;
+	$post_title = $post->post_title ?? '';
+	$post_id    = $post->ID ?? 0;
 
 	if ( ! is_admin() ) {
 		if ( ! empty( $post->post_password ) ) {
@@ -191,7 +198,7 @@ function the_guid( $post = 0 ) {
 	$post = get_post( $post );
 
 	$post_guid = isset( $post->guid ) ? get_the_guid( $post ) : '';
-	$post_id   = isset( $post->ID ) ? $post->ID : 0;
+	$post_id   = $post->ID ?? 0;
 
 	/**
 	 * Filters the escaped Global Unique Identifier (guid) of the post.
@@ -221,8 +228,8 @@ function the_guid( $post = 0 ) {
 function get_the_guid( $post = 0 ) {
 	$post = get_post( $post );
 
-	$post_guid = isset( $post->guid ) ? $post->guid : '';
-	$post_id   = isset( $post->ID ) ? $post->ID : 0;
+	$post_guid = $post->guid ?? '';
+	$post_id   = $post->ID ?? 0;
 
 	/**
 	 * Filters the Global Unique Identifier (guid) of the post.
@@ -407,7 +414,7 @@ function the_excerpt() {
  * @since 0.71
  * @since 4.5.0 Introduced the `$post` parameter.
  *
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Post excerpt.
  */
 function get_the_excerpt( $post = null ) {
@@ -458,9 +465,9 @@ function has_excerpt( $post = 0 ) {
  *
  * @since 2.7.0
  *
- * @param string|string[] $css_class Optional. One or more classes to add to the class list.
- *                                   Default empty.
- * @param int|WP_Post     $post      Optional. Post ID or post object. Defaults to the global `$post`.
+ * @param string|string[]  $css_class Optional. One or more classes to add to the class list.
+ *                                    Default empty.
+ * @param int|WP_Post|null $post      Optional. Post ID or post object. Defaults to the global `$post`.
  */
 function post_class( $css_class = '', $post = null ) {
 	// Separates classes with a single space, collates classes for post DIV.
@@ -486,9 +493,9 @@ function post_class( $css_class = '', $post = null ) {
  * @since 2.7.0
  * @since 4.2.0 Custom taxonomy class names were added.
  *
- * @param string|string[] $css_class Optional. Space-separated string or array of class names
- *                                   to add to the class list. Default empty.
- * @param int|WP_Post     $post      Optional. Post ID or post object.
+ * @param string|string[]  $css_class Optional. Space-separated string or array of class names
+ *                                    to add to the class list. Default empty.
+ * @param int|WP_Post|null $post      Optional. Post ID or post object.
  * @return string[] Array of class names.
  */
 function get_post_class( $css_class = '', $post = null ) {
@@ -606,7 +613,10 @@ function get_post_class( $css_class = '', $post = null ) {
 	 */
 	$classes = apply_filters( 'post_class', $classes, $css_class, $post->ID );
 
-	return array_unique( $classes );
+	$classes = array_unique( $classes );
+	$classes = array_values( $classes );
+
+	return $classes;
 }
 
 /**
@@ -1269,33 +1279,38 @@ function wp_dropdown_pages( $args = '' ) {
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a list of pages. See get_pages() for additional arguments.
  *
- *     @type int          $child_of     Display only the sub-pages of a single page by ID. Default 0 (all pages).
- *     @type string       $authors      Comma-separated list of author IDs. Default empty (all authors).
- *     @type string       $date_format  PHP date format to use for the listed pages. Relies on the 'show_date' parameter.
- *                                      Default is the value of 'date_format' option.
- *     @type int          $depth        Number of levels in the hierarchy of pages to include in the generated list.
- *                                      Accepts -1 (any depth), 0 (all pages), 1 (top-level pages only), and n (pages to
- *                                      the given n depth). Default 0.
- *     @type bool         $echo         Whether or not to echo the list of pages. Default true.
- *     @type string       $exclude      Comma-separated list of page IDs to exclude. Default empty.
- *     @type array        $include      Comma-separated list of page IDs to include. Default empty.
- *     @type string       $link_after   Text or HTML to follow the page link label. Default null.
- *     @type string       $link_before  Text or HTML to precede the page link label. Default null.
- *     @type string       $post_type    Post type to query for. Default 'page'.
- *     @type string|array $post_status  Comma-separated list or array of post statuses to include. Default 'publish'.
- *     @type string       $show_date    Whether to display the page publish or modified date for each page. Accepts
- *                                      'modified' or any other value. An empty value hides the date. Default empty.
- *     @type string       $sort_column  Comma-separated list of column names to sort the pages by. Accepts 'post_author',
- *                                      'post_date', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt',
- *                                      'menu_order', 'post_parent', 'ID', 'rand', or 'comment_count'. Default 'post_title'.
- *     @type string       $title_li     List heading. Passing a null or empty value will result in no heading, and the list
- *                                      will not be wrapped with unordered list `<ul>` tags. Default 'Pages'.
- *     @type string       $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'.
- *                                      Default 'preserve'.
- *     @type Walker       $walker       Walker instance to use for listing pages. Default empty which results in a
- *                                      Walker_Page instance being used.
+ *     @type int               $child_of     Display only the sub-pages of a single page by ID. Default 0 (all pages).
+ *     @type string            $authors      Comma-separated list of author IDs. Default empty (all authors).
+ *     @type string            $date_format  PHP date format to use for the listed pages. Relies on the 'show_date' parameter.
+ *                                           Default is the value of 'date_format' option.
+ *     @type int               $depth        Number of levels in the hierarchy of pages to include in the generated list.
+ *                                           Accepts -1 (any depth), 0 (all pages), 1 (top-level pages only), and n (pages to
+ *                                           the given n depth). Default 0.
+ *     @type bool              $echo         Whether or not to echo the list of pages. Default true.
+ *     @type string            $exclude      Comma-separated list of page IDs to exclude. Default empty.
+ *     @type array             $include      Comma-separated list of page IDs to include. Default empty.
+ *     @type string            $link_after   Text or HTML to follow the page link label. Default null.
+ *     @type string            $link_before  Text or HTML to precede the page link label. Default null.
+ *     @type string            $post_type    Post type to query for. Default 'page'.
+ *     @type string|array      $post_status  Comma-separated list or array of post statuses to include. Default 'publish'.
+ *     @type string            $show_date    Whether to display the page publish or modified date for each page. Accepts
+ *                                           'modified' or any other value. An empty value hides the date. Default empty.
+ *     @type string            $sort_column  Comma-separated list of column names to sort the pages by. Accepts 'post_author',
+ *                                           'post_date', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt',
+ *                                           'menu_order', 'post_parent', 'ID', 'rand', or 'comment_count'. Default 'post_title'.
+ *     @type string|false|null $title_li     List heading. Passing a null or empty value will result in no heading, and the list
+ *                                           will not be wrapped with unordered list `<ul>` tags. Default 'Pages'.
+ *     @type string            $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'.
+ *                                           Default 'preserve'.
+ *     @type Walker            $walker       Walker instance to use for listing pages. Default empty which results in a
+ *                                           Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML list of pages if 'echo' is false.
+ * @return string|void HTML list of pages if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|array ? void : string|null )
+ * )
  */
 function wp_list_pages( $args = '' ) {
 	$defaults = array(
@@ -1418,7 +1433,12 @@ function wp_list_pages( $args = '' ) {
  *     @type Walker          $walker       Walker instance to use for listing pages. Default empty which results in a
  *                                         Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML menu if 'echo' is false.
+ * @return string|void HTML menu if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|array ? void : string|null )
+ * )
  */
 function wp_page_menu( $args = array() ) {
 	$defaults = array(
@@ -1806,9 +1826,23 @@ function get_the_password_form( $post = 0 ) {
 		);
 	}
 
+	$button_class         = '';
+	$button_wrapper_open  = '';
+	$button_wrapper_close = '';
+
+	if ( wp_is_block_theme() ) {
+		$button_class         = ' class="wp-block-button__link ' . wp_theme_get_element_class_name( 'button' ) . '"';
+		$button_wrapper_open  = '<span class="wp-block-button">';
+		$button_wrapper_close = '</span>';
+
+		if ( wp_style_is( 'wp-block-button', 'registered' ) ) {
+			wp_enqueue_style( 'wp-block-button' );
+		}
+	}
+
 	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form' . $class . '" method="post">' . $redirect_field . $invalid_password_html . '
 	<p>' . __( 'This content is password-protected. To view it, please enter the password below.' ) . '</p>
-	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> <input type="submit" name="Submit" value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
+	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> ' . $button_wrapper_open . '<input type="submit" name="Submit"' . $button_class . ' value="' . esc_attr_x( 'Enter', 'post password form' ) . '" />' . $button_wrapper_close . '</p></form>
 	';
 
 	/**
@@ -1880,7 +1914,7 @@ function is_page_template( $template = '' ) {
  * @since 3.4.0
  * @since 4.7.0 Now works with any post type, not just pages.
  *
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string|false Page template filename. Returns an empty string when the default page template
  *                      is in use. Returns false if the post does not exist.
  */

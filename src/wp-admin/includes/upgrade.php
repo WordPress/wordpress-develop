@@ -886,6 +886,10 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
+	if ( $wp_current_db_version < 61644 ) {
+		upgrade_700();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2033,24 +2037,14 @@ function upgrade_430_fix_comments() {
 
 	$content_length = $wpdb->get_col_length( $wpdb->comments, 'comment_content' );
 
-	if ( is_wp_error( $content_length ) ) {
-		return;
-	}
-
 	if ( false === $content_length ) {
 		$content_length = array(
 			'type'   => 'byte',
 			'length' => 65535,
 		);
-	} elseif ( ! is_array( $content_length ) ) {
-		$length         = (int) $content_length > 0 ? (int) $content_length : 65535;
-		$content_length = array(
-			'type'   => 'byte',
-			'length' => $length,
-		);
 	}
 
-	if ( 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
+	if ( ! is_array( $content_length ) || 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
 		// Sites with malformed DB schemas are on their own.
 		return;
 	}
@@ -2414,6 +2408,7 @@ function upgrade_650() {
 		wp_set_option_autoload_values( $autoload );
 	}
 }
+
 /**
  * Executes changes made in WordPress 6.7.0.
  *
@@ -2477,6 +2472,31 @@ function upgrade_682() {
 		$ping_sites_value = array_filter( $ping_sites_value );
 		$ping_sites_value = implode( "\n", $ping_sites_value );
 		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 7.0.
+ *
+ * @ignore
+ * @since 7.0.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_700() {
+	global $wp_current_db_version, $wpdb;
+
+	// Migrate users with 'fresh' admin color to 'modern'.
+	if ( $wp_current_db_version < 61644 ) {
+		$wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'modern' ),
+			array(
+				'meta_key'   => 'admin_color',
+				'meta_value' => 'fresh',
+			)
+		);
 	}
 }
 
@@ -2830,7 +2850,7 @@ function get_alloptions_110() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $setting Option name.
- * @return mixed
+ * @return mixed Option value.
  */
 function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	global $wpdb;
@@ -2932,8 +2952,10 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	// Create a tablename index for an array ($cqueries) of recognized query types.
 	foreach ( $queries as $qry ) {
 		if ( preg_match( '|CREATE TABLE ([^ ]*)|', $qry, $matches ) ) {
-			$cqueries[ trim( $matches[1], '`' ) ] = $qry;
-			$for_update[ $matches[1] ]            = 'Created table ' . $matches[1];
+			$table_name = trim( $matches[1], '`' );
+
+			$cqueries[ $table_name ]   = $qry;
+			$for_update[ $table_name ] = 'Created table ' . $matches[1];
 			continue;
 		}
 
@@ -3171,7 +3193,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 				$fieldtype_base = strtok( $fieldtype_without_parentheses, ' ' );
 
 				// Is actual field type different from the field type in query?
-				if ( $tablefield->Type !== $fieldtype ) {
+				if ( $tablefield->Type !== $fieldtype_lowercased ) {
 					$do_change = true;
 					if ( in_array( $fieldtype_lowercased, $text_fields, true ) && in_array( $tablefield_type_lowercased, $text_fields, true ) ) {
 						if ( array_search( $fieldtype_lowercased, $text_fields, true ) < array_search( $tablefield_type_lowercased, $text_fields, true ) ) {
@@ -3250,7 +3272,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( '0' === $tableindex->Non_unique ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = '0' === (string) $tableindex->Non_unique;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 
@@ -3371,7 +3393,7 @@ function make_db_current_silent( $tables = 'all' ) {
  *
  * @param string $theme_name The name of the theme.
  * @param string $template   The directory name of the theme.
- * @return bool
+ * @return bool True on success, false on failure.
  */
 function make_site_theme_from_oldschool( $theme_name, $template ) {
 	$home_path   = get_home_path();

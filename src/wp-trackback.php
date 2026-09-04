@@ -24,8 +24,11 @@ wp_set_current_user( 0 );
  * @since 0.71
  *
  * @param int|bool $error         Whether there was an error.
- *                                Default '0'. Accepts '0' or '1', true or false.
+ *                                Default 0. Accepts 0 or 1, true or false.
  * @param string   $error_message Error message if an error occurred. Default empty string.
+ * @return void Never returns if `$error` is truthy, as the function dies after
+ *              sending the error response.
+ * @phpstan-return ( $error is 0|false ? void : never )
  */
 function trackback_response( $error = 0, $error_message = '' ) {
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ) );
@@ -34,7 +37,7 @@ function trackback_response( $error = 0, $error_message = '' ) {
 		echo '<?xml version="1.0" encoding="utf-8"?' . ">\n";
 		echo "<response>\n";
 		echo "<error>1</error>\n";
-		echo "<message>$error_message</message>\n";
+		echo '<message>' . esc_xml( $error_message ) . "</message>\n";
 		echo '</response>';
 		die();
 	} else {
@@ -47,16 +50,16 @@ function trackback_response( $error = 0, $error_message = '' ) {
 
 if ( ! isset( $_GET['tb_id'] ) || ! $_GET['tb_id'] ) {
 	$post_id = explode( '/', $_SERVER['REQUEST_URI'] );
-	$post_id = (int) $post_id[ count( $post_id ) - 1 ];
+	$post_id = (int) array_last( $post_id );
 }
 
-$trackback_url = isset( $_POST['url'] ) ? $_POST['url'] : '';
-$charset       = isset( $_POST['charset'] ) ? $_POST['charset'] : '';
+$trackback_url = isset( $_POST['url'] ) ? sanitize_url( $_POST['url'] ) : '';
+$charset       = isset( $_POST['charset'] ) ? sanitize_text_field( $_POST['charset'] ) : '';
 
 // These three are stripslashed here so they can be properly escaped after mb_convert_encoding().
-$title     = isset( $_POST['title'] ) ? wp_unslash( $_POST['title'] ) : '';
-$excerpt   = isset( $_POST['excerpt'] ) ? wp_unslash( $_POST['excerpt'] ) : '';
-$blog_name = isset( $_POST['blog_name'] ) ? wp_unslash( $_POST['blog_name'] ) : '';
+$title     = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+$excerpt   = isset( $_POST['excerpt'] ) ? sanitize_textarea_field( wp_unslash( $_POST['excerpt'] ) ) : '';
+$blog_name = isset( $_POST['blog_name'] ) ? sanitize_text_field( wp_unslash( $_POST['blog_name'] ) ) : '';
 
 if ( $charset ) {
 	$charset = str_replace( array( ',', ' ' ), '', strtoupper( trim( $charset ) ) );

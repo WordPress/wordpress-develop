@@ -23,6 +23,7 @@
 
 // Initialize the filter globals.
 require __DIR__ . '/class-wp-hook.php';
+require __DIR__ . '/class-wp-filter-sentinel.php';
 
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
@@ -168,6 +169,7 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @param string $hook_name The name of the filter hook.
  * @param mixed  $value     The value to filter.
  * @param mixed  ...$args   Optional. Additional parameters to pass to the callback functions.
+ * @no-named-arguments
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters( $hook_name, $value, ...$args ) {
@@ -221,8 +223,8 @@ function apply_filters( $hook_name, $value, ...$args ) {
  * @global int[]     $wp_filters        Stores the number of times each filter was triggered.
  * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
  *
- * @param string $hook_name The name of the filter hook.
- * @param array  $args      The arguments supplied to the functions hooked to `$hook_name`.
+ * @param string                $hook_name The name of the filter hook.
+ * @param non-empty-list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_ref_array( $hook_name, $args ) {
@@ -267,6 +269,7 @@ function apply_filters_ref_array( $hook_name, $args ) {
  * that evaluates to false (e.g. 0), so use the `===` operator for testing the return value.
  *
  * @since 2.5.0
+ * @since 6.9.0 Added the `$priority` parameter.
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
@@ -274,18 +277,23 @@ function apply_filters_ref_array( $hook_name, $args ) {
  * @param callable|string|array|false $callback  Optional. The callback to check for.
  *                                               This function can be called unconditionally to speculatively check
  *                                               a callback that may or may not exist. Default false.
+ * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
+ *                                               Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
+ *                  If `$callback` and `$priority` are both provided, a boolean is returned
+ *                  for whether the specific function is registered at that priority.
+ * @phpstan-param Maybe_Callable|false $callback
  */
-function has_filter( $hook_name, $callback = false ) {
+function has_filter( $hook_name, $callback = false, $priority = false ) {
 	global $wp_filter;
 
 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
 		return false;
 	}
 
-	return $wp_filter[ $hook_name ]->has_filter( $hook_name, $callback );
+	return $wp_filter[ $hook_name ]->has_filter( $hook_name, $callback, $priority );
 }
 
 /**
@@ -309,6 +317,7 @@ function has_filter( $hook_name, $callback = false ) {
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         filter callback. Default 10.
  * @return bool Whether the function existed before it was removed.
+ * @phpstan-param Maybe_Callable $callback
  */
 function remove_filter( $hook_name, $callback, $priority = 10 ) {
 	global $wp_filter;
@@ -478,6 +487,7 @@ function add_action( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @param string $hook_name The name of the action to be executed.
  * @param mixed  ...$arg    Optional. Additional arguments which are passed on to the
  *                          functions hooked to the action. Default empty.
+ * @no-named-arguments
  */
 function do_action( $hook_name, ...$arg ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
@@ -531,8 +541,8 @@ function do_action( $hook_name, ...$arg ) {
  * @global int[]     $wp_actions        Stores the number of times each action was triggered.
  * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
  *
- * @param string $hook_name The name of the action to be executed.
- * @param array  $args      The arguments supplied to the functions hooked to `$hook_name`.
+ * @param string      $hook_name The name of the action to be executed.
+ * @param list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
  */
 function do_action_ref_array( $hook_name, $args ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
@@ -574,6 +584,7 @@ function do_action_ref_array( $hook_name, $args ) {
  * that evaluates to false (e.g. 0), so use the `===` operator for testing the return value.
  *
  * @since 2.5.0
+ * @since 6.9.0 Added the `$priority` parameter.
  *
  * @see has_filter() This function is an alias of has_filter().
  *
@@ -581,12 +592,17 @@ function do_action_ref_array( $hook_name, $args ) {
  * @param callable|string|array|false $callback  Optional. The callback to check for.
  *                                               This function can be called unconditionally to speculatively check
  *                                               a callback that may or may not exist. Default false.
+ * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
+ *                                               Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
+ *                  If `$callback` and `$priority` are both provided, a boolean is returned
+ *                  for whether the specific function is registered at that priority.
+ * @phpstan-param Maybe_Callable|false $callback
  */
-function has_action( $hook_name, $callback = false ) {
-	return has_filter( $hook_name, $callback );
+function has_action( $hook_name, $callback = false, $priority = false ) {
+	return has_filter( $hook_name, $callback, $priority );
 }
 
 /**
@@ -608,6 +624,7 @@ function has_action( $hook_name, $callback = false ) {
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         action callback. Default 10.
  * @return bool Whether the function is removed.
+ * @phpstan-param Maybe_Callable $callback
  */
 function remove_action( $hook_name, $callback, $priority = 10 ) {
 	return remove_filter( $hook_name, $callback, $priority );
@@ -702,11 +719,11 @@ function did_action( $hook_name ) {
  *
  * @see _deprecated_hook()
  *
- * @param string $hook_name   The name of the filter hook.
- * @param array  $args        Array of additional function arguments to be passed to apply_filters().
- * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default empty.
- * @param string $message     Optional. A message regarding the change. Default empty.
+ * @param string                $hook_name   The name of the filter hook.
+ * @param non-empty-list<mixed> $args        Array of additional function arguments to be passed to apply_filters().
+ * @param string                $version     The version of WordPress that deprecated the hook.
+ * @param string                $replacement Optional. The hook that should have been used. Default empty.
+ * @param string                $message     Optional. A message regarding the change. Default empty.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
@@ -730,11 +747,11 @@ function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '
  *
  * @see _deprecated_hook()
  *
- * @param string $hook_name   The name of the action hook.
- * @param array  $args        Array of additional function arguments to be passed to do_action().
- * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default empty.
- * @param string $message     Optional. A message regarding the change. Default empty.
+ * @param string      $hook_name   The name of the action hook.
+ * @param list<mixed> $args        Array of additional function arguments to be passed to do_action().
+ * @param string      $version     The version of WordPress that deprecated the hook.
+ * @param string      $replacement Optional. The hook that should have been used. Default empty.
+ * @param string      $message     Optional. A message regarding the change. Default empty.
  */
 function do_action_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_action( $hook_name ) ) {
@@ -956,7 +973,7 @@ function register_uninstall_hook( $file, $callback ) {
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
- * @param array $args The collected parameters from the hook that was called.
+ * @param list<mixed> $args The collected parameters from the hook that was called.
  */
 function _wp_call_all_hook( $args ) {
 	global $wp_filter;
@@ -975,7 +992,10 @@ function _wp_call_all_hook( $args ) {
  * @since 2.2.3
  * @since 5.3.0 Removed workarounds for spl_object_hash().
  *              `$hook_name` and `$priority` are no longer used,
- *              and the function always returns a string.
+ *              and no longer returns false, but can still return void for invalid callbacks.
+ * @since 6.9.0 Returns explicit null if an invalid callback is supplied.
+ * @since 7.1.0 Uses spl_object_id() instead of spl_object_hash() for performance.
+ * @since 7.1.1 The ID for an object callback is prefixed so that it is never cast to an integer array key.
  *
  * @access private
  *
@@ -984,24 +1004,31 @@ function _wp_call_all_hook( $args ) {
  *                                         or may not exist.
  * @param int                   $priority  Unused. The order in which the functions
  *                                         associated with a particular action are executed.
- * @return string|null Unique function ID for usage as array key.
- *                     Null if a valid `$callback` is not passed.
+ * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
+ * @phpstan-param Maybe_Callable $callback
+ * @phpstan-return non-decimal-int-string|null
  */
-function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
+function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {
 	if ( is_string( $callback ) ) {
 		return $callback;
 	}
 
 	if ( is_object( $callback ) ) {
-		// Closures are currently implemented as objects.
-		$callback = array( $callback, '' );
-	} else {
-		$callback = (array) $callback;
+		/*
+		 * The prefix keeps the ID from being the decimal representation of an integer. PHP casts such a
+		 * string to int when it is used as an array key, which would change the type of the keys in
+		 * WP_Hook::$callbacks and break consumers that pass them to string functions.
+		 */
+		return 'spl_object_id:' . spl_object_id( $callback );
+	}
+
+	if ( ! isset( $callback[1] ) || ! is_string( $callback[1] ) ) {
+		return null;
 	}
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
-		return spl_object_hash( $callback[0] ) . $callback[1];
+		return ( (string) spl_object_id( $callback[0] ) ) . $callback[1];
 	} elseif ( is_string( $callback[0] ) ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];

@@ -12,6 +12,7 @@
  *
  * @since 2.8.0
  * @since 6.7.0 Now properly implements the SimplePie\Cache\Base interface.
+ * @since 6.9.0 Switched to Multisite's global cache via the `*_site_transient()` functions.
  */
 #[AllowDynamicProperties]
 class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
@@ -49,10 +50,10 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 * @since 3.2.0 Updated to use a PHP5 constructor.
 	 * @since 6.7.0 Parameter names have been updated to be in line with the `SimplePie\Cache\Base` interface.
 	 *
-	 * @param string                           $location URL location (scheme is used to determine handler).
-	 * @param string                           $name     Unique identifier for cache object.
-	 * @param Base::TYPE_FEED|Base::TYPE_IMAGE $type     Either `TYPE_FEED` ('spc') for SimplePie data,
-	 *                                                   or `TYPE_IMAGE` ('spi') for image data.
+	 * @param string                                                           $location URL location (scheme is used to determine handler).
+	 * @param string                                                           $name     Unique identifier for cache object.
+	 * @param SimplePie\Cache\Base::TYPE_FEED|SimplePie\Cache\Base::TYPE_IMAGE $type     Either `TYPE_FEED` ('spc') for SimplePie data,
+	 *                                                                                   or `TYPE_IMAGE` ('spi') for image data.
 	 */
 	public function __construct( $location, $name, $type ) {
 		$this->name     = 'feed_' . $name;
@@ -84,8 +85,8 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 			$data = $data->data;
 		}
 
-		set_transient( $this->name, $data, $this->lifetime );
-		set_transient( $this->mod_name, time(), $this->lifetime );
+		set_site_transient( $this->name, $data, $this->lifetime );
+		set_site_transient( $this->mod_name, time(), $this->lifetime );
 		return true;
 	}
 
@@ -97,7 +98,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 * @return array Data for `SimplePie::$data`.
 	 */
 	public function load() {
-		return get_transient( $this->name );
+		return get_site_transient( $this->name );
 	}
 
 	/**
@@ -108,7 +109,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 * @return int Timestamp.
 	 */
 	public function mtime() {
-		return get_transient( $this->mod_name );
+		return get_site_transient( $this->mod_name );
 	}
 
 	/**
@@ -119,7 +120,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 * @return bool False if value was not set and true if value was set.
 	 */
 	public function touch() {
-		return set_transient( $this->mod_name, time(), $this->lifetime );
+		return set_site_transient( $this->mod_name, time(), $this->lifetime );
 	}
 
 	/**
@@ -130,8 +131,8 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 * @return true Always true.
 	 */
 	public function unlink() {
-		delete_transient( $this->name );
-		delete_transient( $this->mod_name );
+		delete_site_transient( $this->name );
+		delete_site_transient( $this->mod_name );
 		return true;
 	}
 }

@@ -300,8 +300,24 @@ class WP_Term_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
-	 *                                         when 'count' is passed to `$args['fields']`.
+	 * @return WP_Term[]|int[]|string[]|int|string Array of terms, or number of terms as numeric string
+	 *                                             when 'count' is passed to `$args['fields']`, or the
+	 *                                             integer 0 when the queried parent term is not in the
+	 *                                             taxonomy hierarchy.
+	 *
+	 * @phpstan-return (
+	 *     $query is array{ fields: 'count', ... }
+	 *         ? 0|numeric-string
+	 *         : ( $query is array{ fields: 'ids'|'tt_ids', ... }
+	 *             ? int[]
+	 *             : ( $query is array{ fields: 'id=>parent', ... }
+	 *                 ? array<int, int>
+	 *                 : ( $query is array{ fields: 'names'|'slugs', ... }
+	 *                     ? string[]
+	 *                     : ( $query is array{ fields: 'id=>name'|'id=>slug', ... }
+	 *                         ? array<int, string>
+	 *                         : WP_Term[] ) ) ) )
+	 * )
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -318,7 +334,8 @@ class WP_Term_Query {
 	 *   - 'all'
 	 *   - 'all_with_object_id'
 	 *
-	 * The following will result in a numeric string being returned:
+	 * The following will result in a numeric string being returned, or the integer 0
+	 * when the queried parent term is not in the taxonomy hierarchy:
 	 *
 	 *   - 'count'
 	 *
@@ -329,12 +346,9 @@ class WP_Term_Query {
 	 *   - 'names'
 	 *   - 'slugs'
 	 *
-	 * The following will result in an array of numeric strings being returned:
-	 *
-	 *   - 'id=>parent'
-	 *
 	 * The following will result in an array of integers being returned:
 	 *
+	 *   - 'id=>parent'
 	 *   - 'ids'
 	 *   - 'tt_ids'
 	 *
@@ -342,8 +356,12 @@ class WP_Term_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
-	 *                                         when 'count' is passed to `$args['fields']`.
+	 * @return WP_Term[]|int[]|string[]|int|string Array of terms, or number of terms as numeric string
+	 *                                             when 'count' is passed to `$args['fields']`, or the
+	 *                                             integer 0 when the queried parent term is not in the
+	 *                                             taxonomy hierarchy.
+	 *
+	 * @phpstan-return 0|numeric-string|int[]|array<int, int>|string[]|array<int, string>|WP_Term[]
 	 */
 	public function get_terms() {
 		global $wpdb;
@@ -470,14 +488,11 @@ class WP_Term_Query {
 		$exclude_tree = $args['exclude_tree'];
 		$include      = $args['include'];
 
-		$inclusions = '';
 		if ( ! empty( $include ) ) {
 			$exclude      = '';
 			$exclude_tree = '';
 			$inclusions   = implode( ',', wp_parse_id_list( $include ) );
-		}
 
-		if ( ! empty( $inclusions ) ) {
 			$this->sql_clauses['where']['inclusions'] = 't.term_id IN ( ' . $inclusions . ' )';
 		}
 
@@ -730,13 +745,13 @@ class WP_Term_Query {
 		 */
 		$clauses = apply_filters( 'terms_clauses', compact( $pieces ), $taxonomies, $args );
 
-		$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-		$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
-		$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
-		$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
-		$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-		$order    = isset( $clauses['order'] ) ? $clauses['order'] : '';
-		$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+		$fields   = $clauses['fields'] ?? '';
+		$join     = $clauses['join'] ?? '';
+		$where    = $clauses['where'] ?? '';
+		$distinct = $clauses['distinct'] ?? '';
+		$orderby  = $clauses['orderby'] ?? '';
+		$order    = $clauses['order'] ?? '';
+		$limits   = $clauses['limits'] ?? '';
 
 		$fields_is_filtered = implode( ', ', $selects ) !== $fields;
 
@@ -777,8 +792,9 @@ class WP_Term_Query {
 		}
 
 		if ( $args['cache_results'] ) {
-			$cache_key = $this->generate_cache_key( $args, $this->request );
-			$cache     = wp_cache_get( $cache_key, 'term-queries' );
+			$cache_key    = $this->generate_cache_key( $args, $this->request );
+			$last_changed = wp_cache_get_last_changed( 'terms' );
+			$cache        = wp_cache_get_salted( $cache_key, 'term-queries', $last_changed );
 
 			if ( false !== $cache ) {
 				if ( 'ids' === $_fields ) {
@@ -804,9 +820,11 @@ class WP_Term_Query {
 		}
 
 		if ( 'count' === $_fields ) {
+			// The request selects a single COUNT column, so it only returns null on a database error.
+			/** @var numeric-string $count */
 			$count = $wpdb->get_var( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			if ( $args['cache_results'] ) {
-				wp_cache_set( $cache_key, $count, 'term-queries' );
+				wp_cache_set_salted( $cache_key, $count, 'term-queries', $last_changed );
 			}
 			return $count;
 		}
@@ -814,10 +832,13 @@ class WP_Term_Query {
 		$terms = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		if ( empty( $terms ) ) {
+			$this->terms = array();
+
 			if ( $args['cache_results'] ) {
-				wp_cache_add( $cache_key, array(), 'term-queries' );
+				wp_cache_set_salted( $cache_key, $this->terms, 'term-queries', $last_changed );
 			}
-			return array();
+
+			return $this->terms;
 		}
 
 		$term_ids = wp_list_pluck( $terms, 'term_id' );
@@ -849,7 +870,8 @@ class WP_Term_Query {
 					if ( is_array( $children ) ) {
 						foreach ( $children as $child_id ) {
 							$child = get_term( $child_id, $term->taxonomy );
-							if ( $child->count ) {
+
+							if ( $child instanceof WP_Term && $child->count ) {
 								continue 2;
 							}
 						}
@@ -899,7 +921,7 @@ class WP_Term_Query {
 		}
 
 		if ( $args['cache_results'] ) {
-			wp_cache_add( $cache_key, $term_cache, 'term-queries' );
+			wp_cache_set_salted( $cache_key, $term_cache, 'term-queries', $last_changed );
 		}
 
 		$this->terms = $this->format_terms( $term_objects, $_fields );
@@ -971,7 +993,6 @@ class WP_Term_Query {
 	 *
 	 * @param WP_Term[] $term_objects Array of term objects.
 	 * @param string    $_fields      Field to format.
-	 *
 	 * @return WP_Term[]|int[]|string[] Array of terms / strings / ints depending on field requested.
 	 */
 	protected function format_terms( $term_objects, $_fields ) {
@@ -1154,7 +1175,6 @@ class WP_Term_Query {
 	 *
 	 * @param array  $args WP_Term_Query arguments.
 	 * @param string $sql  SQL statement.
-	 *
 	 * @return string Cache key.
 	 */
 	protected function generate_cache_key( array $args, $sql ) {
@@ -1171,8 +1191,8 @@ class WP_Term_Query {
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
-		$key          = md5( serialize( $cache_args ) . $sql );
-		$last_changed = wp_cache_get_last_changed( 'terms' );
-		return "get_terms:$key:$last_changed";
+		$key = md5( serialize( $cache_args ) . $sql );
+
+		return "get_terms:$key";
 	}
 }

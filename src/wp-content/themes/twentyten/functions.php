@@ -72,6 +72,8 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 	 * @uses set_post_thumbnail_size()  To set a custom post thumbnail size.
 	 *
 	 * @since Twenty Ten 1.0
+	 *
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyten_setup() {
 
@@ -168,7 +170,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			 *
 			 * @since Twenty Ten 1.0
 			 *
-			 * @param int The default header image width in pixels. Default 940.
+			 * @param int $width The default header image width in pixels. Default 940.
 			 */
 			'width'               => apply_filters( 'twentyten_header_image_width', 940 ),
 			/**
@@ -176,7 +178,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			 *
 			 * @since Twenty Ten 1.0
 			 *
-			 * @param int The default header image height in pixels. Default 198.
+			 * @param int $height The default header image height in pixels. Default 198.
 			 */
 			'height'              => apply_filters( 'twentyten_header_image_height', 198 ),
 			// Support flexible heights.
@@ -275,7 +277,7 @@ if ( ! function_exists( 'twentyten_admin_header_style' ) ) :
 	 */
 	function twentyten_admin_header_style() {
 		?>
-	<style type="text/css" id="twentyten-admin-header-css">
+	<style id="twentyten-admin-header-css">
 	/* Shows the same border as on front end */
 	#headimg {
 	border-bottom: 1px solid #000;
@@ -436,7 +438,12 @@ add_filter( 'use_default_gallery_style', '__return_false' );
 function twentyten_remove_gallery_css( $css ) {
 	return preg_replace( "#<style type='text/css'>(.*?)</style>#s", '', $css );
 }
-// Backward compatibility with WordPress 3.0.
+
+/**
+ * Backward compatibility with WordPress 3.0.
+ *
+ * @global string $wp_version The WordPress version string.
+ */
 if ( version_compare( $GLOBALS['wp_version'], '3.1', '<' ) ) {
 	add_filter( 'gallery_style', 'twentyten_remove_gallery_css' );
 }
@@ -452,8 +459,10 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 	 *
 	 * @since Twenty Ten 1.0
 	 *
+	 * @global WP_Comment $comment Global comment object.
+	 *
 	 * @param WP_Comment $comment The comment object.
-	 * @param array      $args    An array of arguments. @see get_comment_reply_link()
+	 * @param array      $args    An array of comment arguments. @see get_comment_reply_link()
 	 * @param int        $depth   The depth of the comment.
 	 */
 	function twentyten_comment( $comment, $args, $depth ) {

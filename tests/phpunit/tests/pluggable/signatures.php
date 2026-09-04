@@ -137,6 +137,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 				'message',
 				'headers'     => '',
 				'attachments' => array(),
+				'embeds'      => array(),
 			),
 			'wp_authenticate'                 => array( 'username', 'password' ),
 			'wp_logout'                       => array(),
