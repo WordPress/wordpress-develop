@@ -914,7 +914,6 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 
 	// Determine the status of plugin dependencies.
 	$installed_plugins                   = get_plugins();
-	$active_plugins                      = get_option( 'active_plugins', array() );
 	$plugin_dependencies_count           = count( $requires_plugins );
 	$installed_plugin_dependencies_count = 0;
 	$active_plugin_dependencies_count    = 0;
@@ -922,12 +921,10 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 		foreach ( array_keys( $installed_plugins ) as $installed_plugin_file ) {
 			if ( str_contains( $installed_plugin_file, '/' ) && explode( '/', $installed_plugin_file )[0] === $dependency ) {
 				++$installed_plugin_dependencies_count;
-			}
-		}
 
-		foreach ( $active_plugins as $active_plugin_file ) {
-			if ( str_contains( $active_plugin_file, '/' ) && explode( '/', $active_plugin_file )[0] === $dependency ) {
-				++$active_plugin_dependencies_count;
+				if ( is_plugin_active( $installed_plugin_file ) ) {
+					++$active_plugin_dependencies_count;
+				}
 			}
 		}
 	}
