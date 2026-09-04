@@ -96,6 +96,89 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Ensures IXR_Server::call() does not fatal when $args is not an array.
+	 *
+	 * @ticket 65124
+	 */
+	public function test_call_with_non_array_args_does_not_fatal() {
+		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
+
+		// Passing a string instead of an array must not produce a TypeError on PHP 8+.
+		$result = $this->myxmlrpcserver->call( 'system.listMethods', 'not-an-array' );
+
+		// The dispatch may return an IXR_Error or a value, but it must not fatal.
+		$this->assertNotNull( $result );
+	}
+
+	/**
+	 * Ensures system.multicall returns a fault for malformed per-call entries
+	 * rather than triggering a fatal error.
+	 *
+	 * @ticket 65124
+	 *
+	 * @dataProvider data_malformed_multicall_payloads
+	 *
+	 * @param array $method_calls    Method calls payload supplied to multiCall().
+	 * @param int   $expected_index  Index in the response expected to contain a fault.
+	 */
+	public function test_multicall_rejects_malformed_calls( $method_calls, $expected_index ) {
+		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
+
+		$result = $this->myxmlrpcserver->multiCall( $method_calls );
+
+		$this->assertArrayHasKey( 'faultCode', $result[ $expected_index ] );
+		$this->assertSame( -32602, $result[ $expected_index ]['faultCode'] );
+	}
+
+	public function data_malformed_multicall_payloads() {
+		return array(
+			'params is a string' => array(
+				array(
+					array(
+						'methodName' => 'system.listMethods',
+						'params'     => 'evil',
+					),
+				),
+				0,
+			),
+			'params is null'     => array(
+				array(
+					array(
+						'methodName' => 'system.listMethods',
+						'params'     => null,
+					),
+				),
+				0,
+			),
+			'missing params key' => array(
+				array(
+					array( 'methodName' => 'system.listMethods' ),
+				),
+				0,
+			),
+			'call is a scalar'   => array(
+				array( 'just-a-string' ),
+				0,
+			),
+		);
+	}
+
+	/**
+	 * Ensures system.multicall returns a top-level error when the methodcalls
+	 * payload itself is not an array.
+	 *
+	 * @ticket 65124
+	 */
+	public function test_multicall_with_non_array_methodcalls_returns_error() {
+		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
+
+		$result = $this->myxmlrpcserver->multiCall( 'not-an-array' );
+
+		$this->assertInstanceOf( 'IXR_Error', $result );
+		$this->assertSame( -32600, $result->code );
+	}
+
+	/**
 	 * @ticket 36586
 	 */
 	public function test_isStruct_on_non_numerically_indexed_array() {
