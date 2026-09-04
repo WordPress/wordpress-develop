@@ -1413,6 +1413,7 @@ module.exports = function(grunt) {
 					'src/wp-includes/js/media/views/iframe.js' : 'src/js/media/views/iframe.js',
 					'src/wp-includes/js/media/views/image-details.js' : 'src/js/media/views/image-details.js',
 					'src/wp-includes/js/media/views/label.js' : 'src/js/media/views/label.js',
+					'src/wp-includes/js/media/views/library-settings.js' : 'src/js/media/views/library-settings.js',
 					'src/wp-includes/js/media/views/media-details.js' : 'src/js/media/views/media-details.js',
 					'src/wp-includes/js/media/views/media-frame.js' : 'src/js/media/views/media-frame.js',
 					'src/wp-includes/js/media/views/menu-item.js' : 'src/js/media/views/menu-item.js',

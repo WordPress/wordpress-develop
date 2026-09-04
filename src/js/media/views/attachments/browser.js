@@ -3,7 +3,8 @@ var View = wp.media.View,
 	l10n = wp.media.view.l10n,
 	$ = jQuery,
 	AttachmentsBrowser,
-	infiniteScrolling = wp.media.view.settings.infiniteScrolling,
+	settings = wp.media.view.settings,
+	librarySettings = wp.media.view.settings.librarySettings,
 	__ = wp.i18n.__,
 	sprintf = wp.i18n.sprintf;
 
@@ -34,6 +35,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	className: 'attachments-browser',
 
 	initialize: function() {
+		var infiniteScrolling = !! settings.infiniteScrolling;
+
 		_.defaults( this.options, {
 			filters: false,
 			search:  true,
@@ -45,6 +48,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		this.controller.on( 'toggle:upload:attachment', this.toggleUploader, this );
 		this.controller.on( 'edit:selection', this.editSelection );
+		this.controller.on( 'library:infinite-scrolling', this.setInfiniteScrolling, this );
 
 		// In the Media Library, the sidebar is used to display errors before the attachments grid.
 		if ( this.options.sidebar && 'errors' === this.options.sidebar ) {
@@ -112,6 +116,42 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	},
 
 	/**
+	 * Switches between infinite scrolling and the Load more button in place.
+	 *
+	 * The Load more view is created on demand and then kept, hidden by the
+	 * `has-load-more` class, so that switching back and forth is cheap.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {boolean} enabled Whether to load more attachments on scroll.
+	 *
+	 * @return {void}
+	 */
+	setInfiniteScrolling: function( enabled ) {
+		if ( enabled === Boolean( this.attachments.options.infiniteScrolling ) ) {
+			return;
+		}
+
+		this.$el.toggleClass( 'has-load-more', ! enabled );
+		this.attachments.setInfiniteScrolling( enabled );
+
+		if ( enabled ) {
+			this.collection.off( 'add remove reset', this.updateLoadMoreView, this );
+			this.$el.removeClass( 'more-loaded' );
+			this.$el.find( '.found-media' ).removeClass( 'found-media' );
+			this.$el.find( '.new-media' ).removeClass( 'new-media' );
+			return;
+		}
+
+		if ( ! this.loadMoreWrapper ) {
+			this.createLoadMoreView();
+		}
+
+		this.collection.on( 'add remove reset', this.updateLoadMoreView, this );
+		this.updateLoadMoreView();
+	},
+
+	/**
 	 * Updates the `wp.a11y.speak()` ARIA live region with a message to communicate
 	 * the number of search results to screen reader users. This function is
 	 * debounced because the collection updates multiple times.
@@ -125,7 +165,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			/* translators: Accessibility text. %d: Number of attachments found in a search. */
 			mediaFoundHasMoreResultsMessage = __( 'Number of media items displayed: %d. Click load more for more results.' );
 
-		if ( infiniteScrolling ) {
+		if ( this.attachments.options.infiniteScrolling ) {
 			/* translators: Accessibility text. %d: Number of attachments found in a search. */
 			mediaFoundHasMoreResultsMessage = __( 'Number of media items displayed: %d. Scroll the page for more results.' );
 		}
@@ -393,6 +433,14 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				model:      this.collection.props,
 				priority:   60
 			}).render() );
+
+			// Only for users allowed to save the preference, see `wp_enqueue_media()`.
+			if ( librarySettings ) {
+				this.toolbar.set( 'librarySettings', new wp.media.view.LibrarySettings({
+					controller: this.controller,
+					priority:   70
+				}).render() );
+			}
 		}
 
 		if ( this.options.dragInfo ) {
