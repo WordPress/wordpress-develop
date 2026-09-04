@@ -85,7 +85,17 @@ class WP_Widget_Categories extends WP_Widget {
 			 *
 			 * @see wp_dropdown_categories()
 			 *
-			 * @param array $cat_args An array of Categories widget drop-down arguments.
+			 * @param array $cat_args {
+			 *     An array of Categories widget drop-down arguments. See {@see WP_Term_Query::__construct()} for
+			 *     information on additional accepted arguments.
+			 *
+			 *     @type string $orderby          Which column to use for ordering categories. See {@see get_terms()}
+			 *                                    for a list of accepted values. Default 'name'.
+			 *     @type bool   $show_count       Whether to include post counts.
+			 *     @type bool   $hierarchical     Whether to traverse the taxonomy hierarchy.
+			 *     @type string $show_option_none Text to display for showing no categories. Default 'Select Category'.
+			 *     @type string $id               Value for the 'id' attribute of the select element.
+			 * }
 			 * @param array $instance Array of settings for the current widget.
 			 */
 			wp_dropdown_categories( apply_filters( 'widget_categories_dropdown_args', $cat_args, $instance ) );
