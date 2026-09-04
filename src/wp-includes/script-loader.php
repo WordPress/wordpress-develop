@@ -1245,7 +1245,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'application-passwords', "/wp-admin/js/application-passwords$suffix.js", array( 'jquery', 'wp-util', 'wp-api-request', 'wp-date', 'wp-i18n', 'wp-hooks' ), false, 1 );
 	$scripts->set_translations( 'application-passwords' );
 
-	$scripts->add( 'auth-app', "/wp-admin/js/auth-app$suffix.js", array( 'jquery', 'wp-api-request', 'wp-i18n', 'wp-hooks' ), false, 1 );
+	$scripts->add( 'auth-app', "/wp-admin/js/auth-app$suffix.js", array( 'clipboard', 'jquery', 'wp-api-request', 'wp-i18n', 'wp-a11y', 'wp-hooks' ), false, 1 );
 	$scripts->set_translations( 'auth-app' );
 
 	$scripts->add( 'user-profile', "/wp-admin/js/user-profile$suffix.js", array( 'clipboard', 'jquery', 'password-strength-meter', 'wp-util', 'wp-a11y' ), false, 1 );
