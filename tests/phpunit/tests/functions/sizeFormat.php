@@ -22,8 +22,14 @@ class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 		return array(
 			// Invalid values.
 			array( array(), 0, false ),
+			array( array( 'baba' ), 0, false ),
+			array( new stdClass(), 0, false ),
 			array( 'baba', 0, false ),
 			array( '', 0, false ),
+			array( '0x1A', 0, false ),
+			array( null, 0, false ),
+			array( true, 0, false ),
+			array( false, 0, false ),
 			array( '-1', 0, false ),
 			array( -1, 0, false ),
 			array( -1.0, 0, false ),
