@@ -2145,10 +2145,12 @@ class Tests_Template extends WP_UnitTestCase {
 		$dependency->src = includes_url( $relative_path );
 		$path            = ABSPATH . WPINC . '/' . $relative_path;
 		self::touch( $path );
-		if ( 0 === filesize( $path ) ) {
+		$file_size = filesize( $path );
+		if ( 0 === $file_size ) {
 			file_put_contents( $path, "/* CSS for $handle */" );
 		}
 		wp_style_add_data( $handle, 'path', $path );
+		wp_style_add_data( $handle, 'file_size', $file_size );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
