@@ -62,6 +62,48 @@ services:
 		tags:
 			- phpstan.resultCacheMetaExtension
 
+	# Runs the visitors above over every file PHPStan parses, not only the ones it
+	# analyzes.
+	#
+	# `phpstan.parser.richParserNodeVisitor` is honored by PHPStan's RichParser, and
+	# PathRoutingParser sends a file there only when it is one of the files being
+	# analyzed. Everything else — a file merely read so that a function or class it
+	# declares can be reflected — goes to the simple parser, which applies only the
+	# name resolver.
+	#
+	# PHPStan can do that because its own two parsers agree about everything
+	# reflection exposes: the simple one is wrapped in a CleaningParser, whose
+	# CleaningVisitor empties function, method and closure bodies and touches nothing
+	# else. Docblocks and signatures come out of either parser identically, so what is
+	# reflected out of a file does not depend on whether that file was analyzed, and
+	# the per-file reflection cache can be keyed on the file's contents alone.
+	#
+	# HashNotationVisitor breaks that agreement. It rewrites `@param`, `@return` and
+	# `@var` docblocks, which are exactly what reflection exposes, so a file read
+	# through the simple parser reflects the documented `array` where the same file
+	# analyzed reflects the shape its hash notation describes. Analyzing a subset of
+	# the tree then reports against types no longer derived, and writes that reading
+	# into the shared cache for the next full run to restore.
+	#
+	# Wrapping the rich parser rather than the plain one restores the agreement: every
+	# parse rewrites the same docblocks, the cleaning still happens on top, and the
+	# reflection cache is keyed on contents correctly again.
+	#
+	# `currentPhpVersionSimpleParser` and `currentPhpVersionRichParser` are PHPStan's
+	# own service names, from its conf/parsers.neon, and are not a documented extension
+	# point. Should a future release rename either, this definition stops being wired
+	# into anything and the behavior above returns; the errors it prevents are all of
+	# the quiet sort, so check this first when a hash notation type looks wrong.
+	#
+	# `arguments!` replaces the inherited arguments rather than merging with them.
+	# Without the `!`, the original `wrappedParser` argument survives and the container
+	# fails to build with "Unknown named parameter $wrappedParser".
+	currentPhpVersionSimpleParser:
+		class: PHPStan\Parser\CleaningParser
+		arguments!:
+			wrappedParser: @currentPhpVersionRichParser
+		autowired: false
+
 parameters:
 	# Cache is stored locally, so it's available for CI.
 	tmpDir: ../../.cache
