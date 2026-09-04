@@ -2078,6 +2078,256 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 43162
+	 */
+	public function test_wp_uninitialize_site_drops_plugin_tables() {
+		global $wpdb;
+
+		$site_id          = self::factory()->blog->create();
+		$site_prefix      = $wpdb->get_blog_prefix( $site_id );
+		$table_name       = $site_prefix . 'plugin_data';
+		$other_table_name = rtrim( $site_prefix, '_' ) . '0_plugin_data';
+
+		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+
+		try {
+			$wpdb->query( $wpdb->prepare( 'CREATE TABLE %i ( id bigint(20) unsigned NOT NULL )', $table_name ) );
+			$wpdb->query( $wpdb->prepare( 'CREATE TABLE %i ( id bigint(20) unsigned NOT NULL )', $other_table_name ) );
+
+			$this->assertSame(
+				$table_name,
+				$wpdb->get_var(
+					$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) )
+				)
+			);
+
+			$result = wp_uninitialize_site( $site_id );
+
+			$this->assertTrue( $result );
+			$this->assertNull(
+				$wpdb->get_var(
+					$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) )
+				)
+			);
+			$this->assertSame(
+				$other_table_name,
+				$wpdb->get_var(
+					$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $other_table_name ) )
+				)
+			);
+		} finally {
+			wp_delete_site( $site_id );
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i, %i', $table_name, $other_table_name ) );
+		}
+	}
+
+	/**
+	 * @ticket 43162
+	 */
+	public function test_wp_uninitialize_site_does_not_discover_tables_for_base_prefix() {
+		global $wpdb;
+
+		$tables            = array();
+		$empty_upload_dir  = get_temp_dir() . 'wp-uninitialize-site-' . wp_generate_uuid4();
+		$capture_tables    = static function ( $drop_tables ) use ( &$tables ) {
+			$tables = $drop_tables;
+			return array();
+		};
+		$filter_upload_dir = static function () use ( $empty_upload_dir ) {
+			return $empty_upload_dir;
+		};
+
+		add_filter( 'users_pre_query', '__return_empty_array' );
+		add_filter( 'wpmu_drop_tables', $capture_tables );
+		add_filter( 'wpmu_delete_blog_upload_dir', $filter_upload_dir );
+
+		try {
+			$this->assertTrue( wp_mkdir_p( $empty_upload_dir ) );
+			$result = wp_uninitialize_site( 1 );
+			$this->assertDirectoryExists( $empty_upload_dir );
+		} finally {
+			remove_filter( 'users_pre_query', '__return_empty_array' );
+			remove_filter( 'wpmu_drop_tables', $capture_tables );
+			remove_filter( 'wpmu_delete_blog_upload_dir', $filter_upload_dir );
+			if ( is_dir( $empty_upload_dir ) ) {
+				rmdir( $empty_upload_dir );
+			}
+		}
+
+		$this->assertTrue( $result );
+		$this->assertSame( $wpdb->base_prefix . 'posts', $tables['posts'] );
+		$this->assertNotContains( $wpdb->users, $tables );
+		$this->assertNotContains(
+			$wpdb->get_blog_prefix( self::$site_ids['make.wordpress.org/foo/'] ) . 'posts',
+			$tables
+		);
+	}
+
+	/**
+	 * @ticket 43162
+	 */
+	public function test_wp_uninitialize_site_preserves_wpmu_drop_tables_filter_compatibility() {
+		global $wpdb;
+
+		$site_id            = self::factory()->blog->create();
+		$site_prefix        = $wpdb->get_blog_prefix( $site_id );
+		$table_name         = $site_prefix . 'plugin_data';
+		$filter_table_name  = $wpdb->base_prefix . 'filter_' . $site_id . '`data';
+		$unfiltered_tables  = array();
+		$filter_drop_tables = static function ( $tables ) use ( &$unfiltered_tables, $table_name, $filter_table_name ) {
+			$unfiltered_tables = $tables;
+			$tables            = array_diff( $tables, array( $table_name ) );
+			$tables[]          = $filter_table_name;
+			return $tables;
+		};
+
+		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+		add_filter( 'wpmu_drop_tables', $filter_drop_tables );
+
+		try {
+			$wpdb->query( $wpdb->prepare( 'CREATE TABLE %i ( id bigint(20) unsigned NOT NULL )', $table_name ) );
+			$wpdb->query( $wpdb->prepare( 'CREATE TABLE %i ( id bigint(20) unsigned NOT NULL )', $filter_table_name ) );
+
+			$this->assertTrue( wp_uninitialize_site( $site_id ) );
+			$this->assertSame( $site_prefix . 'posts', $unfiltered_tables['posts'] );
+			$this->assertContains( $table_name, $unfiltered_tables );
+			$this->assertSame(
+				$table_name,
+				$wpdb->get_var(
+					$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) )
+				)
+			);
+			$this->assertNull(
+				$wpdb->get_var(
+					$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $filter_table_name ) )
+				)
+			);
+		} finally {
+			remove_filter( 'wpmu_drop_tables', $filter_drop_tables );
+			wp_delete_site( $site_id );
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i, %i', $table_name, $filter_table_name ) );
+		}
+	}
+
+	/**
+	 * @ticket 43162
+	 */
+	public function test_wp_uninitialize_site_deletes_uploads_directory() {
+		$site_id = self::factory()->blog->create();
+
+		switch_to_blog( $site_id );
+		$uploads = wp_get_upload_dir();
+		restore_current_blog();
+
+		$nested_dir = $uploads['basedir'] . '/nested/deep';
+		$file       = $nested_dir . '/file.txt';
+
+		try {
+			$this->assertTrue( wp_mkdir_p( $nested_dir ) );
+			$this->assertSame( 4, file_put_contents( $file, 'test' ) );
+			$this->assertTrue( wp_uninitialize_site( $site_id ) );
+			$this->assertDirectoryDoesNotExist( $uploads['basedir'] );
+		} finally {
+			if ( file_exists( $file ) ) {
+				unlink( $file );
+			}
+			if ( is_dir( $nested_dir ) ) {
+				rmdir( $nested_dir );
+			}
+			if ( is_dir( dirname( $nested_dir ) ) ) {
+				rmdir( dirname( $nested_dir ) );
+			}
+			if ( is_dir( $uploads['basedir'] ) ) {
+				rmdir( $uploads['basedir'] );
+			}
+		}
+	}
+
+	/**
+	 * @ticket 43162
+	 */
+	public function test_wp_uninitialize_site_does_not_follow_upload_directory_symlinks() {
+		$site_id = self::factory()->blog->create();
+
+		switch_to_blog( $site_id );
+		$uploads = wp_get_upload_dir();
+		restore_current_blog();
+
+		$target_dir  = get_temp_dir() . 'wp-uninitialize-site-' . wp_generate_uuid4();
+		$target_file = $target_dir . '/file.txt';
+		$link        = $uploads['basedir'] . '/linked';
+
+		try {
+			$this->assertTrue( wp_mkdir_p( $uploads['basedir'] ) );
+			$this->assertTrue( wp_mkdir_p( $target_dir ) );
+			$this->assertSame( 4, file_put_contents( $target_file, 'test' ) );
+
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Symlink creation may not be supported.
+			if ( ! @symlink( $target_dir, $link ) ) {
+				$this->markTestSkipped( 'Symlinks are not supported.' );
+			}
+
+			$this->assertTrue( wp_uninitialize_site( $site_id ) );
+			$this->assertDirectoryDoesNotExist( $uploads['basedir'] );
+			$this->assertFileExists( $target_file );
+		} finally {
+			if ( is_link( $link ) ) {
+				unlink( $link );
+			}
+			if ( is_dir( $uploads['basedir'] ) ) {
+				rmdir( $uploads['basedir'] );
+			}
+			if ( file_exists( $target_file ) ) {
+				unlink( $target_file );
+			}
+			if ( is_dir( $target_dir ) ) {
+				rmdir( $target_dir );
+			}
+		}
+	}
+
+	/**
+	 * @ticket 43162
+	 */
+	public function test_wp_uninitialize_site_does_not_follow_symlinked_uploads_directory() {
+		$site_id = self::factory()->blog->create();
+
+		switch_to_blog( $site_id );
+		$uploads = wp_get_upload_dir();
+		restore_current_blog();
+
+		$target_dir  = get_temp_dir() . 'wp-uninitialize-site-' . wp_generate_uuid4();
+		$target_file = $target_dir . '/file.txt';
+
+		try {
+			$this->assertTrue( wp_mkdir_p( dirname( $uploads['basedir'] ) ) );
+			$this->assertTrue( wp_mkdir_p( $target_dir ) );
+			$this->assertSame( 4, file_put_contents( $target_file, 'test' ) );
+
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Symlink creation may not be supported.
+			if ( ! @symlink( $target_dir, $uploads['basedir'] ) ) {
+				$this->markTestSkipped( 'Symlinks are not supported.' );
+			}
+
+			$this->assertTrue( wp_uninitialize_site( $site_id ) );
+			$this->assertFalse( is_link( $uploads['basedir'] ) );
+			$this->assertFileExists( $target_file );
+		} finally {
+			if ( is_link( $uploads['basedir'] ) ) {
+				unlink( $uploads['basedir'] );
+			}
+			if ( file_exists( $target_file ) ) {
+				unlink( $target_file );
+			}
+			if ( is_dir( $target_dir ) ) {
+				rmdir( $target_dir );
+			}
+		}
+	}
+
+	/**
 	 * @ticket 41333
 	 */
 	public function test_wp_uninitialize_site_empty_id() {
