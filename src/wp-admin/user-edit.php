@@ -513,7 +513,7 @@ switch ( $action ) {
 						</td>
 					</tr>
 
-					<tr class="user-nickname-wrap">
+					<tr class="user-nickname-wrap form-required">
 						<th><label for="nickname"><?php _e( 'Nickname' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
 						<td>
 						<?php if ( IS_PROFILE_PAGE ) : ?>
@@ -567,7 +567,7 @@ switch ( $action ) {
 				<h2><?php _e( 'Contact Info' ); ?></h2>
 
 				<table class="form-table" role="presentation">
-					<tr class="user-email-wrap">
+					<tr class="user-email-wrap form-required">
 						<th><label for="email"><?php _e( 'Email' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
 						<td>
 							<?php if ( $profile_user->ID === $current_user->ID ) : ?>
