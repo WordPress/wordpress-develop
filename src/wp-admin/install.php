@@ -470,17 +470,25 @@ switch ( $step ) {
 }
 
 if ( ! wp_is_mobile() ) {
-	?>
-<script>var t = document.getElementById('weblog_title'); if (t){ t.focus(); }</script>
-	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		var t = document.getElementById( 'weblog_title' );
+		if ( t ) {
+			t.focus();
+		}
+		JS
+	);
 }
 
 wp_print_scripts( $scripts_to_print );
+
+wp_print_inline_script_tag(
+	<<<'JS'
+	jQuery( function( $ ) {
+		$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
+	} );
+	JS
+);
 ?>
-<script>
-jQuery( function( $ ) {
-	$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
-} );
-</script>
 </body>
 </html>
