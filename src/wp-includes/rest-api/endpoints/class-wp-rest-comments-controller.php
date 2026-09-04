@@ -790,6 +790,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $prepared_comment;
 		}
 
+		if ( isset( $request['status'] ) && ! $this->is_valid_comment_status_param( $request['status'] ) ) {
+			return new WP_Error(
+				'rest_comment_invalid_status',
+				__( 'Invalid comment status.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$comment_id = wp_insert_comment( wp_filter_comment( wp_slash( (array) $prepared_comment ) ) );
 
 		if ( ! $comment_id ) {
@@ -801,7 +809,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['status'] ) ) {
-			$this->handle_status_param( $request['status'], $comment_id );
+			$status_update = $this->handle_status_param( $request['status'], $comment_id );
+			$comment       = get_comment( $comment_id );
+
+			if ( ! $status_update && $this->normalize_status_param( $request['status'] ) !== $this->prepare_status_response( $comment->comment_approved ) ) {
+				wp_delete_comment( $comment_id, true );
+
+				return new WP_Error(
+					'rest_comment_failed_create',
+					__( 'Creating comment failed.' ),
+					array( 'status' => 500 )
+				);
+			}
 		}
 
 		$comment = get_comment( $comment_id );
@@ -927,9 +946,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
 			// Only the comment status is being changed.
-			$change = $this->handle_status_param( $request['status'], $id );
+			if ( ! $this->is_valid_comment_status_param( $request['status'] ) ) {
+				return new WP_Error(
+					'rest_comment_invalid_status',
+					__( 'Invalid comment status.' ),
+					array( 'status' => 400 )
+				);
+			}
 
-			if ( ! $change ) {
+			$change  = $this->handle_status_param( $request['status'], $id );
+			$comment = get_comment( $id );
+
+			if ( ! $change && $this->normalize_status_param( $request['status'] ) !== $this->prepare_status_response( $comment->comment_approved ) ) {
 				return new WP_Error(
 					'rest_comment_failed_edit',
 					__( 'Updating comment status failed.' ),
@@ -948,6 +976,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				);
 			}
 
+			if ( isset( $request['status'] ) && ! $this->is_valid_comment_status_param( $request['status'] ) ) {
+				return new WP_Error(
+					'rest_comment_invalid_status',
+					__( 'Invalid comment status.' ),
+					array( 'status' => 400 )
+				);
+			}
+
 			$prepared_args['comment_ID'] = $id;
 
 			$check_comment_lengths = wp_check_comment_data_max_lengths( $prepared_args );
@@ -961,18 +997,41 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				);
 			}
 
+			$old_comment_approved = null;
+			if ( isset( $request['status'] ) ) {
+				$comment              = get_comment( $id );
+				$old_comment_approved = $comment->comment_approved;
+				$status_update        = $this->handle_status_param( $request['status'], $id );
+				$comment              = get_comment( $id );
+
+				if ( ! $status_update && $this->normalize_status_param( $request['status'] ) !== $this->prepare_status_response( $comment->comment_approved ) ) {
+					return new WP_Error(
+						'rest_comment_failed_edit',
+						__( 'Updating comment status failed.' ),
+						array( 'status' => 500 )
+					);
+				}
+			}
+
 			$updated = wp_update_comment( wp_slash( (array) $prepared_args ), true );
 
 			if ( is_wp_error( $updated ) ) {
+				if ( null !== $old_comment_approved && ! wp_set_comment_status( $id, $old_comment_approved ) ) {
+					global $wpdb;
+
+					$comment = get_comment( $id );
+					if ( $comment ) {
+						$wpdb->update( $wpdb->comments, array( 'comment_approved' => $old_comment_approved ), array( 'comment_ID' => $id ) );
+						clean_comment_cache( $id );
+						wp_update_comment_count( $comment->comment_post_ID );
+					}
+				}
+
 				return new WP_Error(
 					'rest_comment_failed_edit',
 					__( 'Updating comment failed.' ),
 					array( 'status' => 500 )
 				);
-			}
-
-			if ( isset( $request['status'] ) ) {
-				$this->handle_status_param( $request['status'], $id );
 			}
 		}
 
@@ -1811,6 +1870,65 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks whether a comment status parameter can be handled.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string|int $new_status New comment status.
+	 * @return bool Whether the status parameter is valid.
+	 */
+	protected function is_valid_comment_status_param( $new_status ) {
+		if ( ! is_scalar( $new_status ) ) {
+			return false;
+		}
+
+		$new_status = sanitize_key( (string) $new_status );
+
+		switch ( $new_status ) {
+			case 'approved':
+			case 'approve':
+			case '1':
+			case 'hold':
+			case '0':
+			case 'spam':
+			case 'unspam':
+			case 'trash':
+			case 'untrash':
+				return true;
+			default:
+				return isset( _wp_get_custom_comment_statuses()[ $new_status ] );
+		}
+	}
+
+	/**
+	 * Normalizes a comment status parameter for comparison with REST API responses.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string|int $new_status New comment status.
+	 * @return string Normalized comment status.
+	 */
+	protected function normalize_status_param( $new_status ) {
+		if ( ! is_scalar( $new_status ) ) {
+			return '';
+		}
+
+		$new_status = sanitize_key( (string) $new_status );
+
+		switch ( $new_status ) {
+			case 'approved':
+			case 'approve':
+			case '1':
+				return 'approved';
+			case 'hold':
+			case '0':
+				return 'hold';
+			default:
+				return (string) $new_status;
+		}
+	}
+
+	/**
 	 * Sets the comment_status of a given comment object when creating or updating a comment.
 	 *
 	 * @since 4.7.0
@@ -1849,7 +1967,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$changed = wp_untrash_comment( $comment_id );
 				break;
 			default:
-				$changed = false;
+				$changed = wp_set_comment_status( $comment_id, $new_status );
 				break;
 		}
 

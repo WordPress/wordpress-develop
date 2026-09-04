@@ -65,8 +65,20 @@ function edit_comment() {
 	if ( isset( $_POST['newcomment_author_url'] ) ) {
 		$_POST['comment_author_url'] = $_POST['newcomment_author_url'];
 	}
-	if ( isset( $_POST['comment_status'] ) ) {
-		$_POST['comment_approved'] = $_POST['comment_status'];
+	if ( isset( $_POST['comment_status'] ) && is_scalar( $_POST['comment_status'] ) ) {
+		$comment_status         = sanitize_key( wp_unslash( $_POST['comment_status'] ) );
+		$valid_comment_statuses = array_merge(
+			array(
+				'1'    => true,
+				'0'    => true,
+				'spam' => true,
+			),
+			array_fill_keys( array_keys( _wp_get_custom_comment_statuses() ), true )
+		);
+
+		if ( isset( $valid_comment_statuses[ $comment_status ] ) ) {
+			$_POST['comment_approved'] = $comment_status;
+		}
 	}
 	if ( isset( $_POST['content'] ) ) {
 		$_POST['comment_content'] = $_POST['content'];

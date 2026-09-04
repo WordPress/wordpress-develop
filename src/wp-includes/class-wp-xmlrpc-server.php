@@ -3901,8 +3901,15 @@ class wp_xmlrpc_server extends IXR_Server {
 		);
 
 		if ( isset( $content_struct['status'] ) ) {
-			$statuses = get_comment_statuses();
-			$statuses = array_keys( $statuses );
+			$statuses = array_merge(
+				array(
+					'hold',
+					'approve',
+					'spam',
+					'trash',
+				),
+				array_keys( _wp_get_custom_comment_statuses() )
+			);
 
 			if ( ! in_array( $content_struct['status'], $statuses, true ) ) {
 				return new IXR_Error( 401, __( 'Invalid comment status.' ) );

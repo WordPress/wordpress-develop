@@ -5,6 +5,41 @@
  */
 class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 
+	public function tear_down() {
+		remove_filter( 'comment_statuses', array( $this, 'filter_comment_statuses' ) );
+		remove_filter( 'comment_statuses', array( $this, 'filter_reserved_comment_statuses' ) );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Adds a valid custom comment status.
+	 *
+	 * @ticket 20977
+	 *
+	 * @param string[] $statuses Comment statuses.
+	 * @return string[] Filtered comment statuses.
+	 */
+	public function filter_comment_statuses( $statuses ) {
+		$statuses['read'] = 'Read';
+
+		return $statuses;
+	}
+
+	/**
+	 * Adds a reserved custom comment status.
+	 *
+	 * @ticket 20977
+	 *
+	 * @param string[] $statuses Comment statuses.
+	 * @return string[] Filtered comment statuses.
+	 */
+	public function filter_reserved_comment_statuses( $statuses ) {
+		$statuses['approved'] = 'Custom Approved';
+
+		return $statuses;
+	}
+
 	public function test_author_can_edit_own_comment() {
 		$author_id = $this->make_user_by_role( 'author' );
 		$post_id   = self::factory()->post->create(
@@ -92,5 +127,55 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$this->assertSame( 'trash', get_comment( $comment_id )->comment_approved );
+	}
+
+	/**
+	 * @ticket 20977
+	 */
+	public function test_custom_comment_status() {
+		add_filter( 'comment_statuses', array( $this, 'filter_comment_statuses' ) );
+
+		$this->make_user_by_role( 'administrator' );
+		$comment_id = self::factory()->comment->create();
+
+		$result = $this->myxmlrpcserver->wp_editComment(
+			array(
+				1,
+				'administrator',
+				'administrator',
+				$comment_id,
+				array(
+					'status' => 'read',
+				),
+			)
+		);
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( 'read', get_comment( $comment_id )->comment_approved );
+	}
+
+	/**
+	 * @ticket 20977
+	 */
+	public function test_reserved_custom_comment_status_is_rejected() {
+		add_filter( 'comment_statuses', array( $this, 'filter_reserved_comment_statuses' ) );
+
+		$this->make_user_by_role( 'administrator' );
+		$comment_id = self::factory()->comment->create();
+
+		$result = $this->myxmlrpcserver->wp_editComment(
+			array(
+				1,
+				'administrator',
+				'administrator',
+				$comment_id,
+				array(
+					'status' => 'approved',
+				),
+			)
+		);
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 401, $result->code );
 	}
 }

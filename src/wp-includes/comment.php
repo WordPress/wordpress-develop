@@ -348,7 +348,57 @@ function get_comment_statuses() {
 		'trash'   => _x( 'Trash', 'comment status' ),
 	);
 
-	return $status;
+	/**
+	 * Filters the list of supported comment statuses.
+	 *
+	 * The returned array is keyed by status and has translated status labels as values.
+	 * Custom statuses are stored in the `comment_approved` database field using the
+	 * array key as the raw status value. Custom status keys must be compatible with
+	 * sanitize_key() and no longer than 20 characters.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string[] $status List of comment status labels keyed by status.
+	 */
+	return apply_filters( 'comment_statuses', $status );
+}
+
+/**
+ * Retrieves registered custom comment statuses.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @return string[] List of valid custom comment status labels keyed by status.
+ *                  Invalid and reserved filtered statuses are excluded.
+ */
+function _wp_get_custom_comment_statuses() {
+	$reserved_statuses = array(
+		'0',
+		'1',
+		'all',
+		'any',
+		'approve',
+		'approved',
+		'hold',
+		'mine',
+		'moderated',
+		'post-trashed',
+		'spam',
+		'trash',
+		'unapproved',
+		'unspam',
+		'untrash',
+	);
+	$custom_statuses   = array_diff_key( get_comment_statuses(), array_flip( $reserved_statuses ) );
+
+	foreach ( $custom_statuses as $status => $label ) {
+		if ( sanitize_key( $status ) !== $status || 20 < strlen( $status ) ) {
+			unset( $custom_statuses[ $status ] );
+		}
+	}
+
+	return $custom_statuses;
 }
 
 /**
@@ -457,7 +507,8 @@ function get_lastcommentmodified( $timezone = 'server' ) {
  *     @type int $trash               The number of trashed comments.
  *     @type int $post-trashed        The number of comments for posts that are in the trash.
  *     @type int $total_comments      The total number of non-trashed comments, including spam.
- *     @type int $all                 The total number of pending or approved comments.
+ *     @type int $all                 The total number of pending, approved, or custom status comments.
+ *     @type int ...$custom_statuses  The number of comments for each registered custom status.
  * }
  */
 function get_comment_count( $post_id = 0 ) {
@@ -493,7 +544,40 @@ function get_comment_count( $post_id = 0 ) {
 		$comment_count[ $key ] = get_comments( array_merge( $args, array( 'status' => $value ) ) );
 	}
 
-	$comment_count['all']            = $comment_count['approved'] + $comment_count['awaiting_moderation'];
+	$custom_statuses = _wp_get_custom_comment_statuses();
+	foreach ( $custom_statuses as $status => $label ) {
+		$comment_count[ $status ] = 0;
+	}
+
+	if ( $custom_statuses ) {
+		global $wpdb;
+
+		$custom_status_placeholders = implode( ', ', array_fill( 0, count( $custom_statuses ), '%s' ) );
+		$custom_status_args         = array_keys( $custom_statuses );
+		$post_id_sql                = '';
+
+		if ( $post_id > 0 ) {
+			$post_id_sql          = ' AND comment_post_ID = %d';
+			$custom_status_args[] = $post_id;
+		}
+
+		$custom_status_counts = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT comment_approved, COUNT(*) AS num_comments FROM $wpdb->comments WHERE comment_approved IN ($custom_status_placeholders)$post_id_sql GROUP BY comment_approved",
+				$custom_status_args
+			),
+			OBJECT_K
+		);
+
+		foreach ( $custom_status_counts as $status => $row ) {
+			$comment_count[ $status ] = (int) $row->num_comments;
+		}
+	}
+
+	$comment_count['all'] = $comment_count['approved'] + $comment_count['awaiting_moderation'];
+	foreach ( array_keys( $custom_statuses ) as $status ) {
+		$comment_count['all'] += $comment_count[ $status ];
+	}
 	$comment_count['total_comments'] = $comment_count['all'] + $comment_count['spam'];
 
 	return array_map( 'intval', $comment_count );
@@ -1883,7 +1967,8 @@ function wp_unspam_comment( $comment_id ) {
  * @since 1.0.0
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object
- * @return string|false Status might be 'trash', 'approved', 'unapproved', 'spam'. False on failure.
+ * @return string|false Status might be 'trash', 'approved', 'unapproved', 'spam', or a custom status.
+ *                      False on failure.
  */
 function wp_get_comment_status( $comment_id ) {
 	$comment = get_comment( $comment_id );
@@ -1903,6 +1988,8 @@ function wp_get_comment_status( $comment_id ) {
 		return 'spam';
 	} elseif ( 'trash' === $approved ) {
 		return 'trash';
+	} elseif ( isset( _wp_get_custom_comment_statuses()[ $approved ] ) ) {
+		return $approved;
 	} else {
 		return false;
 	}
@@ -2788,7 +2875,8 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Comment $comment_id     Comment ID or WP_Comment object.
- * @param string         $comment_status New comment status, either 'hold', 'approve', 'spam', or 'trash'.
+ * @param string         $comment_status New comment status, either 'hold', 'approve', 'spam', 'trash',
+ *                                       or a custom status from get_comment_statuses().
  * @param bool           $wp_error       Whether to return a WP_Error object if there is a failure. Default false.
  * @return bool|WP_Error True on success, false or WP_Error on failure.
  */
@@ -2812,7 +2900,18 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
 			$status = 'trash';
 			break;
 		default:
-			return false;
+			if ( ! is_scalar( $comment_status ) ) {
+				return false;
+			}
+
+			$comment_status = sanitize_key( (string) $comment_status );
+
+			if ( ! isset( _wp_get_custom_comment_statuses()[ $comment_status ] ) ) {
+				return false;
+			}
+
+			$status = $comment_status;
+			break;
 	}
 
 	$comment_old = clone get_comment( $comment_id );

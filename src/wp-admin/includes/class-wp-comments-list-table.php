@@ -97,9 +97,14 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$mode = get_user_setting( 'posts_list_mode', 'list' );
 		}
 
-		$comment_status = $_REQUEST['comment_status'] ?? 'all';
+		$comment_status = 'all';
+		if ( isset( $_REQUEST['comment_status'] ) && is_scalar( $_REQUEST['comment_status'] ) ) {
+			$comment_status = sanitize_key( wp_unslash( $_REQUEST['comment_status'] ) );
+		}
 
-		if ( ! in_array( $comment_status, array( 'all', 'mine', 'moderated', 'approved', 'spam', 'trash' ), true ) ) {
+		$valid_statuses = array_merge( array( 'all', 'mine', 'moderated', 'approved', 'spam', 'trash' ), array_keys( _wp_get_custom_comment_statuses() ) );
+
+		if ( ! in_array( $comment_status, $valid_statuses, true ) ) {
 			$comment_status = 'all';
 		}
 
@@ -301,6 +306,10 @@ class WP_Comments_List_Table extends WP_List_Table {
 			unset( $statuses['trash'] );
 		}
 
+		foreach ( _wp_get_custom_comment_statuses() as $status => $label ) {
+			$statuses[ $status ] = $label;
+		}
+
 		$link = admin_url( 'edit-comments.php' );
 
 		if ( ! empty( $comment_type ) && 'all' !== $comment_type ) {
@@ -324,7 +333,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			}
 
 			if ( ! isset( $num_comments->$status ) ) {
-				$num_comments->$status = 10;
+				$num_comments->$status = isset( _wp_get_custom_comment_statuses()[ $status ] ) ? 0 : 10;
 			}
 
 			$link = add_query_arg( 'comment_status', $status, $link );
@@ -339,16 +348,21 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$link = add_query_arg( 's', esc_attr( wp_unslash( $_REQUEST['s'] ) ), $link );
 			*/
 
+			$count = sprintf(
+				'<span class="%s-count">%s</span>',
+				( 'moderated' === $status ) ? 'pending' : sanitize_html_class( $status ),
+				number_format_i18n( $num_comments->$status )
+			);
+
+			if ( is_array( $label ) ) {
+				$label = sprintf( translate_nooped_plural( $label, $num_comments->$status ), $count );
+			} else {
+				$label = sprintf( '%s <span class="count">(%s)</span>', esc_html( $label ), $count );
+			}
+
 			$status_links[ $status ] = array(
 				'url'     => esc_url( $link ),
-				'label'   => sprintf(
-					translate_nooped_plural( $label, $num_comments->$status ),
-					sprintf(
-						'<span class="%s-count">%s</span>',
-						( 'moderated' === $status ) ? 'pending' : $status,
-						number_format_i18n( $num_comments->$status )
-					)
-				),
+				'label'   => $label,
 				'current' => $status === $comment_status,
 			);
 		}
