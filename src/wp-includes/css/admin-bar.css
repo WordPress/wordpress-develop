@@ -601,6 +601,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-site-name > .ab-item .site-icon {
 	width: 20px;
 	height: 20px;
+	max-width: 20px;
+	max-height: 20px;
 	background: #f0f0f1; /* matching my-account (user avatar) node's background */
 	border-radius: 2px;
 }
@@ -945,6 +947,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 		left: 12px;
 		width: 28px;
 		height: 28px;
+		max-width: 28px;
+		max-height: 28px;
 		margin: 0;
 		border-radius: 4px;
 	}
