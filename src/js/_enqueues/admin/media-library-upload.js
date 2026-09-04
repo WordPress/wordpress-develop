@@ -20,13 +20,57 @@
 
 /* global plupload */
 
+/**
+ * The parts of a wp.Uploader instance this script relies on.
+ *
+ * @typedef {Object} WPUploader
+ * @property {plupload.Uploader}                       uploader The plupload uploader it wraps.
+ * @property {( model: WPAttachment ) => void}         added    Runs when a file is queued.
+ * @property {( model: WPAttachment ) => void}         success  Runs when an upload finished.
+ * @property {( message: string, data: Object, file: { name: string } ) => void} error Runs when an upload failed.
+ */
+
+/**
+ * The parts of a wp.media.model.Attachment (a Backbone model) this script
+ * relies on.
+ *
+ * @typedef {Object} WPAttachment
+ * @property {( key: string ) => unknown}                       get     Reads a model attribute.
+ * @property {( attributes: Object, options?: Object ) => void} set     Sets model attributes.
+ * @property {( key: string, options?: Object ) => void}        unset   Removes a model attribute.
+ * @property {() => JQuery.jqXHR}                               fetch   Refetches the attachment from the REST API.
+ * @property {() => void}                                       destroy Removes the model and its tile.
+ */
+
+/**
+ * The placeholder attributes wp-plupload.js builds for an uploading tile.
+ *
+ * @typedef {Object} PlaceholderAttributes
+ * @property {plupload.File} file       The file being uploaded.
+ * @property {boolean}       uploading  Always true while the upload runs.
+ * @property {Date}          date       When the upload started.
+ * @property {string}        filename   The file name.
+ * @property {number}        menuOrder  Menu order of the attachment.
+ * @property {number}        uploadedTo The post the upload is attached to.
+ * @property {number}        loaded     Bytes uploaded so far.
+ * @property {number}        size       Size of the file in bytes.
+ * @property {number}        percent    Progress percentage.
+ * @property {string}        [type]     Mime type guessed from the file name.
+ * @property {string}        [subtype]  Mime subtype guessed from the file name.
+ */
+
+/*
+ * PipelineAttachment and UploadError are declared by media-upload-pipeline.js,
+ * which this script depends on.
+ */
+
 ( function () {
 	// Guard against double execution (e.g. duplicate enqueues).
 	if ( window.__wpMediaLibraryUpload ) {
 		return;
 	}
 
-	var pipeline = window.wp && wp.mediaUploadPipeline;
+	const pipeline = window.wp && wp.mediaUploadPipeline;
 
 	// Bail unless the browser actually supports client-side processing. This
 	// is the clean no-op: when the isolation headers did not land, classic
@@ -49,7 +93,9 @@
 	 * Parity with wp-plupload.js so browse mode flips back when done.
 	 */
 	function maybeResetQueue() {
-		var complete = wp.Uploader.queue.all( function ( attachment ) {
+		const complete = wp.Uploader.queue.all( function (
+			/** @type {WPAttachment} */ attachment
+		) {
 			return ! attachment.get( 'uploading' );
 		} );
 
@@ -61,9 +107,9 @@
 	/**
 	 * Handles a completed upload by syncing the grid tile with the server data.
 	 *
-	 * @param {Object} wpUploader The wp.Uploader instance that queued the file.
-	 * @param {Object} model      The placeholder Attachment model.
-	 * @param {Object} attachment The finalized attachment from the pipeline.
+	 * @param {WPUploader}         wpUploader The wp.Uploader instance that queued the file.
+	 * @param {WPAttachment}       model      The placeholder Attachment model.
+	 * @param {PipelineAttachment} attachment The finalized attachment from the pipeline.
 	 */
 	function handleSuccess( wpUploader, model, attachment ) {
 		model.set( { id: attachment.id }, { silent: true } );
@@ -108,14 +154,14 @@
 	 * error, so the grid's error sidebar renders it, announces it, and
 	 * moves focus to its Dismiss button.
 	 *
-	 * @param {Object} wpUploader The wp.Uploader instance that queued the file.
-	 * @param {Object} model      The placeholder Attachment model.
-	 * @param {Error}  error      The upload error.
-	 * @param {File}   nativeFile The original file (for the error label).
+	 * @param {WPUploader}   wpUploader The wp.Uploader instance that queued the file.
+	 * @param {WPAttachment} model      The placeholder Attachment model.
+	 * @param {UploadError}  error      The upload error.
+	 * @param {File}         nativeFile The original file (for the error label).
 	 */
 	function handleError( wpUploader, model, error, nativeFile ) {
-		var message = pipeline.getErrorText( error, nativeFile.name );
-		var file = { name: nativeFile.name };
+		const message = pipeline.getErrorText( error, nativeFile.name );
+		const file = { name: nativeFile.name };
 
 		model.destroy();
 
@@ -141,9 +187,9 @@
 	 * wp-plupload, routes each file through the pipeline, and returns false
 	 * to suppress the built-in handler.
 	 *
-	 * @param {Object} wpUploader The wp.Uploader instance.
-	 * @param {Object} up         The plupload uploader instance.
-	 * @param {string[]}  files      Files added to the queue.
+	 * @param {WPUploader}        wpUploader The wp.Uploader instance.
+	 * @param {plupload.Uploader} up         The plupload uploader instance.
+	 * @param {plupload.File[]}   files      Files added to the queue.
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function handleFilesAdded( wpUploader, up, files ) {
@@ -154,8 +200,8 @@
 		// The classic flow posts plupload's multipart params to
 		// async-upload.php; forward them so plugins reading $_POST see the
 		// same fields, with `post_id` spelled `post` for the REST API.
-		var params = ( up.settings && up.settings.multipart_params ) || {};
-		var additionalData = pipeline.additionalDataFromParams(
+		const params = ( up.settings && up.settings.multipart_params ) || {};
+		const additionalData = pipeline.additionalDataFromParams(
 			params,
 			parseInt( params.post_id, 10 ) || 0
 		);
@@ -168,7 +214,8 @@
 
 			// Build the same placeholder attributes as wp-plupload.js so the
 			// grid's progress tiles and "Uploading n/m" status work unchanged.
-			var attributes = {
+			/** @type {PlaceholderAttributes} */
+			const attributes = {
 				file: file,
 				uploading: true,
 				date: new Date(),
@@ -180,30 +227,42 @@
 				percent: file.percent,
 			};
 
-			var image = /(?:jpe?g|png|gif)$/i.exec( file.name );
+			/*
+			 * Early mime type scanning for images, as wp-plupload.js does,
+			 * extended with the formats the client-side pipeline accepts.
+			 */
+			const image = /(?:jpe?g|png|gif|webp|avif|heic|heif)$/i.exec(
+				file.name
+			);
 			if ( image ) {
 				attributes.type = 'image';
 				// `jpg` is not a valid subtype, so map it to `jpeg`.
-				attributes.subtype = 'jpg' === image[ 0 ] ? 'jpeg' : image[ 0 ];
+				attributes.subtype =
+					'jpg' === image[ 0 ].toLowerCase()
+						? 'jpeg'
+						: image[ 0 ].toLowerCase();
 			}
 
-			var model = wp.media.model.Attachment.create( attributes );
+			const model = wp.media.model.Attachment.create( attributes );
 			wp.Uploader.queue.add( model );
 			wpUploader.added( model );
 
-			var nativeFile = file.getNative();
+			// canHandleBatch() already established that every file has one.
+			const nativeFile = /** @type {File} */ ( file.getNative() );
 
 			// Remove the file from plupload so it is not uploaded twice.
 			up.removeFile( file );
 
 			pipeline.queueFile( nativeFile, additionalData, {
-				onSuccess: function ( attachment ) {
+				onSuccess: function (
+					/** @type {PipelineAttachment} */ attachment
+				) {
 					handleSuccess( wpUploader, model, attachment );
 				},
-				onError: function ( error ) {
+				onError: function ( /** @type {UploadError} */ error ) {
 					handleError( wpUploader, model, error, nativeFile );
 				},
-				onProgress: function ( percent ) {
+				onProgress: function ( /** @type {number} */ percent ) {
 					model.set( { percent: percent } );
 				},
 			} );
@@ -217,12 +276,12 @@
 	// Wrap wp.Uploader.prototype.init (an empty stub called once per instance
 	// after plupload is initialized) to bind a higher-priority FilesAdded
 	// handler on every uploader instance, including the Media Library grid's.
-	var originalInit = wp.Uploader.prototype.init;
+	const originalInit = wp.Uploader.prototype.init;
 	wp.Uploader.prototype.init = function () {
 		originalInit.apply( this, arguments );
 
-		var wpUploader = this;
-		var up = this.uploader;
+		const wpUploader = /** @type {WPUploader} */ ( this );
+		const up = /** @type {plupload.Uploader|undefined} */ ( this.uploader );
 
 		if ( ! up || up.__wpMediaLibraryUploadBound ) {
 			return;

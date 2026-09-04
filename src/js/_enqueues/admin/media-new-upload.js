@@ -30,7 +30,7 @@
 		return;
 	}
 
-	var pipeline = window.wp && wp.mediaUploadPipeline;
+	const pipeline = window.wp && wp.mediaUploadPipeline;
 
 	// Bail unless the browser actually supports client-side processing. This
 	// is the clean no-op: when the isolation headers did not land, classic
@@ -80,8 +80,10 @@
 	 * @return {number} The parent post ID, or 0.
 	 */
 	function getParentPostId() {
-		var input = document.getElementById( 'post_id' );
-		var postId = input ? parseInt( input.value, 10 ) : 0;
+		const input = /** @type {HTMLInputElement|null} */ (
+			document.getElementById( 'post_id' )
+		);
+		const postId = input ? parseInt( input.value, 10 ) : 0;
 		return postId > 0 ? postId : 0;
 	}
 
@@ -101,15 +103,15 @@
 	 * described by the notice, a screen reader announcement, and focus
 	 * returned to the browse button once dismissed.
 	 *
-	 * @param {Object} file    The plupload file that failed.
-	 * @param {string} message The reason the upload failed.
+	 * @param {plupload.File} file    The plupload file that failed.
+	 * @param {string}        message The reason the upload failed.
 	 */
 	function renderError( file, message ) {
-		var item = jQuery( '#media-item-' + file.id );
-		var buttonId = 'dismiss-' + file.id;
-		var descriptionId = 'error-description-' + file.id;
+		const item = jQuery( '#media-item-' + file.id );
+		const buttonId = 'dismiss-' + file.id;
+		const descriptionId = 'error-description-' + file.id;
 
-		var button = jQuery( '<button>', {
+		const button = jQuery( '<button>', {
 			type: 'button',
 			id: buttonId,
 			'class': 'dismiss button-link',
@@ -117,7 +119,7 @@
 			text: pluploadL10n.dismiss,
 		} );
 
-		var notice = jQuery( '<div>', {
+		const notice = jQuery( '<div>', {
 			id: descriptionId,
 			'class': 'notice notice-error error-div error',
 		} )
@@ -163,11 +165,11 @@
 	 * The bar is 200px wide at 100%, matching uploadProgress() in
 	 * plupload-handlers.
 	 *
-	 * @param {Object} file    The plupload file being uploaded.
-	 * @param {number} percent Progress percentage.
+	 * @param {plupload.File} file    The plupload file being uploaded.
+	 * @param {number}        percent Progress percentage.
 	 */
 	function renderProgress( file, percent ) {
-		var item = jQuery( '#media-item-' + file.id );
+		const item = jQuery( '#media-item-' + file.id );
 		item.find( '.bar' ).width( 2 * percent );
 		item.find( '.percent' ).html( percent + '%' );
 	}
@@ -182,8 +184,8 @@
 	 * built-in handler (which would otherwise queue and start a classic
 	 * upload).
 	 *
-	 * @param {Object} up    The plupload uploader instance.
-	 * @param {Array}  files Files added to the queue.
+	 * @param {plupload.Uploader} up    The plupload uploader instance.
+	 * @param {plupload.File[]}   files Files added to the queue.
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function handleFilesAdded( up, files ) {
@@ -201,8 +203,8 @@
 		// same fields. Without the parent post a file uploaded from
 		// media-new.php?post_id=N would land unattached even though the
 		// screen counts it against that post.
-		var params = ( up.settings && up.settings.multipart_params ) || {};
-		var additionalData = pipeline.additionalDataFromParams(
+		const params = ( up.settings && up.settings.multipart_params ) || {};
+		const additionalData = pipeline.additionalDataFromParams(
 			params,
 			getParentPostId()
 		);
@@ -216,7 +218,8 @@
 			// Build the screen's progress item for this file.
 			fileQueued( file );
 
-			var nativeFile = file.getNative();
+			// canHandleBatch() already established that every file has one.
+			const nativeFile = /** @type {File} */ ( file.getNative() );
 
 			// Remove the file from plupload so it is not uploaded twice.
 			up.removeFile( file );
@@ -224,21 +227,23 @@
 			inFlightCount++;
 
 			pipeline.queueFile( nativeFile, additionalData, {
-				onSuccess: function ( attachment ) {
+				onSuccess: function (
+					/** @type {PipelineAttachment} */ attachment
+				) {
 					// uploadSuccess() renders the finished attachment row via
 					// the existing async-upload.php markup endpoint; the
 					// server normally returns the ID as a string.
 					uploadSuccess( file, String( attachment.id ) );
 					finishUpload();
 				},
-				onError: function ( error ) {
+				onError: function ( /** @type {UploadError} */ error ) {
 					renderError(
 						file,
 						pipeline.getErrorText( error, nativeFile.name )
 					);
 					finishUpload();
 				},
-				onProgress: function ( percent ) {
+				onProgress: function ( /** @type {number} */ percent ) {
 					renderProgress( file, percent );
 				},
 			} );

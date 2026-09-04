@@ -18,26 +18,70 @@
 
 /* global plupload */
 
+/**
+ * An item in the @wordpress/upload-media queue.
+ *
+ * @typedef {Object} QueueItem
+ * @property {string}    id                 Queue item ID.
+ * @property {string}    [parentId]         Set on the sub-size children of an upload.
+ * @property {File}      [sourceFile]       The file being processed.
+ * @property {number}    [progress]         Progress percentage, when the store reports one.
+ * @property {string}    [currentOperation] The operation being run.
+ * @property {unknown[]} [operations]       The operations left to run.
+ * @property {unknown[]} [subSizes]         The sub-sizes sideloaded so far.
+ */
+
+/**
+ * The pipeline's bookkeeping for one queued upload.
+ *
+ * @typedef {Object} UploadEntry
+ * @property {string}                       key         Identity key of the file.
+ * @property {string|null}                  itemId      ID of the queue item it matched.
+ * @property {( percent: number ) => void}  [onProgress] Progress callback.
+ * @property {number}                       lastPercent Last reported percentage.
+ * @property {{ total: number, remaining: number }|null} totals Operation counts.
+ * @property {boolean}                      released    Whether it finished.
+ */
+
+/**
+ * A finalized attachment as returned by the client-side pipeline.
+ *
+ * @typedef {Object} PipelineAttachment
+ * @property {number} id The attachment ID.
+ */
+
+/**
+ * Why an upload failed.
+ *
+ * A rejected apiFetch is not always an Error: a REST failure arrives as a
+ * plain { code, message } object.
+ *
+ * @typedef {Object} UploadError
+ * @property {string} [code]    Error code, when the pipeline supplied one.
+ * @property {string} [message] Human-readable reason.
+ */
+
 window.wp = window.wp || {};
 
 ( function ( wp ) {
-	var __ = wp.i18n.__;
-	var settings = window._wpMediaUploadPipelineSettings || {};
-	var uploadStore;
-	var configured = false;
+	const __ = wp.i18n.__;
+	const settings = window._wpMediaUploadPipelineSettings || {};
+	/** @type {any} */
+	let uploadStore;
+	let configured = false;
 
 	// Number of queued files that have not succeeded or failed yet.
-	var inFlight = 0;
+	let inFlight = 0;
 
 	// Uploads waiting to be matched to a queue item, keyed by file identity
 	// (concurrent uploads of an identical file share a key and are matched
 	// in order), and uploads already matched, keyed by queue item id. Items
 	// are matched by id from then on because the store swaps `sourceFile`
 	// for HEIC files once they are converted to JPEG.
-	var pending = new Map();
-	var active = new Map();
+	const pending = new Map();
+	const active = new Map();
 
-	var imageSizeCount = Object.keys( settings.allImageSizes || {} ).length;
+	const imageSizeCount = Object.keys( settings.allImageSizes || {} ).length;
 
 	/**
 	 * Builds a stable identity key for a File.
@@ -58,9 +102,9 @@ window.wp = window.wp || {};
 	 *
 	 * Mirrors flattenFormData() in the media-utils package.
 	 *
-	 * @param {FormData}      formData The form data to append to.
-	 * @param {string}        key      The key to append under.
-	 * @param {string|Object} data     The value to append.
+	 * @param {FormData} formData The form data to append to.
+	 * @param {string}   key      The key to append under.
+	 * @param {*}        data     The value to append.
 	 */
 	function flattenFormData( formData, key, data ) {
 		if (
@@ -82,13 +126,19 @@ window.wp = window.wp || {};
 	 * Reimplements the private sideloadMedia() helper from the media-utils
 	 * package as a thin apiFetch wrapper.
 	 *
-	 * @param {Object} args The sideload arguments.
+	 * @param {Object}                      args                  The sideload arguments.
+	 * @param {File}                        args.file             The sub-size to sideload.
+	 * @param {number}                      args.attachmentId     The attachment to sideload it to.
+	 * @param {Record<string, unknown>}     [args.additionalData] Extra fields to send with it.
+	 * @param {AbortSignal}                 [args.signal]         Signal aborting the request.
+	 * @param {( subSize: Object ) => void} [args.onSuccess]      Called with the sideloaded sub-size.
+	 * @param {( error: Error ) => void}    [args.onError]        Called when the sideload failed.
 	 */
 	function mediaSideload( args ) {
-		var file = args.file;
-		var additionalData = args.additionalData || {};
+		const file = args.file;
+		const additionalData = args.additionalData || {};
 
-		var data = new FormData();
+		const data = new FormData();
 		data.append( 'file', file, file.name || file.type.replace( '/', '.' ) );
 		Object.keys( additionalData ).forEach( function ( key ) {
 			flattenFormData( data, key, additionalData[ key ] );
@@ -100,20 +150,21 @@ window.wp = window.wp || {};
 			method: 'POST',
 			signal: args.signal,
 		} )
-			.then( function ( subSize ) {
+			.then( function ( /** @type {Object} */ subSize ) {
 				if ( args.onSuccess ) {
 					args.onSuccess( subSize );
 				}
 			} )
-			.catch( function ( error ) {
+			.catch( function ( /** @type {unknown} */ error ) {
 				if ( args.onError ) {
-					var normalized = error;
+					let normalized = error;
 					if ( ! ( error instanceof Error ) ) {
+						const rest = /** @type {UploadError} */ ( error );
 						normalized = new Error(
-							error && error.message ? error.message : String( error )
+							rest && rest.message ? rest.message : String( error )
 						);
 					}
-					args.onError( normalized );
+					args.onError( /** @type {Error} */ ( normalized ) );
 				}
 			} );
 	}
@@ -125,9 +176,9 @@ window.wp = window.wp || {};
 	 * attachment is load-bearing: it carries the post-finalize (scaled)
 	 * URL used for srcset.
 	 *
-	 * @param {number} id       The parent attachment ID.
-	 * @param {Array}  subSizes Accumulated sub-size data.
-	 * @return {Promise} Resolves with the transformed attachment.
+	 * @param {number}   id       The parent attachment ID.
+	 * @param {Object[]} subSizes Accumulated sub-size data.
+	 * @return {Promise<PipelineAttachment|undefined>} Resolves with the transformed attachment.
 	 */
 	function mediaFinalize( id, subSizes ) {
 		return wp
@@ -136,7 +187,7 @@ window.wp = window.wp || {};
 				method: 'POST',
 				data: { sub_sizes: subSizes || [] },
 			} )
-			.then( function ( response ) {
+			.then( function ( /** @type {Object|undefined} */ response ) {
 				if ( ! response ) {
 					return undefined;
 				}
@@ -153,7 +204,7 @@ window.wp = window.wp || {};
 	 * block editor passes the same setting.
 	 *
 	 * @param {number} id The attachment ID to delete.
-	 * @return {Promise} Resolves once the attachment is deleted.
+	 * @return {Promise<unknown>} Resolves once the attachment is deleted.
 	 */
 	function mediaDelete( id ) {
 		return wp.apiFetch( {
@@ -205,8 +256,8 @@ window.wp = window.wp || {};
 	 * sub-sizes sideloaded so far advance it within thumbnail generation.
 	 * `item.progress` is preferred whenever it is present.
 	 *
-	 * @param {Object} item  The upload-media queue item.
-	 * @param {Object} entry The pipeline's bookkeeping for the upload.
+	 * @param {QueueItem}   item  The upload-media queue item.
+	 * @param {UploadEntry} entry The pipeline's bookkeeping for the upload.
 	 * @return {number} Estimated progress.
 	 */
 	function estimateProgress( item, entry ) {
@@ -214,8 +265,8 @@ window.wp = window.wp || {};
 			return item.progress;
 		}
 
-		var remaining = item.operations ? item.operations.length : 0;
-		var totals = entry.totals;
+		const remaining = item.operations ? item.operations.length : 0;
+		let totals = entry.totals;
 		if ( ! totals ) {
 			totals = { total: remaining, remaining: remaining };
 			entry.totals = totals;
@@ -230,8 +281,8 @@ window.wp = window.wp || {};
 			return 0;
 		}
 
-		var completed = totals.total - remaining;
-		var fraction = 0;
+		const completed = totals.total - remaining;
+		let fraction = 0;
 		if (
 			'THUMBNAIL_GENERATION' === item.currentOperation &&
 			imageSizeCount > 0
@@ -259,16 +310,16 @@ window.wp = window.wp || {};
 			return;
 		}
 
-		var items = wp.data.select( uploadStore ).getItems();
-		items.forEach( function ( item ) {
+		const items = wp.data.select( uploadStore ).getItems();
+		items.forEach( function ( /** @type {QueueItem} */ item ) {
 			if ( item.parentId || ! item.sourceFile ) {
 				return;
 			}
 
-			var entry = active.get( item.id );
+			let entry = active.get( item.id );
 			if ( ! entry ) {
-				var key = fileKey( item.sourceFile );
-				var list = pending.get( key );
+				const key = fileKey( item.sourceFile );
+				const list = pending.get( key );
 				if ( ! list || ! list.length ) {
 					return;
 				}
@@ -284,7 +335,7 @@ window.wp = window.wp || {};
 				return;
 			}
 
-			var percent = Math.min(
+			const percent = Math.min(
 				99,
 				Math.round( estimateProgress( item, entry ) )
 			);
@@ -298,7 +349,7 @@ window.wp = window.wp || {};
 	/**
 	 * Stops tracking an upload once it has succeeded or failed.
 	 *
-	 * @param {Object} entry The pipeline's bookkeeping for the upload.
+	 * @param {UploadEntry} entry The pipeline's bookkeeping for the upload.
 	 */
 	function release( entry ) {
 		if ( entry.released ) {
@@ -307,9 +358,9 @@ window.wp = window.wp || {};
 		entry.released = true;
 		inFlight--;
 
-		var list = pending.get( entry.key );
+		const list = pending.get( entry.key );
 		if ( list ) {
-			var index = list.indexOf( entry );
+			const index = list.indexOf( entry );
 			if ( index !== -1 ) {
 				list.splice( index, 1 );
 			}
@@ -403,7 +454,7 @@ window.wp = window.wp || {};
 		if ( ! configured ) {
 			return false;
 		}
-		var storeSettings = wp.data.select( uploadStore ).getSettings();
+		const storeSettings = wp.data.select( uploadStore ).getSettings();
 		return Boolean( storeSettings && storeSettings.mediaUpload );
 	}
 
@@ -418,7 +469,7 @@ window.wp = window.wp || {};
 	 * media_handle_upload() derives from their ID3 tags, which the REST
 	 * endpoint does not do.
 	 *
-	 * @param {Array} files Files added to the plupload queue.
+	 * @param {plupload.File[]} files Files added to the plupload queue.
 	 * @return {boolean} True when every file can go through the pipeline.
 	 */
 	function canHandleBatch( files ) {
@@ -444,12 +495,13 @@ window.wp = window.wp || {};
 	 * async-upload.php, and `post_id` is spelled `post` by the REST API and
 	 * passed separately after the screen has validated it.
 	 *
-	 * @param {Object} params Plupload's multipart_params.
-	 * @param {number} postId The validated post to attach the upload to, or 0.
-	 * @return {Object} Additional data for the upload.
+	 * @param {Record<string, string>} params Plupload's multipart_params.
+	 * @param {number}                 postId The validated post to attach the upload to, or 0.
+	 * @return {Record<string, unknown>} Additional data for the upload.
 	 */
 	function additionalDataFromParams( params, postId ) {
-		var additionalData = {};
+		/** @type {Record<string, unknown>} */
+		const additionalData = {};
 		Object.keys( params || {} ).forEach( function ( key ) {
 			if ( 'action' === key || '_wpnonce' === key || 'post_id' === key ) {
 				return;
@@ -465,17 +517,17 @@ window.wp = window.wp || {};
 	/**
 	 * Queues a file for client-side processing and upload.
 	 *
-	 * @param {File}     nativeFile              The file to upload.
-	 * @param {Object}   additionalData          Extra fields to send with the attachment.
-	 * @param {Object}   callbacks               Lifecycle callbacks.
-	 * @param {Function} [callbacks.onSuccess]   Called with the finalized attachment.
-	 * @param {Function} [callbacks.onError]     Called with the upload error.
-	 * @param {Function} [callbacks.onProgress]  Called with an integer percentage (0-99) whenever it changes.
+	 * @param {File}                                   nativeFile             The file to upload.
+	 * @param {Record<string, unknown>}                additionalData         Extra fields to send with the attachment.
+	 * @param {Object}                                 callbacks              Lifecycle callbacks.
+	 * @param {( attachment: PipelineAttachment ) => void} [callbacks.onSuccess]  Called with the finalized attachment.
+	 * @param {( error: UploadError ) => void}          [callbacks.onError]    Called with the upload error.
+	 * @param {( percent: number ) => void}            [callbacks.onProgress] Called with an integer percentage (0-99) whenever it changes.
 	 */
 	function queueFile( nativeFile, additionalData, callbacks ) {
 		callbacks = callbacks || {};
 
-		var entry = {
+		const entry = {
 			key: fileKey( nativeFile ),
 			itemId: null,
 			onProgress: callbacks.onProgress,
@@ -484,7 +536,7 @@ window.wp = window.wp || {};
 			released: false,
 		};
 
-		var list = pending.get( entry.key );
+		const list = pending.get( entry.key );
 		if ( list ) {
 			list.push( entry );
 		} else {
@@ -495,13 +547,15 @@ window.wp = window.wp || {};
 		wp.data.dispatch( uploadStore ).addItems( {
 			files: [ nativeFile ],
 			additionalData: additionalData || {},
-			onSuccess: function ( attachments ) {
+			onSuccess: function (
+				/** @type {PipelineAttachment[]} */ attachments
+			) {
 				release( entry );
 				if ( callbacks.onSuccess ) {
 					callbacks.onSuccess( attachments[ 0 ] );
 				}
 			},
-			onError: function ( error ) {
+			onError: function ( /** @type {UploadError} */ error ) {
 				release( entry );
 				if ( callbacks.onError ) {
 					callbacks.onError( error );
@@ -520,14 +574,14 @@ window.wp = window.wp || {};
 	 * error's own message does not, and preferring the message there keeps a
 	 * server-supplied reason instead of replacing it with "Please try again."
 	 *
-	 * @param {Error}  error    The upload error.
-	 * @param {string} fileName Name of the file that failed to upload.
+	 * @param {UploadError} error    The upload error.
+	 * @param {string}      fileName Name of the file that failed to upload.
 	 * @return {string} A human-readable message.
 	 */
 	function getErrorText( error, fileName ) {
-		var errorCodes = wp.uploadMedia.ErrorCode || {};
-		var code = error && error.code;
-		var details;
+		const errorCodes = wp.uploadMedia.ErrorCode || {};
+		const code = error && error.code;
+		let details;
 
 		if (
 			code &&
