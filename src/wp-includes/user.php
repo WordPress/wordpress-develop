@@ -2327,8 +2327,14 @@ function wp_insert_user( $userdata ) {
 		return new WP_Error( 'user_login_too_long', __( 'Username may not be longer than 60 characters.' ) );
 	}
 
-	if ( ! $update && username_exists( $user_login ) ) {
-		return new WP_Error( 'existing_user_login', __( 'Sorry, that username already exists!' ) );
+	if ( ! $update ) {
+		if ( username_exists( $user_login ) ) {
+			return new WP_Error( 'existing_user_login', __( 'Sorry, that username already exists!' ) );
+		}
+
+		if ( email_exists( $user_login ) ) {
+			return new WP_Error( 'existing_user_email_as_login', __( 'Sorry, that username is not available.' ) );
+		}
 	}
 
 	/**
@@ -2396,6 +2402,11 @@ function wp_insert_user( $userdata ) {
 	 * @param string $raw_user_email The user's email.
 	 */
 	$user_email = apply_filters( 'pre_user_email', $raw_user_email );
+
+	$username_exists_id = username_exists( $user_email );
+	if ( $username_exists_id && ( ! $update || $username_exists_id !== $user_id ) ) {
+		return new WP_Error( 'email_as_username', __( 'Sorry, that email address is not available as it matches an existing username.' ) );
+	}
 
 	/*
 	 * If there is no update, just check for `email_exists`. If there is an update,
@@ -3572,6 +3583,8 @@ function register_new_user( $user_login, $user_email ) {
 		$sanitized_user_login = '';
 	} elseif ( username_exists( $sanitized_user_login ) ) {
 		$errors->add( 'username_exists', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
+	} elseif ( email_exists( $sanitized_user_login ) ) {
+		$errors->add( 'username_exists_as_email', __( '<strong>Error:</strong> This username is not available. Please choose another one.' ) );
 	} else {
 		/** This filter is documented in wp-includes/user.php */
 		$illegal_user_logins = (array) apply_filters( 'illegal_user_logins', array() );
