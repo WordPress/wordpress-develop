@@ -7,13 +7,13 @@
  *
  * @covers WP_Query::parse_search
  *
- * @since 7.0.0
+ * @since 7.2.0
  */
 class Tests_Query_SearchPosition extends WP_UnitTestCase {
 	/**
 	 * The post ID of the test post.
 	 *
-	 * @since 7.0.0
+	 * @since 7.2.0
 	 * @var int
 	 */
 	protected static $post_id;
@@ -26,8 +26,9 @@ class Tests_Query_SearchPosition extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create(
 			array(
-				'post_status' => 'publish',
-				'post_title'  => 'one two three',
+				'post_status'  => 'publish',
+				'post_title'   => 'one two three',
+				'post_content' => 'four five six',
 			)
 		);
 	}
@@ -37,7 +38,7 @@ class Tests_Query_SearchPosition extends WP_UnitTestCase {
 	 *
 	 * @ticket 64250
 	 *
-	 * @dataProvider data_search_position_values
+	 * @dataProvider data_search_position_with_different_values
 	 *
 	 * @param string $search_term     The search term to use.
 	 * @param string $search_position The search position value.
@@ -64,7 +65,7 @@ class Tests_Query_SearchPosition extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_search_position_values() {
+	public function data_search_position_with_different_values() {
 		return array(
 			// Test 'start' position.
 			'start - match at start'            => array(
@@ -176,80 +177,87 @@ class Tests_Query_SearchPosition extends WP_UnitTestCase {
 	 * @ticket 64250
 	 */
 	public function test_search_position_with_search_columns() {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_status'  => 'publish',
-				'post_title'   => 'alpha beta gamma',
-				'post_content' => 'delta epsilon zeta',
-			)
-		);
-
 		// Search at start of post_title only.
 		$q = new WP_Query(
 			array(
-				's'               => 'alpha',
+				's'               => 'one',
 				'search_position' => 'start',
 				'search_columns'  => array( 'post_title' ),
 				'fields'          => 'ids',
 			)
 		);
-		$this->assertContains( $post_id, $q->posts, 'Should find post when searching for "alpha" at start of post_title.' );
+		$this->assertContains( self::$post_id, $q->posts, 'Should find post when searching for "one" at start of post_title.' );
 
 		// Search at start of post_content.
 		$q = new WP_Query(
 			array(
-				's'               => 'delta',
+				's'               => 'four',
 				'search_position' => 'start',
 				'search_columns'  => array( 'post_content' ),
 				'fields'          => 'ids',
 			)
 		);
-		$this->assertContains( $post_id, $q->posts, 'Should find post when searching for "delta" at start of post_content.' );
+		$this->assertContains( self::$post_id, $q->posts, 'Should find post when searching for "four" at start of post_content.' );
 
 		// Search at start but term is in middle.
 		$q = new WP_Query(
 			array(
-				's'               => 'beta',
+				's'               => 'two',
 				'search_position' => 'start',
 				'search_columns'  => array( 'post_title' ),
 				'fields'          => 'ids',
 			)
 		);
-		$this->assertNotContains( $post_id, $q->posts, 'Should not find post when searching for "beta" at start (it is in middle).' );
+		$this->assertNotContains( self::$post_id, $q->posts, 'Should not find post when searching for "two" at start (it is in middle).' );
 
 		// Search at end of post_title.
 		$q = new WP_Query(
 			array(
-				's'               => 'gamma',
+				's'               => 'three',
 				'search_position' => 'end',
 				'search_columns'  => array( 'post_title' ),
 				'fields'          => 'ids',
 			)
 		);
-		$this->assertContains( $post_id, $q->posts, 'Should find post when searching for "gamma" at end of post_title.' );
+		$this->assertContains( self::$post_id, $q->posts, 'Should find post when searching for "three" at end of post_title.' );
 
 		// Search at end of post_content.
 		$q = new WP_Query(
 			array(
-				's'               => 'zeta',
+				's'               => 'six',
 				'search_position' => 'end',
 				'search_columns'  => array( 'post_content' ),
 				'fields'          => 'ids',
 			)
 		);
-		$this->assertContains( $post_id, $q->posts, 'Should find post when searching for "zeta" at end of post_content.' );
+		$this->assertContains( self::$post_id, $q->posts, 'Should find post when searching for "six" at end of post_content.' );
+
+		// Search a term that exists only in post_content, restricted to post_title.
+		$q = new WP_Query(
+			array(
+				's'               => 'four',
+				'search_position' => 'start',
+				'search_columns'  => array( 'post_title' ),
+				'fields'          => 'ids',
+			)
+		);
+		$this->assertNotContains( self::$post_id, $q->posts, 'Should not find post when searching for "four" restricted to post_title.' );
 	}
 
 	/**
 	 * Tests that invalid search_position values fall back to default behavior.
 	 *
 	 * @ticket 64250
+	 *
+	 * @dataProvider data_search_position_with_invalid_value
+	 *
+	 * @param mixed $search_position The invalid search_position value to use.
 	 */
-	public function test_search_position_with_invalid_value() {
+	public function test_search_position_with_invalid_value( $search_position ) {
 		$q = new WP_Query(
 			array(
 				's'               => 'two',
-				'search_position' => 'invalid_position',
+				'search_position' => $search_position,
 				'fields'          => 'ids',
 			)
 		);
@@ -257,6 +265,27 @@ class Tests_Query_SearchPosition extends WP_UnitTestCase {
 		// Should fall back to default 'anywhere' behavior and find the post.
 		$this->assertContains( self::$post_id, $q->posts, 'Should find post with invalid search_position (fallback to default).' );
 		$this->assertSame( 'anywhere', $q->query_vars['search_position'], 'search_position should be set to "anywhere" (fallback to default).' );
+	}
+
+	/**
+	 * Data provider for invalid search_position values.
+	 *
+	 * @return array
+	 */
+	public function data_search_position_with_invalid_value() {
+		return array(
+			'null'        => array( null ),
+			'true'        => array( true ),
+			'false'       => array( false ),
+			'int'         => array( 123 ),
+			'float'       => array( 123.456 ),
+			'string'      => array( 'test' ),
+			'empty'       => array( '' ),
+			'zero'        => array( 0 ),
+			'negative'    => array( -1 ),
+			'array'       => array( array( 'test' ) ),
+			'empty array' => array( array() ),
+		);
 	}
 
 	/**

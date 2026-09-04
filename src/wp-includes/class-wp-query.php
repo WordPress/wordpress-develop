@@ -610,6 +610,7 @@ class WP_Query {
 			'meta_value',
 			'preview',
 			's',
+			'search_position',
 			'sentence',
 			'title',
 			'fields',
@@ -668,7 +669,7 @@ class WP_Query {
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
 	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter.
 	 * @since 6.2.0 Introduced the `$search_columns` parameter.
-	 * @since 7.0.0 Introduced the `$starts_with` parameter.
+	 * @since 7.2.0 Introduced the `$search_position` parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -695,8 +696,8 @@ class WP_Query {
 	 *                                                   See WP_Date_Query::__construct().
 	 *     @type int             $day                    Day of the month. Default empty. Accepts numbers 1-31.
 	 *     @type bool            $exact                  Whether to search by exact keyword. Default false.
-	 *                                                   Cannot be used together with `$search_position`.
-	 *     @type bool            $search_position        Whether to search start, ends or is anywhere within keyword. Default anywhere.
+	 *                                                   Cannot be used together with a non-default `$search_position`.
+	 *     @type string          $search_position        Whether to search start, ends or is anywhere within keyword. May be 'start', 'end', or the default 'anywhere'.
 	 *                                                   Cannot be used together with `$exact`.
 	 *     @type string          $fields                 Post fields to query for. Accepts:
 	 *                                                   - '' Returns an array of complete post objects (`WP_Post[]`).
@@ -825,11 +826,11 @@ class WP_Query {
 		$query_vars               = &$this->query_vars;
 		$this->query_vars_changed = true;
 
-		if ( ! empty( $query_vars['exact'] ) && ! empty( $query_vars['search_position'] ) ) {
+		if ( ! empty( $query_vars['exact'] ) && ! empty( $query_vars['search_position'] ) && 'anywhere' !== $query_vars['search_position'] ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'The `exact` and `search_position` query parameters are mutually exclusive and cannot be used together.' ),
-				'7.0.0'
+				'7.2.0'
 			);
 			$query_vars['search_position'] = 'anywhere';
 		}
