@@ -31,9 +31,9 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_sitemap_requests
 	 *
-	 * @param string $url Sitemap URL to request.
+	 * @param non-falsy-string $url Sitemap URL to request.
 	 */
-	public function test_sitemap_requests_should_not_404_on_a_site_with_no_posts( $url ) {
+	public function test_sitemap_requests_should_not_404_on_a_site_with_no_posts( string $url ) {
 		$this->go_to( home_url( $url ) );
 
 		$this->assertTrue( is_sitemap(), 'The request should be recognized as a sitemap request.' );
@@ -43,9 +43,9 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_sitemap_requests() {
+	public function data_sitemap_requests(): array {
 		return array(
 			'index'                     => array( '/?sitemap=index' ),
 			'posts provider'            => array( '/?sitemap=posts&sitemap-subtype=post' ),
@@ -64,9 +64,9 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_sitemap_stylesheet_requests
 	 *
-	 * @param string $url Stylesheet URL to request.
+	 * @param non-falsy-string $url Stylesheet URL to request.
 	 */
-	public function test_sitemap_stylesheet_requests_should_not_404_on_a_site_with_no_posts( $url ) {
+	public function test_sitemap_stylesheet_requests_should_not_404_on_a_site_with_no_posts( string $url ) {
 		$this->go_to( home_url( $url ) );
 
 		$this->assertFalse( is_404(), 'A sitemap stylesheet request should not be a 404.' );
@@ -75,9 +75,9 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_sitemap_stylesheet_requests() {
+	public function data_sitemap_stylesheet_requests(): array {
 		return array(
 			'sitemap stylesheet'        => array( '/?sitemap-stylesheet=sitemap' ),
 			'index stylesheet'          => array( '/?sitemap-stylesheet=index' ),
