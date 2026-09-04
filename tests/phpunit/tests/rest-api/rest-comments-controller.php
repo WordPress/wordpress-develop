@@ -4135,6 +4135,224 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Tests that a contributor cannot update another user's note via the REST API.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_contributor_cannot_update_others_note(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$contributor_id,
+				'post_status' => 'draft',
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$admin_id,
+				'comment_content' => 'Admin note',
+			)
+		);
+		assert( is_int( $note_id ) );
+
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'content', 'Modified by contributor' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * Tests that a contributor cannot delete another user's note via the REST API.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_contributor_cannot_delete_others_note(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$contributor_id,
+				'post_status' => 'draft',
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$admin_id,
+				'comment_content' => 'Admin note',
+			)
+		);
+		assert( is_int( $note_id ) );
+
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+	}
+
+	/**
+	 * Tests that a note author can update their own note via the REST API.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_note_author_can_update_own_note() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$contributor_id,
+				'post_status' => 'draft',
+			)
+		);
+		$note    = self::factory()->comment->create_and_get(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$contributor_id,
+				'comment_content' => 'Original content',
+			)
+		);
+		assert( $note instanceof WP_Comment );
+
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note->comment_ID );
+		$request->set_param( 'content', 'Updated content' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Updated content', get_comment( $note->comment_ID )->comment_content );
+	}
+
+	/**
+	 * Tests that a note author cannot update their own note without post edit access.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_note_author_cannot_update_own_note_without_edit_post_access(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$admin_id,
+				'post_status' => 'publish',
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$contributor_id,
+				'comment_content' => 'Contributor note',
+			)
+		);
+		assert( is_int( $note_id ) );
+
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'content', 'Updated by note author' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * Tests that a note author cannot delete their own note without post edit access.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_note_author_cannot_delete_own_note_without_edit_post_access(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$admin_id,
+				'post_status' => 'publish',
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$contributor_id,
+				'comment_content' => 'Contributor note',
+			)
+		);
+		assert( is_int( $note_id ) );
+
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+	}
+
+	/**
+	 * Tests that an editor can update another user's note via the REST API.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_editor_can_update_others_note(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$contributor_id,
+				'post_status' => 'draft',
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$contributor_id,
+				'comment_content' => 'Contributor note',
+			)
+		);
+		assert( is_int( $note_id ) );
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'content', 'Edited by editor' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * Tests that a contributor can still read notes on their own post.
+	 *
+	 * @ticket 64779
+	 */
+	public function test_contributor_can_read_others_notes_on_own_post(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$contributor_id,
+				'post_status' => 'draft',
+			)
+		);
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+				'user_id'         => self::$admin_id,
+				'comment_content' => 'Admin feedback',
+			)
+		);
+
+		wp_set_current_user( self::$contributor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $note_id, $response->get_data()['id'] );
+	}
+
+	/**
 	 * Test retrieving comments by type as authenticated user.
 	 *
 	 * @dataProvider data_comment_type_provider
