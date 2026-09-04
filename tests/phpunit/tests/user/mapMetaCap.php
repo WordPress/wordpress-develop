@@ -49,6 +49,59 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 12104
+	 * @ticket 64198
+	 */
+	public function test_edit_comment_capability_mapping() {
+		$role = 'comment_moderator';
+		add_role(
+			$role,
+			'Comment Moderator',
+			array(
+				'read'              => true,
+				'moderate_comments' => true,
+			)
+		);
+
+		$user_id    = self::factory()->user->create( array( 'role' => $role ) );
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+		$note_id    = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'note',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		try {
+			$this->assertSame( array( 'moderate_comments' ), map_meta_cap( 'edit_comment', $user_id, $comment_id ) );
+			$this->assertTrue( current_user_can( 'edit_comment', $comment_id ) );
+			$this->assertNotSame( array( 'moderate_comments' ), map_meta_cap( 'edit_comment', $user_id, $note_id ) );
+			$this->assertFalse( current_user_can( 'edit_comment', $note_id ) );
+		} finally {
+			remove_role( $role );
+		}
+	}
+
+	/**
+	 * @ticket 12104
+	 */
+	public function test_edit_comment_maps_to_edit_post_without_moderate_comments() {
+		$user_id    = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id    = self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_status' => 'publish',
+			)
+		);
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+
+		$this->assertSame( map_meta_cap( 'edit_post', $user_id, $post_id ), map_meta_cap( 'edit_comment', $user_id, $comment_id ) );
+	}
+
 	public function test_capability_type_post_with_no_extra_caps() {
 
 		register_post_type(

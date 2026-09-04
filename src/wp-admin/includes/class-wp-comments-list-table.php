@@ -679,7 +679,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$edit_post_cap = $post ? 'edit_post' : 'edit_posts';
 
-		if ( ! current_user_can( $edit_post_cap, $comment->comment_post_ID )
+		if ( ! current_user_can( 'moderate_comments' )
+			&& ! current_user_can( $edit_post_cap, $comment->comment_post_ID )
 			&& ( post_password_required( $comment->comment_post_ID )
 				|| ! current_user_can( 'read_post', $comment->comment_post_ID ) )
 		) {
