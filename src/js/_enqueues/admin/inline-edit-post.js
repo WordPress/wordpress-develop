@@ -21,6 +21,9 @@ window.wp = window.wp || {};
  * @property {string} type The type of inline editor.
  * @property {string} what The prefix before the post ID.
  *
+ * @param {JQueryStatic} $ The jQuery object.
+ * @param {wp}           wp The WordPress global object.
+ *
  */
 ( function( $, wp ) {
 
@@ -188,6 +191,8 @@ window.wp = window.wp || {};
 	 * @since 2.7.0
 	 *
 	 * @memberof inlineEditPost
+	 *
+	 * @return {void|false} Returns false if no checkboxes are checked, otherwise does not return anything.
 	 */
 	setBulk : function(){
 		var te = '', type = this.type, c = true;
@@ -359,7 +364,12 @@ window.wp = window.wp || {};
 		if ( !$(':input[name="post_author"] option[value="' + $('.post_author', rowData).text() + '"]', editRow).val() ) {
 
 			// The post author no longer has edit capabilities, so we need to add them to the list of authors.
-			$(':input[name="post_author"]', editRow).prepend('<option value="' + $('.post_author', rowData).text() + '">' + $('#post-' + id + ' .author').text() + '</option>');
+			$(':input[name="post_author"]', editRow).prepend(
+				new Option(
+					$('#post-' + id + ' .author').text(),
+					$('.post_author', rowData).text()
+				)
+			);
 		}
 		if ( $( ':input[name="post_author"] option', editRow ).length === 1 ) {
 			$('label.inline-edit-author', editRow).hide();
