@@ -541,14 +541,14 @@ function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $
 		$login_url = wp_login_url();
 		restore_current_blog();
 	} else {
-		$home_url  = 'http://' . $domain . $path;
-		$login_url = 'http://' . $domain . $path . 'wp-login.php';
+		$home_url  = wpmu_get_signup_blog_url( $domain, $path );
+		$login_url = trailingslashit( $home_url ) . 'wp-login.php';
 	}
 
 	$site = sprintf(
 		'<a href="%1$s">%2$s</a>',
 		esc_url( $home_url ),
-		$blog_title
+		esc_html( $blog_title )
 	);
 
 	?>
@@ -864,11 +864,17 @@ function validate_blog_signup() {
  * @param array  $meta       Any additional meta from the {@see 'add_signup_meta'} filter in validate_blog_signup().
  */
 function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $user_email = '', $meta = array() ) {
+	$blog_url = wpmu_get_signup_blog_url( $domain, $path );
+	$site     = sprintf(
+		'<a href="%1$s">%2$s</a>',
+		esc_url( $blog_url ),
+		esc_html( $blog_title )
+	);
 	?>
 	<h2>
 	<?php
-	/* translators: %s: Site address. */
-	printf( __( 'Congratulations! Your new site, %s, is almost ready.' ), "<a href='//{$domain}{$path}'>{$blog_title}</a>" )
+	/* translators: %s: Link to the new site. */
+	printf( __( 'Congratulations! Your new site, %s, is almost ready.' ), $site )
 	?>
 	</h2>
 

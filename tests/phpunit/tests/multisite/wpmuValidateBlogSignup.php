@@ -18,6 +18,8 @@ class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 
 	protected $minimum_site_name_length = 4;
 
+	private $original_home = null;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$super_admin_id = $factory->user->create();
 		grant_super_admin( self::$super_admin_id );
@@ -50,6 +52,17 @@ class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 		wpmu_delete_user( self::$existing_user_id );
 
 		wp_delete_site( self::$existing_blog_id );
+	}
+
+	public function tear_down() {
+		if ( null !== $this->original_home ) {
+			update_blog_option( get_network()->site_id, 'home', $this->original_home );
+			$this->original_home = null;
+		}
+
+		remove_filter( 'wpmu_signup_blog_url', array( $this, 'filter_signup_blog_url' ) );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -157,5 +170,72 @@ class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 		$_SERVER['PHP_SELF'] = $original_php_self;
 
 		$this->assertContains( 'invalid_nonce', $valid['errors']->get_error_codes() );
+	}
+
+	/**
+	 * @ticket 31076
+	 * @covers ::wpmu_get_signup_blog_url
+	 */
+	public function test_uses_main_site_scheme_for_subdirectory_installs() {
+		if ( is_subdomain_install() ) {
+			$this->markTestSkipped( 'This test applies to subdirectory installs only.' );
+		}
+
+		$network             = get_network();
+		$this->original_home = get_blog_option( $network->site_id, 'home' );
+
+		update_blog_option( $network->site_id, 'home', set_url_scheme( $this->original_home, 'https' ) );
+
+		$this->assertSame(
+			'https://' . $network->domain . $network->path . 'newsite/',
+			wpmu_get_signup_blog_url( $network->domain, $network->path . 'newsite/' )
+		);
+	}
+
+	/**
+	 * @ticket 31076
+	 * @covers ::wpmu_get_signup_blog_url
+	 */
+	public function test_defaults_to_http_for_subdomain_installs() {
+		if ( ! is_subdomain_install() ) {
+			$this->markTestSkipped( 'This test applies to subdomain installs only.' );
+		}
+
+		$this->assertSame(
+			'http://newsite.example.org/',
+			wpmu_get_signup_blog_url( 'newsite.example.org', '/' )
+		);
+	}
+
+
+	/**
+	 * @ticket 31076
+	 * @covers ::wpmu_signup_blog_notification
+	 */
+	public function test_signup_blog_notification_uses_signup_blog_url() {
+		reset_phpmailer_instance();
+		add_filter( 'wpmu_signup_blog_url', array( $this, 'filter_signup_blog_url' ) );
+
+		wpmu_signup_blog_notification(
+			'newsite.example.org',
+			'/',
+			'New Site',
+			'newuser',
+			'newuser@example.org',
+			'activation-key'
+		);
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$email  = $mailer->get_sent();
+
+		$this->assertStringContainsString( 'wp-activate.php?key=activation-key', $email->body );
+		$this->assertStringContainsString( 'https://newsite.example.org/', $email->body );
+		$this->assertStringContainsString( 'https://newsite.example.org/', $email->subject );
+
+		reset_phpmailer_instance();
+	}
+
+	public function filter_signup_blog_url( $url ) {
+		return set_url_scheme( $url, 'https' );
 	}
 }
