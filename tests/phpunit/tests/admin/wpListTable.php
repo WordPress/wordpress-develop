@@ -592,4 +592,60 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( $expected_html, $actual );
 	}
+
+	/**
+	 * @ticket 16858
+	 */
+	public function test_pagination_should_not_use_http_host_for_urls() {
+		$fake_host     = 'internal.proxy.example.local';
+		$original_host = $_SERVER['HTTP_HOST'] ?? '';
+
+		$_SERVER['HTTP_HOST']   = $fake_host;
+		$_SERVER['REQUEST_URI'] = '/wp-admin/edit.php?post_type=post';
+
+		$pagination_args = new ReflectionProperty( $this->list_table, '_pagination_args' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$pagination_args->setAccessible( true );
+		}
+		$pagination_args->setValue(
+			$this->list_table,
+			array(
+				'total_items' => 100,
+				'total_pages' => 5,
+				'per_page'    => 20,
+			)
+		);
+
+		$actual = get_echo( array( $this->list_table, 'pagination' ), array( 'top' ) );
+
+		$_SERVER['HTTP_HOST'] = $original_host;
+
+		$this->assertStringNotContainsString(
+			$fake_host,
+			$actual,
+			'Pagination links should not contain the raw HTTP_HOST value.'
+		);
+	}
+
+
+	/**
+	 * @ticket 16858
+	 */
+	public function test_print_column_headers_should_not_use_http_host_for_urls() {
+		$fake_host     = 'internal.proxy.example.local';
+		$original_host = $_SERVER['HTTP_HOST'] ?? '';
+
+		$_SERVER['HTTP_HOST']   = $fake_host;
+		$_SERVER['REQUEST_URI'] = '/wp-admin/edit.php?post_type=post';
+
+		$actual = get_echo( array( $this->list_table, 'print_column_headers' ) );
+
+		$_SERVER['HTTP_HOST'] = $original_host;
+
+		$this->assertStringNotContainsString(
+			$fake_host,
+			$actual,
+			'Column header links should not contain the raw HTTP_HOST value.'
+		);
+	}
 }

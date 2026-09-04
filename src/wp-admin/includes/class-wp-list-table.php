@@ -1058,9 +1058,7 @@ class WP_List_Table {
 		$current              = $this->get_pagenum();
 		$removable_query_args = wp_removable_query_args();
 
-		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-
-		$current_url = remove_query_arg( $removable_query_args, $current_url );
+		$current_url = remove_query_arg( $removable_query_args );
 
 		$page_links = array();
 
@@ -1412,8 +1410,7 @@ class WP_List_Table {
 	public function print_column_headers( $with_id = true ) {
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
 
-		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-		$current_url = remove_query_arg( 'paged', $current_url );
+		$current_url = remove_query_arg( 'paged' );
 
 		// When users click on a column header to sort by other columns.
 		if ( isset( $_GET['orderby'] ) ) {
