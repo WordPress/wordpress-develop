@@ -1741,7 +1741,9 @@ function wp_get_l10n_php_file_data( $php_file ) {
  * @phpstan-return (
  *     $args is array{ id: ''|'0', ... }
  *         ? void
- *         : ( $args is array{ name: ''|'0', ... } ? void : string )
+ *         : ( $args is array{ name: ''|'0', ... }
+ *             ? void
+ *             : ( $args is array ? string : string|void ) )
  * )
  */
 function wp_dropdown_languages( $args = array() ) {
