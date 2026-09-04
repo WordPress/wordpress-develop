@@ -72,6 +72,37 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		delete_option( 'page_for_posts' );
 	}
 
+	/**
+	 * Tests that an empty name query variable does not override the static front page.
+	 *
+	 * @ticket 56312
+	 */
+	public function test_page_on_front_with_empty_name_query_var() {
+		$page_on_front = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$page_for_posts = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+		update_option( 'page_for_posts', $page_for_posts );
+
+		$this->go_to( '/?name' );
+
+		$this->assertQueryTrue( 'is_front_page', 'is_page', 'is_singular' );
+
+		update_option( 'show_on_front', 'posts' );
+		delete_option( 'page_on_front' );
+		delete_option( 'page_for_posts' );
+	}
+
 	public function test_404() {
 		$this->go_to( '/notapage' );
 		$this->assertQueryTrue( 'is_404' );
