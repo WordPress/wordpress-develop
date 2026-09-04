@@ -530,4 +530,25 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'images/media/video.png', $icon1, 'Mime type icon should be correctly returned with ".png" argument.' );
 		$this->assertStringContainsString( 'images/media/video.png', $icon2, 'Mime type icon should be correctly returned with "png" argument.' );
 	}
+
+	/**
+	 * @ticket 58954
+	 */
+	public function test_wp_mime_type_icon_with_null_attached_file() {
+		$attachment_id = self::factory()->attachment->create_object(
+			'image.jpg',
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		add_filter( 'wp_attached_file', '__return_null' );
+		$icon = wp_mime_type_icon( $attachment_id );
+		remove_filter( 'wp_attached_file', '__return_null' );
+
+		$this->assertIsString( $icon );
+		$this->assertNotFalse( $icon );
+	}
 }
