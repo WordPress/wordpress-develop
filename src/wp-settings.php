@@ -337,6 +337,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-menus-controller.ph
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-menu-locations-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-users-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-comments-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-notes-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-search-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-blocks-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-block-types-controller.php';
