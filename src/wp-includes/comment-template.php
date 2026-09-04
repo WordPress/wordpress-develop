@@ -2200,6 +2200,7 @@ function _get_comment_reply_id( $post = null ) {
  * Used in the comments.php template to list comments for a particular post.
  *
  * @since 2.7.0
+ * @since 7.1.0 Added the `callback_order` argument.
  *
  * @see WP_Query::$comments
  *
@@ -2218,6 +2219,10 @@ function _get_comment_reply_id( $post = null ) {
  *     @type string   $style             The style of list ordering. Accepts 'ul', 'ol', or 'div'.
  *                                       'div' will result in no additional list markup. Default 'ul'.
  *     @type callable $callback          Callback function to use. Default null.
+ *     @type string   $callback_order    Order to pass arguments to the callback. Accepts
+ *                                       'comment_args_depth' for `($comment, $args, $depth)` or
+ *                                       'comment_depth_args' for `($comment, $depth, $args)`.
+ *                                       Default 'comment_args_depth'.
  *     @type callable $end-callback      Callback function to use at the end. Default null.
  *     @type string   $type              Type of comments to list. Accepts 'all', 'comment',
  *                                       'pingback', 'trackback', 'pings'. Default 'all'.
@@ -2260,6 +2265,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		'page'              => '',
 		'per_page'          => '',
 		'avatar_size'       => 32,
+		'callback_order'    => 'comment_args_depth',
 		'reverse_top_level' => null,
 		'reverse_children'  => '',
 		'format'            => current_theme_supports( 'html5', 'comment-list' ) ? 'html5' : 'xhtml',
