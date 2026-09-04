@@ -66,23 +66,31 @@ jobs:
                     nodes {
                       ... on PullRequest {
                         number
-                        bodyText
+                        body
                       }
                     }
                   }
                 }
               `;
 
-              const searchQuery = `repo:${context.repo.owner}/${context.repo.repo} is:pr is:open ( "${tracTicketUrl}" OR "${corePrefix}" )`;
+              // The PR template only asks for "a link to the WordPress Trac ticket", so some
+              // PRs reference it as a Markdown link with just the ticket number as the link
+              // text (e.g. "Trac ticket: [65864](https://core.trac.wordpress.org/ticket/65864)").
+              // GitHub's search index doesn't cover Markdown link targets, only the rendered
+              // text, so the bare ticket number is searched for too to surface those PRs.
+              const searchQuery = `repo:${context.repo.owner}/${context.repo.repo} is:pr is:open ( "${tracTicketUrl}" OR "${corePrefix}" OR "${ticket}" )`;
 
               const result = await github.graphql(query, {
                 searchQuery,
               });
 
-              // Since search queries will match anywhere for any activity on a pull request, the body specifically needs to be manually checked.
+              // Since search queries will match anywhere for any activity on a pull request, the body
+              // specifically needs to be manually checked. The raw `body` (rather than `bodyText`) is used
+              // here because `bodyText` strips Markdown links down to just their visible text, which would
+              // drop the Trac ticket URL entirely for PRs that link the ticket via its number.
               const matchingPRs = result.search.nodes
                 .filter(pr => {
-                  const bodyLower = pr.bodyText.toLowerCase();
+                  const bodyLower = pr.body.toLowerCase();
 
                   return bodyLower.includes(tracTicketUrl.toLowerCase()) || bodyLower.includes(corePrefix.toLowerCase());
               }).map(pr => pr.number);
