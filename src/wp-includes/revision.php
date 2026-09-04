@@ -100,20 +100,19 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
  *
  * @since 6.4.0
  *
- * @param int     $post_id The post id that was inserted.
- * @param WP_Post $post    The post object that was inserted.
+ * @param int     $post_id The post ID that was inserted or updated.
+ * @param WP_Post $post    The post object that was inserted or updated.
  * @param bool    $update  Whether this insert is updating an existing post.
  */
 function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
-	if ( ! $update ) {
-		return;
-	}
-
 	if ( ! has_action( 'post_updated', 'wp_save_post_revision' ) ) {
 		return;
 	}
 
-	wp_save_post_revision( $post_id );
+	wp_save_post_revision(
+		$post_id,
+		! $update && 0 === get_current_user_id() ? $post->post_author : null
+	);
 }
 
 /**
@@ -123,11 +122,13 @@ function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
  * and the most recent revision always matches the current post.
  *
  * @since 2.6.0
+ * @since 7.1.0 The `$revision_author` parameter was added.
  *
- * @param int $post_id The ID of the post to save as a revision.
+ * @param int      $post_id         The ID of the post to save as a revision.
+ * @param int|null $revision_author Optional. The revision author ID. Default null.
  * @return int|WP_Error|null Null or 0 if error, new revision ID, if success.
  */
-function wp_save_post_revision( $post_id ) {
+function wp_save_post_revision( $post_id, $revision_author = null ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return null;
 	}
@@ -214,7 +215,7 @@ function wp_save_post_revision( $post_id ) {
 		}
 	}
 
-	$return = _wp_put_post_revision( $post );
+	$return = _wp_put_post_revision( $post, false, $revision_author );
 
 	/*
 	 * If a limit for the number of revisions to keep has been set,
@@ -344,14 +345,16 @@ function wp_is_post_autosave( $post ) {
  * Inserts post data into the posts table as a post revision.
  *
  * @since 2.6.0
+ * @since 7.1.0 The `$post_author` parameter was added.
  * @access private
  *
- * @param int|WP_Post|array|null $post     Post ID, post object OR post array.
- * @param bool                   $autosave Optional. Whether the revision is an autosave or not.
- *                                         Default false.
+ * @param int|WP_Post|array|null $post        Post ID, post object OR post array.
+ * @param bool                   $autosave    Optional. Whether the revision is an autosave or not.
+ *                                            Default false.
+ * @param int|null               $post_author Optional. The revision author ID. Default null.
  * @return int|WP_Error WP_Error or 0 if error, new revision ID if success.
  */
-function _wp_put_post_revision( $post = null, $autosave = false ) {
+function _wp_put_post_revision( $post = null, $autosave = false, $post_author = null ) {
 	if ( is_object( $post ) ) {
 		$post = get_object_vars( $post );
 	} elseif ( ! is_array( $post ) ) {
@@ -367,6 +370,11 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 	}
 
 	$post = _wp_post_revision_data( $post, $autosave );
+
+	if ( null !== $post_author ) {
+		$post['post_author'] = absint( $post_author );
+	}
+
 	$post = wp_slash( $post ); // Since data is from DB.
 
 	$revision_id = wp_insert_post( $post, true );

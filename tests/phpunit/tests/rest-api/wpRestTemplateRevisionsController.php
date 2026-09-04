@@ -365,54 +365,31 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertSame( WP_Http::OK, $response->get_status(), 'Response is expected to have a status code of 200.' );
 
 		$this->assertCount(
-			4,
+			5,
 			$revisions,
-			'Failed asserting that the response data contains exactly 4 items.'
+			'Failed asserting that the response data contains exactly 5 items.'
 		);
 
-		$this->assertSame(
-			$parent_post->ID,
-			$revisions[0]['parent'],
-			'Failed asserting that the parent ID of the revision matches the template post ID.'
-		);
-		$this->assertSame(
+		$expected_contents = array(
 			'Content revision #5',
-			$revisions[0]['content']['raw'],
-			'Failed asserting that the content of the revision is "Content revision #5".'
-		);
-
-		$this->assertSame(
-			$parent_post->ID,
-			$revisions[1]['parent'],
-			'Failed asserting that the parent ID of the revision matches the template post ID.'
-		);
-		$this->assertSame(
 			'Content revision #4',
-			$revisions[1]['content']['raw'],
-			'Failed asserting that the content of the revision is "Content revision #4".'
-		);
-
-		$this->assertSame(
-			$parent_post->ID,
-			$revisions[2]['parent'],
-			'Failed asserting that the parent ID of the revision matches the template post ID.'
-		);
-		$this->assertSame(
 			'Content revision #3',
-			$revisions[2]['content']['raw'],
-			'Failed asserting that the content of the revision is "Content revision #3".'
+			'Content revision #2',
+			'Content',
 		);
 
-		$this->assertSame(
-			$parent_post->ID,
-			$revisions[3]['parent'],
-			'Failed asserting that the parent ID of the revision matches the template post ID.'
-		);
-		$this->assertSame(
-			'Content revision #2',
-			$revisions[3]['content']['raw'],
-			'Failed asserting that the content of the revision is "Content revision #2".'
-		);
+		foreach ( $expected_contents as $index => $expected_content ) {
+			$this->assertSame(
+				$parent_post->ID,
+				$revisions[ $index ]['parent'],
+				'Failed asserting that the parent ID of the revision matches the template post ID.'
+			);
+			$this->assertSame(
+				$expected_content,
+				$revisions[ $index ]['content']['raw'],
+				'Failed asserting that the revision content matches the expected content.'
+			);
+		}
 	}
 
 	/**
@@ -1200,8 +1177,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertSame( 4, $response->get_headers()['X-WP-Total'] );
-		$this->assertSame( 4, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 5, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 5, $response->get_headers()['X-WP-TotalPages'] );
 
 		// Test paged.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
@@ -1211,8 +1188,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 2, $data );
-		$this->assertSame( 4, $response->get_headers()['X-WP-Total'] );
-		$this->assertSame( 2, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 5, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 3, $response->get_headers()['X-WP-TotalPages'] );
 
 		// Test out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );

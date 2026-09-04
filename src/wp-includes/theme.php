@@ -2141,16 +2141,8 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 	} else {
 		$r = wp_insert_post( wp_slash( $post_data ), true );
 
-		if ( ! is_wp_error( $r ) ) {
-			if ( get_stylesheet() === $args['stylesheet'] ) {
-				set_theme_mod( 'custom_css_post_id', $r );
-			}
-
-			// Trigger creation of a revision. This should be removed once #30854 is resolved.
-			$revisions = wp_get_latest_revision_id_and_total_count( $r );
-			if ( ! is_wp_error( $revisions ) && 0 === $revisions['count'] ) {
-				wp_save_post_revision( $r );
-			}
+		if ( ! is_wp_error( $r ) && get_stylesheet() === $args['stylesheet'] ) {
+			set_theme_mod( 'custom_css_post_id', $r );
 		}
 	}
 

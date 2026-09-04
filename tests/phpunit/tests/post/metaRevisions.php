@@ -38,7 +38,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		// Set up a new post.
 		$post_id = $this->factory->post->create();
 
-		// And update to store an initial revision.
+		// And update to store another revision.
 		wp_update_post(
 			array(
 				'post_content' => 'some initial content',
@@ -120,7 +120,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		$post_id          = $this->factory->post->create();
 		$original_post_id = $post_id;
 
-		// And update to store an initial revision.
+		// And update to store another revision.
 		wp_update_post(
 			array(
 				'post_content' => 'some initial content',
@@ -128,9 +128,9 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 			)
 		);
 
-		// One revision so far.
+		// Two revisions so far, including the initial revision.
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 
 		/*
 		 * First set up a meta value.
@@ -148,7 +148,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 2, $revisions );
+		$this->assertCount( 3, $revisions );
 
 		// Next, store some updated meta values for the same key.
 		update_post_meta( $post_id, 'meta_revision_test', 'update1' );
@@ -162,7 +162,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 3, $revisions );
+		$this->assertCount( 4, $revisions );
 
 		/*
 		 * Now restore the original revision.
@@ -180,7 +180,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 
 		wp_update_post( array( 'ID' => $post_id ) );
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 4, $revisions );
+		$this->assertCount( 5, $revisions );
 
 		/*
 		 * Check the meta values to verify they are NOT revisioned - they are not revisioned by default.
@@ -207,7 +207,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		);
 
 		$revisions = array_values( wp_get_post_revisions( $post_id ) );
-		$this->assertCount( 5, $revisions );
+		$this->assertCount( 6, $revisions );
 		$this->assertSame( 'update2', get_post_meta( $revisions[0]->ID, 'meta_revision_test', true ) );
 
 		// Store custom meta values, which should now be revisioned.
@@ -227,7 +227,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 
 		// This revision contains the existing post meta ('update3').
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 6, $revisions );
+		$this->assertCount( 7, $revisions );
 
 		// Verify that previous post meta is set.
 		$this->assertSame( 'update3', get_post_meta( $post_id, 'meta_revision_test', true ) );
