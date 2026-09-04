@@ -2739,7 +2739,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
  *
  * @since 4.7.0
  * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
- * @since 7.2.0 The `wp_page_for_privacy_policy` option was added.
+ * @since 7.2.0 The `wp_page_for_privacy_policy` option was registered, exposed as `page_for_privacy_policy`.
  */
 function register_initial_settings() {
 	register_setting(
