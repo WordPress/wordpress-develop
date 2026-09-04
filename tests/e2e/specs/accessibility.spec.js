@@ -37,15 +37,33 @@ function filterIgnoresAndFalsePositives( results, exclusions ) {
 		violation.nodes = violation.nodes.filter( ( node ) => {
 			const targetSelector = node.target[ 0 ];
 
-			// Check if target selector matches any excluded selector pattern.
-			const isExcluded = excludedSelectors.some( ( excluded ) => {
+			/*
+		 * Normalize the received Axe-core Target Selector: remove combinators,
+		 * attributes, and collapse spaces. This allows us to match patterns
+		 * against the normalized selector using token-based matching. For example:
+		 * - Raw Target Selector: "html > body > #__wp-uploader > .attachments-browser > .attachments-wrapper > li[aria-label="image-1"]"
+		 * - After normalization: "html body #__wp-uploader .attachments-browser .attachments-wrapper li"
+		 *
+		 * Then it checks if all pattern tokens appear in order in the normalized selector.
+		 * Intermediate selectors can be skipped.
+		 */
+		const normalizedTargetSelector = targetSelector
+			.replace( /[>+~]/g, ' ' )        // Replace combinators with spaces.
+			.replace( /\[[^\]]*\]/g, ' ' )   // Remove attributes (anything in brackets).
+			.replace( /\s+/g, ' ' )          // Collapse multiple spaces.
+			.trim();
+
+		// Check if target selector matches any excluded selector pattern.
+		const isExcluded = excludedSelectors.some( ( excluded ) => {
 				const selectors = excluded.trim().split( ' ' ).filter( s => s.length > 0 );
 				return selectors.every( selector => {
-					// Escape special regex chars, then replace \* with .* for wildcard matching
+					// Escape regex special chars (periods, brackets, etc.) to match literals.
 					const escaped = selector.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+					// Replace escaped asterisks with .* to enable wildcard matching.
 					const wildcard = escaped.replace( /\\\*/g, '.*' );
-					const pattern = `(?:^| )${ wildcard }(?=[\\s>+~\\[]|$)`;
-					return new RegExp( pattern ).test( targetSelector );
+					// Regex checks for token at start/end or bounded by spaces.
+					const pattern = `(?:^|\\s)${ wildcard }(?=\\s|$)`;
+					return new RegExp( pattern ).test( normalizedTargetSelector );
 				} );
 			} );
 
