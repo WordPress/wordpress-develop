@@ -42,6 +42,7 @@ final class WP_Abilities_Registry {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
 	 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
+	 * @since 7.2.0 Added the `deprecated` meta property.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -78,6 +79,15 @@ final class WP_Abilities_Registry {
 	 *                                                      to clients such as the REST API, MCP, or AI agents.
 	 *                                                      Seeds the default for per-channel flags like
 	 *                                                      `$show_in_rest`. Defaults to false.
+	 *         @type false|array<string, string> $deprecated {
+	 *             Optional. Deprecation details. Set to an array to mark the ability as deprecated. At least one
+	 *             supported detail must be provided. Deprecated abilities remain available by exact name and can
+	 *             be explicitly included or excluded from discovery through meta filtering. Default false.
+	 *
+	 *             @type string $since       Optional. Version of the ability provider that deprecated the ability.
+	 *             @type string $replacement Optional. Namespaced ability to use instead.
+	 *             @type string $message     Optional. Additional migration guidance.
+	 *         }
 	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
 	 *                                                      Default is the value of `$public` when set, false otherwise.
 	 *     }
@@ -113,6 +123,7 @@ final class WP_Abilities_Registry {
 		 * @since 6.9.0
 		 * @since 7.1.0 Added the `public` meta argument.
 		 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
+		 * @since 7.2.0 Added the `deprecated` meta property.
 		 *
 		 * @param array<string, mixed> $args {
 		 *     An associative array of arguments for the ability.
@@ -135,6 +146,15 @@ final class WP_Abilities_Registry {
 		 *                                                        available to clients such as the REST API, MCP, or AI
 		 *                                                        agents. Seeds the default for per-channel flags like
 		 *                                                        `$show_in_rest`. Defaults to false.
+		 *         @type false|array<string, string> $deprecated {
+		 *             Optional. Deprecation details. Set to an array to mark the ability as deprecated. At least one
+		 *             supported detail must be provided. Deprecated abilities remain available by exact name and can
+		 *             be explicitly included or excluded from discovery through meta filtering. Default false.
+		 *
+		 *             @type string $since       Optional. Version of the ability provider that deprecated the ability.
+		 *             @type string $replacement Optional. Namespaced ability to use instead.
+		 *             @type string $message     Optional. Additional migration guidance.
+		 *         }
 		 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API.
 		 *                                                        Default is the value of `$public` when set, false otherwise.
 		 *     }

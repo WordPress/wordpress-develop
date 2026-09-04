@@ -245,6 +245,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `meta.public` property.
+	 * @since 7.2.0 Added the `deprecated` meta property to the ability schema.
 	 *
 	 * @return array<string, mixed> Item schema data.
 	 */
@@ -317,6 +318,24 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 							'description' => __( 'Whether the ability is meant to be available to clients such as the REST API, MCP, or AI agents. Defaults to false, but individual channel settings such as show_in_rest can override it.' ),
 							'type'        => 'boolean',
 						),
+						'deprecated'  => array(
+							'description' => __( 'Deprecation details for the ability, or false when the ability is not deprecated.' ),
+							'type'        => array( 'boolean', 'object' ),
+							'properties'  => array(
+								'since'       => array(
+									'description' => __( 'Version of the ability provider that deprecated the ability.' ),
+									'type'        => 'string',
+								),
+								'replacement' => array(
+									'description' => __( 'Namespaced ability to use instead.' ),
+									'type'        => 'string',
+								),
+								'message'     => array(
+									'description' => __( 'Additional migration guidance.' ),
+									'type'        => 'string',
+								),
+							),
+						),
 					),
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
@@ -332,6 +351,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `namespace` and `meta` parameters and the `rest_abilities_collection_params` filter.
+	 * @since 7.2.0 Added support for filtering by the `deprecated` meta property.
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
@@ -387,6 +407,25 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 						),
 						'additionalProperties' => true,
 					),
+					'deprecated'  => array(
+						'description'          => __( 'Limit results by deprecation status or details. Use true to return only deprecated abilities, false to return only active abilities, or an object to match specific deprecation details.' ),
+						'type'                 => array( 'boolean', 'object' ),
+						'properties'           => array(
+							'since'       => array(
+								'description' => __( 'Version of the ability provider that deprecated the ability.' ),
+								'type'        => 'string',
+							),
+							'replacement' => array(
+								'description' => __( 'Namespaced ability to use instead.' ),
+								'type'        => 'string',
+							),
+							'message'     => array(
+								'description' => __( 'Additional migration guidance.' ),
+								'type'        => 'string',
+							),
+						),
+						'additionalProperties' => true,
+					),
 				),
 				'additionalProperties' => true,
 			),
@@ -400,6 +439,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		 * boolean, before the meta filter matches it.
 		 *
 		 * @since 7.1.0
+		 * @since 7.2.0 Added the `deprecated` meta collection parameter.
 		 *
 		 * @param array $query_params JSON Schema-formatted collection parameters.
 		 */
