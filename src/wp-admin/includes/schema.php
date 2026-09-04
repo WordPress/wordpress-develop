@@ -154,7 +154,8 @@ CREATE TABLE $wpdb->postmeta (
 	meta_value longtext,
 	PRIMARY KEY  (meta_id),
 	KEY post_id (post_id),
-	KEY meta_key (meta_key($max_index_length))
+	KEY meta_key (meta_key($max_index_length)),
+	KEY meta_key_id (meta_key($max_index_length),post_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->posts (
 	ID bigint(20) unsigned NOT NULL auto_increment,
