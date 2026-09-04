@@ -3829,6 +3829,9 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.5.0
 	 * @since 6.7.0 Replaces NULL bytes (U+0000) and newlines appropriately.
+	 * @since 7.2.0 Removes NULL bytes from CDATA sections in the HTML namespace,
+	 *              such as at HTML and MathML integration points, instead of
+	 *              replacing them.
 	 *
 	 * @return string
 	 */
@@ -3869,9 +3872,20 @@ class WP_HTML_Tag_Processor {
 		$text = str_replace( "\r\n", "\n", $text );
 		$text = str_replace( "\r", "\n", $text );
 
+		/*
+		 * CDATA section data is not decoded. Its character tokens follow the
+		 * rules of wherever they are inserted: in the HTML namespace, which
+		 * includes HTML and MathML integration points, NULL bytes are ignored;
+		 * in foreign content they become the replacement character (U+FFFD).
+		 */
+		if ( self::STATE_CDATA_NODE === $this->parser_state ) {
+			return 'html' === $this->get_namespace()
+				? str_replace( "\x00", '', $text )
+				: str_replace( "\x00", "\u{FFFD}", $text );
+		}
+
 		// Comment and processing instruction data is not decoded.
 		if (
-			self::STATE_CDATA_NODE === $this->parser_state ||
 			self::STATE_COMMENT === $this->parser_state ||
 			self::STATE_DOCTYPE === $this->parser_state ||
 			self::STATE_FUNKY_COMMENT === $this->parser_state ||
@@ -3917,9 +3931,9 @@ class WP_HTML_Tag_Processor {
 		 * for security reasons (to avoid joining together strings that were safe
 		 * when separated, but not when joined).
 		 *
-		 * @todo Inside HTML integration points and MathML integration points, the
-		 *       text is processed according to the insertion mode, not according
-		 *       to the foreign content rules. This should strip the NULL bytes.
+		 * Text at HTML and MathML integration points is processed according to
+		 * the insertion mode, not the foreign content rules, so it reports the
+		 * HTML namespace and its NULL bytes are removed.
 		 */
 		return ( '#text' === $tag_name && 'html' === $this->get_namespace() )
 			? str_replace( "\x00", '', $decoded )

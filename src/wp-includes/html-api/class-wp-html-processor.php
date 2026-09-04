@@ -1081,6 +1081,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			);
 		}
 
+		$is_character_token = '#text' === $token_name || '#cdata-section' === $token_name;
+
 		$parse_in_current_insertion_mode = (
 			0 === $this->state->stack_of_open_elements->count() ||
 			'html' === $adjusted_current_node->namespace ||
@@ -1088,7 +1090,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				'math' === $adjusted_current_node->integration_node_type &&
 				(
 					( $is_start_tag && ! in_array( $token_name, array( 'MGLYPH', 'MALIGNMARK' ), true ) ) ||
-					'#text' === $token_name
+					$is_character_token
 				)
 			) ||
 			(
@@ -1098,7 +1100,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			) ||
 			(
 				'html' === $adjusted_current_node->integration_node_type &&
-				( $is_start_tag || '#text' === $token_name )
+				( $is_start_tag || $is_character_token )
 			)
 		);
 
@@ -2327,6 +2329,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op         = "{$op_sigil}{$token_name}";
 
 		switch ( $op ) {
+			/*
+			 * A CDATA section is a run of character tokens. The tokenizer only
+			 * recognizes one when the adjusted current node is in a foreign
+			 * namespace, which includes HTML and MathML integration points, where
+			 * character tokens are processed in the current insertion mode.
+			 *
+			 * Classify the section's contents the way text nodes are classified,
+			 * from the bytes between `<![CDATA[` and `]]>`, then fall through to
+			 * the text node handling.
+			 */
+			case '#cdata-section':
+				$cdata_token  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+				$cdata_start  = $cdata_token->start + 9;
+				$cdata_length = $cdata_token->length - 12;
+				if ( $cdata_length === strspn( $this->html, "\0", $cdata_start, $cdata_length ) ) {
+					$this->text_node_classification = parent::TEXT_IS_NULL_SEQUENCE;
+				} elseif ( $cdata_length === strspn( $this->html, "\0 \t\n\f\r", $cdata_start, $cdata_length ) ) {
+					$this->text_node_classification = parent::TEXT_IS_WHITESPACE;
+				} else {
+					$this->text_node_classification = parent::TEXT_IS_GENERIC;
+				}
+				// Fall through.
 			case '#text':
 				/*
 				 * > A character token that is U+0000 NULL
