@@ -8540,6 +8540,95 @@ function wp_privacy_anonymize_data( $type, $data = '' ) {
 }
 
 /**
+ * Returns the user ID used for anonymized content.
+ *
+ * Creates the user if necessary. The user has no role and a random password.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @return int Anonymous user ID, or 0 if the user could not be created.
+ */
+function _wp_privacy_get_anonymous_user_id() {
+	$option_name = 'wp_privacy_anonymous_user_id';
+	$meta_key    = '_wp_privacy_anonymous_user';
+	$user_login  = 'wp_privacy_anonymous_user';
+
+	$anonymous_user_id = (int) get_site_option( $option_name );
+	$anonymous_user    = $anonymous_user_id ? get_userdata( $anonymous_user_id ) : false;
+
+	if ( $anonymous_user && '1' === get_user_meta( $anonymous_user_id, $meta_key, true ) ) {
+		return $anonymous_user_id;
+	}
+
+	$anonymous_users = get_users(
+		array(
+			'blog_id'     => 0,
+			'fields'      => 'ids',
+			'number'      => 1,
+			'count_total' => false,
+			'meta_key'    => $meta_key,
+			'meta_value'  => '1',
+			'orderby'     => 'ID',
+			'order'       => 'ASC',
+		)
+	);
+
+	if ( $anonymous_users ) {
+		$anonymous_user_id = (int) $anonymous_users[0];
+		update_site_option( $option_name, $anonymous_user_id );
+
+		return $anonymous_user_id;
+	}
+
+	$existing_user_id = username_exists( $user_login );
+
+	if ( $existing_user_id && '1' === get_user_meta( $existing_user_id, $meta_key, true ) ) {
+		update_site_option( $option_name, $existing_user_id );
+
+		return (int) $existing_user_id;
+	}
+
+	if ( $existing_user_id ) {
+		$user_login = 'wp_privacy_anonymous_' . str_replace( '-', '', wp_generate_uuid4() );
+	}
+
+	$anonymous_user_id = wp_insert_user(
+		array(
+			'user_login'    => $user_login,
+			'user_pass'     => wp_generate_password( 64, true, true ),
+			'user_email'    => 'deleted-' . wp_generate_uuid4() . '@site.invalid',
+			'user_nicename' => 'anonymous',
+			'display_name'  => __( 'Anonymous' ),
+			'description'   => __( 'Anonymous user for content reassigned during personal data erasure.' ),
+			'role'          => '',
+			'meta_input'    => array(
+				$meta_key => '1',
+			),
+		)
+	);
+
+	if ( is_wp_error( $anonymous_user_id ) ) {
+		if ( 'existing_user_login' === $anonymous_user_id->get_error_code() ) {
+			$anonymous_user_id = username_exists( $user_login );
+
+			if ( $anonymous_user_id && '1' === get_user_meta( $anonymous_user_id, $meta_key, true ) ) {
+				update_site_option( $option_name, $anonymous_user_id );
+
+				return (int) $anonymous_user_id;
+			}
+		}
+
+		return 0;
+	}
+
+	$anonymous_user_id = (int) $anonymous_user_id;
+	update_site_option( $option_name, $anonymous_user_id );
+
+	return $anonymous_user_id;
+}
+
+/**
  * Returns the directory used to store personal data export files.
  *
  * @since 4.9.6

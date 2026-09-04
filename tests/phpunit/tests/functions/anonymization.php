@@ -10,6 +10,7 @@
  * @group privacy
  *
  * @covers ::wp_privacy_anonymize_data
+ * @covers ::_wp_privacy_get_anonymous_user_id
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {
 
@@ -290,6 +291,44 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	public function test_anonymize_long_text() {
 		$text = __( 'Four score and seven years ago' );
 		$this->assertSame( 'This content was deleted by the author.', wp_privacy_anonymize_data( 'longtext', $text ) );
+	}
+
+	/**
+	 * Tests that _wp_privacy_get_anonymous_user_id() creates an anonymous user.
+	 *
+	 * @ticket 43880
+	 */
+	public function test_wp_privacy_get_anonymous_user_id_creates_user() {
+		$anonymous_user_id = _wp_privacy_get_anonymous_user_id();
+		$anonymous_user    = get_userdata( $anonymous_user_id );
+
+		$this->assertGreaterThan( 0, $anonymous_user_id );
+		$this->assertInstanceOf( 'WP_User', $anonymous_user );
+		$this->assertSame( 'Anonymous', $anonymous_user->display_name );
+		$this->assertSame( array(), $anonymous_user->roles );
+		$this->assertSame( '1', get_user_meta( $anonymous_user_id, '_wp_privacy_anonymous_user', true ) );
+		$this->assertSame( $anonymous_user_id, _wp_privacy_get_anonymous_user_id() );
+
+		delete_site_option( 'wp_privacy_anonymous_user_id' );
+		$this->assertSame( $anonymous_user_id, _wp_privacy_get_anonymous_user_id() );
+
+		update_site_option( 'wp_privacy_anonymous_user_id', 999999 );
+		$this->assertSame( $anonymous_user_id, _wp_privacy_get_anonymous_user_id() );
+		$this->assertSame( $anonymous_user_id, (int) get_site_option( 'wp_privacy_anonymous_user_id' ) );
+	}
+
+	/**
+	 * Tests that _wp_privacy_get_anonymous_user_id() handles a login collision.
+	 *
+	 * @ticket 43880
+	 */
+	public function test_wp_privacy_get_anonymous_user_id_handles_login_collision() {
+		$user_id = self::factory()->user->create( array( 'user_login' => 'wp_privacy_anonymous_user' ) );
+
+		$anonymous_user_id = _wp_privacy_get_anonymous_user_id();
+
+		$this->assertNotSame( $user_id, $anonymous_user_id );
+		$this->assertSame( '1', get_user_meta( $anonymous_user_id, '_wp_privacy_anonymous_user', true ) );
 	}
 
 	/**

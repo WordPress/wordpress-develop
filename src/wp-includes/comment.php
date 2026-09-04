@@ -4346,7 +4346,7 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 		$anonymized_comment['comment_author_email'] = '';
 		$anonymized_comment['comment_author_IP']    = wp_privacy_anonymize_data( 'ip', $comment->comment_author_IP );
 		$anonymized_comment['comment_author_url']   = '';
-		$anonymized_comment['user_id']              = 0;
+		$anonymized_comment['user_id']              = _wp_privacy_get_anonymous_user_id();
 
 		$comment_id = (int) $comment->comment_ID;
 
