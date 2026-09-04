@@ -5,16 +5,22 @@
  * These are instances where axe-core flags a violation, but after human review,
  * the pattern is acceptable or represents a known limitation of the automated check.
  *
- * SELECTOR MATCHING:
- * Uses space-separated selector tokens. An exclusion pattern matches a violation's
- * target selector if all selector tokens appear in order (but not necessarily
- * consecutively). Intermediate selectors can be skipped.
+ * MATCHING ALGORITHM:
+ * 1. Normalize target selector: remove combinators (>, +, ~) and collapse spaces.
+ * 2. Split pattern into space-separated tokens.
+ * 3. Check if all tokens appear in order in the normalized selector (not necessarily consecutive).
+ * 4. Supports wildcard matching with asterisks (*) in patterns.
+ *
+ * Then it checks if all pattern tokens appear in order in the normalized selector.
+ * Intermediate selectors can be skipped, and attributes are automatically removed.
+ *
  * For example:
- *   - Violation Target Selector: "html > body > #__wp-uploader > .attachments-browser > .attachments-wrapper > li[aria-label="image-1"]".
+ *   - Raw Target Selector: "html > body > #__wp-uploader > .attachments-browser > .attachments-wrapper > li[aria-label="image-1"]"
+ *   - After Normalization: "html body #__wp-uploader .attachments-browser .attachments-wrapper li"
  *   - Pattern ".attachments-browser li" MATCHES (skips .attachments-wrapper; all tokens found in order).
  *   - Pattern ".attachments-browser .attachments-wrapper" MATCHES (all tokens found).
- *   - Pattern ".attachments-browserxyz" does NOT match (selector token boundary prevents partial matches).
- *   - Attributes on target selectors are ignored: "li[aria-label="..."]" matches pattern "li".
+ *   - Pattern ".attachments-browserxyz" does NOT match (token boundary prevents partial matches).
+ *   - Attributes are removed during normalization, so patterns never need to include them.
  *
  * WILDCARD SUPPORT:
  * Use an asterisk * to match any characters in a selector token. For example:
