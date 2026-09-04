@@ -13,13 +13,51 @@ on:
       - '5.[5-9]'
       - '[6-9].[0-9]'
     paths:
-      # This workflow only scans source PHP files.
-      - 'src/**.php'
-      # These files configure Composer. Changes could affect the outcome.
+      - '**'
+      # Documentation, repository metadata, and local environment configuration.
+      - '!**.md'
+      - '!.devcontainer/**'
+      - '!.editorconfig'
+      - '!.env.example'
+      - '!.git-blame-ignore-revs'
+      - '!.gitignore'
+      - '!.jshintrc'
+      - '!.mailmap'
+      - '!docker-compose.yml'
+      - '!jsdoc.conf.json'
+      - '!typings/**'
+      - '!wp-cli.yml'
+      # File types that the PHP compatibility scan does not inspect.
+      - '!**.crt'
+      - '!**.css'
+      - '!**.dat'
+      - '!**.dist'
+      - '!**.html'
+      - '!**.jpg'
+      - '!**.js'
+      - '!**.json'
+      - '!**.map'
+      - '!**.mo'
+      - '!**.neon'
+      - '!**.pem'
+      - '!**.png'
+      - '!**.po'
+      - '!**.scss'
+      - '!**.svg'
+      - '!**.txt'
+      - '!**.webp'
+      - '!**.woff2'
+      - '!**.xml'
+      - '!**.yaml'
+      - '!**.yml'
+      # Only source PHP files are scanned.
+      - '!*.php'
+      - '!tests/**'
+      - '!tools/**'
+      - '!.github/**'
+      # Re-include configuration and workflow files that affect the scan.
       - 'composer.*'
-      # This file configures PHP compatibility scanning. Changes could affect the outcome.
       - 'phpcompat.xml.dist'
-      # Confirm any changes to relevant workflow files.
       - '.github/workflows/php-compatibility.yml'
       - '.github/workflows/reusable-php-compatibility.yml'
   workflow_dispatch:

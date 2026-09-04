@@ -13,27 +13,37 @@ on:
       - '5.[3-9]'
       - '[6-9].[0-9]'
     paths:
-      # Any change to a source PHP, CSS, JavaScript, or JSON file should run checks.
-      - 'src/**.css'
-      - 'src/**.js'
-      - 'src/**.json'
-      - 'src/**.php'
-      - '*.php' # PHP files in the root, like wp-config-sample.php.
-      # These files configure npm and the task runner. Changes could affect the outcome.
-      - 'package*.json'
-      - '.npmrc'
-      - '.nvmrc'
-      - 'Gruntfile.js'
-      - 'webpack.config.js'
+      - '**'
+      # Documentation and repository metadata.
+      - '!**.md'
+      - '!.devcontainer/**'
+      - '!.editorconfig'
+      - '!.git-blame-ignore-revs'
+      - '!.gitignore'
+      - '!.mailmap'
+      - '!typings/**'
+      # Configuration for unrelated checks.
+      - '!.eslintrc-jsdoc.js'
+      - '!.jshintrc'
+      - '!.prettierrc.js'
+      - '!.version-support-*.json'
+      - '!eslint.config.js'
+      - '!jsdoc.conf.json'
+      - '!phpcompat.xml.dist'
+      - '!phpcs.xml.dist'
+      - '!phpstan.neon.dist'
+      - '!phpunit.xml.dist'
+      - '!tsconfig.json'
+      # Other test suites, tools, and workflows do not affect these tests.
+      - '!tests/**'
+      - '!tools/**'
+      - '!.github/**'
+      # Re-include the test, tool, and workflow files used here.
+      - 'tests/e2e/**'
       - 'tools/gutenberg/**'
       - 'tools/local-env/**'
       - 'tools/vendors/**'
       - 'tools/webpack/**'
-      # These files configure Composer. Changes could affect the outcome.
-      - 'composer.*'
-      # These files affect the e2e tests. Changes could affect the outcome.
-      - 'tests/e2e/**'
-      # Confirm any changes to relevant workflow files.
       - '.github/workflows/end-to-end-tests.yml'
       - '.github/workflows/reusable-end-to-end-tests*.yml'
   workflow_dispatch:
