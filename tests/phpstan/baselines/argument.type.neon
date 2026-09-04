@@ -119,11 +119,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php
 		-
-			message: '#^Parameter \#1 \$bytes of function size_format expects int\|string, float\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-site-health.php
-		-
 			message: '#^Parameter \#2 \$allowed_html of function wp_kses expects array\<array\>\|string, array\<string, array\<string, bool\>\|true\> given\.$#'
 			identifier: argument.type
 			count: 1

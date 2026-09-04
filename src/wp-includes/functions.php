@@ -460,9 +460,11 @@ function number_format_i18n( $number, $decimals = 0 ) {
  * @since 2.3.0
  * @since 6.0.0 Support for PB, EB, ZB, and YB was added.
  *
- * @param int|string $bytes    Number of bytes. Note max integer size for integers.
- * @param int        $decimals Optional. Precision of number of decimal places. Default 0.
+ * @param int|float|string $bytes    Number of bytes. Note max integer size for integers.
+ * @param int              $decimals Optional. Precision of number of decimal places. Default 0.
  * @return string|false Number string on success, false on failure.
+ *
+ * @phpstan-param int|float|numeric-string $bytes
  */
 function size_format( $bytes, $decimals = 0 ) {
 	$quant = array(
