@@ -41,6 +41,38 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51486
+	 *
+	 * @covers ::add_option
+	 */
+	public function test_add_option_should_not_update_existing_option_when_notoptions_cache_is_stale() {
+		global $wpdb;
+
+		$option = 'ticket_51486';
+
+		$this->assertTrue( add_option( $option, 'original', '', false ) );
+
+		$notoptions            = wp_cache_get( 'notoptions', 'options' );
+		$notoptions            = is_array( $notoptions ) ? $notoptions : array();
+		$notoptions[ $option ] = true;
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+
+		$this->assertFalse( add_option( $option, 'changed', '', true ) );
+
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value, autoload FROM $wpdb->options WHERE option_name = %s", $option ) );
+
+		$this->assertSame( 'original', $row->option_value );
+		$this->assertSame( 'off', $row->autoload );
+
+		wp_cache_delete( $option, 'options' );
+		$this->assertSame( 'original', get_option( $option ) );
+
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		$this->assertIsArray( $notoptions );
+		$this->assertArrayNotHasKey( $option, $notoptions );
+	}
+
+	/**
 	 * @covers ::get_option
 	 * @covers ::add_option
 	 * @covers ::delete_option
