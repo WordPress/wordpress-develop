@@ -2769,6 +2769,19 @@ class WP_HTML_Tag_Processor {
 			return $by_start;
 		}
 
+		/*
+		 * An insertion (a replacement of zero length) must be applied before
+		 * any replacement which starts at the same offset but consumes bytes.
+		 * Otherwise the consuming replacement would advance the cursor past
+		 * the insertion point before the insertion is applied.
+		 *
+		 * For example, new attributes are inserted directly after the tag name,
+		 * and removing the attribute in `<g/a>` also starts there.
+		 */
+		if ( ( 0 === $a->length ) !== ( 0 === $b->length ) ) {
+			return 0 === $a->length ? -1 : 1;
+		}
+
 		$by_text = isset( $a->text, $b->text ) ? strcmp( $a->text, $b->text ) : 0;
 		if ( 0 !== $by_text ) {
 			return $by_text;
@@ -4794,22 +4807,84 @@ class WP_HTML_Tag_Processor {
 		 *
 		 *    Result: <div />
 		 */
-		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
-			$this->attributes[ $name ]->start,
-			$this->attributes[ $name ]->length,
-			''
-		);
+		$this->lexical_updates[ $name ] = $this->get_attribute_removal( $this->attributes[ $name ] );
 
 		// Removes any duplicated attributes if they were also present.
-		foreach ( $this->duplicate_attributes[ $name ] ?? array() as $attribute_token ) {
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
-				$attribute_token->start,
-				$attribute_token->length,
-				''
-			);
+		foreach ( $this->duplicate_attributes[ $name ] ?? array() as $attribute_span ) {
+			$this->lexical_updates[] = $this->get_attribute_removal( $attribute_span );
 		}
 
 		return true;
+	}
+
+	/**
+	 * Creates a text replacement which removes the given attribute from the document.
+	 *
+	 * Any `/` characters immediately preceding the attribute are removed along with it.
+	 * Inside a tag, `/` is ignored unless it's immediately followed by `>`, in which case
+	 * it's the self-closing flag. Leaving a `/` behind could therefore change the meaning
+	 * of the tag if it ends up adjacent to the `>` after the attribute is removed.
+	 *
+	 * Example:
+	 *
+	 *     <g /attr>
+	 *        ^----^
+	 *        start end
+	 *     replacement: ``
+	 *
+	 *     Result: <g >
+	 *
+	 * Had only `attr` been removed the result would have been `<g />`, which has a
+	 * self-closing flag that wasn't in the input.
+	 *
+	 * When those `/` characters are the only thing separating the attribute from what
+	 * precedes it, and another attribute immediately follows, a space is left in their
+	 * place so that the surrounding syntax doesn't merge.
+	 *
+	 * Example:
+	 *
+	 *     <g/attr="x"b>
+	 *       ^--------^
+	 *       start    end
+	 *     replacement: ` `
+	 *
+	 *     Result: <g b>
+	 *
+	 * Had the `/` been removed outright the result would have been `<gb>`, changing
+	 * the tag name.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_HTML_Attribute_Token|WP_HTML_Span $attribute Attribute to remove, or the span it occupies.
+	 * @return WP_HTML_Text_Replacement Replacement which removes the attribute.
+	 */
+	private function get_attribute_removal( $attribute ): WP_HTML_Text_Replacement {
+		$start = $attribute->start;
+		$end   = $start + $attribute->length;
+
+		/*
+		 * A `/` can only precede an attribute as a separator: tag names and attribute
+		 * names end at `/`, and it's part of an unquoted attribute value when found
+		 * there. It's safe to consume every `/` leading up to the attribute.
+		 */
+		while ( $start > 0 && '/' === $this->html[ $start - 1 ] ) {
+			--$start;
+		}
+
+		/*
+		 * Only a quoted attribute value can be directly followed by another attribute,
+		 * e.g. `<g/a="x"b>`. If the `/` separating the removed attribute from the tag
+		 * name or from a preceding attribute is consumed, then a space must take its
+		 * place to keep the tag name or preceding attribute from merging with the
+		 * following one, e.g. `<gb>`.
+		 */
+		$needs_separator = (
+			$start !== $attribute->start &&
+			isset( $this->html[ $end ] ) &&
+			0 === strspn( $this->html, " \t\f\r\n/>", $end, 1 )
+		);
+
+		return new WP_HTML_Text_Replacement( $start, $end - $start, $needs_separator ? ' ' : '' );
 	}
 
 	/**
