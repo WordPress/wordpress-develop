@@ -667,12 +667,27 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 * @since 5.9.0 Renamed `$template` to `$item` to match parent class for PHP 8 named parameter support.
 	 * @since 6.3.0 Added `modified` property to the response.
+	 * @since 7.1.0 Added `date` property to the response.
+	 * @since 7.1.0 The `modified` property is `null` for templates that have no
+	 *              modification date.
+	 * @since 7.2.0 Returns a `WP_Error` instead of causing a fatal error
+	 *              when the template is `null`.
 	 *
-	 * @param WP_Block_Template $item    Template instance.
-	 * @param WP_REST_Request   $request Request object.
-	 * @return WP_REST_Response Response object.
+	 * @param WP_Block_Template|null $item    Template instance.
+	 * @param WP_REST_Request        $request Request object.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error when the template is `null`.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+		/*
+		 * `update_item()` passes its `get_block_template()` refetches here
+		 * unchecked, both after writing an update and after deleting the
+		 * template's post on its revert-to-theme path. Reading `$item->content`
+		 * on `null` is a fatal error, so answer with an error response instead.
+		 */
+		if ( ! $item ) {
+			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+		}
+
 		// Don't prepare the response body for HEAD requests.
 		if ( $request->is_method( 'HEAD' ) ) {
 			return new WP_REST_Response( array() );
@@ -775,7 +790,23 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'modified', $fields ) ) {
-			$data['modified'] = mysql_to_rfc3339( $template->modified );
+			/*
+			 * File-backed templates have no modification date, and `mysql_to_rfc3339()`
+			 * returns `false` for an empty or malformed value, which the schema does
+			 * not allow. Return `null` in that case.
+			 */
+			$modified         = mysql_to_rfc3339( $template->modified );
+			$data['modified'] = false !== $modified ? $modified : null;
+		}
+
+		if ( rest_is_field_included( 'date', $fields ) ) {
+			/*
+			 * File-backed templates have no date, and `mysql_to_rfc3339()` returns
+			 * `false` for an empty or malformed value, which the schema does not
+			 * allow. Return `null` in that case.
+			 */
+			$date         = mysql_to_rfc3339( $template->date );
+			$data['date'] = false !== $date ? $date : null;
 		}
 
 		if ( rest_is_field_included( 'author_text', $fields ) ) {
@@ -1149,7 +1180,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'modified'        => array(
 					'description' => __( "The date the template was last modified, in the site's timezone." ),
-					'type'        => 'string',
+					'type'        => array( 'string', 'null' ),
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
@@ -1171,6 +1202,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'site',
 						'user',
 					),
+				),
+				'date'            => array(
+					'description' => __( "The date the template was published, in the site's timezone." ),
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			),
 		);

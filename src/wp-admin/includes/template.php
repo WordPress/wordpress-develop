@@ -316,11 +316,13 @@ function get_inline_data( $post ) {
 
 	$title = esc_textarea( trim( $post->post_title ) );
 
+	/** This filter is documented in wp-admin/edit-tag-form.php */
+	$editable_slug = apply_filters( 'editable_slug', $post->post_name, $post );
+
 	echo '
 <div class="hidden" id="inline_' . $post->ID . '">
-	<div class="post_title">' . $title . '</div>' .
-	/** This filter is documented in wp-admin/edit-tag-form.php */
-	'<div class="post_name">' . apply_filters( 'editable_slug', $post->post_name, $post ) . '</div>
+	<div class="post_title">' . $title . '</div>
+	<div class="post_name">' . $editable_slug . '</div>
 	<div class="post_author">' . $post->post_author . '</div>
 	<div class="comment_status">' . esc_html( $post->comment_status ) . '</div>
 	<div class="ping_status">' . esc_html( $post->ping_status ) . '</div>
@@ -1372,10 +1374,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					++$i;
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
-					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
+					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . ' role="region" aria-label="' . esc_attr( wp_strip_all_tags( $box['title'] ) ) . '">' . "\n";
 
 					echo '<div class="postbox-header">';
-					echo '<h2 class="hndle">';
+					echo '<h2 class="hndle" id="' . $box['id'] . '-title">';
 					if ( 'dashboard_php_nag' === $box['id'] ) {
 						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
 						echo '<span class="screen-reader-text">' .
@@ -1397,40 +1399,35 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 						echo '<div class="handle-actions hide-if-no-js">';
 
-						echo '<button type="button" class="handle-order-higher" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-higher-description">';
-						echo '<span class="screen-reader-text">' .
-							/* translators: Hidden accessibility text. */
-							__( 'Move up' ) .
-						'</span>';
-						echo '<span class="order-higher-indicator" aria-hidden="true"></span>';
-						echo '</button>';
-						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-higher-description">' . sprintf(
-							/* translators: %s: Meta box title. */
-							__( 'Move %s box up' ),
-							$widget_title
-						) . '</span>';
+						$move_up_button = '<button type="button" class="handle-order-higher" aria-describedby="' . $box['id'] . '-title">
+							<span class="screen-reader-text">' . __( 'Move up' ) . '</span>
+							<span class="order-higher-indicator" aria-hidden="true"></span>
+						</button>';
+						$move_up_args   = array(
+							'id'     => $box['id'] . '-handle-order-higher-description',
+							'button' => $move_up_button,
+						);
+						echo wp_get_tooltip( __( 'Move up' ), $move_up_args );
 
-						echo '<button type="button" class="handle-order-lower" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-lower-description">';
-						echo '<span class="screen-reader-text">' .
-							/* translators: Hidden accessibility text. */
-							__( 'Move down' ) .
-						'</span>';
-						echo '<span class="order-lower-indicator" aria-hidden="true"></span>';
-						echo '</button>';
-						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-lower-description">' . sprintf(
-							/* translators: %s: Meta box title. */
-							__( 'Move %s box down' ),
-							$widget_title
-						) . '</span>';
+						$move_down_button = '<button type="button" class="handle-order-lower" aria-describedby="' . $box['id'] . '-title">
+							<span class="screen-reader-text">' . __( 'Move down' ) . '</span>
+							<span class="order-lower-indicator" aria-hidden="true"></span>
+						</button>';
+						$move_down_args   = array(
+							'id'     => $box['id'] . '-handle-order-lower-description',
+							'button' => $move_down_button,
+						);
+						echo wp_get_tooltip( __( 'Move down' ), $move_down_args );
 
-						echo '<button type="button" class="handlediv" aria-expanded="true">';
-						echo '<span class="screen-reader-text">' . sprintf(
-							/* translators: %s: Hidden accessibility text. Meta box title. */
-							__( 'Toggle panel: %s' ),
-							$widget_title
-						) . '</span>';
-						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
-						echo '</button>';
+						$show_hide_button = '<button type="button" class="handlediv" aria-expanded="true" aria-describedby="' . $box['id'] . '-title">
+							<span class="screen-reader-text">' . __( 'Show or hide panel' ) . '</span>
+							<span class="toggle-indicator" aria-hidden="true"></span>
+						</button>';
+						$show_hide_args   = array(
+							'id'     => $box['id'] . '-handlediv',
+							'button' => $show_hide_button,
+						);
+						echo wp_get_tooltip( __( 'Show or hide panel' ), $show_hide_args );
 
 						echo '</div>';
 					}
@@ -1780,7 +1777,8 @@ function do_settings_sections( $page ) {
 		}
 
 		if ( $section['title'] ) {
-			echo "<h2>{$section['title']}</h2>\n";
+			$unique_id = wp_unique_id( 'wp-settings-section-' . $section['id'] . '-' );
+			echo '<h2 id="' . esc_attr( $unique_id ) . '">' . $section['title'] . "</h2>\n";
 		}
 
 		if ( $section['callback'] ) {
@@ -2142,19 +2140,50 @@ function iframe_header( $title = '', $deprecated = false ) {
 <title><?php bloginfo( 'name' ); ?> &rsaquo; <?php echo $title; ?> &#8212; <?php _e( 'WordPress' ); ?></title>
 	<?php
 	wp_enqueue_style( 'colors' );
-	?>
-<script>
-addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
-var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
-	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
-	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
-	adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
-	thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
-	decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
-	isRtl = <?php echo (int) is_rtl(); ?>;
-</script>
-	<?php
+
+	// Print the global admin inline scripts through the script tag API so the
+	// `wp_inline_script_attributes` filter (e.g. a CSP nonce) applies.
+	wp_print_inline_script_tag(
+		<<<'JS'
+		function addLoadEvent( func ) {
+			if ( typeof jQuery !== 'undefined' ) {
+				jQuery( function () {
+					func();
+				} );
+			} else if ( typeof wpOnload !== 'function' ) {
+				window.wpOnload = func;
+			} else {
+				const oldOnload = window.wpOnload;
+				window.wpOnload = function () {
+					oldOnload();
+					func();
+				};
+			}
+		}
+
+		function tb_close() {
+			( window.dialogArguments || opener || parent || top ).tb_remove();
+		}
+		JS
+	);
+	wp_print_inline_script_tag(
+		sprintf(
+			'Object.assign( window, %s );',
+			wp_json_encode(
+				array(
+					'ajaxurl'            => admin_url( 'admin-ajax.php', 'relative' ),
+					'pagenow'            => $current_screen->id ?? '',
+					'typenow'            => $current_screen->post_type ?? '',
+					'adminpage'          => $admin_body_class,
+					'thousandsSeparator' => $wp_locale->number_format['thousands_sep'],
+					'decimalPoint'       => $wp_locale->number_format['decimal_point'],
+					'isRtl'              => (int) is_rtl(),
+				),
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
+			)
+		)
+	);
+
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', $hook_suffix );
 
@@ -2193,14 +2222,12 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 	?>
 <body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo esc_attr( $admin_body_classes ); ?>">
-<script>
-(function(){
-var c = document.body.className;
-c = c.replace(/no-js/, 'js');
-document.body.className = c;
-})();
-</script>
 	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		document.body.className = document.body.className.replace( 'no-js', 'js' );
+		JS
+	);
 }
 
 /**
@@ -2232,7 +2259,15 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-<script>if(typeof wpOnload==='function')wpOnload();</script>
+	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		if ( typeof wpOnload === 'function' ) {
+			wpOnload();
+		}
+		JS
+	);
+	?>
 </body>
 </html>
 	<?php
@@ -2561,7 +2596,7 @@ function compression_test() {
  *
  * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
- *                                       include 'primary', 'small', and 'large'. Default 'primary'.
+ *                                       include 'primary', 'small', 'compact' and 'large'. Default 'primary'.
  * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
  *                                       is given in the `$other_attributes` parameter, `$name` will be used
  *                                       as the button's `id`. Default 'submit'.
@@ -2585,7 +2620,7 @@ function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap =
  *
  * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
- *                                       include 'primary', 'small', and 'large'. Default 'primary large'.
+ *                                       include 'primary', 'small', 'compact' and 'large'. Default 'primary large'.
  * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
  *                                       is given in the `$other_attributes` parameter, `$name` will be used
  *                                       as the button's `id`. Default 'submit'.
@@ -2604,7 +2639,7 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 		$type = explode( ' ', $type );
 	}
 
-	$button_shorthand = array( 'primary', 'small', 'large' );
+	$button_shorthand = array( 'primary', 'small', 'large', 'compact' );
 	$classes          = array( 'button' );
 
 	foreach ( $type as $t ) {

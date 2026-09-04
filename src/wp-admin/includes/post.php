@@ -1393,10 +1393,10 @@ function wp_edit_attachments_query_vars( $q = false ) {
  * @param array|false $q Optional. Array of query variables to use to build the query.
  *                       Defaults to the `$_GET` superglobal.
  * @return array {
- *     Array containing the post mime types and available post mime types.
+ *     Array containing the post mime types and the available post mime types, in that order.
  *
- *     @type array[]  $post_mime_types       Post mime types.
- *     @type string[] $avail_post_mime_types Available post mime types.
+ *     @type array<string, array{0: string, 1: string, 2: array}> $0 Post mime types. See get_post_mime_types().
+ *     @type string[]                                             $1 Available post mime types.
  * }
  */
 function wp_edit_attachments_query( $q = false ) {
@@ -1980,13 +1980,8 @@ function wp_create_post_autosave( $post_data ) {
 		$post = get_post( $post_id );
 
 		// If the new autosave has the same content as the post, delete the autosave.
-		$autosave_is_different = false;
-		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-				$autosave_is_different = true;
-				break;
-			}
-		}
+		$fields                = array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) );
+		$autosave_is_different = array_any( $fields, fn( $field ) => normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) );
 
 		if ( ! $autosave_is_different ) {
 			wp_delete_post_revision( $old_autosave->ID );
@@ -2188,6 +2183,7 @@ function wp_autosave( $post_data ) {
  * @since 2.7.0
  *
  * @param int $post_id Optional. Post ID.
+ * @return never
  */
 function redirect_post( $post_id = 0 ) {
 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {

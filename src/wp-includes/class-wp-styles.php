@@ -296,8 +296,9 @@ class WP_Styles extends WP_Dependencies {
 	 * @param string $handle  The style's registered handle.
 	 * @param bool   $display Optional. Whether to print the inline style
 	 *                        instead of just returning it. Default true.
-	 * @return string|bool False if no data exists, inline styles if `$display` is true,
+	 * @return string|bool False if no data exists, inline styles if `$display` is false,
 	 *                     true otherwise.
+	 * @phpstan-return ( $display is true ? bool : string|false )
 	 */
 	public function print_inline_style( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'after' );
@@ -459,12 +460,7 @@ class WP_Styles extends WP_Dependencies {
 			return true;
 		}
 
-		foreach ( (array) $this->default_dirs as $test ) {
-			if ( str_starts_with( $src, $test ) ) {
-				return true;
-			}
-		}
-		return false;
+		return array_any( (array) $this->default_dirs, fn( $test ) => str_starts_with( $src, $test ) );
 	}
 
 	/**
