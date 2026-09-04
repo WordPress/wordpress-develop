@@ -681,9 +681,12 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	/**
 	 * Tests get_test_opcode_cache() result when opcode cache is enabled or not.
 	 *
-	 * Covers: opcache enabled, disabled, not available, and opcache_get_status() returns false.
+	 * Covers: opcache enabled, disabled, not available, file cache only mode
+	 * (where opcache_get_status() returns false), and opcache_get_status()
+	 * being unavailable via disable_functions.
 	 *
 	 * @ticket 63697
+	 * @ticket 64707
 	 *
 	 * @covers ::get_test_opcode_cache()
 	 */
@@ -691,10 +694,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$result = $this->instance->get_test_opcode_cache();
 
 		$opcache_enabled = false;
-		if ( function_exists( 'opcache_get_status' ) ) {
-			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
-			if ( $status && true === $status['opcache_enabled'] ) {
-				$opcache_enabled = true;
+		if ( extension_loaded( 'Zend OPcache' ) && ini_get( 'opcache.enable' ) ) {
+			$opcache_enabled = true;
+
+			if ( function_exists( 'opcache_get_status' ) ) {
+				$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+				if ( is_array( $status ) && isset( $status['opcache_enabled'] ) ) {
+					$opcache_enabled = (bool) $status['opcache_enabled'];
+				}
 			}
 		}
 
