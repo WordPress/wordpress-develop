@@ -143,7 +143,7 @@
 	 *
 	 * @param {Object} wpUploader The wp.Uploader instance.
 	 * @param {Object} up         The plupload uploader instance.
-	 * @param {Array}  files      Files added to the queue.
+	 * @param {string[]}  files      Files added to the queue.
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function handleFilesAdded( wpUploader, up, files ) {
