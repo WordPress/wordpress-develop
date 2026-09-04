@@ -48,6 +48,13 @@ const BASELINES_START_MARKER = '# phpstan:baselines start';
  */
 const BASELINES_END_MARKER = '# phpstan:baselines end';
 
+/**
+ * The configuration analyzed when `--config` does not name one.
+ *
+ * Relative to the repository root.
+ */
+const DEFAULT_CONFIG = 'phpstan.neon.dist';
+
 if ( 'cli' !== PHP_SAPI ) {
 	fwrite( STDERR, "This script must be run from the command line.\n" );
 	exit( 1 );
@@ -64,7 +71,7 @@ foreach ( (array) ( $_SERVER['argv'] ?? array() ) as $arg ) {
 }
 array_shift( $args );
 
-$config_option    = 'phpstan.neon.dist';
+$config_option    = DEFAULT_CONFIG;
 $output_option    = 'tests/phpstan/baselines';
 $memory_limit     = '2G';
 $only_identifiers = array();
@@ -171,6 +178,22 @@ file_put_contents( $temp_stripped, strip_baseline_includes( $config_path, $outpu
  * because this script only ever analyzes the full set of configured paths.
  */
 $analysis_tmp_dir = $repo_root . '/.cache/baselines';
+
+/*
+ * A configuration other than the default gets a directory to itself.
+ *
+ * "The full set of configured paths" is only as wide as the configuration saying
+ * what they are, and `--config` can name one covering less than the default does.
+ * A run of that configuration is a full run of it, but measured against the
+ * default it is a narrowed one, and it would leave behind the same unrewritten
+ * readings of everything it does not cover. Keying the directory on the
+ * configuration keeps each one's reflection to itself.
+ */
+$config_relative = trim( normalize_path( $config_option ), '/' );
+
+if ( DEFAULT_CONFIG !== $config_relative ) {
+	$analysis_tmp_dir .= '-' . (string) preg_replace( '/[^A-Za-z0-9._]+/', '-', $config_relative );
+}
 
 /*
  * `tmpDir` is set in a wrapper including the stripped copy, rather than in the
