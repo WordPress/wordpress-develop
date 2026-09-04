@@ -307,7 +307,60 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		}
 	}
 
-	if ( $scale_down || $convert ) {
+	$recompress = ! $scale_down &&
+		! $convert &&
+		'image/jpeg' === $imagesize['mime'] &&
+		( empty( $exif_meta['orientation'] ) || 1 === (int) $exif_meta['orientation'] );
+
+	if ( $recompress ) {
+		/**
+		 * Filters the minimum file size required before trying to recompress the original image.
+		 *
+		 * This filter is only consulted for otherwise eligible JPEG images.
+		 *
+		 * @since x.x.x
+		 *
+		 * @param int    $minimum_filesize Minimum file size in bytes. Default 256 KB.
+		 * @param array  $imagesize        Image size data from wp_getimagesize().
+		 * @param string $file             Full path to the uploaded image file.
+		 * @param int    $attachment_id    Attachment post ID.
+		 */
+		$minimum_filesize = (int) apply_filters(
+			'wp_recompress_original_image_minimum_filesize',
+			256 * KB_IN_BYTES,
+			$imagesize,
+			$file,
+			$attachment_id
+		);
+		$minimum_filesize = max( 0, $minimum_filesize );
+		$recompress       = $image_meta['filesize'] >= $minimum_filesize;
+	}
+
+	if ( $recompress ) {
+		/**
+		 * Filters whether WordPress should try to recompress the original image.
+		 *
+		 * This filter runs only after WordPress has determined the image is eligible for
+		 * recompression: a JPEG image that is not already being scaled, converted,
+		 * rotated, or below the minimum file size.
+		 *
+		 * @since x.x.x
+		 *
+		 * @param bool   $recompress    Whether to try recompressing the original image. Default true.
+		 * @param array  $imagesize     Image size data from wp_getimagesize().
+		 * @param string $file          Full path to the uploaded image file.
+		 * @param int    $attachment_id Attachment post ID.
+		 */
+		$recompress = (bool) apply_filters(
+			'wp_recompress_original_image',
+			true,
+			$imagesize,
+			$file,
+			$attachment_id
+		);
+	}
+
+	if ( $scale_down || $convert || $recompress ) {
 		$editor = wp_get_image_editor( $file );
 
 		if ( is_wp_error( $editor ) ) {
@@ -321,6 +374,9 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		} elseif ( $convert ) {
 			// The image will be converted (if possible) when saved.
 			$resized = true;
+		} elseif ( $recompress ) {
+			// The image will be recompressed when saved.
+			$resized = true;
 		}
 
 		$rotated = null;
@@ -333,7 +389,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 		if ( ! is_wp_error( $resized ) ) {
 			/*
-			 * Append "-scaled" to the image file name. It will look like "my_image-scaled.jpg".
+			 * Append a suffix to the replacement image file name, like "my_image-scaled.jpg".
 			 * This doesn't affect the sub-sizes names as they are generated from the original image (for best quality).
 			 */
 			if ( $scale_down ) {
@@ -341,12 +397,59 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			} elseif ( $convert ) {
 				// Pass an empty string to avoid adding a suffix to converted file names.
 				$saved = $editor->save( $editor->generate_filename( '' ) );
+			} elseif ( $recompress ) {
+				$dest_path = dirname( $file );
+				$filename  = wp_unique_filename( $dest_path, wp_basename( $editor->generate_filename( 'compressed' ) ) );
+				$saved     = $editor->save( trailingslashit( $dest_path ) . $filename );
 			} else {
 				$saved = $editor->save();
 			}
 
 			if ( ! is_wp_error( $saved ) ) {
-				$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
+				$replace_original = true;
+
+				if ( $recompress ) {
+					$original_filesize = wp_filesize( $file );
+					$saved_filesize    = ! empty( $saved['filesize'] ) ? (int) $saved['filesize'] : 0;
+
+					if ( ! $saved_filesize && ! empty( $saved['path'] ) ) {
+						$saved_filesize = wp_filesize( $saved['path'] );
+					}
+
+					/**
+					 * Filters the minimum file size reduction required before using a recompressed original image.
+					 *
+					 * @since x.x.x
+					 *
+					 * @param int    $minimum_savings  Minimum savings percentage. Default 30.
+					 * @param string $file             Full path to the uploaded original image.
+					 * @param array  $saved            Saved image data from WP_Image_Editor.
+					 * @param int    $attachment_id    Attachment post ID.
+					 * @param int    $original_filesize Uploaded original image file size.
+					 * @param int    $saved_filesize    Recompressed image file size.
+					 */
+					$minimum_savings = (int) apply_filters(
+						'wp_recompress_original_image_minimum_savings',
+						30,
+						$file,
+						$saved,
+						$attachment_id,
+						$original_filesize,
+						$saved_filesize
+					);
+					$minimum_savings = min( 100, max( 0, $minimum_savings ) );
+
+					$replace_original = $original_filesize &&
+						$saved_filesize &&
+						$saved_filesize < $original_filesize &&
+						( $saved_filesize * 100 ) <= ( $original_filesize * ( 100 - $minimum_savings ) );
+				}
+
+				if ( $replace_original ) {
+					$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
+				} elseif ( ! empty( $saved['path'] ) ) {
+					wp_delete_file( $saved['path'] );
+				}
 
 				// If the image was rotated update the stored EXIF data.
 				if ( true === $rotated && ! empty( $image_meta['image_meta']['orientation'] ) ) {
