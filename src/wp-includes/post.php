@@ -5164,8 +5164,23 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	if ( ! empty( $postarr['meta_input'] ) ) {
+		/*
+		 * Temporarily suspend the per-meta-key `last_changed` cache invalidation
+		 * to avoid redundant cache writes during bulk meta input. A single
+		 * invalidation is triggered below once the loop completes.
+		 */
+		$has_updated_action = remove_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' );
+		$has_added_action   = remove_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
+
 		foreach ( $postarr['meta_input'] as $field => $value ) {
 			update_post_meta( $post_id, $field, $value );
+		}
+
+		if ( $has_updated_action ) {
+			add_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' );
+		}
+		if ( $has_added_action ) {
+			add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
 		}
 	}
 
