@@ -431,7 +431,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 #wpadminbar #wp-admin-bar-user-actions > li {
 	margin-left: 16px;
-	margin-right: 16px;
+	margin-right: 0;
 }
 
 #wpadminbar #wp-admin-bar-user-actions.ab-submenu {
