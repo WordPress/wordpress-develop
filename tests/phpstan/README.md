@@ -213,4 +213,6 @@ The results cache alone is not the problem. PHPStan invalidates that itself when
 
 The same cache is worth clearing after analysing a subset of the tree. A file named on the command line is analysed, but a file merely *read* on its behalf is parsed without these extensions, and the reflection stored for it carries no derived shape. A later full run reads that back and reports against a type that is no longer what the docblock says, which is the same silence as above arriving from the other direction.
 
+Baseline generation is exempt from that last hazard. [`generate-baselines.php`](generate-baselines.php) points its analysis at `.cache/baselines` instead, a directory only it writes to and only ever from a full run, so a baseline can never record a message derived from reflection some earlier narrowed run left behind. Clearing the cache after editing anything in this directory still applies to it, and the `rm -rf .cache` above covers both.
+
 Sometimes, due to the lack of type information in legacy code, PHPStan may still struggle to analyze certain parts of the codebase. In such cases, you can use the `--debug` flag to disable caching and see which files are causing issues.
