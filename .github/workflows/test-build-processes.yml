@@ -97,7 +97,7 @@ jobs:
   # Tests the Gutenberg plugin build process on multiple operating systems when run within a wordpress-develop checkout.
   test-gutenberg-build-process:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-gutenberg-build-process.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-test-gutenberg-build-process.yml@add/input-for-pinning-gutenberg
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
@@ -109,6 +109,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      gutenberg-branch: 'wp/6.8'
 
   # Tests the Gutenberg plugin build process on MacOS when run within a wordpress-develop checkout.
   #
@@ -120,7 +121,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-gutenberg-build-process-macos:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-gutenberg-build-process.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-test-gutenberg-build-process.yml@add/input-for-pinning-gutenberg
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -132,6 +133,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      gutenberg-branch: 'wp/6.8'
 
   slack-notifications:
     name: Slack Notifications
