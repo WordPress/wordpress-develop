@@ -3874,7 +3874,7 @@ class wpdb {
 		// Quickly match most common queries.
 		if ( preg_match(
 			'/^\s*(?:'
-				. 'SELECT.*?\s+FROM'
+				. 'SELECT.*\s+FROM'
 				. '|INSERT(?:\s+LOW_PRIORITY|\s+DELAYED|\s+HIGH_PRIORITY)?(?:\s+IGNORE)?(?:\s+INTO)?'
 				. '|REPLACE(?:\s+LOW_PRIORITY|\s+DELAYED)?(?:\s+INTO)?'
 				. '|UPDATE(?:\s+LOW_PRIORITY)?(?:\s+IGNORE)?'
