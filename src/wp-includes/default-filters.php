@@ -656,7 +656,9 @@ add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
 add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
 
 add_action( 'wp_default_styles', 'wp_default_styles' );
+add_filter( 'script_loader_src', '_wp_force_ssl_url' );
 add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
+add_filter( 'style_loader_src', '_wp_force_ssl_url', 11 );
 
 add_action( 'wp_head', 'wp_enqueue_img_auto_sizes_contain_css_fix', 0 ); // Must run before wp_print_auto_sizes_contain_css_fix().
 add_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_img_auto_sizes_contain_css_fix().
@@ -684,6 +686,7 @@ add_action( 'init', 'create_initial_taxonomies', 0 ); // Highest priority.
 add_action( 'change_locale', 'create_initial_taxonomies' );
 
 // Canonical.
+add_action( 'template_redirect', '_wp_force_ssl_redirect', 0 );
 add_action( 'template_redirect', 'redirect_canonical' );
 add_action( 'template_redirect', 'wp_redirect_admin_locations', 1000 );
 
