@@ -1028,3 +1028,83 @@ function fetch_feed( $url ) {
 
 	return $feed;
 }
+
+/**
+ * Determines whether the current request looks like a syndication feed request.
+ *
+ * Unlike {@see is_feed()}, this function may be called before the main query has been
+ * parsed, e.g. during the {@see 'init'} action. Only the raw request is examined: the
+ * `feed` query string parameter, and, on sites using pretty permalinks, whether the
+ * final path segment is a registered feed name, as rewrite-based feed URLs always end
+ * in one, e.g. `/feed/` or `/category/foo/feed/atom/`.
+ * See WP_Rewrite::generate_rewrite_rules().
+ *
+ * The parsed main query is intentionally never consulted, so that callers checking
+ * both before and after the query is parsed always receive the same answer for a given
+ * request. Use `is_feed()` instead when the main query is available and authoritative.
+ *
+ * The check is conservative in both directions. Rewrite-based detection requires the
+ * feed base segment, e.g. `/feed/`, `/feed/atom/`, `/category/foo/feed/`, or a
+ * root-level feed name, e.g. `/atom/`, which cannot belong to a post or page because
+ * {@see wp_unique_post_slug()} reserves feed names as slugs. Working but unadvertised
+ * shorthands, e.g. `/category/foo/atom/`, are not detected — a false negative just
+ * means callers keep their pre-query behavior. A false positive remains possible only
+ * when a URL ends in a path segment equal to the feed base itself, e.g. an archive for
+ * a term with the slug `feed`.
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ *
+ * @return bool True if the request has the pattern of a feed request, false otherwise.
+ */
+function wp_is_serving_feed_request() {
+	global $wp_rewrite;
+
+	// Plain permalink style feed request, e.g. `/?feed=rss2`.
+	$is_feed_request = ! empty( $_GET['feed'] );
+
+	// Pretty permalinks, look for a registered feed name, e.g. `/feed/`.
+	if ( ! $is_feed_request
+		&& $wp_rewrite instanceof WP_Rewrite && $wp_rewrite->using_permalinks()
+		&& isset( $_SERVER['REQUEST_URI'] )
+	) {
+		$path = (string) wp_parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+		$path = trim( $path, '/' );
+
+		if ( '' !== $path ) {
+			$segments     = explode( '/', $path );
+			$last_segment = end( $segments );
+
+			if ( $last_segment === $wp_rewrite->feed_base ) {
+				// A default feed, e.g. `/feed/`, `/category/foo/feed/`, `/2024/01/hello-world/feed/`.
+				$is_feed_request = true;
+			} elseif ( in_array( $last_segment, (array) $wp_rewrite->feeds, true ) ) {
+				/*
+				 * A specific feed type is only recognized directly after the feed base,
+				 * e.g. `/feed/atom/`, or as the whole path, e.g. `/atom/`. Requiring
+				 * this structure avoids false positives for archives whose slug equals
+				 * a feed name, e.g. a category with the slug `atom`, while root-level
+				 * slugs are already reserved by wp_unique_post_slug().
+				 */
+				$segment_count    = count( $segments );
+				$previous_segment = ( $segment_count > 1 ) ? $segments[ $segment_count - 2 ] : '';
+
+				$is_feed_request = ( 1 === $segment_count || $previous_segment === $wp_rewrite->feed_base );
+			}
+		}
+	}
+
+	/**
+	 * Filters whether the current request looks like a syndication feed request.
+	 *
+	 * The value passed to the filter is based solely on examining the raw request,
+	 * regardless of whether the main query has been parsed yet. Filter callbacks
+	 * should likewise return a consistent value for the duration of a request.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $is_feed_request Whether the request has the pattern of a feed request.
+	 */
+	return apply_filters( 'wp_is_serving_feed_request', $is_feed_request );
+}
