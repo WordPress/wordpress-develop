@@ -228,4 +228,34 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		add_theme_support( 'responsive-embeds' );
 		$this->assertTrue( current_theme_supports( 'responsive-embeds' ) );
 	}
+
+	/**
+	 * @ticket 60826
+	 *
+	 * @covers ::add_editor_style
+	 * @covers ::remove_editor_styles
+	 */
+	public function test_editor_style_singular_and_editor_styles_plural_are_distinct() {
+		// Ensure a clean slate: supports may be left over from a prior test or the active theme.
+		remove_editor_styles();
+		remove_theme_support( 'editor-styles' );
+		$this->assertFalse( current_theme_supports( 'editor-style' ) );
+		$this->assertFalse( current_theme_supports( 'editor-styles' ) );
+
+		// 'editor-style' (singular) is the internal TinyMCE marker added by add_editor_style().
+		add_editor_style();
+		$this->assertTrue( current_theme_supports( 'editor-style' ) );
+		$this->assertFalse( current_theme_supports( 'editor-styles' ) );
+
+		// remove_editor_styles() clears the singular marker only.
+		$this->assertTrue( remove_editor_styles() );
+		$this->assertFalse( current_theme_supports( 'editor-style' ) );
+
+		// 'editor-styles' (plural) is a distinct, public block-editor feature and remains removable.
+		add_theme_support( 'editor-styles' );
+		$this->assertTrue( current_theme_supports( 'editor-styles' ) );
+		$this->assertFalse( current_theme_supports( 'editor-style' ) );
+		$this->assertTrue( remove_theme_support( 'editor-styles' ) );
+		$this->assertFalse( current_theme_supports( 'editor-styles' ) );
+	}
 }

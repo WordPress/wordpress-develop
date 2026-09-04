@@ -2175,6 +2175,12 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  * Since version 3.4 the TinyMCE body has .rtl CSS class.
  * It is a better option to use that class and add any RTL styles to the main stylesheet.
  *
+ * Internally this registers the 'editor-style' theme support (singular), an internal
+ * marker for TinyMCE editor stylesheets. It is distinct from the 'editor-styles'
+ * (plural) theme support, which opts in to editor styles in the block editor and is
+ * exposed via the REST API. To enable editor styles in the block editor, use
+ * add_theme_support( 'editor-styles' ) rather than this function.
+ *
  * @since 3.0.0
  *
  * @global array $editor_styles
@@ -2200,6 +2206,11 @@ function add_editor_style( $stylesheet = 'editor-style.css' ) {
 
 /**
  * Removes all visual editor stylesheets.
+ *
+ * Removes the internal 'editor-style' theme support (singular) added by
+ * add_editor_style(). This is distinct from the 'editor-styles' (plural) theme
+ * support, which opts in to editor styles in the block editor and is removed
+ * normally via remove_theme_support( 'editor-styles' ).
  *
  * @since 3.1.0
  *
@@ -3067,6 +3078,9 @@ function get_theme_support( $feature, ...$args ) {
  */
 function remove_theme_support( $feature ) {
 	// Do not remove internal registrations that are not used directly by themes.
+	// Note: 'editor-style' (singular) is the internal TinyMCE marker added by
+	// add_editor_style(), and is intentionally distinct from the public
+	// 'editor-styles' (plural) block-editor feature, which remains removable.
 	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ), true ) ) {
 		return false;
 	}
