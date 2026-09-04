@@ -2,7 +2,7 @@
  * @output wp-admin/js/common.js
  */
 
-/* global setUserSetting, ajaxurl, alert, confirm, pagenow */
+/* global setUserSetting, ajaxurl, alert, confirm, pagenow, showNotice */
 /* global columns, screenMeta */
 
 /**
@@ -1335,6 +1335,24 @@ $( function() {
 
 		var values = new FormData(form);
 		var value = values.get( bulkFieldRelations[ submitterName ] ) || '-1';
+
+		// Add confirmation prompt for bulk term deletion.
+		var deleteTags = values.getAll( 'delete_tags[]' );
+
+		if (
+			value === 'delete' &&
+			values.has( 'taxonomy' ) &&
+			deleteTags.length > 0 &&
+			typeof showNotice !== 'undefined'
+		) {
+			var deleteConfirmation = showNotice.warn();
+
+			if ( ! deleteConfirmation ) {
+				event.preventDefault();
+				event.stopPropagation();
+				return;
+			}
+		}
 
 		// Check that the action is not the default one.
 		if ( value !== '-1' ) {
