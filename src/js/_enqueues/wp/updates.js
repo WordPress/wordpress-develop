@@ -387,6 +387,23 @@
 			$dashboardNavMenuUpdateCount.remove();
 		}
 
+		/*
+		 * Keep the menu item's hidden count description in sync. The visible
+		 * count bubble is aria-hidden, so this description is what assistive
+		 * technologies announce via aria-describedby.
+		 */
+		if ( settings.totals.counts.total > 0 ) {
+			$( '#wp-menu-updates-count-description' ).text(
+				sprintf(
+					/* translators: %s: Number of updates available. */
+					_n( '%s update available', '%s updates available', settings.totals.counts.total ),
+					settings.totals.counts.total
+				)
+			);
+		} else {
+			$( '#wp-menu-updates-count-description' ).text( '' );
+		}
+
 		// Update the "Plugins" menu item.
 		$pluginsNavMenuUpdateCount.each( function( index, element ) {
 			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.plugins );
@@ -397,6 +414,19 @@
 			$pluginsNavMenuUpdateCount.remove();
 		}
 
+		// Keep the menu item's hidden count description in sync. See above.
+		if ( settings.totals.counts.plugins > 0 ) {
+			$( '#wp-menu-plugins-count-description' ).text(
+				sprintf(
+					/* translators: %s: Number of available plugin updates. */
+					_n( '%s plugin update available', '%s plugin updates available', settings.totals.counts.plugins ),
+					settings.totals.counts.plugins
+				)
+			);
+		} else {
+			$( '#wp-menu-plugins-count-description' ).text( '' );
+		}
+
 		// Update the "Appearance" menu item.
 		$appearanceNavMenuUpdateCount.each( function( index, element ) {
 			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.themes );
@@ -405,6 +435,19 @@
 			$appearanceNavMenuUpdateCount.find( '.theme-count' ).text( settings.totals.counts.themes );
 		} else {
 			$appearanceNavMenuUpdateCount.remove();
+		}
+
+		// Keep the menu item's hidden count description in sync. See above.
+		if ( settings.totals.counts.themes > 0 ) {
+			$( '#wp-menu-themes-count-description' ).text(
+				sprintf(
+					/* translators: %s: Number of available theme updates. */
+					_n( '%s theme update available', '%s theme updates available', settings.totals.counts.themes ),
+					settings.totals.counts.themes
+				)
+			);
+		} else {
+			$( '#wp-menu-themes-count-description' ).text( '' );
 		}
 
 		// Update list table filter navigation.

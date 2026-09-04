@@ -1134,13 +1134,17 @@ function wp_admin_bar_comments_menu( $wp_admin_bar ) {
 
 	$icon   = '<span class="ab-icon" aria-hidden="true"></span>';
 	$title  = '<span class="ab-label awaiting-mod pending-count count-' . $awaiting_mod . '" aria-hidden="true">' . number_format_i18n( $awaiting_mod ) . '</span>';
-	$title .= '<span class="screen-reader-text comments-in-moderation-text">' . $awaiting_text . '</span>';
+	$title .= '<span class="screen-reader-text">' . __( 'Comments' ) . '</span>';
+	$title .= '<span id="wp-admin-bar-comments-count-description" class="screen-reader-text comments-in-moderation-text" aria-hidden="true">' . $awaiting_text . '</span>';
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'comments',
 			'title' => $icon . $title,
 			'href'  => admin_url( 'edit-comments.php' ),
+			'meta'  => array(
+				'aria-describedby' => 'wp-admin-bar-comments-count-description',
+			),
 		)
 	);
 }
@@ -1249,13 +1253,17 @@ function wp_admin_bar_updates_menu( $wp_admin_bar ) {
 
 	$icon   = '<span class="ab-icon" aria-hidden="true"></span>';
 	$title  = '<span class="ab-label" aria-hidden="true">' . number_format_i18n( $update_data['counts']['total'] ) . '</span>';
-	$title .= '<span class="screen-reader-text updates-available-text">' . $updates_text . '</span>';
+	$title .= '<span class="screen-reader-text">' . __( 'Updates' ) . '</span>';
+	$title .= '<span id="wp-admin-bar-updates-count-description" class="screen-reader-text updates-available-text" aria-hidden="true">' . $updates_text . '</span>';
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'updates',
 			'title' => $icon . $title,
 			'href'  => network_admin_url( 'update-core.php' ),
+			'meta'  => array(
+				'aria-describedby' => 'wp-admin-bar-updates-count-description',
+			),
 		)
 	);
 }
