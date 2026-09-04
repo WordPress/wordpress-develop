@@ -3155,6 +3155,8 @@ function _remove_theme_support( $feature ) {
  *                        of possible values.
  * @param mixed  ...$args Optional extra arguments to be checked against certain features.
  * @return bool True if the active theme supports the feature, false otherwise.
+ *
+ * @phpstan-impure
  */
 function current_theme_supports( $feature, ...$args ) {
 	global $_wp_theme_features;

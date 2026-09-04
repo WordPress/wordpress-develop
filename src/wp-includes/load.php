@@ -1629,6 +1629,8 @@ function wp_load_translations_early() {
  *                            Omit this parameter if you only want to fetch the current status.
  * @return bool True if WP is installing, otherwise false. When a `$is_installing` is passed, the function will
  *              report whether WP was in installing mode prior to the change to `$is_installing`.
+ *
+ * @phpstan-impure
  */
 function wp_installing( $is_installing = null ) {
 	static $installing = null;
