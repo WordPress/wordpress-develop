@@ -182,7 +182,12 @@ $analysis_tmp_dir = $repo_root . '/.cache/baselines';
 file_put_contents(
 	$temp_config,
 	sprintf(
-		"includes:\n\t- %s\n\nparameters:\n\ttmpDir: %s\n",
+		<<<'NEON'
+		includes:
+			- %s
+		parameters:
+			tmpDir: %s
+		NEON,
 		basename( $temp_stripped ),
 		quote_neon_value( $analysis_tmp_dir )
 	)
