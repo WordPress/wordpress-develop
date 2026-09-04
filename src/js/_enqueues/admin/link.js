@@ -20,7 +20,7 @@ jQuery( function($) {
 	 * @return {boolean} Always returns false to prevent the default behavior.
 	 */
 	$('#category-tabs a').on( 'click keyup keydown', function( event ){
-		var t = $(this).attr('href');
+		var t = $(this).attr( 'aria-controls' );
 		if ( event.type === 'keydown' && event.key === ' ' ) {
 			event.preventDefault();
 		}
@@ -30,8 +30,8 @@ jQuery( function($) {
 			$(this).attr( 'aria-selected', 'true' ).removeAttr( 'tabindex' );
 			$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
 			$('.tabs-panel').hide();
-			$(t).show();
-			if ( '#categories-all' == t ) {
+			$( document.getElementById( t ) ).show();
+			if ( 'categories-all' === t ) {
 				deleteUserSetting('cats');
 			} else {
 				setUserSetting('cats','pop');
