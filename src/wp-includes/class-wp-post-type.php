@@ -1021,6 +1021,10 @@ final class WP_Post_Type {
 				_x( 'A link to a post.', 'navigation link block description' ),
 				_x( 'A link to a page.', 'navigation link block description' ),
 			),
+			'link_to_item'             => array(
+				_x( 'Link to post', 'editor control label' ),
+				_x( 'Link to page', 'editor control label' ),
+			),
 		);
 
 		return self::$default_labels;

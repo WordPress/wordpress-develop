@@ -2141,6 +2141,7 @@ function _post_type_meta_capabilities( $capabilities = array() ): void {
  * @since 6.6.0 Added the `template_name` label.
  * @since 6.7.0 Restored pre-6.4.0 defaults for the `add_new` label and updated documentation.
  *              Updated core usage to reference `add_new_item`.
+ * @since x.y.z Added the `link_to_item` label.
  *
  * @access private
  *
