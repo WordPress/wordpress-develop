@@ -17,7 +17,8 @@
 		_button = '<input type="button" class="button button-small" />',
 		_wrappingLabel = '<label></label>',
 		_wrappingLabelText = '<span class="screen-reader-text"></span>',
-		__ = wp.i18n.__;
+		__ = wp.i18n.__,
+		_x = wp.i18n._x;
 
 	/**
 	 * Creates a jQuery UI color picker that is used in the theme customizer.
@@ -157,7 +158,7 @@
 			} else {
 				self.button
 					.addClass( 'wp-picker-clear' )
-					.val( __( 'Clear' ) )
+					.val( _x( 'Clear', 'reset color' ) )
 					.attr( 'aria-label', __( 'Clear color' ) );
 			}
 

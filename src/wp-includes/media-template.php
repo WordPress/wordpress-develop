@@ -829,7 +829,7 @@ function wp_print_media_templates() {
 				<button type="button" class="button-link edit-selection"><?php _e( 'Edit Selection' ); ?></button>
 			<# } #>
 			<# if ( data.clearable ) { #>
-				<button type="button" class="button-link clear-selection"><?php _e( 'Clear' ); ?></button>
+				<button type="button" class="button-link clear-selection"><?php echo esc_html_x( 'Clear', 'reset selection' ); ?></button>
 			<# } #>
 		</div>
 		<div class="selection-view"></div>
