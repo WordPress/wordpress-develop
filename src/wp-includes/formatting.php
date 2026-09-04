@@ -4088,6 +4088,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		 * @param string $more_string The string shown within the more link.
 		 */
 		$excerpt_more = apply_filters( 'excerpt_more', ' ' . '[&hellip;]' );
+		$raw_excerpt  = $text;
 		$text         = wp_trim_words( $text, $excerpt_length, $excerpt_more );
 
 	}
