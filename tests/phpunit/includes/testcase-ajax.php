@@ -86,6 +86,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		'wp-remove-post-lock',
 		'dismiss-wp-pointer',
 		'send-attachment-to-editor',
+		'save-media-infinite-scrolling',
 		'heartbeat',
 		'nopriv_heartbeat',
 		'get-revision-diffs',

@@ -127,7 +127,7 @@ CAP;
 		// Default: no user preference and no filter, infinite scrolling is enabled.
 		$this->assertSame(
 			1,
-			$this->get_media_infinite_scrolling_setting(),
+			$this->get_media_view_setting( 'infiniteScrolling' ),
 			'Infinite scrolling should be enabled by default.'
 		);
 
@@ -135,7 +135,7 @@ CAP;
 		update_user_meta( $user_id, 'infinite_scrolling', 'false' );
 		$this->assertSame(
 			0,
-			$this->get_media_infinite_scrolling_setting(),
+			$this->get_media_view_setting( 'infiniteScrolling' ),
 			'The user preference should disable infinite scrolling.'
 		);
 
@@ -143,25 +143,58 @@ CAP;
 		add_filter( 'media_library_infinite_scrolling', '__return_true' );
 		$this->assertSame(
 			1,
-			$this->get_media_infinite_scrolling_setting(),
+			$this->get_media_view_setting( 'infiniteScrolling' ),
 			'The filter should take precedence over the user preference.'
 		);
 	}
 
 	/**
-	 * Helper that runs wp_enqueue_media() and returns the computed
-	 * `infiniteScrolling` media view setting.
+	 * Tests that the infinite scrolling control is only offered when saving the
+	 * personal option takes effect.
 	 *
-	 * @return int The infiniteScrolling setting: 1 when enabled, 0 when disabled.
+	 * @ticket 65775
+	 *
+	 * @covers ::wp_enqueue_media
 	 */
-	private function get_media_infinite_scrolling_setting() {
+	public function test_wp_enqueue_media_can_toggle_infinite_scrolling() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$this->assertSame(
+			1,
+			$this->get_media_view_setting( 'canToggleInfiniteScrolling' ),
+			'The control should be offered when no filter callback is attached.'
+		);
+
+		add_filter( 'media_library_infinite_scrolling', '__return_true' );
+		$this->assertSame(
+			0,
+			$this->get_media_view_setting( 'canToggleInfiniteScrolling' ),
+			'The control should not be offered when a filter callback takes precedence.'
+		);
+
+		remove_filter( 'media_library_infinite_scrolling', '__return_true' );
+		wp_set_current_user( 0 );
+		$this->assertSame(
+			0,
+			$this->get_media_view_setting( 'canToggleInfiniteScrolling' ),
+			'The control should not be offered when there is no logged-in user.'
+		);
+	}
+
+	/**
+	 * Helper that runs wp_enqueue_media() and returns one of the computed media view settings.
+	 *
+	 * @param string $setting The name of the setting to return.
+	 * @return mixed The setting as passed through the `media_view_settings` filter.
+	 */
+	private function get_media_view_setting( $setting ) {
 		// wp_enqueue_media() only runs once per request; reset the guard so it
 		// can be invoked again for each scenario.
 		unset( $GLOBALS['wp_actions']['wp_enqueue_media'] );
 
-		$infinite_scrolling = null;
-		$capture            = static function ( $settings ) use ( &$infinite_scrolling ) {
-			$infinite_scrolling = $settings['infiniteScrolling'];
+		$value   = null;
+		$capture = static function ( $settings ) use ( &$value, $setting ) {
+			$value = $settings[ $setting ];
 			return $settings;
 		};
 
@@ -169,7 +202,7 @@ CAP;
 		wp_enqueue_media();
 		remove_filter( 'media_view_settings', $capture );
 
-		return $infinite_scrolling;
+		return $value;
 	}
 
 	public function test_img_caption_shortcode_with_empty_params() {

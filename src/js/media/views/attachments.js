@@ -90,13 +90,11 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 
 		this.controller.on( 'library:selection:add', this.attachmentFocus, this );
 
-		if ( this.options.infiniteScrolling ) {
-			// Throttle the scroll handler and bind this.
-			this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
+		// Throttle the scroll handler and bind this.
+		this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
 
-			this.options.scrollElement = this.options.scrollElement || this.el;
-			$( this.options.scrollElement ).on( 'scroll', this.scroll );
-		}
+		this.options.scrollElement = this.options.scrollElement || this.el;
+		$( this.options.scrollElement ).on( 'scroll', this.scroll );
 
 		this.initSortable();
 
@@ -422,6 +420,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 * server if we're {refreshThreshold} times away from the bottom.
 	 *
 	 * @since 3.5.0
+	 * @since 7.1.0 Bails out when infinite scrolling is disabled.
 	 *
 	 * @return {void}
 	 */
@@ -430,6 +429,10 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			el = this.options.scrollElement,
 			scrollTop = el.scrollTop,
 			toolbar;
+
+		if ( ! this.options.infiniteScrolling ) {
+			return;
+		}
 
 		/*
 		 * The scroll event occurs on the document, but the element that should be

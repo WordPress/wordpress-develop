@@ -3336,6 +3336,29 @@ function wp_ajax_save_attachment_order() {
 }
 
 /**
+ * Handles saving the current user's Media Library infinite scrolling preference via AJAX.
+ *
+ * Writes the same personal option as the "Infinite Scrolling" checkbox on the
+ * profile screen, so that the preference set from the attachments browser
+ * persists beyond the current view.
+ *
+ * @since 7.1.0
+ */
+function wp_ajax_save_media_infinite_scrolling() {
+	check_ajax_referer( 'save-media-infinite-scrolling', 'nonce' );
+
+	if ( ! isset( $_POST['infiniteScrolling'] ) ) {
+		wp_send_json_error();
+	}
+
+	$infinite_scrolling = wp_validate_boolean( wp_unslash( $_POST['infiniteScrolling'] ) );
+
+	update_user_meta( get_current_user_id(), 'infinite_scrolling', $infinite_scrolling ? 'true' : 'false' );
+
+	wp_send_json_success();
+}
+
+/**
  * Handles sending an attachment to the editor via AJAX.
  *
  * Generates the HTML to send an attachment to the editor.
