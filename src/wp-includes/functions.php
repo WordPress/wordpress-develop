@@ -486,8 +486,8 @@ function size_format( $bytes, $decimals = 0 ) {
 		_x( 'B', 'unit symbol' )  => 1,
 	);
 
-	$bytes = (int) $bytes;
-	if ( 0 === $bytes ) {
+	// Check for a numeric zero of any type, including a float or a numeric string.
+	if ( is_numeric( $bytes ) && 0.0 === (float) $bytes ) {
 		/* translators: Unit symbol for byte. */
 		return number_format_i18n( 0, $decimals ) . ' ' . _x( 'B', 'unit symbol' );
 	}

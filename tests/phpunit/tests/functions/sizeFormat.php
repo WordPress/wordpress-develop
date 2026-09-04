@@ -26,11 +26,16 @@ class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 			array( '', 0, false ),
 			array( '-1', 0, false ),
 			array( -1, 0, false ),
-			// Bytes.
+			array( -1.0, 0, false ),
+			// Zero bytes, in every numeric representation.
 			array( 0, 0, '0 B' ),
+			array( 0.0, 0, '0 B' ),
+			array( 0.0, 2, '0.00 B' ),
 			array( '0', 0, '0 B' ),
 			array( '0.0', 0, '0 B' ),
 			array( 0.0e3, 0, '0 B' ),
+			array( -0.0, 0, '0 B' ),
+			// Bytes.
 			array( 1, 0, '1 B' ),
 			array( 1023, 0, '1,023 B' ),
 			// Kilobytes.
