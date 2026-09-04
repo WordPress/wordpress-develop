@@ -8590,18 +8590,37 @@ function wp_privacy_exports_url() {
 }
 
 /**
- * Schedules a `WP_Cron` job to delete expired export files.
+ * Schedules a one-off `WP_Cron` job to delete expired export files.
  *
- * @since 4.9.6
+ * Called after a personal data export file is generated so that the cleanup
+ * runs once, shortly after the file is due to expire, rather than hourly on
+ * every site.
+ *
+ * @since 7.1.0
  */
-function wp_schedule_delete_old_privacy_export_files() {
+function wp_schedule_delete_personal_data_export_file() {
 	if ( wp_installing() ) {
 		return;
 	}
 
-	if ( ! wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) ) {
-		wp_schedule_event( time(), 'hourly', 'wp_privacy_delete_old_export_files' );
+	/** This filter is documented in wp-includes/functions.php */
+	$expiration = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
+
+	// Run shortly after the file is eligible for deletion.
+	$run_at = time() + (int) $expiration + MINUTE_IN_SECONDS;
+
+	$next_scheduled = wp_next_scheduled( 'wp_privacy_delete_old_export_files' );
+
+	// Avoid stacking events; keep the earliest one that covers this file.
+	if ( $next_scheduled && $next_scheduled <= $run_at ) {
+		return;
 	}
+
+	if ( $next_scheduled ) {
+		wp_unschedule_event( $next_scheduled, 'wp_privacy_delete_old_export_files' );
+	}
+
+	wp_schedule_single_event( $run_at, 'wp_privacy_delete_old_export_files' );
 }
 
 /**
@@ -8646,6 +8665,7 @@ function wp_privacy_personal_data_cleanup_requests(): void {
  * layer of protection.
  *
  * @since 4.9.6
+ * @since 7.1.0 Reschedules a follow-up one-off cleanup if any unexpired files remain.
  */
 function wp_privacy_delete_old_export_files() {
 	$exports_dir = wp_privacy_exports_dir();
@@ -8668,12 +8688,28 @@ function wp_privacy_delete_old_export_files() {
 	 */
 	$expiration = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
 
+	$now                  = time();
+	$next_expiration_time = 0;
+
 	foreach ( (array) $export_files as $export_file ) {
-		$file_age_in_seconds = time() - filemtime( $export_file );
+		$file_mtime          = filemtime( $export_file );
+		$file_age_in_seconds = $now - $file_mtime;
 
 		if ( $expiration < $file_age_in_seconds ) {
 			unlink( $export_file );
+			continue;
 		}
+
+		// Track the earliest expiration of files that survived this pass.
+		$file_expires_at = $file_mtime + (int) $expiration;
+		if ( 0 === $next_expiration_time || $file_expires_at < $next_expiration_time ) {
+			$next_expiration_time = $file_expires_at;
+		}
+	}
+
+	// If any non-expired files remain, schedule a follow-up cleanup for them.
+	if ( $next_expiration_time > $now && ! wp_next_scheduled( 'wp_privacy_delete_old_export_files' ) ) {
+		wp_schedule_single_event( $next_expiration_time + MINUTE_IN_SECONDS, 'wp_privacy_delete_old_export_files' );
 	}
 }
 

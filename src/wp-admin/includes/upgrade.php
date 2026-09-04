@@ -890,6 +890,10 @@ function upgrade_all() {
 		upgrade_700();
 	}
 
+	if ( $wp_current_db_version < 61834 ) {
+		upgrade_710();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2497,6 +2501,37 @@ function upgrade_700() {
 				'meta_value' => 'fresh',
 			)
 		);
+	}
+}
+
+/**
+ * Executes changes made in WordPress 7.1.0.
+ *
+ * @ignore
+ * @since 7.1.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_710() {
+	global $wp_current_db_version;
+
+	/*
+	 * Unschedule the legacy hourly personal data export cleanup event.
+	 *
+	 * Cleanup is now scheduled as a one-off event when an export file is
+	 * generated. See wp_schedule_delete_personal_data_export_file().
+	 */
+	if ( $wp_current_db_version < 61834 ) {
+		$next_scheduled = wp_next_scheduled( 'wp_privacy_delete_old_export_files' );
+
+		if ( $next_scheduled ) {
+			$schedule = wp_get_schedule( 'wp_privacy_delete_old_export_files' );
+
+			// Only remove the recurring event; leave any on-demand single events alone.
+			if ( false !== $schedule ) {
+				wp_unschedule_event( $next_scheduled, 'wp_privacy_delete_old_export_files' );
+			}
+		}
 	}
 }
 
