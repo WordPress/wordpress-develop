@@ -226,3 +226,11 @@ parameters:
 			- ../../src/wp-includes/pomo
 			- ../../src/wp-includes/rss.php
 			- ../../src/wp-includes/sodium_compat
+	typeAliases:
+		# A callable that may not be defined in the current scope.
+		Maybe_Callable: '''
+			callable|string|array{
+				0: string|object,
+				1: string,
+			}
+		'''
