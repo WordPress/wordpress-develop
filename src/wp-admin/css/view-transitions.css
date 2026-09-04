@@ -3,6 +3,10 @@
 		navigation: auto;
 	}
 
+	#adminmenuwrap {
+		view-transition-name: adminmenuwrap;
+	}
+
 	#adminmenu > .menu-top {
 		view-transition-name: attr(id type(<custom-ident>), none);
 	}
