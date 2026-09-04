@@ -522,14 +522,47 @@ if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set.
 
 // Set a cookie now to see if they are supported by the browser.
 $secure = ( 'https' === parse_url( wp_login_url(), PHP_URL_SCHEME ) );
-setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
+wp_set_cookie(
+	TEST_COOKIE,
+	'WP Cookie check',
+	array(
+		'expires'  => 0,
+		'path'     => COOKIEPATH,
+		'domain'   => COOKIE_DOMAIN,
+		'secure'   => $secure,
+		'httponly' => true,
+		'samesite' => 'Lax',
+	)
+);
 
 if ( SITECOOKIEPATH !== COOKIEPATH ) {
-	setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure, true );
+	wp_set_cookie(
+		TEST_COOKIE,
+		'WP Cookie check',
+		array(
+			'expires'  => 0,
+			'path'     => SITECOOKIEPATH,
+			'domain'   => COOKIE_DOMAIN,
+			'secure'   => $secure,
+			'httponly' => true,
+			'samesite' => 'Lax',
+		)
+	);
 }
 
 if ( isset( $_GET['wp_lang'] ) ) {
-	setcookie( 'wp_lang', sanitize_text_field( $_GET['wp_lang'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
+	wp_set_cookie(
+		'wp_lang',
+		sanitize_text_field( $_GET['wp_lang'] ),
+		array(
+			'expires'  => 0,
+			'path'     => COOKIEPATH,
+			'domain'   => COOKIE_DOMAIN,
+			'secure'   => $secure,
+			'httponly' => true,
+			'samesite' => 'Lax',
+		)
+	);
 }
 
 /**
@@ -786,7 +819,21 @@ switch ( $action ) {
 			$secure = false;
 		}
 
-		setcookie( 'wp-postpass_' . COOKIEHASH, $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) ), $expire, COOKIEPATH, COOKIE_DOMAIN, $secure );
+		/** @var string $value */
+		$value = $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) );
+
+		wp_set_cookie(
+			'wp-postpass_' . COOKIEHASH,
+			$value,
+			array(
+				'expires'  => (int) $expire,
+				'path'     => COOKIEPATH,
+				'domain'   => COOKIE_DOMAIN,
+				'secure'   => $secure,
+				'httponly' => true,
+				'samesite' => 'Lax',
+			)
+		);
 
 		wp_safe_redirect( $redirect_to );
 		exit;
@@ -936,7 +983,18 @@ switch ( $action ) {
 
 		if ( isset( $_GET['key'] ) && isset( $_GET['login'] ) ) {
 			$value = sprintf( '%s:%s', wp_unslash( $_GET['login'] ), wp_unslash( $_GET['key'] ) );
-			setcookie( $rp_cookie, $value, 0, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
+			wp_set_cookie(
+				$rp_cookie,
+				$value,
+				array(
+					'expires'  => 0,
+					'path'     => $rp_path,
+					'domain'   => COOKIE_DOMAIN,
+					'secure'   => is_ssl(),
+					'httponly' => true,
+					'samesite' => 'Lax',
+				)
+			);
 
 			wp_safe_redirect( remove_query_arg( array( 'key', 'login' ) ) );
 			exit;
@@ -955,7 +1013,13 @@ switch ( $action ) {
 		}
 
 		if ( ! $user || is_wp_error( $user ) ) {
-			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
+			wp_unset_cookie(
+				$rp_cookie,
+				array(
+					'path'   => $rp_path,
+					'domain' => COOKIE_DOMAIN,
+				)
+			);
 
 			if ( $user && $user->get_error_code() === 'expired_key' ) {
 				wp_redirect( site_url( 'wp-login.php?action=lostpassword&error=expiredkey' ) );
@@ -1485,7 +1549,13 @@ switch ( $action ) {
 		if ( isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
 			$user_login      = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
 			list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
-			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
+			wp_unset_cookie(
+				$rp_cookie,
+				array(
+					'path'   => $rp_path,
+					'domain' => COOKIE_DOMAIN,
+				)
+			);
 		}
 
 		login_header( __( 'Log In' ), '', $errors );

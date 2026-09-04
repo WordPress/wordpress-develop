@@ -338,9 +338,9 @@ function _wp_rest_server_class_filter() {
 	return 'Spy_REST_Server';
 }
 
-// Skip `setcookie` calls in auth_cookie functions due to warning:
+// Skip `setcookie` calls in all functions due to warning:
 // Cannot modify header information - headers already sent by...
-tests_add_filter( 'send_auth_cookies', '__return_false' );
+tests_add_filter( 'send_cookie', '__return_false' );
 
 /**
  * After the init action has been run once, trying to re-register block types can cause

@@ -1737,8 +1737,30 @@ function wp_user_settings() {
 
 	// The cookie is not set in the current browser or the saved value is newer.
 	$secure = ( 'https' === parse_url( admin_url(), PHP_URL_SCHEME ) );
-	setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
-	setcookie( 'wp-settings-time-' . $user_id, time(), time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
+	wp_set_cookie(
+		'wp-settings-' . $user_id,
+		$settings,
+		array(
+			'expires'  => time() + YEAR_IN_SECONDS,
+			'path'     => SITECOOKIEPATH,
+			'domain'   => '',
+			'secure'   => $secure,
+			'httponly' => false,
+			'samesite' => 'Lax',
+		)
+	);
+	wp_set_cookie(
+		'wp-settings-time-' . $user_id,
+		(string) time(),
+		array(
+			'expires'  => time() + YEAR_IN_SECONDS,
+			'path'     => SITECOOKIEPATH,
+			'domain'   => '',
+			'secure'   => $secure,
+			'httponly' => false,
+			'samesite' => 'Lax',
+		)
+	);
 	$_COOKIE[ 'wp-settings-' . $user_id ] = $settings;
 }
 
@@ -1914,7 +1936,12 @@ function delete_all_user_settings() {
 	}
 
 	update_user_option( $user_id, 'user-settings', '', false );
-	setcookie( 'wp-settings-' . $user_id, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
+	wp_unset_cookie(
+		'wp-settings-' . $user_id,
+		array(
+			'path' => SITECOOKIEPATH,
+		)
+	);
 }
 
 /**
