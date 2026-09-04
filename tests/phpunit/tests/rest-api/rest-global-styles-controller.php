@@ -807,7 +807,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsInt( $data['id'] );
