@@ -1308,6 +1308,128 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @ticket 46554
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_upload_time_can_be_filtered_for_page_parent() {
+		wp_set_current_user( self::$editor_id );
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_date' => '2010-01-01 12:00:00',
+				'post_type' => 'page',
+			)
+		);
+
+		$filter_args = null;
+		$filter      = static function ( $time, $post, $file, $overrides, $action ) use ( &$filter_args ) {
+			$filter_args = array(
+				'time'      => $time,
+				'post'      => $post,
+				'file'      => $file,
+				'overrides' => $overrides,
+				'action'    => $action,
+			);
+
+			if ( $post instanceof WP_Post && 'page' === $post->post_type ) {
+				return $post->post_date;
+			}
+
+			return $time;
+		};
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file ),
+					'name'     => 'canola.jpg',
+					'size'     => filesize( self::$test_file ),
+					'tmp_name' => self::$test_file,
+				),
+			)
+		);
+		$request->set_header( 'Content-MD5', md5_file( self::$test_file ) );
+		$request->set_param( 'post', $parent_id );
+
+		add_filter( 'wp_handle_upload_time', $filter, 10, 5 );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( 'wp_handle_upload_time', $filter, 10 );
+
+		$data = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$uploads_dir = wp_upload_dir( '2010/01' );
+		$expected    = $uploads_dir['url'] . '/canola.jpg';
+
+		$this->assertSame( $expected, $data['source_url'] );
+		$this->assertNull( $filter_args['time'] );
+		$this->assertSame( 'canola.jpg', $filter_args['file']['name'] );
+		$this->assertFalse( $filter_args['overrides']['test_form'] );
+		$this->assertSame( 'wp_handle_mock_upload', $filter_args['action'] );
+		$this->assertInstanceOf( WP_Post::class, $filter_args['post'] );
+		$this->assertSame( $parent_id, $filter_args['post']->ID );
+	}
+
+	/**
+	 * @ticket 46554
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_upload_time_can_be_filtered_for_page_parent_with_raw_data() {
+		wp_set_current_user( self::$editor_id );
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_date' => '2010-01-01 12:00:00',
+				'post_type' => 'page',
+			)
+		);
+
+		$filter_args = null;
+		$filter      = static function ( $time, $post, $file, $overrides, $action ) use ( &$filter_args ) {
+			$filter_args = array(
+				'time'      => $time,
+				'post'      => $post,
+				'file'      => $file,
+				'overrides' => $overrides,
+				'action'    => $action,
+			);
+
+			if ( $post instanceof WP_Post && 'page' === $post->post_type ) {
+				return $post->post_date;
+			}
+
+			return $time;
+		};
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-raw.jpg' );
+		$request->set_param( 'post', $parent_id );
+		$request->set_body( file_get_contents( self::$test_file ) );
+
+		add_filter( 'wp_handle_upload_time', $filter, 10, 5 );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( 'wp_handle_upload_time', $filter, 10 );
+
+		$data = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$uploads_dir = wp_upload_dir( '2010/01' );
+		$expected    = $uploads_dir['url'] . '/canola-raw.jpg';
+
+		$this->assertSame( $expected, $data['source_url'] );
+		$this->assertNull( $filter_args['time'] );
+		$this->assertSame( 'canola-raw.jpg', $filter_args['file']['name'] );
+		$this->assertFalse( $filter_args['overrides']['test_form'] );
+		$this->assertSame( 'wp_handle_sideload', $filter_args['action'] );
+		$this->assertInstanceOf( WP_Post::class, $filter_args['post'] );
+		$this->assertSame( $parent_id, $filter_args['post']->ID );
+	}
+
+	/**
 	 * @requires function imagejpeg
 	 */
 	public function test_create_item_with_upload_files_role() {

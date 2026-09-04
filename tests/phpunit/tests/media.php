@@ -3615,6 +3615,158 @@ EOF;
 	}
 
 	/**
+	 * @ticket 46554
+	 */
+	public function test_media_handle_upload_time_can_be_filtered_for_page_parent() {
+		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
+
+		// Make a copy of this file as it gets moved during the file upload.
+		$tmp_name = wp_tempnam( $iptc_file );
+
+		copy( $iptc_file, $tmp_name );
+
+		$_FILES['upload'] = array(
+			'tmp_name' => $tmp_name,
+			'name'     => 'test-image-iptc.jpg',
+			'type'     => 'image/jpeg',
+			'error'    => 0,
+			'size'     => filesize( $iptc_file ),
+		);
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_date' => '2010-01-01 12:00:00',
+				'post_type' => 'page',
+			)
+		);
+
+		$filter_args = null;
+		$filter      = static function ( $time, $post, $file, $overrides, $action ) use ( &$filter_args ) {
+			$filter_args = array(
+				'time'      => $time,
+				'post'      => $post,
+				'file'      => $file,
+				'overrides' => $overrides,
+				'action'    => $action,
+			);
+
+			if ( $post instanceof WP_Post && 'page' === $post->post_type ) {
+				return $post->post_date;
+			}
+
+			return $time;
+		};
+
+		add_filter( 'wp_handle_upload_time', $filter, 10, 5 );
+
+		$post_id = media_handle_upload(
+			'upload',
+			$parent_id,
+			array(),
+			array(
+				'action'    => 'test_iptc_upload',
+				'test_form' => false,
+			)
+		);
+
+		remove_filter( 'wp_handle_upload_time', $filter, 10 );
+		unset( $_FILES['upload'] );
+
+		$this->assertNotWPError( $post_id );
+
+		$url         = wp_get_attachment_url( $post_id );
+		$uploads_dir = wp_upload_dir( '2010/01' );
+		$expected    = $uploads_dir['url'] . '/test-image-iptc.jpg';
+
+		// Clean up.
+		wp_delete_attachment( $post_id, true );
+		wp_delete_post( $parent_id, true );
+
+		$this->assertSame( $expected, $url );
+		$this->assertIsString( $filter_args['time'] );
+		$this->assertSame( 'test-image-iptc.jpg', $filter_args['file']['name'] );
+		$this->assertFalse( $filter_args['overrides']['test_form'] );
+		$this->assertSame( 'test_iptc_upload', $filter_args['action'] );
+		$this->assertInstanceOf( WP_Post::class, $filter_args['post'] );
+		$this->assertSame( $parent_id, $filter_args['post']->ID );
+	}
+
+	/**
+	 * @ticket 46554
+	 */
+	public function test_media_handle_sideload_time_can_be_filtered_for_page_parent() {
+		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
+
+		// Make a copy of this file as it gets moved during the file sideload.
+		$tmp_name = wp_tempnam( $iptc_file );
+
+		copy( $iptc_file, $tmp_name );
+
+		$file_array = array(
+			'tmp_name' => $tmp_name,
+			'name'     => 'test-image-iptc.jpg',
+			'type'     => 'image/jpeg',
+			'error'    => 0,
+			'size'     => filesize( $iptc_file ),
+		);
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_date' => '2010-01-01 12:00:00',
+				'post_type' => 'page',
+			)
+		);
+
+		$filter_args = null;
+		$filter      = static function ( $time, $post, $file, $overrides, $action ) use ( &$filter_args ) {
+			$filter_args = array(
+				'time'      => $time,
+				'post'      => $post,
+				'file'      => $file,
+				'overrides' => $overrides,
+				'action'    => $action,
+			);
+
+			if ( $post instanceof WP_Post && 'page' === $post->post_type ) {
+				return $post->post_date;
+			}
+
+			return $time;
+		};
+
+		add_filter( 'wp_handle_upload_time', $filter, 10, 5 );
+
+		$post_id = media_handle_sideload(
+			$file_array,
+			$parent_id,
+			null,
+			array(
+				'post_date' => '2011-02-01 12:00:00',
+			)
+		);
+
+		remove_filter( 'wp_handle_upload_time', $filter, 10 );
+
+		$this->assertNotWPError( $post_id );
+
+		$url         = wp_get_attachment_url( $post_id );
+		$uploads_dir = wp_upload_dir( '2010/01' );
+		$expected    = $uploads_dir['url'] . '/test-image-iptc.jpg';
+
+		// Clean up.
+		wp_delete_attachment( $post_id, true );
+		wp_delete_post( $parent_id, true );
+
+		$this->assertSame( $expected, $url );
+		$this->assertSame( '2011-02-01 12:00:00', $filter_args['time'] );
+		$this->assertSame( 'test-image-iptc.jpg', $filter_args['file']['name'] );
+		$this->assertFalse( $filter_args['overrides']['test_form'] );
+		$this->assertSame( 'wp_handle_sideload', $filter_args['action'] );
+		$this->assertInstanceOf( WP_Post::class, $filter_args['post'] );
+		$this->assertSame( $parent_id, $filter_args['post']->ID );
+	}
+
+	/**
 	 * @ticket 50367
 	 * @requires function imagejpeg
 	 */
