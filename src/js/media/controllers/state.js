@@ -166,15 +166,10 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	_menu: function() {
 		var menu = this.frame.menu,
 			mode = this.get('menu'),
-			actionMenuItems,
-			actionMenuLength,
 			view;
 
 		if ( this.frame.menu ) {
-			actionMenuItems = this.frame.menu.get('views'),
-			actionMenuLength = actionMenuItems ? actionMenuItems.views.get().length : 0,
-			// Show action menu only if it is active and has more than one default element.
-			this.frame.$el.toggleClass( 'hide-menu', ! mode || actionMenuLength < 2 );
+			this.frame.$el.toggleClass( 'hide-menu', ! mode );
 		}
 		if ( ! mode ) {
 			return;
@@ -183,6 +178,10 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 		menu.mode( mode );
 
 		view = menu.get();
+		if ( view && view.visibility ) {
+			view.visibility();
+		}
+
 		if ( view && view.select ) {
 			view.select( this.id );
 		}
