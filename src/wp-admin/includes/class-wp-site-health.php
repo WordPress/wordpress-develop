@@ -2800,7 +2800,8 @@ class WP_Site_Health {
 		$opcode_cache_enabled = false;
 		if ( function_exists( 'opcache_get_status' ) ) {
 			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
-			if ( $status && true === $status['opcache_enabled'] ) {
+			// OPcache reports `opcache_enabled` as false when only the file cache is in use, though that is still an active opcode cache.
+			if ( $status && ( true === $status['opcache_enabled'] || ! empty( $status['file_cache_only'] ) ) ) {
 				$opcode_cache_enabled = true;
 			}
 		}
