@@ -3447,6 +3447,27 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	return $endpoint_args;
 }
 
+/**
+ * Prevents users without the `manage_privacy_options` capability from
+ * changing the privacy policy page through the REST API.
+ *
+ * The settings endpoint only checks `manage_options`. On multisite the
+ * `manage_privacy_options` capability maps to `manage_network`, so a site
+ * administrator can read the setting but must not change it, matching the
+ * Settings > Privacy screen.
+ *
+ * @since 7.2.0
+ *
+ * @param bool   $updated Whether the setting update has already been handled.
+ * @param string $name    Setting name (as shown in REST API responses).
+ * @return bool Whether to short-circuit the update.
+ */
+function rest_restrict_privacy_policy_page_setting_update( $updated, $name ) {
+	if ( 'page_for_privacy_policy' === $name && ! current_user_can( 'manage_privacy_options' ) ) {
+		return true;
+	}
+	return $updated;
+}
 
 /**
  * Converts an error to a response object.

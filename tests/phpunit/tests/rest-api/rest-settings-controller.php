@@ -57,7 +57,24 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			}
 		}
 
+		remove_filter( 'map_meta_cap', array( $this, 'deny_manage_privacy_options' ), 10 );
+
 		parent::tear_down();
+	}
+
+	/**
+	 * Maps `manage_privacy_options` to `do_not_allow`, as happens for a site
+	 * administrator on multisite.
+	 *
+	 * @param string[] $caps Primitive capabilities required.
+	 * @param string   $cap  Capability being checked.
+	 * @return string[] Primitive capabilities required.
+	 */
+	public function deny_manage_privacy_options( $caps, $cap ) {
+		if ( 'manage_privacy_options' === $cap ) {
+			return array( 'do_not_allow' );
+		}
+		return $caps;
 	}
 
 	public function test_register_routes() {
@@ -402,6 +419,37 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'The new title!', $data['title'] );
 		$this->assertSame( get_option( 'blogname' ), $data['title'] );
+	}
+
+	public function test_update_item_privacy_policy_page() {
+		wp_set_current_user( self::$administrator );
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'page_for_privacy_policy', $page_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $page_id, $data['page_for_privacy_policy'] );
+		$this->assertSame( $page_id, (int) get_option( 'wp_page_for_privacy_policy' ) );
+	}
+
+	public function test_update_item_privacy_policy_page_without_capability() {
+		wp_set_current_user( self::$administrator );
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'wp_page_for_privacy_policy', $page_id );
+		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		add_filter( 'map_meta_cap', array( $this, 'deny_manage_privacy_options' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'page_for_privacy_policy', $other_page_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $page_id, $data['page_for_privacy_policy'], 'The response should still report the previous page.' );
+		$this->assertSame( $page_id, (int) get_option( 'wp_page_for_privacy_policy' ), 'The option should not change.' );
 	}
 
 	public function update_setting_custom_callback( $result, $name, $value, $args ) {
