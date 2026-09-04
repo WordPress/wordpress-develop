@@ -1101,7 +1101,11 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 	/* Realign arrows on taller responsive submenus */
 
-	#wpadminbar .ab-top-secondary .menupop .menupop > .ab-item:before {
+	#wpadminbar .menupop .menupop > .ab-item .wp-admin-bar-arrow:before {
+		top: 9px;
+	}
+
+	#wpadminbar .ab-top-secondary .menupop .menupop > .ab-item .wp-admin-bar-arrow:before {
 		top: 10px;
 		left: 0;
 	}
