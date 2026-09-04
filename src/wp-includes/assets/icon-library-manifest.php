@@ -133,6 +133,10 @@ return array(
 		'label'    => _x( 'Chevron Up Small', 'icon label' ),
 		'filePath' => 'chevron-up-small.svg',
 	),
+	'cog'                 => array(
+		'label'    => _x( 'Cog', 'icon label' ),
+		'filePath' => 'cog.svg',
+	),
 	'comment'             => array(
 		'label'    => _x( 'Comment', 'icon label' ),
 		'filePath' => 'comment.svg',
@@ -277,13 +281,13 @@ return array(
 		'label'    => _x( 'Plus', 'icon label' ),
 		'filePath' => 'plus.svg',
 	),
-	'post'                => array(
-		'label'    => _x( 'Post', 'icon label' ),
-		'filePath' => 'post.svg',
-	),
 	'plus-circle'         => array(
 		'label'    => _x( 'Plus Circle', 'icon label' ),
 		'filePath' => 'plus-circle.svg',
+	),
+	'post'                => array(
+		'label'    => _x( 'Post', 'icon label' ),
+		'filePath' => 'post.svg',
 	),
 	'previous'            => array(
 		'label'    => _x( 'Previous', 'icon label' ),
@@ -332,6 +336,10 @@ return array(
 	'shuffle'             => array(
 		'label'    => _x( 'Shuffle', 'icon label' ),
 		'filePath' => 'shuffle.svg',
+	),
+	'sites'               => array(
+		'label'    => _x( 'Sites', 'icon label' ),
+		'filePath' => 'sites.svg',
 	),
 	'star-empty'          => array(
 		'label'    => _x( 'Star Empty', 'icon label' ),
