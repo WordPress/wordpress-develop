@@ -174,7 +174,7 @@ if ( ! function_exists( 'twentynineteen_get_user_avatar_markup' ) ) :
 	 * @param mixed $id_or_email Optional. The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
 	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
 	 *                           Default null, which uses the current user ID.
-	 * @return string The avatar markup.
+	 * @return string HTML markup for the user avatar.
 	 */
 	function twentynineteen_get_user_avatar_markup( $id_or_email = null ) {
 
