@@ -1209,29 +1209,58 @@ class WP_HTML_Tag_Processor {
 			return;
 		}
 
+		yield from self::class_list_from_string( $class, self::QUIRKS_MODE === $this->compat_mode );
+	}
+
+	/**
+	 * Generator for a foreach loop to step through each class name in a decoded class attribute value.
+	 *
+	 * Unlike WP_HTML_Tag_Processor::class_list(), this method does not decode HTML character
+	 * references. It is intended for values that have already been decoded, such as class names
+	 * stored in block attributes or other non-HTML sources, so callers do not need to construct
+	 * an HTML tag and encode the value merely to tokenize it.
+	 *
+	 * The provided string is tokenized according to the HTML specification's set of ASCII
+	 * whitespace "space characters" (space, tab, form feed, carriage return, and newline).
+	 * Duplicate class names are yielded only once.
+	 *
+	 * Example:
+	 *
+	 *     foreach ( WP_HTML_Tag_Processor::class_list_from_string( ' foo  bar foo ' ) as $class_name ) {
+	 *         echo "{$class_name} ";
+	 *     }
+	 *     // Outputs: "foo bar "
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $class_attribute  Decoded class attribute value to tokenize.
+	 * @param bool   $case_insensitive Optional. Whether to normalize class names to lower-case,
+	 *                                 as in HTML quirks mode. Default false.
+	 * @return Generator<int, non-empty-string>
+	 */
+	public static function class_list_from_string( string $class_attribute, bool $case_insensitive = false ) {
 		$seen = array();
 
-		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
-
-		$at = 0;
-		while ( $at < strlen( $class ) ) {
+		$at     = 0;
+		$length = strlen( $class_attribute );
+		while ( $at < $length ) {
 			// Skip past any initial boundary characters.
-			$at += strspn( $class, " \t\f\r\n", $at );
-			if ( $at >= strlen( $class ) ) {
+			$at += strspn( $class_attribute, " \t\f\r\n", $at );
+			if ( $at >= $length ) {
 				return;
 			}
 
 			// Find the byte length until the next boundary.
-			$length = strcspn( $class, " \t\f\r\n", $at );
-			if ( 0 === $length ) {
+			$name_length = strcspn( $class_attribute, " \t\f\r\n", $at );
+			if ( 0 === $name_length ) {
 				return;
 			}
 
-			$name = substr( $class, $at, $length );
-			if ( $is_quirks ) {
+			$name = substr( $class_attribute, $at, $name_length );
+			if ( $case_insensitive ) {
 				$name = strtolower( $name );
 			}
-			$at += $length;
+			$at += $name_length;
 
 			/*
 			 * It's expected that the number of class names for a given tag is relatively small.
