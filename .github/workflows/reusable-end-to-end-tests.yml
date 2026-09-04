@@ -100,7 +100,7 @@ jobs:
 
       - name: Install Playwright browsers
         if: ${{ inputs.install-playwright }}
-        run: npm exec --no -- playwright install --with-deps chromium
+        run: npm exec --no -- playwright install chromium
 
       - name: Build WordPress
         run: npm run build
@@ -143,6 +143,10 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+        env:
+          # Chromium is installed above and is the only browser the suite runs. Without this,
+          # `wp-scripts test-playwright` also downloads Firefox and WebKit on every run.
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ inputs.install-playwright && '1' || '' }}
 
       - name: Archive debug artifacts (screenshots, HTML snapshots)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
