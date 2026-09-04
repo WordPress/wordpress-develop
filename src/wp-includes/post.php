@@ -6449,6 +6449,29 @@ function get_page_children( $page_id, $pages ) {
 		}
 	}
 
+	if ( 0 === $page_id ) {
+		$parent_ids = array_keys( $children );
+		$page_ids   = wp_list_pluck( $pages, 'ID' );
+
+		foreach ( $parent_ids as $parent_id ) {
+			if ( 0 === $parent_id || in_array( $parent_id, $page_ids, true ) ) {
+				continue;
+			}
+
+			$parent_exists = (bool) get_post( $parent_id );
+
+			if ( $parent_exists && isset( $children[ $parent_id ] ) ) {
+				foreach ( $children[ $parent_id ] as $orphan ) {
+					$page_list[] = $orphan;
+					if ( isset( $children[ $orphan->ID ] ) ) {
+						$orphan_pages = get_page_children( $orphan->ID, $pages );
+						$page_list    = array_merge( $page_list, $orphan_pages );
+					}
+				}
+			}
+		}
+	}
+
 	return $page_list;
 }
 
