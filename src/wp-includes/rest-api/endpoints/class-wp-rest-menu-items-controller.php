@@ -42,6 +42,10 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
+		if ( 'edit' === $request['context'] && current_user_can( 'manage_nav_menus' ) ) {
+			return true;
+		}
+
 		$has_permission = parent::get_items_permissions_check( $request );
 
 		if ( true !== $has_permission ) {
@@ -70,9 +74,41 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Checks if a given request has access to create a menu item.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
+	 */
+	public function create_item_permissions_check( $request ) {
+		if ( ! current_user_can( 'manage_nav_menus' ) ) {
+			return parent::create_item_permissions_check( $request );
+		}
+
+		if ( ! empty( $request['id'] ) ) {
+			return new WP_Error(
+				'rest_post_exists',
+				__( 'Cannot create existing post.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( ! $this->check_assign_terms_permission( $request ) ) {
+			return new WP_Error(
+				'rest_cannot_assign_term',
+				__( 'Sorry, you are not allowed to assign the provided terms.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Checks whether the current user has read permission for the endpoint.
 	 *
-	 * This allows for any user that can `edit_theme_options` or edit any REST API available post type.
+	 * This allows for any user that can `manage_nav_menus` or edit any REST API available post type.
 	 *
 	 * @since 5.9.0
 	 *
@@ -95,7 +131,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			return true;
 		}
 
-		if ( current_user_can( 'edit_theme_options' ) ) {
+		if ( current_user_can( 'manage_nav_menus' ) ) {
 			return true;
 		}
 

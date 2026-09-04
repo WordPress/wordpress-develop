@@ -245,6 +245,52 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Grants manage_nav_menus to users who can edit posts.
+	 *
+	 * @param string[] $caps    Primitive capabilities required of the user.
+	 * @param string   $cap     Capability being checked.
+	 * @param int      $user_id User ID.
+	 * @return string[] Primitive capabilities required of the user.
+	 */
+	public function grant_manage_nav_menus_to_users_who_can_edit_posts( $caps, $cap, $user_id ) {
+		if ( 'manage_nav_menus' === $cap && user_can( $user_id, 'edit_posts' ) ) {
+			return array( 'edit_posts' );
+		}
+
+		return $caps;
+	}
+
+	/**
+	 * @ticket 29213
+	 */
+	public function test_appearance_menu_shows_menus_node_for_user_who_can_manage_nav_menus() {
+		$had_menus_support = current_theme_supports( 'menus' );
+		if ( ! $had_menus_support ) {
+			add_theme_support( 'menus' );
+		}
+
+		wp_set_current_user( self::$editor_id );
+		add_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_edit_posts' ), 10, 3 );
+
+		try {
+			$this->assertFalse( current_user_can( 'edit_theme_options' ) );
+			$this->assertTrue( current_user_can( 'manage_nav_menus' ) );
+
+			$admin_bar = new WP_Admin_Bar();
+			wp_admin_bar_appearance_menu( $admin_bar );
+
+			$this->assertNotNull( $admin_bar->get_node( 'menus' ) );
+			$this->assertNull( $admin_bar->get_node( 'widgets' ) );
+			$this->assertNull( $admin_bar->get_node( 'themes' ) );
+		} finally {
+			remove_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_edit_posts' ), 10 );
+			if ( ! $had_menus_support ) {
+				remove_theme_support( 'menus' );
+			}
+		}
+	}
+
+	/**
 	 * @ticket 32495
 	 *
 	 * @dataProvider data_admin_bar_nodes_with_tabindex_meta
