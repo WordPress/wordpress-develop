@@ -2807,8 +2807,11 @@ class WP_HTML_Tag_Processor {
 
 		$enqueued_text = $this->lexical_updates[ $comparable_name ]->text;
 
-		// Removed attributes erase the entire span.
-		if ( '' === $enqueued_text ) {
+		/*
+		 * Removed attributes erase the entire span, unless a space is needed
+		 * to prevent a preceding slash from becoming a self-closing flag.
+		 */
+		if ( '' === $enqueued_text || ' ' === $enqueued_text ) {
 			return null;
 		}
 
@@ -4794,19 +4797,43 @@ class WP_HTML_Tag_Processor {
 		 *
 		 *    Result: <div />
 		 */
+		$attribute_token = $this->attributes[ $name ];
+		$replacement     = '/' === $this->html[ $attribute_token->start - 1 ] ? ' ' : '';
+
 		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
-			$this->attributes[ $name ]->start,
-			$this->attributes[ $name ]->length,
-			''
+			$attribute_token->start,
+			$attribute_token->length,
+			$replacement
 		);
 
+		$duplicate_attributes       = $this->duplicate_attributes[ $name ] ?? array();
+		$duplicates_already_removed = false;
+
+		/*
+		 * Duplicate removals are always enqueued as a batch. If the first is
+		 * already present, all are present, and none should be enqueued again.
+		 */
+		if ( count( $duplicate_attributes ) > 0 ) {
+			$first_duplicate = $duplicate_attributes[0];
+			foreach ( $this->lexical_updates as $update ) {
+				if ( $first_duplicate->start === $update->start && $first_duplicate->length === $update->length ) {
+					$duplicates_already_removed = true;
+					break;
+				}
+			}
+		}
+
 		// Removes any duplicated attributes if they were also present.
-		foreach ( $this->duplicate_attributes[ $name ] ?? array() as $attribute_token ) {
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
-				$attribute_token->start,
-				$attribute_token->length,
-				''
-			);
+		if ( ! $duplicates_already_removed ) {
+			foreach ( $duplicate_attributes as $attribute_token ) {
+				$replacement = '/' === $this->html[ $attribute_token->start - 1 ] ? ' ' : '';
+
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$attribute_token->start,
+					$attribute_token->length,
+					$replacement
+				);
+			}
 		}
 
 		return true;
