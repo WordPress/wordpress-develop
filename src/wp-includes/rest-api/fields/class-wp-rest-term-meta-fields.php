@@ -25,6 +25,14 @@ class WP_REST_Term_Meta_Fields extends WP_REST_Meta_Fields {
 	protected $taxonomy;
 
 	/**
+	 * Cache invalidation callback for terms.
+	 *
+	 * @since TBD
+	 * @var string
+	 */
+	protected $cache_callback = 'wp_cache_set_terms_last_changed';
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
