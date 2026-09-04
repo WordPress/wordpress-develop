@@ -899,7 +899,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that CDATA sections remain available inside SVG HTML integration points.
 	 *
-	 * @ticket 61576
+	 * @ticket 65967
 	 */
 	public function test_cdata_sections_in_svg_html_integration_points() {
 		$processor = WP_HTML_Processor::create_fragment(
@@ -917,7 +917,11 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			$processor->get_token_name(),
 			'CDATA should remain available at an SVG HTML integration point.'
 		);
-		$this->assertSame( 'svg', $processor->get_namespace(), 'Found the wrong namespace for the CDATA section.' );
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'A CDATA section at an integration point is processed in the current insertion mode and reports the same namespace as a text node there.'
+		);
 		$this->assertSame( 'foo', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
 	}
 
@@ -984,7 +988,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that CDATA sections remain available inside MathML HTML integration points.
 	 *
-	 * @ticket 61576
+	 * @ticket 65967
 	 */
 	public function test_cdata_sections_in_mathml_html_integration_points() {
 		$processor = WP_HTML_Processor::create_fragment(
@@ -1001,14 +1005,18 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			$processor->get_token_name(),
 			'CDATA should remain available at a MathML HTML integration point.'
 		);
-		$this->assertSame( 'math', $processor->get_namespace(), 'Found the wrong namespace for the CDATA section.' );
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'A CDATA section at an integration point is processed in the current insertion mode and reports the same namespace as a text node there.'
+		);
 		$this->assertSame( 'x', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
 	}
 
 	/**
 	 * Ensures that CDATA parsing context is restored after leaving an HTML child.
 	 *
-	 * @ticket 61576
+	 * @ticket 65967
 	 */
 	public function test_cdata_context_restored_after_html_child_of_integration_point() {
 		$processor = WP_HTML_Processor::create_fragment(
@@ -1038,7 +1046,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that seeking restores the CDATA parsing context.
 	 *
-	 * @ticket 61576
+	 * @ticket 65967
 	 */
 	public function test_seek_restores_cdata_context() {
 		$processor = WP_HTML_Processor::create_fragment(
@@ -1056,6 +1064,156 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'Seeking should restore the CDATA parsing context at an integration point.'
 		);
 		$this->assertSame( 'title', $processor->get_modifiable_text(), 'Found incorrect CDATA content after seeking.' );
+	}
+
+	/**
+	 * Ensures that NULL bytes in a CDATA section at an HTML integration point are removed.
+	 *
+	 * Character tokens at an integration point are processed in the current
+	 * insertion mode, where a NULL character token is ignored.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_section_at_integration_point_removes_null_bytes() {
+		$processor = WP_HTML_Processor::create_fragment( "<svg><title><![CDATA[a\0b]]></title></svg>" );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( '#cdata-section', $processor->get_token_name(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( 'html', $processor->get_namespace(), 'A character token at an integration point should report the HTML namespace.' );
+		$this->assertSame( 'ab', $processor->get_modifiable_text(), 'NULL bytes should be removed from a CDATA section at an integration point.' );
+	}
+
+	/**
+	 * Ensures that NULL bytes in a CDATA section in foreign content are replaced.
+	 *
+	 * Character tokens in foreign content are processed by the rules for
+	 * parsing tokens in foreign content, where a NULL character token is
+	 * replaced by U+FFFD REPLACEMENT CHARACTER.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_section_in_foreign_content_replaces_null_bytes() {
+		$processor = WP_HTML_Processor::create_fragment( "<svg><![CDATA[a\0b]]></svg>" );
+
+		$this->assertTrue( $processor->next_tag( 'SVG' ), 'Failed to find the SVG element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( '#cdata-section', $processor->get_token_name(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( 'svg', $processor->get_namespace(), 'A character token in foreign content should report the foreign namespace.' );
+		$this->assertSame( "a\u{FFFD}b", $processor->get_modifiable_text(), 'NULL bytes should be replaced in a CDATA section in foreign content.' );
+	}
+
+	/**
+	 * Ensures that a CDATA section holding only NULL bytes is ignored at an integration point.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_section_of_only_null_bytes_is_ignored_at_integration_point() {
+		$processor = WP_HTML_Processor::create_fragment( "<svg><title><![CDATA[\0]]><b></b></title></svg>" );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the token after the ignored CDATA section.' );
+		$this->assertSame( 'B', $processor->get_tag(), 'A CDATA section of only NULL bytes should be ignored at an integration point.' );
+	}
+
+	/**
+	 * Ensures that text and CDATA sections at an integration point report the same namespace.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_character_tokens_at_integration_point_share_namespace() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><title>a<![CDATA[b]]>c</title></svg>' );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+
+		$expected = array(
+			array( '#text', 'a' ),
+			array( '#cdata-section', 'b' ),
+			array( '#text', 'c' ),
+		);
+		foreach ( $expected as list( $token_name, $text ) ) {
+			$this->assertTrue( $processor->next_token(), "Failed to find the expected {$token_name} token." );
+			$this->assertSame( $token_name, $processor->get_token_name(), 'Found the wrong token.' );
+			$this->assertSame( $text, $processor->get_modifiable_text(), "Found incorrect {$token_name} content." );
+			$this->assertSame( 'html', $processor->get_namespace(), "A {$token_name} token at an integration point should report the HTML namespace." );
+		}
+	}
+
+	/**
+	 * Ensures that consecutive CDATA sections at an integration point are each recognized.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_consecutive_cdata_sections_at_integration_point() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><title><![CDATA[a]]><![CDATA[b]]></title></svg>' );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		foreach ( array( 'a', 'b' ) as $text ) {
+			$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+			$this->assertSame( '#cdata-section', $processor->get_token_name(), 'Failed to find the expected CDATA section.' );
+			$this->assertSame( $text, $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+		}
+	}
+
+	/**
+	 * Ensures that a CDATA section at an integration point follows the text node rules for active formatting elements.
+	 *
+	 * The B element is closed by the P closer but remains in the list of active
+	 * formatting elements, so the character tokens that follow must reconstruct
+	 * it: the tree is `<p><b>x</b></p><b>y</b>`. Reconstruction is not yet
+	 * supported by the HTML Processor (see #61576), so parsing must stop at the
+	 * CDATA section exactly as it stops at the same content in a text node,
+	 * instead of inserting the section outside the B element.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_character_tokens_requiring_reconstruction_at_integration_point
+	 *
+	 * @param string $html Fragment whose final character tokens require reconstruction.
+	 */
+	public function test_cdata_section_at_integration_point_stops_when_reconstruction_is_required( string $html ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'    => 'P',
+					'tag_closers' => 'visit',
+				)
+			),
+			'Failed to find the P element under test.'
+		);
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'    => 'P',
+					'tag_closers' => 'visit',
+				)
+			),
+			'Failed to find the P element closer under test.'
+		);
+		$this->assertTrue( $processor->is_tag_closer(), 'Expected to stop on the P element closer.' );
+
+		$this->assertFalse( $processor->next_token(), 'Should have stopped at the character tokens requiring reconstruction.' );
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_UNSUPPORTED,
+			$processor->get_last_error(),
+			'Should have reported unsupported markup instead of inserting the character tokens outside the formatting element.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_character_tokens_requiring_reconstruction_at_integration_point() {
+		return array(
+			'Text node'     => array( '<svg><foreignObject><p><b>x</p>y</foreignObject></svg>' ),
+			'CDATA section' => array( '<svg><foreignObject><p><b>x</p><![CDATA[y]]></foreignObject></svg>' ),
+			'MathML text'   => array( '<math><mtext><p><b>x</p>y</mtext></math>' ),
+			'MathML CDATA'  => array( '<math><mtext><p><b>x</p><![CDATA[y]]></mtext></math>' ),
+		);
 	}
 
 	/**

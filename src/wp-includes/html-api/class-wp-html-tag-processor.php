@@ -561,7 +561,7 @@ class WP_HTML_Tag_Processor {
 	 * tokens, but CDATA sections remain available because the adjusted current
 	 * node is still in a foreign namespace.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @var bool
 	 */
@@ -888,7 +888,7 @@ class WP_HTML_Tag_Processor {
 	 * Integration points follow HTML tokenizer rules while retaining their actual
 	 * namespace for determining whether CDATA sections are allowed.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param string $node_namespace       Actual namespace of the adjusted current node.
 	 * @param bool   $is_integration_point Whether the adjusted current node is an integration point.
