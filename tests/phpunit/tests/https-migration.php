@@ -103,6 +103,84 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 52388
+	 * @group ms-excluded
+	 * @dataProvider data_wp_install_sets_url_scheme_based_on_https_support
+	 *
+	 * @param bool   $https_supported Whether HTTPS is supported.
+	 * @param string $expected_scheme Expected URL scheme.
+	 */
+	public function test_wp_install_sets_url_scheme_based_on_https_support( $https_supported, $expected_scheme ) {
+		global $wpdb, $wp_rewrite, $wp_roles, $table_prefix;
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+		$original_prefix       = $wpdb->base_prefix;
+		$original_table_prefix = $table_prefix;
+		$original_wp_rewrite   = $wp_rewrite;
+		$original_wp_roles     = $wp_roles;
+		$test_prefix           = $original_prefix . 'install_' . $expected_scheme . '_';
+		$filter                = static function () use ( $https_supported ) {
+			return $https_supported ? new WP_Error() : new WP_Error( 'https_not_supported' );
+		};
+
+		// The temporary options table is empty, so skip its unsupported multi-table transient cleanup.
+		$query_filter = static function ( $query ) use ( $test_prefix ) {
+			if ( str_contains( $query, "DELETE a, b FROM {$test_prefix}options" ) ) {
+				return 'SELECT 1';
+			}
+
+			return $query;
+		};
+
+		$roles_callback = static function () {
+			$GLOBALS['wp_roles'] = new WP_Roles();
+		};
+
+		$wpdb->set_prefix( $test_prefix );
+		$table_prefix = $test_prefix;
+		$wp_rewrite   = new WP_Rewrite();
+		wp_cache_flush();
+		add_action( 'populate_options', $roles_callback, 1 );
+		add_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
+		add_filter( 'pre_wp_get_https_detection_errors', $filter );
+		add_filter( 'query', $query_filter );
+
+		try {
+			wp_install( 'Test Site', 'admin', 'admin@example.org', true, '', 'password' );
+
+			$this->assertSame( $expected_scheme, wp_parse_url( get_option( 'home' ), PHP_URL_SCHEME ) );
+			$this->assertSame( $expected_scheme, wp_parse_url( get_option( 'siteurl' ), PHP_URL_SCHEME ) );
+		} finally {
+			remove_filter( 'pre_wp_get_https_detection_errors', $filter );
+			remove_filter( 'query', $query_filter );
+			remove_action( 'populate_options', $roles_callback, 1 );
+			remove_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
+
+			foreach ( $wpdb->tables( 'all' ) as $table ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$wpdb->query( "DROP TABLE IF EXISTS $table" );
+			}
+
+			$wpdb->set_prefix( $original_prefix );
+			$table_prefix = $original_table_prefix;
+			$wp_rewrite   = $original_wp_rewrite;
+			$wp_roles     = $original_wp_roles;
+			wp_cache_flush();
+		}
+	}
+
+	/**
+	 * @return array[] Test parameters.
+	 */
+	public function data_wp_install_sets_url_scheme_based_on_https_support() {
+		return array(
+			'https supported'     => array( true, 'https' ),
+			'https not supported' => array( false, 'http' ),
+		);
+	}
+
+	/**
 	 * @ticket 51437
 	 */
 	public function test_wp_update_https_migration_required() {

@@ -82,7 +82,15 @@ $wpdb->query( 'SET foreign_key_checks = 1' );
 // Prefill a permalink structure so that WP doesn't try to determine one itself.
 add_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
+// Prevent HTTPS detection from making an HTTP request during the test installation.
+$https_detection_callback = static function () {
+	return new WP_Error( 'https_not_supported' );
+};
+add_filter( 'pre_wp_get_https_detection_errors', $https_detection_callback );
+
 wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, null, 'password' );
+
+remove_filter( 'pre_wp_get_https_detection_errors', $https_detection_callback );
 
 // Delete dummy permalink structure, as prefilled above.
 if ( ! is_multisite() ) {
