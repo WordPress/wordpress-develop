@@ -405,6 +405,8 @@ class Tests_oEmbed_WpEmbed extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group external-http
+	 *
 	 * @covers ::run_shortcode
 	 */
 	public function test_run_shortcode_url_only() {
