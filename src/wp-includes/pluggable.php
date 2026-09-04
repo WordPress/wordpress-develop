@@ -2291,6 +2291,8 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 */
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
+		$homeurl = home_url( '/' );
+
 		/**
 		 * Filters whether the admin is notified of a new user registration.
 		 *
@@ -2311,8 +2313,8 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 				$switched_locale = switch_to_locale( get_locale() );
 			}
 
-			/* translators: %s: Site title. */
-			$message = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
+			/* translators: 1: Site title. 2: Site URL. */
+			$message = sprintf( __( 'New user registration on your site %1$s (%2$s):' ), $blogname, $homeurl ) . "\r\n\r\n";
 			/* translators: %s: User login. */
 			$message .= sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
 			/* translators: %s: User email address. */
