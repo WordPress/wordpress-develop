@@ -9017,22 +9017,59 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 		}
 	}
 
+	if ( ! is_array( $directory_cache ) ) {
+		$directory_cache = array();
+	}
+
 	/**
-	 * Filters the amount of storage space used by one directory and all its children, in megabytes.
+	 * Filters the directory size cache before a directory's size is calculated.
+	 *
+	 * Returning an array containing the current directory's path with an integer size
+	 * can short-circuit the recursive PHP file size calculation.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param array                $directory_cache    Array of cached directory paths and sizes.
+	 * @param string               $directory          Full path of a directory.
+	 * @param string|string[]|null $exclude            Full path of a subdirectory to exclude from the total,
+	 *                                                 or array of paths.
+	 * @param int                  $max_execution_time Maximum time to run before giving up. In seconds.
+	 */
+	$filtered_directory_cache = apply_filters(
+		'pre_recurse_dirsize_cache',
+		$directory_cache,
+		$directory,
+		$exclude,
+		$max_execution_time
+	);
+
+	if ( is_array( $filtered_directory_cache ) ) {
+		$directory_cache = $filtered_directory_cache;
+	}
+
+	$size = isset( $directory_cache[ $directory ] ) && is_int( $directory_cache[ $directory ] )
+		? $directory_cache[ $directory ]
+		: false;
+
+	/**
+	 * Filters the amount of storage space used by one directory and all its children, in bytes.
 	 *
 	 * Return the actual used space to short-circuit the recursive PHP file size calculation
 	 * and use something else, like a CDN API or native operating system tools for better performance.
 	 *
 	 * @since 5.6.0
+	 * @since x.x.x The default `$space_used` value may be provided by the
+	 *              `pre_recurse_dirsize_cache` filter.
 	 *
-	 * @param int|false            $space_used         The amount of used space, in bytes. Default false.
+	 * @param int|false            $space_used         The amount of used space, in bytes. Default cached size
+	 *                                                 for the current directory, or false.
 	 * @param string               $directory          Full path of a directory.
 	 * @param string|string[]|null $exclude            Full path of a subdirectory to exclude from the total,
 	 *                                                 or array of paths.
 	 * @param int                  $max_execution_time Maximum time to run before giving up. In seconds.
 	 * @param array                $directory_cache    Array of cached directory paths.
 	 */
-	$size = apply_filters( 'pre_recurse_dirsize', false, $directory, $exclude, $max_execution_time, $directory_cache );
+	$size = apply_filters( 'pre_recurse_dirsize', $size, $directory, $exclude, $max_execution_time, $directory_cache );
 
 	if ( false === $size ) {
 		$size = 0;
@@ -9062,10 +9099,6 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 			}
 			closedir( $handle );
 		}
-	}
-
-	if ( ! is_array( $directory_cache ) ) {
-		$directory_cache = array();
 	}
 
 	$directory_cache[ $directory ] = $size;
