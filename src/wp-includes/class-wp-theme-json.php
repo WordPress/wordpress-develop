@@ -816,9 +816,10 @@ class WP_Theme_JSON {
 	 * the default breakpoints when no valid custom breakpoint is provided. When
 	 * only one breakpoint is valid, it remains keyed by its configured state and
 	 * uses a single max-width media query. When `tablet` is not larger than
-	 * `mobile`, it is removed.
+	 * `mobile`, it is removed and a notice is triggered.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 A notice is triggered when `tablet` is dropped because it is not larger than `mobile`.
 	 *
 	 * @param mixed $viewport_settings Viewport settings from theme.json.
 	 * @return array Sanitized viewport breakpoint settings.
@@ -853,6 +854,17 @@ class WP_Theme_JSON {
 
 		if ( isset( $breakpoints['tablet'] ) && $breakpoints['mobile']['px'] < $breakpoints['tablet']['px'] ) {
 			$sanitized['tablet'] = $breakpoints['tablet']['value'];
+		} elseif ( isset( $breakpoints['tablet'] ) ) {
+			wp_trigger_error(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: theme.json, 2: settings.viewport */
+					__( 'The %1$s %2$s "tablet" breakpoint value must be larger than the "mobile" value. The "tablet" breakpoint was removed.' ),
+					'theme.json',
+					'settings.viewport'
+				),
+				E_USER_NOTICE
+			);
 		}
 
 		return $sanitized;
