@@ -2763,7 +2763,8 @@ function wp_update_user( $userdata ) {
 	}
 
 	// Escape data pulled from DB.
-	$user = add_magic_quotes( $user );
+	$user               = add_magic_quotes( $user );
+	$user['user_email'] = wp_unslash( $user['user_email'] );
 
 	if ( ! empty( $userdata['user_pass'] ) && $userdata['user_pass'] !== $user_obj->user_pass ) {
 		// If password is changing, hash it now.
@@ -3885,6 +3886,8 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
 	if ( 0 === $current_user->ID || $current_user->ID !== (int) $user_id ) {
 		return false;
 	}
+
+	$_POST['email'] = wp_unslash( $_POST['email'] );
 
 	if ( $current_user->user_email !== $_POST['email'] ) {
 		if ( ! is_email( $_POST['email'] ) ) {
