@@ -87,4 +87,41 @@ class Tests_Formatting_wpTrimWords extends WP_UnitTestCase {
 		$this->assertSame( '', wp_trim_words( $this->long_text, null, '' ) );
 		$this->assertSame( 'Lorem ipsum dolor', wp_trim_words( $this->long_text, '3', '' ) );
 	}
+
+	/**
+	 * Verifies that ideographic spaces (U+3000) are treated as word separators.
+	 *
+	 * @ticket 64552
+	 */
+	public function test_splits_on_ideographic_space() {
+		$ideo = "\xe3\x80\x80"; // U+3000 Ideographic Space.
+		$text = "one{$ideo}two{$ideo}three{$ideo}four{$ideo}five{$ideo}six";
+
+		$this->assertSame( 'one two three', wp_trim_words( $text, 3, '' ) );
+	}
+
+	/**
+	 * Verifies that non-breaking spaces (U+00A0) are treated as word separators.
+	 *
+	 * @ticket 64552
+	 */
+	public function test_splits_on_non_breaking_space() {
+		$nbsp = "\xc2\xa0"; // U+00A0 Non-Breaking Space.
+		$text = "one{$nbsp}two{$nbsp}three{$nbsp}four";
+
+		$this->assertSame( 'one two', wp_trim_words( $text, 2, '' ) );
+	}
+
+	/**
+	 * Verifies that mixed Unicode whitespace characters are handled correctly.
+	 *
+	 * @ticket 64552
+	 */
+	public function test_splits_on_mixed_unicode_whitespace() {
+		$ideo = "\xe3\x80\x80"; // U+3000 Ideographic Space.
+		$nbsp = "\xc2\xa0";     // U+00A0 Non-Breaking Space.
+		$text = "alpha bravo{$ideo}charlie{$nbsp}delta\techo";
+
+		$this->assertSame( 'alpha bravo charlie delta', wp_trim_words( $text, 4, '' ) );
+	}
 }
