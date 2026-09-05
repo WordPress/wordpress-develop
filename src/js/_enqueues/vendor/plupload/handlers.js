@@ -285,7 +285,7 @@ function switchUploader( s ) {
 	}
 }
 
-function uploadError( fileObj, errorCode, message, up ) {
+function uploadError( fileObj, errorCode, message, responseHeaders, up ) {
 	var hundredmb = 100 * 1024 * 1024, max;
 
 	switch ( errorCode ) {
@@ -321,7 +321,15 @@ function uploadError( fileObj, errorCode, message, up ) {
 
 			break;
 		case plupload.HTTP_ERROR:
-			wpQueueError( pluploadL10n.http_error );
+			message = pluploadL10n.http_error;
+
+			var myRegexp = /x-wp-lasterror-message: (.*)/gm;
+			var match = myRegexp.exec( responseHeaders );
+			if( match[1] ) {
+				message += ' ' + match[1];
+			}
+
+			wpQueueError(message);
 			break;
 		case plupload.INIT_ERROR:
 			jQuery( '.media-upload-form' ).addClass( 'html-uploader' );
@@ -643,7 +651,7 @@ jQuery( document ).ready( function( $ ) {
 				return;
 			}
 
-			uploadError( error.file, error.code, error.message, up );
+			uploadError( error.file, error.code, error.message, error.responseHeaders, up);
 			up.refresh();
 		});
 
