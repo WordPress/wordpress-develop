@@ -312,8 +312,8 @@ function _wp_get_iframed_editor_assets() {
 	 * Register all currently registered styles and scripts. The actions that
 	 * follow enqueue assets, but don't necessarily register them.
 	 */
-	$wp_styles->registered  = $current_wp_styles->registered;
-	$wp_scripts->registered = $current_wp_scripts->registered;
+	$wp_styles->registered  = $current_wp_styles->registered ?? array();
+	$wp_scripts->registered = $current_wp_scripts->registered ?? array();
 
 	/*
 	 * We generally do not need reset styles for the iframed editor.
