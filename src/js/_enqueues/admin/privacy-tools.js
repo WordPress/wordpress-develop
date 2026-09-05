@@ -14,46 +14,24 @@ jQuery( function( $ ) {
 		$action.children( '.' + state ).removeClass( 'hidden' );
 	}
 
-	function clearResultsAfterRow( $requestRow ) {
-		$requestRow.removeClass( 'has-request-results' );
-
-		if ( $requestRow.next().hasClass( 'request-results' ) ) {
-			$requestRow.next().remove();
-		}
+	function getUserEmail( $requestRow ) {
+		var $emailCell = $requestRow.find( '.column-email a[href^="mailto:"]' );
+		return $emailCell.length ? $emailCell.text() : '';
 	}
 
-	function appendResultsAfterRow( $requestRow, classes, summaryMessage, additionalMessages ) {
-		var itemList = '',
-			resultRowClasses = 'request-results';
+	function showAdminNotice( message, type ) {
+		var $headerEnd = $( '.wp-header-end' ),
+			$notice = $( '<div class="notice notice-' + type + ' is-dismissible"><p><strong>' + message + '</strong></p></div>' );
 
-		clearResultsAfterRow( $requestRow );
+		$( '.wrap > .notice' ).remove();
 
-		if ( additionalMessages.length ) {
-			$.each( additionalMessages, function( index, value ) {
-				itemList = itemList + '<li>' + value + '</li>';
-			});
-			itemList = '<ul>' + itemList + '</ul>';
+		if ( $headerEnd.length ) {
+			$headerEnd.after( $notice );
+		} else {
+			$( '.wrap' ).find( '> h1' ).after( $notice );
 		}
 
-		$requestRow.addClass( 'has-request-results' );
-
-		if ( $requestRow.hasClass( 'status-request-confirmed' ) ) {
-			resultRowClasses = resultRowClasses + ' status-request-confirmed';
-		}
-
-		if ( $requestRow.hasClass( 'status-request-failed' ) ) {
-			resultRowClasses = resultRowClasses + ' status-request-failed';
-		}
-
-		$requestRow.after( function() {
-			return '<tr class="' + resultRowClasses + '"><th colspan="5">' +
-				'<div class="notice inline notice-alt ' + classes + '" role="alert">' +
-				'<p>' + summaryMessage + '</p>' +
-				itemList +
-				'</div>' +
-				'</td>' +
-				'</tr>';
-		});
+		$( document ).trigger( 'wp-notice-added' );
 	}
 
 	$( '.export-personal-data-handle' ).on( 'click', function( event ) {
@@ -73,19 +51,27 @@ jQuery( function( $ ) {
 		$rowActions.addClass( 'processing' );
 
 		$action.trigger( 'blur' );
-		clearResultsAfterRow( $requestRow );
 		setExportProgress( 0 );
 
 		function onExportDoneSuccess( zipUrl ) {
-			var summaryMessage = __( 'This user&#8217;s personal data export link was sent.' );
+			var userEmail = getUserEmail( $requestRow ),
+				summaryMessage;
 
 			if ( 'undefined' !== typeof zipUrl ) {
-				summaryMessage = __( 'This user&#8217;s personal data export file was downloaded.' );
+				summaryMessage = userEmail ? 
+					/* translators: %s: User's email address. */
+					wp.i18n.sprintf( __( 'Personal data export file for %s was downloaded.' ), userEmail ) :
+					__( 'This user&#8217;s personal data export file was downloaded.' );
+			} else {
+				summaryMessage = userEmail ?
+					/* translators: %s: User's email address. */
+					wp.i18n.sprintf( __( 'Personal data export link for %s was sent.' ), userEmail ) :
+					__( 'This user&#8217;s personal data export link was sent.' );
 			}
 
 			setActionState( $action, 'export-personal-data-success' );
 
-			appendResultsAfterRow( $requestRow, 'notice-success', summaryMessage, [] );
+			showAdminNotice( summaryMessage, 'success' );
 
 			if ( 'undefined' !== typeof zipUrl ) {
 				window.location = zipUrl;
@@ -97,13 +83,19 @@ jQuery( function( $ ) {
 		}
 
 		function onExportFailure( errorMessage ) {
-			var summaryMessage = __( 'An error occurred while attempting to export personal data.' );
+			var userEmail = getUserEmail( $requestRow ),
+				summaryMessage = userEmail ?
+					/* translators: %s: User's email address. */
+					wp.i18n.sprintf( __( 'An error occurred while attempting to export personal data for %s.' ), userEmail ) :
+					__( 'An error occurred while attempting to export personal data.' );
 
 			setActionState( $action, 'export-personal-data-failed' );
 
 			if ( errorMessage ) {
-				appendResultsAfterRow( $requestRow, 'notice-error', summaryMessage, [ errorMessage ] );
+				summaryMessage += ' ' + errorMessage;
 			}
+
+			showAdminNotice( summaryMessage, 'error' );
 
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
@@ -178,41 +170,62 @@ jQuery( function( $ ) {
 		$rowActions.addClass( 'processing' );
 
 		$action.trigger( 'blur' );
-		clearResultsAfterRow( $requestRow );
 		setErasureProgress( 0 );
 
 		function onErasureDoneSuccess() {
-			var summaryMessage = __( 'No personal data was found for this user.' ),
-				classes = 'notice-success';
+			var userEmail = getUserEmail( $requestRow ),
+				summaryMessage,
+				noticeType = 'success';
 
 			setActionState( $action, 'remove-personal-data-success' );
 
 			if ( false === hasRemoved ) {
 				if ( false === hasRetained ) {
-					summaryMessage = __( 'No personal data was found for this user.' );
+					summaryMessage = userEmail ?
+						/* translators: %s: User's email address. */
+						wp.i18n.sprintf( __( 'No personal data was found for %s.' ), userEmail ) :
+						__( 'No personal data was found for this user.' );
 				} else {
-					summaryMessage = __( 'Personal data was found for this user but was not erased.' );
-					classes = 'notice-warning';
+					summaryMessage = userEmail ?
+						/* translators: %s: User's email address. */
+						wp.i18n.sprintf( __( 'Personal data was found for %s but was not erased.' ), userEmail ) :
+						__( 'Personal data was found for this user but was not erased.' );
+					noticeType = 'warning';
 				}
 			} else {
 				if ( false === hasRetained ) {
-					summaryMessage = __( 'All of the personal data found for this user was erased.' );
+					summaryMessage = userEmail ?
+						/* translators: %s: User's email address. */
+						wp.i18n.sprintf( __( 'Personal data erasure for %s completed.' ), userEmail ) :
+						__( 'All of the personal data found for this user was erased.' );
 				} else {
-					summaryMessage = __( 'Personal data was found for this user but some of the personal data found was not erased.' );
-					classes = 'notice-warning';
+					summaryMessage = userEmail ?
+						/* translators: %s: User's email address. */
+						wp.i18n.sprintf( __( 'Personal data erasure for %s completed, but some data was retained.' ), userEmail ) :
+						__( 'Personal data was found for this user but some of the personal data found was not erased.' );
+					noticeType = 'warning';
 				}
 			}
-			appendResultsAfterRow( $requestRow, classes, summaryMessage, messages );
+
+			if ( messages.length ) {
+				summaryMessage += ' ' + messages.join( ' ' );
+			}
+
+			showAdminNotice( summaryMessage, noticeType );
 
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
 		function onErasureFailure() {
-			var summaryMessage = __( 'An error occurred while attempting to find and erase personal data.' );
+			var userEmail = getUserEmail( $requestRow ),
+				summaryMessage = userEmail ?
+					/* translators: %s: User's email address. */
+					wp.i18n.sprintf( __( 'An error occurred while attempting to find and erase personal data for %s.' ), userEmail ) :
+					__( 'An error occurred while attempting to find and erase personal data.' );
 
 			setActionState( $action, 'remove-personal-data-failed' );
-
-			appendResultsAfterRow( $requestRow, 'notice-error', summaryMessage, [] );
+			
+			showAdminNotice( summaryMessage, 'error' );
 
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
