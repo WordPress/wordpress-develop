@@ -6684,10 +6684,10 @@ function wp_set_up_cross_origin_isolation(): void {
 	$is_media_screen = 'media' === $screen->id || ( 'upload' === $screen->id && 'grid' === wp_get_media_library_mode() );
 
 	if (
-		! $is_media_screen && 
-		! $screen->is_block_editor() && 
-		'site-editor' !== $screen->id && 
-		! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) 
+		! $is_media_screen &&
+		! $screen->is_block_editor() &&
+		'site-editor' !== $screen->id &&
+		! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() )
 	) {
 		return;
 	}
@@ -6734,27 +6734,31 @@ function wp_set_up_cross_origin_isolation(): void {
  * upload.php falls back to grid mode for any falsey saved value and renders
  * grid mode only for the exact value 'grid'. A truthy saved value outside the
  * two known modes - one a plugin stored, say - therefore renders list mode
- * there and is not reported as 'grid' here, so callers do not isolate a page
- * that the Media Library renders in list mode.
+ * there and resolves to 'list' here, so callers do not isolate a page that
+ * the Media Library renders in list mode.
  *
  * @since 7.2.0
  *
  * @return string The Media Library mode, 'grid' when none is saved.
+ * @phpstan-return 'grid'|'list'
  */
 function wp_get_media_library_mode(): string {
+	$valid_modes = array( 'grid', 'list' );
+
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['mode'] ) && in_array( $_GET['mode'], array( 'grid', 'list' ), true ) ) {
+	if ( isset( $_GET['mode'] ) && in_array( $_GET['mode'], $valid_modes, true ) ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		return $_GET['mode'];
 	}
 
 	$mode = get_user_option( 'media_library_mode', get_current_user_id() );
 
-	if ( ! $mode ) {
-		return 'grid';
+	if ( in_array( $mode, $valid_modes, true ) ) {
+		return $mode;
 	}
 
-	return is_string( $mode ) ? $mode : 'list';
+	// As in upload.php: nothing saved renders the grid, any other value the list.
+	return $mode ? 'list' : 'grid';
 }
 
 /**
