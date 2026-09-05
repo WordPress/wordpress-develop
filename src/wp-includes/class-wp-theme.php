@@ -361,7 +361,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		if ( ! $this->template && $this->stylesheet === $this->headers['Template'] ) {
-			$this->errors = new WP_Error(
+			$this->errors   = new WP_Error(
 				'theme_child_invalid',
 				sprintf(
 					/* translators: %s: Template. */
@@ -369,6 +369,7 @@ final class WP_Theme implements ArrayAccess {
 					'<code>Template</code>'
 				)
 			);
+			$this->template = $this->stylesheet;
 			$this->cache_add(
 				'theme',
 				array(
@@ -377,6 +378,7 @@ final class WP_Theme implements ArrayAccess {
 					'headers'                => $this->headers,
 					'errors'                 => $this->errors,
 					'stylesheet'             => $this->stylesheet,
+					'template'               => $this->template,
 				)
 			);
 
