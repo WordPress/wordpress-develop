@@ -1266,8 +1266,8 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
  *                                                    the markup for a given list of blocks that are hooked to it.
  *                                                    Default: 'insert_hooked_blocks'.
  * @param array|null   $ignored_hooked_blocks_at_root A reference to an array that will be populated
- *                               with the ignored hooked blocks at the root level.
- *                               Default: `null`.
+ *                                                    with the ignored hooked blocks at the root level.
+ *                                                    Default: `null`.
  * @return string The serialized markup.
  */
 function apply_block_hooks_to_content_from_post_object(
