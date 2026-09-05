@@ -440,4 +440,86 @@ class Tests_oEmbed_WpEmbed extends WP_UnitTestCase {
 		$this->wp_embed->linkifunknown = false;
 		$this->assertSame( $url, $this->wp_embed->maybe_make_link( $url ) );
 	}
+
+	/**
+	 * @ticket 39472
+	 *
+	 * @covers ::autoembed
+	 */
+	public function test_autoembed_should_not_embed_url_inside_pre_tag() {
+		$handle   = __FUNCTION__;
+		$regex    = '#https?://example\.com/embed/([^/]+)#i';
+		$callback = array( $this, '_embed_handler_callback' );
+
+		wp_embed_register_handler( $handle, $regex, $callback );
+
+		$content = "<pre>\nhttp://example.com/embed/foo\n</pre>";
+
+		$actual = $GLOBALS['wp_embed']->autoembed( $content );
+		wp_embed_unregister_handler( $handle );
+
+		$this->assertSame( $content, $actual, 'URLs inside <pre> tags should not be converted to embeds.' );
+	}
+
+	/**
+	 * @ticket 39472
+	 *
+	 * @covers ::autoembed
+	 */
+	public function test_autoembed_should_not_embed_url_inside_code_tag() {
+		$handle   = __FUNCTION__;
+		$regex    = '#https?://example\.com/embed/([^/]+)#i';
+		$callback = array( $this, '_embed_handler_callback' );
+
+		wp_embed_register_handler( $handle, $regex, $callback );
+
+		$content = "<code>\nhttp://example.com/embed/foo\n</code>";
+
+		$actual = $GLOBALS['wp_embed']->autoembed( $content );
+		wp_embed_unregister_handler( $handle );
+
+		$this->assertSame( $content, $actual, 'URLs inside <code> tags should not be converted to embeds.' );
+	}
+
+	/**
+	 * @ticket 39472
+	 *
+	 * @covers ::autoembed
+	 */
+	public function test_autoembed_should_not_embed_url_inside_pre_tag_with_attributes() {
+		$handle   = __FUNCTION__;
+		$regex    = '#https?://example\.com/embed/([^/]+)#i';
+		$callback = array( $this, '_embed_handler_callback' );
+
+		wp_embed_register_handler( $handle, $regex, $callback );
+
+		$content = "<pre class=\"code-block\">\nhttp://example.com/embed/foo\n</pre>";
+
+		$actual = $GLOBALS['wp_embed']->autoembed( $content );
+		wp_embed_unregister_handler( $handle );
+
+		$this->assertSame( $content, $actual, 'URLs inside <pre> tags with attributes should not be converted to embeds.' );
+	}
+
+	/**
+	 * @ticket 39472
+	 *
+	 * @covers ::autoembed
+	 */
+	public function test_autoembed_should_still_embed_url_outside_pre_and_code_tags() {
+		$handle   = __FUNCTION__;
+		$regex    = '#https?://example\.com/embed/([^/]+)#i';
+		$callback = array( $this, '_embed_handler_callback' );
+
+		wp_embed_register_handler( $handle, $regex, $callback );
+
+		$content = "<pre>\nhttp://example.com/embed/protected\n</pre>\n\nhttp://example.com/embed/foo\n";
+
+		$actual = $GLOBALS['wp_embed']->autoembed( $content );
+		wp_embed_unregister_handler( $handle );
+
+		$this->assertStringContainsString( 'Embedded http://example.com/embed/foo', $actual, 'URLs outside protected tags should still be embedded.' );
+		$this->assertStringContainsString( 'http://example.com/embed/protected', $actual, 'URLs inside <pre> tags should remain as plain text.' );
+		$this->assertStringNotContainsString( 'Embedded http://example.com/embed/protected', $actual, 'URLs inside <pre> tags should not be embedded.' );
+	}
 }
