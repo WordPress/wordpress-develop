@@ -1320,6 +1320,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 * @since 5.8.0 Include block templates.
+	 * @since 7.2.0 Templates are sorted by their translated name.
 	 *
 	 * @return array[] Array of page template arrays, keyed by post type and filename,
 	 *                 with the value of the translated header name.
@@ -1392,7 +1393,14 @@ final class WP_Theme implements ArrayAccess {
 					$post_template = $this->translate_header( 'Template Name', $post_template );
 				}
 			}
+			unset( $post_type, $post_template );
 		}
+
+		// Sort each post type's templates by their translated name, keeping the file names as keys.
+		foreach ( $post_templates as &$post_type ) {
+			uasort( $post_type, 'strnatcasecmp' );
+		}
+		unset( $post_type );
 
 		return $post_templates;
 	}
