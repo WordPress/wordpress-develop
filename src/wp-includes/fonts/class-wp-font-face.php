@@ -80,13 +80,6 @@ class WP_Font_Face {
 
 		$css = $this->get_css( $fonts );
 
-		/*
-		 * The font-face CSS is contained within <style> tags and can only be interpreted
-		 * as CSS in the browser. Using wp_strip_all_tags() is sufficient escaping
-		 * to avoid malicious attempts to close </style> and open a <script>.
-		 */
-		$css = wp_strip_all_tags( $css );
-
 		// Bail out if there is no CSS to print.
 		if ( empty( $css ) ) {
 			return;
@@ -330,7 +323,10 @@ class WP_Font_Face {
 				$value = $this->compile_variations( $value );
 			}
 
-			if ( ! empty( $value ) ) {
+			$key   = wp_strip_all_tags( $key );
+			$value = wp_strip_all_tags( $value );
+
+			if ( ! empty( $key ) && ! empty( $value ) ) {
 				$css .= "$key:$value;";
 			}
 		}
