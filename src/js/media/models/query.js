@@ -171,7 +171,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @readonly
 	 */
 	defaultArgs: {
-		posts_per_page: 80
+		posts_per_page: 40
 	},
 	/**
 	 * @readonly
@@ -276,6 +276,11 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 
 			// Fill any other default query args.
 			_.defaults( args, Query.defaultArgs );
+
+			// When 'Load more' is enabled, increase the posts pr page to 80.
+			if ( wp.media && wp.media.view && wp.media.view.settings && wp.media.view.settings.infiniteScrolling === 0 ) {
+				args.posts_per_page = 80;
+			}
 
 			// `props.orderby` does not always map directly to `args.orderby`.
 			// Substitute exceptions specified in orderby.keymap.
