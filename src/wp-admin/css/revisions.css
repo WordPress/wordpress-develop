@@ -550,7 +550,7 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 }
 
 /**
- * HiDPI Displays
+ * Media Queries
  */
 @media print, (min-resolution: 120dpi) {
 	.revision-tick.completed-false {
