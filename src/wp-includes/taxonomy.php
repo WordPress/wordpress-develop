@@ -278,6 +278,7 @@ function create_initial_taxonomies() {
  *                         one element from the array needs to match; 'and' means all elements must match.
  *                         Default 'and'.
  * @return string[]|WP_Taxonomy[] An array of taxonomy names or objects.
+ * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_taxonomies( $args = array(), $output = 'names', $operator = 'and' ) {
 	global $wp_taxonomies;
@@ -301,12 +302,13 @@ function get_taxonomies( $args = array(), $output = 'names', $operator = 'and' )
  *
  * @since 2.3.0
  *
- * @global WP_Taxonomy[] $wp_taxonomies The registered taxonomies.
+ * @global array<non-falsy-string, WP_Taxonomy> $wp_taxonomies The registered taxonomies.
  *
  * @param string|string[]|WP_Post $object_type Name of the type of taxonomy object, or an object (row from posts).
  * @param string                  $output      Optional. The type of output to return in the array. Accepts either
  *                                             'names' or 'objects'. Default 'names'.
  * @return string[]|WP_Taxonomy[] The names or objects of all taxonomies of `$object_type`.
+ * @phpstan-return ( $output is 'names' ? list<non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_object_taxonomies( $object_type, $output = 'names' ) {
 	global $wp_taxonomies;
@@ -648,60 +650,64 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 6.6.0 Added the `template_name` label.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
- * @return object {
+ * @return stdClass {
  *     Taxonomy labels object. The first default value is for non-hierarchical taxonomies
  *     (like tags) and the second one is for hierarchical taxonomies (like categories).
  *
- *     @type string $name                       General name for the taxonomy, usually plural. The same
- *                                              as and overridden by `$tax->label`. Default 'Tags'/'Categories'.
- *     @type string $singular_name              Name for one object of this taxonomy. Default 'Tag'/'Category'.
- *     @type string $search_items               Default 'Search Tags'/'Search Categories'.
- *     @type string $popular_items              This label is only used for non-hierarchical taxonomies.
- *                                              Default 'Popular Tags'.
- *     @type string $all_items                  Default 'All Tags'/'All Categories'.
- *     @type string $parent_item                This label is only used for hierarchical taxonomies. Default
- *                                              'Parent Category'.
- *     @type string $parent_item_colon          The same as `parent_item`, but with colon `:` in the end.
- *     @type string $name_field_description     Description for the Name field on Edit Tags screen.
- *                                              Default 'The name is how it appears on your site'.
- *     @type string $slug_field_description     Description for the Slug field on Edit Tags screen.
- *                                              Default 'The &#8220;slug&#8221; is the URL-friendly version
- *                                              of the name. It is usually all lowercase and contains
- *                                              only letters, numbers, and hyphens'.
- *     @type string $parent_field_description   Description for the Parent field on Edit Tags screen.
- *                                              Default 'Assign a parent term to create a hierarchy.
- *                                              The term Jazz, for example, would be the parent
- *                                              of Bebop and Big Band'.
- *     @type string $desc_field_description     Description for the Description field on Edit Tags screen.
- *                                              Default 'The description is not prominent by default;
- *                                              however, some themes may show it'.
- *     @type string $edit_item                  Default 'Edit Tag'/'Edit Category'.
- *     @type string $view_item                  Default 'View Tag'/'View Category'.
- *     @type string $update_item                Default 'Update Tag'/'Update Category'.
- *     @type string $add_new_item               Default 'Add Tag'/'Add Category'.
- *     @type string $new_item_name              Default 'New Tag Name'/'New Category Name'.
- *     @type string $template_name              Default 'Tag Archives'/'Category Archives'.
- *     @type string $separate_items_with_commas This label is only used for non-hierarchical taxonomies. Default
- *                                              'Separate tags with commas', used in the meta box.
- *     @type string $add_or_remove_items        This label is only used for non-hierarchical taxonomies. Default
- *                                              'Add or remove tags', used in the meta box when JavaScript
- *                                              is disabled.
- *     @type string $choose_from_most_used      This label is only used on non-hierarchical taxonomies. Default
- *                                              'Choose from the most used tags', used in the meta box.
- *     @type string $not_found                  Default 'No tags found'/'No categories found', used in
- *                                              the meta box and taxonomy list table.
- *     @type string $no_terms                   Default 'No tags'/'No categories', used in the posts and media
- *                                              list tables.
- *     @type string $filter_by_item             This label is only used for hierarchical taxonomies. Default
- *                                              'Filter by category', used in the posts list table.
- *     @type string $items_list_navigation      Label for the table pagination hidden heading.
- *     @type string $items_list                 Label for the table hidden heading.
- *     @type string $most_used                  Title for the Most Used tab. Default 'Most Used'.
- *     @type string $back_to_items              Label displayed after a term has been updated.
- *     @type string $item_link                  Used in the block editor. Title for a navigation link block variation.
- *                                              Default 'Tag Link'/'Category Link'.
- *     @type string $item_link_description      Used in the block editor. Description for a navigation link block
- *                                              variation. Default 'A link to a tag'/'A link to a category'.
+ *     @type string      $name                       General name for the taxonomy, usually plural. The same
+ *                                                   as and overridden by `$tax->label`. Default 'Tags'/'Categories'.
+ *     @type string      $singular_name              Name for one object of this taxonomy. Default 'Tag'/'Category'.
+ *     @type string      $menu_name                  Label for the menu name. Default 'Tags'/'Categories'.
+ *     @type string      $name_admin_bar             Label for the object name in the admin bar. Default is the value of
+ *                                                   `singular_name` in the given labels, or the taxonomy key.
+ *     @type string      $search_items               Default 'Search Tags'/'Search Categories'.
+ *     @type string|null $popular_items              This label is only used for non-hierarchical taxonomies.
+ *                                                   Default 'Popular Tags'.
+ *     @type string      $all_items                  Default 'All Tags'/'All Categories'.
+ *     @type string|null $parent_item                This label is only used for hierarchical taxonomies. Default
+ *                                                   'Parent Category'.
+ *     @type string|null $parent_item_colon          This label is only used for hierarchical taxonomies. The same as
+ *                                                   `parent_item`, but with colon `:` in the end.
+ *     @type string      $name_field_description     Description for the Name field on Edit Tags screen.
+ *                                                   Default 'The name is how it appears on your site'.
+ *     @type string      $slug_field_description     Description for the Slug field on Edit Tags screen.
+ *                                                   Default 'The &#8220;slug&#8221; is the URL-friendly version
+ *                                                   of the name. It is usually all lowercase and contains
+ *                                                   only letters, numbers, and hyphens'.
+ *     @type string|null $parent_field_description   Description for the Parent field on Edit Tags screen.
+ *                                                   Default 'Assign a parent term to create a hierarchy.
+ *                                                   The term Jazz, for example, would be the parent
+ *                                                   of Bebop and Big Band'.
+ *     @type string      $desc_field_description     Description for the Description field on Edit Tags screen.
+ *                                                   Default 'The description is not prominent by default;
+ *                                                   however, some themes may show it'.
+ *     @type string      $edit_item                  Default 'Edit Tag'/'Edit Category'.
+ *     @type string      $view_item                  Default 'View Tag'/'View Category'.
+ *     @type string      $update_item                Default 'Update Tag'/'Update Category'.
+ *     @type string      $add_new_item               Default 'Add Tag'/'Add Category'.
+ *     @type string      $new_item_name              Default 'New Tag Name'/'New Category Name'.
+ *     @type string      $template_name              Default 'Tag Archives'/'Category Archives'.
+ *     @type string|null $separate_items_with_commas This label is only used for non-hierarchical taxonomies. Default
+ *                                                   'Separate tags with commas', used in the meta box.
+ *     @type string|null $add_or_remove_items        This label is only used for non-hierarchical taxonomies. Default
+ *                                                   'Add or remove tags', used in the meta box when JavaScript
+ *                                                   is disabled.
+ *     @type string|null $choose_from_most_used      This label is only used on non-hierarchical taxonomies. Default
+ *                                                   'Choose from the most used tags', used in the meta box.
+ *     @type string      $not_found                  Default 'No tags found'/'No categories found', used in
+ *                                                   the meta box and taxonomy list table.
+ *     @type string      $no_terms                   Default 'No tags'/'No categories', used in the posts and media
+ *                                                   list tables.
+ *     @type string|null $filter_by_item             This label is only used for hierarchical taxonomies. Default
+ *                                                   'Filter by category', used in the posts list table.
+ *     @type string      $items_list_navigation      Label for the table pagination hidden heading.
+ *     @type string      $items_list                 Label for the table hidden heading.
+ *     @type string      $most_used                  Title for the Most Used tab. Default 'Most Used'.
+ *     @type string      $back_to_items              Label displayed after a term has been updated.
+ *     @type string      $item_link                  Used in the block editor. Title for a navigation link block
+ *                                                   variation. Default 'Tag Link'/'Category Link'.
+ *     @type string      $item_link_description      Used in the block editor. Description for a navigation link block
+ *                                                   variation. Default 'A link to a tag'/'A link to a category'.
  * }
  */
 function get_taxonomy_labels( $tax ) {
@@ -1303,15 +1309,35 @@ function get_term_to_edit( $id, $taxonomy ) {
  *              Introduced 'meta_key' and 'meta_value' parameters. Introduced the ability to order results by metadata.
  * @since 4.8.0 Introduced 'suppress_filter' parameter.
  *
- * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
+ * @param array|string $args       Optional. Array or string of arguments. See {@see WP_Term_Query::__construct()}
  *                                 for information on accepted arguments. Default empty array.
  * @param array|string $deprecated Optional. Argument array, when using the legacy function parameter format.
  *                                 If present, this parameter will be interpreted as `$args`, and the first
  *                                 function parameter will be parsed as a taxonomy or array of taxonomies.
  *                                 Default empty.
- * @return WP_Term[]|int[]|string[]|string|WP_Error Array of terms, a count thereof as a numeric string,
- *                                                  or WP_Error if any of the taxonomies do not exist.
- *                                                  See the function description for more information.
+ * @return WP_Term[]|int[]|string[]|int|string|WP_Error Array of terms, a count thereof as a numeric string,
+ *                                                      the integer 0 when the queried parent term is not in
+ *                                                      the taxonomy hierarchy, or WP_Error if any of the
+ *                                                      taxonomies do not exist. See the function description
+ *                                                      for more information.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? 0|numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : ( $deprecated is ''
+ *                             ? ( $args is array
+ *                                 ? WP_Term[]|WP_Error
+ *                                 : WP_Term[]|int[]|string[]|int|string|WP_Error )
+ *                             : WP_Term[]|int[]|string[]|int|string|WP_Error ) ) ) ) )
+ * )
  */
 function get_terms( $args = array(), $deprecated = '' ) {
 	$term_query = new WP_Term_Query();
@@ -1592,7 +1618,7 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  * @phpstan-return (
  *     $term is null ? null : (
  *         $term is 0 ? 0 : (
- *             $taxonomy is '' ? int|null : (
+ *             $taxonomy is '' ? numeric-string|null : (
  *                 array{
  *                     term_id: numeric-string,
  *                     term_taxonomy_id: numeric-string,
@@ -1951,14 +1977,16 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  * @since 2.3.0
  * @since 5.6.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
  *
- * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
+ * @param array|string $args       Optional. Array or string of arguments. See {@see WP_Term_Query::__construct()}
  *                                 for information on accepted arguments. Default empty array.
  * @param array|string $deprecated Optional. Argument array, when using the legacy function parameter format.
  *                                 If present, this parameter will be interpreted as `$args`, and the first
  *                                 function parameter will be parsed as a taxonomy or array of taxonomies.
  *                                 Default empty.
- * @return string|WP_Error Numeric string containing the number of terms in that
- *                         taxonomy or WP_Error if the taxonomy does not exist.
+ * @return string|int|WP_Error Numeric string containing the number of terms in that taxonomy,
+ *                             the integer 0 when the queried parent term is not in the taxonomy
+ *                             hierarchy, or WP_Error if the taxonomy does not exist.
+ * @phpstan-return numeric-string|0|WP_Error
  */
 function wp_count_terms( $args = array(), $deprecated = '' ) {
 	$use_legacy_args = false;
@@ -1986,7 +2014,10 @@ function wp_count_terms( $args = array(), $deprecated = '' ) {
 		unset( $args['ignore_empty'] );
 	}
 
-	$args['fields'] = 'count';
+	$args = array_merge(
+		$args,
+		array( 'fields' => 'count' )
+	);
 
 	return get_terms( $args );
 }
@@ -2283,16 +2314,40 @@ function wp_delete_category( $cat_id ) {
  * @since 4.7.0 Refactored to use WP_Term_Query, and to support any WP_Term_Query arguments.
  * @since 6.3.0 Passing `update_term_meta_cache` argument value false by default resulting in get_terms() to not
  *              prime the term meta cache.
+ * @since 7.2.0 A count is returned as a numeric string when `$fields` is 'count'. Previously requesting
+ *              a count resulted in an error.
  *
  * @param int|int[]       $object_ids The ID(s) of the object(s) to retrieve.
  * @param string|string[] $taxonomies The taxonomy names to retrieve terms from.
- * @param array|string    $args       See WP_Term_Query::__construct() for supported arguments.
+ * @param array|string    $args       See {@see WP_Term_Query::__construct()} for supported arguments.
  * @return WP_Term[]|int[]|string[]|string|WP_Error Array of terms, a count thereof as a numeric string,
  *                                                  or WP_Error if any of the taxonomies do not exist.
- *                                                  See WP_Term_Query::get_terms() for more information.
+ *                                                  See {@see WP_Term_Query::get_terms()} for more information.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : ( $args is array
+ *                             ? WP_Term[]|WP_Error
+ *                             : WP_Term[]|int[]|string[]|string|WP_Error ) ) ) ) )
+ * )
  */
 function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
+	$args = wp_parse_args( $args );
+
 	if ( empty( $object_ids ) || empty( $taxonomies ) ) {
+		if ( isset( $args['fields'] ) && 'count' === $args['fields'] ) {
+			return '0';
+		}
+
 		return array();
 	}
 
@@ -2332,6 +2387,13 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	/*
 	 * When one or more queried taxonomies is registered with an 'args' array,
 	 * those params override the `$args` passed to this function.
+	 *
+	 * That array is for query modifiers such as 'orderby'. Overriding 'fields'
+	 * there does not work, because callers depend on the shape they asked for:
+	 * get_the_taxonomies() reads `$term->name` off the result, and
+	 * wp_set_object_terms() needs the 'tt_ids' it requested. A taxonomy that
+	 * overrides it also returns a different shape than the taxonomies queried
+	 * below, leaving the two merged into one another here.
 	 */
 	$terms = array();
 	if ( count( $taxonomies ) > 1 ) {
@@ -2339,7 +2401,16 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 			$t = get_taxonomy( $taxonomy );
 			if ( isset( $t->args ) && is_array( $t->args ) && array_merge( $args, $t->args ) != $args ) {
 				unset( $taxonomies[ $index ] );
-				$terms = array_merge( $terms, wp_get_object_terms( $object_ids, $taxonomy, array_merge( $args, $t->args ) ) );
+
+				// Cast because a count is returned as a numeric string. The counts are summed below.
+				$terms_from_taxonomy = (array) wp_get_object_terms( $object_ids, $taxonomy, array_merge( $args, $t->args ) );
+
+				// Array keys should be preserved for values of $fields that use term_id for keys.
+				if ( ! empty( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
+					$terms = $terms + $terms_from_taxonomy;
+				} else {
+					$terms = array_merge( $terms, $terms_from_taxonomy );
+				}
 			}
 		}
 	} else {
@@ -2354,7 +2425,8 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 
 	// Taxonomies registered without an 'args' param are handled here.
 	if ( ! empty( $taxonomies ) ) {
-		$terms_from_remaining_taxonomies = get_terms( $args );
+		// Cast because a count is returned as a numeric string. The counts are summed below.
+		$terms_from_remaining_taxonomies = (array) get_terms( $args );
 
 		// Array keys should be preserved for values of $fields that use term_id for keys.
 		if ( ! empty( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
@@ -2362,6 +2434,10 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 		} else {
 			$terms = array_merge( $terms, $terms_from_remaining_taxonomies );
 		}
+	}
+
+	if ( isset( $args['fields'] ) && 'count' === $args['fields'] ) {
+		$terms = (string) array_sum( $terms );
 	}
 
 	/**
@@ -2373,7 +2449,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	 * @param int[]                           $object_ids Array of object IDs for which terms were retrieved.
 	 * @param string[]                        $taxonomies Array of taxonomy names from which terms were retrieved.
 	 * @param array                           $args       Array of arguments for retrieving terms for the given
-	 *                                                    object(s). See wp_get_object_terms() for details.
+	 *                                                    object(s). See {@see wp_get_object_terms()} for details.
 	 */
 	$terms = apply_filters( 'get_object_terms', $terms, $object_ids, $taxonomies, $args );
 
@@ -2392,7 +2468,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	 * @param string                          $object_ids Comma separated list of object IDs for which terms were retrieved.
 	 * @param string                          $taxonomies SQL fragment of taxonomy names from which terms were retrieved.
 	 * @param array                           $args       Array of arguments for retrieving terms for the given
-	 *                                                    object(s). See wp_get_object_terms() for details.
+	 *                                                    object(s). See {@see wp_get_object_terms()} for details.
 	 */
 	return apply_filters( 'wp_get_object_terms', $terms, $object_ids, $taxonomies, $args );
 }
