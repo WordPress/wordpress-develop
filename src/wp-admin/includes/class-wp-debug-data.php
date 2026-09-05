@@ -287,7 +287,7 @@ class WP_Debug_Data {
 				'value' => sprintf(
 				/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
 					__( 'Unable to reach WordPress.org at %1$s: %2$s' ),
-					gethostbyname( 'wordpress.org' ),
+					get_host_by_name( 'wordpress.org' ),
 					$wp_dotorg->get_error_message()
 				),
 				'debug' => $wp_dotorg->get_error_message(),
