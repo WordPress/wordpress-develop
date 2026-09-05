@@ -637,6 +637,49 @@ function twentytwenty_block_editor_settings() {
 
 add_action( 'after_setup_theme', 'twentytwenty_block_editor_settings' );
 
+function twentytwenty_generate_color_palette_css() {
+
+	// Check if the theme supports editor color palette.
+	if ( ! current_theme_supports( 'editor-color-palette' ) ) {
+		return;
+	}
+
+	$colors = get_theme_support( 'editor-color-palette' );
+	if ( ! $colors ) {
+		return;
+	}
+
+	$colors = $colors[0];
+	$css    = '';
+
+	foreach ( $colors as $color ) {
+		// Generate text color classes.
+		$css .= sprintf(
+			'.has-%1$s-color { color: %2$s; } ',
+			$color['slug'],
+			$color['color']
+		);
+
+		// Generate background color classes.
+		$css .= sprintf(
+			'.has-%1$s-background-color { background-color: %2$s; } ',
+			$color['slug'],
+			$color['color']
+		);
+
+		// Generate border color classes.
+		$css .= sprintf(
+			'.has-%1$s-border-color { border-color: %2$s; } ',
+			$color['slug'],
+			$color['color']
+		);
+	}
+
+	$added = wp_add_inline_style( 'twentytwenty-style', $css );
+}
+
+add_action( 'wp_enqueue_scripts', 'twentytwenty_generate_color_palette_css' );
+
 /**
  * Overwrite default more tag with styling and screen reader markup.
  *
