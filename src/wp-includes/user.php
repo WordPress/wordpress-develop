@@ -907,7 +907,12 @@ function get_users( $args = array() ) {
  *     @type string $exclude       An array, comma-, or space-separated list of user IDs to exclude. Default empty.
  *     @type string $include       An array, comma-, or space-separated list of user IDs to include. Default empty.
  * }
- * @return string|null The output if echo is false. Otherwise null.
+ * @return string|void The output if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_list_users( $args = array() ) {
 	$defaults = array(
@@ -1015,8 +1020,6 @@ function wp_list_users( $args = array() ) {
 	}
 
 	echo $return;
-
-	return null;
 }
 
 /**
@@ -2595,7 +2598,7 @@ function wp_insert_user( $userdata ) {
 	 * @since 4.4.0
 	 * @since 5.8.0 The `$userdata` parameter was added.
 	 *
-	 * @param array $meta {
+	 * @param array   $meta {
 	 *     Default meta values and keys for the user.
 	 *
 	 *     @type string   $nickname             The user's nickname. Default is the user's username.
@@ -3458,7 +3461,7 @@ function retrieve_password( $user_login = '' ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array $defaults {
+	 * @param array   $defaults {
 	 *     The default notification email arguments. Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient - user email address.

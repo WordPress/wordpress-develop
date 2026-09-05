@@ -1619,7 +1619,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	 *                                  pixel density value if paired with an 'x' descriptor.
 	 *     }
 	 * }
-	 * @param array $size_array     {
+	 * @param array  $size_array {
 	 *     An array of requested width and height values.
 	 *
 	 *     @type int $0 The width in pixels.
@@ -4124,11 +4124,11 @@ function get_adjacent_image_link( $prev = true, $size = 'thumbnail', $text = fal
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $output        Adjacent image HTML markup.
-	 * @param int    $attachment_id Attachment ID
-	 * @param string|int[] $size    Requested image size. Can be any registered image size name, or
-	 *                              an array of width and height values in pixels (in that order).
-	 * @param string $text          Link text.
+	 * @param string       $output        Adjacent image HTML markup.
+	 * @param int          $attachment_id Attachment ID
+	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
+	 *                                    an array of width and height values in pixels (in that order).
+	 * @param string       $text          Link text.
 	 */
 	return apply_filters( "{$adjacent}_image_link", $output, $attachment_id, $size, $text );
 }
@@ -4160,6 +4160,7 @@ function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false )
  *                                     or 'objects' to return an array of taxonomy objects.
  *                                     Default is 'names'.
  * @return string[]|WP_Taxonomy[] List of taxonomies or taxonomy names. Empty array on failure.
+ * @phpstan-return ( $output is 'names' ? list<non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	if ( is_int( $attachment ) ) {
@@ -4204,7 +4205,9 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	}
 
 	if ( 'names' === $output ) {
-		$taxonomies = array_unique( $taxonomies );
+		/** @var non-falsy-string[] $taxonomies */
+		$unique_taxonomies = array_values( array_unique( $taxonomies ) );
+		$taxonomies        = $unique_taxonomies;
 	}
 
 	return $taxonomies;
@@ -4222,6 +4225,7 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
  * @param string $output Optional. The type of taxonomy output to return. Accepts 'names' or 'objects'.
  *                       Default 'names'.
  * @return string[]|WP_Taxonomy[] Array of names or objects of registered taxonomies for attachments.
+ * @phpstan-return ( $output is 'names' ? list<non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_taxonomies_for_attachments( $output = 'names' ) {
 	$taxonomies = array();

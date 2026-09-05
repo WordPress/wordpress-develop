@@ -35,7 +35,9 @@ ButtonGroup = wp.media.View.extend(/** @lends wp.media.view.ButtonGroup.prototyp
 	},
 
 	/**
-	 * @return {wp.media.view.ButtonGroup}
+	 * Renders the button group.
+	 *
+	 * @return {wp.media.view.ButtonGroup} The button group.
 	 */
 	render: function() {
 		this.$el.html( $( _.pluck( this.buttons, 'el' ) ).detach() );

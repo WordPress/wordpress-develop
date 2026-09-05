@@ -460,11 +460,19 @@ function number_format_i18n( $number, $decimals = 0 ) {
  * @since 2.3.0
  * @since 6.0.0 Support for PB, EB, ZB, and YB was added.
  *
- * @param int|string $bytes    Number of bytes. Note max integer size for integers.
- * @param int        $decimals Optional. Precision of number of decimal places. Default 0.
+ * @param int|float|string $bytes    Number of bytes. Note max integer size for integers.
+ * @param int              $decimals Optional. Precision of number of decimal places. Default 0.
  * @return string|false Number string on success, false on failure.
+ *
+ * @phpstan-param int|float|numeric-string $bytes
  */
 function size_format( $bytes, $decimals = 0 ) {
+	if ( ! is_numeric( $bytes ) ) {
+		return false;
+	}
+
+	$bytes = (float) $bytes;
+
 	$quant = array(
 		/* translators: Unit symbol for yottabyte. */
 		_x( 'YB', 'unit symbol' ) => YB_IN_BYTES,
@@ -486,13 +494,13 @@ function size_format( $bytes, $decimals = 0 ) {
 		_x( 'B', 'unit symbol' )  => 1,
 	);
 
-	if ( 0 === $bytes ) {
+	if ( 0.0 === $bytes ) {
 		/* translators: Unit symbol for byte. */
 		return number_format_i18n( 0, $decimals ) . ' ' . _x( 'B', 'unit symbol' );
 	}
 
 	foreach ( $quant as $unit => $mag ) {
-		if ( (float) $bytes >= $mag ) {
+		if ( $bytes >= $mag ) {
 			return number_format_i18n( $bytes / $mag, $decimals ) . ' ' . $unit;
 		}
 	}
@@ -2346,11 +2354,11 @@ function win_is_writable( $path ) {
  * @phpstan-return array{
  *                     path: non-empty-string,
  *                     url: non-empty-string,
- *                     subdir: non-empty-string,
+ *                     subdir: string,
  *                     basedir: non-empty-string,
  *                     baseurl: non-empty-string,
+ *                     error: non-empty-string|false,
  *                 }
- *                |array{ error: non-empty-string }
  */
 function wp_get_upload_dir() {
 	return wp_upload_dir( null, false );
@@ -2395,11 +2403,11 @@ function wp_get_upload_dir() {
  * @phpstan-return array{
  *                     path: non-empty-string,
  *                     url: non-empty-string,
- *                     subdir: non-empty-string,
+ *                     subdir: string,
  *                     basedir: non-empty-string,
  *                     baseurl: non-empty-string,
+ *                     error: non-empty-string|false,
  *                 }
- *                |array{ error: non-empty-string }
  */
 function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false ) {
 	static $cache = array(), $tested_paths = array();
@@ -2463,6 +2471,14 @@ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
  *
  * @param string|null $time Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See wp_upload_dir()
+ * @phpstan-return array{
+ *                     path: non-empty-string,
+ *                     url: non-empty-string,
+ *                     subdir: string,
+ *                     basedir: non-empty-string,
+ *                     baseurl: non-empty-string,
+ *                     error: false,
+ *                 }
  */
 function _wp_upload_dir( $time = null ) {
 	$siteurl     = get_option( 'siteurl' );
@@ -2915,11 +2931,14 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * @return array {
  *     Information about the newly-uploaded file.
  *
- *     @type string       $file  Filename of the newly-uploaded file.
- *     @type string       $url   URL of the uploaded file.
- *     @type string       $type  File type.
+ *     @type string       $file  Optional. Filename of the newly-uploaded file. Not set if there has been an error.
+ *     @type string       $url   Optional. URL of the uploaded file. Not set if there has been an error.
+ *     @type string|false $type  Optional. File type, or false if the file doesn't match a mime type.
+ *                               Not set if there has been an error.
  *     @type string|false $error Error message, if there has been an error.
  * }
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
+ *                |array{ error: string, ... }
  */
 function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	if ( ! empty( $deprecated ) ) {
@@ -3794,23 +3813,25 @@ function wp_nonce_ays( $action ) {
  *                                     error data with the key 'title' may be used to specify the title.
  *                                     If `$title` is an integer, then it is treated as the response code.
  *                                     Default empty string.
- * @param string|array|int $args {
+ * @param string|array|int    $args {
  *     Optional. Arguments to control behavior. If `$args` is an integer, then it is treated
  *     as the response code. Default empty array.
  *
- *     @type int    $response       The HTTP response code. Default 200 for Ajax requests, 500 otherwise.
- *     @type string $link_url       A URL to include a link to. Only works in combination with $link_text.
- *                                  Default empty string.
- *     @type string $link_text      A label for the link to include. Only works in combination with $link_url.
- *                                  Default empty string.
- *     @type bool   $back_link      Whether to include a link to go back. Default false.
- *     @type string $text_direction The text direction. This is only useful internally, when WordPress is still
- *                                  loading and the site's locale is not set up yet. Accepts 'rtl' and 'ltr'.
- *                                  Default is the value of is_rtl().
- *     @type string $charset        Character set of the HTML output. Default 'utf-8'.
- *     @type string $code           Error code to use. Default is 'wp_die', or the main error code if $message
- *                                  is a WP_Error.
- *     @type bool   $exit           Whether to exit the process after completion. Default true.
+ *     @type int|null $response       The HTTP response code, or null to send no status header. The Ajax, JSON,
+ *                                    JSONP and XML handlers all accept null, for backward compatibility.
+ *                                    Default 200 for Ajax requests, 500 otherwise.
+ *     @type string   $link_url       A URL to include a link to. Only works in combination with $link_text.
+ *                                    Default empty string.
+ *     @type string   $link_text      A label for the link to include. Only works in combination with $link_url.
+ *                                    Default empty string.
+ *     @type bool     $back_link      Whether to include a link to go back. Default false.
+ *     @type string   $text_direction The text direction. This is only useful internally, when WordPress is still
+ *                                    loading and the site's locale is not set up yet. Accepts 'rtl' and 'ltr'.
+ *                                    Default is the value of is_rtl().
+ *     @type string   $charset        Character set of the HTML output. Default 'utf-8'.
+ *     @type string   $code           Error code to use. Default is 'wp_die', or the main error code if $message
+ *                                    is a WP_Error.
+ *     @type bool     $exit           Whether to exit the process after completion. Default true.
  * }
  * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
  * @phpstan-param string|WP_Error|int<-1, max> $message
@@ -8361,7 +8382,7 @@ All at ###SITENAME###
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $email_change_email {
+	 * @param array  $email_change_email {
 	 *     Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient.
@@ -8374,8 +8395,8 @@ All at ###SITENAME###
 	 *          - `###SITEURL###`   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
-	 * @param string $old_email The old site admin email address.
-	 * @param string $new_email The new site admin email address.
+	 * @param string $old_email          The old site admin email address.
+	 * @param string $new_email          The new site admin email address.
 	 */
 	$email_change_email = apply_filters( 'site_admin_email_change_email', $email_change_email, $old_email, $new_email );
 
@@ -8724,19 +8745,22 @@ function wp_get_default_update_php_url() {
  * @param string $before  Markup to output before the annotation. Default `<p class="description">`.
  * @param string $after   Markup to output after the annotation. Default `</p>`.
  * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
- * @return string|null Update PHP page annotation if available and $display is false, null otherwise.
+ * @return string|null|void Update PHP page annotation when `$display` is false, null when
+ *                          no annotation is available. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
 	$annotation = wp_get_update_php_annotation();
 
-	if ( $annotation ) {
-		if ( $display ) {
-			echo $before . $annotation . $after;
-		} else {
-			return $before . $annotation . $after;
-		}
+	if ( ! $annotation ) {
+		return null;
 	}
-	return null;
+
+	if ( ! $display ) {
+		return $before . $annotation . $after;
+	}
+
+	echo $before . $annotation . $after;
 }
 
 /**
@@ -8917,7 +8941,7 @@ function wp_get_direct_update_https_url() {
  * @since MU (3.0.0)
  * @since 5.2.0 $max_execution_time parameter added.
  *
- * @param string $directory Full path of a directory.
+ * @param string $directory          Full path of a directory.
  * @param int    $max_execution_time Maximum time to run before giving up. In seconds.
  *                                   The timeout is global and is measured from the moment WordPress started to load.
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.
