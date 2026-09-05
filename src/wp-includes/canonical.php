@@ -920,13 +920,9 @@ function strip_fragment_from_url( $url ) {
  *
  * @since 2.3.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @return string|false The correct URL if one is found. False on failure.
  */
 function redirect_guess_404_permalink() {
-	global $wpdb;
-
 	/**
 	 * Filters whether to attempt to guess a redirect URL for a 404 request.
 	 *
@@ -973,10 +969,24 @@ function redirect_guess_404_permalink() {
 		 */
 		$strict_guess = apply_filters( 'strict_redirect_guess_404_permalink', false );
 
+		$query_args = array(
+			'post_status'            => $publicly_viewable_statuses,
+			'posts_per_page'         => 1,
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'fields'                 => 'ids',
+			'orderby'                => 'none',
+			'suppress_filters'       => true,
+		);
+
 		if ( $strict_guess ) {
-			$where = $wpdb->prepare( 'post_name = %s', get_query_var( 'name' ) );
+			$query_args['name'] = get_query_var( 'name' );
 		} else {
-			$where = $wpdb->prepare( 'post_name LIKE %s', $wpdb->esc_like( get_query_var( 'name' ) ) . '%' );
+			$query_args['s']               = get_query_var( 'name' );
+			$query_args['search_columns']  = array( 'post_name' );
+			$query_args['search_position'] = 'start';
 		}
 
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
@@ -986,31 +996,40 @@ function redirect_guess_404_permalink() {
 				if ( empty( $post_types ) ) {
 					return false;
 				}
-				$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $post_types ) ) . "')";
+				$query_args['post_type'] = $post_types;
 			} else {
 				if ( ! in_array( get_query_var( 'post_type' ), $publicly_viewable_post_types, true ) ) {
 					return false;
 				}
-				$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
+				$query_args['post_type'] = get_query_var( 'post_type' );
 			}
 		} else {
-			$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $publicly_viewable_post_types ) ) . "')";
+			$query_args['post_type'] = $publicly_viewable_post_types;
 		}
 
+		// Build date_query array from individual year, month, and day query vars for WP_Query compatibility.
+		$date_query = array();
 		if ( get_query_var( 'year' ) ) {
-			$where .= $wpdb->prepare( ' AND YEAR(post_date) = %d', get_query_var( 'year' ) );
+			$date_query['year'] = get_query_var( 'year' );
 		}
 		if ( get_query_var( 'monthnum' ) ) {
-			$where .= $wpdb->prepare( ' AND MONTH(post_date) = %d', get_query_var( 'monthnum' ) );
+			$date_query['month'] = get_query_var( 'monthnum' );
 		}
 		if ( get_query_var( 'day' ) ) {
-			$where .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
+			$date_query['day'] = get_query_var( 'day' );
+		}
+		if ( ! empty( $date_query ) ) {
+			$query_args['date_query'] = array( $date_query );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')" );
+		$query = new WP_Query( $query_args );
 
-		if ( ! $post_id ) {
+		if ( empty( $query->posts ) ) {
+			return false;
+		}
+
+		$post_id = array_first( $query->posts );
+		if ( ! is_int( $post_id ) ) {
 			return false;
 		}
 
