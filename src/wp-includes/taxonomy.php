@@ -1983,10 +1983,10 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  *                                 If present, this parameter will be interpreted as `$args`, and the first
  *                                 function parameter will be parsed as a taxonomy or array of taxonomies.
  *                                 Default empty.
- * @return int|string|WP_Error Numeric string containing the number of terms in that taxonomy,
+ * @return string|int|WP_Error Numeric string containing the number of terms in that taxonomy,
  *                             the integer 0 when the queried parent term is not in the taxonomy
  *                             hierarchy, or WP_Error if the taxonomy does not exist.
- * @phpstan-return 0|numeric-string|WP_Error
+ * @phpstan-return numeric-string|0|WP_Error
  */
 function wp_count_terms( $args = array(), $deprecated = '' ) {
 	$use_legacy_args = false;
