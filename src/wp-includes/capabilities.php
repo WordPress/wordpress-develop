@@ -1361,6 +1361,107 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
 	return $allcaps;
 }
 
+/**
+ * Filters the user capabilities to grant the `wp_knowledge` post type capabilities as necessary.
+ *
+ * The `wp_knowledge` post type uses a `knowledge`-prefixed capability set that is
+ * granted dynamically rather than stored on roles. Administrators (users with
+ * `manage_options`) receive every knowledge capability. Contributors, authors,
+ * and editors (users with `edit_posts`) may list and create knowledge rows and
+ * fully manage their own private rows. Publishing knowledge and acting on other
+ * users' rows is reserved for administrators. Subscribers receive nothing and
+ * are stopped at the post-type door by the `read_knowledge_items` mapping.
+ *
+ * @since 7.2.0
+ *
+ * @param array<string, bool> $allcaps An array of all the user's capabilities.
+ * @param string[]            $caps    Required primitive capabilities for the requested capability.
+ * @param array               $args    {
+ *     Arguments that accompany the requested capability check.
+ *
+ *     @type string    $0 Requested capability.
+ *     @type int       $1 Concerned user ID.
+ *     @type mixed  ...$2 Optional second and further parameters, typically object ID.
+ * }
+ * @param WP_User             $user    The user object.
+ * @return array<string, bool> Filtered array of the user's capabilities.
+ * @phpstan-param array{ 0: string, 1: positive-int, 2: mixed, ... } $args
+ */
+function wp_maybe_grant_knowledge_caps( $allcaps, array $caps, array $args, WP_User $user ): array {
+	if ( ! is_array( $allcaps ) ) {
+		$allcaps = array();
+	}
+
+	if ( ! empty( $allcaps['manage_options'] ) ) {
+		$allcaps['read_knowledge_items']             = true;
+		$allcaps['edit_knowledge_items']             = true;
+		$allcaps['edit_others_knowledge_items']      = true;
+		$allcaps['edit_published_knowledge_items']   = true;
+		$allcaps['edit_private_knowledge_items']     = true;
+		$allcaps['publish_knowledge_items']          = true;
+		$allcaps['delete_knowledge_items']           = true;
+		$allcaps['delete_others_knowledge_items']    = true;
+		$allcaps['delete_published_knowledge_items'] = true;
+		$allcaps['delete_private_knowledge_items']   = true;
+		$allcaps['read_private_knowledge_items']     = true;
+
+		return $allcaps;
+	}
+
+	if ( empty( $allcaps['edit_posts'] ) ) {
+		return $allcaps;
+	}
+
+	/*
+	 * Ambient floor for contributors and above: `read_knowledge_items` clears the
+	 * post-type read check; `edit_knowledge_items` clears the create and ownership
+	 * checks that do not pass a post ID. Per-post primitives are granted only
+	 * in the per-post branch below.
+	 */
+	$allcaps['read_knowledge_items'] = true;
+	$allcaps['edit_knowledge_items'] = true;
+
+	if ( ! isset( $args[0], $args[2] ) || ! is_int( $args[2] ) ) {
+		return $allcaps;
+	}
+
+	if ( ! in_array( $args[0], array( 'edit_post', 'delete_post', 'read_post' ), true ) ) {
+		return $allcaps;
+	}
+
+	$post = get_post( $args[2] );
+	if (
+		! $post instanceof WP_Post ||
+		'wp_knowledge' !== $post->post_type ||
+		(int) $post->post_author !== (int) $user->ID
+	) {
+		return $allcaps;
+	}
+
+	/*
+	 * A trashed row keeps its pre-trash status in `_wp_trash_meta_status`.
+	 * Resolve that effective status so the author keeps the ability to restore
+	 * or permanently delete their own row once it is in the trash. A row trashed
+	 * from a non-private status (only reachable for administrators) still falls
+	 * outside the grant.
+	 */
+	$status = $post->post_status;
+	if ( 'trash' === $status ) {
+		$status = get_post_meta( $post->ID, '_wp_trash_meta_status', true );
+	}
+
+	if ( 'private' !== $status ) {
+		return $allcaps;
+	}
+
+	$allcaps['edit_private_knowledge_items']   = true;
+	$allcaps['delete_knowledge_items']         = true;
+	$allcaps['delete_private_knowledge_items'] = true;
+	$allcaps['read_private_knowledge_items']   = true;
+
+	return $allcaps;
+}
+
 return;
 
 // Dummy gettext calls to get strings in the catalog.

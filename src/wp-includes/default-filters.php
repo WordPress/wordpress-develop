@@ -771,6 +771,7 @@ add_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10, 3 );
 add_filter( 'user_has_cap', 'wp_maybe_grant_install_languages_cap', 1 );
 add_filter( 'user_has_cap', 'wp_maybe_grant_resume_extensions_caps', 1 );
 add_filter( 'user_has_cap', 'wp_maybe_grant_site_health_caps', 1, 4 );
+add_filter( 'user_has_cap', 'wp_maybe_grant_knowledge_caps', 1, 4 );
 
 // Block templates post type and rendering.
 add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );
@@ -783,6 +784,10 @@ add_action( 'wp_loaded', '_add_template_loader_filters' );
 
 // wp_navigation post type.
 add_filter( 'rest_wp_navigation_item_schema', array( 'WP_Navigation_Fallback', 'update_wp_navigation_post_schema' ) );
+
+// wp_knowledge post type.
+add_action( 'wp_after_insert_post', 'wp_knowledge_ensure_default_type_term', 10, 2 );
+add_filter( 'wp_insert_term_data', 'wp_knowledge_maybe_map_term_label', 10, 2 );
 
 // Fluid typography.
 add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
