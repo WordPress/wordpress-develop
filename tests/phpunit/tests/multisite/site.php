@@ -25,6 +25,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wpdb;
 		$wpdb->suppress_errors( $this->suppress );
+		wp_installing( false );
 		parent::tear_down();
 	}
 
@@ -2052,7 +2053,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 41333
 	 */
 	public function test_wp_initialize_site_invalid_id() {
-		$result = wp_initialize_site( 123 );
+		$result = wp_initialize_site( PHP_INT_MAX );
 		$this->assertWPError( $result );
 		$this->assertSame( 'site_invalid_id', $result->get_error_code() );
 	}
@@ -2090,7 +2091,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 41333
 	 */
 	public function test_wp_uninitialize_site_invalid_id() {
-		$result = wp_uninitialize_site( 123 );
+		$result = wp_uninitialize_site( PHP_INT_MAX );
 		$this->assertWPError( $result );
 		$this->assertSame( 'site_invalid_id', $result->get_error_code() );
 	}

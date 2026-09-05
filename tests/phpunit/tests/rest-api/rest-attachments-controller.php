@@ -5583,7 +5583,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
-		$request->set_param( 'url', 'https://example.com/no-space.jpg' );
+		$request->set_param( 'url', home_url( '/no-space.jpg' ) );
 		$request->set_param( 'generate_sub_sizes', false );
 
 		$response = rest_get_server()->dispatch( $request );
