@@ -1016,6 +1016,12 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 				box-shadow: 0 -1px 0 0 #ddd;
         }
 
+		@supports selector(:has(*)) {
+			.menu-edit:has(#menu-to-edit.bulk-selection) #nav-menu-footer {
+				position: relative;
+			} 
+		}
+
         #save_menu_header {
                 display: none;
         }
