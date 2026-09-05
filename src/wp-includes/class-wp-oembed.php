@@ -674,6 +674,7 @@ class WP_oEmbed {
 			return false;
 		}
 
+		$loader = null;
 		if ( PHP_VERSION_ID < 80000 ) {
 			/*
 			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
@@ -688,7 +689,7 @@ class WP_oEmbed {
 
 		libxml_use_internal_errors( $errors );
 
-		if ( PHP_VERSION_ID < 80000 && isset( $loader ) ) {
+		if ( PHP_VERSION_ID < 80000 ) {
 			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
 			libxml_disable_entity_loader( $loader );
 		}
@@ -806,7 +807,7 @@ class WP_oEmbed {
 	 *
 	 * @param string|false $html Existing HTML.
 	 * @param object       $data Data object from WP_oEmbed::data2html()
-	 * @param string       $url The original URL passed to oEmbed.
+	 * @param string       $url  The original URL passed to oEmbed.
 	 * @return string|false Possibly modified $html.
 	 */
 	public function _strip_newlines( $html, $data, $url ) {

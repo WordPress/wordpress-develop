@@ -1885,7 +1885,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
  * @since 5.6.0
  *
  * @param string $param The parameter name.
- * @param array $error  The error details.
+ * @param array  $error The error details.
  * @return WP_Error
  */
 function rest_format_combining_operation_error( $param, $error ) {
@@ -3458,7 +3458,6 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * @since 5.7.0
  *
  * @param WP_Error $error WP_Error instance.
- *
  * @return WP_REST_Response List of associative arrays with code and message keys.
  */
 function rest_convert_error_to_response( $error ) {
