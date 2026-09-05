@@ -1870,100 +1870,74 @@ function wp_kses_hair_parse( $attr ) {
  * @return bool Whether check passes.
  */
 function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
-	$ok = true;
+	$checkname = strtolower( $checkname );
 
-	switch ( strtolower( $checkname ) ) {
-		case 'maxlen':
-			/*
-			 * The maxlen check makes sure that the attribute value has a length not
-			 * greater than the given value. This can be used to avoid Buffer Overflows
-			 * in WWW clients and various Internet servers.
-			 */
+	/*
+	 * The `maxlen` and `minlen` checks make sure that the attribute value has
+	 * a length not greater than or less than the given length, respectively.
+	 */
+	if (
+		( 'maxlen' === $checkname && strlen( $value ) > $checkvalue ) ||
+		( 'minlen' === $checkname && strlen( $value ) < $checkvalue )
+	) {
+		return false;
+	}
 
-			if ( strlen( $value ) > $checkvalue ) {
-				$ok = false;
-			}
-			break;
+	/*
+	 * The `maxval` and `minval` checks do two things: that the attribute value
+	 * is a non-negative integer; and that the attribute value is not greater
+	 * than or less than the given value, respectively.
+	 */
+	if ( 'maxval' === $checkname || 'minval' === $checkname ) {
+		$check_digits = 1 + (int) floor( log10( (int) abs( $checkvalue ) ) );
+		$zeros_at     = strspn( $value, " \t\f\r\n" );
+		$digits_at    = $zeros_at + strspn( $value, '0', $zeros_at );
+		$ws_at        = $digits_at + strspn( $value, '0123456789', $digits_at );
+		$end_at       = $ws_at + strspn( $value, " \t\f\r\n", $ws_at );
+		$digits       = $ws_at - $digits_at;
 
-		case 'minlen':
-			/*
-			 * The minlen check makes sure that the attribute value has a length not
-			 * smaller than the given value.
-			 */
+		if ( 0 === $digits || strlen( $value ) !== $end_at ) {
+			return false;
+		}
 
-			if ( strlen( $value ) < $checkvalue ) {
-				$ok = false;
-			}
-			break;
+		if ( 'maxval' === $checkname && ( $digits > $check_digits || $value > $checkvalue ) ) {
+			return false;
+		}
 
-		case 'maxval':
-			/*
-			 * The maxval check does two things: it checks that the attribute value is
-			 * an integer from 0 and up, without an excessive amount of zeroes or
-			 * whitespace (to avoid Buffer Overflows). It also checks that the attribute
-			 * value is not greater than the given value.
-			 * This check can be used to avoid Denial of Service attacks.
-			 */
+		if ( 'minval' === $checkname && ( $digits < $check_digits || $value < $checkvalue ) ) {
+			return false;
+		}
+	}
 
-			if ( ! preg_match( '/^\s{0,6}[0-9]{1,6}\s{0,6}$/', $value ) ) {
-				$ok = false;
-			}
-			if ( $value > $checkvalue ) {
-				$ok = false;
-			}
-			break;
+	/*
+	 * The `valueless` check makes sure if the attribute has a value that it’s
+	 * a string value (e.g. `<a href="blah">`) and not a boolean attribute
+	 * (e.g. `<option selected>`). A `y` or `Y` indicates that the attribute
+	 * must be a boolean without a string value; while an `n` or `N` indicates
+	 * that it must have a string value, including empty strings (e.g. `<a href="">`).
+	 */
+	if ( 'valueless' === $checkname && strtolower( $checkvalue ) !== $vless ) {
+		return false;
+	}
 
-		case 'minval':
-			/*
-			 * The minval check makes sure that the attribute value is a positive integer,
-			 * and that it is not smaller than the given value.
-			 */
+	/*
+	 * The `values` check validates that the attribute value is one of a given
+	 * set of allowable values, lowercased.
+	 */
+	if ( 'values' === $checkname && ! in_array( strtolower( $value ), $checkvalue, true ) ) {
+		return false;
+	}
 
-			if ( ! preg_match( '/^\s{0,6}[0-9]{1,6}\s{0,6}$/', $value ) ) {
-				$ok = false;
-			}
-			if ( $value < $checkvalue ) {
-				$ok = false;
-			}
-			break;
+	/*
+	 * The `value_callback` check provides customizable validation logic by
+	 * calling a supplied function, which must return a boolean value indicating
+	 * whether the supplied value is allowable.
+	 */
+	if ( 'value_callback' === $checkname && ! call_user_func( $checkvalue, $value ) ) {
+		return false;
+	}
 
-		case 'valueless':
-			/*
-			 * The valueless check makes sure if the attribute has a value
-			 * (like `<a href="blah">`) or not (`<option selected>`). If the given value
-			 * is a "y" or a "Y", the attribute must not have a value.
-			 * If the given value is an "n" or an "N", the attribute must have a value.
-			 */
-
-			if ( strtolower( $checkvalue ) !== $vless ) {
-				$ok = false;
-			}
-			break;
-
-		case 'values':
-			/*
-			 * The values check is used when you want to make sure that the attribute
-			 * has one of the given values.
-			 */
-
-			if ( ! in_array( strtolower( $value ), $checkvalue, true ) ) {
-				$ok = false;
-			}
-			break;
-
-		case 'value_callback':
-			/*
-			 * The value_callback check is used when you want to make sure that the attribute
-			 * value is accepted by the callback function.
-			 */
-
-			if ( ! call_user_func( $checkvalue, $value ) ) {
-				$ok = false;
-			}
-			break;
-	} // End switch.
-
-	return $ok;
+	return true;
 }
 
 /**
