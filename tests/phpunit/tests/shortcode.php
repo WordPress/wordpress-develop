@@ -500,7 +500,7 @@ EOF;
 		);
 		$this->assertSame( array( 'foo' => 'foo1' ), $this->filter_atts_atts );
 
-		remove_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts' ), 10, 3 );
+		remove_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts' ) );
 	}
 
 	public function test_shortcode_atts_filtering() {
@@ -513,7 +513,7 @@ EOF;
 		$out = do_shortcode( '[bartag foo="foo2" /]' );
 		$this->assertSame( 'foo = foo2', $out );
 
-		remove_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts2' ), 10, 3 );
+		remove_filter( 'shortcode_atts_bartag', array( $this, 'filter_atts2' ) );
 	}
 
 	/**
@@ -858,7 +858,7 @@ EOF;
 		$result_atts = do_shortcode( "[{$str} a='b' c='d']" );
 		$this->assertSame( wp_json_encode( $arr ), $result_atts );
 
-		remove_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_attr' ), 12, 4 );
+		remove_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_attr' ), 12 );
 		remove_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_p11' ), 11 );
 		remove_filter( 'pre_do_shortcode_tag', array( $this, 'filter_pre_do_shortcode_tag_bar' ) );
 		remove_shortcode( $str );

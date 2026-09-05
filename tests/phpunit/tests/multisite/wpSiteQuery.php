@@ -1122,7 +1122,7 @@ class Tests_Multisite_wpSiteQuery extends WP_UnitTestCase {
 		$q       = new WP_Site_Query();
 		$results = $q->query( array() );
 
-		remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
+		remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ) );
 
 		// Make sure no queries were executed.
 		$this->assertSame( $num_queries, get_num_queries() );
