@@ -1,0 +1,18 @@
+{
+	"version": 3,
+	"metadata": {
+		"name": "JSON Metadata Theme",
+		"uri": "https://example.com/json-metadata-theme",
+		"description": "A theme using JSON metadata in theme.json",
+		"author": "Theme Author",
+		"authorUri": "https://example.com/author",
+		"version": "1.0.0",
+		"tags": ["blog", "custom-colors"],
+		"textDomain": "json-metadata-theme",
+		"requires": {
+			"wordpress": "6.0",
+			"php": "8.0"
+		}
+	},
+	"settings": {}
+}

@@ -7,6 +7,155 @@
  */
 
 /**
+ * Reads plugin metadata from a plugin.json file.
+ *
+ * Looks for a plugin.json file in the same directory as the given plugin file.
+ * Only applies when the plugin file is inside WP_PLUGIN_DIR (not MU-plugins or
+ * drop-ins), and only for the file designated as the main plugin file.
+ *
+ * The main plugin file is determined by the `mainFile` property in plugin.json,
+ * falling back to a PHP file matching the directory name (e.g. `my-plugin/my-plugin.php`).
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @param string $plugin_file Absolute path to a plugin PHP file.
+ * @return array|false Array of plugin data keyed by header name, or false
+ *                     if plugin.json does not exist, does not apply to this file,
+ *                     or has no name property.
+ */
+function _get_plugin_json_data( $plugin_file ) {
+	$plugin_dir = dirname( $plugin_file );
+	$json_file  = $plugin_dir . '/plugin.json';
+
+	/*
+	 * Only apply plugin.json for plugins that are direct subdirectories of WP_PLUGIN_DIR.
+	 * This excludes single-file plugins in the root, MU-plugins, drop-ins,
+	 * and any files outside the standard plugins directory.
+	 */
+	$plugin_dir_real  = realpath( $plugin_dir );
+	$plugin_root_real = defined( 'WP_PLUGIN_DIR' ) ? realpath( WP_PLUGIN_DIR ) : false;
+
+	if ( false === $plugin_dir_real || false === $plugin_root_real ) {
+		return false;
+	}
+
+	if ( dirname( $plugin_dir_real ) !== $plugin_root_real ) {
+		return false;
+	}
+
+	if ( ! is_readable( $json_file ) ) {
+		return false;
+	}
+
+	/*
+	 * Read and decode JSON directly rather than using wp_json_file_decode().
+	 *
+	 * This function is called during plugin discovery for every PHP file in
+	 * directories that contain a plugin.json. Using wp_json_file_decode()
+	 * would trigger wp_trigger_error() for invalid JSON, which is undesirable
+	 * since the function should fail silently and fall back to PHP file headers.
+	 */
+	$contents = @file_get_contents( $json_file );
+
+	if ( false === $contents ) {
+		return false;
+	}
+
+	$json_data = json_decode( $contents, true );
+
+	if ( ! is_array( $json_data ) || empty( $json_data['name'] ) ) {
+		return false;
+	}
+
+	/*
+	 * Only apply plugin.json metadata to the main plugin file.
+	 * This prevents every PHP file in the directory from appearing as a separate plugin.
+	 *
+	 * The main file is determined by:
+	 * 1. The `mainFile` property in plugin.json (e.g. "mainFile": "my-plugin.php").
+	 * 2. A PHP file matching the directory name (e.g. my-plugin/my-plugin.php).
+	 */
+	$dir_name     = basename( $plugin_dir );
+	$file_name    = basename( $plugin_file );
+	$is_main_file = false;
+
+	if ( ! empty( $json_data['mainFile'] ) ) {
+		$is_main_file = ( $file_name === $json_data['mainFile'] );
+	} else {
+		$is_main_file = ( $file_name === $dir_name . '.php' );
+	}
+
+	if ( ! $is_main_file ) {
+		return false;
+	}
+
+	$key_map = array(
+		'name'        => 'Name',
+		'uri'         => 'PluginURI',
+		'version'     => 'Version',
+		'description' => 'Description',
+		'author'      => 'Author',
+		'authorUri'   => 'AuthorURI',
+		'textDomain'  => 'TextDomain',
+		'domainPath'  => 'DomainPath',
+		'network'     => 'Network',
+		'updateUri'   => 'UpdateURI',
+	);
+
+	$extra_plugin_headers = (array) apply_filters( 'extra_plugin_headers', array() );
+	foreach ( $extra_plugin_headers as $extra_header ) {
+		$key_map[ $extra_header ] = $extra_header;
+	}
+
+	// Initialize all headers to empty strings (matching get_file_data() behavior).
+	$plugin_data = array(
+		'Name'            => '',
+		'PluginURI'       => '',
+		'Version'         => '',
+		'Description'     => '',
+		'Author'          => '',
+		'AuthorURI'       => '',
+		'TextDomain'      => '',
+		'DomainPath'      => '',
+		'Network'         => '',
+		'RequiresWP'      => '',
+		'RequiresPHP'     => '',
+		'UpdateURI'       => '',
+		'RequiresPlugins' => '',
+		'_sitewide'       => '',
+	);
+	foreach ( $extra_plugin_headers as $extra_header ) {
+		$plugin_data[ $extra_header ] = '';
+	}
+
+	foreach ( $key_map as $json_key => $header_key ) {
+		if ( isset( $json_data[ $json_key ] ) ) {
+			if ( 'network' === $json_key ) {
+				$plugin_data[ $header_key ] = ( true === $json_data[ $json_key ] ) ? 'true' : '';
+			} else {
+				$plugin_data[ $header_key ] = (string) $json_data[ $json_key ];
+			}
+		}
+	}
+
+	// Map nested requires object.
+	if ( isset( $json_data['requires'] ) && is_array( $json_data['requires'] ) ) {
+		if ( isset( $json_data['requires']['wordpress'] ) ) {
+			$plugin_data['RequiresWP'] = (string) $json_data['requires']['wordpress'];
+		}
+		if ( isset( $json_data['requires']['php'] ) ) {
+			$plugin_data['RequiresPHP'] = (string) $json_data['requires']['php'];
+		}
+		if ( isset( $json_data['requires']['plugins'] ) && is_array( $json_data['requires']['plugins'] ) ) {
+			$plugin_data['RequiresPlugins'] = implode( ', ', $json_data['requires']['plugins'] );
+		}
+	}
+
+	return $plugin_data;
+}
+
+/**
  * Parses the plugin contents to retrieve plugin's metadata.
  *
  * All plugin headers must be on their own line. Plugin description must not have
@@ -91,7 +240,11 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 		'_sitewide'       => 'Site Wide Only',
 	);
 
-	$plugin_data = get_file_data( $plugin_file, $default_headers, 'plugin' );
+	$plugin_data = _get_plugin_json_data( $plugin_file );
+
+	if ( ! $plugin_data ) {
+		$plugin_data = get_file_data( $plugin_file, $default_headers, 'plugin' );
+	}
 
 	// Site Wide Only is the old header for Network.
 	if ( ! $plugin_data['Network'] && $plugin_data['_sitewide'] ) {

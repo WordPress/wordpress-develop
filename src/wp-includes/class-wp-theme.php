@@ -20,6 +20,30 @@ final class WP_Theme implements ArrayAccess {
 	public $update = false;
 
 	/**
+	 * Mapping of theme.json metadata keys to internal header keys.
+	 *
+	 * Used when reading theme metadata from the `metadata` property in theme.json
+	 * as an alternative to style.css file headers.
+	 *
+	 * @since 7.0.0
+	 * @var string[]
+	 */
+	private static $json_metadata_keys = array(
+		'name'        => 'Name',
+		'uri'         => 'ThemeURI',
+		'description' => 'Description',
+		'author'      => 'Author',
+		'authorUri'   => 'AuthorURI',
+		'version'     => 'Version',
+		'template'    => 'Template',
+		'status'      => 'Status',
+		'tags'        => 'Tags',
+		'textDomain'  => 'TextDomain',
+		'domainPath'  => 'DomainPath',
+		'updateUri'   => 'UpdateURI',
+	);
+
+	/**
 	 * Headers for style.css files.
 	 *
 	 * @since 3.4.0
@@ -297,9 +321,9 @@ final class WP_Theme implements ArrayAccess {
 				$theme_root_template = $cache['theme_root_template'];
 			}
 		} elseif ( ! file_exists( $this->theme_root . '/' . $theme_file ) ) {
-			$this->headers['Name'] = $this->stylesheet;
 			if ( ! file_exists( $this->theme_root . '/' . $this->stylesheet ) ) {
-				$this->errors = new WP_Error(
+				$this->headers['Name'] = $this->stylesheet;
+				$this->errors          = new WP_Error(
 					'theme_not_found',
 					sprintf(
 						/* translators: %s: Theme directory name. */
@@ -307,27 +331,53 @@ final class WP_Theme implements ArrayAccess {
 						esc_html( $this->stylesheet )
 					)
 				);
-			} else {
-				$this->errors = new WP_Error( 'theme_no_stylesheet', __( 'Stylesheet is missing.' ) );
+				$this->template               = $this->stylesheet;
+				$this->block_theme            = false;
+				$this->block_template_folders = $this->default_template_folders;
+				$this->cache_add(
+					'theme',
+					array(
+						'block_template_folders' => $this->block_template_folders,
+						'block_theme'            => $this->block_theme,
+						'headers'                => $this->headers,
+						'errors'                 => $this->errors,
+						'stylesheet'             => $this->stylesheet,
+						'template'               => $this->template,
+					)
+				);
+				if ( ! file_exists( $this->theme_root ) ) { // Don't cache this one.
+					$this->errors->add( 'theme_root_missing', __( '<strong>Error:</strong> The themes directory is either empty or does not exist. Please check your installation.' ) );
+				}
+				return;
 			}
-			$this->template               = $this->stylesheet;
-			$this->block_theme            = false;
-			$this->block_template_folders = $this->default_template_folders;
-			$this->cache_add(
-				'theme',
-				array(
-					'block_template_folders' => $this->block_template_folders,
-					'block_theme'            => $this->block_theme,
-					'headers'                => $this->headers,
-					'errors'                 => $this->errors,
-					'stylesheet'             => $this->stylesheet,
-					'template'               => $this->template,
-				)
-			);
-			if ( ! file_exists( $this->theme_root ) ) { // Don't cache this one.
-				$this->errors->add( 'theme_root_missing', __( '<strong>Error:</strong> The themes directory is either empty or does not exist. Please check your installation.' ) );
+
+			/*
+			 * The theme directory exists but style.css is missing.
+			 * Try reading metadata from theme.json before treating this as an error.
+			 */
+			$json_headers = $this->read_json_metadata();
+
+			if ( ! $json_headers ) {
+				$this->headers['Name']        = $this->stylesheet;
+				$this->errors                 = new WP_Error( 'theme_no_stylesheet', __( 'Stylesheet is missing.' ) );
+				$this->template               = $this->stylesheet;
+				$this->block_theme            = false;
+				$this->block_template_folders = $this->default_template_folders;
+				$this->cache_add(
+					'theme',
+					array(
+						'block_template_folders' => $this->block_template_folders,
+						'block_theme'            => $this->block_theme,
+						'headers'                => $this->headers,
+						'errors'                 => $this->errors,
+						'stylesheet'             => $this->stylesheet,
+						'template'               => $this->template,
+					)
+				);
+				return;
 			}
-			return;
+
+			$this->headers = $json_headers;
 		} elseif ( ! is_readable( $this->theme_root . '/' . $theme_file ) ) {
 			$this->headers['Name']        = $this->stylesheet;
 			$this->errors                 = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
@@ -347,7 +397,12 @@ final class WP_Theme implements ArrayAccess {
 			);
 			return;
 		} else {
-			$this->headers = get_file_data( $this->theme_root . '/' . $theme_file, self::$file_headers, 'theme' );
+			$this->headers = $this->read_json_metadata();
+
+			if ( ! $this->headers ) {
+				$this->headers = get_file_data( $this->theme_root . '/' . $theme_file, self::$file_headers, 'theme' );
+			}
+
 			/*
 			 * Default themes always trump their pretenders.
 			 * Properly identify default themes that are inside a directory within wp-content/themes.
@@ -797,6 +852,89 @@ final class WP_Theme implements ArrayAccess {
 			}
 		}
 		$this->headers_sanitized = array();
+	}
+
+	/**
+	 * Reads theme metadata from the `metadata` property in theme.json.
+	 *
+	 * Provides a structured JSON alternative to parsing CSS comment headers
+	 * in style.css. When a theme.json file contains a `metadata` property,
+	 * its values are mapped to the internal header format used by WP_Theme.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return array|false Array of theme headers keyed by header name, or false
+	 *                     if theme.json does not exist or has no metadata property.
+	 */
+	private function read_json_metadata() {
+		$theme_json_file = $this->theme_root . '/' . $this->stylesheet . '/theme.json';
+
+		if ( ! is_readable( $theme_json_file ) ) {
+			return false;
+		}
+
+		/*
+		 * Read and decode JSON directly rather than using wp_json_file_decode().
+		 *
+		 * This method is called during theme enumeration for every theme that has
+		 * a theme.json file, including themes without a `metadata` property and
+		 * themes with malformed JSON. Using wp_json_file_decode() would trigger
+		 * wp_trigger_error() for invalid JSON, which is undesirable here since
+		 * the existing WP_Theme_JSON_Resolver handles JSON errors when it needs
+		 * to parse theme settings. This method should fail silently and fall back
+		 * to style.css headers.
+		 */
+		$contents = @file_get_contents( $theme_json_file );
+
+		if ( false === $contents ) {
+			return false;
+		}
+
+		$theme_json_data = json_decode( $contents, true );
+
+		if ( ! is_array( $theme_json_data ) || ! isset( $theme_json_data['metadata'] ) || ! is_array( $theme_json_data['metadata'] ) ) {
+			return false;
+		}
+
+		$metadata = $theme_json_data['metadata'];
+
+		$extra_theme_headers = (array) apply_filters( 'extra_theme_headers', array() );
+
+		// Initialize all headers to empty strings (matching get_file_data() behavior).
+		$headers = array_fill_keys( array_merge( array_keys( self::$file_headers ), $extra_theme_headers ), '' );
+
+		$json_metadata_keys = self::$json_metadata_keys;
+		foreach ( $extra_theme_headers as $extra_header ) {
+			$json_metadata_keys[ $extra_header ] = $extra_header;
+		}
+
+		// Map JSON metadata keys to internal header keys.
+		foreach ( $json_metadata_keys as $json_key => $header_key ) {
+			if ( isset( $metadata[ $json_key ] ) ) {
+				if ( 'tags' === $json_key && is_array( $metadata[ $json_key ] ) ) {
+					$headers[ $header_key ] = implode( ', ', $metadata[ $json_key ] );
+				} else {
+					$headers[ $header_key ] = (string) $metadata[ $json_key ];
+				}
+			}
+		}
+
+		// Map nested requires object.
+		if ( isset( $metadata['requires'] ) && is_array( $metadata['requires'] ) ) {
+			if ( isset( $metadata['requires']['wordpress'] ) ) {
+				$headers['RequiresWP'] = (string) $metadata['requires']['wordpress'];
+			}
+			if ( isset( $metadata['requires']['php'] ) ) {
+				$headers['RequiresPHP'] = (string) $metadata['requires']['php'];
+			}
+		}
+
+		// Only return headers if at least a name was provided.
+		if ( empty( $headers['Name'] ) ) {
+			return false;
+		}
+
+		return $headers;
 	}
 
 	/**
