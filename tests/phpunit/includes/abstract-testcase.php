@@ -230,6 +230,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->_restore_hooks();
 		wp_set_current_user( 0 );
 
+		// Synchronize the translation controller with the restored site locale.
+		WP_Translation_Controller::get_instance()->set_locale( determine_locale() );
+
 		$this->reset_lazyload_queue();
 
 		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
