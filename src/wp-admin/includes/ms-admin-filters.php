@@ -9,6 +9,8 @@
 
 // Media hooks.
 add_filter( 'wp_handle_upload_prefilter', 'check_upload_size' );
+add_action( 'post-upload-ui', 'display_space_usage' );
+add_action( 'load-upload.php', 'upload_page_notice_display_space_usage_notice' );
 
 // User hooks.
 add_action( 'user_admin_notices', 'new_user_email_admin_notice' );
