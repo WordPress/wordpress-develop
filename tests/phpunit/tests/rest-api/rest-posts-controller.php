@@ -133,7 +133,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function save_posts_clauses( $orderby, $query ) {
-		if ( 'revision' !== $query->query_vars['post_type'] ) {
+		if ( 'revision' !== $query->query_vars['post_type'] && isset( $this->posts_clauses ) ) {
 			array_push( $this->posts_clauses, $orderby );
 		}
 		return $orderby;
@@ -6235,5 +6235,12 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 			'context'     => array( 'new_context' ),
 		);
 		return $schema;
+	}
+
+	/**
+	 * @ticket 63635
+	 */
+	public function test_blowing_example() {
+		$this->go_to( get_permalink( self::$post_id ) );
 	}
 }
