@@ -578,6 +578,9 @@ function populate_options( array $options = array() ) {
 
 	$options = wp_parse_args( $options, $defaults );
 
+	// 6.8.0
+	$options[ 'theme_mods_' . $options['stylesheet'] ] = array();
+
 	// Set autoload to no for these options.
 	$fat_options = array(
 		'moderation_keys',
