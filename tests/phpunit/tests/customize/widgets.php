@@ -20,6 +20,22 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	protected $backup_registered_sidebars;
 
+	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
@@ -27,8 +43,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
 
-		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$administrator_id );
 
 		update_option(
 			'widget_search',
@@ -382,8 +397,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
-		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
-		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_callback'], 'sanitize_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_js_callback'], 'sanitize_js_callback is callable' );
 		$this->assertSame( 'WIDGET_FOO[2]', $args['uppercase_id_set_by_filter'] );
 
 		$default_args = array(
@@ -396,8 +411,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
-		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
-		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_callback'], 'sanitize_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_js_callback'], 'sanitize_js_callback is callable' );
 
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$args = $this->manager->widgets->get_setting_args( 'widget_search[2]' );
@@ -428,8 +443,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
-		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
-		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_callback'], 'sanitize_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_js_callback'], 'sanitize_js_callback is callable' );
 		$this->assertSame( 'SIDEBARS_WIDGETS[SIDEBAR-1]', $args['uppercase_id_set_by_filter'] );
 
 		$override_args = array(
@@ -856,5 +871,43 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->manager->widgets->prepreview_added_sidebars_widgets();
 		$this->manager->widgets->prepreview_added_widget_instance();
 		$this->manager->widgets->remove_prepreview_filters();
+	}
+
+	/**
+	 * Test that output_widget_control_templates() works without sidebars.
+	 * This test verifies that the fix for accessing panel title works correctly
+	 * when no sidebars are registered or the widgets panel doesn't exist.
+	 *
+	 * @ticket 63151
+	 *
+	 * @covers WP_Customize_Widgets::output_widget_control_templates
+	 */
+	public function test_output_widget_control_templates_without_sidebars() {
+		global $wp_registered_sidebars;
+
+		$original_sidebars      = $wp_registered_sidebars;
+		$wp_registered_sidebars = array();
+		$manager                = new WP_Customize_Manager();
+		$widgets                = new WP_Customize_Widgets( $manager );
+
+		if ( $manager->get_panel( 'widgets' ) ) {
+			$manager->remove_panel( 'widgets' );
+		}
+
+		ob_start();
+
+		$widgets->output_widget_control_templates();
+
+		$output                 = ob_get_clean();
+		$wp_registered_sidebars = $original_sidebars;
+
+		$this->assertStringNotContainsString( 'Warning', $output, 'Failed asserting that the output does not contain "Warning".' );
+		$this->assertStringNotContainsString( 'Notice', $output, 'Failed asserting that the output does not contain "Notice".' );
+		$this->assertStringNotContainsString( 'Error', $output, 'Failed asserting that the output does not contain "Error".' );
+
+		// Check that the output contains expected widget controls HTML.
+		$this->assertStringContainsString( 'id="widgets-left"', $output, 'Failed asserting that the output contains "id=widgets-left".' );
+		$this->assertStringContainsString( 'id="available-widgets"', $output, 'Failed asserting that the output contains "id=available-widgets".' );
+		$this->assertStringNotContainsString( 'id="accordion-panel-widgets"', $output, 'Failed asserting that the output does not contain "id=accordion-panel-widgets".' );
 	}
 }

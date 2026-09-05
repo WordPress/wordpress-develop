@@ -21,6 +21,28 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 */
 	protected $image;
 
+	/**
+	 * Temporarily stores stream image data while processing internally.
+	 *
+	 * @see self::pdf_load_source()
+	 *
+	 * @since 7.0.4
+	 *
+	 * @var string|null
+	 */
+	private $stream_file_data = null;
+
+	/**
+	 * Temporarily stores the parsed given name for an image while processing internally.
+	 *
+	 * @see self::pdf_load_source()
+	 *
+	 * @since 7.0.4
+	 *
+	 * @var string|null
+	 */
+	private $image_given_name = null;
+
 	public function __destruct() {
 		if ( $this->image instanceof Imagick ) {
 			// We don't need the original in memory anymore.
@@ -130,9 +152,79 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return true;
 		}
 
-		if ( ! is_file( $this->file ) && ! wp_is_stream( $this->file ) ) {
+		$is_stream = wp_is_stream( $this->file );
+		$is_file   = ! $is_stream && is_file( $this->file );
+
+		// Only allow loading files or streams.
+		if ( ! $is_file && ! $is_stream ) {
 			return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
 		}
+
+		// Establish the provided filename based on the kind of resource being loaded.
+		$given_filename = $this->file;
+		if ( 0 === strncasecmp( $given_filename, 'file://', 7 ) ) {
+			$given_filename = basename( substr( $given_filename, 7 ) ); // 7 is the strlen of 'file://'.
+		} elseif ( 1 === preg_match( '~^https?://~i', $this->file ) ) {
+			/*
+			 * For URLs, it will be the final path segment.
+			 *
+			 * Example:
+			 *
+			 *     https://wordpress.org/i/happy.png?size=40px
+			 *                             ╰───────╯
+			 *                                this is the given filename
+			 *
+			 * If the stream returns a `Content-Disposition` header it would
+			 * provide an alternative name, but this is used as a reasonable
+			 * proxy to avoid adding the additional complexity of reading and
+			 * parsing the returned HTTP headers.
+			 */
+			$url_path = wp_parse_url( $this->file, PHP_URL_PATH );
+
+			// This URL can not be parsed, so it is not a valid image resource.
+			if ( false === $url_path ) {
+				return new WP_Error( 'error_loading_image', __( 'File is not an image.' ), $this->file );
+			}
+
+			/**
+			 * The URL has an empty path, so continue with an empty string.
+			 *
+			 * This is the case with a URL such as `https://example.com?file_id=123`
+			 */
+			if ( null === $url_path ) {
+				$url_path = '';
+			}
+
+			$last_path_at   = strrpos( $url_path, '/' );
+			$given_filename = is_int( $last_path_at ) ? substr( $url_path, $last_path_at + 1 ) : $url_path;
+			$given_filename = rawurldecode( $given_filename );
+		}
+
+		/*
+		 * Strip off any potential `Imagick` format specifiers.
+		 *
+		 * If a real file exists with the identified format specifier, then
+		 * `Imagick` may not treat it as a format, but WordPress will reject
+		 * it anyway to avoid adding more complexity into this detection.
+		 *
+		 * `Imagick` reads only the first `FORMAT:` specifier on a name, but
+		 * stripping a segment would promote a second specifier to the front
+		 * of the name handed to `Imagick`, which would then honor it.
+		 *
+		 * Loop to capture all format specifiers for comparison.
+		 *
+		 * Exclude Windows drive-letter prefixes from here.
+		 */
+		$imagick_formats = array();
+		while (
+			false !== ( $format_ends_at = strpos( $given_filename, ':' ) ) &&
+			1 !== preg_match( '~^[a-z]:~i', $given_filename )
+		) {
+			$imagick_formats[] = strtoupper( substr( $given_filename, 0, $format_ends_at ) );
+			$given_filename    = substr( $given_filename, $format_ends_at + 1 );
+		}
+
+		$file_extension = strtolower( pathinfo( $given_filename, PATHINFO_EXTENSION ) );
 
 		/*
 		 * Even though Imagick uses less PHP memory than GD, set higher limit
@@ -140,20 +232,128 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		 */
 		wp_raise_memory_limit( 'image' );
 
+		/**
+		 * Read the resource header for MIME sniffing.
+		 *
+		 * For files, which will be passed into Imagick by their file names, avoid
+		 * eagerly loading the entire contents into PHP memory. For streams, however,
+		 * it’s more important to avoid validating a separate copy of the file data
+		 * than is later fetched by Imagick, so go ahead and load the entire payload,
+		 * then pass it to Imagick as the data blob itself.
+		 *
+		 * @link https://mimesniff.spec.whatwg.org/#reading-the-resource-header
+		 */
 		try {
-			$this->image    = new Imagick();
-			$file_extension = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
+			if ( $is_file ) {
+				$file_data = file_get_contents( $this->file, false, null, 0, 1445 );
+			} else {
+				$file_data = file_get_contents( $this->file );
+			}
+		} catch ( Exception $e ) {
+			$file_data = false;
+		}
+		if ( false === $file_data ) {
+			return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
+		}
 
-			if ( 'pdf' === $file_extension ) {
-				$pdf_loaded = $this->pdf_load_source();
+		$pdf_extensions = array(
+			'ai',
+			'epdf',
+			'pdf',
+			'pdfa',
+			'pocketmod',
+		);
+
+		// Reject files claiming to be PDFs which lack the required signature.
+		$has_pdf_extension = in_array( $file_extension, $pdf_extensions, true );
+		$has_pdf_signature = str_starts_with( $file_data, '%PDF-' );
+		if ( $has_pdf_extension && ! $has_pdf_signature ) {
+			return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
+		}
+
+		$ps_formats = array(
+			'DPS',
+			'EPI',
+			'EPS',
+			'EPSF',
+			'EPSI',
+			'PS',
+			'WPG',
+		);
+
+		$ps_extensions = array(
+			'dps',
+			'epi',
+			'eps',
+			'eps2',
+			'eps3',
+			'epsf',
+			'epsi',
+			'ept',
+			'ept2',
+			'ept3',
+			'ps',
+			'ps2',
+			'ps3',
+			'wpg',
+		);
+
+		// Reject files which Imagick will parse as PostScript.
+		if (
+			array() !== array_intersect( $imagick_formats, $ps_formats ) ||
+			in_array( $file_extension, $ps_extensions, true ) ||
+			str_starts_with( $file_data, '%!' ) ||
+			str_starts_with( $file_data, "\x04%!" ) ||
+			str_starts_with( $file_data, "\xC5\xD0\xD3\xC6" ) ||
+			str_starts_with( $file_data, "\xFFWPC" )
+		) {
+			return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
+		}
+
+		$compressed_extensions = array(
+			'gz',
+			'bz2',
+			'svgz',
+			'z',
+			'wmz',
+		);
+
+		/*
+		 * Reject compressed archives that Imagick will transparently decompress.
+		 * Unfortunately this rejects `.svgz` because there’s no intermediate step
+		 * in the loading process. `Imagick` would decompress the file, then look
+		 * to see what kind of content was decompressed instead of asserting SVG.
+		 */
+		if (
+			in_array( $file_extension, $compressed_extensions, true ) ||
+			str_starts_with( $file_data, "\x1F\x8B\x08" ) || // gzip
+			str_starts_with( $file_data, 'BZh' ) || // bzip2
+			str_starts_with( $file_data, "\x1F\x9D" ) // compress
+		) {
+			return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
+		}
+
+		try {
+			$this->image = new Imagick();
+
+			if ( $has_pdf_signature ) {
+				/*
+				 * Load these values for use in the helper method without forcing a change
+				 * of its expected arguments, but then free them after calling to prevent
+				 * keeping them around in memory and bloating the app.
+				 */
+				$this->stream_file_data = $is_stream ? $file_data : null;
+				$this->image_given_name = $given_filename;
+				$pdf_loaded             = $this->pdf_load_source();
+				$this->stream_file_data = null;
+				$this->image_given_name = null;
 
 				if ( is_wp_error( $pdf_loaded ) ) {
 					return $pdf_loaded;
 				}
 			} else {
-				if ( wp_is_stream( $this->file ) ) {
-					// Due to reports of issues with streams with `Imagick::readImageFile()`, uses `Imagick::readImageBlob()` instead.
-					$this->image->readImageBlob( file_get_contents( $this->file ), $this->file );
+				if ( $is_stream ) {
+					$this->image->readImageBlob( $file_data, $given_filename );
 				} else {
 					$this->image->readImage( $this->file );
 				}
@@ -168,7 +368,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setIteratorIndex( 0 );
 			}
 
-			if ( 'pdf' === $file_extension ) {
+			if ( $has_pdf_signature ) {
 				$this->remove_pdf_alpha_channel();
 			}
 
@@ -247,12 +447,13 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int $width
-	 * @param int $height
+	 * @param int|null $width  Image width.
+	 * @param int|null $height Image height.
 	 * @return true|WP_Error
 	 */
 	protected function update_size( $width = null, $height = null ) {
 		$size = null;
+
 		if ( ! $width || ! $height ) {
 			try {
 				$size = $this->image->getImageGeometry();
@@ -305,7 +506,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *    image operations within the time of the HTTP request.
 	 *
 	 * @since 6.2.0
-	 * @since 6.3.0 This method was deprecated.
+	 * @deprecated 6.3.0 No longer used in core.
 	 *
 	 * @return int|null The new limit on success, null on failure.
 	 */
@@ -330,6 +531,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 			return $limit;
 		}
+
+		return null;
 	}
 
 	/**
@@ -444,6 +647,51 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
+			/**
+			 * Special handling for certain types of PNG images:
+			 * 1. For PNG images, we need to specify compression settings and remove unneeded chunks.
+			 * 2. For indexed PNG images, the number of colors must not exceed 256.
+			 * 3. For indexed PNG images with an alpha channel, the tRNS chunk must be preserved.
+			 * 4. For indexed PNG images with true alpha transparency (an alpha channel > 1 bit), we need to avoid saving
+			 * the image using ImageMagick's 'png8' format,  because that supports only binary (1 bit) transparency.
+			 *
+			 * For #4 we want to check whether the image has a 1-bit alpha channel before resizing,  because resizing
+			 * may cause the number of alpha values to multiply due to antialiasing. If the original image had only a
+			 * 1-bit alpha channel, then a 1-bit alpha channel should be good enough for the resized images.
+			 *
+			 * Perform all the necessary checks before resizing the image and store the results in variables for later use.
+			 */
+			$is_png                                      = false;
+			$is_indexed_png                              = false;
+			$is_indexed_png_with_alpha_channel           = false;
+			$is_indexed_png_with_true_alpha_transparency = false;
+
+			if ( 'image/png' === $this->mime_type ) {
+				$is_png = true;
+
+				if (
+					is_callable( array( $this->image, 'getImageProperty' ) )
+					&& '3' === $this->image->getImageProperty( 'png:IHDR.color-type-orig' )
+				) {
+					$is_indexed_png = true;
+
+					if (
+						is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+						&& $this->image->getImageAlphaChannel()
+					) {
+						$is_indexed_png_with_alpha_channel = true;
+
+						if (
+							is_callable( array( $this->image, 'getImageChannelDepth' ) )
+							&& defined( 'Imagick::CHANNEL_ALPHA' )
+							&& 1 < $this->image->getImageChannelDepth( Imagick::CHANNEL_ALPHA )
+						) {
+							$is_indexed_png_with_true_alpha_transparency = true;
+						}
+					}
+				}
+			}
+
 			/*
 			 * To be more efficient, resample large images to 5x the destination size before resizing
 			 * whenever the output size is less that 1/3 of the original image size (1/3^2 ~= .111),
@@ -480,11 +728,45 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
 			}
 
-			if ( 'image/png' === $this->mime_type ) {
+			if ( $is_png ) {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				$this->image->setOption( 'png:exclude-chunk', 'all' );
+
+				// Indexed PNG files get some additional handling.
+				// See #63448 for details.
+				if ( $is_indexed_png ) {
+
+					// Check for an alpha channel.
+					if ( $is_indexed_png_with_alpha_channel ) {
+						$this->image->setOption( 'png:include-chunk', 'tRNS' );
+					} else {
+						$this->image->setOption( 'png:exclude-chunk', 'all' );
+					}
+
+					$this->image->quantizeImage( 256, $this->image->getColorspace(), 0, false, false );
+
+					/*
+					 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
+					 * ImageMagick tends to save grayscale images as grayscale PNGs rather than indexed PNGs,
+					 * even though grayscale PNGs usually have considerably larger file sizes.
+					 * But we can force ImageMagick to save the image as an indexed PNG instead,
+					 * by telling it to use png8 format.
+					 *
+					 * Note that we need to first call quantizeImage() before checking getImageColorspace(),
+					 * because only after calling quantizeImage() will the colorspace be COLORSPACE_GRAY for grayscale images
+					 * (and we have not found any other way to identify grayscale images).
+					 *
+					 * We need to avoid forcing indexed format for images with true alpha transparency,
+					 * because ImageMagick does not support saving an image with true alpha transparency as an indexed PNG.
+					 */
+					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() && ! $is_indexed_png_with_true_alpha_transparency ) {
+						// Set the image format to Indexed PNG.
+						$this->image->setOption( 'png:format', 'png8' );
+					}
+				} else {
+					$this->image->setOption( 'png:exclude-chunk', 'all' );
+				}
 			}
 
 			/*
@@ -503,11 +785,23 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				}
 			}
 
-			// Limit the bit depth of resized images to 8 bits per channel.
+			// Limit the bit depth of resized images.
 			if ( is_callable( array( $this->image, 'getImageDepth' ) ) && is_callable( array( $this->image, 'setImageDepth' ) ) ) {
-				if ( 8 < $this->image->getImageDepth() ) {
-					$this->image->setImageDepth( 8 );
-				}
+				/**
+				 * Filters the maximum bit depth of resized images.
+				 *
+				 * This filter only applies when resizing using the Imagick editor since GD
+				 * does not support getting or setting bit depth.
+				 *
+				 * Use this to adjust the maximum bit depth of resized images.
+				 *
+				 * @since 6.8.0
+				 *
+				 * @param int $max_depth   The maximum bit depth. Default is the input depth.
+				 * @param int $image_depth The bit depth of the original image.
+				 */
+				$max_depth = apply_filters( 'image_max_bit_depth', $this->image->getImageDepth(), $this->image->getImageDepth() );
+				$this->image->setImageDepth( $max_depth );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_resize_error', $e->getMessage() );
@@ -793,6 +1087,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * Removes PDF alpha after it's been read.
 	 *
 	 * @since 6.4.0
+	 *
+	 * @return null|WP_Error Null on success, WP_Error object if the alpha channel could not be removed.
 	 */
 	protected function remove_pdf_alpha_channel() {
 		$version = Imagick::getVersion();
@@ -805,6 +1101,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				return new WP_Error( 'pdf_alpha_process_failed', $e->getMessage() );
 			}
 		}
+
+		return null;
 	}
 
 	/**
@@ -1067,25 +1365,35 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return $filename;
 		}
 
-		try {
-			/*
-			 * When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
-			 * area (resulting in unnecessary whitespace) unless the following option is set.
-			 */
-			$this->image->setOption( 'pdf:use-cropbox', true );
+		foreach ( array( 'true', 'false' ) as $use_cropbox ) {
+			try {
+				/**
+				 * When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
+				 * area (resulting in unnecessary whitespace) unless the following option is set.
+				 *
+				 * However, it sometimes fails, so if that happens, run it without the option.
+				 *
+				 * @ticket 48853
+				 */
+				$this->image->setOption( 'pdf:use-cropbox', $use_cropbox );
 
-			/*
-			 * Reading image after Imagick instantiation because `setResolution`
-			 * only applies correctly before the image is read.
-			 */
-			$this->image->readImage( $filename );
-		} catch ( Exception $e ) {
-			// Attempt to run `gs` without the `use-cropbox` option. See #48853.
-			$this->image->setOption( 'pdf:use-cropbox', false );
+				/*
+				 * Reading image after Imagick instantiation because `setResolution`
+				 * only applies correctly before the image is read.
+				 */
+				if ( is_string( $this->stream_file_data ) ) {
+					$this->image->setFilename( 'PDF:unknown.pdf[0]' );
+					$this->image->readImageBlob( $this->stream_file_data, $this->image_given_name );
+				} else {
+					$this->image->readImage( $filename );
+				}
 
-			$this->image->readImage( $filename );
+				return true;
+			} catch ( Exception $e ) {
+				continue;
+			}
 		}
 
-		return true;
+		return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
 	}
 }

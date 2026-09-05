@@ -13,7 +13,6 @@
  * @since 6.6.0
  *
  * @param string $class_string CSS class string to look for a variation in.
- *
  * @return array|null The block style variation name if found.
  */
 function wp_get_block_style_variation_name_from_class( $class_string ) {
@@ -75,7 +74,6 @@ function wp_resolve_block_style_variation_ref_values( &$variation_data, $theme_j
  * @access private
  *
  * @param array $parsed_block The parsed block.
- *
  * @return array The parsed block with block style variation classname added.
  */
 function wp_render_block_style_variation_support_styles( $parsed_block ) {
@@ -142,12 +140,22 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 	);
 
 	$config = array(
-		'version' => WP_Theme_JSON::LATEST_SCHEMA,
-		'styles'  => array(
+		'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+		'settings' => array(
+			'spacing' => array(
+				'blockGap' => true,
+			),
+		),
+		'styles'   => array(
 			'elements' => $elements_data,
 			'blocks'   => $blocks_data,
 		),
 	);
+
+	// Ensure variation state styles know about any custom viewport breakpoints.
+	if ( isset( $theme_json['settings']['viewport'] ) ) {
+		$config['settings']['viewport'] = $theme_json['settings']['viewport'];
+	}
 
 	// Turn off filter that excludes block nodes. They are needed here for the variation's inner block types.
 	if ( ! is_admin() ) {
@@ -205,7 +213,6 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
  *
  * @param  string $block_content Rendered block content.
  * @param  array  $block         Block object.
- *
  * @return string                Filtered block content.
  */
 function wp_render_block_style_variation_class_name( $block_content, $block ) {
@@ -213,11 +220,16 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
 		return $block_content;
 	}
 
+	$block_class_name = $block['attrs']['className'];
+	if ( ! is_string( $block_class_name ) ) {
+		return $block_content;
+	}
+
 	/*
 	 * Matches a class prefixed by `is-style`, followed by the
 	 * variation slug, then `--`, and finally an instance number.
 	 */
-	preg_match( '/\bis-style-(\S+?--\d+)\b/', $block['attrs']['className'], $matches );
+	preg_match( '/\bis-style-(\S+?--\d+)\b/', $block_class_name, $matches );
 
 	if ( empty( $matches ) ) {
 		return $block_content;

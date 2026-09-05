@@ -8,7 +8,7 @@
  * @ticket 58664
  * @covers ::wp_remove_surrounding_empty_script_tags
  */
-class Tests_Functions_wpRemoveSurroundingEmptyScriptTags extends WP_UnitTestCase {
+class Tests_Dependencies_wpRemoveSurroundingEmptyScriptTags extends WP_UnitTestCase {
 
 	/**
 	 * Data provider for test.

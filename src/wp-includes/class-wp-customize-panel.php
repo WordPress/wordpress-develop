@@ -7,6 +7,11 @@
  * @since 4.0.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Customize Panel class.
  *

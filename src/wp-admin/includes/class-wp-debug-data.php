@@ -142,7 +142,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The debug data for the Info screen.
 	 */
 	private static function get_wp_core(): array {
 		// Save few function calls.
@@ -305,7 +305,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The drop-ins debug data.
 	 */
 	private static function get_wp_dropins(): array {
 		// Get a list of all drop-in replacements.
@@ -340,7 +340,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The server-related debug data.
 	 */
 	private static function get_wp_server(): array {
 		// Populate the server debug fields.
@@ -373,8 +373,8 @@ class WP_Debug_Data {
 		);
 		$fields['httpd_software']      = array(
 			'label' => __( 'Web server' ),
-			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
-			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
+			'value' => ! empty( $_SERVER['SERVER_SOFTWARE'] ) ? wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) : __( 'Unable to determine what web server software is used' ),
+			'debug' => ! empty( $_SERVER['SERVER_SOFTWARE'] ) ? wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) : 'unknown',
 		);
 		$fields['php_version']         = array(
 			'label' => __( 'PHP version' ),
@@ -387,56 +387,43 @@ class WP_Debug_Data {
 			'debug' => PHP_SAPI,
 		);
 
-		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
-		if ( ! function_exists( 'ini_get' ) ) {
-			$fields['ini_get'] = array(
-				'label' => __( 'Server settings' ),
-				'value' => sprintf(
-				/* translators: %s: ini_get() */
-					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
-					'ini_get()'
-				),
-				'debug' => 'ini_get() is disabled',
+		$fields['max_input_variables'] = array(
+			'label' => __( 'PHP max input variables' ),
+			'value' => ini_get( 'max_input_vars' ),
+		);
+		$fields['time_limit']          = array(
+			'label' => __( 'PHP time limit' ),
+			'value' => ini_get( 'max_execution_time' ),
+		);
+
+		if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
+			$fields['memory_limit']       = array(
+				'label' => __( 'PHP memory limit' ),
+				'value' => WP_Site_Health::get_instance()->php_memory_limit,
+			);
+			$fields['admin_memory_limit'] = array(
+				'label' => __( 'PHP memory limit (only for admin screens)' ),
+				'value' => ini_get( 'memory_limit' ),
 			);
 		} else {
-			$fields['max_input_variables'] = array(
-				'label' => __( 'PHP max input variables' ),
-				'value' => ini_get( 'max_input_vars' ),
-			);
-			$fields['time_limit']          = array(
-				'label' => __( 'PHP time limit' ),
-				'value' => ini_get( 'max_execution_time' ),
-			);
-
-			if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
-				$fields['memory_limit']       = array(
-					'label' => __( 'PHP memory limit' ),
-					'value' => WP_Site_Health::get_instance()->php_memory_limit,
-				);
-				$fields['admin_memory_limit'] = array(
-					'label' => __( 'PHP memory limit (only for admin screens)' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			} else {
-				$fields['memory_limit'] = array(
-					'label' => __( 'PHP memory limit' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			}
-
-			$fields['max_input_time']      = array(
-				'label' => __( 'Max input time' ),
-				'value' => ini_get( 'max_input_time' ),
-			);
-			$fields['upload_max_filesize'] = array(
-				'label' => __( 'Upload max filesize' ),
-				'value' => ini_get( 'upload_max_filesize' ),
-			);
-			$fields['php_post_max_size']   = array(
-				'label' => __( 'PHP post max size' ),
-				'value' => ini_get( 'post_max_size' ),
+			$fields['memory_limit'] = array(
+				'label' => __( 'PHP memory limit' ),
+				'value' => ini_get( 'memory_limit' ),
 			);
 		}
+
+		$fields['max_input_time']      = array(
+			'label' => __( 'Max input time' ),
+			'value' => ini_get( 'max_input_time' ),
+		);
+		$fields['upload_max_filesize'] = array(
+			'label' => __( 'Upload max filesize' ),
+			'value' => ini_get( 'upload_max_filesize' ),
+		);
+		$fields['php_post_max_size']   = array(
+			'label' => __( 'PHP post max size' ),
+			'value' => ini_get( 'post_max_size' ),
+		);
 
 		if ( function_exists( 'curl_version' ) ) {
 			$curl = curl_version();
@@ -471,6 +458,83 @@ class WP_Debug_Data {
 			'debug' => $imagick_loaded,
 		);
 
+		// Opcode Cache.
+		if ( function_exists( 'opcache_get_status' ) ) {
+			$opcache_status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+
+			if ( false === $opcache_status ) {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => __( 'Disabled by configuration' ),
+					'debug' => 'not available',
+				);
+			} else {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ),
+					'debug' => $opcache_status['opcache_enabled'],
+				);
+
+				if ( true === $opcache_status['opcache_enabled'] ) {
+					$fields['opcode_cache_memory_usage'] = array(
+						'label' => __( 'Opcode cache memory usage' ),
+						'value' => sprintf(
+							/* translators: 1: Used memory, 2: Total memory */
+							__( '%1$s of %2$s' ),
+							size_format( $opcache_status['memory_usage']['used_memory'] ),
+							size_format( $opcache_status['memory_usage']['free_memory'] + $opcache_status['memory_usage']['used_memory'] )
+						),
+						'debug' => sprintf(
+							'%s of %s',
+							$opcache_status['memory_usage']['used_memory'],
+							$opcache_status['memory_usage']['free_memory'] + $opcache_status['memory_usage']['used_memory']
+						),
+					);
+
+					if ( 0 !== $opcache_status['interned_strings_usage']['buffer_size'] ) {
+						$fields['opcode_cache_interned_strings_usage'] = array(
+							'label' => __( 'Opcode cache interned strings usage' ),
+							'value' => sprintf(
+								/* translators: 1: Percentage used, 2: Total memory, 3: Free memory */
+								__( '%1$s%% of %2$s (%3$s free)' ),
+								number_format_i18n( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
+								size_format( $opcache_status['interned_strings_usage']['buffer_size'] ),
+								size_format( $opcache_status['interned_strings_usage']['free_memory'] )
+							),
+							'debug' => sprintf(
+								'%s%% of %s (%s free)',
+								round( ( $opcache_status['interned_strings_usage']['used_memory'] / $opcache_status['interned_strings_usage']['buffer_size'] ) * 100, 2 ),
+								$opcache_status['interned_strings_usage']['buffer_size'],
+								$opcache_status['interned_strings_usage']['free_memory']
+							),
+						);
+					}
+
+					$fields['opcode_cache_hit_rate'] = array(
+						'label' => __( 'Opcode cache hit rate' ),
+						'value' => sprintf(
+							/* translators: %s: Hit rate percentage */
+							__( '%s%%' ),
+							number_format_i18n( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 )
+						),
+						'debug' => round( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 ),
+					);
+
+					$fields['opcode_cache_full'] = array(
+						'label' => __( 'Is the Opcode cache full?' ),
+						'value' => $opcache_status['cache_full'] ? __( 'Yes' ) : __( 'No' ),
+						'debug' => $opcache_status['cache_full'],
+					);
+				}
+			}
+		} else {
+			$fields['opcode_cache'] = array(
+				'label' => __( 'Opcode cache' ),
+				'value' => __( 'Disabled' ),
+				'debug' => 'not available',
+			);
+		}
+
 		// Pretty permalinks.
 		$pretty_permalinks_supported = got_url_rewrite();
 
@@ -504,6 +568,34 @@ class WP_Debug_Data {
 			);
 		}
 
+		// Check if a robots.txt file exists.
+		if ( is_file( get_home_path() . 'robots.txt' ) ) {
+			// If the file exists, turn debug info to true.
+			$robotstxt_debug = true;
+
+			/* translators: %s: robots.txt */
+			$robotstxt_string = sprintf( __( 'Your site is using a static %s file. WordPress cannot dynamically serve one.' ), 'robots.txt' );
+		} elseif ( got_url_rewrite() ) {
+			// No robots.txt file available and rewrite rules in place, turn debug info to false.
+			$robotstxt_debug = false;
+
+			/* translators: %s: robots.txt */
+			$robotstxt_string = sprintf( __( 'Your site is using the dynamic %s file which is generated by WordPress.' ), 'robots.txt' );
+		} else {
+			// No robots.txt file, but without rewrite rules WP can't serve one.
+			$robotstxt_debug = true;
+
+			/* translators: %s: robots.txt */
+			$robotstxt_string = sprintf( __( 'WordPress cannot dynamically serve a %s file due to a lack of rewrite rule support.' ), 'robots.txt' );
+
+		}
+
+		$fields['static_robotstxt_file'] = array(
+			'label' => __( 'robots.txt' ),
+			'value' => $robotstxt_string,
+			'debug' => $robotstxt_debug,
+		);
+
 		// Server time.
 		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 
@@ -517,7 +609,7 @@ class WP_Debug_Data {
 		);
 		$fields['server-time'] = array(
 			'label' => __( 'Current Server time' ),
-			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
+			'value' => isset( $_SERVER['REQUEST_TIME'] ) ? wp_date( 'c', (int) $_SERVER['REQUEST_TIME'] ) : __( 'Unable to determine server time' ),
 		);
 
 		return array(
@@ -533,7 +625,7 @@ class WP_Debug_Data {
 	 * @since 6.7.0
 	 *
 	 * @throws ImagickException
-	 * @return array
+	 * @return array<string, string|array> The media handling debug data.
 	 */
 	private static function get_wp_media(): array {
 		// Spare few function calls.
@@ -571,47 +663,35 @@ class WP_Debug_Data {
 			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
-		if ( ! function_exists( 'ini_get' ) ) {
-			$fields['ini_get'] = array(
-				'label' => __( 'File upload settings' ),
-				'value' => sprintf(
-				/* translators: %s: ini_get() */
-					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
-					'ini_get()'
-				),
-				'debug' => 'ini_get() is disabled',
-			);
-		} else {
-			// Get the PHP ini directive values.
-			$file_uploads        = ini_get( 'file_uploads' );
-			$post_max_size       = ini_get( 'post_max_size' );
-			$upload_max_filesize = ini_get( 'upload_max_filesize' );
-			$max_file_uploads    = ini_get( 'max_file_uploads' );
-			$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
+		// Get the PHP ini directive values.
+		$file_uploads        = ini_get( 'file_uploads' );
+		$post_max_size       = ini_get( 'post_max_size' );
+		$upload_max_filesize = ini_get( 'upload_max_filesize' );
+		$max_file_uploads    = ini_get( 'max_file_uploads' );
+		$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
 
-			// Add info in Media section.
-			$fields['file_uploads']        = array(
-				'label' => __( 'File uploads' ),
-				'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
-				'debug' => $file_uploads,
-			);
-			$fields['post_max_size']       = array(
-				'label' => __( 'Max size of post data allowed' ),
-				'value' => $post_max_size,
-			);
-			$fields['upload_max_filesize'] = array(
-				'label' => __( 'Max size of an uploaded file' ),
-				'value' => $upload_max_filesize,
-			);
-			$fields['max_effective_size']  = array(
-				'label' => __( 'Max effective file size' ),
-				'value' => size_format( $effective ),
-			);
-			$fields['max_file_uploads']    = array(
-				'label' => __( 'Max simultaneous file uploads' ),
-				'value' => $max_file_uploads,
-			);
-		}
+		// Add info in Media section.
+		$fields['file_uploads']        = array(
+			'label' => __( 'File uploads' ),
+			'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
+			'debug' => $file_uploads,
+		);
+		$fields['post_max_size']       = array(
+			'label' => __( 'Max size of post data allowed' ),
+			'value' => $post_max_size,
+		);
+		$fields['upload_max_filesize'] = array(
+			'label' => __( 'Max size of an uploaded file' ),
+			'value' => $upload_max_filesize,
+		);
+		$fields['max_effective_size']  = array(
+			'label' => __( 'Max effective file size' ),
+			'value' => size_format( $effective ),
+		);
+		$fields['max_file_uploads']    = array(
+			'label' => __( 'Max simultaneous file uploads' ),
+			'value' => $max_file_uploads,
+		);
 
 		// If Imagick is used as our editor, provide some more information about its limitations.
 		if ( 'WP_Image_Editor_Imagick' === _wp_image_editor_choose() && isset( $imagick ) && $imagick instanceof Imagick ) {
@@ -653,6 +733,25 @@ class WP_Debug_Data {
 				'debug' => ( empty( $formats ) ) ? 'Unable to determine' : implode( ', ', $formats ),
 			);
 		}
+
+		// Get the image format transforms.
+		$mappings           = wp_get_image_editor_output_format( '', '' );
+		$formatted_mappings = array();
+
+		if ( ! empty( $mappings ) ) {
+			foreach ( $mappings as $format => $mime_type ) {
+				$formatted_mappings[] = sprintf( '%s &rarr; %s', $format, $mime_type );
+			}
+			$mappings_display = implode( ', ', $formatted_mappings );
+		} else {
+			$mappings_display = __( 'No format transforms defined' );
+		}
+
+		$fields['image_format_transforms'] = array(
+			'label' => __( 'Image format transforms' ),
+			'value' => $mappings_display,
+			'debug' => ( empty( $mappings ) ) ? 'No format transforms defined' : $mappings_display,
+		);
 
 		// Get GD information, if available.
 		if ( function_exists( 'gd_info' ) ) {
@@ -726,7 +825,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The must-use plugins debug data.
 	 */
 	private static function get_wp_mu_plugins(): array {
 		// List must use plugins if there are any.
@@ -857,7 +956,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The active plugins debug data.
 	 */
 	private static function get_wp_plugins_active(): array {
 		return array(
@@ -872,7 +971,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The inactive plugins debug data.
 	 */
 	private static function get_wp_plugins_inactive(): array {
 		return array(
@@ -887,7 +986,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, array<string, array<string, string>>> The raw plugin debug data for active and inactive plugins.
 	 */
 	private static function get_wp_plugins_raw_data(): array {
 		// List all available plugins.
@@ -1008,9 +1107,9 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @global array $_wp_theme_features
+	 * @global array<string, bool|array> $_wp_theme_features The theme features for the active theme.
 	 *
-	 * @return array
+	 * @return array<string, string|array> The active theme debug data.
 	 */
 	private static function get_wp_active_theme(): array {
 		global $_wp_theme_features;
@@ -1154,7 +1253,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The parent theme debug data.
 	 */
 	private static function get_wp_parent_theme(): array {
 		$theme_updates = get_theme_updates();
@@ -1266,12 +1365,13 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|bool|array> The inactive themes debug data.
 	 */
 	private static function get_wp_themes_inactive(): array {
 		$active_theme  = wp_get_theme();
 		$parent_theme  = $active_theme->parent();
 		$theme_updates = get_theme_updates();
+		$transient     = get_site_transient( 'update_themes' );
 
 		$auto_updates         = array();
 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
@@ -1396,7 +1496,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The WordPress constants debug data.
 	 */
 	private static function get_wp_constants(): array {
 		// Check if WP_DEBUG_LOG is set.
@@ -1544,6 +1644,11 @@ class WP_Debug_Data {
 				'value' => $db_collate,
 				'debug' => $db_collate_debug,
 			),
+			'EMPTY_TRASH_DAYS'    => array(
+				'label' => 'EMPTY_TRASH_DAYS',
+				'value' => EMPTY_TRASH_DAYS ? EMPTY_TRASH_DAYS : __( 'Empty value' ),
+				'debug' => EMPTY_TRASH_DAYS,
+			),
 		);
 
 		return array(
@@ -1560,7 +1665,7 @@ class WP_Debug_Data {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return array
+	 * @return array<string, string|array> The database debug data.
 	 */
 	private static function get_wp_database(): array {
 		global $wpdb;
@@ -1642,16 +1747,17 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array<string, string|array> The debug data and other information for the Info screen.
 	 */
 	private static function get_wp_filesystem(): array {
 		$upload_dir                     = wp_upload_dir();
+		$fonts_dir_exists               = file_exists( wp_get_font_dir()['basedir'] );
 		$is_writable_abspath            = wp_is_writable( ABSPATH );
 		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
 		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
 		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
 		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
-		$is_writable_fonts_dir          = wp_is_writable( wp_get_font_dir()['basedir'] );
+		$is_writable_fonts_dir          = $fonts_dir_exists ? wp_is_writable( wp_get_font_dir()['basedir'] ) : false;
 
 		$fields = array(
 			'wordpress'  => array(
@@ -1681,8 +1787,12 @@ class WP_Debug_Data {
 			),
 			'fonts'      => array(
 				'label' => __( 'The fonts directory' ),
-				'value' => ( $is_writable_fonts_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-				'debug' => ( $is_writable_fonts_dir ? 'writable' : 'not writable' ),
+				'value' => $fonts_dir_exists
+					? ( $is_writable_fonts_dir ? __( 'Writable' ) : __( 'Not writable' ) )
+					: __( 'Does not exist' ),
+				'debug' => $fonts_dir_exists
+					? ( $is_writable_fonts_dir ? 'writable' : 'not writable' )
+					: 'does not exist',
 			),
 		);
 
@@ -1826,10 +1936,14 @@ class WP_Debug_Data {
 	 * Intended to supplement the array returned by `WP_Debug_Data::debug_data()`.
 	 *
 	 * @since 5.2.0
+	 * @deprecated 5.6.0 Use WP_REST_Site_Health_Controller::get_directory_sizes()
+	 * @see WP_REST_Site_Health_Controller::get_directory_sizes()
 	 *
 	 * @return array The sizes of the directories, also the database size and total installation size.
 	 */
 	public static function get_sizes() {
+		_deprecated_function( __METHOD__, '5.6.0', 'WP_REST_Site_Health_Controller::get_directory_sizes()' );
+
 		$size_db    = self::get_database_size();
 		$upload_dir = wp_get_upload_dir();
 
@@ -1838,9 +1952,7 @@ class WP_Debug_Data {
 		 * from causing a timeout. The default value is 30 seconds, and some
 		 * hosts do not allow you to read configuration values.
 		 */
-		if ( function_exists( 'ini_get' ) ) {
-			$max_execution_time = ini_get( 'max_execution_time' );
-		}
+		$max_execution_time = ini_get( 'max_execution_time' );
 
 		/*
 		 * The max_execution_time defaults to 0 when PHP runs from cli.

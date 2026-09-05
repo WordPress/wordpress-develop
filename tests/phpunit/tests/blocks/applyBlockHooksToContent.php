@@ -17,13 +17,14 @@ class Tests_Blocks_ApplyBlockHooksToContent extends WP_UnitTestCase {
 	 * Set up.
 	 *
 	 * @ticket 61902.
+	 * @ticket 63287.
 	 */
 	public static function wpSetUpBeforeClass() {
 		register_block_type(
 			'tests/hooked-block',
 			array(
 				'block_hooks' => array(
-					'tests/anchor-block' => 'after',
+					'core/post-content' => 'after',
 				),
 			)
 		);
@@ -79,23 +80,25 @@ class Tests_Blocks_ApplyBlockHooksToContent extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61902
+	 * @ticket 63287
 	 */
 	public function test_apply_block_hooks_to_content_inserts_hooked_block() {
 		$context          = new WP_Block_Template();
-		$context->content = '<!-- wp:tests/anchor-block /-->';
+		$context->content = '<!-- wp:post-content /-->';
 
 		$actual = apply_block_hooks_to_content( $context->content, $context, 'insert_hooked_blocks' );
 		$this->assertSame(
-			'<!-- wp:tests/anchor-block /--><!-- wp:tests/hooked-block /-->',
+			'<!-- wp:post-content /--><!-- wp:tests/hooked-block /-->',
 			$actual
 		);
 	}
 
 	/**
 	 * @ticket 61074
+	 * @ticket 63287
 	 */
 	public function test_apply_block_hooks_to_content_with_context_set_to_null() {
-		$content = '<!-- wp:tests/anchor-block /-->';
+		$content = '<!-- wp:post-content /-->';
 
 		/*
 		 * apply_block_hooks_to_content() will fall back to the global $post object (via get_post())
@@ -106,7 +109,7 @@ class Tests_Blocks_ApplyBlockHooksToContent extends WP_UnitTestCase {
 
 		$actual = apply_block_hooks_to_content( $content, null, 'insert_hooked_blocks' );
 		$this->assertSame(
-			'<!-- wp:tests/anchor-block /--><!-- wp:tests/hooked-block /-->',
+			'<!-- wp:post-content /--><!-- wp:tests/hooked-block /-->',
 			$actual
 		);
 	}

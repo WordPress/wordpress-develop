@@ -80,6 +80,39 @@ class Tests_Term extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures a queried parent term outside the taxonomy hierarchy counts as the integer 0.
+	 *
+	 * Every other outcome is a numeric string, so this is the one case where the return
+	 * type is not a string at all.
+	 *
+	 * @ticket 61936
+	 *
+	 * @covers ::wp_count_terms
+	 */
+	public function test_wp_count_terms_should_return_integer_zero_for_a_parent_outside_the_hierarchy() {
+		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
+
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
+		$this->assertIsInt( $term_id, 'The term was not created.' );
+
+		$count = wp_count_terms(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'parent'   => 99999,
+			)
+		);
+		$this->assertSame( 0, $count, 'Incorrect count for a parent outside the hierarchy.' );
+
+		$count = wp_count_terms(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'child_of' => 99999,
+			)
+		);
+		$this->assertSame( 0, $count, 'Incorrect count for a child_of outside the hierarchy.' );
+	}
+
+	/**
 	 * @ticket 36399
 	 */
 	public function test_wp_count_terms_legacy_interoperability() {
