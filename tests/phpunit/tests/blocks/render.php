@@ -469,6 +469,153 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the 'parse_blocks' filter is applied correctly.
+	 *
+	 * @ticket 49442
+	 *
+	 * @covers ::parse_blocks
+	 */
+	public function test_parse_blocks_applies_parse_blocks_filter() {
+		$block_content          = '<!-- wp:paragraph {"align":"center","backgroundColor":"pale-cyan-blue","textColor":"vivid-red","fontSize":"large","fontFamily":"helvetica-arial"} -->
+			<p class="has-text-align-center has-vivid-red-color has-pale-cyan-blue-background-color has-text-color has-background has-large-font-size has-helvetica-arial-font-family">This is a test paragraph with various attributes.</p>
+			<!-- /wp:paragraph -->';
+		$original_parsed_blocks = parse_blocks( $block_content );
+
+		// Ensure the function works "normally" without the filter.
+		$this->assertCount( 1, $original_parsed_blocks );
+		$this->assertSame( 'core/paragraph', $original_parsed_blocks[0]['blockName'] );
+		$this->assertSame( '<p class="has-text-align-center has-vivid-red-color has-pale-cyan-blue-background-color has-text-color has-background has-large-font-size has-helvetica-arial-font-family">This is a test paragraph with various attributes.</p>', trim( $original_parsed_blocks[0]['innerHTML'] ) );
+		$this->assertSame(
+			array(
+				'align'           => 'center',
+				'backgroundColor' => 'pale-cyan-blue',
+				'textColor'       => 'vivid-red',
+				'fontSize'        => 'large',
+				'fontFamily'      => 'helvetica-arial',
+			),
+			$original_parsed_blocks[0]['attrs']
+		);
+
+		/**
+		 * Test 1: Ensure that args are correctly passed to the 'parse_blocks' filter, and
+		 * can be modified.
+		 */
+		add_filter(
+			'parse_blocks',
+			function ( $blocks, $original ) use ( $block_content ) {
+				// Ensure that the original content is passed correctly.
+				$this->assertSame( $block_content, $original );
+
+				// Change an attribute of the first block.
+				$blocks[0]['attrs']['align'] = 'left';
+				$blocks[0]['innerHTML']      = '<p>Modified</p>';
+				return $blocks;
+			},
+			10,
+			2
+		);
+
+		$parsed_blocks = parse_blocks( $block_content );
+
+		remove_all_filters( 'parse_blocks', 10 );
+
+		$this->assertSame( '<p>Modified</p>', $parsed_blocks[0]['innerHTML'] );
+		$this->assertSame(
+			array(
+				'align'           => 'left', // Only the 'align' attribute should be modified.
+				'backgroundColor' => 'pale-cyan-blue',
+				'textColor'       => 'vivid-red',
+				'fontSize'        => 'large',
+				'fontFamily'      => 'helvetica-arial',
+			),
+			$parsed_blocks[0]['attrs']
+		);
+
+		/**
+		 * Test 2: Use the `parse_blocks` filter to add rudimentary caching.
+		 */
+		$block_content = trim(
+			'
+			<!-- wp:paragraph --><p>Paragraph 1</p><!-- /wp:paragraph -->
+			<!-- wp:separator --><hr class="wp-block-separator" /><!-- /wp:separator -->
+			<!-- wp:paragraph --><p>Paragraph 2</p><!-- /wp:paragraph -->
+			<!-- wp:separator --><hr class="wp-block-separator" /><!-- /wp:separator -->
+			<!-- wp:paragraph --><p>Paragraph 3</p><!-- /wp:paragraph -->
+		'
+		);
+
+		// First we add the cache ID.
+		add_filter(
+			'parse_blocks',
+			function ( $blocks ) {
+				foreach ( $blocks as $index => $block ) {
+					if ( empty( $block['cache_id'] ) ) {
+						$cache_key                    = md5( serialize( $block ) . $index );
+						$blocks[ $index ]['cache_id'] = 'test-cache-id-' . $cache_key;
+					}
+				}
+				return $blocks;
+			},
+			10
+		);
+
+		// We check the cache before rendering the blocks.
+		add_filter(
+			'pre_render_block',
+			function ( $block_content, $parsed_block ) {
+				if ( isset( $parsed_block['cache_id'] ) ) {
+					$cached_content = wp_cache_get( $parsed_block['cache_id'] );
+					if ( ! empty( $cached_content ) ) {
+						return $cached_content;
+					}
+				}
+				return null;
+			},
+			10,
+			2
+		);
+
+		// Track render counts and cache paragraph block content.
+		$render_counts = array();
+		add_filter(
+			'render_block',
+			function ( $block_content, $parsed_block ) use ( &$render_counts ) {
+				// Cache paragraph blocks for subsequent calls.
+				if ( isset( $parsed_block['blockName'] ) && 'core/paragraph' === $parsed_block['blockName'] && isset( $parsed_block['cache_id'] ) ) {
+					wp_cache_set( $parsed_block['cache_id'], $block_content );
+				}
+
+				// Track render counts for each block type.
+				if ( ! isset( $render_counts[ $parsed_block['blockName'] ] ) ) {
+					$render_counts[ $parsed_block['blockName'] ] = 0;
+				}
+				$render_counts[ $parsed_block['blockName'] ]++;
+
+				return $block_content;
+			},
+			PHP_INT_MAX - 1,
+			2
+		);
+
+		// The first call to do_blocks() should render all the blocks.
+		$rendered_blocks = do_blocks( $block_content );
+		$this->assertNotEmpty( $rendered_blocks );
+		$this->assertSame( 3, $render_counts['core/paragraph'] );
+		$this->assertSame( 2, $render_counts['core/separator'] );
+
+		// When called a second time, the core paragraph blocks shouldn't be re-rendered.
+		$rendered_blocks = do_blocks( $block_content );
+		$this->assertNotEmpty( $rendered_blocks );
+		$this->assertSame( 3, $render_counts['core/paragraph'] );
+		$this->assertSame( 4, $render_counts['core/separator'] );
+
+		// Cleanup filters.
+		remove_all_filters( 'parse_blocks', 10 );
+		remove_all_filters( 'pre_render_block', 10 );
+		remove_all_filters( 'render_block', PHP_INT_MAX - 1 );
+	}
+
+	/**
 	 * Helper function to remove relative paths and extension from a filename, leaving just the fixture name.
 	 *
 	 * @since 5.0.0
