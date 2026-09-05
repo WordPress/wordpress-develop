@@ -1326,6 +1326,7 @@ function wp_dashboard_events_news() {
 	?>
 
 	<div class="wordpress-news hide-if-no-js">
+		<h3><?php _e( 'News' ); ?></h3>
 		<?php wp_dashboard_primary(); ?>
 	</div>
 
@@ -1400,7 +1401,7 @@ function wp_print_community_events_markup() {
 
 				<button class="button-link community-events-toggle-location" aria-expanded="false">
 					<span class="dashicons dashicons-location" aria-hidden="true"></span>
-					<span class="community-events-location-edit"><?php _e( 'Select location' ); ?></span>
+					<span class="community-events-location-edit"><?php _e( 'Change location' ); ?></span>
 				</button>
 			</p>
 
@@ -1422,8 +1423,13 @@ function wp_print_community_events_markup() {
 
 				<?php submit_button( __( 'Submit' ), 'secondary', 'community-events-submit', false ); ?>
 
-				<button class="community-events-cancel button-link" type="button" aria-expanded="false">
+				<button class="community-events-cancel button-link" type="button">
 					<?php _e( 'Cancel' ); ?>
+				</button>
+
+				<button class="community-events-clear button-link" type="button">
+					<span class="dashicons dashicons-dismiss" aria-hidden="true"></span>
+					<?php _e( 'Clear Location' ); ?>
 				</button>
 
 				<span class="spinner"></span>
@@ -1431,6 +1437,19 @@ function wp_print_community_events_markup() {
 		</div>
 
 		<ul class="community-events-results activity-block last"></ul>
+	</div>
+
+	<div id="global-events-section" class="community-events">
+		<h3><?php _e( 'Global Events' ); ?></h3>
+		Filter by group:
+		<div id="global-events-filters"style="display: inline;">
+			<button class="button button-primary" data-filter="All">All</button>
+			<button class="button" data-filter="Accessibility">Accessibility</button>
+			<button class="button" data-filter="Learn">Learn</button>
+		</div>
+		<ul id="global-events-list" class="community-events-results activity-block last">
+			<!-- Global events will be dynamically inserted here -->
+		</ul>
 	</div>
 
 	<?php
@@ -1445,6 +1464,8 @@ function wp_print_community_events_templates() {
 	?>
 
 	<script id="tmpl-community-events-attend-event-near" type="text/template">
+		<h3><?php _e( 'Local Events' ); ?></h3>
+		
 		<?php
 		printf(
 			/* translators: %s: The name of a city. */
@@ -1536,6 +1557,36 @@ function wp_print_community_events_templates() {
 			<# } #>
 		</li>
 	</script>
+
+	<script id="tmpl-global-events-event-list" type="text/template">
+		<# _.each( data.events, function( event ) { #>
+			<li class="event event-global wp-clearfix">
+				<div class="event-info">
+					<div class="dashicons event-icon" aria-hidden="true"></div>
+					<div class="event-info-inner">
+						<a class="event-title" href="{{ event.meetup_url }}">{{ event.title }}</a>
+						<# if ( event.type ) { #>
+							{{ event.type }}
+							<span class="ce-separator"></span>
+						<# } #>
+						<span class="event-city">{{ event.location.location }}</span>
+					</div>
+				</div>
+
+				<div class="event-date-time">
+					<span class="event-date">{{ event.user_formatted_date }}</span>
+					<span class="event-time">{{ event.user_formatted_time }} {{ event.timeZoneAbbreviation }}</span>
+				</div>
+			</li>
+		<# } ) #>
+
+		<# if ( data.events.length <= 0 ) { #>
+			<li class="event-none">
+				<p><?php _e( 'No global events found at the moment.' ); ?></p>
+			</li>
+		<# } #>
+	</script>
+
 	<?php
 }
 
