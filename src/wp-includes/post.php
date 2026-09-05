@@ -7049,13 +7049,16 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 	}
 
 	/*
-	 * Delete the animated-GIF video companions. When the client-side media flow
-	 * converts an opaque animated GIF to a web-safe video, the converted MP4/WebM
-	 * and a static first-frame JPEG poster are sideloaded alongside the GIF and
-	 * recorded under the 'animated_video' and 'animated_video_poster' keys. These
-	 * are kept separate from 'original_image', which continues to point at the GIF.
+	 * Delete the video companions. When the client-side media flow converts an
+	 * opaque animated GIF to a web-safe video, the converted MP4/WebM and a
+	 * static first-frame JPEG poster are sideloaded alongside the GIF and
+	 * recorded under the 'animated_video' and 'animated_video_poster' keys.
+	 * When it transcodes a video upload to a web-safe format, the transcode is
+	 * sideloaded alongside the original video and recorded under the
+	 * 'optimized_video' key. These are kept separate from 'original_image',
+	 * which continues to point at the upload itself.
 	 */
-	foreach ( array( 'animated_video', 'animated_video_poster' ) as $companion_key ) {
+	foreach ( array( 'animated_video', 'animated_video_poster', 'optimized_video' ) as $companion_key ) {
 		if ( empty( $meta[ $companion_key ] ) || ! is_string( $meta[ $companion_key ] ) ) {
 			continue;
 		}
