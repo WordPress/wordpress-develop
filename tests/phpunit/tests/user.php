@@ -1297,6 +1297,48 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * wp_insert_user() stores `$userdata['locale']` as user meta with no type
+	 * check, so a caller can plant a value that get_user_locale() later returns
+	 * where a string is documented.
+	 *
+	 * @dataProvider data_non_string_locale
+	 *
+	 * @covers ::wp_insert_user
+	 * @covers ::wp_update_user
+	 *
+	 * @param mixed $locale Non-string locale.
+	 */
+	public function test_wp_insert_user_should_ignore_a_non_string_locale( $locale ) {
+		$user_id = self::factory()->user->create( array( 'locale' => 'de_DE' ) );
+
+		wp_update_user(
+			array(
+				'ID'     => $user_id,
+				'locale' => $locale,
+			)
+		);
+
+		$this->assertSame( '', get_user_meta( $user_id, 'locale', true ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_string_locale() {
+		return array(
+			'a list'         => array( array( 'de_DE' ) ),
+			'a map'          => array( array( 'locale' => 'de_DE' ) ),
+			'an empty array' => array( array() ),
+			'an object'      => array( new stdClass() ),
+			'an integer'     => array( 1234 ),
+			'a float'        => array( 1.5 ),
+			'true'           => array( true ),
+		);
+	}
+
+	/**
 	 * @ticket 29696
 	 */
 	public function test_wp_insert_user_should_sanitize_user_nicename_parameter() {
