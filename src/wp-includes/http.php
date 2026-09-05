@@ -585,7 +585,48 @@ function wp_http_validate_url( $url ) {
 	$host        = trim( $parsed_url['host'], '.' );
 
 	if ( ! $same_host ) {
-		if ( preg_match( '#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#', $host ) ) {
+		$is_ipv4 = (bool) preg_match(
+			'#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#',
+			$host
+		);
+
+		$is_ipv6_literal = ( 0 === strpos( $host, '[' ) );
+
+		if ( extension_loaded( 'filter' ) && ! $is_ipv4 && ! $is_ipv6_literal ) {
+			$host_to_validate = $host;
+
+			/*
+			 * Historically wp_http_validate_url() has allowed underscores in subdomains
+			 * (e.g. some legacy Blogspot hosts). If underscores are present, validate
+			 * only the registrable domain portion (last two labels) using FILTER_FLAG_HOSTNAME.
+			 */
+			if ( false !== strpos( $host, '_' ) ) {
+				$labels = explode( '.', $host );
+
+				if ( count( $labels ) < 2 ) {
+					return false;
+				}
+
+				$host_to_validate = implode( '.', array_slice( $labels, -2 ) );
+
+				// Underscores must not appear in the registrable domain portion.
+				if ( false !== strpos( $host_to_validate, '_' ) ) {
+					return false;
+				}
+			}
+
+			if (
+				false === filter_var(
+					$host_to_validate,
+					FILTER_VALIDATE_DOMAIN,
+					array( 'flags' => FILTER_FLAG_HOSTNAME )
+				)
+			) {
+				return false;
+			}
+		}
+
+		if ( $is_ipv4 ) {
 			$ip = $host;
 		} else {
 			$ip = gethostbyname( $host );
