@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @global array $menu
  */
 
-$menu[2] = array( __( 'Dashboard' ), 'read', 'index.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard', 'dashicons-dashboard' );
+$menu[2] = array( __( 'Dashboard' ), 'read', 'index.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard', 'core/dashboard' );
 
 $submenu['index.php'][0] = array( __( 'Home' ), 'read', 'index.php' );
 
@@ -70,7 +70,7 @@ $menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
 
 // $menu[5] = Posts.
 
-$menu[10] = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
+$menu[10] = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'core/media' );
 
 	$submenu['upload.php'][5]  = array( _x( 'Library', 'media library menu item' ), 'upload_files', 'upload.php' );
 	$submenu['upload.php'][10] = array( __( 'Add Media File' ), 'upload_files', 'media-new.php' );
@@ -86,7 +86,7 @@ foreach ( get_taxonomies_for_attachments( 'objects' ) as $taxonomy ) {
 
 	unset( $taxonomy, $submenu_index );
 
-$menu[15] = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
+$menu[15] = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'core/link' );
 
 	$submenu['link-manager.php'][5]  = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
 	$submenu['link-manager.php'][10] = array( __( 'Add Link' ), 'manage_links', 'link-add.php' );
@@ -110,7 +110,7 @@ if ( current_user_can( 'edit_posts' ) ) {
 		'',
 		'menu-top menu-icon-comments',
 		'menu-comments',
-		'dashicons-admin-comments',
+		'core/comment',
 	);
 
 	unset( $awaiting_moderation );
@@ -142,19 +142,20 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 		: ++$_wp_last_object_menu; // If we're to use $_wp_last_object_menu, increment it first.
 	$post_type_for_id        = sanitize_html_class( $post_type );
 
-	$menu_icon = 'dashicons-admin-post';
+	$menu_icon = 'core/post';
 	if ( is_string( $post_type_obj->menu_icon ) ) {
-		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, and Dashicons.
+		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, Dashicons, and registered icons.
 		if ( 'none' === $post_type_obj->menu_icon || 'div' === $post_type_obj->menu_icon
 			|| str_starts_with( $post_type_obj->menu_icon, 'data:image/svg+xml;base64,' )
 			|| str_starts_with( $post_type_obj->menu_icon, 'dashicons-' )
+			|| WP_Icons_Registry::get_instance()->is_registered( $post_type_obj->menu_icon )
 		) {
 			$menu_icon = $post_type_obj->menu_icon;
 		} else {
 			$menu_icon = esc_url( $post_type_obj->menu_icon );
 		}
 	} elseif ( in_array( $post_type, $builtin, true ) ) {
-		$menu_icon = 'dashicons-admin-' . $post_type;
+		$menu_icon = 'core/' . $post_type;
 	}
 
 	$menu_class = 'menu-top menu-icon-' . $post_type_for_id;
@@ -206,7 +207,7 @@ $menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
 
 $appearance_capability = current_user_can( 'switch_themes' ) ? 'switch_themes' : 'edit_theme_options';
 
-$menu[60] = array( __( 'Appearance' ), $appearance_capability, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-admin-appearance' );
+$menu[60] = array( __( 'Appearance' ), $appearance_capability, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'core/brush' );
 
 $count = '';
 if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
@@ -320,7 +321,7 @@ if ( ! is_multisite() && current_user_can( 'update_plugins' ) ) {
 }
 
 /* translators: %s: Number of available plugin updates. */
-$menu[65] = array( sprintf( __( 'Plugins %s' ), $count ), 'activate_plugins', 'plugins.php', '', 'menu-top menu-icon-plugins', 'menu-plugins', 'dashicons-admin-plugins' );
+$menu[65] = array( sprintf( __( 'Plugins %s' ), $count ), 'activate_plugins', 'plugins.php', '', 'menu-top menu-icon-plugins', 'menu-plugins', 'core/plugins' );
 
 $submenu['plugins.php'][5] = array( __( 'Installed Plugins' ), 'activate_plugins', 'plugins.php' );
 
@@ -337,9 +338,9 @@ if ( ! is_multisite() ) {
 unset( $update_data );
 
 if ( current_user_can( 'list_users' ) ) {
-	$menu[70] = array( __( 'Users' ), 'list_users', 'users.php', '', 'menu-top menu-icon-users', 'menu-users', 'dashicons-admin-users' );
+	$menu[70] = array( __( 'Users' ), 'list_users', 'users.php', '', 'menu-top menu-icon-users', 'menu-users', 'core/people' );
 } else {
-	$menu[70] = array( __( 'Profile' ), 'read', 'profile.php', '', 'menu-top menu-icon-users', 'menu-users', 'dashicons-admin-users' );
+	$menu[70] = array( __( 'Profile' ), 'read', 'profile.php', '', 'menu-top menu-icon-users', 'menu-users', 'core/people' );
 }
 
 if ( current_user_can( 'list_users' ) ) {
@@ -387,7 +388,7 @@ if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
 	);
 }
 
-$menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'dashicons-admin-tools' );
+$menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'core/tool' );
 	$submenu['tools.php'][5]  = array( __( 'Available Tools' ), 'edit_posts', 'tools.php' );
 	$submenu['tools.php'][10] = array( __( 'Import' ), 'import', 'import.php' );
 	$submenu['tools.php'][15] = array( __( 'Export' ), 'export', 'export.php' );
@@ -402,7 +403,7 @@ if ( ! is_multisite() && defined( 'WP_ALLOW_MULTISITE' ) && WP_ALLOW_MULTISITE )
 	$submenu['tools.php'][50] = array( __( 'Network Setup' ), 'setup_network', 'network.php' );
 }
 
-$menu[80]                               = array( __( 'Settings' ), 'manage_options', 'options-general.php', '', 'menu-top menu-icon-settings', 'menu-settings', 'dashicons-admin-settings' );
+$menu[80]                               = array( __( 'Settings' ), 'manage_options', 'options-general.php', '', 'menu-top menu-icon-settings', 'menu-settings', 'core/cog' );
 	$submenu['options-general.php'][10] = array( _x( 'General', 'settings screen' ), 'manage_options', 'options-general.php' );
 	$submenu['options-general.php'][12] = array( __( 'Connectors' ), 'manage_options', 'options-connectors.php' );
 	$submenu['options-general.php'][15] = array( __( 'Writing' ), 'manage_options', 'options-writing.php' );
