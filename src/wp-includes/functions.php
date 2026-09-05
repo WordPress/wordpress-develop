@@ -7930,6 +7930,16 @@ function wp_delete_file_from_directory( $file, $directory ) {
 
 	if ( false !== $real_file ) {
 		$real_file = wp_normalize_path( $real_file );
+
+		/*
+		 * realpath() resolves `..` segments for real filesystem paths, but it does
+		 * not support stream wrappers, so the stream branch above leaves them in
+		 * place. A surviving `..` segment lets the prefix check below pass while the
+		 * wrapper walks back out of $directory on delete, so reject it here.
+		 */
+		if ( preg_match( '#(?:^|/)\.\.(?:/|$)#', $real_file ) ) {
+			return false;
+		}
 	}
 
 	if ( false !== $real_directory ) {
