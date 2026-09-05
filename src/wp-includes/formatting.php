@@ -4770,6 +4770,35 @@ function esc_html( $text ) {
 }
 
 /**
+ * Escapes text for HTML output while preserving line breaks.
+ *
+ * Converts newlines into `<br />` tags after escaping the text.
+ *
+ * @since 2.8.0
+ *
+ * @param string $text The text to be escaped.
+ * @return string The escaped text with preserved line breaks.
+ */
+function esc_br_html( $text ) {
+	$escaped_text_array     = array_map( 'esc_html', explode( "\n", $text ) );
+	$escaped_multiline_text = implode( '<br />', $escaped_text_array );
+
+	/**
+	 * Filters a string cleaned and escaped for output in HTML with line breaks.
+	 *
+	 * Text passed to esc_br_html() is escaped using esc_html() and newlines
+	 * are converted into `<br />` tags before output.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param string $escaped_multiline_text The text after it has been escaped and processed.
+	 * @param string $text                   The original text before escaping.
+	 */
+	return apply_filters( 'esc_br_html', $escaped_multiline_text, $text );
+}
+
+
+/**
  * Escaping for HTML attributes.
  *
  * @since 2.8.0

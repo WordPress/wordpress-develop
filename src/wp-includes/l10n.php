@@ -341,6 +341,24 @@ function esc_html__( $text, $domain = 'default' ) {
 }
 
 /**
+ * Retrieves the translation of $text and escapes it for safe use in HTML output with line breaks.
+ *
+ * If there is no translation, or the text domain isn't loaded, the original text
+ * is escaped and returned with newlines converted to `<br />` tags.
+ *
+ * @since 2.8.0
+ *
+ * @param string $text   Text to translate.
+ * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
+ *                       Default 'default'.
+ * @return string Translated and escaped text with line breaks.
+ */
+function esc_br_html__( $text, $domain = 'default' ) {
+	return esc_br_html( translate( $text, $domain ) );
+}
+
+
+/**
  * Displays translated text.
  *
  * @since 1.2.0
@@ -388,6 +406,25 @@ function esc_attr_e( $text, $domain = 'default' ) {
 function esc_html_e( $text, $domain = 'default' ) {
 	echo esc_html( translate( $text, $domain ) );
 }
+
+/**
+ * Displays translated text that has been escaped for safe use in HTML output with line breaks.
+ *
+ * If there is no translation, or the text domain isn't loaded, the original text
+ * is escaped and displayed with newlines converted to `<br />` tags.
+ *
+ * If you need the value for use in PHP, use esc_br_html__().
+ *
+ * @since 2.8.0
+ *
+ * @param string $text   Text to translate.
+ * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
+ *                       Default 'default'.
+ */
+function esc_br_html_e( $text, $domain = 'default' ) {
+	echo esc_br_html( translate( $text, $domain ) );
+}
+
 
 /**
  * Retrieves translated string with gettext context.
@@ -459,6 +496,25 @@ function esc_attr_x( $text, $context, $domain = 'default' ) {
 function esc_html_x( $text, $context, $domain = 'default' ) {
 	return esc_html( translate_with_gettext_context( $text, $context, $domain ) );
 }
+
+/**
+ * Translates string with gettext context, and escapes it for safe use in HTML output with line breaks.
+ *
+ * If there is no translation, or the text domain isn't loaded, the original text
+ * is escaped and returned with newlines converted to `<br />` tags.
+ *
+ * @since 2.9.0
+ *
+ * @param string $text    Text to translate.
+ * @param string $context Context information for the translators.
+ * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
+ *                        Default 'default'.
+ * @return string Translated and escaped text with preserved line breaks.
+ */
+function esc_br_html_x( $text, $context, $domain = 'default' ) {
+	return esc_br_html( translate_with_gettext_context( $text, $context, $domain ) );
+}
+
 
 /**
  * Translates and retrieves the singular or plural form based on the supplied number.
