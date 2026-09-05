@@ -65,11 +65,6 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			'password' => '',
 		);
 
-		// Check if possible to use ftp functions.
-		if ( ! require_once ABSPATH . 'wp-admin/includes/class-ftp.php' ) {
-			return;
-		}
-
 		$this->ftp = new ftp();
 
 		if ( ! is_array( $opt ) ) {

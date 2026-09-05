@@ -13,10 +13,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
-		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
-		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
-
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
 		// Ensure no legacy / failed tests detritus.

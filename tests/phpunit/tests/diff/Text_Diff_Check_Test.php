@@ -21,11 +21,6 @@ final class Text_Diff_Check_Test extends WP_UnitTestCase {
 		'Line 13',
 	);
 
-	public static function set_up_before_class() {
-		require_once ABSPATH . 'wp-includes/Text/Diff.php';
-		require_once ABSPATH . 'wp-includes/Text/Exception.php';
-	}
-
 	/**
 	 * Disable WP specific set up as it is not needed.
 	 */

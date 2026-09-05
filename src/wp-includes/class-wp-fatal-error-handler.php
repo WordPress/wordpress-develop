@@ -180,10 +180,6 @@ class WP_Fatal_Error_Handler {
 			require_once ABSPATH . WPINC . '/functions.php';
 		}
 
-		if ( ! class_exists( 'WP_Error' ) ) {
-			require_once ABSPATH . WPINC . '/class-wp-error.php';
-		}
-
 		if ( true === $handled && wp_is_recovery_mode() ) {
 			$message = __( 'There has been a critical error on this website, putting it in recovery mode. Please check the Themes and Plugins screens for more details. If you just installed or updated a theme or plugin, check the relevant page for that first.' );
 		} elseif ( is_protected_endpoint() && wp_recovery_mode()->is_initialized() ) {

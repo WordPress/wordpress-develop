@@ -276,10 +276,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 
 		// (Re)create it, if it's gone missing.
 		if ( ! ( $phpmailer instanceof PHPMailer\PHPMailer\PHPMailer ) ) {
-			require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
-			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
-			require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
-			require_once ABSPATH . WPINC . '/class-wp-phpmailer.php';
 			$phpmailer = new WP_PHPMailer( true );
 
 			$phpmailer::$validator = static function ( $email ) {
@@ -2863,7 +2859,6 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 			$check              = password_verify( $password_to_verify, substr( $hash, 3 ) );
 		} elseif ( str_starts_with( $hash, '$P$' ) ) {
 			// Check the password using phpass.
-			require_once ABSPATH . WPINC . '/class-phpass.php';
 			$check = ( new PasswordHash( 8, true ) )->CheckPassword( $password, $hash );
 		} else {
 			// Check the password using compat support for any non-prefixed hash.
@@ -3396,10 +3391,6 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 			'show_split_view' => true,
 		);
 		$args     = wp_parse_args( $args, $defaults );
-
-		if ( ! class_exists( 'WP_Text_Diff_Renderer_Table', false ) ) {
-			require ABSPATH . WPINC . '/wp-diff.php';
-		}
 
 		$left_string  = normalize_whitespace( $left_string );
 		$right_string = normalize_whitespace( $right_string );

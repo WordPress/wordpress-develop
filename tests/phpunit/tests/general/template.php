@@ -7,8 +7,6 @@
  * @group site_icon
  */
 
-require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
-
 class Tests_General_Template extends WP_UnitTestCase {
 
 	protected $wp_site_icon;
@@ -295,7 +293,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 		global $wp_customize;
 		wp_set_current_user( self::$administrator_id );
 
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
 		$wp_customize->register_controls();
 		$wp_customize->start_previewing_theme();
@@ -313,7 +310,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 		global $wp_customize;
 		wp_set_current_user( self::$administrator_id );
 
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
 		$wp_customize->register_controls();
 		$wp_customize->start_previewing_theme();

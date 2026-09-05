@@ -11,7 +11,6 @@ class Tests_Post_PostPasswordRequired extends WP_UnitTestCase {
 	protected static $wp_hasher;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		require_once ABSPATH . WPINC . '/class-phpass.php';
 		self::$wp_hasher = new PasswordHash( 8, true );
 	}
 

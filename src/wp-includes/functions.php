@@ -897,7 +897,6 @@ function do_enclose( $content, $post ) {
 	global $wpdb;
 
 	// @todo Tidy this code and make the debug code optional.
-	require_once ABSPATH . WPINC . '/class-IXR.php';
 
 	$post = get_post( $post );
 	if ( ! $post ) {
@@ -5562,8 +5561,6 @@ function wp_maybe_load_widgets() {
 		return;
 	}
 
-	require_once ABSPATH . WPINC . '/default-widgets.php';
-
 	add_action( '_admin_menu', 'wp_widgets_add_menu' );
 }
 
@@ -9445,7 +9442,6 @@ function wp_verify_fast_hash(
 ): bool {
 	if ( ! str_starts_with( $hash, '$generic$' ) ) {
 		// Back-compat for old phpass hashes.
-		require_once ABSPATH . WPINC . '/class-phpass.php';
 		return ( new PasswordHash( 8, true ) )->CheckPassword( $message, $hash );
 	}
 

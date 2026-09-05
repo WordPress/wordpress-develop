@@ -32,9 +32,6 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 
 		parent::set_up();
 
-		/** Walker_Nav_Menu class */
-		require_once ABSPATH . 'wp-includes/class-walker-nav-menu.php';
-
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',

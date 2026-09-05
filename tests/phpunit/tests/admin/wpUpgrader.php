@@ -34,16 +34,6 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	private static $wp_filesystem_backup = null;
 
 	/**
-	 * Loads the class to be tested.
-	 */
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
-		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-	}
-
-	/**
 	 * Sets up the class instance and mocks needed for each test.
 	 */
 	public function set_up() {
