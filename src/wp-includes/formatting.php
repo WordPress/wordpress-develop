@@ -5595,6 +5595,29 @@ function normalize_whitespace( $str ) {
 }
 
 /**
+ * Encodes bare `<` characters (those not starting an HTML tag) as `&lt;`.
+ *
+ * @since x.x.x
+ *
+ * @param string $text The text to encode.
+ * @return string Text with bare `<` characters encoded.
+ */
+function wp_encode_bare_lt( $text ) {
+	/*
+	 * A valid HTML tag begins with `<` followed by:
+	 * - a letter  (opening tag, e.g. `<strong>`)
+	 * - `/`       (closing tag, e.g. `</strong>`)
+	 * - `!`       (comment or doctype, e.g. `<!-- … -->`)
+	 * - `?`       (processing instruction, e.g. `<?xml … ?>`)
+	 *
+	 * Any `<` not followed by one of these is a bare less-than sign and is
+	 * encoded as `&lt;` so that strip_tags() does not silently discard it.
+	 */
+	$encoded = preg_replace( '#<(?![a-zA-Z/!?])#', '&lt;', $text );
+	return null !== $encoded ? $encoded : $text;
+}
+
+/**
  * Properly strips all HTML tags including 'script' and 'style'.
  *
  * This differs from strip_tags() because it removes the contents of
