@@ -1067,4 +1067,23 @@ function wp_redirect_admin_locations() {
 		wp_redirect( wp_login_url() );
 		exit;
 	}
+
+	$password_change_urls = array(
+		'/.well-known/change-password',
+		home_url( '.well-known/change-password', 'relative' ),
+		site_url( '.well-known/change-password', 'relative' ),
+	);
+
+	if ( in_array( untrailingslashit( $_SERVER['REQUEST_URI'] ), $password_change_urls, true ) ) {
+		/**
+		 * Filters the URL to redirect to when a browser or password manager
+		 * requests the well-known change-password URL (/.well-known/change-password).
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $url The URL to redirect to. Default is the user profile page.
+		 */
+		wp_redirect( apply_filters( 'wp_change_password_url', admin_url( 'profile.php' ) ) );
+		exit;
+	}
 }
