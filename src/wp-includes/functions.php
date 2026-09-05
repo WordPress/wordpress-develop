@@ -6474,6 +6474,26 @@ function force_ssl_admin( $force = null ) {
 }
 
 /**
+ * Determines whether to force SSL for the entire site.
+ *
+ * @since x.x.x
+ *
+ * @param string|bool|null $force Optional. Whether to force SSL. Default null.
+ * @return bool True if forced, false if not forced.
+ */
+function force_ssl( $force = null ) {
+	static $forced = false;
+
+	if ( ! is_null( $force ) ) {
+		$old_forced = $forced;
+		$forced     = (bool) $force;
+		return $old_forced;
+	}
+
+	return $forced;
+}
+
+/**
  * Guesses the URL for the site.
  *
  * Will remove wp-admin links to retrieve only return URLs not in the wp-admin
