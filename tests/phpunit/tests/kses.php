@@ -2312,6 +2312,315 @@ EOF;
 	}
 
 	/**
+	 * Tests parser-backed autofocus handling for dialog descendants.
+	 *
+	 * @ticket 65717
+	 *
+	 * @dataProvider data_wp_kses_dialog_descendant_autofocus
+	 *
+	 * @param string $html     Input HTML.
+	 * @param string $expected Expected filtered HTML.
+	 */
+	public function test_wp_kses_dialog_descendant_autofocus( $html, $expected ) {
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_dialog_descendant_autofocus().
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_wp_kses_dialog_descendant_autofocus() {
+		return array(
+			'direct descendant'          => array(
+				'<dialog><button type="button" autofocus>Save</button></dialog>',
+				'<dialog><button type="button" autofocus>Save</button></dialog>',
+			),
+			'nested descendant'          => array(
+				'<dialog><div><button type="button" autofocus>Save</button></div></dialog>',
+				'<dialog><div><button type="button" autofocus>Save</button></div></dialog>',
+			),
+			'tabindex descendant'        => array(
+				'<dialog><div tabindex="0" autofocus>Focusable</div></dialog>',
+				'<dialog><div tabindex="0" autofocus>Focusable</div></dialog>',
+			),
+			'allowed dialog descendant'  => array(
+				'<dialog><span autofocus>Content</span></dialog>',
+				'<dialog><span autofocus>Content</span></dialog>',
+			),
+			'dialog itself'              => array(
+				'<dialog open autofocus>Content</dialog>',
+				'<dialog open autofocus>Content</dialog>',
+			),
+			'outside dialog'             => array(
+				'<button type="button" autofocus>Outside</button>',
+				'<button type="button">Outside</button>',
+			),
+			'mixed inside and outside'   => array(
+				'<button type="button" autofocus>Outside</button>'
+					. '<dialog><button type="button" autofocus>Inside</button></dialog>',
+				'<button type="button">Outside</button>'
+					. '<dialog><button type="button" autofocus>Inside</button></dialog>',
+			),
+			'nested dialogs'             => array(
+				'<dialog><dialog><button type="button" autofocus>Nested</button></dialog></dialog>',
+				'<dialog><dialog><button type="button" autofocus>Nested</button></dialog></dialog>',
+			),
+			'unrelated unsafe attribute' => array(
+				'<dialog><button type="button" autofocus onclick="alert(1)">Save</button></dialog>',
+				'<dialog><button type="button" autofocus>Save</button></dialog>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that a dialog token in an HTML comment cannot leak autofocus.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_is_not_leaked_by_commented_dialog() {
+		$html = '<!-- <dialog> --><button type="button" autofocus>Fake</button>';
+
+		$this->assertStringNotContainsString( 'autofocus', wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Tests that a dialog token in RCDATA cannot leak autofocus.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_is_not_leaked_by_rcdata_dialog() {
+		$html = '<textarea><dialog></textarea><button type="button" autofocus>Fake</button>';
+
+		$this->assertStringNotContainsString( 'autofocus', wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Tests that an HTML comment inside a dialog does not break valid context.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_is_retained_after_comment_inside_dialog() {
+		$html     = '<dialog open><!-- note --><button type="button" autofocus>Real</button></dialog>';
+		$filtered = wp_kses_post( $html );
+
+		$this->assertStringContainsString( '<button type="button" autofocus>', $filtered );
+	}
+
+	/**
+	 * Tests that an unmatched closing dialog cannot create autofocus context.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_is_not_leaked_by_unmatched_closer() {
+		$html = '</dialog><button type="button" autofocus>Outside</button>';
+
+		$this->assertStringNotContainsString( 'autofocus', wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Tests that dialog autofocus state is isolated across KSES calls.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_is_isolated_across_calls() {
+		$inside  = wp_kses_post(
+			'<dialog><!-- note --><button type="button" autofocus>Inside</button></dialog>'
+		);
+		$outside = wp_kses_post( '<button type="button" autofocus>Outside</button>' );
+
+		$this->assertStringContainsString( 'autofocus', $inside );
+		$this->assertStringNotContainsString( 'autofocus', $outside );
+	}
+
+	/**
+	 * Tests that an explicit allowlist is not broadened by dialog context.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_does_not_broaden_explicit_allowlist() {
+		$allowed_html = array(
+			'dialog' => array(
+				'open'      => true,
+				'autofocus' => true,
+			),
+			'button' => array(
+				'type' => true,
+			),
+		);
+		$html         = '<dialog><button type="button" autofocus>Save</button></dialog>';
+		$expected     = '<dialog><button type="button">Save</button></dialog>';
+
+		$this->assertEqualHTML( $expected, wp_kses( $html, $allowed_html ) );
+	}
+
+	/**
+	 * Tests that the post allowlist filter can remove contextual autofocus.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_can_be_narrowed_by_filter() {
+		$filter = static function ( $allowed, $context ) {
+			if (
+				'post' === $context
+				&& isset( $allowed['button'] )
+				&& is_array( $allowed['button'] )
+			) {
+				unset( $allowed['button']['autofocus'] );
+			}
+
+			return $allowed;
+		};
+
+		add_filter( 'wp_kses_allowed_html', $filter, 20, 2 );
+
+		try {
+			$html     = '<dialog><button type="button" autofocus>Save</button></dialog>';
+			$expected = '<dialog><button type="button">Save</button></dialog>';
+
+			$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+		} finally {
+			remove_filter( 'wp_kses_allowed_html', $filter, 20 );
+		}
+	}
+
+	/**
+	 * Tests that final dialog ancestry is checked after KSES removes a dialog.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_is_removed_when_dialog_is_filtered() {
+		$filter = static function ( $allowed, $context ) {
+			if ( 'post' === $context ) {
+				unset( $allowed['dialog'] );
+			}
+
+			return $allowed;
+		};
+
+		add_filter( 'wp_kses_allowed_html', $filter, 20, 2 );
+
+		try {
+			$html     = '<dialog><button type="button" autofocus>Save</button></dialog>';
+			$expected = '<button type="button">Save</button>';
+
+			$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+		} finally {
+			remove_filter( 'wp_kses_allowed_html', $filter, 20 );
+		}
+	}
+
+	/**
+	 * Tests that wp_kses_one_attr() does not gain structural context.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_one_attr_dialog_autofocus_behavior_is_unchanged() {
+		$this->assertSame( '', wp_kses_one_attr( 'autofocus', 'button' ) );
+		$this->assertSame( 'autofocus', wp_kses_one_attr( 'autofocus', 'dialog' ) );
+	}
+
+	/**
+	 * Tests that pre_kses observes autofocus before ordinary KSES removes it.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_preserves_pre_kses_observability() {
+		$observed = array();
+
+		$filter = static function ( $content, $allowed_html ) use ( &$observed ) {
+			$observed[] = array(
+				'content' => $content,
+				'context' => is_array( $allowed_html ) ? 'ARRAY' : $allowed_html,
+			);
+
+			return $content;
+		};
+
+		add_filter( 'pre_kses', $filter, -999, 2 );
+
+		try {
+			$html     = '<button type="button" autofocus>Outside</button>';
+			$expected = '<button type="button">Outside</button>';
+			$filtered = wp_kses_post( $html );
+		} finally {
+			remove_filter( 'pre_kses', $filter, -999 );
+		}
+
+		$this->assertCount( 1, $observed );
+		$this->assertSame( $html, $observed[0]['content'] );
+		$this->assertSame( 'post', $observed[0]['context'] );
+		$this->assertEqualHTML( $expected, $filtered );
+	}
+
+	/**
+	 * Tests that a pre_kses content mutation is preserved while contextual autofocus fails closed.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_fails_closed_after_pre_kses_mutation() {
+		$filter = static function ( $content, $allowed_html ) {
+			if ( 'post' === $allowed_html ) {
+				return str_replace( 'Save', 'Changed', $content );
+			}
+
+			return $content;
+		};
+
+		add_filter( 'pre_kses', $filter, 20, 2 );
+
+		try {
+			$html     = '<dialog><button type="button" autofocus>Save</button></dialog>';
+			$expected = '<dialog><button type="button">Changed</button></dialog>';
+
+			$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+		} finally {
+			remove_filter( 'pre_kses', $filter, 20 );
+		}
+	}
+
+	/**
+	 * Tests that a structural pre_kses mutation cannot manufacture contextual autofocus permission.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_fails_closed_after_pre_kses_structural_mutation() {
+		$filter = static function ( $content, $allowed_html ) {
+			if ( 'post' === $allowed_html ) {
+				return '<dialog>' . $content . '</dialog>';
+			}
+
+			return $content;
+		};
+
+		add_filter( 'pre_kses', $filter, 20, 2 );
+
+		try {
+			$html     = '<button type="button" autofocus>Outside</button>';
+			$expected = '<dialog><button type="button">Outside</button></dialog>';
+
+			$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+		} finally {
+			remove_filter( 'pre_kses', $filter, 20 );
+		}
+	}
+
+	/**
+	 * Tests dialog descendant autofocus with block-editor-style HTML comments.
+	 *
+	 * @ticket 65717
+	 */
+	public function test_wp_kses_dialog_autofocus_survives_block_comment_markup() {
+		$html     = '<!-- wp:html --><dialog><button type="button" autofocus>Save</button></dialog><!-- /wp:html -->';
+		$filtered = wp_kses_post( $html );
+
+		$this->assertStringContainsString(
+			'<dialog><button type="button" autofocus>Save</button></dialog>',
+			$filtered
+		);
+	}
+
+	/**
 	 * Test that Invoker Commands API attributes are preserved on buttons in post content.
 	 *
 	 * @ticket 64576
