@@ -615,6 +615,7 @@ class WP_Query {
 			'fields',
 			'menu_order',
 			'embed',
+			'rand_factor',
 		);
 
 		foreach ( $keys as $key ) {
@@ -776,6 +777,8 @@ class WP_Query {
 	 *     @type int             $posts_per_page         The number of posts to query for. Use -1 to request all posts.
 	 *     @type int             $posts_per_archive_page The number of posts to query for by archive page. Overrides
 	 *                                                   'posts_per_page' when is_archive(), or is_search() are true.
+	 *     @type float           $rand_factor            The factor used to determine the probability for optimized
+	 *                                                   random ordering. Default 3.0.
 	 *     @type string          $s                      Search keyword(s). Prepending a term with a hyphen will
 	 *                                                   exclude posts matching that term. Eg, 'pillow -sofa' will
 	 *                                                   return posts containing 'pillow' but not 'sofa'. The
@@ -2925,6 +2928,10 @@ class WP_Query {
 			} else {
 				$where = 'AND 0';
 			}
+		}
+		// Orderby Rand Optimization.
+		if ( isset( $q['orderby'] ) && 'rand' === $q['orderby'] && empty( $q['nopaging'] ) ) {
+			$where = $this->_optimize_rand_orderby( $q, $where, $join );
 		}
 
 		$pieces = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
@@ -5157,5 +5164,52 @@ class WP_Query {
 	public function lazyload_comment_meta( $check, $comment_id ) {
 		_deprecated_function( __METHOD__, '4.5.0' );
 		return $check;
+	}
+
+	/**
+	 * Optimizes ORDER BY RAND() queries using probability sampling.
+	 * Modifies the WHERE clause to include a probability condition based on RAND().
+	 * See: https://core.trac.wordpress.org/ticket/18836
+	 *
+	 * @since 6.8.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param array  $q     Query vars.
+	 * @param string $where The current WHERE clause.
+	 * @param string $join  The current JOIN clause.
+	 * @return string The potentially modified WHERE clause.
+	 */
+	protected function _optimize_rand_orderby( $q, $where, $join ) {
+		global $wpdb;
+
+		// Default factor to over-select rows, configurable via query var.
+		$rand_factor = isset( $q['rand_factor'] ) ? (float) $q['rand_factor'] : 3.0;
+		$size        = absint( $q['posts_per_page'] );
+		if ( 0 === $size ) {
+			$size = (int) get_option( 'posts_per_page' );
+		}
+
+		// Use a simpler count query that respects existing WHERE and JOIN clauses.
+		$count_query = "SELECT COUNT(*) FROM {$wpdb->posts} {$join} WHERE 1=1 {$where}";
+
+		$row_count = (int) $wpdb->get_var( $count_query );
+
+		if ( $row_count > 0 && $size > 0 ) {
+			// Calculate probability, capped at 1.0 (100%).
+			$probability = min( 1.0, ( $size * $rand_factor ) / $row_count );
+
+			// Use seed if provided in 'orderby' query var (e.g., 'orderby' => 'rand(123)').
+			if ( isset( $q['orderby'] ) && preg_match( '/RAND\(([0-9]+)\)/i', $q['orderby'], $matches ) ) {
+				$rand_call = $wpdb->prepare( 'RAND(%s)', (int) $matches[1] );
+			} else {
+				$rand_call = 'RAND()';
+			}
+
+			// Add the probability condition to the main $where clause.
+			$where .= $wpdb->prepare( " AND {$rand_call} <= %f ", $probability );
+		}
+
+		return $where;
 	}
 }
