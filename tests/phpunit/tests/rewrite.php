@@ -532,6 +532,70 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49510
+	 */
+	public function test_taxonomy_bases_with_regex_metacharacters() {
+		update_option( 'category_base', 'cat+base' );
+		update_option( 'tag_base', 'tag+base' );
+		create_initial_taxonomies();
+		delete_option( 'rewrite_rules' );
+
+		$category_id = self::factory()->term->create(
+			array(
+				'name'     => 'Category A',
+				'taxonomy' => 'category',
+			)
+		);
+		$tag_id      = self::factory()->term->create(
+			array(
+				'name'     => 'Tag A',
+				'taxonomy' => 'post_tag',
+			)
+		);
+
+		$this->go_to( get_term_link( $category_id, 'category' ) );
+		$category_name = get_query_var( 'category_name' );
+
+		$this->go_to( get_term_link( $tag_id, 'post_tag' ) );
+
+		$this->assertSame(
+			array( 'category-a', 'tag-a' ),
+			array( $category_name, get_query_var( 'tag' ) )
+		);
+	}
+
+	/**
+	 * @ticket 49510
+	 */
+	public function test_taxonomy_base_regex_metacharacter_is_literal() {
+		update_option( 'category_base', 'cat.base' );
+		create_initial_taxonomies();
+		delete_option( 'rewrite_rules' );
+
+		self::factory()->term->create(
+			array(
+				'name'     => 'Category A',
+				'taxonomy' => 'category',
+			)
+		);
+
+		$this->go_to( '/catXbase/category-a/' );
+
+		$this->assertSame( '', get_query_var( 'category_name' ) );
+	}
+
+	/**
+	 * @ticket 49510
+	 */
+	public function test_permalink_regex_metacharacters_are_literal_in_attachment_rules() {
+		global $wp_rewrite;
+
+		$rules = $wp_rewrite->generate_rewrite_rules( '/archive(2026)/%postname%/', EP_PERMALINK );
+
+		$this->assertSame( 'index.php?attachment=$matches[1]', $rules['archive\(2026\)/[^/]+/attachment/([^/]+)/?$'] );
+	}
+
+	/**
 	 * @ticket 29107
 	 */
 	public function test_flush_rules_does_not_delete_option() {
