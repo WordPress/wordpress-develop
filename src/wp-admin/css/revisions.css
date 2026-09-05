@@ -24,7 +24,7 @@
 .revisions.pinned .revisions-controls {
 	position: fixed;
 	top: 0;
-	height: 82px;
+	height: 124px;
 	background: #fff;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -52,10 +52,6 @@
 
 .comparing-two-revisions .revisions-controls {
 	height: 140px;
-}
-
-.comparing-two-revisions.pinned .revisions-controls {
-	height: 124px;
 }
 
 .revisions .diff-error {
@@ -125,8 +121,7 @@ body.folded .revisions .loading-indicator {
 }
 
 .comparing-two-revisions .revisions-previous,
-.comparing-two-revisions .revisions-next,
-.revisions-meta .diff-meta-to strong {
+.comparing-two-revisions .revisions-next {
 	display: none;
 }
 
@@ -140,10 +135,6 @@ body.folded .revisions .loading-indicator {
 
 .revisions-controls .author-card .author-name {
 	font-weight: 600;
-}
-
-.comparing-two-revisions .diff-meta-to strong {
-	display: block;
 }
 
 .revisions.pinned .revisions-buttons {
@@ -305,23 +296,21 @@ table.diff .diff-addedline ins {
 	vertical-align: middle;
 }
 
-.diff-meta input.restore-revision {
+.diff-meta input.restore-revision,
+.diff-meta .current-revision {
 	float: right;
 	margin-left: 6px;
 	margin-right: 6px;
 }
 
-.diff-meta-from {
-	display: none;
-}
-
-.comparing-two-revisions .diff-meta-from {
-	display: block;
+.diff-meta .current-revision {
+	color: #646970;
+	line-height: 2.46153846;
 }
 
 .revisions-tooltip {
 	position: absolute;
-	bottom: 105px;
+	bottom: 145px;
 	margin-right: 0;
 	margin-left: -69px;
 	z-index: 0;
@@ -339,10 +328,6 @@ table.diff .diff-addedline ins {
 
 .revisions.pinned .revisions-tooltip {
 	display: none !important;
-}
-
-.comparing-two-revisions .revisions-tooltip {
-	bottom: 145px;
 }
 
 .revisions-tooltip-arrow {
@@ -614,12 +599,8 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	}
 
 	.revisions-tooltip {
-		bottom: 155px;
-		z-index: 2;
-	}
-
-	.comparing-two-revisions .revisions-tooltip {
 		bottom: 200px;
+		z-index: 2;
 	}
 
 	.diff-meta {
