@@ -1365,7 +1365,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( $paused ) {
 						$notice_text = __( 'This plugin failed to load properly and is paused during recovery mode.' );
 
-						printf( '<p><span class="dashicons dashicons-warning"></span> <strong>%s</strong></p>', $notice_text );
+						printf( '<p><span class="dashicons dashicons-warning" aria-hidden="true"></span> <strong>%s</strong></p>', $notice_text );
 
 						$error = wp_get_plugin_error( $plugin_file );
 

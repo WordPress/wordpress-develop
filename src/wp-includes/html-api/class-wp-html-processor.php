@@ -3393,6 +3393,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * of boundary in the stack. For example, a `</custom-tag>` should not
 		 * close anything beyond its containing `P` or `DIV` element.
 		 */
+		$node = null;
 		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
 			if ( 'html' === $node->namespace && $token_name === $node->node_name ) {
 				break;

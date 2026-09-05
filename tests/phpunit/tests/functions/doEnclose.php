@@ -125,6 +125,10 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 				'content'  => 'https://example.com?test=1',
 				'expected' => '',
 			),
+			'header-type-no-extension' => array(
+				'content'  => 'https://example.com/media/stream-mp4',
+				'expected' => "https://example.com/media/stream-mp4\n123\nvideo/mp4\n",
+			),
 		);
 	}
 
@@ -276,6 +280,9 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 		$path = parse_url( $url, PHP_URL_PATH );
 
 		if ( is_string( $path ) ) {
+			if ( str_contains( $path, 'stream-mp4' ) ) {
+				return $fake_headers['mp4'];
+			}
 			$extension = pathinfo( $path, PATHINFO_EXTENSION );
 			if ( isset( $fake_headers[ $extension ] ) ) {
 				return $fake_headers[ $extension ];

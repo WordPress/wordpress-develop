@@ -1908,6 +1908,8 @@ function single_month_title( $prefix = '', $display = true ) {
 	$m        = get_query_var( 'm' );
 	$year     = get_query_var( 'year' );
 	$monthnum = get_query_var( 'monthnum' );
+	$my_year  = '';
+	$my_month = '';
 
 	if ( ! empty( $monthnum ) && ! empty( $year ) ) {
 		$my_year  = $year;
@@ -5465,6 +5467,7 @@ function get_the_generator( $type = '' ) {
 				break;
 		}
 	}
+	$gen = '';
 
 	switch ( $type ) {
 		case 'html':
