@@ -76,6 +76,7 @@ add_action( 'add_option_new_admin_email', 'update_option_new_admin_email', 10, 2
 add_action( 'update_option_new_admin_email', 'update_option_new_admin_email', 10, 2 );
 
 add_filter( 'heartbeat_received', 'wp_check_locked_posts', 10, 3 );
+add_filter( 'heartbeat_received', 'wp_check_post_list_table_changes', 10, 2 );
 add_filter( 'heartbeat_received', 'wp_refresh_post_lock', 10, 3 );
 add_filter( 'heartbeat_received', 'heartbeat_autosave', 500, 2 );
 

@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { Editor, test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 test.describe( 'Edit Posts', () => {
 	test.beforeEach( async ( { requestUtils }) => {
@@ -105,6 +105,82 @@ test.describe( 'Edit Posts', () => {
 
 		// Expect the title of the post to be correct.
 		expect( posts.first() ).toHaveText( `${ title } Edited` );
+	} );
+
+	test( 'refreshes the post list when a post is updated in another window', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const originalTitle = 'Original title';
+		const updatedTitle = 'Updated title';
+		const post = await requestUtils.createPost( {
+			title: originalTitle,
+			status: 'publish',
+		} );
+
+		await admin.visitAdminPage( '/edit.php' );
+		const rowTitle = page.locator( `#post-${ post.id } .row-title` );
+		await expect( rowTitle ).toHaveText( originalTitle );
+
+		const otherPage = await page.context().newPage();
+		const otherEditor = new Editor( { page: otherPage } );
+		await otherPage.goto( `/wp-admin/post.php?post=${ post.id }&action=edit` );
+
+		const welcomeDialog = otherPage.getByRole( 'dialog', { name: 'Welcome to the editor' } );
+		if ( await welcomeDialog.isVisible() ) {
+			await welcomeDialog.getByRole( 'button', { name: 'Close' } ).click();
+		}
+
+		await otherEditor.canvas.getByRole( 'textbox', { name: 'Add title' } ).fill( updatedTitle );
+		await otherPage.getByRole( 'button', { name: 'Save', exact: true } ).click();
+		await expect.poll( async () => {
+			const updatedPost = await requestUtils.rest( {
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { context: 'edit' },
+			} );
+			return updatedPost.title.raw;
+		} ).toBe( updatedTitle );
+
+		await otherPage.close();
+		await page.bringToFront();
+		await page.evaluate( () => window.wp.heartbeat.connectNow() );
+
+		await expect( rowTitle ).toHaveText( updatedTitle );
+	} );
+
+	test( 'defers refreshing the post list while Quick Edit has unsaved changes', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const post = await requestUtils.createPost( {
+			title: 'Original title',
+			status: 'publish',
+		} );
+
+		await admin.visitAdminPage( '/edit.php' );
+		await page.locator( `#post-${ post.id } .editinline` ).evaluate( ( button ) => button.click() );
+
+		const titleInput = page.locator( `#edit-${ post.id } input[name="post_title"]` );
+		await titleInput.fill( 'Unsaved title' );
+		await requestUtils.rest( {
+			method: 'POST',
+			path: `/wp/v2/posts/${ post.id }`,
+			data: { title: 'Updated title' },
+		} );
+
+		const heartbeatResponse = page.waitForResponse( ( response ) =>
+			response.url().includes( 'admin-ajax.php' ) &&
+			response.request().postData()?.includes( 'wp-check-post-list' )
+		);
+		await page.evaluate( () => window.wp.heartbeat.connectNow() );
+		await heartbeatResponse;
+		await expect( titleInput ).toHaveValue( 'Unsaved title' );
+
+		await page.locator( `#edit-${ post.id } .cancel` ).click();
+		await page.evaluate( () => window.wp.heartbeat.connectNow() );
+		await expect( page.locator( `#post-${ post.id } .row-title` ) ).toHaveText( 'Updated title' );
 	} );
 
 	test( 'allows an existing post to be deleted using the Trash button', async ( {
