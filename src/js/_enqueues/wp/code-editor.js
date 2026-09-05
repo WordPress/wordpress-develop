@@ -2,7 +2,7 @@
  * @output wp-admin/js/code-editor.js
  */
 
-/* eslint-env es2020 */
+/* global console */
 
 if ( 'undefined' === typeof window.wp ) {
 	/**
@@ -18,7 +18,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 }
 
 /**
- * @typedef {object} CodeMirrorState
+ * @typedef {Object} CodeMirrorState
  * @property {boolean} [completionActive] - Whether completion is active.
  * @property {boolean} [focused] - Whether the editor is focused.
  */
@@ -33,7 +33,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  */
 
 /**
- * @typedef {object} LintAnnotation
+ * @typedef {Object} LintAnnotation
  * @property {string} message - Message.
  * @property {'error'|'warning'} severity - Severity.
  * @property {import('codemirror').Position} from - From position.
@@ -41,8 +41,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  */
 
 /**
- * @typedef {object} CodeMirrorTokenState
- * @property {object} [htmlState] - HTML state.
+ * @typedef {Object} CodeMirrorTokenState
+ * @property {Object} [htmlState] - HTML state.
  * @property {string} [htmlState.tagName] - Tag name.
  * @property {CodeMirrorTokenState} [curState] - Current state.
  */
@@ -58,7 +58,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  */
 
 /**
- * @typedef {object} CSSLintRules
+ * @typedef {Object} CSSLintRules
  * @property {boolean} [errors] - Errors.
  * @property {boolean} [box-model] - Box model rules.
  * @property {boolean} [display-property-grouping] - Display property grouping rules.
@@ -68,7 +68,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  */
 
 /**
- * @typedef {object} JSHintRules
+ * @typedef {Object} JSHintRules
  * @property {number} [esversion] - ECMAScript version.
  * @property {boolean} [module] - Whether to use modules.
  * @property {boolean} [boss] - Whether to allow assignments in control expressions.
@@ -87,7 +87,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  */
 
 /**
- * @typedef {object} HTMLHintRules
+ * @typedef {Object} HTMLHintRules
  * @property {boolean} [tagname-lowercase] - Tag name lowercase rules.
  * @property {boolean} [attr-lowercase] - Attribute lowercase rules.
  * @property {boolean} [attr-value-double-quotes] - Attribute value double quotes rules.
@@ -107,7 +107,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 /**
  * Settings for the code editor.
  *
- * @typedef {object} CodeEditorSettings
+ * @typedef {Object} CodeEditorSettings
  *
  * @property {CodeMirrorSettings} [codemirror] - CodeMirror settings.
  * @property {CSSLintRules} [csslint] - CSSLint rules.
@@ -125,20 +125,20 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  */
 
 /**
- * @typedef {object} CodeEditorInstance
+ * @typedef {Object} CodeEditorInstance
  * @property {CodeEditorSettings} settings - The code editor settings.
  * @property {CodeMirrorEditor} codemirror - The CodeMirror instance.
  * @property {() => void} updateErrorNotice - Force update the error notice.
  */
 
 /**
- * @typedef {object} WpCodeEditor
+ * @typedef {Object} WpCodeEditor
  * @property {CodeEditorSettings} defaultSettings - Default settings.
  * @property {(textarea: string|JQuery|Element, settings?: CodeEditorSettings) => CodeEditorInstance} initialize - Initialize.
  */
 
 /**
- * @param {JQueryStatic} $ - jQuery.
+ * @param {JQueryStatic} $ The jQuery object.
  * @param {Object & {
  *   codeEditor: WpCodeEditor,
  *   CodeMirror: typeof import('codemirror'),
@@ -171,7 +171,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 *
 	 * @return {LintingController} Linting controller.
 	 */
-	function configureLinting( settings ) { // eslint-disable-line complexity
+	function configureLinting( settings ) {
 		/** @type {LintAnnotation[]} */
 		let currentErrorAnnotations = [];
 
@@ -196,7 +196,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 		 *
 		 * @return {CombinedLintOptions|false} Lint options.
 		 */
-		function getLintOptions() { // eslint-disable-line complexity
+		function getLintOptions() {
 			/** @type {CombinedLintOptions | boolean} */
 			let options = settings.codemirror?.lint ?? false;
 
@@ -395,7 +395,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	}
 
 	/**
-	 * @typedef {object} LintingController
+	 * @typedef {Object} LintingController
 	 * @property {() => CombinedLintOptions|false} getLintOptions - Get lint options.
 	 * @property {(editor: CodeMirrorEditor) => void} init - Initialize.
 	 * @property {(editor: import('codemirror').Editor) => void} updateErrorNotice - Update error notice.
@@ -412,6 +412,10 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * @return {CodeEditorInstance} Instance.
 	 */
 	wp.codeEditor.initialize = function initialize( textarea, settings ) {
+		if ( document.readyState === 'loading' ) {
+			console.warn( 'wp.codeEditor.initialize() ran too early. Invoke this function in a `DOMContentLoaded` event listener.' );
+		}
+
 		let $textarea;
 		if ( 'string' === typeof textarea ) {
 			$textarea = $( '#' + textarea );

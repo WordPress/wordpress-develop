@@ -33,11 +33,13 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 		this.errors.on( 'add', this.error, this );
 	},
 	/**
-	 * @return {wp.media.view.UploaderStatus}
+	 * Disposes of the uploader status and its associated views.
+	 *
+	 * @return {wp.media.view.UploaderStatus} Returns the instance of the UploaderStatus view.
 	 */
 	dispose: function() {
 		wp.Uploader.queue.off( null, null, this );
-		/**
+		/*
 		 * call 'dispose' directly on the parent class
 		 */
 		View.prototype.dispose.apply( this, arguments );
@@ -103,14 +105,19 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 		}
 	},
 	/**
+	 * Escapes the filename to prevent XSS attacks.
+	 *
 	 * @param {string} filename
-	 * @return {string}
+	 * @return {string} Escaped filename.
 	 */
 	filename: function( filename ) {
 		return _.escape( filename );
 	},
 	/**
+	 * Handles an error event from the uploader queue.
+	 *
 	 * @param {Backbone.Model} error
+	 * @return {void}
 	 */
 	error: function( error ) {
 		var statusError = new wp.media.view.UploaderStatusError( {
@@ -131,6 +138,9 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 		}, 1500 );
 	},
 
+	/**
+	 * Dismisses the error messages and resets the uploader errors.
+	 */
 	dismiss: function() {
 		var errors = this.views.get('.upload-errors');
 

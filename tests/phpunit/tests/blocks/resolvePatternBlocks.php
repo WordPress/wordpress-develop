@@ -8,7 +8,7 @@
  * @since 6.6.0
  *
  * @group blocks
- * @covers resolve_pattern_blocks
+ * @covers ::resolve_pattern_blocks
  */
 class Tests_Blocks_ResolvePatternBlocks extends WP_UnitTestCase {
 	public function set_up() {

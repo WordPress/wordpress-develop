@@ -569,8 +569,8 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $duotone_attr The duotone attribute from a block.
 	 * @param string|string[] $duotone_attr The duotone attribute from a block.
+	 * @return bool True if the duotone preset present and valid.
 	 */
 	private static function is_preset( $duotone_attr ) {
 		if ( ! is_string( $duotone_attr ) ) {
@@ -1191,8 +1191,7 @@ class WP_Duotone {
 		$tags->set_bookmark( 'wrapper-div' );
 		$tags->next_tag();
 
-		$inner_classnames = explode( ' ', $tags->get_attribute( 'class' ) );
-		foreach ( $inner_classnames as $classname ) {
+		foreach ( $tags->class_list() as $classname ) {
 			if ( str_starts_with( $classname, 'wp-duotone' ) ) {
 				$tags->remove_class( $classname );
 				$tags->seek( 'wrapper-div' );

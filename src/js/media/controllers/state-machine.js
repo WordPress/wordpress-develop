@@ -93,8 +93,8 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 	 *
 	 * @since 3.5.0
 	 *
-	 * @return {wp.media.controller.State} Returns a State model from
-	 *                                     the StateMachine collection.
+	 * @return {void|wp.media.controller.State} Returns a State model from
+	 *                                          the StateMachine collection.
 	 */
 	lastState: function() {
 		if ( this._lastState ) {

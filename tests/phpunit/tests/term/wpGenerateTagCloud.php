@@ -300,7 +300,6 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 * Helper method retrieve the created terms.
 	 *
 	 * @param array $get_terms_args Options passed to get_terms()
-	 *
 	 * @return array
 	 */
 	protected function retrieve_terms( $get_terms_args, $taxonomy = 'post_tag' ) {

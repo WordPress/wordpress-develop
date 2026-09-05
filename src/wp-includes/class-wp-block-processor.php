@@ -1598,13 +1598,7 @@ class WP_Block_Processor {
 			return true;
 		}
 
-		foreach ( $block_type as $block ) {
-			if ( $this->is_block_type( $block ) ) {
-				return true;
-			}
-		}
-
-		return false;
+		return array_any( $block_type, fn( $block ) => $this->is_block_type( $block ) );
 	}
 
 	/**
@@ -1799,9 +1793,9 @@ class WP_Block_Processor {
 	 * @return string Fully-qualified block type including namespace.
 	 */
 	public static function normalize_block_type( string $block_type ): string {
-		return false === strpos( $block_type, '/' )
-			? "core/{$block_type}"
-			: $block_type;
+		return str_contains( $block_type, '/' )
+			? $block_type
+			: "core/{$block_type}";
 	}
 
 	/**

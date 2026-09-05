@@ -765,7 +765,7 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
  *                            Default empty array.
  * @param int|null $timestamp Optional. Unix timestamp (UTC) of the event. If not specified, the next scheduled event
  *                            is returned. Default null.
- * @return object|false {
+ * @return stdClass|false {
  *     The event object. False if the event does not exist.
  *
  *     @type string       $hook      Action hook to execute when the event is run.
@@ -787,12 +787,12 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param null|false|object $pre  Value to return instead. Default null to continue retrieving the event.
-	 * @param string            $hook Action hook of the event.
-	 * @param array             $args Array containing each separate argument to pass to the hook's callback function.
-	 *                                Although not passed to a callback, these arguments are used to uniquely identify
-	 *                                the event.
-	 * @param int|null  $timestamp Unix timestamp (UTC) of the event. Null to retrieve next scheduled event.
+	 * @param null|false|object $pre       Value to return instead. Default null to continue retrieving the event.
+	 * @param string            $hook      Action hook of the event.
+	 * @param array             $args      Array containing each separate argument to pass to the hook's callback function.
+	 *                                     Although not passed to a callback, these arguments are used to uniquely identify
+	 *                                     the event.
+	 * @param int|null          $timestamp Unix timestamp (UTC) of the event. Null to retrieve next scheduled event.
 	 */
 	$pre = apply_filters( 'pre_get_scheduled_event', null, $hook, $args, $timestamp );
 
@@ -958,13 +958,15 @@ function spawn_cron( $gmt_time = 0 ) {
 	$doing_wp_cron = sprintf( '%.22F', $gmt_time );
 	set_transient( 'doing_cron', $doing_wp_cron );
 
+	$cron_url = add_query_arg( 'doing_wp_cron', $doing_wp_cron, site_url( 'wp-cron.php' ) );
+
 	/**
 	 * Filters the cron request arguments.
 	 *
 	 * @since 3.5.0
 	 * @since 4.5.0 The `$doing_wp_cron` parameter was added.
 	 *
-	 * @param array $cron_request_array {
+	 * @param array  $cron_request_array {
 	 *     An array of cron request URL arguments.
 	 *
 	 *     @type string $url  The cron request URL.
@@ -977,18 +979,18 @@ function spawn_cron( $gmt_time = 0 ) {
 	 *         @type bool $sslverify Whether SSL should be verified for the request. Default false.
 	 *     }
 	 * }
-	 * @param string $doing_wp_cron The Unix timestamp (UTC) of the cron lock with microseconds.
+	 * @param string $doing_wp_cron      The Unix timestamp (UTC) of the cron lock with microseconds.
 	 */
 	$cron_request = apply_filters(
 		'cron_request',
 		array(
-			'url'  => add_query_arg( 'doing_wp_cron', $doing_wp_cron, site_url( 'wp-cron.php' ) ),
+			'url'  => $cron_url,
 			'key'  => $doing_wp_cron,
 			'args' => array(
 				'timeout'   => 0.01,
 				'blocking'  => false,
 				/** This filter is documented in wp-includes/class-wp-http-streams.php */
-				'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
+				'sslverify' => apply_filters( 'https_local_ssl_verify', false, $cron_url ),
 			),
 		),
 		$doing_wp_cron
@@ -1254,7 +1256,7 @@ function wp_get_ready_cron_jobs() {
  * @since 6.1.0 Return type modified to consistently return an array.
  * @access private
  *
- * @return array[] Array of cron events.
+ * @return array<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>>|array{} Array of cron events.
  */
 function _get_cron_array() {
 	$cron = get_option( 'cron' );
@@ -1262,12 +1264,17 @@ function _get_cron_array() {
 		return array();
 	}
 
+	/**
+	 * @var array{ version: int, ...<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>> }
+	 *     |array<int, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>> $cron
+	 */
 	if ( ! isset( $cron['version'] ) ) {
 		$cron = _upgrade_cron_array( $cron );
 	}
 
 	unset( $cron['version'] );
 
+	/** @var array<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>> $cron */
 	return $cron;
 }
 
@@ -1283,6 +1290,9 @@ function _get_cron_array() {
  * @param array[] $cron     Array of cron info arrays from _get_cron_array().
  * @param bool    $wp_error Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if cron array updated. False or WP_Error on failure.
+ *
+ * @phpstan-param array<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>> $cron
+ * @phpstan-return ( $wp_error is true ? true|WP_Error : bool )
  */
 function _set_cron_array( $cron, $wp_error = false ) {
 	if ( ! is_array( $cron ) ) {
@@ -1313,6 +1323,10 @@ function _set_cron_array( $cron, $wp_error = false ) {
  *
  * @param array $cron Cron info array from _get_cron_array().
  * @return array An upgraded cron info array.
+ *
+ * @phpstan-param array{ version: int, ...<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>> }
+ *               |array<int, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>> $cron
+ * @phpstan-return array{ version: 2, ...<int, array<string, array<string, array{ schedule: string|false, args: array<mixed>, interval?: non-negative-int }>>> }
  */
 function _upgrade_cron_array( $cron ) {
 	if ( isset( $cron['version'] ) && 2 === $cron['version'] ) {
@@ -1323,7 +1337,7 @@ function _upgrade_cron_array( $cron ) {
 
 	foreach ( (array) $cron as $timestamp => $hooks ) {
 		foreach ( (array) $hooks as $hook => $args ) {
-			$key = md5( serialize( $args['args'] ) );
+			$key = md5( serialize( $args['args'] ?? array() ) );
 
 			$new_cron[ $timestamp ][ $hook ][ $key ] = $args;
 		}

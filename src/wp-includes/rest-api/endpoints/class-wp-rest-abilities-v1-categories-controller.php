@@ -142,7 +142,7 @@ class WP_REST_Abilities_V1_Categories_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$category = wp_get_ability_category( $request['slug'] );
+		$category = wp_has_ability_category( $request['slug'] ) ? wp_get_ability_category( $request['slug'] ) : null;
 		if ( ! $category ) {
 			return new WP_Error(
 				'rest_ability_category_not_found',
@@ -185,7 +185,7 @@ class WP_REST_Abilities_V1_Categories_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 *
 	 * @param WP_Ability_Category $category The ability category object.
-	 * @param WP_REST_Request     $request Request object.
+	 * @param WP_REST_Request     $request  Request object.
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $category, $request ) {

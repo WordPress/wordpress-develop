@@ -39,9 +39,9 @@ You can get started using the local development environment with these steps:
 1. Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`.
 1. Navigate into the directory for the cloned repository using `cd wordpress-develop`.
 1. Add the origin repo as an `upstream` remote via `git remote add upstream https://github.com/WordPress/wordpress-develop.git`.
-1. Then you can keep your branches up to date via `git pull --ff upstream/trunk`, for example.
+1. Then you can keep your branches up to date via `git pull --ff upstream trunk`, for example.
 
-Alternatively, if you have the [GitHub CLI](https://cli.github.com/) installed, you can simply run `gh repo fork WordPress/wordpress-develop --clone --remote` ([docs](https://cli.github.com/manual/gh_repo_fork)). This command will:
+Alternatively, if you have the [GitHub CLI](https://cli.github.com/) installed, you can simply run `gh repo fork WordPress/wordpress-develop --clone` ([docs](https://cli.github.com/manual/gh_repo_fork)). This command will:
 1. Fork the repository to your account (use the `--org` flag to clone into an organization).
 1. Clone the repository to your machine. 
 1. Add `WordPress/wordpress-develop` as `upstream` and set it to the default `remote` repository
@@ -96,6 +96,40 @@ You can pass extra parameters into the PHP tests by adding `--` and then the [co
 npm run test:php -- --filter <test name>
 npm run test:php -- --group <group name or ticket number>
 ```
+
+To run the JavaScript (QUnit) tests:
+
+```
+npm run grunt qunit:compiled
+```
+
+`qunit:compiled` builds first, then runs the suite. The QUnit runner loads
+scripts from the built `build/` directory, so a plain `npm run grunt qunit`
+requires a completed `npm run build` first without a build, every test fails
+with a `jQuery is not defined` error.
+
+#### To lint the workflow files
+
+GitHub Actions workflows operate in a privileged software supply chain environment, therefore all workflow files must adhere to a high degree of quality and security standards.
+
+All YAML workflow files within the `.github/workflows` directory are statically scanned when modified using [Actionlint](https://github.com/rhysd/actionlint) and [Zizmor](https://github.com/zizmorcore/zizmor). It's recommended that you install both of these tools locally using a package manager to run prior to submitting changes to workflow files.
+
+- [Actionlint installations instructions](https://github.com/rhysd/actionlint/blob/main/docs/install.md)
+- [Zizmor installation instructions](https://docs.zizmor.sh/installation/)
+
+To run Actionlint:
+
+```
+actionlint
+```
+
+To run Zizmor for all workflow files (note the trailing period):
+
+```
+zizmor .
+```
+
+**Note:** A workflow run failure will not occur when issues are detected by Zizmor. Instead, the generated report is submitted to GitHub Code Scanning and surfaced through a status check. Some locally reported issues may be ignored based on the repository's configured Code Scanning settings.
 
 #### Generating a code coverage report
 PHP code coverage reports are [generated daily](https://github.com/WordPress/wordpress-develop/actions/workflows/test-coverage.yml) and [submitted to Codecov.io](https://app.codecov.io/gh/WordPress/wordpress-develop).
