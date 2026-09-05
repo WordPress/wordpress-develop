@@ -425,11 +425,16 @@ div.mce-path {
 	border-color: #50575e;
 }
 
-.mce-btn.mce-active,
-.mce-btn.mce-active button,
-.mce-btn.mce-active:hover button,
-.mce-btn.mce-active i,
-.mce-btn.mce-active:hover i {
+/*
+ * TinyMCE appends its skin stylesheet when the editor initializes, so it can be
+ * parsed after this file. The extra class gives these rules a higher specificity
+ * than the skin's white active state, so they no longer depend on source order.
+ */
+.mce-widget.mce-btn.mce-active,
+.mce-widget.mce-btn.mce-active button,
+.mce-widget.mce-btn.mce-active:hover button,
+.mce-widget.mce-btn.mce-active i,
+.mce-widget.mce-btn.mce-active:hover i {
 	color: inherit;
 }
 
