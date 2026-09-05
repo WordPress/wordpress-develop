@@ -5241,7 +5241,7 @@ function register_admin_color_schemes() {
 		'ectoplasm',
 		_x( 'Ectoplasm', 'admin color scheme' ),
 		admin_url( "css/colors/ectoplasm/colors$suffix.css" ),
-		array( '#392751', '#4a3369', '#646c3e', '#d46f15' ),
+		array( '#392751', '#4a3369', '#608010', '#d46f15' ),
 		array(
 			'base'    => '#ece6f6',
 			'focus'   => '#fff',
