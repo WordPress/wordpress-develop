@@ -1,6 +1,3 @@
-/*------------------------------------------------------------------------------
-  11.2 - Post Revisions
-------------------------------------------------------------------------------*/
 .revisions-control-frame,
 .revisions-diff-frame {
 	position: relative;
@@ -551,9 +548,6 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 .wp-slider.ui-slider-horizontal .ui-slider-range-max {
 	right: 0;
 }
-
-/* =Media Queries
--------------------------------------------------------------- */
 
 /**
  * HiDPI Displays
