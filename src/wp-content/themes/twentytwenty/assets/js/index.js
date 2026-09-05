@@ -157,7 +157,7 @@ twentytwenty.coverModals = {
 	// Close modal on escape key press.
 	closeOnEscape: function() {
 		document.addEventListener( 'keydown', function( event ) {
-			if ( event.keyCode === 27 ) {
+			if ( event.key === 'Escape' ) {
 				event.preventDefault();
 				document.querySelectorAll( '.cover-modal.active' ).forEach( function( element ) {
 					this.untoggleModal( element );
@@ -401,7 +401,7 @@ twentytwenty.modalMenu = {
 				lastEl = elements[ elements.length - 1 ];
 				firstEl = elements[0];
 				activeEl = _doc.activeElement;
-				tabKey = event.keyCode === 9;
+				tabKey = event.key === 'Tab';
 				shiftKey = event.shiftKey;
 
 				if ( ! shiftKey && tabKey && lastEl === activeEl ) {
