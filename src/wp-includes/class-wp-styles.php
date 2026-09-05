@@ -157,16 +157,6 @@ class WP_Styles extends WP_Dependencies {
 		$src          = $obj->src;
 		$inline_style = $this->print_inline_style( $handle, false );
 
-		if ( $inline_style ) {
-			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-			$processor->next_tag();
-			$processor->set_attribute( 'id', "{$handle}-inline-css" );
-			$processor->set_modifiable_text( "\n{$inline_style}\n" );
-			$inline_style_tag = "{$processor->get_updated_html()}\n";
-		} else {
-			$inline_style_tag = '';
-		}
-
 		if ( $this->do_concat ) {
 			if ( is_string( $src ) && $this->in_default_dir( $src ) && ! isset( $obj->extra['alt'] ) ) {
 				$this->concat         .= "$handle,";
@@ -182,7 +172,12 @@ class WP_Styles extends WP_Dependencies {
 
 		// A single item may alias a set of items, by having dependencies, but no source.
 		if ( ! $src ) {
-			if ( $inline_style_tag ) {
+			if ( $inline_style ) {
+				$inline_style_tag = wp_get_inline_style_tag(
+					$inline_style,
+					array( 'id' => "{$handle}-inline-css" )
+				);
+
 				if ( $this->do_concat ) {
 					$this->print_html .= $inline_style_tag;
 				} else {
@@ -253,8 +248,11 @@ class WP_Styles extends WP_Dependencies {
 
 		if ( $this->do_concat ) {
 			$this->print_html .= $tag;
-			if ( $inline_style_tag ) {
-				$this->print_html .= $inline_style_tag;
+			if ( $inline_style ) {
+				$this->print_html .= wp_get_inline_style_tag(
+					$inline_style,
+					array( 'id' => "{$handle}-inline-css" )
+				);
 			}
 		} else {
 			echo $tag;
@@ -333,11 +331,10 @@ class WP_Styles extends WP_Dependencies {
 			return $output;
 		}
 
-		$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-		$processor->next_tag();
-		$processor->set_attribute( 'id', "{$handle}-inline-css" );
-		$processor->set_modifiable_text( "\n{$output}\n" );
-		echo "{$processor->get_updated_html()}\n";
+		wp_print_inline_style_tag(
+			$output,
+			array( 'id' => "{$handle}-inline-css" )
+		);
 
 		return true;
 	}
