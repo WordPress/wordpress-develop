@@ -1891,7 +1891,7 @@ body.full-overlay-active {
 .theme-install-overlay iframe {
 	height: 100%;
 	width: 100%;
-	z-index: 20;
+	position: relative; /* needed to be on top of the spinner */
 	transition: opacity 0.3s;
 }
 
@@ -1994,7 +1994,6 @@ body.full-overlay-active {
 
 .theme-install-overlay .wp-full-overlay-main {
 	position: absolute;
-	z-index: 0;
 	background-color: #f0f0f1;
 }
 
@@ -2013,7 +2012,6 @@ body.full-overlay-active {
 	position: absolute;
 	left: 50%;
 	top: 50%;
-	z-index: -1;
 	margin: -10px 0 0 -10px;
 	transform: translateZ(0);
 	background: transparent url(../images/spinner.gif) no-repeat center center;
