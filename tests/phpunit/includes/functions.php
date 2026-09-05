@@ -105,10 +105,18 @@ function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
 }
 
 /**
- * Deletes all data from the database.
+ * Deletes all data from the database, except:
+ * - The default category.
+ * - The default user.
  */
 function _delete_all_data() {
 	global $wpdb;
+
+	// Retrieve all attachment posts, and delete them along with the attached media.
+	$attachments = $wpdb->get_results( "SELECT ID from {$wpdb->posts} WHERE post_type = 'attachment'", ARRAY_A );
+	foreach ( $attachments as $attachment ) {
+			wp_delete_attachment( $attachment['ID'], true );
+	}
 
 	foreach ( array(
 		$wpdb->posts,
