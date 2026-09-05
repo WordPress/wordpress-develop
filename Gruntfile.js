@@ -925,20 +925,24 @@ module.exports = function(grunt) {
 							{
 								expr: /content/im,
 								action: function( prop, value ) {
-									if ( value === '"\\f141"' ) { // dashicons-arrow-left
-										value = '"\\f139"';
-									} else if ( value === '"\\f340"' ) { // dashicons-arrow-left-alt
-										value = '"\\f344"';
-									} else if ( value === '"\\f341"' ) { // dashicons-arrow-left-alt2
-										value = '"\\f345"';
-									} else if ( value === '"\\f139"' ) { // dashicons-arrow-right
-										value = '"\\f141"';
-									} else if ( value === '"\\f344"' ) { // dashicons-arrow-right-alt
-										value = '"\\f340"';
-									} else if ( value === '"\\f345"' ) { // dashicons-arrow-right-alt2
-										value = '"\\f341"';
-									}
-									return { prop: prop, value: value };
+									var map = {
+										// dashicons-arrow-(left|right)
+										'"\\f141"': '"\\f139"',
+										// dashicons-arrow-(left|right)-alt
+										'"\\f340"': '"\\f344"',
+										// dashicons-arrow-(left|right)-alt2
+										'"\\f341"': '"\\f345"',
+										// dashicons-(undo|redo)
+										'"\\f171"': '"\\f172"'
+									};
+									Object.keys( map ).forEach( function( key ) {
+									    map[ map[ key ] ] = key;
+									} );
+									value = value.replace( /'/g, '"' );
+									return {
+									    prop: prop,
+									    value: map[ value ] || value
+									};
 								}
 							}
 						]
