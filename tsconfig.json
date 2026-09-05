@@ -20,6 +20,7 @@
 		"typeRoots": [ "./typings", "./node_modules/@types" ],
 		"types": [
 			"node",
+			"backbone",
 			"wp-globals",
 			"media-uploads",
 			"codemirror/addon/lint/lint",

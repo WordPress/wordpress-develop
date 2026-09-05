@@ -18,49 +18,6 @@
 
 /* global plupload */
 
-/**
- * An item in the @wordpress/upload-media queue.
- *
- * @typedef {Object} QueueItem
- * @property {string}    id                 Queue item ID.
- * @property {string}    [parentId]         Set on the sub-size children of an upload.
- * @property {File}      [sourceFile]       The file being processed.
- * @property {number}    [progress]         Progress percentage, when the store reports one.
- * @property {string}    [currentOperation] The operation being run.
- * @property {unknown[]} [operations]       The operations left to run.
- * @property {unknown[]} [subSizes]         The sub-sizes sideloaded so far.
- */
-
-/**
- * The pipeline's bookkeeping for one queued upload.
- *
- * @typedef {Object} UploadEntry
- * @property {string}                       key         Identity key of the file.
- * @property {string|null}                  itemId      ID of the queue item it matched.
- * @property {( percent: number ) => void}  [onProgress] Progress callback.
- * @property {number}                       lastPercent Last reported percentage.
- * @property {{ total: number, remaining: number }|null} totals Operation counts.
- * @property {boolean}                      released    Whether it finished.
- */
-
-/**
- * A finalized attachment as returned by the client-side pipeline.
- *
- * @typedef {Object} PipelineAttachment
- * @property {number} id The attachment ID.
- */
-
-/**
- * Why an upload failed.
- *
- * A rejected apiFetch is not always an Error: a REST failure arrives as a
- * plain { code, message } object.
- *
- * @typedef {Object} UploadError
- * @property {string} [code]    Error code, when the pipeline supplied one.
- * @property {string} [message] Human-readable reason.
- */
-
 window.wp = window.wp || {};
 
 ( function ( wp ) {
@@ -517,12 +474,9 @@ window.wp = window.wp || {};
 	/**
 	 * Queues a file for client-side processing and upload.
 	 *
-	 * @param {File}                                   nativeFile             The file to upload.
-	 * @param {Record<string, unknown>}                additionalData         Extra fields to send with the attachment.
-	 * @param {Object}                                 callbacks              Lifecycle callbacks.
-	 * @param {( attachment: PipelineAttachment ) => void} [callbacks.onSuccess]  Called with the finalized attachment.
-	 * @param {( error: UploadError ) => void}          [callbacks.onError]    Called with the upload error.
-	 * @param {( percent: number ) => void}            [callbacks.onProgress] Called with an integer percentage (0-99) whenever it changes.
+	 * @param {File}                    nativeFile     The file to upload.
+	 * @param {Record<string, unknown>} additionalData Extra fields to send with the attachment.
+	 * @param {QueueFileCallbacks}      [callbacks]    Lifecycle callbacks.
 	 */
 	function queueFile( nativeFile, additionalData, callbacks ) {
 		callbacks = callbacks || {};

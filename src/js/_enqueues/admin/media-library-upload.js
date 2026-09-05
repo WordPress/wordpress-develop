@@ -20,50 +20,6 @@
 
 /* global plupload */
 
-/**
- * The parts of a wp.Uploader instance this script relies on.
- *
- * @typedef {Object} WPUploader
- * @property {plupload.Uploader}                       uploader The plupload uploader it wraps.
- * @property {( model: WPAttachment ) => void}         added    Runs when a file is queued.
- * @property {( model: WPAttachment ) => void}         success  Runs when an upload finished.
- * @property {( message: string, data: Object, file: { name: string } ) => void} error Runs when an upload failed.
- */
-
-/**
- * The parts of a wp.media.model.Attachment (a Backbone model) this script
- * relies on.
- *
- * @typedef {Object} WPAttachment
- * @property {( key: string ) => unknown}                       get     Reads a model attribute.
- * @property {( attributes: Object, options?: Object ) => void} set     Sets model attributes.
- * @property {( key: string, options?: Object ) => void}        unset   Removes a model attribute.
- * @property {() => JQuery.jqXHR}                               fetch   Refetches the attachment from the REST API.
- * @property {() => void}                                       destroy Removes the model and its tile.
- */
-
-/**
- * The placeholder attributes wp-plupload.js builds for an uploading tile.
- *
- * @typedef {Object} PlaceholderAttributes
- * @property {plupload.File} file       The file being uploaded.
- * @property {boolean}       uploading  Always true while the upload runs.
- * @property {Date}          date       When the upload started.
- * @property {string}        filename   The file name.
- * @property {number}        menuOrder  Menu order of the attachment.
- * @property {number}        uploadedTo The post the upload is attached to.
- * @property {number}        loaded     Bytes uploaded so far.
- * @property {number}        size       Size of the file in bytes.
- * @property {number}        percent    Progress percentage.
- * @property {string}        [type]     Mime type guessed from the file name.
- * @property {string}        [subtype]  Mime subtype guessed from the file name.
- */
-
-/*
- * PipelineAttachment and UploadError are declared by media-upload-pipeline.js,
- * which this script depends on.
- */
-
 ( function () {
 	// Guard against double execution (e.g. duplicate enqueues).
 	if ( window.__wpMediaLibraryUpload ) {
