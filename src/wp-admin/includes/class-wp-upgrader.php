@@ -953,7 +953,13 @@ class WP_Upgrader {
 			add_action( 'shutdown', array( $this, 'delete_temp_backup' ), 100, 0 );
 		}
 
-		if ( ! $options['is_multi'] ) {
+		if (
+			! $options['is_multi']
+			&&
+			isset( $options['hook_extra']['action'] )
+			&&
+			'install' !== $options['hook_extra']['action']
+		) {
 
 			/**
 			 * Fires when the upgrader process is complete.
@@ -1101,6 +1107,26 @@ class WP_Upgrader {
 	 */
 	public static function release_lock( $lock_name ) {
 		return delete_option( $lock_name . '.lock' );
+	}
+
+	/**
+	 * Gets the hook extra action.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return string hook extra action type. Default is "install".
+	 */
+	protected function get_hook_extra_action() {
+		if ( ! empty( $this->skin->overwrite ) ) {
+			// Skin come in the format of "update-plugin" or "downgrade-theme"
+			$action = explode( '-', $this->skin->overwrite, 2 )[0];
+
+			if ( in_array( $action, array( 'update', 'downgrade' ), true ) ) {
+				return $action;
+			}
+		}
+
+		return 'install';
 	}
 
 	/**
