@@ -508,6 +508,33 @@ function is_home() {
 }
 
 /**
+ * Determines whether the query is for the site's actual home page.
+ *
+ * This is different from both is_front_page() and is_home(), as it identifies
+ * the true "home" view of the site regardless of WordPress configuration.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
+ *
+ * @since 6.8.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool Whether the query is for the site's actual home page.
+ */
+function is_home_page() {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1.0' );
+		return false;
+	}
+
+	return $wp_query->is_home_page();
+}
+
+/**
  * Determines whether the query is for the Privacy Policy page.
  *
  * The Privacy Policy page is the page that shows the Privacy Policy content of the site.
