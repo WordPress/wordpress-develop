@@ -2282,6 +2282,46 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that email addresses with apostrophes are handled correctly in profile
+	 * email change confirmation.
+	 *
+	 * @ticket 54416
+	 */
+	public function test_send_confirmation_on_profile_email_with_special_chars() {
+		reset_phpmailer_instance();
+		$was_confirmation_email_sent = false;
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		$_POST['email']   = "o'connor@example.com";
+		$_POST['user_id'] = $user->ID;
+
+		wp_set_current_user( $user->ID );
+
+		do_action( 'personal_options_update' );
+
+		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && "o'connor@example.com" === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
+		}
+
+		// A confirmation email is sent.
+		$this->assertTrue( $was_confirmation_email_sent );
+
+		// The new email address gets put into user_meta.
+		$new_email_meta = get_user_meta( $user->ID, '_new_email', true );
+		$this->assertSame( "o'connor@example.com", $new_email_meta['newemail'] );
+
+		// The email address of the user doesn't change. $_POST['email'] should be the email address pre-update.
+		$this->assertSame( $_POST['email'], $user->user_email );
+	}
+
+
+	/**
 	 * @ticket 16470
 	 */
 	public function test_remove_send_confirmation_on_profile_email() {
