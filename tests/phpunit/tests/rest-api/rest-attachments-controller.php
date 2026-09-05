@@ -120,6 +120,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function set_up() {
 		parent::set_up();
 
+		// Avoid DNS lookups when validating URLs used by mocked image downloads.
+		add_filter(
+			'pre_option_home',
+			static function () {
+				return 'https://example.com';
+			}
+		);
+
 		// Add an uploader role to test upload capabilities.
 		add_role( 'uploader', 'File upload role' );
 		$role = get_role( 'uploader' );

@@ -57,6 +57,21 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		self::delete_user( self::$subscriber_id );
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		global
+			$wp_widget_factory,
+			$wp_registered_widgets,
+			$wp_registered_widget_controls,
+			$wp_registered_widget_updates;
+		$wp_widget_factory->widgets    = array();
+		$wp_registered_widgets         = array();
+		$wp_registered_widget_controls = array();
+		$wp_registered_widget_updates  = array();
+		wp_widgets_init();
+	}
+
 	private function setup_widget( $id_base, $number, $settings ) {
 		global $wp_widget_factory;
 
@@ -108,7 +123,6 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	 * @ticket 41683
 	 */
 	public function test_get_items() {
-		wp_widgets_init();
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
 		$response = rest_get_server()->dispatch( $request );

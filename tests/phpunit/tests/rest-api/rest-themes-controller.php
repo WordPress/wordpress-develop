@@ -46,6 +46,20 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $current_theme;
 
 	/**
+	 * Theme support state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $theme_features;
+
+	/**
+	 * Registered theme feature state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $registered_theme_features;
+
+	/**
 	 * The REST API route for themes.
 	 *
 	 * @since 5.0.0
@@ -113,7 +127,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 				'role' => 'contributor',
 			)
 		);
-		self::$current_theme  = wp_get_theme();
+
+		self::$current_theme             = wp_get_theme();
+		self::$theme_features            = $GLOBALS['_wp_theme_features'];
+		self::$registered_theme_features = $GLOBALS['_wp_registered_theme_features'];
 
 		wp_set_current_user( self::$contributor_id );
 	}
@@ -142,6 +159,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		wp_set_current_user( self::$contributor_id );
 		switch_theme( 'rest-api' );
+	}
+
+	public function tear_down() {
+		$GLOBALS['_wp_theme_features']            = self::$theme_features;
+		$GLOBALS['_wp_registered_theme_features'] = self::$registered_theme_features;
+
+		parent::tear_down();
 	}
 
 	/**

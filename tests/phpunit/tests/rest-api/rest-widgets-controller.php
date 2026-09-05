@@ -90,6 +90,11 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
+	public static function wpTearDownAfterClass() {
+		// Rebuild the default widgets after the class clears the shared factory.
+		wp_widgets_init();
+	}
+
 	public function set_up() {
 		global $wp_widget_factory;
 
