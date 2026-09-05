@@ -527,9 +527,9 @@ function wp_edit_theme_plugin_file( $args ) {
 
 	if ( $is_active && 'php' === $extension ) {
 
-		$scrape_key   = md5( rand() );
+		$scrape_key   = md5( wp_rand() );
 		$transient    = 'scrape_key_' . $scrape_key;
-		$scrape_nonce = (string) rand();
+		$scrape_nonce = (string) wp_rand();
 		// It shouldn't take more than 60 seconds to make the two loopback requests.
 		set_transient( $transient, $scrape_nonce, 60 );
 
