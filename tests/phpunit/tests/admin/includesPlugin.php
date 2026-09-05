@@ -12,6 +12,29 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 */
 	public static $admin_id;
 
+	public function set_up() {
+		parent::set_up();
+		$this->reset_menu_globals();
+	}
+
+	public function tear_down() {
+		$this->reset_menu_globals();
+		parent::tear_down();
+	}
+
+	/**
+	 * Resets the global menu registries modified by the menu API tests.
+	 */
+	private function reset_menu_globals() {
+		global $menu, $submenu, $admin_page_hooks, $_registered_pages, $_parent_pages;
+
+		$menu              = array();
+		$submenu           = array();
+		$admin_page_hooks  = array();
+		$_registered_pages = array();
+		$_parent_pages     = array();
+	}
+
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::_back_up_mu_plugins();
@@ -501,6 +524,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/foo.php' );
 		unlink( WPMU_PLUGIN_DIR . '/bar.txt' );
+		rmdir( WPMU_PLUGIN_DIR );
 
 		$this->assertSame( array( 'foo.php' ), array_keys( $found ) );
 	}
