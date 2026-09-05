@@ -1078,7 +1078,7 @@ function user_can_for_site( $user, $site_id, $capability, ...$args ) {
  *
  * @return WP_Roles WP_Roles global instance if not already instantiated.
  */
-function wp_roles() {
+function wp_roles(): WP_Roles {
 	global $wp_roles;
 
 	if ( ! ( $wp_roles instanceof WP_Roles ) ) {
