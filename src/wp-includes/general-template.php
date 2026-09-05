@@ -48,6 +48,16 @@ function get_header( $name = null, $args = array() ) {
 	if ( ! locate_template( $templates, true, true, $args ) ) {
 		return false;
 	}
+
+	/**
+	 * Fires after the header template file is loaded.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string|null $name Name of the specific header file to use. Null for the default header.
+	 * @param array       $args Additional arguments passed to the header template.
+	 */
+	do_action( 'after_get_header', $name, $args );
 }
 
 /**
@@ -92,6 +102,16 @@ function get_footer( $name = null, $args = array() ) {
 	if ( ! locate_template( $templates, true, true, $args ) ) {
 		return false;
 	}
+
+	/**
+	 * Fires after the footer template file is loaded.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string|null $name Name of the specific footer file to use. Null for the default footer.
+	 * @param array       $args Additional arguments passed to the footer template.
+	 */
+	do_action( 'after_get_footer', $name, $args );
 }
 
 /**
