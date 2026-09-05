@@ -9,6 +9,8 @@
 /**
  * @namespace wp.customHtmlWidget
  * @memberOf wp
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 wp.customHtmlWidgets = ( function( $ ) {
 	'use strict';
@@ -307,7 +309,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 
 		/*
 		 * Create a container element for the widget control fields.
-		 * This is inserted into the DOM immediately before the the .widget-content
+		 * This is inserted into the DOM immediately before the .widget-content
 		 * element because the contents of this element are essentially "managed"
 		 * by PHP, where each widget update cause the entire element to be emptied
 		 * and replaced with the rendered output of WP_Widget::form() which is

@@ -94,7 +94,7 @@ class Tests_Post_TruncatePostSlug extends WP_UnitTestCase {
 				'expected' => 'myslug',
 				'message'  => '"myslug%C4%85" should have been truncated to "myslug".',
 			),
-			'URL-encoded accent characters and "length" includes the fifth URL-encoded character' => array(
+			'URL-encoded accent characters and "length" includes the sixth URL-encoded character' => array(
 				'slug'     => 'myslug%C4%85',
 				'length'   => 12,
 				'expected' => 'myslug%C4%85',

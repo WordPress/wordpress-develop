@@ -27,6 +27,8 @@
 
 /**
  * Twenty Sixteen only works in WordPress 4.4 or later.
+ *
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '4.4-alpha', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -43,6 +45,8 @@ if ( ! function_exists( 'twentysixteen_setup' ) ) :
 	 * Create your own twentysixteen_setup() function to override in a child theme.
 	 *
 	 * @since Twenty Sixteen 1.0
+	 *
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentysixteen_setup() {
 		/*
@@ -241,9 +245,9 @@ add_action( 'after_setup_theme', 'twentysixteen_setup' );
  *
  * Priority 0 to make it available to lower priority callbacks.
  *
- * @global int $content_width
- *
  * @since Twenty Sixteen 1.0
+ *
+ * @global int $content_width Content width.
  */
 function twentysixteen_content_width() {
 	/**
@@ -405,7 +409,7 @@ function twentysixteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20260520' );
+	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20260819' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentysixteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentysixteen-style' ), '20260105' );
@@ -454,7 +458,7 @@ add_action( 'wp_enqueue_scripts', 'twentysixteen_scripts' );
  */
 function twentysixteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20260105' );
+	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20260530' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), $font_version );

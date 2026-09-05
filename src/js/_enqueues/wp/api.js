@@ -1,4 +1,6 @@
 /**
+ * @param {Window}    window    The global window object.
+ * @param {undefined} undefined The undefined value.
  * @output wp-includes/js/wp-api.js
  */
 
@@ -47,8 +49,7 @@
 	/**
 	 * Determine model based on API route.
 	 *
-	 * @param {string} route    The API route.
-	 *
+	 * @param {string} route The API route.
 	 * @return {Backbone Model} The model found at given route. Undefined if not found.
 	 */
 	wp.api.getModelByRoute = function( route ) {
@@ -60,8 +61,7 @@
 	/**
 	 * Determine collection based on API route.
 	 *
-	 * @param {string} route    The API route.
-	 *
+	 * @param {string} route The API route.
 	 * @return {Backbone Model} The collection found at given route. Undefined if not found.
 	 */
 	wp.api.getCollectionByRoute = function( route ) {
@@ -98,9 +98,11 @@
 	}
 
 	/**
-	 * Parse date into ISO8601 format.
+	 * Parse date into ISO 8601 format.
 	 *
-	 * @param {Date} date.
+	 * @param {Date} date A date object to parse.
+	 *
+	 * @return {number} The timestamp of the date.
 	 */
 	wp.api.utils.parseISO8601 = function( date ) {
 		var timestamp, struct, i, k,
@@ -152,6 +154,9 @@
 
 	/**
 	 * Helper for capitalizing strings.
+	 *
+	 * @param {string} str The string to capitalize.
+	 * @return {string} The capitalized string.
 	 */
 	wp.api.utils.capitalize = function( str ) {
 		if ( _.isUndefined( str ) ) {
@@ -163,6 +168,9 @@
 	/**
 	 * Helper function that capitalizes the first word and camel cases any words starting
 	 * after dashes, removing the dashes.
+	 *
+	 * @param {string} str The string to capitalize and camel case.
+	 * @return {string} The capitalized and camel cased string.
 	 */
 	wp.api.utils.capitalizeAndCamelCaseDashes = function( str ) {
 		if ( _.isUndefined( str ) ) {
@@ -175,6 +183,9 @@
 
 	/**
 	 * Helper function to camel case the letter after dashes, removing the dashes.
+	 *
+	 * @param {string} str The string to camel case.
+	 * @return {string} The camel cased string.
 	 */
 	wp.api.utils.camelCaseDashes = function( str ) {
 		return str.replace( /-([a-z])/g, function( g ) {
@@ -190,6 +201,7 @@
 	 *                                  Example route `/a/b/c`: part 1 is `c`, part 2 is `b`, part 3 is `a`.
 	 * @param {string}  [versionString] Version string, defaults to `wp.api.versionString`.
 	 * @param {boolean} [reverse]       Whether to reverse the order when extracting the route part. Optional, default false.
+	 * @return {string} The route part.
 	 */
 	wp.api.utils.extractRoutePart = function( route, part, versionString, reverse ) {
 		var routeParts;
@@ -216,6 +228,7 @@
 	 * Extract a parent name from a passed route.
 	 *
 	 * @param {string} route The route to extract a name from.
+	 * @return {string} The parent name.
 	 */
 	wp.api.utils.extractParentName = function( route ) {
 		var name,
@@ -291,6 +304,7 @@
 	 * @param {Backbone Model} model          The model to attach helpers and mixins to.
 	 * @param {string}         modelClassName The classname of the constructed model.
 	 * @param {Object} 	       loadingObjects An object containing the models and collections we are building.
+	 * @return {undefined} No return value.
 	 */
 	wp.api.utils.addMixinsAndHelpers = function( model, modelClassName, loadingObjects ) {
 
@@ -306,7 +320,7 @@
 			/**
 			 * Mixin for all content that is time stamped.
 			 *
-			 * This mixin converts between mysql timestamps and JavaScript Dates when syncing a model
+			 * This mixin converts between MySQL timestamps and JavaScript Dates when syncing a model
 			 * to or from the server. For example, a date stored as `2015-12-27T21:22:24` on the server
 			 * gets expanded to `Sun Dec 27 2015 14:22:24 GMT-0700 (MST)` when the model is fetched.
 			 *
@@ -320,9 +334,10 @@
 				 * This helper function accepts a field and Date object. It converts the passed Date
 				 * to an ISO string and sets that on the model field.
 				 *
-				 * @param {Date}   date   A JavaScript date object. WordPress expects dates in UTC.
-				 * @param {string} field  The date field to set. One of 'date', 'date_gmt', 'date_modified'
-				 *                        or 'date_modified_gmt'. Optional, defaults to 'date'.
+				 * @param {Date}   date  A JavaScript date object. WordPress expects dates in UTC.
+				 * @param {string} field The date field to set. One of 'date', 'date_gmt', 'date_modified'
+				 *                       or 'date_modified_gmt'. Optional, defaults to 'date'.
+				 * @return {void|boolean} False if the field is not a parseable date field, true otherwise.
 				 */
 				setDate: function( date, field ) {
 					var theField = field || 'date';
@@ -341,8 +356,9 @@
 				 * WordPress returns 'date' and 'date_modified' in the timezone of the server as well as
 				 * UTC dates as 'date_gmt' and 'date_modified_gmt'. Draft posts do not include UTC dates.
 				 *
-				 * @param {string} field  The date field to set. One of 'date', 'date_gmt', 'date_modified'
-				 *                        or 'date_modified_gmt'. Optional, defaults to 'date'.
+				 * @param {string} field The date field to set. One of 'date', 'date_gmt', 'date_modified'
+				 *                       or 'date_modified_gmt'. Optional, defaults to 'date'.
+				 * @return {Date|boolean} A JavaScript Date object, or false if the field is not a parseable date field.
 				 */
 				getDate: function( field ) {
 					var theField   = field || 'date',
@@ -361,7 +377,7 @@
 			 * Build a helper function to retrieve related model.
 			 *
 			 * @param {string} parentModel      The parent model.
-			 * @param {number} modelId          The model ID if the object to request
+			 * @param {number} modelId          The model ID of the object to request.
 			 * @param {string} modelName        The model name to use when constructing the model.
 			 * @param {string} embedSourcePoint Where to check the embedded object for _embed data.
 			 * @param {string} embedCheckField  Which model field to check to see if the model has data.
@@ -423,7 +439,7 @@
 			 */
 			buildCollectionGetter = function( parentModel, collectionName, embedSourcePoint, embedIndex ) {
 				/**
-				 * Returns a promise that resolves to the requested collection
+				 * Returns a promise that resolves to the requested collection.
 				 *
 				 * Uses the embedded data if available, otherwise fetches the
 				 * data from the server.
@@ -467,7 +483,7 @@
 				// Create the new getObjects collection.
 				getObjects = new wp.api.collections[ collectionName ]( properties, classProperties );
 
-				// If we didn’t have embedded getObjects, fetch the getObjects data.
+				// If we don’t have embedded getObjects, fetch the getObjects data.
 				if ( _.isUndefined( getObjects.models[0] ) ) {
 					getObjects.fetch( {
 						success: function( getObjects ) {
@@ -494,10 +510,13 @@
 
 			/**
 			 * Set the model post parent.
+			 *
+			 * @param {wp.api.collections} collection The collection to set the parent post for.
+			 * @param {number}             postId     The ID of the parent post.
 			 */
 			setHelperParentPost = function( collection, postId ) {
 
-				// Attach post_parent id to the collection.
+				// Attach parent post ID to the collection.
 				_.each( collection.models, function( model ) {
 					model.set( 'parent_post', postId );
 				} );
@@ -590,6 +609,7 @@
 				 * Accepts an array of tag slugs, or a Tags collection.
 				 *
 				 * @param {Array|Backbone.Collection} tags The tags to set on the post.
+				 * @return {void|boolean} False if the tags parameter is a string, otherwise void.
 				 *
 				 */
 				setTags: function( tags ) {
@@ -636,6 +656,7 @@
 				 * Accepts a Tags collection.
 				 *
 				 * @param {Array|Backbone.Collection} tags The tags to set on the post.
+				 * @return {void} No return value.
 				 *
 				 */
 				setTagsWithCollection: function( tags ) {
@@ -674,7 +695,7 @@
 				 * Accepts an array of category slugs, or a Categories collection.
 				 *
 				 * @param {Array|Backbone.Collection} categories The categories to set on the post.
-				 *
+				 * @return {void|boolean} False if the categories parameter is a string, otherwise void.
 				 */
 				setCategories: function( categories ) {
 					var allCategories, newCategory,
@@ -721,7 +742,7 @@
 				 * Accepts Categories collection.
 				 *
 				 * @param {Array|Backbone.Collection} categories The categories to set on the post.
-				 *
+				 * @return {void} No return value.
 				 */
 				setCategoriesWithCollection: function( categories ) {
 
@@ -754,7 +775,7 @@
 			return model;
 		}
 
-		// Go thru the parsable date fields, if our model contains any of them it gets the TimeStampedMixin.
+		// Go through the parsable date fields. If our model contains any of them, it gets the TimeStampedMixin.
 		_.each( parseableDates, function( theDateKey ) {
 			if ( ! _.isUndefined( model.prototype.args[ theDateKey ] ) ) {
 				hasDate = true;
@@ -834,9 +855,9 @@
 			/**
 			 * Set nonce header before every Backbone sync.
 			 *
-			 * @param {string} method.
-			 * @param {Backbone.Model} model.
-			 * @param {{beforeSend}, *} options.
+			 * @param {string}          method  The CRUD method ("create", "read", "update", or "delete") to be performed.
+			 * @param {Backbone.Model}  model   The model to be synced.
+			 * @param {{beforeSend}, *} options Additional options for the sync.
 			 * @return {*}.
 			 */
 			sync: function( method, model, options ) {
@@ -888,6 +909,9 @@
 
 			/**
 			 * Save is only allowed when the PUT OR POST methods are available for the endpoint.
+			 * @param {Object} attrs   The attributes to save.
+			 * @param {Object} options The options for the save operation.
+			 * @return {boolean} True if the save was executed, false if not allowed.
 			 */
 			save: function( attrs, options ) {
 
@@ -905,6 +929,8 @@
 
 			/**
 			 * Delete is only allowed when the DELETE method is available for the endpoint.
+			 * @param {Object} [options] The options for the delete operation.
+			 * @return {boolean} True if the delete was executed, false if not allowed.
 			 */
 			destroy: function( options ) {
 
@@ -967,6 +993,8 @@
 
 			/**
 			 * Setup default state.
+			 * @param {Backbone.Model[]} models    The initial array of models.
+			 * @param {Object}           [options] The options for the collection.
 			 */
 			initialize: function( models, options ) {
 				this.state = {
@@ -987,9 +1015,9 @@
 			 *
 			 * Set nonce header before every Backbone sync.
 			 *
-			 * @param {string} method.
-			 * @param {Backbone.Model} model.
-			 * @param {{success}, *} options.
+			 * @param {string}         method  The CRUD method ("create", "read", "update", or "delete") to be performed.
+			 * @param {Backbone.Model} model   The model to be synced.
+			 * @param {{success}, *}   options Additional options for the sync.
 			 * @return {*}.
 			 */
 			sync: function( method, model, options ) {
@@ -1064,7 +1092,7 @@
 			/**
 			 * Fetches the next page of objects if a new page exists.
 			 *
-			 * @param {data: {page}} options.
+			 * @param {data: {page}} options An object containing the page number to fetch. If not provided, the next page will be fetched.
 			 * @return {*}.
 			 */
 			more: function( options ) {
@@ -1091,7 +1119,7 @@
 			/**
 			 * Returns true if there are more pages of objects available.
 			 *
-			 * @return {null|boolean}
+			 * @return {null|boolean} Returns null if the current page, total pages, or total objects are unknown. Otherwise returns true if there are more pages available.
 			 */
 			hasMore: function() {
 				if ( null === this.state.totalPages ||
@@ -1168,7 +1196,7 @@
 				sessionStorage.getItem( 'wp-api-schema-model' + model.get( 'apiRoot' ) + model.get( 'versionString' ) )
 			) {
 
-				// Used a cached copy of the schema model if available.
+				// Use a cached copy of the schema model if available.
 				model.schemaModel.set( model.schemaModel.parse( JSON.parse( sessionStorage.getItem( 'wp-api-schema-model' + model.get( 'apiRoot' ) + model.get( 'versionString' ) ) ) ) );
 			} else {
 				model.schemaModel.fetch( {
@@ -1187,7 +1215,7 @@
 								sessionStorage.setItem( 'wp-api-schema-model' + model.get( 'apiRoot' ) + model.get( 'versionString' ), JSON.stringify( newSchemaModel ) );
 							} catch ( error ) {
 
-								// Fail silently, fixes errors in safari private mode.
+								// Fail silently, to avoid errors in Safari private mode.
 							}
 						}
 					},
@@ -1207,7 +1235,7 @@
 			 * Set up the model and collection name mapping options. As the schema is built, the
 			 * model and collection names will be adjusted if they are found in the mapping object.
 			 *
-			 * Localizing a variable wpApiSettings.mapping will over-ride the default mapping options.
+			 * Localizing a variable wpApiSettings.mapping will override the default mapping options.
 			 *
 			 */
 			mapping = wpApiSettings.mapping || {
@@ -1242,7 +1270,7 @@
 			modelRegex     = new RegExp( '(?:.*[+)]|\/(' + modelEndpoints.join( '|' ) + '))$' );
 
 			/**
-			 * Iterate thru the routes, picking up models and collections to build. Builds two arrays,
+			 * Iterate through the routes, picking up models and collections to build. Builds two arrays,
 			 * one for models and one for collections.
 			 */
 			modelRoutes      = [];
@@ -1288,7 +1316,7 @@
 					parentName = wp.api.utils.extractRoutePart( modelRoute.index, 1, routeModel.get( 'versionString' ), false ),
 					routeEnd   = wp.api.utils.extractRoutePart( modelRoute.index, 1, routeModel.get( 'versionString' ), true );
 
-				// Clear the parent part of the route if it's actually the version string.
+				// Clear the parent part of the route if it is actually the version string.
 				if ( parentName === routeModel.get( 'versionString' ) ) {
 					parentName = '';
 				}
@@ -1304,7 +1332,7 @@
 					modelClassName = mapping.models[ modelClassName ] || modelClassName;
 					loadingObjects.models[ modelClassName ] = wp.api.WPApiBaseModel.extend( {
 
-						// Return a constructed url based on the parent and id.
+						// Return a constructed URL based on the parent and ID.
 						url: function() {
 							var url =
 								routeModel.get( 'apiRoot' ) +
@@ -1347,7 +1375,7 @@
 					modelClassName = mapping.models[ modelClassName ] || modelClassName;
 					loadingObjects.models[ modelClassName ] = wp.api.WPApiBaseModel.extend( {
 
-						// Function that returns a constructed url based on the ID.
+						// Function that returns a constructed URL based on the ID.
 						url: function() {
 							var url = routeModel.get( 'apiRoot' ) +
 								routeModel.get( 'versionString' ) +
@@ -1409,7 +1437,7 @@
 					collectionClassName = mapping.collections[ collectionClassName ] || collectionClassName;
 					loadingObjects.collections[ collectionClassName ] = wp.api.WPApiBaseCollection.extend( {
 
-						// Function that returns a constructed url passed on the parent.
+						// Function that returns a constructed URL passed on the parent.
 						url: function() {
 							return routeModel.get( 'apiRoot' ) + routeModel.get( 'versionString' ) +
 								parentName + '/' +
@@ -1448,7 +1476,7 @@
 					collectionClassName = mapping.collections[ collectionClassName ] || collectionClassName;
 					loadingObjects.collections[ collectionClassName ] = wp.api.WPApiBaseCollection.extend( {
 
-						// For the url of a root level collection, use a string.
+						// For the URL of a root level collection, use a string.
 						url: function() {
 							return routeModel.get( 'apiRoot' ) + routeModel.get( 'versionString' ) + routeName;
 						},
@@ -1499,10 +1527,11 @@
 	 * Initialize the wp-api, optionally passing the API root.
 	 *
 	 * @param {Object} [args]
-	 * @param {string} [args.nonce] The nonce. Optional, defaults to wpApiSettings.nonce.
-	 * @param {string} [args.apiRoot] The api root. Optional, defaults to wpApiSettings.root.
+	 * @param {string} [args.nonce]         The nonce. Optional, defaults to wpApiSettings.nonce.
+	 * @param {string} [args.apiRoot]       The api root. Optional, defaults to wpApiSettings.root.
 	 * @param {string} [args.versionString] The version string. Optional, defaults to wpApiSettings.root.
-	 * @param {Object} [args.schema] The schema. Optional, will be fetched from API if not provided.
+	 * @param {Object} [args.schema]        The schema. Optional, will be fetched from API if not provided.
+	 * @return {Promise} A promise that resolves with the endpoint once it is ready.
 	 */
 	wp.api.init = function( args ) {
 		var endpoint, attributes = {}, deferred, promise;

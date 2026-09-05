@@ -87,9 +87,10 @@ function wp_get_font_library_wp_admin_menu_items() {
  */
 function wp_font_library_wp_admin_preload_data() {
 	// Define paths to preload - same for all pages
-	// Please also change packages/core-data/src/entities.js when changing this.
+	// This must exactly match the _fields list in packages/core-data/src/entities.js,
+	// same fields in the same order, or the preload is never consumed.
 	$preload_paths = array(
-		'/?_fields=description,gmt_offset,home,image_sizes,image_size_threshold,image_output_formats,jpeg_interlaced,png_interlaced,gif_interlaced,name,site_icon,site_icon_url,site_logo,timezone_string,url,page_for_posts,page_on_front,show_on_front',
+		'/?_fields=description,gmt_offset,home,image_max_bit_depth,image_sizes,image_size_threshold,image_strip_meta,name,site_icon,site_icon_url,site_logo,timezone_string,url,page_for_posts,page_on_front,show_on_front',
 		array( '/wp/v2/settings', 'OPTIONS' ),
 	);
 
@@ -134,7 +135,9 @@ function wp_font_library_wp_admin_enqueue_scripts( $hook_suffix ) {
 	// Load build constants
 	$build_constants = require __DIR__ . '/../../constants.php';
 
-	// Fire init action for extensions to register routes and menu items
+	/**
+	 * Fires when the font-library admin page is initialized so extensions can register routes and menu items.
+	 */
 	do_action( 'font-library-wp-admin_init' );
 
 	// Preload REST API data
@@ -153,6 +156,8 @@ function wp_font_library_wp_admin_enqueue_scripts( $hook_suffix ) {
 		// 2. It initializes the boot module as an inline script.
 		wp_register_script( 'font-library-wp-admin-prerequisites', '', $asset['dependencies'], $asset['version'], true );
 
+		$init_modules = [];
+
 		/*
 		 * Add inline script to initialize the app using initSinglePage (no menuItems).
 		 * The dynamic import is deferred until DOMContentLoaded so that all classic
@@ -164,10 +169,10 @@ function wp_font_library_wp_admin_enqueue_scripts( $hook_suffix ) {
 		 * "Cannot unlock an undefined object". See <https://core.trac.wordpress.org/ticket/65103>.
 		 */
 		$init_js_function = <<<'JS'
-		( mountId, routes ) => {
+		( mountId, routes, initModules ) => {
 			const run = async () => {
 				const mod = await import( "@wordpress/boot" );
-				mod.initSinglePage( { mountId, routes } );
+				mod.initSinglePage( { mountId, routes, initModules } );
 			};
 			if ( document.readyState === "loading" ) {
 				document.addEventListener( "DOMContentLoaded", run );
@@ -179,10 +184,11 @@ function wp_font_library_wp_admin_enqueue_scripts( $hook_suffix ) {
 		wp_add_inline_script(
 			'font-library-wp-admin-prerequisites',
 			sprintf(
-				'( %s )( %s, %s );',
+				'( %s )( %s, %s, %s );',
 				$init_js_function,
 				wp_json_encode( 'font-library-wp-admin-app', JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
-				wp_json_encode( $routes, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+				wp_json_encode( $routes, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $init_modules, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
 
@@ -203,6 +209,9 @@ function wp_font_library_wp_admin_enqueue_scripts( $hook_suffix ) {
 			),
 		);
 
+		// Add init modules as static dependencies
+			// No init modules configured
+
 		// Add all registered routes as dependencies
 		foreach ( $routes as $route ) {
 			if ( isset( $route['route_module'] ) ) {
@@ -218,6 +227,21 @@ function wp_font_library_wp_admin_enqueue_scripts( $hook_suffix ) {
 				);
 			}
 		}
+
+		/**
+		 * Filters the boot script-module dependencies for the
+		 * font-library-wp-admin page.
+		 *
+		 * Surfaces extending this page can append entries to the boot
+		 * dependency list. Each entry is an array with 'import' (string
+		 * 'static' or 'dynamic') and 'id' (script-module handle) keys.
+		 *
+		 * @param array $boot_dependencies Boot dependencies for the page.
+		 */
+		$boot_dependencies = apply_filters(
+			'font-library-wp-admin_boot_dependencies',
+			$boot_dependencies
+		);
 
 		// Dummy script module to ensure dependencies are loaded
 		wp_register_script_module(
@@ -243,28 +267,26 @@ function wp_font_library_wp_admin_render_page() {
 	<style>
 		/* Critical styles to prevent layout shifts - inlined for immediate application */
 
-		/* Background colors */
 		#wpwrap {
-			background: var(--wpds-color-fg-content-neutral, #1e1e1e);
 			overflow-y: auto;
 		}
-		body {
+		body.js {
 			background: #fff;
 		}
 
 		/* Reset wp-admin padding */
-		#wpcontent {
+		body.js #wpcontent {
 			padding-inline-start: 0;
 		}
-		#wpbody-content {
+		body.js #wpbody-content {
 			padding-bottom: 0;
 		}
 
 		/* Hide legacy admin elements */
-		#wpbody-content > div:not(.boot-layout-container):not(#screen-meta) {
+		body.js #wpbody-content > div:not(.boot-layout-container):not(#screen-meta) {
 			display: none;
 		}
-		#wpfooter {
+		body.js #wpfooter {
 			display: none;
 		}
 

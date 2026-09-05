@@ -950,7 +950,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $post_value['title'], $nav_menu_item->post_title );
 		$this->assertSame( 123, $nav_menu_item->ID );
 		$this->assertSame( 123, $nav_menu_item->db_id );
-		$this->assertSame( wp_get_current_user()->ID, $nav_menu_item->post_author );
+		$this->assertSame( (string) wp_get_current_user()->ID, $nav_menu_item->post_author );
 		$this->assertObjectHasProperty( 'type_label', $nav_menu_item );
 		$expected = apply_filters( 'nav_menu_attr_title', wp_unslash( apply_filters( 'excerpt_save_pre', wp_slash( $post_value['attr_title'] ) ) ) );
 		$this->assertSame( $expected, $nav_menu_item->attr_title );

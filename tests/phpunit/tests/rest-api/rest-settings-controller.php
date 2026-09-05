@@ -794,6 +794,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'string', $title['type'] );
 		$this->assertSame( 'Title', $title['title'] );
 		$this->assertSame( 'Site title.', $title['description'] );
-		$this->assertSame( null, $title['default'] );
+		$this->assertNull( $title['default'] );
 	}
 }

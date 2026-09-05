@@ -431,7 +431,6 @@ function _strip_template_file_suffix( $template_file ) {
  * @since 5.8.0
  *
  * @param array $context Default context.
- *
  * @return array Filtered context.
  */
 function _block_template_render_without_post_block_context( $context ) {
@@ -452,7 +451,7 @@ function _block_template_render_without_post_block_context( $context ) {
 /**
  * Sets the current WP_Query to return auto-draft posts.
  *
- * The auto-draft status indicates a new post, so allow the the WP_Query instance to
+ * The auto-draft status indicates a new post, so allow the WP_Query instance to
  * return an auto-draft post for template resolution when editing a new post.
  *
  * @access private

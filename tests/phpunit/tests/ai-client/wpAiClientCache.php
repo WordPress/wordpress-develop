@@ -218,4 +218,44 @@ class Tests_AI_Client_Cache extends WP_UnitTestCase {
 		$this->assertTrue( $this->cache->set( 'key1', 'value1', $ttl ) );
 		$this->assertSame( 'value1', $this->cache->get( 'key1' ) );
 	}
+
+	/**
+	 * Test that the cache group filter is respected.
+	 *
+	 * @ticket 65127
+	 */
+	public function test_cache_group_filter_is_respected() {
+		add_filter(
+			'wp_ai_client_cache_group',
+			function ( $group ) {
+				return 'wp_ai_client_tests_group';
+			}
+		);
+
+		$set = $this->cache->set( 'ai_test_key', 'ai_value', 3600 );
+		$this->assertTrue( $set );
+
+		$value = wp_cache_get( 'ai_test_key', 'wp_ai_client_tests_group' );
+		$this->assertSame( 'ai_value', $value );
+	}
+
+	/**
+	 * Test that a non-string cache group filter value is cast to string.
+	 *
+	 * @ticket 65127
+	 */
+	public function test_cache_group_filter_returns_non_string() {
+		add_filter(
+			'wp_ai_client_cache_group',
+			function ( $group ) {
+				return 12345;
+			}
+		);
+
+		$set = $this->cache->set( 'ai_test_key', 'ai_value', 3600 );
+		$this->assertTrue( $set );
+
+		$value = wp_cache_get( 'ai_test_key', '12345' );
+		$this->assertSame( 'ai_value', $value );
+	}
 }

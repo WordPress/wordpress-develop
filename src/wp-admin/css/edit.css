@@ -554,6 +554,16 @@ form#tags-filter {
 	line-height: 1.76923076;
 }
 
+#comment-parent-div {
+	padding-top: 5px;
+	/* Fieldsets cannot shrink below their content by default, allow it so the select cannot cause overflow. */
+	min-width: 0;
+}
+
+#comment-parent-div select {
+	width: 100%;
+}
+
 #timestampdiv p {
 	margin: 8px 0 6px;
 }
@@ -710,6 +720,56 @@ form#tags-filter {
 #comment-status-radio {
 	line-height: 1.5;
 	margin-top: 3px;
+}
+
+#post-visibility-select {
+	--post-visibility-control-gap: 3px;
+
+	margin-left: var(--post-visibility-control-gap);
+}
+
+#post-visibility-select input#post_password {
+	box-sizing: border-box;
+	width: 100%;
+	margin-top: 3px;
+}
+
+#post-visibility-select input[type="radio"],
+#post-visibility-select input#sticky {
+	margin-top: 2px;
+	margin-right: var(--post-visibility-control-gap);
+	margin-bottom: 5px;
+	vertical-align: middle;
+}
+
+#post-visibility-select #sticky-span,
+#post-visibility-select #password-span {
+	display: block;
+	margin-left: calc(1rem + var(--post-visibility-control-gap) + 0.25em);
+	margin-top: 2px;
+}
+
+#post-visibility-select #sticky-span {
+	margin-bottom: 2px;
+}
+
+#post-visibility-select #password-span {
+	margin-bottom: 6px;
+}
+
+#post-visibility-select p {
+	margin: 12px 0 0;
+}
+
+#post-status-select select {
+	display: block;
+	margin-bottom: 8px;
+	width: 100%;
+}
+
+#post-status-select .save-post-status,
+#post-status-select .cancel-post-status {
+	vertical-align: middle;
 }
 
 #linksubmitdiv .inside, /* Old Link Manager back-compat. */
@@ -1330,6 +1390,7 @@ div.tabs-panel-inactive {
 }
 
 div.tabs-panel-active:focus {
+	border-color: var(--wp-admin-theme-color);
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
@@ -1894,10 +1955,19 @@ table.links-table {
 		line-height: 280%;
 	}
 
+	#post-visibility-select #password-span {
+		line-height: 1.5;
+	}
+
+	.wp-core-ui #post-status-select .save-post-status.button,
 	.wp-core-ui .save-post-visibility,
 	.wp-core-ui .save-timestamp {
 		vertical-align: middle;
 		margin-right: 15px;
+	}
+
+	.wp-core-ui #post-status-select .save-post-status.button {
+		margin-left: 0;
 	}
 
 	.timestamp-wrap select#mm {
