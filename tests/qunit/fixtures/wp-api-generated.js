@@ -12710,6 +12710,12 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "eligibility_context": {
+                            "description": "Limit results to abilities eligible in the given usage context. The keys and values are agreed on between clients and ability authors. They are provided by the client and are not verified.",
+                            "type": "object",
+                            "additionalProperties": true,
+                            "required": false
+                        },
                         "meta": {
                             "description": "Limit results to abilities matching all of the given meta fields.",
                             "type": "object",
