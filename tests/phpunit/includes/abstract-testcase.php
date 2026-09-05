@@ -22,6 +22,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/** @var non-empty-string[] */
 	protected $caught_doing_it_wrong = array();
 
+	/**
+	 * URLs of blocked external HTTP requests made during the current test.
+	 *
+	 * @var string[]
+	 */
+	protected $blocked_http_requests = array();
+
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
 
@@ -143,6 +150,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 1, 2 );
+
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS
+			&& ! in_array( 'external-http', $this->getGroups(), true )
+		) {
+			add_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX, 3 );
+		}
 	}
 
 	/**
@@ -686,6 +699,34 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Blocks an external HTTP request that no other filter has answered.
+	 *
+	 * Added by set_up() for tests that are not in the `external-http` group, and
+	 * runs last on the filter so any mock set up by the test itself gets the
+	 * first say. Requests reaching this point are recorded and fail the test in
+	 * assert_post_conditions().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param false|array|WP_Error $response A preemptive response, or false when none was given.
+	 * @param array                $args     Request arguments.
+	 * @param string               $url      The request URL.
+	 * @return array|WP_Error The preemptive response, or an error for a blocked request.
+	 */
+	public function block_external_http_request( $response, $args, $url ) {
+		if ( false !== $response ) {
+			return $response;
+		}
+
+		$this->blocked_http_requests[] = $url;
+
+		return new WP_Error(
+			'test_external_http_blocked',
+			'External HTTP requests are blocked in tests that are not in the `external-http` group.'
+		);
+	}
+
+	/**
 	 * Detects post-test failure conditions.
 	 *
 	 * We use this method to detect expectedDeprecated and expectedIncorrectUsage annotations.
@@ -694,6 +735,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	protected function assert_post_conditions() {
 		$this->expectedDeprecated();
+
+		if ( $this->blocked_http_requests ) {
+			$this->fail(
+				"This test made an external HTTP request but is not in the `external-http` group.\n"
+				. "Add `@group external-http` to it, or mock the request with the `pre_http_request` filter.\n"
+				. '- ' . implode( "\n- ", array_unique( $this->blocked_http_requests ) )
+			);
+		}
 	}
 
 	/**
