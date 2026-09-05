@@ -2201,11 +2201,11 @@ function prev_post_rel_link( $title = '%title', $in_same_term = false, $excluded
  * @return array|null Array containing the boundary post object if successful, null otherwise.
  */
 function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start = true, $taxonomy = 'category' ) {
-	$post = get_post();
-
-	if ( ! $post || ! is_single() || is_attachment() || ! taxonomy_exists( $taxonomy ) ) {
+	if ( ! taxonomy_exists( $taxonomy ) ) {
 		return null;
 	}
+
+	$post = get_post();
 
 	$query_args = array(
 		'posts_per_page'         => 1,
