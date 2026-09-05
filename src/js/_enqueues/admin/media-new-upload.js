@@ -22,7 +22,7 @@
  * @output wp-admin/js/media-new-upload.js
  */
 
-/* global plupload, pluploadL10n, uploader, fileQueued, uploadStart, uploadSuccess, uploadComplete */
+/* global plupload, pluploadL10n, wpUploaderInit, fileQueued, uploadStart, uploadSuccess, uploadComplete */
 
 ( function () {
 	// Guard against double execution (e.g. duplicate enqueues).
@@ -38,7 +38,6 @@
 	if (
 		! pipeline ||
 		typeof plupload === 'undefined' ||
-		typeof jQuery === 'undefined' ||
 		! wp.a11y ||
 		! pipeline.configure()
 	) {
@@ -88,13 +87,13 @@
 	}
 
 	/**
-	 * Escapes text for insertion into HTML.
+	 * Returns the screen's progress item for a plupload file.
 	 *
-	 * @param {string} text The text to escape.
-	 * @return {string} The escaped text.
+	 * @param {plupload.File} file The plupload file.
+	 * @return {HTMLElement|null} The item fileQueued() built, if it is still on the page.
 	 */
-	function escapeHtml( text ) {
-		return jQuery( '<div>' ).text( text ).html();
+	function getItem( file ) {
+		return document.getElementById( 'media-item-' + file.id );
 	}
 
 	/**
@@ -107,36 +106,41 @@
 	 * @param {string}        message The reason the upload failed.
 	 */
 	function renderError( file, message ) {
-		const item = jQuery( '#media-item-' + file.id );
-		const buttonId = 'dismiss-' + file.id;
+		const item = getItem( file );
+		if ( ! item ) {
+			return;
+		}
+
 		const descriptionId = 'error-description-' + file.id;
 
-		const button = jQuery( '<button>', {
-			type: 'button',
-			id: buttonId,
-			'class': 'dismiss button-link',
-			'aria-describedby': descriptionId,
-			text: pluploadL10n.dismiss,
-		} );
+		const button = document.createElement( 'button' );
+		button.type = 'button';
+		button.id = 'dismiss-' + file.id;
+		button.className = 'dismiss button-link';
+		button.setAttribute( 'aria-describedby', descriptionId );
+		button.textContent = pluploadL10n.dismiss;
 
-		const notice = jQuery( '<div>', {
-			id: descriptionId,
-			'class': 'notice notice-error error-div error',
-		} )
-			.append( button )
-			.append( ' ' )
-			.append(
-				jQuery( '<strong>' ).html(
-					pluploadL10n.error_uploading.replace(
-						'%s',
-						escapeHtml( file.name )
-					)
-				)
-			)
-			.append( '<br />' )
-			.append( document.createTextNode( message ) );
+		const heading = document.createElement( 'strong' );
+		heading.textContent = pluploadL10n.error_uploading.replace(
+			'%s',
+			file.name
+		);
 
-		item.empty().append( notice ).data( 'last-err', file.id );
+		const notice = document.createElement( 'div' );
+		notice.id = descriptionId;
+		notice.className = 'notice notice-error error-div error';
+		notice.append(
+			button,
+			' ',
+			heading,
+			document.createElement( 'br' ),
+			message
+		);
+
+		item.replaceChildren( notice );
+		// Read by itemAjaxError() in plupload-handlers so a later server
+		// error for the same file is not rendered twice.
+		item.dataset.lastErr = file.id;
 
 		setTimeout( function () {
 			wp.a11y.speak(
@@ -148,14 +152,15 @@
 			);
 		}, 1500 );
 
-		button.on( 'click', function () {
-			jQuery( this )
-				.parents( 'div.media-item' )
-				.slideUp( 200, function () {
-					jQuery( this ).remove();
-					wp.a11y.speak( __( 'Error dismissed.' ) );
-					jQuery( '#plupload-browse-button' ).trigger( 'focus' );
-				} );
+		button.addEventListener( 'click', function () {
+			item.remove();
+			wp.a11y.speak( __( 'Error dismissed.' ) );
+			const browseButton = document.getElementById(
+				'plupload-browse-button'
+			);
+			if ( browseButton ) {
+				browseButton.focus();
+			}
 		} );
 	}
 
@@ -169,9 +174,22 @@
 	 * @param {number}        percent Progress percentage.
 	 */
 	function renderProgress( file, percent ) {
-		const item = jQuery( '#media-item-' + file.id );
-		item.find( '.bar' ).width( 2 * percent );
-		item.find( '.percent' ).html( percent + '%' );
+		const item = getItem( file );
+		if ( ! item ) {
+			return;
+		}
+
+		const bar = /** @type {HTMLElement|null} */ (
+			item.querySelector( '.bar' )
+		);
+		if ( bar ) {
+			bar.style.width = 2 * percent + 'px';
+		}
+
+		const label = item.querySelector( '.percent' );
+		if ( label ) {
+			label.textContent = percent + '%';
+		}
 	}
 
 	/**
@@ -195,7 +213,10 @@
 
 		// Parity with the built-in handler: clear stale queue errors and run
 		// the shared upload-start housekeeping.
-		jQuery( '#media-upload-error' ).empty();
+		const queueErrors = document.getElementById( 'media-upload-error' );
+		if ( queueErrors ) {
+			queueErrors.replaceChildren();
+		}
 		uploadStart();
 
 		// The classic flow posts plupload's multipart params to
@@ -254,25 +275,22 @@
 		return false;
 	}
 
-	jQuery( function () {
-		// plupload-handlers creates the global `uploader` in its own ready
-		// callback, which runs before this one: ready callbacks run in
-		// registration order and this script loads after plupload-handlers.
-		// The global stays undefined when wpUploaderInit is missing (the
-		// html-uploader fallback), in which case there is nothing to bind.
-		if (
-			typeof uploader !== 'object' ||
-			! uploader ||
-			uploader.__wpMediaNewUploadBound
-		) {
+	/**
+	 * Binds the interceptor to an uploader once it has initialized.
+	 *
+	 * plupload sorts handlers by priority (descending) and a `false` return
+	 * breaks the chain, so priority 100 runs before and suppresses the
+	 * built-in FilesAdded handler.
+	 *
+	 * @param {plupload.Uploader} up The uploader that initialized.
+	 */
+	function bindUploader( up ) {
+		if ( up.__wpMediaNewUploadBound ) {
 			return;
 		}
-		uploader.__wpMediaNewUploadBound = true;
+		up.__wpMediaNewUploadBound = true;
 
-		// plupload sorts handlers by priority (descending) and a `false`
-		// return breaks the chain, so priority 100 runs before and suppresses
-		// the built-in FilesAdded handler.
-		uploader.bind(
+		up.bind(
 			'FilesAdded',
 			function ( up, files ) {
 				return handleFilesAdded( up, files );
@@ -280,5 +298,28 @@
 			null,
 			100
 		);
-	} );
+	}
+
+	// plupload-handlers creates its uploader from the `wpUploaderInit`
+	// settings once the DOM is ready, after this script has run, and
+	// plupload binds the handlers in a settings `init` map while the
+	// uploader initializes. Hooking PostInit there reaches the uploader
+	// without depending on ready-callback ordering. The settings are
+	// missing when the browser uploader is disabled (the html-uploader
+	// fallback), in which case there is nothing to intercept.
+	if ( typeof wpUploaderInit !== 'object' || ! wpUploaderInit ) {
+		return;
+	}
+
+	const init = wpUploaderInit.init;
+	if ( typeof init === 'function' ) {
+		wpUploaderInit.init = function ( up ) {
+			init( up );
+			bindUploader( up );
+		};
+	} else {
+		wpUploaderInit.init = Object.assign( {}, init, {
+			PostInit: bindUploader,
+		} );
+	}
 } )();

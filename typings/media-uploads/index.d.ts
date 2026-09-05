@@ -28,13 +28,27 @@ declare namespace plupload {
 	}
 
 	/**
+	 * Settings passed to a plupload uploader.
+	 */
+	interface UploaderSettings {
+		multipart_params?: Record< string, string >;
+
+		/**
+		 * Event handlers bound while the uploader initializes, keyed by event
+		 * name, or a function called with the uploader instead.
+		 */
+		init?:
+			| Record< string, ( up: Uploader, ...args: any[] ) => unknown >
+			| ( ( up: Uploader ) => void );
+
+		[ setting: string ]: unknown;
+	}
+
+	/**
 	 * A plupload uploader instance.
 	 */
 	interface Uploader {
-		settings?: {
-			multipart_params?: Record< string, string >;
-			[ setting: string ]: unknown;
-		};
+		settings?: UploaderSettings;
 
 		bind(
 			name: 'FilesAdded',
@@ -66,11 +80,12 @@ declare namespace plupload {
 declare var pluploadL10n: Record< string, string >;
 
 /**
- * The uploader plupload-handlers.js creates on wp-admin/media-new.php.
+ * The settings media_upload_form() prints for the uploader that
+ * plupload-handlers.js creates on wp-admin/media-new.php.
  *
- * Undefined when the browser uploader was not initialized.
+ * Undefined when the browser uploader is disabled.
  */
-declare var uploader: plupload.Uploader | undefined;
+declare var wpUploaderInit: plupload.UploaderSettings | undefined;
 
 declare function fileQueued( file: plupload.File ): void;
 declare function uploadStart(): void;
