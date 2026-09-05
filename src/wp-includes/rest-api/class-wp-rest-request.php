@@ -865,14 +865,27 @@ class WP_REST_Request implements ArrayAccess {
 				}
 
 				/** @var mixed|WP_Error $sanitized_value */
-				$sanitized_value = call_user_func( $param_args['sanitize_callback'], $value, $this, $key );
+				/** @var mixed|WP_Error $sanitized_value */
+if ( is_array( $value ) ) {
+    $sanitized_value = array_map(
+        function ( $item ) use ( $param_args, $key ) {
+            return call_user_func( $param_args['sanitize_callback'], $item, $this, $key );
+        },
+        $value
+    );
+} elseif ( is_object( $value ) || is_bool( $value ) || is_null( $value ) ) {
+    $sanitized_value = '';
+} else {
+    $sanitized_value = call_user_func( $param_args['sanitize_callback'], $value, $this, $key );
+}
 
-				if ( is_wp_error( $sanitized_value ) ) {
-					$invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
-					$invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
-				} else {
-					$this->params[ $type ][ $key ] = $sanitized_value;
-				}
+if ( is_wp_error( $sanitized_value ) ) {
+    $invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
+    $invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
+} else {
+    $this->params[ $type ][ $key ] = $sanitized_value;
+}
+
 			}
 		}
 
