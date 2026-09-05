@@ -237,10 +237,8 @@
 			if ( image ) {
 				attributes.type = 'image';
 				// `jpg` is not a valid subtype, so map it to `jpeg`.
-				attributes.subtype =
-					'jpg' === image[ 0 ].toLowerCase()
-						? 'jpeg'
-						: image[ 0 ].toLowerCase();
+				const subtype = image[ 0 ].toLowerCase();
+				attributes.subtype = 'jpg' === subtype ? 'jpeg' : subtype;
 			}
 
 			const model = wp.media.model.Attachment.create( attributes );
