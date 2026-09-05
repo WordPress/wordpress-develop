@@ -181,7 +181,7 @@ function block_core_page_list_render_nested_page_list( $submenu_visibility, $sho
 		if ( ( ( 0 < $depth && ! $is_nested ) || $is_nested ) && isset( $colors['overlay_css_classes'], $colors['overlay_inline_styles'] ) ) {
 			$css_class .= ' ' . trim( implode( ' ', $colors['overlay_css_classes'] ) );
 			if ( '' !== $colors['overlay_inline_styles'] ) {
-				$style_attribute = sprintf( ' style="%s"', esc_attr( $colors['overlay_inline_styles'] ) );
+				$style_attribute = sprintf( ' style="%s"', esc_attr( safecss_filter_attr( $colors['overlay_inline_styles'] ) ) );
 			}
 		}
 
