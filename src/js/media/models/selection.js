@@ -37,7 +37,7 @@ Selection = Attachments.extend(/** @lends wp.media.model.Selection.prototype */{
 	 *
 	 * @param {Array} models
 	 * @param {Object} options
-	 * @return {wp.media.model.Attachment[]}
+	 * @return {wp.media.model.Attachment[]} The added attachments.
 	 */
 	add: function( models, options ) {
 		if ( ! this.multiple ) {
@@ -57,7 +57,7 @@ Selection = Attachments.extend(/** @lends wp.media.model.Selection.prototype */{
 	 * @fires wp.media.model.Selection#selection:single
 	 * @fires wp.media.model.Selection#selection:unsingle
 	 *
-	 * @return {Backbone.Model}
+	 * @return {Backbone.Model} The single model in the selection, or the last model as a fallback.
 	 */
 	single: function( model ) {
 		var previous = this._single;
