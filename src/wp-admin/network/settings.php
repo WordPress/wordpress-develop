@@ -131,6 +131,8 @@ if ( $_POST ) {
 	 */
 	do_action( 'update_wpmu_options' );
 
+	set_network_settings_errors();
+
 	wp_redirect( add_query_arg( 'updated', 'true', network_admin_url( 'settings.php' ) ) );
 	exit;
 }
@@ -138,14 +140,20 @@ if ( $_POST ) {
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) ) {
-	wp_admin_notice(
-		__( 'Settings saved.' ),
-		array(
-			'type'        => 'success',
-			'dismissible' => true,
-			'id'          => 'message',
-		)
-	);
+	$settings_errors = get_settings_errors();
+
+	if ( $settings_errors ) {
+		settings_errors();
+	} elseif ( 'true' === $_GET['updated'] ) {
+		wp_admin_notice(
+			__( 'Settings saved.' ),
+			array(
+				'type'        => 'success',
+				'dismissible' => true,
+				'id'          => 'message',
+			)
+		);
+	}
 }
 ?>
 
