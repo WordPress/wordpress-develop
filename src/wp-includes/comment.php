@@ -4406,6 +4406,12 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
  */
 function wp_cache_set_comments_last_changed() {
 	wp_cache_set_last_changed( 'comment' );
+	$current_action = current_action();
+	if ( in_array( $current_action, array( 'added_comment_meta', 'updated_comment_meta', 'deleted_comment_meta' ), true ) ) {
+		wp_cache_set_last_changed( 'comment-meta' );
+	} else {
+		wp_cache_set_last_changed( 'comment-queries' );
+	}
 }
 
 /**

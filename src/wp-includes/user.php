@@ -622,7 +622,7 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 	$where = get_posts_by_author_sql( $post_type, true, $userid, $public_only );
 	$query = "SELECT COUNT(*) FROM $wpdb->posts $where";
 
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$last_changed = wp_cache_get_last_changed( 'post-queries' );
 	$cache_key    = 'count_user_posts:' . md5( $query );
 	$count        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false === $count ) {
@@ -695,8 +695,17 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 	$where       = get_posts_by_author_sql( $post_type, true, null, $public_only );
 	$query       = "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author";
 	$cache_key   = 'count_many_users_posts:' . md5( $query );
-	$cache_salts = array( wp_cache_get_last_changed( 'posts' ), wp_cache_get_last_changed( 'users' ) );
-	$count       = wp_cache_get_salted( $cache_key, 'post-queries', $cache_salts );
+	$cache_salts = array( wp_cache_get_last_changed( 'post-queries' ), wp_cache_get_last_changed( 'user-queries' ) );
+
+	if ( str_contains( $query, $wpdb->postmeta ) ) {
+		$cache_salts[] = wp_cache_get_last_changed( 'post-meta' );
+	}
+
+	if ( str_contains( $query, $wpdb->usermeta ) ) {
+		$cache_salts[] = wp_cache_get_last_changed( 'user-meta' );
+	}
+
+	$count = wp_cache_get_salted( $cache_key, 'post-queries', $cache_salts );
 
 	if ( false === $count ) {
 		$result = $wpdb->get_results( $query, ARRAY_N );
@@ -5271,6 +5280,12 @@ function wp_register_persisted_preferences_meta() {
  */
 function wp_cache_set_users_last_changed() {
 	wp_cache_set_last_changed( 'users' );
+	$current_action = current_action();
+	if ( in_array( $current_action, array( 'added_user_meta', 'updated_user_meta', 'deleted_user_meta' ), true ) ) {
+		wp_cache_set_last_changed( 'user-meta' );
+	} else {
+		wp_cache_set_last_changed( 'user-queries' );
+	}
 }
 
 /**

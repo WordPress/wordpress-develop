@@ -2895,8 +2895,8 @@ class WP_Query {
 
 			$key          = md5( $comments_request );
 			$last_changed = array(
-				wp_cache_get_last_changed( 'comment' ),
-				wp_cache_get_last_changed( 'posts' ),
+				wp_cache_get_last_changed( 'comment-queries' ),
+				wp_cache_get_last_changed( 'post-queries' ),
 			);
 
 			$cache_key   = "comment_feed:$key";
@@ -3261,9 +3261,13 @@ class WP_Query {
 			$id_query_is_cacheable = false;
 		}
 
-		$last_changed = (array) wp_cache_get_last_changed( 'posts' );
+		$last_changed = (array) wp_cache_get_last_changed( 'post-queries' );
 		if ( ! empty( $this->tax_query->queries ) ) {
-			$last_changed[] = wp_cache_get_last_changed( 'terms' );
+			$last_changed[] = wp_cache_get_last_changed( 'term-queries' );
+		}
+
+		if ( ! empty( $this->meta_query->queries ) || str_contains( $this->request, $wpdb->postmeta ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'post-meta' );
 		}
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
@@ -3510,7 +3514,7 @@ class WP_Query {
 			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
 
 			$comment_key          = md5( $comments_request );
-			$comment_last_changed = wp_cache_get_last_changed( 'comment' );
+			$comment_last_changed = wp_cache_get_last_changed( 'comment-queries' );
 
 			$comment_cache_key = "comment_feed:$comment_key";
 			$comment_ids       = wp_cache_get_salted( $comment_cache_key, 'comment-queries', $comment_last_changed );
