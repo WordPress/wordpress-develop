@@ -24,11 +24,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
-			message: '#^Call to function is_wp_error\(\) with WP_Error will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
 			message: '#^Call to function method_exists\(\) with ''ParagonIE_Sodium…'' and ''runtime_speed_test'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -52,11 +47,6 @@ parameters:
 			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
-			path: ../../../src/wp-includes/block-editor.php
-		-
-			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
 			path: ../../../src/wp-includes/class-wp-block-bindings-registry.php
 		-
 			message: '#^Call to function method_exists\(\) with ''Imagick'' and ''setIteratorIndex'' will always evaluate to true\.$#'
@@ -75,6 +65,16 @@ parameters:
 			path: ../../../src/wp-includes/feed.php
 		-
 			message: '#^Call to function is_callable\(\) with ''exif_imagetype'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: ../../../src/wp-includes/functions.php
+		-
+			message: '#^Call to function is_scalar\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 3
+			path: ../../../src/wp-includes/functions.php
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: ../../../src/wp-includes/functions.php
