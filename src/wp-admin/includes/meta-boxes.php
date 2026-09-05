@@ -30,10 +30,11 @@
 function post_submit_meta_box( $post, $args = array() ) {
 	global $action;
 
-	$post_id          = (int) $post->ID;
-	$post_type        = $post->post_type;
-	$post_type_object = get_post_type_object( $post_type );
-	$can_publish      = current_user_can( $post_type_object->cap->publish_posts );
+	$post_id            = (int) $post->ID;
+	$post_type          = $post->post_type;
+	$post_type_object   = get_post_type_object( $post_type );
+	$post_status_object = get_post_status_object( $post->post_status );
+	$can_publish        = current_user_can( $post_type_object->cap->publish_posts );
 	?>
 <div class="submitbox" id="submitpost">
 
@@ -48,12 +49,16 @@ function post_submit_meta_box( $post, $args = array() ) {
 		<div id="save-action">
 			<?php
 			if ( ! in_array( $post->post_status, array( 'publish', 'future', 'pending' ), true ) ) {
-				$private_style = '';
+				$private_style    = '';
+				$save_button_text = __( 'Save Draft' );
 				if ( 'private' === $post->post_status ) {
 					$private_style = 'style="display:none"';
+				} elseif ( $post_status_object && ! $post_status_object->_builtin ) {
+					/* translators: %s: Post status label. */
+					$save_button_text = sprintf( __( 'Save as %s' ), $post_status_object->label );
 				}
 				?>
-				<input <?php echo $private_style; ?> type="submit" name="save" id="save-post" value="<?php esc_attr_e( 'Save Draft' ); ?>" class="button" />
+				<input <?php echo $private_style; ?> type="submit" name="save" id="save-post" value="<?php echo esc_attr( $save_button_text ); ?>" class="button" />
 				<span class="spinner"></span>
 			<?php } elseif ( 'pending' === $post->post_status && $can_publish ) { ?>
 				<input type="submit" name="save" id="save-post" value="<?php esc_attr_e( 'Save as Pending' ); ?>" class="button" />
@@ -121,6 +126,11 @@ function post_submit_meta_box( $post, $args = array() ) {
 					case 'auto-draft':
 						_e( 'Draft' );
 						break;
+					default:
+						if ( $post_status_object ) {
+							echo esc_html( $post_status_object->label );
+						}
+						break;
 				}
 				?>
 			</span>
@@ -161,6 +171,38 @@ function post_submit_meta_box( $post, $args = array() ) {
 						<?php else : ?>
 							<option<?php selected( $post->post_status, 'draft' ); ?> value='draft'><?php _e( 'Draft' ); ?></option>
 						<?php endif; ?>
+						<?php
+						/**
+						 * Filters the custom post statuses available in the Publish meta box.
+						 *
+						 * The current registered custom post status is always included.
+						 * This filter controls presentation only and does not grant permission
+						 * to use a status.
+						 *
+						 * @since 7.1.0
+						 *
+						 * @param string[] $custom_post_statuses Custom post status names.
+						 * @param WP_Post  $post                 Current post object.
+						 */
+						$custom_post_statuses = apply_filters( 'post_submitbox_custom_statuses', array(), $post );
+
+						if ( $post_status_object && ! $post_status_object->_builtin && ! in_array( $post->post_status, $custom_post_statuses, true ) ) {
+							$custom_post_statuses[] = $post->post_status;
+						}
+
+						foreach ( $custom_post_statuses as $custom_post_status_name ) {
+							$custom_post_status = get_post_status_object( $custom_post_status_name );
+							if ( ! $custom_post_status || $custom_post_status->_builtin ) {
+								continue;
+							}
+
+							/* translators: %s: Post status label. */
+							$save_button_text = sprintf( __( 'Save as %s' ), $custom_post_status->label );
+							?>
+							<option<?php selected( $post->post_status, $custom_post_status->name ); ?> value="<?php echo esc_attr( $custom_post_status->name ); ?>" data-save-text="<?php echo esc_attr( $save_button_text ); ?>"><?php echo esc_html( $custom_post_status->label ); ?></option>
+							<?php
+						}
+						?>
 					</select>
 					<a href="#post_status" class="save-post-status hide-if-no-js button"><?php _e( 'OK' ); ?></a>
 					<a href="#post_status" class="cancel-post-status hide-if-no-js button-cancel"><?php _e( 'Cancel' ); ?></a>

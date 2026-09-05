@@ -315,6 +315,7 @@ jQuery( function($) {
 		postId = $('#post_ID').val() || 0,
 		$submitpost = $('#submitpost'),
 		releaseLock = true,
+		statusBeforePrivate = null,
 		$postVisibilitySelect = $('#post-visibility-select'),
 		$timestampdiv = $('#timestampdiv'),
 		$postStatusSelect = $('#post-status-select'),
@@ -764,7 +765,7 @@ jQuery( function($) {
 			if ( ! $timestampdiv.length )
 				return true;
 
-			var attemptedDate, originalDate, currentDate, publishOn, postStatus = $('#post_status'),
+			var attemptedDate, originalDate, currentDate, publishOn, selectedPostStatus, postStatus = $('#post_status'),
 				optPublish = $('option[value="publish"]', postStatus), aa = $('#aa').val(),
 				mm = $('#mm').val(), jj = $('#jj').val(), hh = $('#hh').val(), mn = $('#mn').val();
 
@@ -830,15 +831,23 @@ jQuery( function($) {
 			// Add "privately published" to post status when applies.
 			if ( $postVisibilitySelect.find('input:radio:checked').val() == 'private' ) {
 				$('#publish').val( __( 'Update' ) );
+				if ( postStatus.val() !== 'publish' ) {
+					statusBeforePrivate = postStatus.val();
+				}
 				if ( 0 === optPublish.length ) {
-					postStatus.append('<option value="publish">' + __( 'Privately Published' ) + '</option>');
+					postStatus.append('<option value="publish" data-private-status-option="true">' + __( 'Privately Published' ) + '</option>');
 				} else {
 					optPublish.html( __( 'Privately Published' ) );
 				}
 				$('option[value="publish"]', postStatus).prop('selected', true);
 				$('#misc-publishing-actions .edit-post-status').hide();
 			} else {
-				if ( $('#original_post_status').val() == 'future' || $('#original_post_status').val() == 'draft' ) {
+				if ( null !== statusBeforePrivate ) {
+					optPublish.html( __( 'Published' ) );
+					optPublish.filter('[data-private-status-option]').remove();
+					postStatus.val( statusBeforePrivate );
+					statusBeforePrivate = null;
+				} else if ( $('#original_post_status').val() == 'future' || $('#original_post_status').val() == 'draft' ) {
 					if ( optPublish.length ) {
 						optPublish.remove();
 						postStatus.val($('#hidden_post_status').val());
@@ -850,22 +859,26 @@ jQuery( function($) {
 					$('#misc-publishing-actions .edit-post-status').show();
 			}
 
+			selectedPostStatus = $('option:selected', postStatus);
+
 			// Update "Status:" to currently selected status.
 			$('#post-status-display').text(
 				// Remove any potential tags from post status text.
-				wp.sanitize.stripTagsAndEncodeText( $('option:selected', postStatus).text() )
+				wp.sanitize.stripTagsAndEncodeText( selectedPostStatus.text() )
 			);
 
 			// Show or hide the "Save Draft" button.
 			if (
-				$('option:selected', postStatus).val() == 'private' ||
-				$('option:selected', postStatus).val() == 'publish'
+				selectedPostStatus.val() == 'private' ||
+				selectedPostStatus.val() == 'publish'
 			) {
 				$('#save-post').hide();
 			} else {
 				$('#save-post').show();
-				if ( $('option:selected', postStatus).val() == 'pending' ) {
+				if ( selectedPostStatus.val() == 'pending' ) {
 					$('#save-post').show().val( __( 'Save as Pending' ) );
+				} else if ( selectedPostStatus.attr( 'data-save-text' ) ) {
+					$('#save-post').show().val( selectedPostStatus.attr( 'data-save-text' ) );
 				} else {
 					$('#save-post').show().val( __( 'Save Draft' ) );
 				}
