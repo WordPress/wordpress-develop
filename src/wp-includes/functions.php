@@ -460,11 +460,19 @@ function number_format_i18n( $number, $decimals = 0 ) {
  * @since 2.3.0
  * @since 6.0.0 Support for PB, EB, ZB, and YB was added.
  *
- * @param int|string $bytes    Number of bytes. Note max integer size for integers.
- * @param int        $decimals Optional. Precision of number of decimal places. Default 0.
+ * @param int|float|string $bytes    Number of bytes. Note max integer size for integers.
+ * @param int              $decimals Optional. Precision of number of decimal places. Default 0.
  * @return string|false Number string on success, false on failure.
+ *
+ * @phpstan-param int|float|numeric-string $bytes
  */
 function size_format( $bytes, $decimals = 0 ) {
+	if ( ! is_numeric( $bytes ) ) {
+		return false;
+	}
+
+	$bytes = (float) $bytes;
+
 	$quant = array(
 		/* translators: Unit symbol for yottabyte. */
 		_x( 'YB', 'unit symbol' ) => YB_IN_BYTES,
@@ -486,13 +494,13 @@ function size_format( $bytes, $decimals = 0 ) {
 		_x( 'B', 'unit symbol' )  => 1,
 	);
 
-	if ( 0 === $bytes ) {
+	if ( 0.0 === $bytes ) {
 		/* translators: Unit symbol for byte. */
 		return number_format_i18n( 0, $decimals ) . ' ' . _x( 'B', 'unit symbol' );
 	}
 
 	foreach ( $quant as $unit => $mag ) {
-		if ( (float) $bytes >= $mag ) {
+		if ( $bytes >= $mag ) {
 			return number_format_i18n( $bytes / $mag, $decimals ) . ' ' . $unit;
 		}
 	}
@@ -8737,8 +8745,8 @@ function wp_get_default_update_php_url() {
  * @param string $before  Markup to output before the annotation. Default `<p class="description">`.
  * @param string $after   Markup to output after the annotation. Default `</p>`.
  * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
- * @return string|void Update PHP page annotation when `$display` is false, null when no
- *                     annotation is available. Nothing otherwise.
+ * @return string|null|void Update PHP page annotation when `$display` is false, null when
+ *                          no annotation is available. Nothing otherwise.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
