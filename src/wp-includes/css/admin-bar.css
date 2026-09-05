@@ -642,7 +642,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 /**
  * Search
  */
-
 #wpadminbar #wp-admin-bar-search .ab-item {
 	padding: 0;
 	background: transparent;
@@ -735,7 +734,9 @@ html:lang(he-il) .rtl #wpadminbar * {
 	display: none;
 }
 
-/* Skip link */
+/**
+ * Skip link
+ */
 #wpadminbar .screen-reader-text,
 #wpadminbar .screen-reader-text span {
 	border: 0;
@@ -774,6 +775,9 @@ html:lang(he-il) .rtl #wpadminbar * {
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
 }
 
+/**
+ * Media Queries
+ */
 @media screen and (max-width: 782px) {
 	html {
 		--wp-admin--admin-bar--height: 46px;
