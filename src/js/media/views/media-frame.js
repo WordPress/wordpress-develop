@@ -158,9 +158,11 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	 * @this wp.media.controller.Region
 	 */
 	createTitle: function( title ) {
+		// A modal's dialog element points `aria-labelledby` at its frame heading.
 		title.view = new wp.media.View({
 			controller: this,
-			tagName: 'h1'
+			tagName: 'h1',
+			attributes: this.modal ? { id: this.modal.titleId } : {}
 		});
 	},
 	/**
