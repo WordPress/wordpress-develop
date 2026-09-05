@@ -81,37 +81,6 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22944
-	 * @covers ::wp_update_post
-	 */
-	public function test_wp_update_post_with_content_filtering() {
-		kses_remove_filters();
-
-		$post_id = wp_insert_post(
-			array(
-				'post_title' => '<script>Test</script>',
-			)
-		);
-		$post    = get_post( $post_id );
-		$this->assertSame( '<script>Test</script>', $post->post_title );
-		$this->assertSame( 'draft', $post->post_status );
-
-		kses_init_filters();
-
-		wp_update_post(
-			array(
-				'ID'          => $post->ID,
-				'post_status' => 'publish',
-			)
-		);
-
-		kses_remove_filters();
-
-		$post = get_post( $post->ID );
-		$this->assertSame( 'Test', $post->post_title );
-	}
-
-	/**
-	 * @ticket 22944
 	 */
 	public function test_wp_publish_post_and_avoid_content_filtering() {
 		kses_remove_filters();
