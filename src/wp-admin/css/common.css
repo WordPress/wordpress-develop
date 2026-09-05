@@ -1087,13 +1087,27 @@ th.action-links {
 	margin: 0;
 }
 
-.filter-links li > a {
+.filter-links li > a,
+.filter-links li > button {
 	display: inline-block;
 	margin: 0 10px;
 	padding: 15px 0;
+	border: 0;
 	border-bottom: 4px solid #fff;
+	background: none;
 	color: #646970;
 	cursor: pointer;
+	font: inherit;
+	transition-property: border, background, color;
+	transition-duration: .05s;
+	transition-timing-function: ease-in-out;
+}
+
+.filter-links li > button:focus {
+	border-radius: 2px;
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .filter-links .current {
@@ -1106,8 +1120,10 @@ th.action-links {
 
 .filter-links li > a:hover,
 .filter-links li > a:focus,
-.show-filters .filter-links a.current:hover,
-.show-filters .filter-links a.current:focus {
+.filter-links li > button:hover,
+.filter-links li > button:focus,
+.show-filters .filter-links .current:hover,
+.show-filters .filter-links .current:focus {
 	color: var(--wp-admin-theme-color);
 }
 
@@ -1237,7 +1253,7 @@ th.action-links {
 	display: block;
 }
 
-.show-filters .filter-links a.current {
+.show-filters .filter-links .current {
 	border-bottom: none;
 }
 

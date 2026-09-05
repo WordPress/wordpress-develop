@@ -1653,7 +1653,7 @@ themes.view.InstallerSearch =  themes.view.Search.extend({
 			request.tag = [ value.slice( 4 ) ];
 		}
 
-		$( '.filter-links li > a.current' )
+		$( '.filter-links [data-sort].current' )
 			.removeClass( 'current' )
 			.removeAttr( 'aria-current' );
 
@@ -1675,7 +1675,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 
 	// Register events for sorting and filters in theme-navigation.
 	events: {
-		'click .filter-links li > a': 'onSort',
+		'click .filter-links [data-sort]': 'onSort',
 		'click .theme-filter': 'onFilter',
 		'click .drawer-toggle': 'moreFilters',
 		'click .filter-drawer .apply-filters': 'applyFilters',
@@ -1786,7 +1786,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		// Track sorting so we can restore the correct tab when closing preview.
 		themes.router.selectedTab = sort;
 
-		$( '.filter-links li > a, .theme-filter' )
+		$( '.filter-links [data-sort], .theme-filter' )
 			.removeClass( this.activeClass )
 			.removeAttr( 'aria-current' );
 
@@ -1814,7 +1814,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 			return;
 		}
 
-		$( '.filter-links li > a, .theme-section' )
+		$( '.filter-links [data-sort], .theme-section' )
 			.removeClass( this.activeClass )
 			.removeAttr( 'aria-current' );
 		$el
@@ -1857,7 +1857,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		}
 
 		$( 'body' ).addClass( 'filters-applied' );
-		$( '.filter-links li > a.current' )
+		$( '.filter-links [data-sort].current' )
 			.removeClass( 'current' )
 			.removeAttr( 'aria-current' );
 
