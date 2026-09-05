@@ -1771,8 +1771,21 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
+	grunt.registerTask( 'lint:css', 'Runs Stylelint on core CSS and checks warning-level rule thresholds.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/stylelint/lint-css.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
 	grunt.registerTask( 'precommit:css', [
-		'postcss:core'
+		'postcss:core',
+		'lint:css',
 	] );
 
 	grunt.registerTask( 'precommit:php', [

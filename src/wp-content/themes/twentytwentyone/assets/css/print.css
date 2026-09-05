@@ -2,7 +2,6 @@
 Adding print support. The print styles are based on the the great work of
 Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272/.
 */
-
 /*--------------------------------------------------------------
 >>> TABLE OF CONTENTS:
 ----------------------------------------------------------------
@@ -13,7 +12,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 # Visibility
 --------------------------------------------------------------*/
 @media print {
-
 	/* Margins & paddings */
 	@page {
 		margin: 2cm;
@@ -33,7 +31,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	.site-header {
 		padding: 0;
 	}
-
 	/* Fonts */
 	body {
 		font: 13pt Georgia, "Times New Roman", Times, serif;
@@ -52,7 +49,7 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	.singular .entry-title,
 	.page-title {
 		font-size: 22pt;
-		font-weight: bold;
+		font-weight: 700;
 	}
 
 	h2,
@@ -72,7 +69,6 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	.comment-meta .comment-author .fn {
 		font-size: 13pt;
 	}
-
 	/* Page breaks */
 	a {
 		page-break-inside: avoid;
@@ -108,49 +104,47 @@ Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272
 	dl {
 		page-break-before: avoid;
 	}
-
 	/* Links */
 	a:link,
 	a:visited,
 	a {
 		background: transparent;
-		font-weight: bold;
+		font-weight: 700;
 		text-decoration: underline;
 		text-align: left;
 	}
 
-	a[href^=http]:after {
+	a[href^="http"]::after {
 		content: " < " attr(href) "> ";
 	}
 
-	a:after > img {
+	a::after > img {
 		content: "";
 	}
 
-	article a[href^="#"]:after {
+	article a[href^="#"]::after {
 		content: "";
 	}
-
-	a:not(:local-link):after {
+	/* stylelint-disable-next-line selector-pseudo-class-no-unknown -- :local-link is still experimental. */
+	a:not(:local-link)::after {
 		content: " < " attr(href) "> ";
 	}
 
-	.entry-title a:after {
+	.entry-title a::after {
 		content: "\a< " attr(href) "> ";
 		white-space: pre;
 		font-size: 14pt;
 	}
 
-	.cat-links a:after,
-	.tags-links a:after,
-	.byline a:after,
-	.comment-metadata a:after,
-	.wp-block-calendar a:after,
-	.wp-block-tag-cloud a:after,
-	.page-links a:after {
+	.cat-links a::after,
+	.tags-links a::after,
+	.byline a::after,
+	.comment-metadata a::after,
+	.wp-block-calendar a::after,
+	.wp-block-tag-cloud a::after,
+	.page-links a::after {
 		content: "";
 	}
-
 	/* Visibility */
 	.primary-navigation,
 	.site-title + .primary-navigation,
