@@ -17,7 +17,7 @@ window.wp = window.wp || {};
  * @namespace
  *
  * @param {Object} attributes The properties passed to the main media controller.
- * @return {wp.media.view.MediaFrame} A media workflow.
+ * @return {void|wp.media.view.MediaFrame} A media workflow.
  */
 media = wp.media = function( attributes ) {
 	var MediaFrame = media.view.MediaFrame,
@@ -137,7 +137,7 @@ _.extend( media, /** @lends wp.media */{
 	 * Scales a set of dimensions to fit within bounding dimensions.
 	 *
 	 * @param {Object} dimensions
-	 * @return {Object}
+	 * @return {Object} The scaled dimensions.
 	 */
 	fit: function( dimensions ) {
 		var width     = dimensions.width,
@@ -209,7 +209,7 @@ _.extend( media, /** @lends wp.media */{
  *
  * @static
  * @param {string} id A string used to identify a model.
- * @return {wp.media.model.Attachment}
+ * @return {wp.media.model.Attachment} The attachment model for the given id.
  */
 media.attachment = function( id ) {
 	return Attachment.get( id );
@@ -229,7 +229,7 @@ Attachments.all = new Attachments();
  * Shorthand for creating a new Attachments Query.
  *
  * @param {Object} [props]
- * @return {wp.media.model.Attachments}
+ * @return {wp.media.model.Attachments} A collection of attachments matching the query.
  */
 media.query = function( props ) {
 	return new Attachments( null, {

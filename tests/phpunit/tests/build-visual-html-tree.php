@@ -73,9 +73,21 @@ BLOCK["example/block"]
 TREE;
 
 		yield 'Text nodes in blocks' => array( $block_markup, $tree_structure );
+
+		yield 'Processing instruction' => array(
+			'<div>before<?target arbitrary="data & things" >after',
+			<<<'TREE'
+			<div>
+			  "before"
+			  <?target arbitrary="data & things" ?>
+			  "after"
+
+			TREE,
+		);
 	}
 
 	/**
+	 * @ticket 65582
 	 * @ticket 63527
 	 * @ticket 64531
 	 *

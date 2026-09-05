@@ -523,10 +523,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			 *
 			 * @since 4.7.0
 			 *
-			 * @param bool $allow_anonymous Whether to allow anonymous comments to
-			 *                              be created. Default `false`.
-			 * @param WP_REST_Request $request Request used to generate the
-			 *                                 response.
+			 * @param bool            $allow_anonymous Whether to allow anonymous comments to
+			 *                                         be created. Default `false`.
+			 * @param WP_REST_Request $request         Request used to generate the
+			 *                                         response.
 			 */
 			$allow_anonymous = apply_filters( 'rest_allow_anonymous_comments', false, $request );
 
@@ -2049,17 +2049,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	private function check_post_type_supports_notes( $post_type ) {
 		$supports = get_all_post_type_supports( $post_type );
+
 		if ( ! isset( $supports['editor'] ) ) {
 			return false;
 		}
+
 		if ( ! is_array( $supports['editor'] ) ) {
 			return false;
 		}
-		foreach ( $supports['editor'] as $item ) {
-			if ( ! empty( $item['notes'] ) ) {
-				return true;
-			}
-		}
-		return false;
+
+		return array_any( $supports['editor'], fn( $item ) => ! empty( $item['notes'] ) );
 	}
 }

@@ -35,6 +35,8 @@ class Tests_Formatting_Antispambot extends WP_UnitTestCase {
 			'deep subdomain'       => array( 'kevin@many.subdomains.make.a.happy.man.edu' ),
 			'short address'        => array( 'a@b.co' ),
 			'weird but legal dots' => array( '..@example.com' ),
+			'umlauts'              => array( 'bücher@gmx.de' ),
+			'three-byte UTF-8'     => array( "\u{FFFD}@who.knows.com" ),
 		);
 	}
 
@@ -49,25 +51,41 @@ class Tests_Formatting_Antispambot extends WP_UnitTestCase {
 	 * @param string $provided The email address to obfuscate.
 	 */
 	public function test_antispambot_obfuscates( $provided ) {
-		// The only token should be the email address, so advance once and treat as a text node.
-		$obfuscated = antispambot( $provided );
-		$p          = new WP_HTML_Tag_Processor( $obfuscated );
-		$p->next_token();
-		$decoded = rawurldecode( $p->get_modifiable_text() );
+		$obfuscated = antispambot( $provided, 1 );
+		$processor  = new WP_HTML_Tag_Processor( $obfuscated );
 
-		$this->assertNotSame( $provided, $obfuscated, 'Should have produced an obfuscated representation.' );
-		$this->assertSame( $provided, $decoded, 'Should have decoded to the original email after restoring.' );
+		// The only token should be the email address, so advance once and treat as a text node.
+		$processor->next_token();
+		$decoded = rawurldecode( $processor->get_modifiable_text() );
+
+		$this->assertNotSame(
+			$provided,
+			$obfuscated,
+			'Should have produced an obfuscated representation.'
+		);
+
+		$this->assertSame(
+			$provided,
+			$decoded,
+			'Should have decoded to the original email after restoring.'
+		);
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return Generator
 	 */
 	public function data_antispambot_obfuscates() {
-		return array(
-			array( 'example@example.com' ),
-			array( '#@example.com' ),
+		$addresses = array(
+			'example@example.com',
+			'#@example.com',
+			'πετρος@example.com',
+			"\u{FFFD}@mad.mail.com",
 		);
+
+		foreach ( $addresses as $address ) {
+			yield $address => array( $address );
+		}
 	}
 }

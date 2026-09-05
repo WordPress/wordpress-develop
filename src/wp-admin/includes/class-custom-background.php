@@ -279,7 +279,7 @@ class Custom_Background {
 <table class="form-table" role="presentation">
 <tbody>
 <tr>
-<th scope="row"><?php _e( 'Preview' ); ?></th>
+<th scope="row"><?php echo esc_html_x( 'Preview', 'noun' ); ?></th>
 <td>
 		<?php
 		if ( $this->admin_image_div_callback ) {
@@ -569,6 +569,8 @@ class Custom_Background {
 	 * Media Manager.
 	 *
 	 * @since 4.1.0
+	 *
+	 * @return never
 	 */
 	public function ajax_background_add() {
 		check_ajax_referer( 'background-add', 'nonce' );
@@ -612,6 +614,8 @@ class Custom_Background {
 	/**
 	 * @since 3.4.0
 	 * @deprecated 3.5.0
+	 *
+	 * @return never
 	 */
 	public function wp_set_background_image() {
 		check_ajax_referer( 'custom-background' );

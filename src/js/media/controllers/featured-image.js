@@ -15,7 +15,7 @@ var Attachment = wp.media.model.Attachment,
  * @augments wp.media.controller.State
  * @augments Backbone.Model
  *
- * @param {object}                     [attributes]                          The attributes hash passed to the state.
+ * @param {Object}                     [attributes]                          The attributes hash passed to the state.
  * @param {string}                     [attributes.id=featured-image]        Unique identifier.
  * @param {string}                     [attributes.title=Set Featured Image] Title for the state. Displays in the media menu and the frame's title region.
  * @param {wp.media.model.Attachments} [attributes.library]                  The attachments collection to browse.
@@ -26,7 +26,7 @@ var Attachment = wp.media.model.Attachment,
  * @param {string}                     [attributes.menu=default]             Initial mode for the menu region.
  * @param {string}                     [attributes.router=browse]            Initial mode for the router region.
  * @param {string}                     [attributes.toolbar=featured-image]   Initial mode for the toolbar region.
- * @param {int}                        [attributes.priority=60]              The priority for the state link in the media menu.
+ * @param {number}                     [attributes.priority=60]              The priority for the state link in the media menu.
  * @param {boolean}                    [attributes.searchable=true]          Whether the library is searchable.
  * @param {boolean|string}             [attributes.filterable=false]         Whether the library is filterable, and if so what filters should be shown.
  *                                                                           Accepts 'all', 'uploaded', or 'unattached'.

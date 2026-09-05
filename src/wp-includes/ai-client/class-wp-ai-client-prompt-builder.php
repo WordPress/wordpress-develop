@@ -43,7 +43,9 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * interface. As soon as any exception is caught in a chain of method calls,
  * the returned instance will be in an error state, and all subsequent method
  * calls will be no-ops that just return the same error state instance. Only
- * when a generating method is called, the WP_Error will be returned.
+ * when a generating method is called, the WP_Error will be returned. The
+ * support check methods are the exception to the no-op behavior: they return
+ * false rather than the error state instance.
  *
  * @since 7.0.0
  *
@@ -79,7 +81,7 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * @method self as_output_media_aspect_ratio(string $aspectRatio) Sets the output media aspect ratio.
  * @method self as_output_speech_voice(string $voice) Sets the output speech voice.
  * @method self as_json_response(?array<string, mixed> $schema = null) Configures the prompt for JSON response output.
- * @method bool|WP_Error is_supported(?CapabilityEnum $capability = null) Checks if the prompt is supported for the given capability.
+ * @method bool is_supported(?CapabilityEnum $capability = null) Checks if the prompt is supported for the given capability.
  * @method bool is_supported_for_text_generation() Checks if the prompt is supported for text generation.
  * @method bool is_supported_for_image_generation() Checks if the prompt is supported for image generation.
  * @method bool is_supported_for_text_to_speech_conversion() Checks if the prompt is supported for text to speech conversion.
@@ -185,9 +187,9 @@ class WP_AI_Client_Prompt_Builder {
 	public function __construct( ProviderRegistry $registry, $prompt = null ) {
 		try {
 			$this->builder = new PromptBuilder( $registry, $prompt, AiClient::getEventDispatcher() );
-		} catch ( Exception $e ) {
+		} catch ( Throwable $e ) {
 			$this->builder = new PromptBuilder( $registry, null, AiClient::getEventDispatcher() );
-			$this->error   = $this->exception_to_wp_error( $e );
+			$this->error   = $this->throwable_to_wp_error( $e );
 		}
 
 		$default_timeout = 30.0;
@@ -221,6 +223,23 @@ class WP_AI_Client_Prompt_Builder {
 				)
 			)
 		);
+	}
+
+	/**
+	 * Clones the wrapped prompt builder alongside this instance.
+	 *
+	 * The wrapped builder mutates its own state, so without this a clone would
+	 * share that state with the original and any change made to one would be
+	 * visible in the other.
+	 *
+	 * @since 7.2.0
+	 */
+	public function __clone() {
+		$this->builder = clone $this->builder;
+
+		if ( null !== $this->error ) {
+			$this->error = clone $this->error;
+		}
 	}
 
 	/**
@@ -261,7 +280,7 @@ class WP_AI_Client_Prompt_Builder {
 			}
 
 			$function_name = WP_AI_Client_Ability_Function_Resolver::ability_name_to_function_name( $ability->get_name() );
-			$input_schema  = $ability->get_input_schema();
+			$input_schema  = wp_prepare_json_schema_for_client( $ability->get_input_schema() );
 
 			$declarations[] = new FunctionDeclaration(
 				$function_name,
@@ -282,7 +301,7 @@ class WP_AI_Client_Prompt_Builder {
 	 *
 	 * This allows WordPress developers to use snake_case naming conventions. It catches
 	 * any exceptions thrown, stores them, and returns a WP_Error when a terminate method
-	 * is called.
+	 * is called, or false when a support check method is called.
 	 *
 	 * @since 7.0.0
 	 *
@@ -358,44 +377,47 @@ class WP_AI_Client_Prompt_Builder {
 			}
 
 			return $result;
-		} catch ( Exception $e ) {
-			$this->error = $this->exception_to_wp_error( $e );
+		} catch ( Throwable $e ) {
+			$this->error = $this->throwable_to_wp_error( $e );
 
 			if ( self::is_generating_method( $name ) ) {
 				return $this->error;
+			}
+			if ( self::is_support_check_method( $name ) ) {
+				return false;
 			}
 			return $this;
 		}
 	}
 
 	/**
-	 * Converts an exception into a WP_Error with a structured error code and message.
+	 * Converts a throwable into a WP_Error with a structured error code and message.
 	 *
-	 * This method maps different exception types to specific WP_Error codes and HTTP status codes.
+	 * This method maps different throwable types to specific WP_Error codes and HTTP status codes.
 	 * The presence of the status codes means these WP_Error objects can be easily used in REST API responses
 	 * or other contexts where HTTP semantics are relevant.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param Exception $e The exception to convert.
+	 * @param Throwable $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error object.
 	 */
-	private function exception_to_wp_error( Exception $e ): WP_Error {
-		if ( $e instanceof NetworkException ) {
+	private function throwable_to_wp_error( Throwable $throwable ): WP_Error {
+		if ( $throwable instanceof NetworkException ) {
 			$error_code  = 'prompt_network_error';
 			$status_code = 503;
-		} elseif ( $e instanceof ClientException ) {
+		} elseif ( $throwable instanceof ClientException ) {
 			// `ClientException` uses HTTP status codes as exception codes, so we can rely on them.
 			$error_code  = 'prompt_client_error';
-			$status_code = $e->getCode() ? $e->getCode() : 400;
-		} elseif ( $e instanceof ServerException ) {
+			$status_code = $throwable->getCode() ? $throwable->getCode() : 400;
+		} elseif ( $throwable instanceof ServerException ) {
 			// `ServerException` uses HTTP status codes as exception codes, so we can rely on them.
 			$error_code  = 'prompt_upstream_server_error';
-			$status_code = $e->getCode() ? $e->getCode() : 500;
-		} elseif ( $e instanceof TokenLimitReachedException ) {
+			$status_code = $throwable->getCode() ? $throwable->getCode() : 500;
+		} elseif ( $throwable instanceof TokenLimitReachedException ) {
 			$error_code  = 'prompt_token_limit_reached';
 			$status_code = 400;
-		} elseif ( $e instanceof InvalidArgumentException ) {
+		} elseif ( $throwable instanceof InvalidArgumentException ) {
 			$error_code  = 'prompt_invalid_argument';
 			$status_code = 400;
 		} else {
@@ -405,10 +427,10 @@ class WP_AI_Client_Prompt_Builder {
 
 		return new WP_Error(
 			$error_code,
-			$e->getMessage(),
+			$throwable->getMessage(),
 			array(
 				'status'          => $status_code,
-				'exception_class' => get_class( $e ),
+				'exception_class' => get_class( $throwable ),
 			)
 		);
 	}

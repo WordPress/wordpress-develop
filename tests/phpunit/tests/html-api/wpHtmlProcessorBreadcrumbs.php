@@ -49,7 +49,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BASE',
 			'BDI',
 			'BDO',
-			'BGSOUND', // Deprectated.
+			'BGSOUND', // Deprecated.
 			'BIG',
 			'BLINK', // Deprecated.
 			'BR',

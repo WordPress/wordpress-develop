@@ -46,6 +46,7 @@
 	<exclude-pattern>/gutenberg/*</exclude-pattern>
 
 	<!-- Directories and third party library exclusions. -->
+	<exclude-pattern>/.cache/*</exclude-pattern>
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/vendor/*</exclude-pattern>
 

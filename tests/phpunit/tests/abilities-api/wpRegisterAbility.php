@@ -100,6 +100,9 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		// Clean up registered test ability category.
 		wp_unregister_ability_category( 'math' );
+		if ( wp_has_ability_category( 'uncategorized' ) ) {
+			wp_unregister_ability_category( 'uncategorized' );
+		}
 
 		parent::tear_down();
 	}
@@ -192,6 +195,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			array(
 				'annotations'  => $expected_annotations,
 				'show_in_rest' => true,
+				'public'       => false,
 			)
 		);
 
@@ -219,6 +223,42 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				)
 			)
 		);
+	}
+
+	/**
+	 * @ticket 65569
+	 */
+	public function test_register_ability_without_category_uses_uncategorized_category(): void {
+		global $wp_current_filter;
+
+		$this->simulate_doing_wp_abilities_init_action();
+
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+		wp_register_ability_category(
+			'uncategorized',
+			array(
+				'label'       => 'Uncategorized',
+				'description' => 'Abilities that have not been assigned to a specific category.',
+			)
+		);
+		array_pop( $wp_current_filter );
+
+		$ability = wp_register_ability(
+			'test/without-category',
+			array(
+				'label'               => 'Test ability without category',
+				'description'         => 'Test ability description.',
+				'input_schema'        => array(),
+				'output_schema'       => array(),
+				'permission_callback' => '__return_true',
+				'execute_callback'    => static function (): array {
+					return array( 'success' => true );
+				},
+			)
+		);
+
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertSame( 'uncategorized', $ability->get_category() );
 	}
 
 	/**
@@ -521,13 +561,15 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_get_existing_ability_using_callback() {
 		$this->simulate_doing_wp_abilities_init_action();
 
-		$name     = self::$test_ability_name;
-		$args     = self::$test_ability_args;
-		$callback = static function ( $instance ) use ( $name, $args ) {
-			wp_register_ability( $name, $args );
-		};
+		$name = self::$test_ability_name;
+		$args = self::$test_ability_args;
 
-		add_action( 'wp_abilities_api_init', $callback );
+		add_action(
+			'wp_abilities_api_init',
+			static function ( $instance ) use ( $name, $args ) {
+				wp_register_ability( $name, $args );
+			}
+		);
 
 		// Reset the Registry, to ensure it's empty before the test.
 		$registry_reflection = new ReflectionClass( WP_Abilities_Registry::class );
@@ -538,8 +580,6 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$instance_prop->setValue( null, null );
 
 		$result = wp_get_ability( $name );
-
-		remove_action( 'wp_abilities_api_init', $callback );
 
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),

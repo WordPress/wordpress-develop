@@ -41,6 +41,33 @@ class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65406
+	 */
+	public function test_replace_rich_text_stops_at_inner_block_offset() {
+		$item_opener = '<li>';
+		$rich_text   = 'This should not appear';
+		$nested_list = '<ul class="wp-block-list"><li>Nested child</li></ul>';
+		$item_closer = '</li>';
+
+		$processor = self::$get_block_bindings_processor_method->invoke(
+			null,
+			$item_opener . $rich_text . $nested_list . $item_closer
+		);
+		$processor->next_tag( array( 'tag_name' => 'li' ) );
+
+		$this->assertTrue(
+			$processor->replace_rich_text(
+				'New list item content',
+				array( strlen( $item_opener . $rich_text ) )
+			)
+		);
+		$this->assertEquals(
+			$item_opener . 'New list item content' . $nested_list . $item_closer,
+			$processor->get_updated_html()
+		);
+	}
+
+	/**
 	 * @ticket 63840
 	 */
 	public function test_set_attribute_and_replace_rich_text() {
