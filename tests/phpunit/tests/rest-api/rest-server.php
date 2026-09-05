@@ -151,6 +151,21 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( $headers, $enveloped['headers'] );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_envelope_params() {
+		return array(
+			array( '1' ),
+			array( 'true' ),
+			array( false ),
+			array( 'alternate' ),
+			array( array( 'alternate' ) ),
+		);
+	}
+
 	public function test_default_param() {
 
 		register_rest_route(
@@ -592,6 +607,33 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( array( array( 'status' => 400 ) ), $response->get_data()['additional_data'] );
 	}
 
+	/**
+	 * @ticket 64901
+	 */
+	public function test_error_to_response_with_stdclass_data() {
+		$error = new WP_Error( 'test', 'test', (object) array( 'status' => 400 ) );
+
+		$response = rest_convert_error_to_response( $error );
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+
+		// stdClass data should not cause a fatal, status should default to 500.
+		$this->assertSame( 500, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64901
+	 */
+	public function test_error_to_response_with_multi_status_non_numeric_status() {
+		$error = new WP_Error( 'test', 'test', array( 'status' => array( 'feeling' => 'happy' ) ) );
+		$error->add_data( array( 'status' => 400 ), 'test' );
+		$error->add_data( array( 'status' => array( 'feeling' => 'bleh' ) ), 'test' );
+
+		$response = rest_convert_error_to_response( $error );
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
 	public function test_rest_error() {
 		$data     = array(
 			'code'    => 'wp-api-test-error',
@@ -610,7 +652,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$stub->expects( $this->once() )
 			->method( 'set_status' )
-			->with( $this->equalTo( 400 ) );
+			->with( 400 );
 
 		$data     = array(
 			'code'    => 'wp-api-test-error',
@@ -1166,6 +1208,76 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_include_media_processing_settings(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
+		wp_set_current_user( $user_id );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+		$this->assertIsArray( $data );
+
+		$this->assertArrayHasKey( 'image_sizes', $data );
+		$this->assertArrayHasKey( 'image_size_threshold', $data );
+		$this->assertArrayHasKey( 'image_strip_meta', $data );
+		$this->assertTrue( $data['image_strip_meta'] );
+		$this->assertArrayHasKey( 'image_max_bit_depth', $data );
+		$this->assertSame( 16, $data['image_max_bit_depth'] );
+	}
+
+	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_not_include_media_processing_settings_without_caps(): void {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+		$this->assertIsArray( $data );
+
+		$this->assertArrayNotHasKey( 'image_sizes', $data );
+		$this->assertArrayNotHasKey( 'image_size_threshold', $data );
+		$this->assertArrayNotHasKey( 'image_strip_meta', $data );
+		$this->assertArrayNotHasKey( 'image_max_bit_depth', $data );
+	}
+
+	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_honor_media_processing_filters(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->assertIsInt( $user_id );
+		wp_set_current_user( $user_id );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		add_filter( 'image_strip_meta', '__return_false' );
+		add_filter(
+			'image_max_bit_depth',
+			static fn ( int $max_depth ) => min( 8, $max_depth )
+		);
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertFalse( $data['image_strip_meta'] );
+		$this->assertSame( 8, $data['image_max_bit_depth'] );
+	}
+
+	/**
 	 * @ticket 57902
 	 *
 	 * @covers WP_REST_Server::get_index
@@ -1695,6 +1807,32 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Helper to setup a users and auth cookie global for the
+	 * rest_send_refreshed_nonce related tests.
+	 */
+	protected function helper_setup_user_for_rest_send_refreshed_nonce_tests() {
+		$author = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $author );
+
+		global $wp_rest_auth_cookie;
+
+		$wp_rest_auth_cookie = true;
+	}
+
+	/**
+	 * Helper to make the request and get the headers for the
+	 * rest_send_refreshed_nonce related tests.
+	 *
+	 * @return array
+	 */
+	protected function helper_make_request_and_return_headers_for_rest_send_refreshed_nonce_tests() {
+		$request = new WP_REST_Request( 'GET', '/', array() );
+		$result  = rest_get_server()->serve_request( '/' );
+
+		return rest_get_server()->sent_headers;
+	}
+
+	/**
 	 * Refreshed nonce should be present in header when a valid nonce is
 	 * passed for logged in/anonymous user and not present when nonce is not
 	 * passed.
@@ -1722,6 +1860,23 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		} else {
 			$this->assertArrayNotHasKey( 'X-WP-Nonce', $headers );
 		}
+	}
+
+	/**
+	 * @return array {
+	 *     @type array {
+	 *         @type bool $has_logged_in_user Are we registering a user for the test.
+	 *         @type bool $has_nonce          Is the nonce passed.
+	 *     }
+	 * }
+	 */
+	public function data_rest_send_refreshed_nonce() {
+		return array(
+			array( true, true ),
+			array( true, false ),
+			array( false, true ),
+			array( false, false ),
+		);
 	}
 
 	/**
@@ -1761,6 +1916,22 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
+	}
+
+	public function _validate_as_integer_123( $value, $request, $key ) {
+		if ( ! is_int( $value ) ) {
+			return new WP_Error( 'some-error', 'This is not valid!' );
+		}
+
+		return true;
+	}
+
+	public function _validate_as_string_foo( $value, $request, $key ) {
+		if ( ! is_string( $value ) ) {
+			return new WP_Error( 'some-error', 'This is not valid!' );
+		}
+
+		return true;
 	}
 
 	/**
@@ -2419,6 +2590,47 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 64955
+	 */
+	public function test_get_data_for_route_includes_filtered_json_schema_keywords() {
+		$filter = static function ( $keywords, $schema_profile ) {
+			if ( 'rest-api' === $schema_profile ) {
+				$keywords[] = 'xRestApiKeyword';
+			}
+
+			return $keywords;
+		};
+
+		add_filter( 'wp_json_schema_allowed_keywords', $filter, 10, 2 );
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function () {
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'param' => array(
+						'type'            => 'string',
+						'xRestApiKeyword' => true,
+						'invalid'         => true,
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( new WP_REST_Request( 'OPTIONS', '/test-ns/v1/test' ) );
+
+		$args = $response->get_data()['endpoints'][0]['args'];
+
+		$this->assertArrayHasKey( 'xRestApiKeyword', $args['param'] );
+		$this->assertArrayNotHasKey( 'invalid', $args['param'] );
+	}
+
+	/**
 	 * @ticket 53056
 	 */
 	public function test_json_encode_error_results_in_500_status_code() {
@@ -2609,79 +2821,5 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'targetHints', $link );
 		$this->assertArrayHasKey( 'allow', $link['targetHints'] );
 		$this->assertSame( array( 'GET', 'PUT' ), $link['targetHints']['allow'] );
-	}
-
-	public function _validate_as_integer_123( $value, $request, $key ) {
-		if ( ! is_int( $value ) ) {
-			return new WP_Error( 'some-error', 'This is not valid!' );
-		}
-
-		return true;
-	}
-
-	public function _validate_as_string_foo( $value, $request, $key ) {
-		if ( ! is_string( $value ) ) {
-			return new WP_Error( 'some-error', 'This is not valid!' );
-		}
-
-		return true;
-	}
-
-	/**
-	 * @return array {
-	 *     @type array {
-	 *         @type bool $has_logged_in_user Are we registering a user for the test.
-	 *         @type bool $has_nonce          Is the nonce passed.
-	 *     }
-	 * }
-	 */
-	public function data_rest_send_refreshed_nonce() {
-		return array(
-			array( true, true ),
-			array( true, false ),
-			array( false, true ),
-			array( false, false ),
-		);
-	}
-
-	/**
-	 * Helper to setup a users and auth cookie global for the
-	 * rest_send_refreshed_nonce related tests.
-	 */
-	protected function helper_setup_user_for_rest_send_refreshed_nonce_tests() {
-		$author = self::factory()->user->create( array( 'role' => 'author' ) );
-		wp_set_current_user( $author );
-
-		global $wp_rest_auth_cookie;
-
-		$wp_rest_auth_cookie = true;
-	}
-
-	/**
-	 * Helper to make the request and get the headers for the
-	 * rest_send_refreshed_nonce related tests.
-	 *
-	 * @return array
-	 */
-	protected function helper_make_request_and_return_headers_for_rest_send_refreshed_nonce_tests() {
-		$request = new WP_REST_Request( 'GET', '/', array() );
-		$result  = rest_get_server()->serve_request( '/' );
-
-		return rest_get_server()->sent_headers;
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_envelope_params() {
-		return array(
-			array( '1' ),
-			array( 'true' ),
-			array( false ),
-			array( 'alternate' ),
-			array( array( 'alternate' ) ),
-		);
 	}
 }

@@ -71,7 +71,6 @@ function _wp_add_block_level_presets_class( $block_content, $block ) {
  *
  * @param string|null $pre_render   The pre-rendered content. Default null.
  * @param array       $block The block being rendered.
- *
  * @return null
  */
 function _wp_add_block_level_preset_styles( $pre_render, $block ) {
@@ -131,7 +130,7 @@ function _wp_add_block_level_preset_styles( $pre_render, $block ) {
 		)
 	);
 
-	// include preset css classes on the the stylesheet.
+	// include preset css classes on the stylesheet.
 	$styles .= $theme_json_object->get_stylesheet(
 		array( 'presets' ),
 		null,

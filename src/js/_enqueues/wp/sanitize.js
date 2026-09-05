@@ -2,8 +2,6 @@
  * @output wp-includes/js/wp-sanitize.js
  */
 
-/* eslint-env es6 */
-
 ( function () {
 
 	window.wp = window.wp || {};
@@ -23,6 +21,10 @@
 		 * @return {string} Stripped text.
 		 */
 		stripTags: function( text ) {
+			if ( 'string' !== typeof text ) {
+				return '';
+			}
+
 			const domParser = new DOMParser();
 			const htmlDocument = domParser.parseFromString(
 				text,

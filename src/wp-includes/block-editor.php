@@ -109,7 +109,6 @@ function get_block_categories( $post_or_block_editor_context ) {
  * @since 5.8.0
  *
  * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
- *
  * @return bool|string[] Array of block type slugs, or boolean to enable/disable all.
  */
 function get_allowed_block_types( $block_editor_context ) {
@@ -184,7 +183,7 @@ function get_default_block_editor_settings() {
 	}
 
 	$default_size       = get_option( 'image_default_size', 'large' );
-	$image_default_size = in_array( $default_size, array_keys( $image_size_names ), true ) ? $default_size : 'large';
+	$image_default_size = isset( $image_size_names[ $default_size ] ) ? $default_size : 'large';
 
 	$image_dimensions = array();
 	$all_sizes        = wp_get_registered_image_subsizes();
@@ -338,6 +337,7 @@ function _wp_get_iframed_editor_assets() {
 	 * front-end assets for the content.
 	 */
 	add_filter( 'should_load_block_editor_scripts_and_styles', '__return_false' );
+	/** This action is documented in wp-includes/script-loader.php */
 	do_action( 'enqueue_block_assets' );
 	remove_filter( 'should_load_block_editor_scripts_and_styles', '__return_false' );
 
@@ -483,7 +483,6 @@ function wp_get_post_content_block_attributes() {
  *
  * @param array                   $custom_settings      Custom settings to use with the given editor type.
  * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
- *
  * @return array The contextualized block editor settings.
  */
 function get_block_editor_settings( array $custom_settings, $block_editor_context ) {
@@ -657,6 +656,8 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		 */
 		$editor_settings = apply_filters_deprecated( 'block_editor_settings', array( $editor_settings, $post ), '5.8.0', 'block_editor_settings_all' );
 	}
+
+	$editor_settings['canEditCSS'] = current_user_can( 'edit_css' );
 
 	return $editor_settings;
 }

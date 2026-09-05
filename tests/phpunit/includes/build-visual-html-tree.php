@@ -1,7 +1,5 @@
 <?php
 
-/* phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped */
-
 /**
  * Generates representation of the semantic HTML tree structure.
  *
@@ -36,7 +34,7 @@
  *         style="margin-top:50px;margin-bottom:50px;"
  *
  *
- * @see https://github.com/WordPress/wordpress-develop/blob/trunk/tests/phpunit/data/html5lib-tests/tree-construction/README.md
+ * @see https://github.com/web-platform-tests/wpt/blob/master/html/syntax/parsing/resources/README.md
  *
  * @since 6.9.0
  *
@@ -121,7 +119,7 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 					}
 
 					/*
-					 * Sorts attributes to match html5lib sort order.
+					 * Sorts attributes to match Web Platform Tests tree-construction order.
 					 *
 					 *  - First comes normal HTML attributes.
 					 *  - Then come adjusted foreign attributes; these have spaces in their names.
@@ -212,6 +210,11 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 				$text_node .= $text_content;
 				break;
 
+			case '#processing-instruction':
+				// Processing instructions must be "<?", the target, a space, the data, "?", and ">".
+				$output .= str_repeat( $tree_indent, $indent_level ) . "<?{$processor->get_tag()} {$processor->get_modifiable_text()}?>\n";
+				break;
+
 			case '#funky-comment':
 				// Comments must be "<" then "!-- " then the data then " -->".
 				$output .= str_repeat( $tree_indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
@@ -278,7 +281,6 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 				}
 				break;
 			default:
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
 				$serialized_token_type = var_export( $processor->get_token_type(), true );
 				throw new Exception( "Unhandled token type for tree construction: {$serialized_token_type}" );
 		}

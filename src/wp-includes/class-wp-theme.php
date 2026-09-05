@@ -233,7 +233,7 @@ final class WP_Theme implements ArrayAccess {
 	 * By default the bucket is not cached, so this value is useless.
 	 *
 	 * @since 3.4.0
-	 * @var bool
+	 * @var int
 	 */
 	private static $cache_expiration = 1800;
 
@@ -868,6 +868,14 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param string $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
 	 * @return string|array|false String or array (for Tags header) on success, false on failure.
+	 *
+	 * @phpstan-return (
+	 *     $header is 'Tags'
+	 *         ? string[]|false
+	 *         : ( $header is 'Name'|'ThemeURI'|'Description'|'Author'|'AuthorURI'|'Version'|'Template'|'Status'|'TextDomain'|'DomainPath'|'RequiresWP'|'RequiresPHP'|'UpdateURI'
+	 *             ? string|false
+	 *             : false )
+	 * )
 	 */
 	public function get( $header ) {
 		if ( ! isset( $this->headers[ $header ] ) ) {
@@ -1004,7 +1012,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param string       $header    Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
 	 * @param string|array $value     Value to mark up. An array for Tags header, string otherwise.
-	 * @param string       $translate Whether the header has been translated.
+	 * @param bool         $translate Whether the header has been translated.
 	 * @return string Value, marked up.
 	 */
 	private function markup_header( $header, $value, $translate ) {
@@ -1332,13 +1340,22 @@ final class WP_Theme implements ArrayAccess {
 			$files = (array) $this->get_files( 'php', 1, true );
 
 			foreach ( $files as $file => $full_path ) {
-				if ( ! preg_match( '|Template Name:(.*)$|mi', file_get_contents( $full_path ), $header ) ) {
+				$headers = get_file_data(
+					$full_path,
+					array(
+						'TemplateName'     => 'Template Name',
+						'TemplatePostType' => 'Template Post Type',
+					),
+					'theme'
+				);
+
+				if ( ! $headers['TemplateName'] ) {
 					continue;
 				}
 
 				$types = array( 'page' );
-				if ( preg_match( '|Template Post Type:(.*)$|mi', file_get_contents( $full_path ), $type ) ) {
-					$types = explode( ',', _cleanup_header_comment( $type[1] ) );
+				if ( $headers['TemplatePostType'] ) {
+					$types = explode( ',', $headers['TemplatePostType'] );
 				}
 
 				foreach ( $types as $type ) {
@@ -1347,7 +1364,7 @@ final class WP_Theme implements ArrayAccess {
 						$post_templates[ $type ] = array();
 					}
 
-					$post_templates[ $type ][ $file ] = _cleanup_header_comment( $header[1] );
+					$post_templates[ $type ][ $file ] = $headers['TemplateName'];
 				}
 			}
 
@@ -2156,17 +2173,5 @@ final class WP_Theme implements ArrayAccess {
 	 */
 	private static function _name_sort_i18n( $a, $b ) {
 		return strnatcasecmp( $a->name_translated, $b->name_translated );
-	}
-
-	private static function _check_headers_property_has_correct_type( $headers ) {
-		if ( ! is_array( $headers ) ) {
-			return false;
-		}
-		foreach ( $headers as $key => $value ) {
-			if ( ! is_string( $key ) || ! is_string( $value ) ) {
-				return false;
-			}
-		}
-		return true;
 	}
 }

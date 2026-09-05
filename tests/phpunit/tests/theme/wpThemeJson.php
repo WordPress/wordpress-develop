@@ -44,9 +44,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		static::$user_id = self::factory()->user->create();
 	}
 
+	public function tear_down() {
+		$registry = WP_Block_Type_Registry::get_instance();
+
+		if ( $registry->is_registered( 'test/feature-selector' ) ) {
+			unregister_block_type( 'test/feature-selector' );
+		}
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
+	 * @ticket 65037
 	 */
 	public function test_get_settings() {
 		$theme_json = new WP_Theme_JSON(
@@ -101,6 +112,36 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 65592
+	 */
+	public function test_get_block_visibility_settings() {
+		// Test that the value passes through the full sanitization pipeline,
+		// including remove_insecure_properties (called when saving global styles).
+		$theme_json_data = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'blockVisibility' => array(
+					'allowEditing' => false,
+				),
+				'blocks'          => array(
+					'core/group' => array(
+						'blockVisibility' => array(
+							'allowEditing' => true,
+						),
+					),
+				),
+			),
+		);
+		$sanitized       = WP_Theme_JSON::remove_insecure_properties( $theme_json_data );
+		$theme_json      = new WP_Theme_JSON( $sanitized );
+		$actual          = $theme_json->get_settings();
+
+		$this->assertFalse( $actual['blockVisibility']['allowEditing'] );
+		// The setting is global-only: block-scoped values are stripped during sanitization.
+		$this->assertArrayNotHasKey( 'blockVisibility', $actual['blocks']['core/group'] ?? array() );
 	}
 
 	/**
@@ -231,6 +272,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
+	/**
+	 * @ticket 65037
+	 */
 	public function test_get_settings_appearance_true_opts_in() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -265,6 +309,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'background' => array(
 				'backgroundImage' => true,
 				'backgroundSize'  => true,
+				'gradient'        => true,
 			),
 			'border'     => array(
 				'width'  => true,
@@ -280,7 +325,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 			'dimensions' => array(
 				'aspectRatio' => true,
+				'height'      => true,
 				'minHeight'   => true,
+				'minWidth'    => true,
+				'width'       => true,
 			),
 			'position'   => array(
 				'sticky' => true,
@@ -304,6 +352,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'background' => array(
 						'backgroundImage' => true,
 						'backgroundSize'  => true,
+						'gradient'        => true,
 					),
 					'border'     => array(
 						'width'  => true,
@@ -319,7 +368,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'dimensions' => array(
 						'aspectRatio' => true,
+						'height'      => true,
 						'minHeight'   => true,
+						'minWidth'    => true,
+						'width'       => true,
 					),
 					'position'   => array(
 						'sticky' => true,
@@ -420,6 +472,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 						),
 					),
+					'dimensions' => array(
+						'dimensionSizes' => array(
+							array(
+								'name' => 'Small',
+								'slug' => 'small',
+								'size' => '100px',
+							),
+							array(
+								'name' => 'Large',
+								'slug' => 'large',
+								'size' => '200px',
+							),
+						),
+					),
 					'color'      => array(
 						'text'      => 'value',
 						'palette'   => array(
@@ -510,6 +576,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 							'dimensions' => array(
 								'minHeight' => '50vh',
+								'height'    => '500px',
+								'width'     => 'var:preset|dimension|large',
 							),
 							'elements'   => array(
 								'link' => array(
@@ -543,6 +611,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'textAlign' => 'center',
 							),
 						),
+						'core/paragraph'    => array(
+							'typography' => array(
+								'textShadow' => '1px 1px 2px rgba(0,0,0,0.3)',
+							),
+						),
 						'core/post-date'    => array(
 							'color'    => array(
 								'text' => '#123456',
@@ -559,6 +632,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/post-excerpt' => array(
 							'typography' => array(
 								'textColumns' => 2,
+								'textIndent'  => '2em',
 							),
 						),
 						'core/image'        => array(
@@ -586,8 +660,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$variables = ':root{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--font-size--small: 14px;--wp--preset--font-size--big: 41px;--wp--preset--font-family--arial: Arial, serif;--wp--preset--border-radius--small: 2px;--wp--preset--border-radius--medium: 4px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
-		$styles    = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}:root :where(.wp-element-button, .wp-block-button__link){box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}:root :where(.wp-block-cover){min-height: unset;aspect-ratio: 16/9;border-radius: var(--wp--preset--border-radius--small);}:root :where(.wp-block-group){background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;min-height: 50vh;padding: 24px;}:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: #111;}:root :where(.wp-block-heading){color: #123456;}:root :where(.wp-block-heading a:where(:not(.wp-element-button))){background-color: #333;color: #111;font-size: 60px;}:root :where(.wp-block-media-text){text-align: center;}:root :where(.wp-block-post-date){color: #123456;}:root :where(.wp-block-post-date a:where(:not(.wp-element-button))){background-color: #777;color: #555;}:root :where(.wp-block-post-excerpt){column-count: 2;}:root :where(.wp-block-image){margin-bottom: 30px;}:root :where(.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder){border-top-left-radius: 10px;border-bottom-right-radius: 1em;}:root :where(.wp-block-image img, .wp-block-image .components-placeholder){filter: var(--wp--preset--duotone--custom-duotone);}';
+		$variables = ':root{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--font-size--small: 14px;--wp--preset--font-size--big: 41px;--wp--preset--font-family--arial: Arial, serif;--wp--preset--border-radius--small: 2px;--wp--preset--border-radius--medium: 4px;--wp--preset--dimension--small: 100px;--wp--preset--dimension--large: 200px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
+		$styles    = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}:root :where(.wp-element-button, .wp-block-button__link){box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}:root :where(.wp-block-cover){min-height: unset;aspect-ratio: 16/9;border-radius: var(--wp--preset--border-radius--small);}:root :where(.wp-block-group){background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;min-height: 50vh;padding: 24px;height: 500px;width: var(--wp--preset--dimension--large);}:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: #111;}:root :where(.wp-block-heading){color: #123456;}:root :where(.wp-block-heading a:where(:not(.wp-element-button))){background-color: #333;color: #111;font-size: 60px;}:root :where(.wp-block-media-text){text-align: center;}:root :where(p){text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}:root :where(.wp-block-post-date){color: #123456;}:root :where(.wp-block-post-date a:where(:not(.wp-element-button))){background-color: #777;color: #555;}:root :where(.wp-block-post-excerpt){column-count: 2;text-indent: 2em;}:root :where(.wp-block-image){margin-bottom: 30px;}:root :where(.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder){border-top-left-radius: 10px;border-bottom-right-radius: 1em;}:root :where(.wp-block-image img, .wp-block-image .components-placeholder){filter: var(--wp--preset--duotone--custom-duotone);}';
 		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-custom-gradient-gradient-background{background: var(--wp--preset--gradient--custom-gradient) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-big-font-size{font-size: var(--wp--preset--font-size--big) !important;}.has-arial-font-family{font-family: var(--wp--preset--font-family--arial) !important;}';
 		$all       = $variables . $styles . $presets;
 
@@ -731,6 +805,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -754,8 +829,63 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'.wp-block-heading.has-white-color{color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
+			':where(.wp-block-heading).has-white-color{color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-background-color{background-color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( array( 'presets' ) )
+		);
+	}
+
+	/**
+	 * @ticket 64598
+	 */
+	public function test_get_stylesheet_preset_css_vars_use_feature_selector() {
+		register_block_type(
+			'test/feature-selector',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'       => '.wp-block-test-feature-selector .wp-block-test-feature-selector__inner',
+					'dimensions' => array(
+						'root' => '.wp-block-test-feature-selector',
+					),
+				),
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'test/feature-selector' => array(
+							'dimensions' => array(
+								'dimensionSizes' => array(
+									array(
+										'slug' => '25',
+										'size' => '25%',
+									),
+									array(
+										'slug' => '50',
+										'size' => '50%',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$variables = $theme_json->get_stylesheet( array( 'variables' ) );
+
+		// Dimension preset CSS vars should be on the feature selector,
+		// not the block's root selector.
+		$this->assertStringContainsString(
+			'.wp-block-test-feature-selector{--wp--preset--dimension--25: 25%;--wp--preset--dimension--50: 50%;}',
+			$variables
+		);
+		$this->assertStringNotContainsString(
+			'.wp-block-test-feature-selector .wp-block-test-feature-selector__inner{--wp--preset--dimension',
+			$variables
 		);
 	}
 
@@ -765,6 +895,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
@@ -797,7 +928,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$styles    = ':root :where(.wp-block-group){color: red;}';
-		$presets   = '.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
+		$presets   = ':where(.wp-block-group).has-grey-color{color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
 		$variables = '.wp-block-group{--wp--preset--color--grey: grey;}';
 
 		$all = $variables . $styles . $presets;
@@ -913,6 +1044,765 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame( $link_style, $theme_json->get_styles_for_block( $link_node ) );
 		$this->assertSame( $hover_style, $theme_json->get_styles_for_block( $hover_node ) );
 		$this->assertSame( $focus_style, $theme_json->get_styles_for_block( $focus_node ) );
+	}
+
+	/**
+	 * @ticket 65164
+	 */
+	public function test_get_styles_for_block_responsive_feature_selector_not_duplicated_on_base_selector() {
+		register_block_type(
+			'test/responsive-feature',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'  => '.wp-block-test-responsive-feature',
+					'color' => '.wp-block-test-responsive-feature .color-target',
+				),
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/responsive-feature' => array(
+							'@mobile' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$base_metadata = array(
+			'name'      => 'test/responsive-feature',
+			'path'      => array( 'styles', 'blocks', 'test/responsive-feature' ),
+			'selector'  => '.wp-block-test-responsive-feature',
+			'selectors' => array(
+				'color' => '.wp-block-test-responsive-feature .color-target',
+			),
+		);
+
+		$mobile_metadata = array(
+			'name'        => 'test/responsive-feature',
+			'path'        => array( 'styles', 'blocks', 'test/responsive-feature', '@mobile' ),
+			'selector'    => '.wp-block-test-responsive-feature',
+			'selectors'   => array(
+				'color' => '.wp-block-test-responsive-feature .color-target',
+			),
+			'media_query' => '@media (width <= 480px)',
+		);
+
+		$actual_styles  = $theme_json->get_styles_for_block( $base_metadata );
+		$actual_styles .= $theme_json->get_styles_for_block( $mobile_metadata );
+
+		unregister_block_type( 'test/responsive-feature' );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(.wp-block-test-responsive-feature .color-target){color: red;}}',
+			$actual_styles
+		);
+		$this->assertStringNotContainsString(
+			'@media (width <= 480px){:root :where(.wp-block-test-responsive-feature){color: red;}}',
+			$actual_styles
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_get_viewport_media_queries_uses_valid_custom_breakpoint_without_merging_defaults() {
+		$this->assertSame(
+			array(
+				'@mobile'  => '@media (width <= 640px)',
+				'@desktop' => '@media (width > 640px)',
+			),
+			WP_Theme_JSON::get_viewport_media_queries(
+				array(
+					'mobile'  => ' 640px ',
+					'tablet'  => 'calc(100% - 1rem)',
+					'desktop' => '1200px',
+				),
+				array(
+					'include_desktop' => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_get_viewport_media_queries_uses_defaults_when_no_custom_breakpoints_are_valid() {
+		$this->assertSame(
+			array(
+				'@mobile'  => '@media (width <= 480px)',
+				'@tablet'  => '@media (480px < width <= 782px)',
+				'@desktop' => '@media (width > 782px)',
+			),
+			WP_Theme_JSON::get_viewport_media_queries(
+				array(
+					'mobile' => '100%',
+					'tablet' => 'auto',
+				),
+				array(
+					'include_desktop' => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_get_viewport_media_queries_uses_valid_tablet_breakpoint_with_single_max_width_query_when_mobile_is_invalid() {
+		$this->assertSame(
+			array(
+				'@tablet'  => '@media (width <= 64rem)',
+				'@desktop' => '@media (width > 64rem)',
+			),
+			WP_Theme_JSON::get_viewport_media_queries(
+				array(
+					'mobile' => '100%',
+					'tablet' => '64rem',
+				),
+				array(
+					'include_desktop' => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_viewport_settings_preserve_valid_tablet_breakpoint_when_mobile_is_invalid() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'viewport' => array(
+						'mobile' => '100%',
+						'tablet' => '64rem',
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'tablet' => '64rem',
+			),
+			$theme_json->get_raw_data()['settings']['viewport']
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_viewport_settings_use_defaults_when_no_custom_breakpoints_are_valid() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'viewport' => array(
+						'mobile'  => '100%',
+						'tablet'  => 'auto',
+						'desktop' => '1200px',
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'mobile' => '480px',
+				'tablet' => '782px',
+			),
+			$theme_json->get_raw_data()['settings']['viewport']
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_get_viewport_media_queries_omits_tablet_when_its_breakpoint_is_not_larger_than_mobile() {
+		$this->assertSame(
+			array(
+				'@mobile'  => '@media (width <= 64rem)',
+				'@desktop' => '@media (width > 64rem)',
+			),
+			WP_Theme_JSON::get_viewport_media_queries(
+				array(
+					'mobile' => '64rem',
+					'tablet' => '40rem',
+				),
+				array(
+					'include_desktop' => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_get_stylesheet_uses_custom_viewport_breakpoints_for_responsive_block_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'viewport' => array(
+						'mobile' => '640px',
+						'tablet' => '960px',
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+							'@tablet' => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		$this->assertStringContainsString(
+			'@media (width <= 640px){:root :where(.wp-block-group){color: red;}}',
+			$stylesheet
+		);
+		$this->assertStringContainsString(
+			'@media (640px < width <= 960px){:root :where(.wp-block-group){color: blue;}}',
+			$stylesheet
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_get_stylesheet_omits_tablet_styles_when_its_breakpoint_is_not_larger_than_mobile() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'viewport' => array(
+						'mobile' => '960px',
+						'tablet' => '640px',
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+							'@tablet' => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		$this->assertSame(
+			array(
+				'mobile' => '960px',
+			),
+			$theme_json->get_raw_data()['settings']['viewport']
+		);
+		$this->assertStringContainsString(
+			'@media (width <= 960px){:root :where(.wp-block-group){color: red;}}',
+			$stylesheet
+		);
+		$this->assertStringNotContainsString(
+			'color: blue',
+			$stylesheet
+		);
+	}
+
+	/**
+	 * @ticket 65596
+	 */
+	public function test_get_stylesheet_uses_single_max_width_tablet_query_when_mobile_is_invalid() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'viewport' => array(
+						'mobile' => '100%',
+						'tablet' => '64rem',
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+							'@tablet' => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		$this->assertSame(
+			array(
+				'tablet' => '64rem',
+			),
+			$theme_json->get_raw_data()['settings']['viewport']
+		);
+		$this->assertStringContainsString(
+			'@media (width <= 64rem){:root :where(.wp-block-group){color: blue;}}',
+			$stylesheet
+		);
+		$this->assertStringNotContainsString(
+			'color: red',
+			$stylesheet
+		);
+	}
+
+	/**
+	 * @ticket 65164
+	 */
+	public function test_get_styles_for_block_outputs_responsive_block_gap_after_default_gap() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'spacing' => array(
+								'blockGap' => '5rem',
+							),
+							'@mobile' => array(
+								'spacing' => array(
+									'blockGap' => '2rem',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$base_metadata = array(
+			'name'     => 'core/group',
+			'path'     => array( 'styles', 'blocks', 'core/group' ),
+			'selector' => '.wp-block-group',
+			'css'      => '.wp-block-group',
+		);
+
+		$mobile_metadata = array(
+			'name'        => 'core/group',
+			'path'        => array( 'styles', 'blocks', 'core/group', '@mobile' ),
+			'selector'    => '.wp-block-group',
+			'css'         => '.wp-block-group',
+			'media_query' => '@media (width <= 480px)',
+		);
+
+		$actual_styles  = $theme_json->get_styles_for_block( $base_metadata );
+		$actual_styles .= $theme_json->get_styles_for_block( $mobile_metadata );
+
+		$default_gap = ':root :where(.wp-block-group-is-layout-flex){gap: 5rem;}';
+		$mobile_gap  = ':root :where(.wp-block-group-is-layout-flex){gap: 2rem;}';
+
+		$this->assertStringContainsString( $default_gap, $actual_styles );
+		$this->assertStringContainsString( '@media (width <= 480px)', $actual_styles );
+		$this->assertStringContainsString( $mobile_gap, $actual_styles );
+		$this->assertLessThan( strpos( $actual_styles, $mobile_gap ), strpos( $actual_styles, $default_gap ) );
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_styles_defined_only_in_a_breakpoint() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'red',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: red;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_pseudo_styles_defined_only_in_a_breakpoint() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										':hover' => array(
+											'color' => array(
+												'text' => 'red',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: red;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_styles_defined_only_in_separate_breakpoints() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'red',
+										),
+									),
+								),
+							),
+							'@tablet' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'blue',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$link_selector = ':root :where(.wp-block-group a:where(:not(.wp-element-button)))';
+		$expected      = '@media (width <= 480px){' . $link_selector . '{color: red;}}' .
+			'@media (480px < width <= 782px){' . $link_selector . '{color: blue;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_does_not_duplicate_base_element_styles_into_pseudo_rule() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'elements' => array(
+								'link' => array(
+									'color' => array(
+										'text' => 'blue',
+									),
+								),
+							),
+							'@mobile'  => array(
+								'elements' => array(
+									'link' => array(
+										':hover' => array(
+											'color' => array(
+												'text' => 'darkred',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$link_selector = ':root :where(.wp-block-group a:where(:not(.wp-element-button)))';
+		$expected      = $link_selector . '{color: blue;}' .
+			'@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: darkred;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65164
+	 */
+	public function test_get_styles_for_block_responsive_element_pseudo_styles_preserve_order_and_do_not_duplicate_pseudo() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'elements' => array(
+								'link' => array(
+									'color'  => array(
+										'text' => 'blue',
+									),
+									':hover' => array(
+										'color' => array(
+											'text' => 'navy',
+										),
+									),
+								),
+							),
+							'@mobile'  => array(
+								'elements' => array(
+									'link' => array(
+										'color'  => array(
+											'text' => 'red',
+										),
+										':hover' => array(
+											'color' => array(
+												'text' => 'darkred',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$link_selector = '.wp-block-group a:where(:not(.wp-element-button))';
+
+		// Nodes are assembled in cascade order: default, responsive, pseudo, responsive pseudo.
+		$link_node = array(
+			'path'     => array( 'styles', 'blocks', 'core/group', 'elements', 'link' ),
+			'selector' => $link_selector,
+		);
+
+		$mobile_link_node = array(
+			'path'        => array( 'styles', 'blocks', 'core/group', '@mobile', 'elements', 'link' ),
+			'selector'    => $link_selector,
+			'media_query' => '@media (width <= 480px)',
+		);
+
+		$hover_node = array(
+			'path'     => array( 'styles', 'blocks', 'core/group', 'elements', 'link' ),
+			'selector' => $link_selector . ':hover',
+		);
+
+		$mobile_hover_node = array(
+			'path'        => array( 'styles', 'blocks', 'core/group', '@mobile', 'elements', 'link' ),
+			'selector'    => $link_selector . ':hover',
+			'media_query' => '@media (width <= 480px)',
+		);
+
+		$actual_styles  = $theme_json->get_styles_for_block( $link_node );
+		$actual_styles .= $theme_json->get_styles_for_block( $mobile_link_node );
+		$actual_styles .= $theme_json->get_styles_for_block( $hover_node );
+		$actual_styles .= $theme_json->get_styles_for_block( $mobile_hover_node );
+
+		$default_link = ':root :where(.wp-block-group a:where(:not(.wp-element-button))){color: blue;}';
+		$mobile_link  = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: red;}}';
+		$default_hov  = ':root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: navy;}';
+		$mobile_hov   = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: darkred;}}';
+
+		$this->assertStringContainsString( $default_link, $actual_styles );
+		$this->assertStringContainsString( $mobile_link, $actual_styles );
+		$this->assertStringContainsString( $default_hov, $actual_styles );
+		$this->assertStringContainsString( $mobile_hov, $actual_styles );
+
+		$this->assertLessThan( strpos( $actual_styles, $mobile_link ), strpos( $actual_styles, $default_link ) );
+		$this->assertLessThan( strpos( $actual_styles, $default_hov ), strpos( $actual_styles, $mobile_link ) );
+		$this->assertLessThan( strpos( $actual_styles, $mobile_hov ), strpos( $actual_styles, $default_hov ) );
+		$this->assertStringNotContainsString( ':hover:hover', $actual_styles );
+	}
+
+	/**
+	 * @ticket 65164
+	 */
+	public function test_get_styles_for_block_with_style_variations_and_responsive_block_gap() {
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'withGap',
+				'label' => 'With Gap',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'withGap' => array(
+									'spacing' => array(
+										'blockGap' => '5rem',
+									),
+									'@mobile' => array(
+										'spacing' => array(
+											'blockGap' => '2rem',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$metadata = array(
+			'name'       => 'core/group',
+			'path'       => array( 'styles', 'blocks', 'core/group' ),
+			'selector'   => '.wp-block-group',
+			'css'        => '.wp-block-group',
+			'variations' => array(
+				array(
+					'path'     => array( 'styles', 'blocks', 'core/group', 'variations', 'withGap' ),
+					'selector' => '.is-style-withGap.wp-block-group',
+				),
+			),
+		);
+
+		$actual_styles = $theme_json->get_styles_for_block( $metadata );
+
+		unregister_block_style( 'core/group', 'withGap' );
+
+		$default_gap = ':root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-flex){gap: 5rem;}';
+		$mobile_gap  = ':root :where(.is-style-withGap.wp-block-group.wp-block-group-is-layout-flex){gap: 2rem;}';
+
+		$this->assertStringContainsString( $default_gap, $actual_styles );
+		$this->assertStringContainsString( '@media (width <= 480px)', $actual_styles );
+		$this->assertStringContainsString( $mobile_gap, $actual_styles );
+		$this->assertLessThan( strpos( $actual_styles, $mobile_gap ), strpos( $actual_styles, $default_gap ) );
+	}
+
+	/**
+	 * @ticket 65164
+	 */
+	public function test_get_styles_for_block_outputs_tablet_responsive_styles_only() {
+		register_block_type(
+			'test/tablet-only',
+			array(
+				'api_version' => 3,
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/tablet-only' => array(
+							'@tablet' => array(
+								'color' => array(
+									'text' => 'purple',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$tablet_metadata = array(
+			'name'        => 'test/tablet-only',
+			'path'        => array( 'styles', 'blocks', 'test/tablet-only', '@tablet' ),
+			'selector'    => '.wp-block-test-tablet-only',
+			'media_query' => '@media (480px < width <= 782px)',
+		);
+
+		$actual_styles = $theme_json->get_styles_for_block( $tablet_metadata );
+
+		unregister_block_type( 'test/tablet-only' );
+
+		$this->assertStringContainsString(
+			'@media (480px < width <= 782px){:root :where(.wp-block-test-tablet-only){color: purple;}}',
+			$actual_styles
+		);
+		$this->assertStringNotContainsString( '@media (width <= 480px)', $actual_styles );
 	}
 
 	/**
@@ -2839,6 +3729,120 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 *
+	 * @ticket 65164
+	 */
+	public function test_remove_insecure_properties_preserves_responsive_block_element_styles() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'elements' => array(
+								'link' => array(
+									'color'   => array(
+										'text' => 'var:preset|color|dark-gray',
+									),
+									'@mobile' => array(
+										'color' => array(
+											'text' => 'var:preset|color|dark-pink',
+										),
+									),
+									'@tablet' => array(
+										'color' => array(
+											'text' => 'var:preset|color|dark-red',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/group' => array(
+						'elements' => array(
+							'link' => array(
+								'color'   => array(
+									'text' => 'var(--wp--preset--color--dark-gray)',
+								),
+								'@mobile' => array(
+									'color' => array(
+										'text' => 'var(--wp--preset--color--dark-pink)',
+									),
+								),
+								'@tablet' => array(
+									'color' => array(
+										'text' => 'var(--wp--preset--color--dark-red)',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 *
+	 * @ticket 65164
+	 */
+	public function test_remove_insecure_properties_preserves_responsive_elements_within_block_state() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'var:preset|color|dark-pink',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/group' => array(
+						'@mobile' => array(
+							'elements' => array(
+								'link' => array(
+									'color' => array(
+										'text' => 'var(--wp--preset--color--dark-pink)',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 54336
 	 */
 	public function test_remove_insecure_properties_removes_non_preset_settings() {
@@ -3183,6 +4187,169 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Tests that remove_insecure_properties allows combined background gradient and image.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 */
+	public function test_remove_insecure_properties_allows_combined_background_gradient_and_image() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'https://example.com/image.jpg',
+						),
+						'gradient'        => 'linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+					),
+				),
+			),
+			true
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'backgroundImage' => array(
+						'url' => 'https://example.com/image.jpg',
+					),
+					'gradient'        => 'linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+				),
+			),
+		);
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Tests that remove_insecure_properties allows background gradient only.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 */
+	public function test_remove_insecure_properties_allows_background_gradient_only() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'gradient' => 'linear-gradient(135deg, #fff 0%, #000 100%)',
+					),
+				),
+			),
+			true
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'gradient' => 'linear-gradient(135deg, #fff 0%, #000 100%)',
+				),
+			),
+		);
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Tests that background gradient styles are output correctly in theme.json.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_get_background_gradient_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'gradient' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					),
+				),
+			)
+		);
+
+		$body_node = array(
+			'path'     => array( 'styles' ),
+			'selector' => 'body',
+		);
+
+		$expected_styles = 'html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);}';
+		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_styles_for_block()" with top-level background gradient do not match expectations' );
+	}
+
+	/**
+	 * Tests that background gradient preset slug styles are resolved correctly in theme.json.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_get_background_gradient_preset_slug_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'gradient' => 'var:preset|gradient|vivid-cyan-blue',
+					),
+				),
+			)
+		);
+
+		$body_node = array(
+			'path'     => array( 'styles' ),
+			'selector' => 'body',
+		);
+
+		$expected_styles = 'html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: var(--wp--preset--gradient--vivid-cyan-blue);}';
+		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_styles_for_block()" with background gradient preset slug do not match expectations' );
+	}
+
+	/**
+	 * Tests that background gradient and image are combined correctly in theme.json.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_get_background_gradient_and_image_combined_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'background' => array(
+								'gradient'        => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+								'backgroundImage' => array(
+									'url' => 'http://example.org/image.png',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$group_node = array(
+			'name'      => 'core/group',
+			'path'      => array( 'styles', 'blocks', 'core/group' ),
+			'selector'  => '.wp-block-group',
+			'selectors' => array(
+				'root' => '.wp-block-group',
+			),
+		);
+
+		$expected_styles = ":root :where(.wp-block-group){background-image: linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%), url('http://example.org/image.png');}";
+		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $group_node ), 'Styles returned from "::get_styles_for_block()" with combined background gradient and image do not match expectations' );
 	}
 
 	/**
@@ -4117,6 +5284,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60936
 	 * @ticket 61165
 	 * @ticket 61829
+	 * @ticket 64848
 	 */
 	public function test_get_styles_with_appearance_tools() {
 		$theme_json = new WP_Theme_JSON(
@@ -4129,11 +5297,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$metadata = array(
-			'path'     => array( 'settings' ),
+			'path'     => array( 'styles' ),
 			'selector' => 'body',
 		);
 
-		$expected = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.wp-site-blocks) > * { margin-block-start: ; margin-block-end: 0; }:where(.wp-site-blocks) > :first-child { margin-block-start: 0; }:where(.wp-site-blocks) > :last-child { margin-block-end: 0; }:root { --wp--style--block-gap: ; }:root :where(.is-layout-flow) > :first-child{margin-block-start: 0;}:root :where(.is-layout-flow) > :last-child{margin-block-end: 0;}:root :where(.is-layout-flow) > *{margin-block-start: 1;margin-block-end: 0;}:root :where(.is-layout-constrained) > :first-child{margin-block-start: 0;}:root :where(.is-layout-constrained) > :last-child{margin-block-end: 0;}:root :where(.is-layout-constrained) > *{margin-block-start: 1;margin-block-end: 0;}:root :where(.is-layout-flex){gap: 1;}:root :where(.is-layout-grid){gap: 1;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}';
+		$expected = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.wp-site-blocks) > * { margin-block-start: ; margin-block-end: 0; }:where(.wp-site-blocks) > :first-child { margin-block-start: 0; }:where(.wp-site-blocks) > :last-child { margin-block-end: 0; }:root { --wp--style--block-gap: ; }.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}';
 		$this->assertSame( $expected, $theme_json->get_root_layout_rules( WP_Theme_JSON::ROOT_BLOCK_SELECTOR, $metadata ) );
 	}
 
@@ -4666,13 +5834,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 62471
 	 */
 	public function test_get_styles_for_block_with_style_variations_and_custom_selectors() {
+		$color_selector = '.wp-block-test-milk .liquid, .wp-block-test-milk:is(.frothed, .steamed) .foam, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle';
+
 		register_block_type(
 			'test/milk',
 			array(
 				'api_version' => 3,
 				'selectors'   => array(
 					'root'  => '.milk',
-					'color' => '.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle',
+					'color' => $color_selector,
 				),
 			)
 		);
@@ -4712,7 +5882,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'path'       => array( 'styles', 'blocks', 'test/milk' ),
 			'selector'   => '.wp-block-test-milk',
 			'selectors'  => array(
-				'color' => '.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle',
+				'color' => $color_selector,
 			),
 			'variations' => array(
 				'chocolate' => array(
@@ -4723,8 +5893,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$actual_styles    = $theme_json->get_styles_for_block( $metadata );
-		$default_styles   = ':root :where(.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle){background-color: white;}';
-		$variation_styles = ':root :where(.is-style-chocolate.wp-block-test-milk .liquid,.is-style-chocolate.wp-block-test-milk:not(.spoiled),.is-style-chocolate.wp-block-test-milk.in-bottle){background-color: #35281E;}';
+		$default_styles   = ':root :where(.wp-block-test-milk .liquid, .wp-block-test-milk:is(.frothed, .steamed) .foam, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle){background-color: white;}';
+		$variation_styles = ':root :where(.wp-block-test-milk.is-style-chocolate .liquid, .wp-block-test-milk.is-style-chocolate:is(.frothed, .steamed) .foam, .wp-block-test-milk.is-style-chocolate:not(.spoiled), .wp-block-test-milk.in-bottle.is-style-chocolate){background-color: #35281E;}';
 		$expected         = $default_styles . $variation_styles;
 
 		unregister_block_style( 'test/milk', 'chocolate' );
@@ -5531,6 +6701,178 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that button block width declarations are updated for percentage values.
+	 *
+	 * @ticket 65388
+	 *
+	 * @dataProvider data_update_button_width_declarations
+	 *
+	 * @param array  $theme_json_args Theme JSON arguments including styles and optional settings.
+	 * @param string $expected_output Expected CSS output.
+	 */
+	public function test_update_button_width_declarations( $theme_json_args, $expected_output ) {
+		$theme_json = new WP_Theme_JSON(
+			array_merge(
+				array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ),
+				$theme_json_args
+			),
+			'default'
+		);
+
+		$button_node = array(
+			'name'       => 'core/button',
+			'path'       => array( 'styles', 'blocks', 'core/button' ),
+			'selector'   => '.wp-block-button .wp-block-button__link',
+			'selectors'  => array(
+				'root'       => '.wp-block-button .wp-block-button__link',
+				'dimensions' => array(
+					'root'  => '.wp-block-button',
+					'width' => '.wp-block-button',
+				),
+			),
+			'duotone'    => null,
+			'variations' => array(),
+			'css'        => '.wp-block-button .wp-block-button__link',
+		);
+		$this->assertSame( $expected_output, $theme_json->get_styles_for_block( $button_node ) );
+	}
+
+	/**
+	 * Data provider for button width declaration tests.
+	 *
+	 * @return array
+	 */
+	public function data_update_button_width_declarations() {
+		return array(
+			'direct percentage value'                   => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '25%',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(25 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 25 / 100)));}',
+			),
+			'decimal percentage value'                  => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '33.33%',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(33.33 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 33.33 / 100)));}',
+			),
+			'non-percentage value is unchanged'         => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '200px',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: 200px;}',
+			),
+			'preset dimension with percentage size (block-level settings)' => array(
+				array(
+					'settings' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'dimensionSizes' => array(
+										array(
+											'slug' => '50',
+											'name' => '50%',
+											'size' => '50%',
+										),
+									),
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--50)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(50 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 50 / 100)));}',
+			),
+			'preset dimension with percentage size (top-level settings)' => array(
+				array(
+					'settings' => array(
+						'dimensions' => array(
+							'dimensionSizes' => array(
+								array(
+									'slug' => '25',
+									'name' => '25%',
+									'size' => '25%',
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--25)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(25 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 25 / 100)));}',
+			),
+			'preset dimension with non-percentage size' => array(
+				array(
+					'settings' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'dimensionSizes' => array(
+										array(
+											'slug' => 'wide',
+											'name' => 'Wide',
+											'size' => '400px',
+										),
+									),
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--wide)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: var(--wp--preset--dimension--wide);}',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 57559
 	 */
 	public function test_shadow_preset_styles() {
@@ -6069,8 +7411,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58588
 	 * @ticket 60613
 	 *
-	 * @covers WP_Theme_JSON_Gutenberg::resolve_variables
-	 * @covers WP_Theme_JSON_Gutenberg::convert_variables_to_value
+	 * @covers WP_Theme_JSON::resolve_variables
+	 * @covers WP_Theme_JSON::convert_variables_to_value
 	 */
 	public function test_resolve_variables() {
 		$primary_color   = '#9DFF20';
@@ -6325,6 +7667,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'selector' => '.wp-block:is(.outer .inner:first-child)',
 				'expected' => '.wp-block.is-style-custom:is(.outer .inner:first-child)',
 			),
+			':is with selector list'   => array(
+				'selector' => '.wp-block:is(.outer, .inner:first-child) .content, .wp-block-alternative',
+				'expected' => '.wp-block.is-style-custom:is(.outer, .inner:first-child) .content, .wp-block-alternative.is-style-custom',
+			),
 			':not selector'            => array(
 				'selector' => '.wp-block:not(.outer .inner:first-child)',
 				'expected' => '.wp-block.is-style-custom:not(.outer .inner:first-child)',
@@ -6474,6 +7820,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$expected = array(
 			array(
+				'name'     => 'outline',
 				'path'     => array( 'styles', 'blocks', 'core/button', 'variations', 'outline' ),
 				'selector' => '.wp-block-button.is-style-outline .wp-block-button__link',
 			),
@@ -6692,5 +8039,966 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$actual = $defaults->get_raw_data();
 
 		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Tests that when a block with a custom feature selector (e.g. core/button's writingMode
+	 * uses '.wp-block-button' rather than the root '.wp-block-button .wp-block-button__link')
+	 * has pseudo-state styles, the feature selector CSS is scoped to the pseudo-state and not
+	 * output under the block's default-state selector.
+	 */
+	public function test_get_stylesheet_pseudo_selector_scopes_feature_selector_css() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							':hover' => array(
+								'typography' => array(
+									'writingMode' => 'vertical-rl',
+								),
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$css = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		// writing-mode should be scoped to :hover, not the root block selector.
+		$this->assertSame( ':root :where(.wp-block-button:hover){writing-mode: vertical-rl;}', $css );
+	}
+
+	/**
+	 * Test that block pseudo selectors are processed correctly.
+	 */
+	public function test_block_pseudo_selectors_are_processed() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'  => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover' => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							':focus' => array(
+								'color' => array(
+									'text'       => 'red',
+									'background' => 'yellow',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link:focus){background-color: yellow;color: red;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * Test that block pseudo selectors are processed correctly within variations.
+	 */
+	public function test_block_variation_pseudo_selectors_are_processed() {
+		register_block_style(
+			'core/button',
+			array(
+				'name'  => 'outline',
+				'label' => 'Outline',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'      => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							'variations' => array(
+								'outline' => array(
+									'color'  => array(
+										'text'       => 'currentColor',
+										'background' => 'transparent',
+									),
+									'border' => array(
+										'color' => 'currentColor',
+										'width' => '1px',
+										'style' => 'solid',
+									),
+									':hover' => array(
+										'color' => array(
+											'text'       => 'white',
+											'background' => 'red',
+										),
+									),
+									':focus' => array(
+										'color' => array(
+											'text'       => 'black',
+											'background' => 'yellow',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link){background-color: transparent;border-color: currentColor;border-width: 1px;border-style: solid;color: currentColor;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:hover){background-color: red;color: white;}:root :where(.wp-block-button.is-style-outline .wp-block-button__link:focus){background-color: yellow;color: black;}';
+		$actual   = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+
+		unregister_block_style( 'core/button', 'outline' );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Test that non-whitelisted pseudo selectors are ignored for blocks.
+	 */
+	public function test_block_pseudo_selectors_ignores_non_whitelisted() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'     => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover'    => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							':levitate' => array(
+								'color' => array(
+									'text'       => 'yellow',
+									'background' => 'black',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+		$this->assertStringNotContainsString( '.wp-block-button .wp-block-button__link:levitate{', $theme_json->get_stylesheet( array( 'styles' ) ) );
+	}
+
+	/**
+	 * Test that blocks without pseudo selector support ignore pseudo selectors.
+	 */
+	public function test_blocks_without_pseudo_support_ignore_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color'  => array(
+								'text' => 'black',
+							),
+							':hover' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(p){color: black;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+		$this->assertStringNotContainsString( 'p:hover{', $theme_json->get_stylesheet( array( 'styles' ) ) );
+	}
+
+	/**
+	 * Test that block pseudo selectors work with elements within blocks.
+	 */
+	public function test_block_pseudo_selectors_with_elements() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'color'    => array(
+								'text'       => 'white',
+								'background' => 'blue',
+							),
+							':hover'   => array(
+								'color' => array(
+									'text'       => 'blue',
+									'background' => 'white',
+								),
+							),
+							'elements' => array(
+								'button' => array(
+									'color'  => array(
+										'text' => 'green',
+									),
+									':hover' => array(
+										'color' => array(
+											'text' => 'orange',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-button .wp-block-button__link){background-color: blue;color: white;}:root :where(.wp-block-button .wp-block-button__link:hover){background-color: white;color: blue;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button, .wp-block-button .wp-block-button__link .wp-block-button__link){color: green;}:root :where(.wp-block-button .wp-block-button__link .wp-element-button:hover, .wp-block-button .wp-block-button__link .wp-block-button__link:hover){color: orange;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_boolean_values_when_schema_expects_boolean() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'lightbox' => array(
+						'enabled'      => true,
+						'allowEditing' => false,
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertTrue( $settings['lightbox']['enabled'], 'Enabled should be true' );
+		$this->assertFalse( $settings['lightbox']['allowEditing'], 'Allow editing should be false' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_removes_non_boolean_values_when_schema_expects_boolean() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'lightbox' => array(
+						'enabled'      => 'not-a-boolean',
+						'allowEditing' => 123,
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertArrayNotHasKey( 'enabled', $settings['lightbox'] ?? array(), 'Enabled should be removed' );
+		$this->assertArrayNotHasKey( 'allowEditing', $settings['lightbox'] ?? array(), 'Allow editing should be removed' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_boolean_values_in_block_settings() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'lightbox' => array(
+								'enabled'      => true,
+								'allowEditing' => false,
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertTrue( $settings['blocks']['core/image']['lightbox']['enabled'], 'Enabled should be true' );
+		$this->assertFalse( $settings['blocks']['core/image']['lightbox']['allowEditing'], 'Allow editing should be false' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_removes_non_boolean_values_in_block_settings() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/image' => array(
+							'lightbox' => array(
+								'enabled'      => 'string-value',
+								'allowEditing' => array( 'not', 'a', 'boolean' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$lightbox = $settings['blocks']['core/image']['lightbox'] ?? array();
+		$this->assertArrayNotHasKey( 'enabled', $lightbox, 'Enabled should be removed' );
+		$this->assertArrayNotHasKey( 'allowEditing', $lightbox, 'Allow editing should be removed' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::sanitize
+	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 *
+	 * @ticket 64280
+	 */
+	public function test_sanitize_preserves_null_schema_behavior() {
+		// Test that settings with null in schema (no type validation) still accept any type.
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'appearanceTools' => 'string-value', // null in schema, should accept any type.
+					'custom'          => array( 'nested' => 'value' ), // null in schema, should accept any type.
+				),
+			)
+		);
+
+		$settings = $theme_json->get_settings();
+		$this->assertSame( 'string-value', $settings['appearanceTools'], 'Appearance tools should be string value' );
+		$this->assertSame( array( 'nested' => 'value' ), $settings['custom'], 'Custom should be array value' );
+	}
+
+	/**
+	 * @covers WP_Theme_JSON::to_ruleset
+	 *
+	 * @ticket 64848
+	 */
+	public function test_to_ruleset_skips_non_scalar_values_and_casts_numerics() {
+		$reflection = new ReflectionMethod( WP_Theme_JSON::class, 'to_ruleset' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
+		$declarations = array(
+			array(
+				'name'  => 'color',
+				'value' => 'red',
+			),
+			array(
+				'name'  => 'opacity',
+				'value' => true,
+			),
+			array(
+				'name'  => 'margin',
+				'value' => 0,
+			),
+			array(
+				'name'  => 'padding',
+				'value' => false,
+			),
+			array(
+				'name'  => 'gap',
+				'value' => array(),
+			),
+		);
+		$result       = $reflection->invoke( null, '.test', $declarations );
+		$this->assertStringContainsString( 'color: red;', $result, 'Color declaration should be included' );
+		$this->assertStringContainsString( 'margin: 0;', $result, 'Numeric value should be cast to string' );
+		$this->assertStringNotContainsString( 'opacity', $result, 'Boolean value should be skipped' );
+		$this->assertStringNotContainsString( 'padding', $result, 'Boolean value should be skipped' );
+		$this->assertStringNotContainsString( 'gap', $result, 'Array value should be skipped' );
+	}
+
+	/**
+	 * Test that block custom states (e.g. -current) are processed correctly.
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 *
+	 * @ticket 64806
+	 */
+	public function test_block_custom_states_are_processed() {
+		// Only -current styles, no base block styles, so we can assert the
+		// output uses the current-menu-item selector and not the block selector.
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/navigation-link' => array(
+							'-current' => array(
+								'color' => array(
+									'text'       => 'red',
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$current_node = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-link', '-current' ),
+			'selector' => '.wp-block-navigation .current-menu-item',
+		);
+		$expected     = ':root :where(.wp-block-navigation .current-menu-item){background-color: blue;color: red;}';
+
+		$this->assertSame( $expected, $theme_json->get_styles_for_block( $current_node ) );
+	}
+
+	/**
+	 * Test that block custom states compound correctly with pseudo-selectors (e.g. -current + :hover).
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 *
+	 * @ticket 64806
+	 */
+	public function test_block_custom_states_compound_with_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/navigation-link' => array(
+							'-current' => array(
+								'color'  => array(
+									'text'       => 'red',
+									'background' => 'blue',
+								),
+								':hover' => array(
+									'color' => array(
+										'text'       => 'blue',
+										'background' => 'white',
+									),
+								),
+								':focus' => array(
+									'color' => array(
+										'text'       => 'green',
+										'background' => 'yellow',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$current_node = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-link', '-current' ),
+			'selector' => '.wp-block-navigation .current-menu-item',
+		);
+		$hover_node   = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-link', '-current', ':hover' ),
+			'selector' => '.wp-block-navigation .current-menu-item:hover',
+		);
+		$focus_node   = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-link', '-current', ':focus' ),
+			'selector' => '.wp-block-navigation .current-menu-item:focus',
+		);
+
+		$expected  = ':root :where(.wp-block-navigation .current-menu-item){background-color: blue;color: red;}';
+		$expected .= ':root :where(.wp-block-navigation .current-menu-item:hover){background-color: white;color: blue;}';
+		$expected .= ':root :where(.wp-block-navigation .current-menu-item:focus){background-color: yellow;color: green;}';
+
+		$actual  = $theme_json->get_styles_for_block( $current_node );
+		$actual .= $theme_json->get_styles_for_block( $hover_node );
+		$actual .= $theme_json->get_styles_for_block( $focus_node );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Test that non-whitelisted custom states are ignored, and that custom states
+	 * are ignored on blocks that do not declare support for them.
+	 *
+	 * @covers WP_Theme_JSON::get_stylesheet
+	 *
+	 * @ticket 64806
+	 */
+	public function test_block_custom_states_ignores_non_whitelisted() {
+		// A non-whitelisted state key on a block that supports custom states.
+		$theme_json_bogus_state = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/navigation-link' => array(
+							'color'  => array(
+								'text' => 'black',
+							),
+							'-bogus' => array(
+								'color' => array(
+									'text' => 'yellow',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet_bogus = $theme_json_bogus_state->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+		$this->assertStringNotContainsString( '-bogus', $stylesheet_bogus );
+		$this->assertStringNotContainsString( 'yellow', $stylesheet_bogus );
+
+		// A valid custom state key on a block that does not support custom states.
+		$theme_json_unsupported_block = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color'    => array(
+								'text' => 'black',
+							),
+							'-current' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet_unsupported = $theme_json_unsupported_block->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+		$expected               = ':root :where(p){color: black;}';
+		$this->assertSame( $expected, $stylesheet_unsupported );
+		$this->assertStringNotContainsString( '-current', $stylesheet_unsupported );
+		$this->assertStringNotContainsString( 'current-menu-item', $stylesheet_unsupported );
+	}
+
+	/**
+	 * Tests that append_to_selector correctly appends to single and
+	 * compound (comma-separated) selectors.
+	 *
+	 * @ticket 65533
+	 *
+	 * @dataProvider data_append_to_selector
+	 *
+	 * @param string $selector  Original CSS selector.
+	 * @param string $to_append Selector to append.
+	 * @param string $expected  Expected resulting selector.
+	 */
+	public function test_append_to_selector( $selector, $to_append, $expected ) {
+		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
+
+		$func = $theme_json->getMethod( 'append_to_selector' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$func->setAccessible( true );
+		}
+
+		$actual = $func->invoke( null, $selector, $to_append );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, {selector: string, to_append: string, expeted: string}>
+	 */
+	public function data_append_to_selector() {
+		return array(
+			'single class selector'                        => array(
+				'selector'  => '.inner',
+				'to_append' => ':hover',
+				'expected'  => '.inner:hover',
+			),
+			'single element selector'                      => array(
+				'selector'  => 'p',
+				'to_append' => ':hover',
+				'expected'  => 'p:hover',
+			),
+			'single id selector'                           => array(
+				'selector'  => '#main',
+				'to_append' => ':focus',
+				'expected'  => '#main:focus',
+			),
+			'two comma-separated selectors without spaces' => array(
+				'selector'  => 'h1,h2',
+				'to_append' => ':hover',
+				'expected'  => 'h1:hover, h2:hover',
+			),
+			'three comma-separated selectors without spaces' => array(
+				'selector'  => 'h1,h2,h3',
+				'to_append' => ':focus',
+				'expected'  => 'h1:focus, h2:focus, h3:focus',
+			),
+			'comma-separated class selectors without spaces' => array(
+				'selector'  => '.foo,.bar',
+				'to_append' => '.is-active',
+				'expected'  => '.foo.is-active, .bar.is-active',
+			),
+			'append without leading pseudo'                => array(
+				'selector'  => '.child',
+				'to_append' => '.parent',
+				'expected'  => '.child.parent',
+			),
+			'compound selector with class append no comma spaces' => array(
+				'selector'  => '.a,.b',
+				'to_append' => '.parent',
+				'expected'  => '.a.parent, .b.parent',
+			),
+			'descendant selector appended'                 => array(
+				'selector'  => '.block .inner',
+				'to_append' => ':hover',
+				'expected'  => '.block .inner:hover',
+			),
+			'descendant selectors comma-separated without spaces' => array(
+				'selector'  => '.block .inner,.block .alt',
+				'to_append' => ':hover',
+				'expected'  => '.block .inner:hover, .block .alt:hover',
+			),
+			'empty selector'                               => array(
+				'selector'  => '',
+				'to_append' => ':hover',
+				'expected'  => ':hover',
+			),
+			'empty append'                                 => array(
+				'selector'  => '.child',
+				'to_append' => '',
+				'expected'  => '.child',
+			),
+			'both empty'                                   => array(
+				'selector'  => '',
+				'to_append' => '',
+				'expected'  => '',
+			),
+			'attribute selector'                           => array(
+				'selector'  => '[data-type="example"]',
+				'to_append' => ':hover',
+				'expected'  => '[data-type="example"]:hover',
+			),
+			'pseudo-class selector'                        => array(
+				'selector'  => ':where(.is-layout-flex)',
+				'to_append' => ':hover',
+				'expected'  => ':where(.is-layout-flex):hover',
+			),
+			'many comma-separated selectors without spaces' => array(
+				'selector'  => 'h1,h2,h3,h4,h5,h6',
+				'to_append' => ':hover',
+				'expected'  => 'h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover',
+			),
+			'real world block element selector'            => array(
+				'selector'  => 'p',
+				'to_append' => '.is-style-custom',
+				'expected'  => 'p.is-style-custom',
+			),
+			'real world compound block element selectors'  => array(
+				'selector'  => 'a,.wp-element-button',
+				'to_append' => '.is-style-custom',
+				'expected'  => 'a.is-style-custom, .wp-element-button.is-style-custom',
+			),
+			'spaces after commas are normalized'           => array(
+				'selector'  => 'h1, h2, h3',
+				'to_append' => ':hover',
+				'expected'  => 'h1:hover, h2:hover, h3:hover',
+			),
+			'spaces after commas normalized with class selectors' => array(
+				'selector'  => '.foo, .bar',
+				'to_append' => '.is-active',
+				'expected'  => '.foo.is-active, .bar.is-active',
+			),
+			'mixed whitespace around commas is normalized' => array(
+				'selector'  => '.a ,  .b , .c',
+				'to_append' => ':hover',
+				'expected'  => '.a:hover, .b:hover, .c:hover',
+			),
+		);
+	}
+
+	/**
+	 * Tests that prepend_to_selector correctly prepends to single and
+	 * compound (comma-separated) selectors.
+	 *
+	 * @ticket 65533
+	 *
+	 * @dataProvider data_prepend_to_selector
+	 *
+	 * @param string $selector   Original CSS selector.
+	 * @param string $to_prepend Selector to prepend.
+	 * @param string $expected   Expected resulting selector.
+	 */
+	public function test_prepend_to_selector( $selector, $to_prepend, $expected ) {
+		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
+
+		$func = $theme_json->getMethod( 'prepend_to_selector' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$func->setAccessible( true );
+		}
+
+		$actual = $func->invoke( null, $selector, $to_prepend );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, {selector: string, to_prepend: string, expeted: string}>
+	 */
+	public function data_prepend_to_selector() {
+		return array(
+			'single class selector'                        => array(
+				'selector'   => '.inner',
+				'to_prepend' => '.wrapper ',
+				'expected'   => '.wrapper .inner',
+			),
+			'single element selector'                      => array(
+				'selector'   => 'p',
+				'to_prepend' => '.wrapper ',
+				'expected'   => '.wrapper p',
+			),
+			'single id selector'                           => array(
+				'selector'   => '#main',
+				'to_prepend' => '.wrapper ',
+				'expected'   => '.wrapper #main',
+			),
+			'two comma-separated selectors without spaces' => array(
+				'selector'   => 'h1,h2',
+				'to_prepend' => '.wrapper ',
+				'expected'   => '.wrapper h1, .wrapper h2',
+			),
+			'three comma-separated selectors without spaces' => array(
+				'selector'   => 'h1,h2,h3',
+				'to_prepend' => '.some-class ',
+				'expected'   => '.some-class h1, .some-class h2, .some-class h3',
+			),
+			'comma-separated class selectors without spaces' => array(
+				'selector'   => '.foo,.bar',
+				'to_prepend' => '.prefix ',
+				'expected'   => '.prefix .foo, .prefix .bar',
+			),
+			'prepend without trailing space'               => array(
+				'selector'   => '.child',
+				'to_prepend' => '.parent',
+				'expected'   => '.parent.child',
+			),
+			'compound selector without trailing space no comma spaces' => array(
+				'selector'   => '.a,.b',
+				'to_prepend' => '.parent',
+				'expected'   => '.parent.a, .parent.b',
+			),
+			'descendant selector prepended'                => array(
+				'selector'   => '.block .inner',
+				'to_prepend' => '.scope ',
+				'expected'   => '.scope .block .inner',
+			),
+			'descendant selectors comma-separated without spaces' => array(
+				'selector'   => '.block .inner,.block .alt',
+				'to_prepend' => '.scope ',
+				'expected'   => '.scope .block .inner, .scope .block .alt',
+			),
+			'empty selector'                               => array(
+				'selector'   => '',
+				'to_prepend' => '.prefix ',
+				'expected'   => '.prefix ',
+			),
+			'empty prepend'                                => array(
+				'selector'   => '.child',
+				'to_prepend' => '',
+				'expected'   => '.child',
+			),
+			'both empty'                                   => array(
+				'selector'   => '',
+				'to_prepend' => '',
+				'expected'   => '',
+			),
+			'attribute selector'                           => array(
+				'selector'   => '[data-type="example"]',
+				'to_prepend' => '.scope ',
+				'expected'   => '.scope [data-type="example"]',
+			),
+			'pseudo-class selector'                        => array(
+				'selector'   => ':where(.is-layout-flex)',
+				'to_prepend' => '.editor ',
+				'expected'   => '.editor :where(.is-layout-flex)',
+			),
+			'many comma-separated selectors without spaces' => array(
+				'selector'   => 'h1,h2,h3,h4,h5,h6',
+				'to_prepend' => '.content ',
+				'expected'   => '.content h1, .content h2, .content h3, .content h4, .content h5, .content h6',
+			),
+			'real world block element selector'            => array(
+				'selector'   => 'p',
+				'to_prepend' => '.wp-block-group ',
+				'expected'   => '.wp-block-group p',
+			),
+			'real world compound block element selectors'  => array(
+				'selector'   => 'a,.wp-element-button',
+				'to_prepend' => '.wp-block-group ',
+				'expected'   => '.wp-block-group a, .wp-block-group .wp-element-button',
+			),
+			'spaces after commas are normalized'           => array(
+				'selector'   => 'h1, h2, h3',
+				'to_prepend' => '.some-class ',
+				'expected'   => '.some-class h1, .some-class h2, .some-class h3',
+			),
+			'spaces after commas normalized with class selectors' => array(
+				'selector'   => '.foo, .bar',
+				'to_prepend' => '.prefix ',
+				'expected'   => '.prefix .foo, .prefix .bar',
+			),
+			'mixed whitespace around commas are normalized' => array(
+				'selector'   => '.a ,  .b , .c',
+				'to_prepend' => '.pre ',
+				'expected'   => '.pre .a, .pre .b, .pre .c',
+			),
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS uses the css feature selector when defined
+	 * in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_uses_css_feature_selector() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+				'css'  => '.custom-p',
+			),
+		);
+
+		$this->assertSame(
+			':root :where(.custom-p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS falls back to the root selector when no
+	 * css feature selector is defined in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_falls_back_to_root_selector() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+			),
+		);
+
+		$this->assertSame(
+			':root :where(p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
+		);
+	}
+
+	/**
+	 * Tests that block custom CSS uses the css feature selector when defined
+	 * as an object with a root subkey in block metadata selectors config.
+	 *
+	 * @ticket 64695
+	 */
+	public function test_get_styles_for_block_custom_css_uses_css_feature_selector_object_form() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'css' => 'color:red;',
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+				'css'  => array(
+					'root' => '.custom-p',
+				),
+			),
+		);
+
+		$this->assertSame(
+			':root :where(.custom-p){color:red;}',
+			$theme_json->get_styles_for_block( $paragraph_node )
+		);
 	}
 }

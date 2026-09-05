@@ -474,4 +474,41 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		$this->assertNotFalse( $xml, 'Export should not fail with NULL term meta values' );
 		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
 	}
+
+	/**
+	 * Ensure that posts types with 'can_export' set to false are not included in the export.
+	 *
+	 * @ticket 64964
+	 */
+	public function test_export_does_not_include_excluded_post_types() {
+		register_post_type(
+			'wpexport_excluded',
+			array( 'can_export' => false )
+		);
+
+		$excluded_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Excluded Post Type',
+				'post_type'   => 'wpexport_excluded',
+				'post_status' => 'publish',
+			)
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'all',
+			)
+		);
+
+		$found_post = false;
+		foreach ( $xml->channel->item as $item ) {
+			$wp_item = $item->children( 'wp', true );
+			if ( (int) $wp_item->post_id === $excluded_post_id ) {
+				$found_post = true;
+				break;
+			}
+		}
+
+		$this->assertFalse( $found_post, 'Posts of excluded post types should not be included in export' );
+	}
 }

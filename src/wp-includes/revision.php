@@ -125,34 +125,34 @@ function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
  * @since 2.6.0
  *
  * @param int $post_id The ID of the post to save as a revision.
- * @return int|WP_Error|void Void or 0 if error, new revision ID, if success.
+ * @return int|WP_Error|null Null or 0 if error, new revision ID, if success.
  */
 function wp_save_post_revision( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		return;
+		return null;
 	}
 
 	// Prevent saving post revisions if revisions should be saved on wp_after_insert_post.
 	if ( doing_action( 'post_updated' ) && has_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert' ) ) {
-		return;
+		return null;
 	}
 
 	$post = get_post( $post_id );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	if ( ! post_type_supports( $post->post_type, 'revisions' ) ) {
-		return;
+		return null;
 	}
 
 	if ( 'auto-draft' === $post->post_status ) {
-		return;
+		return null;
 	}
 
 	if ( ! wp_revisions_enabled( $post ) ) {
-		return;
+		return null;
 	}
 
 	/*
@@ -209,7 +209,7 @@ function wp_save_post_revision( $post_id ) {
 
 			// Don't save revision if post unchanged.
 			if ( ! $post_has_changed ) {
-				return;
+				return null;
 			}
 		}
 	}
@@ -423,6 +423,17 @@ function wp_save_revisioned_meta_fields( $revision_id, $post_id ) {
  *                            respectively. Default OBJECT.
  * @param string      $filter Optional sanitization filter. See sanitize_post(). Default 'raw'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ *
+ * @phpstan-param int|WP_Post $post
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-param 'raw'|'edit'|'db'|'display' $filter
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? non-empty-array<string, mixed>|null : (
+ *         $output is 'ARRAY_N' ? non-empty-array<int, mixed>|null : (
+ *             WP_Post|null
+ *         )
+ *     )
+ * )
  */
 function wp_get_post_revision( &$post, $output = OBJECT, $filter = 'raw' ) {
 	$revision = get_post( $post, OBJECT, $filter );
@@ -438,10 +449,13 @@ function wp_get_post_revision( &$post, $output = OBJECT, $filter = 'raw' ) {
 	if ( OBJECT === $output ) {
 		return $revision;
 	} elseif ( ARRAY_A === $output ) {
+		/** @var non-empty-array<string, mixed> $_revision */
 		$_revision = get_object_vars( $revision );
 		return $_revision;
 	} elseif ( ARRAY_N === $output ) {
-		$_revision = array_values( get_object_vars( $revision ) );
+		/** @var non-empty-array<string, mixed> $vars */
+		$vars      = get_object_vars( $revision );
+		$_revision = array_values( $vars );
 		return $_revision;
 	}
 

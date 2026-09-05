@@ -477,14 +477,14 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// Should find post_one (previous post that shares term1).
 		$this->assertInstanceOf( WP_Post::class, $result );
-		$this->assertEquals( $post1_id, $result->ID );
+		$this->assertSame( $post1_id, $result->ID );
 
 		// Test next post.
 		$result = get_adjacent_post( true, array( $term2_id ), false, 'wptests_tax' );
 
 		// Should find post_three (next post that shares term1).
 		$this->assertInstanceOf( WP_Post::class, $result );
-		$this->assertEquals( $post3_id, $result->ID );
+		$this->assertSame( $post3_id, $result->ID );
 	}
 
 	/**
@@ -614,12 +614,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous post should be the 2nd post (lower ID, same date).
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_ids[1], $previous->ID );
+		$this->assertSame( $post_ids[1], $previous->ID );
 
 		// Next post should be the 4th post (higher ID, same date).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[3], $next->ID );
+		$this->assertSame( $post_ids[3], $next->ID );
 	}
 
 	/**
@@ -661,12 +661,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous should be the early post (different date).
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_early, $previous->ID );
+		$this->assertSame( $post_early, $previous->ID );
 
 		// Next should be the second identical post (same date, higher ID).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[1], $next->ID );
+		$this->assertSame( $post_ids[1], $next->ID );
 
 		// Test from middle identical post.
 		$this->go_to( get_permalink( $post_ids[1] ) );
@@ -674,12 +674,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous should be the first identical post (same date, lower ID).
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_ids[0], $previous->ID );
+		$this->assertSame( $post_ids[0], $previous->ID );
 
 		// Next should be the third identical post (same date, higher ID).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[2], $next->ID );
+		$this->assertSame( $post_ids[2], $next->ID );
 
 		// Test from last identical post.
 		$this->go_to( get_permalink( $post_ids[2] ) );
@@ -687,12 +687,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous should be the second identical post (same date, lower ID).
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_ids[1], $previous->ID );
+		$this->assertSame( $post_ids[1], $previous->ID );
 
 		// Next should be the late post (different date).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_late, $next->ID );
+		$this->assertSame( $post_late, $next->ID );
 	}
 
 	/**
@@ -719,26 +719,26 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// From post 1, next should be post 2.
 		$next = get_adjacent_post( false, '', false );
-		$this->assertEquals( $post_ids[1], $next->ID );
+		$this->assertSame( $post_ids[1], $next->ID );
 
 		// From post 2, previous should be post 1, next should be post 3.
 		$this->go_to( get_permalink( $post_ids[1] ) );
 		$previous = get_adjacent_post( false, '', true );
-		$this->assertEquals( $post_ids[0], $previous->ID );
+		$this->assertSame( $post_ids[0], $previous->ID );
 		$next = get_adjacent_post( false, '', false );
-		$this->assertEquals( $post_ids[2], $next->ID );
+		$this->assertSame( $post_ids[2], $next->ID );
 
 		// From post 3, previous should be post 2, next should be post 4.
 		$this->go_to( get_permalink( $post_ids[2] ) );
 		$previous = get_adjacent_post( false, '', true );
-		$this->assertEquals( $post_ids[1], $previous->ID );
+		$this->assertSame( $post_ids[1], $previous->ID );
 		$next = get_adjacent_post( false, '', false );
-		$this->assertEquals( $post_ids[3], $next->ID );
+		$this->assertSame( $post_ids[3], $next->ID );
 
 		// From post 4, previous should be post 3.
 		$this->go_to( get_permalink( $post_ids[3] ) );
 		$previous = get_adjacent_post( false, '', true );
-		$this->assertEquals( $post_ids[2], $previous->ID );
+		$this->assertSame( $post_ids[2], $previous->ID );
 	}
 
 	/**
@@ -777,6 +777,6 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		$next = get_adjacent_post( true, '', false, 'category' );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[3], $next->ID ); // Post 4 (in category)
+		$this->assertSame( $post_ids[3], $next->ID ); // Post 4 (in category)
 	}
 }

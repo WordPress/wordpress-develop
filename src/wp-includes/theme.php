@@ -1620,7 +1620,7 @@ function register_default_headers( $headers ) {
  * @global array $_wp_default_headers
  *
  * @param string|array $header The header string id (key of array) to remove, or an array thereof.
- * @return bool|void A single header returns true on success, false on failure.
+ * @return bool|null A single header returns true on success, false on failure.
  *                   There is currently no return value for multiple headers.
  */
 function unregister_default_headers( $header ) {
@@ -1628,6 +1628,7 @@ function unregister_default_headers( $header ) {
 
 	if ( is_array( $header ) ) {
 		array_map( 'unregister_default_headers', $header );
+		return null;
 	} elseif ( isset( $_wp_default_headers[ $header ] ) ) {
 		unset( $_wp_default_headers[ $header ] );
 		return true;
@@ -2645,6 +2646,7 @@ function get_theme_starter_content() {
  * @since 6.5.0 The `appearance-tools` feature enables a few design tools for blocks,
  *              see `WP_Theme_JSON::APPEARANCE_TOOLS_OPT_INS` for a complete list.
  * @since 6.6.0 The `editor-spacing-sizes` feature was added.
+ * @since 7.0.0 The `html5` feature's 'script' and 'style' arguments are deprecated and unused.
  *
  * @global array $_wp_theme_features
  *
@@ -3061,7 +3063,7 @@ function get_theme_support( $feature, ...$args ) {
  *
  * @param string $feature The feature being removed. See add_theme_support() for the list
  *                        of possible values.
- * @return bool|void Whether feature was removed.
+ * @return bool Whether feature was removed.
  */
 function remove_theme_support( $feature ) {
 	// Do not remove internal registrations that are not used directly by themes.
@@ -3095,7 +3097,7 @@ function _remove_theme_support( $feature ) {
 				return false;
 			}
 			add_theme_support( 'custom-header', array( 'uploads' => false ) );
-			return; // Do not continue - custom-header-uploads no longer exists.
+			return true; // Do not continue - custom-header-uploads no longer exists.
 	}
 
 	if ( ! isset( $_wp_theme_features[ $feature ] ) ) {
@@ -4367,7 +4369,6 @@ function wp_is_block_theme() {
  * @since 6.1.0
  *
  * @param string $element The name of the element.
- *
  * @return string The name of the class.
  */
 function wp_theme_get_element_class_name( $element ) {

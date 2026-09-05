@@ -9,9 +9,6 @@ on:
       - trunk
       - '6.[8-9]'
       - '[7-9].[0-9]'
-    tags:
-      - '[0-9]+.[0-9]'
-      - '[0-9]+.[0-9].[0-9]+'
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
@@ -47,11 +44,28 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/reusable-build-package.yml
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     permissions:
       contents: read
 
-  # Run upgrade tests for the current branch.
+# Because the number of jobs spawned can quickly balloon out of control, the following methodology is applied when
+# building out the matrix below:
+#
+# - The two most recent releases of WordPress are always tested.
+# - After a branch is created, the pre-release version is also added.
+# - The oldest version of WordPress receiving security updates as a courtesy that also runs on a PHP version supported by trunk
+#   should always be tested.
+# - PHP and DB versions are kept to a minimum. In general this should be the highest and lowest supported versions of each with excludes
+#   being updated to keep the matrix as small as is reasonable.
   upgrade-tests-develop:
     name: Upgrade from ${{ matrix.wp }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
@@ -67,7 +81,7 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
         # WordPress 5.3 is the oldest version that supports PHP 7.4.
-        wp: [ '5.3', '6.7', '6.8', '6.9-RC1' ]
+        wp: [ '5.3', '7.0', '7.1' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -82,7 +96,14 @@ jobs:
   upgrade-tests-develop-forks:
     name: Upgrade from ${{ matrix.wp }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
-    if: ${{ github.repository != 'WordPress/wordpress-develop' }}
+    # This job also runs for the push event, which has no draft state to check.
+    if: |
+      github.repository != 'WordPress/wordpress-develop' && (
+        github.event_name != 'pull_request' ||
+        ! github.event.repository.private ||
+        ! github.event.pull_request.draft ||
+        contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+      )
     needs: [ build ]
     permissions:
       contents: read
@@ -93,7 +114,7 @@ jobs:
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        wp: [ '6.7', '6.8' ]
+        wp: [ '7.0', '7.1' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -138,7 +159,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

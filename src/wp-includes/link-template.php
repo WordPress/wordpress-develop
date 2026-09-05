@@ -94,7 +94,7 @@ function permalink_anchor( $mode = 'id' ) {
  *
  * @since 5.7.0
  *
- * @param WP_Post|int|null $post   Optional. Post ID or post object. Defaults to global $post.
+ * @param int|WP_Post|null $post   Optional. Post ID or post object. Defaults to global $post.
  * @param bool|null        $sample Optional. Whether to force consideration based on sample links.
  *                                 If omitted, a sample link is generated if a post object is passed
  *                                 with the filter property set to 'sample'.
@@ -110,7 +110,7 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 		$sample = true;
 	} else {
 		$post   = get_post( $post );
-		$sample = null !== $sample ? $sample : false;
+		$sample = $sample ?? false;
 	}
 
 	if ( ! $post ) {
@@ -1131,7 +1131,9 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
  * @param string           $after   Optional. Display after edit link. Default empty.
  * @param int|WP_Term|null $term    Optional. Term ID or object. If null, the queried object will be inspected. Default null.
  * @param bool             $display Optional. Whether or not to echo the return. Default true.
- * @return string|void HTML content.
+ * @return string|null|void HTML content when retrieving, null on failure or without the
+ *                          capability to edit the term. Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function edit_term_link( $link = '', $before = '', $after = '', $term = null, $display = true ) {
 	if ( is_null( $term ) ) {
@@ -1141,12 +1143,11 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 	}
 
 	if ( ! $term ) {
-		return;
+		return null;
 	}
 
-	$tax = get_taxonomy( $term->taxonomy );
 	if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
-		return;
+		return null;
 	}
 
 	if ( empty( $link ) ) {
@@ -1165,11 +1166,11 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 	 */
 	$link = $before . apply_filters( 'edit_term_link', $link, $term->term_id ) . $after;
 
-	if ( $display ) {
-		echo $link;
-	} else {
+	if ( ! $display ) {
 		return $link;
 	}
+
+	echo $link;
 }
 
 /**
@@ -1552,7 +1553,7 @@ function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $cs
  * @param int|WP_Post $post         Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $deprecated   Not used.
  * @param bool        $force_delete Optional. Whether to bypass Trash and force deletion. Default false.
- * @return string|void The delete post link URL for the given post.
+ * @return string|null The delete post link URL for the given post.
  */
 function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -1562,17 +1563,17 @@ function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = fals
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	$post_type_object = get_post_type_object( $post->post_type );
 
 	if ( ! $post_type_object ) {
-		return;
+		return null;
 	}
 
 	if ( ! current_user_can( 'delete_post', $post->ID ) ) {
-		return;
+		return null;
 	}
 
 	$action = ( $force_delete || ! EMPTY_TRASH_DAYS ) ? 'delete' : 'trash';
@@ -1600,14 +1601,14 @@ function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = fals
  * @param int|WP_Comment $comment_id Optional. Comment ID or WP_Comment object.
  * @param string         $context    Optional. Context in which the URL should be used. Either 'display',
  *                                   to include HTML entities, or 'url'. Default 'display'.
- * @return string|void The edit comment link URL for the given comment, or void if the comment id does not exist or
+ * @return string|null The edit comment link URL for the given comment, or null if the comment does not exist or
  *                     the current user is not allowed to edit it.
  */
 function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 	$comment = get_comment( $comment_id );
 
 	if ( ! is_object( $comment ) || ! current_user_can( 'edit_comment', $comment->comment_ID ) ) {
-		return;
+		return null;
 	}
 
 	if ( 'display' === $context ) {
@@ -1674,13 +1675,13 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
  * @since 2.7.0
  *
  * @param int|stdClass $link Optional. Bookmark ID. Default is the ID of the current bookmark.
- * @return string|void The edit bookmark link URL.
+ * @return string|null The edit bookmark link URL.
  */
 function get_edit_bookmark_link( $link = 0 ) {
 	$link = get_bookmark( $link );
 
 	if ( ! current_user_can( 'manage_links' ) ) {
-		return;
+		return null;
 	}
 
 	$location = admin_url( 'link.php?action=edit&amp;link_id=' ) . $link->link_id;
@@ -2057,7 +2058,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
  * @param bool         $previous       Optional. Whether to display link to previous or next post.
  *                                     Default true.
  * @param string       $taxonomy       Optional. Taxonomy, if `$in_same_term` is true. Default 'category'.
- * @return string|void The adjacent post relational link URL.
+ * @return string|null The adjacent post relational link URL.
  */
 function get_adjacent_post_rel_link( $title = '%title', $in_same_term = false, $excluded_terms = '', $previous = true, $taxonomy = 'category' ) {
 	$post = get_post();
@@ -2068,7 +2069,7 @@ function get_adjacent_post_rel_link( $title = '%title', $in_same_term = false, $
 	}
 
 	if ( empty( $post ) ) {
-		return;
+		return null;
 	}
 
 	$post_title = the_title_attribute(
@@ -2292,7 +2293,7 @@ function previous_post_link( $format = '&laquo; %link', $link = '%title', $in_sa
  *
  * @since 3.7.0
  *
- * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
+ * @param string       $format         Optional. Link anchor format. Default '%link &raquo;'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
  * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
  *                                     Default false.
@@ -2312,7 +2313,7 @@ function get_next_post_link( $format = '%link &raquo;', $link = '%title', $in_sa
  *
  * @see get_next_post_link()
  *
- * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
+ * @param string       $format         Optional. Link anchor format. Default '%link &raquo;'.
  * @param string       $link           Optional. Link permalink format. Default '%title'.
  * @param bool         $in_same_term   Optional. Whether link should be in the same taxonomy term.
  *                                     Default false.
@@ -2515,7 +2516,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
  * @global int $paged
  *
  * @param int $max_page Optional. Max pages. Default 0.
- * @return string|void The link URL for next posts page.
+ * @return string|null The link URL for next posts page.
  */
 function get_next_posts_page_link( $max_page = 0 ) {
 	global $paged;
@@ -2531,6 +2532,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
 			return get_pagenum_link( $next_page );
 		}
 	}
+
+	return null;
 }
 
 /**
@@ -2540,17 +2543,19 @@ function get_next_posts_page_link( $max_page = 0 ) {
  *
  * @param int  $max_page Optional. Max pages. Default 0.
  * @param bool $display  Optional. Whether to echo the link. Default true.
- * @return string|void The link URL for next posts page if `$display = false`.
+ * @return string|void The next posts page link when `$display` is false, or an empty
+ *                     string when there is no next page. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function next_posts( $max_page = 0, $display = true ) {
 	$link   = get_next_posts_page_link( $max_page );
 	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+
+	echo $output;
 }
 
 /**
@@ -2563,7 +2568,7 @@ function next_posts( $max_page = 0, $display = true ) {
  *
  * @param string $label    Content for link text.
  * @param int    $max_page Optional. Max pages. Default 0.
- * @return string|void HTML-formatted next posts page link.
+ * @return string|null HTML-formatted next posts page link.
  */
 function get_next_posts_link( $label = null, $max_page = 0 ) {
 	global $paged, $wp_query;
@@ -2599,6 +2604,8 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
 		);
 	}
+
+	return null;
 }
 
 /**
@@ -2624,7 +2631,7 @@ function next_posts_link( $label = null, $max_page = 0 ) {
  *
  * @global int $paged
  *
- * @return string|void The link for the previous posts page.
+ * @return string|null The link for the previous posts page.
  */
 function get_previous_posts_page_link() {
 	global $paged;
@@ -2638,6 +2645,8 @@ function get_previous_posts_page_link() {
 
 		return get_pagenum_link( $previous_page );
 	}
+
+	return null;
 }
 
 /**
@@ -2646,16 +2655,19 @@ function get_previous_posts_page_link() {
  * @since 0.71
  *
  * @param bool $display Optional. Whether to echo the link. Default true.
- * @return string|void The previous posts page link if `$display = false`.
+ * @return string|void The previous posts page link when `$display` is false, or an empty
+ *                     string when there is no previous page. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function previous_posts( $display = true ) {
-	$output = esc_url( get_previous_posts_page_link() );
+	$link   = get_previous_posts_page_link();
+	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+
+	echo $output;
 }
 
 /**
@@ -2666,7 +2678,7 @@ function previous_posts( $display = true ) {
  * @global int $paged
  *
  * @param string $label Optional. Previous page link text.
- * @return string|void HTML-formatted previous page link.
+ * @return string|null HTML-formatted previous page link.
  */
 function get_previous_posts_link( $label = null ) {
 	global $paged;
@@ -2692,6 +2704,8 @@ function get_previous_posts_link( $label = null ) {
 			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
 		);
 	}
+
+	return null;
 }
 
 /**
@@ -3124,13 +3138,13 @@ function get_comments_pagenum_link( $pagenum = 1, $max_page = 0 ) {
  * @param string   $label    Optional. Label for link text. Default empty.
  * @param int      $max_page Optional. Max page. Default 0.
  * @param int|null $page     Optional. Page number. Default null.
- * @return string|void HTML-formatted link for the next page of comments.
+ * @return string|null HTML-formatted link for the next page of comments.
  */
 function get_next_comments_link( $label = '', $max_page = 0, $page = null ) {
 	global $wp_query;
 
 	if ( ! is_singular() ) {
-		return;
+		return null;
 	}
 
 	if ( is_null( $page ) ) {
@@ -3152,7 +3166,7 @@ function get_next_comments_link( $label = '', $max_page = 0, $page = null ) {
 	}
 
 	if ( $next_page > $max_page ) {
-		return;
+		return null;
 	}
 
 	if ( empty( $label ) ) {
@@ -3196,11 +3210,11 @@ function next_comments_link( $label = '', $max_page = 0 ) {
  *
  * @param string   $label Optional. Label for comments link text. Default empty.
  * @param int|null $page  Optional. Page number. Default null.
- * @return string|void HTML-formatted link for the previous page of comments.
+ * @return string|null HTML-formatted link for the previous page of comments.
  */
 function get_previous_comments_link( $label = '', $page = null ) {
 	if ( ! is_singular() ) {
-		return;
+		return null;
 	}
 
 	if ( is_null( $page ) ) {
@@ -3208,7 +3222,7 @@ function get_previous_comments_link( $label = '', $page = null ) {
 	}
 
 	if ( (int) $page <= 1 ) {
-		return;
+		return null;
 	}
 
 	$previous_page = (int) $page - 1;
@@ -3254,16 +3268,23 @@ function previous_comments_link( $label = '' ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string|array $args Optional args. See paginate_links(). Default empty array.
- * @return void|string|array Void if 'echo' argument is true and 'type' is not an array,
- *                           or if the query is not for an existing single post of any post type.
- *                           Otherwise, markup for comment page links or array of comment page links,
- *                           depending on 'type' argument.
+ * @return string|string[]|null|void Markup for comment page links, or an array of them when
+ *                                   the 'type' argument is 'array'. Null if the query is not for
+ *                                   an existing single post of any post type. Nothing when 'echo'
+ *                                   is true and 'type' is not 'array'.
+ * @phpstan-return (
+ *     $args is array{ type: 'array', ... }
+ *         ? string[]|null
+ *         : ( $args is array{ echo: false|0|''|'0', ... }
+ *             ? string|null
+ *             : ( $args is ''|'0'|array ? void : string|string[]|null ) )
+ * )
  */
 function paginate_comments_links( $args = array() ) {
 	global $wp_rewrite;
 
 	if ( ! is_singular() ) {
-		return;
+		return null;
 	}
 
 	$page = get_query_var( 'cpage' );
@@ -3993,7 +4014,7 @@ function get_dashboard_url( $user_id = 0, $path = '', $scheme = 'admin' ) {
 	} else {
 		$current_blog = get_current_blog_id();
 
-		if ( $current_blog && ( user_can( $user_id, 'manage_network' ) || in_array( $current_blog, array_keys( $blogs ), true ) ) ) {
+		if ( $current_blog && ( user_can( $user_id, 'manage_network' ) || isset( $blogs[ $current_blog ] ) ) ) {
 			$url = admin_url( $path, $scheme );
 		} else {
 			$active = get_active_blog_for_user( $user_id );
@@ -4411,6 +4432,7 @@ function is_avatar_comment_type( $comment_type ) {
  *                                      false or not set if none was found.
  *     @type string|false $url          The URL of the avatar that was found, or false.
  * }
+ * @phpstan-return array{ found_avatar: bool, url: string|false, ... }
  */
 function get_avatar_data( $id_or_email, $args = null ) {
 	$args = wp_parse_args(
@@ -4579,7 +4601,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 			}
 		} elseif ( $id_or_email instanceof WP_Comment ) {
 			$name = $id_or_email->comment_author;
-		} elseif ( is_string( $id_or_email ) && false !== strpos( $id_or_email, '@' ) ) {
+		} elseif ( is_string( $id_or_email ) && str_contains( $id_or_email, '@' ) ) {
 			$name = str_replace( array( '.', '_', '-' ), ' ', substr( $id_or_email, 0, strpos( $id_or_email, '@' ) ) );
 		}
 

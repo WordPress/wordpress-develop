@@ -111,7 +111,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.1',
 		'moment'                      => '2.30.1',
-		'lodash'                      => '4.17.21',
+		'lodash'                      => '4.18.1',
 		'wp-polyfill-fetch'           => '3.6.20',
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.8.0',
@@ -281,11 +281,11 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets_file = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets_file = ABSPATH . WPINC . '/assets/script-loader-packages.php';
 	$assets      = file_exists( $assets_file ) ? include $assets_file : array();
 
 	foreach ( $assets as $file_name => $package_data ) {
-		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
+		$basename = str_replace( '.js', '', basename( $file_name ) );
 		$handle   = 'wp-' . $basename;
 		$path     = "/wp-includes/js/dist/{$basename}{$suffix}.js";
 
@@ -309,6 +309,10 @@ function wp_default_packages_scripts( $scripts ) {
 		}
 
 		$scripts->add( $handle, $path, $dependencies, $package_data['version'], 1 );
+
+		if ( ! empty( $package_data['module_dependencies'] ) ) {
+			$scripts->add_data( $handle, 'module_dependencies', $package_data['module_dependencies'] );
+		}
 
 		if ( in_array( 'wp-i18n', $dependencies, true ) ) {
 			$scripts->set_translations( $handle );
@@ -799,7 +803,7 @@ function wp_default_scripts( $scripts ) {
 			'enterImageURL'         => __( 'Enter the URL of the image' ),
 			'enterImageDescription' => __( 'Enter a description of the image' ),
 			'textdirection'         => __( 'text direction' ),
-			'toggleTextdirection'   => __( 'Toggle Editor Text Direction' ),
+			'toggleTextdirection'   => __( 'Switch Editor Text Direction' ),
 			'dfw'                   => __( 'Distraction-free writing mode' ),
 			'strong'                => __( 'Bold' ),
 			'strongClose'           => __( 'Close bold tag' ),
@@ -875,6 +879,8 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'wp-auth-check', "/wp-includes/js/wp-auth-check$suffix.js", array( 'heartbeat' ), false, 1 );
 	$scripts->set_translations( 'wp-auth-check' );
 
+	$scripts->add( 'wp-tooltip', '/wp-includes/js/wp-tooltip.js', array(), false, 1 );
+
 	$scripts->add( 'wp-lists', "/wp-includes/js/wp-lists$suffix.js", array( 'wp-ajax-response', 'jquery-color' ), false, 1 );
 
 	$scripts->add( 'site-icon', '/wp-admin/js/site-icon.js', array( 'jquery' ), false, 1 );
@@ -909,57 +915,58 @@ function wp_default_scripts( $scripts ) {
 	 * the source files were flattened and included with some modifications for AMD loading.
 	 * A notable change is that 'jquery-ui-core' now contains 'jquery-ui-position' and 'jquery-ui-widget'.
 	 */
-	$scripts->add( 'jquery-ui-core', "/wp-includes/js/jquery/ui/core$suffix.js", array( 'jquery' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-core', "/wp-includes/js/jquery/ui/effect$suffix.js", array( 'jquery' ), '1.13.3', 1 );
+	$scripts->add( 'jquery-ui-core', "/wp-includes/js/jquery/ui/core$suffix.js", array( 'jquery' ), '1.14.2', 1 );
+	$scripts->add_inline_script( 'jquery-ui-core', 'jQuery.uiBackCompat = true;', 'before' );
+	$scripts->add( 'jquery-effects-core', "/wp-includes/js/jquery/ui/effect$suffix.js", array( 'jquery' ), '1.14.2', 1 );
 
-	$scripts->add( 'jquery-effects-blind', "/wp-includes/js/jquery/ui/effect-blind$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-bounce', "/wp-includes/js/jquery/ui/effect-bounce$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-clip', "/wp-includes/js/jquery/ui/effect-clip$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-drop', "/wp-includes/js/jquery/ui/effect-drop$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-explode', "/wp-includes/js/jquery/ui/effect-explode$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-fade', "/wp-includes/js/jquery/ui/effect-fade$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-fold', "/wp-includes/js/jquery/ui/effect-fold$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-highlight', "/wp-includes/js/jquery/ui/effect-highlight$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-puff', "/wp-includes/js/jquery/ui/effect-puff$suffix.js", array( 'jquery-effects-core', 'jquery-effects-scale' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-pulsate', "/wp-includes/js/jquery/ui/effect-pulsate$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-scale', "/wp-includes/js/jquery/ui/effect-scale$suffix.js", array( 'jquery-effects-core', 'jquery-effects-size' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-shake', "/wp-includes/js/jquery/ui/effect-shake$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-size', "/wp-includes/js/jquery/ui/effect-size$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-slide', "/wp-includes/js/jquery/ui/effect-slide$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-effects-transfer', "/wp-includes/js/jquery/ui/effect-transfer$suffix.js", array( 'jquery-effects-core' ), '1.13.3', 1 );
+	$scripts->add( 'jquery-effects-blind', "/wp-includes/js/jquery/ui/effect-blind$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-bounce', "/wp-includes/js/jquery/ui/effect-bounce$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-clip', "/wp-includes/js/jquery/ui/effect-clip$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-drop', "/wp-includes/js/jquery/ui/effect-drop$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-explode', "/wp-includes/js/jquery/ui/effect-explode$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-fade', "/wp-includes/js/jquery/ui/effect-fade$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-fold', "/wp-includes/js/jquery/ui/effect-fold$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-highlight', "/wp-includes/js/jquery/ui/effect-highlight$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-puff', "/wp-includes/js/jquery/ui/effect-puff$suffix.js", array( 'jquery-effects-core', 'jquery-effects-scale' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-pulsate', "/wp-includes/js/jquery/ui/effect-pulsate$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-scale', "/wp-includes/js/jquery/ui/effect-scale$suffix.js", array( 'jquery-effects-core', 'jquery-effects-size' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-shake', "/wp-includes/js/jquery/ui/effect-shake$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-size', "/wp-includes/js/jquery/ui/effect-size$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-slide', "/wp-includes/js/jquery/ui/effect-slide$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-effects-transfer', "/wp-includes/js/jquery/ui/effect-transfer$suffix.js", array( 'jquery-effects-core' ), '1.14.2', 1 );
 
 	// Widgets
-	$scripts->add( 'jquery-ui-accordion', "/wp-includes/js/jquery/ui/accordion$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-autocomplete', "/wp-includes/js/jquery/ui/autocomplete$suffix.js", array( 'jquery-ui-menu', 'wp-a11y' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-button', "/wp-includes/js/jquery/ui/button$suffix.js", array( 'jquery-ui-core', 'jquery-ui-controlgroup', 'jquery-ui-checkboxradio' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-datepicker', "/wp-includes/js/jquery/ui/datepicker$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-dialog', "/wp-includes/js/jquery/ui/dialog$suffix.js", array( 'jquery-ui-resizable', 'jquery-ui-draggable', 'jquery-ui-button' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-menu', "/wp-includes/js/jquery/ui/menu$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-mouse', "/wp-includes/js/jquery/ui/mouse$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-progressbar', "/wp-includes/js/jquery/ui/progressbar$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-selectmenu', "/wp-includes/js/jquery/ui/selectmenu$suffix.js", array( 'jquery-ui-menu' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-slider', "/wp-includes/js/jquery/ui/slider$suffix.js", array( 'jquery-ui-mouse' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-spinner', "/wp-includes/js/jquery/ui/spinner$suffix.js", array( 'jquery-ui-button' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-tabs', "/wp-includes/js/jquery/ui/tabs$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-tooltip', "/wp-includes/js/jquery/ui/tooltip$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
+	$scripts->add( 'jquery-ui-accordion', "/wp-includes/js/jquery/ui/accordion$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-autocomplete', "/wp-includes/js/jquery/ui/autocomplete$suffix.js", array( 'jquery-ui-menu', 'wp-a11y' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-button', "/wp-includes/js/jquery/ui/button$suffix.js", array( 'jquery-ui-core', 'jquery-ui-controlgroup', 'jquery-ui-checkboxradio' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-datepicker', "/wp-includes/js/jquery/ui/datepicker$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-dialog', "/wp-includes/js/jquery/ui/dialog$suffix.js", array( 'jquery-ui-resizable', 'jquery-ui-draggable', 'jquery-ui-button' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-menu', "/wp-includes/js/jquery/ui/menu$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-mouse', "/wp-includes/js/jquery/ui/mouse$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-progressbar', "/wp-includes/js/jquery/ui/progressbar$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-selectmenu', "/wp-includes/js/jquery/ui/selectmenu$suffix.js", array( 'jquery-ui-menu' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-slider', "/wp-includes/js/jquery/ui/slider$suffix.js", array( 'jquery-ui-mouse' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-spinner', "/wp-includes/js/jquery/ui/spinner$suffix.js", array( 'jquery-ui-button' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-tabs', "/wp-includes/js/jquery/ui/tabs$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-tooltip', "/wp-includes/js/jquery/ui/tooltip$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
 
-	// New in 1.12.1
-	$scripts->add( 'jquery-ui-checkboxradio', "/wp-includes/js/jquery/ui/checkboxradio$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-controlgroup', "/wp-includes/js/jquery/ui/controlgroup$suffix.js", array( 'jquery-ui-core' ), '1.13.3', 1 );
+	// Added in jQuery UI 1.12.1.
+	$scripts->add( 'jquery-ui-checkboxradio', "/wp-includes/js/jquery/ui/checkboxradio$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-controlgroup', "/wp-includes/js/jquery/ui/controlgroup$suffix.js", array( 'jquery-ui-core' ), '1.14.2', 1 );
 
 	// Interactions
-	$scripts->add( 'jquery-ui-draggable', "/wp-includes/js/jquery/ui/draggable$suffix.js", array( 'jquery-ui-mouse' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-droppable', "/wp-includes/js/jquery/ui/droppable$suffix.js", array( 'jquery-ui-draggable' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-resizable', "/wp-includes/js/jquery/ui/resizable$suffix.js", array( 'jquery-ui-mouse' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-selectable', "/wp-includes/js/jquery/ui/selectable$suffix.js", array( 'jquery-ui-mouse' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-sortable', "/wp-includes/js/jquery/ui/sortable$suffix.js", array( 'jquery-ui-mouse' ), '1.13.3', 1 );
+	$scripts->add( 'jquery-ui-draggable', "/wp-includes/js/jquery/ui/draggable$suffix.js", array( 'jquery-ui-mouse' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-droppable', "/wp-includes/js/jquery/ui/droppable$suffix.js", array( 'jquery-ui-draggable' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-resizable', "/wp-includes/js/jquery/ui/resizable$suffix.js", array( 'jquery-ui-mouse' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-selectable', "/wp-includes/js/jquery/ui/selectable$suffix.js", array( 'jquery-ui-mouse' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-sortable', "/wp-includes/js/jquery/ui/sortable$suffix.js", array( 'jquery-ui-mouse' ), '1.14.2', 1 );
 
 	/*
 	 * As of 1.12.1 `jquery-ui-position` and `jquery-ui-widget` are part of `jquery-ui-core`.
 	 * Listed here for back-compat.
 	 */
-	$scripts->add( 'jquery-ui-position', false, array( 'jquery-ui-core' ), '1.13.3', 1 );
-	$scripts->add( 'jquery-ui-widget', false, array( 'jquery-ui-core' ), '1.13.3', 1 );
+	$scripts->add( 'jquery-ui-position', false, array( 'jquery-ui-core' ), '1.14.2', 1 );
+	$scripts->add( 'jquery-ui-widget', false, array( 'jquery-ui-core' ), '1.14.2', 1 );
 
 	// Deprecated, not used in core, most functionality is included in jQuery 1.3.
 	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.3.0', 1 );
@@ -1031,7 +1038,7 @@ function wp_default_scripts( $scripts ) {
 		'deleted'                   => __( 'moved to the Trash.' ),
 		/* translators: %s: File name. */
 		'error_uploading'           => __( '&#8220;%s&#8221; has failed to upload.' ),
-		'unsupported_image'         => __( 'This image cannot be displayed in a web browser. For best results convert it to JPEG before uploading.' ),
+		'unsupported_image'         => __( 'The server cannot process HEIC images. Convert it to JPEG before uploading.' ),
 		'noneditable_image'         => __( 'The web server cannot generate responsive image sizes for this image. Convert it to JPEG or PNG before uploading.' ),
 		'file_url_copied'           => __( 'The file URL has been copied to your clipboard' ),
 	);
@@ -1059,8 +1066,8 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', '_required-conditional-dependency_' );
 
-	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.7', 1 );
-	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.6.0', 1 );
+	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.8', 1 );
+	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.6.1', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(
@@ -1197,10 +1204,10 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.js', array(), '5.65.20' );
 	$scripts->add( 'csslint', '/wp-includes/js/codemirror/csslint.js', array(), '1.0.5' );
-	$scripts->add( 'esprima', '/wp-includes/js/codemirror/esprima.js', array(), '4.0.1' );
-	$scripts->add( 'jshint', '/wp-includes/js/codemirror/fakejshint.js', array( 'esprima' ), '2.9.5' );
+	$scripts->add( 'esprima', '/wp-includes/js/codemirror/esprima.js', array(), '4.0.1' ); // Deprecated.
+	$scripts->add( 'jshint', '/wp-includes/js/codemirror/fakejshint.js', array( 'esprima' ), '2.9.5' ); // Deprecated.
 	$scripts->add( 'jsonlint', '/wp-includes/js/codemirror/jsonlint.js', array(), '1.6.3' );
-	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '1.8.0' );
+	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '1.9.2' );
 	$scripts->add( 'htmlhint-kses', '/wp-includes/js/codemirror/htmlhint-kses.js', array( 'htmlhint' ) );
 	$scripts->add( 'code-editor', "/wp-admin/js/code-editor$suffix.js", array( 'jquery', 'wp-codemirror', 'underscore' ) );
 	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'common', 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ), false, 1 );
@@ -1432,7 +1439,7 @@ function wp_default_scripts( $scripts ) {
 
 		$scripts->add( 'xfn', "/wp-admin/js/xfn$suffix.js", array( 'jquery' ), false, 1 );
 
-		$scripts->add( 'postbox', "/wp-admin/js/postbox$suffix.js", array( 'jquery-ui-sortable', 'wp-a11y' ), false, 1 );
+		$scripts->add( 'postbox', "/wp-admin/js/postbox$suffix.js", array( 'jquery-ui-sortable', 'wp-a11y', 'wp-tooltip' ), false, 1 );
 		$scripts->set_translations( 'postbox' );
 
 		$scripts->add( 'tags-box', "/wp-admin/js/tags-box$suffix.js", array( 'jquery', 'tags-suggest' ), false, 1 );
@@ -1613,6 +1620,7 @@ function wp_default_styles( $styles ) {
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 
 	// Admin CSS.
+	$styles->add( 'wp-tooltip', "/wp-admin/css/wp-tooltip$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'common', "/wp-admin/css/common$suffix.css" );
 	$styles->add( 'forms', "/wp-admin/css/forms$suffix.css" );
 	$styles->add( 'admin-menu', "/wp-admin/css/admin-menu$suffix.css" );
@@ -1630,10 +1638,10 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'code-editor', "/wp-admin/css/code-editor$suffix.css", array( 'wp-codemirror' ) );
 	$styles->add( 'site-health', "/wp-admin/css/site-health$suffix.css" );
 
-	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n', 'wp-base-styles' ) );
+	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n', 'wp-base-styles', 'wp-tooltip' ) );
 
-	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
-	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
+	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n', 'wp-base-styles', 'wp-tooltip' ) );
+	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n', 'wp-base-styles' ) );
 	$styles->add( 'wp-color-picker', "/wp-admin/css/color-picker$suffix.css" );
 	$styles->add( 'customize-controls', "/wp-admin/css/customize-controls$suffix.css", array( 'wp-admin', 'colors', 'imgareaselect' ) );
 	$styles->add( 'customize-widgets', "/wp-admin/css/customize-widgets$suffix.css", array( 'wp-admin', 'colors' ) );
@@ -1713,6 +1721,7 @@ function wp_default_styles( $styles ) {
 
 	// Only add CONTENT styles here that should be enqueued in the iframe!
 	$wp_edit_blocks_dependencies = array(
+		'wp-theme',
 		'wp-base-styles',
 		'wp-components',
 		/*
@@ -1753,8 +1762,9 @@ function wp_default_styles( $styles ) {
 		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
 		'block-directory'      => array(),
+		'theme'                => array(),
 		'base-styles'          => array(),
-		'components'           => array(),
+		'components'           => array( 'wp-theme' ),
 		'commands'             => array( 'wp-components' ),
 		'edit-post'            => array(
 			'wp-components',
@@ -1771,9 +1781,11 @@ function wp_default_styles( $styles ) {
 			'wp-reusable-blocks',
 			'wp-patterns',
 			'wp-preferences',
+			'wp-media-utils',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
+		'media-utils'          => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'patterns'             => array( 'wp-components' ),
 		'preferences'          => array( 'wp-components' ),
@@ -1821,6 +1833,10 @@ function wp_default_styles( $styles ) {
 			$path = "/wp-includes/css/dist/base-styles/admin-schemes$suffix.css";
 		}
 
+		if ( 'theme' === $package ) {
+			$path = "/wp-includes/css/dist/theme/design-tokens$suffix.css";
+		}
+
 		$styles->add( $handle, $path, $dependencies );
 		$styles->add_data( $handle, 'path', ABSPATH . $path );
 	}
@@ -1864,6 +1880,7 @@ function wp_default_styles( $styles ) {
 		'wp-reset-editor-styles',
 		'wp-editor-classic-layout-styles',
 		'wp-block-library-theme',
+		'wp-theme',
 		'wp-edit-blocks',
 		'wp-block-editor',
 		'wp-block-library',
@@ -1877,6 +1894,7 @@ function wp_default_styles( $styles ) {
 		'wp-editor',
 		'wp-format-library',
 		'wp-list-reusable-blocks',
+		'wp-media-utils',
 		'wp-reusable-blocks',
 		'wp-patterns',
 		'wp-nux',
@@ -2015,8 +2033,8 @@ function wp_localize_jquery_ui_datepicker() {
 			'currentText'     => __( 'Today' ),
 			'monthNames'      => array_values( $wp_locale->month ),
 			'monthNamesShort' => array_values( $wp_locale->month_abbrev ),
-			'nextText'        => __( 'Next' ),
-			'prevText'        => __( 'Previous' ),
+			'nextText'        => _x( 'Next', 'datepicker: navigate to next month' ),
+			'prevText'        => _x( 'Previous', 'datepicker: navigate to previous month' ),
 			'dayNames'        => array_values( $wp_locale->weekday ),
 			'dayNamesShort'   => array_values( $wp_locale->weekday_abbrev ),
 			'dayNamesMin'     => array_values( $wp_locale->weekday_initial ),
@@ -2104,7 +2122,7 @@ function wp_style_loader_src( $src, $handle ) {
 		$color = get_user_option( 'admin_color' );
 
 		if ( empty( $color ) || ! isset( $_wp_admin_css_colors[ $color ] ) ) {
-			$color = 'fresh';
+			$color = 'modern';
 		}
 
 		$color = $_wp_admin_css_colors[ $color ] ?? null;
@@ -2226,10 +2244,7 @@ function _print_scripts() {
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
-			echo "\n<script>\n";
-			echo $wp_scripts->print_code;
-			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
-			echo "</script>\n";
+			wp_print_inline_script_tag( $wp_scripts->print_code . "\n//# sourceURL=" . rawurlencode( 'js-inline-concat-' . $concat ) );
 		}
 
 		$concat       = str_split( $concat, 128 );
@@ -2240,7 +2255,7 @@ function _print_scripts() {
 		}
 
 		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		echo "<script src='" . esc_attr( $src ) . "'></script>\n";
+		wp_print_script_tag( array( 'src' => $src ) );
 	}
 
 	if ( ! empty( $wp_scripts->print_html ) ) {
@@ -2366,13 +2381,13 @@ function print_admin_styles() {
  * @global WP_Styles $wp_styles
  * @global bool      $concatenate_scripts
  *
- * @return string[]|void
+ * @return string[]|null
  */
 function print_late_styles() {
 	global $wp_styles, $concatenate_scripts;
 
 	if ( ! ( $wp_styles instanceof WP_Styles ) ) {
-		return;
+		return null;
 	}
 
 	script_concat_settings();
@@ -2546,18 +2561,39 @@ function wp_enqueue_global_styles() {
 	$is_block_theme   = wp_is_block_theme();
 	$is_classic_theme = ! $is_block_theme;
 
-	/*
-	 * Global styles should be printed in the head for block themes, or for classic themes when loading assets on
-	 * demand is disabled, which is the default.
-	 * The footer should only be used for classic themes when loading assets on demand is enabled.
+	/**
+	 * Global styles should be printed in the HEAD for block themes, or for classic themes when loading assets on
+	 * demand is disabled (which is no longer the default since WordPress 6.9).
 	 *
-	 * See https://core.trac.wordpress.org/ticket/53494 and https://core.trac.wordpress.org/ticket/61965.
+	 * @link https://core.trac.wordpress.org/ticket/53494
+	 * @link https://core.trac.wordpress.org/ticket/61965
 	 */
 	if (
-		( $is_block_theme && doing_action( 'wp_footer' ) ) ||
-		( $is_classic_theme && doing_action( 'wp_footer' ) && ! $assets_on_demand ) ||
-		( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $assets_on_demand )
+		doing_action( 'wp_footer' ) &&
+		(
+			$is_block_theme ||
+			( $is_classic_theme && ! $assets_on_demand )
+		)
 	) {
+		return;
+	}
+
+	/**
+	 * The footer should only be used for classic themes when loading assets on demand is enabled. In WP 6.9 this is the
+	 * default with the introduction of hoisting late-printed styles (via {@see wp_load_classic_theme_block_styles_on_demand()}).
+	 * So even though the main global styles are not printed here in the HEAD for classic themes with on-demand asset
+	 * loading, a placeholder for the global styles is still enqueued. Then when {@see wp_hoist_late_printed_styles()}
+	 * processes the output buffer, it can locate the placeholder and inject the global styles from the footer into the
+	 * HEAD, replacing the placeholder.
+	 *
+	 * @link https://core.trac.wordpress.org/ticket/64099
+	 */
+	if ( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $assets_on_demand ) {
+		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+			wp_register_style( 'wp-global-styles-placeholder', false );
+			wp_add_inline_style( 'wp-global-styles-placeholder', ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer." }' );
+			wp_enqueue_style( 'wp-global-styles-placeholder' );
+		}
 		return;
 	}
 
@@ -2736,6 +2772,16 @@ function wp_should_load_block_assets_on_demand() {
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
 	if ( wp_should_load_block_assets_on_demand() ) {
+		/**
+		 * Add placeholder for where block styles would historically get enqueued in a classic theme when block assets
+		 * are not loaded on demand. This happens right after {@see wp_common_block_scripts_and_styles()} is called
+		 * at which time wp-block-library is enqueued.
+		 */
+		if ( ! wp_is_block_theme() && has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+			wp_register_style( 'wp-block-styles-placeholder', false );
+			wp_add_inline_style( 'wp-block-styles-placeholder', ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the block styles printed at wp_footer." }' );
+			wp_enqueue_style( 'wp-block-styles-placeholder' );
+		}
 		return;
 	}
 
@@ -3013,11 +3059,6 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	}
 
 	if ( ! $processor->set_modifiable_text( $data ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			__( 'Unable to set inline script data.' ),
-			'7.0.0'
-		);
 		return '';
 	}
 
@@ -3171,7 +3212,6 @@ function wp_maybe_inline_styles() {
  *
  * @param string $css            The CSS to make URLs relative to the WordPress installation.
  * @param string $stylesheet_url The URL to the stylesheet.
- *
  * @return string The CSS with URLs made relative to the WordPress installation.
  */
 function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
@@ -3638,11 +3678,15 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 /**
  * Adds hooks to load block styles on demand in classic themes.
  *
+ * This function must be called before {@see wp_default_styles()} and {@see register_core_block_style_handles()} so that
+ * the filters are added to cause {@see wp_should_load_separate_core_block_assets()} to return true.
+ *
  * @since 6.9.0
+ * @since 7.0.0 This is now invoked at the `wp_default_styles` action with priority 0 instead of at `init` with priority 8.
  *
  * @see _add_default_theme_supports()
  */
-function wp_load_classic_theme_block_styles_on_demand() {
+function wp_load_classic_theme_block_styles_on_demand(): void {
 	// This is not relevant to block themes, as they are opted in to loading separate styles on demand via _add_default_theme_supports().
 	if ( wp_is_block_theme() ) {
 		return;
@@ -3695,42 +3739,30 @@ function wp_load_classic_theme_block_styles_on_demand() {
  * @see wp_load_classic_theme_block_styles_on_demand()
  * @see _wp_footer_scripts()
  */
-function wp_hoist_late_printed_styles() {
+function wp_hoist_late_printed_styles(): void {
 	// Skip the embed template on-demand styles aren't relevant, and there is no wp_head action.
 	if ( is_embed() ) {
 		return;
 	}
 
-	// Capture the styles enqueued at the enqueue_block_assets action, so that non-core block styles and global styles can be inserted afterwards during hoisting.
-	$style_handles_at_enqueue_block_assets = array();
-	add_action(
-		'enqueue_block_assets',
-		static function () use ( &$style_handles_at_enqueue_block_assets ) {
-			$style_handles_at_enqueue_block_assets = wp_styles()->queue;
-		},
-		PHP_INT_MIN
-	);
-	add_action(
-		'enqueue_block_assets',
-		static function () use ( &$style_handles_at_enqueue_block_assets ) {
-			$style_handles_at_enqueue_block_assets = array_values( array_diff( wp_styles()->queue, $style_handles_at_enqueue_block_assets ) );
-		},
-		PHP_INT_MAX
-	);
-
 	/*
 	 * Add a placeholder comment into the inline styles for wp-block-library, after which the late block styles
 	 * can be hoisted from the footer to be printed in the header by means of a filter below on the template enhancement
-	 * output buffer. The `wp_print_styles` action is used to ensure that if the inline style gets replaced at
-	 * `enqueue_block_assets` or `wp_enqueue_scripts` that the placeholder will be sure to be present.
+	 * output buffer.
+	 *
+	 * Note that wp_maybe_inline_styles() prepends the inlined style to the extra 'after' array, which happens after
+	 * this code runs. This ensures that the placeholder appears right after any inlined wp-block-library styles,
+	 * which would be common.css.
 	 */
 	$placeholder = sprintf( '/*%s*/', uniqid( 'wp_block_styles_on_demand_placeholder:' ) );
-	add_action(
-		'wp_print_styles',
-		static function () use ( $placeholder ) {
+	$dependency  = wp_styles()->query( 'wp-block-library', 'registered' );
+	if ( $dependency ) {
+		if ( ! isset( $dependency->extra['after'] ) ) {
 			wp_add_inline_style( 'wp-block-library', $placeholder );
+		} else {
+			array_unshift( $dependency->extra['after'], $placeholder );
 		}
-	);
+	}
 
 	/*
 	 * Create a substitute for `print_late_styles()` which is aware of block styles. This substitute does not print
@@ -3760,29 +3792,29 @@ function wp_hoist_late_printed_styles() {
 		}
 
 		/*
-		 * First print all styles related to blocks which should be inserted right after the wp-block-library stylesheet
+		 * First print all styles related to core blocks which should be inserted right after the wp-block-library stylesheet
 		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
 		 */
 		$enqueued_core_block_styles = array_values( array_intersect( $all_core_block_style_handles, wp_styles()->queue ) );
 		if ( count( $enqueued_core_block_styles ) > 0 ) {
 			ob_start();
 			wp_styles()->do_items( $enqueued_core_block_styles );
-			$printed_core_block_styles = ob_get_clean();
+			$printed_core_block_styles = (string) ob_get_clean();
 		}
 
-		// Non-core block styles get printed after the classic-theme-styles stylesheet.
+		// Capture non-core block styles so they can get printed at the point where wp_enqueue_registered_block_scripts_and_styles() runs.
 		$enqueued_other_block_styles = array_values( array_intersect( $all_other_block_style_handles, wp_styles()->queue ) );
 		if ( count( $enqueued_other_block_styles ) > 0 ) {
 			ob_start();
 			wp_styles()->do_items( $enqueued_other_block_styles );
-			$printed_other_block_styles = ob_get_clean();
+			$printed_other_block_styles = (string) ob_get_clean();
 		}
 
-		// Capture the global-styles so that it can be printed separately after classic-theme-styles and other styles enqueued at enqueue_block_assets.
+		// Capture the global-styles so that it can be printed at the point where wp_enqueue_global_styles() runs.
 		if ( wp_style_is( 'global-styles' ) ) {
 			ob_start();
 			wp_styles()->do_items( array( 'global-styles' ) );
-			$printed_global_styles = ob_get_clean();
+			$printed_global_styles = (string) ob_get_clean();
 		}
 
 		/*
@@ -3792,7 +3824,7 @@ function wp_hoist_late_printed_styles() {
 		 */
 		ob_start();
 		wp_styles()->do_footer_items();
-		$printed_late_styles = ob_get_clean();
+		$printed_late_styles = (string) ob_get_clean();
 	};
 
 	/*
@@ -3823,7 +3855,7 @@ function wp_hoist_late_printed_styles() {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		static function ( $buffer ) use ( $placeholder, &$style_handles_at_enqueue_block_assets, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
+		static function ( $buffer ) use ( $placeholder, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
@@ -3843,7 +3875,7 @@ function wp_hoist_late_printed_styles() {
 				 *
 				 * @param string $text Text to insert.
 				 */
-				public function insert_before( string $text ) {
+				public function insert_before( string $text ): void {
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $this->get_span()->start, 0, $text );
 				}
 
@@ -3852,7 +3884,7 @@ function wp_hoist_late_printed_styles() {
 				 *
 				 * @param string $text Text to insert.
 				 */
-				public function insert_after( string $text ) {
+				public function insert_after( string $text ): void {
 					$span = $this->get_span();
 
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start + $span->length, 0, $text );
@@ -3861,10 +3893,21 @@ function wp_hoist_late_printed_styles() {
 				/**
 				 * Removes the current token.
 				 */
-				public function remove() {
+				public function remove(): void {
 					$span = $this->get_span();
 
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
+				}
+
+				/**
+				 * Replaces the current token.
+				 *
+				 * @param string $text Text to replace with.
+				 */
+				public function replace( string $text ): void {
+					$span = $this->get_span();
+
+					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, $text );
 				}
 			};
 
@@ -3872,34 +3915,36 @@ function wp_hoist_late_printed_styles() {
 			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 				if (
 					'STYLE' === $processor->get_tag() &&
+					'wp-global-styles-placeholder-inline-css' === $processor->get_attribute( 'id' )
+				) {
+					/** This is added in {@see wp_enqueue_global_styles()} */
+					$processor->set_bookmark( 'wp_global_styles_placeholder' );
+				} elseif (
+					'STYLE' === $processor->get_tag() &&
+					'wp-block-styles-placeholder-inline-css' === $processor->get_attribute( 'id' )
+				) {
+					/** This is added in {@see wp_enqueue_registered_block_scripts_and_styles()} */
+					$processor->set_bookmark( 'wp_block_styles_placeholder' );
+				} elseif (
+					'STYLE' === $processor->get_tag() &&
 					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
+					/** This is added here in {@see wp_hoist_late_printed_styles()} */
 					$processor->set_bookmark( 'wp_block_library' );
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
 					$processor->set_bookmark( 'head_end' );
 					break;
-				} elseif ( ( 'STYLE' === $processor->get_tag() || 'LINK' === $processor->get_tag() ) && $processor->get_attribute( 'id' ) ) {
-					$id     = $processor->get_attribute( 'id' );
-					$handle = null;
-					if ( 'STYLE' === $processor->get_tag() ) {
-						if ( preg_match( '/^(.+)-inline-css$/', $id, $matches ) ) {
-							$handle = $matches[1];
-						}
-					} elseif ( preg_match( '/^(.+)-css$/', $id, $matches ) ) {
-						$handle = $matches[1];
-					}
-
-					if ( 'classic-theme-styles' === $handle ) {
-						$processor->set_bookmark( 'classic_theme_styles' );
-					}
-
-					if ( $handle && in_array( $handle, $style_handles_at_enqueue_block_assets, true ) ) {
-						if ( ! $processor->has_bookmark( 'first_style_at_enqueue_block_assets' ) ) {
-							$processor->set_bookmark( 'first_style_at_enqueue_block_assets' );
-						}
-						$processor->set_bookmark( 'last_style_at_enqueue_block_assets' );
-					}
 				}
+			}
+
+			/**
+			 * Replace the placeholder for global styles enqueued during {@see wp_enqueue_global_styles()}. This is done
+			 * even if $printed_global_styles is empty.
+			 */
+			if ( $processor->has_bookmark( 'wp_global_styles_placeholder' ) ) {
+				$processor->seek( 'wp_global_styles_placeholder' );
+				$processor->replace( $printed_global_styles );
+				$printed_global_styles = '';
 			}
 
 			/*
@@ -3916,13 +3961,34 @@ function wp_hoist_late_printed_styles() {
 				$css_text = $processor->get_modifiable_text();
 
 				/*
-				 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
-				 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
-				 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
-				 * comment), then remove the STYLE entirely.
+				 * Split the block library inline style by the placeholder to identify the original inlined CSS, which
+				 * likely would be common.css, followed by any inline styles which had been added by the theme or
+				 * plugins via `wp_add_inline_style( 'wp-block-library', '...' )`. The separate block styles loaded on
+				 * demand will get inserted after the inlined common.css and before the extra inline styles added by the
+				 * user.
 				 */
-				$css_text = str_replace( $placeholder, '', $css_text );
-				if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
+				$css_text_around_placeholder = explode( $placeholder, $css_text, 2 );
+				$extra_inline_styles         = '';
+				if ( count( $css_text_around_placeholder ) === 2 ) {
+					$css_text = $css_text_around_placeholder[0];
+					if ( '' !== trim( $css_text ) ) {
+						$inlined_src = wp_styles()->get_data( 'wp-block-library', 'inlined_src' );
+						if ( $inlined_src ) {
+							$css_text .= sprintf(
+								"\n/*# sourceURL=%s */\n",
+								esc_url_raw( $inlined_src )
+							);
+						}
+					}
+					$extra_inline_styles = $css_text_around_placeholder[1];
+				}
+
+				/*
+				 * The placeholder CSS comment was added to the inline style in order to force an inline STYLE tag to
+				 * be printed. Now that the inline style has been located and the placeholder comment has been removed, if
+				 * there is no CSS left in the STYLE tag after removal, then remove the STYLE tag entirely.
+				 */
+				if ( '' === trim( $css_text ) ) {
 					$processor->remove();
 				} else {
 					$processor->set_modifiable_text( $css_text );
@@ -3931,20 +3997,18 @@ function wp_hoist_late_printed_styles() {
 				$inserted_after            = $printed_core_block_styles;
 				$printed_core_block_styles = '';
 
-				// If the classic-theme-styles is absent, then the third-party block styles cannot be inserted after it, so they get inserted here.
-				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
-					if ( '' !== $printed_other_block_styles ) {
-						$inserted_after .= $printed_other_block_styles;
-					}
-					$printed_other_block_styles = '';
-
-					// If there aren't any other styles printed at enqueue_block_assets either, then the global styles need to also be printed here.
-					if ( ! $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
-						if ( '' !== $printed_global_styles ) {
-							$inserted_after .= $printed_global_styles;
-						}
-						$printed_global_styles = '';
-					}
+				/*
+				 * Add a new inline style for any user styles added via wp_add_inline_style( 'wp-block-library', '...' ).
+				 * This must be added here after $printed_core_block_styles to preserve the original CSS cascade when
+				 * the combined block library stylesheet was used. The pattern here is checking to see if it is not just
+				 * a sourceURL comment after the placeholder above is removed.
+				 */
+				if ( ! preg_match( ':^\s*(/\*# sourceURL=\S+? \*/\s*)?$:s', $extra_inline_styles ) ) {
+					$style_processor = new WP_HTML_Tag_Processor( '<style></style>' );
+					$style_processor->next_tag();
+					$style_processor->set_attribute( 'id', 'wp-block-library-inline-css-extra' );
+					$style_processor->set_modifiable_text( $extra_inline_styles );
+					$inserted_after .= "{$style_processor->get_updated_html()}\n";
 				}
 
 				if ( '' !== $inserted_after ) {
@@ -3952,23 +4016,14 @@ function wp_hoist_late_printed_styles() {
 				}
 			}
 
-			// Insert global-styles after the styles enqueued at enqueue_block_assets.
-			if ( '' !== $printed_global_styles && $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
-				$processor->seek( 'last_style_at_enqueue_block_assets' );
-
-				$processor->insert_after( "\n" . $printed_global_styles );
-				$printed_global_styles = '';
-
-				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) && '' !== $printed_other_block_styles ) {
-					$processor->insert_after( "\n" . $printed_other_block_styles );
-					$printed_other_block_styles = '';
+			// Insert block styles at the point where wp_enqueue_registered_block_scripts_and_styles() normally enqueues styles.
+			if ( $processor->has_bookmark( 'wp_block_styles_placeholder' ) ) {
+				$processor->seek( 'wp_block_styles_placeholder' );
+				if ( '' !== $printed_other_block_styles ) {
+					$processor->replace( "\n" . $printed_other_block_styles );
+				} else {
+					$processor->remove();
 				}
-			}
-
-			// Insert third-party block styles right after the classic-theme-styles.
-			if ( '' !== $printed_other_block_styles && $processor->has_bookmark( 'classic_theme_styles' ) ) {
-				$processor->seek( 'classic_theme_styles' );
-				$processor->insert_after( "\n" . $printed_other_block_styles );
 				$printed_other_block_styles = '';
 			}
 

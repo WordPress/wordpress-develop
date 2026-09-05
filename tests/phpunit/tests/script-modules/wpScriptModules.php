@@ -11,43 +11,39 @@
  */
 class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
-	/**
-	 * @var WP_Script_Modules
-	 */
-	protected $original_script_modules;
+	protected WP_Script_Modules $original_script_modules;
 
-	/**
-	 * @var string
-	 */
-	protected $original_wp_version;
+	protected string $original_wp_version;
 
-	/**
-	 * Instance of WP_Script_Modules.
-	 *
-	 * @var WP_Script_Modules
-	 */
-	protected $script_modules;
+	protected ?WP_Scripts $original_wp_scripts;
+
+	protected WP_Script_Modules $script_modules;
 
 	/**
 	 * Set up.
 	 */
 	public function set_up() {
-		global $wp_script_modules, $wp_version;
+		global $wp_script_modules, $wp_scripts, $wp_version;
 		parent::set_up();
 		$this->original_script_modules = $wp_script_modules;
 		$this->original_wp_version     = $wp_version;
+		$this->original_wp_scripts     = $wp_scripts ?? null;
 		$wp_script_modules             = null;
 		$this->script_modules          = wp_script_modules();
+
+		$wp_scripts                  = new WP_Scripts();
+		$wp_scripts->default_version = get_bloginfo( 'version' );
 	}
 
 	/**
 	 * Tear down.
 	 */
 	public function tear_down() {
-		global $wp_script_modules, $wp_version;
 		parent::tear_down();
+		global $wp_script_modules, $wp_scripts, $wp_version;
 		$wp_script_modules = $this->original_script_modules;
 		$wp_version        = $this->original_wp_version;
+		$wp_scripts        = $this->original_wp_scripts;
 	}
 
 	/**
@@ -490,7 +486,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				foreach ( $test_case as $param_name => $param_value ) {
 					$key_parts[] = sprintf( '%s_%s', $param_name, json_encode( $param_value ) );
 				}
-				$data[ join( '_', $key_parts ) ] = $test_case;
+				$data[ implode( '_', $key_parts ) ] = $test_case;
 			}
 		}
 
@@ -1855,6 +1851,50 @@ HTML;
 	}
 
 	/**
+	 * Tests that every default script module points to a file that exists on
+	 * disk, both with and without SCRIPT_DEBUG.
+	 *
+	 * Some files are only shipped minified (large inlined WASM or worker
+	 * code with no debugging value). Those must be special-cased in
+	 * wp_default_script_modules() so the non-minified URL is never used;
+	 * otherwise the import map points to a non-existent file under
+	 * SCRIPT_DEBUG. The exceptions below must mirror that special case.
+	 *
+	 * @ticket 65664
+	 *
+	 * @covers ::wp_default_script_modules
+	 */
+	public function test_default_script_module_files_exist() {
+		$assets_file = ABSPATH . WPINC . '/assets/script-modules-packages.php';
+		if ( ! file_exists( $assets_file ) ) {
+			$this->markTestSkipped( 'The script modules packages asset file is not available.' );
+		}
+
+		$assets = include $assets_file;
+		$this->assertNotEmpty( $assets, 'The script modules packages asset file should not be empty.' );
+
+		foreach ( array_keys( $assets ) as $file_name ) {
+			// Files only shipped minified; mirrors wp_default_script_modules().
+			if ( str_starts_with( $file_name, 'vips/' ) || 'video-conversion/worker.js' === $file_name ) {
+				$file_name = str_replace( '.js', '.min.js', $file_name );
+			}
+
+			$min_file_name = str_ends_with( $file_name, '.min.js' )
+				? $file_name
+				: substr( $file_name, 0, -3 ) . '.min.js';
+
+			$this->assertFileExists(
+				ABSPATH . WPINC . "/js/dist/script-modules/{$file_name}",
+				"The script module file used with SCRIPT_DEBUG enabled should exist for '{$file_name}'."
+			);
+			$this->assertFileExists(
+				ABSPATH . WPINC . "/js/dist/script-modules/{$min_file_name}",
+				"The minified script module file should exist for '{$file_name}'."
+			);
+		}
+	}
+
+	/**
 	 * Tests expected priority is used when a dependent is registered but not enqueued.
 	 *
 	 * @ticket 64429
@@ -1905,6 +1945,27 @@ HTML;
 
 HTML;
 		$this->assertEqualHTML( $expected, $actual );
+	}
+
+	/**
+	 * Tests that VIPS script modules always use minified file paths.
+	 *
+	 * Non-minified VIPS files are not shipped because they are ~10MB of
+	 * inlined WASM with no debugging value, so the registration should
+	 * always point to the .min.js variants.
+	 *
+	 * @ticket 64734
+	 *
+	 * @covers ::wp_default_script_modules
+	 */
+	public function test_vips_script_modules_always_use_minified_paths() {
+		wp_default_script_modules();
+		wp_enqueue_script_module( '@wordpress/vips/loader' );
+
+		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertStringContainsString( 'vips/loader.min.js', $actual );
+		$this->assertStringNotContainsString( 'vips/loader.js"', $actual );
 	}
 
 	/**
@@ -1972,6 +2033,23 @@ HTML;
 	}
 
 	/**
+	 * Returns the inline text of the first SCRIPT tag with the given id, or null if not found.
+	 *
+	 * @param string $markup The HTML markup to search.
+	 * @param string $id     The id attribute to match.
+	 * @return string|null The inline script text, or null if no matching tag was found.
+	 */
+	private function get_inline_script_text( string $markup, string $id ): ?string {
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		while ( $processor->next_tag( 'SCRIPT' ) ) {
+			if ( $id === $processor->get_attribute( 'id' ) ) {
+				return $processor->get_modifiable_text();
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
@@ -1982,6 +2060,178 @@ HTML;
 			'stdClass' => array( new stdClass() ),
 			'number 1' => array( 1 ),
 			'string'   => array( 'string' ),
+		);
+	}
+
+	/**
+	 * Tests that script modules identified as dependencies of classic scripts are included in the import map.
+	 *
+	 * @ticket 61500
+	 *
+	 * @covers WP_Script_Modules::get_import_map
+	 */
+	public function test_included_module_appears_in_importmap() {
+		$this->script_modules->register( 'dependency', '/dep.js' );
+		$this->script_modules->register( 'example', '/example.js', array( 'dependency' ) );
+		$this->script_modules->register( 'example2', '/example2.js' );
+
+		// Nothing printed now.
+		$this->assertSame( array(), $this->get_enqueued_script_modules(), 'Initial enqueued script modules was wrong.' );
+		$this->assertSame( array(), $this->get_preloaded_script_modules(), 'Initial module preloads was wrong.' );
+		$this->assertSame( array(), $this->get_import_map(), 'Initial import map was wrong.' );
+
+		// Enqueuing a script with a module dependency should add it to the import map.
+		wp_enqueue_script(
+			'classic',
+			'/classic.js',
+			array( 'classic-dependency' ),
+			false,
+			array(
+				'strategy'            => 'defer',
+				'module_dependencies' => array(
+					'example',
+					array(
+						'id' => 'example2',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array(), $this->get_enqueued_script_modules(), 'Final enqueued script modules was wrong.' );
+		$this->assertSame( array(), $this->get_preloaded_script_modules(), 'Final module preloads was wrong.' );
+		$this->assertEqualSets(
+			array( 'example', 'example2', 'dependency' ),
+			array_keys( $this->get_import_map() ),
+			'Import map keys were wrong.'
+		);
+	}
+
+	/**
+	 * Tests that dynamic dependencies of enqueued script modules are included in the import map.
+	 *
+	 * @ticket 61500
+	 *
+	 * @covers WP_Script_Modules::get_import_map
+	 */
+	public function test_import_map_includes_dynamic_dependencies_of_enqueued_modules() {
+		$this->script_modules->register( 'dependency-of-enqueued', '/dependency-of-enqueued.js' );
+		$this->script_modules->enqueue(
+			'enqueued',
+			'/enqueued.js',
+			array(
+				array(
+					'id'     => 'dependency-of-enqueued',
+					'import' => 'dynamic',
+				),
+			)
+		);
+
+		$enqueued = $this->get_enqueued_script_modules();
+		$this->assertCount( 1, $enqueued, 'Enqueue count was wrong.' );
+		$this->assertArrayHasKey( 'enqueued', $enqueued, 'Missing "enqueued" script module enqueue.' );
+		$this->assertCount( 0, $this->get_preloaded_script_modules(), 'Module preload count was wrong.' );
+		$this->assertEqualSets(
+			array( 'dependency-of-enqueued' ),
+			array_keys( $this->get_import_map() ),
+			'Import map keys were wrong.'
+		);
+	}
+
+	/**
+	 * Tests that script module dependencies of enqueued classic scripts (including transitive ones) are included in the import map.
+	 *
+	 * @ticket 61500
+	 *
+	 * @covers WP_Script_Modules::get_import_map
+	 */
+	public function test_import_map_includes_dependencies_of_classic_scripts_recursive() {
+		$this->script_modules->register( 'classic-transitive-dependency', '/classic-transitive-dependency.js' );
+		$this->script_modules->register( 'dependency-of-not-enqueued', '/dependency-of-not-enqueued.js' );
+		$this->script_modules->register( 'not-enqueued', '/not-enqueued.js', array( 'dependency-of-not-enqueued' ) );
+
+		// Enqueuing a script with a module dependency should add it to the import map.
+		wp_register_script(
+			'classic-transitive-dep',
+			'/classic-transitive-dep.js',
+			array(),
+			false,
+			array(
+				'in_footer'           => true,
+				'module_dependencies' => array( 'classic-transitive-dependency' ),
+			)
+		);
+		wp_enqueue_script(
+			'classic',
+			'/classic.js',
+			array( 'classic-transitive-dep' ),
+			false,
+			array(
+				'in_footer'           => true,
+				'module_dependencies' => array( 'not-enqueued' ),
+			)
+		);
+
+		$enqueued = $this->get_enqueued_script_modules();
+		$this->assertCount( 0, $enqueued, 'Enqueue count was wrong.' );
+		$this->assertCount( 0, $this->get_preloaded_script_modules(), 'Module preload count was wrong.' );
+		$this->assertEqualSets(
+			array(
+				'classic-transitive-dependency',
+				'not-enqueued',
+				'dependency-of-not-enqueued',
+			),
+			array_keys( $this->get_import_map() ),
+			'Import map keys were wrong.'
+		);
+	}
+
+	/**
+	 * Tests that WP_Scripts emits a _doing_it_wrong() notice for missing script module dependencies.
+	 *
+	 * @ticket 61500
+	 * @ticket 64229
+	 * @covers WP_Script_Modules::get_import_map
+	 */
+	public function test_wp_scripts_doing_it_wrong_for_missing_script_module_dependencies() {
+		$expected_incorrect_usage = 'WP_Scripts::add_data';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		wp_enqueue_script(
+			'registered-dep',
+			'/registered-dep.js',
+			array(),
+			null,
+			array(
+				'strategy'            => 'defer',
+				'module_dependencies' => array( 'does-not-exist' ),
+			)
+		);
+
+		$import_map = $this->get_import_map();
+		$this->assertSame( array(), $import_map, 'Expected importmap to be empty.' );
+		$markup = get_echo( 'wp_print_scripts' );
+
+		/*
+		 * In the future, we may want to have missing script module dependencies for classic scripts to cause the
+		 * classic script to not be printed. This would align the behavior with script modules that have missing
+		 * script module dependencies, and classic scripts that have missing classic script dependencies. Nevertheless,
+		 * since script module dependencies rely on dynamic imports, the dependency may not be as strong. This means
+		 * the classic script may still work or have a fallback in case the script module fails to dynamically import.
+		 * This same change could be made for script modules as well, where if a script module has a missing dynamic
+		 * script module dependency, this might similarly not be sufficient reason to omit printing the dependent script module.
+		 */
+		$this->assertStringContainsString( 'registered-dep.js', $markup, 'Expected script to be present, even though it has a missing script module dependency.' );
+
+		$this->assertArrayHasKey(
+			$expected_incorrect_usage,
+			$this->caught_doing_it_wrong,
+			"Expected $expected_incorrect_usage to trigger a _doing_it_wrong() notice for missing dependency."
+		);
+
+		$this->assertStringContainsString(
+			'The script with the handle "registered-dep" was enqueued with script module dependencies ("module_dependencies") that are not registered: does-not-exist',
+			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
+			'Expected _doing_it_wrong() notice to indicate missing script module dependencies for enqueued script.'
 		);
 	}
 
@@ -2382,5 +2632,294 @@ HTML;
 			'The script module with the ID "main-module" was enqueued with dependencies that are not registered: missing-mod-dep',
 			$this->caught_doing_it_wrong[ $expected_incorrect_usage ]
 		);
+	}
+
+	/**
+	 * Tests that set_translations() returns false for unregistered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::set_translations
+	 */
+	public function test_set_translations_returns_false_for_unregistered_module() {
+		$result = $this->script_modules->set_translations( 'unregistered-module', 'default' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests that set_translations() returns true for registered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::set_translations
+	 */
+	public function test_set_translations_returns_true_for_registered_module() {
+		$this->script_modules->register( 'test-module', '/test-module.js' );
+		$result = $this->script_modules->set_translations( 'test-module', 'test-domain' );
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests that wp_set_script_module_translations() wrapper works.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers ::wp_set_script_module_translations
+	 * @covers WP_Script_Modules::set_translations
+	 */
+	public function test_wp_set_script_module_translations_wrapper() {
+		wp_register_script_module( 'test-module', '/test-module.js' );
+		$result = wp_set_script_module_translations( 'test-module', 'test-domain' );
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests that wp_set_script_module_translations() returns false for unregistered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers ::wp_set_script_module_translations
+	 * @covers WP_Script_Modules::set_translations
+	 */
+	public function test_wp_set_script_module_translations_returns_false_for_unregistered() {
+		$result = wp_set_script_module_translations( 'unregistered-module', 'default' );
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests that get_registered() returns null for unregistered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::get_registered
+	 */
+	public function test_get_registered_returns_null_for_unregistered_module() {
+		$result = $this->script_modules->get_registered( 'unregistered-module' );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Tests that get_registered() returns correct src for registered module.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::get_registered
+	 */
+	public function test_get_registered_returns_array_for_registered_module() {
+		$this->script_modules->register( 'test-module', '/test-module.js' );
+		$result = $this->script_modules->get_registered( 'test-module' );
+		$this->assertIsArray( $result, 'get_registered() should return an array for a registered module.' );
+		$this->assertSame( '/test-module.js', $result['src'], 'src should match the value passed to register().' );
+		$this->assertFalse( $result['version'], 'version should default to false.' );
+		$this->assertSame( array(), $result['dependencies'], 'dependencies should default to an empty array.' );
+		$this->assertFalse( $result['in_footer'], 'in_footer should default to false.' );
+		$this->assertSame( 'auto', $result['fetchpriority'], 'fetchpriority should default to auto.' );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs nothing when no translations are set.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 */
+	public function test_print_script_module_translations_outputs_nothing_when_no_translations() {
+		$this->script_modules->register( 'test-module', '/test-module.js' );
+		$this->script_modules->enqueue( 'test-module' );
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertEmpty( $output );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs nothing for non-enqueued modules.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 */
+	public function test_print_script_module_translations_outputs_nothing_for_non_enqueued() {
+		$this->script_modules->register( 'test-module', '/test-module.js' );
+		$this->script_modules->set_translations( 'test-module', 'default' );
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertEmpty( $output );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() auto-detects translations
+	 * for enqueued modules without requiring an explicit set_translations() call.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers ::load_script_module_textdomain
+	 */
+	public function test_print_script_module_translations_outputs_set_locale_data() {
+		$this->script_modules->register( 'test-module', '/wp-includes/js/test-module.js' );
+		$this->script_modules->enqueue( 'test-module' );
+
+		// Provide test translations via the pre_load_script_translations filter
+		// so no fixture files are needed.
+		add_filter(
+			'pre_load_script_translations',
+			static function ( $translations, $file, $handle ) {
+				if ( 'test-module' !== $handle ) {
+					return $translations;
+				}
+				return wp_json_encode(
+					array(
+						'domain'      => 'messages',
+						'locale_data' => array(
+							'messages' => array(
+								''      => array(
+									'domain' => 'messages',
+									'lang'   => 'es',
+								),
+								'Hello' => array( 'Hola' ),
+							),
+						),
+					)
+				);
+			},
+			10,
+			3
+		);
+
+		$filtered = array();
+		add_filter(
+			'load_script_textdomain_relative_path',
+			static function ( $relative, $src, $is_module ) use ( &$filtered ) {
+				$filtered[] = compact( 'relative', 'src', 'is_module' );
+				return $relative;
+			},
+			10,
+			3
+		);
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertCount( 1, $filtered, 'load_script_textdomain_relative_path filter should fire once for the enqueued module.' );
+		foreach ( $filtered as $filter_args ) {
+			$this->assertIsString( $filter_args['relative'], 'Filter should receive a string $relative argument.' );
+			$this->assertIsString( $filter_args['src'], 'Filter should receive a string $src argument.' );
+			$this->assertTrue( $filter_args['is_module'], 'Filter should receive $is_module=true for script modules.' );
+		}
+
+		$script_text = $this->get_inline_script_text( $output, 'wp-script-module-translation-data-test-module' );
+		$this->assertNotNull( $script_text, 'Translation inline script should be printed with the expected ID.' );
+		$this->assertStringContainsString( 'wp.i18n.setLocaleData', $script_text, 'Output should call wp.i18n.setLocaleData().' );
+		$this->assertStringContainsString( 'Hola', $script_text, 'Output should contain the translated string.' );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() also outputs translations
+	 * for dependencies of enqueued modules (not just directly enqueued ones).
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers ::load_script_module_textdomain
+	 */
+	public function test_print_script_module_translations_includes_dependencies() {
+		$this->script_modules->register( 'dep-module', '/wp-includes/js/dep-module.js' );
+		$this->script_modules->register( 'main-module', '/wp-includes/js/main-module.js', array( 'dep-module' ) );
+		$this->script_modules->enqueue( 'main-module' );
+
+		add_filter(
+			'pre_load_script_translations',
+			static function ( $translations, $file, $handle ) {
+				if ( 'dep-module' !== $handle ) {
+					return $translations;
+				}
+				return wp_json_encode(
+					array(
+						'locale_data' => array(
+							'messages' => array(
+								''      => array(
+									'domain' => 'messages',
+									'lang'   => 'es',
+								),
+								'World' => array( 'Mundo' ),
+							),
+						),
+					)
+				);
+			},
+			10,
+			3
+		);
+
+		$filtered = array();
+		add_filter(
+			'load_script_textdomain_relative_path',
+			static function ( $relative, $src, $is_module ) use ( &$filtered ) {
+				$filtered[] = compact( 'relative', 'src', 'is_module' );
+				return $relative;
+			},
+			10,
+			3
+		);
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		// With auto-detection, the filter fires for every enqueued module and its dependencies.
+		$this->assertCount( 2, $filtered, 'load_script_textdomain_relative_path filter should fire for the enqueued module and its dependency.' );
+		foreach ( $filtered as $filter_args ) {
+			$this->assertIsString( $filter_args['relative'], 'Filter should receive a string $relative argument.' );
+			$this->assertIsString( $filter_args['src'], 'Filter should receive a string $src argument.' );
+			$this->assertTrue( $filter_args['is_module'], 'Filter should receive $is_module=true for script modules.' );
+		}
+
+		$script_text = $this->get_inline_script_text( $output, 'wp-script-module-translation-data-dep-module' );
+		$this->assertNotNull( $script_text, 'Dependency module translations should be printed.' );
+		$this->assertStringContainsString( 'Mundo', $script_text, 'Output should contain the dependency translation.' );
+	}
+
+	/**
+	 * Tests that set_translations() can override the auto-detected text domain.
+	 *
+	 * @ticket 65015
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers WP_Script_Modules::set_translations
+	 */
+	public function test_print_script_module_translations_respects_set_translations_override() {
+		$this->script_modules->register( 'test-module', '/wp-includes/js/test-module.js' );
+		$this->script_modules->enqueue( 'test-module' );
+		$this->script_modules->set_translations( 'test-module', 'my-plugin' );
+
+		$seen_domain = null;
+		add_filter(
+			'pre_load_script_translations',
+			static function ( $translations, $file, $handle, $domain ) use ( &$seen_domain ) {
+				if ( 'test-module' !== $handle ) {
+					return $translations;
+				}
+				$seen_domain = $domain;
+				return wp_json_encode(
+					array(
+						'locale_data' => array(
+							'messages' => array(
+								''      => array(
+									'domain' => 'my-plugin',
+									'lang'   => 'es',
+								),
+								'Hello' => array( 'Hola' ),
+							),
+						),
+					)
+				);
+			},
+			10,
+			4
+		);
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertSame( 'my-plugin', $seen_domain, 'load_script_module_textdomain() should be called with the overridden domain.' );
+		$this->assertStringContainsString( 'Hola', $output, 'Output should contain the translated string loaded under the overridden domain.' );
 	}
 }
