@@ -26,6 +26,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $ignore_files;
 
 	/**
+	 * Site locale before each test.
+	 *
+	 * @var string
+	 */
+	protected $original_locale = 'en_US';
+
+	/**
 	 * Fixture factory.
 	 *
 	 * @deprecated 6.1.0 Use the WP_UnitTestCase_Base::factory() method instead.
@@ -121,6 +128,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		$this->clean_up_global_scope();
+
+		/*
+		 * Capture the site locale after resetting the runtime cache so it can be
+		 * restored without querying the database after the test transaction rolls back.
+		 */
+		unset( $GLOBALS['locale'] );
+		$this->original_locale = determine_locale();
+		WP_Translation_Controller::get_instance()->set_locale( $this->original_locale );
 
 		/*
 		 * When running core tests, ensure that post types and taxonomies
@@ -229,7 +244,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
 		wp_set_current_user( 0 );
-
+		// Synchronize the locale globals with the site locale captured before the test.
+		$GLOBALS['locale'] = $this->original_locale;
+		WP_Translation_Controller::get_instance()->set_locale( $this->original_locale );
 		$this->reset_lazyload_queue();
 
 		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
