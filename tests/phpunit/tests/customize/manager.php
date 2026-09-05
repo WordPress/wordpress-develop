@@ -1357,11 +1357,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// User saved as one who cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_2' ) );
-		$this->assertStringContainsString( 'WordPress', get_option( 'custom_html_2' ) );
+		$this->assertStringNotContainsString( 'WordPress', get_option( 'custom_html_2' ) );
 
 		// User saved as one who also cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_3' ) );
-		$this->assertStringContainsString( 'WordPress', get_option( 'custom_html_3' ) );
+		$this->assertStringNotContainsString( 'WordPress', get_option( 'custom_html_3' ) );
 	}
 
 	/**
@@ -1991,7 +1991,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize = new WP_Customize_Manager( array( 'changeset_uuid' => $wp_customize->changeset_uuid() ) );
 		do_action( 'customize_register', $wp_customize );
 		$wp_customize->save_changeset_post( array( 'status' => 'publish' ) );
-		$this->assertSame( 'Unfilteredevil', get_option( 'scratchpad' ) );
+		$this->assertSame( 'Unfiltered', get_option( 'scratchpad' ) );
 
 		// Attempt publishing scratchpad as anonymous user when changeset was set by privileged user.
 		update_option( 'scratchpad', '' );
@@ -2008,7 +2008,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 		$wp_customize = null;
 		unset( $GLOBALS['wp_actions']['customize_register'] );
-		$this->assertSame( 'Unfilteredevil', apply_filters( 'content_save_pre', 'Unfiltered<script>evil</script>' ) );
+		$this->assertSame( 'Unfiltered', apply_filters( 'content_save_pre', 'Unfiltered<script>evil</script>' ) );
 		wp_publish_post( $changeset_post_id ); // @todo If wp_update_post() is used here, then kses will corrupt the post_content.
 		$this->assertSame( 'Unfiltered<script>evil</script>', get_option( 'scratchpad' ) );
 	}

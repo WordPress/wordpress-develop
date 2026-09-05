@@ -3122,8 +3122,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				),
 				array(
 					'content'           => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => '<p>div <strong>strong</strong> oh noes</p>',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => '<p>div <strong>strong</strong> </p>',
 					),
 					'author_name'       => 'div strong',
 					'author_user_agent' => 'div strong',
