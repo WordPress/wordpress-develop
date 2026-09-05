@@ -6683,7 +6683,12 @@ function wp_set_up_cross_origin_isolation(): void {
 
 	$is_media_screen = 'media' === $screen->id || ( 'upload' === $screen->id && 'grid' === wp_get_media_library_mode() );
 
-	if ( ! $is_media_screen && ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
+	if (
+		! $is_media_screen && 
+		! $screen->is_block_editor() && 
+		'site-editor' !== $screen->id && 
+		! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) 
+	) {
 		return;
 	}
 
