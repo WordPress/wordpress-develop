@@ -765,6 +765,26 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_uses_provided_file_size() {
+		$filter = new MockAction();
+		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'file_size', 1 );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( 0, $filter->get_call_count() );
+		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source should be unset after inlining the style' );
+	}
+
+	/**
+	 * @ticket 58394
 	 * @ticket 64447
 	 *
 	 * @covers ::wp_maybe_inline_styles
