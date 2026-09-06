@@ -3030,6 +3030,83 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Tests that a status-only update routes through handle_status_param() and does not
+	 * overwrite comment fields that were not included in the request.
+	 *
+	 * @ticket 64248
+	 */
+	public function test_update_comment_status_only_does_not_overwrite_existing_fields() {
+		wp_set_current_user( self::$admin_id );
+
+		$original_ip      = '203.0.113.42';
+		$original_agent   = 'TestBrowser/1.0';
+		$original_content = 'Original comment content.';
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved'  => 0,
+				'comment_post_ID'   => self::$post_id,
+				'comment_content'   => $original_content,
+				'comment_author_IP' => $original_ip,
+				'comment_agent'     => $original_agent,
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->add_header( 'User-Agent', 'DifferentAgent/2.0' );
+		$request->set_body( wp_json_encode( array( 'status' => 'approve' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$updated = get_comment( $comment_id );
+		$this->assertSame( '1', $updated->comment_approved, 'Comment status should be updated to approved.' );
+		$this->assertSame( $original_content, $updated->comment_content, 'Comment content should not be overwritten.' );
+		$this->assertSame( $original_ip, $updated->comment_author_IP, 'Comment author IP should not be overwritten by a status-only update.' );
+		$this->assertSame( $original_agent, $updated->comment_agent, 'Comment agent should not be overwritten by a status-only update.' );
+	}
+
+	/**
+	 * Tests that a status-only update does not trigger wp_update_comment().
+	 *
+	 * When only status is being changed the lightweight handle_status_param() path
+	 * should be taken instead of a full wp_update_comment() call.
+	 *
+	 * @ticket 64248
+	 */
+	public function test_update_comment_status_only_uses_handle_status_param_path() {
+		wp_set_current_user( self::$admin_id );
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => 0,
+				'comment_post_ID'  => self::$post_id,
+			)
+		);
+
+		$wp_update_comment_called = false;
+		add_filter(
+			'wp_update_comment_data',
+			static function ( $data ) use ( &$wp_update_comment_called ) {
+				$wp_update_comment_called = true;
+				return $data;
+			}
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'status' => 'approve' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertFalse( $wp_update_comment_called, 'wp_update_comment() should not be called for a status-only update.' );
+
+		$updated = get_comment( $comment_id );
+		$this->assertSame( '1', $updated->comment_approved, 'Comment status should be updated to approved.' );
+	}
+
+	/**
 	 * Blocks comments from being updated by returning WP_Error.
 	 */
 	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
