@@ -5127,9 +5127,9 @@ function wp_parse_slug_list( $input_list ): array {
  *
  * @since 3.1.0
  *
- * @param array $input_array The original array.
- * @param array $keys        The list of keys.
- * @return array The array slice.
+ * @param array<string, mixed> $input_array The original array.
+ * @param string[]             $keys        The list of keys.
+ * @return array<string, mixed> The array slice.
  */
 function wp_array_slice_assoc( $input_array, $keys ) {
 	$slice = array();
