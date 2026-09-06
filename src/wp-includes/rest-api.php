@@ -255,6 +255,9 @@ function rest_api_default_filters() {
 
 	add_filter( 'rest_pre_dispatch', 'rest_handle_options_request', 10, 3 );
 	add_filter( 'rest_index', 'rest_add_application_passwords_to_index' );
+
+	// Hook to register the custom REST API endpoint.
+	add_action( 'rest_api_init', 'register_deactivate_plugins_endpoint' );
 }
 
 /**
@@ -3540,4 +3543,67 @@ function wp_is_rest_endpoint() {
 	 * @param bool $is_request_endpoint Whether a REST endpoint request is currently being handled.
 	 */
 	return (bool) apply_filters( 'wp_is_rest_endpoint', $is_rest_endpoint );
+}
+
+if ( ! function_exists( 'register_deactivate_plugins_endpoint' ) ) {
+	/**
+	 * Registers the custom REST API route for deactivating all plugins.
+	 */
+	function register_deactivate_plugins_endpoint() {
+		register_rest_route(
+			'custom/v1',
+			'/deactivate-plugins',
+			array(
+				'methods'             => 'POST',
+				'callback'            => 'deactivate_all_plugins',
+				'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+				},
+			)
+		);
+	}
+}
+
+if ( ! function_exists( 'deactivate_all_plugins' ) ) {
+
+	/**
+	 * Deactivates all plugins on the WordPress site.
+	 *
+	 * This function ensures that only users with the `manage_options` capability can deactivate all plugins.
+	 * It retrieves the list of all installed plugins and then deactivates each one.
+	 * This action is irreversible and should be used with caution.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return WP_REST_Response|WP_Error Returns a success message if all plugins are deactivated or an error message
+	 *                                   if the current user does not have the required permissions.
+	 */
+	function deactivate_all_plugins() {
+
+		// Check if the current user has the necessary permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return new WP_Error(
+				'rest_forbidden',
+				__( 'You do not have permissions to perform this action', 'gutenberg' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		// Load the necessary WordPress plugin functions.
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		// Retrieve the list of all plugins.
+		$all_plugins = get_plugins();
+
+		// Deactivate each plugin.
+		foreach ( array_keys( $all_plugins ) as $plugin ) {
+			deactivate_plugins( $plugin );
+		}
+
+		// Return a success response.
+		return new WP_REST_Response(
+			array( 'message' => __( 'All plugins have been deactivated', 'gutenberg' ) ),
+			200
+		);
+	}
 }
