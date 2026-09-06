@@ -5364,7 +5364,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_sideloads_without_subsizes() {
 		$this->enable_client_side_media_processing();
@@ -5400,7 +5401,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_generates_subsizes_by_default() {
 		$this->enable_client_side_media_processing();
@@ -5431,7 +5433,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_fires_rest_after_insert_attachment() {
 		$this->enable_client_side_media_processing();
@@ -5472,7 +5475,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_attaches_to_post() {
 		$this->enable_client_side_media_processing();
@@ -5505,7 +5509,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_returns_error_on_download_failure() {
 		$this->enable_client_side_media_processing();
@@ -5537,7 +5542,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @group multisite
 	 * @group ms-required
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 * @covers WP_REST_Attachments_Controller::check_upload_size
 	 */
 	public function test_create_item_from_url_exceeds_multisite_max_filesize() {
@@ -5570,7 +5576,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @group multisite
 	 * @group ms-required
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 * @covers WP_REST_Attachments_Controller::check_upload_size
 	 */
 	public function test_create_item_from_url_exceeds_multisite_site_upload_space() {
@@ -5602,7 +5609,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_exceeds_max_upload_size() {
 		$this->enable_client_side_media_processing();
@@ -5630,7 +5638,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_limits_the_download_size() {
 		$this->enable_client_side_media_processing();
@@ -5692,7 +5701,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_rejects_url_without_filename() {
 		$this->enable_client_side_media_processing();
@@ -5727,7 +5737,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @dataProvider data_create_item_from_url_rejects_non_image_extension
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 *
 	 * @param string $url URL with a disallowed file extension.
 	 */
@@ -5777,7 +5788,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_requires_upload_capability() {
 		$subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
@@ -5794,18 +5806,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_param( 'url', 'https://example.com/denied.jpg' );
 
-		$controller = new WP_REST_Attachments_Controller( 'attachment' );
-		$method     = new ReflectionMethod( $controller, 'create_item_from_url' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$method->setAccessible( true );
-		}
-		$result = $method->invoke( $controller, $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		remove_filter( 'pre_http_request', $track );
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'rest_cannot_create', $result->get_error_code() );
-		$this->assertSame( 403, $result->get_error_data()['status'] );
+		$this->assertErrorResponse( 'rest_cannot_create', $response );
 		$this->assertFalse( $downloaded, 'No download should be attempted without upload_files.' );
 	}
 
@@ -5897,7 +5902,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_without_client_side_media_processing() {
 		$this->disable_client_side_media_processing();
@@ -6062,5 +6068,187 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->assertSame( 'rest_invalid_url', $result->get_error_code() );
 			$this->assertSame( 400, $result->get_error_data()['status'] );
 		}
+	}
+
+	/**
+	 * Verifies that a request cannot supply both an uploaded file and a `url`.
+	 *
+	 * The two are alternative sources for the same attachment, so honoring one
+	 * would silently discard the other.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 */
+	public function test_create_item_rejects_a_file_and_url_together() {
+		wp_set_current_user( self::$superadmin_id );
+
+		// Fail loudly if the request is not rejected and a download is attempted.
+		$downloaded = false;
+		$track      = static function () use ( &$downloaded ) {
+			$downloaded = true;
+			return new WP_Error( 'http_request_failed', 'Should not be reached.' );
+		};
+		add_filter( 'pre_http_request', $track );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/photo.jpg' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file ),
+					'name'     => 'canola.jpg',
+					'size'     => filesize( self::$test_file ),
+					'tmp_name' => self::$test_file,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $track );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertFalse( $downloaded, 'No download should be attempted when a file is also supplied.' );
+	}
+
+	/**
+	 * Verifies that a request cannot supply both a raw body upload and a `url`.
+	 *
+	 * The raw body path is identified by its Content-Disposition filename, so
+	 * the conflict has to be detected from the headers rather than from the
+	 * file parameters.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 */
+	public function test_create_item_rejects_a_body_upload_and_url_together() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_param( 'url', 'https://example.com/photo.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the fields carried on the request are applied to an
+	 * attachment created from a `url`, as they are for an uploaded file.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 */
+	public function test_create_item_from_url_applies_request_fields() {
+		wp_set_current_user( self::$superadmin_id );
+
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/fields.jpg' );
+		$request->set_param( 'title', 'My sideloaded title' );
+		$request->set_param( 'caption', 'My sideloaded caption' );
+		$request->set_param( 'description', 'My sideloaded description' );
+		$request->set_param( 'alt_text', 'My sideloaded alt text' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data       = $response->get_data();
+		$attachment = get_post( $data['id'] );
+
+		$this->assertSame( 'My sideloaded title', $attachment->post_title );
+		$this->assertSame( 'My sideloaded caption', $attachment->post_excerpt );
+		$this->assertSame( 'My sideloaded description', $attachment->post_content );
+		$this->assertSame( 'My sideloaded alt text', get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) );
+	}
+
+	/**
+	 * Verifies that the insert hooks fire when an attachment is created from a
+	 * `url`, as they do for an uploaded file.
+	 *
+	 * rest_pre_insert_attachment and rest_insert_attachment fire from
+	 * prepare_item_for_database() and insert_attachment(). wp_after_insert_post
+	 * is fired by create_item(), since wp_insert_post() returns for attachments
+	 * before it reaches the after-insert hooks.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 */
+	public function test_create_item_from_url_fires_the_insert_hooks() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$fired = array();
+		$spy   = static function ( $hook ) use ( &$fired ) {
+			return static function ( $value ) use ( $hook, &$fired ) {
+				$fired[] = $hook;
+				return $value;
+			};
+		};
+
+		$pre    = $spy( 'rest_pre_insert_attachment' );
+		$insert = $spy( 'rest_insert_attachment' );
+		$after  = $spy( 'wp_after_insert_post' );
+
+		add_filter( 'rest_pre_insert_attachment', $pre );
+		add_action( 'rest_insert_attachment', $insert );
+		add_action( 'wp_after_insert_post', $after );
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/hooks.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+		remove_action( 'wp_after_insert_post', $after );
+		remove_action( 'rest_insert_attachment', $insert );
+		remove_filter( 'rest_pre_insert_attachment', $pre );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertContains( 'rest_pre_insert_attachment', $fired );
+		$this->assertContains( 'rest_insert_attachment', $fired );
+		$this->assertContains( 'wp_after_insert_post', $fired );
+	}
+
+	/**
+	 * Verifies that an error returned from the rest_pre_insert_attachment
+	 * filter is honored rather than used as if it were an attachment.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 */
+	public function test_create_item_from_url_honors_a_pre_insert_error() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$deny = static function () {
+			return new WP_Error( 'rest_pre_insert_denied', 'Denied.', array( 'status' => 400 ) );
+		};
+
+		add_filter( 'rest_pre_insert_attachment', $deny );
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/denied-by-filter.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+		remove_filter( 'rest_pre_insert_attachment', $deny );
+
+		$this->assertErrorResponse( 'rest_pre_insert_denied', $response, 400 );
 	}
 }
