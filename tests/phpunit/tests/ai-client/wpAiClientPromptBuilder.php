@@ -2911,18 +2911,18 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the private exception_to_wp_error method via reflection.
+	 * Invokes the private throwable_to_wp_error method via reflection.
 	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder   The builder instance.
-	 * @param Exception                   $exception The exception to convert.
+	 * @param Throwable                   $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error.
 	 */
-	private function invoke_exception_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Exception $exception ): WP_Error {
+	private function invoke_throwable_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Throwable $throwable ): WP_Error {
 		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$method     = $reflection->getMethod( 'exception_to_wp_error' );
+		$method     = $reflection->getMethod( 'throwable_to_wp_error' );
 		self::set_accessible( $method );
 
-		return $method->invoke( $builder, $exception );
+		return $method->invoke( $builder, $throwable );
 	}
 
 	/**
@@ -2932,7 +2932,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_network_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new NetworkException( 'Connection timed out' )
 		);
@@ -2950,7 +2950,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_client_exception_with_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ClientException( 'Unauthorized', 401 )
 		);
@@ -2968,7 +2968,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_client_exception_without_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ClientException( 'Bad request' )
 		);
@@ -2985,7 +2985,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_server_exception_with_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ServerException( 'Bad gateway', 502 )
 		);
@@ -3003,7 +3003,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_server_exception_without_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ServerException( 'Internal server error' )
 		);
@@ -3020,7 +3020,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_token_limit_reached_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new TokenLimitReachedException( 'Token limit exceeded', 4096 )
 		);
@@ -3038,7 +3038,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_invalid_argument_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new AiClientInvalidArgumentException( 'Invalid model parameter' )
 		);
@@ -3056,7 +3056,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_generic_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new Exception( 'Something went wrong' )
 		);
@@ -3065,6 +3065,51 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertSame( 'Something went wrong', $error->get_error_message() );
 		$this->assertSame( 500, $error->get_error_data()['status'] );
 		$this->assertSame( 'Exception', $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps an Error (e.g. TypeError) to a generic builder error.
+	 *
+	 * A TypeError extends Error, not Exception, so this guards against the
+	 * conversion only accepting Exception instances.
+	 *
+	 * @ticket 65505
+	 */
+	public function test_exception_to_wp_error_type_error() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_throwable_to_wp_error(
+			$builder,
+			new TypeError( 'Argument must be of type float' )
+		);
+
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
+		$this->assertSame( 'Argument must be of type float', $error->get_error_message() );
+		$this->assertSame( 500, $error->get_error_data()['status'] );
+		$this->assertSame( 'TypeError', $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests that a TypeError thrown by the wrapped SDK is caught and returned as a WP_Error.
+	 *
+	 * Passing an argument of the wrong type to a strict-typed SDK method throws a
+	 * TypeError (which extends Error, not Exception). The builder must catch it and
+	 * place itself in an error state instead of letting it fatal the request.
+	 *
+	 * @ticket 65505
+	 */
+	public function test_call_catches_type_error_from_invalid_argument_type() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Test prompt' );
+
+		// usingTemperature() expects a float; an array can never be coerced and throws a TypeError.
+		$result = $builder->using_temperature( array( 0.7 ) );
+
+		// The builder is returned (fluent interface preserved), now in an error state.
+		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $result );
+
+		// A generating method now surfaces the stored WP_Error rather than fataling.
+		$error = $result->generate_text();
+		$this->assertWPError( $error );
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
 	}
 
 	/**
@@ -3078,7 +3123,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_error_data_structure( Exception $exception ) {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error( $builder, $exception );
+		$error   = $this->invoke_throwable_to_wp_error( $builder, $exception );
 
 		$data = $error->get_error_data();
 		$this->assertIsArray( $data );

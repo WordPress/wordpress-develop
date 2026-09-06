@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_WpTerm extends WP_UnitTestCase {
-	protected static $term_id;
+	protected static int $term_id;
 
 	public function set_up() {
 		parent::set_up();
@@ -88,5 +88,103 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 
 		$found = WP_Term::get_instance( self::$term_id, 'wptests_tax2' );
 		$this->assertFalse( $found );
+	}
+
+	/**
+	 * Tests that a cached value which cannot be used as a term is treated as a cache miss.
+	 *
+	 * @ticket 65962
+	 *
+	 * @dataProvider data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss
+	 *
+	 * @param mixed $cache_value Value to poison the object cache with.
+	 */
+	public function test_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss( $cache_value ): void {
+		wp_cache_set( self::$term_id, $cache_value, 'terms' );
+
+		$num_queries = get_num_queries();
+
+		$term = WP_Term::get_instance( self::$term_id );
+
+		$this->assertInstanceOf( WP_Term::class, $term, 'A term object was not returned.' );
+		$this->assertSame( self::$term_id, $term->term_id, 'The wrong term was returned.' );
+		$this->assertSame( 'wptests_tax', $term->taxonomy, 'The term was returned without its taxonomy.' );
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'The term was not fetched from the database.' );
+	}
+
+	/**
+	 * Tests that a poisoned cache value is treated as a miss when a taxonomy is given.
+	 *
+	 * The taxonomy comparison reads a property off whatever is cached, so the guard has to
+	 * reject an unusable value before that point.
+	 *
+	 * @ticket 65962
+	 *
+	 * @dataProvider data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss
+	 *
+	 * @param mixed $cache_value Value to poison the object cache with.
+	 */
+	public function test_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss_with_a_taxonomy( $cache_value ): void {
+		wp_cache_set( self::$term_id, $cache_value, 'terms' );
+
+		$term = WP_Term::get_instance( self::$term_id, 'wptests_tax' );
+
+		$this->assertInstanceOf( WP_Term::class, $term, 'A term object was not returned.' );
+		$this->assertSame( self::$term_id, $term->term_id, 'The wrong term was returned.' );
+	}
+
+	/**
+	 * Tests that the refetched term replaces the poisoned cache value.
+	 *
+	 * Otherwise the poisoned value survives and every subsequent lookup queries the database again.
+	 *
+	 * @ticket 65962
+	 *
+	 * @dataProvider data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss
+	 *
+	 * @param mixed $cache_value Value to poison the object cache with.
+	 */
+	public function test_get_instance_replaces_a_poisoned_cache_value( $cache_value ): void {
+		wp_cache_set( self::$term_id, $cache_value, 'terms' );
+
+		// Prime the object cache, replacing the poisoned value.
+		WP_Term::get_instance( self::$term_id );
+
+		$num_queries = get_num_queries();
+
+		$term = WP_Term::get_instance( self::$term_id );
+
+		$this->assertInstanceOf( WP_Term::class, $term, 'A term object was not returned.' );
+		$this->assertSame( self::$term_id, $term->term_id, 'The wrong term was returned.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'The database was queried again.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ mixed }>
+	 */
+	public function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
+		return array(
+			'true'                       => array( true ),
+			'a non-numeric string'       => array( 'not-a-term' ),
+			'an array of term data'      => array(
+				array(
+					'term_id'  => 1,
+					'taxonomy' => 'wptests_tax',
+				),
+			),
+			'an object without term_id'  => array(
+				(object) array(
+					'taxonomy' => 'wptests_tax',
+				),
+			),
+			'an object without taxonomy' => array(
+				(object) array(
+					'term_id' => 1,
+				),
+			),
+			'a WP_Term without term_id'  => array( new WP_Term( new stdClass() ) ),
+		);
 	}
 }

@@ -109,8 +109,10 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		return this;
 	},
 	/**
+	 * Retrieves a view by its ID.
+	 *
 	 * @param {string} id
-	 * @return {wp.media.view.Button}
+	 * @return {wp.media.view.Button} The view associated with the given ID, or undefined if no view is found.
 	 */
 	get: function( id ) {
 		return this._views[ id ];

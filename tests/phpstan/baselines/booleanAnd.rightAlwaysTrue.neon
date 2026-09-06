@@ -27,11 +27,6 @@ parameters:
 			message: '#^Right side of && is always true\.$#'
 			identifier: booleanAnd.rightAlwaysTrue
 			count: 1
-			path: ../../../src/wp-admin/includes/schema.php
-		-
-			message: '#^Right side of && is always true\.$#'
-			identifier: booleanAnd.rightAlwaysTrue
-			count: 1
 			path: ../../../src/wp-content/themes/twentynineteen/header.php
 		-
 			message: '#^Right side of && is always true\.$#'
@@ -46,20 +41,5 @@ parameters:
 		-
 			message: '#^Right side of && is always true\.$#'
 			identifier: booleanAnd.rightAlwaysTrue
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/functions.php
-		-
-			message: '#^Right side of && is always true\.$#'
-			identifier: booleanAnd.rightAlwaysTrue
-			count: 3
-			path: ../../../src/wp-includes/l10n.php
-		-
-			message: '#^Right side of && is always true\.$#'
-			identifier: booleanAnd.rightAlwaysTrue
-			count: 4
-			path: ../../../src/wp-includes/load.php
-		-
-			message: '#^Right side of && is always true\.$#'
-			identifier: booleanAnd.rightAlwaysTrue
-			count: 2
-			path: ../../../src/wp-includes/user.php
