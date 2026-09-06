@@ -1945,6 +1945,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 								'sort_column'       => 'menu_order, post_title',
 							);
 
+							if ( current_user_can( $post_type_object->cap->read_private_posts ) ) {
+								$dropdown_args['post_status'] = array( 'publish', 'private' );
+							}
+
 							if ( $bulk ) {
 								$dropdown_args['show_option_no_change'] = __( '&mdash; No Change &mdash;' );
 								$dropdown_args['id']                    = 'bulk_edit_post_parent';
