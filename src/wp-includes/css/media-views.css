@@ -1275,8 +1275,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	padding: 2px 8px 8px;
 }
 
-.attachments-browser:not(.has-load-more) .attachments,
-.attachments-browser.has-load-more .attachments-wrapper,
+.attachments-browser .attachments-wrapper,
 .attachments-browser .uploader-inline {
 	position: absolute;
 	top: 72px;
@@ -1285,6 +1284,27 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	bottom: 0;
 	overflow: auto;
 	outline: none;
+}
+
+.attachments-browser .media-infinite-scrolling {
+	padding: 8px 16px 12px;
+}
+
+.attachments-browser .media-infinite-scrolling-status {
+	margin-left: 12px;
+	color: #50575e;
+}
+
+/* In the modal, the media items list scrolls: keep the toggle in view. */
+.media-modal .attachments-browser .media-infinite-scrolling {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: #fff;
+}
+
+.attachments-browser .load-more-wrapper.hidden {
+	display: none;
 }
 
 .attachments-browser .uploader-inline.hidden {
@@ -1341,7 +1361,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	box-shadow: 0 0 3px rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.8);
 }
 
-.attachments-browser.hide-sidebar .attachments,
+.attachments-browser.hide-sidebar .attachments-wrapper,
 .attachments-browser.hide-sidebar .uploader-inline {
 	right: 0;
 	margin-right: 0;
@@ -2655,6 +2675,10 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		top: 131px;
 	}
 
+	.attachments-browser .media-infinite-scrolling {
+		padding: 14px 16px 0px;
+	}
+
 	.media-sidebar .setting,
 	.attachment-details .setting {
 		margin: 6px 0;
@@ -2759,6 +2783,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		font-size: 16px;
 		line-height: 1.625;
 		padding: 5px 24px 5px 8px;
+		margin: 0;
 	}
 
 	.image-details .column-image {

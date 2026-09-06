@@ -5083,31 +5083,40 @@ function wp_enqueue_media( $args = array() ) {
 	 */
 	$infinite_scrolling = apply_filters( 'media_library_infinite_scrolling', $infinite_scrolling );
 
+	/*
+	 * The control that turns infinite scrolling on and off saves the personal
+	 * option, so it is only offered when saving that option takes effect: there
+	 * has to be a user to save it for, and no filter callback overriding it.
+	 */
+	$can_toggle_infinite_scrolling = is_user_logged_in() && ! has_filter( 'media_library_infinite_scrolling' );
+
 	$settings = array(
-		'tabs'              => $tabs,
-		'tabUrl'            => add_query_arg( array( 'chromeless' => true ), admin_url( 'media-upload.php' ) ),
-		'mimeTypes'         => wp_list_pluck( get_post_mime_types(), 0 ),
+		'tabs'                       => $tabs,
+		'tabUrl'                     => add_query_arg( array( 'chromeless' => true ), admin_url( 'media-upload.php' ) ),
+		'mimeTypes'                  => wp_list_pluck( get_post_mime_types(), 0 ),
 		/** This filter is documented in wp-admin/includes/media.php */
-		'captions'          => ! apply_filters( 'disable_captions', '' ),
-		'nonce'             => array(
+		'captions'                   => ! apply_filters( 'disable_captions', '' ),
+		'nonce'                      => array(
 			'sendToEditor'           => wp_create_nonce( 'media-send-to-editor' ),
 			'setAttachmentThumbnail' => wp_create_nonce( 'set-attachment-thumbnail' ),
+			'saveInfiniteScrolling'  => wp_create_nonce( 'save-media-infinite-scrolling' ),
 		),
-		'post'              => array(
+		'post'                       => array(
 			'id' => 0,
 		),
-		'defaultProps'      => $props,
-		'attachmentCounts'  => array(
+		'defaultProps'               => $props,
+		'attachmentCounts'           => array(
 			'audio' => ( $show_audio_playlist ) ? 1 : 0,
 			'video' => ( $show_video_playlist ) ? 1 : 0,
 		),
-		'oEmbedProxyUrl'    => rest_url( 'oembed/1.0/proxy' ),
-		'embedExts'         => $exts,
-		'embedMimes'        => $ext_mimes,
-		'contentWidth'      => $content_width,
-		'months'            => $months,
-		'mediaTrash'        => MEDIA_TRASH ? 1 : 0,
-		'infiniteScrolling' => ( $infinite_scrolling ) ? 1 : 0,
+		'oEmbedProxyUrl'             => rest_url( 'oembed/1.0/proxy' ),
+		'embedExts'                  => $exts,
+		'embedMimes'                 => $ext_mimes,
+		'contentWidth'               => $content_width,
+		'months'                     => $months,
+		'mediaTrash'                 => MEDIA_TRASH ? 1 : 0,
+		'infiniteScrolling'          => ( $infinite_scrolling ) ? 1 : 0,
+		'canToggleInfiniteScrolling' => ( $can_toggle_infinite_scrolling ) ? 1 : 0,
 	);
 
 	$post = null;
