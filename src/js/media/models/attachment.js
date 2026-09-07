@@ -113,7 +113,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 		return resp;
 	},
 	/**
-	 * Save attachment details using the `save-attachment-compat` action.
+	 * Saves attachment details using the `save-attachment-compat` action.
 	 *
 	 * @param {Object} data The properties to be saved.
 	 * @param {Object} options Sync options. e.g. patch, wait, success, error.

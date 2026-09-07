@@ -32,7 +32,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	},
 
 	/**
-	 * Handle events for the media details view.
+	 * Handles events for the media details view.
 	 *
 	 * @return {Object} The events object.
 	 */
