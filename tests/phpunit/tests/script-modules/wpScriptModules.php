@@ -486,7 +486,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				foreach ( $test_case as $param_name => $param_value ) {
 					$key_parts[] = sprintf( '%s_%s', $param_name, json_encode( $param_value ) );
 				}
-				$data[ join( '_', $key_parts ) ] = $test_case;
+				$data[ implode( '_', $key_parts ) ] = $test_case;
 			}
 		}
 

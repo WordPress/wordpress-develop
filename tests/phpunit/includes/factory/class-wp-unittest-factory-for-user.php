@@ -27,7 +27,6 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param array $args The user data to insert.
-	 *
 	 * @return int|WP_Error The user ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
@@ -41,7 +40,6 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int   $user_id ID of the user to update.
 	 * @param array $fields  The user data to update.
-	 *
 	 * @return int|WP_Error The user ID on success, WP_Error object on failure.
 	 */
 	public function update_object( $user_id, $fields ) {
@@ -55,7 +53,6 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param int $user_id ID of the user ID to retrieve.
-	 *
 	 * @return WP_User The user object.
 	 */
 	public function get_object_by_id( $user_id ) {
