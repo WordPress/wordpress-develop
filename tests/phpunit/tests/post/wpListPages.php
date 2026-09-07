@@ -437,6 +437,22 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
+	/**
+	 * @ticket 66052
+	 */
+	public function test_wp_list_pages_include_accepts_array_of_ids() {
+		$args = array(
+			'echo'    => false,
+			'include' => array( self::$parent_1, self::$parent_3 ),
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . '"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_3 . '"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
+	}
+
 	public function test_wp_list_pages_exclude_tree() {
 		$args = array(
 			'echo'         => false,
