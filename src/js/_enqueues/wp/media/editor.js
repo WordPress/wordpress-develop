@@ -4,8 +4,12 @@
 
 /* global getUserSetting, tinymce, QTags */
 
-// WordPress, TinyMCE, and Media
-// -----------------------------
+/**
+ * Handles the initialization, refreshing and rendering of media editor components.
+ *
+ * @param {JQueryStatic}       $ The jQuery object.
+ * @param {_.UnderscoreStatic} _ The Underscore.js object.
+ */
 (function($, _){
 	/**
 	 * Stores the editors' `wp.media.controller.Frame` instances.
@@ -333,6 +337,8 @@
 	};
 
 	/**
+	 * Factory function that creates a media collection controller for managing gallery, playlist, and other media shortcodes.
+	 *
 	 * @class wp.media.collection
 	 *
 	 * @param {Object} attributes

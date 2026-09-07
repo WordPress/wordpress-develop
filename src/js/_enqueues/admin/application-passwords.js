@@ -3,6 +3,8 @@
  */
 
 /**
+ * Handles the Application Passwords functionality in the user profile screen.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {
