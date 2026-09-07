@@ -33,6 +33,8 @@
  * @property string     $display_name
  * @property string     $spam
  * @property string     $deleted
+ * @property string     $comment_shortcuts
+ * @property string     $infinite_scrolling
  * @property string     $locale
  * @property string     $rich_editing
  * @property string     $syntax_highlighting
@@ -63,8 +65,8 @@ class WP_User {
 	 * Capabilities that the individual user has been granted outside of those inherited from their role.
 	 *
 	 * @since 2.0.0
-	 * @var bool[] Array of key/value pairs where keys represent a capability name
-	 *             and boolean values represent whether the user has that capability.
+	 * @var array<string, bool> Array of key/value pairs where keys represent a capability name
+	 *                          and boolean values represent whether the user has that capability.
 	 */
 	public $caps = array();
 
@@ -88,8 +90,8 @@ class WP_User {
 	 * All capabilities the user has, including individual and role based.
 	 *
 	 * @since 2.0.0
-	 * @var bool[] Array of key/value pairs where keys represent a capability name
-	 *             and boolean values represent whether the user has that capability.
+	 * @var array<string, bool> Array of key/value pairs where keys represent a capability name
+	 *                          and boolean values represent whether the user has that capability.
 	 */
 	public $allcaps = array();
 
@@ -830,7 +832,7 @@ class WP_User {
 		unset( $capabilities['do_not_allow'] );
 
 		// Must have ALL requested caps.
-		return array_all( (array) $caps, fn( $cap, $key ) => ! empty( $capabilities[ $cap ] ) );
+		return array_all( (array) $caps, fn( $cap ) => ! empty( $capabilities[ $cap ] ) );
 	}
 
 	/**
