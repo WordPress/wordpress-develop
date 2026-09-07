@@ -4146,6 +4146,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'image_size validation should accept the source_original source-format size.'
 		);
 		$this->assertTrue(
+			$validate( 'optimized_video', $request, $param_name ),
+			'image_size validation should accept the optimized_video companion size.'
+		);
+		$this->assertTrue(
 			$validate( array( 'thumbnail', 'medium' ), $request, $param_name ),
 			'image_size validation should accept an array of size names.'
 		);
@@ -4301,6 +4305,133 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'animated_video_poster', $metadata, "Metadata should contain 'animated_video_poster'." );
 		$this->assertMatchesRegularExpression( '/canola-poster.*\.jpg$/', $metadata['animated_video_poster'], "Metadata 'animated_video_poster' should reference the poster filename." );
 		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the companion sideloads." );
+	}
+
+	/**
+	 * Creates a video attachment through the REST API, in the state the
+	 * client-side video transcoding flow sideloads its companion into.
+	 *
+	 * @return int Attachment ID.
+	 */
+	private function create_video_attachment_for_sideload(): int {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'video/quicktime' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=small-video.mov' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/uploads/small-video.mov' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status(), 'Creating the video attachment should succeed.' );
+
+		$id = $response->get_data()['id'];
+		$this->assertIsInt( $id );
+
+		return $id;
+	}
+
+	/**
+	 * A video is the one non-image, non-PDF parent the sideload endpoint
+	 * accepts: the web-safe transcode of an uploaded video is stored as a
+	 * companion of the video it was produced from, not as its own attachment.
+	 *
+	 * @ticket 65998
+	 */
+	public function test_sideload_accepts_optimized_video_for_a_video_attachment(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$attachment_id = $this->create_video_attachment_for_sideload();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'video/mp4' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=small-video-optimized.mp4' );
+		$request->set_param( 'image_size', 'optimized_video' );
+		$request->set_body( (string) file_get_contents( self::$test_video_file ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the transcoded companion should succeed.' );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertSame( 'optimized_video', $data['image_size'], 'Response should echo the image_size.' );
+		$this->assertStringEndsWith( '.mp4', $data['file'] );
+	}
+
+	/**
+	 * Storing the companion's name on finalize consumes its sideload record,
+	 * like every other name a request is allowed to store, and records it
+	 * under its own metadata key rather than 'original_image'.
+	 *
+	 * @ticket 65998
+	 */
+	public function test_finalize_writes_optimized_video_metadata_and_consumes_provenance_record(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$attachment_id = $this->create_video_attachment_for_sideload();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'video/mp4' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=small-video-optimized.mp4' );
+		$request->set_param( 'image_size', 'optimized_video' );
+		$request->set_body( (string) file_get_contents( self::$test_video_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the transcoded companion should succeed.' );
+		$companion = $response->get_data();
+		$this->assertIsArray( $companion );
+		$this->assertNotEmpty(
+			get_post_meta( $attachment_id, WP_REST_Attachments_Controller::META_KEY_SIDELOAD_FILE_NAME ),
+			'The sideload should record the companion name.'
+		);
+
+		// Sideload must not write metadata; that happens in finalize.
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertArrayNotHasKey( 'optimized_video', (array) $metadata, 'Sideload should not write optimized_video metadata.' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $companion ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalizing with the companion should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
+		$this->assertArrayHasKey( 'optimized_video', $metadata, "Metadata should contain 'optimized_video'." );
+		$this->assertSame( $companion['file'], $metadata['optimized_video'], 'The companion name should be stored in the attachment metadata.' );
+		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the companion sideload." );
+		$this->assertSame(
+			array(),
+			get_post_meta( $attachment_id, WP_REST_Attachments_Controller::META_KEY_SIDELOAD_FILE_NAME ),
+			'Storing the companion name should consume its sideload record.'
+		);
+	}
+
+	/**
+	 * The video exemption is scoped to the transcoded companion: every other
+	 * size still needs an image or PDF parent, since a video has no sub-sizes.
+	 *
+	 * @ticket 65998
+	 */
+	public function test_sideload_rejects_other_sizes_for_a_video_attachment(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$attachment_id = $this->create_video_attachment_for_sideload();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=small-video-150x150.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 400 );
 	}
 
 	/**

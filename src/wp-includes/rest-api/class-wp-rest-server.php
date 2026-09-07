@@ -1397,6 +1397,20 @@ class WP_REST_Server {
 			 */
 			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
 			$available['image_max_bit_depth'] = (int) apply_filters( 'image_max_bit_depth', 16, 16 );
+
+			/**
+			 * Filters whether the original video upload is kept when a video is transcoded.
+			 *
+			 * When true (default), the original video is stored as the attachment and
+			 * the transcoded web-safe version is sideloaded as a companion file. When
+			 * false, the video is transcoded before upload so only the optimized file
+			 * is stored.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param bool $keep_original Whether to keep the original video upload. Default true.
+			 */
+			$available['video_keep_original'] = (bool) apply_filters( 'wp_video_transcoding_keep_original', true );
 		}
 
 		$response = new WP_REST_Response( $available );
