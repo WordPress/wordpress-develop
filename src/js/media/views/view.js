@@ -18,7 +18,7 @@
  */
 var View = wp.Backbone.View.extend(/** @lends wp.media.View.prototype */{
 	/**
-	 * Constructor for the media view.
+	 * Constructs the media view.
 	 *
 	 * @param {Object} [options] Options for the view.
 	 */
