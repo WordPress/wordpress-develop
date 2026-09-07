@@ -2621,6 +2621,17 @@ function do_blocks( $content ) {
 function _restore_wpautop_hook( $content ) {
 	$current_priority = has_filter( 'the_content', '_restore_wpautop_hook' );
 
+	/*
+	 * A nested `the_content` run started by a later callback at the same priority
+	 * may already have restored wpautop() and removed this hook. The outer
+	 * WP_Hook loop still calls its copy of the callback; without this check
+	 * `$current_priority - 1` would add wpautop() at priority -1 for the rest
+	 * of the request.
+	 */
+	if ( false === $current_priority ) {
+		return $content;
+	}
+
 	add_filter( 'the_content', 'wpautop', $current_priority - 1 );
 	remove_filter( 'the_content', '_restore_wpautop_hook', $current_priority );
 

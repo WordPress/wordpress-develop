@@ -113,6 +113,71 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		return $content;
 	}
 
+	/**
+	 * A nested `the_content` run started by a shortcode before the restore
+	 * callback at priority 11 must preserve the wpautop() registration.
+	 *
+	 * @ticket 66062
+	 * @dataProvider data_nested_the_content_from_later_callback
+	 *
+	 * @param string $nested_content Content filtered by the shortcode callback.
+	 */
+	public function test_nested_the_content_from_later_callback_keeps_wpautop_priority( $nested_content ) {
+		global $wp_filter;
+
+		add_shortcode(
+			'nested_the_content',
+			static function () use ( $nested_content ) {
+				return apply_filters( 'the_content', $nested_content );
+			}
+		);
+
+		$wpautop_priority = has_filter( 'the_content', 'wpautop' );
+
+		try {
+			apply_filters( 'the_content', '<!-- wp:paragraph --><p>[nested_the_content]</p><!-- /wp:paragraph -->' );
+		} finally {
+			remove_shortcode( 'nested_the_content' );
+		}
+
+		// Check every registration: has_filter() only returns the first priority.
+		$wpautop_priorities = array();
+		foreach ( $wp_filter['the_content']->callbacks as $priority => $callbacks ) {
+			if ( isset( $callbacks['wpautop'] ) ) {
+				$wpautop_priorities[] = $priority;
+			}
+		}
+
+		$this->assertSame( array( $wpautop_priority ), $wpautop_priorities );
+		$this->assertFalse( has_filter( 'the_content', '_restore_wpautop_hook' ) );
+
+		// Block content filtered later in the same request must not be autop'ed.
+		$this->assertSame(
+			'test',
+			trim( apply_filters( 'the_content', "<!-- wp:fake/block -->\ntest\n<!-- /wp:fake/block -->" ) )
+		);
+
+		// Classic content filtered afterward must still receive paragraph formatting.
+		$this->assertSame(
+			"<p>First paragraph.</p>\n<p>Second paragraph.</p>\n",
+			apply_filters( 'the_content', "First paragraph.\n\nSecond paragraph." )
+		);
+		$this->assertSame( $wpautop_priority, has_filter( 'the_content', 'wpautop' ) );
+		$this->assertFalse( has_filter( 'the_content', '_restore_wpautop_hook' ) );
+	}
+
+	/**
+	 * Data provider for test_nested_the_content_from_later_callback_keeps_wpautop_priority().
+	 *
+	 * @return array[]
+	 */
+	public static function data_nested_the_content_from_later_callback() {
+		return array(
+			'plain text'    => array( 'nested' ),
+			'block content' => array( '<!-- wp:paragraph --><p>nested</p><!-- /wp:paragraph -->' ),
+		);
+	}
+
 	public function test_can_nest_at_least_so_deep() {
 		$minimum_depth = 99;
 
