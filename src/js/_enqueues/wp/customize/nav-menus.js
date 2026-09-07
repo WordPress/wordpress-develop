@@ -912,13 +912,15 @@
 		}, 2000 ),
 
 		/**
-		 * eslint-disable-next-line eslint-plugin-jsdoc
+		 * Adds the active field class for the section container.
+		 *
 		 * @deprecated Since 4.7.0 now that the nav_menu sections are responsible for toggling the classes on their own containers.
 		 */
 		checked: function() {},
 
 		/**
-		 * eslint-disable-next-line eslint-plugin-jsdoc
+		 * Removes the active field class for the section container.
+		 *
 		 * @deprecated Since 4.7.0 now that the nav_menu sections are responsible for toggling the classes on their own containers.
 		 */
 		unchecked: function() {},

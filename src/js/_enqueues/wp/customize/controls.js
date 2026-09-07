@@ -1069,7 +1069,7 @@
 		},
 
 		/**
-		 * Ready state handler.
+		 * Handles the ready state (when overridden).
 		 *
 		 * @since 4.1.0
 		 *
