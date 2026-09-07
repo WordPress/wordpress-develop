@@ -5137,7 +5137,7 @@ function wp_parse_slug_list( $input_list ): array {
  * @phpstan-param array<TKey> $keys
  * @phpstan-return array<TKey, TValue>
  */
-function wp_array_slice_assoc( $input_array, $keys ) {
+function wp_array_slice_assoc( $input_array, $keys ): array {
 	$slice = array();
 
 	foreach ( $keys as $key ) {
