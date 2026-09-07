@@ -118,11 +118,11 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 	 * callback at priority 11 must preserve the wpautop() registration.
 	 *
 	 * @ticket 66062
-	 * @dataProvider data_nested_the_content_from_later_callback
+	 * @dataProvider data_nested_the_content_from_earlier_callback
 	 *
 	 * @param string $nested_content Content filtered by the shortcode callback.
 	 */
-	public function test_nested_the_content_from_later_callback_keeps_wpautop_priority( $nested_content ) {
+	public function test_nested_the_content_from_earlier_callback_keeps_wpautop_priority( $nested_content ) {
 		global $wp_filter;
 
 		add_shortcode(
@@ -167,11 +167,11 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_nested_the_content_from_later_callback_keeps_wpautop_priority().
+	 * Data provider for test_nested_the_content_from_earlier_callback_keeps_wpautop_priority().
 	 *
 	 * @return array[]
 	 */
-	public static function data_nested_the_content_from_later_callback() {
+	public static function data_nested_the_content_from_earlier_callback() {
 		return array(
 			'plain text'    => array( 'nested' ),
 			'block content' => array( '<!-- wp:paragraph --><p>nested</p><!-- /wp:paragraph -->' ),
