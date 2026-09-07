@@ -5024,9 +5024,9 @@ function smilies_init() {
  * @since 2.2.0
  * @since 2.3.0 `$args` can now also be an object.
  *
- * @param string|array|object $args     Value to merge with $defaults.
- * @param array               $defaults Optional. Array that serves as the defaults.
- *                                      Default empty array.
+ * @param string|array<string, mixed>|object $args     Value to merge with $defaults.
+ * @param array<string, mixed>               $defaults Optional. Array that serves as the defaults.
+ *                                                     Default empty array.
  * @return array Merged user defined values with defaults.
  */
 function wp_parse_args( $args, $defaults = array() ) {
