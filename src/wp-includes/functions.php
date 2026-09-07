@@ -5127,11 +5127,17 @@ function wp_parse_slug_list( $input_list ): array {
  *
  * @since 3.1.0
  *
- * @param array $input_array The original array.
- * @param array $keys        The list of keys.
- * @return array The array slice.
+ * @param array<string, mixed> $input_array The original array.
+ * @param string[]             $keys        The list of keys.
+ * @return array<string, mixed> The array slice.
+ *
+ * @phpstan-template TKey of string
+ * @phpstan-template TValue
+ * @phpstan-param array<string, TValue> $input_array
+ * @phpstan-param array<TKey> $keys
+ * @phpstan-return array<TKey, TValue>
  */
-function wp_array_slice_assoc( $input_array, $keys ) {
+function wp_array_slice_assoc( $input_array, $keys ): array {
 	$slice = array();
 
 	foreach ( $keys as $key ) {
