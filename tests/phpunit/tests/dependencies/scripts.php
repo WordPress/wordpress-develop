@@ -238,7 +238,7 @@ JS;
 	 *
 	 * @param string $position Inline script position.
 	 */
-	public function test_add_inline_script_does_not_store_false_for_empty_existing_data( $position ) {
+	public function test_add_inline_script_does_not_store_false_for_empty_existing_data( $position ): void {
 		$handle = 'test-inline-script-' . $position;
 
 		wp_register_script( $handle, '/test.js', array(), null );
@@ -253,9 +253,9 @@ JS;
 	/**
 	 * Data provider for inline script positions.
 	 *
-	 * @return array[] Inline script positions.
+	 * @return array<string, array{0: string}> Inline script positions.
 	 */
-	public function data_inline_script_positions() {
+	public function data_inline_script_positions(): array {
 		return array(
 			'before' => array( 'before' ),
 			'after'  => array( 'after' ),
