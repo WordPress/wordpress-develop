@@ -409,7 +409,7 @@ final class WP_Screen {
 	 * @global string    $typenow        The post type of the current screen.
 	 * @global string    $taxnow         The taxonomy of the current screen.
 	 */
-	public function set_current_screen() {
+	public function set_current_screen(): void {
 		global $current_screen, $taxnow, $typenow;
 
 		$current_screen = $this;
@@ -474,7 +474,7 @@ final class WP_Screen {
 	 * @param WP_Screen $screen A screen object.
 	 * @param string    $help   Help text.
 	 */
-	public static function add_old_compat_help( $screen, $help ) {
+	public static function add_old_compat_help( $screen, $help ): void {
 		self::$_old_compat_help[ $screen->id ] = $help;
 	}
 
@@ -487,7 +487,7 @@ final class WP_Screen {
 	 *
 	 * @param string $parent_file The parent file of the screen. Typically the $parent_file global.
 	 */
-	public function set_parentage( $parent_file ) {
+	public function set_parentage( $parent_file ): void {
 		$this->parent_file         = $parent_file;
 		list( $this->parent_base ) = explode( '?', $parent_file );
 		$this->parent_base         = str_replace( '.php', '', $this->parent_base );
@@ -504,7 +504,7 @@ final class WP_Screen {
 	 * @param string $option Option ID.
 	 * @param mixed  $args   Option-dependent arguments.
 	 */
-	public function add_option( $option, $args = array() ) {
+	public function add_option( $option, $args = array() ): void {
 		$this->_options[ $option ] = $args;
 	}
 
@@ -515,7 +515,7 @@ final class WP_Screen {
 	 *
 	 * @param string $option Option ID.
 	 */
-	public function remove_option( $option ) {
+	public function remove_option( $option ): void {
 		unset( $this->_options[ $option ] );
 	}
 
@@ -524,7 +524,7 @@ final class WP_Screen {
 	 *
 	 * @since 3.8.0
 	 */
-	public function remove_options() {
+	public function remove_options(): void {
 		$this->_options = array();
 	}
 
@@ -630,7 +630,7 @@ final class WP_Screen {
 	 *     @type int      $priority Optional. The priority of the tab, used for ordering. Default 10.
 	 * }
 	 */
-	public function add_help_tab( $args ) {
+	public function add_help_tab( $args ): void {
 		$defaults = array(
 			'title'    => false,
 			'id'       => false,
@@ -658,7 +658,7 @@ final class WP_Screen {
 	 *
 	 * @param string $id The help tab ID.
 	 */
-	public function remove_help_tab( $id ) {
+	public function remove_help_tab( $id ): void {
 		unset( $this->_help_tabs[ $id ] );
 	}
 
@@ -667,7 +667,7 @@ final class WP_Screen {
 	 *
 	 * @since 3.3.0
 	 */
-	public function remove_help_tabs() {
+	public function remove_help_tabs(): void {
 		$this->_help_tabs = array();
 	}
 
@@ -692,7 +692,7 @@ final class WP_Screen {
 	 *
 	 * @param string $content Sidebar content in plain text or HTML.
 	 */
-	public function set_help_sidebar( $content ) {
+	public function set_help_sidebar( $content ): void {
 		$this->_help_sidebar = $content;
 	}
 
@@ -757,7 +757,7 @@ final class WP_Screen {
 	 *                                      Default 'Items list'.
 	 * }
 	 */
-	public function set_screen_reader_content( $content = array() ) {
+	public function set_screen_reader_content( $content = array() ): void {
 		$defaults = array(
 			'heading_views'      => __( 'Filter items list' ),
 			'heading_pagination' => __( 'Items list navigation' ),
@@ -773,7 +773,7 @@ final class WP_Screen {
 	 *
 	 * @since 4.4.0
 	 */
-	public function remove_screen_reader_content() {
+	public function remove_screen_reader_content(): void {
 		$this->_screen_reader_content = array();
 	}
 
@@ -786,7 +786,7 @@ final class WP_Screen {
 	 *
 	 * @global string $screen_layout_columns
 	 */
-	public function render_screen_meta() {
+	public function render_screen_meta(): void {
 
 		/**
 		 * Filters the legacy contextual help list.
@@ -1051,7 +1051,7 @@ final class WP_Screen {
 	 *     @type bool $wrap Whether the screen-options-wrap div will be included. Defaults to true.
 	 * }
 	 */
-	public function render_screen_options( $options = array() ) {
+	public function render_screen_options( $options = array() ): void {
 		$options = wp_parse_args(
 			$options,
 			array(
@@ -1110,7 +1110,7 @@ final class WP_Screen {
 	 *
 	 * @global array $wp_meta_boxes Global meta box state.
 	 */
-	public function render_meta_boxes_preferences() {
+	public function render_meta_boxes_preferences(): void {
 		global $wp_meta_boxes;
 
 		if ( ! isset( $wp_meta_boxes[ $this->id ] ) ) {
@@ -1153,7 +1153,7 @@ final class WP_Screen {
 	 *
 	 * @since 4.4.0
 	 */
-	public function render_list_table_columns_preferences() {
+	public function render_list_table_columns_preferences(): void {
 
 		$columns = get_column_headers( $this );
 		$hidden  = get_hidden_columns( $this );
@@ -1201,7 +1201,7 @@ final class WP_Screen {
 	 *
 	 * @since 3.3.0
 	 */
-	public function render_screen_layout() {
+	public function render_screen_layout(): void {
 		if ( ! $this->get_option( 'layout_columns' ) ) {
 			return;
 		}
@@ -1233,7 +1233,7 @@ final class WP_Screen {
 	 *
 	 * @since 3.3.0
 	 */
-	public function render_per_page_options() {
+	public function render_per_page_options(): void {
 		if ( null === $this->get_option( 'per_page' ) ) {
 			return;
 		}
@@ -1299,7 +1299,7 @@ final class WP_Screen {
 	 *
 	 * @global string $mode List table view mode.
 	 */
-	public function render_view_mode() {
+	public function render_view_mode(): void {
 		global $mode;
 
 		$screen = get_current_screen();
@@ -1354,7 +1354,7 @@ final class WP_Screen {
 	 * @param string $key The screen reader text array named key.
 	 * @param string $tag Optional. The HTML tag to wrap the screen reader text. Default h2.
 	 */
-	public function render_screen_reader_content( $key = '', $tag = 'h2' ) {
+	public function render_screen_reader_content( $key = '', $tag = 'h2' ): void {
 
 		if ( ! isset( $this->_screen_reader_content[ $key ] ) ) {
 			return;
