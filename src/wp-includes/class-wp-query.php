@@ -3295,15 +3295,20 @@ class WP_Query {
 							$post_parent_cache_keys[] = 'post_parent:' . (string) $post_id;
 						}
 
-						/** @var int[] */
-						$post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
+						/** @var array<non-falsy-string, int|false> $cached_post_parents */
+						$cached_post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
 
-						foreach ( $post_parents as $cache_key => $post_parent ) {
+						$post_parents = array();
+						$this->posts  = array();
+
+						foreach ( $cached_post_parents as $cache_key => $post_parent ) {
 							$obj              = new stdClass();
 							$obj->ID          = (int) str_replace( 'post_parent:', '', $cache_key );
 							$obj->post_parent = (int) $post_parent;
 
 							$this->posts[] = $obj;
+
+							$post_parents[ $obj->ID ] = $obj->post_parent;
 						}
 
 						return $post_parents;
@@ -3839,6 +3844,8 @@ class WP_Query {
 	 *
 	 * @since 1.5.0
 	 *
+	 * @phpstan-impure
+	 *
 	 * @return bool True if posts are available, false if end of the loop.
 	 */
 	public function have_posts() {
@@ -3929,6 +3936,8 @@ class WP_Query {
 	 *
 	 * @since 2.2.0
 	 *
+	 * @phpstan-impure
+	 *
 	 * @return bool True if comments are available, false if no more comments.
 	 */
 	public function have_comments() {
@@ -3964,7 +3973,11 @@ class WP_Query {
 	 * @return WP_Post[]|int[] Array of post objects or post IDs.
 	 *
 	 * @phpstan-return (
-	 *     $query is array{ fields: 'ids', ... } ? int[] : WP_Post[]
+	 *     $query is array{ fields: 'ids', ... }
+	 *         ? int[]
+	 *         : ( $query is array{ fields: 'id=>parent', ... }
+	 *             ? array<int, int>
+	 *             : WP_Post[] )
 	 * )
 	 */
 	public function query( $query ) {

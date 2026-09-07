@@ -33,13 +33,3 @@ parameters:
 			identifier: method.unused
 			count: 1
 			path: ../../../src/wp-includes/class-wp-script-modules.php
-		-
-			message: '#^Method WP_HTML_Tag_Processor\:\:skip_rawtext\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
-			message: '#^Method WP_HTML_Tag_Processor\:\:skip_script_data\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php

@@ -55,10 +55,17 @@ jobs:
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
   prepare-gutenberg:
     name: Prepare Gutenberg Assets
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-prepare-gutenberg.yml@trunk
+    uses: ./.github/workflows/reusable-prepare-gutenberg.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
 
   #
   # Creates a PHPUnit test job for each PHP/MySQL combination.
@@ -69,14 +76,24 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
+      CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -152,14 +169,23 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -210,14 +236,23 @@ jobs:
   #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -257,14 +292,23 @@ jobs:
   #
   html-api-test-groups:
     name: ${{ matrix.label }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -291,14 +335,20 @@ jobs:
   #
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     needs: prepare-gutenberg
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
-    if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' }}
+    if: |
+      ! startsWith( github.repository, 'WordPress/' ) &&
+      github.event_name == 'pull_request' && (
+        ! github.event.repository.private ||
+        ! github.event.pull_request.draft ||
+        contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -347,13 +397,56 @@ jobs:
       gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
+  # Runs the PHPUnit test suite with PHP 8.6.
+  #
+  # The number of testing combinations is intentionally limited because PHP 8.6 is still in beta/RC.
+  pre-release-php-8-6:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: prepare-gutenberg
+    permissions:
+      contents: read
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.6' ]
+        db-version: [ '9.7', '11.8' ]
+        db-type: [ 'mysql', 'mariadb' ]
+        multisite: [ true, false ]
+
+        exclude:
+          - db-type: 'mysql'
+            db-version: '11.8'
+          - db-type: 'mariadb'
+            db-version: '9.7'
+
+    with:
+      php: ${{ matrix.php }}
+      db-version: ${{ matrix.db-version }}
+      db-type: ${{ matrix.db-type }}
+      multisite: ${{ matrix.multisite }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      allow-errors: true
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
-    needs: [ prepare-gutenberg, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
+    needs: [ prepare-gutenberg, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks, pre-release-php-8-6 ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}

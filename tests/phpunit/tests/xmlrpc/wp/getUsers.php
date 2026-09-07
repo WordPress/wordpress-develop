@@ -125,4 +125,18 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 			$last_email = $user['email'];
 		}
 	}
+
+	/**
+	 * Ensure a non-array `$fields` argument is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 65983
+	 */
+	public function test_non_array_fields_returns_error(): void {
+		$this->make_user_by_role( 'administrator' );
+
+		$result = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', array(), 'all' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
 }

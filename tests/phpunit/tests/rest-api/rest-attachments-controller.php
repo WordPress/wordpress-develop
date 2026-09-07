@@ -4102,7 +4102,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * The image_size argument accepts either a single size name or an array of
 	 * size names, so it validates via a custom callback rather than an enum. The
 	 * callback must accept 'scaled' and the 'source_original' source-format size,
-	 * and reject unknown sizes.
+	 * reject unknown sizes, and reject a special size sent as an array, since an
+	 * array registers one file under several regular sub-sizes.
 	 *
 	 * sideload_item() never reads generate_sub_sizes, so advertising it on the
 	 * route would silently mislead clients into expecting server-side sub-size
@@ -4145,12 +4146,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'image_size validation should accept the source_original source-format size.'
 		);
 		$this->assertTrue(
-			$validate( array( 'scaled' ), $request, $param_name ),
+			$validate( array( 'thumbnail', 'medium' ), $request, $param_name ),
 			'image_size validation should accept an array of size names.'
+		);
+		$this->assertTrue(
+			$validate( array( 'full', 'large' ), $request, $param_name ),
+			'image_size validation should accept the full size grouped with a registered size.'
 		);
 		$this->assertWPError(
 			$validate( 'not-a-real-size', $request, $param_name ),
 			'image_size validation should reject an unknown size.'
+		);
+		$this->assertWPError(
+			$validate( array( 'scaled' ), $request, $param_name ),
+			'image_size validation should reject a special size sent as an array.'
 		);
 
 		$this->assertArrayNotHasKey( 'generate_sub_sizes', $args, 'Sideload route should not advertise the unused generate_sub_sizes arg.' );
@@ -4991,20 +5000,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$metadata['image_meta']['orientation'] = 6;
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
+		// Sideload the client-scaled image so finalize has a provenance-backed
+		// 'scaled' entry to store.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=big-rotated-photo-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the scaled image should succeed.' );
+		$sub_size = $response->get_data();
+
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
-		$request->set_param(
-			'sub_sizes',
-			array(
-				array(
-					'image_size'     => 'scaled',
-					'width'          => 1920,
-					'height'         => 2560,
-					'file'           => '2026/07/big-rotated-photo-scaled.jpg',
-					'filesize'       => 500000,
-					'original_image' => 'big-rotated-photo.jpg',
-				),
-			)
-		);
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
@@ -5090,21 +5098,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$original_image_meta = wp_get_attachment_metadata( $attachment_id, true )['image_meta'];
 
-		// Finalize with a thumbnail sub-size.
+		// Sideload a thumbnail sub-size so finalize has a provenance-backed file
+		// to store. test-image.jpg is 50x50, within the thumbnail maximum.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=2004-07-22-DSC_0008-thumb.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Sideloading a thumbnail should succeed.' );
+		$sub_size = $response->get_data();
+
+		// Finalize with the sideloaded thumbnail sub-size.
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
-		$request->set_param(
-			'sub_sizes',
-			array(
-				array(
-					'image_size' => 'thumbnail',
-					'width'      => 150,
-					'height'     => 150,
-					'file'       => '2004-07-22-DSC_0008-150x150.jpg',
-					'mime_type'  => 'image/jpeg',
-					'filesize'   => 5000,
-				),
-			)
-		);
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
@@ -5247,12 +5254,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 201, $response->get_status() );
 
-		// Sideload a single file registered under multiple sizes.
+		/*
+		 * Sideload a single file registered under multiple sizes. The file is
+		 * 50x50 so that it satisfies the registered maximum for every size in
+		 * the group, which is what sharing one file among them requires.
+		 */
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-dup.jpg' );
 		$request->set_param( 'image_size', array( 'thumbnail', 'medium' ) );
-		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Sideloading with an array of sizes should succeed.' );

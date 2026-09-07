@@ -39,14 +39,21 @@ jobs:
   # Runs PHP compatibility testing.
   php-compatibility:
     name: Check PHP compatibility
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-php-compatibility.yml@trunk
+    uses: ./.github/workflows/reusable-php-compatibility.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
