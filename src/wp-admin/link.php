@@ -12,6 +12,8 @@
 /** Load WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+_deprecated_file( basename( __FILE__ ), '7.2.0', '', __( 'The Link Manager is deprecated. Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.' ) );
+
 $action  = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 $cat_id  = ! empty( $_REQUEST['cat_id'] ) ? absint( $_REQUEST['cat_id'] ) : 0;
 $link_id = ! empty( $_REQUEST['link_id'] ) ? absint( $_REQUEST['link_id'] ) : 0;
