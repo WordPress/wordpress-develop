@@ -866,6 +866,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 			// @ticket 63777
 			"SET STATEMENT max_statement_time=1 FOR SELECT * FROM $table",
+
+			// @ticket 43664
+			"SELECT c AS 'a from b' FROM $table",
 		);
 
 		$querycount = count( $queries );
