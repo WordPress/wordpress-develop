@@ -149,7 +149,7 @@ jobs:
       - name: Post-install smoke check
         # A network's domain lives in wp-config.php and the database, not just an option.
         if: ${{ ! matrix.multisite }}
-        uses: WordPress/wordpress-develop/.github/actions/smoke-check@trunk
+        uses: WordPress/wordpress-develop/.github/actions/smoke-check@trunk # zizmor: ignore[unpinned-uses]
         with:
           admin-user: ${{ env.WP_ADMIN_USER }}
           admin-password: ${{ env.WP_ADMIN_PASSWORD }}
