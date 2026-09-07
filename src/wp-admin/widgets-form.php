@@ -419,9 +419,9 @@ if ( isset( $_GET['message'] ) && isset( $messages[ $_GET['message'] ] ) ) {
 	wp_admin_notice(
 		$messages[ $_GET['message'] ],
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 }
@@ -429,9 +429,9 @@ if ( isset( $_GET['error'] ) && isset( $errors[ $_GET['error'] ] ) ) {
 	wp_admin_notice(
 		$errors[ $_GET['error'] ],
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'error' ),
-			'dismissible'        => true,
+			'id'          => 'message',
+			'type'        => 'error',
+			'dismissible' => true,
 		)
 	);
 }

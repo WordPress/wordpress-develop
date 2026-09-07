@@ -33,8 +33,8 @@ if ( empty( $plugins ) ) {
 		wp_admin_notice(
 			__( 'No plugins are currently available.' ),
 			array(
-				'id'                 => 'message',
-				'additional_classes' => array( 'error' ),
+				'id'   => 'message',
+				'type' => 'error',
 			)
 		);
 		?>
@@ -201,8 +201,9 @@ if ( isset( $_GET['a'] ) ) :
 	wp_admin_notice(
 		__( 'File edited successfully.' ),
 		array(
-			'additional_classes' => array( 'updated', 'is-dismissible' ),
-			'id'                 => 'message',
+			'type'        => 'success',
+			'id'          => 'message',
+			'dismissible' => true,
 		)
 	);
 elseif ( is_wp_error( $edit_error ) ) :

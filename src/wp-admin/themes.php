@@ -265,9 +265,9 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 	wp_admin_notice(
 		__( 'The active theme is broken. Reverting to the default theme.' ),
 		array(
-			'id'                 => 'message1',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message1',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 } elseif ( isset( $_GET['activated'] ) ) {
@@ -275,18 +275,18 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 		wp_admin_notice(
 			__( 'Settings saved and theme activated.' ) . ' <a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
 			array(
-				'id'                 => 'message2',
-				'additional_classes' => array( 'updated' ),
-				'dismissible'        => true,
+				'id'          => 'message2',
+				'type'        => 'success',
+				'dismissible' => true,
 			)
 		);
 	} else {
 		wp_admin_notice(
 			__( 'New theme activated.' ) . ' <a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
 			array(
-				'id'                 => 'message2',
-				'additional_classes' => array( 'updated' ),
-				'dismissible'        => true,
+				'id'          => 'message2',
+				'type'        => 'success',
+				'dismissible' => true,
 			)
 		);
 	}
@@ -294,52 +294,52 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 	wp_admin_notice(
 		__( 'Theme deleted.' ),
 		array(
-			'id'                 => 'message3',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message3',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 } elseif ( isset( $_GET['delete-active-child'] ) ) {
 	wp_admin_notice(
 		__( 'You cannot delete a theme while it has an active child theme.' ),
 		array(
-			'id'                 => 'message4',
-			'additional_classes' => array( 'error' ),
+			'id'   => 'message4',
+			'type' => 'error',
 		)
 	);
 } elseif ( isset( $_GET['resumed'] ) ) {
 	wp_admin_notice(
 		__( 'Theme resumed.' ),
 		array(
-			'id'                 => 'message5',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message5',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 } elseif ( isset( $_GET['error'] ) && 'resuming' === $_GET['error'] ) {
 	wp_admin_notice(
 		__( 'Theme could not be resumed because it triggered a <strong>fatal error</strong>.' ),
 		array(
-			'id'                 => 'message6',
-			'additional_classes' => array( 'error' ),
+			'id'   => 'message6',
+			'type' => 'error',
 		)
 	);
 } elseif ( isset( $_GET['enabled-auto-update'] ) ) {
 	wp_admin_notice(
 		__( 'Theme will be auto-updated.' ),
 		array(
-			'id'                 => 'message7',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message7',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 } elseif ( isset( $_GET['disabled-auto-update'] ) ) {
 	wp_admin_notice(
 		__( 'Theme will no longer be auto-updated.' ),
 		array(
-			'id'                 => 'message8',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message8',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 }
@@ -350,7 +350,7 @@ if ( $current_theme->errors() && ( ! is_multisite() || current_user_can( 'manage
 	wp_admin_notice(
 		'<strong>' . __( 'Error:' ) . '</strong> ' . $current_theme->errors()->get_error_message(),
 		array(
-			'additional_classes' => array( 'error' ),
+			'type' => 'error',
 		)
 	);
 }

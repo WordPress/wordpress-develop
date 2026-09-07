@@ -404,8 +404,8 @@ if ( isset( $errors ) && is_wp_error( $errors ) ) :
 	wp_admin_notice(
 		'<ul>' . $error_message . '</ul>',
 		array(
-			'additional_classes' => array( 'error' ),
-			'paragraph_wrap'     => false,
+			'type'           => 'error',
+			'paragraph_wrap' => false,
 		)
 	);
 endif;
@@ -415,9 +415,9 @@ if ( ! empty( $messages ) ) {
 		wp_admin_notice(
 			$msg,
 			array(
-				'id'                 => 'message',
-				'additional_classes' => array( 'updated' ),
-				'dismissible'        => true,
+				'id'          => 'message',
+				'type'        => 'success',
+				'dismissible' => true,
 			)
 		);
 	}
@@ -433,8 +433,8 @@ if ( isset( $add_user_errors ) && is_wp_error( $add_user_errors ) ) :
 	wp_admin_notice(
 		$error_message,
 		array(
-			'additional_classes' => array( 'error' ),
-			'paragraph_wrap'     => false,
+			'type'           => 'error',
+			'paragraph_wrap' => false,
 		)
 	);
 endif;

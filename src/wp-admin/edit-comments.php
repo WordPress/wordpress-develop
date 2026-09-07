@@ -304,8 +304,8 @@ if ( isset( $_REQUEST['error'] ) ) {
 		wp_admin_notice(
 			$error_msg,
 			array(
-				'id'                 => 'moderated',
-				'additional_classes' => array( 'error' ),
+				'id'   => 'moderated',
+				'type' => 'error',
 			)
 		);
 	}
@@ -420,9 +420,9 @@ if ( isset( $_REQUEST['approved'] )
 		wp_admin_notice(
 			implode( "<br />\n", $messages ),
 			array(
-				'id'                 => 'moderated',
-				'additional_classes' => array( 'updated' ),
-				'dismissible'        => true,
+				'id'          => 'moderated',
+				'type'        => 'success',
+				'dismissible' => true,
 			)
 		);
 	}

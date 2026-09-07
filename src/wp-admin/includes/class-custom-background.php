@@ -267,8 +267,8 @@ class Custom_Background {
 			wp_admin_notice(
 				$updated_message,
 				array(
-					'id'                 => 'message',
-					'additional_classes' => array( 'updated' ),
+					'id'   => 'message',
+					'type' => 'success',
 				)
 			);
 		}

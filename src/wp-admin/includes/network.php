@@ -124,7 +124,7 @@ function network_step1( $errors = false ) {
 		wp_admin_notice(
 			$cannot_define_constant_message,
 			array(
-				'additional_classes' => array( 'error' ),
+				'type' => 'error',
 			)
 		);
 
@@ -165,8 +165,8 @@ function network_step1( $errors = false ) {
 		wp_admin_notice(
 			$network_created_error_message,
 			array(
-				'additional_classes' => array( 'error' ),
-				'paragraph_wrap'     => false,
+				'type'           => 'error',
+				'paragraph_wrap' => false,
 			)
 		);
 		$error_codes = $errors->get_error_codes();
@@ -198,11 +198,11 @@ function network_step1( $errors = false ) {
 	} else {
 		$subdomain_install = false;
 		$got_mod_rewrite   = got_mod_rewrite();
-		$message_class     = '';
+		$message_type      = '';
 		$message           = '';
 
 		if ( $got_mod_rewrite ) { // Dangerous assumptions.
-			$message_class = 'updated';
+			$message_type = 'success';
 			$message       = '<p><strong>' . __( 'Warning:' ) . '</strong> ';
 			$message      .= '<p>' . sprintf(
 				/* translators: %s: mod_rewrite */
@@ -210,7 +210,7 @@ function network_step1( $errors = false ) {
 				'<code>mod_rewrite</code>'
 			) . '</p>';
 		} elseif ( $is_apache ) {
-			$message_class = 'error';
+			$message_type = 'error';
 			$message       = '<p><strong>' . __( 'Warning:' ) . '</strong> ';
 			$message      .= sprintf(
 				/* translators: %s: mod_rewrite */
@@ -231,7 +231,8 @@ function network_step1( $errors = false ) {
 			wp_admin_notice(
 				$message,
 				array(
-					'additional_classes' => array( $message_class, 'inline' ),
+					'type'               => $message_type,
+					'additional_classes' => array( 'inline' ),
 					'paragraph_wrap'     => false,
 				)
 			);
@@ -281,7 +282,8 @@ function network_step1( $errors = false ) {
 		wp_admin_notice(
 			$subdirectory_warning_message,
 			array(
-				'additional_classes' => array( 'error', 'inline' ),
+				'type'               => 'error',
+				'additional_classes' => array( 'inline' ),
 			)
 		);
 	}
@@ -432,7 +434,7 @@ function network_step2( $errors = false ) {
 		wp_admin_notice(
 			$errors->get_error_message(),
 			array(
-				'additional_classes' => array( 'error' ),
+				'type' => 'error',
 			)
 		);
 	}
@@ -455,7 +457,7 @@ function network_step2( $errors = false ) {
 			wp_admin_notice(
 				'<strong>' . __( 'Warning:' ) . '</strong> ' . __( 'An existing WordPress network was detected.' ),
 				array(
-					'additional_classes' => array( 'error' ),
+					'type' => 'error',
 				)
 			);
 			?>
