@@ -20,17 +20,27 @@ Settings = View.extend(/** @lends wp.media.view.Settings.prototype */{
 		'change textarea': 'updateHandler'
 	},
 
+	/**
+	 * Initializes the settings view.
+	 */
 	initialize: function() {
 		this.model = this.model || new Backbone.Model();
 		this.listenTo( this.model, 'change', this.updateChanges );
 	},
 
+	/**
+	 * Prepares the data for rendering.
+	 *
+	 * @return {Object} The data to be used in the template.
+	 */
 	prepare: function() {
 		return _.defaults({
 			model: this.model.toJSON()
 		}, this.options );
 	},
 	/**
+	 * Renders the settings view.
+	 *
 	 * @return {wp.media.view.Settings} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -40,6 +50,8 @@ Settings = View.extend(/** @lends wp.media.view.Settings.prototype */{
 		return this;
 	},
 	/**
+	 * Updates the selected value for a setting.
+	 *
 	 * @param {string} key
 	 */
 	update: function( key ) {
@@ -87,6 +99,8 @@ Settings = View.extend(/** @lends wp.media.view.Settings.prototype */{
 		}
 	},
 	/**
+	 * Updates the model when a setting is changed.
+	 *
 	 * @param {Object} event
 	 */
 	updateHandler: function( event ) {
@@ -116,6 +130,11 @@ Settings = View.extend(/** @lends wp.media.view.Settings.prototype */{
 		}
 	},
 
+	/**
+	 * Updates the view when the model changes.
+	 *
+	 * @param {Backbone.Model} model The model that changed.
+	 */
 	updateChanges: function( model ) {
 		if ( model.hasChanged() ) {
 			_( model.changed ).chain().keys().each( this.update, this );

@@ -33,6 +33,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	tagName:   'div',
 	className: 'attachments-browser',
 
+	/**
+	 * Initializes the AttachmentsBrowser view.
+	 */
 	initialize: function() {
 		_.defaults( this.options, {
 			filters: false,
@@ -147,12 +150,19 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 	}, 200 ),
 
+	/**
+	 * Edits the selection in the modal. This is used when the user clicks the "Edit" button in the modal.
+	 *
+	 * @param {wp.media.view.Modal} modal The modal view.
+	 */
 	editSelection: function( modal ) {
 		// When editing a selection, move focus to the "Go to library" button.
 		modal.$( '.media-button-backToLibrary' ).focus();
 	},
 
 	/**
+	 * Disposes of the view and its children.
+	 *
 	 * @return {wp.media.view.AttachmentsBrowser} Returns itself to allow chaining.
 	 */
 	dispose: function() {
@@ -161,6 +171,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		return this;
 	},
 
+	/**
+	 * Creates the toolbar view.
+	 */
 	createToolbar: function() {
 		var LibraryViewSwitcher, Filters, toolbarOptions,
 			showFilterByType = -1 !== $.inArray( this.options.filters, [ 'uploaded', 'all' ] );
@@ -410,6 +423,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 	},
 
+	/**
+	 * Updates the content of the attachments browser.
+	 */
 	updateContent: function() {
 		var view = this,
 			noItemsView;
@@ -441,6 +457,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 	},
 
+	/**
+	 * Creates the uploader view.
+	 */
 	createUploader: function() {
 		this.uploader = new wp.media.view.UploaderInline({
 			controller: this.controller,
@@ -453,6 +472,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		this.views.add( this.uploader );
 	},
 
+	/**
+	 * Toggles the uploader view.
+	 */
 	toggleUploader: function() {
 		if ( this.uploader.$el.hasClass( 'hidden' ) ) {
 			this.uploader.show();
@@ -478,6 +500,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		this.createAttachments();
 	},
 
+	/**
+	 * Creates the attachments view.
+	 */
 	createAttachments: function() {
 		this.attachments = new wp.media.view.Attachments({
 			controller:           this.controller,
@@ -661,6 +686,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		this.firstAddedMediaItem.focus();
 	},
 
+	/**
+	 * Creates the attachments heading view.
+	 */
 	createAttachmentsHeading: function() {
 		this.attachmentsHeading = new wp.media.view.Heading( {
 			text: l10n.attachmentsList,
@@ -670,6 +698,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		this.views.add( this.attachmentsHeading );
 	},
 
+	/**
+	 * Creates the sidebar view.
+	 */
 	createSidebar: function() {
 		var options = this.options,
 			selection = options.selection,
@@ -694,6 +725,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 	},
 
+	/**
+	 * Creates the single attachment view.
+	 */
 	createSingle: function() {
 		var sidebar = this.sidebar,
 			single = this.options.selection.single();
@@ -726,6 +760,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 	},
 
+	/**
+	 * Disposes of the single attachment view.
+	 */
 	disposeSingle: function() {
 		var sidebar = this.sidebar;
 		sidebar.unset('details');
