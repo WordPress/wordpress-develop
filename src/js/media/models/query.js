@@ -22,6 +22,8 @@ var Attachments = wp.media.model.Attachments,
  */
 Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	/**
+	 * Initializes the Query collection.
+	 *
 	 * @param {Array}  [models=[]]  Array of initial models to populate the collection.
 	 * @param {Object} [options={}]
 	 */
@@ -236,6 +238,8 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		var queries = [];
 
 		/**
+		 * Creates and returns an Attachments Query collection given the properties.
+		 *
 		 * @param {Object} [props]
 		 * @param {Object} [options]
 		 * @return {Query} A new Attachments Query collection.
