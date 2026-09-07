@@ -225,6 +225,68 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an invalid category type is rejected before the category lookup.
+	 *
+	 * @ticket 65569
+	 *
+	 * @dataProvider data_invalid_category_types
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 *
+	 * @param mixed $category Invalid category value.
+	 */
+	public function test_register_ability_rejects_invalid_category_type( $category ): void {
+		$args             = self::$test_ability_args;
+		$args['category'] = $category;
+
+		$result = $this->registry->register( self::$test_ability_name, $args );
+
+		$this->assertNull( $result );
+		$this->assertStringContainsString(
+			'Ability category must be a string.',
+			$this->caught_doing_it_wrong['WP_Abilities_Registry::register']
+		);
+	}
+
+	/**
+	 * Data provider for invalid category types.
+	 *
+	 * @return array<string, array<mixed>> Test cases.
+	 */
+	public static function data_invalid_category_types(): array {
+		return array(
+			'null'    => array( null ),
+			'boolean' => array( false ),
+			'integer' => array( 1 ),
+			'array'   => array( array() ),
+		);
+	}
+
+	/**
+	 * Tests that an empty category is rejected rather than replaced by the default.
+	 *
+	 * @ticket 65569
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_rejects_empty_category(): void {
+		$args             = self::$test_ability_args;
+		$args['category'] = '';
+
+		$result = $this->registry->register( self::$test_ability_name, $args );
+
+		$this->assertNull( $result );
+		$this->assertStringContainsString(
+			'Ability category "" is not registered.',
+			$this->caught_doing_it_wrong['WP_Abilities_Registry::register']
+		);
+	}
+
+	/**
 	 * Should reject ability registration without an execute callback.
 	 *
 	 * @ticket 64098

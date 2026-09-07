@@ -2,8 +2,9 @@
  * @output wp-includes/js/wp-sanitize.js
  */
 
-/* eslint-env es6 */
-
+/**
+ * Provides helper functions to sanitize strings.
+ */
 ( function () {
 
 	window.wp = window.wp || {};
