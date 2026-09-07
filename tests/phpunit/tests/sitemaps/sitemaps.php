@@ -493,4 +493,90 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->assertTrue( is_404() );
 	}
+
+	/**
+	 * Ensures a populated, paginated sitemap page is not flagged as a 404 just
+	 * because its page number exceeds the number of pages of regular posts.
+	 *
+	 * A sitemap URL is routed with the `sitemap` query variable but no
+	 * `post_type`, so the main query defaults to `post`. Before the fix, on a
+	 * request for a custom post type sitemap page numbered higher than the
+	 * `post` sitemap's last page, the main query returned no posts and
+	 * WP::handle_404() flagged the request as a 404 even though the sitemap
+	 * provider had URLs to render for that page.
+	 *
+	 * @ticket 65375
+	 *
+	 * @covers WP_Sitemaps::pre_handle_404
+	 */
+	public function test_populated_paged_sitemap_should_not_return_404() {
+		register_post_type(
+			'sitemap_cpt',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+
+		// Two custom post type posts. With one URL per sitemap page (filtered
+		// below), the custom post type sitemap spans two pages, so page 2 is a
+		// real, populated page.
+		self::factory()->post->create_many( 2, array( 'post_type' => 'sitemap_cpt' ) );
+
+		// Make the dummy main query (which defaults to the `post` post type)
+		// have a single page: all of the regular posts created in
+		// wpSetUpBeforeClass fit on page 1, so any paged > 1 request returns no
+		// posts. This is the condition that used to make WP::handle_404() flag a
+		// 404 for sitemap pages numbered beyond the post sitemap's last page.
+		update_option( 'posts_per_page', 100 );
+		add_filter( 'wp_sitemaps_max_urls', array( $this, 'filter_max_urls_to_one' ) );
+
+		// Ensure the sitemaps server is bootstrapped so its pre_handle_404 and
+		// rewrite registrations are in place before the request is simulated.
+		// In a real request this happens on the 'init' hook; the test harness
+		// resets the server between tests, so trigger it explicitly.
+		wp_sitemaps_get_server();
+
+		// Request page 2 of the custom post type sitemap. Its page number (2)
+		// exceeds the post sitemap's single page, but the page itself has a URL
+		// to render and must not be a 404.
+		$this->go_to( home_url( '/?sitemap=posts&sitemap-subtype=sitemap_cpt&paged=2' ) );
+
+		remove_filter( 'wp_sitemaps_max_urls', array( $this, 'filter_max_urls_to_one' ) );
+
+		$this->assertFalse( is_404(), 'A populated paginated sitemap page should not be a 404.' );
+
+		unregister_post_type( 'sitemap_cpt' );
+	}
+
+	/**
+	 * Ensures a sitemap page that genuinely has no URLs still returns a 404.
+	 *
+	 * Guards against the pre_handle_404 short-circuit suppressing the 404 that
+	 * WP_Sitemaps::render_sitemaps() issues for an out-of-range sitemap page.
+	 *
+	 * @ticket 65375
+	 *
+	 * @covers WP_Sitemaps::pre_handle_404
+	 * @covers WP_Sitemaps::render_sitemaps
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_out_of_range_paged_sitemap_should_still_return_404() {
+		$this->go_to( home_url( '/?sitemap=posts&sitemap-subtype=post&paged=9999' ) );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertTrue( is_404(), 'An out-of-range sitemap page with no URLs should be a 404.' );
+	}
+
+	/**
+	 * Forces the sitemap per-page URL limit to one for pagination testing.
+	 *
+	 * @return int
+	 */
+	public function filter_max_urls_to_one() {
+		return 1;
+	}
 }
