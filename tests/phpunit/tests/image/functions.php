@@ -636,25 +636,47 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 42064
+	 *
 	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
-	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_with_url() {
-		$file = wp_crop_image(
-			'https://s.w.org/screenshots/3.9/dashboard.png',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100,
-			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
-		);
+		$url                 = 'https://example.org/canola.jpg';
+		$mock_image_download = static function ( $response, $args, $requested_url ) use ( $url ) {
+			if ( $url !== $requested_url ) {
+				return $response;
+			}
 
-		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
+			if ( empty( $args['filename'] ) || ! copy( DIR_TESTDATA . '/images/canola.jpg', $args['filename'] ) ) {
+				return new WP_Error( 'copy_failed', 'Could not copy the image fixture.' );
+			}
+
+			return array(
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+				'headers'  => array(),
+				'cookies'  => array(),
+				'body'     => '',
+			);
+		};
+
+		add_filter( 'pre_http_request', $mock_image_download, 10, 3 );
+
+		try {
+			$file = wp_crop_image(
+				$url,
+				0,
+				0,
+				100,
+				100,
+				100,
+				100
+			);
+		} finally {
+			remove_filter( 'pre_http_request', $mock_image_download, 10 );
 		}
 
 		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
