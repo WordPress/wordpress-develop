@@ -287,6 +287,7 @@ function get_plugins( $plugin_folder = '' ) {
 		$cache_plugins = array();
 	}
 
+	/** This filter is documented in wp-includes/functions.php */
 	$extra_headers = apply_filters( 'extra_plugin_headers', array() );
 
 	if ( ! is_array( $extra_headers ) ) {
