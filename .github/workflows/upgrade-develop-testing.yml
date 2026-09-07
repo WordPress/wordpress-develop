@@ -25,7 +25,6 @@ on:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
       # Confirm any changes to relevant workflow files.
-      - '.github/actions/smoke-check/**'
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   workflow_dispatch:
