@@ -1852,6 +1852,60 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a HEIC upload keeps its .heic extension.
+	 *
+	 * PHP's exif_imagetype() reports HEIC files as image/heif, so this guards
+	 * against the file being incorrectly renamed to a different extension.
+	 *
+	 * @ticket 65297
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext_heic_keeps_extension() {
+		$file = DIR_TESTDATA . '/images/test-image.heic';
+
+		// HEIC/HEIF detection depends on the PHP build; only assert when the
+		// file is recognized as a HEIC/HEIF image.
+		if ( ! wp_is_heic_image_mime_type( wp_get_image_mime( $file ) ) ) {
+			$this->markTestSkipped( 'HEIC/HEIF mime type detection is not available on this system.' );
+		}
+
+		$expected = array(
+			'ext'             => 'heic',
+			'type'            => 'image/heic',
+			'proper_filename' => false,
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, 'test-image.heic' ) );
+	}
+
+	/**
+	 * Tests that a genuine HEIF upload keeps its .heif extension instead of
+	 * being normalized to .heic.
+	 *
+	 * @ticket 65297
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext_heif_keeps_extension() {
+		$file = DIR_TESTDATA . '/images/test-image.heic';
+
+		// The fix only applies when the file is detected as image/heif, which
+		// depends on the PHP build. Skip when it is not.
+		if ( 'image/heif' !== wp_get_image_mime( $file ) ) {
+			$this->markTestSkipped( 'HEIF mime type detection is not available on this system.' );
+		}
+
+		$expected = array(
+			'ext'             => 'heif',
+			'type'            => 'image/heif',
+			'proper_filename' => false,
+		);
+
+		// The on-disk file is a HEIF-family image; the .heif filename should be
+		// preserved rather than rewritten to .heic.
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, 'test-image.heif' ) );
+	}
+
+	/**
 	 * Test file path validation
 	 *
 	 * @ticket 42016
