@@ -3,6 +3,8 @@
  */
 
 /**
+ * Handles the editor Distraction-Free Writing (DFW) functionality.
+ *
  * @param {Window}       window    The global window object.
  * @param {JQueryStatic} $         The jQuery object.
  * @param {undefined}    undefined The undefined value.

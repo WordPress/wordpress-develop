@@ -138,11 +138,10 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
  */
 
 /**
- * @param {JQueryStatic} $ The jQuery object.
- * @param {Object & {
- *   codeEditor: WpCodeEditor,
- *   CodeMirror: typeof import('codemirror'),
- * }} wp - WordPress namespace.
+ * Handles the Code Editor (CodeMirror) functionality.
+ *
+ * @param {JQueryStatic} $  The jQuery object.
+ * @param {wp}           wp The WordPress global object.
  */
 ( function( $, wp ) {
 	'use strict';
@@ -165,7 +164,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	};
 
 	/**
-	 * Configure linting.
+	 * Configures linting.
 	 *
 	 * @param {CodeEditorSettings} settings - Code editor settings.
 	 *
@@ -192,7 +191,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 		}
 
 		/**
-		 * Get lint options.
+		 * Gets the lint options.
 		 *
 		 * @return {CombinedLintOptions|false} Lint options.
 		 */
@@ -236,6 +235,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 			// Wrap the onUpdateLinting CodeMirror event to route to onChangeLintingErrors and onUpdateErrorNotice.
 			linterOptions.onUpdateLinting = (function( onUpdateLintingOverridden ) {
 				/**
+				 * Wraps the onUpdateLinting event to filter errors, detect state changes, and manage error notice visibility.
+				 *
 				 * @param {LintAnnotation[]} annotations - Annotations.
 				 * @param {LintAnnotation[]} annotationsSorted - Sorted annotations.
 				 * @param {CodeMirrorEditor} cm - Editor.
@@ -278,6 +279,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 		return {
 			getLintOptions,
 			/**
+			 * Initializes the CodeMirror editor.
+			 *
 			 * @param {CodeMirrorEditor} editor - Editor instance.
 			 * @return {void}
 			 */

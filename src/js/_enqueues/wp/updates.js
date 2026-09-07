@@ -1,15 +1,16 @@
 /**
- * Functions for ajaxified updates, deletions and installs inside the WordPress admin.
- *
- * @version 4.2.0
  * @output wp-admin/js/updates.js
  */
 
 /* global pagenow, _wpThemeSettings */
 
 /**
+ * Provides functions for ajaxified updates, deletions and installs inside the WordPress admin.
+ *
+ * @version 4.2.0
+ *
  * @param {JQueryStatic} $                                        The jQuery object.
- * @param {Object}       wp                                       WP object.
+ * @param {Object}       wp                                       The WordPress global object.
  * @param {Object}       settings                                 WP Updates settings.
  * @param {string}       settings.ajax_nonce                      Ajax nonce.
  * @param {Object}       settings.plugins                         Base names of plugins in their different states.

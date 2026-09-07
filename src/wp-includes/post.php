@@ -1487,41 +1487,15 @@ function register_post_status( $post_status, $args = array() ) {
 		$args->internal = true;
 	}
 
-	if ( null === $args->public ) {
-		$args->public = false;
-	}
-
-	if ( null === $args->private ) {
-		$args->private = false;
-	}
-
-	if ( null === $args->protected ) {
-		$args->protected = false;
-	}
-
-	if ( null === $args->internal ) {
-		$args->internal = false;
-	}
-
-	if ( null === $args->publicly_queryable ) {
-		$args->publicly_queryable = $args->public;
-	}
-
-	if ( null === $args->exclude_from_search ) {
-		$args->exclude_from_search = $args->internal;
-	}
-
-	if ( null === $args->show_in_admin_all_list ) {
-		$args->show_in_admin_all_list = ! $args->internal;
-	}
-
-	if ( null === $args->show_in_admin_status_list ) {
-		$args->show_in_admin_status_list = ! $args->internal;
-	}
-
-	if ( null === $args->date_floating ) {
-		$args->date_floating = false;
-	}
+	$args->public                    ??= false;
+	$args->private                   ??= false;
+	$args->protected                 ??= false;
+	$args->internal                  ??= false;
+	$args->publicly_queryable        ??= $args->public;
+	$args->exclude_from_search       ??= $args->internal;
+	$args->show_in_admin_all_list    ??= ! $args->internal;
+	$args->show_in_admin_status_list ??= ! $args->internal;
+	$args->date_floating             ??= false;
 
 	if ( false === $args->label ) {
 		$args->label = $post_status;
@@ -1918,19 +1892,19 @@ function register_post_type( $post_type, $args = array() ) {
  *
  * @since 4.5.0
  *
- * @global array $wp_post_types List of post types.
+ * @global array<string, string>       $post_type_meta_caps Used to store meta capabilities.
+ * @global array<string, WP_Post_Type> $wp_post_types       List of post types.
  *
  * @param string $post_type Post type to unregister.
  * @return true|WP_Error True on success, WP_Error on failure or if the post type doesn't exist.
  */
 function unregister_post_type( $post_type ) {
-	global $wp_post_types;
-
-	if ( ! post_type_exists( $post_type ) ) {
-		return new WP_Error( 'invalid_post_type', __( 'Invalid post type.' ) );
-	}
+	global $post_type_meta_caps, $wp_post_types;
 
 	$post_type_object = get_post_type_object( $post_type );
+	if ( ! $post_type_object ) {
+		return new WP_Error( 'invalid_post_type', __( 'Invalid post type.' ) );
+	}
 
 	// Do not allow unregistering internal post types.
 	if ( $post_type_object->_builtin ) {
@@ -1944,6 +1918,20 @@ function unregister_post_type( $post_type ) {
 	$post_type_object->unregister_taxonomies();
 
 	unset( $wp_post_types[ $post_type ] );
+
+	/*
+	 * Rebuild the meta capabilities of the post types that remain.
+	 *
+	 * They are keyed by the custom capability name, so a single entry may be owed to any
+	 * number of registered post types. Removing the entries for this post type alone could
+	 * therefore remove entries that the others still depend on.
+	 */
+	$post_type_meta_caps = array();
+	foreach ( $wp_post_types as $registered_post_type ) {
+		if ( $registered_post_type->map_meta_cap ) {
+			_post_type_meta_capabilities( get_object_vars( $registered_post_type->cap ) );
+		}
+	}
 
 	/**
 	 * Fires after a post type was unregistered.
@@ -2082,16 +2070,20 @@ function get_post_type_capabilities( $args ) {
 }
 
 /**
- * Stores or returns a list of post type meta caps for map_meta_cap().
+ * Stores a list of post type meta caps for {@see map_meta_cap()}.
  *
  * @since 3.1.0
+ * @since 4.5.0 The list moved to the `$post_type_meta_caps` global and the function
+ *              no longer returns it when called without arguments.
+ * @since 7.2.0 The `$capabilities` parameter defaults to an empty array rather than `null`.
  * @access private
  *
- * @global array $post_type_meta_caps Used to store meta capabilities.
+ * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
  *
- * @param string[] $capabilities Post type meta capabilities.
+ * @param array<string, string> $capabilities Map of core meta capability name to the custom
+ *                                            capability name it is registered under.
  */
-function _post_type_meta_capabilities( $capabilities = null ) {
+function _post_type_meta_capabilities( $capabilities = array() ): void {
 	global $post_type_meta_caps;
 
 	foreach ( $capabilities as $core => $custom ) {
@@ -4434,10 +4426,28 @@ function wp_untrash_post_comments( $post = null ) {
  *                       global $post. Default 0.
  * @param array $args    Optional. Category query parameters. Default empty array.
  *                       See WP_Term_Query::__construct() for supported arguments.
- * @return array|WP_Error List of categories. If the `$fields` argument passed via `$args` is 'all' or
- *                        'all_with_object_id', an array of WP_Term objects will be returned. If `$fields`
- *                        is 'ids', an array of category IDs. If `$fields` is 'names', an array of category names.
- *                        WP_Error object if 'category' taxonomy doesn't exist.
+ * @return int[]|WP_Term[]|string[]|string|WP_Error List of categories. An array of category IDs by
+ *                                                  default, and if the `$fields` argument passed via
+ *                                                  `$args` is 'ids'. If `$fields` is 'all' or
+ *                                                  'all_with_object_id', an array of WP_Term objects.
+ *                                                  If `$fields` is 'names', an array of category names.
+ *                                                  If `$fields` is 'count', a count thereof as a numeric
+ *                                                  string. WP_Error object if 'category' taxonomy
+ *                                                  doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'id=>parent', ... }
+ *             ? array<int, int>|WP_Error
+ *             : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                 ? string[]|WP_Error
+ *                 : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                     ? array<int, string>|WP_Error
+ *                     : ( $args is array{ fields: 'all'|'all_with_object_id', ... }
+ *                         ? WP_Term[]|WP_Error
+ *                         : int[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_categories( $post_id = 0, $args = array() ) {
 	$post_id = (int) $post_id;
@@ -4462,8 +4472,24 @@ function wp_get_post_categories( $post_id = 0, $args = array() ) {
  *                       global $post. Default 0.
  * @param array $args    Optional. Tag query parameters. Default empty array.
  *                       See WP_Term_Query::__construct() for supported arguments.
- * @return array|WP_Error Array of WP_Term objects on success or empty array if no tags were found.
- *                        WP_Error object if 'post_tag' taxonomy doesn't exist.
+ * @return WP_Term[]|int[]|string[]|string|WP_Error Array of WP_Term objects on success or empty array if no
+ *                                                  tags were found. A count thereof as a numeric string if
+ *                                                  the `$fields` argument passed via `$args` is 'count'.
+ *                                                  WP_Error object if 'post_tag' taxonomy doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : WP_Term[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_tags( $post_id = 0, $args = array() ) {
 	return wp_get_post_terms( $post_id, 'post_tag', $args );
@@ -4483,8 +4509,24 @@ function wp_get_post_tags( $post_id = 0, $args = array() ) {
  *
  *     @type string $fields Term fields to retrieve. Default 'all'.
  * }
- * @return array|WP_Error Array of WP_Term objects on success or empty array if no terms were found.
- *                        WP_Error object if `$taxonomy` doesn't exist.
+ * @return WP_Term[]|int[]|string[]|string|WP_Error Array of WP_Term objects on success or empty array if no
+ *                                                  terms were found. A count thereof as a numeric string if
+ *                                                  the `$fields` argument passed via `$args` is 'count'.
+ *                                                  WP_Error object if `$taxonomy` doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : WP_Term[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array() ) {
 	$post_id = (int) $post_id;
@@ -5944,7 +5986,7 @@ function wp_set_post_categories( $post_id = 0, $post_categories = array(), $appe
  *
  * @param string  $new_status Transition to this post status.
  * @param string  $old_status Previous post status.
- * @param WP_Post $post Post data.
+ * @param WP_Post $post       Post data.
  */
 function wp_transition_post_status( $new_status, $old_status, $post ) {
 	/**
@@ -8714,7 +8756,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
  * @since 5.4.0 Added the `$unfiltered` parameter.
  *
  * @param int  $attachment_id Attachment ID.
- * @param bool $unfiltered Optional. Passed through to `get_attached_file()`. Default false.
+ * @param bool $unfiltered    Optional. Passed through to `get_attached_file()`. Default false.
  * @return string|false Path to the original image file or false if the attachment is not an image.
  */
 function wp_get_original_image_path( $attachment_id, $unfiltered = false ) {

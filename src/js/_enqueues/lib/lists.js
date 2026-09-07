@@ -5,6 +5,8 @@
 /* global ajaxurl, wpAjax */
 
 /**
+ * Handles the dynamic functionality needed for lists.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {

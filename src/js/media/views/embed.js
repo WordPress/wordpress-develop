@@ -8,9 +8,12 @@
  * @augments wp.Backbone.View
  * @augments Backbone.View
  */
-var Embed = wp.media.View.extend(/** @lends wp.media.view.Ember.prototype */{
+var Embed = wp.media.View.extend(/** @lends wp.media.view.Embed.prototype */{
 	className: 'media-embed',
 
+	/**
+	 * Initializes the embed view.
+	 */
 	initialize: function() {
 		/**
 		 * @member {wp.media.view.EmbedUrl}
@@ -27,6 +30,8 @@ var Embed = wp.media.View.extend(/** @lends wp.media.view.Ember.prototype */{
 	},
 
 	/**
+	 * Sets the settings for the embed view.
+	 *
 	 * @param {Object} view
 	 */
 	settings: function( view ) {
@@ -37,6 +42,9 @@ var Embed = wp.media.View.extend(/** @lends wp.media.view.Ember.prototype */{
 		this.views.add( view );
 	},
 
+	/**
+	 * Refreshes the embed view based on the type of embed.
+	 */
 	refresh: function() {
 		var type = this.model.get('type'),
 			constructor;
@@ -56,6 +64,9 @@ var Embed = wp.media.View.extend(/** @lends wp.media.view.Ember.prototype */{
 		}) );
 	},
 
+	/**
+	 * Toggles the loading state of the embed view.
+	 */
 	loading: function() {
 		this.$el.toggleClass( 'embed-loading', this.model.get('loading') );
 	}
