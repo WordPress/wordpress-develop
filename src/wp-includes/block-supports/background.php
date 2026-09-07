@@ -82,7 +82,7 @@ function wp_render_background_support( $block_content, $block ) {
 		$background_styles['backgroundAttachment'] = $block_attributes['style']['background']['backgroundAttachment'] ?? null;
 
 		if ( ! empty( $background_styles['backgroundImage'] ) ) {
-			$background_styles['backgroundSize'] = $background_styles['backgroundSize'] ?? 'cover';
+			$background_styles['backgroundSize'] ??= 'cover';
 
 			// If the background size is set to `contain` and no position is set, set the position to `center`.
 			if ( 'contain' === $background_styles['backgroundSize'] && ! $background_styles['backgroundPosition'] ) {

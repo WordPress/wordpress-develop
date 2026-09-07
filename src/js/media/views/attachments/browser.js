@@ -17,7 +17,7 @@ var View = wp.media.View,
  * @augments wp.Backbone.View
  * @augments Backbone.View
  *
- * @param {object}         [options]               The options hash passed to the view.
+ * @param {Object}         [options]               The options hash passed to the view.
  * @param {boolean|string} [options.filters=false] Which filters to show in the browser's toolbar.
  *                                                 Accepts 'uploaded' and 'all'.
  * @param {boolean}        [options.search=true]   Whether to show the search interface in the

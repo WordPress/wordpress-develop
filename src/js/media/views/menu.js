@@ -48,7 +48,7 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 	/**
 	 * @param {Object} options
 	 * @param {string} id
-	 * @return {wp.media.View}
+	 * @return {wp.media.View} The view instance.
 	 */
 	toView: function( options, id ) {
 		options = options || {};
