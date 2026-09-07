@@ -390,10 +390,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	// Content.
 	/**
 	 * Handles the embed content for the frame.
-	 *
-	 * @param {wp.Backbone.View} view The content view.
 	 */
-	embedContent: function( view ) {
+	embedContent: function() {
 		var view = new wp.media.view.Embed({
 			controller: this,
 			model:      this.state()

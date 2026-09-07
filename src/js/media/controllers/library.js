@@ -192,7 +192,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
-	 * Determines whether an attachment is image.
+	 * Determines whether an attachment is an image.
 	 *
 	 * @since 4.4.1
 	 *

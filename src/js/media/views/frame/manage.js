@@ -24,6 +24,8 @@ var MediaFrame = wp.media.view.MediaFrame,
 Manage = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Manage.prototype */{
 	/**
 	 * Initializes the manage frame.
+	 *
+	 * @constructs
 	 */
 	initialize: function() {
 		_.defaults( this.options, {
@@ -282,7 +284,7 @@ Manage = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Manage.prototype 
 	},
 
 	/**
-	 * Hadles the visibility of the sidebar
+	 * Handles the visibility of the sidebar
 	 */
 	sidebarVisibility: function() {
 		this.browserView.$( '.media-sidebar' ).toggle( !! this.errors.length );

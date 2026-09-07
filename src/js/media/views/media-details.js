@@ -17,8 +17,8 @@ var AttachmentDisplay = wp.media.view.Settings.AttachmentDisplay,
  */
 MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.prototype */{
 	/**
-	 * Initialize the media details view.
-	*/
+	 * Initializes the media details view.
+	 */
 	initialize: function() {
 		_.bindAll(this, 'success');
 		this.players = [];
@@ -157,7 +157,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	/**
 	 * Renders the media details view.
 	 *
-	 * @return {media.view.MediaDetails} Returns itself to allow chaining.
+	 * @return {wp.media.view.MediaDetails} Returns itself to allow chaining.
 	 */
 	render: function() {
 		AttachmentDisplay.prototype.render.apply( this, arguments );
