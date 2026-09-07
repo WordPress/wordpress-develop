@@ -146,7 +146,7 @@ if ( is_wp_error( $id ) ) {
 	);
 
 	$js_function = <<<'JS'
-		( { speakMessage, buttonSelector } ) => {
+		( { speakMessage, buttonSelector } = {} ) => {
 			_.delay( function () {
 				wp.a11y.speak( speakMessage );
 			}, 1500 );

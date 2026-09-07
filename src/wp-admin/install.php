@@ -472,7 +472,7 @@ switch ( $step ) {
 if ( ! wp_is_mobile() ) {
 	wp_print_inline_script_tag(
 		<<<'JS'
-		var t = document.getElementById( 'weblog_title' );
+		const t = document.getElementById( 'weblog_title' );
 		if ( t ) {
 			t.focus();
 		}
