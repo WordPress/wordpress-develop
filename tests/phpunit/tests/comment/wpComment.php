@@ -6,7 +6,7 @@
  * @covers WP_Comment::get_instance
  */
 class Tests_Comment_WpComment extends WP_UnitTestCase {
-	protected static $comment_id;
+	protected static int $comment_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
@@ -61,6 +61,78 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 		$found = WP_Comment::get_instance( 1.0 );
 
 		$this->assertSame( '1', $found->comment_ID );
+	}
+
+	/**
+	 * Tests that a cached value which cannot be used as a comment is treated as a cache miss.
+	 *
+	 * @ticket 65962
+	 *
+	 * @dataProvider data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss
+	 *
+	 * @param mixed $cache_value Value to poison the object cache with.
+	 */
+	public function test_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss( $cache_value ): void {
+		wp_cache_set( self::$comment_id, $cache_value, 'comment' );
+
+		$num_queries = get_num_queries();
+
+		$comment = WP_Comment::get_instance( self::$comment_id );
+
+		$this->assertInstanceOf( WP_Comment::class, $comment, 'A comment object was not returned.' );
+		$this->assertSame( (string) self::$comment_id, $comment->comment_ID, 'The wrong comment was returned.' );
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'The comment was not fetched from the database.' );
+	}
+
+	/**
+	 * Tests that the refetched comment replaces the poisoned cache value.
+	 *
+	 * Otherwise the poisoned value survives and every subsequent lookup queries the database again.
+	 *
+	 * @ticket 65962
+	 *
+	 * @dataProvider data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss
+	 *
+	 * @param mixed $cache_value Value to poison the object cache with.
+	 */
+	public function test_get_instance_replaces_a_poisoned_cache_value( $cache_value ): void {
+		wp_cache_set( self::$comment_id, $cache_value, 'comment' );
+
+		// Prime the object cache, replacing the poisoned value.
+		WP_Comment::get_instance( self::$comment_id );
+
+		$num_queries = get_num_queries();
+
+		$comment = WP_Comment::get_instance( self::$comment_id );
+
+		$this->assertInstanceOf( WP_Comment::class, $comment, 'A comment object was not returned.' );
+		$this->assertSame( (string) self::$comment_id, $comment->comment_ID, 'The wrong comment was returned.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'The database was queried again.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ mixed }>
+	 */
+	public function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
+		return array(
+			'true'                            => array( true ),
+			'a non-numeric string'            => array( 'not-a-comment' ),
+			'an empty array'                  => array( array() ),
+			'an array of comment data'        => array(
+				array(
+					'comment_ID'      => '1',
+					'comment_content' => 'Hello world.',
+				),
+			),
+			'an object without comment_ID'    => array(
+				(object) array(
+					'comment_content' => 'Hello world.',
+				),
+			),
+			'a WP_Comment without comment_ID' => array( new WP_Comment( new stdClass() ) ),
+		);
 	}
 
 	/**

@@ -218,8 +218,6 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param {Object} event jQuery event object.
-	 *
 	 * @return {void}
 	 */
 	setupAriaTabs: function() {
