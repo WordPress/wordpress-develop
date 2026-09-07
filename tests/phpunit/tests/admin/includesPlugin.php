@@ -21,6 +21,17 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		self::_restore_mu_plugins();
 	}
 
+	/**
+	 * Appends X-WP-Test-Extra for get_plugins() extra-header tests.
+	 *
+	 * @param string[] $headers Extra header names.
+	 * @return string[] Extra header names.
+	 */
+	public function filter_x_wp_test_extra_header( $headers ) {
+		$headers[] = 'X-WP-Test-Extra';
+		return $headers;
+	}
+
 	public function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
@@ -54,16 +65,15 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$this->assertNotEmpty( $before );
 		$this->assertArrayNotHasKey( 'X-WP-Test-Extra', reset( $before ) );
 
-		add_filter(
-			'extra_plugin_headers',
-			static function ( $headers ) {
-				$headers[] = 'X-WP-Test-Extra';
-				return $headers;
-			}
-		);
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+		add_filter( 'extra_plugin_headers', $callback );
 
-		$after = get_plugins();
-		$this->assertArrayHasKey( 'X-WP-Test-Extra', reset( $after ) );
+		try {
+			$after = get_plugins();
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', reset( $after ) );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+		}
 	}
 
 	/**
@@ -75,27 +85,29 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		$cache = wp_cache_get( 'plugins', 'plugins' );
 		$file  = key( $cache[''] );
+
 		$cache[''][ $file ]['Version'] = 'cached-version';
+
 		wp_cache_set( 'plugins', $cache, 'plugins' );
 
-		add_filter(
-			'extra_plugin_headers',
-			static function ( $headers ) {
-				$headers[] = 'X-WP-Test-Extra';
-				return $headers;
-			}
-		);
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+		add_filter( 'extra_plugin_headers', $callback );
 
-		$after = get_plugins();
-		$this->assertSame( 'cached-version', $after[ $file ]['Version'] );
-		$this->assertArrayHasKey( 'X-WP-Test-Extra', $after[ $file ] );
+		try {
+			$after = get_plugins();
+			$this->assertSame( 'cached-version', $after[ $file ]['Version'] );
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', $after[ $file ] );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+		}
 	}
 
 	/**
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_rereads_extra_header_values_after_cache_was_warm() {
-		$plugin = $this->_create_plugin( "<?php\n/*\nPlugin Name: Extra Header Cache Test\nX-WP-Test-Extra: from-file\n*/" );
+		$plugin   = $this->_create_plugin( "<?php\n/*\nPlugin Name: Extra Header Cache Test\nX-WP-Test-Extra: from-file\n*/" );
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
 
 		try {
 			wp_clean_plugins_cache( false );
@@ -104,17 +116,12 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 			$this->assertArrayHasKey( $plugin[0], $before );
 			$this->assertArrayNotHasKey( 'X-WP-Test-Extra', $before[ $plugin[0] ] );
 
-			add_filter(
-				'extra_plugin_headers',
-				static function ( $headers ) {
-					$headers[] = 'X-WP-Test-Extra';
-					return $headers;
-				}
-			);
+			add_filter( 'extra_plugin_headers', $callback );
 
 			$after = get_plugins();
 			$this->assertSame( 'from-file', $after[ $plugin[0] ]['X-WP-Test-Extra'] );
 		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
 			unlink( $plugin[1] );
 			wp_clean_plugins_cache( false );
 		}
@@ -157,16 +164,15 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'custom-internationalized-plugin.php', $before );
 		$this->assertArrayNotHasKey( 'X-WP-Test-Extra', $before['custom-internationalized-plugin.php'] );
 
-		add_filter(
-			'extra_plugin_headers',
-			static function ( $headers ) {
-				$headers[] = 'X-WP-Test-Extra';
-				return $headers;
-			}
-		);
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+		add_filter( 'extra_plugin_headers', $callback );
 
-		$after = get_plugins( '/custom-internationalized-plugin' );
-		$this->assertArrayHasKey( 'X-WP-Test-Extra', $after['custom-internationalized-plugin.php'] );
+		try {
+			$after = get_plugins( '/custom-internationalized-plugin' );
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', $after['custom-internationalized-plugin.php'] );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+		}
 	}
 
 	/**
@@ -191,16 +197,15 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		get_plugins();
 		$this->assertSame( array(), wp_cache_get( 'extra_plugin_headers', 'plugins' ) );
 
-		add_filter(
-			'extra_plugin_headers',
-			static function ( $headers ) {
-				$headers[] = 'X-WP-Test-Extra';
-				return $headers;
-			}
-		);
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+		add_filter( 'extra_plugin_headers', $callback );
 
-		get_plugins();
-		$this->assertSame( array( 'X-WP-Test-Extra' ), wp_cache_get( 'extra_plugin_headers', 'plugins' ) );
+		try {
+			get_plugins();
+			$this->assertSame( array( 'X-WP-Test-Extra' ), wp_cache_get( 'extra_plugin_headers', 'plugins' ) );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+		}
 	}
 
 	public function test_menu_page_url() {
