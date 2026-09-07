@@ -67,7 +67,6 @@ on:
       - 'tools/gutenberg/**'
       - 'tools/vendors/**'
       - 'tools/webpack/**'
-      - '.eslintignore'
       - '.jshintrc'
       - 'tests/qunit/**'
       - '.github/workflows/javascript-tests.yml'

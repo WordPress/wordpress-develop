@@ -26,7 +26,6 @@ on:
       - '!wp-cli.yml'
       # Configuration for unrelated checks.
       - '!.eslintrc-jsdoc.js'
-      - '!.jshintrc'
       - '!.prettierrc.js'
       - '!.version-support-*.json'
       - '!eslint.config.js'

@@ -23,7 +23,6 @@ on:
       - '!typings/**'
       # Configuration for unrelated checks.
       - '!.eslintrc-jsdoc.js'
-      - '!.jshintrc'
       - '!.prettierrc.js'
       - '!.version-support-*.json'
       - '!eslint.config.js'
@@ -31,9 +30,7 @@ on:
       - '!phpcompat.xml.dist'
       - '!phpcs.xml.dist'
       - '!phpstan.neon.dist'
-      - '!phpunit.xml.dist'
       - '!tsconfig.json'
-      - '!webpack.config.js'
       # Other test suites, tools, and workflows do not affect these tests.
       - '!tests/**'
       - '!tools/**'
@@ -44,6 +41,8 @@ on:
       - 'tests/phpunit/**'
       - 'tools/gutenberg/**'
       - 'tools/local-env/**'
+      - 'tools/vendors/**'
+      - 'tools/webpack/**'
       - 'phpunit.xml.dist'
       - '.github/workflows/phpunit-tests.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'
