@@ -8,7 +8,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since Twenty Nineteen 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 /**
@@ -16,7 +16,7 @@
  *
  * Switches to the default theme.
  *
- * @since Twenty Nineteen 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 function twentynineteen_switch_theme() {
 	switch_theme( WP_DEFAULT_THEME );
@@ -31,7 +31,7 @@ add_action( 'after_switch_theme', 'twentynineteen_switch_theme' );
  * Prints an update nag after an unsuccessful attempt to switch to
  * Twenty Nineteen on WordPress versions prior to 4.7.
  *
- * @since Twenty Nineteen 1.0.0
+ * @since Twenty Nineteen 1.0
  *
  * @global string $wp_version The WordPress version string.
  */
@@ -49,7 +49,7 @@ function twentynineteen_upgrade_notice() {
 /**
  * Prevents the Customizer from being loaded on WordPress versions prior to 4.7.
  *
- * @since Twenty Nineteen 1.0.0
+ * @since Twenty Nineteen 1.0
  *
  * @global string $wp_version The WordPress version string.
  */
@@ -71,7 +71,7 @@ add_action( 'load-customize.php', 'twentynineteen_customize' );
 /**
  * Prevents the Theme Preview from being loaded on WordPress versions prior to 4.7.
  *
- * @since Twenty Nineteen 1.0.0
+ * @since Twenty Nineteen 1.0
  *
  * @global string $wp_version The WordPress version string.
  */
