@@ -23,9 +23,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 				'role' => 'administrator',
 			)
 		);
-		if ( is_multisite() ) {
-			grant_super_admin( self::$administrator );
-		}
 
 		self::$author = $factory->user->create(
 			array(
@@ -426,6 +423,9 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function test_update_item_privacy_policy_page() {
 		wp_set_current_user( self::$administrator );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$administrator );
+		}
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
