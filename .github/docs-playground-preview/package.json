@@ -1,0 +1,25 @@
+{
+	"name": "wordpress-develop-code-reference-playground-preview",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Pinned tooling for the WordPress Core Code Reference Playground preview.",
+	"license": "GPL-2.0-or-later",
+	"engines": {
+		"node": "20.20.2"
+	},
+	"scripts": {
+		"build": "node ../scripts/docs-playground-preview/build.mjs",
+		"test": "node --test ../scripts/docs-playground-preview/test/*.test.mjs",
+		"typecheck": "tsc --build tsconfig.json"
+	},
+	"dependencies": {
+		"@wordpress/i18n": "6.24.0",
+		"@wordpress/scripts": "32.6.0",
+		"@wp-playground/cli": "3.1.48",
+		"yarn": "1.22.22"
+	},
+	"devDependencies": {
+		"@types/node": "20.19.43",
+		"typescript": "^6.0.3"
+	}
+}
