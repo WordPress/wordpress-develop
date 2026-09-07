@@ -10,7 +10,6 @@
 
 (function(w) {
 	var init = function() {
-		console.log('init');
 		var pr = document.getElementById('post-revisions'),
 		inputs = pr ? pr.getElementsByTagName('input') : [];
 		pr.onclick = function() {
