@@ -5,6 +5,8 @@
 /* global _wpCustomizeWidgetsSettings */
 
 /**
+ * The WordPress Customizer widgets API.
+ *
  * @param {Object}       wp The WordPress global object.
  * @param {JQueryStatic} $  The jQuery object.
  */
@@ -476,6 +478,8 @@
 	api.Widgets.formSyncHandlers = {
 
 		/**
+		 * Handles the widget-synced event for RSS widgets.
+		 *
 		 * @param {JQuery.Event} e       The widget-synced event.
 		 * @param {JQuery}       widget  The widget root element.
 		 * @param {string}       newForm The HTML for the updated widget form.
@@ -1554,6 +1558,8 @@
 		},
 
 		/**
+		 * Moves the widget up or down one position in the sidebar.
+		 *
 		 * @private
 		 *
 		 * @param {number} offset The number of positions to move the widget, either 1 or -1.
@@ -2362,6 +2368,8 @@
 	}
 
 	/**
+	 * Parses a widget ID into its id_base and number components.
+	 *
 	 * @param {string} widgetId The widget ID to parse.
 	 * @return {Object} Parsed widget ID with id_base and number properties.
 	 */
@@ -2384,6 +2392,8 @@
 	}
 
 	/**
+	 * Returns the setting ID for a given widget ID.
+	 *
 	 * @param {string} widgetId The widget ID.
 	 * @return {string} The setting ID for the widget.
 	 */

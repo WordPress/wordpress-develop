@@ -5,6 +5,8 @@
 /* global menus, _wpCustomizeNavMenusSettings, wpNavMenu, console */
 
 /**
+ * The WordPress Customizer nav menus API.
+ *
  * @param {Object}       api The Customizer API.
  * @param {Object}       wp  The WordPress global object.
  * @param {JQueryStatic} $   The jQuery object.
@@ -910,11 +912,13 @@
 		}, 2000 ),
 
 		/**
+		 * eslint-disable-next-line eslint-plugin-jsdoc
 		 * @deprecated Since 4.7.0 now that the nav_menu sections are responsible for toggling the classes on their own containers.
 		 */
 		checked: function() {},
 
 		/**
+		 * eslint-disable-next-line eslint-plugin-jsdoc
 		 * @deprecated Since 4.7.0 now that the nav_menu sections are responsible for toggling the classes on their own containers.
 		 */
 		unchecked: function() {},
@@ -1132,7 +1136,7 @@
 		},
 
 		/**
-		 *
+		 * Refreshes the list of theme locations.
 		 */
 		refreshAssignedLocations: function() {
 			var section = this,
@@ -1147,6 +1151,8 @@
 		},
 
 		/**
+		 * Updates the section title to reflect the theme locations assigned to this menu.
+		 *
 		 * @param {string[]} themeLocationSlugs Theme location slugs.
 		 */
 		updateAssignedLocationsInSectionTitle: function( themeLocationSlugs ) {
@@ -3542,6 +3548,8 @@
 	};
 
 	/**
+	 * Gets the setting ID for a given menu item ID.
+	 *
 	 * @alias wp.customize.Menus~menuItemIdToSettingId
 	 *
 	 * @param {string} menuItemId The ID of the menu item.
