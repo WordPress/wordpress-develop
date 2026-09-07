@@ -716,6 +716,8 @@ HTML
 			'Non-JS SCRIPT with <script attributes>'  => array( '<script language="text">Replace me</script>', '<!-- <script sneaky>after' ),
 			'Non-JS SCRIPT with </script attributes>' => array( '<script language="text">Replace me</script>', 'before</script sneaky>after' ),
 			'XMP with </xmp/>'                        => array( '<xmp>Replace me</xmp>', 'Also closed by </xmp/>' ),
+			'XMP with </xmp\f>'                       => array( '<xmp>Replace me</xmp>', "Also closed by </xmp\f>" ),
+			'Non-JS SCRIPT with </script\r>'          => array( '<script language="text">Replace me</script>', "before</script\r>after" ),
 		);
 	}
 
@@ -763,13 +765,15 @@ HTML
 	 */
 	public static function data_raw_text_resembling_a_closing_tag(): array {
 		return array(
-			'IFRAME with </iframely>'        => array( '<iframe>Replace me</iframe>', 'Just a </iframely>', '<iframe>Just a </iframely></iframe>' ),
-			'NOEMBED with </NOEMBEDDED>'     => array( '<noembed>Replace me</noembed>', 'Just a </NOEMBEDDED>', '<noembed>Just a </NOEMBEDDED></noembed>' ),
-			'NOFRAMES with </noframes->'     => array( '<noframes>Replace me</noframes>', 'before</noframes->after', '<noframes>before</noframes->after</noframes>' ),
-			'XMP with </xmp-tag>'            => array( '<xmp>Replace me</xmp>', 'Just a </xmp-tag>', '<xmp>Just a </xmp-tag></xmp>' ),
-			'XMP ending in </xmp'            => array( '<xmp>Replace me</xmp>', 'Trailing </xmp', '<xmp>Trailing </xmp</xmp>' ),
-			'Non-JS SCRIPT with <scriptish>' => array( '<script type="text/plain">Replace me</script>', '<!-- <scriptish> -->', '<script type="text/plain"><!-- <scriptish> --></script>' ),
-			'Non-JS SCRIPT with </scriptx>'  => array( '<script type="text/plain">Replace me</script>', 'Just a </scriptx>', '<script type="text/plain">Just a </scriptx></script>' ),
+			'IFRAME with </iframely>'          => array( '<iframe>Replace me</iframe>', 'Just a </iframely>', '<iframe>Just a </iframely></iframe>' ),
+			'NOEMBED with </NOEMBEDDED>'       => array( '<noembed>Replace me</noembed>', 'Just a </NOEMBEDDED>', '<noembed>Just a </NOEMBEDDED></noembed>' ),
+			'NOFRAMES with </noframes->'       => array( '<noframes>Replace me</noframes>', 'before</noframes->after', '<noframes>before</noframes->after</noframes>' ),
+			'XMP with </xmp-tag>'              => array( '<xmp>Replace me</xmp>', 'Just a </xmp-tag>', '<xmp>Just a </xmp-tag></xmp>' ),
+			'XMP ending in </xmp'              => array( '<xmp>Replace me</xmp>', 'Trailing </xmp', '<xmp>Trailing </xmp</xmp>' ),
+			'Non-JS SCRIPT with <scriptish>'   => array( '<script type="text/plain">Replace me</script>', '<!-- <scriptish> -->', '<script type="text/plain"><!-- <scriptish> --></script>' ),
+			'Non-JS SCRIPT with </scriptx>'    => array( '<script type="text/plain">Replace me</script>', 'Just a </scriptx>', '<script type="text/plain">Just a </scriptx></script>' ),
+			'Non-JS SCRIPT ending in <script'  => array( '<script type="text/plain">Replace me</script>', '<!-- <script', '<script type="text/plain"><!-- <script</script>' ),
+			'Non-JS SCRIPT ending in </script' => array( '<script type="text/plain">Replace me</script>', 'Trailing </script', '<script type="text/plain">Trailing </script</script>' ),
 		);
 	}
 
