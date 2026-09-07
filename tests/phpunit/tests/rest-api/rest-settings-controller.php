@@ -23,6 +23,9 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 				'role' => 'administrator',
 			)
 		);
+		if ( is_multisite() ) {
+			grant_super_admin( self::$administrator );
+		}
 
 		self::$author = $factory->user->create(
 			array(
