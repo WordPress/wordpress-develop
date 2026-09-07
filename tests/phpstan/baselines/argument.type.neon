@@ -1249,11 +1249,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php
 		-
-			message: '#^Parameter \#1 \$args of function wp_parse_args expects array\<string, mixed\>\|object\|string, list\<array\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-block-types-controller.php
-		-
 			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
