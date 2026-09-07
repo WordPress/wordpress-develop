@@ -13,13 +13,6 @@
  * @since 5.5.0
  *
  * @see WP_REST_Controller
- *
- * @phpstan-type Block_Style array{
- *     name: string,
- *     label?: string,
- *     inline_style?: string,
- *     style_handle?: string,
- * }
  */
 class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
@@ -342,10 +335,13 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 			/*
 			 * The loop above assigns this key from rest_sanitize_value_from_schema(), whose
-			 * return is documented as `mixed|WP_Error`, so what the schema guarantees has to
-			 * be restated here. A WP_Error is why the value is checked rather than cast.
+			 * return is documented as `mixed|WP_Error`, so what the styles came back as has
+			 * to be restated here. A WP_Error is why the value is checked rather than cast.
 			 */
-			/** @phpstan-var list<Block_Style> $block_styles */
+			/**
+			 * @var array<string, mixed>[] $block_styles
+			 * @phpstan-var list<Block_Style_Properties> $block_styles
+			 */
 			$block_styles = isset( $data['styles'] ) && is_array( $data['styles'] ) ? $data['styles'] : array();
 
 			$data['styles'] = array_merge( $block_styles, $styles );
