@@ -3813,7 +3813,7 @@ function wp_nonce_ays( $action ) {
  *                                     error data with the key 'title' may be used to specify the title.
  *                                     If `$title` is an integer, then it is treated as the response code.
  *                                     Default empty string.
- * @param string|array|int $args {
+ * @param string|array|int    $args {
  *     Optional. Arguments to control behavior. If `$args` is an integer, then it is treated
  *     as the response code. Default empty array.
  *
@@ -4360,15 +4360,15 @@ function _scalar_wp_die_handler( $message = '', $title = '', $args = array() ) {
  * @since 5.1.0
  * @access private
  *
- * @param string|WP_Error $message Error message or WP_Error object.
- * @param string          $title   Optional. Error title. Default empty string.
- * @param string|array    $args    Optional. Arguments to control behavior. Default empty array.
+ * @param string|WP_Error|int $message Error message, WP_Error object, or integer response.
+ * @param string              $title   Optional. Error title. Default empty string.
+ * @param string|array        $args    Optional. Arguments to control behavior. Default empty array.
  * @return array {
  *     Processed arguments.
  *
- *     @type string $0 Error message.
- *     @type string $1 Error title.
- *     @type array  $2 Arguments to control behavior.
+ *     @type string|int $0 Error message, or integer response.
+ *     @type string     $1 Error title.
+ *     @type array      $2 Arguments to control behavior.
  * }
  */
 function _wp_die_process_input( $message, $title = '', $args = array() ) {
@@ -6292,8 +6292,8 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
  * @return bool Whether the server is running lighttpd < 1.5.0.
  */
 function is_lighttpd_before_150() {
-	$server_parts    = explode( '/', $_SERVER['SERVER_SOFTWARE'] ?? '' );
-	$server_parts[1] = $server_parts[1] ?? '';
+	$server_parts      = explode( '/', $_SERVER['SERVER_SOFTWARE'] ?? '' );
+	$server_parts[1] ??= '';
 
 	return ( 'lighttpd' === $server_parts[0] && -1 === version_compare( $server_parts[1], '1.5.0' ) );
 }
@@ -8382,7 +8382,7 @@ All at ###SITENAME###
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $email_change_email {
+	 * @param array  $email_change_email {
 	 *     Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient.
@@ -8395,8 +8395,8 @@ All at ###SITENAME###
 	 *          - `###SITEURL###`   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
-	 * @param string $old_email The old site admin email address.
-	 * @param string $new_email The new site admin email address.
+	 * @param string $old_email          The old site admin email address.
+	 * @param string $new_email          The new site admin email address.
 	 */
 	$email_change_email = apply_filters( 'site_admin_email_change_email', $email_change_email, $old_email, $new_email );
 
@@ -8745,8 +8745,8 @@ function wp_get_default_update_php_url() {
  * @param string $before  Markup to output before the annotation. Default `<p class="description">`.
  * @param string $after   Markup to output after the annotation. Default `</p>`.
  * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
- * @return string|void Update PHP page annotation when `$display` is false, null when no
- *                     annotation is available. Nothing otherwise.
+ * @return string|null|void Update PHP page annotation when `$display` is false, null when
+ *                          no annotation is available. Nothing otherwise.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
@@ -8941,7 +8941,7 @@ function wp_get_direct_update_https_url() {
  * @since MU (3.0.0)
  * @since 5.2.0 $max_execution_time parameter added.
  *
- * @param string $directory Full path of a directory.
+ * @param string $directory          Full path of a directory.
  * @param int    $max_execution_time Maximum time to run before giving up. In seconds.
  *                                   The timeout is global and is measured from the moment WordPress started to load.
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.

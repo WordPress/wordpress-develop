@@ -973,8 +973,8 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
-			$ref[ $next ] = $ref[ $next ] ?? array();
-			$ref          = &$ref[ $next ];
+			$ref[ $next ] ??= array();
+			$ref            = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
 		$ref[ $last ] = true;
@@ -1885,7 +1885,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
  * @since 5.6.0
  *
  * @param string $param The parameter name.
- * @param array $error  The error details.
+ * @param array  $error The error details.
  * @return WP_Error
  */
 function rest_format_combining_operation_error( $param, $error ) {
