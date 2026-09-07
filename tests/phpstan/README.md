@@ -94,6 +94,24 @@ One kind of hash is outside what the visitor covers today: **a `@var` hash on a 
 
 Hashes are also written on hook docblocks, where core documents `apply_filters()` and `do_action()`. Those are not attached to a function, so they are outside what this visitor sees, and the value a filter passes stays typed by [the hook extensions below](#hook-documentation).
 
+### Parsed arguments
+
+`wp_parse_args()` is documented `@return array`, which discards everything its body works out. The body ends in `array_merge( $defaults, $parsed_args )`, so a call whose defaults are known statically returns an array whose keys are known too — and roughly four in five calls across `src/` pass a defaults array written out at the call site.
+
+`WpParseArgsDynamicFunctionReturnTypeExtension` puts that back:
+
+```php
+wp_parse_args( $query, array( 'orderby' => 'name', 'number' => 10 ) )
+```
+
+is `array{orderby: mixed, number: mixed, ...<string, mixed>}` rather than `array`. The values are `mixed` there because `$query` may hold anything at any key, and an unshaped array genuinely says nothing about what a caller passed.
+
+Where `$args` *is* shaped the value types survive the merge as well, which is where most of the benefit comes from. That happens on its own: [hash notation](#hash-notation) derives a shape from the `@type` list documenting an `$args` parameter, and this extension is what stops the `@return array` from throwing it away again. The two compound — documenting a hash on a function that parses its arguments now types the parsed result too.
+
+Nothing here assumes a caller honors the types of the defaults it overrides. The three branches the body takes for `$args` are modeled as written — an array is used as it is, an object goes through `get_object_vars()`, and anything else through `wp_parse_str()`, whose keys are *not* narrowed to strings since `parse_str()` reads `0=a` as an integer key. The merge itself is handed back to PHPStan's own `array_merge()` support rather than reimplemented, so it stays correct about integer-key renumbering and about how two shapes combine.
+
+A call whose `$args` is `mixed` constrains nothing, and is left with the documented `array`.
+
 ### Hook documentation
 
 The remaining extensions read the docblock documenting a hook where the hook is fired, which is where WordPress documents its hooks. They cover `apply_filters()`, `do_action()` and their `_deprecated` and `_ref_array` variants.
