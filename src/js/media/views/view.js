@@ -17,6 +17,11 @@
  * @augments Backbone.View
  */
 var View = wp.Backbone.View.extend(/** @lends wp.media.View.prototype */{
+	/**
+	 * Constructor for the media view.
+	 *
+	 * @param {Object} [options] Options for the view.
+	 */
 	constructor: function( options ) {
 		if ( options && options.controller ) {
 			this.controller = options.controller;
@@ -24,6 +29,8 @@ var View = wp.Backbone.View.extend(/** @lends wp.media.View.prototype */{
 		wp.Backbone.View.apply( this, arguments );
 	},
 	/**
+	 * Disposes of the media view.
+	 *
 	 * @todo The internal comment mentions this might have been a stop-gap
 	 *       before Backbone 0.9.8 came out. Figure out if Backbone core takes
 	 *       care of this in Backbone.View now.
@@ -54,6 +61,8 @@ var View = wp.Backbone.View.extend(/** @lends wp.media.View.prototype */{
 		return this;
 	},
 	/**
+	 * Removes the media view.
+	 *
 	 * @return {wp.media.View} Returns itself to allow chaining.
 	 */
 	remove: function() {
