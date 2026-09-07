@@ -1720,9 +1720,9 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	);
 	$inputs         = wp_parse_args( $inputs, $default_inputs );
 
-	$args['title'] = $args['title'] ?? '';
-	$args['url']   = $args['url'] ?? '';
-	$args['items'] = (int) ( $args['items'] ?? 0 );
+	$args['title'] ??= '';
+	$args['url']   ??= '';
+	$args['items']   = (int) ( $args['items'] ?? 0 );
 
 	if ( $args['items'] < 1 || 20 < $args['items'] ) {
 		$args['items'] = 10;
@@ -1999,7 +1999,7 @@ function wp_assign_widget_to_sidebar( $widget_id, $sidebar_id ) {
  * @global array $wp_registered_widgets  The registered widgets.
  * @global array $wp_registered_sidebars The registered sidebars.
  *
- * @param string $widget_id Widget ID.
+ * @param string $widget_id  Widget ID.
  * @param string $sidebar_id Sidebar ID.
  * @return string
  */
