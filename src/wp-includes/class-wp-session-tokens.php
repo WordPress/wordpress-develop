@@ -68,12 +68,7 @@ abstract class WP_Session_Tokens {
 	 * @return string A hash of the session token (a verifier).
 	 */
 	private function hash_token( $token ) {
-		// If ext/hash is not present, use sha1() instead.
-		if ( function_exists( 'hash' ) ) {
-			return hash( 'sha256', $token );
-		} else {
-			return sha1( $token );
-		}
+		return hash( 'sha256', $token );
 	}
 
 	/**
@@ -159,7 +154,7 @@ abstract class WP_Session_Tokens {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string $token Session token to update.
+	 * @param string $token   Session token to update.
 	 * @param array  $session Session information.
 	 */
 	final public function update( $token, $session ) {

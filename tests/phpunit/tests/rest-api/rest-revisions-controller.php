@@ -8,22 +8,24 @@
  * @group restapi
  */
 class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase {
-	protected static $post_id;
-	protected static $post_id_2;
-	protected static $page_id;
+	protected static int $post_id;
+	protected static int $post_id_2;
+	protected static int $page_id;
 
-	protected static $editor_id;
-	protected static $contributor_id;
+	protected static int $editor_id;
+	protected static int $contributor_id;
 
-	private $total_revisions;
+	private int $total_revisions;
+
 	private $revisions;
-	private $revision_1;
-	private $revision_id1;
-	private $revision_2;
-	private $revision_id2;
-	private $revision_3;
-	private $revision_id3;
-	private $revision_2_1_id;
+
+	private WP_Post $revision_1;
+	private int $revision_id1;
+	private WP_Post $revision_2;
+	private int $revision_id2;
+	private WP_Post $revision_3;
+	private int $revision_id3;
+	private int $revision_2_1_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id   = $factory->post->create();
@@ -162,9 +164,38 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->check_get_revision_response( $data[2], $this->revision_1 );
 	}
 
-	public function test_get_items_no_permission() {
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_revisions_data() {
+		wp_set_current_user( self::$editor_id );
+
+		$hook_name = 'rest_prepare_revision';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+
+		add_filter( $hook_name, $callback );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+
+		$this->assertNotWPError( $response );
+		$response = rest_ensure_response( $response );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_no_permission( $method ) {
 		wp_set_current_user( 0 );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
@@ -173,16 +204,40 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
-	public function test_get_items_missing_parent() {
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_missing_parent( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
 
-	public function test_get_items_invalid_parent_post_type() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_invalid_parent_post_type( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$page_id . '/revisions' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$page_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
@@ -213,6 +268,335 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( self::$editor_id, $data['author'] );
 	}
 
+	/**
+	 * Preparing a revision must not leak the revision into the global post.
+	 *
+	 * @ticket 65495
+	 *
+	 * @global int|null $id ID from the set up global post data.
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_restores_global_post() {
+		global $id;
+
+		// Populate the global $wp_query with the post and set it up.
+		wp_set_current_user( self::$editor_id );
+		query_posts( array( 'p' => self::$post_id ) );
+		the_post();
+
+		// Assert initial state.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should be set up before the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
+
+		// Capture the arguments the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
+		// Make the request to get revisions.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// The filter is passed each revision, not the global post restored afterwards.
+		$this->check_rest_prepare_revision_filter_args(
+			$mock,
+			array( $this->revision_id3, $this->revision_id2, $this->revision_id1 ),
+			$request
+		);
+
+		// The global post is restored to the post that was set before the request.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should still be set after the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be restored to the post that was set before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be restored to the post that was set before the request.' );
+	}
+
+	/**
+	 * Preparing a revision for a HEAD request must also restore the global post.
+	 *
+	 * The collection endpoint short-circuits before preparing items for HEAD
+	 * requests, so the single revision endpoint is used to reach the HEAD
+	 * branch of prepare_item_for_response().
+	 *
+	 * @ticket 65495
+	 *
+	 * @global int|null $id ID from the set up global post data.
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_head_request_restores_global_post() {
+		global $id;
+
+		// Populate the global $wp_query with the post and set it up.
+		wp_set_current_user( self::$editor_id );
+		query_posts( array( 'p' => self::$post_id ) );
+		the_post();
+
+		// Assert initial state.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should be set up before the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
+
+		// Capture the arguments the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
+		// Make the HEAD request to get a revision.
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// The filter is passed the revision, not the global post restored afterwards.
+		$this->check_rest_prepare_revision_filter_args( $mock, array( $this->revision_id1 ), $request );
+
+		// The global post is restored to the post that was set before the request.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should still be set after the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be restored to the post that was set before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be restored to the post that was set before the request.' );
+	}
+
+	/**
+	 * When there is no global post before the request, none should be set afterwards.
+	 *
+	 * @ticket 65495
+	 *
+	 * @global WP_Query|null $wp_query The global WP_Query.
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_without_global_post_leaves_it_unset() {
+		global $wp_query;
+
+		// Leave the global $wp_query without a post, so there is no post data to restore.
+		wp_set_current_user( self::$editor_id );
+		$this->assertInstanceOf( WP_Query::class, $wp_query, 'The WP_Query global must be set for wp_reset_postdata() to have anything to restore from.' );
+		$this->assertNull( get_post(), 'The global post should not have been initially set.' );
+
+		// Capture the arguments the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
+		// Make the request to get a revision.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// The filter is passed each revision, even though there is no global post to restore.
+		$this->check_rest_prepare_revision_filter_args(
+			$mock,
+			array( $this->revision_id3, $this->revision_id2, $this->revision_id1 ),
+			$request
+		);
+
+		/*
+		 * Note: At this point, the global $id is still populated because there was no $wp_query->post to begin with,
+		 * so WP_Query::reset_postdata() has nothing to set it to. It does not null out any globals when there is no post.
+		 */
+		$this->assertNull( get_post(), 'The global post should not be set when there was none before the request.' );
+	}
+
+	/**
+	 * A main query with a post must not cause a global post to be set where there was none.
+	 *
+	 * The restore calls wp_reset_postdata() to clear the revision's post data, and that
+	 * repopulates the global post from the main query. The global post must be unset
+	 * afterwards so the request does not introduce one that was not there before.
+	 *
+	 * @ticket 65495
+	 *
+	 * @global WP_Query|null $wp_query The global WP_Query.
+	 * @global int|null      $id       ID from the set up global post data.
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_without_global_post_leaves_it_unset_when_main_query_has_post() {
+		global $wp_query, $id;
+
+		/*
+		 * Populate the main query with the post, but do not run the loop, so the main
+		 * query has a post to restore from while the global post remains unset.
+		 */
+		wp_set_current_user( self::$editor_id );
+		query_posts( array( 'p' => self::$post_id ) );
+
+		// Assert initial state.
+		$this->assertInstanceOf( WP_Query::class, $wp_query, 'The WP_Query global must be set for wp_reset_postdata() to have anything to restore from.' );
+		$this->assertInstanceOf( WP_Post::class, $wp_query->post, 'The main query should have a post for wp_reset_postdata() to restore from.' );
+		$this->assertSame( self::$post_id, $wp_query->post->ID, 'The main query should have the parent post before the request.' );
+		$this->assertNull( get_post(), 'The global post should not have been initially set.' );
+
+		// Make the request to get revisions.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertNull( get_post(), 'The global post should not be set when there was none before the request, even though the main query has a post.' );
+		$this->assertSame( self::$post_id, $id, 'The remaining post data should be reset to the main query post rather than left on the revision.' );
+	}
+
+	/**
+	 * A filter that reassigns the global post must not change the revision being prepared.
+	 *
+	 * The revision is held in a method-local variable rather than the global post, so a
+	 * filter which swaps the global out mid-preparation (as a plugin running a secondary
+	 * loop on 'the_content' may do) cannot retarget the fields prepared after it.
+	 *
+	 * @ticket 65495
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_is_unaffected_by_a_filter_reassigning_the_global_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$decoy_post = get_post( self::$post_id_2 );
+		$this->assertInstanceOf( WP_Post::class, $decoy_post );
+		$this->assertNotSame( $this->revision_1->post_excerpt, $decoy_post->post_excerpt, 'The decoy post must have a different excerpt for this test to be meaningful.' );
+
+		// Simulate a plugin that leaves a different post in the global while filtering the content.
+		add_filter(
+			'the_content',
+			static function ( $content ) use ( $decoy_post ) {
+				$GLOBALS['post'] = $decoy_post;
+				return $content;
+			}
+		);
+
+		// Capture the post the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// Fields prepared after 'the_content' still come from the revision.
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'excerpt', $data );
+		$this->assertIsArray( $data['excerpt'] );
+		$this->assertSame( $this->revision_id1, $data['id'], 'The prepared id should be the revision, not the post left in the global by the filter.' );
+		$this->assertSame( $this->revision_1->post_excerpt, $data['excerpt']['raw'], 'The prepared excerpt should come from the revision, not the post left in the global by the filter.' );
+
+		// The filter is still passed the revision.
+		$this->check_rest_prepare_revision_filter_args( $mock, array( $this->revision_id1 ), $request );
+	}
+
+	/**
+	 * Clearing the global post must not detach an existing `global $post` binding.
+	 *
+	 * `global $post` binds a caller to the global symbol table entry. Unsetting that
+	 * entry detaches the binding, so a caller which sets the post after the request
+	 * would be writing somewhere get_post() can no longer see. Note that the caller's
+	 * own `global $post` is what creates the entry as null, which is why there is no
+	 * previous global post to restore here.
+	 *
+	 * @ticket 65495
+	 *
+	 * @global WP_Post|null $post Global post object.
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_does_not_detach_an_existing_global_post_binding() {
+		// Bind to the global post the way a caller does before dispatching a request.
+		global $post;
+
+		wp_set_current_user( self::$editor_id );
+		$this->assertNull( $post, 'The global post should not be set before the request.' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// The caller sets the global post, expecting template tags to pick it up.
+		$post = get_post( self::$post_id );
+
+		$global_post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $global_post, 'get_post() should see the post set through the binding after the request.' );
+		$this->assertSame( self::$post_id, $global_post->ID, 'get_post() should return the post the caller set, not a stale or detached value.' );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_should_allow_adding_headers_via_filter( $method ) {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+
+		$hook_name = 'rest_prepare_revision';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$header_filter = new class() {
+			public static function add_custom_header( $response ) {
+				$response->header( 'X-Test-Header', 'Test' );
+
+				return $response;
+			}
+		};
+		add_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+		remove_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The "' . $hook_name . '" filter was not called when it should be for GET/HEAD requests.' );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-Test-Header', $headers, 'The "X-Test-Header" header should be present in the response.' );
+		$this->assertSame( 'Test', $headers['X-Test-Header'], 'The "X-Test-Header" header value should be equal to "Test".' );
+		if ( 'GET' === $method ) {
+			return null;
+		}
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'HEAD', sprintf( $path, self::$post_id, $this->revision_id1 ) );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+
+			'get_item request'  => array( '/wp/v2/posts/%d/revisions/%d' ),
+			'get_items request' => array( '/wp/v2/posts/%d/revisions' ),
+		);
+	}
+
 	public function test_get_item_embed_context() {
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
@@ -231,9 +615,15 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertSameSets( $fields, array_keys( $data ) );
 	}
 
-	public function test_get_item_no_permission() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_no_permission( $method ) {
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
@@ -242,16 +632,28 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
-	public function test_get_item_missing_parent() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_missing_parent( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions/' . $this->revision_id1 );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions/' . $this->revision_id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
 
-	public function test_get_item_invalid_parent_post_type() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_invalid_parent_post_type( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$page_id . '/revisions/' . $this->revision_id1 );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$page_id . '/revisions/' . $this->revision_id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
@@ -269,11 +671,15 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 59875
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_item_invalid_parent_id() {
+	public function test_get_item_invalid_parent_id( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_2_1_id );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_2_1_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_revision_parent_id_mismatch', $response, 404 );
 
@@ -457,6 +863,33 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		update_post_meta( $post->ID, $field_name, $value );
 	}
 
+	/**
+	 * Checks the arguments the rest_prepare_revision filter received.
+	 *
+	 * The filter must be passed the revision that was prepared. Restoring the
+	 * global post afterwards must not replace it with the previous global post.
+	 *
+	 * @param MockAction      $mock         Mock registered on the rest_prepare_revision filter.
+	 * @param int[]           $revision_ids Expected revision IDs, in the order the filter is expected to fire.
+	 * @param WP_REST_Request $request      Request the revisions were prepared for.
+	 */
+	private function check_rest_prepare_revision_filter_args( MockAction $mock, array $revision_ids, WP_REST_Request $request ): void {
+		$filter_args = $mock->get_args();
+
+		$this->assertCount( count( $revision_ids ), $filter_args, 'The rest_prepare_revision filter should fire once per prepared revision.' );
+
+		foreach ( $filter_args as $index => $args ) {
+			$call = 'Filter call ' . $index . ': ';
+
+			$this->assertCount( 3, $args, $call . 'the filter should receive three arguments.' );
+			$this->assertInstanceOf( WP_REST_Response::class, $args[0], $call . 'the first argument should be the response.' );
+			$this->assertInstanceOf( WP_Post::class, $args[1], $call . 'the second argument should be a post object.' );
+			$this->assertSame( 'revision', $args[1]->post_type, $call . 'the second argument should be a revision, not the restored global post.' );
+			$this->assertSame( $revision_ids[ $index ], $args[1]->ID, $call . 'the second argument should be the revision that was prepared.' );
+			$this->assertSame( $request, $args[2], $call . 'the third argument should be the request.' );
+		}
+	}
+
 	protected function check_get_revision_response( $response, $revision ) {
 		if ( $response instanceof WP_REST_Response ) {
 			$links    = $response->get_links();
@@ -495,24 +928,66 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertSame( rest_url( '/wp/v2/' . $parent_base . '/' . $revision->post_parent ), $links['parent'][0]['href'] );
 	}
 
-	public function test_get_item_sets_up_postdata() {
+	/**
+	 * The revision's postdata should be set up while preparing the response,
+	 * so rendered fields reflect the revision, without leaking into the global
+	 * post after the request completes.
+	 *
+	 * @ticket 65495
+	 *
+	 * @global int|null $id ID from the set up global post data.
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_sets_up_postdata_without_leaking_global_post() {
+		global $id;
+
+		// Populate the global $wp_query with the post and set it up.
 		wp_set_current_user( self::$editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
-		rest_get_server()->dispatch( $request );
+		query_posts( array( 'p' => self::$post_id ) );
+		the_post();
 
-		$post           = get_post();
-		$parent_post_id = wp_is_post_revision( $post->ID );
+		// Assert initial state.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should be set up before the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be the parent post before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be the parent post ID before the request.' );
 
-		$this->assertSame( $post->ID, $this->revision_id1 );
-		$this->assertSame( $parent_post_id, self::$post_id );
+		// Capture the arguments the rest_prepare_revision filter receives.
+		$mock = new MockAction();
+		add_filter( 'rest_prepare_revision', array( $mock, 'filter' ), 10, 3 );
+
+		// Make the request to get a revision.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// The filter is passed the revision, not the global post restored afterwards.
+		$this->check_rest_prepare_revision_filter_args( $mock, array( $this->revision_id1 ), $request );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'title', $data );
+		$this->assertIsArray( $data['title'] );
+		$this->assertSame( get_the_title( $this->revision_id1 ), $data['title']['rendered'], 'Expected the rendered title to reflect the revision, proving postdata was set up during preparation.' );
+
+		// The global post is restored to the post that was set before the request.
+		$post = get_post();
+		$this->assertInstanceOf( WP_Post::class, $post, 'The global post should still be set after the request.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The global post should be restored to the post that was set before the request.' );
+		$this->assertSame( self::$post_id, $id, 'The global $id should be restored to the post that was set before the request.' );
 	}
 
 	/**
 	 * Test the pagination header of the first page.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 40510
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_pagination_header_of_the_first_page() {
+	public function test_get_items_pagination_header_of_the_first_page( $method ) {
 		wp_set_current_user( self::$editor_id );
 
 		$rest_route  = '/wp/v2/posts/' . self::$post_id . '/revisions';
@@ -520,7 +995,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$total_pages = (int) ceil( $this->total_revisions / $per_page );
 		$page        = 1;  // First page.
 
-		$request = new WP_REST_Request( 'GET', $rest_route );
+		$request = new WP_REST_Request( $method, $rest_route );
 		$request->set_query_params(
 			array(
 				'per_page' => $per_page,
@@ -545,9 +1020,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Test the pagination header of the last page.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 40510
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_pagination_header_of_the_last_page() {
+	public function test_get_items_pagination_header_of_the_last_page( $method ) {
 		wp_set_current_user( self::$editor_id );
 
 		$rest_route  = '/wp/v2/posts/' . self::$post_id . '/revisions';
@@ -555,7 +1034,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$total_pages = (int) ceil( $this->total_revisions / $per_page );
 		$page        = 2;  // Last page.
 
-		$request = new WP_REST_Request( 'GET', $rest_route );
+		$request = new WP_REST_Request( $method, $rest_route );
 		$request->set_query_params(
 			array(
 				'per_page' => $per_page,
@@ -576,19 +1055,24 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 	}
 
+
 	/**
 	 * Test that invalid 'per_page' query should error.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 40510
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_invalid_per_page_should_error() {
+	public function test_get_items_invalid_per_page_should_error( $method ) {
 		wp_set_current_user( self::$editor_id );
 
 		$per_page        = -1; // Invalid number.
 		$expected_error  = 'rest_invalid_param';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'per_page', $per_page );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
@@ -597,9 +1081,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Test that out of bounds 'page' query should error.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 40510
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_out_of_bounds_page_should_error() {
+	public function test_get_items_out_of_bounds_page_should_error( $method ) {
 		wp_set_current_user( self::$editor_id );
 
 		$per_page        = 2;
@@ -608,7 +1096,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_error  = 'rest_revision_invalid_page_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'per_page' => $per_page,
@@ -622,9 +1110,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Test that impossibly high 'page' query should error.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 40510
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_invalid_max_pages_should_error() {
+	public function test_get_items_invalid_max_pages_should_error( $method ) {
 		wp_set_current_user( self::$editor_id );
 
 		$per_page        = 2;
@@ -632,7 +1124,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_error  = 'rest_revision_invalid_page_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'per_page' => $per_page,
@@ -770,9 +1262,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Test that out of bound 'offset' query should error.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 40510
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_out_of_bound_offset_should_error() {
+	public function test_get_items_out_of_bound_offset_should_error( $method ) {
 		wp_set_current_user( self::$editor_id );
 
 		$per_page        = 2;
@@ -780,7 +1276,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_error  = 'rest_revision_invalid_offset_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'offset'   => $offset,
@@ -794,9 +1290,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Test that impossible high number for 'offset' query should error.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 40510
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_impossible_high_number_offset_should_error() {
+	public function test_get_items_impossible_high_number_offset_should_error( $method ) {
 		wp_set_current_user( self::$editor_id );
 
 		$per_page        = 2;
@@ -804,7 +1304,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_error  = 'rest_revision_invalid_offset_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'offset'   => $offset,
@@ -818,9 +1318,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	/**
 	 * Test that invalid 'offset' query should error.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 40510
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_invalid_offset_should_error() {
+	public function test_get_items_invalid_offset_should_error( $method ) {
 		wp_set_current_user( self::$editor_id );
 
 		$per_page        = 2;
@@ -828,7 +1332,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_error  = 'rest_invalid_param';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'offset'   => $offset,
@@ -863,5 +1367,45 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected_count, $response->get_data() );
+	}
+
+	/**
+	 * Tests for the pagination.
+	 *
+	 * @ticket 62292
+	 *
+	 * @covers WP_REST_Revisions_Controller::get_items
+	 */
+	public function test_get_revisions_pagination() {
+		wp_set_current_user( self::$editor_id );
+
+		// Test offset.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'offset', 1 );
+		$request->set_param( 'per_page', 1 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-TotalPages'] );
+
+		// Test paged.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'page', 2 );
+		$request->set_param( 'per_page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( (int) ceil( $this->total_revisions / 2 ), $response->get_headers()['X-WP-TotalPages'] );
+
+		// Test out of bounds.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
+		$request->set_param( 'page', $this->total_revisions + 1 );
+		$request->set_param( 'per_page', 1 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_revision_invalid_page_number', $response, 400 );
 	}
 }

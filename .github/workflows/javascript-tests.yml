@@ -7,28 +7,70 @@ on:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
-    tags:
-      - '[0-9]+.[0-9]'
-      - '[0-9]+.[0-9].[0-9]+'
-      - '!3.7.[0-9]+'
   pull_request:
     branches:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
     paths:
-      # Any change to a JavaScript file should run tests.
-      - '**.js'
-      # These files configure npm. Changes could affect the outcome.
+      - '**'
+      # Documentation, repository metadata, and local environment configuration.
+      - '!**.md'
+      - '!.devcontainer/**'
+      - '!.editorconfig'
+      - '!.env.example'
+      - '!.git-blame-ignore-revs'
+      - '!.gitignore'
+      - '!.mailmap'
+      - '!docker-compose.yml'
+      - '!jsdoc.conf.json'
+      - '!typings/**'
+      - '!wp-cli.yml'
+      # File types that the JavaScript tests do not exercise.
+      - '!**.crt'
+      - '!**.css'
+      - '!**.dat'
+      - '!**.dist'
+      - '!**.html'
+      - '!**.jpg'
+      - '!**.json'
+      - '!**.map'
+      - '!**.mo'
+      - '!**.neon'
+      - '!**.pem'
+      - '!**.php'
+      - '!**.png'
+      - '!**.po'
+      - '!**.scss'
+      - '!**.svg'
+      - '!**.txt'
+      - '!**.webp'
+      - '!**.woff2'
+      - '!**.xml'
+      - '!**.yaml'
+      - '!**.yml'
+      # JavaScript outside the QUnit suite and related tooling is not exercised.
+      - '!tests/e2e/**.js'
+      - '!tests/performance/**.js'
+      - '!tools/**'
+      - '!.eslintrc-jsdoc.js'
+      - '!.prettierrc.js'
+      - '!eslint.config.js'
+      # Other workflows do not affect these tests.
+      - '!.github/**'
+      # Re-include configuration, tests, tools, and workflows used here.
       - 'package*.json'
-      # This file configures ESLint. Changes could affect the outcome.
-      - '.eslintignore'
-      # This file configures JSHint. Changes could affect the outcome.
+      - '.npmrc'
+      - '.nvmrc'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/gutenberg/**'
+      - 'tools/vendors/**'
+      - 'tools/webpack/**'
       - '.jshintrc'
-      # Any change to the QUnit directory should run tests.
       - 'tests/qunit/**'
-      # Changes to workflow files should always verify all workflows are successful.
-      - '.github/workflows/*.yml'
+      - '.github/workflows/javascript-tests.yml'
+      - '.github/workflows/reusable-javascript-tests.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -46,14 +88,21 @@ jobs:
   # Runs the WordPress Core JavaScript tests.
   test-js:
     name: QUnit Tests
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-javascript-tests.yml@trunk
+    uses: ./.github/workflows/reusable-javascript-tests.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -69,7 +118,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
@@ -85,7 +134,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -96,6 +145,6 @@ jobs:
               workflow_id: 'failed-workflow.yml',
               ref: 'trunk',
               inputs: {
-                run_id: '${{ github.run_id }}'
+                run_id: `${context.runId}`,
               }
             });

@@ -5,7 +5,6 @@
  * @group general
  * @group errors
  *
- * @covers WP_Error
  * @coversDefaultClass WP_Error
  */
 class Tests_General_wpError extends WP_UnitTestCase {
@@ -42,7 +41,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_code
 	 */
 	public function test_WP_Error_with_empty_code_should_add_no_code() {
 		$this->assertSame( '', $this->wp_error->get_error_code() );
@@ -50,7 +48,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_message
 	 */
 	public function test_WP_Error_with_empty_code_should_add_no_message() {
 		$this->assertSame( '', $this->wp_error->get_error_message() );
@@ -65,7 +62,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_code
 	 */
 	public function test_WP_Error_with_code_and_empty_message_should_add_error_with_that_code() {
 		$wp_error = new WP_Error( 'code' );
@@ -75,7 +71,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_message
 	 */
 	public function test_WP_Error_with_code_and_empty_message_should_add_error_with_that_code_and_empty_message() {
 		$wp_error = new WP_Error( 'code' );
@@ -85,7 +80,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_data
 	 */
 	public function test_WP_Error_with_code_and_empty_message_and_empty_data_should_add_error_but_not_associated_data() {
 		$wp_error = new WP_Error( 'code' );
@@ -95,7 +89,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_data
 	 */
 	public function test_WP_Error_with_code_and_empty_message_and_non_empty_data_should_add_error_with_empty_message_and_that_stored_data() {
 		$wp_error = new WP_Error( 'code', '', 'data' );
@@ -105,7 +98,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_code
 	 */
 	public function test_WP_Error_with_code_and_message_should_add_error_with_that_code() {
 		$wp_error = new WP_Error( 'code', 'message' );
@@ -115,7 +107,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_message
 	 */
 	public function test_WP_Error_with_code_and_message_should_add_error_with_that_message() {
 		$wp_error = new WP_Error( 'code', 'message' );
@@ -125,7 +116,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_code
 	 */
 	public function test_WP_Error_with_code_and_message_and_data_should_add_error_with_that_code() {
 		$wp_error = new WP_Error( 'code', 'message', 'data' );
@@ -135,7 +125,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_message
 	 */
 	public function test_WP_Error_with_code_and_message_and_data_should_add_error_with_that_message() {
 		$wp_error = new WP_Error( 'code', 'message', 'data' );
@@ -145,7 +134,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__construct
-	 * @covers ::get_error_data
 	 */
 	public function test_WP_Error_with_code_and_message_and_data_should_add_error_with_that_data() {
 		$wp_error = new WP_Error( 'code', 'message', 'data' );
@@ -154,7 +142,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_codes
 	 */
 	public function test_get_error_codes_with_no_errors_should_return_empty_array() {
@@ -162,7 +149,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_codes
 	 */
 	public function test_get_error_codes_with_one_error_should_return_an_array_with_only_that_code() {
@@ -172,7 +158,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_codes
 	 */
 	public function test_get_error_codes_with_multiple_errors_should_return_an_array_of_those_codes() {
@@ -185,7 +170,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_code
 	 */
 	public function test_get_error_code_with_no_errors_should_return_an_empty_string() {
@@ -193,7 +177,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_code
 	 */
 	public function test_get_error_code_with_one_error_should_return_that_error_code() {
@@ -203,7 +186,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_code
 	 */
 	public function test_get_error_code_with_multiple_errors_should_return_only_the_first_error_code() {
@@ -214,7 +196,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_messages
 	 */
 	public function test_get_error_messages_with_empty_code_and_no_errors_should_return_an_empty_array() {
@@ -222,7 +203,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_messages
 	 */
 	public function test_get_error_messages_with_empty_code_one_error_should_return_an_array_with_that_message() {
@@ -232,7 +212,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_messages
 	 */
 	public function test_get_error_messages_with_empty_code_multiple_errors_should_return_an_array_of_messages() {
@@ -243,7 +222,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_messages
 	 */
 	public function test_get_error_messages_with_an_invalid_code_should_return_an_empty_array() {
@@ -251,7 +229,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_messages
 	 */
 	public function test_get_error_messages_with_one_error_should_return_an_array_with_that_message() {
@@ -261,7 +238,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_messages
 	 */
 	public function test_get_error_messages_with_multiple_errors_same_code_should_return_an_array_with_all_messages() {
@@ -272,7 +248,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_message
 	 */
 	public function test_get_error_message_with_empty_code_and_no_errors_should_return_an_empty_string() {
@@ -280,7 +255,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_message
 	 */
 	public function test_get_error_message_with_empty_code_and_one_error_should_return_that_message() {
@@ -290,7 +264,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_message
 	 */
 	public function test_get_error_message_with_empty_code_and_multiple_errors_should_return_the_first_message() {
@@ -301,7 +274,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_message
 	 */
 	public function test_get_error_message_with_empty_code_and_multiple_errors_multiple_codes_should_return_the_first_message() {
@@ -313,7 +285,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_message
 	 */
 	public function test_get_error_message_with_invalid_code_and_no_errors_should_return_empty_string() {
@@ -321,7 +292,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_message
 	 */
 	public function test_get_error_message_with_invalid_code_and_one_error_should_return_an_empty_string() {
@@ -331,7 +301,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_message
 	 */
 	public function test_get_error_message_with_invalid_code_and_multiple_errors_should_return_an_empty_string() {
@@ -342,7 +311,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_empty_code_and_no_errors_should_evaluate_as_null() {
@@ -350,7 +318,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_empty_code_one_error_no_data_should_evaluate_as_null() {
@@ -360,7 +327,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_empty_code_multiple_errors_no_data_should_evaluate_as_null() {
@@ -371,7 +337,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_empty_code_and_one_error_with_data_should_return_that_data() {
@@ -382,7 +347,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_empty_code_and_multiple_errors_different_codes_should_return_the_last_data_of_the_first_code() {
@@ -394,7 +358,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_empty_code_and_multiple_errors_same_code_should_return_the_last_data_of_the_first_code() {
@@ -406,7 +369,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_code_and_no_errors_should_evaluate_as_null() {
@@ -414,7 +376,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_code_and_one_error_with_no_data_should_evaluate_as_null() {
@@ -424,7 +385,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_code_and_one_error_with_data_should_return_that_data() {
@@ -435,7 +395,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_code_and_multiple_errors_different_codes_should_return_the_last_stored_data_of_the_code() {
@@ -448,7 +407,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_code_and_multiple_errors_same_code_should_return_the_last_stored_data() {
@@ -460,7 +418,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_all_error_data
 	 */
 	public function test_get_all_error_data_with_code_and_no_errors_should_evaluate_as_empty_array() {
@@ -468,7 +425,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_all_error_data
 	 */
 	public function test_get_all_error_data_with_code_and_one_error_with_no_data_should_evaluate_as_empty_array() {
@@ -478,7 +434,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_all_error_data
 	 */
 	public function test_get_all_error_data_with_code_and_one_error_with_data_should_return_that_data() {
@@ -491,7 +446,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_all_error_data
 	 */
 	public function test_get_all_error_data_with_code_and_multiple_errors_same_code_should_return_all_data() {
@@ -503,7 +457,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::get_all_error_data
 	 */
 	public function test_get_all_error_data_should_handle_manipulation_of_error_data_property() {
@@ -517,7 +470,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::has_errors
 	 */
 	public function test_has_errors_with_no_errors_returns_false() {
@@ -525,7 +477,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add
 	 * @covers ::has_errors
 	 */
 	public function test_has_errors_with_errors_returns_true() {
@@ -571,7 +522,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_code
 	 */
 	public function test_add_with_code_empty_message_empty_data_should_add_error_with_code() {
 		$this->wp_error->add( 'code', '' );
@@ -581,7 +531,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_message
 	 */
 	public function test_add_with_code_empty_message_empty_data_should_add_error_with_empty_message() {
 		$this->wp_error->add( 'code', '' );
@@ -591,7 +540,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_data
 	 */
 	public function test_add_with_code_empty_message_empty_data_should_not_add_error_data() {
 		$this->wp_error->add( 'code', '' );
@@ -601,7 +549,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_message
 	 */
 	public function test_add_with_code_and_message_and_empty_data_should_should_add_error_with_that_message() {
 		$this->wp_error->add( 'code', 'message' );
@@ -611,7 +558,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_data
 	 */
 	public function test_add_with_code_and_message_and_empty_data_should_not_alter_stored_data() {
 		$this->wp_error->add( 'code', 'message' );
@@ -621,7 +567,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_code
 	 */
 	public function test_add_with_code_and_empty_message_and_data_should_add_error_with_that_code() {
 		$this->wp_error->add( 'code', '', 'data' );
@@ -631,7 +576,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_data
 	 */
 	public function test_add_with_code_and_empty_message_and_data_should_store_that_data() {
 		$this->wp_error->add( 'code', '', 'data' );
@@ -641,7 +585,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_code
 	 */
 	public function test_add_with_code_and_message_and_data_should_add_an_error_with_that_code() {
 		$this->wp_error->add( 'code', 'message', 'data' );
@@ -651,7 +594,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_message
 	 */
 	public function test_add_with_code_and_message_and_data_should_add_an_error_with_that_message() {
 		$this->wp_error->add( 'code', 'message', 'data' );
@@ -661,7 +603,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_data
 	 */
 	public function test_add_with_code_and_message_and_data_should_store_that_data() {
 		$this->wp_error->add( 'code', 'message', 'data' );
@@ -671,7 +612,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_messages
 	 */
 	public function test_add_multiple_times_with_the_same_code_should_add_additional_messages_for_that_code() {
 		$this->wp_error->add( 'code', 'message' );
@@ -684,7 +624,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add
-	 * @covers ::get_error_data
 	 */
 	public function test_add_multiple_times_with_the_same_code_and_different_data_should_store_only_the_last_added_data() {
 		$this->wp_error->add( 'code', 'message', 'data-bar' );
@@ -713,7 +652,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add_data
-	 * @covers ::get_error_data
 	 */
 	public function test_add_data_with_data_empty_code_and_one_error_should_store_the_data_under_that_code() {
 		$this->wp_error->add( 'code', 'message' );
@@ -724,7 +662,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add_data
-	 * @covers ::get_error_data
 	 */
 	public function test_add_data_with_data_empty_code_and_multiple_errors_with_different_codes_should_store_it_under_the_first_code() {
 		$this->wp_error->add( 'code', 'message' );
@@ -737,7 +674,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add_data
-	 * @covers ::get_error_data
 	 */
 	public function test_add_data_with_data_empty_code_and_multiple_errors_with_same_code_should_store_it_under_the_first_code() {
 		$this->wp_error->add( 'code', 'message' );
@@ -791,7 +727,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::add_data
-	 * @covers ::get_error_data
 	 */
 	public function test_add_data_with_data_and_code_should_add_data() {
 		$this->wp_error->add( 'code', 'message' );
@@ -868,8 +803,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::remove
-	 * @covers ::get_error_data
-	 * @covers ::get_all_error_data
 	 */
 	public function test_remove_should_remove_the_error_data_associated_with_the_given_code() {
 		$this->wp_error->add( 'code', 'message', 'data' );
@@ -884,10 +817,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::merge_from
-	 * @covers ::get_error_messages
-	 * @covers ::get_error_data
-	 * @covers ::get_all_error_data
-	 * @covers ::get_error_message
 	 */
 	public function test_merge_from_should_copy_other_error_into_instance() {
 		$this->wp_error->add( 'code1', 'message1', 'data1' );
@@ -904,7 +833,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::merge_from
-	 * @covers ::has_errors
 	 */
 	public function test_merge_from_with_no_errors_should_not_add_to_instance() {
 		$other = new WP_Error();
@@ -916,10 +844,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::export_to
-	 * @covers ::get_error_messages
-	 * @covers ::get_error_data
-	 * @covers ::get_all_error_data
-	 * @covers ::get_error_message
 	 */
 	public function test_export_to_should_copy_instance_into_other_error() {
 		$other = new WP_Error();
@@ -938,7 +862,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::export_to
-	 * @covers ::has_errors
 	 */
 	public function test_export_to_with_no_errors_should_not_add_to_other_error() {
 		$other = new WP_Error();

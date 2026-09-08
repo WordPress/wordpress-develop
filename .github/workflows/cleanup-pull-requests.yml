@@ -1,0 +1,28 @@
+name: Cleanup Pull Requests
+
+on:
+  push:
+    branches:
+      - trunk
+      - '4.[1-9]'
+      - '[5-9].[0-9]'
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs pull request cleanup.
+  close-prs:
+    name: Clean up pull requests
+    permissions:
+      pull-requests: write
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    uses: ./.github/workflows/reusable-cleanup-pull-requests.yml

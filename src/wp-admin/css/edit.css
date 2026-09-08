@@ -75,6 +75,20 @@
 	pointer-events: none;
 }
 
+#titlewrap .skiplink {
+	background: #fff;
+	line-height: 2.30769231; /* 30px for 32px min-height */
+	min-height: 32px;
+	right: 4px;
+}
+
+#titlewrap .skiplink:focus {
+	clip: inherit;
+	clip-path: inherit;
+	top: 4px;
+	width: auto;
+}
+
 input#link_description,
 input#link_url {
 	width: 100%;
@@ -106,7 +120,6 @@ input#link_url {
 #edit-slug-box .cancel {
 	margin-right: 10px;
 	padding: 0;
-	font-size: 11px;
 }
 
 #comment-link-box {
@@ -125,7 +138,7 @@ input#link_url {
 #editable-post-name input {
 	font-size: 13px;
 	font-weight: 400;
-	height: 24px;
+	min-height: 32px;
 	margin: 0;
 	width: 16em;
 }
@@ -161,9 +174,8 @@ body.post-type-wp_navigation .inline-edit-status {
 
 /* Only highlight drop zones when dragging and only in the 2 columns layout. */
 .is-dragging-metaboxes .metabox-holder .postbox-container .meta-box-sortables {
-	outline: 3px dashed #646970;
-	/* Prevent margin on the child from collapsing with margin on the parent. */
-	display: flow-root;
+	border-radius: 8px;
+	background: rgb(var(--wp-admin-theme-color--rgb), 0.04);
 	/*
 	 * This min-height is meant to limit jumpiness while dragging. It's equivalent
 	 * to the minimum height of the sortable-placeholder which is given by the height
@@ -300,7 +312,6 @@ ul.wp-tab-bar li {
 #postimagediv .inside img {
 	max-width: 100%;
 	height: auto;
-	width: auto;
 	vertical-align: top;
 	background-image: linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
 	background-position: 0 0, 10px 10px;
@@ -318,8 +329,9 @@ form#tags-filter {
 }
 
 #post-body .tagsdiv #newtag {
-	margin-right: 5px;
-	width: 16em;
+	margin-right: 0;
+	flex: 1;
+	min-width: 0;
 }
 
 #side-sortables input#post_password {
@@ -327,7 +339,8 @@ form#tags-filter {
 }
 
 #side-sortables .tagsdiv #newtag {
-	width: 68%;
+	flex: 1;
+	min-width: 0;
 }
 
 #post-status-info {
@@ -486,7 +499,6 @@ form#tags-filter {
 #post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
 	font: normal 20px/1 dashicons;
-	speak: never;
 	display: inline-block;
 	margin-left: -1px;
 	padding-right: 3px;
@@ -498,41 +510,58 @@ form#tags-filter {
 #post-body .misc-pub-post-status:before,
 #post-body .misc-pub-comment-status:before {
 	content: "\f173";
+	content: "\f173" / '';
 }
 
 #post-body #visibility:before {
 	content: "\f177";
+	content: "\f177" / '';
 }
 
 .curtime #timestamp:before {
 	content: "\f145";
+	content: "\f145" / '';
 	position: relative;
 	top: -1px;
 }
 
 #post-body .misc-pub-uploadedby:before {
 	content: "\f110";
+	content: "\f110" / '';
 	position: relative;
 	top: -1px;
 }
 
 #post-body .misc-pub-uploadedto:before {
 	content: "\f318";
+	content: "\f318" / '';
 	position: relative;
 	top: -1px;
 }
 
 #post-body .misc-pub-revisions:before {
 	content: "\f321";
+	content: "\f321" / '';
 }
 
 #post-body .misc-pub-response-to:before {
 	content: "\f101";
+	content: "\f101" / '';
 }
 
 #timestampdiv {
 	padding-top: 5px;
 	line-height: 1.76923076;
+}
+
+#comment-parent-div {
+	padding-top: 5px;
+	/* Fieldsets cannot shrink below their content by default, allow it so the select cannot cause overflow. */
+	min-width: 0;
+}
+
+#comment-parent-div select {
+	width: 100%;
 }
 
 #timestampdiv p {
@@ -693,6 +722,56 @@ form#tags-filter {
 	margin-top: 3px;
 }
 
+#post-visibility-select {
+	--post-visibility-control-gap: 3px;
+
+	margin-left: var(--post-visibility-control-gap);
+}
+
+#post-visibility-select input#post_password {
+	box-sizing: border-box;
+	width: 100%;
+	margin-top: 3px;
+}
+
+#post-visibility-select input[type="radio"],
+#post-visibility-select input#sticky {
+	margin-top: 2px;
+	margin-right: var(--post-visibility-control-gap);
+	margin-bottom: 5px;
+	vertical-align: middle;
+}
+
+#post-visibility-select #sticky-span,
+#post-visibility-select #password-span {
+	display: block;
+	margin-left: calc(1rem + var(--post-visibility-control-gap) + 0.25em);
+	margin-top: 2px;
+}
+
+#post-visibility-select #sticky-span {
+	margin-bottom: 2px;
+}
+
+#post-visibility-select #password-span {
+	margin-bottom: 6px;
+}
+
+#post-visibility-select p {
+	margin: 12px 0 0;
+}
+
+#post-status-select select {
+	display: block;
+	margin-bottom: 8px;
+	width: 100%;
+}
+
+#post-status-select .save-post-status,
+#post-status-select .cancel-post-status {
+	vertical-align: middle;
+}
+
 #linksubmitdiv .inside, /* Old Link Manager back-compat. */
 #poststuff #submitdiv .inside {
 	margin: 0;
@@ -803,7 +882,7 @@ form#tags-filter {
 
 .privacy-settings-tab.active,
 .health-check-tab.active {
-	box-shadow: inset 0 -3px #3582c4;
+	box-shadow: inset 0 -3px var(--wp-admin-theme-color);
 	font-weight: 600;
 }
 
@@ -877,7 +956,7 @@ form#tags-filter {
 	border: none;
 	box-shadow: none;
 	outline-offset: -1px;
-	outline: 2px solid #2271b1;
+	outline: 2px solid var(--wp-admin-theme-color);
 	background-color: #f6f7f7;
 }
 
@@ -916,7 +995,7 @@ form#tags-filter {
 
 .privacy-settings-accordion-trigger .badge.blue,
 .health-check-accordion-trigger .badge.blue {
-	border: 1px solid #72aee6;
+	border: 1px solid var(--wp-admin-theme-color);
 }
 
 .privacy-settings-accordion-trigger .badge.orange,
@@ -969,15 +1048,16 @@ form#tags-filter {
 }
 
 .privacy-settings-accordion-actions {
-	text-align: right;
-	display: block;
+	justify-content: right;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 1em;
 }
 
 .privacy-settings-accordion-actions .success {
 	display: none;
 	color: #007017;
-	padding-right: 1em;
-	padding-top: 6px;
 }
 
 .privacy-settings-accordion-actions .success.visible {
@@ -1037,6 +1117,14 @@ form#tags-filter {
 	.wp-core-ui button.privacy-text-copy {
 		white-space: normal;
 		line-height: 1.8;
+	}
+
+	#edit-slug-box {
+		padding: 0;
+	}
+
+	#editable-post-name input {
+		min-height: 40px;
 	}
 }
 
@@ -1188,7 +1276,6 @@ form#tags-filter {
 	margin-right: 7px;
 	color: #dcdcde;
 	font: normal 20px/1 dashicons;
-	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -1216,42 +1303,52 @@ label.post-format-icon {
 
 .post-format-icon.post-format-standard::before {
 	content: "\f109";
+	content: "\f109" / '';
 }
 
 .post-format-icon.post-format-image::before {
 	content: "\f128";
+	content: "\f128" / '';
 }
 
 .post-format-icon.post-format-gallery::before {
 	content: "\f161";
+	content: "\f161" / '';
 }
 
 .post-format-icon.post-format-audio::before {
 	content: "\f127";
+	content: "\f127" / '';
 }
 
 .post-format-icon.post-format-video::before {
 	content: "\f126";
+	content: "\f126" / '';
 }
 
 .post-format-icon.post-format-chat::before {
 	content: "\f125";
+	content: "\f125" / '';
 }
 
 .post-format-icon.post-format-status::before {
 	content: "\f130";
+	content: "\f130" / '';
 }
 
 .post-format-icon.post-format-aside::before {
 	content: "\f123";
+	content: "\f123" / '';
 }
 
 .post-format-icon.post-format-quote::before {
 	content: "\f122";
+	content: "\f122" / '';
 }
 
 .post-format-icon.post-format-link::before {
 	content: "\f103";
+	content: "\f103" / '';
 }
 
 /*------------------------------------------------------------------------------
@@ -1293,11 +1390,12 @@ div.tabs-panel-inactive {
 }
 
 div.tabs-panel-active:focus {
-	box-shadow: inset 0 0 0 2px #2271b1;
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
-
+.options-discussion-php .indent-children ul,
 #front-page-warning,
 #front-static-pages ul,
 ul.export-filters,
@@ -1364,6 +1462,11 @@ p.description code {
 	font-style: normal;
 }
 
+p.description code,
+.form-wrap p code {
+	color: #50575e;
+}
+
 .form-wrap .form-field {
 	margin: 1em 0;
 	padding: 0;
@@ -1388,6 +1491,9 @@ p.description code {
 
 #poststuff .tagsdiv .ajaxtag {
 	margin-top: 1em;
+	display: flex;
+	gap: 8px;
+	align-items: center;
 }
 
 #poststuff .tagsdiv .howto {
@@ -1399,7 +1505,8 @@ p.description code {
 }
 
 .tagsdiv .newtag {
-	width: 180px;
+	flex: 1;
+	min-width: 0;
 }
 
 .tagsdiv .the-tags {
@@ -1495,6 +1602,9 @@ p.popular-tags a {
 }
 
 .edit-tag-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	margin-top: 20px;
 }
 
@@ -1735,7 +1845,8 @@ table.links-table {
 	}
 
 	.is-dragging-metaboxes.post-type-attachment #post-body .meta-box-sortables {
-		outline: none;
+		border: none;
+		background: transparent;
 		min-height: 0;
 		margin-bottom: 0;
 	}
@@ -1844,10 +1955,19 @@ table.links-table {
 		line-height: 280%;
 	}
 
+	#post-visibility-select #password-span {
+		line-height: 1.5;
+	}
+
+	.wp-core-ui #post-status-select .save-post-status.button,
 	.wp-core-ui .save-post-visibility,
 	.wp-core-ui .save-timestamp {
 		vertical-align: middle;
 		margin-right: 15px;
+	}
+
+	.wp-core-ui #post-status-select .save-post-status.button {
+		margin-left: 0;
 	}
 
 	.timestamp-wrap select#mm {
@@ -1892,9 +2012,10 @@ table.links-table {
 
 	/* Tags Metabox */
 	.tagsdiv .newtag {
-		width: 100%;
+		flex: 1;
+		min-width: 0;
 		height: auto;
-		margin-bottom: 15px;
+		margin-bottom: 0;
 	}
 
 	.tagchecklist {
@@ -1982,7 +2103,7 @@ table.links-table {
 	}
 
 	.misc-pub-section {
-		padding: 20px 10px;
+		padding: 12px 10px;
 	}
 
 	#delete-action,

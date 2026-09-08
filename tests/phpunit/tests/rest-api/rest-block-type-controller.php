@@ -32,6 +32,20 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	protected static $subscriber_id;
 
 	/**
+	 * Pre-existing block types registered before the current test.
+	 *
+	 * @var string[] $registered_block_types
+	 */
+	private $registered_block_types = array();
+
+	/**
+	 * Pre-existing block styles registered before the current test, grouped by block type name.
+	 *
+	 * @var array[] $registered_block_styles
+	 */
+	private $registered_block_styles = array();
+
+	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @since 5.5.0
@@ -49,21 +63,55 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 				'role' => 'subscriber',
 			)
 		);
-
-		$name     = 'fake/test';
-		$settings = array(
-			'icon' => 'text',
-		);
-
-		register_block_type( $name, $settings );
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$subscriber_id );
-		unregister_block_type( 'fake/test' );
-		unregister_block_type( 'fake/invalid' );
-		unregister_block_type( 'fake/false' );
+	}
+
+	/**
+	 * Sets up each test method.
+	 *
+	 * Records the registered block types and block styles so that anything
+	 * registered by a test can be unregistered again in tear_down(), and
+	 * registers a block type used by many tests in this class.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->registered_block_types  = array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() );
+		$this->registered_block_styles = WP_Block_Styles_Registry::get_instance()->get_all_registered();
+
+		register_block_type(
+			'fake/test',
+			array(
+				'icon' => 'text',
+			)
+		);
+	}
+
+	/**
+	 * Tears down each test method.
+	 *
+	 * Unregisters any block types and block styles registered while the test ran.
+	 */
+	public function tear_down() {
+		foreach ( WP_Block_Styles_Registry::get_instance()->get_all_registered() as $block_name => $block_styles ) {
+			foreach ( array_keys( $block_styles ) as $block_style_name ) {
+				if ( ! isset( $this->registered_block_styles[ $block_name ][ $block_style_name ] ) ) {
+					unregister_block_style( $block_name, $block_style_name );
+				}
+			}
+		}
+
+		foreach ( array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() ) as $block_name ) {
+			if ( ! in_array( $block_name, $this->registered_block_types, true ) ) {
+				unregister_block_type( $block_name );
+			}
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -602,47 +650,156 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket 47620
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_wrong_permission() {
+	public function test_get_item_should_allow_adding_headers_via_filter( $method ) {
+		$block_name = 'fake/test';
+		wp_set_current_user( self::$admin_id );
+
+		$hook_name = 'rest_prepare_block_type';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$header_filter = new class() {
+			public static function add_custom_header( $response ) {
+				$response->header( 'X-Test-Header', 'Test' );
+
+				return $response;
+			}
+		};
+		add_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+		$request  = new WP_REST_Request( $method, '/wp/v2/block-types/' . $block_name );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+		remove_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-Test-Header', $headers, 'The "X-Test-Header" header should be present in the response.' );
+		$this->assertSame( 'Test', $headers['X-Test-Header'], 'The "X-Test-Header" header value should be equal to "Test".' );
+		if ( 'HEAD' !== $method ) {
+			return null;
+		}
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_block_type_data() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/block-types' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'HEAD', $path );
+		$request->set_param( '_fields', 'title' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/block-types/fake/test' ),
+			'get_items request' => array( '/wp/v2/block-types' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 47620
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_wrong_permission( $method ) {
 		wp_set_current_user( self::$subscriber_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/block-types' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_block_type_cannot_view', $response, 403 );
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 47620
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_item_wrong_permission() {
+	public function test_get_item_wrong_permission( $method ) {
 		wp_set_current_user( self::$subscriber_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/fake/test' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/block-types/fake/test' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_block_type_cannot_view', $response, 403 );
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 47620
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_no_permission() {
+	public function test_get_items_no_permission( $method ) {
 		wp_set_current_user( 0 );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/block-types' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_block_type_cannot_view', $response, 401 );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 47620
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_item_no_permission( $method ) {
+		wp_set_current_user( 0 );
+		$request  = new WP_REST_Request( $method, '/wp/v2/block-types/fake/test' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_block_type_cannot_view', $response, 401 );
 	}
 
 	/**
 	 * @ticket 47620
-	 */
-	public function test_get_item_no_permission() {
-		wp_set_current_user( 0 );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/fake/test' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_block_type_cannot_view', $response, 401 );
-	}
-
-	/**
-	 * @ticket 47620
+	 * @ticket 56481
 	 */
 	public function test_prepare_item() {
 		$registry = new WP_Block_Type_Registry();

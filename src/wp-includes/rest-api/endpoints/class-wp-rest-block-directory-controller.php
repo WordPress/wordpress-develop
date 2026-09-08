@@ -136,7 +136,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 			'author_block_rating' => $plugin['author_block_rating'] / 20,
 			'author_block_count'  => (int) $plugin['author_block_count'],
 			'author'              => wp_strip_all_tags( $plugin['author'] ),
-			'icon'                => ( isset( $plugin['icons']['1x'] ) ? $plugin['icons']['1x'] : 'block-default' ),
+			'icon'                => $plugin['icons']['1x'] ?? 'block-default',
 			'last_updated'        => gmdate( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
 			'humanized_updated'   => sprintf(
 				/* translators: %s: Human-readable time difference. */
@@ -285,7 +285,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 					'context'     => array( 'view' ),
 				),
 				'humanized_updated'   => array(
-					'description' => __( 'The date when the block was last updated, in fuzzy human readable format.' ),
+					'description' => __( 'The date when the block was last updated, in human readable format.' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 				),

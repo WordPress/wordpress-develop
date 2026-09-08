@@ -33,11 +33,13 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 		this.errors.on( 'add', this.error, this );
 	},
 	/**
-	 * @return {wp.media.view.UploaderStatus}
+	 * Disposes of the uploader status and its associated views.
+	 *
+	 * @return {wp.media.view.UploaderStatus} Returns the instance of the UploaderStatus view.
 	 */
 	dispose: function() {
 		wp.Uploader.queue.off( null, null, this );
-		/**
+		/*
 		 * call 'dispose' directly on the parent class
 		 */
 		View.prototype.dispose.apply( this, arguments );
@@ -103,14 +105,19 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 		}
 	},
 	/**
+	 * Escapes the filename to prevent XSS attacks.
+	 *
 	 * @param {string} filename
-	 * @return {string}
+	 * @return {string} Escaped filename.
 	 */
 	filename: function( filename ) {
 		return _.escape( filename );
 	},
 	/**
+	 * Handles an error event from the uploader queue.
+	 *
 	 * @param {Backbone.Model} error
+	 * @return {void}
 	 */
 	error: function( error ) {
 		var statusError = new wp.media.view.UploaderStatusError( {
@@ -124,10 +131,16 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 		this.views.add( '.upload-errors', statusError, { at: 0 } );
 		_.delay( function() {
 			buttonClose.trigger( 'focus' );
-			wp.a11y.speak( error.get( 'message' ), 'assertive' );
 		}, 1000 );
+
+		_.delay( function() {
+			wp.a11y.speak( error.get( 'message' ) );
+		}, 1500 );
 	},
 
+	/**
+	 * Dismisses the error messages and resets the uploader errors.
+	 */
 	dismiss: function() {
 		var errors = this.views.get('.upload-errors');
 
@@ -135,6 +148,7 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 			_.invoke( errors, 'remove' );
 		}
 		wp.Uploader.errors.reset();
+		wp.a11y.speak( wp.i18n.__( 'Error dismissed.' ) );
 		// Move focus to the modal after the dismiss button gets removed from the DOM.
 		if ( this.controller.modal ) {
 			this.controller.modal.focusManager.focus();

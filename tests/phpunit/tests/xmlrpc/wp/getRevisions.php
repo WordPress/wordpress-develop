@@ -77,4 +77,19 @@ class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getRevisions( array( 1, 'editor', 'editor', $post_id ) );
 		$this->assertCount( 1, $result );
 	}
+
+	/**
+	 * Ensure a non-array `$fields` argument is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 65983
+	 */
+	public function test_non_array_fields_returns_error(): void {
+		$this->make_user_by_role( 'editor' );
+		$post_id = self::factory()->post->create();
+
+		$result = $this->myxmlrpcserver->wp_getRevisions( array( 1, 'editor', 'editor', $post_id, 'post_date' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
 }

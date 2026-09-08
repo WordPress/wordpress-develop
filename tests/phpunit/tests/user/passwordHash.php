@@ -3,6 +3,10 @@
 /**
  * Tests for the PasswordHash external library.
  *
+ * PasswordHash is no longer used to hash user passwords or security keys, but it is still used to
+ * hash post passwords and as a fallback to verify old passwords that were hashed by phpass. The
+ * library therefore needs to remain compatible with the latest versions of PHP.
+ *
  * @covers PasswordHash
  */
 class Tests_User_PasswordHash extends WP_UnitTestCase {

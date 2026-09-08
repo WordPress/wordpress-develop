@@ -138,7 +138,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		// Store the initial database query count.
 		$initial_query_count = get_num_queries();
 
-		// Call the wp_prime_network_option_caches() function second time
+		// Call the wp_prime_network_option_caches() function second time.
 		wp_prime_network_option_caches( $network_id, $options_to_prime );
 
 		// Ensure no additional database queries were made.

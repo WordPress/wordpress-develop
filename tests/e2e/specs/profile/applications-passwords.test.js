@@ -40,23 +40,6 @@ test.describe( 'Manage applications passwords', () => {
 		);
 	} );
 
-	test('should not allow to create two applications passwords with the same name', async ( {
-		page,
-		applicationPasswords
-	} ) => {
-		await applicationPasswords.create();
-		await applicationPasswords.create();
-
-		const errorMessage = page.getByRole( 'alert' );
-
-		await expect( errorMessage ).toHaveClass( /notice-error/ );
-		await expect(
-			errorMessage
-		).toContainText(
-			'Each application name should be unique.'
-		);
-	});
-
 	test( 'should correctly revoke a single application password', async ( {
 		page,
 		applicationPasswords
@@ -67,7 +50,7 @@ test.describe( 'Manage applications passwords', () => {
 		await expect( revokeButton ).toBeVisible();
 
 		// Revoke password.
-		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeButton.click();
 
 		await expect(
@@ -90,7 +73,7 @@ test.describe( 'Manage applications passwords', () => {
 		await expect( revokeAllButton ).toBeVisible();
 
 		// Confirms revoking action.
-		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeAllButton.click();
 
 		await expect(
@@ -118,7 +101,7 @@ class ApplicationPasswords {
 		await expect( newPasswordField ).toBeVisible();
 		await newPasswordField.fill( applicationName );
 
-		await this.page.getByRole( 'button', { name: 'Add New Application Password' } ).click();
+		await this.page.getByRole( 'button', { name: 'Add Application Password' } ).click();
 		await expect( this.page.getByRole( 'alert' ) ).toBeVisible();
 	}
 

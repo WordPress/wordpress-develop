@@ -59,12 +59,11 @@ class POP3 {
         if(!empty($timeout)) {
             settype($timeout,"integer");
             $this->TIMEOUT = $timeout;
+            // Extend POP3 request timeout to the specified TIMEOUT property.
             if(function_exists("set_time_limit")){
-                // Extends POP3 request timeout to specified TIMEOUT property.
                 set_time_limit($timeout);
             }
         }
-        return true;
     }
 
 	/**
@@ -75,8 +74,8 @@ class POP3 {
 	}
 
     function update_timer () {
+        // Extend POP3 request timeout to the specified TIMEOUT property.
         if(function_exists("set_time_limit")){
-            // Allows additional extension of POP3 request timeout to specified TIMEOUT property when update_timer is called.
             set_time_limit($this->TIMEOUT);
         }
         return true;

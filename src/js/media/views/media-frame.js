@@ -27,6 +27,8 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	},
 
 	/**
+	 * Initializes the media frame.
+	 *
 	 * @constructs
 	 */
 	initialize: function() {
@@ -101,7 +103,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 			tabPanelEl = this.$el.find( '.media-frame-tab-panel' ),
 			ariaLabelledby;
 
-		tabPanelEl.removeAttr( 'role aria-labelledby tabindex' );
+		tabPanelEl.removeAttr( 'role aria-labelledby' );
 
 		if ( this.state().get( 'menu' ) && this.menuView && this.menuView.isVisible ) {
 			ariaLabelledby = 'menu-item-' + stateId;
@@ -111,7 +113,6 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 				.attr( {
 					role: 'tabpanel',
 					'aria-labelledby': ariaLabelledby,
-					tabIndex: '0'
 				} );
 		}
 	},
@@ -127,7 +128,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		var tabPanelEl = this.$el.find( '.media-frame-content' ),
 			ariaLabelledby;
 
-		tabPanelEl.removeAttr( 'role aria-labelledby tabindex' );
+		tabPanelEl.removeAttr( 'role aria-labelledby' );
 
 		// Set the tab panel attributes only if the tabs are visible.
 		if ( this.state().get( 'router' ) && this.routerView && this.routerView.isVisible && this.content._mode ) {
@@ -137,12 +138,13 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 				.attr( {
 					role: 'tabpanel',
 					'aria-labelledby': ariaLabelledby,
-					tabIndex: '0'
 				} );
 		}
 	},
 
 	/**
+	 * Renders the media frame.
+	 *
 	 * @return {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -156,6 +158,8 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		return Frame.prototype.render.apply( this, arguments );
 	},
 	/**
+	 * Creates the title view.
+	 *
 	 * @param {Object} title
 	 * @this wp.media.controller.Region
 	 */
@@ -166,6 +170,8 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		});
 	},
 	/**
+	 * Creates the menu view.
+	 *
 	 * @param {Object} menu
 	 * @this wp.media.controller.Region
 	 */
@@ -182,6 +188,11 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		this.menuView = menu.view;
 	},
 
+	/**
+	 * Toggles the menu visibility.
+	 *
+	 * @param {JQuery.Event} event The click event.
+	 */
 	toggleMenu: function( event ) {
 		var menu = this.$el.find( '.media-menu' );
 
@@ -190,6 +201,8 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	},
 
 	/**
+	 * Creates the toolbar view.
+	 *
 	 * @param {Object} toolbar
 	 * @this wp.media.controller.Region
 	 */
@@ -199,6 +212,8 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		});
 	},
 	/**
+	 * Creates the router view.
+	 *
 	 * @param {Object} router
 	 * @this wp.media.controller.Region
 	 */
@@ -215,6 +230,8 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		this.routerView = router.view;
 	},
 	/**
+	 * Creates the iframe states.
+	 *
 	 * @param {Object} options
 	 */
 	createIframeStates: function( options ) {
@@ -252,6 +269,8 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	},
 
 	/**
+	 * Creates the iframe content view.
+	 *
 	 * @param {Object} content
 	 * @this wp.media.controller.Region
 	 */
@@ -262,10 +281,18 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		});
 	},
 
+	/**
+	 * Cleans up the iframe content view.
+	 */
 	iframeContentCleanup: function() {
 		this.$el.removeClass('hide-toolbar');
 	},
 
+	/**
+	 * Creates the iframe menu.
+	 *
+	 * @param {wp.media.view.Menu} view The menu view.
+	 */
 	iframeMenu: function( view ) {
 		var views = {};
 
@@ -283,6 +310,9 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		view.set( views );
 	},
 
+	/**
+	 * Hijacks the Thickbox close function to close the media modal.
+	 */
 	hijackThickbox: function() {
 		var frame = this;
 
@@ -299,6 +329,9 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		};
 	},
 
+	/**
+	 * Restores the Thickbox close function.
+	 */
 	restoreThickbox: function() {
 		if ( ! this._tb_remove ) {
 			return;
@@ -312,6 +345,8 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 // Map some of the modal's methods to the frame.
 _.each(['open','close','attach','detach','escape'], function( method ) {
 	/**
+	 * Opens the media frame modal.
+	 *
 	 * @function open
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
@@ -319,6 +354,8 @@ _.each(['open','close','attach','detach','escape'], function( method ) {
 	 * @return {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	/**
+	 * Closes the media frame modal.
+	 *
 	 * @function close
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
@@ -326,6 +363,8 @@ _.each(['open','close','attach','detach','escape'], function( method ) {
 	 * @return {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	/**
+	 * Attaches the media frame to the DOM.
+	 *
 	 * @function attach
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
@@ -333,6 +372,8 @@ _.each(['open','close','attach','detach','escape'], function( method ) {
 	 * @return {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	/**
+	 * Detaches the media frame from the DOM.
+	 *
 	 * @function detach
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
@@ -340,6 +381,8 @@ _.each(['open','close','attach','detach','escape'], function( method ) {
 	 * @return {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	/**
+	 * Triggers the escape action on the media frame modal.
+	 *
 	 * @function escape
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance

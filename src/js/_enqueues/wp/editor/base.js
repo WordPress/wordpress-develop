@@ -11,6 +11,7 @@ window.wp = window.wp || {};
 	 * Utility functions for the editor.
 	 *
 	 * @since 2.5.0
+	 * @return {Object} The editor utility functions.
 	 */
 	function SwitchEditors() {
 		var tinymce, $$,
@@ -22,7 +23,7 @@ window.wp = window.wp || {};
 				$$ = tinymce.$;
 
 				/**
-				 * Handles onclick events for the Visual/Text tabs.
+				 * Handles onclick events for the Visual/Code tabs.
 				 *
 				 * @since 4.3.0
 				 *
@@ -62,7 +63,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * Switches the editor between Visual and Text mode.
+		 * Switches the editor between Visual and Code mode.
 		 *
 		 * @since 2.5.0
 		 *
@@ -79,6 +80,8 @@ window.wp = window.wp || {};
 			var editorHeight, toolbarHeight, iframe,
 				editor = tinymce.get( id ),
 				wrap = $$( '#wp-' + id + '-wrap' ),
+				htmlSwitch = wrap.find( '.switch-tmce' ),
+				tmceSwitch = wrap.find( '.switch-html' ),
 				$textarea = $$( '#' + id ),
 				textarea = $textarea[0];
 
@@ -103,18 +106,7 @@ window.wp = window.wp || {};
 
 				editorHeight = parseInt( textarea.style.height, 10 ) || 0;
 
-				var keepSelection = false;
-				if ( editor ) {
-					keepSelection = editor.getParam( 'wp_keep_scroll_position' );
-				} else {
-					keepSelection = window.tinyMCEPreInit.mceInit[ id ] &&
-									window.tinyMCEPreInit.mceInit[ id ].wp_keep_scroll_position;
-				}
-
-				if ( keepSelection ) {
-					// Save the selection.
-					addHTMLBookmarkInTextAreaContent( $textarea );
-				}
+				addHTMLBookmarkInTextAreaContent( $textarea );
 
 				if ( editor ) {
 					editor.show();
@@ -130,15 +122,14 @@ window.wp = window.wp || {};
 						}
 					}
 
-					if ( editor.getParam( 'wp_keep_scroll_position' ) ) {
-						// Restore the selection.
-						focusHTMLBookmarkInVisualEditor( editor );
-					}
+					focusHTMLBookmarkInVisualEditor( editor );
 				} else {
 					tinymce.init( window.tinyMCEPreInit.mceInit[ id ] );
 				}
 
 				wrap.removeClass( 'html-active' ).addClass( 'tmce-active' );
+				tmceSwitch.attr( 'aria-pressed', false );
+				htmlSwitch.attr( 'aria-pressed', true );
 				$textarea.attr( 'aria-hidden', true );
 				window.setUserSetting( 'editor', 'tinymce' );
 
@@ -168,9 +159,7 @@ window.wp = window.wp || {};
 
 					var selectionRange = null;
 
-					if ( editor.getParam( 'wp_keep_scroll_position' ) ) {
-						selectionRange = findBookmarkedPosition( editor );
-					}
+					selectionRange = findBookmarkedPosition( editor );
 
 					editor.hide();
 
@@ -184,6 +173,8 @@ window.wp = window.wp || {};
 				}
 
 				wrap.removeClass( 'tmce-active' ).addClass( 'html-active' );
+				tmceSwitch.attr( 'aria-pressed', true );
+				htmlSwitch.attr( 'aria-pressed', false );
 				$textarea.attr( 'aria-hidden', false );
 				window.setUserSetting( 'editor', 'html' );
 			}
@@ -249,8 +240,8 @@ window.wp = window.wp || {};
 		 * @param {string} content The text content to check against.
 		 * @param {number} cursorPosition    The cursor position to check.
 		 *
-		 * @return {(undefined|Object)} Undefined if the cursor is not wrapped in a shortcode tag.
-		 *                              Information about the wrapping shortcode tag if it's wrapped in one.
+		 * @return {void|Object} Undefined if the cursor is not wrapped in a shortcode tag.
+		 *                       Information about the wrapping shortcode tag if it's wrapped in one.
 		 */
 		function getShortcodeWrapperInfo( content, cursorPosition ) {
 			var contentShortcodes = getShortCodePositionsInText( content );
@@ -268,6 +259,7 @@ window.wp = window.wp || {};
 		 * Gets a list of unique shortcodes or shortcode-lookalikes in the content.
 		 *
 		 * @param {string} content The content we want to scan for shortcodes.
+		 * @return {string[]} An array of unique shortcodes found in the content.
 		 */
 		function getShortcodesInText( content ) {
 			var shortcodes = content.match( /\[+([\w_-])+/g ),
@@ -300,7 +292,8 @@ window.wp = window.wp || {};
 		 * The information can also be used in other cases when we need to lookup shortcode data,
 		 * as it's already structured!
 		 *
-		 * @param {string} content The content we want to scan for shortcodes
+		 * @param {string} content The content we want to scan for shortcodes.
+		 * @return {Object[]} An array of objects with information about the shortcodes found in the content.
 		 */
 		function getShortCodePositionsInText( content ) {
 			var allShortcodes = getShortcodesInText( content ), shortcodeInfo;
@@ -372,6 +365,7 @@ window.wp = window.wp || {};
 		 *
 		 * @param {Object} domLib DOM library instance.
 		 * @param {string} content The content to insert into the cursor marker element.
+		 * @return {Object} The cursor marker element.
 		 */
 		function getCursorMarkerSpan( domLib, content ) {
 			return domLib( '<span>' ).css( {
@@ -395,7 +389,7 @@ window.wp = window.wp || {};
 		 * @param {string} content Textarea content that the cursors are in
 		 * @param {{cursorStart: number, cursorEnd: number}} cursorPositions Cursor start and end positions
 		 *
-		 * @return {{cursorStart: number, cursorEnd: number}}
+		 * @return {{cursorStart: number, cursorEnd: number}} Adjusted cursor positions with `cursorStart` and `cursorEnd` properties.
 		 */
 		function adjustTextAreaSelectionCursors( content, cursorPositions ) {
 			var voidElements = [
@@ -520,7 +514,7 @@ window.wp = window.wp || {};
 		 * Focuses the selection markers in Visual mode.
 		 *
 		 * The method checks for existing selection markers inside the editor DOM (Visual mode)
-		 * and create a selection between the two nodes using the DOM `createRange` selection API
+		 * and create a selection between the two nodes using the DOM `createRange` selection API.
 		 *
 		 * If there is only a single node, select only the single node through TinyMCE's selection API
 		 *
@@ -545,9 +539,7 @@ window.wp = window.wp || {};
 				}
 			}
 
-			if ( editor.getParam( 'wp_keep_scroll_position' ) ) {
-				scrollVisualModeToStartElement( editor, startNode );
-			}
+			scrollVisualModeToStartElement( editor, startNode );
 
 			removeSelectionMarker( startNode );
 			removeSelectionMarker( endNode );
@@ -661,7 +653,7 @@ window.wp = window.wp || {};
 		 * and why this solution was chosen.
 		 *
 		 * @param {Object} editor The editor where we must find the selection.
-		 * @return {(null|Object)} The selection range position in the editor.
+		 * @return {void|Object} The selection range position in the editor.
 		 */
 		function findBookmarkedPosition( editor ) {
 			// Get the TinyMCE `window` reference, since we need to access the raw selection.
@@ -850,7 +842,7 @@ window.wp = window.wp || {};
 			}
 		}
 
-		// Restore the selection when the editor is initialized. Needed when the Text editor is the default.
+		// Restore the selection when the editor is initialized. Needed when the Code editor is the default.
 		$( document ).on( 'tinymce-editor-init.keep-scroll-position', function( event, editor ) {
 			if ( editor.$( '.mce_SELRES_start' ).length ) {
 				focusHTMLBookmarkInVisualEditor( editor );
@@ -1215,7 +1207,7 @@ window.wp = window.wp || {};
 	/**
 	 * Initialize TinyMCE and/or Quicktags. For use with wp_enqueue_editor() (PHP).
 	 *
-	 * Intended for use with an existing textarea that will become the Text editor tab.
+	 * Intended for use with an existing textarea that will become the Code editor tab.
 	 * The editor width will be the width of the textarea container, height will be adjustable.
 	 *
 	 * Settings for both TinyMCE and Quicktags can be passed on initialization, and are "filtered"
@@ -1258,7 +1250,7 @@ window.wp = window.wp || {};
 			};
 		}
 
-		// Add wrap and the Visual|Text tabs.
+		// Add wrap and the Visual|Code tabs.
 		if ( settings.tinymce && settings.quicktags ) {
 			var $textarea = $( '#' + id );
 
@@ -1285,7 +1277,7 @@ window.wp = window.wp || {};
 
 				var $addMediaButton = $( '<button type="button" class="button insert-media add_media">' );
 
-				$addMediaButton.append( '<span class="wp-media-buttons-icon"></span>' );
+				$addMediaButton.append( '<span class="wp-media-buttons-icon" aria-hidden="true"></span>' );
 				$addMediaButton.append( document.createTextNode( ' ' + buttonText ) );
 				$addMediaButton.data( 'editor', id );
 
@@ -1305,7 +1297,7 @@ window.wp = window.wp || {};
 						.append( $button.attr({
 							id: id + '-html',
 							'class': 'wp-switch-editor switch-html'
-						}).text( window.tinymce.translate( 'Text' ) ) )
+						}).text( window.tinymce.translate( 'Code|tab' ) ) )
 					).append( $editorContainer )
 			);
 
@@ -1393,7 +1385,7 @@ window.wp = window.wp || {};
 	 * @since 4.8.0
 	 *
 	 * @param {string} id The HTML id of the editor textarea.
-	 * @return The editor content.
+	 * @return {void|string} The editor content.
 	 */
 	wp.editor.getContent = function( id ) {
 		var editor;

@@ -6,7 +6,7 @@
  *
  * @covers ::wp_is_authorize_application_password_request_valid
  */
-class Functions_WpIsAuthorizeApplicationPasswordRequestValid_Test extends WP_UnitTestCase {
+class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test extends WP_UnitTestCase {
 
 	/**
 	 * Test redirect URLs for application password authorization requests.
@@ -79,6 +79,18 @@ class Functions_WpIsAuthorizeApplicationPasswordRequestValid_Test extends WP_Uni
 			$datasets[ $environment_type . ' and a "http" scheme "reject_url"' ] = array(
 				'request'             => array( 'reject_url' => 'http://example.org' ),
 				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" loopback "success_url"' ] = array(
+				'request'             => array( 'success_url' => 'http://127.0.0.1:8080/callback' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" loopback "reject_url"' ] = array(
+				'request'             => array( 'reject_url' => 'http://127.0.0.1/callback' ),
+				'expected_error_code' => '',
 				'env'                 => $environment_type,
 			);
 		}
