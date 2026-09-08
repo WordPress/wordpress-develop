@@ -19,16 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Access to private property WP_Theme\:\:\$stylesheet\.$#'
-			identifier: property.private
-			count: 20
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
-			message: '#^Access to private property WP_Theme\:\:\$template\.$#'
-			identifier: property.private
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
 			message: '#^Access to private property WP_Block_Type\:\:\$uses_context\.$#'
 			identifier: property.private
 			count: 1

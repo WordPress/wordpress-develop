@@ -374,6 +374,9 @@ function get_taxonomy( $taxonomy ) {
  *
  * @param string $taxonomy Name of taxonomy object.
  * @return bool Whether the taxonomy exists.
+ *
+ * @phpstan-assert-if-true =non-falsy-string $taxonomy
+ * @phpstan-return ($taxonomy is non-falsy-string ? bool : false)
  */
 function taxonomy_exists( $taxonomy ) {
 	global $wp_taxonomies;
@@ -979,6 +982,13 @@ function get_tax_sql( $tax_query, $primary_table, $primary_id_column ) {
  * @param string             $filter   Optional. How to sanitize term fields. Default 'raw'.
  * @return WP_Term|array|WP_Error|null WP_Term instance (or array) on success, depending on the `$output` value.
  *                                     WP_Error if `$taxonomy` does not exist. Null for miscellaneous failure.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A'
+ *         ? array<string, string|int>|WP_Error|null
+ *         : ($output is 'ARRAY_N' ? list<string|int>|WP_Error|null : WP_Term|WP_Error|null)
+ * )
  */
 function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	if ( empty( $term ) ) {
@@ -1101,6 +1111,12 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
  * @param string     $filter   Optional. How to sanitize term fields. Default 'raw'.
  * @return WP_Term|array|false WP_Term instance (or array) on success, depending on the `$output` value.
  *                             False if `$taxonomy` does not exist or `$term` was not found.
+ *
+ * @phpstan-return false|(
+ *     $output is 'ARRAY_A'
+ *         ? array<string, string|int>
+ *         : ($output is 'ARRAY_N' ? list<string|int> : WP_Term)
+ * )
  */
 function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 
@@ -1251,7 +1267,7 @@ function get_term_field( $field, $term, $taxonomy = '', $context = 'display' ) {
  *
  * @param int|object $id       Term ID or object.
  * @param string     $taxonomy Taxonomy name.
- * @return string|int|null|WP_Error Will return empty string if $term is not an object.
+ * @return WP_Term|string|WP_Error Sanitized term, an empty string if `$id` is not a term, or WP_Error on failure.
  */
 function get_term_to_edit( $id, $taxonomy ) {
 	$term = get_term( $id, $taxonomy );
@@ -1756,6 +1772,10 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
  *                               Accepts 'raw', 'edit', 'db', 'display', 'rss',
  *                               'attribute', or 'js'. Default 'display'.
  * @return array|object Term with all fields sanitized.
+ *
+ * @phpstan-template T of array|object
+ * @phpstan-param T $term
+ * @phpstan-return T
  */
 function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 	$fields = array( 'term_id', 'name', 'description', 'slug', 'count', 'parent', 'term_group', 'term_taxonomy_id', 'object_id' );
@@ -1808,6 +1828,14 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
  *                         'attribute', or 'js'.
  * @return mixed Sanitized field.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     $field is 'parent'|'term_id'|'count'|'term_group'|'term_taxonomy_id'|'object_id'
+ *         ? int<0, max>
+ *         : ($context is 'raw' ? T : ($context is 'attribute'|'edit'|'js' ? string : mixed))
+ * )
  */
 function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 	$int_fields = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );
@@ -1987,6 +2015,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  *                             the integer 0 when the queried parent term is not in the taxonomy
  *                             hierarchy, or WP_Error if the taxonomy does not exist.
  * @phpstan-return numeric-string|0|WP_Error
+ * @phpstan-param '' $deprecated
  */
 function wp_count_terms( $args = array(), $deprecated = '' ) {
 	$use_legacy_args = false;

@@ -66,6 +66,9 @@ function wp_robots() {
  *
  * @param array $robots Associative array of robots directives.
  * @return array Filtered robots directives.
+ *
+ * @phpstan-param array<string, bool|string> $robots
+ * @phpstan-return array<string, bool|string>
  */
 function wp_robots_noindex( array $robots ) {
 	if ( ! get_option( 'blog_public' ) ) {
@@ -88,6 +91,9 @@ function wp_robots_noindex( array $robots ) {
  *
  * @param array $robots Associative array of robots directives.
  * @return array Filtered robots directives.
+ *
+ * @phpstan-param array<string, bool|string> $robots
+ * @phpstan-return array<string, bool|string>
  */
 function wp_robots_noindex_embeds( array $robots ) {
 	if ( is_embed() ) {
@@ -114,6 +120,9 @@ function wp_robots_noindex_embeds( array $robots ) {
  *
  * @param array $robots Associative array of robots directives.
  * @return array Filtered robots directives.
+ *
+ * @phpstan-param array<string, bool|string> $robots
+ * @phpstan-return array<string, bool|string>
  */
 function wp_robots_noindex_search( array $robots ) {
 	if ( is_search() ) {
@@ -136,6 +145,9 @@ function wp_robots_noindex_search( array $robots ) {
  *
  * @param array $robots Associative array of robots directives.
  * @return array Filtered robots directives.
+ *
+ * @phpstan-param array<string, bool|string> $robots
+ * @phpstan-return array<string, bool|string>
  */
 function wp_robots_no_robots( array $robots ) {
 	$robots['noindex'] = true;
@@ -163,6 +175,9 @@ function wp_robots_no_robots( array $robots ) {
  *
  * @param array $robots Associative array of robots directives.
  * @return array Filtered robots directives.
+ *
+ * @phpstan-param array<string, bool|string> $robots
+ * @phpstan-return array<string, bool|string>
  */
 function wp_robots_sensitive_page( array $robots ) {
 	$robots['noindex']   = true;
@@ -184,6 +199,9 @@ function wp_robots_sensitive_page( array $robots ) {
  *
  * @param array $robots Associative array of robots directives.
  * @return array Filtered robots directives.
+ *
+ * @phpstan-param array<string, bool|string> $robots
+ * @phpstan-return array<string, bool|string>
  */
 function wp_robots_max_image_preview_large( array $robots ) {
 	if ( get_option( 'blog_public' ) ) {

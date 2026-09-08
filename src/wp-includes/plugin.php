@@ -171,6 +171,8 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @param mixed  ...$args   Optional. Additional parameters to pass to the callback functions.
  * @no-named-arguments
  * @return mixed The filtered value after all hooked functions are applied to it.
+ *
+ * @phpstan-param non-empty-string $hook_name
  */
 function apply_filters( $hook_name, $value, ...$args ) {
 	global $wp_filter, $wp_filters, $wp_current_filter;
@@ -226,6 +228,8 @@ function apply_filters( $hook_name, $value, ...$args ) {
  * @param string                $hook_name The name of the filter hook.
  * @param non-empty-list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
  * @return mixed The filtered value after all hooked functions are applied to it.
+ *
+ * @phpstan-param non-empty-string $hook_name
  */
 function apply_filters_ref_array( $hook_name, $args ) {
 	global $wp_filter, $wp_filters, $wp_current_filter;
@@ -285,6 +289,7 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *                  If `$callback` and `$priority` are both provided, a boolean is returned
  *                  for whether the specific function is registered at that priority.
  * @phpstan-param Maybe_Callable|false $callback
+ * @phpstan-return ($callback is false ? bool : false|int)
  */
 function has_filter( $hook_name, $callback = false, $priority = false ) {
 	global $wp_filter;
@@ -369,6 +374,8 @@ function remove_all_filters( $hook_name, $priority = false ) {
  * @global string[] $wp_current_filter Stores the list of current filters with the current one last
  *
  * @return string|false Hook name of the current filter, false if no filter is running.
+ *
+ * @phpstan-return non-empty-string|false
  */
 function current_filter() {
 	global $wp_current_filter;
@@ -416,6 +423,8 @@ function doing_filter( $hook_name = null ) {
  *
  * @param string $hook_name The name of the filter hook.
  * @return int The number of times the filter hook has been applied.
+ *
+ * @phpstan-return int<0, max>
  */
 function did_filter( $hook_name ) {
 	global $wp_filters;
@@ -488,6 +497,8 @@ function add_action( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @param mixed  ...$arg    Optional. Additional arguments which are passed on to the
  *                          functions hooked to the action. Default empty.
  * @no-named-arguments
+ *
+ * @phpstan-param non-empty-string $hook_name
  */
 function do_action( $hook_name, ...$arg ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
@@ -543,6 +554,8 @@ function do_action( $hook_name, ...$arg ) {
  *
  * @param string      $hook_name The name of the action to be executed.
  * @param list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
+ *
+ * @phpstan-param non-empty-string $hook_name
  */
 function do_action_ref_array( $hook_name, $args ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
@@ -600,6 +613,7 @@ function do_action_ref_array( $hook_name, $args ) {
  *                  If `$callback` and `$priority` are both provided, a boolean is returned
  *                  for whether the specific function is registered at that priority.
  * @phpstan-param Maybe_Callable|false $callback
+ * @phpstan-return ($callback is false ? bool : false|int)
  */
 function has_action( $hook_name, $callback = false, $priority = false ) {
 	return has_filter( $hook_name, $callback, $priority );
@@ -650,6 +664,8 @@ function remove_all_actions( $hook_name, $priority = false ) {
  * @since 3.9.0
  *
  * @return string|false Hook name of the current action, false if no action is running.
+ *
+ * @phpstan-return non-empty-string|false
  */
 function current_action() {
 	return current_filter();
@@ -688,6 +704,8 @@ function doing_action( $hook_name = null ) {
  *
  * @param string $hook_name The name of the action hook.
  * @return int The number of times the action hook has been fired.
+ *
+ * @phpstan-return int<0, max>
  */
 function did_action( $hook_name ) {
 	global $wp_actions;
@@ -725,6 +743,8 @@ function did_action( $hook_name ) {
  * @param string                $replacement Optional. The hook that should have been used. Default empty.
  * @param string                $message     Optional. A message regarding the change. Default empty.
  * @return mixed The filtered value after all hooked functions are applied to it.
+ *
+ * @phpstan-param non-empty-string $hook_name
  */
 function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_filter( $hook_name ) ) {
@@ -752,6 +772,8 @@ function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '
  * @param string      $version     The version of WordPress that deprecated the hook.
  * @param string      $replacement Optional. The hook that should have been used. Default empty.
  * @param string      $message     Optional. A message regarding the change. Default empty.
+ *
+ * @phpstan-param non-empty-string $hook_name
  */
 function do_action_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_action( $hook_name ) ) {
@@ -882,6 +904,9 @@ function plugin_dir_url( $file ) {
  *
  * @param string   $file     The filename of the plugin including the path.
  * @param callable $callback The function hooked to the 'activate_PLUGIN' action.
+ *
+ * @phpstan-param callable(bool): void $callback
+ * @phpstan-return void
  */
 function register_activation_hook( $file, $callback ) {
 	$file = plugin_basename( $file );
@@ -905,6 +930,9 @@ function register_activation_hook( $file, $callback ) {
  *
  * @param string   $file     The filename of the plugin including the path.
  * @param callable $callback The function hooked to the 'deactivate_PLUGIN' action.
+ *
+ * @phpstan-param callable(bool): void $callback
+ * @phpstan-return void
  */
 function register_deactivation_hook( $file, $callback ) {
 	$file = plugin_basename( $file );
@@ -936,6 +964,8 @@ function register_deactivation_hook( $file, $callback ) {
  * @param string   $file     Plugin file.
  * @param callable $callback The callback to run when the hook is called. Must be
  *                           a static method or function.
+ *
+ * @phpstan-param callable(): void $callback
  */
 function register_uninstall_hook( $file, $callback ) {
 	if ( is_array( $callback ) && is_object( $callback[0] ) ) {

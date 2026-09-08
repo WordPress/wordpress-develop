@@ -685,6 +685,8 @@ function wp_default_packages( $scripts ) {
  *
  * @param string $type The type of suffix to retrieve.
  * @return string The script suffix.
+ *
+ * @phpstan-return ''|'.min'
  */
 function wp_scripts_get_suffix( $type = '' ) {
 	static $suffixes;
@@ -2938,6 +2940,9 @@ function wp_enqueue_editor_format_library_assets() {
  *
  * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String containing `<script>` opening and closing tags.
+ *
+ * @phpstan-param array<string, string|true> $attributes
+ * @phpstan-return non-falsy-string
  */
 function wp_get_script_tag( $attributes ) {
 	/**
@@ -3017,6 +3022,8 @@ function wp_print_script_tag( $attributes ) {
  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string HTML script tag containing the provided $data or the empty string `""` if the data cannot be safely embedded in a script tag.
+ *
+ * @phpstan-param array<string, string|true> $attributes
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";

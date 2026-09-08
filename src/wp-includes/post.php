@@ -1828,6 +1828,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * }
  * @return WP_Post_Type|WP_Error The registered post type object on success,
  *                               WP_Error object on failure.
+ *
+ * @phpstan-param lowercase-string&non-empty-string $post_type
  */
 function register_post_type( $post_type, $args = array() ) {
 	global $wp_post_types;

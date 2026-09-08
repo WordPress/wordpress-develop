@@ -1884,6 +1884,8 @@ function wp_unspam_comment( $comment_id ) {
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object
  * @return string|false Status might be 'trash', 'approved', 'unapproved', 'spam'. False on failure.
+ *
+ * @phpstan-return 'approved'|'spam'|'trash'|'unapproved'|false
  */
 function wp_get_comment_status( $comment_id ) {
 	$comment = get_comment( $comment_id );
@@ -2791,6 +2793,8 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
  * @param string         $comment_status New comment status, either 'hold', 'approve', 'spam', or 'trash'.
  * @param bool           $wp_error       Whether to return a WP_Error object if there is a failure. Default false.
  * @return bool|WP_Error True on success, false or WP_Error on failure.
+ *
+ * @phpstan-return ($wp_error is false ? bool : true|WP_Error)
  */
 function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false ) {
 	global $wpdb;
@@ -2866,6 +2870,8 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
  * @param bool  $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return int|false|WP_Error The value 1 if the comment was updated, 0 if not updated.
  *                            False or a WP_Error object on failure.
+ *
+ * @phpstan-return ( $wp_error is false ? int|false : int|WP_Error )
  */
 function wp_update_comment( $commentarr, $wp_error = false ) {
 	global $wpdb;
@@ -3181,6 +3187,8 @@ function wp_update_comment_count_now( $post_id ) {
  * @param string $url        URL to ping.
  * @param string $deprecated Not Used.
  * @return string|false String containing URI on success, false on failure.
+ *
+ * @phpstan-param '' $deprecated
  */
 function discover_pingback_server_uri( $url, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
