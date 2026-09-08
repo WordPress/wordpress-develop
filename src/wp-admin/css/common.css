@@ -16,7 +16,7 @@
 	min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - 8px);
 	padding-left: 20px;
 	background: #f0f0f1;
-	border-radius: var(--wpds-border-radius-xl, 12px);
+	border-radius: var(--wpds-border-radius-xl);
 	margin-bottom: 8px;
 	margin-right: 8px;
 	box-sizing: border-box;
@@ -2401,9 +2401,9 @@ html.wp-toolbar {
 
 #wpfooter {
 	position: absolute;
-	bottom: 8px;
+	bottom: var(--wpds-dimension-padding-sm);
 	left: 0;
-	right: 8px;
+	right: var(--wpds-dimension-padding-sm);
 	padding: 10px 28px 18px 20px;
 	color: #50575e;
 }
