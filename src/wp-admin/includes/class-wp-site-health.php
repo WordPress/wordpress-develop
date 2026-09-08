@@ -1403,7 +1403,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'Debug mode is often enabled to gather more details about an error or site failure, but may contain sensitive information which should not be available on a publicly available website.' )
+				__( 'Debug mode is often enabled to gather more details about an error or site failure, but may contain sensitive information which should not be available on a public website.' )
 			),
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
@@ -1437,11 +1437,6 @@ class WP_Site_Health {
 
 				$result['status'] = 'critical';
 
-				// On development environments, set the status to recommended.
-				if ( $this->is_development_environment() ) {
-					$result['status'] = 'recommended';
-				}
-
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					sprintf(
@@ -1451,6 +1446,24 @@ class WP_Site_Health {
 						'<code>WP_DEBUG</code>'
 					)
 				);
+
+				// On development environments, set the status to recommended, display an appropriate label, and complete the description.
+				if ( $this->is_development_environment() ) {
+					$result['label']        = __( 'Your site is set to display errors in a development environment' );
+					$result['status']       = 'recommended';
+					$result['description'] .= sprintf(
+						'<p>%s</p>',
+						__( 'Since the site is currently using the development environment, this should be fine. If these values are manually defined in the wp-config.php file, remember to disable these before the website goes live.' )
+					);
+				}
+			} elseif ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+				if ( $this->is_development_environment() ) {
+					$result['status']       = 'recommended';
+					$result['description'] .= sprintf(
+						'<p>%s</p>',
+						__( 'Since the site is currently using the development environment, this should be fine. If these values are manually defined in the wp-config.php file, remember to disable these before the website goes live.' )
+					);
+				}
 			}
 		}
 
