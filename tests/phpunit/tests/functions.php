@@ -2149,18 +2149,22 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
-			'HTTP URL'                   => array( 'http://example.com', true ),
-			'HTTPS URL'                  => array( 'https://example.com', true ),
-			'FTP URL'                    => array( 'ftp://example.com', true ),
-			'file URL'                   => array( 'file:///path/to/some/file', true ),
-			'uppercase file scheme'      => array( 'FILE:///path/to/some/file', true ),
-			'PHP stream URL'             => array( 'php://some/php/file.php', true ),
+			'HTTP URL'                    => array( 'http://example.com', true ),
+			'HTTPS URL'                   => array( 'https://example.com', true ),
+			'FTP URL'                     => array( 'ftp://example.com', true ),
+			'file URL'                    => array( 'file:///path/to/some/file', true ),
+			'uppercase file scheme'       => array( 'FILE:///path/to/some/file', true ),
+			'PHP stream URL'              => array( 'php://some/php/file.php', true ),
 
 			// Non-stream examples.
-			'unregistered stream scheme' => array( 'fakestream://foo/bar/baz', false ),
-			'parent-relative path'       => array( '../../some/relative/path', false ),
-			'relative path'              => array( 'some/other/relative/path', false ),
-			'absolute path'              => array( '/leading/relative/path', false ),
+			'unregistered stream scheme'  => array( 'fakestream://foo/bar/baz', false ),
+			'parent-relative path'        => array( '../../some/relative/path', false ),
+			'relative path'               => array( 'some/other/relative/path', false ),
+			'absolute path'               => array( '/leading/relative/path', false ),
+			'data URL without slashes'    => array( 'data:text/plain,hello', false ),
+			'data URL with one slash'     => array( 'data:/text/plain,hello', false ),
+			'data URL with URL payload'   => array( 'data:text/plain,http://example.com', false ),
+			'data URL with empty payload' => array( 'data:', false ),
 		);
 	}
 
@@ -2251,15 +2255,66 @@ class Tests_Functions extends WP_UnitTestCase {
 			'leading space'                     => array( 'wpteststream', ' wpteststream://bucket/file', false ),
 			'leading path'                      => array( 'wpteststream', '/wpteststream://bucket/file', false ),
 			'existing local file'               => array( 'wpteststream', __FILE__, false ),
-			'data without slashes'              => array( 'data', 'data:text/plain,hello', true ),
-			'data with one slash'               => array( 'data', 'data:/text/plain,hello', true ),
 			'data with two slashes'             => array( 'data', 'data://text/plain,hello', true ),
 			'data uppercase without slashes'    => array( 'data', 'DATA:text/plain,hello', false ),
 			'data mixed case without slashes'   => array( 'data', 'Data:text/plain,hello', false ),
 			'data uppercase with slashes'       => array( 'data', 'DATA://text/plain,hello', true ),
-			'data with URL in payload'          => array( 'data', 'data:text/plain,wpteststream://bucket/file', true ),
-			'data with empty payload'           => array( 'data', 'data:', true ),
-			'data unregistered'                 => array( 'data', 'data:text/plain,hello', false, false ),
+			'data mixed case with slashes'      => array( 'data', 'Data://text/plain,hello', true ),
+			'data unregistered'                 => array( 'data', 'data://text/plain,hello', false, false ),
+		);
+	}
+
+	/**
+	 * Tests built-in handlers separately from wrapper selection.
+	 *
+	 * @ticket 65870
+	 *
+	 * @dataProvider data_php_builtin_stream_wrapper_case
+	 *
+	 * @param string       $url      The URL to open.
+	 * @param string|false $expected Expected contents, or false if opening fails.
+	 */
+	public function test_php_builtin_stream_wrapper_case( $url, $expected ) {
+		if ( 0 === strncasecmp( $url, 'data:', 5 ) && ! ini_get( 'allow_url_fopen' ) ) {
+			$this->markTestSkipped( 'The data wrapper requires allow_url_fopen.' );
+		}
+
+		$handle = false;
+		try {
+			$handle = @fopen( $url, 'r' );
+			$this->assertSame( false !== $expected, is_resource( $handle ), 'Unexpected built-in handler open result.' );
+			if ( is_resource( $handle ) ) {
+				$this->assertSame( $expected, stream_get_contents( $handle ) );
+			}
+		} finally {
+			if ( is_resource( $handle ) ) {
+				fclose( $handle );
+			}
+		}
+	}
+
+	/**
+	 * Data provider for built-in handler behavior with different scheme cases.
+	 *
+	 * @return array[]
+	 */
+	public function data_php_builtin_stream_wrapper_case() {
+		$file     = DIR_TESTDATA . '/formatting/entities.txt';
+		$contents = file_get_contents( $file );
+
+		return array(
+			'data lowercase without slashes'  => array( 'data:text/plain,hello', 'hello' ),
+			'data uppercase without slashes'  => array( 'DATA:text/plain,hello', false ),
+			'data mixed case without slashes' => array( 'Data:text/plain,hello', false ),
+			'data lowercase with slashes'     => array( 'data://text/plain,hello', 'hello' ),
+			'data uppercase with slashes'     => array( 'DATA://text/plain,hello', false ),
+			'data mixed case with slashes'    => array( 'Data://text/plain,hello', false ),
+			'php lowercase'                   => array( 'php://memory', '' ),
+			'php uppercase'                   => array( 'PHP://memory', '' ),
+			'php mixed case'                  => array( 'Php://memory', '' ),
+			'file lowercase'                  => array( 'file://' . $file, $contents ),
+			'file uppercase'                  => array( 'FILE://' . $file, $contents ),
+			'file mixed case'                 => array( 'File://' . $file, $contents ),
 		);
 	}
 
