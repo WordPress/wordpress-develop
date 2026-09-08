@@ -21,11 +21,23 @@
 ( function( $ ) {
 	var wpApiSettings = window.wpApiSettings;
 
+	/**
+	 * Makes an API request.
+	 *
+	 * @param {Object} options The options for the API request.
+	 * @return {JQueryXHR} The jQuery XHR object.
+	 */
 	function apiRequest( options ) {
 		options = apiRequest.buildAjaxOptions( options );
 		return apiRequest.transport( options );
 	}
 
+	/**
+	 * Builds the options for the jQuery.ajax request.
+	 *
+	 * @param {Object} options The options for the API request.
+	 * @return {Object} The options for the jQuery.ajax request.
+	 */
 	apiRequest.buildAjaxOptions = function( options ) {
 		var url = options.url;
 		var path = options.path;
