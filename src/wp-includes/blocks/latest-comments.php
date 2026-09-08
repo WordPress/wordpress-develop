@@ -120,10 +120,7 @@ function render_block_core_latest_comments( $attributes ) {
 			}
 			$list_items_markup .= '</footer>';
 			if ( 'full' === $display_content ) {
-				$comment_text       = post_password_required( $comment->comment_post_ID )
-					? __( 'Password protected' )
-					: get_comment_text( $comment );
-				$list_items_markup .= '<div class="wp-block-latest-comments__comment-excerpt">' . wpautop( $comment_text ) . '</div>';
+				$list_items_markup .= '<div class="wp-block-latest-comments__comment-excerpt">' . wpautop( get_comment_text( $comment ) ) . '</div>';
 			} elseif ( 'excerpt' === $display_content ) {
 				$list_items_markup .= '<div class="wp-block-latest-comments__comment-excerpt">' . wpautop( get_comment_excerpt( $comment ) ) . '</div>';
 			}
