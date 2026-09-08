@@ -5,6 +5,8 @@
 /* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
 
 /**
+ * The WordPress Customizer controls API.
+ *
  * @param {Object}       wp The WordPress global object.
  * @param {JQueryStatic} $  The jQuery object.
  */
@@ -1067,6 +1069,8 @@
 		},
 
 		/**
+		 * Handles the ready state (when overridden).
+		 *
 		 * @since 4.1.0
 		 *
 		 * @abstract
@@ -1175,6 +1179,8 @@
 		},
 
 		/**
+		 * Handles the toggle logic to transition the active state.
+		 *
 		 * @since 4.1.0
 		 *
 		 * @param {boolean} active   The active state to transition to.
@@ -1438,6 +1444,8 @@
 		},
 
 		/**
+		 * Initializes a section.
+		 *
 		 * @constructs wp.customize.Section
 		 * @augments   wp.customize~Container
 		 *
@@ -2804,6 +2812,8 @@
 		containerType: 'panel',
 
 		/**
+		 * Initializes a panel.
+		 *
 		 * @constructs wp.customize.Panel
 		 * @augments   wp.customize~Container
 		 *
@@ -2864,6 +2874,8 @@
 		},
 
 		/**
+		 * Attaches events to the panel.
+		 *
 		 * @since 4.1.0
 		 */
 		attachEvents: function () {
@@ -5196,6 +5208,8 @@
 		screenshotRendered: false,
 
 		/**
+		 * Handles the control's ready state.
+		 *
 		 * @since 4.2.0
 		 */
 		ready: function() {
@@ -6558,6 +6572,8 @@
 		refreshBuffer: null, // Will get set to api.settings.timeouts.windowRefresh.
 
 		/**
+		 * Initializes the previewer.
+		 *
 		 * @constructs wp.customize.Previewer
 		 * @augments   wp.customize.Messenger
 		 *
