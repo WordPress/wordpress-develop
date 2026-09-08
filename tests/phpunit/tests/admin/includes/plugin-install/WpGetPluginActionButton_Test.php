@@ -8,7 +8,6 @@
  *
  * @covers ::wp_get_plugin_action_button
  */
-
 class Admin_Includes_Plugin_Install_WpGetPluginActionButton_Test extends WP_UnitTestCase {
 
 	/**
