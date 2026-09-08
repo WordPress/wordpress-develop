@@ -773,7 +773,7 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 		wp_unslash( $commentdata['comment_content'] )
 	);
 
-	$dupe_id = $wpdb->get_var( $dupe );
+	$dupe_id = (int) $wpdb->get_var( $dupe );
 
 	/**
 	 * Filters the ID, if any, of the duplicate comment found when creating a new comment.

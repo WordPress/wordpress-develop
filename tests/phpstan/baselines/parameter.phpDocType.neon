@@ -19,62 +19,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^@param array\<string, string\> \$inline_edit_statuses does not accept actual type of parameter\: array\{\-1\?\: string, pending\: string, draft\: string\}\|array\{\-1\?\: string, publish\: string, future\: string, private\?\: string, pending\: string, draft\: string\}\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-posts-list-table.php
-		-
-			message: '#^@param bool \$bulk does not accept actual type of parameter\: 0\|1\.$#'
-			identifier: parameter.phpDocType
-			count: 3
-			path: ../../../src/wp-admin/includes/class-wp-posts-list-table.php
-		-
-			message: '#^@param string \$items does not accept actual type of parameter\: 3\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: ../../../src/wp-admin/includes/dashboard.php
-		-
-			message: '#^@param bool \$bool does not accept actual type of parameter\: ''''\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: ../../../src/wp-admin/includes/media.php
-		-
 			message: '#^PHPDoc tag @param for parameter \$block_type with type array\<string\> is incompatible with native type string\.$#'
 			identifier: parameter.phpDocType
 			count: 1
 			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^@param stdClass \$details does not accept actual type of parameter\: WP_Site\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: ../../../src/wp-includes/class-wp-site.php
-		-
-			message: '#^@param int \$dupe_id does not accept actual type of parameter\: non\-empty\-string\|null\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: ../../../src/wp-includes/comment.php
-		-
-			message: '#^@param string \$audio does not accept actual type of parameter\: WP_Post\|null\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: ../../../src/wp-includes/media.php
-		-
-			message: '#^@param string \$text does not accept actual type of parameter\: bool\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: ../../../src/wp-includes/media.php
-		-
-			message: '#^@param string \$video does not accept actual type of parameter\: WP_Post\|null\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: ../../../src/wp-includes/media.php
-		-
-			message: '#^@param int \$meta_id does not accept actual type of parameter\: non\-empty\-string\|null\.$#'
-			identifier: parameter.phpDocType
-			count: 4
-			path: ../../../src/wp-includes/meta.php
-		-
-			message: '#^@param int \$tt_id does not accept actual type of parameter\: numeric\-string\.$#'
-			identifier: parameter.phpDocType
-			count: 4
-			path: ../../../src/wp-includes/taxonomy.php

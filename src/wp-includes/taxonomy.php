@@ -2098,7 +2098,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 		return $ids;
 	}
 
-	$tt_id = $ids['term_taxonomy_id'];
+	$tt_id = (int) $ids['term_taxonomy_id'];
 
 	$defaults = array();
 

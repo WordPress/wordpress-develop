@@ -266,6 +266,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	if ( empty( $meta_ids ) ) {
 		return add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
 	}
+	$meta_ids = array_map( 'intval', $meta_ids );
 
 	$_meta_value = $meta_value;
 	$meta_value  = maybe_serialize( $meta_value );
