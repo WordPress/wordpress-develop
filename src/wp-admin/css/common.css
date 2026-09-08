@@ -8,16 +8,17 @@
 	overflow-y: auto;
 	-webkit-font-smoothing: subpixel-antialiased;
 	background: #1e1e1e;
+	box-sizing: border-box;
+	padding-bottom: var(--wpds-dimension-padding-sm);
 }
 
 #wpcontent {
 	/* Fill the viewport when short; grow with content when taller. */
 	height: auto;
-	min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - 8px);
+	min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - var(--wpds-dimension-padding-sm));
 	padding-left: 20px;
 	background: #f0f0f1;
 	border-radius: var(--wpds-border-radius-xl);
-	margin-bottom: 8px;
 	margin-right: 8px;
 	box-sizing: border-box;
 }
