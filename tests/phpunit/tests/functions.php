@@ -2149,18 +2149,18 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
-			array( 'http://example.com', true ),
-			array( 'https://example.com', true ),
-			array( 'ftp://example.com', true ),
-			array( 'file:///path/to/some/file', true ),
-			array( 'FILE:///path/to/some/file', true ),
-			array( 'php://some/php/file.php', true ),
+			'HTTP URL'                   => array( 'http://example.com', true ),
+			'HTTPS URL'                  => array( 'https://example.com', true ),
+			'FTP URL'                    => array( 'ftp://example.com', true ),
+			'file URL'                   => array( 'file:///path/to/some/file', true ),
+			'uppercase file scheme'      => array( 'FILE:///path/to/some/file', true ),
+			'PHP stream URL'             => array( 'php://some/php/file.php', true ),
 
 			// Non-stream examples.
-			array( 'fakestream://foo/bar/baz', false ),
-			array( '../../some/relative/path', false ),
-			array( 'some/other/relative/path', false ),
-			array( '/leading/relative/path', false ),
+			'unregistered stream scheme' => array( 'fakestream://foo/bar/baz', false ),
+			'parent-relative path'       => array( '../../some/relative/path', false ),
+			'relative path'              => array( 'some/other/relative/path', false ),
+			'absolute path'              => array( '/leading/relative/path', false ),
 		);
 	}
 
