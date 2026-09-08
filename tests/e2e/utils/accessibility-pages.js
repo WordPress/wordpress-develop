@@ -71,6 +71,20 @@ const pages = [
 		stateVariants: [
 			{
 				name: 'default',
+				setup: async ( page, requestUtils ) => {
+					// Create a published post.
+					await requestUtils.createPost( {
+						title: 'Test Published Post',
+						status: 'publish',
+					} );
+					// Create a pending review post so there's something to filter.
+					await requestUtils.createPost( {
+						title: 'Test Pending Review Post',
+						status: 'pending',
+					} );
+					// Reload the page to show the draft.
+					await page.reload();
+				},
 			},
 			{
 				name: 'draft-filter',
@@ -82,7 +96,7 @@ const pages = [
 					} );
 					// Reload the page to show the draft.
 					await page.reload();
-				// Ensure table is visible before filtering.
+					// Ensure table is visible before filtering.
 					const tableVisible = await page.locator( 'table.wp-list-table' ).isVisible();
 					if ( tableVisible ) {
 						await filterByStatus( page, 'draft' );
