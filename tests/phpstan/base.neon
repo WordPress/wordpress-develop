@@ -40,7 +40,7 @@ services:
 			- phpstan.broker.dynamicFunctionReturnTypeExtension
 
 	# Types the return value of wp_parse_args() from the arguments it was called
-	# with, which its `@return array` otherwise discards.
+	# with, which its documented return type necessarily cannot describe.
 	-
 		class: WordPress\PHPStan\WpParseArgsDynamicFunctionReturnTypeExtension
 		tags:

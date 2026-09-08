@@ -96,7 +96,7 @@ Hashes are also written on hook docblocks, where core documents `apply_filters()
 
 ### Parsed arguments
 
-`wp_parse_args()` is documented `@return array`, which discards everything its body works out. The body ends in `array_merge( $defaults, $parsed_args )`, so a call whose defaults are known statically returns an array whose keys are known too — and roughly four in five calls across `src/` pass a defaults array written out at the call site.
+`wp_parse_args()` documents what it promises for every call, which is necessarily less than what any particular call returns. The body ends in `array_merge( $defaults, $parsed_args )`, so a call whose defaults are known statically returns an array whose keys are known too — and roughly four in five calls across `src/` pass a defaults array written out at the call site.
 
 `WpParseArgsDynamicFunctionReturnTypeExtension` puts that back:
 
@@ -104,13 +104,15 @@ Hashes are also written on hook docblocks, where core documents `apply_filters()
 wp_parse_args( $query, array( 'orderby' => 'name', 'number' => 10 ) )
 ```
 
-is `array{orderby: mixed, number: mixed, ...<string, mixed>}` rather than `array`. The values are `mixed` there because `$query` may hold anything at any key, and an unshaped array genuinely says nothing about what a caller passed.
+is `array{orderby: mixed, number: mixed, ...<string, mixed>}` rather than the documented `array<array-key, mixed>`. The values are `mixed` there because `$query` may hold anything at any key, and an unshaped array genuinely says nothing about what a caller passed.
 
-Where `$args` *is* shaped the value types survive the merge as well, which is where most of the benefit comes from. That happens on its own: [hash notation](#hash-notation) derives a shape from the `@type` list documenting an `$args` parameter, and this extension is what stops the `@return array` from throwing it away again. The two compound — documenting a hash on a function that parses its arguments now types the parsed result too.
+Where `$args` *is* shaped the value types survive the merge as well, which is where most of the benefit comes from. That happens on its own: [hash notation](#hash-notation) derives a shape from the `@type` list documenting an `$args` parameter, and this extension is what stops the documented return type from throwing it away again. The two compound — documenting a hash on a function that parses its arguments now types the parsed result too.
 
-Nothing here assumes a caller honors the types of the defaults it overrides. The three branches the body takes for `$args` are modeled as written — an array is used as it is, an object goes through `get_object_vars()`, and anything else through `wp_parse_str()`, whose keys are *not* narrowed to strings since `parse_str()` reads `0=a` as an integer key. The merge itself is handed back to PHPStan's own `array_merge()` support rather than reimplemented, so it stays correct about integer-key renumbering and about how two shapes combine.
+Nothing here assumes a caller honors the types of the defaults it overrides. The branches the body takes for `$args` are modeled as written — an array is used as it is, an object goes through `get_object_vars()`, and anything else through `wp_parse_str()`, whose keys are *not* narrowed to strings since `parse_str()` reads `0=a` as an integer key. Both the merge and the object conversion are handed back to PHPStan's own support for `array_merge()` and `get_object_vars()` rather than reimplemented, so they stay correct about integer-key renumbering, about how two shapes combine, and about which properties an object actually has.
 
-A call whose `$args` is `mixed` constrains nothing, and is left with the documented `array`.
+The object conversion is only synthesized outside class scope. `wp_parse_args()` is a global function, so the `get_object_vars()` inside it sees public properties only, while the same call resolved in the caller's scope would see the private and protected ones too. Inside a class the extension therefore declines. This handling is adapted from [szepeviktor/phpstan-wordpress](https://github.com/szepeviktor/phpstan-wordpress/pull/309).
+
+A call whose `$args` could still be an object without being known to be one constrains nothing, and is left with the documented return type. So is a call that unpacks its arguments, since an unpacked argument is not matched up with the parameter it lands on.
 
 ### Hook documentation
 
