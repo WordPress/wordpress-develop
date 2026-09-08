@@ -42,7 +42,7 @@ function wp_get_view_transitions_admin_css(): string {
  * (small) first-render delay to when view transitions actually run, matching the
  * `@view-transition` rule in view-transitions.css.
  *
- * @since 7.0.1
+ * @since 7.2.0
  *
  * @link https://html.spec.whatwg.org/multipage/links.html#link-type-expect
  */
