@@ -441,7 +441,13 @@ function wp_is_maintenance_mode() {
 		return false;
 	}
 
-	require ABSPATH . '.maintenance';
+	// The file may be removed between the check above and the load below.
+	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in expected failure case.
+	$maintenance_file_loaded = @include ABSPATH . '.maintenance';
+
+	if ( false === $maintenance_file_loaded ) {
+		return false;
+	}
 
 	// If the $upgrading timestamp is older than 10 minutes, consider maintenance over.
 	if ( ( time() - $upgrading ) >= 10 * MINUTE_IN_SECONDS ) {
