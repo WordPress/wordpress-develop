@@ -25,6 +25,7 @@
 @media (min-width: 782px) {
 	#wpcontent {
 		border-radius: var(--wpds-border-radius-xl);
+		overflow-block: hidden;
 	}
 }
 
