@@ -1009,6 +1009,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		? wp_allowed_protocols()
 		: $allowed_protocols;
 
+	// Preserve legacy behavior of stripping unwanted C0 control characters.
+	$content = preg_replace( '/[\x01-\x08\x0B\x0C\x0E-\x1F]/', '', $content );
+
 	// Call legacy pre-kses filters that might have been added by plugins.
 	$content = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
 
