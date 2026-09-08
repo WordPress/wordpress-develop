@@ -13,7 +13,14 @@
 	@return '%23' + string.slice( '#{ $color }', 2, -1 );
 }
 
-body {
+body,
+#wpwrap {
+	background: variables.$menu-background;
+}
+
+/* Rounded admin canvas (see common.css #wpcontent / #wpfooter). */
+#wpcontent,
+#wpfooter {
 	background: variables.$body-background;
 }
 
