@@ -5021,15 +5021,22 @@ function smilies_init() {
  * This function is used throughout WordPress to allow for both string or array
  * to be merged into another array.
  *
+ * The keys of the returned array are documented as strings, since that is what
+ * callers mean by them, but they are not promised as such to static analysis.
+ * Integer keys remain reachable through arguments that are perfectly valid:
+ * `json_decode( '{"0":"a"}' )` is an object whose properties `get_object_vars()`
+ * reports under an integer key, and `parse_str()` reads `0=a` as one as well.
+ *
  * @since 2.2.0
  * @since 2.3.0 `$args` can now also be an object.
  *
- * @param string|array|object $args     Value to merge with $defaults.
- * @param array               $defaults Optional. Array that serves as the defaults.
- *                                      Default empty array.
- * @return array Merged user defined values with defaults.
+ * @param string|array<string, mixed>|object $args     Value to merge with $defaults.
+ * @param array<string, mixed>               $defaults Optional. Array that serves as the defaults.
+ *                                                     Default empty array.
+ * @return array<string, mixed> Merged user defined values with defaults.
+ * @phpstan-return array<array-key, mixed>
  */
-function wp_parse_args( $args, $defaults = array() ) {
+function wp_parse_args( $args, $defaults = array() ): array {
 	if ( is_object( $args ) ) {
 		$parsed_args = get_object_vars( $args );
 	} elseif ( is_array( $args ) ) {
@@ -5127,11 +5134,17 @@ function wp_parse_slug_list( $input_list ): array {
  *
  * @since 3.1.0
  *
- * @param array $input_array The original array.
- * @param array $keys        The list of keys.
- * @return array The array slice.
+ * @param array<string, mixed> $input_array The original array.
+ * @param string[]             $keys        The list of keys.
+ * @return array<string, mixed> The array slice.
+ *
+ * @phpstan-template TKey of string
+ * @phpstan-template TValue
+ * @phpstan-param array<string, TValue> $input_array
+ * @phpstan-param array<TKey> $keys
+ * @phpstan-return array<TKey, TValue>
  */
-function wp_array_slice_assoc( $input_array, $keys ) {
+function wp_array_slice_assoc( $input_array, $keys ): array {
 	$slice = array();
 
 	foreach ( $keys as $key ) {

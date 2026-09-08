@@ -5,6 +5,8 @@
  */
 
 /**
+ * Handles the user profile functionality.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {
