@@ -7543,19 +7543,25 @@ function _device_can_upload() {
 }
 
 /**
- * Tests if a given path is a stream URL
+ * Tests if a given path is a stream URL.
  *
  * @since 3.5.0
- * @since 7.2.0 A lowercased scheme is accepted as a fallback, matching PHP.
+ * @since 7.2.0 Matches PHP's scheme case fallback, minimum scheme length,
+ *              and recognition of data: URLs without slashes.
  *
  * @param string $path The resource path or URL.
  * @return bool True if the path is a stream URL.
  */
 function wp_is_stream( $path ) {
+	// PHP also recognizes the case-sensitive "data:" prefix without slashes.
+	if ( str_starts_with( $path, 'data:' ) ) {
+		return in_array( 'data', stream_get_wrappers(), true );
+	}
+
 	$scheme_separator = strpos( $path, '://' );
 
-	if ( false === $scheme_separator ) {
-		// $path isn't a stream.
+	if ( false === $scheme_separator || $scheme_separator < 2 ) {
+		// PHP requires at least two characters in a scheme.
 		return false;
 	}
 
