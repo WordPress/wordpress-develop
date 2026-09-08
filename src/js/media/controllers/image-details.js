@@ -42,6 +42,8 @@ ImageDetails = State.extend(/** @lends wp.media.controller.ImageDetails.prototyp
 	}, Library.prototype.defaults ),
 
 	/**
+	 * Initializes the ImageDetails controller.
+	 *
 	 * @since 3.9.0
 	 *
 	 * @param {Object} options Attributes.
@@ -52,6 +54,8 @@ ImageDetails = State.extend(/** @lends wp.media.controller.ImageDetails.prototyp
 	},
 
 	/**
+	 * Activates the ImageDetails controller.
+	 *
 	 * @since 3.9.0
 	 */
 	activate: function() {

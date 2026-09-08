@@ -47,6 +47,8 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 		this.listenTo( this.model, 'change', this.render );
 	},
 	/**
+	 * Renders the button.
+	 *
 	 * @return {wp.media.view.Button} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -70,6 +72,8 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 		return this;
 	},
 	/**
+	 * Handles the click event.
+	 *
 	 * @param {Object} event
 	 */
 	click: function( event ) {

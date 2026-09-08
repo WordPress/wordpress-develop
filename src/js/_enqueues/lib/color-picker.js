@@ -5,6 +5,8 @@
  */
 
 /**
+ * Handles the color picker functionality.
+ *
  * @param {JQueryStatic} $     The jQuery object.
  * @param {undefined}    undef The undefined value.
  */

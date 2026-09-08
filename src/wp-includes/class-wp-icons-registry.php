@@ -320,8 +320,8 @@ class WP_Icons_Registry {
 			return null;
 		}
 
-		$icon            = $this->registered_icons[ $icon_name ];
-		$icon['content'] = $icon['content'] ?? $this->get_content( $icon_name );
+		$icon              = $this->registered_icons[ $icon_name ];
+		$icon['content'] ??= $this->get_content( $icon_name );
 
 		return $icon;
 	}
@@ -346,8 +346,8 @@ class WP_Icons_Registry {
 				continue;
 			}
 
-			$icon['content'] = $icon['content'] ?? $this->get_content( $icon['name'] );
-			$icons[]         = $icon;
+			$icon['content'] ??= $this->get_content( $icon['name'] );
+			$icons[]           = $icon;
 		}
 
 		return $icons;

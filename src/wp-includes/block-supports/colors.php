@@ -76,8 +76,8 @@ function wp_register_colors_support( $block_type ) {
  * @since 7.1.0 Suppresses color.gradient when background.gradient is supported and set.
  * @access private
  *
- * @param  WP_Block_Type $block_type       Block type.
- * @param  array         $block_attributes Block attributes.
+ * @param WP_Block_Type $block_type       Block type.
+ * @param array         $block_attributes Block attributes.
  * @return array Colors CSS classes and inline styles.
  */
 function wp_apply_colors_support( $block_type, $block_attributes ) {

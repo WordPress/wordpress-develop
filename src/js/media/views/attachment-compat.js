@@ -30,6 +30,8 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 	},
 
 	/**
+	 * Disposes of the view and its children.
+	 *
 	 * @return {wp.media.view.AttachmentCompat} Returns itself to allow chaining.
 	 */
 	dispose: function() {
@@ -42,6 +44,8 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		return View.prototype.dispose.apply( this, arguments );
 	},
 	/**
+	 * Renders the view.
+	 *
 	 * @return {void|wp.media.view.AttachmentCompat} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -56,12 +60,16 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		return this;
 	},
 	/**
+	 * Prevents the default action of the event.
+	 *
 	 * @param {Object} event
 	 */
 	preventDefault: function( event ) {
 		event.preventDefault();
 	},
 	/**
+	 * Saves the attachment compat data.
+	 *
 	 * @param {Object} event
 	 */
 	save: function( event ) {
@@ -79,6 +87,9 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		this.model.saveCompat( data ).always( _.bind( this.postSave, this ) );
 	},
 
+	/**
+	 * Triggers the `attachment:compat:ready` event on the controller after saving the compat data.
+	 */
 	postSave: function() {
 		this.controller.trigger( 'attachment:compat:ready', ['ready'] );
 	}
