@@ -2785,4 +2785,86 @@ class Tests_REST_API extends WP_UnitTestCase {
 			throw $e; // Re-throw to satisfy expectException
 		}
 	}
+
+	/**
+	 * @ticket 64926
+	 */
+	public function test_validate_json_string_array() {
+		$schema = array(
+			'type'  => 'array',
+			'items' => array( 'type' => 'integer' ),
+		);
+
+		$value    = '[1, 2, 3]';
+		$is_valid = rest_validate_value_from_schema( $value, $schema, 'test_param' );
+
+		$this->assertTrue( $is_valid, 'The JSON array string should be correctly decoded and validated.' );
+	}
+
+	/**
+	 * @ticket 64926
+	 */
+	public function test_validate_json_string_object() {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'id'   => array( 'type' => 'integer' ),
+				'name' => array( 'type' => 'string' ),
+			),
+		);
+
+		$value    = '{"id": 123, "name": "Gemini"}';
+		$is_valid = rest_validate_value_from_schema( $value, $schema, 'test_param' );
+
+		$this->assertTrue( $is_valid, 'The JSON object string should be correctly decoded and validated.' );
+	}
+
+	/**
+	 * @ticket 64926
+	 */
+	public function test_sanitize_json_string_array() {
+		$schema = array(
+			'type'  => 'array',
+			'items' => array( 'type' => 'integer' ),
+		);
+
+		$value     = '[10, "20", 30]';
+		$sanitized = rest_sanitize_value_from_schema( $value, $schema, 'test_param' );
+
+		$this->assertIsArray( $sanitized );
+		$this->assertSame( array( 10, 20, 30 ), $sanitized );
+	}
+
+	/**
+	 * @ticket 64926
+	 */
+	public function test_sanitize_json_string_object() {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'active' => array( 'type' => 'boolean' ),
+			),
+		);
+
+		$value     = '{"active": "true"}';
+		$sanitized = rest_sanitize_value_from_schema( $value, $schema, 'test_param' );
+
+		$this->assertIsArray( $sanitized );
+		$this->assertTrue( $sanitized['active'] );
+	}
+
+	/**
+	 * @ticket 64926
+	 */
+	public function test_validate_invalid_json_falls_back() {
+		$schema = array(
+			'type' => 'array',
+		);
+
+		$value = '1,2,3';
+
+		$is_valid = rest_validate_value_from_schema( $value, $schema, 'test_param' );
+
+		$this->assertNotWPError( $is_valid );
+	}
 }
