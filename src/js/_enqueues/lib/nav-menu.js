@@ -1,16 +1,15 @@
 /**
- * WordPress Administration Navigation Menu
- * Interface JS functions
- *
- * @version 2.0.0
- *
- * @package WordPress
  * @output wp-admin/js/nav-menu.js
  */
 
 /* global menus, postboxes, columns, isRtl, ajaxurl, wpNavMenu */
 
 /**
+ * Handles the WordPress Administration Navigation Menu Interface functionality.
+ *
+ * @version 2.0.0
+ * @package WordPress
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {

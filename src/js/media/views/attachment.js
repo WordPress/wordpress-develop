@@ -570,6 +570,8 @@ _.each({
 	album:   '_syncAlbum'
 }, function( method, setting ) {
 	/**
+	 * Updates the DOM when the model's caption changes.
+	 *
 	 * @function _syncCaption
 	 * @memberOf wp.media.view.Attachment
 	 * @instance
@@ -579,6 +581,8 @@ _.each({
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
+	 * Updates the DOM when the model's title changes.
+	 *
 	 * @function _syncTitle
 	 * @memberOf wp.media.view.Attachment
 	 * @instance
@@ -588,6 +592,8 @@ _.each({
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
+	 * Updates the DOM when the model's artist changes.
+	 *
 	 * @function _syncArtist
 	 * @memberOf wp.media.view.Attachment
 	 * @instance
@@ -597,6 +603,8 @@ _.each({
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
+	 * Updates the DOM when the model's album changes.
+	 *
 	 * @function _syncAlbum
 	 * @memberOf wp.media.view.Attachment
 	 * @instance
