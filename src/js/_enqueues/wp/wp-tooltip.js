@@ -8,7 +8,7 @@
  */
 (() => {
 
-	const supportsPopover = Object.prototype.hasOwnProperty.call( HTMLElement.prototype, 'popover' );
+	const supportsPopover = /** @type {boolean} */ ( Object.prototype.hasOwnProperty.call( HTMLElement.prototype, 'popover' ) );
 	let hidePopover = false;
 	if ( ! supportsPopover ) {
 		hidePopover = true;
