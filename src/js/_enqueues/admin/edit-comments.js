@@ -2,11 +2,12 @@
 /* global commentReply, theExtraList, theList, setCommentsList */
 
 /**
- * Handles updating and editing comments.
  * @output wp-admin/js/edit-comments.js
  */
 
 /**
+ * Handles updating and editing comments.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {

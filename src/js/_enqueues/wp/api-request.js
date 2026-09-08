@@ -1,4 +1,8 @@
 /**
+ * @output wp-includes/js/api-request.js
+ */
+
+/**
  * Thin jQuery.ajax wrapper for WP REST API requests.
  *
  * Currently only applies to requests that do not use the `wp-api.js` Backbone
@@ -11,10 +15,7 @@
  * @since 4.9.0
  * @since 5.6.0 Added overriding of the "PUT" and "DELETE" methods with "POST".
  *              Added an "application/json" Accept header to all requests.
- * @output wp-includes/js/api-request.js
- */
-
-/**
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {
