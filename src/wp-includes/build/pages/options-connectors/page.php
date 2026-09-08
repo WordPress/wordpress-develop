@@ -152,8 +152,12 @@ function wp_options_connectors_render_page() {
 	$menu_items = wp_get_options_connectors_menu_items();
 	$routes = wp_get_options_connectors_routes();
 
-	// Get boot module asset file for dependencies
+	// Get boot module asset file for dependencies. Plugins that build their own
+	// boot module use it; everyone else falls back to the copy bundled with Core.
 	$asset_file = ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php';
+	if ( ! file_exists( $asset_file ) ) {
+		$asset_file = ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php';
+	}
 	if ( file_exists( $asset_file ) ) {
 		$asset = require $asset_file;
 

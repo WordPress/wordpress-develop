@@ -165,6 +165,7 @@
 			'lock' => false
 		),
 		'selectors' => array(
+			'spacing' => '.wp-block-accordion-heading .wp-block-accordion-heading__toggle',
 			'typography' => array(
 				'letterSpacing' => '.wp-block-accordion-heading .wp-block-accordion-heading__toggle-title',
 				'textDecoration' => '.wp-block-accordion-heading .wp-block-accordion-heading__toggle-title'
@@ -602,7 +603,8 @@
 			'interactivity' => array(
 				'clientNavigation' => true
 			),
-			'customCSS' => false
+			'customCSS' => false,
+			'visibility' => false
 		)
 	),
 	'breadcrumbs' => array(
@@ -2917,7 +2919,10 @@
 					'bottom'
 				),
 				'padding' => true,
-				'blockGap' => true,
+				'blockGap' => array(
+					'horizontal',
+					'vertical'
+				),
 				'__experimentalDefaultControls' => array(
 					'padding' => true,
 					'blockGap' => true
@@ -3691,6 +3696,10 @@
 		),
 		'supports' => array(
 			'anchor' => true,
+			'align' => array(
+				'wide',
+				'full'
+			),
 			'html' => false,
 			'__experimentalBorder' => array(
 				'color' => true,
@@ -4138,7 +4147,7 @@
 		'name' => 'core/more',
 		'title' => 'More',
 		'category' => 'design',
-		'description' => 'Content before this block will be shown in the excerpt on your archives page.',
+		'description' => 'Content before this block is shown in the excerpt on blog and archive pages. Where a theme shows the full content instead, visitors get a “Read more” link to the rest of the post.',
 		'keywords' => array(
 			'read more'
 		),
@@ -4976,7 +4985,6 @@
 		'supports' => array(
 			'anchor' => true,
 			'align' => true,
-			'__experimentalExposeControlsToChildren' => true,
 			'color' => array(
 				'gradients' => true,
 				'link' => true,
@@ -5035,32 +5043,40 @@
 				'role' => 'local'
 			),
 			'id' => array(
-				'type' => 'number'
+				'type' => 'number',
+				'role' => 'content'
 			),
 			'src' => array(
-				'type' => 'string'
+				'type' => 'string',
+				'role' => 'content'
 			),
 			'type' => array(
 				'type' => 'string',
 				'default' => 'audio'
 			),
 			'album' => array(
-				'type' => 'string'
+				'type' => 'string',
+				'role' => 'content'
 			),
 			'artist' => array(
-				'type' => 'string'
+				'type' => 'string',
+				'role' => 'content'
 			),
 			'image' => array(
-				'type' => 'string'
+				'type' => 'string',
+				'role' => 'content'
 			),
 			'imageAlt' => array(
-				'type' => 'string'
+				'type' => 'string',
+				'role' => 'content'
 			),
 			'length' => array(
-				'type' => 'string'
+				'type' => 'string',
+				'role' => 'content'
 			),
 			'title' => array(
-				'type' => 'string'
+				'type' => 'string',
+				'role' => 'content'
 			)
 		),
 		'supports' => array(
@@ -6477,6 +6493,9 @@
 			),
 			'html' => false,
 			'layout' => true,
+			'spacing' => array(
+				'blockGap' => true
+			),
 			'interactivity' => true
 		),
 		'editorStyle' => 'wp-block-query-editor'
@@ -6505,6 +6524,14 @@
 				'gradients' => true,
 				'link' => true
 			),
+			'spacing' => array(
+				'padding' => true,
+				'margin' => true,
+				'__experimentalDefaultControls' => array(
+					'margin' => false,
+					'padding' => false
+				)
+			),
 			'typography' => array(
 				'fontSize' => true,
 				'lineHeight' => true,
@@ -6520,8 +6547,15 @@
 			),
 			'interactivity' => array(
 				'clientNavigation' => true
+			),
+			'__experimentalBorder' => array(
+				'radius' => true,
+				'color' => true,
+				'width' => true,
+				'style' => true
 			)
-		)
+		),
+		'style' => 'wp-block-query-no-results'
 	),
 	'query-pagination' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
