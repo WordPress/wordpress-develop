@@ -1039,6 +1039,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/load.php
 		-
+			message: '#^Parameter \#1 \$args of function get_posts expects array\{numberposts\?\: int, category\?\: int\|string, include\?\: array\<int\>, exclude\?\: array\<int\>, suppress_filters\?\: bool, \.\.\.\}\|string\|null, array\{include\: non\-falsy\-string, post_status\: ''inherit'', post_type\: ''attachment'', post_mime_type\: ''image'', order\: string, orderby\: string\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/media.php
+		-
 			message: '#^Parameter \#5 \$text of function wp_get_attachment_link expects string\|false, bool given\.$#'
 			identifier: argument.type
 			count: 1

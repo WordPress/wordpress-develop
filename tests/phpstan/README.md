@@ -106,6 +106,17 @@ Calls whose hook name contains no literal text, such as the `apply_filters_ref_a
 
 One consequence worth knowing: because a hook's documentation may live in a different file than the call inheriting it, editing a hook docblock in a file that reference comments point at discards PHPStan's result cache. Every call site inheriting that docblock has to be analyzed again, and PHPStan cannot infer that dependency on its own.
 
+### Extensions from szepeviktor/phpstan-wordpress
+
+[szepeviktor/phpstan-wordpress](https://github.com/szepeviktor/phpstan-wordpress) is the set of PHPStan extensions maintained for the WordPress ecosystem, and the hook extensions above began as adaptations of it. It is installed as a Composer development dependency so that core can load its extensions directly rather than carry copies of them. Its own `extension.neon` is not included, because that loads [php-stubs/wordpress-stubs](https://github.com/php-stubs/wordpress-stubs), a declaration of every core function and class, which is the code being analyzed here. Instead, [`base.neon`](base.neon) registers the extensions that apply to core one at a time. Installing the package installs the stubs as well; they are not read.
+
+What the package provides falls into four groups, and only the first is loaded:
+
+- **Used, because a docblock cannot express what they do.** `ShortcodeAttsDynamicFunctionReturnTypeExtension` types the result of `shortcode_atts()` from the defaults passed to it, the same merge that `wp_parse_args()` performs. `HookCallbackRule` checks a callback registered with `add_action()` or `add_filter()` against its registration: that `$accepted_args` agrees with the parameters the callback declares, and that a filter callback returns a value. Its third check, that an action callback returns nothing, is switched off in [`phpstan.neon.dist`](../../phpstan.neon.dist), where the reason is recorded. `HookDocsRule` checks that the type each `@param` of a hook docblock documents accepts the value the hook passes. That documented type is what `apply_filters()` is typed from, so a wrong one misleads every caller. It reads only a docblock written at the call, so a hook documented elsewhere through a reference comment is not checked.
+- **Not used, because core's own versions do the same and more.** `HookDocsVisitor`, `HookDocBlock` and `ApplyFiltersDynamicFunctionReturnTypeExtension` are what the [hook documentation](#hook-documentation) extensions were adapted from. Core's resolve the "This filter is documented in" reference comments, which the originals do not, and core's rules already check the `@param` counts that `HookDocsRule` also checks, so only its type check adds anything.
+- **Not used, because a docblock does the same.** `EscSql`, `NormalizeWhitespace`, `StripslashesFromStringsOnly`, `SlashitFunctions`, `WpParseUrl` and `WpSlash` each narrow one function's return type from its arguments in a way a conditional `@phpstan-return` expresses. Where core has that docblock already, as `wp_parse_url()`, `wp_slash()` and `stripslashes_from_strings_only()` do, loading the extension changes nothing; where it does not yet, as `esc_sql()` and `trailingslashit()`, the docblock is the fix to make. A docblock in core also types the function for every plugin, since the stubs are generated from core. phpstan-wordpress itself has gone that way: its 2.x branch dropped the extensions it had for `get_post()`, `get_terms()`, `current_time()`, `wp_die()`, `is_wp_error()` and others in favor of types carried by the stubs, and the [function map](https://github.com/php-stubs/wordpress-stubs/blob/master/functionMap.php) those stubs apply on top of core's docblocks is a list of the ones core could adopt.
+- **Not applicable to core.** `WpConstantFetchRule` discourages reading a constant such as `MULTISITE` where a function exists to read it, but core is where those functions read them. `AssertWpErrorTypeSpecifyingExtension` narrows the argument of `assertWPError()` in tests, which are not analyzed; when they are, `@phpstan-assert` on the methods themselves is the way to express it.
+
 ### Errors these rules report
 
 These identifiers are specific to WordPress, and can be ignored or baselined like any other error, as described [below](#ignoring-and-baselining-errors).
@@ -117,6 +128,17 @@ These identifiers are specific to WordPress, and can be ignored or baselined lik
 | `wordpress.hookDocReferenceFileMissing` | A reference comment names a file that does not exist in the tree being analyzed. The path is resolved relative to the file holding the comment and to the WordPress root; one that resolves outside the tree counts as missing, since the analysis does not read it. |
 | `wordpress.hookDocReferenceHookMissing` | The referenced file exists, but documents no hook of that name. Either the reference is stale, or the canonical docblock has moved. |
 | `wordpress.hookParamCountMismatch` | The call passes a different number of arguments than the docblock documents `@param` tags for. Passing fewer risks an `ArgumentCountError` in a callback registered for the documented count; passing more silently drops the extra argument and leaves the documentation misleading. |
+
+The rules loaded from szepeviktor/phpstan-wordpress report under PHPStan's own identifiers rather than ones of their own, so their errors share a baseline with the errors PHPStan itself reports under that identifier. They are told apart by their messages.
+
+| Identifier | Message | What it means |
+| --- | --- | --- |
+| `arguments.count` | `Callback expects N parameters, $accepted_args is set to M.` | The `$accepted_args` of an `add_action()` or `add_filter()` call does not fit the callback's signature. Fewer than the callback requires is an `ArgumentCountError` when the hook fires; more than it declares is misleading, and usually a leftover from an earlier signature. |
+| `return.missing` | `Filter callback return statement is missing.` | A filter callback returns nothing, so the value being filtered becomes `null`. |
+| `return.void` | `Action callback returns X but should not return anything.` | An action callback returns a value. Ignored for core in `phpstan.neon.dist`; see the note there. |
+| `parameter.phpDocType` | `@param X $name does not accept actual type of parameter: Y.` | The type a hook docblock documents for a parameter does not accept the value the hook passes. Fix the docblock, or the value; the documented type is what callbacks and the `apply_filters()` return type rely on. |
+| `paramTag.count` | `Expected N @param tags, found M.` | The same mismatch `wordpress.hookParamCountMismatch` reports, for a docblock written at the call. |
+| `phpDoc.parseError` | `One or more @param tags has an invalid name or invalid syntax.` | A `@param` tag in a hook docblock could not be parsed, or is named `$this`. |
 
 ## Ignoring and baselining errors
 
