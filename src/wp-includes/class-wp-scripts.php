@@ -316,7 +316,10 @@ class WP_Scripts extends WP_Dependencies {
 		$strategy          = $this->get_eligible_loading_strategy( $handle );
 		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
 
-		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
+		if (
+			! $this->is_delayed_strategy( $intended_strategy ) ||
+			! $this->is_delayed_strategy_allowed( $handle )
+		) {
 			$intended_strategy = '';
 		}
 
@@ -1024,6 +1027,24 @@ JS;
 	}
 
 	/**
+	 * Checks whether a delayed loading strategy is allowed for a script.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return bool True if a delayed strategy is allowed, otherwise false.
+	 */
+	private function is_delayed_strategy_allowed( string $handle ): bool {
+		$jquery_handles = array( 'jquery', 'jquery-core', 'jquery-migrate' );
+
+		if ( ! in_array( $handle, $jquery_handles, true ) ) {
+			return true;
+		}
+
+		return ! is_admin() && ! is_customize_preview();
+	}
+
+	/**
 	 * Checks if the provided fetchpriority is valid.
 	 *
 	 * @since 6.9.0
@@ -1047,7 +1068,7 @@ JS;
 		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
 
 		// Bail early if there is no intended strategy.
-		if ( ! $intended_strategy ) {
+		if ( ! $intended_strategy || ! $this->is_delayed_strategy_allowed( $handle ) ) {
 			return '';
 		}
 
