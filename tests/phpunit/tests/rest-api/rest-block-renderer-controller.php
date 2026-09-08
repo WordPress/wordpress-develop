@@ -158,18 +158,22 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 			self::$block_name,
 			array(
 				'attributes'      => array(
-					'some_string' => array(
+					'some_string'    => array(
 						'type'    => 'string',
 						'default' => 'some_default',
 					),
-					'some_int'    => array(
+					'some_int'       => array(
 						'type' => 'integer',
 					),
-					'some_array'  => array(
+					'some_array'     => array(
 						'type'  => 'array',
 						'items' => array(
 							'type' => 'integer',
 						),
+					),
+					'some_rich_text' => array(
+						'type'    => 'rich-text',
+						'default' => 'some_default',
 					),
 				),
 				'render_callback' => array( $this, 'render_test_block' ),
@@ -390,6 +394,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 * Check getting item with attributes provided.
 	 *
 	 * @ticket 45098
+	 * @ticket 61406
 	 *
 	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
@@ -398,9 +403,12 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( self::$block_name );
 		$attributes = array(
-			'some_int'    => '123',
-			'some_string' => 'foo',
-			'some_array'  => array( 1, '2', 3 ),
+			'some_int'       => '123',
+			'some_string'    => 'foo',
+			'some_array'     => array( 1, '2', 3 ),
+			// A rich-text attribute must pass validation (disguising as a
+			// string) and must be preserved through sanitization.
+			'some_rich_text' => 'Hello, <em>world</em>',
 		);
 
 		$expected_attributes               = $attributes;
