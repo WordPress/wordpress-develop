@@ -62,6 +62,42 @@ services:
 		tags:
 			- phpstan.resultCacheMetaExtension
 
+	# The services below come from szepeviktor/phpstan-wordpress, the PHPStan extensions
+	# maintained for the WordPress ecosystem, installed through Composer. Its own
+	# extension.neon is deliberately not included: that bootstraps php-stubs/wordpress-stubs,
+	# which describes the very code analyzed here, so every function and class would be
+	# declared twice. Instead, the extensions that apply to core are registered one by one.
+	# See tests/phpstan/README.md for which ones are used, which are not, and why.
+
+	# Types the return value of shortcode_atts() from the defaults it was called with, so
+	# a shortcode's attributes are an array shape rather than a plain array. The merge
+	# a call performs is not something a docblock can express.
+	-
+		class: SzepeViktor\PHPStan\WordPress\ShortcodeAttsDynamicFunctionReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicFunctionReturnTypeExtension
+
+	# Checks the callback given to add_action() and add_filter() against the call: that
+	# `$accepted_args` agrees with the number of parameters the callback declares, that
+	# a filter callback returns a value, and that an action callback does not. The last
+	# check is switched off for core in phpstan.neon.dist; see the note there.
+	-
+		class: SzepeViktor\PHPStan\WordPress\HookCallbackRule
+		tags:
+			- phpstan.rules.rule
+
+	# Checks that the type each `@param` of a hook docblock documents accepts the value
+	# the hook passes. That documented type is what apply_filters() is typed from above,
+	# so a wrong one misleads every caller. Only a docblock written at the call is checked:
+	# the rule reads the docblock through phpstan-wordpress's own resolver, registered
+	# beside it, which does not follow "This filter is documented in" reference comments.
+	-
+		class: SzepeViktor\PHPStan\WordPress\HookDocBlock
+	-
+		class: SzepeViktor\PHPStan\WordPress\HookDocsRule
+		tags:
+			- phpstan.rules.rule
+
 	# Runs the visitors above over every file PHPStan parses, not only the ones it
 	# analyzes.
 	#
