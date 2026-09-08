@@ -255,6 +255,61 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61406
+	 */
+	public function test_prepare_attributes_validates_rich_text_attributes_as_strings() {
+		$doing_it_wrong = array();
+		$callback       = static function ( $function_name ) use ( &$doing_it_wrong ) {
+			if ( 'rest_validate_value_from_schema' === $function_name ) {
+				$doing_it_wrong[] = $function_name;
+			}
+		};
+
+		add_action( 'doing_it_wrong_run', $callback );
+
+		try {
+			$block_type = new WP_Block_Type(
+				'core/fake',
+				array(
+					'attributes' => array(
+						'content'         => array(
+							'type' => 'rich-text',
+						),
+						'caption'         => array(
+							'type'    => 'rich-text',
+							'default' => 'Default caption',
+						),
+						'nullableContent' => array(
+							'type' => array( 'rich-text', 'null' ),
+						),
+					),
+				)
+			);
+
+			$prepared_attributes = $block_type->prepare_attributes_for_render(
+				array(
+					'content'         => '<strong>include</strong>',
+					'caption'         => 5,
+					'nullableContent' => 'nullable include',
+				)
+			);
+		} finally {
+			remove_action( 'doing_it_wrong_run', $callback );
+		}
+
+		$this->assertSame( '<strong>include</strong>', $prepared_attributes['content'] );
+		$this->assertSame( 'Default caption', $prepared_attributes['caption'] );
+		$this->assertSame( 'nullable include', $prepared_attributes['nullableContent'] );
+		$this->assertSame(
+			array(),
+			$doing_it_wrong,
+			'rest_validate_value_from_schema() should not emit _doing_it_wrong() for rich-text attributes.'
+		);
+		$this->assertSame( 'rich-text', $block_type->attributes['content']['type'] );
+		$this->assertSame( array( 'rich-text', 'null' ), $block_type->attributes['nullableContent']['type'] );
+	}
+
+	/**
 	 * @ticket 45145
 	 */
 	public function test_prepare_attributes_none_defined() {
