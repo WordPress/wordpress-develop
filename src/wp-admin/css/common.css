@@ -16,7 +16,7 @@
 	min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - 8px);
 	padding-left: 20px;
 	background: #f0f0f1;
-	border-radius: 8px;
+	border-radius: var(--wpds-border-radius-xl, 12px);
 	margin-bottom: 8px;
 	margin-right: 8px;
 	box-sizing: border-box;
