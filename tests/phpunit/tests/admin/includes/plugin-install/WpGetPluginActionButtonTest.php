@@ -1,5 +1,5 @@
 <?php
-namespace WordPress\Tests\Admin\Includes\Plugin_Install;
+
 /**
  * Tests for wp_get_plugin_action_button().
  *
@@ -8,8 +8,7 @@ namespace WordPress\Tests\Admin\Includes\Plugin_Install;
  *
  * @covers ::wp_get_plugin_action_button
  */
-
-class WpGetPluginActionButtonTest extends WP_UnitTestCase {
+class Admin_Includes_Plugin_Install_WpGetPluginActionButton_Test extends WP_UnitTestCase {
 
 	/**
 	 * User role.

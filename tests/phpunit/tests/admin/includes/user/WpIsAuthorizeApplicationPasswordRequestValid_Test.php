@@ -6,7 +6,6 @@
  *
  * @covers ::wp_is_authorize_application_password_request_valid
  */
-
 class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test extends WP_UnitTestCase {
 
 	/**
