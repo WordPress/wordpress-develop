@@ -197,11 +197,16 @@ class WP_Sitemaps {
 
 		$provider = $this->registry->get_provider( $sitemap );
 
-		// Force a 404 and bail early if the requested provider is not registered.
+		// Bail with a 404 if the requested provider is not registered.
 		if ( ! $provider ) {
-			$wp_query->set_404();
-			status_header( 404 );
-			return;
+			wp_die(
+				sprintf(
+					/* translators: %s: Sitemap provider name. */
+					__( 'There is no sitemap provider available for "%s".' ),
+					esc_html( $sitemap )
+				),
+				404
+			);
 		}
 
 		if ( empty( $paged ) ) {
@@ -210,11 +215,26 @@ class WP_Sitemaps {
 
 		$url_list = $provider->get_url_list( $paged, $object_subtype );
 
-		// Force a 404 and bail early if no URLs are present.
+		// Bail with a 404 if no URLs are present.
 		if ( empty( $url_list ) ) {
-			$wp_query->set_404();
-			status_header( 404 );
-			return;
+			if ( $object_subtype ) {
+				$message = sprintf(
+					/* translators: 1: Sitemap provider name, 2: Object subtype name, 3: Page number. */
+					__( 'There are no URLs available for the "%1$s" sitemap (object subtype "%2$s") on page %3$s.' ),
+					esc_html( $sitemap ),
+					esc_html( $object_subtype ),
+					esc_html( number_format_i18n( $paged ) )
+				);
+			} else {
+				$message = sprintf(
+					/* translators: 1: Sitemap provider name, 2: Page number. */
+					__( 'There are no URLs available for the "%1$s" sitemap on page %2$s.' ),
+					esc_html( $sitemap ),
+					esc_html( number_format_i18n( $paged ) )
+				);
+			}
+
+			wp_die( $message, 404 );
 		}
 
 		$this->renderer->render_sitemap( $url_list );

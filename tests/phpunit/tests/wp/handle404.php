@@ -103,23 +103,17 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An unregistered sitemap provider must still 404 rather than serving the
-	 * index template with a 200.
+	 * An unregistered sitemap provider must not be turned into a 404 here.
 	 *
-	 * Exempting sitemap requests in WP::handle_404() means WP_Sitemaps must send
-	 * this status itself.
+	 * WP_Sitemaps::render_sitemaps() sends that status itself, which is covered by
+	 * Tests_Sitemaps_Sitemaps::test_unregistered_provider_should_return_404().
 	 *
 	 * @ticket 65945
-	 *
-	 * @covers WP_Sitemaps::render_sitemaps
 	 */
-	public function test_unregistered_sitemap_provider_should_404() {
+	public function test_unregistered_sitemap_provider_should_not_404_in_handle_404() {
 		$this->go_to( home_url( '/?sitemap=this-provider-does-not-exist' ) );
 
+		$this->assertTrue( is_sitemap(), 'The request should be recognized as a sitemap request.' );
 		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
-
-		wp_sitemaps_get_server()->render_sitemaps();
-
-		$this->assertTrue( is_404(), 'An unregistered provider should be a 404.' );
 	}
 }

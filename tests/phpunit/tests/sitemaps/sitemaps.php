@@ -483,14 +483,46 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50643
+	 * @ticket 65945
 	 */
 	public function test_empty_url_list_should_return_404() {
 		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
 
 		$this->go_to( home_url( '/?sitemap=foo' ) );
 
-		wp_sitemaps_get_server()->render_sitemaps();
+		$this->expectException( 'WPDieException' );
+		$this->expectExceptionMessage( 'There are no URLs available for the "foo" sitemap on page 1.' );
 
-		$this->assertTrue( is_404() );
+		wp_sitemaps_get_server()->render_sitemaps();
+	}
+
+	/**
+	 * @ticket 65945
+	 */
+	public function test_empty_url_list_should_name_the_object_subtype() {
+		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
+
+		$this->go_to( home_url( '/?sitemap=foo&sitemap-subtype=bar&paged=2' ) );
+
+		$this->expectException( 'WPDieException' );
+		$this->expectExceptionMessage( 'There are no URLs available for the "foo" sitemap (object subtype "bar") on page 2.' );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+	}
+
+	/**
+	 * @ticket 65945
+	 */
+	public function test_unregistered_provider_should_return_404() {
+		// Instantiate the server before navigating: registering the sitemap
+		// rewrite tags is what adds `sitemap` to `$wp->public_query_vars`.
+		$sitemaps = wp_sitemaps_get_server();
+
+		$this->go_to( home_url( '/?sitemap=this-provider-does-not-exist' ) );
+
+		$this->expectException( 'WPDieException' );
+		$this->expectExceptionMessage( 'There is no sitemap provider available for "this-provider-does-not-exist".' );
+
+		$sitemaps->render_sitemaps();
 	}
 }
