@@ -278,7 +278,25 @@ function wp_font_library_render_page() {
 	// END see wp-admin/admin-header.php
 	?>
 	</head>
-	<body class="font-library">
+	<body class="font-library no-js">
+	<?php
+	// BEGIN see wp-admin/admin-header.php
+	?>
+	<script type="text/javascript">
+		document.body.className = document.body.className.replace( 'no-js', 'js' );
+	</script>
+	<?php
+	// END see wp-admin/admin-header.php
+	?>
+		<div class="wrap hide-if-js" style="margin: 20px;">
+			<h1 class="wp-heading-inline"><?php echo esc_html( get_admin_page_title() ); ?></h1>
+			<?php
+			wp_admin_notice(
+				__( 'This screen requires JavaScript. Enable JavaScript in your browser settings and reload the page.' ),
+				array( 'type' => 'error' )
+			);
+			?>
+		</div>
 		<div id="font-library-app" style="height: 100vh; box-sizing: border-box;"></div>
 	<?php
 	// BEGIN see wp-admin/admin-footer.php
