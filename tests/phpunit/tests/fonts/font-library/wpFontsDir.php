@@ -45,17 +45,18 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_fonts_dir_for_multisite() {
-		$blog_id              = self::factory()->blog->create();
-		$main_site_upload_dir = wp_get_upload_dir();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
-		$actual   = wp_get_font_dir();
-		$expected = array(
-			'path'    => untrailingslashit( $main_site_upload_dir['basedir'] ) . "/sites/{$blog_id}/fonts",
-			'url'     => untrailingslashit( $main_site_upload_dir['baseurl'] ) . "/sites/{$blog_id}/fonts",
+		// Fetch the switched-to site's own upload dir, since its URL depends on its own site path.
+		$upload_dir = wp_get_upload_dir();
+		$actual     = wp_get_font_dir();
+		$expected   = array(
+			'path'    => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
+			'url'     => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
 			'subdir'  => '',
-			'basedir' => untrailingslashit( $main_site_upload_dir['basedir'] ) . "/sites/{$blog_id}/fonts",
-			'baseurl' => untrailingslashit( $main_site_upload_dir['baseurl'] ) . "/sites/{$blog_id}/fonts",
+			'basedir' => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
+			'baseurl' => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
 			'error'   => false,
 		);
 

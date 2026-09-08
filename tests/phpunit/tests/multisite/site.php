@@ -562,12 +562,11 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	public function test_switch_upload_dir() {
 		$this->assertTrue( is_main_site() );
 
-		$site = get_current_site();
 		$date = date_format( date_create( 'now' ), 'Y/m' );
 
 		$info = wp_upload_dir();
-		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
-		$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+		$this->assertSame( _upload_get_url( $date ), $info['url'] );
+		$this->assertSame( ABSPATH . UPLOADS . '/' . $date, $info['path'] );
 		$this->assertSame( '/' . $date, $info['subdir'] );
 		$this->assertFalse( $info['error'] );
 
@@ -575,15 +574,15 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 
 		switch_to_blog( $blog_id );
 		$info = wp_upload_dir();
-		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
-		$this->assertSame( ABSPATH . 'wp-content/uploads/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
+		$this->assertSame( trailingslashit( get_option( 'siteurl' ) ) . UPLOADS . '/sites/' . get_current_blog_id() . '/' . $date, $info['url'] );
+		$this->assertSame( ABSPATH . UPLOADS . '/sites/' . get_current_blog_id() . '/' . $date, $info['path'] );
 		$this->assertSame( '/' . $date, $info['subdir'] );
 		$this->assertFalse( $info['error'] );
 		restore_current_blog();
 
 		$info = wp_upload_dir();
-		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
-		$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+		$this->assertSame( _upload_get_url( $date ), $info['url'] );
+		$this->assertSame( ABSPATH . UPLOADS . '/' . $date, $info['path'] );
 		$this->assertSame( '/' . $date, $info['subdir'] );
 		$this->assertFalse( $info['error'] );
 	}

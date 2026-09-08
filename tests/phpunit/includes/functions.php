@@ -330,6 +330,17 @@ function _upload_dir_https( $uploads ) {
 }
 
 /**
+ * Builds the upload base URL used throughout the test suite.
+ *
+ * @param string $path   Path/filename to append after the uploads URL. No leading slash needed.
+ * @param string $scheme URL scheme, 'http' or 'https'.
+ * @return string The upload URL.
+ */
+function _upload_get_url( $path = '', $scheme = 'http' ) {
+	return $scheme . '://' . WP_TESTS_DOMAIN . '/' . trailingslashit( UPLOADS ) . ltrim( $path, '/' );
+}
+
+/**
  * Use the Spy_REST_Server class for the REST server.
  *
  * @return string The server class name.
