@@ -30,6 +30,8 @@
  */
 
 /**
+ * Handles the accordion functionality.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ){
