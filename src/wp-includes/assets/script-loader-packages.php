@@ -800,7 +800,7 @@
 			'wp-keycodes',
 			'wp-private-apis'
 		),
-		'version' => 'f2802951b6d3c38b512d'
+		'version' => '7f83233b1caefc2146bb'
 	),
 	'router.js' => array(
 		'dependencies' => array(
