@@ -22,11 +22,6 @@ parameters:
 			message: '#^Negated boolean expression is always true\.$#'
 			identifier: booleanNot.alwaysTrue
 			count: 1
-			path: ../../../src/wp-admin/includes/class-custom-image-header.php
-		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
-			count: 1
 			path: ../../../src/wp-admin/includes/class-language-pack-upgrader.php
 		-
 			message: '#^Negated boolean expression is always true\.$#'
@@ -53,8 +48,3 @@ parameters:
 			identifier: booleanNot.alwaysTrue
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
-		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/option.php

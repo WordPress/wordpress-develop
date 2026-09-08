@@ -37,9 +37,4 @@ parameters:
 			message: '#^Left side of && is always true\.$#'
 			identifier: booleanAnd.leftAlwaysTrue
 			count: 1
-			path: ../../../src/wp-includes/canonical.php
-		-
-			message: '#^Left side of && is always true\.$#'
-			identifier: booleanAnd.leftAlwaysTrue
-			count: 1
 			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
