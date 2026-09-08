@@ -21,12 +21,8 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 // Check if the build files are available.
 if ( ! function_exists( 'wp_font_library_wp_admin_render_page' ) ) {
 	wp_die(
-		'<h1>' . __( 'Font Library is not available.' ) . '</h1>' .
-		'<p>' . sprintf(
-			/* translators: %s: npm run build */
-			__( 'The Font Library requires build files. Please run %s to build the necessary files.' ),
-			'<code>npm run build</code>'
-		) . '</p>',
+		'<h1>' . __( 'The Font Library is not available.' ) . '</h1>' .
+		'<p>' . __( 'The Font Library requires build files. Please build WordPress and try again.' ) . '</p>',
 		503
 	);
 }
