@@ -48,12 +48,6 @@
 		),
 		'version' => 'a9114a756e418400594c'
 	),
-	'block-library/form/view.js' => array(
-		'dependencies' => array(
-			
-		),
-		'version' => '5542f8ad251fe43ef09e'
-	),
 	'block-library/image/view.js' => array(
 		'dependencies' => array(
 			
@@ -128,7 +122,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '92c832aff6e4039db1ce'
+		'version' => '0684c8bb3dc8582b92ea'
 	),
 	'boot/index.js' => array(
 		'dependencies' => array(
@@ -168,7 +162,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '8cc5f2c749590d7b592a'
+		'version' => '561d400a81b4d92e0ab6'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -225,7 +219,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'f6fe09cfa8a820e494b9'
+		'version' => 'cbb305a20ffe909edb3f'
 	),
 	'interactivity/index.js' => array(
 		'dependencies' => array(
@@ -293,7 +287,7 @@
 			'wp-private-apis',
 			'wp-style-engine'
 		),
-		'version' => '26702529626be08dab3c'
+		'version' => '68563009a3346a87bfa0'
 	),
 	'route/index.js' => array(
 		'dependencies' => array(
@@ -338,7 +332,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '685442d334b2d3e70832'
+		'version' => '7e33cd8c4128731126e8'
 	),
 	'widget-primitives/index.js' => array(
 		'dependencies' => array(
@@ -370,6 +364,6 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => '090d73e88a5ee2c08223'
+		'version' => '7a2d585edd951178791a'
 	)
 );
