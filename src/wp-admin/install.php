@@ -484,7 +484,12 @@ wp_print_scripts( $scripts_to_print );
 
 wp_print_inline_script_tag(
 	<<<'JS'
-	jQuery( function( $ ) {
+	/**
+	 * Shows the content intended only for browsers with JS enabled.
+	 *
+	 * @param {JQueryStatic} $ The jQuery object.
+	 */
+	jQuery( function ( $ ) {
 		$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
 	} );
 	JS
