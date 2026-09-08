@@ -4,7 +4,6 @@
  * Test the add_filter method of WP_Hook
  *
  * @group hooks
- * @covers WP_Hook::add_filter
  */
 class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
@@ -27,6 +26,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_add_filter_with_function() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
@@ -42,6 +44,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_add_filter_with_object() {
 		$a             = new MockAction();
 		$callback      = array( $a, 'action' );
@@ -58,6 +63,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_add_filter_with_static_method() {
 		$callback      = array( 'MockAction', 'action' );
 		$hook          = new WP_Hook();
@@ -73,6 +81,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_add_two_filters_with_same_priority() {
 		$callback_one  = '__return_null';
 		$callback_two  = '__return_false';
@@ -89,6 +100,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertCount( 2, $hook->callbacks[ $priority ] );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_add_two_filters_with_different_priority() {
 		$callback_one  = '__return_null';
 		$callback_two  = '__return_false';
@@ -107,6 +121,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertCount( 1, $hook->callbacks[ $priority + 1 ] );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_readd_filter() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
@@ -122,6 +139,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_readd_filter_with_different_priority() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
@@ -139,6 +159,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertCount( 1, $hook->callbacks[ $priority + 1 ] );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_sort_after_add_filter() {
 		$a         = new MockAction();
 		$b         = new MockAction();
@@ -153,6 +176,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( array( 5, 8, 10 ), $this->get_priorities( $hook ) );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_remove_and_add() {
 		$this->hook = new WP_Hook();
 
@@ -169,6 +195,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( '24', $value );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_remove_and_add_last_filter() {
 		$this->hook = new WP_Hook();
 
@@ -185,6 +214,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( '12', $value );
 	}
 
+	/*
+	* @covers WP_Hook::add_filter
+	*/
 	public function test_remove_and_recurse_and_add() {
 		$this->hook = new WP_Hook();
 
@@ -232,6 +264,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		return $value . '4';
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_remove_and_add_action() {
 		$this->hook = new WP_Hook();
 
@@ -246,6 +281,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( '24', $this->action_output );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_remove_and_add_last_action() {
 		$this->hook = new WP_Hook();
 
@@ -260,6 +298,9 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( '12', $this->action_output );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_remove_and_recurse_and_add_action() {
 		$this->hook = new WP_Hook();
 
