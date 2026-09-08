@@ -10,8 +10,8 @@
  * @class
  * @augments Backbone.Model
  *
- * @param {int} [attributes]               Initial model attributes.
- * @param {int} [attributes.attachment_id] ID of the attachment.
+ * @param {number} [attributes]               Initial model attributes.
+ * @param {number} [attributes.attachment_id] ID of the attachment.
  **/
 var PostImage = Backbone.Model.extend(/** @lends wp.media.model.PostImage.prototype */{
 

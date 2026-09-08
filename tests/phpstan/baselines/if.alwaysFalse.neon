@@ -32,11 +32,6 @@ parameters:
 			message: '#^If condition is always false\.$#'
 			identifier: if.alwaysFalse
 			count: 1
-			path: ../../../src/wp-includes/load.php
-		-
-			message: '#^If condition is always false\.$#'
-			identifier: if.alwaysFalse
-			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php
 		-
 			message: '#^If condition is always false\.$#'
