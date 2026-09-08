@@ -1376,6 +1376,43 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_add_edit_user_response( $response );
 	}
 
+	public function test_create_item_with_roles_without_promote_users() {
+		$role = 'rest_user_creator';
+		add_role(
+			$role,
+			'REST user creator',
+			array(
+				'read'         => true,
+				'create_users' => true,
+			)
+		);
+
+		$user_id = self::factory()->user->create( array( 'role' => $role ) );
+
+		try {
+			wp_set_current_user( $user_id );
+
+			$params = array(
+				'username' => 'rest-created-user',
+				'password' => 'testpassword',
+				'email'    => 'rest-created-user@example.com',
+				'roles'    => array( 'administrator' ),
+			);
+
+			$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+			$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+			$request->set_body_params( $params );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_cannot_edit_roles', $response, 403 );
+			$this->assertFalse( username_exists( 'rest-created-user' ) );
+		} finally {
+			wp_set_current_user( 0 );
+			self::delete_user( $user_id );
+			remove_role( $role );
+		}
+	}
+
 	public function test_create_item_invalid_username() {
 		$this->allow_user_to_manage_multisite();
 
