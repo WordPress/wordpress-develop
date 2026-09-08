@@ -1022,11 +1022,13 @@ function wp_cron(): void {
 		if ( did_action( 'wp_loaded' ) ) {
 			_wp_cron();
 		} else {
+			// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 			add_action( 'wp_loaded', '_wp_cron', 20 );
 		}
 	} elseif ( doing_action( 'shutdown' ) ) {
 		_wp_cron();
 	} else {
+		// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 		add_action( 'shutdown', '_wp_cron' );
 	}
 }

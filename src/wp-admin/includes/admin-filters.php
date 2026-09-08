@@ -11,6 +11,7 @@
 add_action( 'admin_page_access_denied', 'wp_link_manager_disabled_message' );
 
 // Dashboard hooks.
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'activity_box_end', 'wp_dashboard_quota' );
 add_action( 'welcome_panel', 'wp_welcome_panel' );
 
@@ -18,9 +19,13 @@ add_action( 'welcome_panel', 'wp_welcome_panel' );
 add_action( 'attachment_submitbox_misc_actions', 'attachment_submitbox_metadata' );
 add_filter( 'plupload_init', 'wp_show_heic_upload_error' );
 
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'media_upload_image', 'wp_media_upload_handler' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'media_upload_audio', 'wp_media_upload_handler' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'media_upload_video', 'wp_media_upload_handler' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'media_upload_file', 'wp_media_upload_handler' );
 
 add_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' );
@@ -57,10 +62,12 @@ if ( ! is_customize_preview() ) {
 }
 
 add_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'admin_print_scripts', 'print_head_scripts', 20 );
 add_action( 'admin_print_footer_scripts', '_wp_footer_scripts' );
 add_action( 'admin_enqueue_scripts', 'wp_enqueue_emoji_styles' );
 add_action( 'admin_print_styles', 'print_emoji_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_emoji_styles().
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'admin_print_styles', 'print_admin_styles', 20 );
 
 add_action( 'admin_print_scripts-index.php', 'wp_localize_community_events' );
@@ -130,10 +137,12 @@ add_action( 'personal_options_update', 'send_confirmation_on_profile_email' );
 add_action( 'load-plugins.php', 'wp_plugin_update_rows', 20 ); // After wp_update_plugins() is called.
 add_action( 'load-themes.php', 'wp_theme_update_rows', 20 ); // After wp_update_themes() is called.
 
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'admin_notices', 'update_nag', 3 );
 add_action( 'admin_notices', 'deactivated_plugins_notice', 5 );
 add_action( 'admin_notices', 'paused_plugins_notice', 5 );
 add_action( 'admin_notices', 'paused_themes_notice', 5 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'admin_notices', 'maintenance_nag', 10 );
 add_action( 'admin_notices', 'wp_recovery_mode_nag', 1 );
 

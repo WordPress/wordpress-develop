@@ -2803,6 +2803,7 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
 		case 'approve':
 		case '1':
 			$status = '1';
+			// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 			add_action( 'wp_set_comment_status', 'wp_new_comment_notify_postauthor' );
 			break;
 		case 'spam':

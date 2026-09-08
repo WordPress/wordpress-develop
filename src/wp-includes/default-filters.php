@@ -118,6 +118,7 @@ add_filter( 'register_meta_args', '_wp_register_meta_args_allowed_list', 10, 2 )
 add_action( 'admin_init', 'wp_schedule_update_user_counts' );
 add_action( 'wp_update_user_counts', 'wp_schedule_update_user_counts', 10, 0 );
 foreach ( array( 'user_register', 'deleted_user' ) as $action ) {
+	// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 	add_action( $action, 'wp_maybe_update_user_counts', 10, 0 );
 }
 
@@ -357,7 +358,9 @@ add_action( 'wp_head', 'locale_stylesheet' );
 add_action( 'publish_future_post', 'check_and_publish_future_post', 10, 1 );
 add_action( 'wp_head', 'wp_robots', 1 );
 add_action( 'wp_head', 'print_emoji_detection_script', 7 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wp_head', 'wp_print_styles', 8 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wp_head', 'wp_print_head_scripts', 9 );
 add_action( 'wp_head', 'wp_generator' );
 add_action( 'wp_head', 'rel_canonical' );
@@ -391,7 +394,9 @@ if (
 // Login actions.
 add_action( 'login_head', 'wp_robots', 1 );
 add_action( 'login_head', 'wp_resource_hints', 8 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'login_head', 'wp_print_head_scripts', 9 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'login_head', 'print_admin_styles', 9 );
 add_action( 'login_head', 'wp_site_icon', 99 );
 add_action( 'login_footer', 'wp_print_footer_scripts', 20 );
@@ -425,6 +430,7 @@ add_action( 'do_pings', 'do_all_pings', 10, 0 );
 add_action( 'do_all_pings', 'do_all_pingbacks', 10, 0 );
 add_action( 'do_all_pings', 'do_all_enclosures', 10, 0 );
 add_action( 'do_all_pings', 'do_all_trackbacks', 10, 0 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'do_all_pings', 'generic_ping', 10, 0 );
 
 // Disable pings (pingbacks, trackbacks, and ping service notifications) in non-production environments.
@@ -434,6 +440,7 @@ add_filter( 'xmlrpc_methods', 'wp_maybe_disable_xmlrpc_pingback_for_environment'
 
 add_action( 'do_robots', 'do_robots' );
 add_action( 'do_favicon', 'do_favicon' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wp_before_include_template', 'wp_start_template_enhancement_output_buffer', 1000 ); // Late priority to let `wp_template_enhancement_output_buffer` filters and `wp_finalized_template_enhancement_output_buffer` actions be registered.
 add_action( 'set_comment_cookies', 'wp_set_comment_cookies', 10, 3 );
 add_action( 'sanitize_comment_cookies', 'sanitize_comment_cookies' );
@@ -443,6 +450,7 @@ add_action( 'plugins_loaded', 'wp_maybe_load_embeds', 0 );
 add_action( 'shutdown', 'wp_ob_end_flush_all', 1 );
 // Create a revision whenever a post is updated.
 add_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert', 9, 3 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'post_updated', 'wp_save_post_revision', 10, 1 );
 add_action( 'publish_post', '_publish_post_hook', 5, 1 );
 add_action( 'transition_post_status', '_transition_post_status', 5, 3 );
@@ -464,7 +472,9 @@ add_action( 'wp_privacy_personal_data_cleanup_requests', 'wp_privacy_personal_da
 // Cron tasks.
 add_action( 'wp_scheduled_delete', 'wp_scheduled_delete' );
 add_action( 'wp_scheduled_auto_draft_delete', 'wp_delete_auto_drafts' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'importer_scheduled_cleanup', 'wp_delete_attachment' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'upgrader_scheduled_cleanup', 'wp_delete_attachment' );
 add_action( 'delete_expired_transients', 'delete_expired_transients' );
 
@@ -533,7 +543,9 @@ add_action( 'admin_init', '_wp_check_for_scheduled_update_comment_type' );
 add_action( 'wp_update_comment_type_batch', '_wp_batch_update_comment_type' );
 
 // Email notifications.
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'comment_post', 'wp_new_comment_notify_moderator' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'comment_post', 'wp_new_comment_notify_postauthor' );
 add_action( 'rest_insert_comment', 'wp_new_comment_via_rest_notify_postauthor' );
 add_action( 'rest_insert_comment', 'wp_notify_note_mentions', 10, 3 );
@@ -557,6 +569,7 @@ add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 add_action( 'init', '_wp_connectors_init', 15 );
 
 // Sitemaps actions.
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'init', 'wp_sitemaps_get_server' );
 
 /**
@@ -685,6 +698,7 @@ add_action( 'init', 'create_initial_taxonomies', 0 ); // Highest priority.
 add_action( 'change_locale', 'create_initial_taxonomies' );
 
 // Canonical.
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'template_redirect', 'redirect_canonical' );
 add_action( 'template_redirect', 'wp_redirect_admin_locations', 1000 );
 
@@ -713,12 +727,16 @@ add_action( 'widgets_init', '_wp_block_theme_register_classic_sidebars', 1 );
 
 // Admin Bar.
 // Don't remove. Wrong way to disable.
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'template_redirect', '_wp_admin_bar_init', 0 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'admin_init', '_wp_admin_bar_init' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'before_signup_header', '_wp_admin_bar_init' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'activate_header', '_wp_admin_bar_init' );
 add_action( 'wp_body_open', 'wp_admin_bar_render', 0 );
 add_action( 'wp_footer', 'wp_admin_bar_render', 1000 ); // Back-compat for themes not using `wp_body_open`.
@@ -742,7 +760,9 @@ add_action( 'embed_head', 'enqueue_embed_scripts', 1 );
 add_action( 'embed_head', 'print_emoji_detection_script' );
 add_action( 'embed_head', 'wp_enqueue_embed_styles', 9 );
 add_action( 'embed_head', 'print_embed_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_embed_styles().
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'embed_head', 'wp_print_head_scripts', 20 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'embed_head', 'wp_print_styles', 20 );
 add_action( 'embed_head', 'wp_robots' );
 add_action( 'embed_head', 'rel_canonical' );

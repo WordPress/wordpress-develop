@@ -142,21 +142,3 @@ parameters:
 			message: '#^Parameter \#4 \$length of function substr_compare expects int, null given\.$#'
 			path: src/wp-includes/html-api/class-wp-html-tag-processor.php
 			reportUnmatched: false
-
-		# szepeviktor/phpstan-wordpress's HookCallbackRule, registered in tests/phpstan/base.neon,
-		# also reports an action callback whose return type is not void. That is sound advice for a
-		# plugin, where a function returning a value is likely a filter callback registered on the
-		# wrong function, but core registers functions that happen to return something on actions
-		# as a matter of course: `wp_save_post_revision()` on `post_updated`, `redirect_canonical()`
-		# on `template_redirect`, `wp_delete_attachment()` on `importer_scheduled_cleanup`. WordPress
-		# discards an action callback's return value, so none of the 52 reported registrations is a
-		# defect, and changing each function's return type to satisfy the rule would change public
-		# API. The rule's other check, that `$accepted_args` agrees with the callback's signature, is
-		# kept: it is what the rule is registered for.
-		#
-		# The rule reports this under PHPStan's own `return.void` identifier rather than one of its
-		# own, so the message is matched instead of the identifier to leave PHPStan's `return.void`
-		# errors reported.
-		-
-			message: '#^Action callback returns .+ but should not return anything\.$#'
-			reportUnmatched: false
