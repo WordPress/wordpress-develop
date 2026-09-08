@@ -7545,12 +7545,8 @@ function _device_can_upload() {
 /**
  * Tests if a given path is a stream URL.
  *
- * Requires the scheme to be followed by `://`. PHP also supports `data:` URLs
- * without `//`, but these are excluded because callers rely on this delimiter.
- * Does not determine whether the wrapper can open the resource.
- *
  * @since 3.5.0
- * @since 7.2.0 Matches PHP's scheme case fallback and minimum scheme length.
+ * @since 7.2.0 A lowercased scheme is accepted as a fallback, matching PHP.
  *
  * @param string $path The resource path or URL.
  * @return bool True if the path is a stream URL.
@@ -7558,8 +7554,8 @@ function _device_can_upload() {
 function wp_is_stream( $path ) {
 	$scheme_separator = strpos( $path, '://' );
 
-	if ( false === $scheme_separator || $scheme_separator < 2 ) {
-		// PHP requires at least two characters in a scheme.
+	if ( false === $scheme_separator ) {
+		// $path isn't a stream.
 		return false;
 	}
 

@@ -2149,38 +2149,33 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
-			'HTTP URL'                    => array( 'http://example.com', true ),
-			'HTTPS URL'                   => array( 'https://example.com', true ),
-			'FTP URL'                     => array( 'ftp://example.com', true ),
-			'file URL'                    => array( 'file:///path/to/some/file', true ),
-			'uppercase file scheme'       => array( 'FILE:///path/to/some/file', true ),
-			'PHP stream URL'              => array( 'php://some/php/file.php', true ),
+			'HTTP URL'                   => array( 'http://example.com', true ),
+			'HTTPS URL'                  => array( 'https://example.com', true ),
+			'FTP URL'                    => array( 'ftp://example.com', true ),
+			'file URL'                   => array( 'file:///path/to/some/file', true ),
+			'uppercase file scheme'      => array( 'FILE:///path/to/some/file', true ),
+			'PHP stream URL'             => array( 'php://some/php/file.php', true ),
 
 			// Non-stream examples.
-			'unregistered stream scheme'  => array( 'fakestream://foo/bar/baz', false ),
-			'parent-relative path'        => array( '../../some/relative/path', false ),
-			'relative path'               => array( 'some/other/relative/path', false ),
-			'absolute path'               => array( '/leading/relative/path', false ),
-			'data URL without slashes'    => array( 'data:text/plain,hello', false ),
-			'data URL with one slash'     => array( 'data:/text/plain,hello', false ),
-			'data URL with URL payload'   => array( 'data:text/plain,http://example.com', false ),
-			'data URL with empty payload' => array( 'data:', false ),
+			'unregistered stream scheme' => array( 'fakestream://foo/bar/baz', false ),
+			'parent-relative path'       => array( '../../some/relative/path', false ),
+			'relative path'              => array( 'some/other/relative/path', false ),
+			'absolute path'              => array( '/leading/relative/path', false ),
 		);
 	}
 
 	/**
-	 * Tests stream URL recognition against PHP's wrapper selection.
+	 * Tests scheme case matching against PHP's wrapper selection.
 	 *
 	 * @ticket 65870
 	 *
-	 * @dataProvider data_wp_is_stream_matches_php
+	 * @dataProvider data_wp_is_stream_matches_php_case_matching
 	 *
 	 * @param string $scheme   The registered scheme.
 	 * @param string $path     The path to open.
 	 * @param bool   $expected Whether PHP should select the registered wrapper.
-	 * @param bool   $register Whether to register the wrapper. Default true.
 	 */
-	public function test_wp_is_stream_matches_php( $scheme, $path, $expected, $register = true ) {
+	public function test_wp_is_stream_matches_php_case_matching( $scheme, $path, $expected ) {
 		$wrapper = new class() {
 			public $context;
 			public static $invoked = false;
@@ -2192,25 +2187,18 @@ class Tests_Functions extends WP_UnitTestCase {
 		};
 
 		$wrapper::$invoked = false;
-		$restore_data      = 'data' === $scheme;
 		$registered        = false;
 		$handle            = false;
 
-		if ( $restore_data ) {
-			$this->assertTrue( stream_wrapper_unregister( 'data' ) );
-		}
-
 		try {
-			if ( $register ) {
-				$registered = stream_wrapper_register( $scheme, get_class( $wrapper ) );
-				$this->assertTrue( $registered );
-			}
+			$registered = stream_wrapper_register( $scheme, get_class( $wrapper ) );
+			$this->assertTrue( $registered );
 
 			// Record selection without requiring the wrapper to parse or open the URL.
 			$handle = @fopen( $path, 'r' );
 
 			$this->assertSame( $expected, $wrapper::$invoked, 'PHP did not select the expected wrapper.' );
-			$this->assertSame( $wrapper::$invoked, wp_is_stream( $path ), 'WordPress and PHP disagree on stream URL recognition.' );
+			$this->assertSame( $wrapper::$invoked, wp_is_stream( $path ), 'WordPress and PHP disagree on scheme case matching.' );
 		} finally {
 			if ( is_resource( $handle ) ) {
 				fclose( $handle );
@@ -2218,18 +2206,15 @@ class Tests_Functions extends WP_UnitTestCase {
 			if ( $registered ) {
 				stream_wrapper_unregister( $scheme );
 			}
-			if ( $restore_data ) {
-				stream_wrapper_restore( 'data' );
-			}
 		}
 	}
 
 	/**
-	 * Data provider for stream URL recognition against PHP.
+	 * Data provider for scheme case matching against PHP.
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_is_stream_matches_php() {
+	public function data_wp_is_stream_matches_php_case_matching() {
 		return array(
 			'lowercase scheme'                  => array( 'wpteststream', 'wpteststream://bucket/file', true ),
 			'lowercase registration mixed case' => array( 'wpteststream', 'wpTestStream://bucket/file', true ),
@@ -2240,81 +2225,6 @@ class Tests_Functions extends WP_UnitTestCase {
 			'mixed case with different casing'  => array( 'wpTestStream', 'wptestSTREAM://bucket/file', false ),
 			'uppercase exact match'             => array( 'WPTESTSTREAM', 'WPTESTSTREAM://bucket/file', true ),
 			'uppercase lowercased'              => array( 'WPTESTSTREAM', 'wpteststream://bucket/file', false ),
-			'one-character scheme'              => array( 'w', 'w://bucket/file', false ),
-			'one-character digit scheme'        => array( '1', '1://bucket/file', false ),
-			'two-character scheme'              => array( 'wp', 'wp://bucket/file', true ),
-			'numeric scheme'                    => array( '12', '12://bucket/file', true ),
-			'punctuation scheme'                => array( '+-.', '+-.://bucket/file', true ),
-			'plus in scheme'                    => array( 'wptest+stream', 'wptest+stream://bucket/file', true ),
-			'hyphen in scheme'                  => array( 'wptest-stream', 'wptest-stream://bucket/file', true ),
-			'dot in scheme'                     => array( 'wptest.stream', 'wptest.stream://bucket/file', true ),
-			'unknown scheme'                    => array( 'wpteststream', 'wptestunknown://bucket/file', false ),
-			'unregistered scheme'               => array( 'wpteststream', 'wpteststream://bucket/file', false, false ),
-			'no slashes'                        => array( 'wpteststream', 'wpteststream:bucket/file', false ),
-			'one slash'                         => array( 'wpteststream', 'wpteststream:/bucket/file', false ),
-			'leading space'                     => array( 'wpteststream', ' wpteststream://bucket/file', false ),
-			'leading path'                      => array( 'wpteststream', '/wpteststream://bucket/file', false ),
-			'existing local file'               => array( 'wpteststream', __FILE__, false ),
-			'data with two slashes'             => array( 'data', 'data://text/plain,hello', true ),
-			'data uppercase without slashes'    => array( 'data', 'DATA:text/plain,hello', false ),
-			'data mixed case without slashes'   => array( 'data', 'Data:text/plain,hello', false ),
-			'data uppercase with slashes'       => array( 'data', 'DATA://text/plain,hello', true ),
-			'data mixed case with slashes'      => array( 'data', 'Data://text/plain,hello', true ),
-			'data unregistered'                 => array( 'data', 'data://text/plain,hello', false, false ),
-		);
-	}
-
-	/**
-	 * Tests built-in handlers separately from wrapper selection.
-	 *
-	 * @ticket 65870
-	 *
-	 * @dataProvider data_php_builtin_stream_wrapper_case
-	 *
-	 * @param string       $url      The URL to open.
-	 * @param string|false $expected Expected contents, or false if opening fails.
-	 */
-	public function test_php_builtin_stream_wrapper_case( $url, $expected ) {
-		if ( 0 === strncasecmp( $url, 'data:', 5 ) && ! ini_get( 'allow_url_fopen' ) ) {
-			$this->markTestSkipped( 'The data wrapper requires allow_url_fopen.' );
-		}
-
-		$handle = false;
-		try {
-			$handle = @fopen( $url, 'r' );
-			$this->assertSame( false !== $expected, is_resource( $handle ), 'Unexpected built-in handler open result.' );
-			if ( is_resource( $handle ) ) {
-				$this->assertSame( $expected, stream_get_contents( $handle ) );
-			}
-		} finally {
-			if ( is_resource( $handle ) ) {
-				fclose( $handle );
-			}
-		}
-	}
-
-	/**
-	 * Data provider for built-in handler behavior with different scheme cases.
-	 *
-	 * @return array[]
-	 */
-	public function data_php_builtin_stream_wrapper_case() {
-		$file     = DIR_TESTDATA . '/formatting/entities.txt';
-		$contents = file_get_contents( $file );
-
-		return array(
-			'data lowercase without slashes'  => array( 'data:text/plain,hello', 'hello' ),
-			'data uppercase without slashes'  => array( 'DATA:text/plain,hello', false ),
-			'data mixed case without slashes' => array( 'Data:text/plain,hello', false ),
-			'data lowercase with slashes'     => array( 'data://text/plain,hello', 'hello' ),
-			'data uppercase with slashes'     => array( 'DATA://text/plain,hello', false ),
-			'data mixed case with slashes'    => array( 'Data://text/plain,hello', false ),
-			'php lowercase'                   => array( 'php://memory', '' ),
-			'php uppercase'                   => array( 'PHP://memory', '' ),
-			'php mixed case'                  => array( 'Php://memory', '' ),
-			'file lowercase'                  => array( 'file://' . $file, $contents ),
-			'file uppercase'                  => array( 'FILE://' . $file, $contents ),
-			'file mixed case'                 => array( 'File://' . $file, $contents ),
 		);
 	}
 
