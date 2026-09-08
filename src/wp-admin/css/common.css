@@ -18,9 +18,14 @@
 	min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - var(--wpds-dimension-padding-sm));
 	padding-left: 20px;
 	background: #f0f0f1;
-	border-radius: var(--wpds-border-radius-xl);
 	margin-right: 8px;
 	box-sizing: border-box;
+}
+
+@media (min-width: 782px) {
+	#wpcontent {
+		border-radius: var(--wpds-border-radius-xl);
+	}
 }
 
 #wpcontent,
