@@ -262,7 +262,7 @@ function wp_enqueue_block_style_variation_styles() {
 // Register the block support.
 WP_Block_Supports::get_instance()->register( 'block-style-variation', array() );
 
-add_filter( 'render_block_data', 'wp_render_block_style_variation_support_styles', 10, 2 );
+add_filter( 'render_block_data', 'wp_render_block_style_variation_support_styles' );
 add_filter( 'render_block', 'wp_render_block_style_variation_class_name', 10, 2 );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_block_style_variation_styles', 1 );
 
