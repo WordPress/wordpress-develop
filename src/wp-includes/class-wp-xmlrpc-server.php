@@ -479,7 +479,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		foreach ( (array) has_term_meta( $term_id ) as $meta ) {
 
-			if ( ! current_user_can( 'edit_term_meta', $term_id ) ) {
+			if ( ! current_user_can( 'edit_term_meta', $term_id, $meta['meta_key'] ) ) {
 				continue;
 			}
 
@@ -514,13 +514,13 @@ class wp_xmlrpc_server extends IXR_Server {
 						continue;
 					}
 					$meta['value'] = wp_unslash( $meta['value'] );
-					if ( current_user_can( 'edit_term_meta', $term_id ) ) {
+					if ( current_user_can( 'edit_term_meta', $term_id, $meta['key'] ) ) {
 						update_metadata_by_mid( 'term', $meta['id'], $meta['value'] );
 					}
-				} elseif ( current_user_can( 'delete_term_meta', $term_id ) ) {
+				} elseif ( current_user_can( 'delete_term_meta', $term_id, $pmeta->meta_key ) ) {
 					delete_metadata_by_mid( 'term', $meta['id'] );
 				}
-			} elseif ( current_user_can( 'add_term_meta', $term_id ) ) {
+			} elseif ( current_user_can( 'add_term_meta', $term_id, wp_unslash( $meta['key'] ) ) ) {
 				add_term_meta( $term_id, $meta['key'], $meta['value'] );
 			}
 		}
