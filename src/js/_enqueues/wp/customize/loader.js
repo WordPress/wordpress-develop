@@ -13,6 +13,8 @@
 window.wp = window.wp || {};
 
 /**
+ * The WordPress Customizer loader API.
+ *
  * @param {Object}       wp The WordPress global object.
  * @param {JQueryStatic} $  The jQuery object.
  */

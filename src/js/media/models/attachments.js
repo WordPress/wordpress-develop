@@ -465,7 +465,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		}
 	},
 	/**
-	 * If this collection is sorted by `menuOrder`, recalculates and saves the menu order to the database.
+	 * Recalculates and saves the menu order to the database if this collection is sorted by `menuOrder`.
 	 *
 	 * @return {undefined|Promise} Returns a promise if the menu order is saved, otherwise undefined.
 	 */
