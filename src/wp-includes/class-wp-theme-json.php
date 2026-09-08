@@ -3522,7 +3522,7 @@ class WP_Theme_JSON {
 	 *
 	 * @param array $theme_json The theme.json converted to an array.
 	 * @param array $selectors  Optional list of selectors per block.
-	 * @param array $options {
+	 * @param array $options    {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
 	 *     @type bool $include_block_style_variations Include nodes for block style variations. Default false.
