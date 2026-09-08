@@ -25,7 +25,7 @@
 @media (min-width: 782px) {
 	#wpcontent {
 		border-radius: var(--wpds-border-radius-xl);
-		overflow-block: hidden;
+		overflow: clip;
 	}
 }
 
@@ -2419,7 +2419,7 @@ html.wp-toolbar {
 @media (min-width: 782px) {
 	#wpfooter {
 		border-radius: 0 0 var(--wpds-border-radius-xl) var(--wpds-border-radius-xl);
-		overflow-block: hidden;
+		overflow: clip;
 	}
 }
 
