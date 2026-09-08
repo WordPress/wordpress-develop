@@ -960,7 +960,17 @@ if ( ! CUSTOM_TAGS ) {
  * @return string Filtered content containing only the allowed HTML.
  */
 function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
-	return wp_sanitize_html_kses( (string) $content, $allowed_html, $allowed_protocols );
+	/**
+	 * Filters whether to rely on the legacy parsing inside `wp_kses()`.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $force_legacy_parser Whether to force using the legacy parser
+	 *                                  instead of relying on the HTML API.
+	 */
+	if ( ! apply_filters( 'wp_kses_force_legacy_parser', true ) ) {
+		return wp_sanitize_html_kses( (string) $content, $allowed_html, $allowed_protocols );
+	}
 
 	if ( empty( $allowed_protocols ) ) {
 		$allowed_protocols = wp_allowed_protocols();
