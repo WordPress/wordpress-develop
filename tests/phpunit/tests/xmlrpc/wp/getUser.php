@@ -3,6 +3,8 @@
 /**
  * @group xmlrpc
  * @group user
+ *
+ * @covers wp_xmlrpc_server::wp_getUser
  */
 class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 	protected $administrator_id;
