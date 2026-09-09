@@ -615,4 +615,36 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		return $stats['cmd_get'];
 	}
+
+	/**
+	 * Test that updating an option doesn't corrupt other options, particularly theme options.
+	 *
+	 * @ticket 53520
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_does_not_corrupt_theme_options() {
+		// Switch to a specific theme for testing
+		$original_theme = get_stylesheet();
+		$test_theme     = 'twentytwentyone';
+
+		switch_theme( $test_theme );
+
+		// Record theme options before update
+		$stylesheet_before = get_option( 'stylesheet' );
+		$template_before   = get_option( 'template' );
+
+		// Update an unrelated option
+		$this->assertTrue( update_option( 'blogname', 'Test Site Theme Corruption Test' ) );
+
+		// Verify theme options remain unchanged
+		$this->assertSame( $stylesheet_before, get_option( 'stylesheet' ) );
+		$this->assertSame( $template_before, get_option( 'template' ) );
+		$this->assertSame( $test_theme, get_stylesheet() );
+
+		// Restore original theme
+		if ( $original_theme !== $test_theme ) {
+			switch_theme( $original_theme );
+		}
+	}
 }
