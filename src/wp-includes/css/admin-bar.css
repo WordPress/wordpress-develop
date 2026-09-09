@@ -595,7 +595,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	height: 20px;
 	max-width: 20px;
 	max-height: 20px;
-	background: #f0f0f1; /* matching my-account (user avatar) node's background */
 	border-radius: 2px;
 }
 
