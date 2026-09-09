@@ -1615,6 +1615,11 @@ function wp_default_styles( $styles ) {
 	}
 
 	// Register a stylesheet for the selected admin color scheme.
+
+	// This is a special case where 'true' is used as a placeholder.
+	// The actual URL will be determined dynamically via wp_style_loader_src.
+	// While 'true' doesn't match the string|false type expectation for $src,
+	// changing it breaks admin color scheme functionality.
 	$styles->add( 'colors', true, array( 'wp-admin', 'buttons' ) );
 
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
