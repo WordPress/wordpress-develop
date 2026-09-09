@@ -56,6 +56,7 @@ module.exports = [
 			'jsdoc/require-returns-type': 'error',
 			'jsdoc/check-syntax': 'error',
 			'jsdoc/require-description': 'error',
+			'jsdoc/require-jsdoc': 'error',
 		},
 	},
 ];
