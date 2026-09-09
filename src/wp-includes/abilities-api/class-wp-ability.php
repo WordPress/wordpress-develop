@@ -767,6 +767,7 @@ class WP_Ability {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_invoked` action.
 	 * @since 7.1.0 Added the `wp_pre_execute_ability` filter.
+	 * @since 7.1.0 Added the `wp_ability_permission_error_message` filter.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
@@ -828,6 +829,12 @@ class WP_Ability {
 
 		$has_permissions = $this->check_permissions( $input );
 		if ( true !== $has_permissions ) {
+			$permission_error_message = sprintf(
+				/* translators: %s ability name. */
+				__( 'Ability "%s" does not have necessary permission.' ),
+				$this->name
+			);
+
 			if ( is_wp_error( $has_permissions ) ) {
 				// Don't leak the permission check error to someone without the correct perms.
 				_doing_it_wrong(
@@ -835,12 +842,31 @@ class WP_Ability {
 					esc_html( $has_permissions->get_error_message() ),
 					'6.9.0'
 				);
+
+				/**
+				 * Filters the message returned when an ability permission check fails.
+				 *
+				 * @since 7.1.0
+				 *
+				 * @param string     $permission_error_message The generic permission error message.
+				 * @param WP_Error   $has_permissions          The failed permission result.
+				 * @param string     $ability_name             The name of the ability.
+				 * @param mixed      $input                    The input data for the ability.
+				 * @param WP_Ability $ability                  The ability instance.
+				 */
+				$permission_error_message = apply_filters(
+					'wp_ability_permission_error_message',
+					$permission_error_message,
+					$has_permissions,
+					$this->name,
+					$input,
+					$this
+				);
 			}
 
 			return new WP_Error(
 				'ability_invalid_permissions',
-				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have necessary permission.' ), $this->name )
+				$permission_error_message
 			);
 		}
 
