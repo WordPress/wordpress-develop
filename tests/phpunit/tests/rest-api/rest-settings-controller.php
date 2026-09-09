@@ -683,8 +683,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_update_item_with_invalid_enum() {
-		update_option( 'posts_per_page', 9 );
-
 		wp_set_current_user( self::$administrator );
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
 		$request->set_param( 'default_ping_status', 'open&closed' );
