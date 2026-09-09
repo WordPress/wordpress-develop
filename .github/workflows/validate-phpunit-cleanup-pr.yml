@@ -92,14 +92,28 @@ jobs:
               validatedCount++;
               core.info( `\nValidating test file: ${filename}` );
 
-              // 1. Validate Filename suffix (*Test.php)
-              if ( ! baseName.endsWith( 'Test.php' ) ) {
-                errors.push( `[${filename}] Test filename must end with "Test.php" (Pattern: FunctionUnderTest[OptionalSubsetIndicator]Test.php).` );
-              } else {
-                passes.push( `[${filename}] Filename "${baseName}" ends with "Test.php".` );
+              // 1. Validate Filename conventions (starts with capital letter, CamelCase/PascalCase, ends with Test.php)
+              const expectedClassName = baseName.replace( /\.php$/, '' );
+              let filenameValid = true;
+
+              if ( ! /^[A-Z]/.test( baseName ) ) {
+                errors.push( `[${filename}] Test filename "${baseName}" must start with a capital letter.` );
+                filenameValid = false;
               }
 
-              const expectedClassName = baseName.replace( /\.php$/, '' );
+              if ( ! baseName.endsWith( 'Test.php' ) ) {
+                errors.push( `[${filename}] Test filename "${baseName}" must end with "Test.php" (Pattern: FunctionUnderTest[OptionalSubsetIndicator]Test.php).` );
+                filenameValid = false;
+              }
+
+              if ( ! /^[A-Z][a-zA-Z0-9_]*Test\.php$/.test( baseName ) ) {
+                errors.push( `[${filename}] Test filename "${baseName}" must follow CamelCase / PascalCase convention and end with "Test.php".` );
+                filenameValid = false;
+              }
+
+              if ( filenameValid ) {
+                passes.push( `[${filename}] Filename "${baseName}" starts with a capital letter, follows CamelCase convention, and ends with "Test.php".` );
+              }
 
               // 2. Validate directory depth (must have a parent directory for Class_Under_Test or Functions_FileName)
               if ( pathParts.length < 1 ) {
@@ -167,6 +181,14 @@ jobs:
 
                 if ( ! declaredClass.endsWith( 'Test' ) ) {
                   errors.push( `[${filename}] Class name "${declaredClass}" must end with "Test".` );
+                }
+
+                if ( ! /^[A-Z]/.test( declaredClass ) ) {
+                  errors.push( `[${filename}] Class name "${declaredClass}" must start with a capital letter.` );
+                }
+
+                if ( ! /^[A-Z][a-zA-Z0-9_]*Test$/.test( declaredClass ) ) {
+                  errors.push( `[${filename}] Class name "${declaredClass}" must follow CamelCase / PascalCase convention and end with "Test".` );
                 }
               }
             }
