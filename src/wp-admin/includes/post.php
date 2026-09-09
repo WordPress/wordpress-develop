@@ -1001,9 +1001,12 @@ function write_post() {
  * Adds post meta data defined in the `$_POST` superglobal for a post with given ID.
  *
  * @since 1.2.0
+ * @since 7.1.0 Returns a WP_Error object when the meta key is protected or the user
+ *              does not have the capability to add post meta.
  *
  * @param int $post_id
- * @return int|bool
+ * @return int|bool|WP_Error Meta ID on success, false if no key/value pair was provided,
+ *                           WP_Error if the meta key is protected or the user lacks capability.
  */
 function add_meta( $post_id ) {
 	$post_id = (int) $post_id;
@@ -1029,7 +1032,10 @@ function add_meta( $post_id ) {
 		}
 
 		if ( is_protected_meta( $metakey, 'post' ) || ! current_user_can( 'add_post_meta', $post_id, $metakey ) ) {
-			return false;
+			return new WP_Error(
+				'protected_meta',
+				__( 'Sorry, you are not allowed to add this custom field.' )
+			);
 		}
 
 		$metakey = wp_slash( $metakey );
