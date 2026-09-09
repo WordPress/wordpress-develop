@@ -91,11 +91,16 @@
 			inputs.url.on( 'blur', wpLink.correctURL );
 		},
 
-		// If URL wasn't corrected last time and doesn't start with http:, https:, ? # or /, prepend http://.
+		/*
+		 * If the URL wasn't corrected last time and doesn't start with a scheme
+		 * (a letter followed by letters, digits, `+` or `-`, then a colon, matching
+		 * RFC 3986 minus the dot so that `example.com:8080` is still corrected),
+		 * `#`, `?`, `.` or `/`, prepend http://.
+		 */
 		correctURL: function () {
 			var url = inputs.url.val().trim();
 
-			if ( url && correctedURL !== url && ! /^(?:[a-z]+:|#|\?|\.|\/)/.test( url ) ) {
+			if ( url && correctedURL !== url && ! /^(?:[a-zA-Z][a-zA-Z0-9+-]*:|#|\?|\.|\/)/.test( url ) ) {
 				inputs.url.val( 'http://' + url );
 				correctedURL = url;
 			}

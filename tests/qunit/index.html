@@ -76,6 +76,7 @@
 	<body>
 		<div id="qunit"></div>
 		<div id="qunit-fixture">
+			<input id="wp-link-url" type="url" />
 			<script src="fixtures/customize-header.js"></script>
 			<script src="fixtures/customize-settings.js"></script>
 			<script src="fixtures/customize-menus.js"></script>
@@ -87,6 +88,8 @@
 		</div>
 
 		<!-- Tested files -->
+		<script>window.wpLinkL10n = window.wpLinkL10n || {};</script>
+		<script src="../../build/wp-includes/js/wplink.js"></script>
 		<script src="../../build/wp-admin/js/dashboard.js"></script>
 		<script src="../../build/wp-admin/js/password-strength-meter.js"></script>
 		<script src="../../build/wp-admin/js/postbox.js"></script>
@@ -168,6 +171,7 @@
 		<script src="wp-admin/js/widgets/test-media-gallery-widget.js"></script>
 		<script src="wp-admin/js/widgets/test-media-video-widget.js"></script>
 		<script src="wp-includes/js/media/test-models.js"></script>
+		<script src="wp-includes/js/wplink.js"></script>
 
 		<!-- Customizer templates for sections -->
 		<script type="text/html" id="tmpl-customize-section-default">
