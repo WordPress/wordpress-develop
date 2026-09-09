@@ -2555,6 +2555,14 @@ class WP_Query {
 			}
 		}
 
+		if ( '' !== $orderby
+			&& empty( $query_vars['post_status'] )
+			&& ( '' !== $query_vars['name'] || '' !== $query_vars['pagename'] || '' !== $query_vars['attachment'] )
+		) {
+			// Prefer published posts for singular slug/path queries unless a post_status was requested.
+			$orderby = "{$wpdb->posts}.post_status = 'publish' DESC, $orderby";
+		}
+
 		// Order search results by relevance only when another "orderby" is not specified in the query.
 		if ( ! empty( $query_vars['s'] ) ) {
 			$search_orderby = '';
