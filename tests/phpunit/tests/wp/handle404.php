@@ -13,19 +13,15 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '/%postname%/' );
 
-		/*
-		 * WP_UnitTestCase::set_up() replaces the $wp global and resets $wp_sitemaps,
-		 * which drops the sitemap query vars registered on 'init'. Priming the sitemaps
-		 * server re-registers them, so that sitemap requests are recognized as such.
-		 */
+		// Priming the server re-registers the sitemap query vars, which set_up() drops.
 		wp_sitemaps_get_server();
 	}
 
 	/**
-	 * A sitemap request must not 404 just because the main query found no posts.
+	 * A sitemap request must not be turned into a 404 by an empty main query.
 	 *
-	 * Note that no posts are created for these tests: an empty main query is the
-	 * condition being tested.
+	 * Whether the sitemap exists is decided later by WP_Sitemaps::render_sitemaps(),
+	 * so some of these URLs still 404 in a full request, just not from here.
 	 *
 	 * @ticket 65945
 	 *
@@ -33,11 +29,11 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	 *
 	 * @param non-falsy-string $url Sitemap URL to request.
 	 */
-	public function test_sitemap_requests_should_not_404_on_a_site_with_no_posts( string $url ) {
+	public function test_sitemap_requests_should_not_be_404ed_by_an_empty_main_query( string $url ) {
 		$this->go_to( home_url( $url ) );
 
 		$this->assertTrue( is_sitemap(), 'The request should be recognized as a sitemap request.' );
-		$this->assertFalse( is_404(), 'A sitemap request should not be a 404.' );
+		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
 	}
 
 	/**
@@ -58,7 +54,9 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The sitemap stylesheet routes must not 404 either.
+	 * The sitemap stylesheet routes must not be 404ed either.
+	 *
+	 * Covered separately because is_sitemap() only reflects the `sitemap` query var.
 	 *
 	 * @ticket 65945
 	 *
@@ -66,10 +64,10 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	 *
 	 * @param non-falsy-string $url Stylesheet URL to request.
 	 */
-	public function test_sitemap_stylesheet_requests_should_not_404_on_a_site_with_no_posts( string $url ) {
+	public function test_sitemap_stylesheet_requests_should_not_be_404ed_by_an_empty_main_query( string $url ) {
 		$this->go_to( home_url( $url ) );
 
-		$this->assertFalse( is_404(), 'A sitemap stylesheet request should not be a 404.' );
+		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
 	}
 
 	/**
@@ -81,11 +79,7 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 		return array(
 			'sitemap stylesheet'        => array( '/?sitemap-stylesheet=sitemap' ),
 			'index stylesheet'          => array( '/?sitemap-stylesheet=index' ),
-			/*
-			 * A paged stylesheet request is not a real route, but it is the only
-			 * stylesheet case that is not already covered by the is_home() exception
-			 * in WP::handle_404(), so it guards the sitemap-stylesheet check there.
-			 */
+			// Not a real route, but the only stylesheet case is_home() doesn't already cover.
 			'sitemap stylesheet, paged' => array( '/?sitemap-stylesheet=sitemap&paged=2' ),
 		);
 	}
@@ -105,8 +99,7 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	/**
 	 * An unregistered sitemap provider must not be turned into a 404 here.
 	 *
-	 * WP_Sitemaps::render_sitemaps() sends that status itself, which is covered by
-	 * Tests_Sitemaps_Sitemaps::test_unregistered_provider_should_return_404().
+	 * render_sitemaps() sends that status itself, covered in Tests_Sitemaps_Sitemaps.
 	 *
 	 * @ticket 65945
 	 */

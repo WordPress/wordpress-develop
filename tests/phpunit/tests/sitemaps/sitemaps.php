@@ -464,6 +464,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50643
+	 * @ticket 65945
 	 */
 	public function test_disable_sitemap_should_return_404() {
 		add_filter( 'wp_sitemaps_enabled', '__return_false' );
@@ -474,11 +475,10 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/?sitemap=index' ) );
 
+		$this->expectException( 'WPDieException' );
+		$this->expectExceptionMessage( 'XML sitemaps are disabled for this site.' );
+
 		$sitemaps->render_sitemaps();
-
-		remove_filter( 'wp_sitemaps_enabled', '__return_false' );
-
-		$this->assertTrue( is_404() );
 	}
 
 	/**
@@ -505,7 +505,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 		$this->go_to( home_url( '/?sitemap=foo&sitemap-subtype=bar&paged=2' ) );
 
 		$this->expectException( 'WPDieException' );
-		$this->expectExceptionMessage( 'There are no URLs available for the "foo" sitemap (object subtype "bar") on page 2.' );
+		$this->expectExceptionMessage( 'There are no URLs available for the "foo:bar" sitemap on page 2.' );
 
 		wp_sitemaps_get_server()->render_sitemaps();
 	}

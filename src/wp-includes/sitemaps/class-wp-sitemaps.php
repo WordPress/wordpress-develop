@@ -157,12 +157,8 @@ class WP_Sitemaps {
 	 * Renders sitemap templates based on rewrite rules.
 	 *
 	 * @since 5.5.0
-	 *
-	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function render_sitemaps() {
-		global $wp_query;
-
 		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
 		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
 		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
@@ -173,10 +169,9 @@ class WP_Sitemaps {
 			return;
 		}
 
+		// Bail with a 404 if sitemaps are disabled for this site.
 		if ( ! $this->sitemaps_enabled() ) {
-			$wp_query->set_404();
-			status_header( 404 );
-			return;
+			wp_die( __( 'XML sitemaps are disabled for this site.' ), 404 );
 		}
 
 		// Render stylesheet if this is stylesheet route.
@@ -217,24 +212,15 @@ class WP_Sitemaps {
 
 		// Bail with a 404 if no URLs are present.
 		if ( empty( $url_list ) ) {
-			if ( $object_subtype ) {
-				$message = sprintf(
-					/* translators: 1: Sitemap provider name, 2: Object subtype name, 3: Page number. */
-					__( 'There are no URLs available for the "%1$s" sitemap (object subtype "%2$s") on page %3$s.' ),
-					esc_html( $sitemap ),
-					esc_html( $object_subtype ),
-					esc_html( number_format_i18n( $paged ) )
-				);
-			} else {
-				$message = sprintf(
+			wp_die(
+				sprintf(
 					/* translators: 1: Sitemap provider name, 2: Page number. */
 					__( 'There are no URLs available for the "%1$s" sitemap on page %2$s.' ),
-					esc_html( $sitemap ),
+					esc_html( $sitemap . ( $object_subtype ? ':' . $object_subtype : '' ) ),
 					esc_html( number_format_i18n( $paged ) )
-				);
-			}
-
-			wp_die( $message, 404 );
+				),
+				404
+			);
 		}
 
 		$this->renderer->render_sitemap( $url_list );
