@@ -525,7 +525,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	}
 
 	if ( false === $tag ) {
-		// Button HTML passed was not valid.
+		// Button HTML passed was not valid. Reset to default.
 		$is_default = true;
 		$button     = $default_button;
 		$processor  = new WP_HTML_Tag_Processor( $button );
