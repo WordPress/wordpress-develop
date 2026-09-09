@@ -588,7 +588,7 @@ function list_meta( $meta ) {
 	// Exit if no meta.
 	if ( ! $meta ) {
 		echo '
-<table id="list-table" style="display: none;">
+<table id="list-table" class="custom-fields-list is-empty" style="display: none;">
 	<thead>
 	<tr>
 		<th class="left">' . _x( 'Name', 'meta name' ) . '</th>
@@ -603,7 +603,7 @@ function list_meta( $meta ) {
 	}
 	$count = 0;
 	?>
-<table id="list-table">
+<table id="list-table" class="custom-fields-list has-fields">
 	<thead>
 	<tr>
 		<th class="left"><?php _ex( 'Name', 'meta name' ); ?></th>
@@ -661,24 +661,21 @@ function _list_meta_row( $entry, &$count ) {
 
 	$delete_nonce = wp_create_nonce( 'delete-meta_' . $entry['meta_id'] );
 
-	$r .= "\n\t<tr id='meta-{$entry['meta_id']}'>";
-	$r .= "\n\t\t<td class='left'><label class='screen-reader-text' for='meta-{$entry['meta_id']}-key'>" .
-		/* translators: Hidden accessibility text. */
-		__( 'Key' ) .
-	"</label><input name='meta[{$entry['meta_id']}][key]' id='meta-{$entry['meta_id']}-key' type='text' size='20' value='{$entry['meta_key']}' />";
+	$r .= "\n\t<tr id='meta-{$entry['meta_id']}' class='custom-field-row is-saved'>";
+	$r .= "\n\t\t<td class='left custom-field-name'><label class='custom-field-label' for='meta-{$entry['meta_id']}-key'>" .
+		_x( 'Name', 'meta name' ) .
+	"</label><input class='custom-field-key regular-text' name='meta[{$entry['meta_id']}][key]' id='meta-{$entry['meta_id']}-key' type='text' size='20' value='{$entry['meta_key']}' /></td>";
 
-	$r .= "\n\t\t<div class='submit'>";
-	$r .= get_submit_button( __( 'Delete' ), 'deletemeta small', "deletemeta[{$entry['meta_id']}]", false, array( 'data-wp-lists' => "delete:the-list:meta-{$entry['meta_id']}::_ajax_nonce=$delete_nonce" ) );
-	$r .= "\n\t\t";
-	$r .= get_submit_button( __( 'Update' ), 'updatemeta small', "meta-{$entry['meta_id']}-submit", false, array( 'data-wp-lists' => "add:the-list:meta-{$entry['meta_id']}::_ajax_nonce-add-meta=$update_nonce" ) );
-	$r .= '</div>';
-	$r .= wp_nonce_field( 'change-meta', '_ajax_nonce', false, false );
+	$r .= "\n\t\t<td class='custom-field-value'><label class='custom-field-label' for='meta-{$entry['meta_id']}-value'>" .
+		__( 'Value' ) .
+	"</label><textarea class='custom-field-value-field large-text' name='meta[{$entry['meta_id']}][value]' id='meta-{$entry['meta_id']}-value' rows='1' cols='30'>{$entry['meta_value']}</textarea>";
 	$r .= '</td>';
 
-	$r .= "\n\t\t<td><label class='screen-reader-text' for='meta-{$entry['meta_id']}-value'>" .
-		/* translators: Hidden accessibility text. */
-		__( 'Value' ) .
-	"</label><textarea name='meta[{$entry['meta_id']}][value]' id='meta-{$entry['meta_id']}-value' rows='2' cols='30'>{$entry['meta_value']}</textarea></td>\n\t</tr>";
+	$r .= "\n\t\t<td class='submit custom-field-actions'>";
+	$r .= '<button type="submit" name="meta-' . $entry['meta_id'] . '-submit" id="meta-' . $entry['meta_id'] . '-submit" class="button button-secondary updatemeta custom-field-update" data-wp-lists="add:the-list:meta-' . $entry['meta_id'] . '::_ajax_nonce-add-meta=' . esc_attr( $update_nonce ) . '">' . esc_html__( 'Update' ) . '</button>';
+	$r .= '<button type="submit" name="deletemeta[' . $entry['meta_id'] . ']" id="deletemeta[' . $entry['meta_id'] . ']" class="button-link button-link-delete deletemeta custom-field-delete" value="' . esc_attr__( 'Delete' ) . '" data-wp-lists="delete:the-list:meta-' . $entry['meta_id'] . '::_ajax_nonce=' . esc_attr( $delete_nonce ) . '">' . esc_html__( 'Delete' ) . '</button>';
+	$r .= wp_nonce_field( 'change-meta', '_ajax_nonce', false, false );
+	$r .= '</td>' . "\n\t</tr>";
 	return $r;
 }
 
@@ -737,20 +734,21 @@ function meta_form( $post = null ) {
 		natcasesort( $keys );
 	}
 	?>
-<p><strong><?php _e( 'Add Custom Field:' ); ?></strong></p>
-<table id="newmeta">
+<p class="custom-field-add-heading"><strong><?php _e( 'Add new custom field' ); ?></strong></p>
+<table id="newmeta" class="custom-field-row is-new">
 <thead>
 <tr>
-<th class="left"><label for="metakeyselect"><?php _ex( 'Name', 'meta name' ); ?></label></th>
-<th><label for="metavalue"><?php _e( 'Value' ); ?></label></th>
+<th class="left"><?php _ex( 'Name', 'meta name' ); ?></th>
+<th><?php _e( 'Value' ); ?></th>
 </tr>
 </thead>
 
 <tbody>
 <tr>
-<td id="newmetaleft" class="left">
+<td id="newmetaleft" class="left custom-field-name">
+<label class="custom-field-label" for="<?php echo $keys ? 'metakeyselect' : 'metakeyinput'; ?>"><?php _ex( 'Name', 'meta name' ); ?></label>
 	<?php if ( $keys ) { ?>
-<select id="metakeyselect" name="metakeyselect">
+<select id="metakeyselect" class="custom-field-key regular-text" name="metakeyselect">
 <option value="#NONE#"><?php _e( '&mdash; Select &mdash;' ); ?></option>
 		<?php
 		foreach ( $keys as $key ) {
@@ -761,25 +759,21 @@ function meta_form( $post = null ) {
 		}
 		?>
 </select>
-<input class="hidden" type="text" id="metakeyinput" name="metakeyinput" value="" aria-label="<?php _e( 'New custom field name' ); ?>" />
-<button type="button" id="newmeta-button" class="button button-small hide-if-no-js" onclick="jQuery('#metakeyinput, #metakeyselect, #enternew, #cancelnew').toggleClass('hidden');jQuery('#metakeyinput, #metakeyselect').filter(':visible').trigger('focus');">
-<span id="enternew"><?php _e( 'Enter new' ); ?></span>
-<span id="cancelnew" class="hidden"><?php _e( 'Cancel' ); ?></span></button>
+<input class="hidden custom-field-key regular-text" type="text" id="metakeyinput" name="metakeyinput" value="" aria-label="<?php esc_attr_e( 'New custom field name' ); ?>" />
+	<button type="button" id="newmeta-button" class="button-link custom-field-enter-new hide-if-no-js">
+	<span id="enternew"><?php _e( 'Enter new' ); ?></span><span id="cancelnew" class="hidden"><?php _e( 'Use existing' ); ?></span></button>
 <?php } else { ?>
-<input type="text" id="metakeyinput" name="metakeyinput" value="" />
+<input class="custom-field-key regular-text" type="text" id="metakeyinput" name="metakeyinput" value="" />
 <?php } ?>
 </td>
-<td><textarea id="metavalue" name="metavalue" rows="2" cols="25"></textarea>
+<td class="custom-field-value"><label class="custom-field-label" for="metavalue"><?php _e( 'Value' ); ?></label><textarea id="metavalue" class="custom-field-value-field large-text" name="metavalue" rows="1" cols="25"></textarea>
 	<?php wp_nonce_field( 'add-meta', '_ajax_nonce-add-meta', false ); ?>
 </td>
-</tr>
-</tbody>
-</table>
-<div class="submit add-custom-field">
+<td class="submit add-custom-field custom-field-actions">
 	<?php
 	submit_button(
-		__( 'Add Custom Field' ),
-		'',
+		__( 'Save' ),
+		'primary',
 		'addmeta',
 		false,
 		array(
@@ -788,7 +782,14 @@ function meta_form( $post = null ) {
 		)
 	);
 	?>
-</div>
+	<button type="button" id="newmeta-cancel" class="button-link custom-field-cancel hide-if-no-js"><?php _e( 'Cancel' ); ?></button>
+</td>
+</tr>
+</tbody>
+</table>
+<button type="button" id="add-custom-field-button" class="button button-secondary custom-field-add-toggle hide-if-no-js" aria-expanded="false" aria-controls="newmeta">
+	<?php _e( 'Add new custom field' ); ?>
+</button>
 	<?php
 }
 

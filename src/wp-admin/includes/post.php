@@ -2462,17 +2462,175 @@ function the_block_editor_meta_boxes() {
 	$enable_custom_fields = (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true );
 
 	if ( $enable_custom_fields ) {
-		$script = "( function( $ ) {
-			if ( $('#postcustom').length ) {
-				$( '#the-list' ).wpList( {
+		$custom_field_added   = esc_js( __( 'Custom field added.' ) );
+		$custom_field_updated = esc_js( __( 'Custom field updated.' ) );
+		$custom_field_deleted = esc_js( __( 'Custom field deleted.' ) );
+		$dismiss_notice       = esc_js( __( 'Dismiss this notice.' ) );
+		$script               = "( function( $ ) {
+			function initializeCustomFields() {
+				var \$postCustom = $( '#postcustom' ).filter( ':visible' ).last();
+
+				if ( ! \$postCustom.length || \$postCustom.data( 'custom-fields-initialized' ) ) {
+					return;
+				}
+
+				\$postCustom.data( 'custom-fields-initialized', true );
+
+				var
+					\$newMeta = \$postCustom.find( '#newmeta' ),
+					\$addCustomFieldButton = \$postCustom.find( '#add-custom-field-button' ),
+					\$addCustomFieldHeading = \$postCustom.find( '.custom-field-add-heading' ),
+					\$addCustomFieldSubmit = \$postCustom.find( '#postcustomstuff .add-custom-field' ),
+					\$cancelNewMetaButton = \$postCustom.find( '#newmeta-cancel' ),
+					\$customFieldsNotice = \$postCustom.find( '.custom-fields-notice' ),
+					\$customFieldsNoticeMessage,
+					\$enterNewMetaButton = \$postCustom.find( '#newmeta-button' ),
+					\$listTable = \$postCustom.find( '#list-table' ),
+					\$metaKeyInput = \$postCustom.find( '#metakeyinput' ),
+					\$metaKeySelect = \$postCustom.find( '#metakeyselect' ),
+					\$metaValue = \$postCustom.find( '#metavalue' );
+
+				if ( ! \$customFieldsNotice.length ) {
+					\$customFieldsNotice = $( '<div class=\"custom-fields-notice notice notice-success is-dismissible hidden\"><p></p><button type=\"button\" class=\"notice-dismiss\"><span class=\"screen-reader-text\"></span></button></div>' );
+					\$customFieldsNotice.find( '.screen-reader-text' ).text( '{$dismiss_notice}' );
+					\$postCustom.find( '#postcustomstuff' ).before( \$customFieldsNotice );
+				}
+
+				\$customFieldsNoticeMessage = \$customFieldsNotice.find( 'p' );
+
+				function showCustomFieldsNotice( message ) {
+					if ( ! \$customFieldsNotice.length ) {
+						return;
+					}
+
+					\$customFieldsNoticeMessage.text( message );
+					\$customFieldsNotice.removeClass( 'hidden' );
+
+					wp.a11y.speak( message );
+				}
+
+				function resetMetaKeyInput() {
+					if ( \$metaKeySelect.length ) {
+						\$metaKeySelect.prop( 'selectedIndex', 0 ).removeClass( 'hidden' );
+						\$metaKeyInput.val( '' ).addClass( 'hidden' );
+						\$postCustom.find( '#enternew' ).removeClass( 'hidden' );
+						\$postCustom.find( '#cancelnew' ).addClass( 'hidden' );
+					}
+				}
+
+				function showMetaKeyInput() {
+					\$metaKeySelect.addClass( 'hidden' );
+					\$metaKeyInput.removeClass( 'hidden' );
+					\$postCustom.find( '#enternew' ).addClass( 'hidden' );
+					\$postCustom.find( '#cancelnew' ).removeClass( 'hidden' );
+					\$metaKeyInput.trigger( 'focus' );
+				}
+
+				function clearNewMeta() {
+					\$metaValue.val( '' );
+					resetMetaKeyInput();
+
+					if ( ! \$metaKeySelect.length ) {
+						\$metaKeyInput.val( '' );
+					}
+				}
+
+				function showNewMeta( shouldFocus ) {
+					\$newMeta.addClass( 'is-visible' ).show();
+					\$addCustomFieldHeading.addClass( 'is-visible' );
+					\$addCustomFieldSubmit.addClass( 'is-visible' );
+					\$addCustomFieldButton.attr( 'aria-expanded', 'true' );
+
+					if ( false !== shouldFocus ) {
+						( \$metaKeySelect.is( ':visible' ) ? \$metaKeySelect : \$metaKeyInput ).trigger( 'focus' );
+					}
+				}
+
+				function hideNewMeta( shouldFocus ) {
+					clearNewMeta();
+					\$newMeta.removeClass( 'is-visible' ).hide();
+					\$addCustomFieldHeading.removeClass( 'is-visible' );
+					\$addCustomFieldSubmit.removeClass( 'is-visible' );
+					\$addCustomFieldButton.attr( 'aria-expanded', 'false' );
+
+					if ( false !== shouldFocus ) {
+						\$addCustomFieldButton.trigger( 'focus' );
+					}
+				}
+
+				\$addCustomFieldButton.on( 'click', function( event ) {
+					event.preventDefault();
+					showNewMeta();
+				} );
+
+				\$enterNewMetaButton.on( 'click', function( event ) {
+					event.preventDefault();
+
+					if ( \$metaKeyInput.hasClass( 'hidden' ) ) {
+						showMetaKeyInput();
+					} else {
+						resetMetaKeyInput();
+						\$metaKeySelect.trigger( 'focus' );
+					}
+				} );
+
+				\$cancelNewMetaButton.on( 'click', function( event ) {
+					event.preventDefault();
+					hideNewMeta();
+				} );
+
+				\$customFieldsNotice.on( 'click', '.notice-dismiss', function() {
+					\$customFieldsNotice.addClass( 'hidden' );
+				} );
+
+				if ( \$listTable.hasClass( 'is-empty' ) ) {
+					showNewMeta( false );
+				}
+
+				\$postCustom.find( '#the-list' ).wpList( {
+					addColor: 'none',
+					delColor: 'none',
 					addBefore: function( s ) {
 						s.data += '&post_id=$post->ID';
 						return s;
 					},
-					addAfter: function() {
-						$('table#list-table').show();
+					addAfter: function( returnedResponse, settings ) {
+						var message = 'newmeta' === settings.element ? '$custom_field_added' : '$custom_field_updated';
+
+						if ( true === settings.parsed || ! settings.parsed || settings.parsed.errors ) {
+							return;
+						}
+
+						\$listTable.removeClass( 'is-empty' ).addClass( 'has-fields' ).show();
+						showCustomFieldsNotice( message );
+
+						if ( 'newmeta' === settings.element ) {
+							hideNewMeta();
+						}
+					},
+					delAfter: function( returnedResponse, settings ) {
+						if ( ! settings.parsed || settings.parsed.errors ) {
+							return;
+						}
+
+						\$postCustom.find( '#' + settings.element ).remove();
+						showCustomFieldsNotice( '$custom_field_deleted' );
+
+						if ( ! \$postCustom.find( '#the-list tr.is-saved' ).length ) {
+							\$listTable.removeClass( 'has-fields' ).addClass( 'is-empty' ).hide();
+						}
 					}
 				});
+			}
+
+			initializeCustomFields();
+			$( initializeCustomFields );
+
+			if ( window.MutationObserver ) {
+				new window.MutationObserver( initializeCustomFields ).observe( document.body, {
+					childList: true,
+					subtree: true
+				} );
 			}
 		} )( jQuery );";
 		wp_enqueue_script( 'wp-lists' );
