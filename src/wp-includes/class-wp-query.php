@@ -1441,7 +1441,36 @@ class WP_Query {
 			$query_vars['s'] = urldecode( $query_vars['s'] );
 		}
 		// There are no line breaks in <input /> fields.
-		$query_vars['s']                  = str_replace( array( "\r", "\n" ), '', $query_vars['s'] );
+		$query_vars['s'] = str_replace( array( "\r", "\n" ), '', $query_vars['s'] );
+		/*
+		 * Normalize Unicode whitespace (Zs category) to a regular half-width space
+		 * so that CJK ideographic spaces and other Unicode space separators are
+		 * recognized as word separators in the search query.
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/44296
+		 */
+		$query_vars['s']                  = str_replace(
+			array(
+				"\u{00A0}", // No-Break Space.
+				"\u{1680}", // Ogham Space Mark.
+				"\u{2000}", // En Quad.
+				"\u{2001}", // Em Quad.
+				"\u{2002}", // En Space.
+				"\u{2003}", // Em Space.
+				"\u{2004}", // Three-Per-Em Space.
+				"\u{2005}", // Four-Per-Em Space.
+				"\u{2006}", // Six-Per-Em Space.
+				"\u{2007}", // Figure Space.
+				"\u{2008}", // Punctuation Space.
+				"\u{2009}", // Thin Space.
+				"\u{200A}", // Hair Space.
+				"\u{202F}", // Narrow No-Break Space.
+				"\u{205F}", // Medium Mathematical Space.
+				"\u{3000}", // Ideographic Space (CJK).
+			),
+			' ',
+			$query_vars['s']
+		);
 		$query_vars['search_terms_count'] = 1;
 		if ( ! empty( $query_vars['sentence'] ) ) {
 			$query_vars['search_terms'] = array( $query_vars['s'] );
