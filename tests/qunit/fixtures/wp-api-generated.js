@@ -11143,6 +11143,8 @@ mockedApiResponse.Schema = {
                             "title": "Title",
                             "description": "Site title.",
                             "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S",
                             "required": false
                         },
                         "description": {

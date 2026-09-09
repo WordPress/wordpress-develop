@@ -60,10 +60,25 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 	do_action( 'wpmu_update_blog_options', $id );
 
 	restore_current_blog();
+
+	$update = 'updated';
+
+	/*
+	 * sanitize_option() rejects invalid values (such as an empty, required
+	 * Site Title) by registering a settings error and keeping the stored value.
+	 * Carry those errors across the redirect so an error notice can be shown
+	 * instead of a success message.
+	 */
+	$settings_errors = get_settings_errors();
+	if ( ! empty( $settings_errors ) ) {
+		set_transient( 'settings_errors', $settings_errors, 30 );
+		$update = 'not-updated';
+	}
+
 	wp_redirect(
 		add_query_arg(
 			array(
-				'update' => 'updated',
+				'update' => $update,
 				'id'     => $id,
 			),
 			'site-settings.php'
@@ -72,10 +87,25 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 	exit;
 }
 
+$messages       = array();
+$error_messages = array();
+
 if ( isset( $_GET['update'] ) ) {
-	$messages = array();
 	if ( 'updated' === $_GET['update'] ) {
 		$messages[] = __( 'Site options updated.' );
+	} elseif ( 'not-updated' === $_GET['update'] ) {
+		$settings_errors = get_transient( 'settings_errors' );
+		delete_transient( 'settings_errors' );
+
+		if ( is_array( $settings_errors ) ) {
+			foreach ( $settings_errors as $settings_error ) {
+				$error_messages[] = $settings_error['message'];
+			}
+		}
+
+		if ( empty( $error_messages ) ) {
+			$error_messages[] = __( 'Some settings could not be saved.' );
+		}
 	}
 }
 
@@ -103,16 +133,27 @@ network_edit_site_nav(
 	)
 );
 
-if ( ! empty( $messages ) ) {
-	$notice_args = array(
-		'type'        => 'success',
-		'dismissible' => true,
-		'id'          => 'message',
-	);
-
-	foreach ( $messages as $msg ) {
-		wp_admin_notice( $msg, $notice_args );
+if ( ! empty( $error_messages ) ) {
+	foreach ( $error_messages as $msg ) {
+		wp_admin_notice(
+			$msg,
+			array(
+				'type'        => 'error',
+				'dismissible' => true,
+			)
+		);
 	}
+}
+
+if ( ! empty( $messages ) ) {
+	wp_admin_notice(
+		$messages[0],
+		array(
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 }
 ?>
 <form method="post" action="site-settings.php?action=update-site">

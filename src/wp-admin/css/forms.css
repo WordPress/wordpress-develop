@@ -1222,6 +1222,10 @@ table.form-table td .updated p {
   20.0 - Settings
 ------------------------------------------------------------------------------*/
 
+.form-field #blogname {
+	max-width: 25em;
+}
+
 .timezone-info code {
 	white-space: nowrap;
 }
@@ -1317,7 +1321,8 @@ table.form-table td .updated p {
 .form-field #admin-email,
 .form-field #path,
 .form-field #blog_registered,
-.form-field #blog_last_updated {
+.form-field #blog_last_updated,
+.form-field #site_name {
 	max-width: 25em;
 }
 
