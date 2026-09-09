@@ -605,26 +605,183 @@ function wpautop( $text, $br = true ) {
 }
 
 /**
- * Separates HTML elements and comments from the text.
+ * Splits an HTML input into an array of raw strings, where each token
+ * represents a tag, a comment, a text node, etc…
+ *
+ * No effort is made to clean up, sanitize, or normalize the segments
+ * of HTML. {@see WP_HTML_Processor::normalize()} for normalization.
+ *
+ * Consider using the HTML API directly instead of relying on this
+ * legacy function: it bloats memory by default and provides a text
+ * interface for working with HTML whereas the HTML API provides a
+ * low-overhead and convenient structural interface.
+ *
+ * ## Output format:
+ *
+ * To maintain legacy behaviors with this function from when it
+ * operated via {@see preg_split()}, the output array injects text
+ * nodes which do not appear in the source HTML. That is, the original
+ * array, relying on {@see PREG_SPLIT_DELIM_CAPTURE}, included a text
+ * span on each side of every tag-like or comment-like “delimiter” in
+ * the matched string.
+ *
+ * Therefore, the output array will always start and end with text nodes
+ * and will separate every non-text node with a text node. If there is no
+ * actual content in the interstitial space between tokens in the source
+ * document, an empty text node will be created.
+ *
+ * Example:
+ *
+ *     array( '', '<img>', '' )    === wp_html_split( '<img>' );
+ *     array( 'test' )             === wp_html_split( 'test' );
+ *     array( '', '<p>', 'test' )  === wp_html_split( '<p>test' );
+ *     array( 'test', '</p>', '' ) === wp_html_split( 'test</p>' );
+ *
+ *     array( '', '<br>', '', '<!-- comment -->', '' ) === wp_html_split( '<br><!-- comment -->' );
+ *
+ *     // To avoid ambiguity, leading less-than signs (<) in text nodes are encoded.
+ *     array( '&#60;3' ) === wp_split_html( '<3' );
  *
  * @since 4.2.4
+ * @since 7.0.0 Reliably parses HTML via the HTML API.
  *
- * @param string $input The text which has to be formatted.
- * @return string[] Array of the formatted text.
+ * @param string $input HTML document to split, one item for every token.
+ *                      These can be text nodes, tags, comments, or doctype declarations.
+ * @return string[] Tokens from input; starting and ending in a text node, and with text
+ *                  nodes between every non-text node (see docblock note).
  */
 function wp_html_split( $input ) {
-	return preg_split( get_html_split_regex(), $input, -1, PREG_SPLIT_DELIM_CAPTURE );
+	$token_reporter = new class( $input ) extends WP_HTML_Tag_Processor {
+		public function extract_raw_token() {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			return substr( $this->html, $here->start, $here->length );
+		}
+	};
+
+	$tokens   = array();
+	$was_text = false;
+	$next_at  = 0;
+	while ( $token_reporter->next_token() ) {
+		$raw_token = $token_reporter->extract_raw_token();
+		$next_at  += strlen( $raw_token );
+		$is_text   = '#text' === $token_reporter->get_token_name();
+
+		// This is a tag, comment, DOCTYPE declaration, malformed comment, etc…
+		if ( ! $is_text ) {
+			/*
+			 * Code relies on the fact that this function always returns text
+			 * in even indices and non-text tokens in odd indices. If there
+			 * isn’t preceding text then an artificial and empty span needs
+			 * to be added.
+			 */
+			if ( ! $was_text ) {
+				$tokens[] = '';
+			}
+
+			$tokens[] = $raw_token;
+			$was_text = false;
+			continue;
+		}
+
+		/*
+		 * WordPress looks for shortcodes and escaped shortcodes within the HTML
+		 * where they look like tags but HTML wouldn’t consider them tags, such
+		 * as in "<[header level=2]>".
+		 *
+		 * This means that something WordPress wants to consider a tag might
+		 * appear in the middle of a larger text span. To preserve that behavior
+		 * it’s essential to look inside text nodes for these shortcode instances,
+		 * and if found, split the string around them.
+		 *
+		 * Example:
+		 *
+		 *     // HTML sees a single text span here.
+		 *     "This is <[tag-name]>important!"
+		 *
+		 *     // It needs to break into three segments.
+		 *     "This is ", "<[tag-name]>", "important!"
+		 *
+		 * As with the rest of this function, text nodes must appear between these,
+		 * implying the creation of empty nodes where they don’t already exist.
+		 */
+		$shortcode_pattern = get_shortcode_regex();
+		$text_chunks       = preg_split( "~(<{$shortcode_pattern}>)~", $raw_token, -1, PREG_SPLIT_DELIM_CAPTURE );
+		foreach ( $text_chunks as $i => $token ) {
+			// The preg_split() always puts captured delimiters in the odd indices.
+			$is_shortcode_tag = 1 === $i % 2;
+
+			if ( $is_shortcode_tag && ! $was_text ) {
+				$tokens[] = '';
+			}
+
+			/*
+			 * Some legacy code assumes that text nodes will never start with a
+			 * less-than sign (<) but this isn’t the case, as some text nodes do
+			 * if the less-than sign doesn’t introduce a syntax token. To avoid
+			 * further corruption, a leading less-than sign is replaced by its
+			 * equivalent numeric character reference.
+			 *
+			 * Example:
+			 *
+			 *      input:     "<3 the shortcodes like <[emoji-tag name=heart]>"
+			 *     output: "&#60;3 the shortcodes like <[emoji-tag name=heart]>"
+			 */
+			if ( ! $is_shortcode_tag && '<' === ( $token[0] ?? '' ) ) {
+				$token = '&#60;' . substr( $token, 1 );
+			}
+
+			$was_text = ! $is_shortcode_tag;
+			$tokens[] = $token;
+		}
+	}
+
+	/*
+	 * The HTML API aborts when a string ends with the start of a
+	 * token which isn’t complete, such as an un-closed comment.
+	 * Typically it’s best to avoid processing or passing along
+	 * that content because it could impact any HTML which follows
+	 * it. However, to maintain backwards compatability this last
+	 * segment needs to appear.
+	 */
+	if ( $token_reporter->paused_at_incomplete_token() ) {
+		$token       = substr( $input, $next_at );
+		$syntax_like = '<' === ( $token[0] ?? '' );
+		$token       = $syntax_like ? ( '&#60;' . substr( $token, 1 ) ) : $token;
+
+		if ( $was_text ) {
+			$tokens[ count( $tokens ) - 1 ] .= $token;
+		} else {
+			$tokens[] = $token;
+		}
+
+		$was_text = false;
+	}
+
+	if ( ! $was_text ) {
+		$tokens[] = '';
+	}
+
+	return $tokens;
 }
 
 /**
  * Retrieves the regular expression for an HTML element.
  *
  * @since 4.4.0
+ * @deprecated 6.9.0 Use the HTML API instead.
  *
  * @return string The regular expression.
  */
 function get_html_split_regex() {
 	static $regex;
+
+	_deprecated_function(
+		__FUNCTION__,
+		'6.9.0',
+		'Use the HTML API instead.'
+	);
 
 	if ( ! isset( $regex ) ) {
 		// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
