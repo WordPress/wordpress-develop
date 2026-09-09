@@ -1,11 +1,11 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const AxeScanner = require( '../utils/accessibility-axe-scanner' );
-const { pages } = require( '../utils/accessibility-pages' );
+const { pages } = require( '../utils/accessibility-pages-matrix' );
 const ignoresAndknownFalsePositives = require( '../utils/accessibility-ignores-and-false-positives' );
 
 /**
  * Global accessibility scan rules.
- * Applied to all pages defined in utils/accessibility-pages.
+ * Applied to all pages defined in utils/accessibility-pages-matrix.
  *
  * See the Axe Options parameter documentation.
  * See: https://github.com/dequelabs/axe-core/blob/master/doc/API.md#options-parameter
