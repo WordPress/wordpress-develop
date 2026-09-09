@@ -4540,6 +4540,31 @@ class WP_Query {
 	}
 
 	/**
+	 * Determines whether the query is for the site's actual home page.
+	 *
+	 * This is true when:
+	 * - Not viewing a paged version of the site
+	 * - AND either:
+	 *   - The current page is set as the static front page
+	 *   - OR the current page is the posts page but NOT the dedicated "page for posts"
+	 *
+	 * This is different from both is_front_page() and is_home(), as it identifies
+	 * the true "home" view of the site regardless of WordPress configuration.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @return bool Whether the query is for the site's actual home page.
+	 */
+	public function is_home_page() {
+		return ! $this->is_paged() &&
+		( $this->is_front_page() ||
+			( $this->is_home() &&
+			( (int) get_option( 'page_for_posts' ) !== $this->get_queried_object_id() )
+			)
+		);
+	}
+
+	/**
 	 * Determines whether the query is for the Privacy Policy page.
 	 *
 	 * This is the page which shows the Privacy Policy content of your site.

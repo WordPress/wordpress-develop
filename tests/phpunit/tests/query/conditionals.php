@@ -72,6 +72,86 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		delete_option( 'page_for_posts' );
 	}
 
+	/**
+	 * @ticket 63044
+	 */
+	public function test_is_home_page_with_posts_on_front() {
+		// Default setup: posts page is the front page
+		$this->go_to( '/' );
+		$this->assertQueryTrue( 'is_home', 'is_front_page' );
+		$this->assertTrue( is_home_page() );
+
+		// Visit front page with pagination
+		update_option( 'posts_per_page', 2 );
+		self::factory()->post->create_many( 3 );
+		$this->go_to( '/page/2/' );
+		$this->assertQueryTrue( 'is_home', 'is_front_page', 'is_paged' );
+		$this->assertFalse( is_home_page() );
+	}
+
+	/**
+	 * @ticket 63044
+	 */
+	public function test_is_home_page_with_page_on_front() {
+		$page_on_front  = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		$page_for_posts = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+		update_option( 'page_for_posts', $page_for_posts );
+
+		// Visit the front page
+		$this->go_to( '/' );
+		$this->assertQueryTrue( 'is_front_page', 'is_page', 'is_singular' );
+		$this->assertTrue( is_home_page() );
+
+		// Visit the posts page
+		$this->go_to( get_permalink( $page_for_posts ) );
+		$this->assertQueryTrue( 'is_home', 'is_posts_page' );
+		$this->assertFalse( is_home_page() );
+
+		update_option( 'show_on_front', 'posts' );
+		delete_option( 'page_on_front' );
+		delete_option( 'page_for_posts' );
+	}
+
+	/**
+	 * @ticket 63044
+	 */
+	public function test_is_home_page_with_paginated_static_front() {
+		$page_on_front = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_title'   => 'Static Front Page',
+				'post_content' => 'Page 1 <!--nextpage--> Page 2',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_on_front );
+
+		// Visit the front page
+		$this->go_to( '/' );
+		$this->assertQueryTrue( 'is_front_page', 'is_page', 'is_singular' );
+		$this->assertTrue( is_home_page() );
+
+		// Visit page 2 of the front page
+		$permalink = get_permalink( $page_on_front );
+		$this->go_to( $permalink . 'page/2/' );
+
+		$this->assertTrue( is_paged() );
+		$this->assertFalse( is_home_page() );
+
+		update_option( 'show_on_front', 'posts' );
+		delete_option( 'page_on_front' );
+	}
+
 	public function test_404() {
 		$this->go_to( '/notapage' );
 		$this->assertQueryTrue( 'is_404' );
