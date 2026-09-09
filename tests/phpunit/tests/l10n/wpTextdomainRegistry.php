@@ -133,7 +133,9 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result, 'An array should be returned' );
 		$this->assertNotEmpty( $result, 'The files should have been looked up instead of using the cached value' );
-		$this->assertContainsOnly( 'string', $result, null, 'All returned entries should be strings' );
+		foreach ( $result as $file ) {
+			$this->assertIsString( $file, 'All returned entries should be strings' );
+		}
 		$this->assertSame(
 			$result,
 			wp_cache_get( $cache_key, 'translation_files' ),
