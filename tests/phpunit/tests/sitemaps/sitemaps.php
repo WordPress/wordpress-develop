@@ -521,9 +521,9 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_unusable_sitemap_query_vars
 	 *
-	 * @param string $query_string Query string to append to a nonexistent URL.
+	 * @param non-falsy-string $query_string Query string to append to a nonexistent URL.
 	 */
-	public function test_unusable_sitemap_query_var_should_return_404( $query_string ) {
+	public function test_unusable_sitemap_query_var_should_return_404( string $query_string ) {
 		$this->set_permalink_structure( '/%postname%/' );
 
 		// Instantiate the server before navigating: registering the sitemap
@@ -544,9 +544,9 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_unusable_sitemap_query_vars() {
+	public function data_unusable_sitemap_query_vars(): array {
 		return array(
 			'value stripped by sanitizing' => array( '?sitemap=<>' ),
 			'array sitemap value'          => array( '?sitemap[]=index' ),
