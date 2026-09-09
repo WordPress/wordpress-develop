@@ -632,14 +632,14 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$post          = get_post( $nav_menu_item_id );
 		$nav_menu_item = wp_setup_nav_menu_item( clone $post );
 
-		/**
+		/*
 		 * Keep assertEquals() because sanitize() returns object_id as an integer
 		 * while wp_setup_nav_menu_item() retrieves it as a string from post meta.
 		 */
 		$this->assertEquals( $expected_sanitized['object_id'], $nav_menu_item->object_id );
 		$this->assertSame( $expected_sanitized['object'], $nav_menu_item->object );
 
-		/**
+		/*
 		 * Keep assertEquals() because sanitize() returns menu_item_parent as an integer,
 		 * while wp_setup_nav_menu_item() retrieves it as a string from post meta.
 		 */
@@ -707,7 +707,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$post_value['post_status'] = $post_value['status'];
 		unset( $post_value['status'] );
 
-		/**
+		/*
 		 * Keep assertEquals() because object_id is an integer in $post_value
 		 * but is returned as a string from post meta by wp_setup_nav_menu_item().
 		 */
@@ -785,7 +785,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$post_value['menu_order'] = $post_value['position'];
 		unset( $post_value['position'] );
 
-		/**
+		/*
 		 * Keep assertEquals() because object_id is an integer in $post_value
 		 * but is returned as a string from post meta by wp_setup_nav_menu_item().
 		 */
