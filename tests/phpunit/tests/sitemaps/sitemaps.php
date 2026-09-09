@@ -464,7 +464,6 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50643
-	 * @ticket 65945
 	 */
 	public function test_disable_sitemap_should_return_404() {
 		add_filter( 'wp_sitemaps_enabled', '__return_false' );
@@ -475,42 +474,48 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/?sitemap=index' ) );
 
-		$this->expectException( 'WPDieException' );
-		$this->expectExceptionMessage( 'XML sitemaps are disabled for this site.' );
-
 		$sitemaps->render_sitemaps();
+
+		remove_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		$this->assertTrue( is_404() );
 	}
 
 	/**
 	 * @ticket 50643
-	 * @ticket 65945
 	 */
 	public function test_empty_url_list_should_return_404() {
 		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
 
 		$this->go_to( home_url( '/?sitemap=foo' ) );
 
-		$this->expectException( 'WPDieException' );
-		$this->expectExceptionMessage( 'There are no URLs available for the "foo" sitemap on page 1.' );
-
 		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertTrue( is_404() );
 	}
 
 	/**
+	 * Ensures a paged subtype route with no URLs still 404s, now that
+	 * WP::handle_404() no longer sets a 404 for sitemap requests.
+	 *
 	 * @ticket 65945
 	 */
-	public function test_empty_url_list_should_name_the_object_subtype() {
+	public function test_empty_url_list_for_subtype_should_return_404() {
 		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
 
 		$this->go_to( home_url( '/?sitemap=foo&sitemap-subtype=bar&paged=2' ) );
 
-		$this->expectException( 'WPDieException' );
-		$this->expectExceptionMessage( 'There are no URLs available for the "foo:bar" sitemap on page 2.' );
-
 		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertTrue( is_404() );
 	}
 
 	/**
+	 * Ensures an unregistered provider 404s from render_sitemaps().
+	 *
+	 * WP::handle_404() exempts every sitemap request, so this route would
+	 * otherwise be served with a 200.
+	 *
 	 * @ticket 65945
 	 */
 	public function test_unregistered_provider_should_return_404() {
@@ -520,9 +525,10 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/?sitemap=this-provider-does-not-exist' ) );
 
-		$this->expectException( 'WPDieException' );
-		$this->expectExceptionMessage( 'There is no sitemap provider available for "this-provider-does-not-exist".' );
+		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
 
 		$sitemaps->render_sitemaps();
+
+		$this->assertTrue( is_404(), 'render_sitemaps() should have set a 404.' );
 	}
 }

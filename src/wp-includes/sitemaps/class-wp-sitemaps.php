@@ -157,8 +157,12 @@ class WP_Sitemaps {
 	 * Renders sitemap templates based on rewrite rules.
 	 *
 	 * @since 5.5.0
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function render_sitemaps() {
+		global $wp_query;
+
 		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
 		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
 		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
@@ -169,9 +173,10 @@ class WP_Sitemaps {
 			return;
 		}
 
-		// Bail with a 404 if sitemaps are disabled for this site.
 		if ( ! $this->sitemaps_enabled() ) {
-			wp_die( __( 'XML sitemaps are disabled for this site.' ), 404 );
+			$wp_query->set_404();
+			status_header( 404 );
+			return;
 		}
 
 		// Render stylesheet if this is stylesheet route.
@@ -192,16 +197,11 @@ class WP_Sitemaps {
 
 		$provider = $this->registry->get_provider( $sitemap );
 
-		// Bail with a 404 if the requested provider is not registered.
+		// Force a 404 and bail early if the requested provider is not registered.
 		if ( ! $provider ) {
-			wp_die(
-				sprintf(
-					/* translators: %s: Sitemap provider name. */
-					__( 'There is no sitemap provider available for "%s".' ),
-					esc_html( $sitemap )
-				),
-				404
-			);
+			$wp_query->set_404();
+			status_header( 404 );
+			return;
 		}
 
 		if ( empty( $paged ) ) {
@@ -210,17 +210,11 @@ class WP_Sitemaps {
 
 		$url_list = $provider->get_url_list( $paged, $object_subtype );
 
-		// Bail with a 404 if no URLs are present.
+		// Force a 404 and bail early if no URLs are present.
 		if ( empty( $url_list ) ) {
-			wp_die(
-				sprintf(
-					/* translators: 1: Sitemap provider name, 2: Page number. */
-					__( 'There are no URLs available for the "%1$s" sitemap on page %2$s.' ),
-					esc_html( $sitemap . ( $object_subtype ? ':' . $object_subtype : '' ) ),
-					esc_html( number_format_i18n( $paged ) )
-				),
-				404
-			);
+			$wp_query->set_404();
+			status_header( 404 );
+			return;
 		}
 
 		$this->renderer->render_sitemap( $url_list );
