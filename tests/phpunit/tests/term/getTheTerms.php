@@ -284,4 +284,91 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		$this->assertIsArray( $terms );
 		$this->assertSame( array( $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
 	}
+
+	/**
+	 * Tests that get_the_terms() returns the correct terms when the object term cache
+	 * was primed with an empty array before terms were assigned.
+	 *
+	 * @ticket 49799
+	 */
+	public function test_get_the_terms_returns_terms_when_cache_was_primed_empty_before_assignment() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$post_id = self::factory()->post->create();
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+
+		// Prime cache with an empty array.
+		update_object_term_cache( array( $post_id ), array( 'post' ) );
+
+		$cached = wp_cache_get( $post_id, 'wptests_tax_relationships' );
+		$this->assertIsArray( $cached );
+		$this->assertEmpty( $cached );
+
+		// Assign a term, clearing the cache.
+		wp_set_object_terms( $post_id, $term_id, 'wptests_tax' );
+
+		$cached_after_set = wp_cache_get( $post_id, 'wptests_tax_relationships' );
+		$this->assertFalse( $cached_after_set );
+
+		$terms = get_the_terms( $post_id, 'wptests_tax' );
+
+		$this->assertIsArray( $terms );
+		$this->assertCount( 1, $terms );
+		$this->assertSame( $term_id, (int) $terms[0]->term_id );
+	}
+
+	/**
+	 * Tests that get_the_terms() returns false for a post with no terms even when
+	 * update_object_term_cache() has primed the cache with an empty array.
+	 *
+	 * @ticket 49799
+	 */
+	public function test_get_the_terms_returns_false_for_post_with_no_terms_when_cache_primed() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$post_id = self::factory()->post->create();
+
+		// Prime cache with an empty array.
+		update_object_term_cache( array( $post_id ), array( 'post' ) );
+
+		$cached = wp_cache_get( $post_id, 'wptests_tax_relationships' );
+		$this->assertIsArray( $cached );
+		$this->assertEmpty( $cached );
+
+		$num_queries_before = get_num_queries();
+		$terms              = get_the_terms( $post_id, 'wptests_tax' );
+
+		$this->assertSame( 0, get_num_queries() - $num_queries_before );
+		$this->assertFalse( $terms );
+	}
+
+	/**
+	 * Tests that get_the_terms() returns correct terms after update_object_term_cache()
+	 * is called following term assignment.
+	 *
+	 * @ticket 49799
+	 */
+	public function test_get_the_terms_returns_correct_terms_when_cache_primed_after_assignment() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$post_id = self::factory()->post->create();
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+
+		wp_set_object_terms( $post_id, $term_id, 'wptests_tax' );
+
+		// Prime cache after assignment.
+		update_object_term_cache( array( $post_id ), array( 'post' ) );
+
+		$cached = wp_cache_get( $post_id, 'wptests_tax_relationships' );
+		$this->assertIsArray( $cached );
+		$this->assertNotEmpty( $cached );
+
+		$num_queries_before = get_num_queries();
+		$terms              = get_the_terms( $post_id, 'wptests_tax' );
+
+		$this->assertSame( 0, get_num_queries() - $num_queries_before );
+		$this->assertIsArray( $terms );
+		$this->assertCount( 1, $terms );
+		$this->assertSame( $term_id, (int) $terms[0]->term_id );
+	}
 }
