@@ -886,6 +886,9 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'site-icon', '/wp-admin/js/site-icon.js', array( 'jquery' ), false, 1 );
 	$scripts->set_translations( 'site-icon' );
 
+	$scripts->add( 'settings', "/wp-admin/js/settings$suffix.js", array( 'jquery', 'wp-i18n' ), false, 1 );
+	$scripts->set_translations( 'settings' );
+
 	// WordPress no longer uses or bundles Prototype or script.aculo.us. These are now pulled from an external source.
 	$scripts->add( 'prototype', 'https://ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js', array(), '1.7.1' );
 	$scripts->add( 'scriptaculous-root', 'https://ajax.googleapis.com/ajax/libs/scriptaculous/1.9.0/scriptaculous.js', array( 'prototype' ), '1.9.0' );
