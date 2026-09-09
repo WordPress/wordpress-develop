@@ -159,22 +159,23 @@ class WP_Sitemaps {
 	 * @since 5.5.0
 	 */
 	public function render_sitemaps() {
-		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
-		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
-		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
-		$paged           = absint( get_query_var( 'paged' ) );
-
 		/*
 		 * Bail early if this isn't a sitemap or stylesheet route.
 		 *
-		 * The raw query vars are tested here, matching WP::handle_404(), which
-		 * exempts sitemap requests from its own 404 on the same basis. Testing
-		 * the sanitized values instead would let a request that handle_404()
-		 * exempted fall through both, leaving it a 200.
+		 * This runs on every front-end request, so it comes before any
+		 * sanitizing. The raw query vars are tested here, matching
+		 * WP::handle_404(), which exempts sitemap requests from its own 404 on
+		 * the same basis. Testing the sanitized values instead would let a
+		 * request that handle_404() exempted fall through both, leaving it a 200.
 		 */
 		if ( ! get_query_var( 'sitemap' ) && ! get_query_var( 'sitemap-stylesheet' ) ) {
 			return;
 		}
+
+		$sitemap         = $this->get_sanitized_query_var( 'sitemap' );
+		$object_subtype  = $this->get_sanitized_query_var( 'sitemap-subtype' );
+		$stylesheet_type = $this->get_sanitized_query_var( 'sitemap-stylesheet' );
+		$paged           = absint( get_query_var( 'paged' ) );
 
 		// Force a 404 and bail early if the route did not survive sanitizing.
 		if ( ! ( $sitemap || $stylesheet_type ) ) {
@@ -231,6 +232,28 @@ class WP_Sitemaps {
 
 		$this->renderer->render_sitemap( $url_list );
 		exit;
+	}
+
+	/**
+	 * Reads a sitemap query var as a sanitized string.
+	 *
+	 * A public query var can hold any type — an array, for instance, when the
+	 * request supplies one — so anything that is not a scalar becomes an empty
+	 * string, which the caller treats as a route it cannot serve.
+	 *
+	 * @since 7.1.1
+	 *
+	 * @param string $query_var Query variable name.
+	 * @return string Sanitized value, or an empty string.
+	 */
+	private function get_sanitized_query_var( string $query_var ): string {
+		$value = get_query_var( $query_var );
+
+		if ( ! is_scalar( $value ) ) {
+			return '';
+		}
+
+		return sanitize_text_field( (string) $value );
 	}
 
 	/**
