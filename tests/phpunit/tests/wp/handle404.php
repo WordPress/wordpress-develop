@@ -13,7 +13,12 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '/%postname%/' );
 
-		// Priming the server re-registers the sitemap query vars, which set_up() drops.
+		/*
+		 * Priming the server re-registers the sitemap query vars. tear_down()
+		 * replaces the $wp global with a fresh WP instance, which carries only
+		 * the built-in public query vars, and nulls $GLOBALS['wp_sitemaps'] so
+		 * that this call re-runs WP_Sitemaps::init() and adds them back.
+		 */
 		wp_sitemaps_get_server();
 	}
 
