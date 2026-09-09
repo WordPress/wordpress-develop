@@ -265,4 +265,23 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		);
 		$this->assertSame( $expected, $a->get_events() );
 	}
+
+	/**
+	 * Ensure get_transient() returns false when the transient timeout option is missing (broken transient).
+	 *
+	 * @ticket 33561
+	 *
+	 * @covers ::get_transient
+	 */
+	public function test_get_transient_returns_false_when_timeout_is_missing() {
+		$key   = 'test_transient_broken';
+		$value = 'test_value';
+
+		set_transient( $key, $value, 60 * 10 );
+		$this->assertSame( $value, get_transient( $key ) );
+
+		delete_option( '_transient_timeout_' . $key );
+
+		$this->assertFalse( get_transient( $key ) );
+	}
 }
