@@ -1,5 +1,9 @@
 /**
- * Heartbeat API
+ * @output wp-includes/js/heartbeat.js
+ */
+
+/**
+ * Handles the Heartbeat API.
  *
  * Heartbeat is a simple server polling API that sends XHR requests to
  * the server every 15 - 60 seconds and triggers events (or callbacks) upon
@@ -24,10 +28,6 @@
  * - heartbeat-nonces-expired
  *
  * @since 3.6.0
- * @output wp-includes/js/heartbeat.js
- */
-
-/**
  * @param {JQueryStatic} $         The jQuery object.
  * @param {Window}       window    The global window object.
  * @param {undefined}    undefined The undefined value.

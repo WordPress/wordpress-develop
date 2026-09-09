@@ -145,7 +145,42 @@ if ( is_wp_error( $id ) ) {
 		$_FILES['async-upload']['name']
 	);
 
-	echo '<script>_.delay(function() {wp.a11y.speak(' . wp_json_encode( $speak_message, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ");}, 1500);jQuery( 'button#{$button_unique_id}' ).on( 'click', function() {jQuery(this).parents('div.media-item').slideUp(200, function(){jQuery(this).remove();wp.a11y.speak( wp.i18n.__( 'Error dismissed.' ) );jQuery( '#plupload-browse-button' ).trigger( 'focus' );})});</script>\n";
+	$js_function = <<<'JS'
+		/**
+		 * Announces the upload failure and wires up its dismiss button.
+		 *
+		 * @param {JQueryStatic} $                   The jQuery object.
+		 * @param {Object}       args                PHP exports.
+		 * @param {string}       args.speakMessage   Message announced to assistive technology.
+		 * @param {string}       args.buttonSelector Selector for the notice's dismiss button.
+		 * @return {void}
+		 */
+		( $, { speakMessage, buttonSelector } ) => {
+			setTimeout( () => wp.a11y.speak( speakMessage ), 1500 );
+			$( buttonSelector ).on( 'click', function () {
+				$( this )
+					.parents( 'div.media-item' )
+					.slideUp( 200, function () {
+						$( this ).remove();
+						wp.a11y.speak( wp.i18n.__( 'Error dismissed.' ) );
+						$( '#plupload-browse-button' ).trigger( 'focus' );
+					} );
+			} );
+		}
+	JS;
+	wp_print_inline_script_tag(
+		sprintf(
+			'( %s )( jQuery, %s )',
+			$js_function,
+			wp_json_encode(
+				array(
+					'speakMessage'   => $speak_message,
+					'buttonSelector' => 'button#' . $button_unique_id,
+				),
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
+			)
+		)
+	);
 	exit;
 }
 

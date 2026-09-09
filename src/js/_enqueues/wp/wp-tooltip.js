@@ -8,18 +8,28 @@
  */
 (() => {
 
-	const popovers = /** @type {NodeListOf<HTMLSpanElement>} */ ( document.querySelectorAll( '.wp-is-tooltip' ) );
+	const supportsPopover = /** @type {boolean} */ ( Object.prototype.hasOwnProperty.call( HTMLElement.prototype, 'popover' ) );
+	let hidePopover = false;
+	if ( ! supportsPopover ) {
+		hidePopover = true;
+	}
 
-	/** @type {ReturnType<typeof setTimeout>} */
-	let openTimeout;
+	const popovers = /** @type {NodeListOf<HTMLSpanElement>} */ ( document.querySelectorAll( '.wp-is-tooltip' ) );
 
 	popovers.forEach( function( popover ) {
 		const trigger = /** @type {HTMLButtonElement|HTMLAnchorElement|null} */ ( popover.querySelector( '.wp-tooltip__toggle' ) );
 		const panel   = /** @type {HTMLSpanElement|null} */ ( popover.querySelector( 'span.wp-tooltip__bubble' ) );
+		if ( hidePopover && panel ) {
+			panel.classList.add( 'hidden' );
 
+			return;
+		}
 		if ( ! trigger || ! panel ) {
 			return;
 		}
+
+		/** @type {ReturnType<typeof setTimeout>} */
+		let openTimeout;
 
 		// Show Tooltip Function (with delay to prevent flickering).
 		const showTooltip = () => {
