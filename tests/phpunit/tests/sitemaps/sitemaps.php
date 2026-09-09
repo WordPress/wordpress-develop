@@ -537,8 +537,6 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 		$sitemaps->render_sitemaps();
 
 		$this->assertTrue( is_404(), 'render_sitemaps() should have set a 404.' );
-
-		$this->set_permalink_structure();
 	}
 
 	/**
