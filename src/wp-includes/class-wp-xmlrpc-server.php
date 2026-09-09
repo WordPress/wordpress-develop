@@ -7051,47 +7051,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $this->pingback_error( 0, __( 'Is there no link to us?' ) );
 		}
 
-		/*
-		 * Let's find which post is linked to.
-		 * FIXME: Does url_to_postid() cover all these cases already?
-		 * If so, then let's use it and drop the old code.
-		 */
-		$urltest = parse_url( $pagelinkedto );
+		// Let's find which post is linked to.
 		$post_id = url_to_postid( $pagelinkedto );
-
-		if ( $post_id ) {
-			// $way
-		} elseif ( isset( $urltest['path'] ) && preg_match( '#p/[0-9]{1,}#', $urltest['path'], $match ) ) {
-			// The path defines the post_ID (archives/p/XXXX).
-			$blah    = explode( '/', $match[0] );
-			$post_id = (int) $blah[1];
-		} elseif ( isset( $urltest['query'] ) && preg_match( '#p=[0-9]{1,}#', $urltest['query'], $match ) ) {
-			// The query string defines the post_ID (?p=XXXX).
-			$blah    = explode( '=', $match[0] );
-			$post_id = (int) $blah[1];
-		} elseif ( isset( $urltest['fragment'] ) ) {
-			// An #anchor is there, it's either...
-			if ( (int) $urltest['fragment'] ) {
-				// ...an integer #XXXX (simplest case),
-				$post_id = (int) $urltest['fragment'];
-			} elseif ( preg_match( '/post-[0-9]+/', $urltest['fragment'] ) ) {
-				// ...a post ID in the form 'post-###',
-				$post_id = preg_replace( '/[^0-9]+/', '', $urltest['fragment'] );
-			} elseif ( is_string( $urltest['fragment'] ) ) {
-				// ...or a string #title, a little more complicated.
-				$title   = preg_replace( '/[^a-z0-9]/i', '.', $urltest['fragment'] );
-				$sql     = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title RLIKE %s", $title );
-				$post_id = $wpdb->get_var( $sql );
-				if ( ! $post_id ) {
-					// Returning unknown error '0' is better than die()'ing.
-					return $this->pingback_error( 0, '' );
-				}
-			}
-		} else {
-			// TODO: Attempt to extract a post ID from the given URL.
-			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either does not exist, or it is not a pingback-enabled resource.' ) );
-		}
-
 		$post_id = (int) $post_id;
 		$post    = get_post( $post_id );
 
