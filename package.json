@@ -7,12 +7,12 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "943e0d825bb66ba582e9a10d32743cbb136de460",
+		"sha": "945c9bca3f5cc70be9c3a4ae67a47d0e9bdea049",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
-		"node": ">=20.10.0",
-		"npm": ">=10.2.3"
+		"node": ">=24.18.0",
+		"npm": ">=11.16.0"
 	},
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
