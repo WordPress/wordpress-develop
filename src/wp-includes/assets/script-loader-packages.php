@@ -543,7 +543,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '1beaeebde7484b6bf3e3'
+		'version' => 'af070cfff88093363220'
 	),
 	'element.js' => array(
 		'dependencies' => array(
@@ -881,7 +881,7 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => '996352700f53b76866a5'
+		'version' => 'a2c026d433c295fd5145'
 	),
 	'url.js' => array(
 		'dependencies' => array(
