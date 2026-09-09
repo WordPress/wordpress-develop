@@ -137,6 +137,33 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should reject ability name that ends with a slash.
+	 *
+	 * @ticket 64596
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_name_ends_with_slash() {
+		$result = $this->registry->register( 'test/add-numbers/', self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should allow ability name with multiple slashes for deeper namespaces.
+	 *
+	 * @ticket 64596
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 */
+	public function test_register_valid_name_with_multiple_slashes() {
+		$result = $this->registry->register( 'test/math/add-numbers', self::$test_ability_args );
+		$this->assertInstanceOf( WP_Ability::class, $result );
+		$this->assertSame( 'test/math/add-numbers', $result->get_name() );
+	}
+
+	/**
 	 * Should reject ability registration without a label.
 	 *
 	 * @ticket 64098
