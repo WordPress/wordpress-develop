@@ -452,7 +452,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '638e98d0061f4b9f1efb'
+		'version' => '008f89f2cb2ad17a5947'
 	),
 	'edit-widgets.js' => array(
 		'dependencies' => array(
@@ -543,7 +543,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '2cd3b932f41a420d5904'
+		'version' => 'c357740421223a1df3bb'
 	),
 	'element.js' => array(
 		'dependencies' => array(
