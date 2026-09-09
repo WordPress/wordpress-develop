@@ -145,6 +145,14 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
+			// If the post status is inherit, use the parent post's status.
+			if ( 'inherit' === $post->post_status && $post->post_parent ) {
+				$parent_status = get_post_status( $post->post_parent );
+				if ( $parent_status ) {
+					$post->post_status = $parent_status;
+				}
+			}
+
 			// If the post author is set and the user is the author...
 			if ( $post->post_author && $user_id === (int) $post->post_author ) {
 				// If the post is published or scheduled...
@@ -246,6 +254,14 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 					$cap = $post_type->cap->$cap;
 				}
 				break;
+			}
+
+			// If the post status is inherit, use the parent post's status.
+			if ( 'inherit' === $post->post_status && $post->post_parent ) {
+				$parent_status = get_post_status( $post->post_parent );
+				if ( $parent_status ) {
+					$post->post_status = $parent_status;
+				}
 			}
 
 			// If the post author is set and the user is the author...

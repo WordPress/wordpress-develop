@@ -457,4 +457,55 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 			array( 'assign_term' ),
 		);
 	}
+
+	/**
+	 * Test that map_meta_cap() uses the parent post's status when a child post has 'inherit' status.
+	 *
+	 * @ticket 26365
+	 */
+	public function test_map_meta_cap_uses_parent_status_when_child_has_inherit_status() {
+		register_post_type(
+			'inherit_cap_cpt',
+			array(
+				'capability_type' => 'post',
+				'map_meta_cap'    => true,
+			)
+		);
+
+		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'inherit_cap_cpt',
+				'post_status' => 'publish',
+				'post_author' => $author_id,
+			)
+		);
+
+		$child_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'inherit_cap_cpt',
+				'post_status' => 'inherit',
+				'post_parent' => $parent_id,
+				'post_author' => $author_id,
+			)
+		);
+
+		$this->assertSame(
+			array( 'edit_published_posts' ),
+			map_meta_cap( 'edit_post', $author_id, $child_id )
+		);
+
+		$this->assertSame(
+			array( 'delete_published_posts' ),
+			map_meta_cap( 'delete_post', $author_id, $child_id )
+		);
+
+		$this->assertSame(
+			array( 'read' ),
+			map_meta_cap( 'read_post', $author_id, $child_id )
+		);
+
+		unregister_post_type( 'inherit_cap_cpt' );
+	}
 }
