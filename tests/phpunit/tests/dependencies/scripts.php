@@ -3759,6 +3759,35 @@ HTML;
 	}
 
 	/**
+	 * @ticket 15833
+	 *
+	 * @covers WP_Scripts::do_item
+	 */
+	public function test_concatenation_preserves_external_dependency_order() {
+		global $wp_scripts, $wp_version;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( '/default/' );
+
+		wp_enqueue_script( 'one', '/default/one.js', array(), null );
+		wp_enqueue_script( 'external', 'https://example.com/external.js', array( 'one' ), null );
+		wp_enqueue_script( 'three', '/default/three.js', array( 'external' ), null );
+
+		$print_scripts = get_echo(
+			static function () {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
+		$expected .= "<script src='https://example.com/external.js' id='external-js'></script>\n";
+		$expected .= "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=three&amp;ver={$wp_version}'></script>\n";
+
+		$this->assertEqualHTML( $expected, $print_scripts );
+	}
+
+	/**
 	 * @ticket 55628
 	 *
 	 * @covers ::wp_set_script_translations
