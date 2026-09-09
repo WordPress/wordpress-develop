@@ -592,4 +592,75 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( $expected_html, $actual );
 	}
+
+	/**
+	 * Tests that `WP_List_Table::single_row_columns()` hides the checkbox column
+	 * when it is included in the hidden columns.
+	 *
+	 * @ticket 65968
+	 *
+	 * @covers WP_List_Table::single_row_columns
+	 */
+	public function test_single_row_columns_should_hide_the_checkbox_column_when_hidden() {
+		$list_table = $this->get_list_table_with_checkbox_column( array( 'cb' ) );
+
+		$actual = get_echo( array( $list_table, 'single_row_columns' ), array( array( 'name' => 'Alpha' ) ) );
+
+		$this->assertStringContainsString(
+			'<td class="check-column hidden">',
+			$actual,
+			'The checkbox column should be given the "hidden" class.'
+		);
+	}
+
+	/**
+	 * Tests that `WP_List_Table::single_row_columns()` does not hide the checkbox
+	 * column when it is not included in the hidden columns.
+	 *
+	 * @ticket 65968
+	 *
+	 * @covers WP_List_Table::single_row_columns
+	 */
+	public function test_single_row_columns_should_not_hide_the_checkbox_column_when_not_hidden() {
+		$list_table = $this->get_list_table_with_checkbox_column( array() );
+
+		$actual = get_echo( array( $list_table, 'single_row_columns' ), array( array( 'name' => 'Alpha' ) ) );
+
+		$this->assertStringContainsString(
+			'<td class="check-column">',
+			$actual,
+			'The checkbox column should not be given the "hidden" class.'
+		);
+	}
+
+	/**
+	 * Returns a list table with a checkbox column and the given hidden columns.
+	 *
+	 * @param string[] $hidden Array of IDs of hidden columns.
+	 * @return WP_List_Table List table instance.
+	 */
+	private function get_list_table_with_checkbox_column( $hidden ) {
+		return new class( $hidden ) extends WP_List_Table {
+			public function __construct( $hidden ) {
+				parent::__construct( array( 'screen' => '_wp_tests_checkbox_column' ) );
+
+				$this->_column_headers = array( $this->get_columns(), $hidden, array() );
+			}
+
+			public function get_columns() {
+				return array(
+					'cb'   => '<input type="checkbox" />',
+					'name' => 'Name',
+				);
+			}
+
+			protected function column_cb( $item ) {
+				return '<input type="checkbox" />';
+			}
+
+			protected function column_default( $item, $column_name ) {
+				return $item[ $column_name ] ?? '';
+			}
+		};
+	}
 }
