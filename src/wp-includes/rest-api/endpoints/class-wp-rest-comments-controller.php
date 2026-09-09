@@ -25,6 +25,64 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected $meta;
 
 	/**
+	 * Pre-fetched reaction summaries keyed by note comment ID.
+	 *
+	 * Populated by get_items() to avoid N+1 queries when listing notes
+	 * with their reaction summaries. Reset after each get_items() call.
+	 *
+	 * @since 7.2.0
+	 * @var array|null
+	 */
+	protected $reaction_summaries = null;
+
+	/**
+	 * Retrieves the curated list of emoji reactions allowed for note comments.
+	 *
+	 * Each entry is an associative array with:
+	 * - `emoji` (string) The emoji character.
+	 * - `label` (string) A human-readable label.
+	 * - `value` (string) The slug used as the storage key in `comment_content`.
+	 *
+	 * Reactions submitted to the REST API may also use a lowercase
+	 * hex-codepoint sequence (e.g. `1f44d`) to represent emojis outside the
+	 * curated set; see create_item().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array[] List of emoji definitions, each with `emoji`, `label`,
+	 *                 and `value` keys.
+	 */
+	protected static function get_note_reaction_emojis(): array {
+		return array(
+			array(
+				'emoji' => '❤️',
+				'label' => __( 'Heart' ),
+				'value' => 'heart',
+			),
+			array(
+				'emoji' => '🎉',
+				'label' => __( 'Celebration' ),
+				'value' => 'celebration',
+			),
+			array(
+				'emoji' => '😄',
+				'label' => __( 'Smile' ),
+				'value' => 'smile',
+			),
+			array(
+				'emoji' => '👀',
+				'label' => __( 'Eyes' ),
+				'value' => 'eyes',
+			),
+			array(
+				'emoji' => '🚀',
+				'label' => __( 'Rocket' ),
+				'value' => 'rocket',
+			),
+		);
+	}
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -123,7 +181,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		$is_note          = 'note' === $request['type'];
+		$is_note          = in_array( $request['type'], wp_get_internal_comment_types(), true );
 		$is_edit_context  = 'edit' === $request['context'];
 		$protected_params = array( 'author', 'author_exclude', 'author_email', 'type', 'status' );
 		$forbidden_params = array();
@@ -330,6 +388,23 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! $is_head_request ) {
 			$comments = array();
 
+			/*
+			 * When listing notes that include the reaction_summary field,
+			 * pre-fetch all summaries in a single aggregated query to
+			 * avoid an N+1 query in prepare_item_for_response().
+			 */
+			$fields = $this->get_fields_for_response( $request );
+			if (
+				! empty( $request['type'] ) &&
+				'note' === $request['type'] &&
+				rest_is_field_included( 'reaction_summary', $fields )
+			) {
+				$note_ids = array_map( 'intval', wp_list_pluck( $query_result, 'comment_ID' ) );
+				if ( ! empty( $note_ids ) ) {
+					$this->prefetch_reaction_summaries( $note_ids );
+				}
+			}
+
 			foreach ( $query_result as $comment ) {
 				if ( ! $this->check_read_permission( $comment, $request ) ) {
 					continue;
@@ -338,6 +413,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$data       = $this->prepare_item_for_response( $comment, $request );
 				$comments[] = $this->prepare_response_for_collection( $data );
 			}
+
+			$this->reaction_summaries = null;
 		}
 
 		$total_comments = (int) $query->found_comments;
@@ -437,8 +514,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
-		// Re-map edit context capabilities when requesting `note` type.
-		$edit_cap = 'note' === $comment->comment_type ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
+		// Re-map edit context capabilities when requesting `note` or `reaction` type.
+		$edit_cap = in_array( $comment->comment_type, wp_get_internal_comment_types(), true ) ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( ...$edit_cap ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
@@ -497,7 +574,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		$is_note = ! empty( $request['type'] ) && 'note' === $request['type'];
+		$is_note = ! empty( $request['type'] ) && in_array( $request['type'], wp_get_internal_comment_types(), true );
 
 		if ( ! is_user_logged_in() && $is_note ) {
 			return new WP_Error(
@@ -545,6 +622,23 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'rest_comment_invalid_author',
 				/* translators: %s: Request parameter. */
 				sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'author' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		/*
+		 * A reaction is always first-person. create_item() enforces one emoji per
+		 * user per note against the current user, and update_item() refuses to
+		 * reattribute one, so a reaction stored against somebody else would be a
+		 * row the uniqueness check and the reaction summary can never see.
+		 */
+		if (
+			! empty( $request['type'] ) && 'reaction' === $request['type'] &&
+			isset( $request['author'] ) && get_current_user_id() !== (int) $request['author']
+		) {
+			return new WP_Error(
+				'rest_comment_invalid_author',
+				__( 'Sorry, you are not allowed to add a reaction on behalf of another user.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
@@ -657,12 +751,121 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Do not allow comments to be created with a non-core type.
-		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array( 'comment', 'note' ), true ) ) {
+		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array_merge( array( 'comment' ), wp_get_internal_comment_types() ), true ) ) {
 			return new WP_Error(
 				'rest_invalid_comment_type',
 				__( 'Cannot create a comment with that type.' ),
 				array( 'status' => 400 )
 			);
+		}
+
+		/*
+		 * The canonical reaction slug, populated once validated below so the
+		 * stored content matches what was validated (not the raw input).
+		 */
+		$reaction_slug = null;
+
+		// Validate reaction-specific constraints.
+		if ( ! empty( $request['type'] ) && 'reaction' === $request['type'] ) {
+			// Reaction parent must be specified.
+			if ( empty( $request['parent'] ) ) {
+				return new WP_Error(
+					'rest_comment_invalid_parent',
+					__( 'A reaction must have a parent note.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			// Reaction parent must exist and be a note.
+			$parent_comment = get_comment( $request['parent'] );
+			if ( ! $parent_comment || 'note' !== $parent_comment->comment_type ) {
+				return new WP_Error(
+					'rest_comment_invalid_parent',
+					__( 'A reaction must be attached to a note.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			// The parent note must belong to the post the reaction targets.
+			if ( ! empty( $request['post'] ) && (int) $parent_comment->comment_post_ID !== (int) $request['post'] ) {
+				return new WP_Error(
+					'rest_comment_invalid_parent',
+					__( 'A reaction must be attached to a note on the same post.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			/*
+			 * Validate the reaction content. Two shapes are accepted:
+			 *
+			 * - A curated slug (e.g. `heart`) from self::get_note_reaction_emojis().
+			 * - A lowercase hex-codepoint sequence joined by `-` (e.g. `1f44d`
+			 *   for 👍 or `1f468-200d-1f4bb` for 👨‍💻), which is how a client
+			 *   offering a full emoji picker stores a pick outside the curated
+			 *   list. The client decodes the sequence back into the emoji.
+			 *
+			 * Raw emoji bytes are rejected because the comments table is not
+			 * guaranteed to be utf8mb4 across all WordPress installs; clients
+			 * are expected to normalize before submitting. Variation selector
+			 * U+FE0F is dropped on the client so visually-equivalent
+			 * presentations collapse onto a single key.
+			 */
+			$valid_slugs = wp_list_pluck( self::get_note_reaction_emojis(), 'value' );
+			$emoji_slug  = isset( $request['content'] ) ? wp_strip_all_tags( $request['content'] ) : '';
+
+			$is_curated_slug = in_array( $emoji_slug, $valid_slugs, true );
+			$is_hex_key      = (bool) preg_match( '/^[0-9a-f]{2,6}(-[0-9a-f]{2,6}){0,15}$/', $emoji_slug );
+
+			/*
+			 * A hex-shaped slug must still be made of assignable Unicode code
+			 * points: reject anything above U+10FFFF or in the UTF-16 surrogate
+			 * range (U+D800–U+DFFF).
+			 */
+			if ( $is_hex_key ) {
+				foreach ( explode( '-', $emoji_slug ) as $codepoint ) {
+					$value = hexdec( $codepoint );
+					if ( $value > 0x10FFFF || ( $value >= 0xD800 && $value <= 0xDFFF ) ) {
+						$is_hex_key = false;
+						break;
+					}
+				}
+			}
+
+			if ( '' === $emoji_slug || ( ! $is_curated_slug && ! $is_hex_key ) ) {
+				return new WP_Error(
+					'rest_comment_invalid_reaction',
+					__( 'Invalid reaction emoji.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			/*
+			 * Enforce uniqueness: one emoji per user per note.
+			 *
+			 * Scope to active (approved) reactions only — trashed reactions
+			 * are invisible to the user and must not block re-adding the
+			 * same emoji.
+			 */
+			$existing = get_comments(
+				array(
+					'parent'  => $request['parent'],
+					'user_id' => get_current_user_id(),
+					'type'    => 'reaction',
+					'status'  => 'approve',
+				)
+			);
+
+			foreach ( $existing as $existing_reaction ) {
+				if ( wp_strip_all_tags( $existing_reaction->comment_content ) === $emoji_slug ) {
+					return new WP_Error(
+						'rest_comment_duplicate_reaction',
+						__( 'You have already reacted with this emoji.' ),
+						array( 'status' => 409 )
+					);
+				}
+			}
+
+			$reaction_slug = $emoji_slug;
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
@@ -671,6 +874,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment['comment_type'] = $request['type'];
+
+		/*
+		 * Persist the validated, canonical reaction slug rather than the raw
+		 * request content, so stored values stay consistent for grouping and
+		 * counting (e.g. "<b>heart</b>" is stored as "heart").
+		 */
+		if ( null !== $reaction_slug ) {
+			$prepared_comment['comment_content'] = $reaction_slug;
+		}
 
 		if ( ! isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = '';
@@ -701,6 +913,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			&& empty( $prepared_comment['comment_author_url'] );
 
 		if ( is_user_logged_in() && $missing_author ) {
+			$user = wp_get_current_user();
+
+			$prepared_comment['user_id']              = $user->ID;
+			$prepared_comment['comment_author']       = $user->display_name;
+			$prepared_comment['comment_author_email'] = $user->user_email;
+			$prepared_comment['comment_author_url']   = $user->user_url;
+		}
+
+		/*
+		 * Pin a reaction to the current user, whatever author details the request
+		 * carried. Author fields alone leave `user_id` at 0, which the uniqueness
+		 * check and the reaction summary both key on.
+		 */
+		if ( null !== $reaction_slug ) {
 			$user = wp_get_current_user();
 
 			$prepared_comment['user_id']              = $user->ID;
@@ -743,9 +969,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Don't check for duplicates or flooding for notes.
+		// Don't check for duplicates or flooding for notes or reactions.
 		$prepared_comment['comment_approved'] =
-			'note' === $prepared_comment['comment_type'] ?
+			in_array( $prepared_comment['comment_type'], wp_get_internal_comment_types(), true ) ?
 			'1' :
 			wp_allow_comment( $prepared_comment, true );
 
@@ -798,6 +1024,48 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				__( 'Creating comment failed.' ),
 				array( 'status' => 500 )
 			);
+		}
+
+		/*
+		 * The pre-insert uniqueness check is not atomic, so two concurrent
+		 * requests for the same user/note/emoji can both insert an approved
+		 * row. Converge on a single row deterministically: keep the earliest
+		 * matching reaction (lowest comment ID) and delete any later
+		 * duplicates. Every concurrent request applies the same rule, so they
+		 * all settle on the same surviving row. If this request's own row lost
+		 * the race, repoint the response to the survivor.
+		 */
+		if ( null !== $reaction_slug ) {
+			$matching   = get_comments(
+				array(
+					'parent'  => $request['parent'],
+					'user_id' => get_current_user_id(),
+					'type'    => 'reaction',
+					'status'  => 'approve',
+					'orderby' => 'comment_ID',
+					'order'   => 'ASC',
+				)
+			);
+			$duplicates = array();
+			foreach ( $matching as $candidate ) {
+				if ( wp_strip_all_tags( $candidate->comment_content ) === $reaction_slug ) {
+					$duplicates[] = (int) $candidate->comment_ID;
+				}
+			}
+
+			/*
+			 * Repoint whenever any matching row survives, not only when this
+			 * request still sees its own duplicate: a competing request may
+			 * already have deleted this request's row, leaving a single
+			 * survivor that is not `$comment_id`.
+			 */
+			if ( ! empty( $duplicates ) ) {
+				$survivor_id = array_shift( $duplicates );
+				foreach ( $duplicates as $duplicate_id ) {
+					wp_delete_comment( $duplicate_id, true );
+				}
+				$comment_id = $survivor_id;
+			}
 		}
 
 		if ( isset( $request['status'] ) ) {
@@ -862,6 +1130,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Checks if a given REST request has access to update a comment.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Reactions cannot be updated.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, error object otherwise.
@@ -870,6 +1139,22 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
 			return $comment;
+		}
+
+		/*
+		 * Reactions are immutable. create_item() validates the author, parent
+		 * note, target post and canonical emoji slug as a set, and none of that
+		 * is re-checked here. Allowing an update would let anyone who can edit
+		 * the note's post reattribute a reaction to another user, move it to a
+		 * note on a post they cannot edit, or store a duplicate or invalid
+		 * slug. Removing a reaction is a delete.
+		 */
+		if ( 'reaction' === $comment->comment_type ) {
+			return new WP_Error(
+				'rest_comment_update_not_allowed',
+				__( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ),
+				array( 'status' => 403 )
+			);
 		}
 
 		if ( ! $this->check_edit_permission( $comment ) ) {
@@ -1212,6 +1497,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$data['meta'] = $this->meta->get_value( $comment->comment_ID, $request );
 		}
 
+		if ( in_array( 'reaction_summary', $fields, true ) && 'note' === $comment->comment_type ) {
+			$note_id = (int) $comment->comment_ID;
+
+			if ( null !== $this->reaction_summaries && isset( $this->reaction_summaries[ $note_id ] ) ) {
+				$data['reaction_summary'] = $this->reaction_summaries[ $note_id ];
+			} else {
+				// Single-item path (get_item or single create/update): query individually.
+				$this->prefetch_reaction_summaries( array( $note_id ) );
+				$data['reaction_summary'] = $this->reaction_summaries[ $note_id ] ?? array();
+				// Reset so subsequent unrelated calls do not see this entry.
+				$this->reaction_summaries = null;
+			}
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
@@ -1305,10 +1604,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Embedding children for notes requires `type` and `status` inheritance.
-		if ( isset( $links['children'] ) && 'note' === $comment->comment_type ) {
-			$args = array(
+		if ( isset( $links['children'] ) && in_array( $comment->comment_type, wp_get_internal_comment_types(), true ) ) {
+			// Notes have reaction children; reactions don't have children of their own.
+			$child_type = 'note' === $comment->comment_type ? 'reaction' : $comment->comment_type;
+			$args       = array(
 				'parent' => $comment->comment_ID,
-				'type'   => $comment->comment_type,
+				'type'   => $child_type,
 				'status' => 'all',
 			);
 
@@ -1619,6 +1920,53 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'default'     => 'comment',
 				),
+				'reaction_emojis'   => array(
+					'description' => __( 'Allowed emoji reactions for notes.' ),
+					'type'        => 'array',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
+					'items'       => array(
+						'type'       => 'object',
+						'properties' => array(
+							'emoji' => array(
+								'description' => __( 'The emoji character.' ),
+								'type'        => 'string',
+							),
+							'label' => array(
+								'description' => __( 'A human-readable label for the emoji.' ),
+								'type'        => 'string',
+							),
+							'value' => array(
+								'description' => __( 'The slug used as the storage key.' ),
+								'type'        => 'string',
+							),
+						),
+					),
+					'default'     => self::get_note_reaction_emojis(),
+				),
+				'reaction_summary'  => array(
+					'description'          => __( 'Aggregated reaction counts for this note, keyed by emoji slug.' ),
+					'type'                 => 'object',
+					'context'              => array( 'view', 'edit' ),
+					'readonly'             => true,
+					'additionalProperties' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'count'          => array(
+								'description' => __( 'Total number of reactions with this emoji.' ),
+								'type'        => 'integer',
+							),
+							'reacted'        => array(
+								'description' => __( 'Whether the current user reacted with this emoji.' ),
+								'type'        => 'boolean',
+							),
+							'my_reaction_id' => array(
+								'description' => __( "The current user's reaction comment ID, or 0 if not reacted." ),
+								'type'        => 'integer',
+							),
+						),
+					),
+				),
 			),
 		);
 
@@ -1910,6 +2258,95 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Pre-fetches reaction summaries for a set of note IDs.
+	 *
+	 * Runs two aggregated queries (one for the per-emoji counts, one for the
+	 * current user's own reactions) and stores the result in
+	 * $this->reaction_summaries, keyed by note comment ID. This lets a
+	 * batched note listing return reaction_summary for many notes without
+	 * issuing a per-note query.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param int[] $note_ids Array of note comment IDs.
+	 */
+	protected function prefetch_reaction_summaries( $note_ids ) {
+		global $wpdb;
+
+		$this->reaction_summaries = array();
+
+		if ( empty( $note_ids ) ) {
+			return;
+		}
+
+		$note_ids        = array_map( 'intval', $note_ids );
+		$current_user_id = get_current_user_id();
+		$id_placeholders = implode( ',', array_fill( 0, count( $note_ids ), '%d' ) );
+
+		// Query 1: aggregated counts per emoji per note.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$counts = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT comment_parent, comment_content, COUNT(*) AS reaction_count
+				FROM {$wpdb->comments}
+				WHERE comment_parent IN ( $id_placeholders )
+				AND comment_type = %s
+				AND comment_approved = %s
+				GROUP BY comment_parent, comment_content",
+				...array_merge( $note_ids, array( 'reaction', '1' ) )
+			)
+		);
+
+		// Query 2: the current user's own reaction IDs (only when logged in).
+		$my_reactions = array();
+		if ( $current_user_id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			$user_rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT comment_ID, comment_parent, comment_content
+					FROM {$wpdb->comments}
+					WHERE comment_parent IN ( $id_placeholders )
+					AND comment_type = %s
+					AND comment_approved = %s
+					AND user_id = %d",
+					...array_merge( $note_ids, array( 'reaction', '1', $current_user_id ) )
+				)
+			);
+
+			if ( $user_rows ) {
+				foreach ( $user_rows as $row ) {
+					$key                  = (int) $row->comment_parent . ':' . wp_strip_all_tags( $row->comment_content );
+					$my_reactions[ $key ] = (int) $row->comment_ID;
+				}
+			}
+		}
+
+		// Initialize empty summaries for every requested note ID.
+		foreach ( $note_ids as $note_id ) {
+			$this->reaction_summaries[ $note_id ] = array();
+		}
+
+		if ( ! $counts ) {
+			return;
+		}
+
+		foreach ( $counts as $row ) {
+			$note_id        = (int) $row->comment_parent;
+			$slug           = wp_strip_all_tags( $row->comment_content );
+			$key            = $note_id . ':' . $slug;
+			$my_reaction_id = $my_reactions[ $key ] ?? 0;
+
+			$this->reaction_summaries[ $note_id ][ $slug ] = array(
+				'count'          => (int) $row->reaction_count,
+				'reacted'        => $my_reaction_id > 0,
+				'my_reaction_id' => $my_reaction_id,
+			);
+		}
+	}
+
+	/**
 	 * Checks if the comment can be read.
 	 *
 	 * @since 4.7.0
@@ -1919,7 +2356,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool Whether the comment can be read.
 	 */
 	protected function check_read_permission( $comment, $request ) {
-		if ( 'note' !== $comment->comment_type && ! empty( $comment->comment_post_ID ) ) {
+		if ( ! in_array( $comment->comment_type, wp_get_internal_comment_types(), true ) && ! empty( $comment->comment_post_ID ) ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( $post ) {
 				if ( $this->check_read_post_permission( $post, $request ) && 1 === (int) $comment->comment_approved ) {
@@ -2031,6 +2468,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			isset( $check['meta']['_wp_note_status'] ) &&
 			in_array( $check['meta']['_wp_note_status'], array( 'resolved', 'reopen' ), true )
 		) {
+			return true;
+		}
+
+		// Reactions always have content (the emoji slug), so allow them.
+		if ( isset( $check['comment_type'] ) && 'reaction' === $check['comment_type'] ) {
 			return true;
 		}
 

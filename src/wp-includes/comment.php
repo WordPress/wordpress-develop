@@ -352,6 +352,56 @@ function get_comment_statuses() {
 }
 
 /**
+ * Retrieves the list of internal comment types.
+ *
+ * Internal comment types are used by core features (such as block notes
+ * and emoji reactions) and are not user-authored discussion comments.
+ * They should typically be excluded from front-end and admin comment
+ * listings, counts, and similar contexts that target user discussion.
+ *
+ * @since 7.2.0
+ *
+ * @return string[] List of internal comment type slugs.
+ */
+function wp_get_internal_comment_types(): array {
+	return array( 'note', 'reaction' );
+}
+
+/**
+ * Retrieves the IDs of a note's reaction comments.
+ *
+ * Reactions hang off a note as child comments, so they have to be trashed,
+ * restored and deleted along with it.
+ *
+ * @since 7.2.0
+ *
+ * @param int|WP_Comment $comment_id Note comment ID or WP_Comment object.
+ * @param string         $status     Optional. Comment status to match, as accepted by
+ *                                   WP_Comment_Query. Note that 'all' covers only approved
+ *                                   and pending comments, so trashed reactions need an
+ *                                   explicit status. Default 'any'.
+ * @return int[] Reaction comment IDs, oldest first. Empty if the comment is not a note.
+ */
+function wp_get_note_reaction_ids( $comment_id, $status = 'any' ): array {
+	$comment = get_comment( $comment_id );
+
+	if ( ! $comment || 'note' !== $comment->comment_type ) {
+		return array();
+	}
+
+	return get_comments(
+		array(
+			'parent'  => $comment->comment_ID,
+			'type'    => 'reaction',
+			'status'  => $status,
+			'fields'  => 'ids',
+			'orderby' => 'comment_ID',
+			'order'   => 'ASC',
+		)
+	);
+}
+
+/**
  * Gets the default comment status for a post type.
  *
  * @since 4.3.0
@@ -401,6 +451,7 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * @since 1.5.0
  * @since 4.7.0 Replaced caching the modified date in a local static variable
  *              with the Object Cache API.
+ * @since 7.2.0 Internal comment types are excluded from the query.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -418,17 +469,30 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 		return $comment_modified_date;
 	}
 
+	// Exclude internal comment types (notes, reactions, etc.) from the lookup.
+	$internal_types = wp_get_internal_comment_types();
+	if ( ! empty( $internal_types ) ) {
+		$placeholders = implode( ', ', array_fill( 0, count( $internal_types ), '%s' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$type_not_in = $wpdb->prepare( " AND comment_type NOT IN ( $placeholders )", $internal_types );
+	} else {
+		$type_not_in = '';
+	}
+
 	switch ( $timezone ) {
 		case 'gmt':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'blog':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'server':
 			$add_seconds_server = gmdate( 'Z' );
 
-			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
 			break;
 	}
 
@@ -1556,6 +1620,8 @@ function wp_count_comments( $post_id = 0 ) {
  * post ID available.
  *
  * @since 2.0.0
+ * @since 7.2.0 A note's reactions are deleted along with it, rather than
+ *              being reparented.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1585,6 +1651,16 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	 * @param WP_Comment $comment    The comment to be deleted.
 	 */
 	do_action( 'delete_comment', $comment->comment_ID, $comment );
+
+	/*
+	 * Delete a note's reactions rather than letting them be reparented below.
+	 * A reaction only means anything attached to its note, and an orphaned one
+	 * would keep the reactor's identity on a note that no longer exists. This
+	 * covers every status: a reaction the user removed is trashed, not deleted.
+	 */
+	foreach ( wp_get_note_reaction_ids( $comment ) as $reaction_id ) {
+		wp_delete_comment( $reaction_id, true );
+	}
 
 	// Move children up a level.
 	$children = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_parent = %d", $comment->comment_ID ) );
@@ -1636,6 +1712,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  *
  * @since 2.9.0
  * @since 6.9.0 Any child notes are deleted when deleting a note.
+ * @since 7.2.0 A note's reactions are trashed along with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1702,6 +1779,15 @@ function wp_trash_comment( $comment_id ) {
 		 */
 		do_action( 'trashed_comment', $comment->comment_ID, $comment );
 
+		/*
+		 * Trash a note's reactions with it, at any depth. The child-note
+		 * cascade below trashes each reply in turn, which brings the replies'
+		 * own reactions along through this same branch.
+		 */
+		foreach ( wp_get_note_reaction_ids( $comment, 'approve' ) as $reaction_id ) {
+			wp_trash_comment( $reaction_id );
+		}
+
 		// For top level 'note' type comments, also trash children.
 		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
 			$children = $comment->get_children(
@@ -1731,6 +1817,7 @@ function wp_trash_comment( $comment_id ) {
  * Removes a comment from the Trash
  *
  * @since 2.9.0
+ * @since 7.2.0 A note's reactions are restored along with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1771,6 +1858,11 @@ function wp_untrash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The untrashed comment.
 		 */
 		do_action( 'untrashed_comment', $comment->comment_ID, $comment );
+
+		// Restore the note's reactions alongside it.
+		foreach ( wp_get_note_reaction_ids( $comment, 'trash' ) as $reaction_id ) {
+			wp_untrash_comment( $reaction_id );
+		}
 
 		return true;
 	}
@@ -3135,7 +3227,14 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type != 'note'", $post_id ) );
+		$internal_comment_types = wp_get_internal_comment_types();
+		$type_placeholders      = implode( ', ', array_fill( 0, count( $internal_comment_types ), '%s' ) );
+		$new                    = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type NOT IN ( $type_placeholders )", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				array_merge( array( $post_id ), $internal_comment_types )
+			)
+		);
 	} else {
 		$new = (int) $new;
 	}
