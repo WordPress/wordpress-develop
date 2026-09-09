@@ -455,7 +455,7 @@ function wp_get_toggletip( $content, $args = array() ) {
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
  *     @type string $button      Existing `button` or `a` markup. Used instead of generated button.
- *                               Default standard button HTML.
+ *                               Default empty string.
  *     @type string $label       Accessible label for the toggle button.
  *                               Default 'Help', matching the default icon.
  *                               Ignored for tooltips.
