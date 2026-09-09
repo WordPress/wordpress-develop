@@ -972,6 +972,23 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		// Controller does not implement prepare_item().
 	}
 
+	/**
+	 * A `null` template must produce an error response, not a fatal error from
+	 * reading properties on `null`.
+	 *
+	 * @ticket 66032
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_for_response_with_null_template() {
+		$controller = new WP_REST_Templates_Controller( 'wp_template' );
+		$request    = new WP_REST_Request( 'PUT', '/wp/v2/templates/default//does-not-exist' );
+
+		$response = $controller->prepare_item_for_response( null, $request );
+
+		$this->assertWPError( $response, 'A null template should produce a WP_Error, not a fatal error.' );
+		$this->assertSame( 'rest_template_not_found', $response->get_error_code() );
+	}
+
 	public function test_prepare_item_limit_fields() {
 		wp_set_current_user( self::$admin_id );
 

@@ -1,0 +1,20 @@
+name: 'Smoke check a WordPress installation'
+description: 'Serves an installed single site with PHP built-in web server and checks that its front end, REST API, and admin respond.'
+
+inputs:
+  admin-user:
+    description: 'The username of an administrator account on the site.'
+    required: true
+  admin-password:
+    description: 'The password of the administrator account.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Serve the site and check it
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/smoke-check.sh"
+      env:
+        WP_ADMIN_USER: ${{ inputs.admin-user }}
+        WP_ADMIN_PASSWORD: ${{ inputs.admin-password }}

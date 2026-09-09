@@ -71,6 +71,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	reset: function() {},
 
 	/**
+	 * Ready event callback.
+	 *
 	 * @since 3.5.0
 	 * @access private
 	 */
@@ -79,6 +81,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
+	 * Pre-activate event callback.
+	 *
 	 * @since 3.5.0
 	 * @access private
 	*/
@@ -87,6 +91,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
+	 * Post-activate event callback.
+	 *
 	 * @since 3.5.0
 	 * @access private
 	 */
@@ -106,6 +112,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
+	 * Deactivate event callback.
+	 *
 	 * @since 3.5.0
 	 * @access private
 	 */
@@ -121,6 +129,9 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
+	 * Renders the frame's title using the titleMode property.
+	 *
+	 *
 	 * @since 3.5.0
 	 * @access private
 	 */
@@ -129,6 +140,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
+	 * Renders the title in the media frame.
+	 *
 	 * @param {media.view.Title} view The title view.
 	 * @since 3.5.0
 	 * @access private
@@ -138,6 +151,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
+	 * Renders and manages the router region.
+	 *
 	 * @since 3.5.0
 	 * @access private
 	 */
@@ -160,6 +175,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
+	 * Renders and manages the menu region.
+	 *
 	 * @since 3.5.0
 	 * @access private
 	 */
@@ -189,6 +206,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
+	 * Updates the menu.
+	 *
 	 * @since 3.5.0
 	 * @access private
 	 */
@@ -206,7 +225,7 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
-	 * Create a view in the media menu for the state.
+	 * Creates a view in the media menu for the state.
 	 *
 	 * @since 3.5.0
 	 * @access private
@@ -234,8 +253,13 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	}
 });
 
+/**
+ * Creates render methods for frame regions.
+ */
 _.each(['toolbar','content'], function( region ) {
 	/**
+	 * Renders the region in the media frame.
+	 *
 	 * @access private
 	 */
 	State.prototype[ '_' + region ] = function() {
