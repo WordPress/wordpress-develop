@@ -172,9 +172,9 @@ class WP_Sitemaps {
 			return;
 		}
 
-		$sitemap         = $this->get_sanitized_query_var( 'sitemap' );
-		$object_subtype  = $this->get_sanitized_query_var( 'sitemap-subtype' );
-		$stylesheet_type = $this->get_sanitized_query_var( 'sitemap-stylesheet' );
+		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
+		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
+		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
 		$paged           = absint( get_query_var( 'paged' ) );
 
 		// Force a 404 and bail early if the route did not survive sanitizing.
@@ -232,28 +232,6 @@ class WP_Sitemaps {
 
 		$this->renderer->render_sitemap( $url_list );
 		exit;
-	}
-
-	/**
-	 * Reads a sitemap query var as a sanitized string.
-	 *
-	 * A public query var can hold any type — an array, for instance, when the
-	 * request supplies one — so anything that is not a scalar becomes an empty
-	 * string, which the caller treats as a route it cannot serve.
-	 *
-	 * @since 7.1.1
-	 *
-	 * @param string $query_var Query variable name.
-	 * @return string Sanitized value, or an empty string.
-	 */
-	private function get_sanitized_query_var( string $query_var ): string {
-		$value = get_query_var( $query_var );
-
-		if ( ! is_scalar( $value ) ) {
-			return '';
-		}
-
-		return sanitize_text_field( (string) $value );
 	}
 
 	/**
