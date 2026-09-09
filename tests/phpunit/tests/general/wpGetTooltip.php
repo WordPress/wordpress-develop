@@ -111,6 +111,33 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a custom button without an accessible name gains one, and
+	 * that a caller-supplied aria-label is never overwritten.
+	 *
+	 * @ticket 65914
+	 */
+	public function test_wp_get_tooltip_custom_button_aria_label() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<button type="button"><span aria-hidden="true">?</span></button>',
+			)
+		);
+
+		$this->assertStringContainsString( 'aria-label="Helpful text."', $html, 'A custom button without an accessible name should gain one from the content.' );
+
+		$html2 = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<button type="button" aria-label="Custom name">?</button>',
+			)
+		);
+
+		$this->assertStringContainsString( 'aria-label="Custom name"', $html2, 'A caller-supplied aria-label should be preserved.' );
+		$this->assertStringNotContainsString( 'aria-label="Helpful text."', $html2, 'The generated label should not overwrite the caller-supplied one.' );
+	}
+
+	/**
 	 * Tests that the accessible labels are output and escaped in attributes.
 	 *
 	 * @ticket 55343
@@ -284,8 +311,8 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 				'aria-describedby="box_100%_complete-title"',
 			),
 			'a percent-encoded ID'        => array(
-				'<button type="button" aria-describedby="pods-meta-%d0%b8%d0%b3%d1%80%d0%b0-title">Move up</button>',
-				'aria-describedby="pods-meta-%d0%b8%d0%b3%d1%80%d0%b0-title"',
+				'<button type="button" aria-describedby="meta-%d0%b8%d0%b3%d1%80%d0%b0-title">Move up</button>',
+				'aria-describedby="meta-%d0%b8%d0%b3%d1%80%d0%b0-title"',
 			),
 			'text resembling a argnum'    => array(
 				'<button type="button">Use %2$s in your code</button>',
