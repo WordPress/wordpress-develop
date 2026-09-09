@@ -223,6 +223,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0 3em;
 }
 
+.wp-block-quote.highlighted-quote p {
+	font-size: 2em;
+	line-height: 1.3;
+}
+
 .wp-block-quote .wp-block-quote__citation {
 	font-size: 16px;
 	font-weight: 600;
