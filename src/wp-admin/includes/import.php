@@ -16,10 +16,51 @@
  */
 function get_importers() {
 	global $wp_importers;
+
 	if ( is_array( $wp_importers ) ) {
 		uasort( $wp_importers, '_usort_by_first_member' );
 	}
+
 	return $wp_importers;
+}
+
+/**
+ * Retrieves the list of available importers for the Import screen.
+ *
+ * This includes registered importers and popular importer plugins from WordPress.org
+ * that can be installed or activated.
+ *
+ * @since 7.1.0
+ *
+ * @param array|null $popular_importers Optional. Popular importer data keyed by slug.
+ *                                      Defaults to the result of wp_get_popular_importers().
+ * @return array Available importers.
+ */
+function wp_get_available_importers( ?array $popular_importers = null ) {
+	$importers = get_importers();
+
+	if ( null === $popular_importers ) {
+		$popular_importers = wp_get_popular_importers();
+	}
+
+	// If a popular importer is not registered, create a dummy registration that links to the plugin installer.
+	foreach ( $popular_importers as $pop_importer => $pop_data ) {
+		if ( isset( $importers[ $pop_importer ] ) ) {
+			continue;
+		}
+
+		if ( isset( $importers[ $pop_data['importer-id'] ] ) ) {
+			continue;
+		}
+
+		$importers[ $pop_data['importer-id'] ] = array(
+			$pop_data['name'],
+			$pop_data['description'],
+			'install' => $pop_data['plugin-slug'],
+		);
+	}
+
+	return $importers;
 }
 
 /**
