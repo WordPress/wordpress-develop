@@ -33,7 +33,15 @@
 		isFirefox = ua.indexOf( 'firefox' ) !== -1;
 
 	/**
-	 * Generates a password and updates the password input field. If zxcvbn is not yet loaded, it will wait and try again. If the password input field is empty or the password wrapper is open, it will set the password to the generated value. If the user has already entered a password, it will check the strength of that password. It also binds the toggle button to show or hide the password and sets the initial state of the toggle button based on whether the password should be masked or not. Finally, it updates the label for confirming weak passwords.
+	 * Generates a password and updates the password input field.
+	 *
+	 * If zxcvbn is not yet loaded, it will wait and try again. If the password
+	 * input field is empty or the password wrapper is open, it will set the
+	 * password to the generated value. If the user has already entered a
+	 * password, it will check the strength of that password. It also binds
+	 * the toggle button to show or hide the password and sets the initial state
+	 * of the toggle button based on whether the password should be masked or
+	 * not. Finally, it updates the label for confirming weak passwords.
 	 */
 	function generatePassword() {
 		if ( typeof zxcvbn !== 'function' ) {

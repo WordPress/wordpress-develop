@@ -1017,7 +1017,6 @@
 			 * Updates the shared variables used to determine the depth of the menu item being moved.
 			 *
 			 * @param {Object} ui The jQuery UI object for the menu item being moved.
-			 * @return {void}
 			 */
 			function updateSharedVars(ui) {
 				var depth;

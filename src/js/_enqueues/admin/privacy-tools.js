@@ -40,10 +40,10 @@ jQuery( function( $ ) {
 	/**
 	 * Appends a results row after the request row.
 	 *
-	 * @param {jQuery} $requestRow        The request row to append the results after.
-	 * @param {string} classes            The classes to add to the results row.
-	 * @param {string} summaryMessage     The summary message to display in the results row.
-	 * @param {Array}  additionalMessages Additional messages to display in the results row.
+	 * @param {jQuery}   $requestRow        The request row to append the results after.
+	 * @param {string}   classes            The classes to add to the results row.
+	 * @param {string}   summaryMessage     The summary message to display in the results row.
+	 * @param {string[]} additionalMessages Additional messages to display in the results row.
 	 * @return {void}
 	 */
 	function appendResultsAfterRow( $requestRow, classes, summaryMessage, additionalMessages ) {
@@ -263,8 +263,6 @@ jQuery( function( $ ) {
 
 		/**
 		 * Handles an erasure failure.
-		 *
-		 * @return {void}
 		 */
 		function onErasureFailure() {
 			var summaryMessage = __( 'An error occurred while attempting to find and erase personal data.' );

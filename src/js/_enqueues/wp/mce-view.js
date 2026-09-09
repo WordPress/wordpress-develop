@@ -793,7 +793,6 @@
 	 * Verifies that a given string is valid HTML.
 	 *
 	 * @param {string} string The string to verify.
-	 *
 	 * @return {string} The verified string.
 	 */
 	function verifyHTML( string ) {
