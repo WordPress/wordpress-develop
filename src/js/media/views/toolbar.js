@@ -18,6 +18,9 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	tagName:   'div',
 	className: 'media-toolbar',
 
+	/**
+	 * Initializes the toolbar view.
+	 */
 	initialize: function() {
 		var state = this.controller.state(),
 			selection = this.selection = state.get('selection'),
@@ -52,6 +55,8 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		}
 	},
 	/**
+	 * Disposes of the toolbar view.
+	 *
 	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining
 	 */
 	dispose: function() {
@@ -68,11 +73,16 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		return View.prototype.dispose.apply( this, arguments );
 	},
 
+	/**
+	 * Prepares the data for rendering.
+	 */
 	ready: function() {
 		this.refresh();
 	},
 
 	/**
+	 * Sets a view by its ID.
+	 *
 	 * @param {string} id
 	 * @param {Backbone.View|Object} view
 	 * @param {Object} [options={}]
@@ -118,6 +128,8 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		return this._views[ id ];
 	},
 	/**
+	 * Unsets a view by its ID.
+	 *
 	 * @param {string} id
 	 * @param {Object} options
 	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining.
@@ -134,6 +146,9 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		return this;
 	},
 
+	/**
+	 * Refreshes the toolbar view.
+	 */
 	refresh: function() {
 		var state = this.controller.state(),
 			library = state.get('library'),

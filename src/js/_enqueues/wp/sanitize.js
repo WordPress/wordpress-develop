@@ -2,6 +2,9 @@
  * @output wp-includes/js/wp-sanitize.js
  */
 
+/**
+ * Provides helper functions to sanitize strings.
+ */
 ( function () {
 
 	window.wp = window.wp || {};

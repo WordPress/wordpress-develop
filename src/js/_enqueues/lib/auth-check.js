@@ -1,10 +1,10 @@
 /**
- * Interim login dialog.
- *
  * @output wp-includes/js/wp-auth-check.js
  */
 
 /**
+ * Handles the interim login dialog.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {

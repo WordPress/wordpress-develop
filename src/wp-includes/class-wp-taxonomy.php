@@ -376,9 +376,7 @@ final class WP_Taxonomy {
 		$args = array_merge( $defaults, $args );
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['publicly_queryable'] ) {
-			$args['publicly_queryable'] = $args['public'];
-		}
+		$args['publicly_queryable'] ??= $args['public'];
 
 		if ( false !== $args['query_var'] && ( is_admin() || false !== $args['publicly_queryable'] ) ) {
 			if ( true === $args['query_var'] ) {
@@ -407,9 +405,7 @@ final class WP_Taxonomy {
 		}
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_ui'] ) {
-			$args['show_ui'] = $args['public'];
-		}
+		$args['show_ui'] ??= $args['public'];
 
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
@@ -417,19 +413,13 @@ final class WP_Taxonomy {
 		}
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_in_nav_menus'] ) {
-			$args['show_in_nav_menus'] = $args['public'];
-		}
+		$args['show_in_nav_menus'] ??= $args['public'];
 
 		// If not set, default to the setting for 'show_ui'.
-		if ( null === $args['show_tagcloud'] ) {
-			$args['show_tagcloud'] = $args['show_ui'];
-		}
+		$args['show_tagcloud'] ??= $args['show_ui'];
 
 		// If not set, default to the setting for 'show_ui'.
-		if ( null === $args['show_in_quick_edit'] ) {
-			$args['show_in_quick_edit'] = $args['show_ui'];
-		}
+		$args['show_in_quick_edit'] ??= $args['show_ui'];
 
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
 		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
