@@ -1,5 +1,5 @@
 /**
- * Accessibility test pages registry.
+ * Accessibility test pages matrix.
  *
  * Defines WordPress admin pages to scan for accessibility violations.
  * Each page spec can have multiple state variants for testing different UI states.
@@ -49,7 +49,7 @@
  * - To change rule config per-page, modify the `rules` property.
  *
  * IMPORT IN TESTS:
- * const { pages } = require( './accessibility-pages' );
+ * const { pages } = require( './accessibility-pages-matrix' );
  * pages.forEach( (pageSpec) => { ... } );
  */
 
