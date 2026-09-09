@@ -137,6 +137,20 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should reject ability name with more than two slashes.
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_too_many_slashes_in_name() {
+		$result = $this->registry->register( 'test/v1/extra/add-numbers', self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * Should reject ability registration without a label.
 	 *
 	 * @ticket 64098
@@ -515,10 +529,23 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	public function test_register_new_ability() {
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 
-		$this->assertEquals(
-			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
-			$result
-		);
+		$this->assertInstanceOf( WP_Ability::class, $result );
+		$this->assertSame( self::$test_ability_name, $result->get_name() );
+	}
+
+	/**
+	 * Should successfully register a new ability with a versioned name.
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 */
+	public function test_register_new_ability_with_versioned_name() {
+		$versioned_name = 'test/v1/add-numbers';
+		$result         = $this->registry->register( $versioned_name, self::$test_ability_args );
+
+		$this->assertInstanceOf( WP_Ability::class, $result );
+		$this->assertSame( $versioned_name, $result->get_name() );
 	}
 
 	/**
