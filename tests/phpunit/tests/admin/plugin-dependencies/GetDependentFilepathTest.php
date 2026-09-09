@@ -5,16 +5,21 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::get_dependent_filepath
- * @covers WP_Plugin_Dependencies::get_plugin_dirnames
+ * @covers \WP_Plugin_Dependencies::get_dependent_filepath
+ * @covers \WP_Plugin_Dependencies::get_plugin_dirnames
  */
-class Tests_Admin_WPPluginDependencies_GetDependentFilepath extends WP_PluginDependencies_UnitTestCase {
+class GetDependentFilepathTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that the expected dependent filepath is retrieved.
@@ -24,7 +29,7 @@ class Tests_Admin_WPPluginDependencies_GetDependentFilepath extends WP_PluginDep
 	 * @dataProvider data_get_dependent_filepath
 	 *
 	 * @param string       $dependent_slug The dependent slug.
-	 * @param string[]     $plugins        An array of plugin data.
+	 * @param array        $plugins        An array of plugin data.
 	 * @param string|false $expected       The expected result.
 	 */
 	public function test_should_return_filepaths_for_installed_dependents( $dependent_slug, $plugins, $expected ) {
