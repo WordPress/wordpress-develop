@@ -25,6 +25,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 		if ( $this->restore_timezone_translations ) {
 			// Synchronize the function's static locale tracking with the restored translations.
 			wp_timezone_choice( '', get_locale() );
+			$this->restore_timezone_translations = false;
 		}
 
 		parent::tear_down();
