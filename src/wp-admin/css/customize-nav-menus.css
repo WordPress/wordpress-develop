@@ -588,7 +588,7 @@
 
 #available-menu-items .accordion-section-content .available-menu-items-list {
 	margin: 0 0 64px;
-	padding: 1px 15px 15px;
+	padding: 15px;
 }
 
 #available-menu-items .accordion-section-content .available-menu-items-list:only-child { /* Types that do not support new items for the current user */
@@ -596,7 +596,7 @@
 }
 
 #new-custom-menu-item .accordion-section-content {
-	padding: 0 15px 15px;
+	padding: 15px;
 }
 
 #available-menu-items .menu-item-tpl {
