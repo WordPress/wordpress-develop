@@ -938,12 +938,25 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
 
-	public function test_rest_preload_api_request_with_method() {
+	/**
+	 * @ticket 65215
+	 */
+	public function test_rest_preload_api_request_with_method_and_allowed_statuses(): void {
 		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
 
+		$existing_post_id = self::factory()->post->create();
+		$this->assertIsInt( $existing_post_id );
+		$missing_post1_id = 10001;
+		$missing_post2_id = 10002;
+		$this->assertNull( get_post( $missing_post1_id ), "Expected post with ID $missing_post1_id to not exist." );
+		$this->assertNull( get_post( $missing_post2_id ), "Expected post with ID $missing_post2_id to not exist." );
+
 		$preload_paths = array(
 			'/wp/v2/types',
+			array( "/wp/v2/posts/$existing_post_id", 'GET', array( 200 ) ),
+			array( "/wp/v2/posts/$missing_post1_id", 'GET', array( 200, 404 ) ),
+			array( "/wp/v2/posts/$missing_post2_id", 'GET' ),
 			array( '/wp/v2/media', 'OPTIONS' ),
 		);
 
@@ -953,8 +966,20 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array()
 		);
 
-		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS' ) );
+		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', "/wp/v2/posts/$existing_post_id", "/wp/v2/posts/$missing_post1_id", 'OPTIONS' ) );
 		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
+
+		$existing_post_response_data = $preload_data[ "/wp/v2/posts/$existing_post_id" ];
+		$this->assertTrue( isset( $existing_post_response_data['body']['id'] ), 'Expected body.id to be exist.' );
+		$this->assertSame( $existing_post_id, $existing_post_response_data['body']['id'] );
+
+		$missing_post_response_data = $preload_data[ "/wp/v2/posts/$missing_post1_id" ];
+		$this->assertTrue( isset( $missing_post_response_data['body']['code'] ), 'Expected body.code to exist.' );
+		$this->assertTrue( isset( $missing_post_response_data['body']['data'] ), 'Expected body.data to exist.' );
+		$this->assertIsArray( $missing_post_response_data['body']['data'], 'Expected body.data to be an array.' );
+		$this->assertTrue( isset( $missing_post_response_data['body']['data']['status'] ), 'Expected body.data.status to exist.' );
+		$this->assertSame( 'rest_post_invalid_id', $missing_post_response_data['body']['code'] );
+		$this->assertSame( 404, $missing_post_response_data['body']['data']['status'] );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
 	}
