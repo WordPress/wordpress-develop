@@ -25,7 +25,7 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
-      - name: Validate Test File Structure, Namespaces, and Class Names
+      - name: Validate Test File Structure, Namespaces, Class Names, and @covers Annotations
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
@@ -189,6 +189,41 @@ jobs:
 
                 if ( ! /^[A-Z][a-zA-Z0-9_]*Test$/.test( declaredClass ) ) {
                   errors.push( `[${filename}] Class name "${declaredClass}" must follow CamelCase / PascalCase convention and end with "Test".` );
+                }
+              }
+
+              // 5. Validate @covers docblock annotations (must be in opening class comment and nowhere else)
+              const classDocMatch = fileContent.match( /\/\*\*([^*]*(?:\*(?!\/)[^*]*)*)\*\/\s*(?:final\s+|abstract\s+)?class\s+([a-zA-Z0-9_]+)/ );
+              if ( ! classDocMatch ) {
+                errors.push( `[${filename}] Missing opening class docblock comment preceding class declaration.` );
+              } else {
+                const classDocContent = classDocMatch[1];
+                const hasCoversInClassDoc = /@covers\b/.test( classDocContent );
+
+                if ( ! hasCoversInClassDoc ) {
+                  errors.push( `[${filename}] Opening class docblock must contain a "@covers" annotation.` );
+                } else {
+                  passes.push( `[${filename}] Opening class docblock contains "@covers" annotation.` );
+                }
+
+                // Check for @covers annotations outside the opening class docblock
+                const docblockStart = classDocMatch.index;
+                const docblockEnd = docblockStart + classDocMatch[0].length;
+                const coversRegex = /@covers\b/g;
+                let m;
+                const outsideLines = [];
+
+                while ( ( m = coversRegex.exec( fileContent ) ) !== null ) {
+                  if ( m.index < docblockStart || m.index >= docblockEnd ) {
+                    const lineNum = fileContent.substring( 0, m.index ).split( '\n' ).length;
+                    outsideLines.push( lineNum );
+                  }
+                }
+
+                if ( outsideLines.length > 0 ) {
+                  errors.push( `[${filename}] Found ${outsideLines.length} "@covers" annotation(s) outside the opening class docblock (lines: ${outsideLines.join( ', ' )}). "@covers" annotations are only permitted in the opening class docblock.` );
+                } else if ( hasCoversInClassDoc ) {
+                  passes.push( `[${filename}] No "@covers" annotations found outside the opening class docblock.` );
                 }
               }
             }
