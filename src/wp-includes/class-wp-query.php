@@ -3386,7 +3386,8 @@ class WP_Query {
 
 		if ( null === $this->posts ) {
 			$split_the_query = (
-				$is_unfiltered_query
+				1 !== $query_vars['posts_per_page']
+				&& $is_unfiltered_query
 				&& (
 					wp_using_ext_object_cache()
 					|| ( ! empty( $limits ) && $query_vars['posts_per_page'] < 500 )
