@@ -168,8 +168,22 @@ class WP_Sitemaps {
 		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
 		$paged           = absint( get_query_var( 'paged' ) );
 
-		// Bail early if this isn't a sitemap or stylesheet route.
+		/*
+		 * Bail early if this isn't a sitemap or stylesheet route.
+		 *
+		 * The raw query vars are tested here, matching WP::handle_404(), which
+		 * exempts sitemap requests from its own 404 on the same basis. Testing
+		 * the sanitized values instead would let a request that handle_404()
+		 * exempted fall through both, leaving it a 200.
+		 */
+		if ( ! get_query_var( 'sitemap' ) && ! get_query_var( 'sitemap-stylesheet' ) ) {
+			return;
+		}
+
+		// Force a 404 and bail early if the route did not survive sanitizing.
 		if ( ! ( $sitemap || $stylesheet_type ) ) {
+			$wp_query->set_404();
+			status_header( 404 );
 			return;
 		}
 

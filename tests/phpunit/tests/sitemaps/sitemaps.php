@@ -511,6 +511,50 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures a sitemap query var that does not survive sanitizing 404s.
+	 *
+	 * WP::handle_404() exempts these requests on the raw query var, while
+	 * render_sitemaps() acts on the sanitized value. Without a matching bail
+	 * they fall through both and an arbitrary URL is served as a 200.
+	 *
+	 * @ticket 65945
+	 *
+	 * @dataProvider data_unusable_sitemap_query_vars
+	 *
+	 * @param string $query_string Query string to append to a nonexistent URL.
+	 */
+	public function test_unusable_sitemap_query_var_should_return_404( $query_string ) {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		// Instantiate the server before navigating: registering the sitemap
+		// rewrite tags is what adds the query vars to `$wp->public_query_vars`.
+		$sitemaps = wp_sitemaps_get_server();
+
+		$this->go_to( home_url( '/this-page-does-not-exist/' . $query_string ) );
+
+		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
+
+		$sitemaps->render_sitemaps();
+
+		$this->assertTrue( is_404(), 'render_sitemaps() should have set a 404.' );
+
+		$this->set_permalink_structure();
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_unusable_sitemap_query_vars() {
+		return array(
+			'value stripped by sanitizing' => array( '?sitemap=<>' ),
+			'array sitemap value'          => array( '?sitemap[]=index' ),
+			'array stylesheet value'       => array( '?sitemap-stylesheet[]=sitemap' ),
+		);
+	}
+
+	/**
 	 * Ensures an unrecognized stylesheet type 404s from render_sitemaps().
 	 *
 	 * WP::handle_404() exempts any request carrying a `sitemap-stylesheet`
