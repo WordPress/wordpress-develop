@@ -323,7 +323,7 @@ function the_author_posts() {
  *
  * @global WP_User $authordata The current author's data.
  *
- * @return string An HTML link to the author page, or an empty string if $authordata is not set.
+ * @return string An HTML link to the author page, or just the author's display name if the URL is empty or invalid, or an empty string if $authordata is not set.
  */
 function get_the_author_posts_link() {
 	global $authordata;
@@ -336,11 +336,17 @@ function get_the_author_posts_link() {
 	/* translators: %s: Author's display name. */
 	$title = sprintf( __( 'Posts by %s' ), $author );
 
-	$link = sprintf(
-		'<a href="%1$s" rel="author">%2$s</a>',
-		esc_url( get_author_posts_url( $authordata->ID, $authordata->user_nicename ) ),
-		$author
-	);
+	$url = esc_url( get_author_posts_url( $authordata->ID, $authordata->user_nicename ) );
+
+	if ( '' === $url || 'http://' === $url ) {
+		$link = $author;
+	} else {
+		$link = sprintf(
+			'<a href="%1$s" rel="author">%2$s</a>',
+			$url,
+			$author
+		);
+	}
 
 	/**
 	 * Filters the link to the author page of the author of the current post.
@@ -348,7 +354,7 @@ function get_the_author_posts_link() {
 	 * @since 2.9.0
 	 * @since 7.0.0 Added `$author` and `$title` parameters.
 	 *
-	 * @param string $link   HTML link.
+	 * @param string $link   An HTML link to the author page, or the author's display name if the URL is empty or invalid.
 	 * @param string $author Author's display name.
 	 * @param string $title  Text originally used for a title attribute.
 	 */
