@@ -12,7 +12,9 @@ on:
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/smoke-check/**'
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   pull_request:
@@ -23,6 +25,7 @@ on:
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
@@ -140,7 +143,6 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
-      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks

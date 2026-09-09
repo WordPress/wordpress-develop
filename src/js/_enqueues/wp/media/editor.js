@@ -4,8 +4,12 @@
 
 /* global getUserSetting, tinymce, QTags */
 
-// WordPress, TinyMCE, and Media
-// -----------------------------
+/**
+ * Handles the initialization, refreshing and rendering of media editor components.
+ *
+ * @param {JQueryStatic}       $ The jQuery object.
+ * @param {_.UnderscoreStatic} _ The Underscore.js object.
+ */
 (function($, _){
 	/**
 	 * Stores the editors' `wp.media.controller.Frame` instances.
@@ -206,7 +210,7 @@
 		 *
 		 * @param {Object} props Attachment details (align, link, size, etc).
 		 * @param {Object} attachment The attachment object, media version of Post.
-		 * @return {string}
+		 * @return {string} The image markup.
 		 */
 		image: function( props, attachment ) {
 			var img = {},
@@ -333,6 +337,8 @@
 	};
 
 	/**
+	 * Factory function that creates a media collection controller for managing gallery, playlist, and other media shortcodes.
+	 *
 	 * @class wp.media.collection
 	 *
 	 * @param {Object} attributes
@@ -415,7 +421,7 @@
 			 *      the media items belonging to a collection.
 			 *      The query[ this.tag ] property is a Backbone.Model
 			 *          containing the 'props' for the collection.
-			 * @return {wp.shortcode}
+			 * @return {wp.shortcode} A wp.shortcode instance representing the collection.
 			 */
 			shortcode: function( attachments ) {
 				var props = attachments.props.toJSON(),
@@ -486,7 +492,7 @@
 			 *
 			 * @this wp.media.{prop}
 			 *
-			 * @return {wp.media.view.MediaFrame.Select} A media workflow.
+			 * @return {void|wp.media.view.MediaFrame.Select} A media workflow.
 			 */
 			edit: function( content ) {
 				var shortcode = wp.shortcode.next( this.tag, content ),
@@ -606,7 +612,7 @@
 		/**
 		 * Get the featured image post ID
 		 *
-		 * @return {wp.media.view.settings.post.featuredImageId|number}
+		 * @return {wp.media.view.settings.post.featuredImageId|number} The post ID of the featured image, or -1 if none is set.
 		 */
 		get: function() {
 			return wp.media.view.settings.post.featuredImageId;
@@ -727,7 +733,8 @@
 		/**
 		 * Send content to the editor
 		 *
-		 * @param {string} html Content to send to the editor
+		 * @param {string} html Content to send to the editor.
+		 * @return {void}
 		 */
 		insert: function( html ) {
 			var editor, wpActiveEditor,
@@ -889,7 +896,7 @@
 		 *
 		 * @param {string} [id=''] A slug used to identify the workflow.
 		 *
-		 * @return {wpActiveEditor|string|tinymce.activeEditor.id}
+		 * @return {wpActiveEditor|string|tinymce.activeEditor.id} The current workflow id.
 		 */
 		id: function( id ) {
 			if ( id ) {
@@ -940,7 +947,7 @@
 			 *
 			 * @param {Object} props Attachment details (align, link, size, etc).
 			 * @param {Object} attachment The attachment object, media version of Post.
-			 * @return {Promise}
+			 * @return {Promise} A promise that resolves when the attachment has been sent to the editor.
 			 */
 			attachment: function( props, attachment ) {
 				var caption = attachment.caption,
@@ -995,7 +1002,7 @@
 			 * Called when 'Insert From URL' source is not an image. Example: YouTube url.
 			 *
 			 * @param {Object} embed
-			 * @return {Promise}
+			 * @return {Promise} A promise that resolves when the link has been sent to the editor.
 			 */
 			link: function( embed ) {
 				return wp.media.post( 'send-link-to-editor', {
@@ -1008,14 +1015,14 @@
 			}
 		},
 		/**
-		 * Open a workflow
+		 * Opens a workflow.
 		 *
 		 * @param {string} [id=undefined] Optional. A slug used to identify the workflow.
 		 * @param {Object} [options={}]
 		 *
 		 * @this wp.media.editor
 		 *
-		 * @return {wp.media.view.MediaFrame}
+		 * @return {wp.media.view.MediaFrame} A media workflow.
 		 */
 		open: function( id, options ) {
 			var workflow;
