@@ -25,9 +25,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * URLs of blocked external HTTP requests made during the current test.
 	 *
-	 * @var string[]
+	 * @var list<non-falsy-string>
 	 */
-	protected $blocked_http_requests = array();
+	protected array $blocked_http_requests = array();
 
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
@@ -713,7 +713,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string               $url      The request URL.
 	 * @return array|WP_Error The preemptive response, or an error for a blocked request.
 	 */
-	public function block_external_http_request( $response, $args, $url ) {
+	public function block_external_http_request( $response, array $args, string $url ) {
 		if ( false !== $response ) {
 			return $response;
 		}
