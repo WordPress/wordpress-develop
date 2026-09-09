@@ -1032,6 +1032,31 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 	 */
 	//$content = wp_kses_stripslashes( $content );
 
+	// Fast path for content containing no markup.
+	if ( ! str_contains( $content, '<' ) ) {
+		if ( ! str_contains( $content, '&' ) ) {
+			return $content;
+		}
+
+		return strtr(
+			WP_HTML_Decoder::decode( 'data', $content ),
+			array(
+				'<' => '&lt;',
+				'&' => '&amp;',
+				'>' => '&gt;',
+				/*
+				 * Keep compatibility with legacy `wp_kses()`.
+				 * These don’t need to be escaped, but they may.
+				 * The value in escaping them is preventing errant
+				 * PCRE patterns from catching them. In fact, only
+				 * the `<` and `&` are required to be escaped.
+				 */
+				// "'" => '&apos;',
+				// '"' => '&quot;',
+			)
+		);
+	}
+
 	$processor = new class( $content, $allowed_html, $allowed_protocols ) extends WP_HTML_Tag_Processor {
 		private $allowed_html;
 
