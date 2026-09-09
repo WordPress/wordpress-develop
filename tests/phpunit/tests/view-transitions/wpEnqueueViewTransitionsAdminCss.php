@@ -49,6 +49,7 @@ class Tests_View_Transitions_wpEnqueueViewTransitionsAdminCss extends WP_UnitTes
 		$this->assertIsArray( $after_data, 'Expected `after` data to be an array.' );
 		$css = wp_get_view_transitions_admin_css();
 		$this->assertStringContainsString( '@view-transition', $css );
+		$this->assertStringContainsString( '.menu-top.wp-has-current-submenu', $css );
 		$this->assertContains( $css, $after_data );
 	}
 

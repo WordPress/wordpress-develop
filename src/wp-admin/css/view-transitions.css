@@ -3,7 +3,8 @@
 		navigation: auto;
 	}
 
-	#adminmenu > .menu-top {
+	#adminmenu > .menu-top.wp-has-current-submenu,
+	#adminmenu > .menu-top.current {
 		view-transition-name: attr(id type(<custom-ident>), none);
 	}
 }
