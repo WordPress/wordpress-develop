@@ -390,7 +390,7 @@ function get_search_form( $args = array() ) {
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
  *     @type string $button      Existing `button` or `a` markup. Used instead of generated button.
- *                               Default standard button HTML.
+ *                               Default empty string.
  *     @type string $label       Not used for tooltips.
  *     @type string $close_label Not used for tooltips.
  *     @type string $icon        Dashicons icon class for the toggle button.
@@ -420,7 +420,7 @@ function wp_get_tooltip( $content, $args = array() ) {
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
  *     @type string $button      Existing `button` markup. Used instead of generated button.
- *                               Default standard button HTML.
+ *                               Default empty string.
  *     @type string $label       Accessible label for the toggle button.
  *                               Default 'Help', matching the default icon.
  *                               Ignored for tooltips.
