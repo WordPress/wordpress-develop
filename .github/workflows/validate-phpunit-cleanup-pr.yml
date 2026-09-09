@@ -1,0 +1,190 @@
+name: Validate PHPUnit Test Cleanup Files
+
+on:
+  pull_request_target:
+    types: [ opened, synchronize, reopened ]
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  validate-files:
+    name: Validate PHPUnit Test Files
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - name: Validate Test File Structure, Namespaces, and Class Names
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+            const path = require( 'path' );
+
+            const pr = context.payload.pull_request;
+            if ( ! pr ) {
+              core.info( 'No pull request found in event payload. Skipping PR file validation.' );
+              return;
+            }
+
+            core.info( `Validating test files in PR #${pr.number}...` );
+
+            // Fetch list of files changed in the pull request
+            const changedFiles = await github.paginate( github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            } );
+
+            // Helper to get allowed namespace segment variations from a path segment
+            function normalizeSegment( segment ) {
+              const lower = segment.toLowerCase();
+              if ( lower === 'wp-includes' ) return [ 'WP_Includes' ];
+              if ( lower === 'wp-admin' ) return [ 'WP_Admin' ];
+              if ( lower === 'admin' ) return [ 'Admin', 'WP_Admin' ];
+              if ( lower === 'includes' ) return [ 'Includes', 'WP_Includes' ];
+
+              const pascal = segment.replace( /(?:^|-|_)+([a-zA-Z0-9])/g, ( _, chr ) => chr.toUpperCase() );
+              const upperUnderscore = segment.replace( /-/g, '_' );
+              return Array.from( new Set( [ segment, pascal, upperUnderscore ] ) );
+            }
+
+            const errors = [];
+            const passes = [];
+            let validatedCount = 0;
+
+            for ( const file of changedFiles ) {
+              const filename = file.filename.replace( /\\/g, '/' );
+
+              // Check only files within tests/phpunit/tests/
+              if ( ! filename.startsWith( 'tests/phpunit/tests/' ) || ! filename.endsWith( '.php' ) ) {
+                continue;
+              }
+
+              // Skip deleted files
+              if ( file.status === 'removed' ) {
+                core.info( `Skipping deleted file: ${filename}` );
+                continue;
+              }
+
+              const relPath = filename.slice( 'tests/phpunit/tests/'.length );
+              const pathParts = relPath.split( '/' );
+              const baseName = pathParts.pop();
+
+              // Skip non-test support files, fixtures, or data directories
+              if ( baseName === 'base.php' || pathParts.includes( 'data' ) || pathParts.includes( 'fixtures' ) ) {
+                core.info( `Skipping helper/fixture file: ${filename}` );
+                continue;
+              }
+
+              validatedCount++;
+              core.info( `\nValidating test file: ${filename}` );
+
+              // 1. Validate Filename suffix (*Test.php)
+              if ( ! baseName.endsWith( 'Test.php' ) ) {
+                errors.push( `[${filename}] Test filename must end with "Test.php" (Pattern: FunctionUnderTest[OptionalSubsetIndicator]Test.php).` );
+              } else {
+                passes.push( `[${filename}] Filename "${baseName}" ends with "Test.php".` );
+              }
+
+              const expectedClassName = baseName.replace( /\.php$/, '' );
+
+              // 2. Validate directory depth (must have a parent directory for Class_Under_Test or Functions_FileName)
+              if ( pathParts.length < 1 ) {
+                errors.push( `[${filename}] Test file must reside in a directory representing Class_Under_Test or Functions_FileName.` );
+              }
+
+              // Read file content from checked out workspace
+              let fileContent = '';
+              try {
+                fileContent = fs.readFileSync( path.join( process.env.GITHUB_WORKSPACE || '.', filename ), 'utf8' );
+              } catch ( e ) {
+                errors.push( `[${filename}] Could not read file content: ${e.message}` );
+                continue;
+              }
+
+              // 3. Validate Namespace declaration
+              const nsMatch = fileContent.match( /^\s*namespace\s+([^;]+);/m );
+              if ( ! nsMatch ) {
+                errors.push( `[${filename}] Missing namespace declaration.` );
+              } else {
+                const declaredNs = nsMatch[1].trim();
+                if ( ! declaredNs.startsWith( 'WordPress\\Tests' ) ) {
+                  errors.push( `[${filename}] Namespace "${declaredNs}" must start with "WordPress\\Tests".` );
+                } else {
+                  const nsParts = declaredNs.split( '\\' ).slice( 2 ); // Remove 'WordPress' and 'Tests'
+                  if ( nsParts.length !== pathParts.length ) {
+                    errors.push( `[${filename}] Namespace depth (${nsParts.length}: "${declaredNs}") does not match directory depth (${pathParts.length}: "${pathParts.join('/')}").` );
+                  } else {
+                    let nsMatchFailed = false;
+                    for ( let i = 0; i < pathParts.length; i++ ) {
+                      const expectedVariants = normalizeSegment( pathParts[i] );
+                      const actualSegment = nsParts[i];
+                      const matched = expectedVariants.some( ( v ) => v.toLowerCase() === actualSegment.toLowerCase() );
+                      if ( ! matched ) {
+                        errors.push( `[${filename}] Namespace segment "${actualSegment}" in "${declaredNs}" does not match directory segment "${pathParts[i]}" (expected one of: ${expectedVariants.join( ', ' )}).` );
+                        nsMatchFailed = true;
+                      }
+                    }
+                    if ( ! nsMatchFailed ) {
+                      passes.push( `[${filename}] Namespace "${declaredNs}" accurately matches file path.` );
+                    }
+                  }
+                }
+              }
+
+              // 4. Validate Class Name declaration
+              const classMatches = [];
+              const classRegex = /^\s*(?:final\s+|abstract\s+)?class\s+([a-zA-Z0-9_]+)/gm;
+              let match;
+              while ( ( match = classRegex.exec( fileContent ) ) !== null ) {
+                classMatches.push( match[1] );
+              }
+
+              if ( classMatches.length === 0 ) {
+                errors.push( `[${filename}] No class declaration found in file.` );
+              } else if ( classMatches.length > 1 ) {
+                errors.push( `[${filename}] Declares multiple classes (${classMatches.join(', ')}). Exactly one test class is allowed per file.` );
+              } else {
+                const declaredClass = classMatches[0];
+                if ( declaredClass !== expectedClassName ) {
+                  errors.push( `[${filename}] Class name "${declaredClass}" does not match filename "${baseName}" (expected "${expectedClassName}").` );
+                } else {
+                  passes.push( `[${filename}] Class name "${declaredClass}" matches filename.` );
+                }
+
+                if ( ! declaredClass.endsWith( 'Test' ) ) {
+                  errors.push( `[${filename}] Class name "${declaredClass}" must end with "Test".` );
+                }
+              }
+            }
+
+            // Summary Output
+            core.info( `\n--- Validated ${validatedCount} Test File(s) ---` );
+            for ( const pass of passes ) {
+              core.info( `✓ ${pass}` );
+            }
+
+            if ( errors.length > 0 ) {
+              core.info( '\n--- File Validation Failures ---' );
+              for ( const err of errors ) {
+                core.error( `✗ ${err}` );
+              }
+              core.setFailed( `Pull request #${pr.number} failed test file specification validation with ${errors.length} error(s).` );
+            } else if ( validatedCount > 0 ) {
+              core.info( `\n✓ All ${validatedCount} test file(s) meet the path, namespace, and class name specifications!` );
+            } else {
+              core.info( '\nNo PHPUnit test files under tests/phpunit/tests/ were modified in this PR.' );
+            }
