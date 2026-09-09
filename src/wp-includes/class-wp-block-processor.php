@@ -786,7 +786,119 @@ class WP_Block_Processor {
 
 		$this->state          = self::READY;
 		$after_prev_delimiter = $this->matched_delimiter_at + $this->matched_delimiter_length;
-		$at                   = $after_prev_delimiter;
+
+		$delimiter = $this->scan_next_delimiter( $text, $end, $after_prev_delimiter );
+		if ( null === $delimiter ) {
+			/*
+			 * The scan set the terminating state; only a trailing HTML span
+			 * leaves a token still to be visited.
+			 */
+			return self::HTML_SPAN === $this->state;
+		}
+
+		$this->state = self::MATCHED;
+
+		/*
+		 * From this point forward, a delimiter has been matched. There
+		 * might also be an HTML span that appears before the delimiter.
+		 */
+
+		$this->after_previous_delimiter = $after_prev_delimiter;
+
+		$this->matched_delimiter_at     = $delimiter['comment_opening_at'];
+		$this->matched_delimiter_length = $delimiter['comment_closing_at'] + 3 - $delimiter['comment_opening_at'];
+
+		$this->namespace_at = $delimiter['namespace_at'];
+		$this->name_at      = $delimiter['name_at'];
+		$this->name_length  = $delimiter['name_length'];
+
+		$this->json_at     = $delimiter['json_at'];
+		$this->json_length = $delimiter['json_length'];
+
+		/*
+		 * When delimiters contain both the void flag and the closing flag
+		 * they shall be interpreted as void blocks, per the spec parser.
+		 */
+		if ( $delimiter['has_void_flag'] ) {
+			$this->type          = self::VOID;
+			$this->next_stack_op = 'void';
+		} elseif ( $delimiter['has_closer'] ) {
+			$this->type          = self::CLOSER;
+			$this->next_stack_op = 'pop';
+
+			/*
+			 * @todo Check if the name matches and bail according to the spec parser.
+			 *       The default parser doesn’t examine the names.
+			 */
+		} else {
+			$this->type          = self::OPENER;
+			$this->next_stack_op = 'push';
+		}
+
+		$this->has_closing_flag = $delimiter['has_closer'];
+
+		// HTML spans are visited before the delimiter that follows them.
+		if ( $delimiter['comment_opening_at'] > $after_prev_delimiter ) {
+			$this->state                = self::HTML_SPAN;
+			$this->open_blocks_at[]     = $after_prev_delimiter;
+			$this->open_blocks_length[] = 0;
+			$this->was_void             = true;
+
+			return true;
+		}
+
+		// If there were no HTML spans then flush the enqueued stack operations immediately.
+		switch ( $this->next_stack_op ) {
+			case 'void':
+				$this->was_void             = true;
+				$this->open_blocks_at[]     = $this->namespace_at;
+				$this->open_blocks_length[] = $this->name_at + $this->name_length - $this->namespace_at;
+				break;
+
+			case 'push':
+				$this->open_blocks_at[]     = $this->namespace_at;
+				$this->open_blocks_length[] = $this->name_at + $this->name_length - $this->namespace_at;
+				break;
+
+			case 'pop':
+				array_pop( $this->open_blocks_at );
+				array_pop( $this->open_blocks_length );
+				break;
+		}
+
+		$this->next_stack_op = null;
+
+		return true;
+	}
+
+	/**
+	 * Scans for the next block delimiter, starting after the previously-matched delimiter.
+	 *
+	 * When no delimiter is matched, the parser state records why: `HTML_SPAN` when a final
+	 * run of HTML remains to be visited, `COMPLETE` when the document is exhausted, and
+	 * `INCOMPLETE_INPUT` when the document ends part-way through a delimiter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $text                 Document being parsed.
+	 * @param int    $end                  Length of the document.
+	 * @param int    $after_prev_delimiter Byte offset just after the previously-matched delimiter.
+	 * @return array{
+	 *     comment_opening_at: int,
+	 *     comment_closing_at: int,
+	 *     namespace_at: int,
+	 *     name_at: int,
+	 *     name_length: int,
+	 *     json_at: int,
+	 *     json_length: int,
+	 *     has_void_flag: bool,
+	 *     has_closer: bool,
+	 * }|null Spans and flags of the matched delimiter, or `null` if none was matched.
+	 *
+	 * @phpstan-impure
+	 */
+	private function scan_next_delimiter( string $text, int $end, int $after_prev_delimiter ): ?array {
+		$at = $after_prev_delimiter;
 
 		while ( $at < $end ) {
 			/*
@@ -831,7 +943,7 @@ class WP_Block_Processor {
 					$this->open_blocks_at[]         = $after_prev_delimiter;
 					$this->open_blocks_length[]     = 0;
 					$this->was_void                 = true;
-					return true;
+					return null;
 				}
 
 				/*
@@ -844,7 +956,7 @@ class WP_Block_Processor {
 
 				// Otherwise this is the end.
 				$this->state = self::COMPLETE;
-				return false;
+				return null;
 			}
 
 			// <!-- ⃨/wp:core/paragraph {"dropCap":true} /-->
@@ -997,8 +1109,17 @@ class WP_Block_Processor {
 			if ( ! $has_json ) {
 				if ( $after_name_whitespace_at + $after_name_whitespace_length === $comment_closing_at - $void_flag_length ) {
 					// This must be a block delimiter!
-					$this->state = self::MATCHED;
-					break;
+					return array(
+						'comment_opening_at' => $comment_opening_at,
+						'comment_closing_at' => $comment_closing_at,
+						'namespace_at'       => $namespace_at,
+						'name_at'            => $name_at,
+						'name_length'        => $name_length,
+						'json_at'            => $json_at,
+						'json_length'        => $json_length,
+						'has_void_flag'      => $has_void_flag,
+						'has_closer'         => $has_closer,
+					);
 				}
 
 				$at = $this->find_html_comment_end( $comment_opening_at, $end );
@@ -1045,92 +1166,27 @@ class WP_Block_Processor {
 			}
 
 			// This must be a block delimiter!
-			$this->state = self::MATCHED;
-			break;
+			return array(
+				'comment_opening_at' => $comment_opening_at,
+				'comment_closing_at' => $comment_closing_at,
+				'namespace_at'       => $namespace_at,
+				'name_at'            => $name_at,
+				'name_length'        => $name_length,
+				'json_at'            => $json_at,
+				'json_length'        => $json_length,
+				'has_void_flag'      => $has_void_flag,
+				'has_closer'         => $has_closer,
+			);
 		}
 
 		// The end of the document was reached without a match.
-		if ( self::MATCHED !== $this->state ) {
-			$this->state = self::COMPLETE;
-			return false;
-		}
-
-		/*
-		 * From this point forward, a delimiter has been matched. There
-		 * might also be an HTML span that appears before the delimiter.
-		 */
-
-		$this->after_previous_delimiter = $after_prev_delimiter;
-
-		$this->matched_delimiter_at     = $comment_opening_at;
-		$this->matched_delimiter_length = $comment_closing_at + 3 - $comment_opening_at;
-
-		$this->namespace_at = $namespace_at;
-		$this->name_at      = $name_at;
-		$this->name_length  = $name_length;
-
-		$this->json_at     = $json_at;
-		$this->json_length = $json_length;
-
-		/*
-		 * When delimiters contain both the void flag and the closing flag
-		 * they shall be interpreted as void blocks, per the spec parser.
-		 */
-		if ( $has_void_flag ) {
-			$this->type          = self::VOID;
-			$this->next_stack_op = 'void';
-		} elseif ( $has_closer ) {
-			$this->type          = self::CLOSER;
-			$this->next_stack_op = 'pop';
-
-			/*
-			 * @todo Check if the name matches and bail according to the spec parser.
-			 *       The default parser doesn’t examine the names.
-			 */
-		} else {
-			$this->type          = self::OPENER;
-			$this->next_stack_op = 'push';
-		}
-
-		$this->has_closing_flag = $has_closer;
-
-		// HTML spans are visited before the delimiter that follows them.
-		if ( $comment_opening_at > $after_prev_delimiter ) {
-			$this->state                = self::HTML_SPAN;
-			$this->open_blocks_at[]     = $after_prev_delimiter;
-			$this->open_blocks_length[] = 0;
-			$this->was_void             = true;
-
-			return true;
-		}
-
-		// If there were no HTML spans then flush the enqueued stack operations immediately.
-		switch ( $this->next_stack_op ) {
-			case 'void':
-				$this->was_void             = true;
-				$this->open_blocks_at[]     = $namespace_at;
-				$this->open_blocks_length[] = $name_at + $name_length - $namespace_at;
-				break;
-
-			case 'push':
-				$this->open_blocks_at[]     = $namespace_at;
-				$this->open_blocks_length[] = $name_at + $name_length - $namespace_at;
-				break;
-
-			case 'pop':
-				array_pop( $this->open_blocks_at );
-				array_pop( $this->open_blocks_length );
-				break;
-		}
-
-		$this->next_stack_op = null;
-
-		return true;
+		$this->state = self::COMPLETE;
+		return null;
 
 		incomplete:
 		$this->state      = self::COMPLETE;
 		$this->last_error = self::INCOMPLETE_INPUT;
-		return false;
+		return null;
 	}
 
 	/**
