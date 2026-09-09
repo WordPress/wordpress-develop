@@ -511,6 +511,30 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures an unrecognized stylesheet type 404s from render_sitemaps().
+	 *
+	 * WP::handle_404() exempts any request carrying a `sitemap-stylesheet`
+	 * query var, and WP_Sitemaps_Stylesheet::render_stylesheet() echoes nothing
+	 * for a type other than 'sitemap' or 'index', so this route would otherwise
+	 * be served as a 200 with an empty body.
+	 *
+	 * @ticket 65945
+	 */
+	public function test_unrecognized_stylesheet_type_should_return_404() {
+		// Instantiate the server before navigating: registering the sitemap rewrite
+		// tags is what adds `sitemap-stylesheet` to `$wp->public_query_vars`.
+		$sitemaps = wp_sitemaps_get_server();
+
+		$this->go_to( home_url( '/?sitemap-stylesheet=this-is-not-a-stylesheet' ) );
+
+		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
+
+		$sitemaps->render_sitemaps();
+
+		$this->assertTrue( is_404(), 'render_sitemaps() should have set a 404.' );
+	}
+
+	/**
 	 * Ensures an unregistered provider 404s from render_sitemaps().
 	 *
 	 * WP::handle_404() exempts every sitemap request, so this route would

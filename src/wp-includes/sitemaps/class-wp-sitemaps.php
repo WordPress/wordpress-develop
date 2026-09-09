@@ -181,6 +181,13 @@ class WP_Sitemaps {
 
 		// Render stylesheet if this is stylesheet route.
 		if ( $stylesheet_type ) {
+			// Force a 404 and bail early if the stylesheet type is not recognized.
+			if ( ! in_array( $stylesheet_type, array( 'sitemap', 'index' ), true ) ) {
+				$wp_query->set_404();
+				status_header( 404 );
+				return;
+			}
+
 			$stylesheet = new WP_Sitemaps_Stylesheet();
 
 			$stylesheet->render_stylesheet( $stylesheet_type );
