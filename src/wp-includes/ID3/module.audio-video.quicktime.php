@@ -153,7 +153,7 @@ class getid3_quicktime extends getid3_handler
 			foreach ($info['quicktime']['comments']['location.ISO6709'] as $ISO6709string) {
 				$ISO6709parsed = array('latitude'=>false, 'longitude'=>false, 'altitude'=>false);
 				if (preg_match('#^([\\+\\-])([0-9]{2}|[0-9]{4}|[0-9]{6})(\\.[0-9]+)?([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?(([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?)?/$#', $ISO6709string, $matches)) {
-					@list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = $matches;
+					list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = array_pad($matches, 11, '');
 
 					if (strlen($lat_deg) == 2) {        // [+-]DD.D
 						$ISO6709parsed['latitude'] = (($lat_sign == '-') ? -1 : 1) * (float) (ltrim($lat_deg, '0').$lat_deg_dec);
@@ -318,7 +318,7 @@ $this->error('HEIF files not currently supported');
 						// some "ilst" atoms contain data atoms that have a numeric name, and the data is far more accessible if the returned array is compacted
 						$allnumericnames = true;
 						foreach ($atom_structure['subatoms'] as $subatomarray) {
-							if (!is_integer($subatomarray['name']) || (count($subatomarray['subatoms']) != 1)) {
+							if (!is_int($subatomarray['name']) || (count($subatomarray['subatoms']) != 1)) {
 								$allnumericnames = false;
 								break;
 							}
@@ -1681,10 +1681,10 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 				case "\xA9".'xyz':  // GPS latitude+longitude+altitude
 					$atom_structure['data'] = $atom_data;
 					if (preg_match('#([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)?/$#i', $atom_data, $matches)) {
-						@list($all, $latitude, $longitude, $altitude) = $matches;
+						list($all, $latitude, $longitude, $altitude) = array_pad($matches, 4, '');
 						$info['quicktime']['comments']['gps_latitude'][]  = floatval($latitude);
 						$info['quicktime']['comments']['gps_longitude'][] = floatval($longitude);
-						if (!empty($altitude)) { // @phpstan-ignore-line
+						if (!empty($altitude)) {
 							$info['quicktime']['comments']['gps_altitude'][] = floatval($altitude);
 						}
 					} else {
@@ -2371,6 +2371,9 @@ $this->error('fragmented mp4 files not currently supported');
 		$num_bytes = 0;
 		$length    = 0;
 		do {
+			if ($offset >= strlen($data)) { // https://github.com/JamesHeinrich/getID3/issues/477#issuecomment-4351311805
+				break;
+			}
 			$b = ord(substr($data, $offset++, 1));
 			$length = ($length << 7) | ($b & 0x7F);
 		} while (($b & 0x80) && ($num_bytes++ < 4));

@@ -29,11 +29,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-walker-nav-menu-edit.php
 		-
-			message: '#^Property WP_Post\:\:\$post_title \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-posts-list-table.php
-		-
 			message: '#^Property WP_Screen\:\:\$post_type \(string\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
@@ -88,11 +83,6 @@ parameters:
 			identifier: isset.property
 			count: 1
 			path: ../../../src/wp-includes/block-editor.php
-		-
-			message: '#^Property WP_Block_Type\:\:\$selectors \(array\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-includes/block-supports/states.php
 		-
 			message: '#^Property WP_Customize_Control\:\:\$settings \(array\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property

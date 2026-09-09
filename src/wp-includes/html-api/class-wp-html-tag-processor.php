@@ -1179,18 +1179,12 @@ class WP_HTML_Tag_Processor {
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
 	 * ```php interactive
-	 * <?php
-	 * require '/wordpress/wp-load.php';
 	 * $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&gt;\tlang-en'>" );
 	 * $p->next_tag();
 	 * foreach ( $p->class_list() as $class_name ) {
-	 *   var_dump( $class_name );
+	 *   echo "{$class_name} ";
 	 * }
-	 * ```
-	 * ```expected-output
-	 * string(4) "free"
-	 * string(5) "<egg>"
-	 * string(7) "lang-en"
+	 * // Outputs: "free <egg> lang-en "
 	 * ```
 	 *
 	 * @since 6.4.0
@@ -2208,7 +2202,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @ignore
 	 *
-	 * @return bool Whether an attribute was found before the end of the document.
+	 * @return bool Whether an attribute was found. Returns `false` upon reaching the end
+	 *              of the tag (`>` or `/>`) or the end of the document.
 	 */
 	private function parse_next_attribute(): bool {
 		$doc_length = strlen( $this->html );
@@ -3815,7 +3810,7 @@ class WP_HTML_Tag_Processor {
 			? $this->lexical_updates['modifiable text']->text
 			: substr( $this->html, $this->text_starts_at, $this->text_length );
 
-		/*
+		/**
 		 * An enqueued processing instruction update holds normalized raw
 		 * syntax spanning from the end of the target through the end of
 		 * the token: a separating space, the data, and the `?>` closer.
@@ -3959,6 +3954,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 * @since 7.1.0 Supports setting processing instruction data.
+	 * @since 7.2.0 Escapes content inside TITLE and TEXTAREA elements.
 	 *
 	 * @param string $plaintext_content New text content to represent in the matched token.
 	 * @return bool Whether the text was able to update.
@@ -4097,11 +4093,20 @@ class WP_HTML_Tag_Processor {
 				 * Because of this, content which could potentially modify the SCRIPT tag’s
 				 * HTML structure is rejected here. It’s the responsibility of calling code to
 				 * perform whatever semantic escaping is necessary to avoid problematic strings.
+				 *
+				 * Both the start tag `<script` and the end tag `</script` are rejected. It’s
+				 * easy to assume that only an end tag can alter the HTML structure, but a
+				 * start tag which follows `<!--` moves the tokenizer into the double-escaped
+				 * states, where a later `</script>` no longer closes the element.
+				 *
+				 * In both cases the tag name ends only at one of the characters matched
+				 * below, so text such as `</scriptx>` cannot change that structure and is
+				 * safe to set.
+				 *
+				 * @link https://html.spec.whatwg.org/#script-data-end-tag-name-state
+				 * @link https://html.spec.whatwg.org/#script-data-double-escape-start-state
 				 */
-				if (
-					false !== stripos( $plaintext_content, '<script' ) ||
-					false !== stripos( $plaintext_content, '</script' )
-				) {
+				if ( 1 === preg_match( '~</?script[ \t\f\r\n/>]~i', $plaintext_content ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'SCRIPT text with an unrecognized content type cannot contain a SCRIPT tag. Apply the escaping appropriate for the content type.' ),
@@ -4121,7 +4126,14 @@ class WP_HTML_Tag_Processor {
 			case 'NOFRAMES':
 			case 'XMP':
 				$tag_name = $this->get_tag();
-				if ( false !== stripos( $plaintext_content, "</{$tag_name}" ) ) {
+
+				/*
+				 * A tag name ends only at one of the characters matched below, so text
+				 * such as `</xmp-tag>` cannot close the element and is safe to set.
+				 *
+				 * @link https://html.spec.whatwg.org/#rawtext-end-tag-name-state
+				 */
+				if ( 1 === preg_match( '~</' . preg_quote( $tag_name, '~' ) . '[ \t\f\r\n/>]~i', $plaintext_content ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						sprintf(
@@ -4161,12 +4173,19 @@ class WP_HTML_Tag_Processor {
 
 			case 'TEXTAREA':
 			case 'TITLE':
-				$plaintext_content = preg_replace_callback(
-					"~</(?P<TAG_NAME>{$this->get_tag()})~i",
-					static function ( $tag_match ) {
-						return "&lt;/{$tag_match['TAG_NAME']}";
-					},
-					$plaintext_content
+				/**
+				 * While not expressly required, escaping syntax characters in these
+				 * elements will help avoid problems with downstream parser which
+				 * attempt to parse tags and other markup within. {@see \DOMDocument},
+				 * for example, will claim to find elements as children of a `TITLE`.
+				 */
+				$plaintext_content = strtr(
+					$plaintext_content,
+					array(
+						'<' => '&lt;',
+						'&' => '&amp;',
+						'>' => '&gt;',
+					)
 				);
 
 				/*

@@ -419,7 +419,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * (if the image editor in PHP supports it).
 	 *
 	 * @param array $formats
-	 *
 	 * @return array
 	 */
 	public function image_editor_output_format_handler( $formats ) {
