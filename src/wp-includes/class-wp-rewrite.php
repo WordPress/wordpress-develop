@@ -873,11 +873,11 @@ class WP_Rewrite {
 	 */
 	public function generate_rewrite_rules( $permalink_structure, $ep_mask = EP_NONE, $paged = true, $feed = true, $forcomments = false, $walk_dirs = true, $endpoints = true ) {
 		// Build a regex to match the feed section of URLs, something like (feed|atom|rss|rss2)/?
-		$feedregex2 = '';
-		foreach ( (array) $this->feeds as $feed_name ) {
-			$feedregex2 .= $feed_name . '|';
+		$feedregex2 = array();
+		foreach ( $this->feeds as $feed_name ) {
+			$feedregex2[] = preg_quote( $feed_name, '#' );
 		}
-		$feedregex2 = '(' . trim( $feedregex2, '|' ) . ')/?$';
+		$feedregex2 = '(' . implode( '|', $feedregex2 ) . ')/?$';
 
 		/*
 		 * $feedregex is identical but with /feed/ added on as well, so URLs like <permalink>/feed/atom
