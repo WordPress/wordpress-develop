@@ -4506,9 +4506,10 @@ function _wp_check_for_scheduled_update_comment_type() {
 }
 
 /**
- * Register initial note status meta.
+ * Register initial note meta.
  *
  * @since 6.9.0
+ * @since 7.2.0 Registers the `_wp_note_anchor` meta.
  */
 function wp_create_initial_comment_meta() {
 	register_meta(
@@ -4525,6 +4526,33 @@ function wp_create_initial_comment_meta() {
 				),
 			),
 			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
+				return current_user_can( 'edit_comment', $object_id );
+			},
+		)
+	);
+
+	/*
+	 * Notes anchor to a block through the block's own `metadata.noteId`
+	 * attribute, which only works where there is persisted block content to
+	 * write to. Surfaces without it - the Style Book, whose examples are
+	 * generated fresh on every render - record what the note is about here
+	 * instead, as an opaque identifier the surface defines and resolves.
+	 */
+	register_meta(
+		'comment',
+		'_wp_note_anchor',
+		array(
+			'type'              => 'string',
+			'description'       => __( 'What the note is anchored to, for notes not anchored to a block.' ),
+			'single'            => true,
+			'sanitize_callback' => 'sanitize_text_field',
+			'show_in_rest'      => array(
+				'schema' => array(
+					'type'      => 'string',
+					'maxLength' => 100,
+				),
+			),
+			'auth_callback'     => function ( $allowed, $meta_key, $object_id ) {
 				return current_user_can( 'edit_comment', $object_id );
 			},
 		)
