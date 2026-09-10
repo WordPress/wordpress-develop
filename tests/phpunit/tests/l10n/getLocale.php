@@ -217,6 +217,10 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	/**
 	 * The `option_WPLANG` filter runs after the option is read.
 	 *
+	 * get_option() applies it only when the option exists. There is no `WPLANG`
+	 * row in the test database, so the row is written first, otherwise the
+	 * function takes the "no such option" branch and the filter never runs.
+	 *
 	 * @group ms-excluded
 	 *
 	 * @dataProvider data_non_string_locale
@@ -227,6 +231,8 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 		global $locale;
 		$old_locale = $locale;
 		$locale     = null;
+
+		$this->write_raw_option_row( 'WPLANG', 'en_GB' );
 
 		add_filter(
 			'option_WPLANG',
