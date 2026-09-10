@@ -1068,18 +1068,18 @@ function wp_redirect_admin_locations() {
 		exit;
 	}
 
-	$password_change_urls = array(
-		'/.well-known/change-password',
-		home_url( '.well-known/change-password', 'relative' ),
-		site_url( '.well-known/change-password', 'relative' ),
-	);
-
-	if ( in_array( untrailingslashit( $_SERVER['REQUEST_URI'] ), $password_change_urls, true ) ) {
+	/*
+	 * The well-known change-password URL is always at the root of the origin
+	 * per the spec (https://w3c.github.io/webappsec-change-password-url/), so
+	 * only the root-relative path is matched here, regardless of whether
+	 * WordPress is installed in a subdirectory.
+	 */
+	if ( '/.well-known/change-password' === untrailingslashit( $_SERVER['REQUEST_URI'] ) ) {
 		/**
 		 * Filters the URL to redirect to when a browser or password manager
 		 * requests the well-known change-password URL (/.well-known/change-password).
 		 *
-		 * @since 6.9.0
+		 * @since 7.2.0
 		 *
 		 * @param string $url The URL to redirect to. Default is the user profile page.
 		 */
