@@ -57,9 +57,19 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 		unset( $data['title']['rendered'] );
 		unset( $data['content']['rendered'] );
 
-		// Add the core wp_pattern_sync_status meta as top level property to the response.
-		$data['wp_pattern_sync_status'] = $data['meta']['wp_pattern_sync_status'] ?? '';
-		unset( $data['meta']['wp_pattern_sync_status'] );
+		/*
+		 * Add the core wp_pattern_sync_status meta as top level property to the response.
+		 * Handle both array and object (stdClass) meta values.
+		 */
+		if ( is_array( $data['meta'] ) && isset( $data['meta']['wp_pattern_sync_status'] ) ) {
+			$data['wp_pattern_sync_status'] = $data['meta']['wp_pattern_sync_status'];
+			unset( $data['meta']['wp_pattern_sync_status'] );
+		} elseif ( is_object( $data['meta'] ) && property_exists( $data['meta'], 'wp_pattern_sync_status' ) ) {
+			$data['wp_pattern_sync_status'] = $data['meta']->wp_pattern_sync_status;
+			unset( $data['meta']->wp_pattern_sync_status );
+		} else {
+			$data['wp_pattern_sync_status'] = '';
+		}
 		return $data;
 	}
 
