@@ -442,6 +442,46 @@ function is_comment_feed() {
 }
 
 /**
+ * Determines whether the query is for the blog homepage feed.
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool Whether the query is for the blog homepage feed.
+ */
+function is_home_feed(): bool {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '7.2.0' );
+		return false;
+	}
+
+	return $wp_query->is_home_feed();
+}
+
+/**
+ * Determines whether the query is for a custom feed.
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool Whether the query is for a custom feed.
+ */
+function is_custom_feed(): bool {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '7.2.0' );
+		return false;
+	}
+
+	return $wp_query->is_custom_feed();
+}
+
+/**
  * Determines whether the query is for the front page of the site.
  *
  * This is for what is displayed at your site's main URL.
