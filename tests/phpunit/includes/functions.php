@@ -113,9 +113,9 @@ function _delete_all_data() {
 	global $wpdb;
 
 	// Retrieve all attachment posts, and delete them along with the attached media.
-	$attachments = $wpdb->get_results( "SELECT ID from {$wpdb->posts} WHERE post_type = 'attachment'", ARRAY_A );
+	$attachments = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment'" );
 	foreach ( $attachments as $attachment ) {
-			wp_delete_attachment( $attachment['ID'], true );
+		wp_delete_attachment( $attachment, true );
 	}
 
 	foreach ( array(

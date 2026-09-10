@@ -1,11 +1,14 @@
 <?php
+
 /**
  * Tests for the `includes/functions.php` file of the Unit Testing Framework.
  *
  * @group testsuite
+ * @group phpunit
+ *
+ * @covers ::_delete_all_data
  */
-
-class Test_Includes extends WP_UnitTestCase {
+class Tests_Includes_Functions extends WP_UnitTestCase {
 	/**
 	 * Verify that attachment files are deleted along with attachment posts.
 	 *
@@ -19,16 +22,12 @@ class Test_Includes extends WP_UnitTestCase {
 
 		// Retrieve the path to the image.
 		$attachment_file = get_attached_file( $attachment_id );
+		$this->assertFileExists( $attachment_file );
 
 		_delete_all_data();
 
-		$posts = new WP_Query( array(
-			'post_type'   => 'any',
-			'post_status' => 'any',
-		) );
-
 		// Verify that the image has been deleted along with the attachment.
-		$this->assertSame( $posts->posts, array() );
-		$this->assertFalse( file_exists( $attachment_file ) );
+		$this->assertFileDoesNotExist( $attachment_file );
+		$this->assertNull( get_post( $attachment_id ) );
 	}
 }
