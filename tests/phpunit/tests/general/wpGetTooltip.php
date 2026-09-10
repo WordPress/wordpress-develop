@@ -111,6 +111,33 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a custom button without an accessible name gains one, and
+	 * that a caller-supplied aria-label is never overwritten.
+	 *
+	 * @ticket 65914
+	 */
+	public function test_wp_get_tooltip_custom_button_aria_label() {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<button type="button"><span aria-hidden="true">?</span></button>',
+			)
+		);
+
+		$this->assertStringContainsString( 'aria-label="Helpful text."', $html, 'A custom button without an accessible name should gain one from the content.' );
+
+		$html2 = wp_get_tooltip(
+			'Helpful text.',
+			array(
+				'button' => '<button type="button" aria-label="Custom name">?</button>',
+			)
+		);
+
+		$this->assertStringContainsString( 'aria-label="Custom name"', $html2, 'A caller-supplied aria-label should be preserved.' );
+		$this->assertStringNotContainsString( 'aria-label="Helpful text."', $html2, 'The generated label should not overwrite the caller-supplied one.' );
+	}
+
+	/**
 	 * Tests that the accessible labels are output and escaped in attributes.
 	 *
 	 * @ticket 55343
@@ -204,6 +231,94 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 
 		// Focus is moved into the popover when opened, matching the native dialog behavior.
 		$this->assertStringContainsString( 'tabindex="-1" autofocus>', $html );
+	}
+
+	/**
+	 * Tests that a percent sign in the button markup is not treated as a
+	 * `sprintf()` conversion specification.
+	 *
+	 * @ticket 65914
+	 *
+	 * @dataProvider data_button_markup_containing_percent_signs
+	 *
+	 * @param string $button   Button markup containing a percent sign.
+	 * @param string $expected Substring that must be preserved in the output.
+	 */
+	public function test_wp_get_tooltip_preserves_percent_signs_in_button_markup( $button, $expected ) {
+		$this->assertStringContainsString(
+			$expected,
+			wp_get_tooltip( 'Helpful text.', array( 'button' => $button ) ),
+			'The tooltip did not preserve the percent sign.'
+		);
+		$this->assertStringContainsString(
+			$expected,
+			wp_get_toggletip( 'Helpful text.', array( 'button' => $button ) ),
+			'The toggletip did not preserve the percent sign.'
+		);
+	}
+
+	/**
+	 * Tests that a percent-encoded URL in anchor markup is not rewritten.
+	 *
+	 * @ticket 65914
+	 *
+	 * @dataProvider data_percent_encoded_hrefs
+	 *
+	 * @param string $href A percent-encoded URL.
+	 */
+	public function test_wp_get_tooltip_preserves_percent_encoding_in_anchor_href( $href ) {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array( 'button' => '<a href="' . $href . '">Search</a>' )
+		);
+
+		$this->assertStringContainsString( 'href="' . $href . '"', $html );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_percent_encoded_hrefs() {
+		return array(
+			'an encoded space' => array( '/wp-admin/edit.php?s=hello%20world' ),
+			'an encoded slash' => array( '/x?p=a%2Fb' ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_button_markup_containing_percent_signs() {
+		return array(
+			'a literal percent sign'      => array(
+				'<button type="button">100% done</button>',
+				'100% done',
+			),
+			'a percent sign then a word'  => array(
+				'<button type="button">Save 20%!</button>',
+				'Save 20%!',
+			),
+			'an unknown format specifier' => array(
+				'<button type="button">Buy %q now</button>',
+				'Buy %q now',
+			),
+			'a percent sign in an ID'     => array(
+				'<button type="button" aria-describedby="box_100%_complete-title">Move up</button>',
+				'aria-describedby="box_100%_complete-title"',
+			),
+			'a percent-encoded ID'        => array(
+				'<button type="button" aria-describedby="meta-%d0%b8%d0%b3%d1%80%d0%b0-title">Move up</button>',
+				'aria-describedby="meta-%d0%b8%d0%b3%d1%80%d0%b0-title"',
+			),
+			'text resembling a argnum'    => array(
+				'<button type="button">Use %2$s in your code</button>',
+				'Use %2$s in your code',
+			),
+		);
 	}
 
 	/**
