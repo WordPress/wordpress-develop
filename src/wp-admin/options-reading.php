@@ -214,9 +214,9 @@ else :
 <?php if ( has_action( 'blog_privacy_selector' ) ) : ?>
 	<input id="blog-public" type="radio" name="blog_public" value="1" <?php checked( '1', get_option( 'blog_public' ) ); ?> />
 	<label for="blog-public"><?php _e( 'Allow search engines to index this site' ); ?></label><br />
-	<input id="blog-norobots" type="radio" name="blog_public" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
+	<input id="blog-norobots" type="radio" name="blog_public" aria-describedby="public-desc" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
 	<label for="blog-norobots"><?php _e( 'Discourage search engines from indexing this site' ); ?></label>
-	<p class="description"><?php _e( 'Note: Neither of these options blocks access to your site &mdash; it is up to search engines to honor your request.' ); ?></p>
+	<p id="public-desc" class="description"><?php _e( 'Note: Neither of these options blocks access to your site &mdash; it is up to search engines to honor your request.' ); ?></p>
 	<?php
 	/**
 	 * Enables the legacy 'Site visibility' privacy options.
@@ -235,9 +235,9 @@ else :
 	do_action( 'blog_privacy_selector' );
 	?>
 <?php else : ?>
-	<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
+	<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" aria-describedby="privacy-desc" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
 	<?php _e( 'Discourage search engines from indexing this site' ); ?></label>
-	<p class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
+	<p id="privacy-desc" class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
 <?php endif; ?>
 </fieldset></td>
 </tr>
