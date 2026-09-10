@@ -1519,14 +1519,24 @@ table.form-table td .updated p {
 	box-shadow: none;
 }
 
-/*
- * The results row is injected after its request row by privacy-tools.js, so the
- * two rows fall on opposite sides of the zebra striping. Give the pair a single
- * shared background so an expanded request still reads as one unit.
- */
-.privacy_requests tbody tr.has-request-results > *,
-.privacy_requests tbody tr.request-results > * {
-	background-color: #fff;
+.privacy_requests tbody tr.request-results:nth-child(even) {
+	background-color: #f6f7f7;
+}
+
+.privacy_requests tbody tr.request-results:nth-child(odd) {
+	background-color: transparent;
+}
+
+@supports selector(:nth-child(1 of :not(.request-results))) {
+	.privacy_requests tbody > tr:nth-child(odd),
+	.privacy_requests tbody > tr.request-results:nth-child(even) {
+		background-color: transparent;
+	}
+
+	.privacy_requests tbody > tr:nth-child(odd of :not(.request-results)),
+	.privacy_requests tbody > tr:nth-child(odd of :not(.request-results)) + tr.request-results {
+		background-color: #f6f7f7;
+	}
 }
 
 .privacy_requests .next_steps .button {
