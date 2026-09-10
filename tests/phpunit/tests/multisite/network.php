@@ -17,6 +17,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	public function tear_down() {
 		global $current_site;
 		$current_site->id = 1;
+		wp_installing( false );
 		parent::tear_down();
 	}
 
