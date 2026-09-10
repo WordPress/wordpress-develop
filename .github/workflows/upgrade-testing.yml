@@ -18,7 +18,6 @@ on:
       - trunk
     # Always test the workflow when changes are suggested.
     paths:
-      - '.github/actions/smoke-check/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   workflow_dispatch:
