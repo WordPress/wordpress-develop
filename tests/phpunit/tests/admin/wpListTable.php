@@ -73,12 +73,6 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$hook = new MockAction();
 		add_filter( 'list_table_primary_column', array( $hook, 'filter' ) );
 
-		/*
-		 * Set a dummy value for the current screen in the admin to prevent
-		 * `_get_list_table()` throwing.
-		 */
-		$GLOBALS['hook_suffix'] = 'my-hook';
-
 		$list_table = _get_list_table(
 			$list_class,
 			array( 'screen' => 'wp-list-table-test-' . sanitize_key( $list_class ) )
