@@ -41,22 +41,21 @@ class WP_Site_Icon {
 		/*
 		 * Square, medium sized tiles for IE11+.
 		 *
-		 * See https://msdn.microsoft.com/library/dn455106(v=vs.85).aspx
+		 * @link https://msdn.microsoft.com/library/dn455106(v=vs.85).aspx
 		 */
 		270,
 
 		/*
 		 * App icon for Android/Chrome.
 		 *
-		 * @link https://developers.google.com/web/updates/2014/11/Support-for-theme-color-in-Chrome-39-for-Android
-		 * @link https://developer.chrome.com/multidevice/android/installtohomescreen
+		 * @link https://developer.chrome.com/blog/support-for-theme-color-in-chrome-39-for-android
 		 */
 		192,
 
 		/*
 		 * App icons up to iPhone 6 Plus.
 		 *
-		 * See https://developer.apple.com/library/prerelease/ios/documentation/UserExperience/Conceptual/MobileHIG/IconMatrix.html
+		 * @link https://developer.apple.com/library/prerelease/ios/documentation/UserExperience/Conceptual/MobileHIG/IconMatrix.html
 		 */
 		180,
 

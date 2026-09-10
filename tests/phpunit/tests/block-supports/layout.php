@@ -757,8 +757,8 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_render_layout_support_flag
 	 *
-	 * @param array $block_attrs     Dataset to test.
-	 * @param array $expected_class  Class generated for the passed dataset.
+	 * @param array $block_attrs    Dataset to test.
+	 * @param array $expected_class Class generated for the passed dataset.
 	 */
 	public function test_layout_support_flag_renders_consistent_container_hash( $block_attrs, $expected_class ) {
 		switch_theme( 'default' );

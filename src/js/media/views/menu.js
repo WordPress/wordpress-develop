@@ -25,6 +25,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		'aria-orientation': 'horizontal'
 	},
 
+	/**
+	 * Initializes the menu view.
+	 */
 	initialize: function() {
 		this._views = {};
 
@@ -46,6 +49,8 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 	},
 
 	/**
+	 * Creates a view for the given options and id.
+	 *
 	 * @param {Object} options
 	 * @param {string} id
 	 * @return {wp.media.View} The view instance.
@@ -56,6 +61,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		return new this.ItemView( options ).render();
 	},
 
+	/**
+	 * Updates the menu when the state changes.
+	 */
 	ready: function() {
 		/**
 		 * call 'ready' directly on the parent class
@@ -67,6 +75,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		this.focusManager.setupAriaTabs();
 	},
 
+	/**
+	 * Sets the menu items.
+	 */
 	set: function() {
 		/**
 		 * call 'set' directly on the parent class
@@ -75,6 +86,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		this.visibility();
 	},
 
+	/**
+	 * Unsets the menu items.
+	 */
 	unset: function() {
 		/**
 		 * call 'unset' directly on the parent class
@@ -83,6 +97,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		this.visibility();
 	},
 
+	/**
+	 * Updates the menu visibility.
+	 */
 	visibility: function() {
 		var region = this.region,
 			view = this.controller[ region ].get(),
@@ -97,7 +114,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		}
 	},
 	/**
-	 * @param {string} id
+	 * Selects the menu item with the given id.
+	 *
+	 * @param {string} id The menu item id.
 	 */
 	select: function( id ) {
 		var view = this.get( id );
@@ -113,10 +132,18 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		this.focusManager.setupAriaTabs();
 	},
 
+	/**
+	 * Deselects the menu items.
+	 */
 	deselect: function() {
 		this.$el.children().removeClass('active');
 	},
 
+	/**
+	 * Hides the menu item with the given id.
+	 *
+	 * @param {string} id The menu item id.
+	 */
 	hide: function( id ) {
 		var view = this.get( id );
 
@@ -127,6 +154,11 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		view.$el.addClass('hidden');
 	},
 
+	/**
+	 * Shows the menu item with the given id.
+	 *
+	 * @param {string} id The menu item id.
+	 */
 	show: function( id ) {
 		var view = this.get( id );
 
