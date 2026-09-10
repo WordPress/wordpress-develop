@@ -5634,8 +5634,7 @@ function wp_ob_end_flush_all() {
  * in WordPress 2.5.0.
  *
  * @since 2.3.2
- * @since 7.2.0 A 500 status header and no-cache headers are now sent
- *              before loading a custom db-error.php drop-in.
+ * @since 7.2.0 A 500 status header and no-cache headers are now sent before loading a custom db-error.php drop-in.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *

@@ -1958,8 +1958,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 * @since 3.9.0 $allow_bail parameter added.
-	 * @since 7.2.0 A 500 status header and no-cache headers are now sent
-	 *              before loading a custom db-error.php drop-in.
+	 * @since 7.2.0 A 500 status header and no-cache headers are now sent before loading a custom db-error.php drop-in.
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
 	 * @return bool True with a successful connection, false on failure.
@@ -2013,8 +2012,7 @@ class wpdb {
 
 			/**
 			 * Load custom DB error template, if present.
-			 * A 500 status header and no-cache headers are now sent
-			 * before loading a custom db-error.php drop-in.
+			 * A 500 status header and no-cache headers are now sent before loading a custom db-error.php drop-in.
 			*/
 			if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
 				status_header( 500 );
