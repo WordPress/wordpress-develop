@@ -1304,11 +1304,28 @@ class Tests_User extends WP_UnitTestCase {
 	 * @dataProvider data_non_string_locale
 	 *
 	 * @covers ::wp_insert_user
+	 *
+	 * @param mixed $locale Non-string locale.
+	 */
+	public function test_wp_insert_user_should_not_store_a_non_string_locale( $locale ) {
+		$user_id = self::factory()->user->create( array( 'locale' => $locale ) );
+
+		$this->assertSame( '', get_user_meta( $user_id, 'locale', true ) );
+	}
+
+	/**
+	 * wp_update_user() passes the field on to wp_insert_user(). A non-string
+	 * empties the row, the same value the field takes when it is not passed at
+	 * all, rather than storing the non-string.
+	 *
+	 * @dataProvider data_non_string_locale
+	 *
+	 * @covers ::wp_insert_user
 	 * @covers ::wp_update_user
 	 *
 	 * @param mixed $locale Non-string locale.
 	 */
-	public function test_wp_insert_user_should_ignore_a_non_string_locale( $locale ) {
+	public function test_wp_update_user_should_not_store_a_non_string_locale( $locale ) {
 		$user_id = self::factory()->user->create( array( 'locale' => 'de_DE' ) );
 
 		wp_update_user(
