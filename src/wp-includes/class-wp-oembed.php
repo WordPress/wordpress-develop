@@ -175,7 +175,6 @@ class WP_oEmbed {
 		 * | Twitter      | twitter.com/user                          | 4.7.0   |
 		 * | Twitter      | twitter.com/likes                         | 4.7.0   |
 		 * | Twitter      | twitter.com/lists                         | 4.7.0   |
-		 * | Screencast   | screencast.com                            | 4.8.0   |
 		 * | Amazon       | amazon.com (com.mx, com.br, ca)           | 4.9.0   |
 		 * | Amazon       | amazon.de (fr, it, es, in, nl, ru, co.uk) | 4.9.0   |
 		 * | Amazon       | amazon.co.jp (com.au)                     | 4.9.0   |
@@ -218,7 +217,6 @@ class WP_oEmbed {
 		 * | Meetup.com   | meetup.com           | 3.9.0     | 6.0.1     |
 		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
 		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
-		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
