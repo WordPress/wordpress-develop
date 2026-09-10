@@ -47,6 +47,8 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 		this.listenTo( this.model, 'change', this.render );
 	},
 	/**
+	 * Renders the button.
+	 *
 	 * @return {wp.media.view.Button} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -64,12 +66,14 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 		classes = _.uniq( classes.concat( this.options.classes ) );
 		this.el.className = classes.join(' ');
 
-		this.$el.attr( 'disabled', model.disabled );
+		this.$el.prop( 'disabled', model.disabled );
 		this.$el.text( this.model.get('text') );
 
 		return this;
 	},
 	/**
+	 * Handles the click event.
+	 *
 	 * @param {Object} event
 	 */
 	click: function( event ) {

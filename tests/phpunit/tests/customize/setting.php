@@ -352,7 +352,6 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 *
 	 * @param mixed $default_value
 	 * @param WP_Customize_Setting $setting
-	 *
 	 * @return mixed|null
 	 */
 	public function custom_type_value_filter( $default_value, $setting = null ) {
@@ -436,7 +435,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->assertSame( $this->undefined, $this->custom_type_getter( $name, $this->undefined ) );
 		$this->assertSame( $default, $setting->value() );
 		$this->assertTrue( $setting->preview() );
-		$this->assertSame( 1, did_action( "customize_preview_{$setting->id}" ), 'One preview action now because initial value was not set and/or there is no incoming post value, so there is is a preview to apply.' );
+		$this->assertSame( 1, did_action( "customize_preview_{$setting->id}" ), 'One preview action now because initial value was not set and/or there is no incoming post value, so there is a preview to apply.' );
 		$this->assertSame( 3, did_action( "customize_preview_{$setting->type}" ) );
 		$this->assertSame( $post_data_overrides[ $name ], $this->custom_type_getter( $name, $this->undefined ) );
 		$this->assertSame( $post_data_overrides[ $name ], $setting->value() );
@@ -741,7 +740,6 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 *
 	 * @param WP_Error $validity Validity.
 	 * @param string   $value    Value.
-	 *
 	 * @return WP_Error
 	 */
 	public function filter_validate_for_test_validate( $validity, $value ) {

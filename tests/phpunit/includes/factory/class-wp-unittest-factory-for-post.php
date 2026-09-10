@@ -30,7 +30,6 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 *
 	 * @param array $args Array with elements for the post.
-	 *
 	 * @return int|WP_Error The post ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
@@ -45,7 +44,6 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int   $post_id ID of the post to update.
 	 * @param array $fields  Post data.
-	 *
 	 * @return int|WP_Error The post ID on success, WP_Error object on failure.
 	 */
 	public function update_object( $post_id, $fields ) {
@@ -59,7 +57,6 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param int $post_id ID of the post to retrieve.
-	 *
 	 * @return WP_Post|null WP_Post object on success, null on failure.
 	 */
 	public function get_object_by_id( $post_id ) {

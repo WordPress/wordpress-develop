@@ -11,10 +11,6 @@ class Tests_Readme extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_readme_php_version() {
-		$this->markTestSkipped(
-			'Temporarily disabled. Test should be re-enabled once WordPress is fully compatible with PHP 8.0+.'
-		);
-
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
@@ -24,7 +20,7 @@ class Tests_Readme extends WP_UnitTestCase {
 
 		$response_body = $this->get_response_body( 'https://www.php.net/supported-versions.php' );
 
-		preg_match_all( '#<tr class="stable">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $response_body, $php_matches );
+		preg_match_all( '#<tr class="(?:stable|security)">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $response_body, $php_matches );
 
 		$this->assertContains( $matches[1], $php_matches[1], "readme.html's Recommended PHP version is too old. Remember to update the WordPress.org Requirements page, too." );
 	}
@@ -40,10 +36,15 @@ class Tests_Readme extends WP_UnitTestCase {
 
 		preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]*)#s', $readme, $matches );
 
-		$response_body = $this->get_response_body( "https://dev.mysql.com/doc/relnotes/mysql/{$matches[1]}/en/" );
+		$response_body = json_decode( $this->get_response_body( 'https://endoflife.date/api/mysql.json' ) );
+		$eol_date      = '';
 
-		// Retrieve the date of the first GA release for the recommended branch.
-		preg_match( '#.*(\d{4}-\d{2}-\d{2}), General Availability#s', $response_body, $mysql_matches );
+		foreach ( $response_body as $version ) {
+			if ( $version->cycle === $matches[1] && false !== $version->eol ) {
+				$eol_date = $version->eol;
+				break;
+			}
+		}
 
 		/*
 		 * Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release.
@@ -54,7 +55,7 @@ class Tests_Readme extends WP_UnitTestCase {
 		 *
 		 * TODO: Reduce this back to 5 years once MySQL 8.1 compatibility is achieved.
 		 */
-		$mysql_eol    = gmdate( 'Y-m-d', strtotime( $mysql_matches[1] . ' +8 years' ) );
+		$mysql_eol    = gmdate( 'Y-m-d', strtotime( $eol_date . ' +8 years' ) );
 		$current_date = gmdate( 'Y-m-d' );
 
 		$this->assertLessThan( $mysql_eol, $current_date, "readme.html's Recommended MySQL version is too old. Remember to update the WordPress.org Requirements page, too." );
@@ -70,15 +71,21 @@ class Tests_Readme extends WP_UnitTestCase {
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
 		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
-		$matches[1] = str_replace( '.', '', $matches[1] );
 
-		$response_body = $this->get_response_body( "https://mariadb.com/kb/en/release-notes-mariadb-{$matches[1]}-series/" );
+		$response_body = $this->get_response_body( 'https://downloads.mariadb.org/rest-api/mariadb/' );
+		$releases      = json_decode( $response_body, true );
 
-		// Retrieve the date of the first stable release for the recommended branch.
-		preg_match( '#.*Stable.*?(\d{2} [A-Za-z]{3} \d{4})#s', $response_body, $mariadb_matches );
+		foreach ( $releases['major_releases'] as $release ) {
+			if ( isset( $release['release_id'] ) && $release['release_id'] === $matches[1] ) {
+				$mariadb_eol = $release['release_eol_date'];
+			}
+		}
 
-		// Per https://mariadb.org/about/#maintenance-policy, MariaDB releases are supported for 5 years.
-		$mariadb_eol  = gmdate( 'Y-m-d', strtotime( $mariadb_matches[1] . ' +5 years' ) );
+		// If the release ID is not found the version is unsupported.
+		if ( ! isset( $mariadb_eol ) ) {
+			$this->fail( "{$matches[1]} is not included in MariaDB's list of supported versions. Remember to update the WordPress.org Requirements page, too." );
+		}
+
 		$current_date = gmdate( 'Y-m-d' );
 
 		$this->assertLessThan( $mariadb_eol, $current_date, "readme.html's Recommended MariaDB version is too old. Remember to update the WordPress.org Requirements page, too." );

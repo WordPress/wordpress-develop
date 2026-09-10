@@ -86,6 +86,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Assert that the 'pre_option' hook is called once per call to get_option().
+	 *
 	 * @ticket 37930
 	 *
 	 * @covers ::get_option

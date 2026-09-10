@@ -137,7 +137,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 * @param string $status The value for $_REQUEST['plugin_status'].
 	 */
 	public function test_construct_should_not_set_show_autoupdates_to_false_for_mustuse_and_dropins( $status ) {
-		$original_status           = isset( $_REQUEST['plugin_status'] ) ? $_REQUEST['plugin_status'] : null;
+		$original_status           = $_REQUEST['plugin_status'] ?? null;
 		$_REQUEST['plugin_status'] = $status;
 
 		// Enable plugin auto-updates.
@@ -149,9 +149,13 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$list_table       = new WP_Plugins_List_Table();
 		$show_autoupdates = new ReflectionProperty( $list_table, 'show_autoupdates' );
 
-		$show_autoupdates->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$show_autoupdates->setAccessible( true );
+		}
 		$actual = $show_autoupdates->getValue( $list_table );
-		$show_autoupdates->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$show_autoupdates->setAccessible( false );
+		}
 
 		$_REQUEST['plugin_status'] = $original_status;
 

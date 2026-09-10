@@ -52,7 +52,7 @@ SelectModeToggle = Button.extend(/** @lends wp.media.view.SelectModeToggle.proto
 		// @todo The Frame should be doing all of this.
 		if ( this.controller.isModeActive( 'select' ) ) {
 			this.model.set( {
-				size: 'large',
+				size: '',
 				text: l10n.cancel
 			} );
 			children.not( '.spinner, .media-button' ).hide();

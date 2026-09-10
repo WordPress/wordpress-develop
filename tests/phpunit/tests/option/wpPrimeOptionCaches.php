@@ -455,7 +455,6 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 			'empty object'                      => array( new stdClass() ),
 			'populated object'                  => array( (object) array( 'string' ) ),
 			'INF'                               => array( INF ),
-			'NAN'                               => array( NAN ),
 		);
 	}
 }

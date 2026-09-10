@@ -1,4 +1,5 @@
 {
+	"esversion": 11,
 	"globals": {
 		"QUnit"          : false,
 		"_"              : false,
