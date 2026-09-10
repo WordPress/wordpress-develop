@@ -35,7 +35,7 @@ class Tests_HtmlApi_WpHtmlProcessorMetaTag extends WP_UnitTestCase {
 	 */
 	public function test_supported_meta_tag( string $html ) {
 		$html      = '<!DOCTYPE html>' . $html;
-		$processor = new class($html) extends WP_HTML_Processor {
+		$processor = new class( $html ) extends WP_HTML_Processor {
 			public function __construct( $html ) {
 				parent::__construct( $html, parent::CONSTRUCTOR_UNLOCK_CODE );
 			}
@@ -65,7 +65,7 @@ class Tests_HtmlApi_WpHtmlProcessorMetaTag extends WP_UnitTestCase {
 	 */
 	public function test_unsupported_meta_tags( string $html, string $unsupported_message ) {
 		$html      = '<!DOCTYPE html>' . $html;
-		$processor = new class($html) extends WP_HTML_Processor {
+		$processor = new class( $html ) extends WP_HTML_Processor {
 			public function __construct( $html ) {
 				parent::__construct( $html, parent::CONSTRUCTOR_UNLOCK_CODE );
 			}

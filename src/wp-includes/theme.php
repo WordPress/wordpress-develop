@@ -3802,11 +3802,11 @@ function wp_customize_support_script() {
 		(function() {
 			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
 
-	<?php	if ( $cross_domain ) : ?>
+	<?php if ( $cross_domain ) : ?>
 			request = (function(){ var xhr = new XMLHttpRequest(); return ('withCredentials' in xhr); })();
-	<?php	else : ?>
+	<?php else : ?>
 			request = true;
-	<?php	endif; ?>
+	<?php endif; ?>
 
 			b[c] = b[c].replace( rcs, ' ' );
 			// The customizer requires postMessage and CORS (if the site is cross domain).

@@ -436,7 +436,7 @@ class WP_Block {
 	}
 
 	private static function get_block_bindings_processor( string $block_content ) {
-		$internal_processor_class = new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE) extends WP_HTML_Processor {
+		$internal_processor_class = new class( '', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
 			/**
 			 * Replace the rich text content between a tag opener and matching closer.
 			 *

@@ -557,7 +557,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_fragment( '' );
 		$this->assertInstanceOf( WP_HTML_Processor::class, $processor, '::create_fragment did not return class instance.' );
 
-		$subclass_instance = new class('') extends WP_HTML_Processor {
+		$subclass_instance = new class( '' ) extends WP_HTML_Processor {
 			public function __construct( $html ) {
 				parent::__construct( $html, parent::CONSTRUCTOR_UNLOCK_CODE );
 			}
