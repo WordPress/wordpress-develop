@@ -9,10 +9,25 @@
 		$approveBtn = $( '#approve' ),
 		$rejectBtn = $( '#reject' ),
 		$form = $appNameField.closest( 'form' ),
+		clipboard = new ClipboardJS( '.application-password-display .copy-button' ),
 		context = {
 			userLogin: authApp.user_login,
 			successUrl: authApp.success
 		};
+
+	// Bound at module scope so it covers both the no-JS server-rendered button and the one inserted after the AJAX request.
+	clipboard.on( 'success', function( e ) {
+		var $successElement = $( '.success', $( e.trigger ).parent() );
+
+		e.clearSelection();
+		$successElement.removeClass( 'hidden' );
+
+		setTimeout( function() {
+			$successElement.addClass( 'hidden' );
+		}, 3000 );
+
+		wp.a11y.speak( wp.i18n.__( 'Application password has been copied to your clipboard.' ) );
+	} );
 
 	// If redirecting to an external site, gate the approve button behind the confirmation checkbox.
 	if ( authApp.successHost ) {
@@ -127,21 +142,6 @@
 
 				$form.replaceWith( $notice );
 				$notice.trigger( 'focus' );
-
-				// Initialize clipboard functionality for the copy button.
-				var clipboard = new ClipboardJS( '.copy-button' );
-				clipboard.on( 'success', function( e ) {
-					var $successElement = $( '.success', $( e.trigger ).parent() );
-
-					e.clearSelection();
-					$successElement.removeClass( 'hidden' );
-
-					setTimeout( function() {
-						$successElement.addClass( 'hidden' );
-					}, 3000 );
-
-					wp.a11y.speak( wp.i18n.__( 'Application password has been copied to your clipboard.' ) );
-				} );
 			}
 		} ).fail( function( jqXHR, textStatus, errorThrown ) {
 			var errorMessage = errorThrown,
