@@ -312,7 +312,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					__( 'No, I do not approve of this connection' ),
 					'secondary',
 					'reject',
-					false
+					false,
+					array(
+						// Allow rejection when JavaScript is disabled.
+						'formnovalidate' => 'formnovalidate',
+					)
 				);
 				?>
 			</form>
