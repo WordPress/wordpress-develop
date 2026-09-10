@@ -113,7 +113,8 @@ jobs:
         # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
         php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.7' ]
+        # The scheduled run tests the full database matrix. Other events retain MySQL 5.7 compatibility and the widely used 8.x releases.
+        db-version: ${{ github.event_name == 'schedule' && fromJSON('["5.7","8.0","8.4","9.7"]') || fromJSON('["5.7","8.0","8.4"]') }}
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
@@ -173,8 +174,8 @@ jobs:
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
   #
-  # All LTS versions of MariaDB supported by WordPress with greater than 1% usage according to w.org/stats should be
-  # tested. The exceptions to this rule are the most recent LTS and version 5.5.
+  # The scheduled run tests all LTS versions of MariaDB supported by WordPress with greater than 1% usage according to
+  # w.org/stats. The exceptions to this rule are the most recent LTS and version 5.5.
   #
   # The 5.5 release was intended as a drop-in replacement for MySQL. Because the MySQL 5.5 Docker containers do not
   # work, this ensures some level of MySQL 5.5 testing.
@@ -205,7 +206,8 @@ jobs:
         # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
         php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
         db-type: [ 'mariadb' ]
-        db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
+        # The scheduled run tests the full database matrix. Other events retain MariaDB 5.5 compatibility, 10.6, and newer LTS releases.
+        db-version: ${{ github.event_name == 'schedule' && fromJSON('["5.5","10.3","10.5","10.6","10.11","11.4","11.8"]') || fromJSON('["5.5","10.6","10.11","11.4","11.8"]') }}
         multisite: [ false, true ]
         memcached: [ false ]
 
