@@ -2896,8 +2896,13 @@ class WP_Query {
 			$key          = md5( $comments_request );
 			$last_changed = array(
 				wp_cache_get_last_changed( 'comment' ),
-				wp_cache_get_last_changed( 'posts' ),
+				wp_cache_get_last_changed( 'post-queries' ),
 			);
+
+			// If this query has been filterd to include post meta table, then also include post meta last changed as part of the cache salt.
+			if ( str_contains( $comments_request, $wpdb->postmeta ) ) {
+				$last_changed[] = wp_cache_get_last_changed( 'post_meta' );
+			}
 
 			$cache_key   = "comment_feed:$key";
 			$comment_ids = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
@@ -3261,9 +3266,14 @@ class WP_Query {
 			$id_query_is_cacheable = false;
 		}
 
-		$last_changed = (array) wp_cache_get_last_changed( 'posts' );
+		$last_changed = (array) wp_cache_get_last_changed( 'post-queries' );
 		if ( ! empty( $this->tax_query->queries ) ) {
 			$last_changed[] = wp_cache_get_last_changed( 'terms' );
+		}
+
+		// If meta query is present or postmeta is referenced in the request, salt cache key.
+		if ( ! empty( $this->meta_query->queries ) || str_contains( $this->request, $wpdb->postmeta ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'post_meta' );
 		}
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
