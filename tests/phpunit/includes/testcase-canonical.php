@@ -31,7 +31,8 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		update_option( 'posts_per_page', 5 );
 
 		$this->set_permalink_structure( $this->structure );
-		create_initial_taxonomies();
+		$this->reset_taxonomies();
+		flush_rewrite_rules();
 	}
 
 	/**
