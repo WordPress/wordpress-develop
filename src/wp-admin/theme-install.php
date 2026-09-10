@@ -417,7 +417,9 @@ if ( $tab ) {
 					<# } #>
 					<# if ( data.customize_url ) { #>
 						<# if ( ! data.active ) { #>
-							<# if ( ! data.block_theme ) { #>
+							<# if ( data.block_theme ) { #>
+								<a class="button button-compact" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# } else { #>
 								<a class="button button-compact load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
 							<# } #>
 						<# } else { #>

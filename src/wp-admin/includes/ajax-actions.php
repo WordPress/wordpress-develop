@@ -3736,15 +3736,25 @@ function wp_ajax_query_themes() {
 		// We only care about installed themes.
 		$theme->block_theme = $is_theme_installed && wp_get_theme( $theme->slug )->is_block_theme();
 
-		if ( ! is_multisite() && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
-			$customize_url = $theme->block_theme ? admin_url( 'site-editor.php' ) : wp_customize_url( $theme->slug );
+		if ( ! is_multisite() && current_user_can( 'edit_theme_options' ) && ( $theme->block_theme || current_user_can( 'customize' ) ) ) {
+			if ( $theme->block_theme ) {
+				$customize_url = add_query_arg(
+					array(
+						'wp_theme_preview' => urlencode( $theme->slug ),
+						'return'           => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
+					),
+					admin_url( 'site-editor.php' )
+				);
+			} else {
+				$customize_url = add_query_arg(
+					array(
+						'return' => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
+					),
+					wp_customize_url( $theme->slug )
+				);
+			}
 
-			$theme->customize_url = add_query_arg(
-				array(
-					'return' => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
-				),
-				$customize_url
-			);
+			$theme->customize_url = $customize_url;
 		}
 
 		$theme->name        = wp_kses( $theme->name, $themes_allowedtags );
@@ -4289,13 +4299,23 @@ function wp_ajax_install_theme() {
 	$theme                = wp_get_theme( $slug );
 	$status['blockTheme'] = $theme->is_block_theme();
 
-	if ( ! is_multisite() && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
-		$status['customizeUrl'] = add_query_arg(
-			array(
-				'return' => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
-			),
-			wp_customize_url( $slug )
-		);
+	if ( ! is_multisite() && current_user_can( 'edit_theme_options' ) && ( $status['blockTheme'] || current_user_can( 'customize' ) ) ) {
+		if ( $status['blockTheme'] ) {
+			$status['customizeUrl'] = add_query_arg(
+				array(
+					'wp_theme_preview' => urlencode( $slug ),
+					'return'           => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
+				),
+				admin_url( 'site-editor.php' )
+			);
+		} else {
+			$status['customizeUrl'] = add_query_arg(
+				array(
+					'return' => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
+				),
+				wp_customize_url( $slug )
+			);
+		}
 	}
 
 	/*

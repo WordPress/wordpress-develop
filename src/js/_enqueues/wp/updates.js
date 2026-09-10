@@ -1821,6 +1821,12 @@
 
 				// Transform the 'Preview' button into a 'Live Preview' button.
 				$message.siblings( '.preview' ).replaceWith( function () {
+					if ( response.blockTheme ) {
+						return $( '<a>' )
+							.attr( 'href', response.customizeUrl )
+							.addClass( 'button' )
+							.text( __( 'Live Preview' ) );
+					}
 					return $( '<a>' )
 						.attr( 'href', response.customizeUrl )
 						.addClass( 'button load-customize' )
