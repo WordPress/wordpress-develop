@@ -10,23 +10,23 @@
 class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 
 	/**
-	 * Whether timezone translations need to be restored after the test.
-	 *
-	 * @var bool
-	 */
-	private $restore_timezone_translations = false;
-
-	/**
-	 * Restores the current locale and timezone translations after each test runs.
+	 * Restores the current locale and the timezone translations after each test runs.
 	 */
 	public function tear_down(): void {
 		restore_current_locale();
 
-		if ( $this->restore_timezone_translations ) {
-			// Synchronize the function's static locale tracking with the restored translations.
-			wp_timezone_choice( '', get_locale() );
-			$this->restore_timezone_translations = false;
-		}
+		/*
+		 * wp_timezone_choice() records the locale of the `continents-cities` translations
+		 * it loaded in a function static that nothing outside the function can reset, and
+		 * restoring the locale above reloads those translations without updating it. Call
+		 * the function with the restored locale so the static matches the loaded
+		 * translations again. This runs after every test because the class cannot tell
+		 * which of them left the static set.
+		 *
+		 * It must run before parent::tear_down(): the call fires the load_textdomain and
+		 * gettext hooks, and the parent restores the hook snapshot taken in set_up().
+		 */
+		wp_timezone_choice( '', get_locale() );
 
 		parent::tear_down();
 	}
@@ -112,8 +112,7 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	 * @param string $expected Expected string HTML fragment.
 	 */
 	public function test_wp_timezone_choice_es( string $expected ): void {
-		$this->restore_timezone_translations = true;
-		$timezone_list                       = wp_timezone_choice( '', 'es_ES' );
+		$timezone_list = wp_timezone_choice( '', 'es_ES' );
 		$this->assertStringContainsString( $expected, $timezone_list );
 	}
 
@@ -140,7 +139,6 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 	 * @param string $expected Expected string HTML fragment.
 	 */
 	public function test_wp_timezone_choice_es_set( string $expected ): void {
-		$this->restore_timezone_translations = true;
 		switch_to_locale( 'es_ES' );
 		$timezone_list = wp_timezone_choice( '' );
 		$this->assertStringContainsString( $expected, $timezone_list );
