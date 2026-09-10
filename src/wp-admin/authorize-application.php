@@ -264,8 +264,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<?php if ( $success_url ) : ?>
 					<p class="auth-app-checkbox">
-						<label>
-							<input type="checkbox" name="confirm_external_redirect" required />
+						<input type="checkbox" name="confirm_external_redirect" id="confirm_external_redirect" required />
+						<label for="confirm_external_redirect">
 							<?php
 							printf(
 								/* translators: %s: The hostname the credentials will be sent to. */
