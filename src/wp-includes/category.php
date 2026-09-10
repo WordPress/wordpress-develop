@@ -120,7 +120,7 @@ function get_category( $category, $output = OBJECT, $filter = 'raw' ) {
  * @param string $output        Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                              correspond to a WP_Term object, an associative array, or a numeric array,
  *                              respectively. Default OBJECT.
- * @return WP_Term|array|WP_Error|null Type is based on $output value.
+ * @return WP_Term|array|null Type is based on $output value.
  */
 function get_category_by_path( $category_path, $full_match = true, $output = OBJECT ) {
 	$category_path  = rawurlencode( urldecode( $category_path ) );
