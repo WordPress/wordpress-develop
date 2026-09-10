@@ -395,6 +395,8 @@ function wp_favicon_request() {
  * the wp-content directory).
  *
  * @since 3.0.0
+ * @since 7.2.0 A 500 status header and no-cache headers are now sent before loading maintenance.php drop-in.
+ *              This is to ensure that the correct headers are sent.
  * @access private
  */
 function wp_maintenance() {
@@ -404,6 +406,9 @@ function wp_maintenance() {
 	}
 
 	if ( file_exists( WP_CONTENT_DIR . '/maintenance.php' ) ) {
+		status_header( 503 );
+		nocache_headers();
+		header( 'Retry-After: 600' );
 		require_once WP_CONTENT_DIR . '/maintenance.php';
 		die();
 	}
