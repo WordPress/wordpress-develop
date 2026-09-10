@@ -4235,6 +4235,83 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * The `default_excluded_comment_types` filter sets a visibility default, not an
+	 * access-control boundary. An excluded type stays out of the default listing, but
+	 * it is still readable by ID and still returned to a caller authorized to ask for
+	 * it by name.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_excluded_comment_type_visibility_is_not_access_control() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => 1,
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'private',
+			)
+		);
+
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = 'private';
+				return $types;
+			}
+		);
+
+		wp_logout();
+
+		// The excluded type is kept out of the default collection.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'per_page', self::$per_page );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The default collection should be readable.' );
+		$this->assertNotContains(
+			$comment_id,
+			wp_list_pluck( $response->get_data(), 'id' ),
+			'An excluded type should not appear in the default collection.'
+		);
+
+		// Unauthenticated callers cannot enumerate it by asking for the type.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'type', 'private' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse(
+			'rest_forbidden_param',
+			$response,
+			401,
+			'Requesting a type without edit_posts should be forbidden.'
+		);
+
+		// An approved comment of the type is still readable by ID.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			'Excluding a type does not restrict reading an approved comment of that type.'
+		);
+
+		// An authorized caller asking for the type explicitly still receives it.
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'type', 'private' );
+		$request->set_param( 'per_page', self::$per_page );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'An authorized request for the type should succeed.' );
+		$this->assertContains(
+			$comment_id,
+			wp_list_pluck( $response->get_data(), 'id' ),
+			'An explicitly requested excluded type should still be returned.'
+		);
+	}
+
+	/**
 	 * Data provider for comment type tests.
 	 *
 	 * @return array[] Data provider.
