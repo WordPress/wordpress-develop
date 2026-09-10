@@ -2535,7 +2535,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
 
 	if ( ! taxonomy_exists( $taxonomy ) ) {
-		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
+		return new WP_Error(
+			'invalid_taxonomy',
+			__( 'Invalid taxonomy.' ),
+			array( 'status' => 400 )
+		);
 	}
 
 	/**
@@ -2555,11 +2559,19 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	}
 
 	if ( is_int( $term ) && 0 === $term ) {
-		return new WP_Error( 'invalid_term_id', __( 'Invalid term ID.' ) );
+		return new WP_Error(
+			'invalid_term_id',
+			__( 'Invalid term ID.' ),
+			array( 'status' => 400 )
+		);
 	}
 
 	if ( '' === trim( $term ) ) {
-		return new WP_Error( 'empty_term_name', __( 'A name is required for this term.' ) );
+		return new WP_Error(
+			'empty_term_name',
+			__( 'A name is required for this term.' ),
+			array( 'status' => 400 )
+		);
 	}
 
 	$defaults = array(
@@ -2571,7 +2583,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$args     = wp_parse_args( $args, $defaults );
 
 	if ( (int) $args['parent'] > 0 && ! term_exists( (int) $args['parent'] ) ) {
-		return new WP_Error( 'missing_parent', __( 'Parent term does not exist.' ) );
+		return new WP_Error(
+			'missing_parent',
+			__( 'Parent term does not exist.' ),
+			array( 'status' => 400 )
+		);
 	}
 
 	$args['name']     = $term;
@@ -2589,7 +2605,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 
 	// Sanitization could clean the name to an empty string that must be checked again.
 	if ( '' === $name ) {
-		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
+		return new WP_Error(
+			'invalid_term_name',
+			__( 'Invalid term name.' ),
+			array( 'status' => 400 )
+		);
 	}
 
 	$slug_provided = ! empty( $args['slug'] );
