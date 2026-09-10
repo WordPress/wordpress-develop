@@ -19,16 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_Comment\:\:\$comment_ID \(numeric\-string\) does not accept int\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/wp-admin/includes/comment.php
-		-
-			message: '#^Property WP_Comment\:\:\$comment_post_ID \(numeric\-string\) does not accept int\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/wp-admin/includes/comment.php
-		-
 			message: '#^Property WP_Block_Template\:\:\$author \(int\|null\) does not accept string\.$#'
 			identifier: assign.propertyType
 			count: 1
@@ -144,7 +134,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
-			message: '#^Static property WP_Widget_Media\:\:\$l10n_defaults \(array\<string\>\) does not accept array\<string, array\|string\>\.$#'
+			message: '#^Static property WP_Widget_Media\:\:\$l10n_defaults \(array\<string\>\) does not accept array\<string, array\<int\|string, string\|null\>\|string\>\.$#'
 			identifier: assign.propertyType
 			count: 1
 			path: ../../../src/wp-includes/widgets/class-wp-widget-media.php
