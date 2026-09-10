@@ -121,8 +121,8 @@ jobs:
             [Test this pull request with WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${ issue_number }).
             `;
 
-            core.notice(`Created Playground comment for pull request: https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${issue_number}`);
-            github.rest.issues.createComment( commentInfo );
+            await github.rest.issues.createComment( commentInfo );
+            core.notice( `Created Playground comment for pull request: ${ pr.data.html_url }` );
 
   # Manages comments reminding contributors to include a Trac ticket link when opening a pull request.
   trac-ticket-check:
@@ -161,8 +161,8 @@ jobs:
             const tracTicketMatches = prBody.match( tracTicketRegex ) || prTitle.match( tracTicketRegex );
 
             if ( ! tracTicketMatches ) {
-              core.notice(`Created missing Trac ticket comment for pull request: https://github.com/${owner}/${repo}/pull/${number}`);
-              github.rest.issues.createComment( {
+              core.info( `Creating missing Trac ticket comment for pull request: ${ pr.html_url }` );
+              await github.rest.issues.createComment( {
                 owner,
                 repo,
                 issue_number: number,

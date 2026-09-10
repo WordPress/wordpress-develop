@@ -71,10 +71,9 @@ jobs:
 
     steps:
       - name: Output PR link
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            core.notice(`Pull request: https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${context.issue.number}`);
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url || github.event.issue.html_url }}
+        run: 'echo "::notice::Pull request: $PR_URL"'
 
       - name: Gather a list of contributors
         uses: WordPress/props-bot-action@trunk
