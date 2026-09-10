@@ -14,9 +14,9 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * Triggered when attachment details change
 	 * Overrides Backbone.Model.sync
 	 *
-	 * @param {string} method
-	 * @param {wp.media.model.Attachment} model
-	 * @param {Object} [options={}]
+	 * @param {string}                    method       The method to be performed: 'read', 'update', or 'delete'.
+	 * @param {wp.media.model.Attachment} model        The attachment model being synced.
+	 * @param {Object}                    [options={}] Optional. Additional options for the sync operation.
 	 *
 	 * @return {jQuery.Promise} A jQuery Promise that is resolved or rejected based on the success of the sync operation.
 	 */
@@ -144,7 +144,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 *
 	 * @static
 	 *
-	 * @param {Object} attrs
+	 * @param {Object} attrs The attributes for the new attachment model.
 	 * @return {wp.media.model.Attachment} The newly created attachment model.
 	 */
 	create: function( attrs ) {
@@ -158,8 +158,8 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * it returns the specified attachment.
 	 *
 	 * @static
-	 * @param {string} id A string used to identify a model.
-	 * @param {Backbone.Model|undefined} attachment
+	 * @param {string}                   id         A string used to identify a model.
+	 * @param {Backbone.Model|undefined} attachment The attachment model to retrieve or create.
 	 * @return {wp.media.model.Attachment}
 	 */
 	get: _.memoize( function( id, attachment ) {
