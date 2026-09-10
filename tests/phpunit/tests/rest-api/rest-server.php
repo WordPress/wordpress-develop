@@ -54,6 +54,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function tear_down() {
 		// Remove our temporary spy server.
 		$GLOBALS['wp_rest_server'] = null;
+		unset( $GLOBALS['wp_rest_auth_cookie'] );
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
