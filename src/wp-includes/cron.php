@@ -316,6 +316,17 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 		return false;
 	}
 
+	if ( ! is_numeric( $event->interval ) || $event->interval <= 0 ) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'invalid_interval',
+				__( 'Event schedule has invalid interval.' )
+			);
+		}
+
+		return false;
+	}
+
 	$key = md5( serialize( $event->args ) );
 
 	$crons = _get_cron_array();
@@ -444,12 +455,19 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we assume something is wrong and fail to schedule.
-	if ( 0 === $interval ) {
+	if ( ! is_numeric( $interval ) || $interval <= 0 ) {
 		if ( $wp_error ) {
-			return new WP_Error(
-				'invalid_schedule',
-				__( 'Event schedule does not exist.' )
-			);
+			if ( ! isset( $schedules[ $recurrence ] ) ) {
+				return new WP_Error(
+					'invalid_schedule',
+					__( 'Event schedule does not exist.' )
+				);
+			} else {
+				return new WP_Error(
+					'invalid_interval',
+					__( 'Event schedule has invalid interval.' )
+				);
+			}
 		}
 
 		return false;
