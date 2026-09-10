@@ -1858,6 +1858,7 @@ $( function() {
 			var width = navigator.userAgent.indexOf('AppleWebKit/') > -1 ? $window.width() : window.innerWidth;
 
 			if (
+				$body.hasClass( 'meta-box-reordering-disabled' ) ||
 				( width <= 782 ) ||
 				( 1 >= $sortables.find( '.ui-sortable-handle:visible' ).length && jQuery( '.columns-prefs-1 input' ).prop( 'checked' ) )
 			) {

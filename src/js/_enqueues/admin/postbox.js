@@ -104,6 +104,10 @@
 				postboxWithinSortablesIndex = postboxesWithinSortables.index( postbox ),
 				firstOrLastPositionMessage;
 
+			if ( ! postboxes.metaBoxReorderingEnabled ) {
+				return;
+			}
+
 			if ( 'dashboard_browser_nag' === postboxId ) {
 				return;
 			}
@@ -344,6 +348,13 @@
 					postboxes.save_order( page );
 				}
 			});
+
+			$( '.meta-box-reordering-toggle' ).on( 'click.postboxes', function() {
+				var enabled = $( this ).prop( 'checked' );
+
+				postboxes.setMetaBoxReordering( enabled );
+				postboxes.save_meta_box_reordering_state( enabled );
+			} );
 		},
 
 		/**
@@ -419,6 +430,8 @@
 				}
 			});
 
+			this.setMetaBoxReordering( this.isMetaBoxReorderingEnabled() );
+
 			if ( isMobile ) {
 				$(document.body).on('orientationchange.postboxes', function(){ postboxes._pb_change(); });
 				this._pb_change();
@@ -435,6 +448,68 @@
 				var $el = $( this );
 				$el.attr( 'aria-expanded', ! $el.closest( '.postbox' ).hasClass( 'closed' ) );
 			});
+		},
+
+		/**
+		 * Checks whether meta box reordering is enabled.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @return {boolean} Whether meta box reordering is enabled.
+		 */
+		isMetaBoxReorderingEnabled: function() {
+			var $toggle = $( '#meta-box-reordering' );
+
+			if ( $toggle.length ) {
+				return $toggle.prop( 'checked' );
+			}
+
+			return ! $( document.body ).hasClass( 'meta-box-reordering-disabled' );
+		},
+
+		/**
+		 * Enables or disables the meta box reordering UI.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param {boolean} enabled Whether reordering should be enabled.
+		 * @return {void}
+		 */
+		setMetaBoxReordering: function( enabled ) {
+			var $body = $( document.body ),
+				$orderButtons = $( '.postbox .handle-order-higher, .postbox .handle-order-lower' );
+
+			this.metaBoxReorderingEnabled = !! enabled;
+
+			$body
+				.toggleClass( 'meta-box-reordering-enabled', this.metaBoxReorderingEnabled )
+				.toggleClass( 'meta-box-reordering-disabled', ! this.metaBoxReorderingEnabled );
+
+			if ( this.metaBoxReorderingEnabled ) {
+				$orderButtons
+					.prop( 'disabled', false )
+					.removeAttr( 'tabindex aria-hidden' );
+				this.updateOrderButtonsProperties();
+			} else {
+				$orderButtons
+					.prop( 'disabled', true )
+					.attr( {
+						'aria-hidden': 'true',
+						tabindex: '-1'
+					} );
+			}
+
+			if ( window.wpResponsive && window.wpResponsive.maybeDisableSortables ) {
+				window.wpResponsive.maybeDisableSortables();
+				return;
+			}
+
+			try {
+				$( '.meta-box-sortables' )
+					.sortable( this.metaBoxReorderingEnabled ? 'enable' : 'disable' )
+					.find( '.ui-sortable-handle' )
+						.toggleClass( 'is-non-sortable', ! this.metaBoxReorderingEnabled );
+			} catch ( e ) {}
 		},
 
 		/**
@@ -469,6 +544,30 @@
 					hidden: hidden,
 					closedpostboxesnonce: jQuery('#closedpostboxesnonce').val(),
 					page: page
+				},
+				function() {
+					wp.a11y.speak( __( 'Screen Options updated.' ) );
+				}
+			);
+		},
+
+		/**
+		 * Saves the meta box reordering setting to the server.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @memberof postboxes
+		 *
+		 * @param {boolean} enabled Whether meta box reordering is enabled.
+		 * @return {void}
+		 */
+		save_meta_box_reordering_state : function( enabled ) {
+			$.post(
+				ajaxurl,
+				{
+					action: 'meta-box-reordering',
+					enabled: enabled ? 1 : 0,
+					screenoptionnonce: $( '#screenoptionnonce' ).val()
 				},
 				function() {
 					wp.a11y.speak( __( 'Screen Options updated.' ) );
