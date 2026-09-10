@@ -1242,6 +1242,8 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'password-toggle', "/wp-admin/js/password-toggle$suffix.js", array(), false, 1 );
 	$scripts->set_translations( 'password-toggle' );
 
+	$scripts->add( 'wp-teletype-loader', "/wp-admin/js/teletype-loader$suffix.js", array( 'wp-data', 'wp-core-commands' ), false, 1 );
+
 	$scripts->add( 'application-passwords', "/wp-admin/js/application-passwords$suffix.js", array( 'jquery', 'wp-util', 'wp-api-request', 'wp-date', 'wp-i18n', 'wp-hooks' ), false, 1 );
 	$scripts->set_translations( 'application-passwords' );
 
@@ -3615,6 +3617,30 @@ function wp_enqueue_command_palette_assets() {
 			'wp.coreCommands.initializeCommandPalette( %s );',
 			wp_json_encode( $command_palette_settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 		)
+	);
+
+	/*
+	 * The admin easter egg. The loader stays inert until its phrase is typed into the
+	 * palette, and only then fetches the payload it plays.
+	 */
+	wp_enqueue_script( 'wp-teletype-loader' );
+	wp_add_inline_script(
+		'wp-teletype-loader',
+		sprintf(
+			'window.wpTeletype = %s;',
+			wp_json_encode(
+				array(
+					'src'  => add_query_arg(
+						'ver',
+						get_bloginfo( 'version' ),
+						admin_url( 'js/teletype' . wp_scripts_get_suffix() . '.js' )
+					),
+					'name' => wp_get_current_user()->display_name,
+				),
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
+			)
+		),
+		'before'
 	);
 }
 
