@@ -3179,6 +3179,16 @@ class WP_Query {
 		}
 		if ( ! empty( $orderby ) ) {
 			$orderby = 'ORDER BY ' . $orderby;
+
+			/**
+			 * Replace the standard MySQL rand() with an improved version.
+			 *
+			 * @link https://core.trac.wordpress.org/ticket/18836
+			 * @link http://stackoverflow.com/a/25882872
+			 */
+			if ( 0 === strcasecmp( $orderby, 'ORDER BY RAND()' ) ) {
+				$orderby = "AND ( rand() <= " . $q['posts_per_page'] . " * 2 / ( SELECT count(*) FROM $wpdb->posts $join WHERE 1=1 $where $groupby ) )";
+			}
 		}
 
 		$found_rows = '';
