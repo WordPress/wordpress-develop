@@ -116,6 +116,9 @@ add_action( 'customize_controls_print_footer_scripts', 'customize_themes_print_t
 // Theme Install hooks.
 add_action( 'install_themes_pre_theme-information', 'install_theme_information' );
 
+// Admin notices hooks.
+add_filter( 'admin_title', 'wp_prepend_admin_notices_count_to_admin_title' );
+
 // User hooks.
 add_action( 'admin_init', 'default_password_nag_handler' );
 

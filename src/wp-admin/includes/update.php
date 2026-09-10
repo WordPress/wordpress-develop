@@ -914,10 +914,10 @@ function maintenance_nag() {
 function wp_print_admin_notice_templates() {
 	?>
 	<script id="tmpl-wp-updates-admin-notice" type="text/html">
-		<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}"><p>{{{ data.message }}}</p></div>
+		<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}" role="alert"><p>{{{ data.message }}}</p></div>
 	</script>
 	<script id="tmpl-wp-bulk-updates-admin-notice" type="text/html">
-		<div id="{{ data.id }}" class="{{ data.className }} notice <# if ( data.errorMessage ) { #>notice-error<# } else { #>notice-success<# } #>">
+		<div id="{{ data.id }}" class="{{ data.className }} notice <# if ( data.errorMessage ) { #>notice-error<# } else { #>notice-success<# } #>" role="<# if ( data.errorMessage ) { #>alert<# } else { #>status<# } #>">
 			<p>
 				<# if ( data.successMessage ) { #>
 					{{{ data.successMessage }}}
