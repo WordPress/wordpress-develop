@@ -60,7 +60,6 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 			'display_name'    => 'First Last',
 			'user_url'        => 'http://www.example.com/testuser',
 			'role'            => 'author',
-			'aim'             => 'wordpress',
 			'user_registered' => date_format( date_create( "@{$registered_date}" ), 'Y-m-d H:i:s' ),
 		);
 		$user_id         = wp_insert_user( $user_data );
@@ -140,5 +139,17 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		sort( $expected_fields );
 		sort( $keys );
 		$this->assertSameSets( $expected_fields, $keys );
+	}
+
+	/**
+	 * Ensure a non-array `$fields` argument is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 65983
+	 */
+	public function test_non_array_fields_returns_error(): void {
+		$result = $this->myxmlrpcserver->wp_getUser( array( 1, 'administrator', 'administrator', $this->administrator_id, 'all' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
 	}
 }

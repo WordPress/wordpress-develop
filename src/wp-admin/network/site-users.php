@@ -139,11 +139,25 @@ if ( $action ) {
 
 		case 'promote':
 			check_admin_referer( 'bulk-users' );
+
+			if ( ! current_user_can( 'promote_users' ) ) {
+				wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
+			}
+
 			$editable_roles = get_editable_roles();
 			$role           = $_REQUEST['new_role'];
 
+			// Mock `none` as editable role.
+			$editable_roles['none'] = array(
+				'name' => __( '&mdash; No role for this site &mdash;' ),
+			);
+
 			if ( empty( $editable_roles[ $role ] ) ) {
 				wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+			}
+
+			if ( 'none' === $role ) {
+				$role = '';
 			}
 
 			if ( isset( $_REQUEST['users'] ) ) {
@@ -151,6 +165,10 @@ if ( $action ) {
 				$update  = 'promote';
 				foreach ( $userids as $user_id ) {
 					$user_id = (int) $user_id;
+
+					if ( ! current_user_can( 'promote_user', $user_id ) ) {
+						wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
+					}
 
 					// If the user doesn't already belong to the blog, bail.
 					if ( ! is_user_member_of_blog( $user_id ) ) {
@@ -162,6 +180,8 @@ if ( $action ) {
 					}
 
 					$user = get_userdata( $user_id );
+
+					// If $role is empty, none will be set.
 					$user->set_role( $role );
 				}
 			} else {
@@ -216,7 +236,7 @@ if ( ! wp_is_large_network( 'users' ) && apply_filters( 'show_network_site_users
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
-<script type="text/javascript">
+<script>
 var current_site_id = <?php echo absint( $id ); ?>;
 </script>
 
@@ -356,11 +376,11 @@ if ( current_user_can( 'create_users' ) && apply_filters( 'show_network_site_use
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="user_username"><?php _e( 'Username' ); ?></label></th>
-			<td><input type="text" class="regular-text" name="user[username]" id="user_username" /></td>
+			<td><input type="text" class="regular-text ltr" name="user[username]" id="user_username" /></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="user_email"><?php _e( 'Email' ); ?></label></th>
-			<td><input type="text" class="regular-text" name="user[email]" id="user_email" /></td>
+			<td><input type="text" class="regular-text ltr" name="user[email]" id="user_email" /></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="new_role_newuser"><?php _e( 'Role' ); ?></label></th>

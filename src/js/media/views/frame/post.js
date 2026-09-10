@@ -234,6 +234,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}, this );
 	},
 
+	/**
+	 * Activates the frame.
+	 */
 	activate: function() {
 		// Hide menu items for states tied to particular media types if there are no items.
 		_.each( this.counts, function( type ) {
@@ -243,6 +246,12 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}, this );
 	},
 
+	/**
+	 * Handles the counts of media types.
+	 *
+	 * @param {wp.media.model.Attachments} model The attachment model that changed.
+	 * @param {string}                     attr  The attribute that changed on the model.
+	 */
 	mediaTypeCounts: function( model, attr ) {
 		if ( typeof this.counts[ attr ] !== 'undefined' && this.counts[ attr ].count < 1 ) {
 			this.counts[ attr ].count++;
@@ -252,6 +261,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 
 	// Menus.
 	/**
+	 * Handles the main menu for the frame.
+	 *
 	 * @param {wp.Backbone.View} view
 	 */
 	mainMenu: function( view ) {
@@ -266,6 +277,12 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		});
 	},
 
+	/**
+	 * Handles the visibility of menu items for the frame.
+	 *
+	 * @param {string} state      The state to show or hide.
+	 * @param {string} visibility The visibility of the menu item, either 'show' or 'hide'.
+	 */
 	menuItemVisibility: function( state, visibility ) {
 		var menu = this.menu.get();
 		if ( visibility === 'hide' ) {
@@ -275,6 +292,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}
 	},
 	/**
+	 * Handles the gallery menu for the frame.
+	 *
 	 * @param {wp.Backbone.View} view
 	 */
 	galleryMenu: function( view ) {
@@ -304,6 +323,11 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		});
 	},
 
+	/**
+	 * Handles the playlist menu for the frame.
+	 *
+	 * @param {wp.Backbone.View} view The menu view.
+	 */
 	playlistMenu: function( view ) {
 		var lastState = this.lastState(),
 			previous = lastState && lastState.id,
@@ -331,6 +355,11 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		});
 	},
 
+	/**
+	 * Handles the video playlist menu for the frame.
+	 *
+	 * @param {wp.Backbone.View} view The menu view.
+	 */
 	videoPlaylistMenu: function( view ) {
 		var lastState = this.lastState(),
 			previous = lastState && lastState.id,
@@ -359,6 +388,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	},
 
 	// Content.
+	/**
+	 * Handles the embed content for the frame.
+	 */
 	embedContent: function() {
 		var view = new wp.media.view.Embed({
 			controller: this,
@@ -368,6 +400,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		this.content.set( view );
 	},
 
+	/**
+	 * Handles the edit selection content for the frame.
+	 */
 	editSelectionContent: function() {
 		var state = this.state(),
 			selection = state.get('selection'),
@@ -404,6 +439,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		this.trigger( 'edit:selection', this );
 	},
 
+	/**
+	 * Handles the edit image content for the frame.
+	 */
 	editImageContent: function() {
 		var image = this.state().get('image'),
 			view = new wp.media.view.EditImage( { model: image, controller: this } ).render();
@@ -418,7 +456,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	// Toolbars.
 
 	/**
-	 * @param {wp.Backbone.View} view
+	 * Handles the selection status toolbar for the frame
+	 *
+	 * @param {wp.Backbone.View} view The toolbar view.
 	 */
 	selectionStatusToolbar: function( view ) {
 		var editable = this.state().get('editable');
@@ -437,7 +477,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	},
 
 	/**
-	 * @param {wp.Backbone.View} view
+	 * Handles the main insert toolbar for the frame.
+	 *
+	 * @param {wp.Backbone.View} view The toolbar view.
 	 */
 	mainInsertToolbar: function( view ) {
 		var controller = this;
@@ -466,7 +508,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	},
 
 	/**
-	 * @param {wp.Backbone.View} view
+	 * Handles the main gallery toolbar for the frame.
+	 *
+	 * @param {wp.Backbone.View} view The toolbar view.
 	 */
 	mainGalleryToolbar: function( view ) {
 		var controller = this;
@@ -498,6 +542,11 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		});
 	},
 
+	/**
+	 * Handles the main playlist toolbar for the frame.
+	 *
+	 * @param {wp.Backbone.View} view The toolbar view.
+	 */
 	mainPlaylistToolbar: function( view ) {
 		var controller = this;
 
@@ -528,6 +577,11 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		});
 	},
 
+	/**
+	 * Handles the main video playlist toolbar for the frame.
+	 *
+	 * @param {wp.Backbone.View} view The toolbar view.
+	 */
 	mainVideoPlaylistToolbar: function( view ) {
 		var controller = this;
 
@@ -558,6 +612,11 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		});
 	},
 
+	/**
+	 * Handles the featured image toolbar for the frame.
+	 *
+	 * @param {wp.media.view.Toolbar} toolbar The toolbar view.
+	 */
 	featuredImageToolbar: function( toolbar ) {
 		this.createSelectToolbar( toolbar, {
 			text:  l10n.setFeaturedImage,
@@ -565,12 +624,20 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		});
 	},
 
+	/**
+	 * Handles the main embed toolbar for the frame.
+	 *
+	 * @param {wp.media.view.Toolbar} toolbar The toolbar view.
+	 */
 	mainEmbedToolbar: function( toolbar ) {
 		toolbar.view = new wp.media.view.Toolbar.Embed({
 			controller: this
 		});
 	},
 
+	/**
+	 * Handles the edit image toolbar for the frame.
+	 */
 	galleryEditToolbar: function() {
 		var editing = this.state().get('editing');
 		this.toolbar.set( new wp.media.view.Toolbar({
@@ -583,6 +650,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					requires: { library: true, uploadingComplete: true },
 
 					/**
+					 * Handles the click event for the insert button.
+					 *
 					 * @fires wp.media.controller.State#update
 					 */
 					click: function() {
@@ -601,6 +670,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}) );
 	},
 
+	/**
+	 * Handles the add to gallery toolbar for the frame.
+	 */
 	galleryAddToolbar: function() {
 		this.toolbar.set( new wp.media.view.Toolbar({
 			controller: this,
@@ -612,6 +684,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					requires: { selection: true },
 
 					/**
+					 * Handles the click event for the insert button.
+					 *
 					 * @fires wp.media.controller.State#reset
 					 */
 					click: function() {
@@ -630,6 +704,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}) );
 	},
 
+	/**
+	 * Handles the edit playlist toolbar for the frame.
+	 */
 	playlistEditToolbar: function() {
 		var editing = this.state().get('editing');
 		this.toolbar.set( new wp.media.view.Toolbar({
@@ -642,6 +719,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					requires: { library: true },
 
 					/**
+					 * Handles the click event for the insert button.
+					 *
 					 * @fires wp.media.controller.State#update
 					 */
 					click: function() {
@@ -660,6 +739,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}) );
 	},
 
+	/**
+	 * Handles the add to playlist toolbar for the frame.
+	 */
 	playlistAddToolbar: function() {
 		this.toolbar.set( new wp.media.view.Toolbar({
 			controller: this,
@@ -671,6 +753,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					requires: { selection: true },
 
 					/**
+					 * Handles the click event for the insert button.
+					 *
 					 * @fires wp.media.controller.State#reset
 					 */
 					click: function() {
@@ -689,6 +773,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}) );
 	},
 
+	/**
+	 * Handles the edit video playlist toolbar for the frame.
+	 */
 	videoPlaylistEditToolbar: function() {
 		var editing = this.state().get('editing');
 		this.toolbar.set( new wp.media.view.Toolbar({
@@ -719,6 +806,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}) );
 	},
 
+	/**
+	 * Handles the add to video playlist toolbar for the frame.
+	 */
 	videoPlaylistAddToolbar: function() {
 		this.toolbar.set( new wp.media.view.Toolbar({
 			controller: this,

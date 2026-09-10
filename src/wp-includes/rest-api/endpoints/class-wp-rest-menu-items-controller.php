@@ -88,7 +88,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		 * @param bool               $read_only_access Whether the current user has read access to menu items
 		 *                                             via the REST API.
 		 * @param WP_REST_Request    $request          Full details about the request.
-		 * @param WP_REST_Controller $this             The current instance of the controller.
+		 * @param WP_REST_Controller $controller       The current instance of the controller.
 		 */
 		$read_only_access = apply_filters( 'rest_menu_read_access', false, $request, $this );
 		if ( $read_only_access ) {
@@ -322,9 +322,9 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * @since 5.9.0
 		 *
-		 * @param object          $nav_menu_item Inserted or updated menu item object.
-		 * @param WP_REST_Response $response The response data.
-		 * @param WP_REST_Request $request       Request object.
+		 * @param object           $nav_menu_item Inserted or updated menu item object.
+		 * @param WP_REST_Response $response      The response data.
+		 * @param WP_REST_Request  $request       Request object.
 		 */
 		do_action( 'rest_delete_nav_menu_item', $menu_item, $response, $request );
 
@@ -337,7 +337,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 *
 	 * @return object|WP_Error
 	 */
 	protected function prepare_item_for_database( $request ) {

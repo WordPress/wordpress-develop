@@ -167,7 +167,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * @param string      $url         The complete home URL including scheme and path.
 	 * @param string      $path        Path relative to the home URL. Blank string if no path is specified.
 	 * @param string|null $orig_scheme Scheme to give the home URL context.
-	 * @param int|null    $blog_id     Site ID, or null for the current site.
+	 * @param int|null    $_blog_id    Site ID, or null for the current site.
 	 * @return string                  The complete home URL including scheme and path.
 	 */
 	public function filter_http_home_url( $url, $path, $orig_scheme, $_blog_id ) {
@@ -260,6 +260,48 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 */
 	public function test_url_to_postid_url_has_only_path() {
 		$this->assertSame( 0, url_to_postid( '/example/' ) );
+	}
+
+	/**
+	 * Only a leading 'www.' is optional when comparing the URL's host to the site's.
+	 *
+	 * A 'www.' elsewhere in the host belongs to a different domain, which an attacker
+	 * can register: stripping it everywhere makes 'exwww.ample.com' match 'example.com'.
+	 *
+	 * @ticket 65016
+	 *
+	 * @covers ::url_to_postid
+	 *
+	 * @dataProvider data_url_to_postid_host_matching
+	 *
+	 * @param string $host     Host of the URL to resolve.
+	 * @param bool   $is_local Whether the host should be treated as this site.
+	 */
+	public function test_url_to_postid_matches_www_prefix_only( $host, $is_local ) {
+		update_option( 'home', 'https://example.com' );
+		update_option( 'siteurl', 'https://example.com' );
+
+		$post_id = self::factory()->post->create();
+
+		$expected = $is_local ? $post_id : 0;
+
+		$this->assertSame( $expected, url_to_postid( "https://$host/?p=$post_id" ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_url_to_postid_host_matching() {
+		return array(
+			'the site host'              => array( 'example.com', true ),
+			'the site host with www'     => array( 'www.example.com', true ),
+			'www inside the domain'      => array( 'exwww.ample.com', false ),
+			'www inside the TLD'         => array( 'example.cwww.om', false ),
+			'an unrelated host'          => array( 'evil.com', false ),
+			'the site host as subdomain' => array( 'example.com.evil.com', false ),
+		);
 	}
 
 	/**

@@ -141,7 +141,7 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that it does nothing for an existing table.
+	 * Test that no update is reported for an existing table.
 	 */
 	public function test_existing_table() {
 
@@ -156,7 +156,33 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1($this->max_index_length)),
 				KEY compound_key (id,column_1($this->max_index_length))
 			)
+			",
+			false
+		);
+
+		$this->assertSame( array(), $updates );
+	}
+
+	/**
+	 * Test that no update is reported for an existing table name in backticks.
+	 *
+	 * @ticket 63976
+	 */
+	public function test_existing_table_name_in_backticks() {
+
+		global $wpdb;
+
+		$updates = dbDelta(
 			"
+			CREATE TABLE `{$wpdb->prefix}dbdelta_test` (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				column_1 varchar(255) NOT NULL,
+				PRIMARY KEY  (id),
+				KEY key_1 (column_1($this->max_index_length)),
+				KEY compound_key (id,column_1($this->max_index_length))
+			)
+			",
+			false
 		);
 
 		$this->assertSame( array(), $updates );
@@ -1089,5 +1115,30 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			),
 			$updates
 		);
+	}
+
+	/**
+	 * @ticket 59481
+	 */
+	public function test_column_types_are_not_case_sensitive() {
+		global $wpdb;
+
+		$updates = dbDelta(
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_test (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				column_1 varCHAr(255) NOT NULL,
+				column_2 TEXT,
+				column_3 blOB,
+				PRIMARY KEY  (id),
+				KEY key_1 (column_1($this->max_index_length)),
+				KEY compound_key (id,column_1($this->max_index_length)),
+				FULLTEXT KEY fulltext_key (column_1)
+			) {$this->db_engine}
+			",
+			false
+		);
+
+		$this->assertEmpty( $updates );
 	}
 }

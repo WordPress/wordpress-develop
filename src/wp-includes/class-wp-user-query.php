@@ -830,8 +830,10 @@ class WP_User_Query {
 			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
 			$cache_group   = 'user-queries';
+			$last_changed  = $this->get_cache_last_changed( $qv );
+
 			if ( $qv['cache_results'] ) {
-				$cache_value = wp_cache_get( $cache_key, $cache_group );
+				$cache_value = wp_cache_get_salted( $cache_key, $cache_group, $last_changed );
 			}
 			if ( false !== $cache_value ) {
 				$this->results     = $cache_value['user_data'];
@@ -849,7 +851,7 @@ class WP_User_Query {
 					 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
 					 *
 					 * @since 3.2.0
-					 * @since 5.1.0 Added the `$this` parameter.
+					 * @since 5.1.0 Added the `$query` parameter.
 					 *
 					 * @global wpdb $wpdb WordPress database abstraction object.
 					 *
@@ -866,7 +868,7 @@ class WP_User_Query {
 						'user_data'   => $this->results,
 						'total_users' => $this->total_users,
 					);
-					wp_cache_add( $cache_key, $cache_value, $cache_group );
+					wp_cache_set_salted( $cache_key, $cache_value, $cache_group, $last_changed );
 				}
 			}
 		}
@@ -908,11 +910,7 @@ class WP_User_Query {
 	 * @return mixed
 	 */
 	public function get( $query_var ) {
-		if ( isset( $this->query_vars[ $query_var ] ) ) {
-			return $this->query_vars[ $query_var ];
-		}
-
-		return null;
+		return $this->query_vars[ $query_var ] ?? null;
 	}
 
 	/**
@@ -1043,21 +1041,35 @@ class WP_User_Query {
 	 * Generate cache key.
 	 *
 	 * @since 6.3.0
+	 * @since 6.9.0 The `$args` parameter was deprecated and renamed to `$deprecated`.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array  $args Query arguments.
-	 * @param string $sql  SQL statement.
+	 * @param array  $deprecated Unused.
+	 * @param string $sql        SQL statement.
 	 * @return string Cache key.
 	 */
-	protected function generate_cache_key( array $args, $sql ) {
+	protected function generate_cache_key( array $deprecated, $sql ) {
 		global $wpdb;
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
-		$key          = md5( $sql );
-		$last_changed = wp_cache_get_last_changed( 'users' );
+		$key = md5( $sql );
+
+		return "get_users:$key";
+	}
+
+	/**
+	 * Retrieves the last changed cache timestamp for users and optionally posts.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $args Query arguments.
+	 * @return string[] The last changed timestamp string for the relevant cache groups.
+	 */
+	protected function get_cache_last_changed( array $args ) {
+		$last_changed = (array) wp_cache_get_last_changed( 'users' );
 
 		if ( empty( $args['orderby'] ) ) {
 			// Default order is by 'user_login'.
@@ -1080,14 +1092,14 @@ class WP_User_Query {
 				switch_to_blog( $blog_id );
 			}
 
-			$last_changed .= wp_cache_get_last_changed( 'posts' );
+			$last_changed[] = wp_cache_get_last_changed( 'posts' );
 
 			if ( $switch ) {
 				restore_current_blog();
 			}
 		}
 
-		return "get_users:$key:$last_changed";
+		return $last_changed;
 	}
 
 	/**

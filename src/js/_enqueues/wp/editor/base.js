@@ -4,6 +4,12 @@
 
 window.wp = window.wp || {};
 
+/**
+ * The editor functionality.
+ *
+ * @param {JQueryStatic} $  The jQuery object.
+ * @param {Object}       wp The WordPress global object.
+ */
 ( function( $, wp ) {
 	wp.editor = wp.editor || {};
 
@@ -11,11 +17,15 @@ window.wp = window.wp || {};
 	 * Utility functions for the editor.
 	 *
 	 * @since 2.5.0
+	 * @return {Object} The editor utility functions.
 	 */
 	function SwitchEditors() {
 		var tinymce, $$,
 			exports = {};
 
+		/**
+		 * Initializes the editor utility functions.
+		 */
 		function init() {
 			if ( ! tinymce && window.tinymce ) {
 				tinymce = window.tinymce;
@@ -239,8 +249,8 @@ window.wp = window.wp || {};
 		 * @param {string} content The text content to check against.
 		 * @param {number} cursorPosition    The cursor position to check.
 		 *
-		 * @return {(undefined|Object)} Undefined if the cursor is not wrapped in a shortcode tag.
-		 *                              Information about the wrapping shortcode tag if it's wrapped in one.
+		 * @return {void|Object} Undefined if the cursor is not wrapped in a shortcode tag.
+		 *                       Information about the wrapping shortcode tag if it's wrapped in one.
 		 */
 		function getShortcodeWrapperInfo( content, cursorPosition ) {
 			var contentShortcodes = getShortCodePositionsInText( content );
@@ -258,6 +268,7 @@ window.wp = window.wp || {};
 		 * Gets a list of unique shortcodes or shortcode-lookalikes in the content.
 		 *
 		 * @param {string} content The content we want to scan for shortcodes.
+		 * @return {string[]} An array of unique shortcodes found in the content.
 		 */
 		function getShortcodesInText( content ) {
 			var shortcodes = content.match( /\[+([\w_-])+/g ),
@@ -290,7 +301,8 @@ window.wp = window.wp || {};
 		 * The information can also be used in other cases when we need to lookup shortcode data,
 		 * as it's already structured!
 		 *
-		 * @param {string} content The content we want to scan for shortcodes
+		 * @param {string} content The content we want to scan for shortcodes.
+		 * @return {Object[]} An array of objects with information about the shortcodes found in the content.
 		 */
 		function getShortCodePositionsInText( content ) {
 			var allShortcodes = getShortcodesInText( content ), shortcodeInfo;
@@ -362,6 +374,7 @@ window.wp = window.wp || {};
 		 *
 		 * @param {Object} domLib DOM library instance.
 		 * @param {string} content The content to insert into the cursor marker element.
+		 * @return {Object} The cursor marker element.
 		 */
 		function getCursorMarkerSpan( domLib, content ) {
 			return domLib( '<span>' ).css( {
@@ -385,7 +398,7 @@ window.wp = window.wp || {};
 		 * @param {string} content Textarea content that the cursors are in
 		 * @param {{cursorStart: number, cursorEnd: number}} cursorPositions Cursor start and end positions
 		 *
-		 * @return {{cursorStart: number, cursorEnd: number}}
+		 * @return {{cursorStart: number, cursorEnd: number}} Adjusted cursor positions with `cursorStart` and `cursorEnd` properties.
 		 */
 		function adjustTextAreaSelectionCursors( content, cursorPositions ) {
 			var voidElements = [
@@ -649,7 +662,7 @@ window.wp = window.wp || {};
 		 * and why this solution was chosen.
 		 *
 		 * @param {Object} editor The editor where we must find the selection.
-		 * @return {(null|Object)} The selection range position in the editor.
+		 * @return {void|Object} The selection range position in the editor.
 		 */
 		function findBookmarkedPosition( editor ) {
 			// Get the TinyMCE `window` reference, since we need to access the raw selection.
@@ -1273,7 +1286,7 @@ window.wp = window.wp || {};
 
 				var $addMediaButton = $( '<button type="button" class="button insert-media add_media">' );
 
-				$addMediaButton.append( '<span class="wp-media-buttons-icon"></span>' );
+				$addMediaButton.append( '<span class="wp-media-buttons-icon" aria-hidden="true"></span>' );
 				$addMediaButton.append( document.createTextNode( ' ' + buttonText ) );
 				$addMediaButton.data( 'editor', id );
 
@@ -1293,7 +1306,7 @@ window.wp = window.wp || {};
 						.append( $button.attr({
 							id: id + '-html',
 							'class': 'wp-switch-editor switch-html'
-						}).text( window.tinymce.translate( 'Code' ) ) )
+						}).text( window.tinymce.translate( 'Code|tab' ) ) )
 					).append( $editorContainer )
 			);
 
@@ -1381,7 +1394,7 @@ window.wp = window.wp || {};
 	 * @since 4.8.0
 	 *
 	 * @param {string} id The HTML id of the editor textarea.
-	 * @return The editor content.
+	 * @return {void|string} The editor content.
 	 */
 	wp.editor.getContent = function( id ) {
 		var editor;

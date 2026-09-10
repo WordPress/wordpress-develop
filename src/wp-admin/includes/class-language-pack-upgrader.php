@@ -265,7 +265,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$language_updates_results[] = array(
 				'language' => $language_update->language,
 				'type'     => $language_update->type,
-				'slug'     => isset( $language_update->slug ) ? $language_update->slug : 'default',
+				'slug'     => $language_update->slug ?? 'default',
 				'version'  => $language_update->version,
 			);
 		}
@@ -383,7 +383,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			case 'theme':
 				$theme = wp_get_theme( $update->slug );
 				if ( $theme->exists() ) {
-					return $theme->Get( 'Name' );
+					return $theme->get( 'Name' );
 				}
 				break;
 			case 'plugin':

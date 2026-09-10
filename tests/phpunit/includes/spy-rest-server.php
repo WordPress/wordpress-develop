@@ -54,7 +54,7 @@ class Spy_REST_Server extends WP_REST_Server {
 	/**
 	 * Stores last set status.
 	 *
-	 * @param int $code HTTP status.
+	 * @param int $status HTTP status.
 	 */
 	public function set_status( $status ) {
 		$this->status = $status;

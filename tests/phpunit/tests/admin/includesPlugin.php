@@ -4,7 +4,16 @@
  * @group admin
  */
 class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
+
+	/**
+	 * Admin user ID.
+	 *
+	 * @var int $admin_id
+	 */
+	public static $admin_id;
+
 	public static function wpSetUpBeforeClass( $factory ) {
+		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::_back_up_mu_plugins();
 	}
 
@@ -37,7 +46,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 	public function test_menu_page_url() {
 		$current_user = get_current_user_id();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		update_option( 'siteurl', 'http://example.com' );
 
 		// Add some pages.
@@ -81,7 +90,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		global $submenu;
 		global $menu;
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -134,7 +143,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$menu    = array();
 
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -283,7 +292,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$submenu      = array();
 		$menu         = array();
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -316,7 +325,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$submenu      = array();
 		$menu         = array();
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -344,7 +353,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$submenu      = array();
 		$menu         = array();
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 

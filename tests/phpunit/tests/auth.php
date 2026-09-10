@@ -132,23 +132,26 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23494
+	 * @dataProvider data_passwords_for_trimming
 	 */
-	public function test_password_trimming() {
-		$passwords_to_test = array(
-			'a password with no trailing or leading spaces',
-			'a password with trailing spaces ',
-			' a password with leading spaces',
-			' a password with trailing and leading spaces ',
+	public function test_password_trimming( $password_to_test ) {
+		wp_set_password( $password_to_test, $this->user->ID );
+		$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
+
+		$this->assertNotWPError( $authed_user );
+		$this->assertInstanceOf( 'WP_User', $authed_user );
+		$this->assertSame( $this->user->ID, $authed_user->ID );
+	}
+
+	public function data_passwords_for_trimming() {
+		return array(
+			'no spaces'                => array( 'a password with no trailing or leading spaces' ),
+			'trailing space'           => array( 'a password with trailing spaces ' ),
+			'leading space'            => array( ' a password with leading spaces' ),
+			'leading and trailing'     => array( ' a password with trailing and leading spaces ' ),
+			'multiple leading spaces'  => array( '    a password with multiple leading spaces' ),
+			'multiple trailing spaces' => array( 'a password with multiple trailing spaces    ' ),
 		);
-
-		foreach ( $passwords_to_test as $password_to_test ) {
-			wp_set_password( $password_to_test, $this->user->ID );
-			$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
-
-			$this->assertNotWPError( $authed_user );
-			$this->assertInstanceOf( 'WP_User', $authed_user );
-			$this->assertSame( $this->user->ID, $authed_user->ID );
-		}
 	}
 
 	/**
@@ -180,23 +183,20 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * wp_hash_password function
 	 *
 	 * @ticket 24973
+	 * @dataProvider data_passwords_with_whitespace
 	 */
-	public function test_wp_hash_password_trimming() {
+	public function test_wp_hash_password_trimming( $password_with_whitespace, $expected_password ) {
+		$this->assertTrue( wp_check_password( $expected_password, wp_hash_password( $password_with_whitespace ) ) );
+	}
 
-		$password = ' pass with leading whitespace';
-		$this->assertTrue( wp_check_password( 'pass with leading whitespace', wp_hash_password( $password ) ) );
-
-		$password = 'pass with trailing whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with trailing whitespace', wp_hash_password( $password ) ) );
-
-		$password = ' pass with whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with whitespace', wp_hash_password( $password ) ) );
-
-		$password = "pass with new line \n";
-		$this->assertTrue( wp_check_password( 'pass with new line', wp_hash_password( $password ) ) );
-
-		$password = "pass with vertical tab o_O\x0B";
-		$this->assertTrue( wp_check_password( 'pass with vertical tab o_O', wp_hash_password( $password ) ) );
+	public function data_passwords_with_whitespace() {
+		return array(
+			'leading whitespace'  => array( ' pass with leading whitespace', 'pass with leading whitespace' ),
+			'trailing whitespace' => array( 'pass with trailing whitespace ', 'pass with trailing whitespace' ),
+			'both whitespace'     => array( ' pass with whitespace ', 'pass with whitespace' ),
+			'new line'            => array( "pass with new line \n", 'pass with new line' ),
+			'vertical tab'        => array( "pass with vertical tab o_O\x0B", 'pass with vertical tab o_O' ),
+		);
 	}
 
 	/**
@@ -288,7 +288,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_supports_argon2i_hash() {
 		if ( ! defined( 'PASSWORD_ARGON2I' ) ) {
-			$this->fail( 'Argon2i is not supported.' );
+			$this->markTestSkipped( 'Argon2i is not supported.' );
 		}
 
 		$password = 'password';
@@ -306,7 +306,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_supports_argon2id_hash() {
 		if ( ! defined( 'PASSWORD_ARGON2ID' ) ) {
-			$this->fail( 'Argon2id is not supported.' );
+			$this->markTestSkipped( 'Argon2id is not supported.' );
 		}
 
 		$password = 'password';
@@ -1135,6 +1135,29 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21022
+	 * @ticket 63203
+	 */
+	public function test_plain_bcrypt_application_password_is_accepted() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$password = 'password';
+
+		// Set an application password with plain bcrypt, which mimics a password that was hashed with
+		// a custom `wp_hash_password()` in use.
+		$uuid = self::set_application_password_with_plain_bcrypt( $password, self::$user_id );
+
+		// Authenticate.
+		$user = wp_authenticate_application_password( null, self::USER_LOGIN, $password );
+
+		// Verify that the plain bcrypt hash for the application password was valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	/**
 	 * @dataProvider data_usernames
 	 *
 	 * @ticket 21022
@@ -1556,12 +1579,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @covers ::wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
-		$user_id = self::factory()->user->create(
-			array(
-				'user_login' => 'http_auth_login',
-				'user_pass'  => 'http_auth_pass', // Shouldn't be allowed for API login.
-			)
-		);
+		$user_id = self::$_user->ID;
 
 		// Create a new app-only password.
 		list( $user_app_password, $item ) = WP_Application_Passwords::create_new_application_password( $user_id, array( 'name' => 'phpunit' ) );
@@ -1571,8 +1589,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 
 		// Fake an HTTP Auth request with the regular account password first.
-		$_SERVER['PHP_AUTH_USER'] = 'http_auth_login';
-		$_SERVER['PHP_AUTH_PW']   = 'http_auth_pass';
+		$_SERVER['PHP_AUTH_USER'] = self::USER_LOGIN;
+		$_SERVER['PHP_AUTH_PW']   = self::USER_PASS;
 
 		$this->assertNull(
 			wp_validate_application_password( null ),
@@ -1589,6 +1607,19 @@ class Tests_Auth extends WP_UnitTestCase {
 			'Application passwords should be allowed for API authentication'
 		);
 		$this->assertSame( $item['uuid'], rest_get_authenticated_app_password() );
+	}
+
+	/**
+	 * @ticket 21022
+	 * @ticket 63203
+	 *
+	 * @covers WP_Application_Passwords::create_new_application_password
+	 */
+	public function test_application_password_is_hashed_with_fast_hash() {
+		// Create a new app-only password.
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		$this->assertStringStartsWith( '$generic$', $item['password'] );
 	}
 
 	/**
@@ -1966,6 +1997,37 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * Test the tests
 	 *
+	 * @covers Tests_Auth::set_application_password_with_plain_bcrypt
+	 *
+	 * @ticket 21022
+	 * @ticket 63203
+	 */
+	public function test_set_application_password_with_plain_bcrypt() {
+		// Set an application password with the plain_bcrypt algorithm.
+		$uuid = self::set_application_password_with_plain_bcrypt( 'password', self::$user_id );
+
+		// Ensure the password is hashed with plain_bcrypt.
+		$hash = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid )['password'];
+		$this->assertStringStartsWith( '$2y$', $hash );
+	}
+
+	/**
+	 * Creates an application password that is hashed using bcrypt instead of the generic algorithm.
+	 *
+	 * This is ultimately used to mimic a plugged version of `wp_hash_password()` that uses bcrypt and
+	 * facilitate backwards compatibility testing.
+	 *
+	 * @param string $password The password to hash.
+	 * @param int    $user_id  The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
+	private static function set_application_password_with_plain_bcrypt( string $password, int $user_id ) {
+		return self::set_application_password( password_hash( $password, PASSWORD_BCRYPT ), $user_id );
+	}
+
+	/**
+	 * Test the tests
+	 *
 	 * @covers Tests_Auth::set_application_password_with_phpass
 	 *
 	 * @ticket 21022
@@ -1979,13 +2041,33 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '$P$', $hash );
 	}
 
+	/**
+	 * Creates an application password that is hashed using a phpass portable hash instead of the generic algorithm.
+	 *
+	 * This facilitate backwards compatibility testing.
+	 *
+	 * @param string $password The password to hash.
+	 * @param int    $user_id  The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
 	private static function set_application_password_with_phpass( string $password, int $user_id ) {
+		return self::set_application_password( self::$wp_hasher->HashPassword( $password ), $user_id );
+	}
+
+	/**
+	 * Creates an application password using the given password hash.
+	 *
+	 * @param string $hash    The password hash.
+	 * @param int    $user_id The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
+	private static function set_application_password( string $hash, int $user_id ) {
 		$uuid = wp_generate_uuid4();
 		$item = array(
 			'uuid'      => $uuid,
 			'app_id'    => '',
 			'name'      => 'Test',
-			'password'  => self::$wp_hasher->HashPassword( $password ),
+			'password'  => $hash,
 			'created'   => time(),
 			'last_used' => null,
 			'last_ip'   => null,
@@ -2007,9 +2089,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	private static function get_default_bcrypt_cost(): int {
-		$hash = password_hash( 'password', PASSWORD_BCRYPT );
-		$info = password_get_info( $hash );
-
-		return $info['options']['cost'];
+		return 5;
 	}
 }
