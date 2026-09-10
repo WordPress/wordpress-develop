@@ -2014,7 +2014,7 @@ class wpdb {
 			/**
 			 * Load custom DB error template, if present.
 			 * A 500 status header and no-cache headers are now sent
- 			 * before loading a custom db-error.php drop-in.
+			 * before loading a custom db-error.php drop-in.
 			*/
 			if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
 				status_header( 500 );
