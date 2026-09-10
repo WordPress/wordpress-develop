@@ -175,7 +175,6 @@ class WP_oEmbed {
 		 * | Twitter      | twitter.com/user                          | 4.7.0   |
 		 * | Twitter      | twitter.com/likes                         | 4.7.0   |
 		 * | Twitter      | twitter.com/lists                         | 4.7.0   |
-		 * | Screencast   | screencast.com                            | 4.8.0   |
 		 * | Amazon       | amazon.com (com.mx, com.br, ca)           | 4.9.0   |
 		 * | Amazon       | amazon.de (fr, it, es, in, nl, ru, co.uk) | 4.9.0   |
 		 * | Amazon       | amazon.co.jp (com.au)                     | 4.9.0   |
@@ -807,7 +806,7 @@ class WP_oEmbed {
 	 *
 	 * @param string|false $html Existing HTML.
 	 * @param object       $data Data object from WP_oEmbed::data2html()
-	 * @param string       $url The original URL passed to oEmbed.
+	 * @param string       $url  The original URL passed to oEmbed.
 	 * @return string|false Possibly modified $html.
 	 */
 	public function _strip_newlines( $html, $data, $url ) {

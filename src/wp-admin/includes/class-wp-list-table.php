@@ -427,11 +427,15 @@ class WP_List_Table {
 	 * @since 6.1.0
 	 *
 	 * @param array $link_data {
-	 *     An array of link data.
+	 *     An array of link data, keyed by view.
 	 *
-	 *     @type string $url     The link URL.
-	 *     @type string $label   The link label.
-	 *     @type bool   $current Optional. Whether this is the currently selected view.
+	 *     @type array ...$0 {
+	 *         Data for a single view link.
+	 *
+	 *         @type string $url     The link URL.
+	 *         @type string $label   The link label.
+	 *         @type bool   $current Optional. Whether this is the currently selected view.
+	 *     }
 	 * }
 	 * @return string[] An array of link markup. Keys match the `$link_data` input array.
 	 */
@@ -729,7 +733,7 @@ class WP_List_Table {
 		 *
 		 * @since 5.7.0
 		 *
-		 * @param object[]|false $months   'Months' drop-down results. Default false.
+		 * @param object[]|false $months    'Months' drop-down results. Default false.
 		 * @param string         $post_type The post type.
 		 */
 		$months = apply_filters( 'pre_months_dropdown_query', false, $post_type );

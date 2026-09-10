@@ -2,14 +2,12 @@
  * @output wp-includes/js/wp-emoji-loader.js
  */
 
-/* eslint-env es6 */
-
 // Note: This is loaded as a script module, so there is no need for an IIFE to prevent pollution of the global scope.
 
 /**
  * Emoji Settings as exported in PHP via _print_emoji_detection_script().
  * @typedef WPEmojiSettings
- * @type {object}
+ * @type {Object}
  * @property {?object} source
  * @property {?string} source.concatemoji
  * @property {?string} source.twemoji
@@ -29,7 +27,7 @@ window._wpemojiSettings = settings;
 /**
  * Support tests.
  * @typedef SupportTests
- * @type {object}
+ * @type {Object}
  * @property {?boolean} flag
  * @property {?boolean} emoji
  */
@@ -44,7 +42,7 @@ const tests = [ 'flag', 'emoji' ];
  *
  * @private
  *
- * @returns {boolean}
+ * @return {boolean} True if the browser supports offloading to a Worker.
  */
 function supportsWorkerOffloading() {
 	return (
@@ -58,8 +56,8 @@ function supportsWorkerOffloading() {
 
 /**
  * @typedef SessionSupportTests
- * @type {object}
- * @property {number} timestamp
+ * @type {Object}
+ * @property {number}       timestamp
  * @property {SupportTests} supportTests
  */
 
@@ -70,7 +68,7 @@ function supportsWorkerOffloading() {
  *
  * @private
  *
- * @returns {?SupportTests} Support tests, or null if not set or older than 1 week.
+ * @return {?SupportTests} Support tests, or null if not set or older than 1 week.
  */
 function getSessionSupportTests() {
 	try {
@@ -130,8 +128,8 @@ function setSessionSupportTests( supportTests ) {
  * @private
  *
  * @param {CanvasRenderingContext2D} context 2D Context.
- * @param {string} set1 Set of Emoji to test.
- * @param {string} set2 Set of Emoji to test.
+ * @param {string}                   set1    Set of Emoji to test.
+ * @param {string}                   set2    Set of Emoji to test.
  *
  * @return {boolean} True if the two sets render the same.
  */
@@ -180,7 +178,7 @@ function emojiSetsRenderIdentically( context, set1, set2 ) {
  * @private
  *
  * @param {CanvasRenderingContext2D} context 2D Context.
- * @param {string} emoji Emoji to test.
+ * @param {string}                   emoji   Emoji to test.
  *
  * @return {boolean} True if the center point is empty.
  */
@@ -211,10 +209,10 @@ function emojiRendersEmptyCenterPoint( context, emoji ) {
  *
  * @private
  *
- * @param {CanvasRenderingContext2D} context 2D Context.
- * @param {string} type Whether to test for support of "flag" or "emoji".
- * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
- * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ * @param {CanvasRenderingContext2D} context                      2D Context.
+ * @param {string}                   type                         Whether to test for support of "flag" or "emoji".
+ * @param {Function}                 emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {Function}                 emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
  *
  * @return {boolean} True if the browser can render emoji, false if it cannot.
  */
@@ -304,9 +302,9 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
  *
  * @private
  *
- * @param {string[]} tests Tests.
- * @param {Function} browserSupportsEmoji Reference to browserSupportsEmoji function, needed due to minification.
- * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {string[]} tests                        Tests.
+ * @param {Function} browserSupportsEmoji         Reference to browserSupportsEmoji function, needed due to minification.
+ * @param {Function} emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
  * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
  *
  * @return {SupportTests} Support tests.

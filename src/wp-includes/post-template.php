@@ -37,14 +37,15 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$display` argument is true or the title is empty,
- *                     current post title if `$display` is false.
+ * @return string|null|void Current post title when `$display` is false, null when the
+ *                          title is empty. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $before . $title . $after;
@@ -76,7 +77,13 @@ function the_title( $before = '', $after = '', $display = true ) {
  *     @type bool    $echo   Whether to echo or return the title. Default true for echo.
  *     @type WP_Post $post   Current post object to retrieve the title for.
  * }
- * @return void|string Void if 'echo' argument is true, the title attribute if 'echo' is false.
+ * @return string|null|void The title attribute when 'echo' is false, null when the title
+ *                          is empty. Nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string|null
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function the_title_attribute( $args = '' ) {
 	$defaults    = array(
@@ -90,7 +97,7 @@ function the_title_attribute( $args = '' ) {
 	$title = get_the_title( $parsed_args['post'] );
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
@@ -1272,33 +1279,38 @@ function wp_dropdown_pages( $args = '' ) {
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a list of pages. See get_pages() for additional arguments.
  *
- *     @type int          $child_of     Display only the sub-pages of a single page by ID. Default 0 (all pages).
- *     @type string       $authors      Comma-separated list of author IDs. Default empty (all authors).
- *     @type string       $date_format  PHP date format to use for the listed pages. Relies on the 'show_date' parameter.
- *                                      Default is the value of 'date_format' option.
- *     @type int          $depth        Number of levels in the hierarchy of pages to include in the generated list.
- *                                      Accepts -1 (any depth), 0 (all pages), 1 (top-level pages only), and n (pages to
- *                                      the given n depth). Default 0.
- *     @type bool         $echo         Whether or not to echo the list of pages. Default true.
- *     @type string       $exclude      Comma-separated list of page IDs to exclude. Default empty.
- *     @type array        $include      Comma-separated list of page IDs to include. Default empty.
- *     @type string       $link_after   Text or HTML to follow the page link label. Default null.
- *     @type string       $link_before  Text or HTML to precede the page link label. Default null.
- *     @type string       $post_type    Post type to query for. Default 'page'.
- *     @type string|array $post_status  Comma-separated list or array of post statuses to include. Default 'publish'.
- *     @type string       $show_date    Whether to display the page publish or modified date for each page. Accepts
- *                                      'modified' or any other value. An empty value hides the date. Default empty.
- *     @type string       $sort_column  Comma-separated list of column names to sort the pages by. Accepts 'post_author',
- *                                      'post_date', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt',
- *                                      'menu_order', 'post_parent', 'ID', 'rand', or 'comment_count'. Default 'post_title'.
- *     @type string       $title_li     List heading. Passing a null or empty value will result in no heading, and the list
- *                                      will not be wrapped with unordered list `<ul>` tags. Default 'Pages'.
- *     @type string       $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'.
- *                                      Default 'preserve'.
- *     @type Walker       $walker       Walker instance to use for listing pages. Default empty which results in a
- *                                      Walker_Page instance being used.
+ *     @type int               $child_of     Display only the sub-pages of a single page by ID. Default 0 (all pages).
+ *     @type string            $authors      Comma-separated list of author IDs. Default empty (all authors).
+ *     @type string            $date_format  PHP date format to use for the listed pages. Relies on the 'show_date' parameter.
+ *                                           Default is the value of 'date_format' option.
+ *     @type int               $depth        Number of levels in the hierarchy of pages to include in the generated list.
+ *                                           Accepts -1 (any depth), 0 (all pages), 1 (top-level pages only), and n (pages to
+ *                                           the given n depth). Default 0.
+ *     @type bool              $echo         Whether or not to echo the list of pages. Default true.
+ *     @type string            $exclude      Comma-separated list of page IDs to exclude. Default empty.
+ *     @type array             $include      Comma-separated list of page IDs to include. Default empty.
+ *     @type string            $link_after   Text or HTML to follow the page link label. Default null.
+ *     @type string            $link_before  Text or HTML to precede the page link label. Default null.
+ *     @type string            $post_type    Post type to query for. Default 'page'.
+ *     @type string|array      $post_status  Comma-separated list or array of post statuses to include. Default 'publish'.
+ *     @type string            $show_date    Whether to display the page publish or modified date for each page. Accepts
+ *                                           'modified' or any other value. An empty value hides the date. Default empty.
+ *     @type string            $sort_column  Comma-separated list of column names to sort the pages by. Accepts 'post_author',
+ *                                           'post_date', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt',
+ *                                           'menu_order', 'post_parent', 'ID', 'rand', or 'comment_count'. Default 'post_title'.
+ *     @type string|false|null $title_li     List heading. Passing a null or empty value will result in no heading, and the list
+ *                                           will not be wrapped with unordered list `<ul>` tags. Default 'Pages'.
+ *     @type string            $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'.
+ *                                           Default 'preserve'.
+ *     @type Walker            $walker       Walker instance to use for listing pages. Default empty which results in a
+ *                                           Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML list of pages if 'echo' is false.
+ * @return string|void HTML list of pages if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_list_pages( $args = '' ) {
 	$defaults = array(
@@ -1421,7 +1433,12 @@ function wp_list_pages( $args = '' ) {
  *     @type Walker          $walker       Walker instance to use for listing pages. Default empty which results in a
  *                                         Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML menu if 'echo' is false.
+ * @return string|void HTML menu if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_page_menu( $args = array() ) {
 	$defaults = array(
@@ -1619,7 +1636,7 @@ function walk_page_dropdown_tree( ...$args ) {
  * @param int|WP_Post $post       Optional. Post ID or post object.
  * @param bool        $fullsize   Optional. Whether to use full size. Default false.
  * @param bool        $deprecated Deprecated. Not used.
- * @param bool        $permalink Optional. Whether to include permalink. Default false.
+ * @param bool        $permalink  Optional. Whether to include permalink. Default false.
  */
 function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false, $permalink = false ) {
 	if ( ! empty( $deprecated ) ) {
