@@ -10877,6 +10877,370 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/notes": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "edit",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "after": {
+                            "description": "Limit response to comments published after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to comments assigned to specific user IDs. Requires authorization.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "required": false
+                        },
+                        "author_exclude": {
+                            "description": "Ensure result set excludes comments assigned to specific user IDs. Requires authorization.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "required": false
+                        },
+                        "before": {
+                            "description": "Limit response to comments published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by comment attribute.",
+                            "type": "string",
+                            "default": "date_gmt",
+                            "enum": [
+                                "date",
+                                "date_gmt",
+                                "id",
+                                "include",
+                                "post",
+                                "parent",
+                                "type"
+                            ],
+                            "required": false
+                        },
+                        "post": {
+                            "description": "Limit result set to comments assigned to specific post IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "required": true
+                        },
+                        "status": {
+                            "default": "all",
+                            "description": "Limit result set to comments assigned a specific status. Requires authorization.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "author": {
+                            "description": "The ID of the user object, if author was a user.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "author_name": {
+                            "description": "Display name for the comment author.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "content": {
+                            "description": "The content for the comment.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the comment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the comment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "date": {
+                            "description": "The date the comment was published, in the site's timezone.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "date_gmt": {
+                            "description": "The date the comment was published, as GMT.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "parent": {
+                            "default": 0,
+                            "description": "The ID for the parent of the comment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "post": {
+                            "default": 0,
+                            "description": "The ID of the associated post object.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "status": {
+                            "description": "State of the comment.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/notes"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/notes/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the comment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "password": {
+                            "description": "The password for the parent post of the comment (if the post is password protected).",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the comment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID of the user object, if author was a user.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "author_name": {
+                            "description": "Display name for the comment author.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "content": {
+                            "description": "The content for the comment.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the comment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the comment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "date": {
+                            "description": "The date the comment was published, in the site's timezone.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "date_gmt": {
+                            "description": "The date the comment was published, as GMT.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "parent": {
+                            "description": "The ID for the parent of the comment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "post": {
+                            "description": "The ID of the associated post object.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "status": {
+                            "description": "State of the comment.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the comment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Whether to bypass Trash and force deletion.",
+                            "required": false
+                        },
+                        "password": {
+                            "description": "The password for the parent post of the comment (if the post is password protected).",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/search": {
             "namespace": "wp/v2",
             "methods": [
