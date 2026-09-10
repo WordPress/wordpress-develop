@@ -670,9 +670,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<h3>
 						<a href="<?php echo esc_url( $details_link ); ?>" class="thickbox open-plugin-details-modal">
 						<?php echo $title; ?>
-						<img src="<?php echo esc_url( $plugin_icon_url ); ?>" class="plugin-icon" alt="" />
 						</a>
 					</h3>
+					<p class="authors"><?php echo $author; ?></p>
 				</div>
 				<div class="action-links">
 					<?php
@@ -683,8 +683,17 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				</div>
 				<div class="desc column-description">
 					<p><?php echo $description; ?></p>
-					<p class="authors"><?php echo $author; ?></p>
 				</div>
+				<?php
+				/*
+				 * The icon is decorative and kept out of the details link (and out of
+				 * tab order via aria-hidden) so the heading link remains the single,
+				 * unambiguous way to reach the plugin details for keyboard and screen
+				 * reader users. A click handler in plugin-install.js forwards mouse/
+				 * touch clicks on the icon to that same link. See #64686.
+				 */
+				?>
+				<img src="<?php echo esc_url( $plugin_icon_url ); ?>" class="plugin-icon" alt="" aria-hidden="true" />
 			</div>
 			<?php
 			$dependencies_notice = $this->get_dependencies_notice( $plugin );
