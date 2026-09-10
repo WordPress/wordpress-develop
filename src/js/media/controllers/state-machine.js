@@ -106,18 +106,24 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 // Map all event binding and triggering on a StateMachine to its `states` collection.
 _.each([ 'on', 'off', 'trigger' ], function( method ) {
 	/**
+	 * Binds an event listener to events in the StateMachine's states collection.
+	 *
 	 * @function on
 	 * @memberOf wp.media.controller.StateMachine
 	 * @instance
 	 * @return {wp.media.controller.StateMachine} Returns itself to allow chaining.
 	 */
 	/**
+	 * Unbinds an event listener from the StateMachine's states collection.
+	 *
 	 * @function off
 	 * @memberOf wp.media.controller.StateMachine
 	 * @instance
 	 * @return {wp.media.controller.StateMachine} Returns itself to allow chaining.
 	 */
 	/**
+	 * Triggers an event on the StateMachine's states collection.
+	 *
 	 * @function trigger
 	 * @memberOf wp.media.controller.StateMachine
 	 * @instance

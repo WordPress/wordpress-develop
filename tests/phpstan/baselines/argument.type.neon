@@ -119,11 +119,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php
 		-
-			message: '#^Parameter \#1 \$bytes of function size_format expects int\|string, float\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-site-health.php
-		-
 			message: '#^Parameter \#2 \$allowed_html of function wp_kses expects array\<array\>\|string, array\<string, array\<string, bool\>\|true\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -779,10 +774,10 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/class-wp-embed.php
 		-
-			message: '#^Parameter \#3 \$priority of function _wp_filter_build_unique_id expects int, false given\.$#'
+			message: '#^Parameter \#1 \$handle of function curl_getinfo expects resource, \(resource\|false\) given\.$#'
 			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-hook.php
+			count: 2
+			path: ../../../src/wp-includes/class-wp-http-curl.php
 		-
 			message: '#^Parameter \#3 \$value of function curl_setopt expects int, string given\.$#'
 			identifier: argument.type
@@ -938,6 +933,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/formatting.php
+		-
+			message: '#^Parameter \#1 \$finfo of function finfo_file expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/functions.php
 		-
 			message: '#^Parameter \#1 \$prefix of function uniqid expects string, int\<0, max\> given\.$#'
 			identifier: argument.type
@@ -1129,7 +1129,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/pluggable.php
 		-
-			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array given\.$#'
+			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array\<mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post-template.php
