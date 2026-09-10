@@ -638,11 +638,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
-	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_with_url() {
 		$file = wp_crop_image(
-			'https://s.w.org/screenshots/3.9/dashboard.png',
+			'file://' . DIR_TESTDATA . '/images/test-image.png',
 			0,
 			0,
 			100,
