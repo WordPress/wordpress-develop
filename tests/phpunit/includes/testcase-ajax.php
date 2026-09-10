@@ -122,7 +122,13 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		remove_action( 'admin_init', '_maybe_update_plugins' );
 		remove_action( 'admin_init', '_maybe_update_themes' );
 
-		// Register the core actions.
+		self::register_core_actions();
+	}
+
+	/**
+	 * Registers the core Ajax actions.
+	 */
+	protected static function register_core_actions() {
 		foreach ( array_merge( self::$_core_actions_get, self::$_core_actions_post ) as $action ) {
 			if ( function_exists( 'wp_ajax_' . str_replace( '-', '_', $action ) ) ) {
 				add_action( 'wp_ajax_' . $action, 'wp_ajax_' . str_replace( '-', '_', $action ), 1 );
@@ -137,6 +143,15 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+
+		/*
+		 * The shared hook snapshot may have been captured before an Ajax test case
+		 * registered these callbacks, then restored after another randomized test.
+		 */
+		self::register_core_actions();
+		remove_action( 'admin_init', '_maybe_update_core' );
+		remove_action( 'admin_init', '_maybe_update_plugins' );
+		remove_action( 'admin_init', '_maybe_update_themes' );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
