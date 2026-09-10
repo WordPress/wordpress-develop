@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
@@ -155,7 +154,11 @@ module.exports = function(grunt) {
 		]
 	};
 
-	// Load grunt-* tasks.
+	/**
+	 * Loads the Grunt tasks for the given dependency.
+	 *
+	 * @param {string} dependency The name of the Grunt task to load.
+	 */
 	function loadGruntTasks( dependency ) {
 		var contrib = key === 'contrib' ? 'contrib-' : '';
 		grunt.loadNpmTasks( 'grunt-' + contrib + dependency );
@@ -1762,6 +1765,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'precommit:js', [
 		'webpack:prod',
 		'jshint:corejs',
+		'lint:jsdoc',
 		'typecheck:js',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
@@ -1797,6 +1801,11 @@ module.exports = function(grunt) {
 			path.dirname( __dirname ) + '/.svn'
 		] );
 
+		/**
+		 * Searches for the first version control directory in the given set.
+		 *
+		 * @param {string[]} set Array of directory paths to check.
+		 */
 		function find( set ) {
 			var dir;
 
@@ -1809,6 +1818,9 @@ module.exports = function(grunt) {
 			}
 		}
 
+		/**
+		 * Runs all tasks.
+		 */
 		function runAllTasks() {
 			grunt.log.writeln( 'Cannot determine which files are modified as SVN and GIT are not available.' );
 			grunt.log.writeln( 'Running all tasks and all tests.' );
@@ -1824,6 +1836,11 @@ module.exports = function(grunt) {
 			done();
 		}
 
+		/**
+		 * Determines which precommit tasks to run based on modified files detected by version control.
+		 *
+		 * @param {string} type The version control type: 'git' or 'svn'.
+		 */
 		function run( type ) {
 			var command = map[ type ].split( ' ' );
 
@@ -1833,13 +1850,23 @@ module.exports = function(grunt) {
 			}, function( error, result, code ) {
 				var taskList = [];
 
-				// Callback for finding modified paths.
+				/**
+				 * Checks if the given path appears in the version control status output.
+				 *
+				 * @param {string} path The path to check.
+				 * @return {boolean} True if the path is found, false otherwise.
+				 */
 				function testPath( path ) {
 					var regex = new RegExp( ' ' + path + '$', 'm' );
 					return regex.test( result.stdout );
 				}
 
-				// Callback for finding modified files by extension.
+				/**
+				 * Checks if files with the given extension appear in the version control status output.
+				 *
+				 * @param {string} extension The file extension to check for.
+				 * @return {boolean} True if the file with the given extension is found, false otherwise.
+				 */
 				function testExtension( extension ) {
 					var regex = new RegExp( '\.' + extension + '$', 'm' );
 					return regex.test( result.stdout );
@@ -2313,6 +2340,18 @@ module.exports = function(grunt) {
 		grunt.util.spawn( {
 			cmd: 'npm',
 			args: [ 'run', 'typecheck:js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'lint:jsdoc', 'Runs JSDoc linting on JavaScript files.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'npm',
+			args: [ 'run', 'lint:jsdoc' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );

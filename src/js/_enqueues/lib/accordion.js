@@ -29,6 +29,11 @@
  * @output wp-admin/js/accordion.js
  */
 
+/**
+ * Handles the accordion functionality.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 ( function( $ ){
 
 	$( function () {

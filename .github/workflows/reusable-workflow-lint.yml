@@ -29,6 +29,10 @@ jobs:
         with:
           args: "-color -verbose"
 
+      # actionlint shellchecks inline `run:` blocks, but does not read composite actions.
+      - name: Run shellcheck on composite action scripts
+        run: find .github -path '.github/actions/*' -name '*.sh' -print0 | xargs -0 -r shellcheck
+
   # Runs the Zizmor GitHub Action workflow file linter.
   #
   # See https://github.com/zizmorcore/zizmor
