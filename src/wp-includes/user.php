@@ -2172,7 +2172,7 @@ function validate_username( $username ) {
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
  * @since 5.9.0 The `meta_input` field can be passed to `$userdata` to allow addition of user meta data.
- * @since 7.2.0 A non-string `locale` field is ignored.
+ * @since 7.2.0 A non-string `locale` field is stored as an empty string.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *

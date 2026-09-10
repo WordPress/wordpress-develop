@@ -21,7 +21,7 @@
  * always be filtered using the {@see 'locale'} hook.
  *
  * @since 1.5.0
- * @since 7.2.0 Non-string values are ignored.
+ * @since 7.2.0 Non-string and empty values are ignored.
  *
  * @global string $locale           The current locale.
  * @global string $wp_local_package Locale code of the package.
@@ -32,6 +32,10 @@ function get_locale() {
 	global $locale, $wp_local_package;
 
 	if ( isset( $locale ) ) {
+		/*
+		 * The global is set by wp-config.php, by a plugin, or by this function
+		 * on an earlier call, so it carries no type.
+		 */
 		if ( empty( $locale ) || ! is_string( $locale ) ) {
 			$locale = 'en_US';
 		}
@@ -88,7 +92,7 @@ function get_locale() {
 	/**
 	 * Filters the locale ID of the WordPress installation.
 	 *
-	 * A value that is not a non-empty string is ignored.
+	 * A non-string or empty value is ignored.
 	 *
 	 * @since 1.5.0
 	 *
@@ -148,7 +152,7 @@ function get_user_locale( $user = 0 ) {
  * Determines the current locale desired for the request.
  *
  * @since 5.0.0
- * @since 7.2.0 Non-string values are ignored.
+ * @since 7.2.0 Non-string and empty values are ignored.
  *
  * @global string $pagenow          The filename of the current screen.
  * @global string $wp_local_package Locale code of the package.
@@ -203,7 +207,7 @@ function determine_locale() {
 	/**
 	 * Filters the locale for the current request.
 	 *
-	 * A value that is not a non-empty string is ignored.
+	 * A non-string or empty value is ignored.
 	 *
 	 * @since 5.0.0
 	 *
