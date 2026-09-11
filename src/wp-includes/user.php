@@ -3929,7 +3929,7 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
  */
 function send_user_email_change_confirmation_email( $user, $email ) {
 	if ( ! $user instanceof WP_User || ! $user->exists() ) {
-		return;
+		return null;
 	}
 
 	/*
@@ -3938,7 +3938,7 @@ function send_user_email_change_confirmation_email( $user, $email ) {
 	 * that is already in use. See #44672.
 	 */
 	if ( 0 === strcasecmp( $user->user_email, $email ) ) {
-		return;
+		return null;
 	}
 
 	if ( ! is_email( $email ) ) {
@@ -3973,7 +3973,7 @@ function send_user_email_change_confirmation_email( $user, $email ) {
 	$should_send_email_for_change = apply_filters( 'should_send_email_for_email_change', $should_send_email_for_change, $user, $email );
 
 	if ( ! $should_send_email_for_change ) {
-		return;
+		return null;
 	}
 
 	$hash           = md5( $email . time() . wp_rand() );
