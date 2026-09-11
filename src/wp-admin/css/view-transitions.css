@@ -3,7 +3,40 @@
 		navigation: auto;
 	}
 
+	/*
+	 * Give each top-level menu item its own view transition name — its id,
+	 * such as "menu-posts" — so each one is captured as an independent group
+	 * and animates from its old position and size to its new ones across a
+	 * navigation. This produces the accordion effect: the previously open
+	 * section collapses as the newly current one expands, instead of the
+	 * whole menu simply cross-fading. attr() falls back to "none" for any
+	 * item whose id is missing or is not a valid custom identifier. The
+	 * shared wp-menu-top class lets the image-pair rule below address every
+	 * menu-top group at once.
+	 */
 	#adminmenu > .menu-top {
 		view-transition-name: attr(id type(<custom-ident>), none);
+		view-transition-class: wp-menu-top;
+	}
+
+	/*
+	 * Name the collapse button too, so it slides into place with the menu
+	 * items instead of cross-fading as part of the page root.
+	 */
+	#collapse-menu {
+		view-transition-name: collapse-menu;
+	}
+
+	/*
+	 * Clip each menu-top's snapshot to its animating group box. By default a
+	 * captured snapshot keeps its full intrinsic height, so the new (expanded)
+	 * submenu paints at full height from the first frame and overlaps the
+	 * items below while they are still sliding down. Clipping the image pair
+	 * to the group — whose height animates from the link row to the full
+	 * expanded height — makes the submenu wipe open, and closed in reverse,
+	 * in step with those items.
+	 */
+	::view-transition-image-pair(.wp-menu-top) {
+		overflow: clip;
 	}
 }
