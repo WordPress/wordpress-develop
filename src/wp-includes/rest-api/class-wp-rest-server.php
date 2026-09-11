@@ -1007,7 +1007,11 @@ class WP_REST_Server {
 				if ( is_string( $handler['methods'] ) ) {
 					$methods = explode( ',', $handler['methods'] );
 				} elseif ( is_array( $handler['methods'] ) ) {
-					$methods = $handler['methods'];
+					$methods = array();
+
+					foreach ( $handler['methods'] as $method ) {
+						$methods = array_merge( $methods, explode( ',', $method ) );
+					}
 				} else {
 					$methods = array();
 				}

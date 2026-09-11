@@ -362,6 +362,33 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65905
+	 */
+	public function test_route_method_array_with_comma_separated_values() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( 'GET', 'POST, PUT, PATCH' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
+
+		$this->assertSame(
+			array(
+				'GET'   => true,
+				'POST'  => true,
+				'PUT'   => true,
+				'PATCH' => true,
+			),
+			$routes['/test-ns/test'][0]['methods']
+		);
+	}
+
 	public function test_options_request() {
 		register_rest_route(
 			'test-ns',
