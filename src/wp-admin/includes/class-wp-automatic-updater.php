@@ -1520,6 +1520,21 @@ class WP_Automatic_Updater {
 
 		$email = compact( 'to', 'subject', 'body', 'headers' );
 
+		if ( 'fail' === $type || 'mixed' === $type ) {
+			$fatal_errors = get_transient( 'wp_updater_last_fatal_error' );
+			if ( is_array( $fatal_errors ) && ! empty( $fatal_errors ) ) {
+				$email['body'] .= "\n\n=== " . __( 'Last fatal PHP error', 'default' ) . " ===\n";
+				foreach ( $fatal_errors as $plugin_slug => $fatal_error ) {
+					if ( ! is_string( $fatal_error ) || ! is_string( $plugin_slug ) ) {
+						continue;
+					}
+					$email['body'] .= '• [' . $plugin_slug . '] ' . $fatal_error . "\n";
+				}
+				$email['body'] .= "========================================\n";
+				delete_transient( 'wp_updater_last_fatal_error' );
+			}
+		}
+
 		/**
 		 * Filters the email sent following an automatic background update for plugins and themes.
 		 *
@@ -1538,21 +1553,6 @@ class WP_Automatic_Updater {
 		 * @param array  $successful_updates A list of updates that succeeded.
 		 * @param array  $failed_updates     A list of updates that failed.
 		 */
-		if ( 'fail' === $type || 'mixed' === $type ) {
-			$fatal_errors = get_transient( 'wp_updater_last_fatal_error' );
-			if ( is_array( $fatal_errors ) && ! empty( $fatal_errors ) ) {
-				$email['body'] .= "\n\n=== " . __( 'Last fatal PHP error', 'default' ) . " ===\n";
-				foreach ( $fatal_errors as $plugin_slug => $fatal_error ) {
-					if ( ! is_string( $fatal_error ) || ! is_string( $plugin_slug ) ) {
-						continue;
-					}
-					$email['body'] .= '• [' . $plugin_slug . '] ' . $fatal_error . "\n";
-				}
-				$email['body'] .= "========================================\n";
-				delete_transient( 'wp_updater_last_fatal_error' );
-			}
-		}
-
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
 		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
