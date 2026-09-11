@@ -276,11 +276,11 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	}
 
 	/**
-	 * Checks if any callbacks have been registered for this hook.
+	 * Checks if any callbacks have been registered for the filter hook.
 	 *
 	 * @since 4.7.0
 	 *
-	 * @return bool True if callbacks have been registered for the current hook, otherwise false.
+	 * @return bool True if callbacks have been registered for the filter hook, otherwise false.
 	 */
 	public function has_filters() {
 		foreach ( $this->callbacks as $callbacks ) {
@@ -293,7 +293,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	}
 
 	/**
-	 * Removes all callbacks from the current filter.
+	 * Removes all callbacks registered on the filter hook.
 	 *
 	 * @since 4.7.0
 	 *
