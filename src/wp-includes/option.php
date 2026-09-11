@@ -1397,9 +1397,7 @@ function delete_transient( $transient ) {
 		$option         = '_transient_' . $transient;
 		$result         = delete_option( $option );
 
-		if ( $result ) {
-			delete_option( $option_timeout );
-		}
+		delete_option( $option_timeout );
 	}
 
 	if ( $result ) {
@@ -1629,7 +1627,13 @@ function set_transient( $transient, $value, $expiration = 0 ) {
  * The multi-table delete syntax is used to delete the transient record
  * from table a, and the corresponding transient_timeout record from table b.
  *
+ * Orphaned timeout rows — where a `_transient_timeout_` row exists without a
+ * matching `_transient_` row — are also removed when their timestamp has passed.
+ * These can be created when a request dies between the two writes in
+ * set_transient(), leaving the timeout row committed but the value row absent.
+ *
  * @since 4.9.0
+ * @since 7.2.0 Orphaned timeout rows without a matching value row are also deleted.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1655,6 +1659,20 @@ function delete_expired_transients( $force_db = false ) {
 		)
 	);
 
+	// Remove orphaned transient timeout rows (timeout exists, value row is missing).
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE a FROM {$wpdb->options} a
+			LEFT JOIN {$wpdb->options} b
+				ON b.option_name = CONCAT( '_transient_', SUBSTRING( a.option_name, 20 ) )
+			WHERE a.option_name LIKE %s
+			AND a.option_value < %d
+			AND b.option_id IS NULL",
+			$wpdb->esc_like( '_transient_timeout_' ) . '%',
+			time()
+		)
+	);
+
 	if ( ! is_multisite() ) {
 		// Single site stores site transients in the options table.
 		$wpdb->query(
@@ -1669,6 +1687,20 @@ function delete_expired_transients( $force_db = false ) {
 				time()
 			)
 		);
+
+		// Remove orphaned site transient timeout rows (timeout exists, value row is missing).
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE a FROM {$wpdb->options} a
+				LEFT JOIN {$wpdb->options} b
+					ON b.option_name = CONCAT( '_site_transient_', SUBSTRING( a.option_name, 25 ) )
+				WHERE a.option_name LIKE %s
+				AND a.option_value < %d
+				AND b.option_id IS NULL",
+				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
+				time()
+			)
+		);
 	} elseif ( is_main_site() && is_main_network() ) {
 		// Multisite stores site transients in the sitemeta table.
 		$wpdb->query(
@@ -1679,6 +1711,21 @@ function delete_expired_transients( $force_db = false ) {
 				AND b.meta_key = CONCAT( '_site_transient_timeout_', SUBSTRING( a.meta_key, 17 ) )
 				AND b.meta_value < %d",
 				$wpdb->esc_like( '_site_transient_' ) . '%',
+				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
+				time()
+			)
+		);
+
+		// Remove orphaned site transient timeout rows from sitemeta (timeout exists, value row is missing).
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE a FROM {$wpdb->sitemeta} a
+				LEFT JOIN {$wpdb->sitemeta} b
+					ON b.meta_key = CONCAT( '_site_transient_', SUBSTRING( a.meta_key, 25 ) )
+					AND b.site_id = a.site_id
+				WHERE a.meta_key LIKE %s
+				AND a.meta_value < %d
+				AND b.meta_id IS NULL",
 				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
 				time()
 			)
@@ -2528,9 +2575,7 @@ function delete_site_transient( $transient ) {
 		$option         = '_site_transient_' . $transient;
 		$result         = delete_site_option( $option );
 
-		if ( $result ) {
-			delete_site_option( $option_timeout );
-		}
+		delete_site_option( $option_timeout );
 	}
 
 	if ( $result ) {
