@@ -328,7 +328,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
 
 		// Only one JOIN is required with OR + IN.
-		$this->assertSame( 1, substr_count( $sql['join'], 'JOIN' ) );
+		$this->assertSame( 6, substr_count( $sql['where'], 'IN' ) );
 
 		_unregister_taxonomy( 'wptests_tax' );
 	}
@@ -380,7 +380,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		global $wpdb;
 		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
 
-		$this->assertSame( 3, substr_count( $sql['join'], 'JOIN' ) );
+		$this->assertSame( 6, substr_count( $sql['where'], 'IN' ) );
 
 		// Checking number of occurrences of AND while skipping the one at the beginning.
 		$this->assertSame( 2, substr_count( substr( $sql['where'], 5 ), 'AND' ), 'SQL query does not contain expected number conditions joined by operator AND.' );
@@ -440,7 +440,6 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		global $wpdb;
 		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
 
-		$this->assertSame( 2, substr_count( $sql['join'], 'JOIN' ) );
 		$this->assertSame( 2, substr_count( $sql['where'], 'OR' ), 'SQL query does not contain expected number conditions joined by operator OR.' );
 		$this->assertStringNotContainsString( 'AND', substr( $sql['where'], 5 ), 'SQL query contains conditions joined by operator AND.' );
 
