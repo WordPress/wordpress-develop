@@ -95,7 +95,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $new_password );
 		$this->assertSame(
-			array( 'uuid', 'app_id', 'name', 'password', 'created', 'last_used', 'last_ip' ),
+			array( 'uuid', 'app_id', 'name', 'password', 'created', 'last_used', 'last_ip', 'expires' ),
 			array_keys( $new_item )
 		);
 		$this->assertSame( $args['name'], $new_item['name'] );
@@ -106,9 +106,15 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			'should create new password when no passwords exists' => array(
 				'args' => array( 'name' => 'test3' ),
 			),
-			'should create new password when name is unique'      => array(
+			'should create new password when name is unique' => array(
 				'args'  => array( 'name' => 'test3' ),
 				'names' => array( 'test1', 'test2' ),
+			),
+			'should create new password with expiration' => array(
+				'args' => array(
+					'name'    => 'test_expire',
+					'expires' => time() + DAY_IN_SECONDS,
+				),
 			),
 		);
 	}
@@ -154,7 +160,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		// Check updated only given values.
 		$updated_item = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid );
 		foreach ( $updated_item as $key => $update_value ) {
-			$expected_value = $update[ $key ] ?? $original_item[ $key ];
+			$expected_value = array_key_exists( $key, $update ) ? $update[ $key ] : $original_item[ $key ];
 			$this->assertSame( $expected_value, $update_value );
 		}
 	}
@@ -185,6 +191,17 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			'should update name'                     => array(
 				'update'   => array( 'name' => 'Test Updated' ),
 				'existing' => array( 'name' => 'Test' ),
+			),
+			'should update expires'                  => array(
+				'update'   => array( 'expires' => time() + DAY_IN_SECONDS ),
+				'existing' => array( 'name' => 'Test' ),
+			),
+			'should clear expires'                   => array(
+				'update'   => array( 'expires' => null ),
+				'existing' => array(
+					'name'    => 'Test',
+					'expires' => time() + DAY_IN_SECONDS,
+				),
 			),
 		);
 	}

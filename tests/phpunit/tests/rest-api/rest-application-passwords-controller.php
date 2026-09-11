@@ -906,6 +906,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->assertArrayHasKey( 'created', $response );
 		$this->assertArrayHasKey( 'last_used', $response );
 		$this->assertArrayHasKey( 'last_ip', $response );
+		$this->assertArrayHasKey( 'expires', $response );
 
 		$this->assertSame( $item['uuid'], $response['uuid'] );
 		$this->assertSame( $item['app_id'], $response['app_id'] );
@@ -922,6 +923,12 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 			$this->assertSame( $item['last_ip'], $response['last_ip'] );
 		} else {
 			$this->assertNull( $response['last_ip'] );
+		}
+
+		if ( ! empty( $item['expires'] ) ) {
+			$this->assertSame( gmdate( 'Y-m-d\TH:i:s', $item['expires'] ), $response['expires'] );
+		} else {
+			$this->assertNull( $response['expires'] );
 		}
 
 		if ( $password ) {
@@ -947,7 +954,8 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->assertArrayHasKey( 'created', $properties );
 		$this->assertArrayHasKey( 'last_used', $properties );
 		$this->assertArrayHasKey( 'last_ip', $properties );
-		$this->assertCount( 7, $properties );
+		$this->assertArrayHasKey( 'expires', $properties );
+		$this->assertCount( 8, $properties );
 	}
 
 	/**

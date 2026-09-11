@@ -10328,6 +10328,15 @@ mockedApiResponse.Schema = {
                             "minLength": 1,
                             "pattern": ".*\\S.*",
                             "required": true
+                        },
+                        "expires": {
+                            "description": "The GMT date the application password expires.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
                         }
                     }
                 },
@@ -10422,6 +10431,15 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "minLength": 1,
                             "pattern": ".*\\S.*",
+                            "required": false
+                        },
+                        "expires": {
+                            "description": "The GMT date the application password expires.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
                             "required": false
                         }
                     }

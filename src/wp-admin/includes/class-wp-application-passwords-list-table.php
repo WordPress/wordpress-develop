@@ -29,6 +29,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 			'created'   => __( 'Created' ),
 			'last_used' => __( 'Last Used' ),
 			'last_ip'   => __( 'Last IP' ),
+			'expires'   => __( 'Expires' ),
 			'revoke'    => __( 'Revoke' ),
 		);
 	}
@@ -99,6 +100,35 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		} else {
 			echo $item['last_ip'];
 		}
+	}
+
+	/**
+	 * Handles the expires column output.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $item The current application password item.
+	 */
+	public function column_expires( $item ) {
+		if ( empty( $item['expires'] ) ) {
+			echo '&mdash;';
+		} else {
+			$date = date_i18n( __( 'F j, Y' ), $item['expires'] );
+			if ( time() > $item['expires'] ) {
+				printf(
+					'%s',
+					/* translators: %s: Expiration date for the Application Password. */
+					sprintf( __( 'Expired on %s' ), $date )
+				);
+			} else {
+				echo $date;
+			}
+		}
+		printf(
+			'<br><button type="button" class="button-link edit-expires" aria-label="%s">%s</button>',
+			esc_attr__( 'Edit Application Password Expiration Date' ),
+			esc_html__( 'Edit Expiry' )
+		);
 	}
 
 	/**
@@ -234,6 +264,25 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					break;
 				case 'last_ip':
 					echo "{{ data.last_ip || '—' }}";
+					break;
+				case 'expires':
+					?>
+					<# if ( data.expires ) { #>
+						<# var isExpired = new Date().getTime() > new Date( data.expires ).getTime(); #>
+						<# var formattedDate = wp.date.dateI18n( <?php echo wp_json_encode( __( 'F j, Y' ) ); ?>, data.expires ); #>
+						<# if ( isExpired ) { #>
+							<?php
+							/* translators: %s: Expiration date for the Application Password. */
+							printf( esc_html__( 'Expired on %s' ), '{{ formattedDate }}' );
+							?>
+						<# } else { #>
+							{{ formattedDate }}
+						<# } #>
+					<# } else { #>
+						—
+					<# } #>
+					<br><button type="button" class="button-link edit-expires" aria-label="<?php esc_attr_e( 'Edit Expiration Date' ); ?>"><?php esc_html_e( 'Edit Expiry' ); ?></button>
+					<?php
 					break;
 				case 'revoke':
 					printf(

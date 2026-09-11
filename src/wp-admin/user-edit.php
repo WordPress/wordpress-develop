@@ -848,6 +848,12 @@ switch ( $action ) {
 											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 										</div>
 
+										<div class="form-field">
+											<label for="new_application_password_expires"><?php _e( 'Expires on' ); ?></label>
+											<input type="date" id="new_application_password_expires" name="new_application_password_expires" class="input ltr" />
+											<p class="description"><?php _e( 'Optional. Set an expiration date for this password.' ); ?></p>
+										</div>
+
 										<?php
 										/**
 										 * Fires in the create Application Passwords form.

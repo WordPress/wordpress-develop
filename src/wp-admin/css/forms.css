@@ -1075,6 +1075,28 @@ table.form-table td .updated p {
 	max-width: 20em;
 }
 
+.edit-expires-form {
+	margin-top: 8px;
+	width: 100%;
+}
+
+.edit-expires-input {
+	display: block;
+	width: 100%;
+	max-width: 150px;
+	margin-bottom: 5px;
+}
+
+.edit-expires-button-group {
+	display: flex;
+	gap: 4px;
+	justify-content: flex-start;
+}
+
+.column-expires {
+	vertical-align: top;
+}
+
 .auth-app-card.card {
 	max-width: 768px;
 }
