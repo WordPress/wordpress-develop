@@ -505,29 +505,9 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 				$suppress_page_ids[] = $privacy_policy_page->ID;
 			}
 		}
-
-		// Add suppression array to arguments for WP_Query.
-		if ( ! empty( $suppress_page_ids ) ) {
-			$args['post__not_in'] = $suppress_page_ids;
-		}
 	}
 
 	$get_posts = new WP_Query();
-	$posts     = $get_posts->query( $args );
-
-	// Only suppress and insert when more than just suppression pages available.
-	if ( ! $get_posts->post_count ) {
-		if ( ! empty( $suppress_page_ids ) ) {
-			unset( $args['post__not_in'] );
-			$get_posts = new WP_Query();
-			$posts     = $get_posts->query( $args );
-		} else {
-			echo '<p>' . __( 'No items.' ) . '</p>';
-			return;
-		}
-	} elseif ( ! empty( $important_pages ) ) {
-		$posts = array_merge( $important_pages, $posts );
-	}
 
 	$num_pages = $get_posts->max_num_pages;
 
@@ -755,6 +735,28 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			>
 				<?php
 				$args['walker'] = $walker;
+
+				// Add suppression array to arguments for WP_Query.
+				// Supression logic only apply for "View All" tab. See #63473.
+				if ( ! empty( $suppress_page_ids ) ) {
+					$args['post__not_in'] = $suppress_page_ids;
+				}
+
+				$posts = $get_posts->query( $args );
+
+				// Only suppress and insert when more than just suppression pages available.
+				if ( ! $get_posts->post_count ) {
+					if ( ! empty( $suppress_page_ids ) ) {
+						unset( $args['post__not_in'] );
+						$get_posts = new WP_Query();
+						$posts     = $get_posts->query( $args );
+					} else {
+						echo '<p>' . __( 'No items.' ) . '</p>';
+						return;
+					}
+				} elseif ( ! empty( $important_pages ) ) {
+					$posts = array_merge( $important_pages, $posts );
+				}
 
 				if ( $post_type->has_archive ) {
 					$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? (int) $_nav_menu_placeholder - 1 : -1;
