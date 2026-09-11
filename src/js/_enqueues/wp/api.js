@@ -859,7 +859,6 @@
 
 				/**
 				 * Types that don't support trashing require passing ?force=true to delete.
-				 *
 				 */
 				if ( -1 === _.indexOf( trashableTypes, this.name ) ) {
 					this.requireForceForDelete = true;
