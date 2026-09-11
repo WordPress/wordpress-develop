@@ -1720,9 +1720,9 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	);
 	$inputs         = wp_parse_args( $inputs, $default_inputs );
 
-	$args['title'] = $args['title'] ?? '';
-	$args['url']   = $args['url'] ?? '';
-	$args['items'] = (int) ( $args['items'] ?? 0 );
+	$args['title'] ??= '';
+	$args['url']   ??= '';
+	$args['items']   = (int) ( $args['items'] ?? 0 );
 
 	if ( $args['items'] < 1 || 20 < $args['items'] ) {
 		$args['items'] = 10;

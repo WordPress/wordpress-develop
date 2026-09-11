@@ -1,4 +1,5 @@
 name: PHPUnit Tests
+run-name: PHPUnit Tests${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && ' (full matrix)' || '' }}
 
 on:
   push:
@@ -11,31 +12,61 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+    # Keep these paths in sync with phpunit-tests-full-matrix.yml.
     paths:
-      # Any change to a PHP, CSS, JavaScript, JSON, HTML, or otherwise tested file should run checks.
-      - '**.css'
-      - '**.html'
-      - '**.js'
-      - '**.json'
-      - '**.php'
+      - '**'
+      # Documentation and repository metadata.
+      - '!**.md'
+      - '!.devcontainer/**'
+      - '!.editorconfig'
+      - '!.git-blame-ignore-revs'
+      - '!.gitignore'
+      - '!.mailmap'
+      - '!typings/**'
+      # Configuration for unrelated checks.
+      - '!.eslintrc-jsdoc.js'
+      - '!.prettierrc.js'
+      - '!.version-support-*.json'
+      - '!eslint.config.js'
+      - '!jsdoc.conf.json'
+      - '!phpcompat.xml.dist'
+      - '!phpcs.xml.dist'
+      - '!phpstan.neon.dist'
+      - '!tsconfig.json'
+      # Other test suites, tools, and workflows do not affect these tests.
+      - '!tests/**'
+      - '!tools/**'
+      - '!.github/**'
+      # Re-include documentation, tests, tools, and workflows used here.
+      - 'SECURITY.md'
       - 'src/license.txt'
-      - 'src/SECURITY.md'
-      # These files configure npm and the task runner. Changes could affect the outcome.
-      - 'package*.json'
-      - '.npmrc'
-      - '.nvmrc'
-      - 'Gruntfile.js'
-      # These files configure Composer. Changes could affect the outcome.
-      - 'composer.*'
-      # These files affect the phpunit tests. Changes could affect the outcome.
       - 'tests/phpunit/**'
-      - 'tests/phpunit/multisite.xml'
+      - 'tools/gutenberg/**'
+      - 'tools/local-env/**'
+      - 'tools/vendors/**'
+      - 'tools/webpack/**'
       - 'phpunit.xml.dist'
-      # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpunit-tests.yml'
+      - '.github/workflows/phpunit-tests-full-matrix.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'
       - '.github/workflows/reusable-prepare-gutenberg.yml'
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      CODEVITALS_PROJECT_TOKEN:
+        required: false
+      CODECOV_TOKEN:
+        required: false
+      WPT_REPORT_API_KEY:
+        required: false
+      SLACK_GHA_SUCCESS_WEBHOOK:
+        required: false
+      SLACK_GHA_CANCELLED_WEBHOOK:
+        required: false
+      SLACK_GHA_FIXED_WEBHOOK:
+        required: false
+      SLACK_GHA_FAILURE_WEBHOOK:
+        required: false
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
     - cron: '0 0 * * 0'
@@ -98,10 +129,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
-        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
+        # Scheduled and labeled runs test every supported PHP version. Other runs test the highest and lowest of each major.
+        php: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.7' ]
+        # Scheduled and labeled runs test the full database matrix. Other runs retain MySQL 5.7 compatibility and the widely used 8.x releases.
+        db-version: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["5.7","8.0","8.4","9.7"]') || fromJSON('["5.7","8.0","8.4"]') }}
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
@@ -161,8 +193,8 @@ jobs:
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
   #
-  # All LTS versions of MariaDB supported by WordPress with greater than 1% usage according to w.org/stats should be
-  # tested. The exceptions to this rule are the most recent LTS and version 5.5.
+  # Scheduled and labeled runs test all LTS versions of MariaDB supported by WordPress with greater than 1% usage
+  # according to w.org/stats. The exceptions to this rule are the most recent LTS and version 5.5.
   #
   # The 5.5 release was intended as a drop-in replacement for MySQL. Because the MySQL 5.5 Docker containers do not
   # work, this ensures some level of MySQL 5.5 testing.
@@ -190,10 +222,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
-        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
+        # Scheduled and labeled runs test every supported PHP version. Other runs test the highest and lowest of each major.
+        php: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
         db-type: [ 'mariadb' ]
-        db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
+        # Scheduled and labeled runs test the full database matrix. Other runs retain MariaDB 5.5 compatibility, 10.6, and newer LTS releases.
+        db-version: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["5.5","10.3","10.5","10.6","10.11","11.4","11.8"]') || fromJSON('["5.5","10.6","10.11","11.4","11.8"]') }}
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -257,8 +290,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # The scheduled run tests every supported PHP version. Other events test the highest and lowest of each major.
-        php: ${{ github.event_name == 'schedule' && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
+        # Scheduled and labeled runs test every supported PHP version. Other runs test the highest and lowest of each major.
+        php: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '12.1' ]
         multisite: [ false, true ]

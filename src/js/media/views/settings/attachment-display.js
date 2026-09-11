@@ -16,6 +16,9 @@ AttachmentDisplay = Settings.extend(/** @lends wp.media.view.Settings.Attachment
 	className: 'attachment-display-settings',
 	template:  wp.template('attachment-display-settings'),
 
+	/**
+	 * Initializes the attachment display settings view.
+	 */
 	initialize: function() {
 		var attachment = this.options.attachment;
 
@@ -31,6 +34,9 @@ AttachmentDisplay = Settings.extend(/** @lends wp.media.view.Settings.Attachment
 		}
 	},
 
+	/**
+	 * Disposes of the attachment display settings view.
+	 */
 	dispose: function() {
 		var attachment = this.options.attachment;
 		if ( attachment ) {
@@ -42,6 +48,8 @@ AttachmentDisplay = Settings.extend(/** @lends wp.media.view.Settings.Attachment
 		Settings.prototype.dispose.apply( this, arguments );
 	},
 	/**
+	 * Renders the attachment display settings view.
+	 *
 	 * @return {wp.media.view.AttachmentDisplay} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -60,6 +68,9 @@ AttachmentDisplay = Settings.extend(/** @lends wp.media.view.Settings.Attachment
 		return this;
 	},
 
+	/**
+	 * Updates the linkTo setting.
+	 */
 	updateLinkTo: function() {
 		var linkTo = this.model.get('link'),
 			$input = this.$('.link-to-custom'),

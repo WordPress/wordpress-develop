@@ -1,0 +1,65 @@
+name: PHPUnit Tests (label)
+run-name: PHPUnit Tests${{ github.event.label.name == 'Full PHPUnit Matrix' && ' (full matrix)' || ' (ignored label)' }}
+
+on:
+  pull_request:
+    types: [ labeled ]
+    branches:
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    # Keep these paths in sync with phpunit-tests.yml.
+    paths:
+      - '**'
+      # Documentation and repository metadata.
+      - '!**.md'
+      - '!.devcontainer/**'
+      - '!.editorconfig'
+      - '!.git-blame-ignore-revs'
+      - '!.gitignore'
+      - '!.mailmap'
+      - '!typings/**'
+      # Configuration for unrelated checks.
+      - '!.eslintrc-jsdoc.js'
+      - '!.prettierrc.js'
+      - '!.version-support-*.json'
+      - '!eslint.config.js'
+      - '!jsdoc.conf.json'
+      - '!phpcompat.xml.dist'
+      - '!phpcs.xml.dist'
+      - '!phpstan.neon.dist'
+      - '!tsconfig.json'
+      # Other test suites, tools, and workflows do not affect these tests.
+      - '!tests/**'
+      - '!tools/**'
+      - '!.github/**'
+      # Re-include documentation, tests, tools, and workflows used here.
+      - 'SECURITY.md'
+      - 'src/license.txt'
+      - 'tests/phpunit/**'
+      - 'tools/gutenberg/**'
+      - 'tools/local-env/**'
+      - 'tools/vendors/**'
+      - 'tools/webpack/**'
+      - 'phpunit.xml.dist'
+      - '.github/workflows/phpunit-tests.yml'
+      - '.github/workflows/phpunit-tests-full-matrix.yml'
+      - '.github/workflows/reusable-phpunit-tests-*.yml'
+      - '.github/workflows/reusable-prepare-gutenberg.yml'
+
+# Disable permissions for all available scopes by default.
+permissions: {}
+
+# The called workflow manages concurrency. Unrelated labels never enter it.
+jobs:
+  full-matrix:
+    if: github.event.label.name == 'Full PHPUnit Matrix'
+    permissions:
+      # Required by the called workflow's recovery job, which is skipped on PR events.
+      actions: write
+      contents: read
+    uses: ./.github/workflows/phpunit-tests.yml
+    secrets:
+      CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}

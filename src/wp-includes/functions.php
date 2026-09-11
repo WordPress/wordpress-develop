@@ -4360,15 +4360,15 @@ function _scalar_wp_die_handler( $message = '', $title = '', $args = array() ) {
  * @since 5.1.0
  * @access private
  *
- * @param string|WP_Error $message Error message or WP_Error object.
- * @param string          $title   Optional. Error title. Default empty string.
- * @param string|array    $args    Optional. Arguments to control behavior. Default empty array.
+ * @param string|WP_Error|int $message Error message, WP_Error object, or integer response.
+ * @param string              $title   Optional. Error title. Default empty string.
+ * @param string|array        $args    Optional. Arguments to control behavior. Default empty array.
  * @return array {
  *     Processed arguments.
  *
- *     @type string $0 Error message.
- *     @type string $1 Error title.
- *     @type array  $2 Arguments to control behavior.
+ *     @type string|int $0 Error message, or integer response.
+ *     @type string     $1 Error title.
+ *     @type array      $2 Arguments to control behavior.
  * }
  */
 function _wp_die_process_input( $message, $title = '', $args = array() ) {
@@ -5021,15 +5021,22 @@ function smilies_init() {
  * This function is used throughout WordPress to allow for both string or array
  * to be merged into another array.
  *
+ * The keys of the returned array are documented as strings, since that is what
+ * callers mean by them, but they are not promised as such to static analysis.
+ * Integer keys remain reachable through arguments that are perfectly valid:
+ * `json_decode( '{"0":"a"}' )` is an object whose properties `get_object_vars()`
+ * reports under an integer key, and `parse_str()` reads `0=a` as one as well.
+ *
  * @since 2.2.0
  * @since 2.3.0 `$args` can now also be an object.
  *
- * @param string|array|object $args     Value to merge with $defaults.
- * @param array               $defaults Optional. Array that serves as the defaults.
- *                                      Default empty array.
- * @return array Merged user defined values with defaults.
+ * @param string|array<string, mixed>|object $args     Value to merge with $defaults.
+ * @param array<string, mixed>               $defaults Optional. Array that serves as the defaults.
+ *                                                     Default empty array.
+ * @return array<string, mixed> Merged user defined values with defaults.
+ * @phpstan-return array<array-key, mixed>
  */
-function wp_parse_args( $args, $defaults = array() ) {
+function wp_parse_args( $args, $defaults = array() ): array {
 	if ( is_object( $args ) ) {
 		$parsed_args = get_object_vars( $args );
 	} elseif ( is_array( $args ) ) {
@@ -5127,11 +5134,17 @@ function wp_parse_slug_list( $input_list ): array {
  *
  * @since 3.1.0
  *
- * @param array $input_array The original array.
- * @param array $keys        The list of keys.
- * @return array The array slice.
+ * @param array<string, mixed> $input_array The original array.
+ * @param string[]             $keys        The list of keys.
+ * @return array<string, mixed> The array slice.
+ *
+ * @phpstan-template TKey of string
+ * @phpstan-template TValue
+ * @phpstan-param array<string, TValue> $input_array
+ * @phpstan-param array<TKey> $keys
+ * @phpstan-return array<TKey, TValue>
  */
-function wp_array_slice_assoc( $input_array, $keys ) {
+function wp_array_slice_assoc( $input_array, $keys ): array {
 	$slice = array();
 
 	foreach ( $keys as $key ) {
@@ -6292,8 +6305,8 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
  * @return bool Whether the server is running lighttpd < 1.5.0.
  */
 function is_lighttpd_before_150() {
-	$server_parts    = explode( '/', $_SERVER['SERVER_SOFTWARE'] ?? '' );
-	$server_parts[1] = $server_parts[1] ?? '';
+	$server_parts      = explode( '/', $_SERVER['SERVER_SOFTWARE'] ?? '' );
+	$server_parts[1] ??= '';
 
 	return ( 'lighttpd' === $server_parts[0] && -1 === version_compare( $server_parts[1], '1.5.0' ) );
 }
@@ -9450,4 +9463,119 @@ function wp_verify_fast_hash(
 	}
 
 	return hash_equals( $hash, wp_fast_hash( $message ) );
+}
+
+/**
+ * Sends an email to the user when a new application password is created.
+ *
+ * @since 7.2.0
+ *
+ * @param int   $user_id  The user ID.
+ * @param array $new_item The application password details.
+ */
+function wp_application_password_created_notification( $user_id, $new_item ) {
+	$send = true;
+
+	// Get current user data.
+	$user = get_userdata( $user_id );
+
+	if ( ! $user ) {
+		return;
+	}
+
+	if ( ! is_email( $user->user_email ) ) {
+		return;
+	}
+
+	// Validate that the application password has a name.
+	if ( empty( $new_item['name'] ) ) {
+		return;
+	}
+
+	/**
+	 * Filters whether to send the application password created notification email.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool    $send  Whether to send the email notification.
+	 * @param WP_User $user  The user object.
+	 * @param array   $new_item The application password details.
+	 */
+	$send = apply_filters( 'wp_send_application_password_created_email', $send, $user, $new_item );
+
+	if ( ! $send ) {
+		return;
+	}
+
+	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, SITENAME, SITEURL, EMAIL: those are placeholders. */
+	$application_password_create_text = __(
+		'Hi ###USERNAME###,
+
+A new application password was added to your account on ###SITENAME###. This password allows access to your account via the REST API.
+
+If you did not expect this, please contact the Site Administrator at
+###ADMIN_EMAIL###
+
+Application password name: ###APPLICATION_PASSWORD_NAME###
+Site: ###SITEURL###
+
+You can manage your application passwords in your account settings.
+
+This email has been sent to ###EMAIL###
+
+Regards,
+All at ###SITENAME###
+###SITEURL###'
+	);
+
+	$email = array(
+		'to'      => $user->user_email,
+		/* translators: Application password creation email subject. %s: Site title. */
+		'subject' => __( '[%s] Application Password Created' ),
+		'message' => $application_password_create_text,
+		'headers' => '',
+	);
+
+	// Get site name.
+	$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+
+	/**
+	 * Filters the contents of the email notification sent to a user when a new application password is created.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array   $email {
+	 *     Used to build wp_mail().
+	 *
+	 *     @type string $to      The email address of the intended recipient.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The content of the email.
+	 *         The following strings have a special meaning and will get replaced dynamically:
+	 *          - `###USERNAME###`                  The user's display name.
+	 *          - `###APPLICATION_PASSWORD_NAME###` The name of the application password.
+	 *          - `###EMAIL###`                     The user's email address.
+	 *          - `###SITENAME###`                  The name of the site.
+	 *          - `###SITEURL###`                   The URL to the site.
+	 *     @type string $headers Headers.
+	 * }
+	 * @param WP_User $user     The user object.
+	 * @param array   $new_item The application password details.
+	 */
+	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
+
+	$email['message'] = str_replace( '###USERNAME###', $user->display_name, $email['message'] );
+	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
+	$email['message'] = str_replace( '###EMAIL###', $user->user_email, $email['message'] );
+	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
+	$email['message'] = str_replace( '###SITEURL###', home_url(), $email['message'] );
+
+	wp_mail(
+		$email['to'],
+		sprintf(
+			$email['subject'],
+			$site_name
+		),
+		$email['message'],
+		$email['headers']
+	);
 }
