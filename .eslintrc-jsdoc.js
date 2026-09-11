@@ -63,6 +63,7 @@ module.exports = [
 			} ],
 			'jsdoc/check-types': 'error',
 			'jsdoc/require-description': 'error',
+			'jsdoc/require-hyphen-before-param-description': [ 'error', 'never' ],
 			'jsdoc/require-jsdoc': 'error',
 			'jsdoc/require-param': [ 'error', {
 				enableFixer: false,

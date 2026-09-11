@@ -979,8 +979,8 @@ $( function() {
 
 			/*
 			 * Show the sub instead of following the link if:
-			 * 	- the submenu is not open.
-			 * 	- the submenu is not shown inline or the menu is not folded.
+			 * - the submenu is not open.
+			 * - the submenu is not shown inline or the menu is not folded.
 			 */
 			if ( ! $menuItem.hasClass( 'opensub' ) && ( ! $menuItem.hasClass( 'wp-menu-open' ) || $menuItem.width() < 40 ) ) {
 				event.preventDefault();
