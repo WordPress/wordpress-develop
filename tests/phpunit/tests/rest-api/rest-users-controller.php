@@ -1376,6 +1376,94 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_add_edit_user_response( $response );
 	}
 
+	/**
+	 * @ticket 40477
+	 */
+	public function test_create_user_sends_admin_notification() {
+		if ( is_multisite() ) {
+			grant_super_admin( self::$user );
+		}
+
+		wp_set_current_user( self::$user );
+		reset_phpmailer_instance();
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->set_param( 'username', 'testuser' );
+		$request->set_param( 'email', 'testuser@example.com' );
+		$request->set_param( 'password', 'testpassword' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertNotEmpty( $mailer->mock_sent, 'No emails were sent' );
+
+		// Check that at least one email was sent to the admin.
+		$admin_email    = get_option( 'admin_email' );
+		$recipients     = array_column( $mailer->mock_sent, 'to' );
+		$admin_notified = false;
+
+		foreach ( $recipients as $recipient_list ) {
+			if ( isset( $recipient_list[0][0] ) && $recipient_list[0][0] === $admin_email ) {
+				$admin_notified = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $admin_notified, 'Admin email notification was not sent' );
+	}
+
+	/**
+	 * @ticket 40477
+	 */
+	public function test_create_user_notification_respects_filter() {
+		if ( is_multisite() ) {
+			grant_super_admin( self::$user );
+		}
+
+		wp_set_current_user( self::$user );
+		add_filter(
+			'rest_wp_user_created_notification',
+			function () {
+				return 'both';
+			}
+		);
+
+		reset_phpmailer_instance();
+
+		$user_email = 'testuser2@example.com';
+		$request    = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->set_param( 'username', 'testuser2' );
+		$request->set_param( 'email', $user_email );
+		$request->set_param( 'password', 'testpassword2' );
+		rest_get_server()->dispatch( $request );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertGreaterThanOrEqual( 2, count( $mailer->mock_sent ), 'Expected at least 2 emails (admin + user)' );
+
+		// Verify both admin and user received notifications.
+		$admin_email    = get_option( 'admin_email' );
+		$recipients     = array_column( $mailer->mock_sent, 'to' );
+		$admin_notified = false;
+		$user_notified  = false;
+
+		foreach ( $recipients as $recipient_list ) {
+			if ( isset( $recipient_list[0][0] ) ) {
+				if ( $recipient_list[0][0] === $admin_email ) {
+					$admin_notified = true;
+				}
+				if ( $recipient_list[0][0] === $user_email ) {
+					$user_notified = true;
+				}
+			}
+		}
+
+		$this->assertTrue( $admin_notified, 'Admin email notification was not sent' );
+		$this->assertTrue( $user_notified, 'User email notification was not sent' );
+
+		remove_all_filters( 'rest_wp_user_created_notification' );
+	}
+
 	public function test_create_item_invalid_username() {
 		$this->allow_user_to_manage_multisite();
 
