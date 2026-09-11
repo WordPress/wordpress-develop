@@ -52,20 +52,8 @@ class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test exte
 				'env'                 => $environment_type,
 			);
 
-			$datasets[ $environment_type . ' and a "https" scheme "reject_url"' ] = array(
-				'request'             => array( 'reject_url' => 'https://example.org' ),
-				'expected_error_code' => '',
-				'env'                 => $environment_type,
-			);
-
 			$datasets[ $environment_type . ' and an app scheme "success_url"' ] = array(
 				'request'             => array( 'success_url' => 'wordpress://example' ),
-				'expected_error_code' => '',
-				'env'                 => $environment_type,
-			);
-
-			$datasets[ $environment_type . ' and an app scheme "reject_url"' ] = array(
-				'request'             => array( 'reject_url' => 'wordpress://example' ),
 				'expected_error_code' => '',
 				'env'                 => $environment_type,
 			);
@@ -76,9 +64,15 @@ class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test exte
 				'env'                 => $environment_type,
 			);
 
-			$datasets[ $environment_type . ' and a "http" scheme "reject_url"' ] = array(
-				'request'             => array( 'reject_url' => 'http://example.org' ),
-				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+			$datasets[ $environment_type . ' and a userinfo "success_url"' ] = array(
+				'request'             => array( 'success_url' => 'https://user:pass@evil.com/capture' ),
+				'expected_error_code' => 'invalid_redirect_url_format',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a userinfo-only "success_url"' ] = array(
+				'request'             => array( 'success_url' => 'https://google.com@evil.com/capture' ),
+				'expected_error_code' => 'invalid_redirect_url_format',
 				'env'                 => $environment_type,
 			);
 
