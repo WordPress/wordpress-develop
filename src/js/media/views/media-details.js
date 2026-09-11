@@ -61,7 +61,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	 *
 	 * @fires wp.media.view.MediaDetails#media:setting:remove
 	 *
-	 * @param {Event} e
+	 * @param {JQuery.Event} e The jQuery event object.
 	 */
 	removeSetting : function(e) {
 		var wrap = $( e.currentTarget ).parent(), setting;
@@ -94,7 +94,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	/**
 	 * Adds a source to the media details view.
 	 *
-	 * @param {JQuery.Event} e The event object.
+	 * @param {JQuery.Event} e The jQuery event object.
 	 */
 	addSource : function( e ) {
 		this.controller.lastMime = $( e.currentTarget ).data( 'mime' );
@@ -184,7 +184,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	/**
 	 * When multiple players in the DOM contain the same src, things get weird.
 	 *
-	 * @param {HTMLElement} elem
+	 * @param {HTMLElement} elem The HTML element containing the media sources to be prepared.
 	 * @return {HTMLElement} The prepared element.
 	 */
 	prepareSrc : function( elem ) {

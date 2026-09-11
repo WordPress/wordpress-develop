@@ -134,7 +134,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	/**
 	 * Closes the modal and triggers the close event.
 	 *
-	 * @param {Object} options
+	 * @param {Object}  [options={}]     The options for closing the modal.
+	 * @param {boolean} [options.escape] Whether the modal is being closed due to the escape key.
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	close: function( options ) {
@@ -187,7 +188,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	/**
 	 * Handles the escape key press event to close the modal.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object.
 	 */
 	escapeHandler: function( event ) {
 		event.preventDefault();
@@ -199,7 +200,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	 *
 	 * @since 6.7
 	 *
-	 * @param {Object} event The keydown event object.
+	 * @param {JQuery.Event} event The jQuery event object.
 	 */
 	selectHandler: function( event ) {
 		var selection = this.controller.state().get( 'selection' );
@@ -232,7 +233,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	 * Triggers a modal event and if the `propagate` option is set,
 	 * forwards events to the modal's controller.
 	 *
-	 * @param {string} id
+	 * @param {string} id The ID of the event to propagate.
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	propagate: function( id ) {
@@ -247,7 +248,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	/**
 	 * Handles keydown events within the modal.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery keydown event object.
 	 */
 	keydown: function( event ) {
 		// Close the modal when escape is pressed.
