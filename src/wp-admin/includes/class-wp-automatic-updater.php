@@ -563,7 +563,7 @@ class WP_Automatic_Updater {
 				 */
 				sleep( 2 );
 
-				if ( $this->has_fatal_error() ) {
+				if ( $this->has_fatal_error( $item->slug ) ) {
 					$upgrade_result = new WP_Error();
 					$temp_backup    = array(
 						array(
@@ -1520,6 +1520,21 @@ class WP_Automatic_Updater {
 
 		$email = compact( 'to', 'subject', 'body', 'headers' );
 
+		if ( 'fail' === $type || 'mixed' === $type ) {
+			$fatal_errors = get_transient( 'wp_updater_last_fatal_error' );
+			if ( is_array( $fatal_errors ) && ! empty( $fatal_errors ) ) {
+				$email['body'] .= "\n\n=== " . __( 'Last fatal PHP error', 'default' ) . " ===\n";
+				foreach ( $fatal_errors as $plugin_slug => $fatal_error ) {
+					if ( ! is_string( $fatal_error ) || ! is_string( $plugin_slug ) ) {
+						continue;
+					}
+					$email['body'] .= '• [' . $plugin_slug . '] ' . $fatal_error . "\n";
+				}
+				$email['body'] .= "========================================\n";
+				delete_transient( 'wp_updater_last_fatal_error' );
+			}
+		}
+
 		/**
 		 * Filters the email sent following an automatic background update for plugins and themes.
 		 *
@@ -1753,12 +1768,15 @@ Thanks! -- The WordPress Team"
 	 * Fatal errors cannot be detected unless maintenance mode is enabled.
 	 *
 	 * @since 6.6.0
+	 * @since 7.2.0 Added the $plugin_slug parameter to support tracking errors per plugin.
 	 *
 	 * @global int $upgrading The Unix timestamp marking when upgrading WordPress began.
 	 *
+	 * @param string $plugin_slug Optional. The slug of the plugin being checked, used to
+	 *                             key the stored fatal error by plugin. Default empty string.
 	 * @return bool Whether a fatal error was detected.
 	 */
-	protected function has_fatal_error() {
+	protected function has_fatal_error( $plugin_slug = '' ) {
 		global $upgrading;
 
 		$maintenance_file = ABSPATH . '.maintenance';
@@ -1826,6 +1844,25 @@ Thanks! -- The WordPress Team"
 			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
+		}
+
+		if ( is_array( $result ) && ! empty( $result['message'] ) && is_string( $result['message'] ) ) {
+			$fatal_error = sprintf(
+				'PHP Fatal error: %s in %s on line %d',
+				$result['message'],
+				$result['file'] ?? 'unknown',
+				$result['line'] ?? 0
+			);
+
+			$errors = get_transient( 'wp_updater_last_fatal_error' );
+			if ( ! is_array( $errors ) ) {
+				$errors = array();
+			}
+
+			$slug_key = is_string( $plugin_slug ) && '' !== $plugin_slug ? $plugin_slug : 'unknown';
+			$errors[ $slug_key ] = $fatal_error;
+
+			set_transient( 'wp_updater_last_fatal_error', $errors, 5 * MINUTE_IN_SECONDS );
 		}
 
 		delete_transient( $transient );
