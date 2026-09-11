@@ -185,6 +185,128 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 40365
+	 * @covers ::create_item
+	 * @group ms-required
+	 */
+	public function test_create_item_rejects_an_existing_domain_and_path() {
+		wp_set_current_user( self::$superadmin_id );
+
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/existing/',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/existing/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_site_taken', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::create_item
+	 * @group ms-required
+	 */
+	public function test_create_item_allows_an_existing_domain_and_path_on_a_different_network() {
+		wp_set_current_user( self::$superadmin_id );
+
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/shared/',
+			)
+		);
+
+		$network_id = self::factory()->network->create(
+			array(
+				'domain' => 'other-network.example.org',
+				'path'   => '/',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/shared/' );
+		$request->set_param( 'network', $network_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertEquals( WP_TESTS_DOMAIN, $data['domain'] );
+		$this->assertEquals( '/shared/', $data['path'] );
+		$this->assertEquals( $network_id, $data['network'] );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item
+	 * @group ms-required
+	 */
+	public function test_update_item_rejects_another_sites_domain_and_path() {
+		wp_set_current_user( self::$superadmin_id );
+
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/taken/',
+			)
+		);
+		$blog_id = self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/free/',
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/taken/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_site_taken', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item
+	 * @group ms-required
+	 */
+	public function test_update_item_allows_a_site_to_keep_its_own_domain_and_path() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$blog_id = self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/keep/',
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/keep/' );
+		$request->set_param( 'mature', 1 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertEquals( '/keep/', $data['path'] );
+		$this->assertEquals( 1, $data['mature'] );
+	}
+
+	/**
+	 * @ticket 40365
 	 * @covers ::update_item
 	 * @group ms-required
 	 */
@@ -968,6 +1090,207 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( $domain, get_site( $blog_id )->domain );
 		$this->assertEquals( 0, get_site( $blog_id )->public );
+	}
+
+	/**
+	 * The `domain` parameter must be a valid hostname or IP address,
+	 * optionally followed by a port, when creating a site.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
+	 * @group ms-required
+	 * @dataProvider data_domain_validation
+	 */
+	public function test_create_item_domain_validation( $domain, $is_valid ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', $domain );
+		$request->set_param( 'path', '/domain-validation/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( $is_valid ) {
+			$this->assertEquals( 201, $response->get_status(), "domain '{$domain}' should have been accepted." );
+
+			$data = $response->get_data();
+			$this->assertEquals( $this->normalize_domain_for_storage( $domain ), $data['domain'] );
+		} else {
+			$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		}
+	}
+
+	/**
+	 * The `domain` parameter must be a valid hostname or IP address,
+	 * optionally followed by a port, when updating a site.
+	 *
+	 * @ticket 40365
+	 * @covers ::update_item
+	 * @group ms-required
+	 * @dataProvider data_domain_validation
+	 */
+	public function test_update_item_domain_validation( $domain, $is_valid ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		$blog_id     = self::factory()->blog->create( array( 'path' => '/domain-validation-update/' ) );
+		$orig_domain = get_site( $blog_id )->domain;
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'domain', $domain );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( $is_valid ) {
+			$this->assertEquals( 200, $response->get_status(), "domain '{$domain}' should have been accepted." );
+
+			$data     = $response->get_data();
+			$expected = $this->normalize_domain_for_storage( $domain );
+			$this->assertEquals( $expected, $data['domain'] );
+			$this->assertEquals( $expected, get_site( $blog_id )->domain );
+		} else {
+			$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+			$this->assertEquals( $orig_domain, get_site( $blog_id )->domain );
+		}
+	}
+
+	/**
+	 * Mirrors the character-stripping done by `wp_normalize_site_data()` so that
+	 * the domain-validation tests assert against what actually ends up stored,
+	 * e.g. bracketed IPv6 literals lose their `[` `]` at that (unrelated) layer.
+	 *
+	 * @param string $domain Domain as submitted to the endpoint.
+	 * @return string Domain as it will be persisted.
+	 */
+	private function normalize_domain_for_storage( $domain ) {
+		return preg_replace( '/[^a-z0-9\-.:]+/i', '', $domain );
+	}
+
+	/**
+	 * Data provider for the `domain` format validation tests.
+	 *
+	 * @return array
+	 */
+	public function data_domain_validation() {
+		return array(
+			'plain hostname'            => array( 'example.org', true ),
+			'subdomain'                 => array( 'sub.example.org', true ),
+			'hostname with port'        => array( 'example.org:8080', true ),
+			// The shape produced by wp-admin/network/site-new.php for a subdomain install
+			// when the network domain itself carries a port, e.g. "blogname.localhost:8889".
+			'subdomain of a network domain with a port' => array( 'blogname.localhost:8889', true ),
+			'ipv4'                      => array( '198.51.100.10', true ),
+			'ipv4 with port'            => array( '198.51.100.10:8080', true ),
+			'bare ipv6 loopback, no port' => array( '::1', true ),
+			'bare ipv6, no port'        => array( '2001:db8::1', true ),
+			'bare full-length ipv6, no port' => array( '2001:0db8:0000:0000:0000:0000:0000:0001', true ),
+			'bare ipv4-mapped ipv6, no port' => array( '::ffff:192.0.2.1', true ),
+			// Ambiguous: no brackets to separate a port, so the whole string is
+			// parsed as a literal (8-group, after :: expansion) IPv6 address.
+			'ambiguous unbracketed ipv6 with trailing digits treated as address' => array( '2001:db8::1:8080', true ),
+			// Bracketed IPv6 is not supported at all: brackets aren't valid
+			// hostname or bare-IP characters, so any leading `[` is rejected outright.
+			'bracketed ipv6 is rejected'          => array( '[2001:db8::1]', false ),
+			'bracketed ipv6 with port is rejected' => array( '[2001:db8::1]:8080', false ),
+			'bracketed ipv6 loopback is rejected' => array( '[::1]', false ),
+			'empty brackets are rejected'         => array( '[]', false ),
+			'unbracketed ipv6-shaped string with a port-like trailing group is rejected' => array( '1:2:3:4:5:6:7:8:9', false ),
+			'empty domain'              => array( '', false ),
+			'domain with a space'       => array( 'example org', false ),
+			'domain with a scheme'      => array( 'http://example.org', false ),
+			'leading hyphen label'      => array( '-example.org', false ),
+			'empty label'               => array( 'example..org', false ),
+			'port out of range'        => array( 'example.org:99999', false ),
+			'non numeric port'          => array( 'example.org:abc', false ),
+		);
+	}
+
+	/**
+	 * The `path` parameter must be a valid site path when creating a site.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
+	 * @group ms-required
+	 * @dataProvider data_path_validation
+	 */
+	public function test_create_item_path_validation( $path, $is_valid ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		// A domain distinct from WP_TESTS_DOMAIN, so a root path doesn't collide with the network's main site.
+		$request->set_param( 'domain', 'path-validation.example.org' );
+		$request->set_param( 'path', $path );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( $is_valid ) {
+			$this->assertEquals( 201, $response->get_status(), "path '{$path}' should have been accepted." );
+
+			$data = $response->get_data();
+			$this->assertEquals( $path, $data['path'] );
+		} else {
+			$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		}
+	}
+
+	/**
+	 * The `path` parameter must be a valid site path when updating a site.
+	 *
+	 * @ticket 40365
+	 * @covers ::update_item
+	 * @group ms-required
+	 * @dataProvider data_path_validation
+	 */
+	public function test_update_item_path_validation( $path, $is_valid ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		// A domain distinct from WP_TESTS_DOMAIN, so a root path doesn't collide with the network's main site.
+		$blog_id   = self::factory()->blog->create(
+			array(
+				'domain' => 'path-validation-update.example.org',
+				'path'   => '/path-validation-update/',
+			)
+		);
+		$orig_path = get_site( $blog_id )->path;
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'path', $path );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( $is_valid ) {
+			$this->assertEquals( 200, $response->get_status(), "path '{$path}' should have been accepted." );
+
+			$data = $response->get_data();
+			$this->assertEquals( $path, $data['path'] );
+			$this->assertEquals( $path, get_site( $blog_id )->path );
+		} else {
+			$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+			$this->assertEquals( $orig_path, get_site( $blog_id )->path );
+		}
+	}
+
+	/**
+	 * Data provider for the `path` format validation tests.
+	 *
+	 * @return array
+	 */
+	public function data_path_validation() {
+		return array(
+			'root path'                 => array( '/', true ),
+			'single segment'            => array( '/tempor/', true ),
+			'nested segments'           => array( '/parent/child/', true ),
+			'segment with apostrophe'   => array( "/o'brien/", true ),
+			'segment with punctuation'  => array( '/with-hyphen_and.dot~tilde/', true ),
+			'percent encoded segment'   => array( '/percent%20encoded/', true ),
+			'empty path'                => array( '', false ),
+			'no leading slash'          => array( 'no-leading-slash/', false ),
+			'no trailing slash'         => array( '/no-trailing-slash', false ),
+			'double slash'              => array( '//double-slash//', false ),
+			'path with a space'         => array( '/with space/', false ),
+			'path with a query string'  => array( '/with?query/', false ),
+			'path with a fragment'      => array( '/with#fragment/', false ),
+			'path with a double quote'  => array( '/with"quote/', false ),
+		);
 	}
 
 	/**
