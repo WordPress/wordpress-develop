@@ -3658,7 +3658,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_do_request( $request );
 
 		// The edit endpoint creates a new attachment, so we expect a 201 status.
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data              = $response->get_data();
 		$new_attachment_id = $data['id'];
