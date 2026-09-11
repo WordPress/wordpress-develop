@@ -2079,6 +2079,18 @@ EOF;
 				"background-image: url( 'http://example.com/valid.gif' )",
 			),
 
+			// URL with query parameters
+			array(
+				"background-image: url( 'http://example.com/valid.gif?width=100&height=100' );",
+				"background-image: url( 'http://example.com/valid.gif?width=100&height=100' )",
+			),
+
+			// URL with encoded ampersands
+			array(
+				"background-image: url( 'http://example.com/valid.gif?width=100&amp;height=100' );",
+				"background-image: url( 'http://example.com/valid.gif?width=100&height=100' )",
+			),
+
 			// No quotes.
 			array(
 				'background-image: url( http://example.com/valid.gif );',
