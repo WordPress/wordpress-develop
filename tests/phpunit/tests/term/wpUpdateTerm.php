@@ -802,4 +802,149 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		$this->assertWPError( $found );
 		$this->assertSame( 'invalid_term', $found->get_error_code() );
 	}
+
+	/**
+	 * A rejected write must not be reported as a successful update.
+	 *
+	 * `wpdb::process_fields()` refuses a value that does not fit its column, so
+	 * `$wpdb->update()` returns false without sending a query.
+	 *
+	 * @ticket 66007
+	 */
+	public function test_wp_update_term_should_return_wp_error_when_the_term_write_is_rejected() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Original name',
+			)
+		);
+
+		$found = wp_update_term(
+			$t,
+			'wptests_tax',
+			array(
+				'name' => str_repeat( 'a', 201 ),
+			)
+		);
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'db_update_error', $found->get_error_code() );
+		$this->assertSame( 'Original name', get_term( $t, 'wptests_tax' )->name, 'The term should be left untouched.' );
+	}
+
+	/**
+	 * @ticket 66007
+	 */
+	public function test_wp_update_term_should_not_fire_update_hooks_when_the_term_write_is_rejected() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$edited_terms = new MockAction();
+		$edit_term    = new MockAction();
+		$edited_term  = new MockAction();
+
+		add_action( 'edited_terms', array( $edited_terms, 'action' ) );
+		add_action( 'edit_term', array( $edit_term, 'action' ) );
+		add_action( 'edited_term', array( $edited_term, 'action' ) );
+
+		wp_update_term(
+			$t,
+			'wptests_tax',
+			array(
+				'name' => str_repeat( 'a', 201 ),
+			)
+		);
+
+		$this->assertSame( 0, $edited_terms->get_call_count(), '"edited_terms" should not fire.' );
+		$this->assertSame( 0, $edit_term->get_call_count(), '"edit_term" should not fire.' );
+		$this->assertSame( 0, $edited_term->get_call_count(), '"edited_term" should not fire.' );
+	}
+
+	/**
+	 * The length of the name is only the easiest trigger. Any value the database
+	 * layer rejects must be reported the same way.
+	 *
+	 * @ticket 66007
+	 */
+	public function test_wp_update_term_should_return_wp_error_when_filtered_term_data_is_rejected() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		add_filter(
+			'wp_update_term_data',
+			static function ( $data ) {
+				// A short name carrying an unpaired UTF-16 surrogate.
+				$data['name'] = "Bad\xED\xA0\x80name";
+				return $data;
+			}
+		);
+
+		$found = wp_update_term( $t, 'wptests_tax', array( 'name' => 'Anything' ) );
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'db_update_error', $found->get_error_code() );
+	}
+
+	/**
+	 * @ticket 66007
+	 */
+	public function test_wp_update_term_should_return_wp_error_when_the_term_taxonomy_write_is_rejected() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		add_filter(
+			'pre_term_description',
+			static function () {
+				return "Bad\xED\xA0\x80description";
+			},
+			99
+		);
+
+		$found = wp_update_term( $t, 'wptests_tax', array( 'description' => 'Anything' ) );
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'db_update_error', $found->get_error_code() );
+	}
+
+	/**
+	 * `$wpdb->update()` returns 0 when the row matches but no value changes.
+	 * That is a successful update and must not be mistaken for a failure.
+	 *
+	 * @ticket 66007
+	 */
+	public function test_wp_update_term_should_succeed_when_no_column_values_change() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Unchanged',
+				'slug'     => 'unchanged',
+			)
+		);
+
+		$found = wp_update_term(
+			$t,
+			'wptests_tax',
+			array(
+				'name' => 'Unchanged',
+				'slug' => 'unchanged',
+			)
+		);
+
+		$this->assertNotWPError( $found );
+		$this->assertSame( $t, $found['term_id'] );
+	}
 }
