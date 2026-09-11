@@ -1243,13 +1243,22 @@ switch ( $action ) {
 			wp_die( __( 'Missing or invalid key.' ) );
 		}
 
+		$user_id   = (int) $_GET['id'];
+		$email_key = sanitize_text_field( wp_unslash( $_GET['hash'] ) );
+
 		if ( ! is_user_logged_in() ) {
-			wp_safe_redirect( wp_login_url() );
+			$confirm_url = add_query_arg(
+				array(
+					'action' => 'confirmemail',
+					'id'     => $user_id,
+					'hash'   => rawurlencode( $email_key ),
+				),
+				wp_login_url()
+			);
+
+			wp_safe_redirect( wp_login_url( $confirm_url ) );
 			exit;
 		}
-
-		$user_id   = wp_unslash( $_GET['id'] );
-		$email_key = wp_unslash( $_GET['hash'] );
 
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			wp_die( __( 'Missing or invalid key.' ) );
@@ -1260,11 +1269,12 @@ switch ( $action ) {
 		}
 
 		login_header(
-			__( 'Confirm your email' ),
-			'<p class="success">' . __( 'Your email has been confirmed.' ) . '</p>'
+			__( 'Email address confirmed.' ),
+			'<p class="message">' . __( 'Your new email address has been confirmed.' ) . '</p>'
 		);
+
 		login_footer();
-		break;
+		exit;
 
 	case 'confirmaction':
 		if ( ! isset( $_GET['request_id'] ) ) {
