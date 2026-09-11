@@ -3288,7 +3288,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 'after@example.com', $data['email'] );
 		$this->assertSame( 'after@example.com', get_userdata( $user_id )->user_email );
 		$this->assertEmpty( get_user_meta( $user_id, '_new_email', true ) );
-		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+
+		/*
+		 * wp_update_user() mails a "Notice of Email Change" to the old address on every
+		 * change, so the assertion is that nothing was sent to the new address asking
+		 * for confirmation, not that no mail was sent at all.
+		 */
+		$this->assertFalse( $this->was_mail_sent_to( 'after@example.com' ) );
 	}
 
 	/**
@@ -3343,7 +3349,25 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'after@example.com', get_userdata( $user_id )->user_email );
 		$this->assertEmpty( get_user_meta( $user_id, '_new_email', true ) );
-		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+		$this->assertFalse( $this->was_mail_sent_to( 'after@example.com' ) );
+	}
+
+	/**
+	 * Whether any mail was sent to the given address.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $address The address to look for.
+	 * @return bool Whether a message was sent to the address.
+	 */
+	protected function was_mail_sent_to( $address ) {
+		foreach ( tests_retrieve_phpmailer_instance()->mock_sent as $mail ) {
+			if ( isset( $mail['to'][0][0] ) && $address === $mail['to'][0][0] ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public function data_get_default_data() {
