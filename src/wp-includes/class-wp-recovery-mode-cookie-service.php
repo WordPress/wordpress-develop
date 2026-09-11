@@ -56,7 +56,6 @@ final class WP_Recovery_Mode_Cookie_Service {
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => is_ssl(),
 				'httponly' => true,
-				'samesite' => 'Lax',
 			)
 		);
 
@@ -70,7 +69,6 @@ final class WP_Recovery_Mode_Cookie_Service {
 					'domain'   => COOKIE_DOMAIN,
 					'secure'   => is_ssl(),
 					'httponly' => true,
-					'samesite' => 'Lax',
 				)
 			);
 		}

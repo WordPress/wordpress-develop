@@ -1567,8 +1567,8 @@ function nocache_headers() {
  * options for all cookies in one place, and a short-circuit filter to prevent
  * a cookie from being sent.
  *
- * The options are passed to setcookie() unchanged, so its native defaults apply
- * to any that are omitted.
+ * The 'samesite' option defaults to 'Lax'. All other options are passed to
+ * setcookie() unchanged, so its native defaults apply to any that are omitted.
  *
  * @since x.y.z
  *
@@ -1582,7 +1582,7 @@ function nocache_headers() {
  *     @type string $domain   The (sub)domain that the cookie is available to.
  *     @type bool   $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
  *     @type bool   $httponly When true the cookie will be made accessible only through the HTTP protocol.
- *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'.
+ *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'. Default 'Lax'.
  * }
  * @return bool Whether the cookie was sent successfully.
  * @phpstan-param array{
@@ -1595,6 +1595,13 @@ function nocache_headers() {
  * } $options
  */
 function wp_set_cookie( string $name, string $value, array $options = array() ): bool {
+	$options = array_merge(
+		array(
+			'samesite' => 'Lax',
+		),
+		$options
+	);
+
 	/**
 	 * Filters the options used when a cookie is sent to the browser.
 	 *

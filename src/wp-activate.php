@@ -47,7 +47,6 @@ if ( $key ) {
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => is_ssl(),
 				'httponly' => true,
-				'samesite' => 'Lax',
 			)
 		);
 		wp_safe_redirect( $redirect_url );

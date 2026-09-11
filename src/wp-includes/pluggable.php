@@ -1201,7 +1201,6 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => $secure,
 				'httponly' => true,
-				'samesite' => 'Lax',
 			)
 		);
 		wp_set_cookie(
@@ -1213,7 +1212,6 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => $secure,
 				'httponly' => true,
-				'samesite' => 'Lax',
 			)
 		);
 		wp_set_cookie(
@@ -1225,7 +1223,6 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => $secure_logged_in_cookie,
 				'httponly' => true,
-				'samesite' => 'Lax',
 			)
 		);
 		if ( COOKIEPATH !== SITECOOKIEPATH ) {
@@ -1238,7 +1235,6 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 					'domain'   => COOKIE_DOMAIN,
 					'secure'   => $secure_logged_in_cookie,
 					'httponly' => true,
-					'samesite' => 'Lax',
 				)
 			);
 		}

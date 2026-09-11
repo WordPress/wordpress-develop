@@ -531,7 +531,6 @@ wp_set_cookie(
 		'domain'   => COOKIE_DOMAIN,
 		'secure'   => $secure,
 		'httponly' => true,
-		'samesite' => 'Lax',
 	)
 );
 
@@ -545,7 +544,6 @@ if ( SITECOOKIEPATH !== COOKIEPATH ) {
 			'domain'   => COOKIE_DOMAIN,
 			'secure'   => $secure,
 			'httponly' => true,
-			'samesite' => 'Lax',
 		)
 	);
 }
@@ -560,7 +558,6 @@ if ( isset( $_GET['wp_lang'] ) ) {
 			'domain'   => COOKIE_DOMAIN,
 			'secure'   => $secure,
 			'httponly' => true,
-			'samesite' => 'Lax',
 		)
 	);
 }
@@ -831,7 +828,6 @@ switch ( $action ) {
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => $secure,
 				'httponly' => false,
-				'samesite' => 'Lax',
 			)
 		);
 
@@ -992,7 +988,6 @@ switch ( $action ) {
 					'domain'   => COOKIE_DOMAIN,
 					'secure'   => is_ssl(),
 					'httponly' => true,
-					'samesite' => 'Lax',
 				)
 			);
 

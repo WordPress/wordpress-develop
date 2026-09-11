@@ -249,7 +249,6 @@ switch ( $action ) {
 					'domain'   => COOKIE_DOMAIN,
 					'secure'   => is_ssl(),
 					'httponly' => false,
-					'samesite' => 'Lax',
 				)
 			);
 		}

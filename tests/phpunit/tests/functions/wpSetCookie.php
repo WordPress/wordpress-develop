@@ -69,8 +69,7 @@ class Tests_Functions_WpSetCookie extends WP_UnitTestCase {
 			'test_cookie',
 			'test_value',
 			array(
-				'path'     => '/',
-				'samesite' => 'Lax',
+				'path' => '/',
 			)
 		);
 
@@ -79,5 +78,37 @@ class Tests_Functions_WpSetCookie extends WP_UnitTestCase {
 		$this->assertSame( 'Strict', $options['samesite'] );
 		$this->assertTrue( $options['secure'] );
 		$this->assertSame( '/', $options['path'] );
+	}
+
+	/**
+	 * Tests that the SameSite option defaults to Lax when not specified.
+	 *
+	 * @ticket 37000
+	 */
+	public function test_wp_set_cookie_defaults_samesite_to_lax() {
+		add_filter( 'send_cookie', array( $this, 'filter_capture_cookie' ), 10, 4 );
+
+		wp_set_cookie( 'test_cookie', 'test_value' );
+
+		$this->assertSame( 'Lax', $this->sent_cookies[0]['options']['samesite'] );
+	}
+
+	/**
+	 * Tests that an explicit SameSite option overrides the default.
+	 *
+	 * @ticket 37000
+	 */
+	public function test_wp_set_cookie_explicit_samesite_overrides_default() {
+		add_filter( 'send_cookie', array( $this, 'filter_capture_cookie' ), 10, 4 );
+
+		wp_set_cookie(
+			'test_cookie',
+			'test_value',
+			array(
+				'samesite' => 'None',
+			)
+		);
+
+		$this->assertSame( 'None', $this->sent_cookies[0]['options']['samesite'] );
 	}
 }

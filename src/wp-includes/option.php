@@ -1746,7 +1746,6 @@ function wp_user_settings() {
 			'domain'   => '',
 			'secure'   => $secure,
 			'httponly' => false,
-			'samesite' => 'Lax',
 		)
 	);
 	wp_set_cookie(
@@ -1758,7 +1757,6 @@ function wp_user_settings() {
 			'domain'   => '',
 			'secure'   => $secure,
 			'httponly' => false,
-			'samesite' => 'Lax',
 		)
 	);
 	$_COOKIE[ 'wp-settings-' . $user_id ] = $settings;

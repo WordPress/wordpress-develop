@@ -632,7 +632,6 @@ function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 			'domain'   => COOKIE_DOMAIN,
 			'secure'   => $secure,
 			'httponly' => false,
-			'samesite' => 'Lax',
 		)
 	);
 	wp_set_cookie(
@@ -644,7 +643,6 @@ function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 			'domain'   => COOKIE_DOMAIN,
 			'secure'   => $secure,
 			'httponly' => false,
-			'samesite' => 'Lax',
 		)
 	);
 	wp_set_cookie(
@@ -656,7 +654,6 @@ function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 			'domain'   => COOKIE_DOMAIN,
 			'secure'   => $secure,
 			'httponly' => false,
-			'samesite' => 'Lax',
 		)
 	);
 }
