@@ -2838,7 +2838,12 @@
 			'layout' => array(
 				'allowSwitching' => false,
 				'allowInheriting' => false,
-				'allowEditing' => false,
+				'allowEditing' => true,
+				'allowOrientation' => false,
+				'allowJustification' => false,
+				'allowVerticalAlignment' => false,
+				'allowWrap' => false,
+				'allowSizingOnChildren' => true,
 				'default' => array(
 					'type' => 'flex'
 				)
@@ -3935,6 +3940,9 @@
 				'__experimentalDefaultControls' => array(
 					'fontSize' => true
 				)
+			),
+			'interactivity' => array(
+				'clientNavigation' => true
 			)
 		),
 		'attributes' => array(
@@ -4360,7 +4368,7 @@
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
 		'name' => 'core/navigation-link',
-		'title' => 'Custom Link',
+		'title' => 'Navigation Link',
 		'category' => 'design',
 		'parent' => array(
 			'core/navigation'
@@ -7657,6 +7665,7 @@
 				'__experimentalFontWeight' => true,
 				'__experimentalLetterSpacing' => true,
 				'__experimentalWritingMode' => true,
+				'fitText' => true,
 				'__experimentalDefaultControls' => array(
 					'fontSize' => true
 				)

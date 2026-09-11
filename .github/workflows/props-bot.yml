@@ -70,6 +70,11 @@ jobs:
       ( ! github.event.pull_request.draft && github.event.pull_request.state == 'open' || ! github.event.issue.draft && github.event.issue.state == 'open' )
 
     steps:
+      - name: Output PR link
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url || github.event.issue.html_url }}
+        run: 'echo "::notice::Pull request: $PR_URL"'
+
       - name: Gather a list of contributors
         uses: WordPress/props-bot-action@trunk
         with:

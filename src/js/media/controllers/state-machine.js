@@ -35,7 +35,7 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {string} id
+	 * @param {string} id The ID of the state to fetch. If omitted, the active state is returned.
 	 * @return {wp.media.controller.State} Returns a State model from
 	 *                                     the StateMachine collection.
 	 */
@@ -60,7 +60,7 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {string} id
+	 * @param {string} id The ID of the state to set as active.
 	 *
 	 * @fires wp.media.controller.State#deactivate
 	 * @fires wp.media.controller.State#activate

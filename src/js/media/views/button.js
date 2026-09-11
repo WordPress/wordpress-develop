@@ -74,7 +74,7 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 	/**
 	 * Handles the click event.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object for the click action.
 	 */
 	click: function( event ) {
 		if ( '#' === this.attributes.href ) {

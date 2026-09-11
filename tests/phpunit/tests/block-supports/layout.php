@@ -1234,6 +1234,67 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a viewport override switching a vertical flex layout to horizontal
+	 * outputs an explicit `flex-direction: row`, so the base `flex-direction: column`
+	 * no longer applies on that viewport.
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_outputs_flex_direction_row_for_horizontal_viewport_override() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'flex',
+				'orientation'    => 'vertical',
+				'flexWrap'       => 'nowrap',
+				'justifyContent' => 'center',
+			),
+			false,
+			null,
+			false,
+			'0.5em',
+			null,
+			array(
+				'viewport_overrides' => array(
+					'orientation'    => 'horizontal',
+					'justifyContent' => 'left',
+				),
+			)
+		);
+
+		$this->assertSame( '.wp-layout{flex-direction:row;justify-content:flex-start;}', $layout_styles );
+	}
+
+	/**
+	 * Tests that a viewport override which does not change a horizontal orientation
+	 * keeps relying on the flex default and does not output `flex-direction`.
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_keeps_flex_direction_implicit_without_orientation_override() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'flex',
+				'orientation'    => 'horizontal',
+				'justifyContent' => 'left',
+			),
+			false,
+			null,
+			false,
+			'0.5em',
+			null,
+			array(
+				'viewport_overrides' => array(
+					'justifyContent' => 'right',
+				),
+			)
+		);
+
+		$this->assertSame( '.wp-layout{justify-content:flex-end;}', $layout_styles );
+	}
+
+	/**
 	 * Tests that a responsive grid child with a non-string parent minimumColumnWidth
 	 * does not cause a fatal error in the explode() call.
 	 *

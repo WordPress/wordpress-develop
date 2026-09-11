@@ -106,4 +106,4 @@ jobs:
           path: gutenberg/
           if-no-files-found: error
           include-hidden-files: true
-          retention-days: 1
+          retention-days: 7

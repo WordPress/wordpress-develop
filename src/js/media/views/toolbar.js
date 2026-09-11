@@ -83,9 +83,9 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	/**
 	 * Sets a view by its ID.
 	 *
-	 * @param {string} id
-	 * @param {Backbone.View|Object} view
-	 * @param {Object} [options={}]
+	 * @param {string}               id           The ID of the view to set.
+	 * @param {Backbone.View|Object} view         The view to set.
+	 * @param {Object}               [options={}] The options for setting the view.
 	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	set: function( id, view, options ) {
@@ -121,7 +121,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	/**
 	 * Retrieves a view by its ID.
 	 *
-	 * @param {string} id
+	 * @param {string} id The ID of the view to retrieve.
 	 * @return {wp.media.view.Button} The view associated with the given ID, or undefined if no view is found.
 	 */
 	get: function( id ) {
@@ -130,8 +130,8 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	/**
 	 * Unsets a view by its ID.
 	 *
-	 * @param {string} id
-	 * @param {Object} options
+	 * @param {string} id           The ID of the view to unset.
+	 * @param {Object} [options={}] The options for unsetting the view.
 	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	unset: function( id, options ) {
