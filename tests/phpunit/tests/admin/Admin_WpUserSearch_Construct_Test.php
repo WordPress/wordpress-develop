@@ -1,14 +1,14 @@
 <?php
+
 /**
  * @group admin
  * @group user
  *
- * @coversDefaultClass WP_User_Search
+ * @covers WP_User_Search::__construct
  */
-class Tests_Admin_wpUserSearch extends WP_UnitTestCase {
+class Admin_WpUserSearch_Construct_Test extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::__construct()
 	 * @expectedDeprecated WP_User_Search
 	 */
 	public function test_class_is_deprecated() {
