@@ -62,6 +62,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
+				array(
+					'methods'             => WP_REST_Server::UPDATABLE,
+					'callback'            => array( $this, 'update_item' ),
+					'permission_callback' => array( $this, 'update_item_permissions_check' ),
+					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::UPDATABLE ),
+				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
