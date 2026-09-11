@@ -76,6 +76,49 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
+	/**
+	 * @ticket 50012
+	 */
+	public function test_get_items_with_filtered_fields_for_taxonomy() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( '_fields', 'name,hierarchical' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'name', $data['category'] );
+		$this->assertSame( 'Categories', $data['category']['name'] );
+		$this->assertArrayHasKey( 'hierarchical', $data['category'] );
+		$this->assertTrue( $data['category']['hierarchical'] );
+		$this->assertFalse( array_key_exists( 'slug', $data['category'] ) );
+	}
+
+	/**
+	 * Test that an edited description field for the category taxonomy is displayed.
+	 *
+	 * @ticket 50012
+	 */
+	public function test_get_items_with_filtered_fields_with_description_for_category() {
+		$filter_callback = function ( $response, $taxonomy ) {
+			if ( 'category' === $taxonomy->name ) {
+				$data                = $response->get_data();
+				$data['description'] = 'Example';
+				$response->set_data( $data );
+			}
+			return $response;
+		};
+
+		add_filter( 'rest_prepare_taxonomy', $filter_callback, 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( '_fields', 'description' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'rest_prepare_taxonomy', $filter_callback, 10 );
+
+		$this->assertSame( 'Example', $data['category']['description'] );
+	}
+
 	public function test_get_items_context_edit() {
 		wp_set_current_user( self::$contributor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
