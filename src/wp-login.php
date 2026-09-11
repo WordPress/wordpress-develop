@@ -830,7 +830,7 @@ switch ( $action ) {
 				'path'     => COOKIEPATH,
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => $secure,
-				'httponly' => true,
+				'httponly' => false,
 				'samesite' => 'Lax',
 			)
 		);
