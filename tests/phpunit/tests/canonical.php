@@ -417,6 +417,121 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-cache',
+			)
+		);
+
+		$this->go_to( 'redirect-guess-404-permalink-cach' );
+
+		$first_run = redirect_guess_404_permalink();
+		$this->assertSame( get_permalink( $post ), $first_run, 'Did not guess the correct permalink on first run.' );
+
+		$num_queries = get_num_queries();
+		$second_run  = redirect_guess_404_permalink();
+		$this->assertSame( $first_run, $second_run, 'Result changed between cached and uncached run.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'A cached lookup performed an additional database query.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_misses_are_cached() {
+		$this->go_to( 'redirect-guess-404-permalink-no-such-post' );
+
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug.' );
+
+		$num_queries = get_num_queries();
+		$this->assertFalse( redirect_guess_404_permalink() );
+		$this->assertSame( $num_queries, get_num_queries(), 'A cached "not found" result performed an additional database query.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_invalidated_on_new_matching_post() {
+		$this->go_to( 'redirect-guess-404-permalink-new-post' );
+
+		// Prime a "not found" cache entry.
+		$this->assertFalse( redirect_guess_404_permalink() );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-new-post',
+			)
+		);
+
+		$num_queries = get_num_queries();
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink(), 'Newly created matching post was not found after cache invalidation.' );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Expected exactly one new query after the posts cache was invalidated.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_invalidated_on_post_delete() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-delete-me',
+			)
+		);
+
+		$this->go_to( 'redirect-guess-404-permalink-delete-m' );
+
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink() );
+
+		wp_delete_post( $post, true );
+
+		$num_queries = get_num_queries();
+		$this->assertFalse( redirect_guess_404_permalink(), 'Deleted post should no longer be guessed after cache invalidation.' );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Expected exactly one new query after the posts cache was invalidated by deletion.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_keys_do_not_collide() {
+		$post_post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-collision',
+				'post_type'  => 'post',
+			)
+		);
+		$page_post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-collision',
+				'post_type'  => 'page',
+			)
+		);
+
+		$this->go_to( '/?name=redirect-guess-collisio&post_type=post' );
+		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink() );
+
+		$this->go_to( '/?name=redirect-guess-collisio&post_type=page' );
+		$this->assertSame( get_permalink( $page_post ), redirect_guess_404_permalink(), 'Different post_type query var produced a colliding cached result.' );
+
+		// Re-run both to confirm both are independently cached and correct.
+		$this->go_to( '/?name=redirect-guess-collisio&post_type=post' );
+		$num_queries = get_num_queries();
+		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink() );
+		$this->assertSame( $num_queries, get_num_queries() );
+	}
+
+	/**
 	 * @ticket 43745
 	 */
 	public function test_utf8_query_keys_canonical() {
