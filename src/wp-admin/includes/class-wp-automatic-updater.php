@@ -1661,7 +1661,7 @@ class WP_Automatic_Updater {
 				delete_transient( 'wp_updater_last_fatal_error' );
 			}
 		}
-		
+
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
 		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
@@ -1959,8 +1959,8 @@ Thanks! -- The WordPress Team"
 			$fatal_error = sprintf(
 				'PHP Fatal error: %s in %s on line %d',
 				$result['message'],
-				is_string( $result['file'] ?? null ) ? $result['file'] : 'unknown',
-				is_int( $result['line'] ?? null ) ? $result['line'] : 0
+				$result['file'] ?? 'unknown',
+				$result['line'] ?? 0
 			);
 
 			$errors = get_transient( 'wp_updater_last_fatal_error' );
