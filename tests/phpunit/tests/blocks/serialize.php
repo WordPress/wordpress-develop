@@ -358,4 +358,85 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 		$this->assertSame( $markup, $actual );
 	}
+
+	/**
+	 * A nested empty object survives the round trip, and an empty array stays an array.
+	 *
+	 * No serializer change is involved: wp_json_encode() emits `{}` for an empty object
+	 * and `[]` for an empty array, so the parsed representation carries the distinction
+	 * on its own.
+	 *
+	 * @ticket 63325
+	 *
+	 * @dataProvider data_empty_object_round_trip
+	 *
+	 * @covers ::serialize_blocks
+	 *
+	 * @param string $markup Block markup that must survive unchanged.
+	 */
+	public function test_empty_objects_survive_the_round_trip( $markup ) {
+		$actual = serialize_blocks( _wp_parse_blocks_preserving_empty_object_attributes( $markup ) );
+
+		$this->assertSame( $markup, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_empty_object_round_trip() {
+		return array(
+			'empty object beside empty array' => array( '<!-- wp:test {"object":{},"array":[]} /-->' ),
+			'deeply nested'                   => array( '<!-- wp:test {"one":{"two":{"empty":{}}}} /-->' ),
+			'inside an array'                 => array( '<!-- wp:test {"items":[{},[],{"nested":{}}]} /-->' ),
+			'populated sibling'               => array( '<!-- wp:test {"config":{"enabled":true,"options":{}}} /-->' ),
+			'inner blocks'                    => array( '<!-- wp:outer {"a":{}} --><!-- wp:inner {"b":{}} /--><!-- /wp:outer -->' ),
+		);
+	}
+
+	/**
+	 * The default parse path is unchanged, so it still collapses `{}` to `[]`.
+	 *
+	 * @ticket 63325
+	 *
+	 * @covers ::serialize_blocks
+	 */
+	public function test_default_parse_path_still_collapses_empty_objects() {
+		$actual = serialize_blocks( parse_blocks( '<!-- wp:test {"object":{},"array":[]} /-->' ) );
+
+		$this->assertSame( '<!-- wp:test {"object":[],"array":[]} /-->', $actual );
+	}
+
+	/**
+	 * Empty top-level attributes keep being dropped, as they always have been.
+	 *
+	 * @ticket 63325
+	 *
+	 * @covers ::serialize_blocks
+	 */
+	public function test_empty_top_level_attributes_are_still_dropped() {
+		$actual = serialize_blocks( _wp_parse_blocks_preserving_empty_object_attributes( '<!-- wp:test {} /-->' ) );
+
+		$this->assertSame( '<!-- wp:test /-->', $actual );
+	}
+
+	/**
+	 * Preservation is deliberately limited to empty objects.
+	 *
+	 * An object whose keys are the sequential strings "0", "1", ... also encodes as a
+	 * JSON array, but restoring that would mean tracking the type of every value rather
+	 * than the one shape this ticket is about. It stays out of scope.
+	 *
+	 * @ticket 63325
+	 *
+	 * @covers ::serialize_blocks
+	 */
+	public function test_numeric_keyed_objects_are_not_preserved() {
+		$actual = serialize_blocks(
+			_wp_parse_blocks_preserving_empty_object_attributes( '<!-- wp:test {"numeric":{"0":"first","1":"second"}} /-->' )
+		);
+
+		$this->assertSame( '<!-- wp:test {"numeric":["first","second"]} /-->', $actual );
+	}
 }
