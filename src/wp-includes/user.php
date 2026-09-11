@@ -3932,7 +3932,12 @@ function send_user_email_change_confirmation_email( $user, $email ) {
 		return;
 	}
 
-	if ( $user->user_email === $email ) {
+	/*
+	 * Correcting the case of an address is the same mailbox, so it is not a change
+	 * that needs confirming, and `email_exists()` below would read it as an address
+	 * that is already in use. See #44672.
+	 */
+	if ( 0 === strcasecmp( $user->user_email, $email ) ) {
 		return;
 	}
 
