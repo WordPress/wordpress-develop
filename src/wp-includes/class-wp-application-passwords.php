@@ -430,6 +430,47 @@ class WP_Application_Passwords {
 	}
 
 	/**
+	 * Deletes all application passwords for the given user with a matching app ID.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $app_id  The application ID.
+	 * @return int|WP_Error The number of passwords that were deleted or a WP_Error on failure.
+	 */
+	public static function delete_application_passwords_by_app_id( $user_id, $app_id ) {
+		$passwords          = static::get_user_application_passwords( $user_id );
+		$remaining          = array();
+		$deleted_passwords  = array();
+
+		foreach ( $passwords as $password ) {
+			if ( $password['app_id'] === $app_id ) {
+				$deleted_passwords[] = $password;
+				continue;
+			}
+
+			$remaining[] = $password;
+		}
+
+		if ( ! $deleted_passwords ) {
+			return 0;
+		}
+
+		$saved = static::set_user_application_passwords( $user_id, $remaining );
+
+		if ( ! $saved ) {
+			return new WP_Error( 'db_error', __( 'Could not delete application passwords.' ) );
+		}
+
+		foreach ( $deleted_passwords as $password ) {
+			/** This action is documented in wp-includes/class-wp-application-passwords.php */
+			do_action( 'wp_delete_application_password', $user_id, $password );
+		}
+
+		return count( $deleted_passwords );
+	}
+
+	/**
 	 * Sets a user's application passwords.
 	 *
 	 * @since 5.6.0

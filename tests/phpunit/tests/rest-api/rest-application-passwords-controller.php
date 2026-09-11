@@ -795,6 +795,97 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @ticket 61644
+	 */
+	public function test_delete_items_by_app_id() {
+		wp_set_current_user( self::$admin );
+
+		$app_id = wp_generate_uuid4();
+
+		list( , $first_item ) = WP_Application_Passwords::create_new_application_password(
+			self::$admin,
+			array(
+				'name'   => 'App 1',
+				'app_id' => $app_id,
+			)
+		);
+		list( , $second_item ) = WP_Application_Passwords::create_new_application_password(
+			self::$admin,
+			array(
+				'name'   => 'App 2',
+				'app_id' => $app_id,
+			)
+		);
+		list( , $third_item ) = WP_Application_Passwords::create_new_application_password(
+			self::$admin,
+			array(
+				'name'   => 'App 3',
+				'app_id' => wp_generate_uuid4(),
+			)
+		);
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/users/me/application-passwords' );
+		$request->set_query_params(
+			array(
+				'app_id' => $app_id,
+			)
+		);
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertTrue( $response->get_data()['deleted'] );
+		$this->assertSame( 2, $response->get_data()['count'] );
+		$this->assertNull( WP_Application_Passwords::get_user_application_password( self::$admin, $first_item['uuid'] ) );
+		$this->assertNull( WP_Application_Passwords::get_user_application_password( self::$admin, $second_item['uuid'] ) );
+		$this->assertSame( $third_item, WP_Application_Passwords::get_user_application_password( self::$admin, $third_item['uuid'] ) );
+	}
+
+	/**
+	 * @ticket 61644
+	 */
+	public function test_delete_items_by_app_id_with_no_matches() {
+		wp_set_current_user( self::$admin );
+
+		list( , $item ) = WP_Application_Passwords::create_new_application_password(
+			self::$admin,
+			array(
+				'name'   => 'App 1',
+				'app_id' => wp_generate_uuid4(),
+			)
+		);
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/users/me/application-passwords' );
+		$request->set_query_params(
+			array(
+				'app_id' => wp_generate_uuid4(),
+			)
+		);
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertTrue( $response->get_data()['deleted'] );
+		$this->assertSame( 0, $response->get_data()['count'] );
+		$this->assertSame( $item, WP_Application_Passwords::get_user_application_password( self::$admin, $item['uuid'] ) );
+	}
+
+	/**
+	 * @ticket 61644
+	 */
+	public function test_delete_items_by_app_id_rejects_invalid_app_id() {
+		wp_set_current_user( self::$admin );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/users/me/application-passwords' );
+		$request->set_query_params(
+			array(
+				'app_id' => 'not-a-uuid',
+			)
+		);
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
 	 * @ticket 42790
 	 */
 	public function test_prepare_item() {
