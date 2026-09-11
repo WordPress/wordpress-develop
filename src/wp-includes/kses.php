@@ -2637,6 +2637,7 @@ function kses_init() {
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
  * @since 7.1.0 Extended gradient support to allow any single-level nested function.
+ * @since 7.2.0 Added support for `background-clip`.
  *              Added support for transform functions, `clip-path` basic shapes,
  *              and URLs in the SVG element reference properties.
  *
@@ -2662,6 +2663,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 *
 	 * @since 2.8.1
 	 * @since 7.1.0 Added support for SVG presentation attributes.
+	 * @since 7.2.0 Added support for `background-clip` and its vendor prefixed companions.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -2676,6 +2678,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'background-size',
 			'background-attachment',
 			'background-blend-mode',
+			'background-clip',
+			'-webkit-background-clip',
+			'-webkit-text-fill-color',
 
 			'border',
 			'border-radius',

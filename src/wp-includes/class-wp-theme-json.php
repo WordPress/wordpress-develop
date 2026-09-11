@@ -249,6 +249,7 @@ class WP_Theme_JSON {
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 *              Added `text-indent` property.
 	 * @since 7.1.0 Added `min-width` and `text-shadow`.
+	 * @since 7.2.0 Added `background-clip`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -260,6 +261,7 @@ class WP_Theme_JSON {
 		'background-repeat'                 => array( 'background', 'backgroundRepeat' ),
 		'background-size'                   => array( 'background', 'backgroundSize' ),
 		'background-attachment'             => array( 'background', 'backgroundAttachment' ),
+		'background-clip'                   => array( 'background', 'backgroundClip' ),
 		'border-radius'                     => array( 'border', 'radius' ),
 		'border-top-left-radius'            => array( 'border', 'radius', 'topLeft' ),
 		'border-top-right-radius'           => array( 'border', 'radius', 'topRight' ),
@@ -418,6 +420,7 @@ class WP_Theme_JSON {
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
+	 * @since 7.2.0 Added `background.backgroundClip` property.
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
 	 * @var array
 	 */
@@ -425,6 +428,7 @@ class WP_Theme_JSON {
 		'appearanceTools'               => null,
 		'useRootPaddingAwareAlignments' => null,
 		'background'                    => array(
+			'backgroundClip'  => null,
 			'backgroundImage' => null,
 			'backgroundSize'  => null,
 			'gradient'        => null,
@@ -567,10 +571,12 @@ class WP_Theme_JSON {
 	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
 	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
 	 *              and `typography.textShadow`.
+	 * @since 7.2.0 Added support for `background.backgroundClip`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
 		'background' => array(
+			'backgroundClip'       => null,
 			'backgroundImage'      => null,
 			'backgroundPosition'   => null,
 			'backgroundRepeat'     => null,
@@ -3118,6 +3124,33 @@ class WP_Theme_JSON {
 				'name'  => $css_property,
 				'value' => $value,
 			);
+
+			/*
+			 * Background clipping needs vendor prefixed properties for
+			 * cross-browser support. The `text` value clips the background to
+			 * the text and makes it visible through a transparent fill. The box
+			 * values only reset the fill color, to cancel any inherited text
+			 * clipping. `-webkit-background-clip` is an alias of
+			 * `background-clip` in Chromium, so resetting it would discard the
+			 * value set above.
+			 */
+			if ( 'background-clip' === $css_property ) {
+				if ( 'text' === $value ) {
+					$declarations[] = array(
+						'name'  => '-webkit-background-clip',
+						'value' => 'text',
+					);
+					$declarations[] = array(
+						'name'  => '-webkit-text-fill-color',
+						'value' => 'transparent',
+					);
+				} else {
+					$declarations[] = array(
+						'name'  => '-webkit-text-fill-color',
+						'value' => 'unset',
+					);
+				}
+			}
 		}
 
 		// If a variable value is added to the root, the corresponding property should be removed.
