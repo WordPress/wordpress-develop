@@ -62,7 +62,7 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 	/**
 	 * Prevents the default action of the event.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object associated with the action.
 	 */
 	preventDefault: function( event ) {
 		event.preventDefault();
@@ -70,7 +70,7 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 	/**
 	 * Saves the attachment compat data.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object associated with the action.
 	 */
 	save: function( event ) {
 		var data = {};
