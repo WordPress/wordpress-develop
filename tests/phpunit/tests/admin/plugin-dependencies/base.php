@@ -61,14 +61,28 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Resets all static properties to a default value before each test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		$this->reset_static_properties();
+	}
+
+	/**
 	 * Resets all static properties to a default value after each test.
 	 */
 	public function tear_down() {
+		$this->reset_static_properties();
+		parent::tear_down();
+	}
+
+	/**
+	 * Resets all static properties to their default values.
+	 */
+	private function reset_static_properties() {
 		foreach ( self::$static_properties as $name => $default_value ) {
 			$this->set_property_value( $name, $default_value );
 		}
-
-		parent::tear_down();
 	}
 
 	/**
