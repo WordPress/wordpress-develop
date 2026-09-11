@@ -188,6 +188,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/?name=images-te', '/2008/09/03/images-test/', 20374 ),
 			// Page slug should resolve to post slug and remove the ?pagename= parameter.
 			array( '/?pagename=images-test', '/2008/09/03/images-test/', 20374 ),
+			array( '/?pagename=sample-page', '/sample-page/' ),
+
+			array( '/?post_format=audio', '/type/audio/' ),
 
 			array( '/2008/06/02/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
 			array( '/2008/06/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
@@ -238,6 +241,8 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 			// Authors.
 			array( '/?author=%d', '/author/canonical-author/' ),
+			array( '/?author_name=canonical-author', '/author/canonical-author/' ),
+			array( '/?author_name=foobar', '/?author_name=foobar' ),
 			// array( '/?author=%d&year=2008', '/2008/?author=3'),
 			// array( '/author/canonical-author/?year=2008', '/2008/?author=3'), // Either or, see previous testcase.
 			array( '/author/canonical-author/?author[1]=hello', '/author/canonical-author/?author[1]=hello', 60059 ),
