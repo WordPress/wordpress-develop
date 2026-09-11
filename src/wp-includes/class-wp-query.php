@@ -1098,6 +1098,11 @@ class WP_Query {
 			}
 
 			if ( 'page' === get_option( 'show_on_front' ) && isset( $this->queried_object_id ) && get_option( 'page_for_posts' ) == $this->queried_object_id ) {
+				$posts_page = get_post( $this->queried_object_id );
+				if ( ! $posts_page || 'draft' == $posts_page->post_status ) {
+					$this->set_404();
+					return;
+				}
 				$this->is_page       = false;
 				$this->is_home       = true;
 				$this->is_posts_page = true;
@@ -1110,6 +1115,11 @@ class WP_Query {
 
 		if ( $query_vars['page_id'] ) {
 			if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) == $query_vars['page_id'] ) {
+				$posts_page = get_post( $query_vars['page_id'] );
+				if ( ! $posts_page || 'draft' == $posts_page->post_status ) {
+					$this->set_404();
+					return;
+				}
 				$this->is_page       = false;
 				$this->is_home       = true;
 				$this->is_posts_page = true;
