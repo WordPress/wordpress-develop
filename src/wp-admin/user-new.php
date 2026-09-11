@@ -230,6 +230,13 @@ Please click the following link to confirm the invite:
 
 			wp_ensure_editable_role( $_REQUEST['role'] );
 
+			// Capture the activation payload from the action so we can activate immediately if noconfirmation is set.
+			$activation_payload = null;
+			$capture_payload    = static function ( $u, $e, $payload ) use ( &$activation_payload ) {
+				$activation_payload = $payload;
+			};
+			add_action( 'after_signup_user', $capture_payload, 10, 3 );
+
 			wpmu_signup_user(
 				$new_user_login,
 				$new_user_email,
@@ -239,9 +246,10 @@ Please click the following link to confirm the invite:
 				)
 			);
 
+			remove_action( 'after_signup_user', $capture_payload, 10 );
+
 			if ( isset( $_POST['noconfirmation'] ) && current_user_can( 'manage_network_users' ) ) {
-				$key      = $wpdb->get_var( $wpdb->prepare( "SELECT activation_key FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $new_user_email ) );
-				$new_user = wpmu_activate_signup( $key );
+				$new_user = wpmu_activate_signup( $activation_payload );
 				if ( is_wp_error( $new_user ) ) {
 					$redirect = add_query_arg( array( 'update' => 'addnoconfirmation' ), 'user-new.php' );
 				} elseif ( ! is_user_member_of_blog( $new_user['user_id'] ) ) {
