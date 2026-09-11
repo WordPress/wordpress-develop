@@ -59,15 +59,17 @@ window.wpCookies = {
 	 * Set a multi-values cookie.
 	 *
 	 * 'values_obj' is the JS object that is stored. It is encoded as URI in wpCookies.set().
+	 *
+	 * The 'samesite' arg accepts 'Lax', 'Strict', or 'None', and defaults to 'Lax'.
 	 */
-	setHash: function( name, values_obj, expires, path, domain, secure ) {
+	setHash: function( name, values_obj, expires, path, domain, secure, samesite = 'Lax' ) {
 		var str = '';
 
 		this.each( values_obj, function( val, key ) {
 			str += ( ! str ? '' : '&' ) + key + '=' + val;
 		});
 
-		this.set( name, str, expires, path, domain, secure );
+		this.set( name, str, expires, path, domain, secure, samesite );
 	},
 
 	/**
@@ -107,9 +109,11 @@ window.wpCookies = {
 	 * Set a cookie.
 	 *
 	 * The 'expires' arg can be either a JS Date() object set to the expiration date (back-compat)
-	 * or the number of seconds until expiration
+	 * or the number of seconds until expiration.
+	 *
+	 * The 'samesite' arg accepts 'Lax', 'Strict', or 'None', and defaults to 'Lax'.
 	 */
-	set: function( name, value, expires, path, domain, secure ) {
+	set: function( name, value, expires, path, domain, secure, samesite = 'Lax' ) {
 		var d = new Date();
 
 		if ( typeof( expires ) === 'object' && expires.toGMTString ) {
@@ -125,7 +129,8 @@ window.wpCookies = {
 			( expires ? '; expires=' + expires : '' ) +
 			( path    ? '; path=' + path       : '' ) +
 			( domain  ? '; domain=' + domain   : '' ) +
-			( secure  ? '; secure'             : '' );
+			( secure  ? '; secure'             : '' ) +
+			'; SameSite=' + samesite;
 	},
 
 	/**
