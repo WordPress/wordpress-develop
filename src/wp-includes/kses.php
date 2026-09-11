@@ -1983,7 +1983,11 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 function wp_kses_bad_protocol( $content, $allowed_protocols ) {
 	$content = wp_kses_no_null( $content );
 
-	if ( is_allowed_text_fragment( $content ) ) {
+	// Preserve relative text fragment URLs when web protocols are allowed.
+	if (
+		( in_array( 'http', $allowed_protocols, true ) || in_array( 'https', $allowed_protocols, true ) ) &&
+		preg_match( '/^[^:&]*#:~:text=/', $content )
+	) {
 		return $content;
 	}
 
@@ -3159,16 +3163,4 @@ function _wp_kses_allow_pdf_objects( $url ) {
 	}
 
 	return false;
-}
-
-/**
- * Checks if a content string is a valid text fragment link.
- *
- * This function handles the text fragment links (e.g., #:~:text=highlight) separately.
- *
- * @param string $content
- * @return bool
- */
-function is_allowed_text_fragment( string $content ): bool {
-	return str_starts_with( $content, '#:~:text=' );
 }
