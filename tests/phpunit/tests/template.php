@@ -747,7 +747,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
 		$this->assertIsString( $processed_output );
-		$this->assertNotEquals( $original_output, $processed_output );
+		$this->assertNotSame( $original_output, $processed_output );
 
 		$this->assertStringContainsString( '<!DOCTYPE html>', $processed_output, 'Expected processed output to contain string.' );
 		$this->assertStringContainsString( '<html lang="es">', $processed_output, 'Expected processed output to contain string.' );

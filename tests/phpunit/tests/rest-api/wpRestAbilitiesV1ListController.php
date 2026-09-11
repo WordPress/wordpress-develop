@@ -504,7 +504,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$total_abilities = count( wp_get_abilities() ) - 1; // Exclude the one that doesn't show in REST.
-		$this->assertEquals( $total_abilities, (int) $headers['X-WP-Total'] );
+		$this->assertSame( $total_abilities, (int) $headers['X-WP-Total'] );
 		$this->assertEquals( ceil( $total_abilities / 10 ), (int) $headers['X-WP-TotalPages'] );
 	}
 

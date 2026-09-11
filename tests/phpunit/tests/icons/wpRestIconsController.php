@@ -402,7 +402,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEquals( array( 'core/at-symbol' ), array_column( $data, 'name' ) );
+		$this->assertSame( array( 'core/at-symbol' ), array_column( $data, 'name' ) );
 	}
 
 	/**

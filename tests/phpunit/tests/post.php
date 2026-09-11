@@ -273,7 +273,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_ids[ $key ] );
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertNotEquals( 'publish', $post->post_status );
+		$this->assertNotSame( 'publish', $post->post_status );
 
 		$after_draft_counts = wp_count_posts();
 		$this->assertSame( '1', $after_draft_counts->draft );
@@ -294,7 +294,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_ids[ $key ] );
 		$this->assertSame( 'trash', $post->post_status );
-		$this->assertNotEquals( 'publish', $post->post_status );
+		$this->assertNotSame( 'publish', $post->post_status );
 
 		$after_trash_counts = wp_count_posts();
 		$this->assertSame( '1', $after_trash_counts->trash );
