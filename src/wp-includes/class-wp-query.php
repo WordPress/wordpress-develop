@@ -2049,7 +2049,10 @@ class WP_Query {
 			$query_vars['comments_per_page'] = get_option( 'comments_per_page' );
 		}
 
-		if ( $this->is_home && ( empty( $this->query ) || 'true' === $query_vars['preview'] ) && ( 'page' === get_option( 'show_on_front' ) ) && get_option( 'page_on_front' ) ) {
+		if ( $this->is_home && ! $this->is_posts_page
+			&& ( empty( $this->query ) || 'true' === $query_vars['preview'] )
+			&& ( 'page' === get_option( 'show_on_front' ) ) && get_option( 'page_on_front' )
+		) {
 			$this->is_page         = true;
 			$this->is_home         = false;
 			$query_vars['page_id'] = get_option( 'page_on_front' );
