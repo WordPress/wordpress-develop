@@ -1158,14 +1158,15 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		}
 
 		$comment_args = array(
-			'type'       => $args['type'],
-			'post_id'    => $comment->comment_post_ID,
-			'fields'     => 'ids',
-			'count'      => true,
-			'status'     => 'approve',
-			'orderby'    => 'none',
-			'parent'     => 0,
-			'date_query' => array(
+			'type'         => $args['type'],
+			'type__not_in' => array( 'note' ),
+			'post_id'      => $comment->comment_post_ID,
+			'fields'       => 'ids',
+			'count'        => true,
+			'status'       => 'approve',
+			'orderby'      => 'none',
+			'parent'       => 0,
+			'date_query'   => array(
 				array(
 					'column' => "$wpdb->comments.comment_date_gmt",
 					'before' => $comment->comment_date_gmt,
