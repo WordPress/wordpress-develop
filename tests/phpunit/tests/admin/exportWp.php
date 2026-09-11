@@ -44,7 +44,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once ABSPATH . 'wp-admin/includes/export.php';
-		$file = DIR_TESTDATA . '/images/test-image.jpg';
 
 		$dataset = array(
 			'post 1' => array(
@@ -71,8 +70,16 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 			$attachment_key           = "attachment for $post_key";
 			$post_data['post_author'] = $factory->user->create( array( 'role' => 'editor' ) );
 
-			$post_id       = $factory->post->create( $post_data );
-			$attachment_id = $factory->attachment->create_upload_object( $file, $post_id );
+			$post_id = $factory->post->create( $post_data );
+
+			// Export needs attachment records, not uploaded files or generated image sizes.
+			$attachment_id = $factory->attachment->create(
+				array(
+					'file'           => 'test-image.jpg',
+					'post_parent'    => $post_id,
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
 			set_post_thumbnail( $post_id, $attachment_id );
 
 			self::$post_ids[ $post_key ]       = array(
