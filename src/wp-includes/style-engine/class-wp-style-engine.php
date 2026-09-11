@@ -49,6 +49,7 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 * @since 7.1.0 Added `background.gradient` property.
+	 * @since 7.2.0 Added `background.backgroundClip` property.
 	 * @var array
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
@@ -96,6 +97,10 @@ final class WP_Style_Engine {
 					'has-background' => true,
 				),
 			),
+			'backgroundClip'       => array(
+				'value_func' => array( self::class, 'get_background_clip_css_declarations' ),
+				'path'       => array( 'background', 'backgroundClip' ),
+			),
 		),
 		'color'      => array(
 			'text'       => array(
@@ -125,17 +130,14 @@ final class WP_Style_Engine {
 				),
 			),
 			'gradient'   => array(
-				'property_keys' => array(
+				'property_keys'   => array(
 					'default' => 'background',
 				),
-				'path'          => array( 'color', 'gradient' ),
-				'css_vars'      => array(
+				'css_vars'        => array(
 					'gradient' => '--wp--preset--gradient--$slug',
 				),
-				'classnames'    => array(
-					'has-background'                => true,
-					'has-$slug-gradient-background' => 'gradient',
-				),
+				'path'            => array( 'color', 'gradient' ),
+				'classnames_func' => array( self::class, 'get_gradient_classnames' ),
 			),
 		),
 		'border'     => array(
@@ -513,7 +515,7 @@ final class WP_Style_Engine {
 					continue;
 				}
 
-				$classnames = static::get_classnames( $style_value, $style_definition );
+				$classnames = static::get_classnames( $style_value, $style_definition, $options );
 				if ( ! empty( $classnames ) ) {
 					$parsed_styles['classnames'] = array_merge( $parsed_styles['classnames'], $classnames );
 				}
@@ -540,15 +542,21 @@ final class WP_Style_Engine {
 	 * e.g. `var:preset|<PRESET_TYPE>|<PRESET_SLUG>`.
 	 *
 	 * @since 6.1.0
+	 * @since 7.2.0 Added the `$options` parameter and support for `classnames_func`.
 	 *
 	 * @param string $style_value      A single raw style value or CSS preset property
 	 *                                 from the `$block_styles` array.
 	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+	 * @param array  $options          Optional. An array of options. Default empty array.
 	 * @return string[] An array of CSS classnames, or empty array if there are none.
 	 */
-	protected static function get_classnames( $style_value, $style_definition ) {
+	protected static function get_classnames( $style_value, $style_definition, $options = array() ) {
 		if ( empty( $style_value ) ) {
 			return array();
+		}
+
+		if ( isset( $style_definition['classnames_func'] ) && is_callable( $style_definition['classnames_func'] ) ) {
+			return call_user_func( $style_definition['classnames_func'], $style_value, $style_definition, $options );
 		}
 
 		$classnames = array();
@@ -753,6 +761,72 @@ final class WP_Style_Engine {
 		}
 
 		return $css_declarations;
+	}
+
+	/**
+	 * Style value parser that returns the CSS declarations for background clipping.
+	 *
+	 * For the `text` value the background is clipped to the block's text, which
+	 * requires the vendor prefixed properties and a transparent fill color. For
+	 * the box values only the fill color is reset, to cancel any inherited text
+	 * clipping. `-webkit-background-clip` is an alias of `background-clip` in
+	 * Chromium, so resetting it there would discard the value set above.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $style_value      A single raw style value from $block_styles array.
+	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+	 * @return string[] An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+	 */
+	protected static function get_background_clip_css_declarations( $style_value, $style_definition ) {
+		if ( empty( $style_value ) || ! is_string( $style_value ) ) {
+			return array();
+		}
+
+		$valid_values = array( 'border-box', 'padding-box', 'content-box', 'text' );
+
+		if ( ! in_array( $style_value, $valid_values, true ) ) {
+			return array();
+		}
+
+		$css_declarations = array(
+			'background-clip' => $style_value,
+		);
+
+		if ( 'text' === $style_value ) {
+			$css_declarations['-webkit-background-clip'] = 'text';
+			$css_declarations['-webkit-text-fill-color'] = 'transparent';
+		} else {
+			$css_declarations['-webkit-text-fill-color'] = 'unset';
+		}
+
+		return $css_declarations;
+	}
+
+	/**
+	 * Returns the classnames for a gradient value.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $style_value      The gradient style value.
+	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+	 * @param array  $options          Optional. An array of options. Default empty array.
+	 * @return string[] An array of CSS classnames, or empty array if there are none.
+	 */
+	protected static function get_gradient_classnames( $style_value, $style_definition, $options = array() ) {
+		if ( empty( $style_value ) ) {
+			return array();
+		}
+
+		$classnames = array( 'has-background' );
+
+		$slug = static::get_slug_from_preset_value( $style_value, 'gradient' );
+
+		if ( $slug ) {
+			$classnames[] = "has-{$slug}-gradient-background";
+		}
+
+		return $classnames;
 	}
 
 	/**
