@@ -72,7 +72,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 			$post_id = $factory->post->create( $post_data );
 
-			// Export needs attachment records, not uploaded files or generated image sizes.
 			$attachment_id = $factory->attachment->create(
 				array(
 					'file'           => 'test-image.jpg',
