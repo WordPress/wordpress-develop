@@ -50,6 +50,7 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 * @since 7.1.0 Added `background.gradient` property.
+	 * @since 7.2.0 Added `background.backgroundClip` property.
 	 * @var array
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
@@ -96,6 +97,10 @@ final class WP_Style_Engine {
 				'classnames'    => array(
 					'has-background' => true,
 				),
+			),
+			'backgroundClip'       => array(
+				'value_func' => array( self::class, 'get_background_clip_css_declarations' ),
+				'path'       => array( 'background', 'backgroundClip' ),
 			),
 		),
 		'color'      => array(
@@ -763,6 +768,50 @@ final class WP_Style_Engine {
 			if ( null !== $value ) {
 				$css_declarations[ $style_definition['property_keys']['default'] ] = $value;
 			}
+		}
+
+		return $css_declarations;
+	}
+
+	/**
+	 * Style value parser that returns the CSS declarations for background clipping.
+	 *
+	 * For the `text` value the background is clipped to the block's text, which
+	 * requires the vendor prefixed properties and a transparent fill color.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $style_value      A single raw style value from $block_styles array.
+	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+	 * @return string[] An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+	 */
+	protected static function get_background_clip_css_declarations( $style_value, $style_definition ) {
+		if ( empty( $style_value ) || ! is_string( $style_value ) ) {
+			return array();
+		}
+
+		$valid_values = array( 'border-box', 'padding-box', 'content-box', 'text' );
+
+		if ( ! in_array( $style_value, $valid_values, true ) ) {
+			return array();
+		}
+
+		$css_declarations = array(
+			'background-clip' => $style_value,
+		);
+
+		if ( 'text' === $style_value ) {
+			$css_declarations['-webkit-background-clip'] = 'text';
+			$css_declarations['-webkit-text-fill-color'] = 'transparent';
+		} else {
+			/*
+			 * Only the fill color is restored. `-webkit-background-clip` is an
+			 * alias of `background-clip` in Chromium, so resetting it here would
+			 * discard the value set above. The fill color is inherited, so it
+			 * needs its initial value rather than `unset`, which would take a
+			 * transparent fill from an ancestor clipping to text.
+			 */
+			$css_declarations['-webkit-text-fill-color'] = 'currentColor';
 		}
 
 		return $css_declarations;
