@@ -6608,9 +6608,7 @@ function wp_set_client_side_media_processing_flag(): void {
 
 	wp_add_inline_script( 'wp-block-editor', 'window.__clientSideMediaProcessing = true;', 'before' );
 
-	$chromium_version = wp_get_chromium_major_version();
-
-	if ( null !== $chromium_version && $chromium_version >= 137 ) {
+	if ( wp_is_document_isolation_policy_supported() ) {
 		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
 	}
 }
@@ -6635,17 +6633,42 @@ function wp_get_chromium_major_version(): ?int {
 }
 
 /**
- * Enables cross-origin isolation in the block editor.
+ * Determines whether the current request's browser honors the
+ * Document-Isolation-Policy header.
+ *
+ * Document-Isolation-Policy is how WordPress makes a page cross-origin
+ * isolated for client-side media processing. Chromium 137+ is the only
+ * engine that implements it; other browsers ignore the header, so the
+ * page never becomes isolated and the client-side pipeline cannot run.
+ *
+ * @since 7.2.0
+ *
+ * @return bool True when the browser is Chromium 137 or newer.
+ */
+function wp_is_document_isolation_policy_supported(): bool {
+	$chromium_version = wp_get_chromium_major_version();
+
+	return null !== $chromium_version && $chromium_version >= 137;
+}
+
+/**
+ * Enables cross-origin isolation on screens that upload media client-side.
  *
  * Required for enabling SharedArrayBuffer for WebAssembly-based
- * media processing in the editor. Uses Document-Isolation-Policy
+ * media processing in the block editor, the Media Library grid, and
+ * the "Add New Media File" screen. Uses Document-Isolation-Policy
  * on supported browsers (Chromium 137+).
+ *
+ * The Media Library is only isolated in grid mode: list mode has no
+ * client-side pipeline integration, its uploads go through the
+ * "Add New Media File" screen.
  *
  * Skips setup when a third-party page builder overrides the block
  * editor via a custom `action` query parameter, as DIP would block
  * same-origin iframe access that these editors rely on.
  *
  * @since 7.1.0
+ * @since 7.2.0 Also isolates the Media Library grid and the "Add New Media File" screen.
  */
 function wp_set_up_cross_origin_isolation(): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
@@ -6658,7 +6681,14 @@ function wp_set_up_cross_origin_isolation(): void {
 		return;
 	}
 
-	if ( ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
+	$is_media_screen = 'media' === $screen->id || ( 'upload' === $screen->id && 'grid' === wp_get_media_library_mode() );
+
+	if (
+		! $is_media_screen &&
+		! $screen->is_block_editor() &&
+		'site-editor' !== $screen->id &&
+		! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() )
+	) {
 		return;
 	}
 
@@ -6683,7 +6713,7 @@ function wp_set_up_cross_origin_isolation(): void {
 	 * DIP isolates the document into its own agent cluster,
 	 * which blocks same-origin iframe access that these editors rely on.
 	 */
-	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
+	if ( ! $is_media_screen && isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
 		return;
 	}
 
@@ -6696,6 +6726,140 @@ function wp_set_up_cross_origin_isolation(): void {
 }
 
 /**
+ * Returns the current Media Library mode (grid or list).
+ *
+ * Replicates the mode resolution in wp-admin/upload.php, which runs after
+ * the `load-upload.php` hook, without updating the saved user option.
+ *
+ * upload.php falls back to grid mode for any falsey saved value and renders
+ * grid mode only for the exact value 'grid'. A truthy saved value outside the
+ * two known modes - one a plugin stored, say - therefore renders list mode
+ * there and resolves to 'list' here, so callers do not isolate a page that
+ * the Media Library renders in list mode.
+ *
+ * @since 7.2.0
+ *
+ * @return string The Media Library mode, 'grid' when none is saved.
+ * @phpstan-return 'grid'|'list'
+ */
+function wp_get_media_library_mode(): string {
+	$valid_modes = array( 'grid', 'list' );
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['mode'] ) && in_array( $_GET['mode'], $valid_modes, true ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return $_GET['mode'];
+	}
+
+	$mode = get_user_option( 'media_library_mode', get_current_user_id() );
+
+	if ( in_array( $mode, $valid_modes, true ) ) {
+		return $mode;
+	}
+
+	// As in upload.php: nothing saved renders the grid, any other value the list.
+	return $mode ? 'list' : 'grid';
+}
+
+/**
+ * Returns the settings for the client-side media processing pipeline
+ * in the Media Library.
+ *
+ * These mirror the values the block editor consumes for the same
+ * pipeline: the REST index (image sizes and the big-image threshold)
+ * and get_block_editor_settings() (max upload size and allowed mime
+ * types), plus the image encoding filters.
+ *
+ * @since 7.2.0
+ *
+ * @return array {
+ *     Settings for the client-side media processing pipeline.
+ *
+ *     @type int   $maxUploadFileSize     Maximum upload file size in bytes.
+ *     @type array $allowedMimeTypes      Allowed mime types keyed by file extension.
+ *     @type array $allImageSizes         All registered image sub-sizes.
+ *     @type int   $bigImageSizeThreshold Threshold above which originals are scaled down.
+ *     @type bool  $imageStripMeta        Whether metadata is stripped from generated images.
+ *     @type int   $imageMaxBitDepth      Maximum bit depth for generated images.
+ * }
+ */
+function wp_get_media_library_upload_settings(): array {
+	/** This filter is documented in wp-admin/includes/image.php */
+	$big_image_size_threshold = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
+
+	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+	$image_strip_meta = (bool) apply_filters( 'image_strip_meta', true );
+
+	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+	$image_max_bit_depth = (int) apply_filters( 'image_max_bit_depth', 16, 16 );
+
+	return array(
+		'maxUploadFileSize'     => (int) wp_max_upload_size(),
+		'allowedMimeTypes'      => get_allowed_mime_types(),
+		'allImageSizes'         => wp_get_registered_image_subsizes(),
+		'bigImageSizeThreshold' => $big_image_size_threshold,
+		'imageStripMeta'        => $image_strip_meta,
+		'imageMaxBitDepth'      => $image_max_bit_depth,
+	);
+}
+
+/**
+ * Enqueues a screen's client-side upload integration script along with the
+ * shared pipeline glue and its settings.
+ *
+ * Nothing is enqueued unless client-side media processing is enabled and the
+ * browser honors Document-Isolation-Policy: without isolation the page never
+ * becomes cross-origin isolated, the script would no-op, and the whole
+ * wp-upload-media dependency chain would be loaded for nothing.
+ *
+ * The screen script self-guards at runtime too: when the browser turns out
+ * not to be isolated or lacks client-side media support, it no-ops and the
+ * classic plupload flow keeps handling uploads.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $handle The screen script to enqueue.
+ */
+function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
+	if ( ! wp_is_client_side_media_processing_enabled() ) {
+		return;
+	}
+
+	if ( ! wp_is_document_isolation_policy_supported() ) {
+		return;
+	}
+
+	wp_enqueue_script( $handle );
+
+	wp_add_inline_script(
+		'media-upload-pipeline',
+		'window._wpMediaUploadPipelineSettings = ' . wp_json_encode( wp_get_media_library_upload_settings() ) . ';',
+		'before'
+	);
+}
+
+/**
+ * Enqueues the script that routes Media Library grid uploads through
+ * the client-side media processing pipeline.
+ *
+ * @since 7.2.0
+ */
+function wp_enqueue_media_library_upload(): void {
+	_wp_enqueue_media_upload_pipeline_script( 'media-library-upload' );
+}
+
+/**
+ * Enqueues the script that routes "Add New Media File" screen uploads
+ * through the client-side media processing pipeline.
+ *
+ * @since 7.2.0
+ */
+function wp_enqueue_media_new_upload(): void {
+	_wp_enqueue_media_upload_pipeline_script( 'media-new-upload' );
+}
+
+/**
  * Sends the Document-Isolation-Policy header for cross-origin isolation.
  *
  * Uses an output buffer to add crossorigin="anonymous" where needed.
@@ -6703,9 +6867,7 @@ function wp_set_up_cross_origin_isolation(): void {
  * @since 7.1.0
  */
 function wp_start_cross_origin_isolation_output_buffer(): void {
-	$chromium_version = wp_get_chromium_major_version();
-
-	if ( null === $chromium_version || $chromium_version < 137 ) {
+	if ( ! wp_is_document_isolation_policy_supported() ) {
 		return;
 	}
 
