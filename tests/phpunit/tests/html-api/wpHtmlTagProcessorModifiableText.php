@@ -414,9 +414,10 @@ HTML
 			'Should have modified the text at the target node.'
 		);
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$transformed,
 			$processor->get_updated_html(),
+			'<body>',
 			"Should have transformed the HTML as expected when modifying the target node's modifiable text."
 		);
 	}
@@ -578,6 +579,79 @@ HTML
 	}
 
 	/**
+	 * Ensures that RCDATA contents are eagerly escaped, despite being
+	 * optional, to protect downstream parsers from misparsing.
+	 *
+	 * @ticket 65984
+	 *
+	 * @dataProvider data_rcdata_element_names
+	 *
+	 * @param 'TITLE'|'TEXTAREA' $element_name Which RCDATA element to verify.
+	 */
+	public function test_escapes_rcdata_content( string $element_name ): void {
+		$text      = 'the <img> is text';
+		$html      = "<{$element_name}>{$text}</{$element_name}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		$this->assertTrue(
+			$processor->next_token(),
+			"Failed to advance into the {$element_name} element: check test setup."
+		);
+
+		/*
+		 * While this may look like a no-op, it should change the inner text
+		 * from `<img>` to `&lt;img&gt;`, which will be asserted below.
+		 */
+		$this->assertTrue(
+			$processor->set_modifiable_text( $text ),
+			'Failed to set the modifiable text: check test setup.'
+		);
+
+		$output = $processor->get_updated_html();
+
+		// The updated output must still remain equivalent to the input.
+		$this->assertEqualHTML(
+			$html,
+			$output,
+			'<body>',
+			'Failed to update modifiable text without changing the parsed HTML.'
+		);
+
+		// Ensure that the content is not left unescaped.
+		$this->assertStringNotContainsString(
+			'<img>',
+			$output,
+			'Should have escaped the <img> into &lt;img&lt;.'
+		);
+
+		// Finally, ensure that weaker parsers still interpret this correctly.
+		if ( class_exists( '\DOMDocument' ) ) {
+			$dom = new \DOMDocument();
+			$dom->loadHTML( $output, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING );
+
+			$first_child = $dom->getElementsByTagName( strtolower( $element_name ) )->item( 0 )->childNodes[0];
+
+			$this->assertSame(
+				$first_child->nodeValue,
+				$text,
+				'Failed to protect weaker parsers from detecting elements as RCDATA content.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_rcdata_element_names(): array {
+		return array(
+			array( 'TEXTAREA' ),
+			array( 'TITLE' ),
+		);
+	}
+
+	/**
 	 * Ensures that updates with potentially-compromising values aren't accepted.
 	 *
 	 * For example, a modifiable text update that would change the structure of the HTML
@@ -586,6 +660,7 @@ HTML
 	 *
 	 * @ticket 61617
 	 * @ticket 62797
+	 * @ticket 65824
 	 *
 	 * @dataProvider data_unallowed_modifiable_text_updates
 	 *
@@ -640,6 +715,65 @@ HTML
 			'Non-JS SCRIPT with </script>'            => array( '<script type="text/plain">Replace me</script>', 'Just a </script>' ),
 			'Non-JS SCRIPT with <script attributes>'  => array( '<script language="text">Replace me</script>', '<!-- <script sneaky>after' ),
 			'Non-JS SCRIPT with </script attributes>' => array( '<script language="text">Replace me</script>', 'before</script sneaky>after' ),
+			'XMP with </xmp/>'                        => array( '<xmp>Replace me</xmp>', 'Also closed by </xmp/>' ),
+			'XMP with </xmp\f>'                       => array( '<xmp>Replace me</xmp>', "Also closed by </xmp\f>" ),
+			'Non-JS SCRIPT with </script\r>'          => array( '<script language="text">Replace me</script>', "before</script\r>after" ),
+		);
+	}
+
+	/**
+	 * Ensures that raw text which resembles a closing tag, but cannot close its
+	 * element, is allowed as modifiable text.
+	 *
+	 * @ticket 65824
+	 *
+	 * @dataProvider data_raw_text_resembling_a_closing_tag
+	 *
+	 * @param string $html     HTML whose first tag holds the raw text to replace.
+	 * @param string $update   Text resembling, but not forming, that element's closing tag.
+	 * @param string $expected Expected document after the update.
+	 */
+	public function test_allows_raw_text_which_cannot_close_its_element( string $html, string $update, string $expected ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag();
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( $update ),
+			'Should have allowed text which cannot close the element.'
+		);
+
+		$this->assertSame(
+			$expected,
+			$processor->get_updated_html(),
+			'Should have updated the document as expected.'
+		);
+
+		$reparsed = new WP_HTML_Tag_Processor( $expected );
+		$reparsed->next_tag();
+
+		$this->assertSame(
+			$update,
+			$reparsed->get_modifiable_text(),
+			'Should have preserved the text when re-parsing the updated document.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_raw_text_resembling_a_closing_tag(): array {
+		return array(
+			'IFRAME with </iframely>'          => array( '<iframe>Replace me</iframe>', 'Just a </iframely>', '<iframe>Just a </iframely></iframe>' ),
+			'NOEMBED with </NOEMBEDDED>'       => array( '<noembed>Replace me</noembed>', 'Just a </NOEMBEDDED>', '<noembed>Just a </NOEMBEDDED></noembed>' ),
+			'NOFRAMES with </noframes->'       => array( '<noframes>Replace me</noframes>', 'before</noframes->after', '<noframes>before</noframes->after</noframes>' ),
+			'XMP with </xmp-tag>'              => array( '<xmp>Replace me</xmp>', 'Just a </xmp-tag>', '<xmp>Just a </xmp-tag></xmp>' ),
+			'XMP ending in </xmp'              => array( '<xmp>Replace me</xmp>', 'Trailing </xmp', '<xmp>Trailing </xmp</xmp>' ),
+			'Non-JS SCRIPT with <scriptish>'   => array( '<script type="text/plain">Replace me</script>', '<!-- <scriptish> -->', '<script type="text/plain"><!-- <scriptish> --></script>' ),
+			'Non-JS SCRIPT with </scriptx>'    => array( '<script type="text/plain">Replace me</script>', 'Just a </scriptx>', '<script type="text/plain">Just a </scriptx></script>' ),
+			'Non-JS SCRIPT ending in <script'  => array( '<script type="text/plain">Replace me</script>', '<!-- <script', '<script type="text/plain"><!-- <script</script>' ),
+			'Non-JS SCRIPT ending in </script' => array( '<script type="text/plain">Replace me</script>', 'Trailing </script', '<script type="text/plain">Trailing </script</script>' ),
 		);
 	}
 

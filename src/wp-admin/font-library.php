@@ -18,35 +18,19 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
-// Check if Gutenberg build files are available
+// Check if the build files are available.
 if ( ! function_exists( 'wp_font_library_wp_admin_render_page' ) ) {
 	wp_die(
-		'<h1>' . __( 'Font Library is not available.' ) . '</h1>' .
-		'<p>' . __( 'The Font Library requires Gutenberg build files. Please run <code>npm install</code> to build the necessary files.' ) . '</p>',
+		'<h1>' . __( 'The Font Library is not available.' ) . '</h1>' .
+		'<p>' . __( 'The Font Library requires build files. Please build WordPress and try again.' ) . '</p>',
 		503
 	);
 }
 
 // Set the page title
-$title               = _x( 'Fonts', 'Font Library admin page title' );
-$js_required_message = __( 'The Fonts screen requires JavaScript. Please enable JavaScript in your browser settings to install and manage fonts.' );
+$title = _x( 'Fonts', 'Font Library admin page title' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
-
-?>
-<div class="wrap hide-if-js">
-	<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
-	<?php
-		wp_admin_notice(
-			$js_required_message,
-			array(
-				'type'               => 'error',
-				'additional_classes' => array( 'hide-if-js' ),
-			)
-		);
-		?>
-</div>
-<?php
 
 // Render the Font Library page
 wp_font_library_wp_admin_render_page();

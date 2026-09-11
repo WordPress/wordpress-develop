@@ -69,7 +69,14 @@ jobs:
     permissions:
       contents: read
     timeout-minutes: 10
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -119,7 +126,14 @@ jobs:
     permissions:
       contents: read
     timeout-minutes: 10
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -146,7 +160,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: 'src/wp-content/themes/${{ matrix.theme }}/.nvmrc'
           cache: npm
           cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
 
@@ -231,7 +245,7 @@ jobs:
         if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: 'src/wp-content/themes/${{ matrix.theme }}/.nvmrc'
           cache: npm
           cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
 

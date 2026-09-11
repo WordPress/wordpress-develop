@@ -386,7 +386,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 * @since 6.3.0 Adds revisions count and rest URL href to version-history.
 	 *
-	 * @param integer $id ID.
+	 * @param int $id ID.
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $id ) {
@@ -626,7 +626,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @since 6.6.0 Added custom relative theme file URIs to `_links` for each item.
 	 *
 	 * @param WP_REST_Request $request The request instance.
-	 *
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_items( $request ) {
