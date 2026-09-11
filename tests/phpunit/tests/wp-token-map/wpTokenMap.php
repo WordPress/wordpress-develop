@@ -306,68 +306,63 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 * Ensures that Token Map searches at appropriate starting offset.
 	 *
 	 * @ticket 60698
-	 *
-	 * @dataProvider data_html5_test_dataset
-	 *
-	 * @param string $token       Token to find.
-	 * @param string $replacement Replacement string for token.
 	 */
-	public function test_reads_token_at_given_offset( $token, $replacement ) {
-		$document = "& another {$token} & then some";
-		$map      = self::get_html5_token_map();
+	public function test_reads_token_at_given_offset() {
+		$map = self::get_html5_token_map();
 
-		$skip_bytes = 0;
-		$this->assertNull(
-			$map->read_token( $document, 0, $skip_bytes ),
-			"Shouldn't have found token at start of document."
-		);
+		foreach ( $this->get_html5_test_dataset() as $token => $replacement ) {
+			$document = "& another {$token} & then some";
 
-		$response = $map->read_token( $document, 10, $skip_bytes );
+			$skip_bytes = 0;
+			$this->assertNull(
+				$map->read_token( $document, 0, $skip_bytes ),
+				"Shouldn't have found token '{$token}' at start of document."
+			);
 
-		$this->assertSame(
-			strlen( $token ),
-			$skip_bytes,
-			"Found the wrong length for token '{$token}'."
-		);
+			$response = $map->read_token( $document, 10, $skip_bytes );
 
-		$this->assertSame(
-			$response,
-			$replacement,
-			'Found the wrong replacement value for the token.'
-		);
+			$this->assertSame(
+				strlen( $token ),
+				$skip_bytes,
+				"Found the wrong length for token '{$token}'."
+			);
+
+			$this->assertSame(
+				$response,
+				$replacement,
+				"Found the wrong replacement value for token '{$token}'."
+			);
+		}
 	}
 
 	/**
 	 * Ensures that all given tokens exist inside a constructed Token Map.
 	 *
 	 * @ticket 60698
-	 *
-	 * @dataProvider data_html5_test_dataset
-	 *
-	 * @param string $token       Token to find.
-	 * @param string $replacement Not used in this test.
 	 */
-	public function test_detects_all_tokens( $token, $replacement ) {
+	public function test_detects_all_tokens() {
 		$map = self::get_html5_token_map();
 
-		$this->assertTrue(
-			$map->contains( $token ),
-			"Should have found '{$token}' inside the Token Map, but didn't."
-		);
+		foreach ( $this->get_html5_test_dataset() as $token => $replacement ) {
+			$this->assertTrue(
+				$map->contains( $token ),
+				"Should have found '{$token}' inside the Token Map, but didn't."
+			);
 
-		$double_escaped_token = str_replace( '&', '&amp;', $token );
-		$this->assertFalse(
-			$map->contains( $double_escaped_token ),
-			"Should not have found '{$double_escaped_token}' in Token Map, but did."
-		);
+			$double_escaped_token = str_replace( '&', '&amp;', $token );
+			$this->assertFalse(
+				$map->contains( $double_escaped_token ),
+				"Should not have found '{$double_escaped_token}' in Token Map, but did."
+			);
+		}
 	}
 
 	/**
-	 * Data provider.
+	 * Gets all HTML5 named character references to check within each test.
 	 *
-	 * @return array[].
+	 * @return string[] Replacement strings keyed by token.
 	 */
-	public function data_html5_test_dataset() {
+	private function get_html5_test_dataset() {
 		$html5 = self::get_test_input_array( 'HTML5' );
 
 		$this->assertSame(
@@ -376,9 +371,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 			'Found the wrong number of HTML5 named character references: confirm the entities.json file."'
 		);
 
-		foreach ( $html5 as $token => $replacement ) {
-			yield $token => array( $token, $replacement );
-		}
+		return $html5;
 	}
 
 	/**
