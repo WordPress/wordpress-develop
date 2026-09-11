@@ -7,9 +7,6 @@
  * @subpackage mo
  */
 
-require_once __DIR__ . '/translations.php';
-require_once __DIR__ . '/streams.php';
-
 if ( ! class_exists( 'MO', false ) ) :
 	class MO extends Gettext_Translations {
 

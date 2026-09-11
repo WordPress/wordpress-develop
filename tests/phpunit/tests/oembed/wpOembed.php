@@ -32,7 +32,6 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		require_once ABSPATH . WPINC . '/class-wp-oembed.php';
 		$this->oembed = _wp_oembed_get_object();
 
 		$this->pre_oembed_result_filtered = false;

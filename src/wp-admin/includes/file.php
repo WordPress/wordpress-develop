@@ -1586,8 +1586,6 @@ function wp_zip_file_is_valid( $file ) {
 	}
 
 	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
-	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
-
 	$archive          = new PclZip( $file );
 	$archive_is_valid = is_array( $archive->properties() );
 
@@ -1881,8 +1879,6 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	global $wp_filesystem;
 
 	mbstring_binary_safe_encoding();
-
-	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
 
 	$archive = new PclZip( $file );
 
@@ -2180,8 +2176,6 @@ function move_dir( $from, $to, $overwrite = false ) {
  */
 function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_ownership = false ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	global $wp_filesystem;
-
-	require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
 
 	$method = get_filesystem_method( $args, $context, $allow_relaxed_file_ownership );
 

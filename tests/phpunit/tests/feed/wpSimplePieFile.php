@@ -12,9 +12,6 @@
 class Tests_Feed_wpSimplePieFile extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
-
-		require_once ABSPATH . 'wp-includes/class-simplepie.php';
-		require_once ABSPATH . 'wp-includes/class-wp-simplepie-file.php';
 	}
 
 	/**

@@ -63,7 +63,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$this->manager = $this->instantiate();
 	}
 
@@ -3681,8 +3680,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		}
 	}
 }
-
-require_once ABSPATH . WPINC . '/class-wp-customize-setting.php';
 
 /**
  * Class Test_Dynamic_Customize_Setting

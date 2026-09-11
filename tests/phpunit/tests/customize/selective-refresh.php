@@ -27,7 +27,6 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->wp_customize      = $GLOBALS['wp_customize'];
 		if ( isset( $this->wp_customize->selective_refresh ) ) {
@@ -258,8 +257,6 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 }
-
-require_once ABSPATH . WPINC . '/customize/class-wp-customize-partial.php';
 
 /**
  * Class Tested_Custom_Partial

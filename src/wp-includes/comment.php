@@ -3512,8 +3512,6 @@ function wp_maybe_disable_xmlrpc_pingback_for_environment( $methods ) {
  * @return array<string, bool> An array of pingback statuses indexed by link.
  */
 function pingback( $content, $post ) {
-	require_once ABSPATH . WPINC . '/class-IXR.php';
-	require_once ABSPATH . WPINC . '/class-wp-http-ixr-client.php';
 
 	// Original code by Mort (http://mort.mine.nu:8080).
 	$post_links = array();
@@ -3688,8 +3686,6 @@ function trackback( $trackback_url, $title, $excerpt, $post_id ) {
  * @param string $path   Path to send the ping.
  */
 function weblog_ping( $server = '', $path = '' ) {
-	require_once ABSPATH . WPINC . '/class-IXR.php';
-	require_once ABSPATH . WPINC . '/class-wp-http-ixr-client.php';
 
 	// Using a timeout of 3 seconds should be enough to cover slow servers.
 	$client             = new WP_HTTP_IXR_Client( $server, ( ( ! strlen( trim( $path ) ) || ( '/' === $path ) ) ? false : $path ) );
