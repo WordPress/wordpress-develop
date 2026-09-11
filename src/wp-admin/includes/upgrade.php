@@ -2795,7 +2795,7 @@ function maybe_convert_table_to_utf8mb4( $table ) {
 		if ( $column->Collation ) {
 			list( $charset ) = explode( '_', $column->Collation );
 			$charset         = strtolower( $charset );
-			if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
+			if ( 'utf8' !== $charset && 'utf8mb3' !== $charset && 'utf8mb4' !== $charset ) {
 				// Don't upgrade tables that have non-utf8 columns.
 				return false;
 			}
