@@ -372,4 +372,72 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		$this->assertSame( 'Das ist ein Dummy Plugin', $output_after );
 		$this->assertTrue( $is_textdomain_loaded_after );
 	}
+
+	/**
+	 * Text domains that merely share a prefix with a translated one must not be
+	 * treated as translated themselves.
+	 *
+	 * "internationalized-plugin-de_DE.mo" exists, but there is no
+	 * "internationalized-de_DE.mo", so the "internationalized" text domain has no
+	 * translations at all.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::_load_textdomain_just_in_time
+	 * @covers ::is_textdomain_loaded
+	 */
+	public function test_text_domain_sharing_a_prefix_with_a_translated_one_is_not_translated() {
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$actual = __( 'This is a dummy plugin', 'internationalized' );
+
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$this->assertFalse(
+			is_textdomain_loaded( 'internationalized' ),
+			'The "internationalized" text domain should not be considered loaded'
+		);
+		$this->assertSame(
+			'This is a dummy plugin',
+			$actual,
+			'A text domain sharing a prefix with a translated one should not be translated'
+		);
+	}
+
+	/**
+	 * Calling load_plugin_textdomain() after translations have already been loaded
+	 * for one locale and missed for another must not stop just-in-time loading.
+	 *
+	 * Since 6.7.0 load_plugin_textdomain() only registers a custom path and leaves
+	 * the loading to _load_textdomain_just_in_time(), which bails out early when
+	 * WP_Textdomain_Registry::has() returns false.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::_load_textdomain_just_in_time
+	 * @covers ::load_plugin_textdomain
+	 */
+	public function test_plugin_translations_survive_a_late_load_plugin_textdomain_call() {
+		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
+
+		// de_DE translations are found in the WordPress languages directory.
+		switch_to_locale( 'de_DE' );
+		$before = i18n_plugin_test();
+
+		// A locale without any translations for this plugin is used in between.
+		switch_to_locale( 'ja_JP' );
+		$untranslated = i18n_plugin_test();
+
+		// Only now does the plugin register its own languages directory.
+		load_plugin_textdomain( 'internationalized-plugin', false, 'internationalized-plugin/languages' );
+
+		restore_previous_locale();
+		$after = i18n_plugin_test();
+
+		restore_current_locale();
+
+		$this->assertSame( 'Das ist ein Dummy Plugin', $before, 'de_DE translations should be loaded up front' );
+		$this->assertSame( 'This is a dummy plugin', $untranslated, 'There should be no ja_JP translations' );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $after, 'de_DE translations should survive load_plugin_textdomain()' );
+	}
 }

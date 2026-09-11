@@ -114,7 +114,7 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		if ( (int) $content_width > 0 ) {
 			$max_width = min( (int) $content_width, $max_width );
 		}
-	} elseif ( ! empty( $_wp_additional_image_sizes ) && in_array( $size, array_keys( $_wp_additional_image_sizes ), true ) ) {
+	} elseif ( isset( $_wp_additional_image_sizes[ $size ] ) ) {
 		$max_width  = (int) $_wp_additional_image_sizes[ $size ]['width'];
 		$max_height = (int) $_wp_additional_image_sizes[ $size ]['height'];
 		// Only in admin. Assume that theme authors know what they're doing.
@@ -1619,7 +1619,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	 *                                  pixel density value if paired with an 'x' descriptor.
 	 *     }
 	 * }
-	 * @param array $size_array     {
+	 * @param array  $size_array {
 	 *     An array of requested width and height values.
 	 *
 	 *     @type int $0 The width in pixels.
@@ -2120,7 +2120,7 @@ function wp_img_tag_add_auto_sizes( string $image ): string {
 	 *
 	 * @since 6.7.1
 	 *
-	 * @param boolean $enabled Whether auto-sizes for lazy loaded images is enabled.
+	 * @param bool $enabled Whether auto-sizes for lazy loaded images is enabled.
 	 */
 	if ( ! apply_filters( 'wp_img_tag_add_auto_sizes', true ) ) {
 		return $image;
@@ -4124,11 +4124,11 @@ function get_adjacent_image_link( $prev = true, $size = 'thumbnail', $text = fal
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $output        Adjacent image HTML markup.
-	 * @param int    $attachment_id Attachment ID
-	 * @param string|int[] $size    Requested image size. Can be any registered image size name, or
-	 *                              an array of width and height values in pixels (in that order).
-	 * @param string $text          Link text.
+	 * @param string       $output        Adjacent image HTML markup.
+	 * @param int          $attachment_id Attachment ID
+	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
+	 *                                    an array of width and height values in pixels (in that order).
+	 * @param string       $text          Link text.
 	 */
 	return apply_filters( "{$adjacent}_image_link", $output, $attachment_id, $size, $text );
 }
@@ -4160,6 +4160,7 @@ function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false )
  *                                     or 'objects' to return an array of taxonomy objects.
  *                                     Default is 'names'.
  * @return string[]|WP_Taxonomy[] List of taxonomies or taxonomy names. Empty array on failure.
+ * @phpstan-return ( $output is 'names' ? list<non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	if ( is_int( $attachment ) ) {
@@ -4204,7 +4205,9 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	}
 
 	if ( 'names' === $output ) {
-		$taxonomies = array_unique( $taxonomies );
+		/** @var non-falsy-string[] $taxonomies */
+		$unique_taxonomies = array_values( array_unique( $taxonomies ) );
+		$taxonomies        = $unique_taxonomies;
 	}
 
 	return $taxonomies;
@@ -4222,6 +4225,7 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
  * @param string $output Optional. The type of taxonomy output to return. Accepts 'names' or 'objects'.
  *                       Default 'names'.
  * @return string[]|WP_Taxonomy[] Array of names or objects of registered taxonomies for attachments.
+ * @phpstan-return ( $output is 'names' ? list<non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_taxonomies_for_attachments( $output = 'names' ) {
 	$taxonomies = array();
@@ -4716,9 +4720,9 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$attached_file = get_attached_file( $attachment->ID );
 
-	if ( isset( $meta['filesize'] ) ) {
-		$bytes = $meta['filesize'];
-	} elseif ( file_exists( $attached_file ) ) {
+	if ( isset( $meta['filesize'] ) && is_numeric( $meta['filesize'] ) && (int) $meta['filesize'] > 0 ) {
+		$bytes = (int) $meta['filesize'];
+	} elseif ( is_string( $attached_file ) && '' !== $attached_file && is_readable( $attached_file ) ) {
 		$bytes = wp_filesize( $attached_file );
 	} else {
 		$bytes = '';
@@ -4814,7 +4818,10 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			}
 
 			$response = array_merge( $response, $sizes['full'] );
-		} elseif ( $meta['sizes']['full']['file'] ) {
+		} elseif (
+			! empty( $meta['sizes']['full']['file'] ) &&
+			isset( $meta['sizes']['full']['width'], $meta['sizes']['full']['height'] )
+		) {
 			$sizes['full'] = array(
 				'url'         => esc_url_raw( $base_url . $meta['sizes']['full']['file'] ),
 				'height'      => $meta['sizes']['full']['height'],
@@ -5189,6 +5196,8 @@ function wp_enqueue_media( $args = array() ) {
 		'mediaFound'                  => __( 'Number of media items found: %d' ),
 		'noMedia'                     => __( 'No media items found.' ),
 		'noMediaTryNewSearch'         => __( 'No media items found. Try a different search.' ),
+		/* translators: %s: Media item title or file name. */
+		'mediaItemViewed'             => __( 'Viewing media item: %s' ),
 
 		// Library Details.
 		'attachmentDetails'           => __( 'Attachment details' ),
@@ -5868,13 +5877,13 @@ function _wp_add_additional_image_sizes() {
  * @since 6.7.0 The default behavior is to enable heic uploads as long as the server
  *              supports the format. The uploads are converted to JPEG's by default.
  *
- * @param array[] $plupload_settings The settings for Plupload.js.
- * @return array[] Modified settings for Plupload.js.
+ * @param array<string, mixed> $plupload_settings The settings for Plupload.js.
+ * @return array<string, mixed> Modified settings for Plupload.js.
  */
 function wp_show_heic_upload_error( $plupload_settings ) {
 	// Check if HEIC images can be edited.
 	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/heic' ) ) ) {
-		$plupload_init['heic_upload_error'] = true;
+		$plupload_settings['heic_upload_error'] = true;
 	}
 	return $plupload_settings;
 }
@@ -6532,7 +6541,7 @@ function wp_high_priority_element_flag( $value = null ): bool {
  *
  * @param string $filename  Path to the image.
  * @param string $mime_type The source image mime type.
- * @return string[] An array of mime type mappings.
+ * @return array<string, string> An array of mime type mappings.
  */
 function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	$output_format = array(
@@ -6554,14 +6563,10 @@ function wp_get_image_editor_output_format( $filename, $mime_type ) {
 	 * @since 6.7.0 The default was changed from an empty array to an array
 	 *              containing the HEIC/HEIF images mime types.
 	 *
-	 * @param string[] $output_format {
-	 *     An array of mime type mappings. Maps a source mime type to a new
-	 *     destination mime type. By default maps HEIC/HEIF input to JPEG output.
-	 *
-	 *     @type string ...$0 The new mime type.
-	 * }
-	 * @param string $filename  Path to the image.
-	 * @param string $mime_type The source image mime type.
+	 * @param array<string, string> $output_format An array of mime type mappings. Maps a source mime type to a new
+	 *                                             destination mime type. By default maps HEIC/HEIF input to JPEG output.
+	 * @param string                $filename      Path to the image.
+	 * @param string                $mime_type     The source image mime type.
 	 */
 	return apply_filters( 'image_editor_output_format', $output_format, $filename, $mime_type );
 }
@@ -6608,17 +6613,6 @@ function wp_set_client_side_media_processing_flag(): void {
 	if ( null !== $chromium_version && $chromium_version >= 137 ) {
 		wp_add_inline_script( 'wp-block-editor', 'window.__documentIsolationPolicy = true;', 'before' );
 	}
-
-	/*
-	 * Register the @wordpress/vips/worker script module as a dynamic dependency
-	 * of the wp-upload-media classic script. This ensures it is included in the
-	 * import map so that the dynamic import() in upload-media.js can resolve it.
-	 */
-	wp_scripts()->add_data(
-		'wp-upload-media',
-		'module_dependencies',
-		array( '@wordpress/vips/worker' )
-	);
 }
 
 /**

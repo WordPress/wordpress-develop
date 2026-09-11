@@ -718,6 +718,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
+	 * @phpstan-var array<non-empty-string, WP_HTML_Attribute_Token>
 	 */
 	private $attributes = array();
 
@@ -752,7 +753,7 @@ class WP_HTML_Tag_Processor {
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var bool[]
+	 * @var array<non-empty-string, self::ADD_CLASS|self::REMOVE_CLASS>
 	 */
 	private $classname_updates = array();
 
@@ -809,7 +810,7 @@ class WP_HTML_Tag_Processor {
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var WP_HTML_Text_Replacement[]
+	 * @var array<int|string, WP_HTML_Text_Replacement>
 	 */
 	protected $lexical_updates = array();
 
@@ -1177,14 +1178,14 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
-	 * Example:
-	 *
-	 *     $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&lt;\tlang-en'>" );
-	 *     $p->next_tag();
-	 *     foreach ( $p->class_list() as $class_name ) {
-	 *         echo "{$class_name} ";
-	 *     }
-	 *     // Outputs: "free <egg> lang-en "
+	 * ```php interactive
+	 * $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&gt;\tlang-en'>" );
+	 * $p->next_tag();
+	 * foreach ( $p->class_list() as $class_name ) {
+	 *   echo "{$class_name} ";
+	 * }
+	 * // Outputs: "free <egg> lang-en "
+	 * ```
 	 *
 	 * @since 6.4.0
 	 *
@@ -1474,7 +1475,7 @@ class WP_HTML_Tag_Processor {
 			 * though "textarea" is found within the text.
 			 */
 			$c = $html[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
+			if ( ' ' !== $c && "\t" !== $c && "\f" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
 				continue;
 			}
 
@@ -1721,6 +1722,8 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @return bool Whether a tag was found before the end of the document.
+	 *
+	 * @phpstan-impure
 	 */
 	private function parse_next_tag(): bool {
 		$this->after_tag();
@@ -2072,7 +2075,7 @@ class WP_HTML_Tag_Processor {
 				 */
 				$is_valid_pi = (
 					0 !== $target_length &&
-					false !== strpos( " \t\f\r\n?>", $html[ $target_at + $target_length ] ) &&
+					str_contains( " \t\f\r\n?>", $html[ $target_at + $target_length ] ) &&
 					! ( 3 === $target_length && 0 === substr_compare( $html, 'xml', $target_at, 3, true ) ) &&
 					! ( 14 === $target_length && 0 === substr_compare( $html, 'xml-stylesheet', $target_at, 14, true ) )
 				);
@@ -2199,7 +2202,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @ignore
 	 *
-	 * @return bool Whether an attribute was found before the end of the document.
+	 * @return bool Whether an attribute was found. Returns `false` upon reaching the end
+	 *              of the tag (`>` or `/>`) or the end of the document.
 	 */
 	private function parse_next_attribute(): bool {
 		$doc_length = strlen( $this->html );
@@ -2785,7 +2789,7 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @param string $comparable_name The attribute name in its comparable form.
-	 * @return string|boolean|null Value of enqueued update if present, otherwise false.
+	 * @return string|bool|null Value of enqueued update if present, otherwise false.
 	 */
 	private function get_enqueued_attribute_value( string $comparable_name ) {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
@@ -2957,6 +2961,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
+	 * @phpstan-return list<non-empty-string>|null
 	 */
 	public function get_attribute_names_with_prefix( $prefix ): ?array {
 		if (
@@ -2968,13 +2973,45 @@ class WP_HTML_Tag_Processor {
 
 		$comparable = strtolower( $prefix );
 
+		/*
+		 * For the `class` attribute, ensure that enqueued class changes from
+		 * `add_class` and `remove_class` are flushed into attribute updates.
+		 */
+		$has_class = isset( $this->attributes['class'] );
+		if ( '' === $comparable || str_starts_with( 'class', $comparable ) ) {
+			foreach ( $this->classname_updates as $update ) {
+				if (
+					( $has_class && self::REMOVE_CLASS === $update ) ||
+					( ! $has_class && self::ADD_CLASS === $update )
+				) {
+					$this->class_name_updates_to_attributes_updates();
+					break;
+				}
+			}
+		}
+
+		$additions = array();
+		$removals  = array();
+		foreach ( $this->lexical_updates as $update_name => $update ) {
+			if ( is_int( $update_name ) || 'modifiable text' === $update_name ) {
+				continue;
+			}
+
+			if ( '' === $update->text ) {
+				$removals[ $update_name ] = true;
+			} elseif ( ! isset( $this->attributes[ $update_name ] ) && str_starts_with( $update_name, $comparable ) ) {
+				$additions[] = $update_name;
+			}
+		}
+
 		$matches = array();
 		foreach ( array_keys( $this->attributes ) as $attr_name ) {
-			if ( str_starts_with( $attr_name, $comparable ) ) {
+			if ( str_starts_with( $attr_name, $comparable ) && ! isset( $removals[ $attr_name ] ) ) {
 				$matches[] = $attr_name;
 			}
 		}
-		return $matches;
+
+		return empty( $additions ) ? $matches : array_merge( $additions, $matches );
 	}
 
 	/**
@@ -3191,7 +3228,6 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $attribute_name Which attribute to adjust.
-	 *
 	 * @return string|null
 	 */
 	public function get_qualified_attribute_name( $attribute_name ): ?string {
@@ -3774,7 +3810,7 @@ class WP_HTML_Tag_Processor {
 			? $this->lexical_updates['modifiable text']->text
 			: substr( $this->html, $this->text_starts_at, $this->text_length );
 
-		/*
+		/**
 		 * An enqueued processing instruction update holds normalized raw
 		 * syntax spanning from the end of the target through the end of
 		 * the token: a separating space, the data, and the `?>` closer.
@@ -3918,6 +3954,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 * @since 7.1.0 Supports setting processing instruction data.
+	 * @since 7.2.0 Escapes content inside TITLE and TEXTAREA elements.
 	 *
 	 * @param string $plaintext_content New text content to represent in the matched token.
 	 * @return bool Whether the text was able to update.
@@ -4056,11 +4093,20 @@ class WP_HTML_Tag_Processor {
 				 * Because of this, content which could potentially modify the SCRIPT tag’s
 				 * HTML structure is rejected here. It’s the responsibility of calling code to
 				 * perform whatever semantic escaping is necessary to avoid problematic strings.
+				 *
+				 * Both the start tag `<script` and the end tag `</script` are rejected. It’s
+				 * easy to assume that only an end tag can alter the HTML structure, but a
+				 * start tag which follows `<!--` moves the tokenizer into the double-escaped
+				 * states, where a later `</script>` no longer closes the element.
+				 *
+				 * In both cases the tag name ends only at one of the characters matched
+				 * below, so text such as `</scriptx>` cannot change that structure and is
+				 * safe to set.
+				 *
+				 * @link https://html.spec.whatwg.org/#script-data-end-tag-name-state
+				 * @link https://html.spec.whatwg.org/#script-data-double-escape-start-state
 				 */
-				if (
-					false !== stripos( $plaintext_content, '<script' ) ||
-					false !== stripos( $plaintext_content, '</script' )
-				) {
+				if ( 1 === preg_match( '~</?script[ \t\f\r\n/>]~i', $plaintext_content ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'SCRIPT text with an unrecognized content type cannot contain a SCRIPT tag. Apply the escaping appropriate for the content type.' ),
@@ -4080,7 +4126,14 @@ class WP_HTML_Tag_Processor {
 			case 'NOFRAMES':
 			case 'XMP':
 				$tag_name = $this->get_tag();
-				if ( false !== stripos( $plaintext_content, "</{$tag_name}" ) ) {
+
+				/*
+				 * A tag name ends only at one of the characters matched below, so text
+				 * such as `</xmp-tag>` cannot close the element and is safe to set.
+				 *
+				 * @link https://html.spec.whatwg.org/#rawtext-end-tag-name-state
+				 */
+				if ( 1 === preg_match( '~</' . preg_quote( $tag_name, '~' ) . '[ \t\f\r\n/>]~i', $plaintext_content ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						sprintf(
@@ -4120,12 +4173,19 @@ class WP_HTML_Tag_Processor {
 
 			case 'TEXTAREA':
 			case 'TITLE':
-				$plaintext_content = preg_replace_callback(
-					"~</(?P<TAG_NAME>{$this->get_tag()})~i",
-					static function ( $tag_match ) {
-						return "&lt;/{$tag_match['TAG_NAME']}";
-					},
-					$plaintext_content
+				/**
+				 * While not expressly required, escaping syntax characters in these
+				 * elements will help avoid problems with downstream parser which
+				 * attempt to parse tags and other markup within. {@see \DOMDocument},
+				 * for example, will claim to find elements as children of a `TITLE`.
+				 */
+				$plaintext_content = strtr(
+					$plaintext_content,
+					array(
+						'<' => '&lt;',
+						'&' => '&amp;',
+						'>' => '&gt;',
+					)
 				);
 
 				/*
@@ -4158,7 +4218,7 @@ class WP_HTML_Tag_Processor {
 
 		_doing_it_wrong(
 			__METHOD__,
-			__( 'This tag does not support setting modifiable text.' ),
+			__( 'Only the IFRAME, NOEMBED, NOFRAMES, SCRIPT, STYLE, TEXTAREA, TITLE, and XMP tags support setting modifiable text.' ),
 			'7.1.0'
 		);
 		return false;

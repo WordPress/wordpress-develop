@@ -1,6 +1,6 @@
 {
 	"name": "twentytwentyone",
-	"version": "2.8.0",
+	"version": "2.9.0",
 	"description": "Default WP Theme",
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
@@ -13,8 +13,8 @@
 	},
 	"homepage": "https://wordpress.org/themes/twentytwentyone/",
 	"engines": {
-		"node": ">=20.10.0",
-		"npm": ">=10.2.3"
+		"node": ">=24.18.0",
+		"npm": ">=11.16.0"
 	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^6.34.0",

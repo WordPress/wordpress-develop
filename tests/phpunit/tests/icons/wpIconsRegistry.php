@@ -75,20 +75,22 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides valid namespaced icon names, including names that contain or
-	 * start with digits, as well as underscores.
+	 * Provides valid namespaced icon names, including names that contain,
+	 * start or end with digits, as well as underscores and hyphens.
 	 *
 	 * @return array<string, array{0: string}>
 	 */
 	public function data_valid_icon_names() {
 		return array(
-			'simple name'            => array( 'test-collection/my-icon' ),
-			'digit at the start'     => array( 'test-collection/1-icon' ),
-			'digit in the name'      => array( 'test-collection/my-1-icon' ),
-			'digit at the end'       => array( 'test-collection/icon1' ),
-			'underscore in the name' => array( 'test-collection/my_icon' ),
-			'underscore at the end'  => array( 'test-collection/my-icon_' ),
-			'hyphen at the end'      => array( 'test-collection/my-icon-' ),
+			'single character'                => array( 'test-collection/a' ),
+			'simple name'                     => array( 'test-collection/icon' ),
+			'digit at the start'              => array( 'test-collection/1icon' ),
+			'digit in the name'               => array( 'test-collection/my1icon' ),
+			'digit at the end'                => array( 'test-collection/icon1' ),
+			'underscore in the name'          => array( 'test-collection/my_icon' ),
+			'hyphen in the name'              => array( 'test-collection/my-icon' ),
+			'digit adjacent to a hyphen'      => array( 'test-collection/my-1-icon' ),
+			'digit adjacent to an underscore' => array( 'test-collection/my_1_icon' ),
 		);
 	}
 
@@ -125,7 +127,9 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 			'uppercase in the name'   => array( 'test-collection/my-Icon' ),
 			'uppercase at the end'    => array( 'test-collection/my-iconX' ),
 			'underscore at the start' => array( 'test-collection/_my-icon' ),
+			'underscore at the end'   => array( 'test-collection/my-icon_' ),
 			'hyphen at the start'     => array( 'test-collection/-my-icon' ),
+			'hyphen at the end'       => array( 'test-collection/my-icon-' ),
 		);
 	}
 
@@ -256,6 +260,28 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 		$icon = $this->registry->get_registered_icon( 'test-collection/file-path-icon' );
 		$this->assertStringContainsString( '<svg', $icon['content'] );
+	}
+
+	/**
+	 * Should register an icon with its `content` sanitized.
+	 *
+	 * @ticket 64847
+	 *
+	 * @covers ::register
+	 */
+	public function test_register_icon_sanitizes_content() {
+		$result = $this->registry->register(
+			'test-collection/unsafe-content',
+			array(
+				'label'   => 'Icon',
+				'content' => '<svg viewbox="0 0 24 24" onload="alert(1)"><path d="M0 0" /></svg>',
+			)
+		);
+
+		$this->assertTrue( $result );
+
+		$icon = $this->registry->get_registered_icon( 'test-collection/unsafe-content' );
+		$this->assertSame( '<svg viewbox="0 0 24 24"><path d="M0 0" /></svg>', $icon['content'] );
 	}
 
 	/**

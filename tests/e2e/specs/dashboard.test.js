@@ -149,11 +149,9 @@ test.describe( 'Quick Draft', () => {
 		await saveDraftButton.click();
 
 		// Check that the new draft title appears in the 'Your Recent Drafts' section.
-		// This test relies on Twenty Twenty-One being the active theme.
-		// Twenty Twenty-One alters the default post title from "(no title)" to "Untitled".
 		await expect(
 			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
-		).toHaveText( 'Untitled' );
+		).toHaveText( '(no title)' );
 
 		await expect(
 			page.locator( '.drafts .draft-content' ).first()
@@ -164,6 +162,6 @@ test.describe( 'Quick Draft', () => {
 
 		await expect(
 			page.locator( '.type-post.status-draft .title' ).first()
-		).toContainText( 'Untitled' );
+		).toContainText( '(no title)' );
 	} );
 } );

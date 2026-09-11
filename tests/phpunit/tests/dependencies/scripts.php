@@ -231,6 +231,38 @@ JS;
 	}
 
 	/**
+	 * Tests that inline scripts do not include a false entry when no data exists yet.
+	 *
+	 * @ticket 52320
+	 * @dataProvider data_inline_script_positions
+	 *
+	 * @param string $position Inline script position.
+	 */
+	public function test_add_inline_script_does_not_store_false_for_empty_existing_data( $position ): void {
+		$handle = 'test-inline-script-' . $position;
+
+		wp_register_script( $handle, '/test.js', array(), null );
+		wp_add_inline_script( $handle, 'console.log( "test" );', $position );
+
+		$this->assertSame(
+			array( 'console.log( "test" );' ),
+			wp_scripts()->get_data( $handle, $position )
+		);
+	}
+
+	/**
+	 * Data provider for inline script positions.
+	 *
+	 * @return array<string, array{0: string}> Inline script positions.
+	 */
+	public function data_inline_script_positions(): array {
+		return array(
+			'before' => array( 'before' ),
+			'after'  => array( 'after' ),
+		);
+	}
+
+	/**
 	 * Tests that inline scripts in the `after` position, attached to delayed main scripts, remain unaffected.
 	 *
 	 * If the main script with delayed loading strategy has an `after` inline script,
@@ -557,9 +589,8 @@ JS;
 	 *
 	 * @dataProvider get_data_to_filter_eligible_strategies
 	 *
-	 * @param callable $set_up     Set up.
-	 * @param bool     $async_only Async only.
-	 * @param bool     $expected   Expected return value.
+	 * @param callable $set_up   Set up.
+	 * @param string[] $expected Expected return value.
 	 */
 	public function test_filter_eligible_strategies( $set_up, $expected ) {
 		$handle = $set_up();

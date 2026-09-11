@@ -137,7 +137,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	 *
 	 * @param string|null $test_context_element Context element for fragment parsing, or null for full document parsing.
 	 * @param string      $test_name            Test name.
-	 *
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
 	private static function should_skip_test( ?string $test_context_element, string $test_name ): bool {
@@ -353,7 +352,6 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	 * Convert a given Web Platform Tests fixture file into a series of test cases.
 	 *
 	 * @param string $filename Path to `.dat` file with test cases.
-	 *
 	 * @return Generator<int, array{
 	 *     non-negative-int, // Line number.
 	 *     string|null,      // HTML fragment context element.

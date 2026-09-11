@@ -246,7 +246,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param string        $theme_dir  Directory of the theme within the theme_root.
 	 * @param string        $theme_root Theme root.
-	 * @param WP_Theme|null $_child If this theme is a parent theme, the child may be passed for validation purposes.
+	 * @param WP_Theme|null $_child     If this theme is a parent theme, the child may be passed for validation purposes.
 	 */
 	public function __construct( $theme_dir, $theme_root, $_child = null ) {
 		global $wp_theme_directories;
@@ -361,7 +361,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		if ( ! $this->template && $this->stylesheet === $this->headers['Template'] ) {
-			$this->errors = new WP_Error(
+			$this->errors   = new WP_Error(
 				'theme_child_invalid',
 				sprintf(
 					/* translators: %s: Template. */
@@ -369,6 +369,7 @@ final class WP_Theme implements ArrayAccess {
 					'<code>Template</code>'
 				)
 			);
+			$this->template = $this->stylesheet;
 			$this->cache_add(
 				'theme',
 				array(
@@ -377,6 +378,7 @@ final class WP_Theme implements ArrayAccess {
 					'headers'                => $this->headers,
 					'errors'                 => $this->errors,
 					'stylesheet'             => $this->stylesheet,
+					'template'               => $this->template,
 				)
 			);
 
@@ -1338,13 +1340,22 @@ final class WP_Theme implements ArrayAccess {
 			$files = (array) $this->get_files( 'php', 1, true );
 
 			foreach ( $files as $file => $full_path ) {
-				if ( ! preg_match( '|Template Name:(.*)$|mi', file_get_contents( $full_path ), $header ) ) {
+				$headers = get_file_data(
+					$full_path,
+					array(
+						'TemplateName'     => 'Template Name',
+						'TemplatePostType' => 'Template Post Type',
+					),
+					'theme'
+				);
+
+				if ( ! $headers['TemplateName'] ) {
 					continue;
 				}
 
 				$types = array( 'page' );
-				if ( preg_match( '|Template Post Type:(.*)$|mi', file_get_contents( $full_path ), $type ) ) {
-					$types = explode( ',', _cleanup_header_comment( $type[1] ) );
+				if ( $headers['TemplatePostType'] ) {
+					$types = explode( ',', $headers['TemplatePostType'] );
 				}
 
 				foreach ( $types as $type ) {
@@ -1353,7 +1364,7 @@ final class WP_Theme implements ArrayAccess {
 						$post_templates[ $type ] = array();
 					}
 
-					$post_templates[ $type ][ $file ] = _cleanup_header_comment( $header[1] );
+					$post_templates[ $type ][ $file ] = $headers['TemplateName'];
 				}
 			}
 

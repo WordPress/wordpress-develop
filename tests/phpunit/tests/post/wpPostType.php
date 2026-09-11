@@ -171,8 +171,8 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$post_type_object->remove_rewrite_rules();
 		$rewrite_tags_after = $wp_rewrite->rewritecode;
 
-		$this->assertNotFalse( array_search( "%$post_type%", $rewrite_tags, true ) );
-		$this->assertFalse( array_search( "%$post_type%", $rewrite_tags_after, true ) );
+		$this->assertContains( "%$post_type%", $rewrite_tags );
+		$this->assertNotContains( "%$post_type%", $rewrite_tags_after );
 	}
 
 	public function test_register_meta_boxes() {

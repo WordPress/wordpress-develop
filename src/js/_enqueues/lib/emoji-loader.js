@@ -2,23 +2,24 @@
  * @output wp-includes/js/wp-emoji-loader.js
  */
 
-/* eslint-env es6 */
-
 // Note: This is loaded as a script module, so there is no need for an IIFE to prevent pollution of the global scope.
 
 /**
  * Emoji Settings as exported in PHP via _print_emoji_detection_script().
  * @typedef WPEmojiSettings
- * @type {object}
+ * @type {Object}
  * @property {?object} source
  * @property {?string} source.concatemoji
  * @property {?string} source.twemoji
  * @property {?string} source.wpemoji
  */
 
-const settings = /** @type {WPEmojiSettings} */ (
-	JSON.parse( document.getElementById( 'wp-emoji-settings' ).textContent )
-);
+const selector = 'script#wp-emoji-settings';
+const script = document.querySelector( selector );
+if ( ! ( script instanceof HTMLScriptElement ) ) {
+	throw new Error( `Element missing: ${ selector }`);
+}
+const settings = /** @type {WPEmojiSettings} */ ( JSON.parse( script.text ) );
 
 // For compatibility with other scripts that read from this global, in particular wp-includes/js/wp-emoji.js (source file: js/_enqueues/wp/emoji.js).
 window._wpemojiSettings = settings;
@@ -26,7 +27,7 @@ window._wpemojiSettings = settings;
 /**
  * Support tests.
  * @typedef SupportTests
- * @type {object}
+ * @type {Object}
  * @property {?boolean} flag
  * @property {?boolean} emoji
  */
@@ -41,7 +42,7 @@ const tests = [ 'flag', 'emoji' ];
  *
  * @private
  *
- * @returns {boolean}
+ * @return {boolean} True if the browser supports offloading to a Worker.
  */
 function supportsWorkerOffloading() {
 	return (
@@ -55,7 +56,7 @@ function supportsWorkerOffloading() {
 
 /**
  * @typedef SessionSupportTests
- * @type {object}
+ * @type {Object}
  * @property {number} timestamp
  * @property {SupportTests} supportTests
  */
@@ -67,7 +68,7 @@ function supportsWorkerOffloading() {
  *
  * @private
  *
- * @returns {?SupportTests} Support tests, or null if not set or older than 1 week.
+ * @return {?SupportTests} Support tests, or null if not set or older than 1 week.
  */
 function getSessionSupportTests() {
 	try {

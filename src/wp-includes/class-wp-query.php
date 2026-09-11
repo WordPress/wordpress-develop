@@ -2407,12 +2407,16 @@ class WP_Query {
 		}
 
 		if ( ! empty( $query_vars['author__not_in'] ) ) {
-			if ( is_array( $query_vars['author__not_in'] ) ) {
-				$query_vars['author__not_in'] = array_unique( array_map( 'absint', $query_vars['author__not_in'] ) );
-				sort( $query_vars['author__not_in'] );
+			$author__not_in_id_list = wp_parse_id_list( $query_vars['author__not_in'] );
+			if ( count( $author__not_in_id_list ) > 0 ) {
+				sort( $author__not_in_id_list );
+				$where .= sprintf(
+					" AND {$wpdb->posts}.post_author NOT IN (%s) ",
+					implode( ',', $author__not_in_id_list )
+				);
+				/** Update the query var for stable cache key generation in {@see self::generate_cache_key()}. */
+				$query_vars['author__not_in'] = $author__not_in_id_list;
 			}
-			$author__not_in = implode( ',', (array) $query_vars['author__not_in'] );
-			$where         .= " AND {$wpdb->posts}.post_author NOT IN ($author__not_in) ";
 		} elseif ( ! empty( $query_vars['author__in'] ) ) {
 			if ( is_array( $query_vars['author__in'] ) ) {
 				$query_vars['author__in'] = array_unique( array_map( 'absint', $query_vars['author__in'] ) );
@@ -2426,11 +2430,13 @@ class WP_Query {
 
 		if ( '' !== $query_vars['author_name'] ) {
 			if ( str_contains( $query_vars['author_name'], '/' ) ) {
-				$query_vars['author_name'] = explode( '/', $query_vars['author_name'] );
-				if ( $query_vars['author_name'][ count( $query_vars['author_name'] ) - 1 ] ) {
-					$query_vars['author_name'] = $query_vars['author_name'][ count( $query_vars['author_name'] ) - 1 ]; // No trailing slash.
+				$author_name_parts = explode( '/', $query_vars['author_name'] );
+				$last_part         = array_last( $author_name_parts );
+
+				if ( $last_part ) {
+					$query_vars['author_name'] = $last_part; // No trailing slash.
 				} else {
-					$query_vars['author_name'] = $query_vars['author_name'][ count( $query_vars['author_name'] ) - 2 ]; // There was a trailing slash.
+					$query_vars['author_name'] = $author_name_parts[ count( $author_name_parts ) - 2 ]; // There was a trailing slash.
 				}
 			}
 			$query_vars['author_name'] = sanitize_title_for_query( $query_vars['author_name'] );
@@ -2821,11 +2827,11 @@ class WP_Query {
 		if ( $this->is_comment_feed && ! $this->is_singular ) {
 			if ( $this->is_archive || $this->is_search ) {
 				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID ) $join ";
-				$cwhere   = "WHERE comment_approved = '1' $where";
+				$cwhere   = "WHERE comment_approved = '1' AND {$wpdb->comments}.comment_type != 'note' $where";
 				$cgroupby = "{$wpdb->comments}.comment_id";
 			} else { // Other non-singular, e.g. front.
 				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID )";
-				$cwhere   = "WHERE ( post_status = 'publish' OR ( post_status = 'inherit' AND post_type = 'attachment' ) ) AND comment_approved = '1'";
+				$cwhere   = "WHERE ( post_status = 'publish' OR ( post_status = 'inherit' AND post_type = 'attachment' ) ) AND comment_approved = '1' AND {$wpdb->comments}.comment_type != 'note'";
 				$cgroupby = '';
 			}
 
@@ -3289,15 +3295,20 @@ class WP_Query {
 							$post_parent_cache_keys[] = 'post_parent:' . (string) $post_id;
 						}
 
-						/** @var int[] */
-						$post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
+						/** @var array<non-falsy-string, int|false> $cached_post_parents */
+						$cached_post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
 
-						foreach ( $post_parents as $cache_key => $post_parent ) {
+						$post_parents = array();
+						$this->posts  = array();
+
+						foreach ( $cached_post_parents as $cache_key => $post_parent ) {
 							$obj              = new stdClass();
 							$obj->ID          = (int) str_replace( 'post_parent:', '', $cache_key );
 							$obj->post_parent = (int) $post_parent;
 
 							$this->posts[] = $obj;
+
+							$post_parents[ $obj->ID ] = $obj->post_parent;
 						}
 
 						return $post_parents;
@@ -3483,7 +3494,7 @@ class WP_Query {
 			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( '', &$this ) );
 
 			/** This filter is documented in wp-includes/class-wp-query.php */
-			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1'", &$this ) );
+			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1' AND {$wpdb->comments}.comment_type != 'note'", &$this ) );
 
 			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( '', &$this ) );
@@ -3833,6 +3844,8 @@ class WP_Query {
 	 *
 	 * @since 1.5.0
 	 *
+	 * @phpstan-impure
+	 *
 	 * @return bool True if posts are available, false if end of the loop.
 	 */
 	public function have_posts() {
@@ -3923,6 +3936,8 @@ class WP_Query {
 	 *
 	 * @since 2.2.0
 	 *
+	 * @phpstan-impure
+	 *
 	 * @return bool True if comments are available, false if no more comments.
 	 */
 	public function have_comments() {
@@ -3958,7 +3973,11 @@ class WP_Query {
 	 * @return WP_Post[]|int[] Array of post objects or post IDs.
 	 *
 	 * @phpstan-return (
-	 *     $query is array{ fields: 'ids', ... } ? int[] : WP_Post[]
+	 *     $query is array{ fields: 'ids', ... }
+	 *         ? int[]
+	 *         : ( $query is array{ fields: 'id=>parent', ... }
+	 *             ? array<int, int>
+	 *             : WP_Post[] )
 	 * )
 	 */
 	public function query( $query ) {
@@ -4009,9 +4028,8 @@ class WP_Query {
 			} else {
 				// For other tax queries, grab the first term from the first clause.
 				if ( ! empty( $this->tax_query->queried_terms ) ) {
-					$queried_taxonomies = array_keys( $this->tax_query->queried_terms );
-					$matched_taxonomy   = reset( $queried_taxonomies );
-					$query              = $this->tax_query->queried_terms[ $matched_taxonomy ];
+					$matched_taxonomy = array_key_first( $this->tax_query->queried_terms );
+					$query            = $this->tax_query->queried_terms[ $matched_taxonomy ];
 
 					if ( ! empty( $query['terms'] ) ) {
 						if ( 'term_id' === $query['field'] ) {

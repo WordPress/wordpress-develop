@@ -49,15 +49,20 @@ class Admin_Includes_Comment_EditComment_Test extends WP_UnitTestCase {
 	/**
 	 * Calls edit_comment() with a comment ID and a new parent, as submitted from the Edit Comment screen.
 	 *
-	 * @param int $comment_id     Comment ID.
-	 * @param int $comment_parent New parent comment ID.
+	 * @param int         $comment_id     Comment ID.
+	 * @param int         $comment_parent New parent comment ID.
+	 * @param string|null $comment_status Optional. New comment status.
 	 * @return int|WP_Error The edit_comment() return value.
 	 */
-	private function update_comment_parent( $comment_id, $comment_parent ) {
+	private function update_comment_parent( $comment_id, $comment_parent, $comment_status = null ) {
 		$_POST = array(
 			'comment_ID'     => $comment_id,
 			'comment_parent' => $comment_parent,
 		);
+
+		if ( null !== $comment_status ) {
+			$_POST['comment_status'] = $comment_status;
+		}
 
 		return edit_comment();
 	}
@@ -72,6 +77,69 @@ class Admin_Includes_Comment_EditComment_Test extends WP_UnitTestCase {
 		$result = $this->update_comment_parent( $comment_id, $parent_id );
 
 		$this->assertSame( 1, $result );
+		$this->assertSame( (string) $parent_id, get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65688
+	 */
+	public function test_should_reject_unapproved_parent_for_approved_comment() {
+		$parent_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$result = $this->update_comment_parent( $comment_id, $parent_id );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_parent_invalid', $result->get_error_code() );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65688
+	 */
+	public function test_should_reject_unapproved_parent_when_comment_is_approved_in_same_update() {
+		$parent_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+
+		$result = $this->update_comment_parent( $comment_id, $parent_id, '1' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_parent_invalid', $result->get_error_code() );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_approved );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_parent );
+	}
+
+	/**
+	 * @ticket 65688
+	 */
+	public function test_should_allow_unapproved_parent_when_comment_is_unapproved_in_same_update() {
+		$parent_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$result = $this->update_comment_parent( $comment_id, $parent_id, '0' );
+
+		$this->assertSame( 1, $result );
+		$this->assertSame( '0', get_comment( $comment_id )->comment_approved );
 		$this->assertSame( (string) $parent_id, get_comment( $comment_id )->comment_parent );
 	}
 

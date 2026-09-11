@@ -21,6 +21,13 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	protected $original_wp_styles;
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * ID for a test post.
 	 *
 	 * @since 5.0.0
@@ -61,6 +68,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 
 		global $wp_scripts, $wp_styles;
 		$this->original_wp_scripts = $wp_scripts;
@@ -95,6 +103,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		global $wp_scripts, $wp_styles;
 		$wp_scripts = $this->original_wp_scripts;
 		$wp_styles  = $this->original_wp_styles;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}
