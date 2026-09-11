@@ -47,7 +47,7 @@ function wp_unregister_icon_collection( $slug ) {
  *                          reserved for WordPress core icons; third-party code should
  *                          register icons under its own collection rather than the
  *                          "core" collection.
- * @param array  $args {
+ * @param array  $args      {
  *     List of properties for the icon.
  *
  *     @type string $label     Required. A human-readable label for the icon.

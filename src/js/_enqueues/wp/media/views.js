@@ -47,8 +47,8 @@ media.events = _.extend( {}, Backbone.Events );
 /**
  * Makes it easier to bind events using transitions.
  *
- * @param {string} selector
- * @param {number} sensitivity
+ * @param {string} selector    The CSS selector for the element to bind the transition event to.
+ * @param {number} sensitivity The maximum time to wait for the transition event before resolving the promise.
  * @return {Promise} A promise that resolves when the transition has completed.
  */
 media.transition = function( selector, sensitivity ) {

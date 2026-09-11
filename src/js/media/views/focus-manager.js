@@ -31,14 +31,14 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	},
 
  	/**
-	 * Determines which focus management mode to use.
-	 *
-	 * @since 5.3.0
-	 *
-	 * @param {Object} event jQuery event object.
-	 *
-	 * @return {void}
-	 */
+   * Determines which focus management mode to use.
+   *
+   * @since 5.3.0
+   *
+   * @param {Object} event jQuery event object.
+   *
+   * @return {void}
+   */
 	focusManagementMode: function( event ) {
 		if ( this.mode === 'constrainTabbing' ) {
 			this.constrainTabbing( event );

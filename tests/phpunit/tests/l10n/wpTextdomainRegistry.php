@@ -112,6 +112,75 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A cached value that is not an array of strings is discarded and replaced
+	 * by a fresh lookup.
+	 *
+	 * @ticket 66063
+	 *
+	 * @covers ::get_language_files_from_path
+	 *
+	 * @dataProvider data_get_language_files_from_path_ignores_invalid_cached_values
+	 *
+	 * @param mixed $cached_value Value seeded into the cache.
+	 */
+	public function test_get_language_files_from_path_ignores_invalid_cached_values( $cached_value ): void {
+		$path      = WP_LANG_DIR . '/plugins/';
+		$cache_key = md5( $path );
+
+		wp_cache_set( $cache_key, $cached_value, 'translation_files' );
+
+		$result = $this->instance->get_language_files_from_path( $path );
+
+		$this->assertIsArray( $result, 'An array should be returned' );
+		$this->assertNotEmpty( $result, 'The files should have been looked up instead of using the cached value' );
+		foreach ( $result as $file ) {
+			$this->assertIsString( $file, 'All returned entries should be strings' );
+		}
+		$this->assertSame(
+			$result,
+			wp_cache_get( $cache_key, 'translation_files' ),
+			'The invalid cached value should have been replaced'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_language_files_from_path_ignores_invalid_cached_values(): array {
+		return array(
+			'string'                => array( 'not-an-array' ),
+			'integer'               => array( 1 ),
+			'null'                  => array( null ),
+			'object'                => array( (object) array( WP_LANG_DIR . '/plugins/foo-de_DE.mo' ) ),
+			'array with an array'   => array( array( WP_LANG_DIR . '/plugins/foo-de_DE.mo', array( 'bar-de_DE.mo' ) ) ),
+			'array with an integer' => array( array( WP_LANG_DIR . '/plugins/foo-de_DE.mo', 1 ) ),
+			'array with null'       => array( array( null ) ),
+		);
+	}
+
+	/**
+	 * An empty array is a valid cached result for a directory without translation
+	 * files and must not cause a new lookup.
+	 *
+	 * @ticket 66063
+	 *
+	 * @covers ::get_language_files_from_path
+	 */
+	public function test_get_language_files_from_path_keeps_cached_empty_array(): void {
+		$path = WP_LANG_DIR . '/plugins/';
+
+		wp_cache_set( md5( $path ), array(), 'translation_files' );
+
+		$this->assertSame(
+			array(),
+			$this->instance->get_language_files_from_path( $path ),
+			'A cached empty array should be returned without looking up the files'
+		);
+	}
+
+	/**
 	 * @covers ::invalidate_mo_files_cache
 	 */
 	public function test_invalidate_mo_files_cache() {

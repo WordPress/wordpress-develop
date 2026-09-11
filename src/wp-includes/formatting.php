@@ -3840,9 +3840,9 @@ function sanitize_email( $email ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $sanitized_email The sanitized email address.
-		 * @param string $email           The email address, as provided to sanitize_email().
-		 * @param string|null $message    A message to pass to the user. null if email is sanitized.
+		 * @param string      $sanitized_email The sanitized email address.
+		 * @param string      $email           The email address, as provided to sanitize_email().
+		 * @param string|null $message         A message to pass to the user. null if email is sanitized.
 		 */
 		return apply_filters( 'sanitize_email', '', $email, 'email_too_short' );
 	}
@@ -4521,8 +4521,12 @@ function _deep_replace( $search, $subject ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $data Unescaped data.
- * @return string|array Escaped data, in the same type as supplied.
+ * @param string|string[] $data Unescaped data.
+ * @return string|string[] Escaped data, in the same type as supplied.
+ *
+ * @phpstan-template TKey of array-key
+ * @phpstan-param string|array<TKey, string> $data
+ * @phpstan-return ( $data is string ? string : array<TKey, string> )
  */
 function esc_sql( $data ) {
 	global $wpdb;
@@ -4848,10 +4852,6 @@ EOF;
 	$safe_text = (string) preg_replace_callback(
 		$regex,
 		static function ( $matches ) {
-			if ( ! isset( $matches[0] ) ) {
-				return '';
-			}
-
 			if ( isset( $matches['non_cdata'] ) ) {
 				// escape HTML entities in the non-CDATA Section.
 				return _wp_specialchars( $matches['non_cdata'], ENT_XML1 );

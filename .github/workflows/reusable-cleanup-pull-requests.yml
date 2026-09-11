@@ -56,9 +56,13 @@ jobs:
             const githubSha = process.env.GITHUB_SHA;
             let prNumbers = [];
 
+            core.notice(`Processing pull request cleanup for SVN changeset: https://core.trac.wordpress.org/changeset/${svnRevisionNumber}`);
+
             for (const ticket of fixedList) {
               const tracTicketUrl = `https://core.trac.wordpress.org/ticket/${ticket}`;
               const corePrefix = `core-${ticket}`;
+
+              core.info(`Ticket: ${tracTicketUrl}`);
 
               const query = `
                 query($searchQuery: String!) {
@@ -97,8 +101,13 @@ jobs:
 
             This PR will be closed, but please confirm the accuracy of this and reopen if there is more work to be done.`;
 
+            const uniquePrNumbers = [...new Set(prNumbers)];
+            core.info(`Found ${uniquePrNumbers.length} pull request(s) to close.`);
+
             // Update all matched pull requests.
-            for (const prNumber of prNumbers) {
+            for (const prNumber of uniquePrNumbers) {
+              core.info(`Closing pull request: https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`);
+
               // Comment on the pull request with details.
               await github.rest.issues.createComment({
                 owner: context.repo.owner,

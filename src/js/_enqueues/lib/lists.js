@@ -5,6 +5,8 @@
 /* global ajaxurl, wpAjax */
 
 /**
+ * Handles the dynamic functionality needed for lists.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {
@@ -224,7 +226,7 @@ wpList = {
 	 * data[2] - ID of the parent element of all inputs necessary for the request.
 	 * data[3] - Hex color to be used in this request. If data[0] is 'dim', dim class.
 	 * data[4] - Additional arguments in query syntax that are added to the request. Example: 'post_id=1234'.
-	 *           If data[0] is 'dim', dim add color.
+	 * If data[0] is 'dim', dim add color.
 	 * data[5] - Only available if data[0] is 'dim', dim delete color.
 	 * data[6] - Only available if data[0] is 'dim', additional arguments in query syntax that are added to the request.
 	 *
@@ -737,7 +739,7 @@ wpList = {
 	/**
 	 * Registers event handlers to add, delete, and dim items.
 	 *
-	 * @param {string} elementId
+	 * @param {string} elementId ID of the element to process, including leading #.
 	 */
 	process: function( elementId ) {
 		var list     = this,
@@ -810,7 +812,7 @@ wpList = {
 /**
  * Initializes wpList object.
  *
- * @param {Object}           settings
+ * @param {Object}           settings             The settings for the wpList instance.
  * @param {string}           settings.url         URL for ajax calls. Default: ajaxurl.
  * @param {string}           settings.type        The HTTP method to use for Ajax requests. Default: 'POST'.
  * @param {string}           settings.response    ID of the element the parsed ajax response will be stored in.

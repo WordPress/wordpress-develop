@@ -16,6 +16,9 @@ var AttachmentDisplay = wp.media.view.Settings.AttachmentDisplay,
  * @augments Backbone.View
  */
 MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.prototype */{
+	/**
+	 * Initializes the media details view.
+	 */
 	initialize: function() {
 		_.bindAll(this, 'success');
 		this.players = [];
@@ -28,6 +31,11 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 		AttachmentDisplay.prototype.initialize.apply( this, arguments );
 	},
 
+	/**
+	 * Handles events for the media details view.
+	 *
+	 * @return {Object} The events object.
+	 */
 	events: function(){
 		return _.extend( {
 			'click .remove-setting' : 'removeSetting',
@@ -37,6 +45,11 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 		}, AttachmentDisplay.prototype.events );
 	},
 
+	/**
+	 * Prepares the data for the media details view.
+	 *
+	 * @return {Object} The prepared data.
+	 */
 	prepare: function() {
 		return _.defaults({
 			model: this.model.toJSON()
@@ -44,11 +57,11 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	},
 
 	/**
-	 * Remove a setting's UI when the model unsets it
+	 * Removes a setting's UI when the model unsets it
 	 *
 	 * @fires wp.media.view.MediaDetails#media:setting:remove
 	 *
-	 * @param {Event} e
+	 * @param {JQuery.Event} e The jQuery event object.
 	 */
 	removeSetting : function(e) {
 		var wrap = $( e.currentTarget ).parent(), setting;
@@ -63,6 +76,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	},
 
 	/**
+	 * Sets the tracks for the media details view.
 	 *
 	 * @fires wp.media.view.MediaDetails#media:setting:remove
 	 */
@@ -77,16 +91,27 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 		this.trigger( 'media:setting:remove', this );
 	},
 
+	/**
+	 * Adds a source to the media details view.
+	 *
+	 * @param {JQuery.Event} e The jQuery event object.
+	 */
 	addSource : function( e ) {
 		this.controller.lastMime = $( e.currentTarget ).data( 'mime' );
 		this.controller.setState( 'add-' + this.controller.defaults.id + '-source' );
 	},
 
+	/**
+	 * Loads the media player for the media details view.
+	 */
 	loadPlayer: function () {
 		this.players.push( new MediaElementPlayer( this.media, this.settings ) );
 		this.scriptXhr = false;
 	},
 
+	/**
+	 * Sets the media player for the media details view.
+	 */
 	setPlayer : function() {
 		var src;
 
@@ -104,12 +129,19 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	},
 
 	/**
+	 * Sets the media for the media details view.
+	 *
 	 * @abstract
 	 */
 	setMedia : function() {
 		return this;
 	},
 
+	/**
+	 * Handles the success event for the media details view.
+	 *
+	 * @param {MediaElementPlayer} mejs The media element player instance.
+	 */
 	success : function(mejs) {
 		var autoplay = mejs.attributes.autoplay && 'false' !== mejs.attributes.autoplay;
 
@@ -123,7 +155,9 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	},
 
 	/**
-	 * @return {media.view.MediaDetails} Returns itself to allow chaining.
+	 * Renders the media details view.
+	 *
+	 * @return {wp.media.view.MediaDetails} Returns itself to allow chaining.
 	 */
 	render: function() {
 		AttachmentDisplay.prototype.render.apply( this, arguments );
@@ -139,6 +173,9 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 		return this.setMedia();
 	},
 
+	/**
+	 * Scrolls the media details view to the top.
+	 */
 	scrollToTop: function() {
 		this.$( '.embed-media-settings' ).scrollTop( 0 );
 	}
@@ -147,7 +184,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	/**
 	 * When multiple players in the DOM contain the same src, things get weird.
 	 *
-	 * @param {HTMLElement} elem
+	 * @param {HTMLElement} elem The HTML element containing the media sources to be prepared.
 	 * @return {HTMLElement} The prepared element.
 	 */
 	prepareSrc : function( elem ) {
