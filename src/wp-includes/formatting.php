@@ -2281,12 +2281,8 @@ function sanitize_title_for_query( $title ) {
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
 	$title = strip_tags( $title );
-	// Preserve escaped octets.
-	$title = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '---$1---', $title );
 	// Remove percent signs that are not part of an octet.
-	$title = str_replace( '%', '', $title );
-	// Restore octets.
-	$title = preg_replace( '|---([a-fA-F0-9][a-fA-F0-9])---|', '%$1', $title );
+	$title = preg_replace( '/%(?![a-fA-F0-9][a-fA-F0-9])/', '', $title );
 
 	if ( wp_is_valid_utf8( $title ) ) {
 		if ( function_exists( 'mb_strtolower' ) ) {

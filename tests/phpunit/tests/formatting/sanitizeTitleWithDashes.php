@@ -16,6 +16,10 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 		$this->assertSame( 'fran%c3%a7ois', sanitize_title_with_dashes( 'fran%c3%a7%ois' ) );
 	}
 
+	public function test_dash_patterns_that_look_like_octets() {
+		$this->assertSame( 'aa', sanitize_title_with_dashes( '---aa---' ) );
+	}
+
 	public function test_makes_title_lowercase() {
 		$this->assertSame( 'abc', sanitize_title_with_dashes( 'ABC' ) );
 	}
