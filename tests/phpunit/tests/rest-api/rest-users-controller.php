@@ -3128,6 +3128,248 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( $expected, $meta[ $meta_key ] );
 	}
 
+	/**
+	 * @ticket 57413
+	 */
+	public function test_send_confirmation_on_profile_email() {
+		reset_phpmailer_instance();
+		$was_confirmation_email_sent = false;
+
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertSame( 'before@example.com', $new_data['email'] );
+
+		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && 'after@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
+		}
+
+		// A confirmation email is sent.
+		$this->assertTrue( $was_confirmation_email_sent );
+
+		// The new email address gets put into user_meta.
+		$new_email_meta = get_user_meta( $user_id, '_new_email', true );
+		$this->assertSame( 'after@example.com', $new_email_meta['newemail'] );
+	}
+
+	/**
+	 * @ticket 57413
+	 */
+	public function test_no_confirmation_on_profile_email_by_admin() {
+		reset_phpmailer_instance();
+		$was_confirmation_email_sent = false;
+
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( self::$superadmin );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertSame( 'after@example.com', $new_data['email'] );
+
+		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && 'after@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
+		}
+
+		// No confirmation email is sent.
+		$this->assertFalse( $was_confirmation_email_sent );
+
+		// No usermeta is created.
+		$new_email_meta = get_user_meta( $user_id, '_new_email', true );
+		$this->assertEmpty( $new_email_meta );
+	}
+
+	/**
+	 * A user changing their own email address over REST is asked to confirm it,
+	 * the same as on the profile screen.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_own_email_requires_confirmation() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// The address on the account is unchanged until the user confirms it.
+		$data = $response->get_data();
+		$this->assertSame( 'before@example.com', $data['email'] );
+		$this->assertSame( 'before@example.com', get_userdata( $user_id )->user_email );
+
+		// The change is held in user meta.
+		$new_email_meta = get_user_meta( $user_id, '_new_email', true );
+		$this->assertSame( 'after@example.com', $new_email_meta['newemail'] );
+
+		// A confirmation email is sent to the new address.
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertSame( 'after@example.com', $mailer->get_recipient( 'to' )->address );
+	}
+
+	/**
+	 * Other fields in the same request are still applied while the email change is pending.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_applies_other_fields_while_email_is_pending() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$request->set_param( 'first_name', 'Updated' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Updated', get_user_meta( $user_id, 'first_name', true ) );
+		$this->assertSame( 'before@example.com', get_userdata( $user_id )->user_email );
+	}
+
+	/**
+	 * An administrator changing somebody else's address is not asked to confirm it.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_other_user_email_is_applied_immediately() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( self::$superadmin );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'after@example.com', $data['email'] );
+		$this->assertSame( 'after@example.com', get_userdata( $user_id )->user_email );
+		$this->assertEmpty( get_user_meta( $user_id, '_new_email', true ) );
+
+		/*
+		 * wp_update_user() mails a "Notice of Email Change" to the old address on every
+		 * change, so the assertion is that nothing was sent to the new address asking
+		 * for confirmation, not that no mail was sent at all.
+		 */
+		$this->assertFalse( $this->was_mail_sent_to( 'after@example.com' ) );
+	}
+
+	/**
+	 * Sending the address the account already has is not a change, so it is not held.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_unchanged_email_does_not_require_confirmation() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'before@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( get_user_meta( $user_id, '_new_email', true ) );
+		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+	}
+
+	/**
+	 * The confirmation can be turned off, for sites that manage addresses elsewhere.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_own_email_confirmation_can_be_filtered_off() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		add_filter( 'should_send_email_for_email_change', '__return_false' );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'after@example.com', get_userdata( $user_id )->user_email );
+		$this->assertEmpty( get_user_meta( $user_id, '_new_email', true ) );
+		$this->assertFalse( $this->was_mail_sent_to( 'after@example.com' ) );
+	}
+
+	/**
+	 * Whether any mail was sent to the given address.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $address The address to look for.
+	 * @return bool Whether a message was sent to the address.
+	 */
+	protected function was_mail_sent_to( $address ) {
+		foreach ( tests_retrieve_phpmailer_instance()->mock_sent as $mail ) {
+			if ( isset( $mail['to'][0][0] ) && $address === $mail['to'][0][0] ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public function data_get_default_data() {
 		return array(
 			array(

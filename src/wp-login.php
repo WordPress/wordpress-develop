@@ -495,6 +495,7 @@ $default_actions = array(
 	'register',
 	'checkemail',
 	'confirmaction',
+	'confirmemail',
 	'login',
 	WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED,
 );
@@ -1236,6 +1237,44 @@ switch ( $action ) {
 		login_header( __( 'Check your email' ), '', $errors );
 		login_footer();
 		break;
+
+	case 'confirmemail':
+		if ( ! isset( $_GET['id'], $_GET['hash'] ) ) {
+			wp_die( __( 'Missing or invalid key.' ) );
+		}
+
+		$user_id   = (int) $_GET['id'];
+		$email_key = sanitize_text_field( wp_unslash( $_GET['hash'] ) );
+
+		if ( ! is_user_logged_in() ) {
+			$confirm_url = add_query_arg(
+				array(
+					'action' => 'confirmemail',
+					'id'     => $user_id,
+					'hash'   => rawurlencode( $email_key ),
+				),
+				wp_login_url()
+			);
+
+			wp_safe_redirect( wp_login_url( $confirm_url ) );
+			exit;
+		}
+
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+			wp_die( __( 'Missing or invalid key.' ) );
+		}
+
+		if ( ! confirm_user_email_change( $user_id, $email_key ) ) {
+			wp_die( __( 'Missing or invalid key.' ) );
+		}
+
+		login_header(
+			__( 'Email address confirmed.' ),
+			'<p class="message">' . __( 'Your new email address has been confirmed.' ) . '</p>'
+		);
+
+		login_footer();
+		exit;
 
 	case 'confirmaction':
 		if ( ! isset( $_GET['request_id'] ) ) {

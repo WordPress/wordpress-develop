@@ -536,7 +536,7 @@ parameters:
 		-
 			message: '#^Variable \$wpdb might not be defined\.$#'
 			identifier: variable.undefined
-			count: 12
+			count: 6
 			path: ../../../src/wp-admin/user-edit.php
 		-
 			message: '#^Variable \$blog_id might not be defined\.$#'
