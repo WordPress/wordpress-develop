@@ -60,6 +60,26 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$this->show_autoupdates = wp_is_auto_update_enabled_for_type( 'plugin' )
 			&& current_user_can( 'update_plugins' )
 			&& ( ! is_multisite() || $this->screen->in_admin( 'network' ) );
+
+		add_filter( 'default_hidden_columns', array( $this, 'get_default_hidden_columns' ), 10, 2 );
+	}
+
+	/**
+	 * Returns the list of columns hidden by default.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param string[]  $hidden Array of IDs of columns hidden by default.
+	 * @param WP_Screen $screen WP_Screen object of the current screen.
+	 *
+	 * @return string[] Array of IDs of columns hidden by default.
+	 */
+	public function get_default_hidden_columns( array $hidden, WP_Screen $screen ) {
+		if ( $this->screen->id === $screen->id ) {
+			$hidden[] = 'slug';
+		}
+
+		return $hidden;
 	}
 
 	/**
@@ -498,6 +518,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$columns = array(
 			'cb'          => ! in_array( $status, array( 'mustuse', 'dropins' ), true ) ? '<input type="checkbox" />' : '',
 			'name'        => __( 'Plugin' ),
+			'slug'        => __( 'Slug' ),
 			'description' => __( 'Description' ),
 		);
 
@@ -1239,6 +1260,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo "<th scope='row' class='plugin-title column-primary' aria-label='" . esc_attr( $plugin_name ) . "'><strong>$plugin_name</strong>";
 					echo $this->row_actions( $actions, true );
 					echo '</th>';
+					break;
+				case 'slug':
+					echo "<td class='column-slug{$extra_classes}'>$plugin_file</td>";
 					break;
 				case 'description':
 					$classes = 'column-description desc';
