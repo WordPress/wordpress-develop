@@ -91,6 +91,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'post_title', $q->request, 'SQL request should contain post_title string.' );
 		$this->assertStringContainsString( 'post_excerpt', $q->request, 'SQL request should contain post_excerpt string.' );
 		$this->assertStringContainsString( 'post_content', $q->request, 'SQL request should contain post_content string.' );
+		$this->assertStringNotContainsString( 'post_name', $q->request, "SQL request shouldn't contain post_name string." );
 		$this->assertSameSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
@@ -229,6 +230,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'post_title', $q->request, 'SQL request should contain post_title string.' );
 		$this->assertStringContainsString( 'post_excerpt', $q->request, 'SQL request should contain post_excerpt string.' );
 		$this->assertStringContainsString( 'post_content', $q->request, 'SQL request should contain post_content string.' );
+		$this->assertStringNotContainsString( 'post_name', $q->request, "SQL request shouldn't contain post_name string." );
 		$this->assertSameSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
@@ -363,7 +365,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringNotContainsString( 'post_name', $q->request, "SQL request shouldn't contain post_name string." );
+		$this->assertStringNotContainsString( 'post_author', $q->request, "SQL request shouldn't contain post_author string." );
 		$this->assertSameSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
@@ -376,7 +378,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 * @return string[] $search_columns Array of column names to be searched.
 	 */
 	public function post_non_supported_search_column( $search_columns, $search, $wp_query ) {
-		$search_columns = array( 'post_name' );
+		$search_columns = array( 'post_author' );
 		return $search_columns;
 	}
 
