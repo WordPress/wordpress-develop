@@ -217,6 +217,7 @@ class WP_oEmbed {
 		 * | Meetup.com   | meetup.com           | 3.9.0     | 6.0.1     |
 		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
 		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
+		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
