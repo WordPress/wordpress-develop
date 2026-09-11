@@ -266,6 +266,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	if ( empty( $meta_ids ) ) {
 		return add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
 	}
+	$meta_ids = array_map( 'intval', $meta_ids );
 
 	$_meta_value = $meta_value;
 	$meta_value  = maybe_serialize( $meta_value );
@@ -1431,6 +1432,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @return bool True if the meta key was successfully registered in the global array, false if not.
  *              Registering a meta key with distinct sanitize and auth callbacks will fire those callbacks,
  *              but will not add to the global registry.
+ *
+ * @phpstan-param null $deprecated
  */
 function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	global $wp_meta_keys;

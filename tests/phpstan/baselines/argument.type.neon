@@ -319,11 +319,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/upgrade.php
 		-
-			message: '#^Parameter \#3 \$deprecated of function add_option expects string, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/upgrade.php
-		-
 			message: '#^Parameter \#1 \$bookmark_id of function clean_bookmark_cache expects int, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -729,7 +724,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\|string\|false\> given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\<min, \-1\>\|int\<1, max\>\|string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
@@ -844,12 +839,12 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-user.php
 		-
-			message: '#^Parameter \#1 \$number of method WP_Widget\:\:_set\(\) expects int, string given\.$#'
+			message: '#^Parameter \#1 \$number of method WP_Widget\<T of array \= array\<string, mixed\>\>\:\:_set\(\) expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: int\|string, post_date_gmt\: int\|string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
@@ -1039,7 +1034,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/load.php
 		-
-			message: '#^Parameter \#5 \$text of function wp_get_attachment_link expects string\|false, bool given\.$#'
+			message: '#^Parameter \#1 \$args of function get_posts expects array\{numberposts\?\: int, category\?\: int\|string, include\?\: array\<int\>, exclude\?\: array\<int\>, suppress_filters\?\: bool, \.\.\.\}\|string\|null, array\{include\: non\-falsy\-string, post_status\: ''inherit'', post_type\: ''attachment'', post_mime_type\: ''image'', order\: string, orderby\: string\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/media.php

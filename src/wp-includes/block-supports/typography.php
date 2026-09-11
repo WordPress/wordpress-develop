@@ -560,6 +560,8 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  * @param bool|array $settings Optional Theme JSON settings array that overrides any global theme settings.
  *                             Default is false.
  * @return string|null Font-size value or null if a size is not passed in $preset.
+ *
+ * @phpstan-param array $settings
  */
 
 

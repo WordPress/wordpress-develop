@@ -48,6 +48,15 @@ function _wp_http_get_object() {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+ *     body: string,
+ *     response: array{code: int, message: string},
+ *     cookies: array<int, WP_Http_Cookie>,
+ *     filename: string|null,
+ *     http_response: WP_HTTP_Requests_Response,
+ * }|WP_Error
  */
 function wp_safe_remote_request( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -77,6 +86,15 @@ function wp_safe_remote_request( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+ *     body: string,
+ *     response: array{code: int, message: string},
+ *     cookies: array<int, WP_Http_Cookie>,
+ *     filename: string|null,
+ *     http_response: WP_HTTP_Requests_Response,
+ * }|WP_Error
  */
 function wp_safe_remote_get( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -106,6 +124,15 @@ function wp_safe_remote_get( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+ *     body: string,
+ *     response: array{code: int, message: string},
+ *     cookies: array<int, WP_Http_Cookie>,
+ *     filename: string|null,
+ *     http_response: WP_HTTP_Requests_Response,
+ * }|WP_Error
  */
 function wp_safe_remote_post( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -135,6 +162,15 @@ function wp_safe_remote_post( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+ *     body: string,
+ *     response: array{code: int, message: string},
+ *     cookies: array<int, WP_Http_Cookie>,
+ *     filename: string|null,
+ *     http_response: WP_HTTP_Requests_Response,
+ * }|WP_Error
  */
 function wp_safe_remote_head( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -162,6 +198,15 @@ function wp_safe_remote_head( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response array or a WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+ *     body: string,
+ *     response: array{code: int, message: string},
+ *     cookies: array<int, WP_Http_Cookie>,
+ *     filename: string|null,
+ *     http_response: WP_HTTP_Requests_Response,
+ * }|WP_Error
  */
 function wp_remote_request( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -183,6 +228,15 @@ function wp_remote_request( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+ *     body: string,
+ *     response: array{code: int, message: string},
+ *     cookies: array<int, WP_Http_Cookie>,
+ *     filename: string|null,
+ *     http_response: WP_HTTP_Requests_Response,
+ * }|WP_Error
  */
 function wp_remote_get( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -204,6 +258,15 @@ function wp_remote_get( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+ *     body: string,
+ *     response: array{code: int, message: string},
+ *     cookies: array<int, WP_Http_Cookie>,
+ *     filename: string|null,
+ *     http_response: WP_HTTP_Requests_Response,
+ * }|WP_Error
  */
 function wp_remote_post( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -225,6 +288,15 @@ function wp_remote_post( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+ *     body: string,
+ *     response: array{code: int, message: string},
+ *     cookies: array<int, WP_Http_Cookie>,
+ *     filename: string|null,
+ *     http_response: WP_HTTP_Requests_Response,
+ * }|WP_Error
  */
 function wp_remote_head( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -555,6 +627,10 @@ function send_origin_headers() {
  *
  * @param string $url Request URL.
  * @return string|false Returns false if the URL is not safe, or the original URL if it is safe.
+ *
+ * @phpstan-template TUrl of string
+ * @phpstan-param TUrl $url
+ * @phpstan-return (TUrl is numeric|'' ? false : TUrl|false)
  */
 function wp_http_validate_url( $url ) {
 	if ( ! is_string( $url ) || '' === $url || is_numeric( $url ) ) {

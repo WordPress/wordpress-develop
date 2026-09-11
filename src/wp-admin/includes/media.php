@@ -211,9 +211,9 @@ function image_add_caption( $html, $id, $caption, $title, $align, $url, $size, $
 	 * @since 2.6.0
 	 *
 	 * @param bool $bool Whether to disable appending captions. Returning true from the filter
-	 *                   will disable captions. Default empty string.
+	 *                   will disable captions. Default false.
 	 */
-	if ( empty( $caption ) || apply_filters( 'disable_captions', '' ) ) {
+	if ( empty( $caption ) || apply_filters( 'disable_captions', false ) ) {
 		return $html;
 	}
 
@@ -1237,6 +1237,8 @@ function image_align_input_fields( $post, $checked = '' ) {
  * @param WP_Post     $post
  * @param bool|string $check
  * @return array<string, string> An array of data for the image size input fields.
+ *
+ * @phpstan-return array{label: string, input: 'html', html: string}
  */
 function image_size_input_fields( $post, $check = '' ) {
 	/**
@@ -1315,6 +1317,8 @@ function image_size_input_fields( $post, $check = '' ) {
  * @param WP_Post $post
  * @param string  $url_type
  * @return string HTML markup for the link URL buttons.
+ *
+ * @phpstan-return non-falsy-string
  */
 function image_link_input_fields( $post, $url_type = '' ) {
 
@@ -1348,6 +1352,8 @@ function image_link_input_fields( $post, $url_type = '' ) {
  *
  * @param WP_Post $edit_post Attachment WP_Post object.
  * @return string HTML markup for the textarea element.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_caption_input_textarea( $edit_post ) {
 	// Post data is already escaped.
@@ -1637,6 +1643,8 @@ function get_media_items( $post_id, $errors ) {
  * @param int          $attachment_id Attachment ID for modification.
  * @param string|array $args          Optional. Override defaults.
  * @return string HTML form for attachment.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_media_item( $attachment_id, $args = null ) {
 	global $redir_tab;
@@ -1931,6 +1939,8 @@ function get_media_item( $attachment_id, $args = null ) {
  * @param int   $attachment_id
  * @param array $args
  * @return array<string, string> An array containing the media item and its metadata.
+ *
+ * @phpstan-return array{item: string, meta: string}
  */
 function get_compat_media_markup( $attachment_id, $args = null ) {
 	$post = get_post( $attachment_id );
@@ -3013,6 +3023,8 @@ function media_upload_library_form( $errors ) {
  *
  * @param string $default_view
  * @return string HTML content of the form.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_media_insert_url_form( $default_view = 'image' ) {
 	/** This filter is documented in wp-admin/includes/media.php */

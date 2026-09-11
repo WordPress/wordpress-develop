@@ -23,9 +23,12 @@ add_filter( 'site_option_welcome_user_email', 'welcome_user_msg_filter' );
 // Users.
 add_filter( 'wpmu_validate_user_signup', 'signup_nonce_check' );
 add_action( 'init', 'maybe_add_existing_user_to_blog' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wpmu_new_user', 'newuser_notify_siteadmin' );
 add_action( 'wpmu_activate_user', 'add_new_user_to_blog', 10, 3 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wpmu_activate_user', 'wpmu_welcome_user_notification', 10, 3 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'after_signup_user', 'wpmu_signup_user_notification', 10, 4 );
 add_action( 'network_site_new_created_user', 'wp_send_new_user_notifications' );
 add_action( 'network_site_users_created_user', 'wp_send_new_user_notifications' );
@@ -38,7 +41,9 @@ add_action( 'switch_blog', 'wp_switch_roles_and_user', 1, 2 );
 
 // Blogs.
 add_filter( 'wpmu_validate_blog_signup', 'signup_nonce_check' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wpmu_activate_blog', 'wpmu_welcome_notification', 10, 5 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'after_signup_site', 'wpmu_signup_blog_notification', 10, 7 );
 add_filter( 'wp_normalize_site_data', 'wp_normalize_site_data', 10, 1 );
 add_action( 'wp_validate_site_data', 'wp_validate_site_data', 10, 3 );
@@ -48,9 +53,12 @@ add_action( 'wp_delete_site', 'wp_maybe_update_network_site_counts_on_update', 1
 add_action( 'wp_insert_site', 'wp_maybe_transition_site_statuses_on_update', 10, 1 );
 add_action( 'wp_update_site', 'wp_maybe_transition_site_statuses_on_update', 10, 2 );
 add_action( 'wp_update_site', 'wp_maybe_clean_new_site_cache_on_update', 10, 2 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wp_initialize_site', 'wp_initialize_site', 10, 2 );
 add_action( 'wp_initialize_site', 'wpmu_log_new_registrations', 100, 2 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wp_initialize_site', 'newblog_notify_siteadmin', 100, 1 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'wp_uninitialize_site', 'wp_uninitialize_site', 10, 1 );
 add_action( 'update_blog_public', 'wp_update_blog_public_option_on_site_update', 1, 2 );
 

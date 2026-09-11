@@ -933,6 +933,7 @@ class WP_Upgrader {
 				 * internally during actions, causing an error because
 				 * `WP_Upgrader::restore_temp_backup()` expects an array.
 				 */
+				// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 				add_action( 'shutdown', array( $this, 'restore_temp_backup' ), 10, 0 );
 			}
 			$this->skin->error( $result );
@@ -950,6 +951,7 @@ class WP_Upgrader {
 		// Clean up the backup kept in the temporary backup directory.
 		if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
 			// Delete the backup on `shutdown` to avoid a PHP timeout.
+			// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 			add_action( 'shutdown', array( $this, 'delete_temp_backup' ), 100, 0 );
 		}
 

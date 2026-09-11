@@ -265,7 +265,8 @@ function get_blog_details( $fields = null, $get_all = true ) {
 	 * @since MU (3.0.0)
 	 * @deprecated 4.7.0 Use {@see 'site_details'} instead.
 	 *
-	 * @param WP_Site $details The blog details.
+	 * @param WP_Site|stdClass $details The blog details: a WP_Site from get_blog_details(), or a plain
+	 *                                  object copy of one from WP_Site::get_details().
 	 */
 	$details = apply_filters_deprecated( 'blog_details', array( $details ), '4.7.0', 'site_details' );
 
@@ -456,6 +457,8 @@ function delete_blog_option( $id, $option ) {
  * @param mixed  $value      The option value.
  * @param mixed  $deprecated Not used.
  * @return bool True if the value was updated, false otherwise.
+ *
+ * @phpstan-param null $deprecated
  */
 function update_blog_option( $id, $option, $value, $deprecated = null ) {
 	$id = (int) $id;
@@ -496,6 +499,8 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  * @param int  $new_blog_id The ID of the blog to switch to. Default: current blog.
  * @param bool $deprecated  Not used.
  * @return true Always returns true.
+ *
+ * @phpstan-param null $deprecated
  */
 function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	global $wpdb;
@@ -819,6 +824,8 @@ function get_blog_status( $id, $pref ) {
  *                          Can be used for pagination. Default 0.
  * @param int   $quantity   Optional. The maximum number of blogs to retrieve. Default 40.
  * @return array The list of blogs.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_last_updated( $deprecated = '', $start = 0, $quantity = 40 ) {
 	global $wpdb;

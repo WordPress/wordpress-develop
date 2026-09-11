@@ -1637,6 +1637,8 @@ function walk_page_dropdown_tree( ...$args ) {
  * @param bool        $fullsize   Optional. Whether to use full size. Default false.
  * @param bool        $deprecated Deprecated. Not used.
  * @param bool        $permalink  Optional. Whether to include permalink. Default false.
+ *
+ * @phpstan-param false $deprecated
  */
 function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false, $permalink = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2051,6 +2053,8 @@ function wp_post_revision_title_expanded( $revision, $link = true ) {
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @param string      $type 'all' (default), 'revision' or 'autosave'
+ *
+ * @phpstan-param 'all'|'revision'|'autosave' $type
  */
 function wp_list_post_revisions( $post = 0, $type = 'all' ) {
 	$post = get_post( $post );

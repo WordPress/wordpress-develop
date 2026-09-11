@@ -19,6 +19,8 @@ class Custom_Background {
 	 *
 	 * @since 3.0.0
 	 * @var callable
+	 *
+	 * @phpstan-var ''|callable(): void
 	 */
 	public $admin_header_callback;
 
@@ -27,6 +29,8 @@ class Custom_Background {
 	 *
 	 * @since 3.0.0
 	 * @var callable
+	 *
+	 * @phpstan-var ''|callable(): void
 	 */
 	public $admin_image_div_callback;
 
@@ -47,6 +51,9 @@ class Custom_Background {
 	 *                                           Default empty string.
 	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
 	 *                                           Default empty string.
+	 *
+	 * @phpstan-param ''|callable(): void $admin_header_callback
+	 * @phpstan-param ''|callable(): void $admin_image_div_callback
 	 */
 	public function __construct( $admin_header_callback = '', $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;

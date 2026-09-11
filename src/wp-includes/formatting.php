@@ -611,6 +611,8 @@ function wpautop( $text, $br = true ) {
  *
  * @param string $input The text which has to be formatted.
  * @return string[] Array of the formatted text.
+ *
+ * @phpstan-return non-empty-list<string>
  */
 function wp_html_split( $input ) {
 	return preg_split( get_html_split_regex(), $input, -1, PREG_SPLIT_DELIM_CAPTURE );
@@ -622,6 +624,8 @@ function wp_html_split( $input ) {
  * @since 4.4.0
  *
  * @return string The regular expression.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_html_split_regex() {
 	static $regex;
@@ -2278,6 +2282,9 @@ function sanitize_title_for_query( $title ) {
  *                          When set to 'save', additional entities are converted to hyphens
  *                          or stripped entirely. Default 'display'.
  * @return string The sanitized title.
+ *
+ * @phpstan-param 'display'|'save' $context
+ * @phpstan-return lowercase-string
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
 	$title = strip_tags( $title );
@@ -2412,6 +2419,10 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
  *
  * @param string $orderby Order by clause to be validated.
  * @return string|false Returns $orderby if valid, false otherwise.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $orderby
+ * @phpstan-return (T is non-falsy-string ? T|false : false)
  */
 function sanitize_sql_orderby( $orderby ) {
 	if ( preg_match( '/^\s*(([a-z0-9_]+|`[a-z0-9_]+`)(\s+(ASC|DESC))?\s*(,\s*(?=[a-z0-9_`])|$))+$/i', $orderby ) || preg_match( '/^\s*RAND\(\s*\)\s*$/i', $orderby ) ) {
@@ -2488,6 +2499,8 @@ function sanitize_locale_name( $locale_name ) {
  * @param string $content    String of characters to be converted.
  * @param string $deprecated Not used.
  * @return string Converted string.
+ *
+ * @phpstan-param '' $deprecated
  */
 function convert_chars( $content, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2788,6 +2801,17 @@ function format_to_edit( $content, $rich_text = false ) {
  * @param int $number     Number to append zeros to if not greater than threshold.
  * @param int $threshold  Digit places number needs to be to not have zeros added.
  * @return string Adds leading zeros to number if needed.
+ *
+ * @phpstan-param int<0, max> $threshold
+ * @phpstan-return (
+ *     $threshold is 0
+ *         ? lowercase-string&non-empty-string&numeric-string
+ *         : (
+ *             $number is int<0, max>
+ *                 ? lowercase-string&non-empty-string&numeric-string
+ *                 : lowercase-string&non-empty-string
+ *         )
+ * )
  */
 function zeroise( $number, $threshold ) {
 	return sprintf( '%0' . $threshold . 's', $number );
@@ -2800,6 +2824,8 @@ function zeroise( $number, $threshold ) {
  *
  * @param string $value Value to which backslashes will be added.
  * @return string String with backslashes inserted.
+ *
+ * @phpstan-pure
  */
 function backslashit( $value ) {
 	if ( isset( $value[0] ) && $value[0] >= '0' && $value[0] <= '9' ) {
@@ -2821,6 +2847,9 @@ function backslashit( $value ) {
  *
  * @param string $value Value to which trailing slash will be added.
  * @return string String with trailing slash added.
+ *
+ * @phpstan-pure
+ * @phpstan-return non-falsy-string
  */
 function trailingslashit( $value ) {
 	return untrailingslashit( $value ) . '/';
@@ -2836,6 +2865,8 @@ function trailingslashit( $value ) {
  *
  * @param string $value Value from which trailing slashes will be removed.
  * @return string String without the trailing slashes.
+ *
+ * @phpstan-pure
  */
 function untrailingslashit( $value ) {
 	return rtrim( $value, '/\\' );
@@ -2884,6 +2915,10 @@ function stripslashes_from_strings_only( $value ) {
  *
  * @param mixed $value The array or string to be encoded.
  * @return mixed The encoded value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return T
  */
 function urlencode_deep( $value ) {
 	return map_deep( $value, 'urlencode' );
@@ -2896,6 +2931,10 @@ function urlencode_deep( $value ) {
  *
  * @param mixed $value The array or string to be encoded.
  * @return mixed The encoded value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return T
  */
 function rawurlencode_deep( $value ) {
 	return map_deep( $value, 'rawurlencode' );
@@ -2908,6 +2947,10 @@ function rawurlencode_deep( $value ) {
  *
  * @param mixed $value The array or string to be decoded.
  * @return mixed The decoded value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return T
  */
 function urldecode_deep( $value ) {
 	return map_deep( $value, 'urldecode' );
@@ -2948,6 +2991,8 @@ function urldecode_deep( $value ) {
  * @param string $email_address Email address.
  * @param int    $hex_encoding  Optional. Set to 1 to enable hex encoding.
  * @return string Converted email address.
+ *
+ * @phpstan-param 0|1 $hex_encoding
  */
 function antispambot( $email_address, $hex_encoding = 0 ) {
 	$obfuscated     = '';
@@ -3609,6 +3654,8 @@ function convert_smilies( $text ) {
  * @param string $email      Email address to verify.
  * @param bool   $deprecated Deprecated.
  * @return string|false Valid email address on success, false on failure.
+ *
+ * @phpstan-param false $deprecated
  */
 function is_email( $email, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -5870,6 +5917,8 @@ function sanitize_trackback_urls( $to_ping ) {
  *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
  *     )
  * )
+ *
+ * @phpstan-pure
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {

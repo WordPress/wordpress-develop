@@ -1465,6 +1465,8 @@ class wpdb {
 	 * @param mixed       ...$args Further variables to substitute into the query's placeholders
 	 *                             if being called with individual arguments.
 	 * @return string|null Sanitized query string, if there is a query to prepare.
+	 *
+	 * @phpstan-param literal-string $query
 	 */
 	public function prepare( $query, ...$args ) {
 		if ( is_null( $query ) ) {
@@ -3098,6 +3100,8 @@ class wpdb {
 	 *         )
 	 *         : null
 	 * )
+	 *
+	 * @phpstan-param int<0, max> $y
 	 */
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";

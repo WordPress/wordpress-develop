@@ -44,6 +44,9 @@
  *                           database performance issues.
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
+ *
+ * @phpstan-param list<mixed> $args
+ * @phpstan-return ($wp_error is false ? bool : true|WP_Error)
  */
 function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
@@ -248,6 +251,9 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
  *                           database performance issues.
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
+ *
+ * @phpstan-param list<mixed> $args
+ * @phpstan-return ($wp_error is false ? bool : true|WP_Error)
  */
 function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
@@ -363,6 +369,9 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
  *                           database performance issues.
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully rescheduled. False or WP_Error on failure.
+ *
+ * @phpstan-param list<mixed> $args
+ * @phpstan-return ($wp_error is false ? bool : true|WP_Error)
  */
 function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
@@ -485,6 +494,9 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
  *                          arguments do not match exactly, the event will not be found. Default empty array.
  * @param bool   $wp_error  Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully unscheduled. False or WP_Error on failure.
+ *
+ * @phpstan-param list<mixed> $args
+ * @phpstan-return ($wp_error is false ? bool : true|WP_Error)
  */
 function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
@@ -572,6 +584,9 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
  * @return int|false|WP_Error On success an integer indicating number of events unscheduled (0 indicates no
  *                            events were registered with the hook and arguments combination), false or WP_Error
  *                            if unscheduling one or more events fail.
+ *
+ * @phpstan-param list<mixed> $args
+ * @phpstan-return (int<0, max>|($wp_error is false ? false : WP_Error))
  */
 function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
 	/*
@@ -677,6 +692,8 @@ function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
  * @param bool   $wp_error Optional. Whether to return a WP_Error on failure. Default false.
  * @return int|false|WP_Error On success an integer indicating number of events unscheduled (0 indicates no
  *                            events were registered on the hook), false or WP_Error if unscheduling fails.
+ *
+ * @phpstan-return ($wp_error is false ? int<0, max>|false : int<0, max>|WP_Error)
  */
 function wp_unschedule_hook( $hook, $wp_error = false ) {
 	/**
@@ -774,6 +791,8 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
  *     @type array        $args      Array containing each separate argument to pass to the hook's callback function.
  *     @type int          $interval  Optional. The interval time in seconds for the schedule. Only present for recurring events.
  * }
+ *
+ * @phpstan-param list<mixed> $args
  */
 function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
 	/**
@@ -855,6 +874,8 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
  *                     event, so they must match those used when originally scheduling the event. If the
  *                     arguments do not match exactly, the event will not be found. Default empty array.
  * @return int|false The Unix timestamp (UTC) of the next time the event will occur. False if the event doesn't exist.
+ *
+ * @phpstan-param list<mixed> $args
  */
 function wp_next_scheduled( $hook, $args = array() ) {
 	$next_event = wp_get_scheduled_event( $hook, $args );
@@ -1021,11 +1042,13 @@ function wp_cron(): void {
 		if ( did_action( 'wp_loaded' ) ) {
 			_wp_cron();
 		} else {
+			// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 			add_action( 'wp_loaded', '_wp_cron', 20 );
 		}
 	} elseif ( doing_action( 'shutdown' ) ) {
 		_wp_cron();
 	} else {
+		// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 		add_action( 'shutdown', '_wp_cron' );
 	}
 }
@@ -1179,6 +1202,8 @@ function wp_get_schedules() {
  * @param array  $args Optional. Arguments passed to the event's callback function.
  *                     Default empty array.
  * @return string|false Schedule name on success, false if no schedule.
+ *
+ * @phpstan-param list<mixed> $args
  */
 function wp_get_schedule( $hook, $args = array() ) {
 	$schedule = false;

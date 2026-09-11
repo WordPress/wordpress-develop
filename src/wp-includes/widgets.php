@@ -116,6 +116,9 @@ $GLOBALS['_wp_deprecated_widgets_callbacks'] = array(
  * @global WP_Widget_Factory $wp_widget_factory
  *
  * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
+ *
+ * @phpstan-param class-string<WP_Widget>|WP_Widget $widget
+ * @phpstan-return void
  */
 function register_widget( $widget ) {
 	global $wp_widget_factory;
@@ -1017,6 +1020,8 @@ function is_active_sidebar( $index ) {
  *
  * @param bool $deprecated Not used (argument deprecated).
  * @return array Upgraded list of widgets to version 3 array format when called from the admin.
+ *
+ * @phpstan-param true $deprecated
  */
 function wp_get_sidebars_widgets( $deprecated = true ) {
 	if ( true !== $deprecated ) {
@@ -1708,6 +1713,26 @@ function wp_widget_rss_output( $rss, $args = array() ) {
  *
  * @param array|string $args   Values for input fields.
  * @param array        $inputs Override default display options.
+ *
+ * @phpstan-param array{
+ *     number: int,
+ *     error: string|false,
+ *     title?: string,
+ *     url?: string,
+ *     items?: int,
+ *     show_summary?: int,
+ *     show_author?: int,
+ *     show_date?: int,
+ * } $args
+ * @phpstan-param array{
+ *     title?: bool,
+ *     url?: bool,
+ *     items?: bool,
+ *     show_summary?: bool,
+ *     show_author?: bool,
+ *     show_date?: bool,
+ * } $inputs
+ * @phpstan-return void
  */
 function wp_widget_rss_form( $args, $inputs = null ) {
 	$default_inputs = array(
@@ -1793,6 +1818,17 @@ foreach ( array_keys( $default_inputs ) as $input ) :
  * @param array $widget_rss RSS widget feed data. Expects unescaped data.
  * @param bool  $check_feed Optional. Whether to check feed for errors. Default true.
  * @return array
+ *
+ * @phpstan-return array{
+ *     title: string,
+ *     url: string,
+ *     link: string,
+ *     items: int<1, 20>,
+ *     error: string|false,
+ *     show_summary: int,
+ *     show_author: int,
+ *     show_date: int,
+ * }
  */
 function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 	$items = (int) $widget_rss['items'];

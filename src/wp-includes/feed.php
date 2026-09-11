@@ -99,6 +99,8 @@ function get_default_feed() {
  *
  * @param string $deprecated Unused.
  * @return string The document title.
+ *
+ * @phpstan-param '&#8211;' $deprecated
  */
 function get_wp_title_rss( $deprecated = '&#8211;' ) {
 	if ( '&#8211;' !== $deprecated ) {
@@ -125,6 +127,8 @@ function get_wp_title_rss( $deprecated = '&#8211;' ) {
  * @since 4.4.0 The optional `$sep` parameter was deprecated and renamed to `$deprecated`.
  *
  * @param string $deprecated Unused.
+ *
+ * @phpstan-param '&#8211;' $deprecated
  */
 function wp_title_rss( $deprecated = '&#8211;' ) {
 	if ( '&#8211;' !== $deprecated ) {
@@ -584,6 +588,8 @@ function atom_enclosure() {
  *
  * @param string $data Input string.
  * @return array array(type, value)
+ *
+ * @phpstan-return array{'html'|'text'|'xhtml', string}
  */
 function prep_atom_text_construct( $data ) {
 	if ( ! str_contains( $data, '<' ) && ! str_contains( $data, '&' ) ) {

@@ -54,6 +54,7 @@
 		"phpcompatibility/phpcompatibility-wp": "~2.1.3",
 		"phpstan/phpstan": "2.2.13",
 		"phpstan/phpstan-phpunit": "2.0.18",
+		"szepeviktor/phpstan-wordpress": "^2.0.4",
 		"yoast/phpunit-polyfills": "^1.1.0"
 	},
 	"config": {
