@@ -141,7 +141,12 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 			}
 			$this->error = implode( ', ', $messages );
 		}
-		echo '<script>jQuery(\'.waiting-' . esc_js( $this->upgrader->update_current ) . '\').hide();</script>';
+		wp_print_inline_script_tag(
+			sprintf(
+				'jQuery( %s ).hide();',
+				wp_json_encode( '.waiting-' . $this->upgrader->update_current, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+			)
+		);
 	}
 
 	/**
@@ -172,7 +177,12 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	public function before( $title = '' ) {
 		$this->in_loop = true;
 		printf( '<h2>' . $this->upgrader->strings['skin_before_update_header'] . ' <span class="spinner waiting-' . $this->upgrader->update_current . '"></span></h2>', $title, $this->upgrader->update_current, $this->upgrader->update_count );
-		echo '<script>jQuery(\'.waiting-' . esc_js( $this->upgrader->update_current ) . '\').css("display", "inline-block");</script>';
+		wp_print_inline_script_tag(
+			sprintf(
+				'jQuery( %s ).css( "display", "inline-block" );',
+				wp_json_encode( '.waiting-' . $this->upgrader->update_current, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+			)
+		);
 		// This progress messages div gets moved via JavaScript when clicking on "More details.".
 		echo '<div class="update-messages hide-if-js" id="progress-' . esc_attr( $this->upgrader->update_current ) . '"><p>';
 		$this->flush_output();
@@ -200,7 +210,12 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 				)
 			);
 
-			echo '<script>jQuery(\'#progress-' . esc_js( $this->upgrader->update_current ) . '\').show();</script>';
+			wp_print_inline_script_tag(
+				sprintf(
+					'jQuery( %s ).show();',
+					wp_json_encode( '#progress-' . $this->upgrader->update_current, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+				)
+			);
 		}
 		if ( $this->result && ! is_wp_error( $this->result ) ) {
 			if ( ! $this->error ) {
@@ -210,7 +225,12 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 					'</p></div>';
 			}
 
-			echo '<script>jQuery(\'.waiting-' . esc_js( $this->upgrader->update_current ) . '\').hide();</script>';
+			wp_print_inline_script_tag(
+				sprintf(
+					'jQuery( %s ).hide();',
+					wp_json_encode( '.waiting-' . $this->upgrader->update_current, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+				)
+			);
 		}
 
 		$this->reset();
