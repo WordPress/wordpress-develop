@@ -597,6 +597,14 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *
+ * @phpstan-return (
+ *     $meta_key is ''
+ *         ? array<string, list<string>>|false
+ *         : ( $single is true
+ *             ? string|array<mixed>|object|false
+ *             : list<string|array<mixed>|object>|false )
+ * )
  */
 function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
@@ -624,6 +632,14 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  *               False for an invalid `$object_id` (non-numeric, zero, or negative value),
  *               or if `$meta_type` is not specified.
  *               Null if the value does not exist.
+ *
+ * @phpstan-return (
+ *     $meta_key is ''
+ *         ? array<string, list<string>>|false|null
+ *         : ( $single is true
+ *             ? string|array<mixed>|object|false|null
+ *             : list<string|array<mixed>|object>|false|null )
+ * )
  */
 function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
@@ -708,6 +724,8 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
  *                          This parameter has no effect if `$meta_key` is not specified. Default false.
  * @return mixed An array of default values if `$single` is false.
  *               The default value of the meta field if `$single` is true.
+ *
+ * @phpstan-return ( $single is true ? mixed : array<int, mixed> )
  */
 function get_metadata_default( $meta_type, $object_id, $meta_key, $single = false ) {
 	if ( $single ) {

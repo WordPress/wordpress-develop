@@ -1473,6 +1473,14 @@ function delete_term_meta( $term_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers are returned as strings
  *               Arrays and objects retain their original type.
+ *
+ * @phpstan-return (
+ *     $key is ''
+ *         ? array<string, list<string>>|false
+ *         : ( $single is true
+ *             ? string|array<mixed>|object|false
+ *             : list<string|array<mixed>|object>|false )
+ * )
  */
 function get_term_meta( $term_id, $key = '', $single = false ) {
 	return get_metadata( 'term', $term_id, $key, $single );

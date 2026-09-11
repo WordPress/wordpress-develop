@@ -577,6 +577,14 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *               - numbers are returned as strings
  *               Arrays and objects retain their original type.
  * @phpstan-param int|numeric-string $comment_id
+ *
+ * @phpstan-return (
+ *     $key is ''
+ *         ? array<string, list<string>>|false
+ *         : ( $single is true
+ *             ? string|array<mixed>|object|false
+ *             : list<string|array<mixed>|object>|false )
+ * )
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
