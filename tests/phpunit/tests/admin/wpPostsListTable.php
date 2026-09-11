@@ -596,4 +596,44 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Select (no title) Hello world example excerpt.', $output );
 	}
+
+	/**
+	 * Tests that `WP_Posts_List_Table::handle_row_actions()` strips HTML from the
+	 * post title used within the row action `aria-label` attributes.
+	 *
+	 * The title is escaped by `_draft_or_post_title()`, so any HTML it contains
+	 * survives `esc_attr()` and is announced as literal text by screen readers.
+	 *
+	 * @ticket 65729
+	 *
+	 * @covers WP_Posts_List_Table::handle_row_actions
+	 */
+	public function test_handle_row_actions_should_strip_html_from_aria_labels() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title'  => 'my<div>post',
+				'post_status' => 'publish',
+			)
+		);
+
+		$GLOBALS['post'] = $post;
+
+		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+
+		$handle_row_actions = new ReflectionMethod( $table, 'handle_row_actions' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$handle_row_actions->setAccessible( true );
+		}
+		$output = $handle_row_actions->invoke( $table, $post, 'title', 'title' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$handle_row_actions->setAccessible( false );
+		}
+
+		unset( $GLOBALS['post'] );
+
+		$this->assertStringNotContainsString( '&lt;div&gt;', $output, 'The escaped HTML was not stripped from the title.' );
+		$this->assertStringContainsString( 'aria-label="Edit &#8220;mypost&#8221;"', $output, 'The "edit" aria-label did not contain the stripped title.' );
+	}
 }

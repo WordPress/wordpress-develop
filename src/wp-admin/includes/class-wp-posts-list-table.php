@@ -1579,7 +1579,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$post_type_object = get_post_type_object( $post->post_type );
 		$can_edit_post    = current_user_can( 'edit_post', $post->ID );
 		$actions          = array();
-		$title            = _draft_or_post_title();
+
+		/*
+		 * `_draft_or_post_title()` escapes the title, so entities are decoded first
+		 * to let `wp_strip_all_tags()` detect the HTML. Otherwise it survives the
+		 * `esc_attr()` calls below and is announced as literal text.
+		 */
+		$title = html_entity_decode( _draft_or_post_title(), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$title = wp_strip_all_tags( $title );
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			$actions['edit'] = sprintf(
