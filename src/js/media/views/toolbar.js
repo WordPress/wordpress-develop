@@ -130,8 +130,8 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	/**
 	 * Unsets a view by its ID.
 	 *
-	 * @param {string} id      The ID of the view to unset.
-	 * @param {Object} options The options for unsetting the view.
+	 * @param {string} id           The ID of the view to unset.
+	 * @param {Object} [options={}] The options for unsetting the view.
 	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	unset: function( id, options ) {

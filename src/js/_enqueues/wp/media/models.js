@@ -136,7 +136,11 @@ _.extend( media, /** @lends wp.media */{
 	/**
 	 * Scales a set of dimensions to fit within bounding dimensions.
 	 *
-	 * @param {Object} dimensions The dimensions to scale, containing width, height, maxWidth, and maxHeight.
+	 * @param {Object} dimensions           The dimensions to scale.
+	 * @param {number} dimensions.width     The width to scale.
+	 * @param {number} dimensions.height    The height to scale.
+	 * @param {number} dimensions.maxWidth  The maxWidth to scale.
+	 * @param {number} dimensions.maxHeight The maxHeight to scale.
 	 * @return {Object} The scaled dimensions.
 	 */
 	fit: function( dimensions ) {

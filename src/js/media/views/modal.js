@@ -134,7 +134,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	/**
 	 * Closes the modal and triggers the close event.
 	 *
-	 * @param {Object} options           The options for closing the modal.
+	 * @param {Object}  [options={}]     The options for closing the modal.
 	 * @param {boolean} [options.escape] Whether the modal is being closed due to the escape key.
 	 * @return {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
