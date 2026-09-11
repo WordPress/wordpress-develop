@@ -12,7 +12,7 @@ var l10n = wp.media.view.l10n,
  * @augments wp.media.controller.State
  * @augments Backbone.Model
  *
- * @param {object}                    attributes                      The attributes hash passed to the state.
+ * @param {Object}                    attributes                      The attributes hash passed to the state.
  * @param {wp.media.model.Attachment} attributes.model                The attachment.
  * @param {string}                    [attributes.id=edit-image]      Unique identifier.
  * @param {string}                    [attributes.title=Edit Image]   Title for the state. Displays in the media menu and the frame's title region.
