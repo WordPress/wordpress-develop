@@ -1062,6 +1062,11 @@ class WP_Query {
 				unset( $_query['pagename'] );
 			}
 
+			// Ignore an empty post name query variable.
+			if ( isset( $_query['name'] ) && '' === $_query['name'] ) {
+				unset( $_query['name'] );
+			}
+
 			unset( $_query['embed'] );
 
 			if ( empty( $_query ) || ! array_diff( array_keys( $_query ), array( 'preview', 'page', 'paged', 'cpage' ) ) ) {
