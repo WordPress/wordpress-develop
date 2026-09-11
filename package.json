@@ -132,8 +132,6 @@
 		"lint:css:fix": "wp-scripts lint-style \"src/**/*.{css,scss}\" --fix",
 		"lint:css:thresholds": "node ./tools/stylelint/check-warning-thresholds.js",
 		"lint:css:thresholds:update": "node ./tools/stylelint/check-warning-thresholds.js --update",
-		"lint:css:themes": "wp-scripts lint-style \"src/wp-content/themes/**/*.{css,scss}\" --ignore-path .stylelintignore-themes",
-		"lint:css:themes:fix": "npm run lint:css:themes -- --fix",
 		"typecheck:js": "tsc --build",
 		"env:start": "node ./tools/local-env/scripts/start.js && node ./tools/local-env/scripts/docker.js run -T --rm php composer update -W",
 		"env:stop": "node ./tools/local-env/scripts/docker.js down",
