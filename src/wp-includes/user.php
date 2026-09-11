@@ -3877,12 +3877,16 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
 		$user_id = absint( $_POST['user_id'] );
 	}
 
+	$current_user = wp_get_current_user();
 	if ( ! is_object( $errors ) ) {
 		$errors = new WP_Error();
 	}
 
-	$user       = get_user_by( 'id', $user_id );
-	$email_sent = send_user_email_change_confirmation_email( $user, $_POST['email'] );
+	if ( 0 === $current_user->ID || $current_user->ID !== (int) $user_id ) {
+		return false;
+	}
+
+	$email_sent = send_user_email_change_confirmation_email( $current_user, $_POST['email'] );
 
 	if ( is_wp_error( $email_sent ) ) {
 		// WP_Error::copy_errors() with the addition of adding data.
@@ -3895,10 +3899,13 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
 				)
 			);
 		}
+
+		$_POST['email'] = addslashes( $current_user->user_email );
+		return;
 	}
 
 	if ( true === $email_sent ) {
-		$_POST['email'] = $user->user_email;
+		$_POST['email'] = $current_user->user_email;
 	}
 }
 
@@ -3912,7 +3919,11 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
  * @return null|true|WP_Error true if email sent, WP_Error on error, and null otherwise.
  */
 function send_user_email_change_confirmation_email( $user, $email ) {
-	if ( $user->user_email == $email ) {
+	if ( ! $user instanceof WP_User || ! $user->exists() ) {
+		return;
+	}
+
+	if ( $user->user_email === $email ) {
 		return;
 	}
 
