@@ -42,8 +42,8 @@ wp.customHtmlWidgets = ( function( $ ) {
 		 * @augments Backbone.View
 		 * @abstract
 		 *
-		 * @param {Object} options - Options.
-		 * @param {jQuery} options.el - Control field container element.
+		 * @param {Object} options               - Options.
+		 * @param {jQuery} options.el            - Control field container element.
 		 * @param {jQuery} options.syncContainer - Container element where fields are synced for the server.
 		 *
 		 * @return {void}
@@ -287,7 +287,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 	 *
 	 * @alias wp.customHtmlWidgets.handleWidgetAdded
 	 *
-	 * @param {jQuery.Event} event - Event.
+	 * @param {jQuery.Event} event           - Event.
 	 * @param {jQuery}       widgetContainer - Widget container element.
 	 *
 	 * @return {void}
@@ -384,7 +384,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 	 *
 	 * @alias wp.customHtmlWidgets.handleWidgetUpdated
 	 *
-	 * @param {jQuery.Event} event - Event.
+	 * @param {jQuery.Event} event           - Event.
 	 * @param {jQuery}       widgetContainer - Widget container element.
 	 * @return {void}
 	 */

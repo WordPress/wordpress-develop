@@ -1485,7 +1485,7 @@ themes.view.Search = wp.Backbone.View.extend({
  *
  * @since 4.9.0
  *
- * @param {string} url - URL to navigate to.
+ * @param {string} url   - URL to navigate to.
  * @param {Object} state - State.
  * @return {void}
  */

@@ -486,9 +486,9 @@ wp.mediaWidgets = ( function( $ ) {
 		 * @augments   Backbone.View
 		 * @abstract
 		 *
-		 * @param {Object}         options - Options.
-		 * @param {Backbone.Model} options.model - Model.
-		 * @param {jQuery}         options.el - Control field container element.
+		 * @param {Object}         options               - Options.
+		 * @param {Backbone.Model} options.model         - Model.
+		 * @param {jQuery}         options.el            - Control field container element.
 		 * @param {jQuery}         options.syncContainer - Container element where fields are synced for the server.
 		 *
 		 * @return {void}
@@ -1028,8 +1028,8 @@ wp.mediaWidgets = ( function( $ ) {
 		 * cast the attribute values from the hidden inputs' string values into
 		 * the appropriate data types (integers or booleans).
 		 *
-		 * @param {string|Object} key - Attribute name or attribute pairs.
-		 * @param {mixed|Object}  [val] - Attribute value or options object.
+		 * @param {string|Object} key       - Attribute name or attribute pairs.
+		 * @param {mixed|Object}  [val]     - Attribute value or options object.
 		 * @param {Object}        [options] - Options when attribute name and value are passed separately.
 		 * @return {wp.mediaWidgets.MediaWidgetModel} This model.
 		 */
@@ -1119,7 +1119,7 @@ wp.mediaWidgets = ( function( $ ) {
 	 *
 	 * @memberOf wp.mediaWidgets
 	 *
-	 * @param {jQuery.Event} event - Event.
+	 * @param {jQuery.Event} event           - Event.
 	 * @param {jQuery}       widgetContainer - Widget container element.
 	 *
 	 * @return {void}
@@ -1256,7 +1256,7 @@ wp.mediaWidgets = ( function( $ ) {
 	 *
 	 * @memberOf wp.mediaWidgets
 	 *
-	 * @param {jQuery.Event} event - Event.
+	 * @param {jQuery.Event} event           - Event.
 	 * @param {jQuery}       widgetContainer - Widget container element.
 	 *
 	 * @return {void}

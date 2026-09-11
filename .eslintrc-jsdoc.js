@@ -36,6 +36,21 @@ module.exports = [
 			},
 		},
 		rules: {
+			'jsdoc/check-alignment': 'error',
+			'jsdoc/check-indentation': [ 'error', {
+				excludeTags: [
+					'deprecated',
+					'example',
+					'param',
+					'property',
+					'return',
+					'since',
+					'todo',
+				],
+			} ],
+			'jsdoc/check-line-alignment': [ 'error', 'always', {
+				tags: [ 'param', 'property' ],
+			} ],
 			'jsdoc/check-param-names': 'error',
 			'jsdoc/check-syntax': 'error',
 			'jsdoc/check-tag-names': [ 'error', {

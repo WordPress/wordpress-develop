@@ -7,7 +7,7 @@ var Attachments = wp.media.model.Attachments,
  * A collection of attachments that match the supplied query arguments.
  *
  * Note: Do NOT change this.args after the query has been initialized.
- *       Things will break.
+ * Things will break.
  *
  * @memberOf wp.media.model
  *
