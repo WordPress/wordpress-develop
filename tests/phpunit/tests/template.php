@@ -1637,8 +1637,32 @@ class Tests_Template extends WP_UnitTestCase {
 					$dequeue = static function () {
 						wp_dequeue_style( 'global-styles' );
 					};
-					add_action( 'wp_enqueue_scripts', $dequeue, 1000 );
+					add_action( 'wp_enqueue_scripts', $dequeue, 100 );
 					add_action( 'wp_footer', $dequeue, 2 );
+				},
+				'content'           => $blocks_content,
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-inline-css',
+							'wp-block-separator-inline-css',
+							'classic-theme-styles-inline-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+			),
+
+			'no_global_styles_via_remove_action'          => array(
+				'set_up'            => static function () {
+					remove_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 				},
 				'content'           => $blocks_content,
 				'inline_size_limit' => PHP_INT_MAX,
@@ -1952,8 +1976,10 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 64099
 	 * @ticket 64354
+	 * @ticket 65336
 	 * @covers ::wp_load_classic_theme_block_styles_on_demand
 	 * @covers ::wp_hoist_late_printed_styles
+	 * @covers ::wp_enqueue_global_styles
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 *
@@ -2121,6 +2147,10 @@ class Tests_Template extends WP_UnitTestCase {
 
 		if ( $assert ) {
 			$assert( $buffer, $filtered_buffer );
+		}
+
+		if ( false === has_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' ) ) {
+			add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 		}
 	}
 
