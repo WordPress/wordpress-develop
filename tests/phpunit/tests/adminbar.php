@@ -260,6 +260,25 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62545
+	 */
+	public function test_admin_bar_normalizes_title_entities_without_escaping_html() {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'test-node',
+				'title' => '<span class="ab-icon" aria-hidden="true"></span>This & that',
+				'href'  => 'https://example.org',
+			)
+		);
+
+		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringContainsString( '<span class="ab-icon" aria-hidden="true"></span>This &amp; that', $admin_bar_html );
+		$this->assertStringNotContainsString( '&lt;span class=&quot;ab-icon&quot;', $admin_bar_html );
+	}
+
+	/**
 	 * Data provider for test_admin_bar_with_tabindex_meta().
 	 *
 	 * @return array {
