@@ -95,7 +95,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 					'type'              => 'string',
 					'default'           => '',
 					'sanitize_callback' => 'sanitize_text_field',
-					'description'       => __( 'Alternative Text' ),
+					'description'       => __( 'Alt Text' ),
 				),
 				'link_type'         => array(
 					'type'                  => 'string',
