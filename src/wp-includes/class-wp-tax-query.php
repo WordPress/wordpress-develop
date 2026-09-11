@@ -383,87 +383,80 @@ class WP_Tax_Query {
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query ) {
 		global $wpdb;
-
+ 
 		$sql = array(
 			'where' => array(),
 			'join'  => array(),
 		);
-
+ 
 		$join  = '';
 		$where = '';
-
+ 
 		$this->clean_query( $clause );
-
+ 
 		if ( is_wp_error( $clause ) ) {
 			return self::$no_results;
 		}
-
+ 
 		$terms    = $clause['terms'];
 		$operator = strtoupper( $clause['operator'] );
-
+ 
+		/**
+		 * FIX: Handle WP 6.9 regression
+		 * An empty "include" or "exclude" (or passing "all") must NOT filter terms.
+		 */
+		if ( isset( $clause['include'] ) && ( $clause['include'] === 'all' ) ) {
+			return $sql; // no filtering
+		}
+		if ( isset( $clause['exclude'] ) && ( $clause['exclude'] === 'all' ) ) {
+			return $sql; // no filtering
+		}
+		if ( empty( $terms ) ) {
+			return $sql; // empty = no filtering (correct behavior)
+		}
+ 
+		// Convert term array to CSV
+		$terms_csv = implode( ',', array_map( 'intval', (array) $terms ) );
+ 
 		if ( 'IN' === $operator ) {
-
-			if ( empty( $terms ) ) {
-				return self::$no_results;
-			}
-
-			$terms = implode( ',', $terms );
-
-			/*
-			 * Before creating another table join, see if this clause has a
-			 * sibling with an existing join that can be shared.
-			 */
+ 
+			// standard IN logic
 			$alias = $this->find_compatible_table_alias( $clause, $parent_query );
 			if ( false === $alias ) {
 				$i     = count( $this->table_aliases );
 				$alias = $i ? 'tt' . $i : $wpdb->term_relationships;
-
-				// Store the alias as part of a flat array to build future iterators.
+ 
 				$this->table_aliases[] = $alias;
-
-				// Store the alias with this clause, so later siblings can use it.
-				$clause['alias'] = $alias;
-
+				$clause['alias']       = $alias;
+ 
 				$join .= " LEFT JOIN $wpdb->term_relationships";
 				$join .= $i ? " AS $alias" : '';
 				$join .= " ON ($this->primary_table.$this->primary_id_column = $alias.object_id)";
 			}
-
-			$where = "$alias.term_taxonomy_id $operator ($terms)";
-
+ 
+			$where = "$alias.term_taxonomy_id IN ($terms_csv)";
+ 
 		} elseif ( 'NOT IN' === $operator ) {
-
-			if ( empty( $terms ) ) {
-				return $sql;
-			}
-
-			$terms = implode( ',', $terms );
-
+ 
 			$where = "$this->primary_table.$this->primary_id_column NOT IN (
 				SELECT object_id
 				FROM $wpdb->term_relationships
-				WHERE term_taxonomy_id IN ($terms)
+				WHERE term_taxonomy_id IN ($terms_csv)
 			)";
-
+ 
 		} elseif ( 'AND' === $operator ) {
-
-			if ( empty( $terms ) ) {
-				return $sql;
-			}
-
+ 
 			$num_terms = count( $terms );
-
-			$terms = implode( ',', $terms );
-
+ 
 			$where = "(
 				SELECT COUNT(1)
 				FROM $wpdb->term_relationships
-				WHERE term_taxonomy_id IN ($terms)
+				WHERE term_taxonomy_id IN ($terms_csv)
 				AND object_id = $this->primary_table.$this->primary_id_column
 			) = $num_terms";
-
+ 
 		} elseif ( 'NOT EXISTS' === $operator || 'EXISTS' === $operator ) {
-
+ 
 			$where = $wpdb->prepare(
 				"$operator (
 					SELECT 1
@@ -475,11 +468,12 @@ class WP_Tax_Query {
 				)",
 				$clause['taxonomy']
 			);
-
+ 
 		}
-
+ 
 		$sql['join'][]  = $join;
 		$sql['where'][] = $where;
+ 
 		return $sql;
 	}
 
