@@ -5,6 +5,13 @@
  */
 class Tests_Theme_Support extends WP_UnitTestCase {
 
+	public function tear_down() {
+		remove_theme_support( 'post-thumbnails' );
+		remove_theme_support( 'foobar' );
+
+		parent::tear_down();
+	}
+
 	public function test_the_basics() {
 		add_theme_support( 'automatic-feed-links' );
 		$this->assertTrue( current_theme_supports( 'automatic-feed-links' ) );
