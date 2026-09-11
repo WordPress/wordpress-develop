@@ -1606,7 +1606,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param int $featured_media Featured Media ID.
+	 * @param int $featured_media Featured Media ID. If zero, the featured media will be removed.
 	 * @param int $post_id        Post ID.
 	 * @return bool|WP_Error Whether the post thumbnail was successfully deleted, otherwise WP_Error.
 	 */
@@ -1614,6 +1614,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$featured_media = (int) $featured_media;
 		if ( $featured_media ) {
+			/*
+			 * If the featured media is already set, then there's nothing to do. This is necessary because
+			 * set_post_thumbnail() will return return false due to update_post_meta() returning false when there
+			 * is no update made. This if statement is important for idempotency and due to the fact that
+			 * the ::handle_featured_media() method is being called both by WP_REST_Posts_Controller::update_item() and
+			 * WP_REST_Attachments_Controller::update_item(), with the latter short-circuiting the response with any
+			 * error that this method returns.
+			 */
+			if ( (int) get_post_meta( $post_id, '_thumbnail_id', true ) === $featured_media ) {
+				return true;
+			}
+
 			$result = set_post_thumbnail( $post_id, $featured_media );
 			if ( $result ) {
 				return true;
