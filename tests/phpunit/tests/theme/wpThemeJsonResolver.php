@@ -1170,6 +1170,55 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							),
 						),
 					),
+					// @ticket 65992
+					array(
+						'blockTypes' => array( 'core/navigation-link' ),
+						'version'    => 3,
+						'slug'       => 'pseudo-variation',
+						'title'      => 'Pseudo Variation',
+						'styles'     => array(
+							'color'   => array(
+								'text' => 'red',
+							),
+							':hover'  => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+							'@tablet' => array(
+								'color'  => array(
+									'text' => 'green',
+								),
+								':hover' => array(
+									'color' => array(
+										'text' => 'purple',
+									),
+								),
+							),
+						),
+					),
+					// @ticket 65992
+					array(
+						'blockTypes' => array( 'core/preformatted' ),
+						'version'    => 3,
+						'slug'       => 'responsive-variation',
+						'title'      => 'Responsive Variation',
+						'styles'     => array(
+							'typography' => array(
+								'fontSize' => '40px',
+							),
+							'@tablet'    => array(
+								'typography' => array(
+									'fontSize' => '28px',
+								),
+							),
+							'@mobile'    => array(
+								'typography' => array(
+									'fontSize' => '16px',
+								),
+							),
+						),
+					),
 					// @ticket 61440
 					array(
 						'blockTypes' => array( 'core/group', 'core/columns' ),
