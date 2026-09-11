@@ -352,7 +352,7 @@ class WP_Block_Parser {
 		}
 
 		$parent->block->innerContent[] = null;
-		$parent->prev_offset           = $last_offset ? $last_offset : $token_start + $token_length;
+		$parent->prev_offset           = $last_offset ?? $token_start + $token_length;
 	}
 
 	/**
