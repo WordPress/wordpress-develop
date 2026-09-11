@@ -338,6 +338,78 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A node can render an aria-describedby attribute on its link via meta.
+	 *
+	 * @ticket 65793
+	 */
+	public function test_admin_bar_meta_renders_aria_describedby() {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'test-node',
+				'href'  => 'https://example.org/',
+				'title' => 'Test <span id="test-node-description">Extra description</span>',
+				'meta'  => array( 'aria-describedby' => 'test-node-description' ),
+			)
+		);
+
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringContainsString( "aria-describedby='test-node-description'", $html );
+	}
+
+	/**
+	 * The Comments toolbar item exposes its count as a description, keeping the
+	 * link's accessible name free of the count so voice control can operate it.
+	 *
+	 * @ticket 65793
+	 */
+	public function test_admin_bar_comments_menu_associates_count_via_describedby() {
+		wp_set_current_user( self::$editor_id );
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_comments_menu( $admin_bar );
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringContainsString( "aria-describedby='wp-admin-bar-comments-count-description'", $html );
+		$this->assertStringContainsString( 'id="wp-admin-bar-comments-count-description"', $html );
+		$this->assertStringContainsString( '<span class="screen-reader-text">Comments</span>', $html );
+	}
+
+	/**
+	 * The Updates toolbar item exposes its count as a description.
+	 *
+	 * @ticket 65793
+	 */
+	public function test_admin_bar_updates_menu_associates_count_via_describedby() {
+		wp_set_current_user( self::$admin_id );
+
+		// Force a pending update so the node is added regardless of environment or capabilities.
+		$force_update_data = static function () {
+			return array(
+				'counts' => array(
+					'plugins'      => 1,
+					'themes'       => 0,
+					'wordpress'    => 0,
+					'translations' => 0,
+					'total'        => 1,
+				),
+				'title'  => '',
+			);
+		};
+		add_filter( 'wp_get_update_data', $force_update_data );
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_updates_menu( $admin_bar );
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		remove_filter( 'wp_get_update_data', $force_update_data );
+
+		$this->assertStringContainsString( "aria-describedby='wp-admin-bar-updates-count-description'", $html );
+		$this->assertStringContainsString( '<span class="screen-reader-text">Updates</span>', $html );
+	}
+
+	/**
 	 * @ticket 22247
 	 */
 	public function test_admin_bar_has_edit_link_for_existing_posts() {
