@@ -35,6 +35,34 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 43785
+	 * @covers ::wptexturize
+	 */
+	public function test_no_texturize_ampersand_inside_script_with_less_than() {
+		$this->assertSame(
+			'<script>if(a<b)window&&document</script>',
+			wptexturize( '<script>if(a<b)window&&document</script>' )
+		);
+		$this->assertSame(
+			'<script type="text/javascript">if(a<b)window&&document</script>',
+			wptexturize( '<script type="text/javascript">if(a<b)window&&document</script>' )
+		);
+		$this->assertSame(
+			'<pre>if(a<b)c&&d</pre>',
+			wptexturize( '<pre>if(a<b)c&&d</pre>' )
+		);
+		$this->assertSame(
+			'<code>if(a<b)c&&d</code>',
+			wptexturize( '<code>if(a<b)c&&d</code>' )
+		);
+		// Ensure & in real HTML attributes is still encoded outside no-texturize tags.
+		$this->assertSame(
+			'<a href="foo&#038;bar">link</a>',
+			wptexturize( '<a href="foo&bar">link</a>' )
+		);
+	}
+
+	/**
 	 * @ticket 1418
 	 */
 	public function test_bracketed_quotes_1418() {
