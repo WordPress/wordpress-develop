@@ -1567,6 +1567,22 @@ class wp_xmlrpc_server extends IXR_Server {
 			$post_data['edit_date'] = true;
 		}
 
+		/**
+		 * Filter XML-RPC data to be added/updated via XML-RPC before any DB insertion
+		 *
+		 * @since 4.8
+		 *
+		 * @param array   $post_data       Parsed array of post data.
+		 * @param array   $content_struct  Post data array.
+		 * @param WP_User $user            WP_User object.
+		 * 
+		 * @return array|IXR_Error
+		 */
+		$post_data = apply_filters( 'xmlrpc_before_insert_post', $post_data, $content_struct, $user );
+		if ( $post_data instanceof IXR_Error ) {
+			return $post_data;
+		}
+
 		if ( ! isset( $post_data['ID'] ) ) {
 			$post_data['ID'] = get_default_post_to_edit( $post_data['post_type'], true )->ID;
 		}
