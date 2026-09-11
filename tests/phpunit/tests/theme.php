@@ -543,6 +543,17 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that installation added a "theme_mods_" option for the default theme.
+	 *
+	 * @ticket 33600
+	 */
+	public function test_populate_options_theme_mod() {
+		$stylesheet = get_option( 'stylesheet' );
+		$this->assertSame( WP_DEFAULT_THEME, $stylesheet );
+		$this->assertSame( array(), get_option( "theme_mods_{$stylesheet}" ) );
+	}
+
+	/**
 	 * Test _wp_keep_alive_customize_changeset_dependent_auto_drafts.
 	 *
 	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts
