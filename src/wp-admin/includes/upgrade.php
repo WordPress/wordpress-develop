@@ -2501,6 +2501,24 @@ function upgrade_700() {
 }
 
 /**
+ * Executes changes made in WordPress 7.2.0.
+ *
+ * @ignore
+ * @since 7.2.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_720() {
+	global $wp_current_db_version, $wpdb;
+
+	if ( $wp_current_db_version < 61900 ) {
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_post_date_gmt (post_type,post_status,post_date_gmt)" );
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_modified_date_gmt (post_type,post_status,post_modified_gmt)" );
+	}
+}
+
+/**
  * Executes network-level upgrade routines.
  *
  * @since 3.0.0
