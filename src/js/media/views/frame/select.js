@@ -108,7 +108,7 @@ Select = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Select.prototype 
 	/**
 	 * Render callback for the router region in the `browse` mode.
 	 *
-	 * @param {wp.media.view.Router} routerView
+	 * @param {wp.media.view.Router} routerView The router view for the `browse` mode.
 	 */
 	browseRouter: function( routerView ) {
 		routerView.set({
@@ -126,7 +126,7 @@ Select = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Select.prototype 
 	/**
 	 * Render callback for the content region in the `browse` mode.
 	 *
-	 * @param {wp.media.controller.Region} contentRegion
+	 * @param {wp.media.controller.Region} contentRegion The content region for the `browse` mode.
 	 */
 	browseContent: function( contentRegion ) {
 		var state = this.state();
@@ -167,8 +167,8 @@ Select = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Select.prototype 
 	/**
 	 * Toolbars
 	 *
-	 * @param {Object} toolbar
-	 * @param {Object} [options={}]
+	 * @param {Object} toolbar      The toolbar object for the `select` mode.
+	 * @param {Object} [options={}] The options for creating the select toolbar view.
 	 * @this wp.media.controller.Region
 	 */
 	createSelectToolbar: function( toolbar, options ) {

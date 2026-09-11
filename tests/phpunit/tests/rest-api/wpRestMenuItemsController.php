@@ -1011,7 +1011,6 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @param array $args Override params.
-	 *
 	 * @return mixed
 	 */
 	protected function set_menu_item_data( $args = array() ) {
