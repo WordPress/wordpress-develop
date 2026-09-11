@@ -16,7 +16,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 * Create shared fixtures.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash', 'private', 'delete' );
+		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash', 'private', 'delete', 'pending' );
 		foreach ( $post_statuses as $post_status ) {
 			$date          = '';
 			$actual_status = $post_status;
@@ -61,6 +61,83 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 				'post_status' => 'inherit',
 				'post_name'   => "$post_status-attachment",
 				'post_date'   => $date,
+			)
+		);
+
+		// Password protected post
+		self::$post_ids['password-protected'] = $factory->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_name'     => 'password-protected',
+				'post_date'     => $date,
+				'post_content'  => 'This is a password protected post.',
+				'post_password' => wp_generate_password(),
+			)
+		);
+
+		// Customization draft post
+		self::$post_ids['customization-draft'] = $factory->post->create(
+			array(
+				'post_status'  => 'draft',
+				'post_name'    => 'customization-draft',
+				'post_date'    => $date,
+				'post_content' => 'This is a customization draft post.',
+				'meta_input'   => array(
+					'_customize_changeset_uuid' => wp_generate_uuid4(),
+				),
+			)
+		);
+
+		// Trashed customization draft post
+		self::$post_ids['trashed-customization-draft'] = $factory->post->create(
+			array(
+				'post_status'  => 'trash',
+				'post_name'    => 'trashed-customization-draft',
+				'post_date'    => $date,
+				'post_content' => 'This is a trashed customization draft post.',
+				'meta_input'   => array(
+					'_customize_changeset_uuid' => wp_generate_uuid4(),
+				),
+			)
+		);
+
+		// Sticky post
+		self::$post_ids['sticky'] = $factory->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_name'    => 'sticky-post',
+				'post_content' => 'This is a sticky post.',
+				'post_date'    => $date,
+			)
+		);
+
+		// Page Show on front
+		self::$post_ids['page-show-on-front'] = $factory->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_name'    => 'page-show-on-front',
+				'post_content' => 'This is the page set to show on front.',
+				'post_date'    => $date,
+			)
+		);
+
+		// Page for posts
+		self::$post_ids['page-for-posts'] = $factory->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_name'    => 'page-for-posts',
+				'post_content' => 'This is the page for posts.',
+				'post_date'    => $date,
+			)
+		);
+
+		// Page for privacy policy
+		self::$post_ids['page-for-privacy-policy'] = $factory->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_name'    => 'page-for-privacy-policy',
+				'post_content' => 'This is the page for privacy policy.',
+				'post_date'    => $date,
 			)
 		);
 
@@ -220,6 +297,89 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'auto-draft' ),
 			array( 'trash' ),
 			array( 'private' ),
+		);
+	}
+
+	/**
+	 * Ensure the `get_post_states` function don't return the current filtered post status in its result array.
+	 *
+	 * @ticket 64026
+	 *
+	 * @dataProvider data_filtered_post_status_shouldnt_be_included_in_post_state_array
+	 *
+	 * @param string $post_state The post state to test.
+	 */
+	public function test_filtered_post_status_shouldnt_be_included_in_post_state_array( $post_state ) {
+		$_REQUEST['post_status'] = $post_state;
+		$post                    = get_post( self::$post_ids[ $post_state ] );
+		$post_states             = get_post_states( $post );
+		$this->assertArrayNotHasKey( $post_state, $post_states );
+	}
+
+	/**
+	 * Data provider for test_filtered_post_status_shouldnt_be_included_in_post_state_array().
+	 *
+	 * @return array[] {
+	 *     @type string $post_state The post state to test.
+	 * }
+	 */
+	public static function data_filtered_post_status_shouldnt_be_included_in_post_state_array() {
+		return array(
+			array( 'pending' ),
+			array( 'draft' ),
+			array( 'private' ),
+		);
+	}
+
+	/**
+	 * Ensure the `get_post_states` function don't return the current filtered post status in its result array.
+	 *
+	 * @ticket 64026
+	 *
+	 * @dataProvider data_test_post_states_function
+	 *
+	 * @param string $post_state The post state to test.
+	 */
+	public function test_post_states_function( $post_state, $expected_post_state_string ) {
+		$post = get_post( self::$post_ids[ $post_state ] );
+		if ( 'sticky' === $post_state ) {
+			stick_post( $post->ID );
+		}
+		if ( 'page-show-on-front' === $post_state ) {
+			update_option( 'show_on_front', 'page' );
+			update_option( 'page_on_front', $post->ID );
+		}
+		if ( 'page-for-posts' === $post_state ) {
+			update_option( 'show_on_front', 'page' );
+			update_option( 'page_for_posts', $post->ID );
+		}
+		if ( 'page-for-privacy-policy' === $post_state ) {
+			update_option( 'wp_page_for_privacy_policy', $post->ID );
+		}
+		$post_states = get_post_states( $post );
+		$this->assertContains( $expected_post_state_string, $post_states );
+	}
+
+	/**
+	 * Data provider for test_post_states_function().
+	 *
+	 * @return array[] {
+	 *     @type string $post_state The post state to test.
+	 *     @type string $expected_post_state_string The post state text to test.
+	 * }
+	 */
+	public static function data_test_post_states_function() {
+		return array(
+			array( 'pending', 'Pending' ),
+			array( 'draft', 'Draft' ),
+			array( 'private', 'Private' ),
+			array( 'sticky', 'Sticky' ),
+			array( 'future', 'Scheduled' ),
+			array( 'page-show-on-front', 'Front Page' ),
+			array( 'page-for-posts', 'Posts Page' ),
+			array( 'page-for-privacy-policy', 'Privacy Policy Page' ),
+			array( 'customization-draft', 'Customization Draft' ),
+			array( 'trashed-customization-draft', 'Customization Draft' ),
 		);
 	}
 }
