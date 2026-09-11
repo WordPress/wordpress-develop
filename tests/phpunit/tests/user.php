@@ -2354,6 +2354,241 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::send_user_email_change_confirmation_email
+	 */
+	public function test_send_user_email_change_confirmation_email_returns_null_when_email_is_unchanged() {
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user->ID );
+
+		$this->assertNull( send_user_email_change_confirmation_email( $user, 'before@example.com' ) );
+		$this->assertEmpty( get_user_meta( $user->ID, '_new_email', true ) );
+	}
+
+	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::send_user_email_change_confirmation_email
+	 */
+	public function test_send_user_email_change_confirmation_email_rejects_an_invalid_email() {
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user->ID );
+
+		$result = send_user_email_change_confirmation_email( $user, 'not-an-email' );
+
+		$this->assertWPError( $result, 'An invalid address should return a WP_Error.' );
+		$this->assertSame( 'user_email', $result->get_error_code() );
+		$this->assertEmpty( get_user_meta( $user->ID, '_new_email', true ), 'No change should be left pending.' );
+	}
+
+	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::send_user_email_change_confirmation_email
+	 */
+	public function test_send_user_email_change_confirmation_email_rejects_an_address_in_use() {
+		self::factory()->user->create( array( 'user_email' => 'taken@example.com' ) );
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user->ID );
+
+		// A pending change from an earlier request should not survive a rejection.
+		update_user_meta(
+			$user->ID,
+			'_new_email',
+			array(
+				'hash'     => 'stalehash',
+				'newemail' => 'pending@example.com',
+			)
+		);
+
+		$result = send_user_email_change_confirmation_email( $user, 'taken@example.com' );
+
+		$this->assertWPError( $result, 'An address already in use should return a WP_Error.' );
+		$this->assertSame( 'user_email', $result->get_error_code() );
+		$this->assertEmpty( get_user_meta( $user->ID, '_new_email', true ), 'The pending change should be discarded.' );
+	}
+
+	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::send_user_email_change_confirmation_email
+	 */
+	public function test_send_user_email_change_confirmation_email_stores_the_pending_change() {
+		reset_phpmailer_instance();
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user->ID );
+
+		$this->assertTrue( send_user_email_change_confirmation_email( $user, 'after@example.com' ) );
+
+		$new_email_meta = get_user_meta( $user->ID, '_new_email', true );
+		$this->assertSame( 'after@example.com', $new_email_meta['newemail'] );
+		$this->assertNotEmpty( $new_email_meta['hash'] );
+
+		// The address on the account is untouched until the change is confirmed.
+		$this->assertSame( 'before@example.com', get_userdata( $user->ID )->user_email );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertSame( 'after@example.com', $mailer->get_recipient( 'to' )->address );
+		$this->assertStringContainsString( 'action=confirmemail', $mailer->get_sent()->body );
+	}
+
+	/**
+	 * An administrator changing somebody else's address is not asked to confirm it.
+	 *
+	 * @ticket 57413
+	 *
+	 * @covers ::send_user_email_change_confirmation_email
+	 */
+	public function test_send_user_email_change_confirmation_email_skips_confirmation_for_another_user() {
+		reset_phpmailer_instance();
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( self::$admin_id );
+
+		$this->assertNull( send_user_email_change_confirmation_email( $user, 'after@example.com' ) );
+		$this->assertEmpty( get_user_meta( $user->ID, '_new_email', true ) );
+		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+	}
+
+	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::send_user_email_change_confirmation_email
+	 */
+	public function test_should_send_email_for_email_change_filter_can_skip_the_confirmation() {
+		reset_phpmailer_instance();
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user->ID );
+
+		$filter_args = array();
+
+		add_filter(
+			'should_send_email_for_email_change',
+			static function ( $should_send, $filtered_user, $email ) use ( &$filter_args ) {
+				$filter_args = array( $should_send, $filtered_user, $email );
+				return false;
+			},
+			10,
+			3
+		);
+
+		$this->assertNull( send_user_email_change_confirmation_email( $user, 'after@example.com' ) );
+		$this->assertEmpty( get_user_meta( $user->ID, '_new_email', true ) );
+		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+
+		$this->assertTrue( $filter_args[0], 'A user changing their own address should default to requiring confirmation.' );
+		$this->assertSame( $user->ID, $filter_args[1]->ID );
+		$this->assertSame( 'after@example.com', $filter_args[2] );
+	}
+
+	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::confirm_user_email_change
+	 */
+	public function test_confirm_user_email_change_applies_the_pending_change() {
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user->ID );
+
+		send_user_email_change_confirmation_email( $user, 'after@example.com' );
+
+		$new_email_meta = get_user_meta( $user->ID, '_new_email', true );
+
+		$action = new MockAction();
+		add_action( 'user_email_confirmed', array( $action, 'action' ) );
+
+		$this->assertTrue( confirm_user_email_change( $user->ID, $new_email_meta['hash'] ) );
+		$this->assertSame( 'after@example.com', get_userdata( $user->ID )->user_email );
+		$this->assertEmpty( get_user_meta( $user->ID, '_new_email', true ), 'The pending change should be cleared.' );
+		$this->assertSame( 1, $action->get_call_count() );
+	}
+
+	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::confirm_user_email_change
+	 */
+	public function test_confirm_user_email_change_rejects_an_invalid_hash() {
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user->ID );
+
+		send_user_email_change_confirmation_email( $user, 'after@example.com' );
+
+		$this->assertFalse( confirm_user_email_change( $user->ID, 'not-the-hash' ) );
+		$this->assertSame( 'before@example.com', get_userdata( $user->ID )->user_email );
+		$this->assertNotEmpty( get_user_meta( $user->ID, '_new_email', true ), 'The pending change should survive a failed attempt.' );
+	}
+
+	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::confirm_user_email_change
+	 */
+	public function test_confirm_user_email_change_returns_false_without_a_pending_change() {
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		$this->assertFalse( confirm_user_email_change( $user->ID, 'any-hash' ) );
+		$this->assertSame( 'before@example.com', get_userdata( $user->ID )->user_email );
+	}
+
+	/**
+	 * @ticket 57413
+	 *
+	 * @covers ::confirm_user_email_change
+	 */
+	public function test_confirm_user_email_change_returns_false_for_an_unknown_user() {
+		$this->assertFalse( confirm_user_email_change( 0, 'any-hash' ) );
+	}
+
+	/**
 	 * Ensure user email address change confirmation emails do not contain encoded HTML entities
 	 *
 	 * @ticket 16470

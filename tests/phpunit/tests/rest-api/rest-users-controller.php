@@ -3196,6 +3196,156 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEmpty( $new_email_meta );
 	}
 
+	/**
+	 * A user changing their own email address over REST is asked to confirm it,
+	 * the same as on the profile screen.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_own_email_requires_confirmation() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// The address on the account is unchanged until the user confirms it.
+		$data = $response->get_data();
+		$this->assertSame( 'before@example.com', $data['email'] );
+		$this->assertSame( 'before@example.com', get_userdata( $user_id )->user_email );
+
+		// The change is held in user meta.
+		$new_email_meta = get_user_meta( $user_id, '_new_email', true );
+		$this->assertSame( 'after@example.com', $new_email_meta['newemail'] );
+
+		// A confirmation email is sent to the new address.
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertSame( 'after@example.com', $mailer->get_recipient( 'to' )->address );
+	}
+
+	/**
+	 * Other fields in the same request are still applied while the email change is pending.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_applies_other_fields_while_email_is_pending() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$request->set_param( 'first_name', 'Updated' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Updated', get_user_meta( $user_id, 'first_name', true ) );
+		$this->assertSame( 'before@example.com', get_userdata( $user_id )->user_email );
+	}
+
+	/**
+	 * An administrator changing somebody else's address is not asked to confirm it.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_other_user_email_is_applied_immediately() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( self::$superadmin );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'after@example.com', $data['email'] );
+		$this->assertSame( 'after@example.com', get_userdata( $user_id )->user_email );
+		$this->assertEmpty( get_user_meta( $user_id, '_new_email', true ) );
+		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+	}
+
+	/**
+	 * Sending the address the account already has is not a change, so it is not held.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_unchanged_email_does_not_require_confirmation() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'before@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( get_user_meta( $user_id, '_new_email', true ) );
+		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+	}
+
+	/**
+	 * The confirmation can be turned off, for sites that manage addresses elsewhere.
+	 *
+	 * @ticket 57413
+	 */
+	public function test_update_item_own_email_confirmation_can_be_filtered_off() {
+		reset_phpmailer_instance();
+
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		add_filter( 'should_send_email_for_email_change', '__return_false' );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'after@example.com', get_userdata( $user_id )->user_email );
+		$this->assertEmpty( get_user_meta( $user_id, '_new_email', true ) );
+		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+	}
+
 	public function data_get_default_data() {
 		return array(
 			array(
