@@ -106,7 +106,7 @@ if ( is_multisite()
 
 // Execute confirmed email change. See send_confirmation_on_profile_email().
 if ( IS_PROFILE_PAGE && isset( $_GET['newuseremail'] ) && $current_user->ID ) {
-	if ( send_user_email_change_confirmation_process( $current_user->ID, $_GET['newuseremail'] ) ) {
+	if ( confirm_user_email_change( $current_user->ID, $_GET['newuseremail'] ) ) {
 		wp_redirect( add_query_arg( array( 'updated' => 'true' ), self_admin_url( 'profile.php' ) ) );
 	} else {
 		wp_redirect( add_query_arg( array( 'error' => 'new-email' ), self_admin_url( 'profile.php' ) ) );

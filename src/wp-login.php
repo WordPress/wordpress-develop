@@ -1255,19 +1255,9 @@ switch ( $action ) {
 			wp_die( __( 'Missing or invalid key.' ) );
 		}
 
-		$updated = send_user_email_change_confirmation_process( $user_id, $email_key );
-		if ( ! $updated ) {
+		if ( ! confirm_user_email_change( $user_id, $email_key ) ) {
 			wp_die( __( 'Missing or invalid key.' ) );
 		}
-
-		/**
-		 * Fires an action hook when the account email has been confirmed by the user.
-		 *
-		 * @since x.x
-		 *
-		 * @param int $user_id User ID.
-		 */
-		do_action( 'user_email_confirmed', $user_id );
 
 		login_header(
 			__( 'Confirm your email' ),

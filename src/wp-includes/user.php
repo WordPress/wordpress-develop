@@ -3910,13 +3910,22 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
 }
 
 /**
- * Send the 'confirm your email' email.
+ * Sends a confirmation request email when a change of user email address is attempted.
  *
- * @since x.x
+ * The new address is held in the `_new_email` user meta until the user confirms it
+ * by following the link in the email. The address on the account is unchanged
+ * until then.
  *
- * @param WP_User $user  The user to act upon.
+ * A confirmation is only required when a user changes their own email address. An
+ * administrator changing somebody else's address is not asked to confirm it.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_User $user  The user whose email address is being changed.
  * @param string  $email The new email address.
- * @return null|true|WP_Error true if email sent, WP_Error on error, and null otherwise.
+ * @return true|WP_Error|null True if a confirmation email was sent and the change should not be
+ *                            applied yet, WP_Error if the address was rejected, null if no
+ *                            confirmation is needed and the change may be applied.
  */
 function send_user_email_change_confirmation_email( $user, $email ) {
 	if ( ! $user instanceof WP_User || ! $user->exists() ) {
@@ -3950,7 +3959,7 @@ function send_user_email_change_confirmation_email( $user, $email ) {
 	 * Filters whether a 'confirm your email address' email should be sent.
 	 * If false is returned, the change is made immediately.
 	 *
-	 * @since x.x
+	 * @since 7.2.0
 	 *
 	 * @param bool    $should_send_email_for_change Whether to use an email confirmation.
 	 * @param WP_User $user                         The user having their email changed.
@@ -4036,18 +4045,17 @@ All at ###SITENAME###
 }
 
 /**
- * Process the confirmation of an email change request.
+ * Applies a pending email address change once the user has confirmed it.
  *
- * @since x.x
+ * @since 7.2.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $user_id    The User ID being acted upon.
- * @param string $email_hash The email hash of the request
- *
- * @return bool Whether or not the change succeeded.
+ * @param int    $user_id    The ID of the user whose email address is being changed.
+ * @param string $email_hash The confirmation hash from the link in the confirmation email.
+ * @return bool Whether the email address was changed.
  */
-function send_user_email_change_confirmation_process( $user_id, $email_hash ) {
+function confirm_user_email_change( $user_id, $email_hash ) {
 	global $wpdb;
 
 	$the_user = get_userdata( $user_id );
@@ -4080,6 +4088,15 @@ function send_user_email_change_confirmation_process( $user_id, $email_hash ) {
 	}
 
 	delete_user_meta( $user->ID, '_new_email' );
+
+	/**
+	 * Fires after a user has confirmed a change to their email address.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int $user_id The ID of the user whose email address was changed.
+	 */
+	do_action( 'user_email_confirmed', $user->ID );
 
 	return true;
 }
