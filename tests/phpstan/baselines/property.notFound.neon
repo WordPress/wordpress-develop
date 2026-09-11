@@ -176,7 +176,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property WP_Theme\:\:\$version\.$#'
 			identifier: property.notFound
-			count: 5
+			count: 6
 			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
 		-
 			message: '#^Access to an undefined property WP_Theme\:\:\$auto_update_forced\.$#'

@@ -4,8 +4,12 @@
 
 /* global getUserSetting, tinymce, QTags */
 
-// WordPress, TinyMCE, and Media
-// -----------------------------
+/**
+ * Handles the initialization, refreshing and rendering of media editor components.
+ *
+ * @param {JQueryStatic}       $ The jQuery object.
+ * @param {_.UnderscoreStatic} _ The Underscore.js object.
+ */
 (function($, _){
 	/**
 	 * Stores the editors' `wp.media.controller.Frame` instances.
@@ -333,9 +337,11 @@
 	};
 
 	/**
+	 * Factory function that creates a media collection controller for managing gallery, playlist, and other media shortcodes.
+	 *
 	 * @class wp.media.collection
 	 *
-	 * @param {Object} attributes
+	 * @param {Object} attributes The attributes for the media collection.
 	 */
 	wp.media.collection = function(attributes) {
 		var collections = {};
@@ -780,8 +786,8 @@
 		 * Setup 'workflow' and add to the 'workflows' cache. 'open' can
 		 *  subsequently be called upon it.
 		 *
-		 * @param {string} id A slug used to identify the workflow.
-		 * @param {Object} [options={}]
+		 * @param {string} id           A slug used to identify the workflow.
+		 * @param {Object} [options={}] The options for the media workflow.
 		 *
 		 * @this wp.media.editor
 		 *
@@ -995,7 +1001,7 @@
 			/**
 			 * Called when 'Insert From URL' source is not an image. Example: YouTube url.
 			 *
-			 * @param {Object} embed
+			 * @param {Object} embed The embed object containing the link URL and link text.
 			 * @return {Promise} A promise that resolves when the link has been sent to the editor.
 			 */
 			link: function( embed ) {
@@ -1012,7 +1018,7 @@
 		 * Opens a workflow.
 		 *
 		 * @param {string} [id=undefined] Optional. A slug used to identify the workflow.
-		 * @param {Object} [options={}]
+		 * @param {Object} [options={}]   The options for the media workflow.
 		 *
 		 * @this wp.media.editor
 		 *

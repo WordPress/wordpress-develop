@@ -1,9 +1,13 @@
 /**
- * @param {Window}    window    The global window object.
- * @param {undefined} undefined The undefined value.
  * @output wp-includes/js/wp-api.js
  */
 
+/**
+ * Initialize the WordPress REST API client.
+ *
+ * @param {Window}    window    The global window object.
+ * @param {undefined} undefined The undefined value.
+ */
 (function( window, undefined ) {
 
 	'use strict';
@@ -33,6 +37,12 @@
 
 })( window );
 
+/**
+ * Sets up the WordPress REST API client with utilities and Backbone model mixins for managing API resources.
+ *
+ * @param {Window}    window    The global window object.
+ * @param {undefined} undefined The undefined value.
+ */
 (function( window, undefined ) {
 
 	'use strict';
@@ -826,6 +836,10 @@
 
 // Suppress warning about parse function's unused "options" argument:
 /* jshint unused:false */
+
+/**
+ * Creates the base Backbone model for WordPress REST API.
+ */
 (function() {
 
 	'use strict';
@@ -978,6 +992,9 @@
 	);
 })();
 
+/**
+ * Creates the base Backbone collection for WordPress REST API.
+ */
 ( function() {
 
 	'use strict';
@@ -1135,6 +1152,9 @@
 
 } )();
 
+/**
+ * Constructs Backbone models and collections from the WordPress REST API schema.
+ */
 ( function() {
 
 	'use strict';
@@ -1526,7 +1546,7 @@
 	/**
 	 * Initialize the wp-api, optionally passing the API root.
 	 *
-	 * @param {Object} [args]
+	 * @param {Object} [args]               The arguments for initializing the wp-api.
 	 * @param {string} [args.nonce]         The nonce. Optional, defaults to wpApiSettings.nonce.
 	 * @param {string} [args.apiRoot]       The api root. Optional, defaults to wpApiSettings.root.
 	 * @param {string} [args.versionString] The version string. Optional, defaults to wpApiSettings.root.
