@@ -1144,8 +1144,8 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 .upload-theme .wp-upload-form input[type="file"],
 .upload-plugin .wp-upload-form input[type="file"] {
 	background: transparent;
-    margin: 0;
-    padding: 30px 0 30px 30px;
+	margin: 0;
+	padding: 30px 0 30px 30px;
 }
 
 .wp-upload-form input[type="submit"].button {
@@ -1188,7 +1188,8 @@ p.no-themes-local {
 		margin: 20px 0;
 		max-width: 100%;
 	}
-	.upload-theme .install-help {
+	.upload-theme .install-help,
+	.upload-plugin .install-help {
 		font-size: 15px;
 		padding: 20px 0 0;
 	}
