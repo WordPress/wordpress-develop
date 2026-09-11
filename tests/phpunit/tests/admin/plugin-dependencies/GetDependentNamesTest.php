@@ -5,18 +5,23 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::get_dependent_names
- * @covers WP_Plugin_Dependencies::get_plugins
- * @covers WP_Plugin_Dependencies::convert_to_slug
- * @covers WP_Plugin_Dependencies::get_dependents
+ * @covers \WP_Plugin_Dependencies::get_dependent_names
+ * @covers \WP_Plugin_Dependencies::get_plugins
+ * @covers \WP_Plugin_Dependencies::convert_to_slug
+ * @covers \WP_Plugin_Dependencies::get_dependents
  */
-class Tests_Admin_WPPluginDependencies_GetDependentNames extends WP_PluginDependencies_UnitTestCase {
+class GetDependentNamesTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that dependent names are retrieved.

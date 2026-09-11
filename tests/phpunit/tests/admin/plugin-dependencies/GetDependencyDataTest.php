@@ -5,16 +5,21 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::get_dependency_data
- * @covers WP_Plugin_Dependencies::get_dependency_api_data
+ * @covers \WP_Plugin_Dependencies::get_dependency_data
+ * @covers \WP_Plugin_Dependencies::get_dependency_api_data
  */
-class Tests_Admin_WPPluginDependencies_GetDependencyData extends WP_PluginDependencies_UnitTestCase {
+class GetDependencyDataTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that dependency data is retrieved.
