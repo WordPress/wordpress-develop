@@ -2808,7 +2808,7 @@ function wp_star_rating( $args = array() ) {
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	// Non-English decimal places when the $rating is coming from a string.
-	$rating = (float) str_replace( ',', '.', $parsed_args['rating'] );
+	$rating = (float) str_replace( ',', '.', (string) $parsed_args['rating'] );
 
 	// Convert percentage to star rating, 0..5 in .5 increments.
 	if ( 'percent' === $parsed_args['type'] ) {

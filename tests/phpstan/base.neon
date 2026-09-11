@@ -39,6 +39,13 @@ services:
 		tags:
 			- phpstan.broker.dynamicFunctionReturnTypeExtension
 
+	# Types the return value of wp_parse_args() from the arguments it was called
+	# with, which its documented return type necessarily cannot describe.
+	-
+		class: WordPress\PHPStan\WpParseArgsDynamicFunctionReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicFunctionReturnTypeExtension
+
 	# Enforces that every hook invocation is preceded by a documenting docblock or
 	# a valid "This filter is documented in <file>" reference comment.
 	-
@@ -211,6 +218,7 @@ parameters:
 		- HookDocsVisitor.php
 		- HookDocBlock.php
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
+		- WpParseArgsDynamicFunctionReturnTypeExtension.php
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
 		- HookDocsResultCacheMetaExtension.php
