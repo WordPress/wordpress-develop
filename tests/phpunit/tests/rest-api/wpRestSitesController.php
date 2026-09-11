@@ -306,7 +306,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Sites have no trash, so deleting has to be explicit.
+	 * Deleting without force marks the site as deleted and removes its users,
+	 * but does not drop the site.
 	 *
 	 * @ticket 40365
 	 * @covers ::delete_item
@@ -316,12 +317,26 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$superadmin_id );
 
 		$blog_id = self::factory()->blog->create( array( 'path' => '/consectetur/' ) );
+		$user_id = self::factory()->user->create();
+		add_user_to_blog( $blog_id, $user_id, 'author' );
+
+		$this->assertTrue( is_user_member_of_blog( $user_id, $blog_id ) );
 
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
-		$this->assertNotNull( get_site( $blog_id ) );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['deleted'] );
+
+		// The site still exists but is flagged as deleted.
+		$site = get_site( $blog_id );
+		$this->assertNotNull( $site );
+		$this->assertEquals( '1', $site->deleted );
+
+		// Its users have been removed from the blog.
+		$this->assertFalse( is_user_member_of_blog( $user_id, $blog_id ) );
 	}
 
 	/**

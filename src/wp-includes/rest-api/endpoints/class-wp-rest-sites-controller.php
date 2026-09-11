@@ -100,7 +100,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 						'force' => array(
 							'type'        => 'boolean',
 							'default'     => false,
-							'description' => __( 'Required to be true, as sites do not support trashing.' ),
+							'description' => __( 'Whether to set site to deleted and force deletion.' ),
 						),
 					),
 				),
@@ -694,24 +694,15 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
 	 */
 	public function delete_item( $request ) {
-		$site = $this->get_site( $request['id'] );
+		$blog_id = (int) $request['id'];
+		$site    = $this->get_site( $blog_id );
 		if ( is_wp_error( $site ) ) {
 			return $site;
-		}
-
-		if ( ! (bool) $request['force'] ) {
-			return new WP_Error(
-				'rest_trash_not_supported',
-				/* translators: %s: force=true */
-				sprintf( __( "Sites do not support trashing. Set '%s' to delete." ), 'force=true' ),
-				array( 'status' => 501 )
-			);
 		}
 
 		$request->set_param( 'context', 'edit' );
 
 		$previous = $this->prepare_item_for_response( $site, $request );
-		$result   = wp_delete_site( $request['id'] );
 
 		$response = new WP_REST_Response();
 		$response->set_data(
@@ -721,10 +712,36 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			)
 		);
 
-		if ( is_wp_error( $result ) ) {
-			$result->add_data( array( 'status' => 500 ) );
+		if ( ! (bool) $request['force'] ) {
+			/** This action is documented in wp-includes/ms-site.php */
+			do_action_deprecated( 'delete_blog', array( $blog_id, false ), '5.1.0' );
 
-			return $result;
+			$users = get_users(
+				array(
+					'blog_id' => $blog_id,
+					'fields'  => 'ids',
+				)
+			);
+
+			// Remove users from this blog.
+			if ( ! empty( $users ) ) {
+				foreach ( $users as $user_id ) {
+					remove_user_from_blog( $user_id, $blog_id );
+				}
+			}
+
+			update_blog_status( $blog_id, 'deleted', 1 );
+
+			/** This action is documented in wp-includes/ms-site.php */
+			do_action_deprecated( 'deleted_blog', array( $blog_id, false ), '5.1.0' );
+		} else {
+
+			$result = wp_delete_site( $request['id'] );
+			if ( is_wp_error( $result ) ) {
+				$result->add_data( array( 'status' => 500 ) );
+
+				return $result;
+			}
 		}
 
 		/**
