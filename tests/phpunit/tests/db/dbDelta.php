@@ -759,6 +759,24 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the postmeta table schema includes the composite index meta_key_id.
+	 *
+	 * @ticket 45354
+	 */
+	public function test_postmeta_composite_index_in_schema() {
+		global $wpdb;
+
+		$schema = wp_get_db_schema();
+
+		$this->assertStringContainsString( 'KEY meta_key_id', $schema, 'Schema should contain the meta_key_id composite index.' );
+
+		$this->assertNotEmpty(
+			$wpdb->get_results( "SHOW INDEX FROM $wpdb->postmeta WHERE Key_name = 'meta_key_id'" ),
+			'The meta_key_id composite index should exist in the postmeta table.'
+		);
+	}
+
+	/**
 	 * @ticket 20263
 	 */
 	public function test_key_and_index_and_fulltext_key_and_fulltext_index_and_unique_key_and_unique_index_indices() {
