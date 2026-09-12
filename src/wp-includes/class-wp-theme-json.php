@@ -3512,6 +3512,44 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Converts `width` declarations to `flex-basis` for column blocks.
+	 *
+	 * The column block sizes itself with `flex-basis` rather than `width`
+	 * because it lives in a flex container. This post-processes the computed
+	 * style declarations so the correct CSS property is output.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $declarations An array of CSS declarations.
+	 * @return array The updated declarations.
+	 */
+	private static function update_column_width_declarations( $declarations ) {
+		$has_width = false;
+
+		foreach ( $declarations as &$declaration ) {
+			if ( 'width' === $declaration['name'] ) {
+				$declaration['name'] = 'flex-basis';
+				$has_width           = true;
+			}
+		}
+		unset( $declaration );
+
+		/*
+		 * Columns without a width divide the remaining space between them via
+		 * `flex-grow`. A column given a width should keep it instead, matching
+		 * the behaviour of a width set on the block itself.
+		 */
+		if ( $has_width ) {
+			$declarations[] = array(
+				'name'  => 'flex-grow',
+				'value' => '0',
+			);
+		}
+
+		return $declarations;
+	}
+
+	/**
 	 * An internal method to get the block nodes from a theme.json file.
 	 *
 	 * @since 6.1.0
@@ -3874,6 +3912,10 @@ class WP_Theme_JSON {
 				// Compute declarations for remaining styles not covered by feature level selectors.
 				$style_variation_declarations[ $style_variation['selector'] ] = static::compute_style_properties( $style_variation_node, $settings, null, $this->theme_json );
 
+				if ( 'core/column' === ( $block_metadata['name'] ?? null ) ) {
+					$style_variation_declarations[ $style_variation['selector'] ] = self::update_column_width_declarations( $style_variation_declarations[ $style_variation['selector'] ] );
+				}
+
 				// Process pseudo-selectors for this variation (e.g., :hover, :focus)
 				if ( isset( $block_metadata['name'] ) ) {
 					$block_name = $block_metadata['name'];
@@ -3937,6 +3979,11 @@ class WP_Theme_JSON {
 
 					// Process base properties for this breakpoint.
 					$breakpoint_declarations = static::compute_style_properties( $breakpoint_node, $settings, null, $this->theme_json );
+
+					if ( 'core/column' === $block_name ) {
+						$breakpoint_declarations = self::update_column_width_declarations( $breakpoint_declarations );
+					}
+
 					if ( ! empty( $breakpoint_declarations ) ) {
 						$base_ruleset              = static::to_ruleset( ':root :where(' . $style_variation['selector'] . ')', $breakpoint_declarations );
 						$variation_responsive_css .= $breakpoint_media . '{' . $base_ruleset . '}';
@@ -4107,6 +4154,10 @@ class WP_Theme_JSON {
 			if ( $is_root_selector && ( 'background-image' === $declaration['name'] || 'background' === $declaration['name'] ) ) {
 				$should_set_root_min_height = true;
 			}
+		}
+
+		if ( 'core/column' === $block_name ) {
+			$declarations = self::update_column_width_declarations( $declarations );
 		}
 
 		/*
