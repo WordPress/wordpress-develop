@@ -17,6 +17,30 @@
 #[AllowDynamicProperties]
 class WP_Sitemaps_Renderer {
 	/**
+	 * Gets the URL for the sitemap stylesheet.
+	 *
+	 * @since 5.5.0
+	 * @deprecated 7.2.0 Stylesheets are no longer supported.
+	 *
+	 * @return string Empty string.
+	 */
+	public function get_sitemap_stylesheet_url() {
+		return '';
+	}
+
+	/**
+	 * Gets the URL for the sitemap index stylesheet.
+	 *
+	 * @since 5.5.0
+	 * @deprecated 7.2.0 Stylesheets are no longer supported.
+	 *
+	 * @return string Empty string.
+	 */
+	public function get_sitemap_index_stylesheet_url() {
+		return '';
+	}
+
+	/**
 	 * Renders a sitemap index.
 	 *
 	 * @since 5.5.0
