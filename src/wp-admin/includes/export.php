@@ -246,7 +246,7 @@ function export_wp( $args = array() ) {
 		$str = (string) $str;
 
 		if ( ! wp_is_valid_utf8( $str ) ) {
-			$str = utf8_encode( $str );
+			$str = _wp_iso_8859_1_to_utf8( $str );
 		}
 		// $str = ent2ncr(esc_html($str));
 		$str = '<![CDATA[' . str_replace( ']]>', ']]]]><![CDATA[>', $str ) . ']]>';
