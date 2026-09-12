@@ -6630,6 +6630,16 @@ function get_pages( $args = array() ) {
 		'post_status'  => 'publish',
 	);
 
+	/**
+	 * Filters arguments passed to get_pages to maintain correspondence with get_pages_query_args filter for WP_Query.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $args  Array of arguments passed to get_pages.
+	 * @param array $defaults Array of default arguments.
+	 */
+	$args = apply_filters( 'get_pages_args', $args, $defaults );
+
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$number       = (int) $parsed_args['number'];
