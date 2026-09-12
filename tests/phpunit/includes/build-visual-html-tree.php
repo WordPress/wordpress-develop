@@ -210,6 +210,11 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 				$text_node .= $text_content;
 				break;
 
+			case '#processing-instruction':
+				// Processing instructions must be "<?", the target, a space, the data, "?", and ">".
+				$output .= str_repeat( $tree_indent, $indent_level ) . "<?{$processor->get_tag()} {$processor->get_modifiable_text()}?>\n";
+				break;
+
 			case '#funky-comment':
 				// Comments must be "<" then "!-- " then the data then " -->".
 				$output .= str_repeat( $tree_indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";

@@ -1010,7 +1010,7 @@ function validate_theme_requirements( $stylesheet ) {
 	 * @since 6.9.0
 	 *
 	 * @param bool|WP_Error $met_requirements True if the theme meets requirements, WP_Error if not.
-	 * @param string $stylesheet Directory name for the theme.
+	 * @param string        $stylesheet       Directory name for the theme.
 	 */
 	return apply_filters( 'validate_theme_requirements', true, $stylesheet );
 }
@@ -4369,7 +4369,6 @@ function wp_is_block_theme() {
  * @since 6.1.0
  *
  * @param string $element The name of the element.
- *
  * @return string The name of the class.
  */
 function wp_theme_get_element_class_name( $element ) {

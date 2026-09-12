@@ -22,7 +22,8 @@ class WP_Sitemaps_Stylesheet {
 	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
 	 *
-	 * @param string $type Stylesheet type.
+	 * @param string $type Stylesheet type. Either 'sitemap' or 'index'.
+	 * @return never
 	 */
 	public function render_stylesheet( $type ) {}
 

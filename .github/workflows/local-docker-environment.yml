@@ -13,6 +13,7 @@ on:
       - 'docker-compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
+      - 'wp-cli.yml'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
       - 'Gruntfile.js'
@@ -41,6 +42,7 @@ on:
       - 'docker-compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
+      - 'wp-cli.yml'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
       - 'Gruntfile.js'
@@ -154,7 +156,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

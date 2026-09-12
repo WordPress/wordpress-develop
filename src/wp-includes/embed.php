@@ -98,7 +98,7 @@ function wp_embed_defaults( $url = '' ) {
  *
  * @see WP_oEmbed
  *
- * @param string $url  The URL that should be embedded.
+ * @param string       $url  The URL that should be embedded.
  * @param array|string $args {
  *     Optional. Additional arguments for retrieving embed HTML. Default empty.
  *
@@ -264,8 +264,8 @@ function wp_embed_handler_youtube( $matches, $attr, $url, $rawattr ) {
  * @since 3.6.0
  *
  * @param array  $matches The RegEx matches from the provided regex when calling wp_embed_register_handler().
- * @param array  $attr Embed attributes.
- * @param string $url The original URL that was matched by the regex.
+ * @param array  $attr    Embed attributes.
+ * @param string $url     The original URL that was matched by the regex.
  * @param array  $rawattr The original unmodified attributes.
  * @return string The embed HTML.
  */
@@ -594,7 +594,8 @@ function get_oembed_response_data( $post, $width ) {
 		)
 	);
 
-	$width  = min( max( $min_max_width['min'], $width ), $min_max_width['max'] );
+	/** @var array{ min: positive-int, max: positive-int } $min_max_width */
+	$width  = clamp( $width, $min_max_width['min'], $min_max_width['max'] );
 	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
 	$data = array(

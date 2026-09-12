@@ -97,6 +97,17 @@ npm run test:php -- --filter <test name>
 npm run test:php -- --group <group name or ticket number>
 ```
 
+To run the JavaScript (QUnit) tests:
+
+```
+npm run grunt qunit:compiled
+```
+
+`qunit:compiled` builds first, then runs the suite. The QUnit runner loads
+scripts from the built `build/` directory, so a plain `npm run grunt qunit`
+requires a completed `npm run build` first without a build, every test fails
+with a `jQuery is not defined` error.
+
 #### To lint the workflow files
 
 GitHub Actions workflows operate in a privileged software supply chain environment, therefore all workflow files must adhere to a high degree of quality and security standards.

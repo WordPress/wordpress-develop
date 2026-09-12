@@ -141,8 +141,6 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 
 	/**
 	 * @ticket 56481
-	 *
-	 * @param string $path The path to test.
 	 */
 	public function test_head_request_with_specified_fields_returns_success_response() {
 		wp_set_current_user( self::$admin_id );

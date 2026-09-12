@@ -231,6 +231,38 @@ JS;
 	}
 
 	/**
+	 * Tests that inline scripts do not include a false entry when no data exists yet.
+	 *
+	 * @ticket 52320
+	 * @dataProvider data_inline_script_positions
+	 *
+	 * @param string $position Inline script position.
+	 */
+	public function test_add_inline_script_does_not_store_false_for_empty_existing_data( $position ): void {
+		$handle = 'test-inline-script-' . $position;
+
+		wp_register_script( $handle, '/test.js', array(), null );
+		wp_add_inline_script( $handle, 'console.log( "test" );', $position );
+
+		$this->assertSame(
+			array( 'console.log( "test" );' ),
+			wp_scripts()->get_data( $handle, $position )
+		);
+	}
+
+	/**
+	 * Data provider for inline script positions.
+	 *
+	 * @return array<string, array{0: string}> Inline script positions.
+	 */
+	public function data_inline_script_positions(): array {
+		return array(
+			'before' => array( 'before' ),
+			'after'  => array( 'after' ),
+		);
+	}
+
+	/**
 	 * Tests that inline scripts in the `after` position, attached to delayed main scripts, remain unaffected.
 	 *
 	 * If the main script with delayed loading strategy has an `after` inline script,
@@ -557,9 +589,8 @@ JS;
 	 *
 	 * @dataProvider get_data_to_filter_eligible_strategies
 	 *
-	 * @param callable $set_up     Set up.
-	 * @param bool     $async_only Async only.
-	 * @param bool     $expected   Expected return value.
+	 * @param callable $set_up   Set up.
+	 * @param string[] $expected Expected return value.
 	 */
 	public function test_filter_eligible_strategies( $set_up, $expected ) {
 		$handle = $set_up();
@@ -2275,6 +2306,9 @@ HTML;
 
 	/**
 	 * Test script concatenation.
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string $wp_version
 	 */
 	public function test_script_concatenation() {
 		global $wp_scripts, $wp_version;
@@ -2289,9 +2323,9 @@ HTML;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$expected = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two,three&amp;ver={$wp_version}'></script>\n";
+		$expected = "<script src=\"/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two,three&#038;ver={$wp_version}\"></script>\n";
 
-		$this->assertSame( $expected, $print_scripts );
+		$this->assertEqualHTML( $expected, $print_scripts );
 	}
 
 	/**
@@ -4310,6 +4344,10 @@ HTML;
 
 	/**
 	 * @ticket 63887
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global bool $concatenate_scripts
+	 * @global string $wp_version
 	 */
 	public function test_source_url_with_concat() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -4328,14 +4366,13 @@ HTML;
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected = <<<HTML
+		<script>
+		var one = {"key":"val"};var two = {"key":"val"};
+		//# sourceURL=js-inline-concat-one%2Ctwo
+		</script>
+		<script src="/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two&#038;ver={$wp_version}"></script>
 
-<script>
-var one = {"key":"val"};var two = {"key":"val"};
-//# sourceURL=js-inline-concat-one%2Ctwo
-</script>
-<script src="/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=one,two&ver={$wp_version}"></script>
-
-HTML;
+		HTML;
 
 		$this->assertEqualHTML( $expected, $print_scripts );
 	}
