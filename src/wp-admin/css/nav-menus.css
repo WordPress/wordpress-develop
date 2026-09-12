@@ -194,6 +194,25 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	color: #0a4b78;
 }
 
+#bulk-menu-items-move {
+	display: none;
+	align-items: flex-end;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 1em 0;
+	padding: 0;
+	border: 0;
+}
+
+.bulk-selection #bulk-menu-items-move {
+	display: flex;
+}
+
+#bulk-menu-items-move label,
+#bulk-menu-items-move select {
+	display: block;
+}
+
 .bulk-actions input.menu-items-delete {
 	appearance: none;
 	font-size: inherit;

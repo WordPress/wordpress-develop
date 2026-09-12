@@ -1163,9 +1163,25 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 										<input type="checkbox" id="bulk-select-switcher-bottom" name="bulk-select-switcher-top" class="bulk-select-switcher">
 										<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
 									</label>
+									<fieldset id="bulk-menu-items-move" disabled="disabled">
+										<legend class="screen-reader-text"><?php _e( 'Move selected menu items' ); ?></legend>
+										<label for="bulk-menu-item-parent">
+											<?php _e( 'Menu Parent' ); ?>
+											<select id="bulk-menu-item-parent">
+												<option value=""><?php _e( '&mdash; Select &mdash;' ); ?></option>
+											</select>
+										</label>
+										<label for="bulk-menu-item-position">
+											<?php _e( 'Starting Position' ); ?>
+											<select id="bulk-menu-item-position" disabled="disabled">
+												<option value=""><?php _e( '&mdash; Select &mdash;' ); ?></option>
+											</select>
+										</label>
+										<button type="button" class="button menu-items-move" disabled="disabled"><?php _e( 'Move Selected Items' ); ?></button>
+									</fieldset>
 									<input type="button" class="deletion menu-items-delete disabled" value="<?php esc_attr_e( 'Remove Selected Items' ); ?>">
 									<div id="pending-menu-items-to-delete">
-										<p><?php _e( 'List of menu items selected for deletion:' ); ?></p>
+										<p><?php _e( 'List of selected menu items:' ); ?></p>
 										<ul></ul>
 									</div>
 								</div>
