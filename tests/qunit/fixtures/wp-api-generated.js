@@ -10877,6 +10877,403 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/sites": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "domain": {
+                            "description": "Limit result set to sites assigned to specific domain. ",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "domain_exclude": {
+                            "description": "Ensure result set excludes sites assigned to specific domain. ",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "path": {
+                            "description": "Limit result set to sites assigned to specific path. ",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "path_exclude": {
+                            "description": "Ensure result set excludes sites assigned to specific path. ",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "asc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by object attribute.",
+                            "type": "string",
+                            "default": "id",
+                            "enum": [
+                                "id",
+                                "domain",
+                                "path",
+                                "network_id",
+                                "last_updated",
+                                "registered",
+                                "domain_length",
+                                "path_length",
+                                "site__in",
+                                "network__in"
+                            ],
+                            "required": false
+                        },
+                        "user": {
+                            "description": "Limit result set to the sites a user is a member of. Accepts a user ID or \"me\".",
+                            "type": "string",
+                            "required": false
+                        },
+                        "public": {
+                            "description": "Limit result set to sites with a specific public status.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "archived": {
+                            "description": "Limit result set to sites with a specific archived status.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "mature": {
+                            "description": "Limit result set to sites with a specific mature status.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "spam": {
+                            "description": "Limit result set to sites with a specific spam status.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "deleted": {
+                            "description": "Limit result set to sites with a specific deleted status.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "lang_id": {
+                            "default": [],
+                            "description": "Limit result set to sites of specific language IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "required": false
+                        },
+                        "lang_id_exclude": {
+                            "default": [],
+                            "description": "Ensure result set excludes specific language IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "required": false
+                        },
+                        "before": {
+                            "description": "Limit response to sites registered before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "after": {
+                            "description": "Limit response to sites registered after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "network": {
+                            "default": [],
+                            "description": "Limit result set to sites of specific network IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "required": false
+                        },
+                        "network_exclude": {
+                            "default": [],
+                            "description": "Ensure result set excludes specific network IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "network": {
+                            "description": "The site's network ID. Default is the current network ID.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "domain": {
+                            "default": "",
+                            "description": "Site domain.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "path": {
+                            "default": "/",
+                            "description": "Site path.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "public": {
+                            "default": true,
+                            "description": "Whether the site is public. Default true.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "archived": {
+                            "default": false,
+                            "description": "Whether the site is archived. Default false.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "mature": {
+                            "default": false,
+                            "description": "Whether the site is mature. Default false.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "spam": {
+                            "default": false,
+                            "description": "Whether the site is spam. Default false.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "deleted": {
+                            "default": false,
+                            "description": "Whether the site is deleted. Default false.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "lang_id": {
+                            "default": 0,
+                            "description": "The site's language ID. Currently unused. Default 0.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "title": {
+                            "description": "Site title, set when the site is created. Default is the word \"Site\" followed by the site ID.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "user_id": {
+                            "description": "User ID of the site administrator, set when the site is created.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/sites"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/sites/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the object.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the object.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "network": {
+                            "description": "The site's network ID. Default is the current network ID.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "domain": {
+                            "description": "Site domain.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "path": {
+                            "description": "Site path.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "public": {
+                            "description": "Whether the site is public. Default true.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "archived": {
+                            "description": "Whether the site is archived. Default false.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "mature": {
+                            "description": "Whether the site is mature. Default false.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "spam": {
+                            "description": "Whether the site is spam. Default false.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "deleted": {
+                            "description": "Whether the site is deleted. Default false.",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "lang_id": {
+                            "description": "The site's language ID. Currently unused. Default 0.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the object.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Required to be true, as sites do not support trashing.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/search": {
             "namespace": "wp/v2",
             "methods": [
