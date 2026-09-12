@@ -547,4 +547,32 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			'raw button-compact unchanged' => array( 'button-compact', 'button button-compact' ),
 		);
 	}
+
+	/**
+	 * The template drop-down should list options in the order provided by
+	 * WP_Theme::get_post_templates() (by translated name), not re-sort them.
+	 *
+	 * @ticket 49194
+	 *
+	 * @covers ::page_template_dropdown
+	 */
+	public function test_page_template_dropdown_preserves_name_order() {
+		$current_theme = wp_get_theme();
+		switch_theme( 'page-templates-sort' );
+
+		ob_start();
+		page_template_dropdown( '', 'page' );
+		$output = ob_get_clean();
+
+		switch_theme( $current_theme->get_stylesheet() );
+
+		// Options follow the translated name order from WP_Theme::get_post_templates().
+		$expected  = "\n\t<option value='c-template.php' >Apple Template</option>";
+		$expected .= "\n\t<option value='b-template.php' >mango template</option>";
+		$expected .= "\n\t<option value='section-2.php' >Section 2</option>";
+		$expected .= "\n\t<option value='section-10.php' >Section 10</option>";
+		$expected .= "\n\t<option value='a-template.php' >Zebra Template</option>";
+
+		$this->assertSameIgnoreEOL( $expected, $output );
+	}
 }

@@ -904,14 +904,14 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
  *
  * @since 1.5.0
  * @since 4.7.0 Added the `$post_type` parameter.
+ * @since 7.2.0 Templates are no longer re-sorted here; the order from
+ *              WP_Theme::get_post_templates() (by translated name) is preserved.
  *
  * @param string $default_template Optional. The template file name. Default empty.
  * @param string $post_type        Optional. Post type to get templates for. Default 'page'.
  */
 function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
 	$templates = get_page_templates( null, $post_type );
-
-	ksort( $templates );
 
 	foreach ( array_keys( $templates ) as $template ) {
 		$selected = selected( $default_template, $templates[ $template ], false );
