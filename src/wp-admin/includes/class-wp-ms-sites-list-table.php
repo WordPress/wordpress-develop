@@ -47,6 +47,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 				'screen' => $args['screen'] ?? null,
 			)
 		);
+
+		add_filter( 'hidden_columns', array( $this, 'hide_site_admin_email_column' ), 10, 2 );
 	}
 
 	/**
@@ -382,11 +384,12 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$sites_columns = array(
-			'cb'          => '<input type="checkbox" />',
-			'blogname'    => __( 'URL' ),
-			'lastupdated' => __( 'Last Updated' ),
-			'registered'  => _x( 'Registered', 'site' ),
-			'users'       => __( 'Users' ),
+			'cb'               => '<input type="checkbox" />',
+			'blogname'         => __( 'URL' ),
+			'site_admin_email' => __( 'Admin Email' ),
+			'lastupdated'      => __( 'Last Updated' ),
+			'registered'       => _x( 'Registered', 'site' ),
+			'users'            => __( 'Users' ),
 		);
 
 		if ( has_filter( 'wpmublogsaction' ) ) {
@@ -399,9 +402,42 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		 * @since MU (3.0.0)
 		 *
 		 * @param string[] $sites_columns An array of displayed site columns. Default 'cb',
-		 *                               'blogname', 'lastupdated', 'registered', 'users'.
+		 *                               'blogname', 'site_admin_email', 'lastupdated',
+		 *                               'registered', 'users'.
 		 */
 		return apply_filters( 'wpmu_blogs_columns', $sites_columns );
+	}
+
+	/**
+	 * Hides the site admin email column until the user changes their screen options.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string[] $hidden An array of hidden columns.
+	 * @param WP_Screen $screen The current screen object.
+	 * @return string[] An array of hidden columns.
+	 */
+	public function hide_site_admin_email_column( $hidden, $screen ) {
+		$user_id = get_current_user_id();
+		if ( ! $user_id || $this->screen->id !== $screen->id ) {
+			return $hidden;
+		}
+
+		$hidden_option      = 'manage' . $screen->id . 'columnshidden';
+		$initialized_option = $hidden_option . '_site_admin_email_initialized';
+
+		if ( get_user_meta( $user_id, $initialized_option, true ) ) {
+			return $hidden;
+		}
+
+		if ( ! in_array( 'site_admin_email', $hidden, true ) ) {
+			$hidden[] = 'site_admin_email';
+		}
+
+		update_user_meta( $user_id, $hidden_option, $hidden );
+		update_user_meta( $user_id, $initialized_option, true );
+
+		return $hidden;
 	}
 
 	/**
@@ -505,6 +541,21 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			);
 			echo '</p>';
 			restore_current_blog();
+		}
+	}
+
+	/**
+	 * Handles the admin email column output.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $blog Current site.
+	 */
+	public function column_site_admin_email( $blog ) {
+		list( , $hidden ) = $this->get_column_info();
+
+		if ( ! in_array( 'site_admin_email', $hidden, true ) ) {
+			echo esc_html( get_blog_option( $blog['blog_id'], 'admin_email' ) );
 		}
 	}
 
