@@ -896,6 +896,10 @@ figcaption,
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
+:where(.editor-styles-wrapper table:not(:last-child)) {
+  margin-bottom: 1.375rem;
+}
+
 /** === Cover === */
 .wp-block-cover h2,
 .wp-block-cover .wp-block-cover-text {
