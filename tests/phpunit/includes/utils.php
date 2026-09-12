@@ -617,8 +617,8 @@ function _cleanup_query_vars() {
 }
 
 function _clean_term_filters() {
-	remove_filter( 'get_terms', array( 'Featured_Content', 'hide_featured_term' ), 10, 2 );
-	remove_filter( 'get_the_terms', array( 'Featured_Content', 'hide_the_featured_term' ), 10, 3 );
+	remove_filter( 'get_terms', array( 'Featured_Content', 'hide_featured_term' ) );
+	remove_filter( 'get_the_terms', array( 'Featured_Content', 'hide_the_featured_term' ) );
 }
 
 /**

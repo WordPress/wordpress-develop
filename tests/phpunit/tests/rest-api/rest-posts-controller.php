@@ -3720,7 +3720,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_assign_term', $response, 403 );
 	}
@@ -4454,7 +4454,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_assign_term', $response, 403 );
 	}

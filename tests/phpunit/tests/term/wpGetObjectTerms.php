@@ -129,7 +129,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		add_filter( 'wp_get_object_terms', array( $this, 'wp_get_object_terms_callback' ), 10, 3 );
 		$terms = wp_get_object_terms( 1, array( 'wptests_tax', 'wptests_tax_2' ) );
-		remove_filter( 'wp_get_object_terms', array( $this, 'wp_get_object_terms_callback' ), 10, 3 );
+		remove_filter( 'wp_get_object_terms', array( $this, 'wp_get_object_terms_callback' ) );
 
 		$this->assertSame( "'wptests_tax', 'wptests_tax_2'", $this->taxonomies );
 	}

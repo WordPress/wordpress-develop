@@ -40,7 +40,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		// Now delete it.
 		add_filter( 'delete_term', array( $this, 'deleted_term_cb' ), 10, 5 );
 		$this->assertTrue( wp_delete_term( $t['term_id'], $taxonomy ) );
-		remove_filter( 'delete_term', array( $this, 'deleted_term_cb' ), 10, 5 );
+		remove_filter( 'delete_term', array( $this, 'deleted_term_cb' ) );
 		$this->assertNull( term_exists( $term ) );
 		$this->assertNull( term_exists( $t['term_id'] ) );
 		$this->assertSame( $initial_count, wp_count_terms( array( 'taxonomy' => $taxonomy ) ) );
