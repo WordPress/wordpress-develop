@@ -2,14 +2,37 @@
 #wpwrap {
 	height: auto;
 	min-height: 100%;
+	min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
 	width: 100%;
 	position: relative;
+	overflow-y: auto;
 	-webkit-font-smoothing: subpixel-antialiased;
+	background: #1e1e1e;
+	box-sizing: border-box;
+}
+
+@media (min-width: 782px) {
+	#wpwrap {
+		padding-bottom: var(--wpds-dimension-padding-sm);
+		padding-right: var(--wpds-dimension-padding-sm);
+	}
 }
 
 #wpcontent {
-	height: 100%;
+	/* Fill the viewport when short; grow with content when taller. */
+	height: auto;
+	min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
 	padding-left: 20px;
+	background: #f0f0f1;
+	box-sizing: border-box;
+}
+
+@media (min-width: 782px) {
+	#wpcontent {
+		border-radius: var(--wpds-border-radius-xl);
+		min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - var(--wpds-dimension-padding-sm));
+		overflow: clip;
+	}
 }
 
 #wpcontent,
@@ -27,6 +50,12 @@
 	float: left;
 	width: 100%;
 	overflow: visible;
+}
+
+@media (min-width: 782px) {
+	#wpwrap {
+		overflow-y: initial;
+	}
 }
 
 /* inner 2 column liquid layout */
@@ -222,7 +251,7 @@ body {
 }
 
 body {
-	background: #f0f0f1;
+	background: #1e1e1e;
 	color: #3c434a;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 13px;
@@ -2385,11 +2414,19 @@ html.wp-toolbar {
 
 #wpfooter {
 	position: absolute;
-	bottom: 0;
+	bottom: var(--wpds-dimension-padding-sm);
 	left: 0;
-	right: 0;
-	padding: 10px 20px;
+	right: var(--wpds-dimension-padding-sm);
+	padding: 10px 28px 18px 20px;
 	color: #50575e;
+	background: #f0f0f1;
+}
+
+@media (min-width: 782px) {
+	#wpfooter {
+		border-radius: 0 0 var(--wpds-border-radius-xl) var(--wpds-border-radius-xl);
+		overflow: clip;
+	}
 }
 
 #wpfooter p {

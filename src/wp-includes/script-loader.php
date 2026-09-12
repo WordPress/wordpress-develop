@@ -1621,7 +1621,7 @@ function wp_default_styles( $styles ) {
 
 	// Admin CSS.
 	$styles->add( 'wp-tooltip', "/wp-admin/css/wp-tooltip$suffix.css", array( 'dashicons' ) );
-	$styles->add( 'common', "/wp-admin/css/common$suffix.css" );
+	$styles->add( 'common', "/wp-admin/css/common$suffix.css", array( 'wp-theme' ) );
 	$styles->add( 'forms', "/wp-admin/css/forms$suffix.css" );
 	$styles->add( 'admin-menu', "/wp-admin/css/admin-menu$suffix.css" );
 	$styles->add( 'dashboard', "/wp-admin/css/dashboard$suffix.css" );
