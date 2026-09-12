@@ -2083,6 +2083,87 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 39473
+	 * @covers WP_REST_Server::get_routes
+	 */
+	public function test_get_routes_caches_result() {
+		$filter_count    = 0;
+		$counting_filter = static function ( $endpoints ) use ( &$filter_count ) {
+			++$filter_count;
+			return $endpoints;
+		};
+
+		add_filter( 'rest_endpoints', $counting_filter );
+
+		$server = rest_get_server();
+		$server->get_routes();
+		$server->get_routes();
+		$server->get_routes();
+
+		remove_filter( 'rest_endpoints', $counting_filter );
+
+		$this->assertSame( 1, $filter_count, 'The rest_endpoints filter should only fire once when get_routes() is called multiple times.' );
+	}
+
+	/**
+	 * @ticket 39473
+	 * @covers WP_REST_Server::get_routes
+	 */
+	public function test_get_routes_cache_is_keyed_by_namespace() {
+		$server = rest_get_server();
+
+		$all_routes        = $server->get_routes();
+		$namespaced_routes = $server->get_routes( 'oembed/1.0' );
+
+		$this->assertNotEquals( $all_routes, $namespaced_routes, 'Cached routes for different namespaces should differ.' );
+
+		foreach ( $namespaced_routes as $route => $handlers ) {
+			$this->assertStringStartsWith( '/oembed/1.0', $route );
+		}
+	}
+
+	/**
+	 * @ticket 39473
+	 * @covers WP_REST_Server::register_route
+	 * @covers WP_REST_Server::get_routes
+	 */
+	public function test_get_routes_cache_invalidated_on_register() {
+		$server = rest_get_server();
+
+		$routes_before = $server->get_routes();
+
+		register_rest_route(
+			'test-cache-ns',
+			'/test-cache',
+			array(
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes_after = $server->get_routes();
+
+		$this->assertArrayNotHasKey( '/test-cache-ns/test-cache', $routes_before );
+		$this->assertArrayHasKey( '/test-cache-ns/test-cache', $routes_after );
+	}
+
+	/**
+	 * @ticket 39473
+	 * @covers WP_REST_Server::get_routes
+	 */
+	public function test_get_routes_cached_result_matches_uncached() {
+		$server = rest_get_server();
+
+		// First call populates cache.
+		$first_call = $server->get_routes();
+		// Second call returns from cache.
+		$second_call = $server->get_routes();
+
+		$this->assertSame( $first_call, $second_call, 'Cached routes should be identical to the initial result.' );
+	}
+
+	/**
 	 * @ticket 50244
 	 */
 	public function test_no_route() {

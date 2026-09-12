@@ -88,6 +88,14 @@ class WP_REST_Server {
 	protected $embed_cache = array();
 
 	/**
+	 * Cached route maps keyed by namespace.
+	 *
+	 * @since 6.9.0
+	 * @var array
+	 */
+	protected $route_map_cache = array();
+
+	/**
 	 * Stores request objects that are currently being handled.
 	 *
 	 * @since 6.5.0
@@ -929,6 +937,9 @@ class WP_REST_Server {
 		} else {
 			$this->endpoints[ $route ] = array_merge( $this->endpoints[ $route ], $route_args );
 		}
+
+		// Invalidate the route map cache when routes change.
+		$this->route_map_cache = array();
 	}
 
 	/**
@@ -954,6 +965,12 @@ class WP_REST_Server {
 	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
 	 */
 	public function get_routes( $route_namespace = '' ) {
+		$cache_key = $route_namespace ? $route_namespace : '';
+
+		if ( isset( $this->route_map_cache[ $cache_key ] ) ) {
+			return $this->route_map_cache[ $cache_key ];
+		}
+
 		$endpoints = $this->endpoints;
 
 		if ( $route_namespace ) {
@@ -1020,6 +1037,8 @@ class WP_REST_Server {
 				}
 			}
 		}
+
+		$this->route_map_cache[ $cache_key ] = $endpoints;
 
 		return $endpoints;
 	}
