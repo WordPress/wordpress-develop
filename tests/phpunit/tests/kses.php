@@ -2910,4 +2910,122 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * Tests sanitization of text fragment URLs and ordinary anchors.
+	 *
+	 * @ticket 60347
+	 * @dataProvider data_wp_kses_text_fragments
+	 *
+	 * @param string   $url               URL to sanitize.
+	 * @param string   $expected          Expected sanitized URL.
+	 * @param string[] $allowed_protocols Allowed URL protocols.
+	 */
+	public function test_wp_kses_text_fragments( $url, $expected, $allowed_protocols ) {
+		$allowed_html = array(
+			'a' => array(
+				'href' => true,
+			),
+		);
+
+		$this->assertEqualHTML(
+			'<a href="' . $expected . '">Link</a>',
+			wp_kses( '<a href="' . $url . '">Link</a>', $allowed_html, $allowed_protocols )
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_kses_text_fragments().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_text_fragments() {
+		return array(
+			'fragment only'                 => array(
+				'#:~:text=highlight',
+				'#:~:text=highlight',
+				array( 'http', 'https' ),
+			),
+			'absolute path'                 => array(
+				'/absolute/path/#:~:text=highlight',
+				'/absolute/path/#:~:text=highlight',
+				array( 'http', 'https' ),
+			),
+			'relative path'                 => array(
+				'relative/path/#:~:text=highlight',
+				'relative/path/#:~:text=highlight',
+				array( 'https' ),
+			),
+			'HTTPS URL'                     => array(
+				'https://example.com/#:~:text=highlight',
+				'https://example.com/#:~:text=highlight',
+				array( 'https' ),
+			),
+			'HTTP URL'                      => array(
+				'http://example.com/#:~:text=highlight',
+				'http://example.com/#:~:text=highlight',
+				array( 'http' ),
+			),
+			'ordinary anchor'               => array(
+				'#footer',
+				'#footer',
+				array( 'http', 'https' ),
+			),
+			'HTTP only'                     => array(
+				'#:~:text=highlight',
+				'#:~:text=highlight',
+				array( 'http' ),
+			),
+			'HTTPS only'                    => array(
+				'#:~:text=highlight',
+				'#:~:text=highlight',
+				array( 'https' ),
+			),
+			'mailto only'                   => array(
+				'#:~:text=highlight',
+				'text=highlight',
+				array( 'mailto' ),
+			),
+			'default protocols'             => array(
+				'#:~:text=highlight',
+				'#:~:text=highlight',
+				array(),
+			),
+			'restricted absolute path'      => array(
+				'/absolute/path/#:~:text=highlight',
+				'text=highlight',
+				array( 'mailto' ),
+			),
+			'JavaScript URL'                => array(
+				'javascript:alert(1)',
+				'alert(1)',
+				array( 'http', 'https' ),
+			),
+			'JavaScript with text fragment' => array(
+				'javascript:alert(1)#:~:text=highlight',
+				'text=highlight',
+				array( 'http', 'https' ),
+			),
+			'encoded JavaScript colon'      => array(
+				'javascript&#58;alert(1)#:~:text=highlight',
+				'text=highlight',
+				array( 'http', 'https' ),
+			),
+			'text containing colon'         => array(
+				'#:~:text=javascript:example',
+				'#:~:text=javascript:example',
+				array( 'https' ),
+			),
+		);
+	}
+
+	/**
+	 * Tests that text fragments respect explicit protocol restrictions.
+	 *
+	 * @ticket 60347
+	 */
+	public function test_wp_kses_bad_protocol_restricts_text_fragments() {
+		$this->assertSame( 'text=highlight', wp_kses_bad_protocol( '#:~:text=highlight', array( 'mailto' ) ) );
+		$this->assertSame( 'text=highlight', wp_kses_bad_protocol( '#:~:text=highlight', array() ) );
+	}
 }
