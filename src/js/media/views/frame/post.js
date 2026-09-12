@@ -209,7 +209,6 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 
 			content: {
 				'embed':          'embedContent',
-				'edit-image':     'editImageContent',
 				'edit-selection': 'editSelectionContent'
 			},
 
