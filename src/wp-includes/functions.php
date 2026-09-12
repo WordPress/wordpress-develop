@@ -13,6 +13,43 @@ if ( ! defined( 'ABSPATH' ) ) {
 require ABSPATH . WPINC . '/option.php';
 
 /**
+ * Determines if the current request is for a file (e.g., images, CSS, JS) to prevent unnecessary WordPress processing.
+ *
+ * Use the 'wp_is_file_request_extensions' filter to customize the allowed file extensions.
+ * Use the 'wp_is_file_request' filter to modify the final boolean result.
+ *
+ * @uses wp_get_mime_types() to retrieve a list of valid mime types and file extensions.
+ *
+ * @param string $extension Optional. The file extension being checked.
+ * @return bool True if the request is for a file, false otherwise.
+ */
+function wp_is_file_request( $extension = '' ) {
+	$isFileRequest = false;
+
+	if ( empty( $extension ) ) {
+		$url       = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+		$url_parts = parse_url( $url );
+		$path      = ! empty( $url_parts['path'] ) ? $url_parts['path'] : '';
+		$extension = pathinfo( $path, PATHINFO_EXTENSION );
+	}
+
+	if ( ! empty( $extension ) ) {
+		$ext     = strtolower( $extension );
+		$mimes   = apply_filters( 'wp_is_file_request_extensions', wp_get_mime_types() );
+		$extList = array();
+
+		foreach ( $mimes as $key => $value ) {
+			$extensions = explode( '|', $key );
+			$extList    = array_merge( $extList, $extensions );
+		}
+
+		$isFileRequest = in_array( $ext, $extList, true );
+	}
+
+	return apply_filters( 'wp_is_file_request', $isFileRequest );
+}
+
+/**
  * Converts given MySQL date string into a different format.
  *
  *  - `$format` should be a PHP date format string.
