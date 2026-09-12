@@ -2021,7 +2021,7 @@ function wp_kses_no_null( $content, $options = null ) {
 		$options = array( 'slash_zero' => 'remove' );
 	}
 
-	$content = preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $content );
+	$content = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $content ?? '');
 	if ( 'remove' === $options['slash_zero'] ) {
 		$content = preg_replace( '/\\\\+0+/', '', $content );
 	}
