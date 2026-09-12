@@ -610,6 +610,7 @@ class WP_Query {
 			'meta_value',
 			'preview',
 			's',
+			'search_position',
 			'sentence',
 			'title',
 			'fields',
@@ -668,6 +669,7 @@ class WP_Query {
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
 	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter.
 	 * @since 6.2.0 Introduced the `$search_columns` parameter.
+	 * @since 7.2.0 Introduced the `$search_position` parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -694,6 +696,9 @@ class WP_Query {
 	 *                                                   See WP_Date_Query::__construct().
 	 *     @type int             $day                    Day of the month. Default empty. Accepts numbers 1-31.
 	 *     @type bool            $exact                  Whether to search by exact keyword. Default false.
+	 *                                                   Cannot be used together with a non-default `$search_position`.
+	 *     @type string          $search_position        Whether to search start, ends or is anywhere within keyword. May be 'start', 'end', or the default 'anywhere'.
+	 *                                                   Cannot be used together with `$exact`.
 	 *     @type string          $fields                 Post fields to query for. Accepts:
 	 *                                                   - '' Returns an array of complete post objects (`WP_Post[]`).
 	 *                                                   - 'ids' Returns an array of post IDs (`int[]`).
@@ -782,7 +787,7 @@ class WP_Query {
 	 *                                                   character used for exclusion can be modified using the
 	 *                                                   the 'wp_query_search_exclusion_prefix' filter.
 	 *     @type string[]        $search_columns         Array of column names to be searched. Accepts 'post_title',
-	 *                                                   'post_excerpt' and 'post_content'. Default empty array.
+	 *                                                   'post_excerpt', 'post_content' and 'post_name'. Default empty array.
 	 *     @type int             $second                 Second of the minute. Default empty. Accepts numbers 0-59.
 	 *     @type bool            $sentence               Whether to search by phrase. Default false.
 	 *     @type bool            $suppress_filters       Whether to suppress filters. Default false.
@@ -820,6 +825,15 @@ class WP_Query {
 		$this->query_vars         = $this->fill_query_vars( $this->query_vars );
 		$query_vars               = &$this->query_vars;
 		$this->query_vars_changed = true;
+
+		if ( ! empty( $query_vars['exact'] ) && ! empty( $query_vars['search_position'] ) && 'anywhere' !== $query_vars['search_position'] ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The `exact` and `search_position` query parameters are mutually exclusive and cannot be used together.' ),
+				'7.2.0'
+			);
+			$query_vars['search_position'] = 'anywhere';
+		}
 
 		if ( ! empty( $query_vars['robots'] ) ) {
 			$this->is_robots = true;
@@ -1458,12 +1472,27 @@ class WP_Query {
 			}
 		}
 
-		$n                                  = ! empty( $query_vars['exact'] ) ? '' : '%';
+		$start = '%';
+		$end   = '%';
+		if ( ! empty( $query_vars['exact'] ) ) {
+			$start = '';
+			$end   = '';
+		} elseif ( ! empty( $query_vars['search_position'] ) ) {
+			if ( 'start' === $query_vars['search_position'] ) {
+				$start = '';
+			}
+			if ( 'end' === $query_vars['search_position'] ) {
+				$end = '';
+			}
+		}
+
 		$searchand                          = '';
 		$query_vars['search_orderby_title'] = array();
 
-		$default_search_columns = array( 'post_title', 'post_excerpt', 'post_content' );
-		$search_columns         = ! empty( $query_vars['search_columns'] ) ? $query_vars['search_columns'] : $default_search_columns;
+		$default_search_columns   = array( 'post_title', 'post_excerpt', 'post_content' );
+		$allowed_search_columns   = $default_search_columns;
+		$allowed_search_columns[] = 'post_name';
+		$search_columns           = ! empty( $query_vars['search_columns'] ) ? $query_vars['search_columns'] : $default_search_columns;
 		if ( ! is_array( $search_columns ) ) {
 			$search_columns = array( $search_columns );
 		}
@@ -1471,7 +1500,7 @@ class WP_Query {
 		/**
 		 * Filters the columns to search in a WP_Query search.
 		 *
-		 * The supported columns are `post_title`, `post_excerpt` and `post_content`.
+		 * The supported columns are `post_title`, `post_excerpt`, `post_content`, and `post_name`.
 		 * They are all included by default.
 		 *
 		 * @since 6.2.0
@@ -1483,7 +1512,7 @@ class WP_Query {
 		$search_columns = (array) apply_filters( 'post_search_columns', $search_columns, $query_vars['s'], $this );
 
 		// Use only supported search columns.
-		$search_columns = array_intersect( $search_columns, $default_search_columns );
+		$search_columns = array_intersect( $search_columns, $allowed_search_columns );
 		if ( empty( $search_columns ) ) {
 			$search_columns = $default_search_columns;
 		}
@@ -1510,12 +1539,10 @@ class WP_Query {
 				$andor_op = 'OR';
 			}
 
-			if ( $n && ! $exclude ) {
-				$like                                 = '%' . $wpdb->esc_like( $term ) . '%';
+			$like = $start . $wpdb->esc_like( $term ) . $end;
+			if ( $end && ! $exclude ) {
 				$query_vars['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
 			}
-
-			$like = $n . $wpdb->esc_like( $term ) . $n;
 
 			$search_columns_parts = array();
 			foreach ( $search_columns as $search_column ) {
@@ -1970,6 +1997,10 @@ class WP_Query {
 			if ( ! isset( $query_vars['ignore_sticky_posts'] ) ) {
 				$query_vars['ignore_sticky_posts'] = $query_vars['caller_get_posts'];
 			}
+		}
+
+		if ( ! isset( $query_vars['search_position'] ) || ! in_array( $query_vars['search_position'], array( 'start', 'end', 'anywhere' ), true ) ) {
+			$query_vars['search_position'] = 'anywhere';
 		}
 
 		if ( ! isset( $query_vars['ignore_sticky_posts'] ) ) {
