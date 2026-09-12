@@ -182,6 +182,31 @@ HTML;
 	}
 
 	/**
+	 * @ticket 65372
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 * @covers WP_HTML_Tag_Processor::seek
+	 * @covers WP_HTML_Tag_Processor::set_bookmark
+	 */
+	public function test_repeated_duplicate_attribute_removal_does_not_break_following_bookmark() {
+		$processor = new WP_HTML_Tag_Processor( '<div a a></div><path id=x></path>' );
+		$this->assertTrue( $processor->next_tag( 'div' ), 'Could not find the DIV tag: check test setup.' );
+		$this->assertTrue( $processor->set_bookmark( 'div' ), 'Could not bookmark the DIV tag.' );
+		$this->assertTrue( $processor->next_tag( 'path' ), 'Could not find the PATH tag: check test setup.' );
+		$this->assertTrue( $processor->set_bookmark( 'path' ), 'Could not bookmark the PATH tag.' );
+
+		$this->assertTrue( $processor->seek( 'div' ), 'Could not seek back to the DIV tag.' );
+		$this->assertTrue( $processor->remove_attribute( 'a' ), 'Could not remove the duplicated attribute.' );
+		$this->assertTrue( $processor->remove_attribute( 'a' ), 'Could not remove the duplicated attribute again.' );
+		$this->assertNull( $processor->get_attribute( 'a' ), 'The duplicated attribute was not removed.' );
+		$processor->get_updated_html();
+
+		$this->assertTrue( $processor->seek( 'path' ), 'Could not seek to the PATH tag after removing the attributes.' );
+		$this->assertSame( 'PATH', $processor->get_tag(), 'The PATH bookmark no longer points to its tag.' );
+		$this->assertSame( 'x', $processor->get_attribute( 'id' ), 'The PATH bookmark points to the wrong tag.' );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::seek
