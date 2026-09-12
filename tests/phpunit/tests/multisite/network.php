@@ -760,4 +760,27 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		static::factory()->network->create();
 		return (int) $wpdb->get_var( 'SELECT id FROM ' . $wpdb->site . ' ORDER BY id DESC LIMIT 1' ) + 1;
 	}
+
+	/**
+	 * Tests that a cache miss is not stored while cache addition is suspended.
+	 *
+	 * @ticket 66006
+	 *
+	 * @covers WP_Network::get_instance
+	 */
+	public function test_get_instance_does_not_cache_a_miss_while_cache_addition_is_suspended(): void {
+		clean_network_cache( self::$different_network_id );
+		$this->assertFalse( wp_cache_get( self::$different_network_id, 'networks' ), 'The network was cached before the test began.' );
+
+		$suspend = wp_suspend_cache_addition();
+		wp_suspend_cache_addition( true );
+
+		$network = WP_Network::get_instance( self::$different_network_id );
+
+		wp_suspend_cache_addition( $suspend );
+
+		$this->assertInstanceOf( WP_Network::class, $network, 'A network object was not returned.' );
+		$this->assertSame( self::$different_network_id, (int) $network->id, 'The wrong network was returned.' );
+		$this->assertFalse( wp_cache_get( self::$different_network_id, 'networks' ), 'The network was added to the cache.' );
+	}
 }
