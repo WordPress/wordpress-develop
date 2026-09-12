@@ -13,8 +13,8 @@ if ( is_network_admin() ) {
 	 *
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
-	 * @private
 	 * @since 3.1.0
+	 * @access private
 	 */
 	do_action( '_network_admin_menu' );
 } elseif ( is_user_admin() ) {
@@ -24,8 +24,8 @@ if ( is_network_admin() ) {
 	 *
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
-	 * @private
 	 * @since 3.1.0
+	 * @access private
 	 */
 	do_action( '_user_admin_menu' );
 } else {
@@ -35,11 +35,18 @@ if ( is_network_admin() ) {
 	 *
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
-	 * @private
 	 * @since 2.2.0
+	 * @access private
 	 */
 	do_action( '_admin_menu' );
 }
+
+/**
+ * @global array $menu
+ * @global array $submenu
+ * @global array $compat
+ */
+global $menu, $submenu, $compat;
 
 // Create list of page plugin hook names.
 foreach ( $menu as $menu_page ) {
@@ -327,12 +334,9 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 		} elseif ( ! isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
 			return 1;
 		} elseif ( isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
-			if ( $menu_order[ $a ] === $menu_order[ $b ] ) {
-				return 0;
-			}
-			return ( $menu_order[ $a ] < $menu_order[ $b ] ) ? -1 : 1;
+			return $menu_order[ $a ] <=> $menu_order[ $b ];
 		} else {
-			return ( $default_menu_order[ $a ] <= $default_menu_order[ $b ] ) ? -1 : 1;
+			return $default_menu_order[ $a ] <=> $default_menu_order[ $b ];
 		}
 	}
 

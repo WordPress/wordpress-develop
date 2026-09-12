@@ -150,11 +150,13 @@ function wp_title_rss( $deprecated = '&#8211;' ) {
  * Retrieves the current post title for the feed.
  *
  * @since 2.0.0
+ * @since 6.6.0 Added the `$post` parameter.
  *
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Current post title.
  */
-function get_the_title_rss() {
-	$title = get_the_title();
+function get_the_title_rss( $post = 0 ) {
+	$title = get_the_title( $post );
 
 	/**
 	 * Filters the post title for use in a feed.
@@ -480,6 +482,10 @@ function rss_enclosure() {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
 
+				if ( count( $enclosure ) < 3 ) {
+					continue;
+				}
+
 				// Only get the first element, e.g. 'audio/mpeg' from 'audio/mpeg mpga mp2 mp3'.
 				$t    = preg_split( '/[ \t]/', trim( $enclosure[2] ) );
 				$type = $t[0];
@@ -585,7 +591,7 @@ function prep_atom_text_construct( $data ) {
 	}
 
 	if ( ! function_exists( 'xml_parser_create' ) ) {
-		trigger_error( __( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." ) );
+		wp_trigger_error( '', __( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." ) );
 
 		return array( 'html', "<![CDATA[$data]]>" );
 	}
@@ -593,7 +599,11 @@ function prep_atom_text_construct( $data ) {
 	$parser = xml_parser_create();
 	xml_parse( $parser, '<div>' . $data . '</div>', true );
 	$code = xml_get_error_code( $parser );
-	xml_parser_free( $parser );
+
+	if ( PHP_VERSION_ID < 80000 ) { // xml_parser_free() has no effect as of PHP 8.0.
+		xml_parser_free( $parser );
+	}
+
 	unset( $parser );
 
 	if ( ! $code ) {
@@ -658,8 +668,14 @@ function rss2_site_icon() {
  * @return string Correct link for the atom:self element.
  */
 function get_self_link() {
-	$host = parse_url( home_url() );
-	return set_url_scheme( 'http://' . $host['host'] . wp_unslash( $_SERVER['REQUEST_URI'] ) );
+	$parsed = parse_url( home_url() );
+
+	$domain = $parsed['host'];
+	if ( isset( $parsed['port'] ) ) {
+		$domain .= ':' . $parsed['port'];
+	}
+
+	return set_url_scheme( 'http://' . $domain . wp_unslash( $_SERVER['REQUEST_URI'] ) );
 }
 
 /**
@@ -684,14 +700,134 @@ function self_link() {
 }
 
 /**
+ * Retrieves the XML namespaces for the root element of a feed.
+ *
+ * Namespaces are keyed by their prefix, so the same prefix cannot be
+ * declared twice. The default namespaces of a feed type cannot be removed,
+ * as the bundled feed templates use them in their static markup.
+ *
+ * @since 7.2.0
+ *
+ * @param string $type Type of feed. Possible values include 'rss2', 'rss2-comments',
+ *                     'rdf', 'atom', and 'atom-comments'.
+ * @return array<string, string> Array of namespace URIs, keyed by their prefix.
+ * @phpstan-param non-falsy-string $type
+ * @phpstan-return array<non-falsy-string, non-falsy-string>
+ */
+function wp_get_feed_namespaces( string $type ): array {
+	$defaults = array();
+
+	switch ( $type ) {
+		case 'rss2':
+			$defaults = array(
+				'content' => 'http://purl.org/rss/1.0/modules/content/',
+				'wfw'     => 'http://wellformedweb.org/CommentAPI/',
+				'dc'      => 'http://purl.org/dc/elements/1.1/',
+				'atom'    => 'http://www.w3.org/2005/Atom',
+				'sy'      => 'http://purl.org/rss/1.0/modules/syndication/',
+				'slash'   => 'http://purl.org/rss/1.0/modules/slash/',
+			);
+			break;
+
+		case 'rss2-comments':
+			$defaults = array(
+				'content' => 'http://purl.org/rss/1.0/modules/content/',
+				'dc'      => 'http://purl.org/dc/elements/1.1/',
+				'atom'    => 'http://www.w3.org/2005/Atom',
+				'sy'      => 'http://purl.org/rss/1.0/modules/syndication/',
+			);
+			break;
+
+		case 'rdf':
+			$defaults = array(
+				'rdf'     => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+				'dc'      => 'http://purl.org/dc/elements/1.1/',
+				'sy'      => 'http://purl.org/rss/1.0/modules/syndication/',
+				'admin'   => 'http://webns.net/mvcb/',
+				'content' => 'http://purl.org/rss/1.0/modules/content/',
+			);
+			break;
+
+		case 'atom':
+		case 'atom-comments':
+			$defaults = array(
+				'thr' => 'http://purl.org/syndication/thread/1.0',
+			);
+			break;
+	}
+
+	/**
+	 * Filters the XML namespaces of a feed's root element.
+	 *
+	 * Namespaces are keyed by their prefix, which makes duplicate `xmlns`
+	 * attributes impossible.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, string> $namespaces Array of namespace URIs, keyed by their prefix.
+	 * @param string                $type       Type of feed. Possible values include 'rss2',
+	 *                                          'rss2-comments', 'rdf', 'atom', and 'atom-comments'.
+	 */
+	$namespaces = apply_filters( 'wp_feed_namespaces', $defaults, $type );
+
+	if ( ! is_array( $namespaces ) ) {
+		$namespaces = array();
+	}
+
+	// The bundled feed templates use the default namespaces, so they cannot be removed.
+	$namespaces = array_merge( $namespaces, $defaults );
+
+	$sanitized = array();
+
+	foreach ( $namespaces as $prefix => $uri ) {
+		$prefix = (string) $prefix;
+
+		// Prefixes must be valid XML names, and the `xml` and `xmlns` prefixes are reserved.
+		if ( ! preg_match( '/^[\p{L}_][\p{L}\p{M}\p{N}._\-\x{B7}]*\z/u', $prefix )
+			|| in_array( strtolower( $prefix ), array( 'xml', 'xmlns' ), true )
+		) {
+			continue;
+		}
+
+		if ( ! is_string( $uri ) || empty( $uri ) ) {
+			continue;
+		}
+
+		$sanitized[ $prefix ] = $uri;
+	}
+
+	return $sanitized;
+}
+
+/**
+ * Displays the XML namespaces for the root element of a feed.
+ *
+ * Plugins should add namespaces via the {@see 'wp_feed_namespaces'} filter instead
+ * of the older {@see "{$type}_ns"} actions, as two action callbacks printing the
+ * same namespace produce a duplicate attribute, which is a well-formedness
+ * error in XML.
+ *
+ * @since 7.2.0
+ *
+ * @param string $type Type of feed. Possible values include 'rss2', 'rss2-comments',
+ *                     'rdf', 'atom', and 'atom-comments'.
+ * @phpstan-param non-falsy-string $type
+ */
+function wp_feed_namespaces( string $type ): void {
+	foreach ( wp_get_feed_namespaces( $type ) as $prefix => $uri ) {
+		printf( "xmlns:%s=\"%s\"\n\t", $prefix, esc_attr( $uri ) );
+	}
+}
+
+/**
  * Gets the UTC time of the most recently modified post from WP_Query.
  *
  * If viewing a comment feed, the time of the most recently modified
  * comment will be returned.
  *
- * @global WP_Query $wp_query WordPress Query object.
- *
  * @since 5.2.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string $format Date format string to return the time in.
  * @return string|false The time in requested format, or false on failure.
@@ -783,10 +919,10 @@ function feed_content_type( $type = '' ) {
  * @param string|string[] $url URL of feed to retrieve. If an array of URLs, the feeds are merged
  *                             using SimplePie's multifeed feature.
  *                             See also {@link http://simplepie.org/wiki/faq/typical_multifeed_gotchas}
- * @return SimplePie|WP_Error SimplePie object on success or WP_Error object on failure.
+ * @return SimplePie\SimplePie|WP_Error SimplePie object on success or WP_Error object on failure.
  */
 function fetch_feed( $url ) {
-	if ( ! class_exists( 'SimplePie', false ) ) {
+	if ( ! class_exists( 'SimplePie\SimplePie', false ) ) {
 		require_once ABSPATH . WPINC . '/class-simplepie.php';
 	}
 
@@ -794,9 +930,10 @@ function fetch_feed( $url ) {
 	require_once ABSPATH . WPINC . '/class-wp-simplepie-file.php';
 	require_once ABSPATH . WPINC . '/class-wp-simplepie-sanitize-kses.php';
 
-	$feed = new SimplePie();
+	$feed = new SimplePie\SimplePie();
 
-	$feed->set_sanitize_class( 'WP_SimplePie_Sanitize_KSES' );
+	$feed->get_registry()->register( SimplePie\Sanitize::class, 'WP_SimplePie_Sanitize_KSES', true );
+
 	/*
 	 * We must manually overwrite $feed->sanitize because SimplePie's constructor
 	 * sets it before we have a chance to set the sanitization class.
@@ -813,9 +950,8 @@ function fetch_feed( $url ) {
 		$feed->set_cache_class( 'WP_Feed_Cache' );
 	}
 
-	$feed->set_file_class( 'WP_SimplePie_File' );
+	$feed->get_registry()->register( SimplePie\File::class, 'WP_SimplePie_File', true );
 
-	$feed->set_feed_url( $url );
 	/** This filter is documented in wp-includes/class-wp-feed-cache-transient.php */
 	$feed->set_cache_duration( apply_filters( 'wp_feed_cache_transient_lifetime', 12 * HOUR_IN_SECONDS, $url ) );
 
@@ -824,13 +960,67 @@ function fetch_feed( $url ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param SimplePie       $feed SimplePie feed object (passed by reference).
-	 * @param string|string[] $url  URL of feed or array of URLs of feeds to retrieve.
+	 * @param SimplePie\SimplePie $feed SimplePie feed object (passed by reference).
+	 * @param string|string[]     $url  URL of feed or array of URLs of feeds to retrieve.
 	 */
 	do_action_ref_array( 'wp_feed_options', array( &$feed, $url ) );
 
+	if ( empty( $url ) ) {
+		/*
+		 * @todo: Set $url to empty string once supported by SimplePie.
+		 *
+		 * The early return without proceeding is to work around a PHP 8.5
+		 * deprecation issue resolved in https://github.com/simplepie/simplepie/pull/949
+		 *
+		 * To avoid the duplicate code, this block can be replaced with `$url = '';` once SimplePie
+		 * is upgraded to a version that includes the fix.
+		 */
+		$feed->init();
+		$feed->set_output_encoding( get_bloginfo( 'charset' ) );
+
+		if ( $feed->error() ) {
+			return new WP_Error( 'simplepie-error', $feed->error() );
+		}
+
+		return $feed;
+	} elseif ( is_array( $url ) && count( $url ) === 1 ) {
+		$url = array_shift( $url );
+	} elseif ( is_array( $url ) ) {
+		$feeds            = array();
+		$simplepie_errors = array();
+		foreach ( $url as $feed_url ) {
+			$simplepie_instance = clone $feed;
+			$simplepie_instance->set_feed_url( $feed_url );
+			$simplepie_instance->init();
+			$simplepie_instance->set_output_encoding( get_bloginfo( 'charset' ) );
+
+			if ( $simplepie_instance->error() ) {
+				$simplepie_errors[] = sprintf(
+					/* translators: %1$s is the feed URL, %2$s is the error message. */
+					__( 'Error fetching feed %1$s: %2$s' ),
+					esc_url( $feed_url ),
+					$simplepie_instance->error()
+				);
+				unset( $simplepie_instance );
+				continue;
+			}
+
+			$feeds[] = $simplepie_instance;
+			unset( $simplepie_instance );
+		}
+
+		if ( ! empty( $simplepie_errors ) ) {
+			return new WP_Error( 'simplepie-error', $simplepie_errors );
+		}
+
+		$feed->init();
+		$feed->data['items'] = SimplePie\SimplePie::merge_items( $feeds );
+		return $feed;
+	}
+
+	$feed->set_feed_url( $url );
 	$feed->init();
-	$feed->set_output_encoding( get_option( 'blog_charset' ) );
+	$feed->set_output_encoding( get_bloginfo( 'charset' ) );
 
 	if ( $feed->error() ) {
 		return new WP_Error( 'simplepie-error', $feed->error() );

@@ -11,7 +11,8 @@
  *
  * @since 2.1.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global object $link Current link object.
+ * @global wpdb   $wpdb WordPress database abstraction object.
  *
  * @param int|stdClass $bookmark
  * @param string       $output   Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
@@ -33,7 +34,7 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 		wp_cache_add( $bookmark->link_id, $bookmark, 'bookmark' );
 		$_bookmark = $bookmark;
 	} else {
-		if ( isset( $GLOBALS['link'] ) && ( $GLOBALS['link']->link_id == $bookmark ) ) {
+		if ( isset( $GLOBALS['link'] ) && ( $GLOBALS['link']->link_id === $bookmark ) ) {
 			$_bookmark = & $GLOBALS['link'];
 		} else {
 			$_bookmark = wp_cache_get( $bookmark, 'bookmark' );
@@ -107,28 +108,29 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  * @param string|array $args {
  *     Optional. String or array of arguments to retrieve bookmarks.
  *
- *     @type string   $orderby        How to order the links by. Accepts 'id', 'link_id', 'name', 'link_name',
- *                                    'url', 'link_url', 'visible', 'link_visible', 'rating', 'link_rating',
- *                                    'owner', 'link_owner', 'updated', 'link_updated', 'notes', 'link_notes',
- *                                    'description', 'link_description', 'length' and 'rand'.
- *                                    When `$orderby` is 'length', orders by the character length of
- *                                    'link_name'. Default 'name'.
- *     @type string   $order          Whether to order bookmarks in ascending or descending order.
- *                                    Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
- *     @type int      $limit          Amount of bookmarks to display. Accepts any positive number or
- *                                    -1 for all.  Default -1.
- *     @type string   $category       Comma-separated list of category IDs to include links from.
- *                                    Default empty.
- *     @type string   $category_name  Category to retrieve links for by name. Default empty.
- *     @type int|bool $hide_invisible Whether to show or hide links marked as 'invisible'. Accepts
- *                                    1|true or 0|false. Default 1|true.
- *     @type int|bool $show_updated   Whether to display the time the bookmark was last updated.
- *                                    Accepts 1|true or 0|false. Default 0|false.
- *     @type string   $include        Comma-separated list of bookmark IDs to include. Default empty.
- *     @type string   $exclude        Comma-separated list of bookmark IDs to exclude. Default empty.
- *     @type string   $search         Search terms. Will be SQL-formatted with wildcards before and after
- *                                    and searched in 'link_url', 'link_name' and 'link_description'.
- *                                    Default empty.
+ *     @type string     $orderby        How to order the links by. Accepts 'id', 'link_id', 'name', 'link_name',
+ *                                      'url', 'link_url', 'visible', 'link_visible', 'rating', 'link_rating',
+ *                                      'owner', 'link_owner', 'updated', 'link_updated', 'notes', 'link_notes',
+ *                                      'description', 'link_description', 'length' and 'rand'.
+ *                                      When `$orderby` is 'length', orders by the character length of
+ *                                      'link_name'. Default 'name'.
+ *     @type string     $order          Whether to order bookmarks in ascending or descending order.
+ *                                      Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
+ *     @type int        $limit          Amount of bookmarks to display. Accepts any positive number or
+ *                                      -1 for all.  Default -1.
+ *     @type int|string $category       A category ID, or a comma-separated list of category IDs to include
+ *                                      links from. Ignored if `$category_name` is passed. Default empty.
+ *     @type string     $category_name  Category to retrieve links for by name. Takes precedence over
+ *                                      `$category`. Default empty.
+ *     @type int|bool   $hide_invisible Whether to show or hide links marked as 'invisible'. Accepts
+ *                                      1|true or 0|false. Default 1|true.
+ *     @type int|bool   $show_updated   Whether to display the time the bookmark was last updated.
+ *                                      Accepts 1|true or 0|false. Default 0|false.
+ *     @type string     $include        Comma-separated list of bookmark IDs to include. Default empty.
+ *     @type string     $exclude        Comma-separated list of bookmark IDs to exclude. Default empty.
+ *     @type string     $search         Search terms. Will be SQL-formatted with wildcards before and after
+ *                                      and searched in 'link_url', 'link_name' and 'link_description'.
+ *                                      Default empty.
  * }
  * @return object[] List of bookmark row objects.
  */
@@ -306,7 +308,7 @@ function get_bookmarks( $args = '' ) {
 	$query  = "SELECT * $length $recently_updated_test $get_updated FROM $wpdb->links $join WHERE 1=1 $visible $category_query";
 	$query .= " $exclusions $inclusions $search";
 	$query .= " ORDER BY $orderby $order";
-	if ( -1 != $parsed_args['limit'] ) {
+	if ( -1 !== $parsed_args['limit'] ) {
 		$query .= ' LIMIT ' . absint( $parsed_args['limit'] );
 	}
 

@@ -1,11 +1,19 @@
+/* global ajaxurl, pwsL10n, userProfileL10n, ClipboardJS */
+
 /**
  * @output wp-admin/js/user-profile.js
  */
 
-/* global ajaxurl, pwsL10n, userProfileL10n */
+/**
+ * Handles the user profile functionality.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 (function($) {
 	var updateLock = false,
+		isSubmitting = false,
 		__ = wp.i18n.__,
+		clipboard = new ClipboardJS( '.application-password-display .copy-button' ),
 		$pass1Row,
 		$pass1,
 		$pass2,
@@ -15,8 +23,26 @@
 		$submitButtons,
 		$submitButton,
 		currentPass,
-		$passwordWrapper;
+		$form,
+		originalFormContent,
+		$passwordWrapper,
+		successTimeout,
+		isMac = window.navigator.platform ? window.navigator.platform.indexOf( 'Mac' ) !== -1 : false,
+		ua = navigator.userAgent.toLowerCase(),
+		isSafari = window.safari !== 'undefined' && typeof window.safari === 'object',
+		isFirefox = ua.indexOf( 'firefox' ) !== -1;
 
+	/**
+	 * Generates a password and updates the password input field.
+	 *
+	 * If zxcvbn is not yet loaded, it will wait and try again. If the password
+	 * input field is empty or the password wrapper is open, it will set the
+	 * password to the generated value. If the user has already entered a
+	 * password, it will check the strength of that password. It also binds
+	 * the toggle button to show or hide the password and sets the initial state
+	 * of the toggle button based on whether the password should be masked or
+	 * not. Finally, it updates the label for confirming weak passwords.
+	 */
 	function generatePassword() {
 		if ( typeof zxcvbn !== 'function' ) {
 			setTimeout( generatePassword, 50 );
@@ -50,13 +76,11 @@
 
 		// Once zxcvbn loads, passwords strength is known.
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
-
-		// Focus the password field.
-		if ( 'mailserver_pass' !== $pass1.prop('id' ) ) {
-			$( $pass1 ).trigger( 'focus' );
-		}
 	}
 
+	/**
+	 * Binds the password input field to update the current password and refresh the password strength area when the user types in the field.
+	 */
 	function bindPass1() {
 		currentPass = $pass1.val();
 
@@ -75,8 +99,15 @@
 			$pass1.removeClass( 'short bad good strong' );
 			showOrHideWeakPasswordCheckbox();
 		} );
+
+		bindCapsLockWarning( $pass1 );
 	}
 
+	/**
+	 * Resets the toggle button to show or hide the password.
+	 *
+	 * @param {boolean} show Whether to show the password or not.
+	 */
 	function resetToggle( show ) {
 		$toggleButton
 			.attr({
@@ -90,12 +121,17 @@
 				.addClass( show ? 'dashicons-visibility' : 'dashicons-hidden' );
 	}
 
+	/**
+	 * Binds the toggle button to show or hide the password. Also ensures that the password input type is set to password when the form is submitted.
+	 */
 	function bindToggleButton() {
 		if ( !! $toggleButton ) {
 			// Do not rebind.
 			return;
 		}
 		$toggleButton = $pass1Row.find('.wp-hide-pw');
+
+		// Toggle between showing and hiding the password.
 		$toggleButton.show().on( 'click', function () {
 			if ( 'password' === $pass1.attr( 'type' ) ) {
 				$pass1.attr( 'type', 'text' );
@@ -105,6 +141,14 @@
 				resetToggle( true );
 			}
 		});
+
+		// Ensure the password input type is set to password when the form is submitted.
+		$pass1Row.closest( 'form' ).on( 'submit', function() {
+			if ( $pass1.attr( 'type' ) === 'text' ) {
+				$pass1.attr( 'type', 'password' );
+				resetToggle( true );
+			}
+		} );
 	}
 
 	/**
@@ -144,11 +188,13 @@
 	 *
 	 * @param {jQuery Object} $this   The button element: the message will be inserted
 	 *                                above this button
-	 * @param {bool}          success Whether the message is a success message.
+	 * @param {boolean}       success Whether the message is a success message.
 	 * @param {string}        message The message to insert.
 	 */
 	function addInlineNotice( $this, success, message ) {
-		var resultDiv = $( '<div />' );
+		var resultDiv = $( '<div />', {
+			role: 'alert'
+		} );
 
 		// Set up the notice div.
 		resultDiv.addClass( 'notice inline' );
@@ -169,6 +215,9 @@
 		$this.before( resultDiv );
 	}
 
+	/**
+	 * Initializes the password form, including the password strength meter, weak password checkbox, and show/hide password toggle button.
+	 */
 	function bindPasswordForm() {
 		var $generateButton,
 			$cancelButton;
@@ -196,6 +245,8 @@
 		} else {
 			// Password field for the login form.
 			$pass1 = $( '#user_pass' );
+
+			bindCapsLockWarning( $pass1 );
 		}
 
 		/*
@@ -283,6 +334,9 @@
 		});
 	}
 
+	/**
+	 * Sets CSS classes to the password strength results based on the password strength.
+	 */
 	function check_pass_strength() {
 		var pass1 = $('#pass1').val(), strength;
 
@@ -311,10 +365,86 @@
 				$('#pass-strength-result').addClass('short').html( pwsL10n.mismatch );
 				break;
 			default:
-				$('#pass-strength-result').addClass('short').html( pwsL10n['short'] );
+				$('#pass-strength-result').addClass('short').html( pwsL10n.short );
 		}
 	}
 
+	/**
+	 * Bind Caps Lock detection to a password input field.
+	 *
+	 * @param {jQuery} $input The password input field.
+	 */
+	function bindCapsLockWarning( $input ) {
+		var $capsWarning,
+			$capsIcon,
+			$capsText,
+			capsLockOn = false;
+
+		// Skip warning on macOS Safari + Firefox (they show native indicators).
+		if ( isMac && ( isSafari || isFirefox ) ) {
+			return;
+		}
+
+		$capsWarning = $( '<div id="caps-warning" class="caps-warning"></div>' );
+		$capsIcon    = $( '<span class="caps-icon" aria-hidden="true"><svg viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg" fill="#3c434a" stroke="#3c434a" stroke-width="0.5"><path d="M12 5L19 15H16V19H8V15H5L12 5Z"/><rect x="8" y="21" width="8" height="1.5" rx="0.75"/></svg></span>' );
+		$capsText    = $( '<span>', { 'class': 'caps-warning-text', text: __( 'Caps lock is on.' ) } );
+		$capsWarning.append( $capsIcon, $capsText );
+
+		$input.parent( 'div' ).append( $capsWarning );
+
+		$input.on( 'keydown', function( jqEvent ) {
+			var event = jqEvent.originalEvent;
+
+			// Skip if key is not a printable character.
+			// Key length > 1 usually means non-printable (e.g., "Enter", "Tab").
+			if ( event.ctrlKey || event.metaKey || event.altKey || ! event.key || event.key.length !== 1 ) {
+				return;
+			}
+
+			var state = isCapsLockOn( event );
+
+			// React when the state changes or if caps lock is on when the user starts typing.
+			if ( state !== capsLockOn ) {
+				capsLockOn = state;
+
+				if ( capsLockOn ) {
+					$capsWarning.show();
+					// Don't duplicate existing screen reader Caps lock notifications.
+					if ( event.key !== 'CapsLock' ) {
+						wp.a11y.speak( __( 'Caps lock is on.' ), 'assertive' );
+					}
+				} else {
+					$capsWarning.hide();
+				}
+			}
+		} );
+
+		$input.on( 'blur', function() {
+			if ( ! document.hasFocus() ) {
+				return;
+			}
+			capsLockOn = false;
+			$capsWarning.hide();
+		} );
+	}
+
+	/**
+	 * Determines if Caps Lock is currently enabled.
+	 *
+	 * On macOS Safari and Firefox, the native warning is preferred,
+	 * so this function returns false to suppress custom warnings.
+	 *
+	 * @param {KeyboardEvent} event The keydown event object.
+	 *
+	 * @return {boolean} True if Caps Lock is on, false otherwise.
+	 */
+	function isCapsLockOn( event ) {
+		return event.getModifierState( 'CapsLock' );
+	}
+
+	/**
+	 * Toggles the visibility of the weak password checkbox.
+	 */
 	function showOrHideWeakPasswordCheckbox() {
 		var passStrengthResult = $('#pass-strength-result');
 
@@ -340,6 +470,27 @@
 			}
 		}
 	}
+
+	// Debug information copy section.
+	clipboard.on( 'success', function( e ) {
+		var triggerElement = $( e.trigger ),
+			successElement = $( '.success', triggerElement.closest( '.application-password-display' ) );
+
+		// Clear the selection and move focus back to the trigger.
+		e.clearSelection();
+
+		// Show success visual feedback.
+		clearTimeout( successTimeout );
+		successElement.removeClass( 'hidden' );
+
+		// Hide success visual feedback after 3 seconds since last success.
+		successTimeout = setTimeout( function() {
+			successElement.addClass( 'hidden' );
+		}, 3000 );
+
+		// Handle success audible feedback.
+		wp.a11y.speak( __( 'Application password has been copied to your clipboard.' ) );
+	} );
 
 	$( function() {
 		var $colorpicker, $stylesheet, user_id, current_user_id,
@@ -454,6 +605,12 @@
 
 		bindPasswordForm();
 		bindPasswordResetLink();
+		$submitButtons.on( 'click', function() {
+			isSubmitting = true;
+		});
+
+		$form = $( '#your-profile, #createuser' );
+		originalFormContent = $form.serialize();
 	});
 
 	$( '#destroy-sessions' ).on( 'click', function( e ) {
@@ -465,10 +622,10 @@
 		}).done( function( response ) {
 			$this.prop( 'disabled', true );
 			$this.siblings( '.notice' ).remove();
-			$this.before( '<div class="notice notice-success inline"><p>' + response.message + '</p></div>' );
+			$this.before( '<div class="notice notice-success inline" role="alert"><p>' + response.message + '</p></div>' );
 		}).fail( function( response ) {
 			$this.siblings( '.notice' ).remove();
-			$this.before( '<div class="notice notice-error inline"><p>' + response.message + '</p></div>' );
+			$this.before( '<div class="notice notice-error inline" role="alert"><p>' + response.message + '</p></div>' );
 		});
 
 		e.preventDefault();
@@ -481,7 +638,10 @@
 		if ( true === updateLock ) {
 			return __( 'Your new password has not been saved.' );
 		}
-	} );
+		if ( originalFormContent !== $form.serialize() && ! isSubmitting ) {
+			return __( 'The changes you made will be lost if you navigate away from this page.' );
+		}
+	});
 
 	/*
 	 * We need to generate a password as soon as the Reset Password page is loaded,

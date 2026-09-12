@@ -1,0 +1,60 @@
+##
+# A reusable workflow that builds and packages WordPress. The resulting package can be used to test upgrading and installing.
+##
+name: Build and package WordPress
+
+on:
+  workflow_call:
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Builds and packages WordPress.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Runs the build script.
+  # - Prepares the directory structure for the ZIP.
+  # - Creates a ZIP of the built files.
+  # - Uploads the ZIP as a GitHub Actions artifact.
+  build:
+    name: WordPress
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Prepare the directory structure for the ZIP
+        run: mv build wordpress
+
+      - name: Create ZIP of built files
+        run: zip -q -r develop.zip wordpress/.
+
+      - name: Upload ZIP as a GitHub Actions artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wordpress-develop
+          path: develop.zip
+          if-no-files-found: error

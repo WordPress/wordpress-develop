@@ -35,9 +35,9 @@ test.describe( 'Admin Visual Snapshots', () => {
 		});
 	} );
 
-	test( 'Add New Media', async ({ admin, page }) => {
+	test( 'Add Media', async ({ admin, page }) => {
 		await admin.visitAdminPage( '/media-new.php' );
-		await expect( page ).toHaveScreenshot( 'Add New Media.png', {
+		await expect( page ).toHaveScreenshot( 'Add Media.png', {
 			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
 		});
 	} );
@@ -84,9 +84,9 @@ test.describe( 'Admin Visual Snapshots', () => {
 		});
 	} );
 
-	test( 'Add New User', async ({ admin, page }) => {
+	test( 'Add User', async ({ admin, page }) => {
 		await admin.visitAdminPage( '/user-new.php' );
-		await expect( page ).toHaveScreenshot( 'Add New User.png', {
+		await expect( page ).toHaveScreenshot( 'Add User.png', {
 			mask: [
 					...elementsToHide,
 					'.password-input-wrapper'

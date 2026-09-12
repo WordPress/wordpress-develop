@@ -148,6 +148,7 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53604
+	 * @ticket 63909
 	 */
 	public function test_inner_blocks_excerpt() {
 		$content_1 = '<!-- wp:group -->
@@ -180,6 +181,71 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 <p></p>
 <!-- /wp:paragraph -->';
 
+		$content_3 = '<!-- wp:list -->
+<ul class="wp-block-list"><!-- wp:list-item -->
+<li>List item inside a list.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p></p>
+<!-- /wp:paragraph -->';
+
+		$post_1 = self::factory()->post->create_and_get(
+			array(
+				'post_content' => $content_1,
+				'post_excerpt' => '',
+			)
+		);
+
+		$post_2 = self::factory()->post->create_and_get(
+			array(
+				'post_content' => $content_2,
+				'post_excerpt' => '',
+			)
+		);
+
+		$post_3 = self::factory()->post->create_and_get(
+			array(
+				'post_content' => $content_3,
+				'post_excerpt' => '',
+			)
+		);
+
+		$this->assertSame(
+			'Column 1 Column 2',
+			get_the_excerpt( ( new WP_Query( array( 'p' => $post_1->ID ) ) )->posts[0] )
+		);
+
+		$this->assertSame(
+			'Paragraph inside group block',
+			get_the_excerpt( ( new WP_Query( array( 'p' => $post_2->ID ) ) )->posts[0] )
+		);
+
+		$this->assertSame(
+			'List item inside a list.',
+			get_the_excerpt( ( new WP_Query( array( 'p' => $post_3->ID ) ) )->posts[0] )
+		);
+	}
+
+	/**
+	 * Legacy List blocks store their items as raw HTML instead of inner blocks.
+	 * They should still contribute to the excerpt, both on their own and when
+	 * nested inside another block.
+	 *
+	 * @ticket 63909
+	 */
+	public function test_legacy_list_block_excerpt() {
+		$content_1 = '<!-- wp:list -->
+<ul class="wp-block-list"><li>Legacy list item.</li></ul>
+<!-- /wp:list -->';
+
+		$content_2 = '<!-- wp:quote -->
+<blockquote class="wp-block-quote"><!-- wp:list -->
+<ul class="wp-block-list"><li>Quoted legacy list item.</li></ul>
+<!-- /wp:list --></blockquote>
+<!-- /wp:quote -->';
+
 		$post_1 = self::factory()->post->create_and_get(
 			array(
 				'post_content' => $content_1,
@@ -195,12 +261,12 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'Column 1 Column 2',
+			'Legacy list item.',
 			get_the_excerpt( ( new WP_Query( array( 'p' => $post_1->ID ) ) )->posts[0] )
 		);
 
 		$this->assertSame(
-			'Paragraph inside group block',
+			'Quoted legacy list item.',
 			get_the_excerpt( ( new WP_Query( array( 'p' => $post_2->ID ) ) )->posts[0] )
 		);
 	}

@@ -49,7 +49,7 @@ function wp_attach_theme_preview_middleware() {
 		'wp-api-fetch',
 		sprintf(
 			'wp.apiFetch.use( wp.apiFetch.createThemePreviewMiddleware( %s ) );',
-			wp_json_encode( sanitize_text_field( wp_unslash( $_GET['wp_theme_preview'] ) ) )
+			wp_json_encode( sanitize_text_field( wp_unslash( $_GET['wp_theme_preview'] ) ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 		),
 		'after'
 	);
@@ -61,16 +61,16 @@ function wp_attach_theme_preview_middleware() {
  * Sets the JavaScript global WP_BLOCK_THEME_ACTIVATE_NONCE containing the nonce
  * required to activate a theme. For use within the site editor.
  *
- * @see https://github.com/WordPress/gutenberg/pull/41836.
+ * @see https://github.com/WordPress/gutenberg/pull/41836
  *
  * @since 6.3.0
- * @private
+ * @access private
  */
 function wp_block_theme_activate_nonce() {
 	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
 	?>
-	<script type="text/javascript">
-		window.WP_BLOCK_THEME_ACTIVATE_NONCE = <?php echo wp_json_encode( wp_create_nonce( $nonce_handle ) ); ?>;
+	<script>
+		window.WP_BLOCK_THEME_ACTIVATE_NONCE = <?php echo wp_json_encode( wp_create_nonce( $nonce_handle ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	</script>
 	<?php
 }

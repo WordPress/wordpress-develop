@@ -1,5 +1,8 @@
 <?php
 /**
+ * @group admin
+ * @group user
+ *
  * @coversDefaultClass WP_User_Search
  */
 class Tests_Admin_wpUserSearch extends WP_UnitTestCase {

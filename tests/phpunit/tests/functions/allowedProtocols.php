@@ -2,7 +2,8 @@
 
 /**
  * @group formatting
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_allowed_protocols
  */
 class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
@@ -26,8 +27,8 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	 * @depends test_allowed_protocol_has_an_example
 	 * @dataProvider data_example_urls
 	 *
-	 * @param string The scheme.
-	 * @param string Example URL.
+	 * @param string $protocol The scheme.
+	 * @param string $url      Example URL.
 	 */
 	public function test_allowed_protocols( $protocol, $url ) {
 		$this->assertSame( $url, esc_url( $url, $protocol ) );
@@ -35,7 +36,11 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
 	 * @link http://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
+	 *
+	 * @return array[]
 	 */
 	public function data_example_urls() {
 		return array(

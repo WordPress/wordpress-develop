@@ -6,6 +6,7 @@
  * @covers WP::send_headers
  */
 class Tests_WP_SendHeaders extends WP_UnitTestCase {
+	protected $headers_sent = array();
 
 	/**
 	 * @ticket 56068
@@ -34,5 +35,47 @@ class Tests_WP_SendHeaders extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create();
 		$this->go_to( get_permalink( $post_id ) );
+	}
+
+	/**
+	 * @ticket 61711
+	 */
+	public function test_send_headers_sets_cache_control_header_for_password_protected_posts() {
+		$password = 'password';
+
+		add_filter(
+			'wp_headers',
+			function ( $headers ) {
+				$this->headers_sent = $headers;
+				return $headers;
+			}
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_password' => $password,
+			)
+		);
+		$this->go_to( get_permalink( $post_id ) );
+
+		$headers_without_password         = $this->headers_sent;
+		$password_status_without_password = post_password_required( $post_id );
+
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+
+		$hash = ( new PasswordHash( 8, true ) )->HashPassword( $password );
+
+		$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = $hash;
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$headers_with_password         = $this->headers_sent;
+		$password_status_with_password = post_password_required( $post_id );
+
+		$this->assertTrue( $password_status_without_password );
+		$this->assertArrayHasKey( 'Cache-Control', $headers_without_password );
+
+		$this->assertFalse( $password_status_with_password );
+		$this->assertArrayHasKey( 'Cache-Control', $headers_with_password );
 	}
 }

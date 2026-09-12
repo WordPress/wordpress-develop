@@ -41,7 +41,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 		$users_per_page = $this->get_items_per_page( 'users_network_per_page' );
 
-		$role = isset( $_REQUEST['role'] ) ? $_REQUEST['role'] : '';
+		$role = $_REQUEST['role'] ?? '';
 
 		$paged = $this->get_pagenum();
 
@@ -383,25 +383,30 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 			$path         = ( '/' === $site->path ) ? '' : $site->path;
 			$site_classes = array( 'site-' . $site->site_id );
+
 			/**
-			 * Filters the span class for a site listing on the mulisite user list table.
+			 * Filters the span class for a site listing on the multisite user list table.
 			 *
 			 * @since 5.2.0
 			 *
-			 * @param string[] $site_classes Array of class names used within the span tag. Default "site-#" with the site's network ID.
+			 * @param string[] $site_classes Array of class names used within the span tag.
+			 *                               Default "site-#" with the site's network ID.
 			 * @param int      $site_id      Site ID.
 			 * @param int      $network_id   Network ID.
 			 * @param WP_User  $user         WP_User object.
 			 */
 			$site_classes = apply_filters( 'ms_user_list_site_class', $site_classes, $site->userblog_id, $site->site_id, $user );
+
 			if ( is_array( $site_classes ) && ! empty( $site_classes ) ) {
 				$site_classes = array_map( 'sanitize_html_class', array_unique( $site_classes ) );
 				echo '<span class="' . esc_attr( implode( ' ', $site_classes ) ) . '">';
 			} else {
 				echo '<span>';
 			}
+
 			echo '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $site->userblog_id ) ) . '">' . str_replace( '.' . get_network()->domain, '', $site->domain . $path ) . '</a>';
 			echo ' <small class="row-actions">';
+
 			$actions         = array();
 			$actions['edit'] = '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $site->userblog_id ) ) . '">' . __( 'Edit' ) . '</a>';
 
@@ -462,9 +467,25 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$user = $item;
 
 		/** This filter is documented in wp-admin/includes/class-wp-users-list-table.php */
-		echo apply_filters( 'manage_users_custom_column', '', $column_name, $user->ID );
+		$column_output = apply_filters( 'manage_users_custom_column', '', $column_name, $user->ID );
+
+		/**
+		 * Filters the display output of custom columns in the Network Users list table.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $output      Custom column output. Default empty.
+		 * @param string $column_name Name of the custom column.
+		 * @param int    $user_id     ID of the currently-listed user.
+		 */
+		echo apply_filters( 'manage_users-network_custom_column', $column_output, $column_name, $user->ID );
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		foreach ( $this->items as $user ) {
 			$class = '';
@@ -481,7 +502,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			}
 
 			?>
-			<tr class="<?php echo trim( $class ); ?>">
+			<tr id="user-<?php echo (int) $user->ID; ?>" class="<?php echo trim( $class ); ?>">
 				<?php $this->single_row_columns( $user ); ?>
 			</tr>
 			<?php
@@ -542,5 +563,20 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$actions = apply_filters( 'ms_user_row_actions', $actions, $user );
 
 		return $this->row_actions( $actions );
+	}
+
+	/**
+	 * Returns a clean label for the primary (Username) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the user login as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_User $user The current WP_User object.
+	 * @return string The user login.
+	 */
+	protected function get_primary_column_aria_label( $user ) {
+		return $user->user_login;
 	}
 }

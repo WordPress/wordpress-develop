@@ -1788,7 +1788,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Extra sanity checks for _wptexturize_pushpop_element()
+	 * Extra confidence checks for _wptexturize_pushpop_element()
 	 *
 	 * @ticket 28483
 	 * @dataProvider data_element_stack

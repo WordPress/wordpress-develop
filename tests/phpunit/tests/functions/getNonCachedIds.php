@@ -4,6 +4,7 @@
  *
  * @package WordPress
  *
+ * @group functions
  * @group cache
  *
  * @covers ::_get_non_cached_ids

@@ -3,7 +3,8 @@
 /**
  * Test wp_fuzzy_number_match().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_fuzzy_number_match
  */
 class Tests_Functions_wpFuzzyNumberMatch extends WP_UnitTestCase {

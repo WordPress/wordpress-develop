@@ -3,7 +3,8 @@
 /**
  * Tests move_dir().
  *
- * @group file.php
+ * @group file
+ * @group filesystem
  *
  * @covers ::move_dir
  */

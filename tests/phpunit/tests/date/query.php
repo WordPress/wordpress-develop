@@ -5,8 +5,10 @@
  *
  * See query/dateQuery.php for tests that require WP_Query.
  *
- * @group datequery
  * @group date
+ * @group datetime
+ * @group datequery
+ *
  * @covers WP_Date_Query
  */
 class Tests_Date_Query extends WP_UnitTestCase {

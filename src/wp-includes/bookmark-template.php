@@ -90,7 +90,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 					__( 'Last updated: %s' ),
 					gmdate(
 						get_option( 'links_updated_date_format' ),
-						$bookmark->link_updated_f + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS )
+						$bookmark->link_updated_f + (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS )
 					)
 				);
 				$title .= ')';
@@ -105,14 +105,6 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 
 		$target = $bookmark->link_target;
 		if ( '' !== $target ) {
-			if ( is_string( $rel ) && '' !== $rel ) {
-				if ( ! str_contains( $rel, 'noopener' ) ) {
-					$rel = trim( $rel ) . ' noopener';
-				}
-			} else {
-				$rel = 'noopener';
-			}
-
 			$target = ' target="' . $target . '"';
 		}
 
@@ -124,11 +116,11 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 
 		$output .= $parsed_args['link_before'];
 
-		if ( null != $bookmark->link_image && $parsed_args['show_images'] ) {
+		if ( '' !== $bookmark->link_image && $parsed_args['show_images'] ) {
 			if ( str_starts_with( $bookmark->link_image, 'http' ) ) {
-				$output .= "<img src=\"$bookmark->link_image\" $alt $title />";
+				$output .= '<img src="' . $bookmark->link_image . '"' . $alt . $title . ' />';
 			} else { // If it's a relative path.
-				$output .= '<img src="' . get_option( 'siteurl' ) . "$bookmark->link_image\" $alt $title />";
+				$output .= '<img src="' . get_option( 'siteurl' ) . $bookmark->link_image . '"' . $alt . $title . ' />';
 			}
 			if ( $parsed_args['show_name'] ) {
 				$output .= " $name";
@@ -214,7 +206,12 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
  *                                          $categorize is true. Accepts 'ASC' (ascending) or 'DESC' (descending).
  *                                          Default 'ASC'.
  * }
- * @return void|string Void if 'echo' argument is true, HTML list of bookmarks if 'echo' is false.
+ * @return string|void HTML list of bookmarks if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_list_bookmarks( $args = '' ) {
 	$defaults = array(

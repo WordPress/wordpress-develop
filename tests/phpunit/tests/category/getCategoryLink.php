@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ * @group category
  *
  * @covers ::get_category_link
  */

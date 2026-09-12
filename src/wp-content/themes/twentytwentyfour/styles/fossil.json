@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"title": "Fossil",
 	"settings": {
@@ -76,11 +76,6 @@
 					"color": "#E1DFDB",
 					"name": "Base / Two",
 					"slug": "base-2"
-				},
-				{
-					"color": "#1A151425",
-					"name": "Base / Three",
-					"slug": "base-3"
 				},
 				{
 					"color": "#1A1514",

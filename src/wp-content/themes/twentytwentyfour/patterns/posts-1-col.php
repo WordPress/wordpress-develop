@@ -4,7 +4,13 @@
  * Slug: twentytwentyfour/posts-1-col
  * Categories: query
  * Block Types: core/query
+ * Description: A list of posts, 1 column.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:query {"query":{"perPage":3,"pages":0,"offset":"0","postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true},"layout":{"type":"constrained"}} -->

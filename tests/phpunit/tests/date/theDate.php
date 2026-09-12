@@ -4,6 +4,7 @@
  * @group date
  * @group datetime
  * @group post
+ *
  * @covers ::the_date
  * @covers ::the_weekday_date
  */

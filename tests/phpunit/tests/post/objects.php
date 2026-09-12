@@ -28,7 +28,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( 'dummy', get_post_meta( $id, 'post_type', true ) );
 		$this->assertSame( 'post', $post->post_type );
 
-		// Excercise the output argument.
+		// Exercise the output argument.
 		$post = get_post( $id, ARRAY_A );
 		$this->assertIsArray( $post );
 		$this->assertSame( 'post', $post['post_type'] );

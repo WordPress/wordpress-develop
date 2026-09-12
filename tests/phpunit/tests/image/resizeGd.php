@@ -5,6 +5,7 @@
  * @group media
  * @group upload
  * @group resize
+ * @group wp-image-editor-gd
  *
  * @requires function imagejpeg
  */

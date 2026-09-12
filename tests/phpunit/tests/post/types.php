@@ -14,6 +14,20 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public $post_type;
 
 	/**
+	 * Author user ID.
+	 */
+	public static int $author_id;
+
+	/**
+	 * Sets up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$author_id = $factory->user->create( array( 'role' => 'author' ) );
+	}
+
+	/**
 	 * Set up.
 	 *
 	 * @since 4.5.0
@@ -217,16 +231,19 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21586
+	 * @ticket 41172
 	 */
 	public function test_post_type_with_no_support() {
 		register_post_type( 'foo', array( 'supports' => array() ) );
-		$this->assertTrue( post_type_supports( 'foo', 'editor' ) );
-		$this->assertTrue( post_type_supports( 'foo', 'title' ) );
+		$this->assertTrue( post_type_supports( 'foo', 'editor' ), 'Editor support should be enabled by default.' );
+		$this->assertTrue( post_type_supports( 'foo', 'title' ), 'Title support should be enabled by default.' );
+		$this->assertTrue( post_type_supports( 'foo', 'autosave' ), 'Autosaves support should be enabled by default.' );
 		_unregister_post_type( 'foo' );
 
 		register_post_type( 'foo', array( 'supports' => false ) );
-		$this->assertFalse( post_type_supports( 'foo', 'editor' ) );
-		$this->assertFalse( post_type_supports( 'foo', 'title' ) );
+		$this->assertFalse( post_type_supports( 'foo', 'editor' ), 'Editor support should be disabled.' );
+		$this->assertFalse( post_type_supports( 'foo', 'title' ), 'Title support should be disabled.' );
+		$this->assertFalse( post_type_supports( 'foo', 'autosave' ), 'Autosaves support should be disabled.' );
 		_unregister_post_type( 'foo' );
 	}
 
@@ -340,7 +357,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertIsInt( array_search( 'bar', $wp->public_query_vars, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( array_search( 'bar', $wp->public_query_vars, true ) );
+		$this->assertNotContains( 'bar', $wp->public_query_vars );
 	}
 
 	/**
@@ -417,6 +434,146 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that meta capabilities shared with another registered post type are retained.
+	 *
+	 * Meta capabilities are stored keyed by the custom capability name, so post types
+	 * sharing a capability type resolve to the same entries. Unregistering one of them
+	 * must not remove the entries the others still rely on.
+	 *
+	 * @ticket 66008
+	 *
+	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
+	 */
+	public function test_unregister_post_type_retains_meta_capabilities_shared_with_another_post_type() {
+		global $post_type_meta_caps;
+
+		$args = array(
+			'public'          => true,
+			'capability_type' => 'publication',
+			'map_meta_cap'    => true,
+		);
+
+		register_post_type( 'book', $args );
+		register_post_type( 'magazine', $args );
+
+		$this->assertSame( 'read_post', $post_type_meta_caps['read_publication'], 'The read meta capability was not registered.' );
+		$this->assertSame( 'delete_post', $post_type_meta_caps['delete_publication'], 'The delete meta capability was not registered.' );
+		$this->assertSame( 'edit_post', $post_type_meta_caps['edit_publication'], 'The edit meta capability was not registered.' );
+
+		$this->assertTrue( unregister_post_type( 'book' ) );
+
+		$this->assertSame( 'read_post', $post_type_meta_caps['read_publication'], 'The read meta capability of the remaining post type was removed.' );
+		$this->assertSame( 'delete_post', $post_type_meta_caps['delete_publication'], 'The delete meta capability of the remaining post type was removed.' );
+		$this->assertSame( 'edit_post', $post_type_meta_caps['edit_publication'], 'The edit meta capability of the remaining post type was removed.' );
+	}
+
+	/**
+	 * Tests that a remaining post type's meta capabilities still map down to primitive capabilities.
+	 *
+	 * @ticket 66008
+	 */
+	public function test_unregister_post_type_retains_meta_capability_mapping_for_another_post_type() {
+		$args = array(
+			'public'          => true,
+			'capability_type' => 'publication',
+			'map_meta_cap'    => true,
+		);
+
+		register_post_type( 'book', $args );
+		register_post_type( 'magazine', $args );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'magazine',
+				'post_status' => 'publish',
+				'post_author' => self::$author_id,
+			)
+		);
+
+		$this->assertSame(
+			array( 'edit_published_publications' ),
+			map_meta_cap( 'edit_publication', self::$author_id, $post_id ),
+			'The meta capability did not map to a primitive capability.'
+		);
+
+		$this->assertTrue( unregister_post_type( 'book' ) );
+
+		$this->assertSame(
+			array( 'edit_published_publications' ),
+			map_meta_cap( 'edit_publication', self::$author_id, $post_id ),
+			'The meta capability of the remaining post type no longer maps to a primitive capability.'
+		);
+	}
+
+	/**
+	 * Tests that a post type which does not map meta capabilities removes none on unregistration.
+	 *
+	 * Such a post type never stores any meta capabilities, so it must not remove the
+	 * identically named entries belonging to the built-in post types.
+	 *
+	 * @ticket 66008
+	 *
+	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
+	 */
+	public function test_unregister_post_type_retains_meta_capabilities_when_not_mapping_meta_caps() {
+		global $post_type_meta_caps;
+
+		register_post_type(
+			'foo',
+			array(
+				'public'       => true,
+				'map_meta_cap' => false,
+			)
+		);
+
+		$this->assertTrue( unregister_post_type( 'foo' ) );
+
+		$this->assertSame( 'read_post', $post_type_meta_caps['read_post'], 'The built-in read meta capability was removed.' );
+		$this->assertSame( 'delete_post', $post_type_meta_caps['delete_post'], 'The built-in delete meta capability was removed.' );
+		$this->assertSame( 'edit_post', $post_type_meta_caps['edit_post'], 'The built-in edit meta capability was removed.' );
+	}
+
+	/**
+	 * Tests that primitive capabilities are not treated as meta capabilities on unregistration.
+	 *
+	 * Only the read, delete and edit capabilities are stored as meta capabilities. A post type
+	 * using one of those names as a primitive capability must not remove another post type's
+	 * meta capability of the same name.
+	 *
+	 * @ticket 66008
+	 *
+	 * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
+	 */
+	public function test_unregister_post_type_retains_meta_capabilities_matching_primitive_capabilities() {
+		global $post_type_meta_caps;
+
+		register_post_type(
+			'book',
+			array(
+				'public'          => true,
+				'capability_type' => 'book',
+				'map_meta_cap'    => true,
+			)
+		);
+
+		// For this post type 'edit_book' is a primitive capability, not a meta capability.
+		register_post_type(
+			'shelf',
+			array(
+				'public'       => true,
+				'map_meta_cap' => false,
+				'capabilities' => array(
+					'edit_posts' => 'edit_book',
+				),
+			)
+		);
+
+		$this->assertTrue( unregister_post_type( 'shelf' ) );
+
+		$this->assertSame( 'edit_post', $post_type_meta_caps['edit_book'], 'The meta capability of another post type was removed.' );
+	}
+
+	/**
 	 * @ticket 14761
 	 */
 	public function test_unregister_post_type_removes_post_type_supports() {
@@ -432,9 +589,10 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex(
 			array(
-				'editor' => true,
-				'author' => true,
-				'title'  => true,
+				'editor'   => true,
+				'author'   => true,
+				'title'    => true,
+				'autosave' => true,
 			),
 			$_wp_post_type_features['foo']
 		);
@@ -459,8 +617,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
 		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
-		$this->assertFalse( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
+		$this->assertNotContains( 'foo', $wp_taxonomies['category']->object_type );
+		$this->assertNotContains( 'foo', $wp_taxonomies['post_tag']->object_type );
 		$this->assertEmpty( get_object_taxonomies( 'foo' ) );
 	}
 
@@ -586,7 +744,90 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @ticket 34010
 	 */
-	public function test_get_post_types_by_support_non_existant_feature() {
+	public function test_get_post_types_by_support_non_existent_feature() {
 		$this->assertSameSets( array(), get_post_types_by_support( 'somefeature' ) );
+	}
+
+	/**
+	 * @ticket 41172
+	 */
+	public function test_post_type_supports_autosave_based_on_editor_support() {
+		$this->assertFalse( post_type_supports( 'attachment', 'autosave' ) );
+
+		register_post_type( 'foo', array( 'supports' => array( 'editor' ) ) );
+		$this->assertTrue( post_type_supports( 'foo', 'autosave' ) );
+		_unregister_post_type( 'foo' );
+
+		register_post_type( 'foo', array( 'supports' => array( 'title' ) ) );
+		$this->assertFalse( post_type_supports( 'foo', 'autosave' ) );
+		_unregister_post_type( 'foo' );
+	}
+
+	/**
+	 * @ticket 41172
+	 */
+	public function test_removing_autosave_support_removes_rest_api_controller() {
+		register_post_type(
+			'foo',
+			array(
+				'show_in_rest' => true,
+				'supports'     => array( 'editor' ),
+			)
+		);
+
+		$post_type_object = get_post_type_object( 'foo' );
+		$this->assertInstanceOf( 'WP_REST_Autosaves_Controller', $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be set by default.' );
+
+		remove_post_type_support( 'foo', 'autosave' );
+		$post_type_object = get_post_type_object( 'foo' );
+		$this->assertNull( $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be removed.' );
+		_unregister_post_type( 'foo' );
+	}
+
+	/**
+	 * @ticket 41172
+	 */
+	public function test_removing_editor_support_does_not_remove_autosave_support() {
+		register_post_type(
+			'foo',
+			array(
+				'show_in_rest' => true,
+				'supports'     => array( 'editor' ),
+			)
+		);
+		remove_post_type_support( 'foo', 'editor' );
+
+		$this->assertFalse( post_type_supports( 'foo', 'editor' ), 'Post type should not support editor.' );
+		$this->assertTrue( post_type_supports( 'foo', 'autosave' ), 'Post type should still support autosaves.' );
+	}
+
+	/**
+	 * @group oembed
+	 * @ticket 35567
+	 */
+	public function test_register_post_type_is_embeddable_should_default_to_value_of_public() {
+		$post_type = register_post_type( $this->post_type );
+		$this->assertFalse( $post_type->embeddable, 'Non-public post type should not be embeddable by default' );
+
+		$post_type = register_post_type( $this->post_type, array( 'public' => true ) );
+		$this->assertTrue( $post_type->embeddable, 'Public post type should be embeddable by default' );
+	}
+
+	/**
+	 * @group oembed
+	 * @ticket 35567
+	 */
+	public function test_register_post_type_override_is_embeddable() {
+		$post_type = register_post_type( $this->post_type, array( 'embeddable' => true ) );
+		$this->assertTrue( $post_type->embeddable, 'Post type should be embeddable even though it is not public' );
+
+		$post_type = register_post_type(
+			$this->post_type,
+			array(
+				'public'     => true,
+				'embeddable' => false,
+			)
+		);
+		$this->assertFalse( $post_type->embeddable, 'Post type should not be embeddable even though it is public' );
 	}
 }

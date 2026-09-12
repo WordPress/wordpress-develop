@@ -2,6 +2,10 @@
 /**
  * WordPress core upgrade functionality.
  *
+ * Note: Newly introduced functions and methods cannot be used here.
+ * All functions must be present in the previous version being upgraded from
+ * as this file is used there too.
+ *
  * @package WordPress
  * @subpackage Administration
  * @since 2.7.0
@@ -14,8 +18,8 @@
  *
  * @since 2.7.0
  *
- * @global array $_old_files
- * @var array
+ * @global string[] $_old_files
+ * @var string[]
  * @name $_old_files
  */
 global $_old_files;
@@ -37,8 +41,6 @@ $_old_files = array(
 	'wp-images/wp-small.png',
 	'wp-images/wpminilogo.png',
 	'wp.php',
-	// 2.0.8
-	'wp-includes/js/tinymce/plugins/inlinepopups/readme.txt',
 	// 2.1
 	'wp-admin/edit-form-ajax-cat.php',
 	'wp-admin/execute-pings.php',
@@ -52,8 +54,6 @@ $_old_files = array(
 	'wp-includes/functions-formatting.php',
 	'wp-includes/functions-post.php',
 	'wp-includes/js/dbx-key.js',
-	'wp-includes/js/tinymce/plugins/autosave/langs/cs.js',
-	'wp-includes/js/tinymce/plugins/autosave/langs/sv.js',
 	'wp-includes/links.php',
 	'wp-includes/pluggable-functions.php',
 	'wp-includes/template-functions-author.php',
@@ -64,7 +64,6 @@ $_old_files = array(
 	'wp-includes/wp-l10n.php',
 	// 2.2
 	'wp-admin/cat-js.php',
-	'wp-admin/import/b2.php',
 	'wp-includes/js/autosave-js.php',
 	'wp-includes/js/list-manipulation-js.php',
 	'wp-includes/js/wp-ajax-js.php',
@@ -108,39 +107,19 @@ $_old_files = array(
 	'wp-admin/js/link-cat.js',
 	'wp-admin/profile-update.php',
 	'wp-admin/templates.php',
-	'wp-includes/images/wlw/WpComments.png',
-	'wp-includes/images/wlw/WpIcon.png',
-	'wp-includes/images/wlw/WpWatermark.png',
 	'wp-includes/js/dbx.js',
 	'wp-includes/js/fat.js',
 	'wp-includes/js/list-manipulation.js',
 	'wp-includes/js/tinymce/langs/en.js',
-	'wp-includes/js/tinymce/plugins/autosave/editor_plugin_src.js',
-	'wp-includes/js/tinymce/plugins/autosave/langs',
 	'wp-includes/js/tinymce/plugins/directionality/images',
 	'wp-includes/js/tinymce/plugins/directionality/langs',
-	'wp-includes/js/tinymce/plugins/inlinepopups/css',
-	'wp-includes/js/tinymce/plugins/inlinepopups/images',
-	'wp-includes/js/tinymce/plugins/inlinepopups/jscripts',
 	'wp-includes/js/tinymce/plugins/paste/images',
 	'wp-includes/js/tinymce/plugins/paste/jscripts',
 	'wp-includes/js/tinymce/plugins/paste/langs',
-	'wp-includes/js/tinymce/plugins/spellchecker/classes/HttpClient.class.php',
-	'wp-includes/js/tinymce/plugins/spellchecker/classes/TinyGoogleSpell.class.php',
-	'wp-includes/js/tinymce/plugins/spellchecker/classes/TinyPspell.class.php',
-	'wp-includes/js/tinymce/plugins/spellchecker/classes/TinyPspellShell.class.php',
-	'wp-includes/js/tinymce/plugins/spellchecker/css/spellchecker.css',
-	'wp-includes/js/tinymce/plugins/spellchecker/images',
-	'wp-includes/js/tinymce/plugins/spellchecker/langs',
-	'wp-includes/js/tinymce/plugins/spellchecker/tinyspell.php',
 	'wp-includes/js/tinymce/plugins/wordpress/images',
 	'wp-includes/js/tinymce/plugins/wordpress/langs',
 	'wp-includes/js/tinymce/plugins/wordpress/wordpress.css',
 	'wp-includes/js/tinymce/plugins/wphelp',
-	'wp-includes/js/tinymce/themes/advanced/css',
-	'wp-includes/js/tinymce/themes/advanced/images',
-	'wp-includes/js/tinymce/themes/advanced/jscripts',
-	'wp-includes/js/tinymce/themes/advanced/langs',
 	// 2.5.1
 	'wp-includes/js/tinymce/tiny_mce_gzip.php',
 	// 2.6
@@ -184,16 +163,11 @@ $_old_files = array(
 	'wp-includes/js/tinymce/tiny_mce_ext.js',
 	// 2.8
 	'wp-admin/js/users.js',
-	'wp-includes/js/swfupload/plugins/swfupload.documentready.js',
-	'wp-includes/js/swfupload/plugins/swfupload.graceful_degradation.js',
 	'wp-includes/js/swfupload/swfupload_f9.swf',
 	'wp-includes/js/tinymce/plugins/autosave',
 	'wp-includes/js/tinymce/plugins/paste/css',
 	'wp-includes/js/tinymce/utils/mclayer.js',
 	'wp-includes/js/tinymce/wordpress.css',
-	// 2.8.5
-	'wp-admin/import/btt.php',
-	'wp-admin/import/jkw.php',
 	// 2.9
 	'wp-admin/js/page.dev.js',
 	'wp-admin/js/page.js',
@@ -250,12 +224,9 @@ $_old_files = array(
 	'wp-admin/wp-admin.css',
 	'wp-admin/wp-admin.dev.css',
 	'wp-includes/js/codepress',
-	'wp-includes/js/codepress/engines/khtml.js',
-	'wp-includes/js/codepress/engines/older.js',
 	'wp-includes/js/jquery/autocomplete.dev.js',
 	'wp-includes/js/jquery/autocomplete.js',
 	'wp-includes/js/jquery/interface.js',
-	'wp-includes/js/scriptaculous/prototype.js',
 	// Following file added back in 5.1, see #45645.
 	//'wp-includes/js/tinymce/wp-tinymce.js',
 	// 3.1
@@ -277,7 +248,6 @@ $_old_files = array(
 	'wp-admin/sidebar.php',
 	'wp-includes/classes.php',
 	'wp-includes/js/tinymce/blank.htm',
-	'wp-includes/js/tinymce/plugins/media/css/content.css',
 	'wp-includes/js/tinymce/plugins/media/img',
 	'wp-includes/js/tinymce/plugins/safari',
 	// 3.2
@@ -286,11 +256,6 @@ $_old_files = array(
 	'wp-admin/js/list-table.dev.js',
 	'wp-admin/js/list-table.js',
 	'wp-includes/default-embeds.php',
-	'wp-includes/js/tinymce/plugins/wordpress/img/help.gif',
-	'wp-includes/js/tinymce/plugins/wordpress/img/more.gif',
-	'wp-includes/js/tinymce/plugins/wordpress/img/toolbars.gif',
-	'wp-includes/js/tinymce/themes/advanced/img/fm.gif',
-	'wp-includes/js/tinymce/themes/advanced/img/sflogo.png',
 	// 3.3
 	'wp-admin/css/colors-classic-rtl.css',
 	'wp-admin/css/colors-classic-rtl.dev.css',
@@ -346,12 +311,6 @@ $_old_files = array(
 	'wp-includes/js/tinymce/plugins/wplink/css',
 	'wp-includes/js/tinymce/plugins/wplink/img',
 	'wp-includes/js/tinymce/plugins/wplink/js',
-	'wp-includes/js/tinymce/themes/advanced/img/wpicons.png',
-	'wp-includes/js/tinymce/themes/advanced/skins/wp_theme/img/butt2.png',
-	'wp-includes/js/tinymce/themes/advanced/skins/wp_theme/img/button_bg.png',
-	'wp-includes/js/tinymce/themes/advanced/skins/wp_theme/img/down_arrow.gif',
-	'wp-includes/js/tinymce/themes/advanced/skins/wp_theme/img/fade-butt.png',
-	'wp-includes/js/tinymce/themes/advanced/skins/wp_theme/img/separator.gif',
 	// Don't delete, yet: 'wp-rss.php',
 	// Don't delete, yet: 'wp-rdf.php',
 	// Don't delete, yet: 'wp-rss2.php',
@@ -365,27 +324,14 @@ $_old_files = array(
 	'wp-admin/index-extra.php',
 	'wp-admin/network/index-extra.php',
 	'wp-admin/user/index-extra.php',
-	'wp-admin/images/screenshots/admin-flyouts.png',
-	'wp-admin/images/screenshots/coediting.png',
-	'wp-admin/images/screenshots/drag-and-drop.png',
-	'wp-admin/images/screenshots/help-screen.png',
-	'wp-admin/images/screenshots/media-icon.png',
-	'wp-admin/images/screenshots/new-feature-pointer.png',
-	'wp-admin/images/screenshots/welcome-screen.png',
 	'wp-includes/css/editor-buttons.css',
 	'wp-includes/css/editor-buttons.dev.css',
 	'wp-includes/js/tinymce/plugins/paste/blank.htm',
 	'wp-includes/js/tinymce/plugins/wordpress/css',
 	'wp-includes/js/tinymce/plugins/wordpress/editor_plugin.dev.js',
-	'wp-includes/js/tinymce/plugins/wordpress/img/embedded.png',
-	'wp-includes/js/tinymce/plugins/wordpress/img/more_bug.gif',
-	'wp-includes/js/tinymce/plugins/wordpress/img/page_bug.gif',
 	'wp-includes/js/tinymce/plugins/wpdialogs/editor_plugin.dev.js',
-	'wp-includes/js/tinymce/plugins/wpeditimage/css/editimage-rtl.css',
 	'wp-includes/js/tinymce/plugins/wpeditimage/editor_plugin.dev.js',
-	'wp-includes/js/tinymce/plugins/wpfullscreen/editor_plugin.dev.js',
 	'wp-includes/js/tinymce/plugins/wpgallery/editor_plugin.dev.js',
-	'wp-includes/js/tinymce/plugins/wpgallery/img/gallery.png',
 	'wp-includes/js/tinymce/plugins/wplink/editor_plugin.dev.js',
 	// Don't delete, yet: 'wp-pass.php',
 	// Don't delete, yet: 'wp-register.php',
@@ -500,9 +446,6 @@ $_old_files = array(
 	'wp-admin/js/inline-edit-post.dev.js',
 	'wp-admin/js/categories.dev.js',
 	'wp-admin/js/editor.dev.js',
-	'wp-includes/js/tinymce/plugins/wpeditimage/js/editimage.dev.js',
-	'wp-includes/js/tinymce/plugins/wpdialogs/js/popup.dev.js',
-	'wp-includes/js/tinymce/plugins/wpdialogs/js/wpdialog.dev.js',
 	'wp-includes/js/plupload/handlers.dev.js',
 	'wp-includes/js/plupload/wp-plupload.dev.js',
 	'wp-includes/js/swfupload/handlers.dev.js',
@@ -529,21 +472,11 @@ $_old_files = array(
 	'wp-includes/js/jquery/ui/jquery.effects.pulsate.min.js',
 	'wp-includes/js/jquery/ui/jquery.effects.transfer.min.js',
 	'wp-includes/js/jquery/ui/jquery.effects.fold.min.js',
-	'wp-admin/images/screenshots/captions-1.png',
-	'wp-admin/images/screenshots/captions-2.png',
-	'wp-admin/images/screenshots/flex-header-1.png',
-	'wp-admin/images/screenshots/flex-header-2.png',
-	'wp-admin/images/screenshots/flex-header-3.png',
-	'wp-admin/images/screenshots/flex-header-media-library.png',
-	'wp-admin/images/screenshots/theme-customizer.png',
-	'wp-admin/images/screenshots/twitter-embed-1.png',
-	'wp-admin/images/screenshots/twitter-embed-2.png',
 	'wp-admin/js/utils.js',
 	// Added back in 5.3 [45448], see #43895.
 	// 'wp-admin/options-privacy.php',
 	'wp-app.php',
 	'wp-includes/class-wp-atom-server.php',
-	'wp-includes/js/tinymce/themes/advanced/skins/wp_theme/ui.css',
 	// 3.5.2
 	'wp-includes/js/swfupload/swfupload-all.js',
 	// 3.6
@@ -556,10 +489,7 @@ $_old_files = array(
 	// 3.7
 	'wp-admin/js/cat.js',
 	'wp-admin/js/cat.min.js',
-	'wp-includes/js/tinymce/plugins/wpeditimage/js/editimage.min.js',
 	// 3.8
-	'wp-includes/js/tinymce/themes/advanced/skins/wp_theme/img/page_bug.gif',
-	'wp-includes/js/tinymce/themes/advanced/skins/wp_theme/img/more_bug.gif',
 	'wp-includes/js/thickbox/tb-close-2x.png',
 	'wp-includes/js/thickbox/tb-close.png',
 	'wp-includes/images/wpmini-blue-2x.png',
@@ -630,7 +560,6 @@ $_old_files = array(
 	'wp-includes/js/tinymce/plugins/wpeditimage/js',
 	'wp-includes/js/tinymce/plugins/wpeditimage/css',
 	'wp-includes/js/tinymce/plugins/wpgallery/img',
-	'wp-includes/js/tinymce/plugins/wpfullscreen/css',
 	'wp-includes/js/tinymce/plugins/paste/js',
 	'wp-includes/js/tinymce/themes/advanced',
 	'wp-includes/js/tinymce/tiny_mce.js',
@@ -659,8 +588,6 @@ $_old_files = array(
 	'wp-includes/js/tinymce/plugins/wpgallery/editor_plugin.js',
 	'wp-includes/js/tinymce/plugins/tabfocus/editor_plugin.js',
 	'wp-includes/js/tinymce/plugins/tabfocus/editor_plugin_src.js',
-	'wp-includes/js/tinymce/plugins/wpfullscreen/editor_plugin.js',
-	'wp-includes/js/tinymce/plugins/wpfullscreen/editor_plugin_src.js',
 	'wp-includes/js/tinymce/plugins/paste/editor_plugin.js',
 	'wp-includes/js/tinymce/plugins/paste/pasteword.htm',
 	'wp-includes/js/tinymce/plugins/paste/editor_plugin_src.js',
@@ -750,27 +677,6 @@ $_old_files = array(
 	'wp-includes/js/swfupload/swfupload.swf',
 	// 4.9.2
 	'wp-includes/js/mediaelement/lang',
-	'wp-includes/js/mediaelement/lang/ca.js',
-	'wp-includes/js/mediaelement/lang/cs.js',
-	'wp-includes/js/mediaelement/lang/de.js',
-	'wp-includes/js/mediaelement/lang/es.js',
-	'wp-includes/js/mediaelement/lang/fa.js',
-	'wp-includes/js/mediaelement/lang/fr.js',
-	'wp-includes/js/mediaelement/lang/hr.js',
-	'wp-includes/js/mediaelement/lang/hu.js',
-	'wp-includes/js/mediaelement/lang/it.js',
-	'wp-includes/js/mediaelement/lang/ja.js',
-	'wp-includes/js/mediaelement/lang/ko.js',
-	'wp-includes/js/mediaelement/lang/nl.js',
-	'wp-includes/js/mediaelement/lang/pl.js',
-	'wp-includes/js/mediaelement/lang/pt.js',
-	'wp-includes/js/mediaelement/lang/ro.js',
-	'wp-includes/js/mediaelement/lang/ru.js',
-	'wp-includes/js/mediaelement/lang/sk.js',
-	'wp-includes/js/mediaelement/lang/sv.js',
-	'wp-includes/js/mediaelement/lang/uk.js',
-	'wp-includes/js/mediaelement/lang/zh-cn.js',
-	'wp-includes/js/mediaelement/lang/zh.js',
 	'wp-includes/js/mediaelement/mediaelement-flash-audio-ogg.swf',
 	'wp-includes/js/mediaelement/mediaelement-flash-audio.swf',
 	'wp-includes/js/mediaelement/mediaelement-flash-video-hls.swf',
@@ -787,7 +693,6 @@ $_old_files = array(
 	// 5.0
 	'wp-includes/js/codemirror/jshint.js',
 	// 5.1
-	'wp-includes/random_compat/random_bytes_openssl.php',
 	'wp-includes/js/tinymce/wp-tinymce.js.gz',
 	// 5.3
 	'wp-includes/js/wp-a11y.js',     // Moved to: wp-includes/js/dist/a11y.js
@@ -822,7 +727,6 @@ $_old_files = array(
 	'wp-includes/block-patterns/text-two-columns-with-images.php',
 	'wp-includes/block-patterns/text-two-columns.php',
 	'wp-includes/block-patterns/large-header-button.php',
-	'wp-includes/blocks/subhead/block.json',
 	'wp-includes/blocks/subhead',
 	'wp-includes/css/dist/editor/editor-styles.css',
 	'wp-includes/css/dist/editor/editor-styles.min.css',
@@ -833,35 +737,21 @@ $_old_files = array(
 	'wp-includes/blocks/heading/editor.min.css',
 	'wp-includes/blocks/heading/editor-rtl.css',
 	'wp-includes/blocks/heading/editor-rtl.min.css',
-	'wp-includes/blocks/post-content/editor.css',
-	'wp-includes/blocks/post-content/editor.min.css',
-	'wp-includes/blocks/post-content/editor-rtl.css',
-	'wp-includes/blocks/post-content/editor-rtl.min.css',
 	'wp-includes/blocks/query-title/editor.css',
 	'wp-includes/blocks/query-title/editor.min.css',
 	'wp-includes/blocks/query-title/editor-rtl.css',
 	'wp-includes/blocks/query-title/editor-rtl.min.css',
-	'wp-includes/blocks/tag-cloud/editor.css',
-	'wp-includes/blocks/tag-cloud/editor.min.css',
-	'wp-includes/blocks/tag-cloud/editor-rtl.css',
-	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	/*
+	 * Restored in WordPress 6.7
+	 *
+	 * 'wp-includes/blocks/tag-cloud/editor.css',
+	 * 'wp-includes/blocks/tag-cloud/editor.min.css',
+	 * 'wp-includes/blocks/tag-cloud/editor-rtl.css',
+	 * 'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	 */
 	// 6.1
 	'wp-includes/blocks/post-comments.php',
-	'wp-includes/blocks/post-comments/block.json',
-	'wp-includes/blocks/post-comments/editor.css',
-	'wp-includes/blocks/post-comments/editor.min.css',
-	'wp-includes/blocks/post-comments/editor-rtl.css',
-	'wp-includes/blocks/post-comments/editor-rtl.min.css',
-	'wp-includes/blocks/post-comments/style.css',
-	'wp-includes/blocks/post-comments/style.min.css',
-	'wp-includes/blocks/post-comments/style-rtl.css',
-	'wp-includes/blocks/post-comments/style-rtl.min.css',
 	'wp-includes/blocks/post-comments',
-	'wp-includes/blocks/comments-query-loop/block.json',
-	'wp-includes/blocks/comments-query-loop/editor.css',
-	'wp-includes/blocks/comments-query-loop/editor.min.css',
-	'wp-includes/blocks/comments-query-loop/editor-rtl.css',
-	'wp-includes/blocks/comments-query-loop/editor-rtl.min.css',
 	'wp-includes/blocks/comments-query-loop',
 	// 6.3
 	'wp-includes/images/wlw',
@@ -869,6 +759,413 @@ $_old_files = array(
 	'wp-includes/random_compat',
 	// 6.4
 	'wp-includes/navigation-fallback.php',
+	'wp-includes/blocks/navigation/view-modal.min.js',
+	'wp-includes/blocks/navigation/view-modal.js',
+	// 6.5
+	'wp-includes/ID3/license.commercial.txt',
+	'wp-includes/blocks/query/style-rtl.min.css',
+	'wp-includes/blocks/query/style.min.css',
+	'wp-includes/blocks/query/style-rtl.css',
+	'wp-includes/blocks/query/style.css',
+	'wp-admin/images/about-header-about.svg',
+	'wp-admin/images/about-header-contribute.svg',
+	'wp-admin/images/about-header-background.svg',
+	/*
+	 * Restored in WordPress 7.1
+	 *
+	 * 'wp-admin/images/about-header-privacy.svg',
+	 * 'wp-admin/images/about-header-credits.svg',
+	 * 'wp-admin/images/about-header-freedoms.svg',
+	 */
+
+	// 6.6
+	'wp-includes/blocks/block/editor.css',
+	'wp-includes/blocks/block/editor.min.css',
+	'wp-includes/blocks/block/editor-rtl.css',
+	'wp-includes/blocks/block/editor-rtl.min.css',
+	/*
+	 * 6.7
+	 *
+	 * WordPress 6.7 included a SimplePie upgrade that included a major
+	 * refactoring of the file structure and library. The old files are
+	 * split in to two sections to account for this: files and directories.
+	 *
+	 * See https://core.trac.wordpress.org/changeset/59141
+	 */
+	// 6.7 - files
+	'wp-includes/js/dist/interactivity-router.asset.php',
+	'wp-includes/js/dist/interactivity-router.js',
+	'wp-includes/js/dist/interactivity-router.min.js',
+	'wp-includes/js/dist/interactivity-router.min.asset.php',
+	'wp-includes/js/dist/interactivity.js',
+	'wp-includes/js/dist/interactivity.min.js',
+	'wp-includes/js/dist/vendor/react-dom.min.js.LICENSE.txt',
+	'wp-includes/js/dist/vendor/react.min.js.LICENSE.txt',
+	'wp-includes/js/dist/vendor/wp-polyfill-importmap.js',
+	'wp-includes/js/dist/vendor/wp-polyfill-importmap.min.js',
+	'wp-includes/sodium_compat/src/Core/Base64/Common.php',
+	'wp-includes/SimplePie/Author.php',
+	'wp-includes/SimplePie/Cache.php',
+	'wp-includes/SimplePie/Caption.php',
+	'wp-includes/SimplePie/Category.php',
+	'wp-includes/SimplePie/Copyright.php',
+	'wp-includes/SimplePie/Core.php',
+	'wp-includes/SimplePie/Credit.php',
+	'wp-includes/SimplePie/Enclosure.php',
+	'wp-includes/SimplePie/Exception.php',
+	'wp-includes/SimplePie/File.php',
+	'wp-includes/SimplePie/gzdecode.php',
+	'wp-includes/SimplePie/IRI.php',
+	'wp-includes/SimplePie/Item.php',
+	'wp-includes/SimplePie/Locator.php',
+	'wp-includes/SimplePie/Misc.php',
+	'wp-includes/SimplePie/Parser.php',
+	'wp-includes/SimplePie/Rating.php',
+	'wp-includes/SimplePie/Registry.php',
+	'wp-includes/SimplePie/Restriction.php',
+	'wp-includes/SimplePie/Sanitize.php',
+	'wp-includes/SimplePie/Source.php',
+	// 6.7 - directories
+	'wp-includes/SimplePie/Cache/',
+	'wp-includes/SimplePie/Content/',
+	'wp-includes/SimplePie/Decode/',
+	'wp-includes/SimplePie/HTTP/',
+	'wp-includes/SimplePie/Net/',
+	'wp-includes/SimplePie/Parse/',
+	'wp-includes/SimplePie/XML/',
+	// 6.8
+	'wp-includes/blocks/post-content/editor.css',
+	'wp-includes/blocks/post-content/editor.min.css',
+	'wp-includes/blocks/post-content/editor-rtl.css',
+	'wp-includes/blocks/post-content/editor-rtl.min.css',
+	'wp-includes/blocks/post-template/editor.css',
+	'wp-includes/blocks/post-template/editor.min.css',
+	'wp-includes/blocks/post-template/editor-rtl.css',
+	'wp-includes/blocks/post-template/editor-rtl.min.css',
+	'wp-includes/js/dist/fields.min.js',
+	'wp-includes/js/dist/fields.js',
+	// 6.9
+	'wp-includes/SimplePie/src/Decode',
+	'wp-includes/SimplePie/src/Core.php',
+	// 7.0
+	'wp-includes/assets/script-loader-packages.min.php',
+	'wp-includes/assets/script-loader-react-refresh-entry.php',
+	'wp-includes/assets/script-loader-react-refresh-entry.min.php',
+	'wp-includes/assets/script-loader-react-refresh-runtime.php',
+	'wp-includes/assets/script-loader-react-refresh-runtime.min.php',
+	'wp-includes/assets/script-modules-packages.min.php',
+	'wp-includes/blocks/archives/editor.css',
+	'wp-includes/blocks/archives/editor.min.css',
+	'wp-includes/blocks/archives/editor-rtl.css',
+	'wp-includes/blocks/archives/editor-rtl.min.css',
+	'wp-includes/blocks/file/view.asset.php',
+	'wp-includes/blocks/file/view.min.asset.php',
+	'wp-includes/blocks/file/view.js',
+	'wp-includes/blocks/file/view.min.js',
+	'wp-includes/blocks/image/view.asset.php',
+	'wp-includes/blocks/image/view.min.asset.php',
+	'wp-includes/blocks/image/view.js',
+	'wp-includes/blocks/image/view.min.js',
+	'wp-includes/blocks/navigation/view.asset.php',
+	'wp-includes/blocks/navigation/view.min.asset.php',
+	'wp-includes/blocks/navigation/view.js',
+	'wp-includes/blocks/navigation/view.min.js',
+	'wp-includes/blocks/navigation/view-modal.asset.php',
+	'wp-includes/blocks/navigation/view-modal.min.asset.php',
+	'wp-includes/blocks/query/view.asset.php',
+	'wp-includes/blocks/query/view.min.asset.php',
+	'wp-includes/blocks/query/view.js',
+	'wp-includes/blocks/query/view.min.js',
+	'wp-includes/blocks/search/view.asset.php',
+	'wp-includes/blocks/search/view.min.asset.php',
+	'wp-includes/blocks/search/view.js',
+	'wp-includes/blocks/search/view.min.js',
+	'wp-includes/blocks/tag-cloud/editor.css',
+	'wp-includes/blocks/tag-cloud/editor.min.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	'wp-includes/css/dist/admin-ui/style.css',
+	'wp-includes/css/dist/admin-ui/style.min.css',
+	'wp-includes/css/dist/admin-ui/style-rtl.css',
+	'wp-includes/css/dist/admin-ui/style-rtl.min.css',
+	'wp-includes/css/dist/admin-ui/',
+	'wp-includes/css/dist/edit-site/posts.css',
+	'wp-includes/css/dist/edit-site/posts.min.css',
+	'wp-includes/css/dist/edit-site/posts-rtl.css',
+	'wp-includes/css/dist/edit-site/posts-rtl.min.css',
+	'wp-includes/js/dist/admin-ui.js',
+	'wp-includes/js/dist/admin-ui.min.js',
+	'wp-includes/js/dist/latex-to-mathml.js',
+	'wp-includes/js/dist/latex-to-mathml.min.js',
+	'wp-includes/js/dist/views.js',
+	'wp-includes/js/dist/views.min.js',
+	'wp-includes/js/dist/script-modules/interactivity/debug.js',
+	'wp-includes/js/dist/script-modules/interactivity/debug.min.js',
+	'wp-includes/js/dist/vendor/react-jsx-runtime.min.js.LICENSE.txt',
+	// 7.0.2
+	'wp-includes/collaboration',
+	'wp-includes/collaboration.php',
+	/*
+	 * Restored in WordPress 7.1.
+	 *
+	 * 'wp-includes/js/dist/sync.js',
+	 * 'wp-includes/js/dist/sync.min.js',
+	 */
+	// 7.1
+	'wp-includes/images/icon-library/accordion-heading.svg',
+	'wp-includes/images/icon-library/accordion-item.svg',
+	'wp-includes/images/icon-library/accordion.svg',
+	'wp-includes/images/icon-library/add-card.svg',
+	'wp-includes/images/icon-library/add-submenu.svg',
+	'wp-includes/images/icon-library/add-template.svg',
+	'wp-includes/images/icon-library/align-center.svg',
+	'wp-includes/images/icon-library/align-justify.svg',
+	'wp-includes/images/icon-library/align-left.svg',
+	'wp-includes/images/icon-library/align-none.svg',
+	'wp-includes/images/icon-library/align-right.svg',
+	'wp-includes/images/icon-library/archive.svg',
+	'wp-includes/images/icon-library/aspect-ratio.svg',
+	'wp-includes/images/icon-library/background.svg',
+	'wp-includes/images/icon-library/backup.svg',
+	'wp-includes/images/icon-library/bell-unread.svg',
+	'wp-includes/images/icon-library/border.svg',
+	'wp-includes/images/icon-library/box.svg',
+	'wp-includes/images/icon-library/breadcrumbs.svg',
+	'wp-includes/images/icon-library/brush.svg',
+	'wp-includes/images/icon-library/bug.svg',
+	'wp-includes/images/icon-library/button.svg',
+	'wp-includes/images/icon-library/buttons.svg',
+	'wp-includes/images/icon-library/cancel-circle-filled.svg',
+	'wp-includes/images/icon-library/caption.svg',
+	'wp-includes/images/icon-library/caution-filled.svg',
+	'wp-includes/images/icon-library/classic.svg',
+	'wp-includes/images/icon-library/close-small.svg',
+	'wp-includes/images/icon-library/close.svg',
+	'wp-includes/images/icon-library/cloud-download.svg',
+	'wp-includes/images/icon-library/cloud-upload.svg',
+	'wp-includes/images/icon-library/cloud.svg',
+	'wp-includes/images/icon-library/code.svg',
+	'wp-includes/images/icon-library/cog.svg',
+	'wp-includes/images/icon-library/color.svg',
+	'wp-includes/images/icon-library/column.svg',
+	'wp-includes/images/icon-library/columns.svg',
+	'wp-includes/images/icon-library/comment-author-avatar.svg',
+	'wp-includes/images/icon-library/comment-author-name.svg',
+	'wp-includes/images/icon-library/comment-content.svg',
+	'wp-includes/images/icon-library/comment-edit-link.svg',
+	'wp-includes/images/icon-library/comment-reply-link.svg',
+	'wp-includes/images/icon-library/connection.svg',
+	'wp-includes/images/icon-library/contents.svg',
+	'wp-includes/images/icon-library/copy-small.svg',
+	'wp-includes/images/icon-library/copy.svg',
+	'wp-includes/images/icon-library/corner-all.svg',
+	'wp-includes/images/icon-library/corner-bottom-left.svg',
+	'wp-includes/images/icon-library/corner-bottom-right.svg',
+	'wp-includes/images/icon-library/corner-top-left.svg',
+	'wp-includes/images/icon-library/corner-top-right.svg',
+	'wp-includes/images/icon-library/crop.svg',
+	'wp-includes/images/icon-library/currency-dollar.svg',
+	'wp-includes/images/icon-library/currency-euro.svg',
+	'wp-includes/images/icon-library/currency-pound.svg',
+	'wp-includes/images/icon-library/custom-link.svg',
+	'wp-includes/images/icon-library/custom-post-type.svg',
+	'wp-includes/images/icon-library/dashboard.svg',
+	'wp-includes/images/icon-library/details.svg',
+	'wp-includes/images/icon-library/drafts.svg',
+	'wp-includes/images/icon-library/drag-handle.svg',
+	'wp-includes/images/icon-library/filter.svg',
+	'wp-includes/images/icon-library/flip-horizontal.svg',
+	'wp-includes/images/icon-library/flip-vertical.svg',
+	'wp-includes/images/icon-library/footer.svg',
+	'wp-includes/images/icon-library/format-bold.svg',
+	'wp-includes/images/icon-library/format-capitalize.svg',
+	'wp-includes/images/icon-library/format-indent-rtl.svg',
+	'wp-includes/images/icon-library/format-indent.svg',
+	'wp-includes/images/icon-library/format-italic.svg',
+	'wp-includes/images/icon-library/format-list-bullets-rtl.svg',
+	'wp-includes/images/icon-library/format-list-bullets.svg',
+	'wp-includes/images/icon-library/format-list-numbered-rtl.svg',
+	'wp-includes/images/icon-library/format-list-numbered.svg',
+	'wp-includes/images/icon-library/format-lowercase.svg',
+	'wp-includes/images/icon-library/format-ltr.svg',
+	'wp-includes/images/icon-library/format-outdent-rtl.svg',
+	'wp-includes/images/icon-library/format-outdent.svg',
+	'wp-includes/images/icon-library/format-rtl.svg',
+	'wp-includes/images/icon-library/format-strikethrough.svg',
+	'wp-includes/images/icon-library/format-underline.svg',
+	'wp-includes/images/icon-library/format-uppercase.svg',
+	'wp-includes/images/icon-library/full-height.svg',
+	'wp-includes/images/icon-library/fullscreen.svg',
+	'wp-includes/images/icon-library/funnel.svg',
+	'wp-includes/images/icon-library/gift.svg',
+	'wp-includes/images/icon-library/globe.svg',
+	'wp-includes/images/icon-library/grid.svg',
+	'wp-includes/images/icon-library/handle.svg',
+	'wp-includes/images/icon-library/header.svg',
+	'wp-includes/images/icon-library/heading-level-1.svg',
+	'wp-includes/images/icon-library/heading-level-2.svg',
+	'wp-includes/images/icon-library/heading-level-3.svg',
+	'wp-includes/images/icon-library/heading-level-4.svg',
+	'wp-includes/images/icon-library/heading-level-5.svg',
+	'wp-includes/images/icon-library/heading-level-6.svg',
+	'wp-includes/images/icon-library/help-filled.svg',
+	'wp-includes/images/icon-library/home-button.svg',
+	'wp-includes/images/icon-library/html.svg',
+	'wp-includes/images/icon-library/inbox.svg',
+	'wp-includes/images/icon-library/insert-after.svg',
+	'wp-includes/images/icon-library/insert-before.svg',
+	'wp-includes/images/icon-library/institution.svg',
+	'wp-includes/images/icon-library/justify-bottom.svg',
+	'wp-includes/images/icon-library/justify-center-vertical.svg',
+	'wp-includes/images/icon-library/justify-center.svg',
+	'wp-includes/images/icon-library/justify-left.svg',
+	'wp-includes/images/icon-library/justify-right.svg',
+	'wp-includes/images/icon-library/justify-space-between-vertical.svg',
+	'wp-includes/images/icon-library/justify-space-between.svg',
+	'wp-includes/images/icon-library/justify-stretch-vertical.svg',
+	'wp-includes/images/icon-library/justify-stretch.svg',
+	'wp-includes/images/icon-library/justify-top.svg',
+	'wp-includes/images/icon-library/keyboard-close.svg',
+	'wp-includes/images/icon-library/keyboard-return.svg',
+	'wp-includes/images/icon-library/keyboard.svg',
+	'wp-includes/images/icon-library/layout.svg',
+	'wp-includes/images/icon-library/level-up.svg',
+	'wp-includes/images/icon-library/lifesaver.svg',
+	'wp-includes/images/icon-library/line-dashed.svg',
+	'wp-includes/images/icon-library/line-dotted.svg',
+	'wp-includes/images/icon-library/line-solid.svg',
+	'wp-includes/images/icon-library/link-off.svg',
+	'wp-includes/images/icon-library/link.svg',
+	'wp-includes/images/icon-library/list-item.svg',
+	'wp-includes/images/icon-library/list-view.svg',
+	'wp-includes/images/icon-library/list.svg',
+	'wp-includes/images/icon-library/lock-outline.svg',
+	'wp-includes/images/icon-library/lock-small.svg',
+	'wp-includes/images/icon-library/lock.svg',
+	'wp-includes/images/icon-library/login.svg',
+	'wp-includes/images/icon-library/loop.svg',
+	'wp-includes/images/icon-library/math.svg',
+	'wp-includes/images/icon-library/media-and-text.svg',
+	'wp-includes/images/icon-library/media.svg',
+	'wp-includes/images/icon-library/megaphone.svg',
+	'wp-includes/images/icon-library/more.svg',
+	'wp-includes/images/icon-library/move-to.svg',
+	'wp-includes/images/icon-library/navigation-overlay.svg',
+	'wp-includes/images/icon-library/navigation.svg',
+	'wp-includes/images/icon-library/not-allowed.svg',
+	'wp-includes/images/icon-library/not-found.svg',
+	'wp-includes/images/icon-library/offline.svg',
+	'wp-includes/images/icon-library/overlay-text.svg',
+	'wp-includes/images/icon-library/page-break.svg',
+	'wp-includes/images/icon-library/page.svg',
+	'wp-includes/images/icon-library/pages.svg',
+	'wp-includes/images/icon-library/pending.svg',
+	'wp-includes/images/icon-library/percent.svg',
+	'wp-includes/images/icon-library/pin-small.svg',
+	'wp-includes/images/icon-library/pin.svg',
+	'wp-includes/images/icon-library/plugins.svg',
+	'wp-includes/images/icon-library/plus-circle-filled.svg',
+	'wp-includes/images/icon-library/position-center.svg',
+	'wp-includes/images/icon-library/position-left.svg',
+	'wp-includes/images/icon-library/position-right.svg',
+	'wp-includes/images/icon-library/post-author.svg',
+	'wp-includes/images/icon-library/post-categories.svg',
+	'wp-includes/images/icon-library/post-comments-count.svg',
+	'wp-includes/images/icon-library/post-comments-form.svg',
+	'wp-includes/images/icon-library/post-comments.svg',
+	'wp-includes/images/icon-library/post-content.svg',
+	'wp-includes/images/icon-library/post-date.svg',
+	'wp-includes/images/icon-library/post-excerpt.svg',
+	'wp-includes/images/icon-library/post-featured-image.svg',
+	'wp-includes/images/icon-library/post-list.svg',
+	'wp-includes/images/icon-library/post-terms.svg',
+	'wp-includes/images/icon-library/post.svg',
+	'wp-includes/images/icon-library/preformatted.svg',
+	'wp-includes/images/icon-library/pull-left.svg',
+	'wp-includes/images/icon-library/pull-right.svg',
+	'wp-includes/images/icon-library/pullquote.svg',
+	'wp-includes/images/icon-library/query-pagination-next.svg',
+	'wp-includes/images/icon-library/query-pagination-numbers.svg',
+	'wp-includes/images/icon-library/query-pagination-previous.svg',
+	'wp-includes/images/icon-library/query-pagination.svg',
+	'wp-includes/images/icon-library/redo.svg',
+	'wp-includes/images/icon-library/remove-bug.svg',
+	'wp-includes/images/icon-library/remove-submenu.svg',
+	'wp-includes/images/icon-library/replace.svg',
+	'wp-includes/images/icon-library/reset.svg',
+	'wp-includes/images/icon-library/resize-corner-ne.svg',
+	'wp-includes/images/icon-library/reusable-block.svg',
+	'wp-includes/images/icon-library/rotate-left.svg',
+	'wp-includes/images/icon-library/rotate-right.svg',
+	'wp-includes/images/icon-library/row.svg',
+	'wp-includes/images/icon-library/seen.svg',
+	'wp-includes/images/icon-library/send.svg',
+	'wp-includes/images/icon-library/separator.svg',
+	'wp-includes/images/icon-library/shipping.svg',
+	'wp-includes/images/icon-library/shortcode.svg',
+	'wp-includes/images/icon-library/sidebar.svg',
+	'wp-includes/images/icon-library/sides-all.svg',
+	'wp-includes/images/icon-library/sides-axial.svg',
+	'wp-includes/images/icon-library/sides-bottom.svg',
+	'wp-includes/images/icon-library/sides-horizontal.svg',
+	'wp-includes/images/icon-library/sides-left.svg',
+	'wp-includes/images/icon-library/sides-right.svg',
+	'wp-includes/images/icon-library/sides-top.svg',
+	'wp-includes/images/icon-library/sides-vertical.svg',
+	'wp-includes/images/icon-library/site-logo.svg',
+	'wp-includes/images/icon-library/square.svg',
+	'wp-includes/images/icon-library/stack.svg',
+	'wp-includes/images/icon-library/stretch-full-width.svg',
+	'wp-includes/images/icon-library/stretch-wide.svg',
+	'wp-includes/images/icon-library/subscript.svg',
+	'wp-includes/images/icon-library/superscript.svg',
+	'wp-includes/images/icon-library/swatch.svg',
+	'wp-includes/images/icon-library/tab.svg',
+	'wp-includes/images/icon-library/table-column-after.svg',
+	'wp-includes/images/icon-library/table-column-before.svg',
+	'wp-includes/images/icon-library/table-column-delete.svg',
+	'wp-includes/images/icon-library/table-of-contents.svg',
+	'wp-includes/images/icon-library/table-row-after.svg',
+	'wp-includes/images/icon-library/table-row-before.svg',
+	'wp-includes/images/icon-library/table-row-delete.svg',
+	'wp-includes/images/icon-library/tabs-menu-item.svg',
+	'wp-includes/images/icon-library/tabs-menu.svg',
+	'wp-includes/images/icon-library/tabs.svg',
+	'wp-includes/images/icon-library/term-count.svg',
+	'wp-includes/images/icon-library/term-description.svg',
+	'wp-includes/images/icon-library/term-name.svg',
+	'wp-includes/images/icon-library/text-color.svg',
+	'wp-includes/images/icon-library/text-horizontal.svg',
+	'wp-includes/images/icon-library/text-vertical.svg',
+	'wp-includes/images/icon-library/thumbs-down.svg',
+	'wp-includes/images/icon-library/thumbs-up.svg',
+	'wp-includes/images/icon-library/time-to-read.svg',
+	'wp-includes/images/icon-library/title.svg',
+	'wp-includes/images/icon-library/tool.svg',
+	'wp-includes/images/icon-library/trash.svg',
+	'wp-includes/images/icon-library/trending-down.svg',
+	'wp-includes/images/icon-library/trending-up.svg',
+	'wp-includes/images/icon-library/typography.svg',
+	'wp-includes/images/icon-library/undo.svg',
+	'wp-includes/images/icon-library/ungroup.svg',
+	'wp-includes/images/icon-library/unlock.svg',
+	'wp-includes/images/icon-library/unseen.svg',
+	'wp-includes/images/icon-library/update.svg',
+	'wp-includes/images/icon-library/video.svg',
+	'wp-includes/images/icon-library/widget.svg',
+	'wp-includes/images/icon-library/word-count.svg',
+	'wp-includes/images/icon-library/wordpress.svg',
+	'wp-admin/images/about-header-credits.webp',
+	'wp-admin/images/about-header-credits-rtl.webp',
+	'wp-admin/images/about-header-default.webp',
+	'wp-admin/images/about-header-default-rtl.webp',
+	'wp-admin/images/about-header-freedoms.webp',
+	'wp-admin/images/about-header-freedoms-rtl.webp',
+	'wp-admin/images/about-header-get-involved.webp',
+	'wp-admin/images/about-header-get-involved-rtl.webp',
+	'wp-admin/images/about-header-privacy.webp',
+	'wp-admin/images/about-header-privacy-rtl.webp',
+	'wp-admin/images/about-release-logo.svg',
 );
 
 /**
@@ -881,8 +1178,8 @@ $_old_files = array(
  *
  * @since 6.2.0
  *
- * @global array $_old_requests_files
- * @var array
+ * @global string[] $_old_requests_files
+ * @var string[]
  * @name $_old_requests_files
  */
 global $_old_requests_files;
@@ -978,8 +1275,8 @@ $_old_requests_files = array(
  *              upgrade. New themes are now installed again. To disable new
  *              themes from being installed on upgrade, explicitly define
  *              CORE_UPGRADE_SKIP_NEW_BUNDLED as true.
- * @global array $_new_bundled_files
- * @var array
+ * @global string[] $_new_bundled_files
+ * @var string[]
  * @name $_new_bundled_files
  */
 global $_new_bundled_files;
@@ -1000,13 +1297,14 @@ $_new_bundled_files = array(
 	'themes/twentytwentytwo/'   => '5.9',
 	'themes/twentytwentythree/' => '6.1',
 	'themes/twentytwentyfour/'  => '6.4',
+	'themes/twentytwentyfive/'  => '6.7',
 );
 
 /**
  * Upgrades the core of WordPress.
  *
  * This will create a .maintenance file at the base of the WordPress directory
- * to ensure that people can not access the web site, when the files are being
+ * to ensure that people can not access the website, when the files are being
  * copied to their locations.
  *
  * The files in the `$_old_files` list will be removed and the new files
@@ -1017,13 +1315,14 @@ $_new_bundled_files = array(
  *
  * The steps for the upgrader for after the new release is downloaded and
  * unzipped is:
+ *
  *   1. Test unzipped location for select files to ensure that unzipped worked.
  *   2. Create the .maintenance file in current WordPress base.
  *   3. Copy new WordPress directory over old WordPress files.
  *   4. Upgrade WordPress to new version.
- *     4.1. Copy all files/folders other than wp-content
- *     4.2. Copy any language files to WP_LANG_DIR (which may differ from WP_CONTENT_DIR
- *     4.3. Copy any new bundled themes/plugins to their respective locations
+ *      1. Copy all files/folders other than wp-content
+ *      2. Copy any language files to `WP_LANG_DIR` (which may differ from `WP_CONTENT_DIR`
+ *      3. Copy any new bundled themes/plugins to their respective locations
  *   5. Delete new WordPress directory path.
  *   6. Delete .maintenance file.
  *   7. Remove old files.
@@ -1045,13 +1344,11 @@ $_new_bundled_files = array(
  * @since 2.7.0
  *
  * @global WP_Filesystem_Base $wp_filesystem          WordPress filesystem subclass.
- * @global array              $_old_files
- * @global array              $_old_requests_files
- * @global array              $_new_bundled_files
+ * @global string[]           $_old_files
+ * @global string[]           $_old_requests_files
+ * @global string[]           $_new_bundled_files
  * @global wpdb               $wpdb                   WordPress database abstraction object.
- * @global string             $wp_version
- * @global string             $required_php_version
- * @global string             $required_mysql_version
+ * @global string             $wp_version             The WordPress version string.
  *
  * @param string $from New release unzipped path.
  * @param string $to   Path to old WordPress installation.
@@ -1060,6 +1357,10 @@ $_new_bundled_files = array(
 function update_core( $from, $to ) {
 	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
+	/*
+	 * Give core update script an additional 300 seconds (5 minutes)
+	 * to finish updating large files when running on slower servers.
+	 */
 	if ( function_exists( 'set_time_limit' ) ) {
 		set_time_limit( 300 );
 	}
@@ -1091,7 +1392,7 @@ function update_core( $from, $to ) {
 	 */
 	apply_filters( 'update_feedback', __( 'Verifying the unpacked files&#8230;' ) );
 
-	// Sanity check the unzipped distribution.
+	// Confidence check the unzipped distribution.
 	$distro = '';
 	$roots  = array( '/wordpress/', '/wordpress-mu/' );
 
@@ -1111,7 +1412,7 @@ function update_core( $from, $to ) {
 	}
 
 	/*
-	 * Import $wp_version, $required_php_version, and $required_mysql_version from the new version.
+	 * Import $wp_version, $required_php_version, $required_php_extensions, and $required_mysql_version from the new version.
 	 * DO NOT globalize any variables imported from `version-current.php` in this function.
 	 *
 	 * BC Note: $wp_filesystem->wp_content_dir() returned unslashed pre-2.8.
@@ -1217,17 +1518,29 @@ function update_core( $from, $to ) {
 		);
 	}
 
-	// Add a warning when the JSON PHP extension is missing.
-	if ( ! extension_loaded( 'json' ) ) {
-		return new WP_Error(
-			'php_not_compatible_json',
-			sprintf(
-				/* translators: 1: WordPress version number, 2: The PHP extension name needed. */
-				__( 'The update cannot be installed because WordPress %1$s requires the %2$s PHP extension.' ),
-				$wp_version,
-				'JSON'
-			)
-		);
+	if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+		$missing_extensions = new WP_Error();
+
+		foreach ( $required_php_extensions as $extension ) {
+			if ( extension_loaded( $extension ) ) {
+				continue;
+			}
+
+			$missing_extensions->add(
+				"php_not_compatible_{$extension}",
+				sprintf(
+					/* translators: 1: WordPress version number, 2: The PHP extension name needed. */
+					__( 'The update cannot be installed because WordPress %1$s requires the %2$s PHP extension.' ),
+					$wp_version,
+					$extension
+				)
+			);
+		}
+
+		// Add a warning when required PHP extensions are missing.
+		if ( ! empty( $missing_extensions->errors ) ) {
+			return $missing_extensions;
+		}
 	}
 
 	/** This filter is documented in wp-admin/includes/update-core.php */
@@ -1245,7 +1558,7 @@ function update_core( $from, $to ) {
 		// Find the local version of the working directory.
 		$working_dir_local = WP_CONTENT_DIR . '/upgrade/' . basename( $from ) . $distro;
 
-		$checksums = get_core_checksums( $wp_version, isset( $wp_local_package ) ? $wp_local_package : 'en_US' );
+		$checksums = get_core_checksums( $wp_version, $wp_local_package ?? 'en_US' );
 
 		if ( is_array( $checksums ) && isset( $checksums[ $wp_version ] ) ) {
 			$checksums = $checksums[ $wp_version ]; // Compat code for 3.7-beta2.
@@ -1630,7 +1943,7 @@ function update_core( $from, $to ) {
  *
  * @since 6.2.0
  *
- * @global array              $_old_requests_files Requests files to be preloaded.
+ * @global string[]           $_old_requests_files Requests files to be preloaded.
  * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
  * @global string             $wp_version          The WordPress version string.
  *
@@ -1727,7 +2040,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	);
 	echo '</div>';
 	?>
-<script type="text/javascript">
+<script>
 window.location = 'about.php?updated';
 </script>
 	<?php
@@ -1742,7 +2055,7 @@ window.location = 'about.php?updated';
  *
  * @since 4.2.2
  *
- * @global array              $wp_theme_directories
+ * @global string[]           $wp_theme_directories
  * @global WP_Filesystem_Base $wp_filesystem
  */
 function _upgrade_422_remove_genericons() {
@@ -1788,7 +2101,7 @@ function _upgrade_422_remove_genericons() {
  * @since 4.2.2
  *
  * @param string $directory Directory path. Expects trailingslashed.
- * @return array
+ * @return string[]
  */
 function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$directory = trailingslashit( $directory );
@@ -1846,13 +2159,14 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  * @since 5.9.0 The minimum compatible version of Gutenberg is 11.9.
  * @since 6.1.1 The minimum compatible version of Gutenberg is 14.1.
  * @since 6.4.0 The minimum compatible version of Gutenberg is 16.5.
+ * @since 6.5.0 The minimum compatible version of Gutenberg is 17.6.
  */
 function _upgrade_core_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '16.5', '<' ) ) {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '17.6', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
-			'version_compatible'  => '16.5',
+			'version_compatible'  => '17.6',
 		);
 		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
 			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );
@@ -1861,7 +2175,7 @@ function _upgrade_core_deactivate_incompatible_plugins() {
 		} else {
 			$deactivated_plugins = get_option( 'wp_force_deactivated_plugins', array() );
 			$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
-			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
+			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins, false );
 		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}

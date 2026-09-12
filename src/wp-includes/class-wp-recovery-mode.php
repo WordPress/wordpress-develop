@@ -338,7 +338,7 @@ class WP_Recovery_Mode {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @global array $wp_theme_directories
+	 * @global string[] $wp_theme_directories
 	 *
 	 * @param array $error Error details from `error_get_last()`.
 	 * @return array|false {
@@ -455,6 +455,8 @@ class WP_Recovery_Mode {
 	 * next request again. Otherwise it will create a redirect loop.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @return never
 	 */
 	protected function redirect_protected() {
 		// Pluggable is usually loaded after plugins, so we manually include it here for redirection functionality.

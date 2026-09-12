@@ -25,7 +25,6 @@ use WpOrg\Requests\Utility\InputValidator;
 final class Curl implements Transport {
 	const CURL_7_10_5 = 0x070A05;
 	const CURL_7_16_2 = 0x071002;
-	const CURL_7_22_0 = 0x071600;
 
 	/**
 	 * Raw HTTP data
@@ -127,6 +126,7 @@ final class Curl implements Transport {
 	 */
 	public function __destruct() {
 		if (is_resource($this->handle)) {
+			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.curl_closeDeprecated,Generic.PHP.DeprecatedFunctions.Deprecated
 			curl_close($this->handle);
 		}
 	}
@@ -307,7 +307,10 @@ final class Curl implements Transport {
 				}
 
 				curl_multi_remove_handle($multihandle, $done['handle']);
-				curl_close($done['handle']);
+				if (is_resource($done['handle'])) {
+					// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.curl_closeDeprecated,Generic.PHP.DeprecatedFunctions.Deprecated
+					curl_close($done['handle']);
+				}
 
 				if (!is_string($responses[$key])) {
 					$options['hooks']->dispatch('multiple.request.complete', [&$responses[$key], $key]);
@@ -364,7 +367,7 @@ final class Curl implements Transport {
 		$options['hooks']->dispatch('curl.before_request', [&$this->handle]);
 
 		// Force closing the connection for old versions of cURL (<7.22).
-		if ($this->version < self::CURL_7_22_0 && !isset($headers['Connection'])) {
+		if (!isset($headers['Connection'])) {
 			$headers['Connection'] = 'close';
 		}
 

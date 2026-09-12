@@ -2,10 +2,15 @@
 /**
  * Title: Portfolio home template with post featured images
  * Slug: twentytwentyfour/template-home-portfolio
- * Template Types: front-page, index, home
+ * Template Types: front-page, home
  * Viewport width: 1400
  * Inserter: no
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:template-part {"slug":"header","area":"header","tagName":"header"} /-->

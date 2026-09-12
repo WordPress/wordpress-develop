@@ -284,7 +284,7 @@ window.wp = window.wp || {};
 		 * @since 3.5.0
 		 *
 		 * @return {wp.Backbone.Subviews} The current Subviews instance.
-		*/
+		 */
 		render: function() {
 			var options = {
 					ready: this._isReady()
@@ -310,11 +310,11 @@ window.wp = window.wp || {};
 		 * @since 3.6.0
 		 *
 		 * @param {Object}  options        Options for call.
-		 * @param {boolean} options.silent If true, `unset` wil *not* be triggered on
+		 * @param {boolean} options.silent If true, `unset` will *not* be triggered on
 		 *                                 the master views' parent.
 		 *
 		 * @return {wp.Backbone.Subviews} The current Subviews instance.
-		*/
+		 */
 		remove: function( options ) {
 			if ( ! options || ! options.silent ) {
 				if ( this.parent && this.parent.views )
@@ -338,7 +338,7 @@ window.wp = window.wp || {};
 		 * @since 3.5.0
 		 *
 		 * @param {string} $target Selector where to put the elements.
-		 * @param {*} els HTML or elements to put into the selector's HTML.
+		 * @param {*}      els     HTML or elements to put into the selector's HTML.
 		 *
 		 * @return {wp.Backbone.Subviews} The current Subviews instance.
 		 */

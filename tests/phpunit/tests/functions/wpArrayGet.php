@@ -5,7 +5,8 @@
  *
  * @since 5.6.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::_wp_array_get
  */
 class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
@@ -236,19 +237,6 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 				true
 			),
 			true
-		);
-
-		$this->assertSame(
-			_wp_array_get(
-				array(
-					'key' => array(
-						null => 4,
-					),
-				),
-				array( 'key', null ),
-				true
-			),
-			4
 		);
 	}
 

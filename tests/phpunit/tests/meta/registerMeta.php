@@ -8,12 +8,17 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	protected static $term_id;
 	protected static $comment_id;
 	protected static $user_id;
+	protected static $blog_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id    = $factory->post->create( array( 'post_type' => 'page' ) );
 		self::$term_id    = $factory->term->create( array( 'taxonomy' => 'category' ) );
 		self::$comment_id = $factory->comment->create();
 		self::$user_id    = $factory->user->create();
+
+		if ( is_multisite() ) {
+			self::$blog_id = $factory->blog->create();
+		}
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -21,6 +26,11 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		wp_delete_term( self::$term_id, 'category' );
 		wp_delete_comment( self::$comment_id, true );
 		self::delete_user( self::$user_id );
+
+		if ( is_multisite() ) {
+			wp_delete_site( self::$blog_id );
+			wp_update_network_site_counts();
+		}
 	}
 
 	public function _old_sanitize_meta_cb( $meta_value, $meta_key, $meta_type ) {
@@ -92,6 +102,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
@@ -117,6 +128,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'category_icon' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
@@ -172,6 +184,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => array( $this, '_new_sanitize_meta_cb' ),
@@ -254,6 +267,19 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		unregister_meta_key( 'post', 'registered_key2' );
 
 		$this->assertEmpty( $meta_keys );
+	}
+
+	/**
+	 * @ticket 61998
+	 */
+	public function test_get_registered_meta_keys_label_arg() {
+		register_meta( 'post', 'registered_key1', array( 'label' => 'Field label' ) );
+
+		$meta_keys = get_registered_meta_keys( 'post' );
+
+		unregister_meta_key( 'post', 'registered_key1' );
+
+		$this->assertSame( 'Field label', $meta_keys['registered_key1']['label'] );
 	}
 
 	public function test_get_registered_meta_keys_description_arg() {
@@ -340,6 +366,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				$subtype => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
@@ -394,6 +421,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				$subtype => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
@@ -1088,6 +1116,60 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44387
+	 * @group ms-required
+	 */
+	public function test_get_object_subtype_for_blog_returns_blog_when_site_exists() {
+		$this->assertSame( 'blog', get_object_subtype( 'blog', self::$blog_id ) );
+	}
+
+	/**
+	 * @ticket 44387
+	 * @group ms-required
+	 */
+	public function test_get_object_subtype_for_blog_returns_empty_string_for_invalid_site() {
+		$this->assertSame( '', get_object_subtype( 'blog', 0 ) );
+		$this->assertSame( '', get_object_subtype( 'blog', 999999 ) );
+	}
+
+	/**
+	 * @ticket 44387
+	 * @group ms-excluded
+	 */
+	public function test_get_object_subtype_for_blog_returns_empty_string_no_multisite() {
+		$this->assertSame( '', get_object_subtype( 'blog', 0 ) );
+	}
+
+	/**
+	 * @ticket 44387
+	 * @group ms-required
+	 */
+	public function test_get_object_subtype_for_blog_with_registered_meta() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
+		}
+
+		$this->assertSame( 'blog', get_object_subtype( 'blog', self::$blog_id ) );
+
+		register_meta(
+			'blog',
+			'site_rating',
+			array(
+				'single'         => true,
+				'object_subtype' => 'blog',
+			)
+		);
+		add_site_meta( self::$blog_id, 'site_rating', '5' );
+
+		$meta = get_registered_metadata( 'blog', self::$blog_id, 'site_rating' );
+
+		unregister_meta_key( 'blog', 'site_rating', 'blog' );
+		delete_site_meta( self::$blog_id, 'site_rating' );
+
+		$this->assertSame( '5', $meta );
+	}
+
+	/**
 	 * Test that attempting to register meta with revisions_enabled set to true on a
 	 * post type that does not have revisions enabled fails and throws a `doing_it_wrong` notice.
 	 *
@@ -1116,5 +1198,35 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		);
 
 		$this->assertFalse( $register );
+	}
+
+	/**
+	 * @ticket 44387
+	 * @group ms-required
+	 */
+	public function test_register_site_meta_returns_true_on_success() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
+		}
+
+		$result = register_site_meta( 'test_site_meta_key', array( 'single' => true ) );
+		unregister_site_meta( 'test_site_meta_key' );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * @ticket 44387
+	 * @group ms-required
+	 */
+	public function test_unregister_site_meta_returns_true_on_success() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
+		}
+
+		register_site_meta( 'test_site_meta_key', array( 'single' => true ) );
+		$result = unregister_site_meta( 'test_site_meta_key' );
+
+		$this->assertTrue( $result );
 	}
 }

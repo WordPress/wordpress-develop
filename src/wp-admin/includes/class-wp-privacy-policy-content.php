@@ -120,7 +120,7 @@ final class WP_Privacy_Policy_Content {
 
 		// Cache the result for use before `admin_init` (see above).
 		if ( $cached !== $state ) {
-			update_option( '_wp_suggested_policy_text_has_changed', $state );
+			update_option( '_wp_suggested_policy_text_has_changed', $state, false );
 		}
 
 		return 'changed' === $state;
@@ -329,11 +329,17 @@ final class WP_Privacy_Policy_Content {
 		$current_screen = get_current_screen();
 		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
 
+		// If the privacy policy page has been deleted, reset the option and bail.
+		if ( $policy_page_id && ! get_post( $policy_page_id ) ) {
+			update_option( 'wp_page_for_privacy_policy', 0 );
+			return;
+		}
+
 		if ( 'post' !== $current_screen->base || $policy_page_id !== $post->ID ) {
 			return;
 		}
 
-		$message = __( 'Need help putting together your new Privacy Policy page? Check out our guide for recommendations on what content to include, along with policies suggested by your plugins and theme.' );
+		$message = __( 'Need help putting together your new Privacy Policy page? Check out the guide for recommendations on what content to include, along with policies suggested by your plugins and theme.' );
 		$url     = esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) );
 		$label   = __( 'View Privacy Policy Guide.' );
 
@@ -348,7 +354,7 @@ final class WP_Privacy_Policy_Content {
 				sprintf(
 					'wp.data.dispatch( "core/notices" ).createWarningNotice( "%s", { actions: [ %s ], isDismissible: false } )',
 					$message,
-					wp_json_encode( $action )
+					wp_json_encode( $action, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 				),
 				'after'
 			);
@@ -378,14 +384,14 @@ final class WP_Privacy_Policy_Content {
 	public static function privacy_policy_guide() {
 
 		$content_array = self::get_suggested_policy_text();
-		$content       = '';
 		$date_format   = __( 'F j, Y' );
 
-		foreach ( $content_array as $section ) {
-			$class   = '';
-			$meta    = '';
-			$removed = '';
+		$i = 0;
 
+		foreach ( $content_array as $section ) {
+			++$i;
+
+			$removed = '';
 			if ( ! empty( $section['removed'] ) ) {
 				$badge_class = ' red';
 				$date        = date_i18n( $date_format, $section['removed'] );
@@ -409,11 +415,9 @@ final class WP_Privacy_Policy_Content {
 			}
 
 			$plugin_name = esc_html( $section['plugin_name'] );
-
-			$sanitized_policy_name = sanitize_title_with_dashes( $plugin_name );
 			?>
 			<h4 class="privacy-settings-accordion-heading">
-			<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-<?php echo $sanitized_policy_name; ?>" type="button">
+				<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-<?php echo $i; ?>" type="button">
 				<span class="title"><?php echo $plugin_name; ?></span>
 				<?php if ( ! empty( $section['removed'] ) || ! empty( $section['updated'] ) ) : ?>
 				<span class="badge <?php echo $badge_class; ?>"> <?php echo $badge_title; ?></span>
@@ -421,11 +425,13 @@ final class WP_Privacy_Policy_Content {
 				<span class="icon"></span>
 			</button>
 			</h4>
-			<div id="privacy-settings-accordion-block-<?php echo $sanitized_policy_name; ?>" class="privacy-settings-accordion-panel privacy-text-box-body" hidden="hidden">
-				<?php
-				echo $removed;
-				echo $section['policy_text'];
-				?>
+			<div id="privacy-settings-accordion-block-<?php echo $i; ?>" class="privacy-settings-accordion-panel privacy-text-box-body" hidden="hidden">
+				<div class="privacy-text-copy-content">
+					<?php
+					echo $removed;
+					echo $section['policy_text'];
+					?>
+				</div>
 				<?php if ( empty( $section['removed'] ) ) : ?>
 				<div class="privacy-settings-accordion-actions">
 					<span class="success" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
@@ -466,7 +472,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Who we are' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Who we are' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -494,7 +500,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Comments' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Comments' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -507,7 +513,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Media' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Media' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -525,11 +531,11 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Cookies' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Cookies' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
-			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'In this subsection you should list the cookies your web site uses, including those set by your plugins, social media, and analytics. We have provided the cookies which WordPress installs by default.' ) . '</p>';
+			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'In this subsection you should list the cookies your website uses, including those set by your plugins, social media, and analytics. We have provided the cookies which WordPress installs by default.' ) . '</p>';
 		} else {
 			/* translators: Default privacy policy text. */
 			$strings[] = '<p>' . $suggested_text . __( 'If you leave a comment on our site you may opt-in to saving your name, email address and website in cookies. These are for your convenience so that you do not have to fill in your details again when you leave another comment. These cookies will last for one year.' ) . '</p>';
@@ -543,7 +549,7 @@ final class WP_Privacy_Policy_Content {
 
 		if ( ! $description ) {
 			/* translators: Default privacy policy heading. */
-			$strings[] = '<h2>' . __( 'Embedded content from other websites' ) . '</h2>';
+			$strings[] = '<h2 class="wp-block-heading">' . __( 'Embedded content from other websites' ) . '</h2>';
 			/* translators: Default privacy policy text. */
 			$strings[] = '<p>' . $suggested_text . __( 'Articles on this site may include embedded content (e.g. videos, images, articles, etc.). Embedded content from other websites behaves in the exact same way as if the visitor has visited the other website.' ) . '</p>';
 			/* translators: Default privacy policy text. */
@@ -560,7 +566,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Who we share your data with' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Who we share your data with' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -573,11 +579,11 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'How long we retain your data' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'How long we retain your data' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
-			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'In this section you should explain how long you retain personal data collected or processed by the web site. While it is your responsibility to come up with the schedule of how long you keep each dataset for and why you keep it, that information does need to be listed here. For example, you may want to say that you keep contact form entries for six months, analytics records for a year, and customer purchase records for ten years.' ) . '</p>';
+			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'In this section you should explain how long you retain personal data collected or processed by the website. While it is your responsibility to come up with the schedule of how long you keep each dataset for and why you keep it, that information does need to be listed here. For example, you may want to say that you keep contact form entries for six months, analytics records for a year, and customer purchase records for ten years.' ) . '</p>';
 		} else {
 			/* translators: Default privacy policy text. */
 			$strings[] = '<p>' . $suggested_text . __( 'If you leave a comment, the comment and its metadata are retained indefinitely. This is so we can recognize and approve any follow-up comments automatically instead of holding them in a moderation queue.' ) . '</p>';
@@ -586,7 +592,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'What rights you have over your data' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'What rights you have over your data' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
@@ -597,13 +603,13 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Where your data is sent' ) . '</h2>';
+		$strings[] = '<h2 class="wp-block-heading">' . __( 'Where your data is sent' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
 			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'In this section you should list all transfers of your site data outside the European Union and describe the means by which that data is safeguarded to European data protection standards. This could include your web hosting, cloud storage, or other third party services.' ) . '</p>';
 			/* translators: Privacy policy tutorial. */
-			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'European data protection law requires data about European residents which is transferred outside the European Union to be safeguarded to the same standards as if the data was in Europe. So in addition to listing where data goes, you should describe how you ensure that these standards are met either by yourself or by your third party providers, whether that is through an agreement such as Privacy Shield, model clauses in your contracts, or binding corporate rules.' ) . '</p>';
+			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'Where applicable, European data protection law requires personal data of individuals in the European Union or European Economic Area, and other personal data subject to that law, to be protected when transferred outside the European Union or European Economic Area. In addition to listing where the data is transferred, you should explain the legal basis and safeguards relied on for the transfer, such as an adequacy decision, Standard Contractual Clauses, or Binding Corporate Rules. You should also describe any supplementary measures used where relevant.' ) . '</p>';
 		} else {
 			/* translators: Default privacy policy text. */
 			$strings[] = '<p>' . $suggested_text . __( 'Visitor comments may be checked through an automated spam detection service.' ) . '</p>';
@@ -641,14 +647,14 @@ final class WP_Privacy_Policy_Content {
 			/* translators: Default privacy policy heading. */
 			$strings[] = '<h2>' . __( 'What third parties we receive data from' ) . '</h2>';
 			/* translators: Privacy policy tutorial. */
-			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'If your web site receives data about users from third parties, including advertisers, this information must be included within the section of your privacy policy dealing with third party data.' ) . '</p>';
+			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'If your website receives data about users from third parties, including advertisers, this information must be included within the section of your privacy policy dealing with third party data.' ) . '</p>';
 		}
 
 		if ( $description ) {
 			/* translators: Default privacy policy heading. */
 			$strings[] = '<h2>' . __( 'What automated decision making and/or profiling we do with user data' ) . '</h2>';
 			/* translators: Privacy policy tutorial. */
-			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'If your web site provides a service which includes automated decision making - for example, allowing customers to apply for credit, or aggregating their data into an advertising profile - you must note that this is taking place, and include information about how that information is used, what decisions are made with that aggregated data, and what rights users have over decisions made without human intervention.' ) . '</p>';
+			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'If your website provides a service which includes automated decision making - for example, allowing customers to apply for credit, or aggregating their data into an advertising profile - you must note that this is taking place, and include information about how that information is used, what decisions are made with that aggregated data, and what rights users have over decisions made without human intervention.' ) . '</p>';
 		}
 
 		if ( $description ) {
@@ -662,11 +668,11 @@ final class WP_Privacy_Policy_Content {
 		if ( $blocks ) {
 			foreach ( $strings as $key => $string ) {
 				if ( str_starts_with( $string, '<p>' ) ) {
-					$strings[ $key ] = '<!-- wp:paragraph -->' . $string . '<!-- /wp:paragraph -->';
+					$strings[ $key ] = "<!-- wp:paragraph -->\n" . $string . "\n<!-- /wp:paragraph -->\n";
 				}
 
-				if ( str_starts_with( $string, '<h2>' ) ) {
-					$strings[ $key ] = '<!-- wp:heading -->' . $string . '<!-- /wp:heading -->';
+				if ( str_starts_with( $string, '<h2 ' ) ) {
+					$strings[ $key ] = "<!-- wp:heading -->\n" . $string . "\n<!-- /wp:heading -->\n";
 				}
 			}
 		}
