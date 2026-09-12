@@ -2426,8 +2426,9 @@ function the_block_editor_meta_boxes() {
 				}
 
 				$meta_boxes_per_location[ $location ][] = array(
-					'id'    => $meta_box['id'],
-					'title' => $meta_box['title'],
+					'id'               => $meta_box['id'],
+					'title'            => $meta_box['title'],
+					'__rtc_compatible' => ! empty( $meta_box['args']['__rtc_compatible_meta_box'] ),
 				);
 			}
 		}
