@@ -3568,7 +3568,7 @@ function register_new_user( $user_login, $user_email ) {
 	if ( '' === $sanitized_user_login ) {
 		$errors->add( 'empty_username', __( '<strong>Error:</strong> Please enter a username.' ) );
 	} elseif ( ! validate_username( $user_login ) ) {
-		$errors->add( 'invalid_username', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
+		$errors->add( 'invalid_username', __( '<strong>Error:</strong> This username is invalid because it uses disallowed characters. Please enter a valid username.' ) );
 		$sanitized_user_login = '';
 	} elseif ( username_exists( $sanitized_user_login ) ) {
 		$errors->add( 'username_exists', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
