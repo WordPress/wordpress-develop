@@ -972,6 +972,20 @@ class WP_REST_Server {
 		 */
 		$endpoints = apply_filters( 'rest_endpoints', $endpoints );
 
+		if ( ! is_array( $endpoints ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The name of the filter. */
+					__( 'The %s filter must return an array of endpoints.' ),
+					'<code>rest_endpoints</code>'
+				),
+				'7.2.0'
+			);
+
+			$endpoints = array();
+		}
+
 		// Normalize the endpoints.
 		$defaults = array(
 			'methods'       => '',
