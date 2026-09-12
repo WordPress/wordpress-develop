@@ -348,7 +348,7 @@ class Twenty_Twenty_One_Dark_Mode {
 				}
 				@media only screen and (max-width: 782px) {
 					#dark-mode-toggler {
-						margin-top: 32px;
+						margin-top: 48px;
 					}
 				}
 			<?php endif; ?>
