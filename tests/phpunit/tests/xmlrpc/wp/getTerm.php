@@ -76,7 +76,12 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'category', self::$term_id ) );
 
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $result, $term );
+		/*
+		 * This comparison stays loose: wp.getTerm returns the IDs as strings so that they
+		 * cannot exceed what an XML-RPC integer can describe, while get_term() returns them
+		 * as integers. The individual types are asserted below.
+		 */
+		$this->assertEquals( $term, $result );
 
 		// Check data types.
 		$this->assertIsString( $result['name'] );
