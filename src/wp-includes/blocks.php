@@ -2621,6 +2621,17 @@ function do_blocks( $content ) {
 function _restore_wpautop_hook( $content ) {
 	$current_priority = has_filter( 'the_content', '_restore_wpautop_hook' );
 
+	/*
+	 * Another callback at the same priority, such as do_shortcode(), may run
+	 * before this one and apply `the_content` recursively. That nested run
+	 * restores wpautop() and removes this hook, but the outer WP_Hook loop
+	 * still invokes this callback. Without this check, `$current_priority - 1`
+	 * would add wpautop() at priority -1 for the rest of the request.
+	 */
+	if ( false === $current_priority ) {
+		return $content;
+	}
+
 	add_filter( 'the_content', 'wpautop', $current_priority - 1 );
 	remove_filter( 'the_content', '_restore_wpautop_hook', $current_priority );
 
