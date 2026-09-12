@@ -49,6 +49,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', $post ) );
 		$this->assertNotIXRError( $result );
+		$this->assertIsString( $result );
 		$this->assertNotSame( '103948', $result );
 	}
 

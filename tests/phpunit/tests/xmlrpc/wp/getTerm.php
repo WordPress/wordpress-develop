@@ -91,6 +91,10 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsInt( $result['count'] );
 
 		// We expect all ID's to be strings not integers so we don't return something larger than an XMLRPC integer can describe.
+		$this->assertIsString( $result['term_id'] );
+		$this->assertIsString( $result['term_group'] );
+		$this->assertIsString( $result['term_taxonomy_id'] );
+		$this->assertIsString( $result['parent'] );
 		$this->assertStringMatchesFormat( '%d', $result['term_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['term_group'] );
 		$this->assertStringMatchesFormat( '%d', $result['term_taxonomy_id'] );
