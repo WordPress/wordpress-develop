@@ -426,6 +426,46 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 18088
+	 * @covers ::get_settings_errors
+	 * @covers ::set_network_settings_errors
+	 * @global array $wp_settings_errors
+	 */
+	public function test_get_settings_errors_from_network_transient() {
+		global $current_screen, $wp_settings_errors;
+
+		$previous_screen = $current_screen;
+		$error           = array(
+			'setting' => 'new_admin_email',
+			'code'    => 'invalid_new_admin_email',
+			'message' => 'Invalid email address.',
+			'type'    => 'error',
+		);
+
+		set_current_screen( 'dashboard-network' );
+		$wp_settings_errors = null;
+		add_settings_error( $error['setting'], $error['code'], $error['message'], $error['type'] );
+		set_network_settings_errors();
+
+		$_GET['updated']    = 'false';
+		$wp_settings_errors = null;
+		$errors_when_false  = get_settings_errors();
+
+		$_GET['updated']    = 'true';
+		$wp_settings_errors = null;
+		$errors_when_true   = get_settings_errors();
+		$transient          = get_site_transient( 'settings_errors' );
+
+		unset( $_GET['updated'] );
+		$current_screen     = $previous_screen;
+		$wp_settings_errors = null;
+
+		$this->assertSame( array(), $errors_when_false );
+		$this->assertSame( array( $error ), $errors_when_true );
+		$this->assertFalse( $transient );
+	}
+
+	/**
 	 * @ticket 44941
 	 * @covers ::settings_errors
 	 * @global array $wp_settings_errors
