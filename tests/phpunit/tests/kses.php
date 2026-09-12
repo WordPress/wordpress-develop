@@ -109,6 +109,51 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that repeated runs return the same result.
+	 *
+	 * @ticket 65984
+	 *
+	 * @dataProvider data_wp_kses_idempotent_inputs
+	 *
+	 * @param string $input                 Process this HTML.
+	 * @param array|null $allowed_html      Optional. If provided, will be passed into `wp_kses()`.
+	 *                                      Default is to rely on the WordPress defaults.
+	 * @param array|null $allowed_protocols Optional. If provided, will be passed into `wp_kses()`.
+	 *                                      Default is to rely on the WordPress defaults.
+	 * @return void
+	 */
+	public function test_wp_kses_is_idempotent( string $input, ?array $allowed_html = null, ?array $allowed_protocols = null ): void {
+		$output = wp_kses( $input, $allowed_html, $allowed_protocols );
+
+		$this->assertSame(
+			$output,
+			wp_kses( $output, $allowed_html, $allowed_protocols ),
+			'Should have produced the same output after running the given input back through `wp_kses()`'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_kses_idempotent_inputs(): array {
+		return array(
+			array(
+				'<div>a < b</div>',
+			),
+			array(
+				'<div id="a < b">',
+				array(
+					'div' => array(
+						'id' => true,
+					),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Test video tag.
 	 *
 	 * @ticket 50167
@@ -364,106 +409,106 @@ EOF;
 
 			switch ( $attack->name ) {
 				case 'XSS Locator':
-					$this->assertSame( '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//--&gt;"&gt;\'&gt;alert(String.fromCharCode(88,83,83))=&amp;{}', $result );
+					$this->assertEqualHTML( '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//--&gt;"&gt;\'&gt;=&amp;{}', $result );
 					break;
 				case 'XSS Quick Test':
-					$this->assertSame( '\'\';!--"=&amp;{()}', $result );
+					$this->assertEqualHTML( '\'\';!--"=&amp;{()}', $result );
 					break;
 				case 'SCRIPT w/Alert()':
-					$this->assertSame( "alert('XSS')", $result );
+					$this->assertEqualHTML( "alert('XSS')", $result );
 					break;
 				case 'SCRIPT w/Char Code':
-					$this->assertSame( 'alert(String.fromCharCode(88,83,83))', $result );
+					$this->assertEqualHTML( 'alert(String.fromCharCode(88,83,83))', $result );
 					break;
 				case 'IMG STYLE w/expression':
-					$this->assertSame( 'exp/*', $result );
+					$this->assertEqualHTML( 'exp/*', $result );
 					break;
 				case 'List-style-image':
-					$this->assertSame( 'li {list-style-image: url("javascript:alert(\'XSS\')");}XSS', $result );
+					$this->assertEqualHTML( 'li {list-style-image: url("javascript:alert(\'XSS\')");}XSS', $result );
 					break;
 				case 'STYLE':
-					$this->assertSame( "alert('XSS');", $result );
+					$this->assertEqualHTML( "alert('XSS');", $result );
 					break;
 				case 'STYLE w/background-image':
-					$this->assertSame( '.XSS{background-image:url("javascript:alert(\'XSS\')");}<A></A>', $result );
+					$this->assertEqualHTML( '<A></A>', $result );
 					break;
 				case 'STYLE w/background':
-					$this->assertSame( 'BODY{background:url("javascript:alert(\'XSS\')")}', $result );
+					$this->assertEqualHTML( 'BODY{background:url("javascript:alert(\'XSS\')")}', $result );
 					break;
 				case 'Remote Stylesheet 2':
-					$this->assertSame( "@import'http://ha.ckers.org/xss.css';", $result );
+					$this->assertEqualHTML( "@import'http://ha.ckers.org/xss.css';", $result );
 					break;
 				case 'Remote Stylesheet 3':
-					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Link&quot; Content=&quot;; REL=stylesheet"&gt;', $result );
+					$this->assertEqualHTML( '&lt;META HTTP-EQUIV=&quot;Link&quot; Content=&quot;; REL=stylesheet"&gt;', $result );
 					break;
 				case 'Remote Stylesheet 4':
-					$this->assertSame( 'BODY{-moz-binding:url("http://ha.ckers.org/xssmoz.xml#xss")}', $result );
+					$this->assertEqualHTML( 'BODY{-moz-binding:url("http://ha.ckers.org/xssmoz.xml#xss")}', $result );
 					break;
 				case 'XML data island w/CDATA':
-					$this->assertSame( '&lt;![CDATA[]]&gt;', $result );
+					$this->assertEqualHTML( ']]>', $result );
 					break;
 				case 'XML data island w/comment':
-					$this->assertSame( "<I><B>&lt;IMG SRC=&quot;javas<!-- -->cript:alert('XSS')\"&gt;</B></I>", $result );
+					$this->assertEqualHTML( '<I><B></B></I>', $result );
 					break;
 				case 'XML HTML+TIME':
-					$this->assertSame( '&lt;t:set attributeName=&quot;innerHTML&quot; to=&quot;XSSalert(\'XSS\')"&gt;', $result );
+					$this->assertEqualHTML( '', $result );
 					break;
 				case 'Commented-out Block':
-					$this->assertSame( "<!--[if gte IE 4]&gt;-->\nalert('XSS');", $result );
+					$this->assertEqualHTML( "<!--[if gte IE 4]>\n&lt;SCRIPT>alert('XSS');&lt;/SCRIPT>\n&lt;![endif]-->", $result );
 					break;
 				case 'Cookie Manipulation':
-					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );
+					$this->assertEqualHTML( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );
 					break;
 				case 'SSI':
-					$this->assertSame( '&lt;!--#exec cmd=&quot;/bin/echo &#039;<!--#exec cmd="/bin/echo \'=http://ha.ckers.org/xss.js&gt;\'"-->', $result );
+					$this->assertEqualHTML( '<!--#exec cmd="/bin/echo \'&lt;SCRIPT SRC\'"--><!--#exec cmd="/bin/echo \'=http://ha.ckers.org/xss.js>&lt;/SCRIPT>\'"-->', $result );
 					break;
 				case 'PHP':
-					$this->assertSame( '&lt;? echo(&#039;alert("XSS")\'); ?&gt;', $result );
+					$this->assertEqualHTML( 'alert("XSS")\'); ?&gt;', $result );
 					break;
 				case 'UTF-7 Encoding':
-					$this->assertSame( '+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-', $result );
+					$this->assertEqualHTML( '+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-', $result );
 					break;
 				case 'Escaping JavaScript escapes':
-					$this->assertSame( '\";alert(\'XSS\');//', $result );
+					$this->assertEqualHTML( '\";alert(\'XSS\');//', $result );
 					break;
 				case 'STYLE w/broken up JavaScript':
-					$this->assertSame( '@im\port\'\ja\vasc\ript:alert("XSS")\';', $result );
+					$this->assertEqualHTML( '@im\port\'\ja\vasc\ript:alert("XSS")\';', $result );
 					break;
 				case 'Null Chars 2':
-					$this->assertSame( '&amp;alert("XSS")', $result );
+					$this->assertEqualHTML( '&amp;alert("XSS")', $result );
 					break;
 				case 'No Closing Script Tag':
-					$this->assertSame( '&lt;SCRIPT SRC=http://ha.ckers.org/xss.js', $result );
+					$this->assertEqualHTML( '&lt;SCRIPT SRC=http://ha.ckers.org/xss.js', $result );
 					break;
 				case 'Half-Open HTML/JavaScript':
-					$this->assertSame( '&lt;IMG SRC=&quot;javascript:alert(&#039;XSS&#039;)&quot;', $result );
+					$this->assertEqualHTML( '&lt;IMG SRC=&quot;javascript:alert(&#039;XSS&#039;)&quot;', $result );
 					break;
 				case 'Double open angle brackets':
-					$this->assertSame( '&lt;IFRAME SRC=http://ha.ckers.org/scriptlet.html &lt;', $result );
+					$this->assertEqualHTML( '&lt;IFRAME SRC=http://ha.ckers.org/scriptlet.html &lt;', $result );
 					break;
 				case 'Extraneous Open Brackets':
-					$this->assertSame( '&lt;alert("XSS");//&lt;', $result );
+					$this->assertSame( '&lt;', $result );
 					break;
 				case 'Malformed IMG Tags':
-					$this->assertSame( 'alert("XSS")"&gt;', $result );
+					$this->assertEqualHTML( '">', $result );
 					break;
 				case 'No Quotes/Semicolons':
-					$this->assertSame( "a=/XSS/\nalert(a.source)", $result );
+					$this->assertEqualHTML( "a=/XSS/\nalert(a.source)", $result );
 					break;
 				case 'Evade Regex Filter 1':
-					$this->assertSame( '" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( '" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Evade Regex Filter 4':
-					$this->assertSame( '\'" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( '\'" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Evade Regex Filter 5':
-					$this->assertSame( '` SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( '` SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Filter Evasion 1':
-					$this->assertSame( 'document.write("&lt;SCRI&quot;);PT SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( 'PT SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Filter Evasion 2':
-					$this->assertSame( '\'&gt;" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( '\'&gt;" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				default:
 					$this->fail( 'KSES failed on ' . $attack->name . ': ' . $result );
@@ -854,7 +899,8 @@ EOF;
 	public function test_ctrl_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
+		// It also must explicitly escape the C0 control characters.
+		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_ctrl_removal() {
@@ -875,9 +921,15 @@ EOF;
 				"\x1Fh\x1Ee\x1Dl\x1Cl\x1Bo\x1A \x19w\x18o\x17r\x16l\x15d\x14.\x13 \x12W\x11O\x10R\x0FD\x0EP\x0CR\x0BE\x08S\x07S\x06 \x05K\x04S\X03E\x02S\x01.\x00/",
 				'hello world. WORDPRESS KSES./',
 			),
+			/*
+			 * When decoding HTML, all "\r\n" grapheme clusters are converted into "\n" and
+			 * then any remaining "\r" characters are also converted into "\n". This is why
+			 * the two yield different outputs after normalization depending on the order in
+			 * which they appear together.
+			 */
 			array(
 				"\t\r\n word \n\r\t",
-				"\t\r\n word \n\r\t",
+				"\t\n word \n\n\t",
 			),
 		);
 	}
@@ -891,7 +943,16 @@ EOF;
 	public function test_slash_zero_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
+		$with_style = array_merge(
+			$allowedposttags,
+			array(
+				'style' => array(
+					'type' => true,
+				),
+			)
+		);
+
+		return $this->assertEqualHTML( $expected, wp_kses( $content, $with_style ) );
 	}
 
 	public function data_slash_zero_removal() {
@@ -930,7 +991,7 @@ EOF;
 			),
 			array(
 				'<style type="text/css">div {background-image:\\0}</style>',
-				'div {background-image:\\0}',
+				'<style type="text/css">div {background-image:\\0}</style>',
 			),
 		);
 	}
@@ -2347,7 +2408,7 @@ EOF;
 			),
 			'invalid value for type'                  => array(
 				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
-				'',
+				'<object>',
 			),
 			'multiple type attributes, last invalid'  => array(
 				'<object type="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
@@ -2363,39 +2424,39 @@ EOF;
 			),
 			'multiple type attributes, first invalid' => array(
 				'<object type="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'multiple type attributes, first upper case and invalid' => array(
 				'<object TYPE="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'multiple type attributes, first invalid, last uppercase' => array(
 				'<object type="application/exe" TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'multiple object tags, last invalid'      => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" /><object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" /><object>',
 			),
 			'multiple object tags, first invalid'     => array(
 				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" /><object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object><object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'type attribute with partially incorrect value' => array(
 				'<object type="application/pdfa" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'type attribute with empty value'         => array(
 				'<object type="" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'type attribute with no value'            => array(
 				'<object type data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'no type attribute'                       => array(
 				'<object data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'different protocol in url'               => array(
 				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
@@ -2403,27 +2464,27 @@ EOF;
 			),
 			'query string on url'                     => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf?lol=.pdf" />',
-				'',
+				'<object>',
 			),
 			'fragment on url'                         => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf#lol.pdf" />',
-				'',
+				'<object>',
 			),
 			'wrong extension'                         => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.php" />',
-				'',
+				'<object>',
 			),
 			'protocol-relative url'                   => array(
 				'<object type="application/pdf" data="//' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'unsupported protocol'                    => array(
 				'<object type="application/pdf" data="ftp://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'relative url'                            => array(
 				'<object type="application/pdf" data="/cat/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'url with port number-like path'          => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf" />',
@@ -2462,11 +2523,11 @@ EOF;
 			),
 			'url with wrong port number'             => array(
 				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'url without port number'                => array(
 				'<object type="application/pdf" data="http://example.org/cat/foo.pdf" />',
-				'',
+				'<object>',
 			),
 		);
 	}
@@ -2530,7 +2591,8 @@ HTML;
 	}
 
 	/**
-	 * Ensures that `wp_kses()` preserves various kinds of HTML comments, both valid and invalid.
+	 * Ensures that `wp_kses()` preserves various kinds of HTML comments;
+	 * specifically well-formed comments and “funky comments.”
 	 *
 	 * @ticket 61009
 	 *
@@ -2558,7 +2620,7 @@ HTML;
 		return array(
 			'Normative HTML comment'            => array( 'before<!-- this is a comment -->after', 'before<!-- this is a comment -->after' ),
 			'Closing tag with invalid tag name' => array( 'before<//not a tag>after', 'before<//not a tag>after' ),
-			'Incorrectly opened comment (Markup declaration)' => array( 'before<!also not a tag>after', 'before<!also not a tag>after' ),
+			'Incorrectly opened comment (Markup declaration)' => array( 'before<!also not a tag>after', 'beforeafter' ),
 		);
 	}
 
