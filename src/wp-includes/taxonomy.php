@@ -901,7 +901,7 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 
 	$sql = "SELECT tr.object_id FROM $wpdb->term_relationships AS tr INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tt.term_id IN ($term_ids) ORDER BY tr.object_id $order";
 
-	$last_changed = wp_cache_get_last_changed( 'terms' );
+	$last_changed = wp_cache_get_last_changed( 'term-queries' );
 	$cache_key    = 'get_objects_in_term:' . md5( $sql );
 	$cache        = wp_cache_get_salted( $cache_key, 'term-queries', $last_changed );
 	if ( false === $cache ) {
@@ -5258,6 +5258,12 @@ function is_term_publicly_viewable( $term ) {
  */
 function wp_cache_set_terms_last_changed() {
 	wp_cache_set_last_changed( 'terms' );
+	$current_action = current_action();
+	if ( in_array( $current_action, array( 'added_term_meta', 'updated_term_meta', 'deleted_term_meta' ), true ) ) {
+		wp_cache_set_last_changed( 'term-meta' );
+	} else {
+		wp_cache_set_last_changed( 'term-queries' );
+	}
 }
 
 /**

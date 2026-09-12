@@ -355,7 +355,10 @@ class WP_Site_Query {
 		unset( $_args['fields'], $_args['update_site_cache'], $_args['update_site_meta_cache'] );
 
 		$key          = md5( serialize( $_args ) );
-		$last_changed = wp_cache_get_last_changed( 'sites' );
+		$last_changed = (array) wp_cache_get_last_changed( 'site-queries' );
+		if ( ! empty( $this->meta_query->queries ) || str_contains( $this->request, $wpdb->sitemeta ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'blog-meta' );
+		}
 
 		$cache_key   = "get_sites:$key";
 		$cache_value = wp_cache_get_salted( $cache_key, 'site-queries', $last_changed );
