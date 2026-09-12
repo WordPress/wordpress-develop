@@ -1,7 +1,6 @@
 var View = wp.media.View,
 	$ = jQuery,
-	Attachments,
-	infiniteScrolling = wp.media.view.settings.infiniteScrolling;
+	Attachments;
 
 Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	tagName:   'ul',
@@ -54,7 +53,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		 *                           calculating the total number of columns.
 		 */
 		_.defaults( this.options, {
-			infiniteScrolling:  infiniteScrolling || false,
+			infiniteScrolling:  !! wp.media.view.settings.infiniteScrolling,
 			refreshSensitivity: wp.media.isTouchDevice ? 300 : 200,
 			refreshThreshold:   3,
 			AttachmentView:     wp.media.view.Attachment,
@@ -90,11 +89,12 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 
 		this.controller.on( 'library:selection:add', this.attachmentFocus, this );
 
-		if ( this.options.infiniteScrolling ) {
-			// Throttle the scroll handler and bind this.
-			this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
+		// Throttle the scroll handler and bind this. Done even when infinite
+		// scrolling is off, since it can be turned on at any time.
+		this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
+		this.options.scrollElement = this.options.scrollElement || this.el;
 
-			this.options.scrollElement = this.options.scrollElement || this.el;
+		if ( this.options.infiniteScrolling ) {
 			$( this.options.scrollElement ).on( 'scroll', this.scroll );
 		}
 
@@ -111,6 +111,28 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			 * DOM so attachments get proper width applied.
 			 */
 			_.defer( this.setColumns, this );
+		}
+	},
+
+	/**
+	 * Turns infinite scrolling on or off after the view has been created.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {boolean} enabled Whether to load more attachments on scroll.
+	 *
+	 * @return {void}
+	 */
+	setInfiniteScrolling: function( enabled ) {
+		this.options.infiniteScrolling = enabled;
+
+		$( this.options.scrollElement ).off( 'scroll', this.scroll );
+
+		if ( enabled ) {
+			$( this.options.scrollElement ).on( 'scroll', this.scroll );
+
+			// The list may already be scrolled past the point where more are loaded.
+			this.scroll();
 		}
 	},
 
@@ -231,6 +253,8 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 */
 	dispose: function() {
 		this.collection.props.off( null, null, this );
+		$( this.options.scrollElement ).off( 'scroll', this.scroll );
+
 		if ( this.options.resize ) {
 			this.$window.off( this.resizeEvent );
 		}
@@ -440,7 +464,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			scrollTop = $(document).scrollTop();
 		}
 
-		if ( ! $(el).is(':visible') || ! this.collection.hasMore() ) {
+		if ( ! this.options.infiniteScrolling || ! $(el).is(':visible') || ! this.collection.hasMore() ) {
 			return;
 		}
 

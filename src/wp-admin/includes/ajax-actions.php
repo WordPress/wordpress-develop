@@ -1892,6 +1892,29 @@ function wp_ajax_update_welcome_panel() {
 }
 
 /**
+ * Handles saving the Media Library settings for the current user via AJAX.
+ *
+ * @since 7.1.0
+ */
+function wp_ajax_set_media_library_settings() {
+	check_ajax_referer( 'media-library-settings' );
+
+	if ( ! current_user_can( 'upload_files' ) ) {
+		wp_send_json_error( array( 'message' => __( 'Sorry, you are not allowed to edit this setting.' ) ) );
+	}
+
+	if ( ! isset( $_POST['infinite_scrolling'] ) ) {
+		wp_send_json_error( array( 'message' => __( 'The setting could not be saved.' ) ) );
+	}
+
+	$infinite_scrolling = 'true' === wp_unslash( $_POST['infinite_scrolling'] ) ? 'true' : 'false';
+
+	update_user_meta( get_current_user_id(), 'infinite_scrolling', $infinite_scrolling );
+
+	wp_send_json_success( array( 'infiniteScrolling' => 'true' === $infinite_scrolling ) );
+}
+
+/**
  * Handles for retrieving menu meta boxes via AJAX.
  *
  * @since 3.1.0

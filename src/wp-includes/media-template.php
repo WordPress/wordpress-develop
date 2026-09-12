@@ -344,6 +344,50 @@ function wp_print_media_templates() {
 		</a>
 	</script>
 
+	<?php // Template for the contents of the Media Library settings toggle. ?>
+	<script type="text/html" id="tmpl-media-library-settings-toggle">
+		<span class="dashicons dashicons-admin-generic" aria-hidden="true"></span>
+		<span class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Media Library settings' );
+			?>
+		</span>
+	</script>
+
+	<?php // Template for the Media Library settings dialog. ?>
+	<script type="text/html" id="tmpl-media-library-settings-dialog">
+		<dialog class="media-library-settings__dialog" aria-labelledby="{{ data.titleId }}">
+			<div class="media-library-settings__header">
+				<h2 id="{{ data.titleId }}"><?php _e( 'Media Library settings' ); ?></h2>
+				<form method="dialog">
+					<button type="submit" class="button button-compact media-library-settings__close">
+						<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+						<span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Close' );
+							?>
+						</span>
+					</button>
+				</form>
+			</div>
+			<div class="media-library-settings__body">
+				<p class="media-library-settings__field">
+					<?php // The checked state is set by the view each time the dialog is opened. ?>
+					<input type="checkbox" class="media-library-settings__checkbox"
+						id="{{ data.infiniteScrollingId }}"
+						aria-describedby="{{ data.infiniteScrollingId }}-description" autofocus />
+					<label for="{{ data.infiniteScrollingId }}">
+						<?php _e( 'Enable infinite scrolling' ); ?>
+					</label>
+				</p>
+				<p class="description" id="{{ data.infiniteScrollingId }}-description"><?php _e( 'Load more media items automatically when scrolling, instead of using a Load more button.' ); ?></p>
+				<p class="media-library-settings__status" role="status"></p>
+			</div>
+		</dialog>
+	</script>
+
 	<?php // Template for the uploading status UI. ?>
 	<script type="text/html" id="tmpl-uploader-status">
 		<h2><?php _e( 'Uploading' ); ?></h2>
