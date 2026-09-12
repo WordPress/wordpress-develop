@@ -2191,17 +2191,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					 */
 					do_action( 'bulk_edit_custom_box', $column_name, $screen->post_type );
 				} else {
-
-					/**
-					 * Fires once for each column in Quick Edit mode.
-					 *
-					 * @since 2.7.0
-					 *
-					 * @param string $column_name Name of the column to edit.
-					 * @param string $post_type   The post type slug, or current screen name if this is a taxonomy list table.
-					 * @param string $taxonomy    The taxonomy name, if any.
-					 */
-					do_action( 'quick_edit_custom_box', $column_name, $screen->post_type, '' );
+					echo '<div class="inline-edit-custom-boxes"></div>';
 				}
 			}
 			?>
@@ -2248,5 +2238,51 @@ class WP_Posts_List_Table extends WP_List_Table {
 		</tbody></table>
 		</form>
 		<?php
+	}
+
+	/**
+	 * Returns the custom fields displayed in Quick Edit mode.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Post $post The post being edited.
+	 * @return string The custom Quick Edit fields.
+	 */
+	public function get_inline_edit_custom_box( $post ) {
+		$screen = $this->screen;
+
+		$core_columns = array(
+			'cb'         => true,
+			'date'       => true,
+			'title'      => true,
+			'categories' => true,
+			'tags'       => true,
+			'comments'   => true,
+			'author'     => true,
+		);
+
+		list( $columns ) = $this->get_column_info();
+
+		ob_start();
+
+		foreach ( $columns as $column_name => $column_display_name ) {
+			if ( isset( $core_columns[ $column_name ] ) ) {
+				continue;
+			}
+
+			/**
+			 * Fires once for each column in Quick Edit mode.
+			 *
+			 * @since 2.7.0
+			 *
+			 * @param string  $column_name Name of the column to edit.
+			 * @param string  $post_type  The post type slug.
+			 * @param string  $taxonomy   The taxonomy name, if any.
+			 * @param WP_Post $post       The post being edited.
+			 */
+			do_action( 'quick_edit_custom_box', $column_name, $screen->post_type, '', $post );
+		}
+
+		return ob_get_clean();
 	}
 }
