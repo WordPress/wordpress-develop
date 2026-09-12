@@ -2875,4 +2875,105 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $updated_password, $args[0][0], 'Invalid password in wp_set_password action.' );
 		$this->assertSame( $user_id, $args[0][1], 'Invalid user ID in wp_set_password action.' );
 	}
+
+	/**
+	 * Changing only the case of an email should not trigger the email change notification.
+	 *
+	 * @ticket 52976
+	 * @covers ::wp_update_user
+	 */
+	public function test_case_only_email_change_does_not_trigger_email_change_notification() {
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'testcase@example.com',
+			)
+		);
+
+		$email_change_fired = false;
+		$callback           = static function () use ( &$email_change_fired ) {
+			$email_change_fired = true;
+			return false;
+		};
+
+		add_filter( 'send_email_change_email', $callback );
+
+		wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => 'TestCase@Example.COM',
+			)
+		);
+
+		remove_filter( 'send_email_change_email', $callback );
+
+		$this->assertFalse( $email_change_fired, 'Email change notification should not fire for case-only email change.' );
+	}
+
+	/**
+	 * Changing to a genuinely different email should still trigger the notification.
+	 *
+	 * @ticket 52976
+	 * @covers ::wp_update_user
+	 */
+	public function test_real_email_change_triggers_email_change_notification() {
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'original@example.com',
+			)
+		);
+
+		$email_change_fired = false;
+		$callback           = static function () use ( &$email_change_fired ) {
+			$email_change_fired = true;
+			return false;
+		};
+
+		add_filter( 'send_email_change_email', $callback );
+
+		wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => 'different@example.com',
+			)
+		);
+
+		remove_filter( 'send_email_change_email', $callback );
+
+		$this->assertTrue( $email_change_fired, 'Email change notification should fire for a genuinely different email.' );
+	}
+
+	/**
+	 * Changing only the case of an email should not clear the user_activation_key.
+	 *
+	 * Complements `test_changing_email_invalidates_password_reset_key()`, which covers the case
+	 * where a genuinely different email clears the key.
+	 *
+	 * @ticket 52976
+	 * @covers ::wp_insert_user
+	 */
+	public function test_case_only_email_change_does_not_clear_user_activation_key() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'keytest@example.com',
+			)
+		);
+
+		$wpdb->update( $wpdb->users, array( 'user_activation_key' => 'key' ), array( 'ID' => $user_id ) );
+		clean_user_cache( $user_id );
+
+		$user = get_userdata( $user_id );
+		$this->assertSame( 'key', $user->user_activation_key, 'Precondition: activation key should be set.' );
+
+		wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => 'KeyTest@Example.COM',
+			)
+		);
+
+		$user = get_userdata( $user_id );
+		$this->assertSame( 'key', $user->user_activation_key, 'user_activation_key should not be cleared on case-only email change.' );
+	}
 }
