@@ -3923,6 +3923,18 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
 
 		$sitename = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
+		/* translators: Email change request notification email subject. %s: Site name */
+		$subject = sprintf( __( '[%s] Email Change Request' ), $sitename );
+
+		/**
+		 * Filters the subject of the email sent when a change of user email address is attempted.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $subject Subject of the email.
+		 */
+		$subject = apply_filters( 'new_user_email_subject', $subject );
+
 		/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 		$email_text = __(
 			'Howdy ###USERNAME###,
@@ -3973,7 +3985,7 @@ All at ###SITENAME###
 		$content = str_replace( '###SITEURL###', home_url(), $content );
 
 		/* translators: New email address notification email subject. %s: Site title. */
-		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
+		wp_mail( $_POST['email'], $subject, $content );
 
 		$_POST['email'] = $current_user->user_email;
 	}
