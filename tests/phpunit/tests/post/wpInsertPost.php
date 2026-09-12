@@ -1530,4 +1530,73 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
 	}
+
+	/**
+	 * Verify that updating a post without `post_category` skips the `wp_set_post_categories()` call.
+	 *
+	 * `wp_set_post_categories()` triggers term-query and cache work even when its argument is the
+	 * post's existing category list, so calling it on every update is a measurable regression.
+	 *
+	 * @ticket 59354
+	 * @covers ::wp_insert_post
+	 */
+	public function test_update_post_without_post_category_does_not_call_wp_set_post_categories() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'    => 'Original',
+				'post_category' => array( 1 ),
+			)
+		);
+
+		$category_set_calls = 0;
+		$callback           = static function ( $object_id, $terms, $tt_ids, $taxonomy ) use ( &$category_set_calls ) {
+			if ( 'category' === $taxonomy ) {
+				++$category_set_calls;
+			}
+		};
+
+		add_action( 'set_object_terms', $callback, 10, 4 );
+
+		wp_insert_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Updated Title Only',
+			)
+		);
+
+		remove_action( 'set_object_terms', $callback );
+
+		$this->assertSame( 0, $category_set_calls, 'wp_set_post_categories() should not run on update without post_category.' );
+	}
+
+	/**
+	 * Updating a post without `post_category` must preserve its existing categories.
+	 *
+	 * @ticket 59354
+	 * @covers ::wp_insert_post
+	 */
+	public function test_update_post_without_post_category_preserves_existing_categories() {
+		$category_id = self::factory()->category->create( array( 'name' => 'Stays Assigned' ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'    => 'Original',
+				'post_category' => array( $category_id ),
+			)
+		);
+
+		$categories_before = wp_get_post_categories( $post_id );
+
+		wp_insert_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Updated Title Only',
+			)
+		);
+
+		$categories_after = wp_get_post_categories( $post_id );
+
+		$this->assertSame( $categories_before, $categories_after, 'Existing categories should be preserved when post_category is not passed.' );
+		$this->assertContains( $category_id, $categories_after, 'The originally-assigned category should still be set.' );
+	}
 }
