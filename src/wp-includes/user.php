@@ -1291,8 +1291,10 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$user_id` (non-numeric, zero, or negative value).
- *               An empty array if a valid but non-existing user ID is passed and `$single` is false.
- *               An empty string if a valid but non-existing user ID is passed and `$single` is true.
+ *               An empty array if `$single` is false and either the user ID does not exist
+ *               or the meta key does not exist for that user.
+ *               An empty string if `$single` is true and either the user ID does not exist
+ *               or the meta key does not exist for that user.
  *               Note: Non-serialized values are returned as strings:
  *               - false values are returned as empty strings ('')
  *               - true values are returned as '1'
