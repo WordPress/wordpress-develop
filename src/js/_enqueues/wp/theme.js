@@ -208,7 +208,7 @@ themes.Collection = Backbone.Collection.extend({
 	/**
 	 * Performs a search within the collection.
 	 *
-	 * @uses RegExp
+	 * @param {string} term The search term.
 	 */
 	search: function( term ) {
 		var match, results, haystack, name, description, author;
@@ -1485,8 +1485,8 @@ themes.view.Search = wp.Backbone.View.extend({
  *
  * @since 4.9.0
  *
- * @param {string} url - URL to navigate to.
- * @param {Object} state - State.
+ * @param {string} url   URL to navigate to.
+ * @param {Object} state State.
  * @return {void}
  */
 function navigateRouter( url, state ) {
@@ -1969,7 +1969,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 	/**
 	 * Clears all the checked filters.
 	 *
-	 * @uses filtersChecked()
+	 * @param {Event} event The click event.
 	 */
 	clearFilters: function( event ) {
 		var items = $( '.filter-group' ).find( ':checkbox' ),
