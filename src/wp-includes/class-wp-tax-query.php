@@ -451,6 +451,29 @@ class WP_Tax_Query {
 				return $sql;
 			}
 
+			/*
+			 * Individual joins avoid a correlated subquery for small term intersections.
+			 * Limit total taxonomy joins to three because additional joins can cost more
+			 * than the subquery for common terms.
+			 */
+			if ( 3 >= count( $terms ) + count( $this->table_aliases ) ) {
+				foreach ( $terms as $term ) {
+					$i     = count( $this->table_aliases );
+					$alias = $i ? 'tt' . $i : $wpdb->term_relationships;
+
+					$this->table_aliases[] = $alias;
+
+					$join  = " LEFT JOIN $wpdb->term_relationships";
+					$join .= $i ? " AS $alias" : '';
+					$join .= " ON ($this->primary_table.$this->primary_id_column = $alias.object_id)";
+
+					$sql['join'][]  = $join;
+					$sql['where'][] = "$alias.term_taxonomy_id IN ($term)";
+				}
+
+				return $sql;
+			}
+
 			$num_terms = count( $terms );
 
 			$terms = implode( ',', $terms );
