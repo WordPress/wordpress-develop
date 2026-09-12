@@ -1254,4 +1254,79 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$q2 = new WP_Term_Query();
 		$this->assertSame( $expected, $q2->query( $query_args ), 'Second query is not of the expected form.' );
 	}
+
+	/**
+	 * @ticket 51811
+	 *
+	 * @covers WP_Term_Query::parse_query
+	 */
+	public function test_s_param_is_alias_for_search() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Unique Findable Term',
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				's'          => 'Unique Findable',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertContains( $term, $q->terms, 'The s parameter should work as an alias for search.' );
+	}
+
+	/**
+	 * @ticket 51811
+	 *
+	 * @covers WP_Term_Query::parse_query
+	 */
+	public function test_search_takes_precedence_over_s() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Precedence Test Term',
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'search'     => 'Precedence Test',
+				's'          => 'nonexistent',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertContains( $term, $q->terms, 'The search parameter should take precedence over s.' );
+	}
+
+	/**
+	 * @ticket 51811
+	 *
+	 * @covers WP_Term_Query::parse_query
+	 */
+	public function test_s_param_returns_empty_when_no_match() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				's'          => 'absolutelynonexistentterm',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEmpty( $q->terms, 'The s parameter should return empty for non-matching terms.' );
+	}
 }
