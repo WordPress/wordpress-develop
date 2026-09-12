@@ -552,6 +552,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			}
 			break;
 		case 'edit_comment':
+		case 'delete_comment':
 			if ( ! isset( $args[0] ) ) {
 				/* translators: %s: Capability name. */
 				$message = __( 'When checking for the %s capability, you must always check it against a specific comment.' );
@@ -569,6 +570,27 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$comment = get_comment( $args[0] );
 			if ( ! $comment ) {
 				$caps[] = 'do_not_allow';
+				break;
+			}
+
+			/*
+			 * Notes can only be edited or deleted by their author
+			 * or by users who can moderate comments.
+			 */
+			if ( 'note' === $comment->comment_type ) {
+				if ( (int) $user_id === (int) $comment->user_id ) {
+					$post = get_post( $comment->comment_post_ID );
+					if ( $post ) {
+						$post_type = get_post_type_object( $post->post_type );
+						if ( $post_type ) {
+							$caps[] = $post_type->cap->edit_posts;
+							break;
+						}
+					}
+					$caps[] = 'edit_posts';
+				} else {
+					$caps[] = 'moderate_comments';
+				}
 				break;
 			}
 

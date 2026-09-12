@@ -438,7 +438,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Re-map edit context capabilities when requesting `note` type.
-		$edit_cap = 'note' === $comment->comment_type ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
+		$edit_cap = 'note' === $comment->comment_type && ! empty( $comment->comment_post_ID ) ? array( 'edit_post', $comment->comment_post_ID ) : array( 'moderate_comments' );
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( ...$edit_cap ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
@@ -1928,6 +1928,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/*
+		 * Notes can be read by any user who can edit the associated post.
+		 * This is separate from the edit_comment capability, which controls
+		 * whether a user can modify or delete the note.
+		 */
+		if ( 'note' === $comment->comment_type && ! empty( $comment->comment_post_ID ) ) {
+			return current_user_can( 'edit_post', $comment->comment_post_ID );
+		}
+
 		if ( 0 === get_current_user_id() ) {
 			return false;
 		}
@@ -1958,6 +1967,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( current_user_can( 'moderate_comments' ) ) {
 			return true;
+		}
+
+		if ( 'note' === $comment->comment_type && ! empty( $comment->comment_post_ID ) && ! current_user_can( 'edit_post', $comment->comment_post_ID ) ) {
+			return false;
 		}
 
 		return current_user_can( 'edit_comment', $comment->comment_ID );
