@@ -36,8 +36,23 @@ module.exports = [
 			},
 		},
 		rules: {
+			'jsdoc/check-alignment': 'error',
+			'jsdoc/check-indentation': [ 'error', {
+				excludeTags: [
+					'deprecated',
+					'example',
+					'param',
+					'property',
+					'return',
+					'since',
+					'todo',
+				],
+			} ],
+			'jsdoc/check-line-alignment': [ 'error', 'always', {
+				tags: [ 'param', 'property' ],
+			} ],
 			'jsdoc/check-param-names': 'error',
-			'jsdoc/check-types': 'error',
+			'jsdoc/check-syntax': 'error',
 			'jsdoc/check-tag-names': [ 'error', {
 				definedTags: [
 					'memberOf',
@@ -46,15 +61,20 @@ module.exports = [
 					'link',
 				],
 			} ],
+			'jsdoc/check-types': 'error',
+			'jsdoc/require-description': 'error',
+			'jsdoc/require-hyphen-before-param-description': [ 'error', 'never' ],
+			'jsdoc/require-jsdoc': 'error',
 			'jsdoc/require-param': [ 'error', {
 				enableFixer: false,
 			} ],
+			'jsdoc/require-param-description': 'error',
+			'jsdoc/require-param-name': 'error',
 			'jsdoc/require-param-type': 'error',
+			'jsdoc/require-returns': 'error',
 			'jsdoc/require-returns-check': 'error',
 			'jsdoc/require-returns-description': 'error',
-			'jsdoc/require-returns': 'error',
 			'jsdoc/require-returns-type': 'error',
-			'jsdoc/check-syntax': 'error',
 		},
 	},
 ];

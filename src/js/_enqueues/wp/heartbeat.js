@@ -1,5 +1,9 @@
 /**
- * Heartbeat API
+ * @output wp-includes/js/heartbeat.js
+ */
+
+/**
+ * Handles the Heartbeat API.
  *
  * Heartbeat is a simple server polling API that sends XHR requests to
  * the server every 15 - 60 seconds and triggers events (or callbacks) upon
@@ -24,10 +28,6 @@
  * - heartbeat-nonces-expired
  *
  * @since 3.6.0
- * @output wp-includes/js/heartbeat.js
- */
-
-/**
  * @param {JQueryStatic} $         The jQuery object.
  * @param {Window}       window    The global window object.
  * @param {undefined}    undefined The undefined value.
@@ -244,8 +244,8 @@
 				/**
 				 * Handles pageshow event, specifically when page navigation is restored from back/forward cache.
 				 *
-				 * @param {jQuery.Event} event
-				 * @param {PageTransitionEvent} event.originalEvent
+				 * @param {JQuery.Event}        event               The jQuery event object.
+				 * @param {PageTransitionEvent} event.originalEvent The original PageTransitionEvent object.
 				 */
 				function ( event ) {
 					if ( event.originalEvent.persisted ) {
@@ -790,12 +790,17 @@
 		/**
 		 * Enqueues data to send with the next XHR.
 		 *
-		 * As the data is send asynchronously, this function doesn't return the XHR
+		 * As the data is sent asynchronously, this function doesn't return the XHR
 		 * response. To see the response, use the custom jQuery event 'heartbeat-tick'
-		 * on the document, example:
+		 * on the document.
+		 *
+		 * @example
+		 * ```javascript
 		 *		$(document).on( 'heartbeat-tick.myname', function( event, data, textStatus, jqXHR ) {
 		 *			// code
 		 *		});
+		 * ```
+		 *
 		 * If the same 'handle' is used more than once, the data is not overwritten when
 		 * the third argument is 'true'. Use `wp.heartbeat.isQueued('handle')` to see if
 		 * any data is already queued for that handle.

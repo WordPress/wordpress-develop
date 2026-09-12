@@ -5,6 +5,8 @@
 /* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
 
 /**
+ * The WordPress Customizer controls API.
+ *
  * @param {Object}       wp The WordPress global object.
  * @param {JQueryStatic} $  The jQuery object.
  */
@@ -841,6 +843,9 @@
 			options
 		);
 
+		/**
+		 * Cancels the reminder, preventing the button from being highlighted.
+		 */
 		function cancelReminder() {
 			canceled = true;
 		}
@@ -1067,6 +1072,8 @@
 		},
 
 		/**
+		 * Handles the ready state (when overridden).
+		 *
 		 * @since 4.1.0
 		 *
 		 * @abstract
@@ -1175,6 +1182,8 @@
 		},
 
 		/**
+		 * Handles the toggle logic to transition the active state.
+		 *
 		 * @since 4.1.0
 		 *
 		 * @param {boolean} active   The active state to transition to.
@@ -1438,6 +1447,8 @@
 		},
 
 		/**
+		 * Initializes a section.
+		 *
 		 * @constructs wp.customize.Section
 		 * @augments   wp.customize~Container
 		 *
@@ -1973,6 +1984,9 @@
 				api.section( 'wporg_themes' ).focus();
 			});
 
+			/**
+			 * Updates the section header to reflect the expanded state.
+			 */
 			function updateSelectedState() {
 				var el = section.headerContainer.find( '.customize-themes-section-title' );
 				el.toggleClass( 'selected', section.expanded() );
@@ -2017,6 +2031,9 @@
 				return;
 			}
 
+			/**
+			 * Expands the section.
+			 */
 			function expand() {
 
 				// Try to load controls if none are loaded yet.
@@ -2617,11 +2634,21 @@
 				.fadeIn( 'fast' )
 				.focus();
 
+			/**
+			 * Disables the switch buttons if the theme cannot be switched to.
+			 *
+			 * @return {boolean} True if the switch buttons should be disabled, false otherwise.
+			 */
 			function disableSwitchButtons() {
 				return ! panel.canSwitchTheme( theme.id );
 			}
 
 			// Temporary special function since supplying SFTP credentials does not work yet. See #42184.
+			/**
+			 * Disables the install buttons if the theme cannot be installed or if filesystem credentials are needed.
+			 *
+			 * @return {boolean} True if the install buttons should be disabled, false otherwise.
+			 */
 			function disableInstallButtons() {
 				return disableSwitchButtons() || false === api.settings.theme._canInstall || true === api.settings.theme._filesystemCredentialsNeeded;
 			}
@@ -2804,6 +2831,8 @@
 		containerType: 'panel',
 
 		/**
+		 * Initializes a panel.
+		 *
 		 * @constructs wp.customize.Panel
 		 * @augments   wp.customize~Container
 		 *
@@ -2864,6 +2893,8 @@
 		},
 
 		/**
+		 * Attaches events to the panel.
+		 *
 		 * @since 4.1.0
 		 */
 		attachEvents: function () {
@@ -3070,7 +3101,7 @@
 	api.ThemesPanel = api.Panel.extend(/** @lends wp.customize.ThemesPanel.prototype */{
 
 		/**
-		 *  Class wp.customize.ThemesPanel.
+		 * Class wp.customize.ThemesPanel.
 		 *
 		 * Custom section for themes that displays without the customize preview.
 		 *
@@ -3125,6 +3156,9 @@
 				} ) );
 			}
 
+			/**
+			 * Toggles the theme switch unavailable notification based on whether switching is possible.
+			 */
 			function toggleDisabledNotifications() {
 				if ( panel.canSwitchTheme() ) {
 					panel.notifications.remove( 'theme_switch_unavailable' );
@@ -5196,19 +5230,35 @@
 		screenshotRendered: false,
 
 		/**
+		 * Handles the control's ready state.
+		 *
 		 * @since 4.2.0
 		 */
 		ready: function() {
 			var control = this, panel = api.panel( 'themes' );
 
+			/**
+			 * Disables the preview buttons if the theme cannot be switched to.
+			 *
+			 * @return {boolean} True if the preview buttons should be disabled, false otherwise.
+			 */
 			function disableSwitchButtons() {
 				return ! panel.canSwitchTheme( control.params.theme.id );
 			}
 
 			// Temporary special function since supplying SFTP credentials does not work yet. See #42184.
+			/**
+			 * Disables the install buttons if the theme cannot be installed or if filesystem credentials are needed.
+			 *
+			 * @return {boolean} True if the install buttons should be disabled, false otherwise.
+			 */
 			function disableInstallButtons() {
 				return disableSwitchButtons() || false === api.settings.theme._canInstall || true === api.settings.theme._filesystemCredentialsNeeded;
 			}
+
+			/**
+			 * Updates the state of the preview and install buttons based on whether the theme can be switched to or installed.
+			 */
 			function updateButtons() {
 				control.container.find( 'button.preview, button.preview-theme' ).toggleClass( 'disabled', disableSwitchButtons() );
 				control.container.find( 'button.theme-install' ).toggleClass( 'disabled', disableInstallButtons() );
@@ -6558,6 +6608,8 @@
 		refreshBuffer: null, // Will get set to api.settings.timeouts.windowRefresh.
 
 		/**
+		 * Initializes the previewer.
+		 *
 		 * @constructs wp.customize.Previewer
 		 * @augments   wp.customize.Messenger
 		 *
@@ -7320,6 +7372,9 @@
 			updateButtonsState();
 			section.active.bind( updateButtonsState );
 
+			/**
+			 * Highlights the schedule button to remind the user to schedule the changes.
+			 */
 			function highlightScheduleButton() {
 				if ( ! cancelScheduleButtonReminder ) {
 					cancelScheduleButtonReminder = api.utils.highlightButton( btnWrapper, {
@@ -7334,6 +7389,10 @@
 					} );
 				}
 			}
+
+			/**
+			 * Cancels the highlight reminder for the schedule button.
+			 */
 			function cancelHighlightScheduleButton() {
 				if ( cancelScheduleButtonReminder ) {
 					cancelScheduleButtonReminder();
@@ -7575,6 +7634,11 @@
 
 				api.state( 'saving' ).set( true );
 
+				/**
+				 * Captures a setting as modified during the save process.
+				 *
+				 * @param {wp.customize.Setting} setting The setting that was modified.
+				 */
 				function captureSettingModifiedDuringSave( setting ) {
 					modifiedWhileSaving[ setting.id ] = true;
 				}
@@ -8917,6 +8981,11 @@
 		(function() {
 			var isInsideIframe = false;
 
+			/**
+			 * Determine whether the Customizer is in a clean state.
+			 *
+			 * @return {boolean} True if the Customizer is in a clean state, false otherwise.
+			 */
 			function isCleanState() {
 				var defaultChangesetStatus;
 
@@ -8953,6 +9022,9 @@
 				isInsideIframe = true;
 			});
 
+			/**
+			 * Starts prompting the user before unloading the Customizer if there are unsaved changes.
+			 */
 			function startPromptingBeforeUnload() {
 				api.unbind( 'change', startPromptingBeforeUnload );
 				api.state( 'selectedChangesetStatus' ).unbind( startPromptingBeforeUnload );
@@ -8972,6 +9044,11 @@
 			api.state( 'selectedChangesetStatus' ).bind( startPromptingBeforeUnload );
 			api.state( 'selectedChangesetDate' ).bind( startPromptingBeforeUnload );
 
+			/**
+			 * Requests to close the Customizer, prompting the user to save changes if necessary.
+			 *
+			 * @return {JQuery.Promise} A promise that resolves if the user is cleared to close the Customizer, or rejects if the user cancels the close.
+			 */
 			function requestClose() {
 				var clearedToClose = $.Deferred(), dismissAutoSave = false, dismissLock = false;
 
@@ -9361,12 +9438,19 @@
 			api.previewer.send( 'edit-shortcut-visibility', visibility );
 		} );
 
-		// Autosave changeset.
+		/**
+		 * Starts autosaving changeset when a change is made.
+		 */
 		function startAutosaving() {
 			var timeoutId, updateChangesetWithReschedule, scheduleChangesetUpdate, updatePending = false;
 
 			api.unbind( 'change', startAutosaving ); // Ensure startAutosaving only fires once.
 
+			/**
+			 * Handles changes to the saved state of the changeset.
+			 *
+			 * @param {boolean} isSaved Whether the changeset is saved or not.
+			 */
 			function onChangeSaved( isSaved ) {
 				if ( ! isSaved && ! api.settings.changeset.autosaved ) {
 					api.settings.changeset.autosaved = true; // Once a change is made then autosaving kicks in.
