@@ -643,9 +643,7 @@ class WP_Query {
 		);
 
 		foreach ( $array_keys as $key ) {
-			if ( ! isset( $query_vars[ $key ] ) ) {
-				$query_vars[ $key ] = array();
-			}
+			$query_vars[ $key ] ??= array();
 		}
 
 		return $query_vars;
@@ -1279,10 +1277,8 @@ class WP_Query {
 		}
 
 		if ( ! empty( $query_vars['category__and'] ) && 1 === count( (array) $query_vars['category__and'] ) ) {
-			$query_vars['category__and'] = (array) $query_vars['category__and'];
-			if ( ! isset( $query_vars['category__in'] ) ) {
-				$query_vars['category__in'] = array();
-			}
+			$query_vars['category__and']  = (array) $query_vars['category__and'];
+			$query_vars['category__in'] ??= array();
 			$query_vars['category__in'][] = absint( reset( $query_vars['category__and'] ) );
 			unset( $query_vars['category__and'] );
 		}

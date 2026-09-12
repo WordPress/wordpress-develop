@@ -84,9 +84,7 @@ class WP_Metadata_Lazyloader {
 
 		$type_settings = $this->settings[ $object_type ];
 
-		if ( ! isset( $this->pending_objects[ $object_type ] ) ) {
-			$this->pending_objects[ $object_type ] = array();
-		}
+		$this->pending_objects[ $object_type ] ??= array();
 
 		foreach ( $object_ids as $object_id ) {
 			// Keyed by ID for faster lookup.
