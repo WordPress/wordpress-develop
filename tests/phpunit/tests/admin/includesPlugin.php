@@ -21,6 +21,17 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		self::_restore_mu_plugins();
 	}
 
+	/**
+	 * Appends X-WP-Test-Extra for get_plugins() extra-header tests.
+	 *
+	 * @param string[] $headers Extra header names.
+	 * @return string[] Extra header names.
+	 */
+	public function filter_x_wp_test_extra_header( $headers ) {
+		$headers[] = 'X-WP-Test-Extra';
+		return $headers;
+	}
+
 	public function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
@@ -41,6 +52,159 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		foreach ( $default_headers as $name => $value ) {
 			$this->assertArrayHasKey( $name, $data );
 			$this->assertSame( $value, $data[ $name ] );
+		}
+	}
+
+	/**
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_adds_extra_headers_to_existing_cache() {
+		wp_clean_plugins_cache( false );
+
+		$before = get_plugins();
+		$this->assertNotEmpty( $before );
+		$this->assertArrayNotHasKey( 'X-WP-Test-Extra', reset( $before ) );
+
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+		add_filter( 'extra_plugin_headers', $callback );
+
+		try {
+			$after = get_plugins();
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', reset( $after ) );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+		}
+	}
+
+	/**
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_keeps_cached_fields_when_adding_extra_headers() {
+		wp_clean_plugins_cache( false );
+		get_plugins();
+
+		$cache = wp_cache_get( 'plugins', 'plugins' );
+		$file  = key( $cache[''] );
+
+		$cache[''][ $file ]['Version'] = 'cached-version';
+
+		wp_cache_set( 'plugins', $cache, 'plugins' );
+
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+		add_filter( 'extra_plugin_headers', $callback );
+
+		try {
+			$after = get_plugins();
+			$this->assertSame( 'cached-version', $after[ $file ]['Version'] );
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', $after[ $file ] );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+		}
+	}
+
+	/**
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_rereads_extra_header_values_after_cache_was_warm() {
+		$plugin   = $this->_create_plugin( "<?php\n/*\nPlugin Name: Extra Header Cache Test\nX-WP-Test-Extra: from-file\n*/" );
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+
+		try {
+			wp_clean_plugins_cache( false );
+
+			$before = get_plugins();
+			$this->assertArrayHasKey( $plugin[0], $before );
+			$this->assertArrayNotHasKey( 'X-WP-Test-Extra', $before[ $plugin[0] ] );
+
+			add_filter( 'extra_plugin_headers', $callback );
+
+			$after = get_plugins();
+			$this->assertSame( 'from-file', $after[ $plugin[0] ]['X-WP-Test-Extra'] );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+			unlink( $plugin[1] );
+			wp_clean_plugins_cache( false );
+		}
+	}
+
+	/**
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_folder_argument_does_not_scan_other_plugins() {
+		wp_clean_plugins_cache( false );
+		get_plugins( '/custom-internationalized-plugin' );
+
+		$cache = wp_cache_get( 'plugins', 'plugins' );
+		$this->assertArrayNotHasKey( '', $cache );
+		$this->assertArrayHasKey( '/custom-internationalized-plugin', $cache );
+		$this->assertArrayHasKey( 'custom-internationalized-plugin.php', $cache['/custom-internationalized-plugin'] );
+		$this->assertArrayNotHasKey( 'hello.php', $cache['/custom-internationalized-plugin'] );
+	}
+
+	/**
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_fills_remaining_plugins_after_a_folder_call() {
+		wp_clean_plugins_cache( false );
+		get_plugins( '/custom-internationalized-plugin' );
+		get_plugins();
+
+		$cache = wp_cache_get( 'plugins', 'plugins' );
+		$this->assertArrayHasKey( 'hello.php', $cache[''] );
+		$this->assertArrayHasKey( 'custom-internationalized-plugin/custom-internationalized-plugin.php', $cache[''] );
+	}
+
+	/**
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_folder_cache_adds_extra_headers() {
+		wp_clean_plugins_cache( false );
+
+		$before = get_plugins( '/custom-internationalized-plugin' );
+		$this->assertArrayHasKey( 'custom-internationalized-plugin.php', $before );
+		$this->assertArrayNotHasKey( 'X-WP-Test-Extra', $before['custom-internationalized-plugin.php'] );
+
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+		add_filter( 'extra_plugin_headers', $callback );
+
+		try {
+			$after = get_plugins( '/custom-internationalized-plugin' );
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', $after['custom-internationalized-plugin.php'] );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+		}
+	}
+
+	/**
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_caches_a_missing_folder() {
+		wp_clean_plugins_cache( false );
+
+		$missing = get_plugins( '/this-plugin-folder-does-not-exist' );
+		$this->assertSame( array(), $missing );
+
+		$cache = wp_cache_get( 'plugins', 'plugins' );
+		$this->assertArrayHasKey( '/this-plugin-folder-does-not-exist', $cache );
+		$this->assertSame( array(), $cache['/this-plugin-folder-does-not-exist'] );
+	}
+
+	/**
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_tracks_extra_plugin_headers() {
+		wp_clean_plugins_cache( false );
+		get_plugins();
+		$this->assertSame( array(), wp_cache_get( 'extra_plugin_headers', 'plugins' ) );
+
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+		add_filter( 'extra_plugin_headers', $callback );
+
+		try {
+			get_plugins();
+			$this->assertSame( array( 'X-WP-Test-Extra' ), wp_cache_get( 'extra_plugin_headers', 'plugins' ) );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
 		}
 	}
 
