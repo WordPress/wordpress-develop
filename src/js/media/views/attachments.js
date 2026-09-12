@@ -8,6 +8,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	className: 'attachments',
 
 	attributes: {
+		role:     'group',
 		tabIndex: -1
 	},
 
