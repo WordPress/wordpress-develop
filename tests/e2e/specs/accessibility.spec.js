@@ -158,7 +158,9 @@ test.describe( 'Admin Pages Accessibility', () => {
 				// for pages rendered via React components like the Settings > Connectors
 				// page or the Fonts page. Without this wait, the scan may run before all
 				// content is fully rendered.
-				await page.waitForTimeout( 500 );
+				if  ( pageSpec.waitInterval ) {
+					await page.waitForTimeout( 500 );
+				}
 
 				// Run state setup if provided.
 				if ( variant.setup ) {
