@@ -1,3 +1,4 @@
+import path from 'path';
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const AxeScanner = require( '../utils/accessibility-axe-scanner' );
 const { pages } = require( '../utils/accessibility-pages-matrix' );
@@ -110,33 +111,21 @@ test.describe( 'Admin Pages Accessibility', () => {
 
 	test.beforeAll( async ( { requestUtils } ) => {
 		// Upload sample image to media library for testing.
-		const fs = require( 'fs' );
-		const path = require( 'path' );
-
-		const imagePath = path.join( __dirname, '../assets/sample.png' );
-		const imageBuffer = fs.readFileSync( imagePath );
-
-		const response = await requestUtils.rest( {
-			method: 'POST',
-			path: 'wp/v2/media',
-			data: imageBuffer,
-			headers: {
-				'Content-Disposition': 'attachment; filename="sample.png"',
-				'Content-Type': 'image/png',
-			},
-		} );
+		const imagePath = path.resolve( __dirname, '../assets/sample.png' )
+		const uploadedMedia = await requestUtils.uploadMedia(
+			imagePath
+		);
 
 		// Store the ID for cleanup later.
-		mediaAttachmentId = response.id;
+		mediaAttachmentId = uploadedMedia.id;
 	} );
 
 	test.afterAll( async ( { requestUtils } ) => {
 		// Delete the uploaded image to restore initial state
 		if ( mediaAttachmentId ) {
-			await requestUtils.rest( {
-				method: 'DELETE',
-				path: `wp/v2/media/${ mediaAttachmentId }?force=true`,
-			} );
+			await requestUtils.deleteMedia(
+				mediaAttachmentId
+			);
 		}
 	} );
 
