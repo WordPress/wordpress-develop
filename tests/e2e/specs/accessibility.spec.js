@@ -112,21 +112,16 @@ test.describe( 'Admin Pages Accessibility', () => {
 	test.beforeAll( async ( { requestUtils } ) => {
 		// Upload sample image to media library for testing.
 		const imagePath = path.resolve( __dirname, '../assets/sample.png' )
-		const uploadedMedia = await requestUtils.uploadMedia(
+		await requestUtils.uploadMedia(
 			imagePath
 		);
-
-		// Store the ID for cleanup later.
-		mediaAttachmentId = uploadedMedia.id;
 	} );
 
 	test.afterAll( async ( { requestUtils } ) => {
-		// Delete the uploaded image to restore initial state
-		if ( mediaAttachmentId ) {
-			await requestUtils.deleteMedia(
-				mediaAttachmentId
-			);
-		}
+		// Delete all media.
+		await requestUtils.deleteAllMedia();
+		// Delete all posts of type 'post' and all associated comments.
+		await requestUtils.deleteAllPosts();
 	} );
 
 	pages.forEach( ( pageSpec ) => {
