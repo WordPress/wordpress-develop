@@ -203,6 +203,7 @@ const pages = [
 		id: 'fonts-list',
 		path: '/font-library.php?p=%2Ffont-list',
 		name: 'Fonts',
+		waitInterval: true,
 	},
 
 	// Plugins.
@@ -279,6 +280,7 @@ const pages = [
 		id: 'settings-connectors',
 		path: '/options-connectors.php',
 		name: 'Settings - Connectors',
+		waitInterval: true,
 	},
 
 	{
