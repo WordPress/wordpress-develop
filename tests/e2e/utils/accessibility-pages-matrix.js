@@ -62,6 +62,11 @@ const pages = [
 		path: '/',
 		name: 'Dashboard',
 	},
+	{
+		id: 'updates',
+		path: '/update-core.php',
+		name: 'Updates',
+	},
 
 	// Posts & Pages.
 	{
@@ -106,11 +111,6 @@ const pages = [
 		],
 	},
 	{
-		id: 'pages-list',
-		path: '/edit.php?post_type=page',
-		name: 'Pages',
-	},
-	{
 		id: 'post-categories-list',
 		path: '/edit-tags.php?taxonomy=category',
 		name: 'Categories',
@@ -119,6 +119,11 @@ const pages = [
 		id: 'post-tags-list',
 		path: '/edit-tags.php?taxonomy=post_tag',
 		name: 'Tags',
+	},
+	{
+		id: 'pages-list',
+		path: '/edit.php?post_type=page',
+		name: 'Pages',
 	},
 
 	// Media.
@@ -153,6 +158,34 @@ const pages = [
 		id: 'comments',
 		path: '/edit-comments.php',
 		name: 'Comments',
+		stateVariants: [
+			{
+				name: 'default',
+				setup: async ( page, requestUtils ) => {
+					// Create a post to attach comments to.
+					const { id: postId } = await requestUtils.createPost( {
+						title: 'Post for comments',
+						status: 'publish',
+					} );
+
+					// Create an approved comment.
+					await requestUtils.createComment( {
+						content: 'Test Approved Comment',
+						status: 'approve',
+						post: postId,
+					} );
+					// Create a comment awaiting moderation.
+					await requestUtils.createComment( {
+						content: 'Test Comment Awaiting Moderation',
+						status: 'hold',
+						post: postId,
+					} );
+
+					// Reload the page to show the comments.
+					await page.reload();
+				},
+			},
+		],
 	},
 
 	// Appearance.
@@ -194,6 +227,13 @@ const pages = [
 		id: 'add-user',
 		path: '/user-new.php',
 		name: 'Add User',
+	},
+
+	// Admin profile.
+	{
+		id: 'profile',
+		path: '/profile.php',
+		name: 'Profile',
 	},
 
 	// Tools.
@@ -277,12 +317,32 @@ const pages = [
 		name: 'Settings - Privacy',
 	},
 
-	// Admin profile.
+	// About.
 	{
-		id: 'profile',
-		path: '/profile.php',
-		name: 'Profile',
+		id: 'about',
+		path: '/about.php',
+		name: 'About',
 	},
+	{
+		id: 'credits',
+		path: '/credits.php',
+		name: 'Credits',
+	},
+	{
+		id: 'freedoms',
+		path: '/freedoms.php',
+		name: 'Freedoms',
+	},
+	{
+		id: 'privacy',
+		path: '/privacy.php',
+		name: 'Privacy',
+	},
+	{
+		id: 'contribute',
+		path: '/contribute.php',
+		name: 'Get involved',
+	}
 ];
 
 module.exports = {
