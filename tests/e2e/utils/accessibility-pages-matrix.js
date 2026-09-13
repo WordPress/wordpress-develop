@@ -9,6 +9,11 @@
  * - `path`: WordPress admin path relative to /wp-admin/ (e.g., '/upload.php?mode=grid')
  * - `name`: Human-readable name (shown in test output)
  * - `rules`: (optional) Per-page axe rules override. Merged with global rules.
+ * - `waitInterval`: (optional) Boolean indicating if the test should wait for a
+ *                   short interval before scanning. This is particularly important
+ *                   for pages rendered via React components like the Settings > Connectors
+ *                   page or the Fonts page. Without this wait, the scan may run before all
+ *                   content is fully rendered.
  * - `stateVariants`: (optional) Array of UI states to test. Each variant has:
  *   - `name`: State identifier (shown in test name)
  *   - `setup`: (optional) Async function to set up the state. Receives (page, requestUtils) objects.
