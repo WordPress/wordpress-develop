@@ -88,9 +88,7 @@ class WP_Metadata_Lazyloader {
 
 		foreach ( $object_ids as $object_id ) {
 			// Keyed by ID for faster lookup.
-			if ( ! isset( $this->pending_objects[ $object_type ][ $object_id ] ) ) {
-				$this->pending_objects[ $object_type ][ $object_id ] = 1;
-			}
+			$this->pending_objects[ $object_type ][ $object_id ] ??= 1;
 		}
 
 		add_filter( $type_settings['filter'], $type_settings['callback'], 10, 5 );

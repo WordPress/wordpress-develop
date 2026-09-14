@@ -34,7 +34,6 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param array $args The arguments.
-	 *
 	 * @return int|WP_Error The object ID on success, WP_Error object on failure.
 	 */
 	abstract public function create_object( $args );
@@ -46,7 +45,6 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int   $object_id The object ID.
 	 * @param array $fields    The values to update.
-	 *
 	 * @return int|WP_Error The object ID on success, WP_Error object on failure.
 	 */
 	abstract public function update_object( $object_id, $fields );
@@ -115,7 +113,6 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param int $object_id The object ID.
-	 *
 	 * @return mixed The object. Can be anything.
 	 */
 	abstract public function get_object_by_id( $object_id );
@@ -197,7 +194,6 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param WP_UnitTest_Factory_Callback_After_Create[] $callbacks Array with callback functions.
 	 * @param int                                         $object_id ID of the object to apply callbacks for.
-	 *
 	 * @return array The altered fields.
 	 */
 	public function apply_callbacks( $callbacks, $object_id ) {
@@ -216,7 +212,6 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param callable $callback The callback function.
-	 *
 	 * @return WP_UnitTest_Factory_Callback_After_Create
 	 */
 	public function callback( $callback ) {
@@ -229,7 +224,6 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param array|object|string|mixed $value The value to add slashes to.
-	 *
 	 * @return array|string The value with the possibly applied slashes.
 	 */
 	public function addslashes_deep( $value ) {

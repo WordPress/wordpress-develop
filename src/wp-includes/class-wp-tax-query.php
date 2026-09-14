@@ -182,9 +182,7 @@ class WP_Tax_Query {
 
 				if ( ! empty( $cleaned_subquery ) ) {
 					// All queries with children must have a relation.
-					if ( ! isset( $cleaned_subquery['relation'] ) ) {
-						$cleaned_subquery['relation'] = 'AND';
-					}
+					$cleaned_subquery['relation'] ??= 'AND';
 
 					$cleaned_query[] = $cleaned_subquery;
 				}

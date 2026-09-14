@@ -1464,9 +1464,8 @@ function is_multisite() {
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
- * @phpstan-return non-negative-int
  */
-function absint( $maybeint ): int {
+function absint( $maybeint ) {
 	return abs( (int) $maybeint );
 }
 
@@ -2043,8 +2042,8 @@ function wp_is_site_protected_by_basic_auth( $context = '' ) {
 	 *
 	 * @since 5.6.1
 	 *
-	 * @param bool $is_protected Whether the site is protected by Basic Auth.
-	 * @param string $context    The context to check for protection. One of 'login', 'admin', or 'front'.
+	 * @param bool   $is_protected Whether the site is protected by Basic Auth.
+	 * @param string $context      The context to check for protection. One of 'login', 'admin', or 'front'.
 	 */
 	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected, $context );
 }
