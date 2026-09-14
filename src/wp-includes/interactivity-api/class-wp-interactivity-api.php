@@ -399,11 +399,12 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 * @since 6.9.0 Adds support for client-side navigation in script modules.
+	 * @since 7.2.0 The callbacks resolve the current global WP_Interactivity_API instance when they run.
 	 */
 	public function add_hooks() {
-		add_filter( 'script_module_data_@wordpress/interactivity', array( $this, 'filter_script_module_interactivity_data' ) );
-		add_filter( 'script_module_data_@wordpress/interactivity-router', array( $this, 'filter_script_module_interactivity_router_data' ) );
-		add_filter( 'wp_script_attributes', array( $this, 'add_load_on_client_navigation_attribute_to_script_modules' ) );
+		add_filter( 'script_module_data_@wordpress/interactivity', 'wp_interactivity_script_module_data' );
+		add_filter( 'script_module_data_@wordpress/interactivity-router', 'wp_interactivity_router_script_module_data' );
+		add_filter( 'wp_script_attributes', 'wp_interactivity_script_module_attributes' );
 	}
 
 	/**
@@ -1516,7 +1517,7 @@ HTML;
 			wp_enqueue_style( 'wp-interactivity-router-animations' );
 
 			// Adds the necessary markup to the footer.
-			add_action( 'wp_footer', array( $this, 'print_router_markup' ) );
+			add_action( 'wp_footer', 'wp_interactivity_print_router_markup' );
 		}
 	}
 
