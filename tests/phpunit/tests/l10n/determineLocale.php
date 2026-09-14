@@ -311,8 +311,8 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 
 	/**
 	 * sanitize_locale_name() applies preg_replace(), which maps over an array
-	 * subject and returns an array, so `wp-login.php?wp_lang[]=de_DE` reaches
-	 * the return statement with an array. No authentication is needed.
+	 * subject and returns an array, so a non-string request value reaches the
+	 * return statement with its type intact.
 	 *
 	 * @ticket 66106
 	 *
@@ -358,7 +358,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	/**
 	 * An array locale reaches WP_Textdomain_Registry::set(), which uses it as
 	 * an array key and throws a TypeError, so translating any string for an
-	 * unloaded text domain takes down the login page for an anonymous visitor.
+	 * unloaded text domain ends the request.
 	 *
 	 * @ticket 66106
 	 */

@@ -198,7 +198,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	/**
 	 * An array locale reaches WP_Textdomain_Registry::set(), which uses it as an
 	 * array key and throws a TypeError, so translating any string for an
-	 * unloaded text domain takes down the request.
+	 * unloaded text domain ends the request.
 	 *
 	 * @ticket 66106
 	 */
