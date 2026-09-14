@@ -51,6 +51,8 @@ module.exports = {
 		// This is a known false positive in axe-core and can be ignored. Note
 		// that the 'aria-allowed-role' rule is part of the 'best-practice' rules group.
 		'#wp-toolbar #wp-admin-bar-*',
+		// Same known false positive in axe-core for the media attachments list browser.
+		'.attachments-browser .attachments-wrapper #__attachments-view-* .attachment',
 	],
 	'region': [
 		// Visually hidden text that clarifies what the ARIA live regions are about.
