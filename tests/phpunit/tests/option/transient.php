@@ -265,4 +265,135 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		);
 		$this->assertSame( $expected, $a->get_events() );
 	}
+
+	/**
+	 * Tests that delete_transient() removes an orphaned timeout row.
+	 *
+	 * @ticket 65863
+	 */
+	public function test_delete_transient_removes_orphaned_timeout() {
+		$key = 'orphaned_timeout';
+
+		set_transient( $key, 'value', 3600 );
+
+		// Remove the value row, leaving only the timeout row.
+		delete_option( '_transient_' . $key );
+
+		$this->assertFalse( get_option( '_transient_' . $key ) );
+		$this->assertNotFalse( get_option( '_transient_timeout_' . $key ) );
+
+		delete_transient( $key );
+
+		$this->assertFalse( get_option( '_transient_' . $key ) );
+		$this->assertFalse( get_option( '_transient_timeout_' . $key ) );
+	}
+
+	/**
+	 * Tests that delete_expired_transients() removes expired orphaned timeouts
+	 * while leaving unexpired orphaned timeouts, unexpired transients, and timeout-less transients intact.
+	 *
+	 * @ticket 65863
+	 *
+	 * @covers ::delete_expired_transients
+	 */
+	public function test_delete_expired_transients_with_orphaned_timeouts() {
+		global $wpdb;
+
+		$now = time();
+
+		// 1. Expired orphaned timeout (should be deleted).
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+				'_transient_timeout_expired_orphan',
+				$now - 100
+			)
+		);
+
+		// 2. Unexpired orphaned timeout (should be kept).
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+				'_transient_timeout_unexpired_orphan',
+				$now + 100
+			)
+		);
+
+		// 3. Expired pair (should be deleted).
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+				'_transient_expired_pair',
+				'value'
+			)
+		);
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+				'_transient_timeout_expired_pair',
+				$now - 100
+			)
+		);
+
+		// 4. Unexpired pair (should be kept).
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+				'_transient_unexpired_pair',
+				'value'
+			)
+		);
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+				'_transient_timeout_unexpired_pair',
+				$now + 100
+			)
+		);
+
+		// 5. Value without timeout (should be kept).
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+				'_transient_no_timeout',
+				'value'
+			)
+		);
+
+		delete_expired_transients( true );
+
+		$this->assertNull(
+			$wpdb->get_var( "SELECT option_value FROM {$wpdb->options} WHERE option_name = '_transient_timeout_expired_orphan'" ),
+			'Expired orphan timeout should be deleted.'
+		);
+		$this->assertNotNull(
+			$wpdb->get_var( "SELECT option_value FROM {$wpdb->options} WHERE option_name = '_transient_timeout_unexpired_orphan'" ),
+			'Unexpired orphan timeout should be retained.'
+		);
+
+		$this->assertNull(
+			$wpdb->get_var( "SELECT option_value FROM {$wpdb->options} WHERE option_name = '_transient_expired_pair'" ),
+			'Expired transient value should be deleted.'
+		);
+		$this->assertNull(
+			$wpdb->get_var( "SELECT option_value FROM {$wpdb->options} WHERE option_name = '_transient_timeout_expired_pair'" ),
+			'Expired transient timeout should be deleted.'
+		);
+
+		$this->assertSame(
+			'value',
+			$wpdb->get_var( "SELECT option_value FROM {$wpdb->options} WHERE option_name = '_transient_unexpired_pair'" ),
+			'Unexpired transient value should be retained.'
+		);
+		$this->assertNotNull(
+			$wpdb->get_var( "SELECT option_value FROM {$wpdb->options} WHERE option_name = '_transient_timeout_unexpired_pair'" ),
+			'Unexpired transient timeout should be retained.'
+		);
+
+		$this->assertSame(
+			'value',
+			$wpdb->get_var( "SELECT option_value FROM {$wpdb->options} WHERE option_name = '_transient_no_timeout'" ),
+			'Transient without timeout should be retained.'
+		);
+	}
 }
