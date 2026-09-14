@@ -2645,13 +2645,25 @@ function wp_insert_user( $userdata ) {
 
 	if ( $update ) {
 		// Update user meta.
+		$has_updated_action = remove_action( 'updated_user_meta', 'wp_cache_set_users_last_changed' );
+
 		foreach ( $meta as $key => $value ) {
 			update_user_meta( $user_id, $key, $value );
 		}
+
+		if ( $has_updated_action ) {
+			add_action( 'updated_user_meta', 'wp_cache_set_users_last_changed' );
+		}
 	} else {
 		// Add user meta.
+		$has_added_action = remove_action( 'added_user_meta', 'wp_cache_set_users_last_changed' );
+
 		foreach ( $meta as $key => $value ) {
 			add_user_meta( $user_id, $key, $value );
+		}
+
+		if ( $has_added_action ) {
+			add_action( 'added_user_meta', 'wp_cache_set_users_last_changed' );
 		}
 	}
 

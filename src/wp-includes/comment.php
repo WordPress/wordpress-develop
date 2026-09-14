@@ -2218,8 +2218,18 @@ function wp_insert_comment( $commentdata ) {
 
 	// If metadata is provided, store it.
 	if ( isset( $commentdata['comment_meta'] ) && is_array( $commentdata['comment_meta'] ) ) {
+		/*
+		 * Temporarily suspend the per-meta-key `last_changed` cache invalidation
+		 * to avoid redundant cache writes during bulk comment meta input.
+		 */
+		$has_added_action = remove_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
+
 		foreach ( $commentdata['comment_meta'] as $meta_key => $meta_value ) {
 			add_comment_meta( $comment->comment_ID, $meta_key, $meta_value, true );
+		}
+
+		if ( $has_added_action ) {
+			add_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
 		}
 	}
 
@@ -2992,8 +3002,22 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 
 	// If metadata is provided, store it.
 	if ( isset( $commentarr['comment_meta'] ) && is_array( $commentarr['comment_meta'] ) ) {
+		/*
+		 * Temporarily suspend the per-meta-key `last_changed` cache invalidation
+		 * to avoid redundant cache writes during bulk comment meta updates.
+		 */
+		$has_updated_action = remove_action( 'updated_comment_meta', 'wp_cache_set_comments_last_changed' );
+		$has_added_action   = remove_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
+
 		foreach ( $commentarr['comment_meta'] as $meta_key => $meta_value ) {
 			update_comment_meta( $comment_id, $meta_key, $meta_value );
+		}
+
+		if ( $has_updated_action ) {
+			add_action( 'updated_comment_meta', 'wp_cache_set_comments_last_changed' );
+		}
+		if ( $has_added_action ) {
+			add_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
 		}
 	}
 
