@@ -2880,6 +2880,8 @@ function unregister_post_meta( $post_type, $meta_key ) {
  *                                                 otherwise be retrieved individually as arrays or objects via
  *                                                 {@see get_post_meta()}. An empty array is returned if the post has
  *                                                 no post meta.
+ *
+ * @phpstan-return array<string, list<string>>|false
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
@@ -2899,7 +2901,10 @@ function get_post_custom( $post_id = 0 ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|null Array of the keys, if retrieved.
+ * @return string[]|null Array of the meta field keys, if retrieved. Null if the post has no
+ *                       post meta, or if the post meta could not be retrieved.
+ *
+ * @phpstan-return non-empty-list<string>|null
  */
 function get_post_custom_keys( $post_id = 0 ) {
 	$custom = get_post_custom( $post_id );
@@ -2925,7 +2930,11 @@ function get_post_custom_keys( $post_id = 0 ) {
  *
  * @param string $key     Optional. Meta field key. Default empty.
  * @param int    $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|null Meta field values.
+ * @return string[]|null Meta field values. Null if `$key` is not specified, if the post has no
+ *                       meta for that key, or if the post meta could not be retrieved.
+ *                       Values are always strings, as described for {@see get_post_custom()}.
+ *
+ * @phpstan-return ( $key is '' ? null : list<string>|null )
  */
 function get_post_custom_values( $key = '', $post_id = 0 ) {
 	if ( ! $key ) {
