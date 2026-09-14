@@ -7772,7 +7772,13 @@ function get_tag_regex( $tag ) {
  * @return bool Whether the slug represents the UTF-8 encoding.
  */
 function is_utf8_charset( $blog_charset = null ) {
-	return _is_utf8_charset( $blog_charset ?? get_option( 'blog_charset' ) );
+	if ( null === $blog_charset ) {
+		$blog_charset = get_option( 'blog_charset', 'UTF-8' );
+	} elseif ( empty( $blog_charset ) ) {
+		return false;
+	}
+
+	return _is_utf8_charset( $blog_charset );
 }
 
 /**
@@ -7788,6 +7794,10 @@ function is_utf8_charset( $blog_charset = null ) {
  * @return string The canonical form of the charset.
  */
 function _canonical_charset( $charset ) {
+	if ( empty( $charset ) ) {
+		return '';
+	}
+
 	if ( is_utf8_charset( $charset ) ) {
 		return 'UTF-8';
 	}
