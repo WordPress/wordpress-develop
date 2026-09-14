@@ -7843,6 +7843,47 @@ EOF;
 		$this->assertSame( 1, wp_get_image_encode_quality( 'image/png' ) );
 		remove_filter( 'wp_editor_set_quality', $zero );
 	}
+
+	/**
+	 * Ensures the HEIC upload error flag is added when image editors do not support HEIC.
+	 *
+	 * @ticket 65802
+	 *
+	 * @covers ::wp_show_heic_upload_error
+	 */
+	public function test_wp_show_heic_upload_error_adds_flag_when_not_supported() {
+		// Force the editor check to return false.
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$settings = array( 'existing' => 'value' );
+		$result   = wp_show_heic_upload_error( $settings );
+
+		$this->assertArrayHasKey( 'heic_upload_error', $result, 'The heic_upload_error key is expected to be added to the array.' );
+		$this->assertTrue( $result['heic_upload_error'], 'The heic_upload_error flag is expected to be true.' );
+		$this->assertArrayHasKey( 'existing', $result, 'Existing array keys are expected to be preserved.' );
+		$this->assertSame( 'value', $result['existing'], 'Existing array values are expected to remain unmodified.' );
+	}
+
+	/**
+	 * Ensures the HEIC upload error flag is absent when image editors support HEIC.
+	 *
+	 * @ticket 65802
+	 *
+	 * @covers ::wp_show_heic_upload_error
+	 */
+	public function test_wp_show_heic_upload_error_omits_flag_when_supported() {
+		// Skip if the environment cannot support HEIC.
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/heic' ) ) ) {
+			$this->markTestSkipped( 'HEIC is not supported by the selected image editor.' );
+		}
+
+		$settings = array( 'existing' => 'value' );
+		$result   = wp_show_heic_upload_error( $settings );
+
+		$this->assertArrayNotHasKey( 'heic_upload_error', $result, 'The heic_upload_error key is not expected to be present when HEIC is supported.' );
+		$this->assertArrayHasKey( 'existing', $result, 'Existing array keys are expected to be preserved.' );
+		$this->assertSame( 'value', $result['existing'], 'Existing array values are expected to remain unmodified.' );
+	}
 }
 
 /**

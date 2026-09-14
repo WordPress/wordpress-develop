@@ -1188,7 +1188,7 @@ table.form-table td .updated p {
 }
 
 .pressthis-bookmarklet span:before {
-	color: #787c82;
+	color: #50575e;
 	font: normal 20px/1 dashicons;
 	content: "\f157";
 	content: "\f157" / '';
@@ -1497,10 +1497,6 @@ table.form-table td .updated p {
 	border-left: 4px solid #fff;
 	background: #fff;
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-}
-
-.privacy_requests .row-actions {
-	color: #787c82;
 }
 
 .privacy_requests .row-actions.processing {

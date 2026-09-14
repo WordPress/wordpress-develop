@@ -3283,7 +3283,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertTrue( isset( $args[0][0] ), 'Query parameters were not captured.' );
 		$this->assertInstanceOf( WP_User_Query::class, $args[0][0], 'Query parameters were not captured.' );
 
-		/** @var WP_User $query */
+		/** @var WP_User_Query $query */
 		$query = $args[0][0];
 
 		if ( $is_head_request ) {

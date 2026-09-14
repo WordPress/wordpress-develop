@@ -1427,7 +1427,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key. Can only be used when the
  *                                         object type is 'post'.
  * }
- * @param string|array $deprecated Deprecated. Use `$args` instead.
+ * @param string|array $deprecated  Deprecated. Use `$args` instead.
  * @return bool True if the meta key was successfully registered in the global array, false if not.
  *              Registering a meta key with distinct sanitize and auth callbacks will fire those callbacks,
  *              but will not add to the global registry.
@@ -1789,6 +1789,7 @@ function _wp_register_meta_args_allowed_list( $args, $default_args ) {
  * Returns the object subtype for a given object ID of a specific type.
  *
  * @since 4.9.8
+ * @since 7.2.0 Added support for 'blog' object type in multisite.
  *
  * @param string $object_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                            'user', or any other object type with an associated meta table.
@@ -1833,6 +1834,19 @@ function get_object_subtype( $object_type, $object_id ) {
 			}
 
 			$object_subtype = 'user';
+			break;
+
+		case 'blog':
+			if ( ! is_multisite() || $object_id <= 0 ) {
+				break;
+			}
+
+			$site = get_site( $object_id );
+			if ( ! $site ) {
+				break;
+			}
+
+			$object_subtype = 'blog';
 			break;
 	}
 
