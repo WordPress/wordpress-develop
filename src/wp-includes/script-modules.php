@@ -166,7 +166,7 @@ function wp_set_script_module_translations( string $id, string $domain = 'defaul
  *
  * @see WP_Script_Modules::print_import_map()
  */
-function wp_print_script_module_import_map() {
+function wp_print_script_module_import_map(): void {
 	wp_script_modules()->print_import_map();
 }
 
@@ -177,7 +177,7 @@ function wp_print_script_module_import_map() {
  *
  * @see WP_Script_Modules::print_head_enqueued_script_modules()
  */
-function wp_print_head_script_modules() {
+function wp_print_head_script_modules(): void {
 	wp_script_modules()->print_head_enqueued_script_modules();
 }
 
@@ -188,7 +188,7 @@ function wp_print_head_script_modules() {
  *
  * @see WP_Script_Modules::print_enqueued_script_modules()
  */
-function wp_print_script_modules() {
+function wp_print_script_modules(): void {
 	wp_script_modules()->print_enqueued_script_modules();
 }
 
@@ -199,7 +199,7 @@ function wp_print_script_modules() {
  *
  * @see WP_Script_Modules::print_script_module_preloads()
  */
-function wp_print_script_module_preloads() {
+function wp_print_script_module_preloads(): void {
 	wp_script_modules()->print_script_module_preloads();
 }
 
@@ -232,7 +232,7 @@ function wp_print_script_module_data(): void {
  *
  * @see WP_Script_Modules::print_a11y_script_module_html()
  */
-function wp_print_a11y_script_module_html() {
+function wp_print_a11y_script_module_html(): void {
 	wp_script_modules()->print_a11y_script_module_html();
 }
 
