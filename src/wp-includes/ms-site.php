@@ -1092,7 +1092,7 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  *               boolean.
  *
  * @phpstan-return (
- *     $key is ''
+ *     $key is ''|'0'
  *         ? array<string, list<string>>|false
  *         : ( $single is true
  *             ? mixed
