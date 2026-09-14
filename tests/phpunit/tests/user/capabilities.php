@@ -1405,7 +1405,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Add 'edit_foobars' primitive cap to a user.
 		$admin->add_cap( 'edit_foobars', true );
-		$admin = new WP_User( $admin->ID );
+		$admin                        = new WP_User( $admin->ID );
+		self::$users['administrator'] = $admin;
 		$this->assertTrue( $admin->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $author->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $editor->has_cap( $cap->create_posts ) );
