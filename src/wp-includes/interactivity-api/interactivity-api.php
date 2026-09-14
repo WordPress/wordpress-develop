@@ -188,6 +188,6 @@ function wp_interactivity_script_module_attributes( $attributes ) {
  *
  * @see WP_Interactivity_API::print_router_markup()
  */
-function wp_interactivity_print_router_markup() {
+function wp_interactivity_print_router_markup(): void {
 	wp_interactivity()->print_router_markup();
 }
