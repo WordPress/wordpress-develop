@@ -404,6 +404,8 @@ function wp_maintenance() {
 		return;
 	}
 
+	require_once ABSPATH . WPINC . '/functions.php';
+
 	if ( file_exists( WP_CONTENT_DIR . '/maintenance.php' ) ) {
 		status_header( 503 );
 		nocache_headers();
@@ -412,7 +414,6 @@ function wp_maintenance() {
 		die();
 	}
 
-	require_once ABSPATH . WPINC . '/functions.php';
 	wp_load_translations_early();
 
 	header( 'Retry-After: 600' );
