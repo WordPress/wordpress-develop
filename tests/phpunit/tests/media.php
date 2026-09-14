@@ -7101,17 +7101,27 @@ EOF;
 	 *
 	 * @ticket 61847
 	 * @ticket 62413
+	 * @ticket 62515
 	 */
 	public function test_image_without_width_does_not_have_auto_sizes() {
 		// Disable automatic width calculation.
 		add_filter(
 			'wp_get_attachment_image_src',
 			function ( $img_data ) {
-				return array( $img_data[0], null, null );
+				return array( $img_data[0], null, $img_data[2] );
 			}
 		);
 
-		$markup = wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => false ) );
+		$markup = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'loading' => 'lazy',
+				'srcset'  => 'https://example.com/foo-1024x768.jpg 1024w',
+				'sizes'   => '(max-width: 1024px) 100vw, 1024px',
+			)
+		);
 
 		$this->assertStringNotContainsString(
 			'width="',
@@ -7123,6 +7133,44 @@ EOF;
 			'sizes="auto, ',
 			$markup,
 			'Failed asserting that the sizes attribute for an image without a width does not include "auto".'
+		);
+	}
+
+	/**
+	 * Test generated markup for an image with no height does not get auto-sizes.
+	 *
+	 * @ticket 62515
+	 */
+	public function test_image_without_height_does_not_have_auto_sizes() {
+		// Disable automatic height calculation.
+		add_filter(
+			'wp_get_attachment_image_src',
+			function ( $img_data ) {
+				return array( $img_data[0], $img_data[1], null );
+			}
+		);
+
+		$markup = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'loading' => 'lazy',
+				'srcset'  => 'https://example.com/foo-1024x768.jpg 1024w',
+				'sizes'   => '(max-width: 1024px) 100vw, 1024px',
+			)
+		);
+
+		$this->assertStringNotContainsString(
+			'height="',
+			$markup,
+			'Failed confirming the test markup did not include a height attribute.'
+		);
+
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			$markup,
+			'Failed asserting that the sizes attribute for an image without a height does not include "auto".'
 		);
 	}
 
@@ -7406,6 +7454,7 @@ EOF;
 	 *
 	 * @covers ::wp_enqueue_img_auto_sizes_contain_css_fix
 	 * @ticket 62731
+	 * @ticket 62515
 	 *
 	 * @dataProvider data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix
 	 */
@@ -7430,7 +7479,14 @@ EOF;
 			}
 		);
 
-		$wp_head_output           = get_echo( 'wp_head' );
+		$wp_head_output = get_echo( 'wp_head' );
+		if ( isset( $expected_deprecated ) ) {
+			$this->assertStringContainsString(
+				'img:where([width][height]):is([sizes="auto" i], [sizes^="auto," i])',
+				$wp_head_output,
+				'Failed asserting that the deprecated CSS output includes the dimension guard.'
+			);
+		}
 		$html_processor           = new WP_HTML_Tag_Processor( $wp_head_output );
 		$found_style_text_content = null;
 		while ( $html_processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
@@ -7445,6 +7501,7 @@ EOF;
 			$this->assertSame( 'wp-img-auto-sizes-contain', array_shift( $enqueued ) );
 			$this->assertIsString( $found_style_text_content );
 			$this->assertStringContainsString( 'contain-intrinsic-size', $found_style_text_content );
+			$this->assertStringContainsString( 'img:where([width][height])', $found_style_text_content );
 		} else {
 			$this->assertNull( $found_style_text_content );
 		}
@@ -7504,11 +7561,20 @@ EOF;
 				'input'    => '<img data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
 				'expected' => '<img data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
 			),
+			'not_expected_when_img_lacks_height'           => array(
+				'input'    => '<img width="300" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
+				'expected' => '<img width="300" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
+			),
+			'not_expected_when_img_lacks_width'            => array(
+				'input'    => '<img height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
+				'expected' => '<img height="225" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
+			),
 		);
 	}
 
 	/**
 	 * @ticket 61847
+	 * @ticket 62515
 	 *
 	 * @covers ::wp_img_tag_add_auto_sizes
 	 *

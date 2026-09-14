@@ -6462,7 +6462,8 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  * Prints a CSS rule to fix potential visual issues with images using `sizes=auto`.
  *
  * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
- * `width: auto` or `width: fit-content` to appear smaller.
+ * `width: auto` or `width: fit-content` to appear smaller. It only applies to images with dimensions, since
+ * otherwise the enlarged intrinsic height can cause the image to appear stretched.
  *
  * @since 6.7.1
  * @deprecated 6.9.0 Use wp_enqueue_img_auto_sizes_contain_css_fix() instead.
@@ -6470,6 +6471,7 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  *
  * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
  * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62515
  * @see https://core.trac.wordpress.org/ticket/62731
  */
 function wp_print_auto_sizes_contain_css_fix() {
@@ -6482,7 +6484,7 @@ function wp_print_auto_sizes_contain_css_fix() {
 	}
 
 	?>
-	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	<style>img:where([width][height]):is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
 	<?php
 }
 
