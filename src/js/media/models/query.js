@@ -7,7 +7,7 @@ var Attachments = wp.media.model.Attachments,
  * A collection of attachments that match the supplied query arguments.
  *
  * Note: Do NOT change this.args after the query has been initialized.
- *       Things will break.
+ * Things will break.
  *
  * @memberOf wp.media.model
  *
@@ -15,15 +15,17 @@ var Attachments = wp.media.model.Attachments,
  * @augments wp.media.model.Attachments
  * @augments Backbone.Collection
  *
- * @param {array}  [models]                      Models to initialize with the collection.
- * @param {object} [options]                     Options hash.
- * @param {object} [options.args]                Attachments query arguments.
- * @param {object} [options.args.posts_per_page]
+ * @param {wp.media.model.Attachment[]} [models]                      Models to initialize with the collection.
+ * @param {Object}                      [options]                     Options hash.
+ * @param {Object}                      [options.args]                Attachments query arguments.
+ * @param {Object}                      [options.args.posts_per_page]
  */
 Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	/**
+	 * Initializes the Query collection.
+	 *
 	 * @param {Array}  [models=[]]  Array of initial models to populate the collection.
-	 * @param {Object} [options={}]
+	 * @param {Object} [options={}] Additional options for initializing the query.
 	 */
 	initialize: function( models, options ) {
 		var allowed;
@@ -86,7 +88,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Whether there are more attachments that haven't been sync'd from the server
 	 * that match the collection's query.
 	 *
-	 * @return {boolean}
+	 * @return {boolean} True if there are more attachments to fetch, false otherwise.
 	 */
 	hasMore: function() {
 		return this._hasMore;
@@ -94,8 +96,8 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	/**
 	 * Fetch more attachments from the server for the collection.
 	 *
-	 * @param {Object} [options={}]
-	 * @return {Promise}
+	 * @param {Object} [options={}] Additional options for fetching more attachments.
+	 * @return {Promise} A promise that resolves when the fetch is complete.
 	 */
 	more: function( options ) {
 		var query = this;
@@ -122,10 +124,10 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Overrides Backbone.Collection.sync
 	 * Overrides wp.media.model.Attachments.sync
 	 *
-	 * @param {string} method
-	 * @param {Backbone.Model} model
-	 * @param {Object} [options={}]
-	 * @return {Promise}
+	 * @param {string}         method       The sync method to be used (e.g., 'read', 'create', 'update', 'delete').
+	 * @param {Backbone.Model} model        The model to be synced.
+	 * @param {Object}         [options={}] Additional options for syncing the query.
+	 * @return {Promise} A promise that resolves when the sync is complete.
 	 */
 	sync: function( method, model, options ) {
 		var args, fallback;
@@ -210,21 +212,21 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Caches query objects and reuses where possible.
 	 *
 	 * @static
-	 * @method
+	 * @function
 	 *
-	 * @param {object} [props]
-	 * @param {Object} [props.order]
-	 * @param {Object} [props.orderby]
-	 * @param {Object} [props.include]
-	 * @param {Object} [props.exclude]
-	 * @param {Object} [props.s]
-	 * @param {Object} [props.post_mime_type]
-	 * @param {Object} [props.posts_per_page]
-	 * @param {Object} [props.menu_order]
-	 * @param {Object} [props.post_parent]
-	 * @param {Object} [props.post_status]
-	 * @param {Object} [props.author]
-	 * @param {Object} [options]
+	 * @param {Object} [props]                The properties to initialize the query with.
+	 * @param {Object} [props.order]          The order in which to sort the query results.
+	 * @param {Object} [props.orderby]        The property by which to order the query results.
+	 * @param {Object} [props.include]        The IDs of attachments to include in the query.
+	 * @param {Object} [props.exclude]        The IDs of attachments to exclude from the query.
+	 * @param {Object} [props.s]              The search term to filter attachments by.
+	 * @param {Object} [props.post_mime_type] The MIME type to filter attachments by.
+	 * @param {Object} [props.posts_per_page] The number of attachments to retrieve per page.
+	 * @param {Object} [props.menu_order]     The menu order to filter attachments by.
+	 * @param {Object} [props.post_parent]    The parent post ID to filter attachments by.
+	 * @param {Object} [props.post_status]    The status to filter attachments by.
+	 * @param {Object} [props.author]         The author ID to filter attachments by.
+	 * @param {Object} [options]              Additional options for the query.
 	 *
 	 * @return {wp.media.model.Query} A new Attachments Query collection.
 	 */
@@ -236,7 +238,11 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		var queries = [];
 
 		/**
-		 * @return {Query}
+		 * Creates and returns an Attachments Query collection given the properties.
+		 *
+		 * @param {Object} [props]   The properties to initialize the query with.
+		 * @param {Object} [options] Additional options for the query.
+		 * @return {Query} A new Attachments Query collection.
 		 */
 		return function( props, options ) {
 			var args     = {},
@@ -250,12 +256,6 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 
 			// Fill default args.
 			_.defaults( props, defaults );
-
-			// Normalize the order.
-			props.order = props.order.toUpperCase();
-			if ( 'DESC' !== props.order && 'ASC' !== props.order ) {
-				props.order = defaults.order.toUpperCase();
-			}
 
 			// Ensure we have a valid orderby value.
 			if ( ! _.contains( orderby.allowed, props.orderby ) ) {

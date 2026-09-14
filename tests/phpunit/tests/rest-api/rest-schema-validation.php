@@ -1506,6 +1506,31 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A draft-04 `required` array takes precedence over per-property
+	 * `required` booleans on the same object node: the booleans are ignored.
+	 *
+	 * @ticket 64955
+	 */
+	public function test_required_v4_array_takes_precedence_over_v3_booleans() {
+		$schema = array(
+			'type'       => 'object',
+			'required'   => array( 'listed' ),
+			'properties' => array(
+				'listed'  => array( 'type' => 'string' ),
+				'flagged' => array(
+					'type'     => 'string',
+					'required' => true, // Ignored because the array is present.
+				),
+			),
+		);
+
+		// Missing the array-listed prop fails.
+		$this->assertWPError( rest_validate_value_from_schema( array( 'flagged' => 'x' ), $schema ) );
+		// Missing only the boolean-flagged prop passes — the boolean is not enforced.
+		$this->assertTrue( rest_validate_value_from_schema( array( 'listed' => 'x' ), $schema ) );
+	}
+
+	/**
 	 * @ticket 51023
 	 */
 	public function test_object_min_properties() {

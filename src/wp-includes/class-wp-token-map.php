@@ -440,6 +440,10 @@ class WP_Token_Map {
 	 * @return bool Whether there's an entry for the given word in the map.
 	 */
 	public function contains( string $word, string $case_sensitivity = 'case-sensitive' ): bool {
+		if ( str_contains( $word, "\x00" ) ) {
+			return false;
+		}
+
 		$ignore_case = 'ascii-case-insensitive' === $case_sensitivity;
 
 		if ( $this->key_length >= strlen( $word ) ) {
@@ -524,7 +528,6 @@ class WP_Token_Map {
 	 * @param int      $offset                     Optional. How many bytes into the string where the lookup key ought to start. Default 0.
 	 * @param int|null &$matched_token_byte_length Optional. Holds byte-length of found token matched, otherwise not set. Default null.
 	 * @param string   $case_sensitivity           Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
-	 *
 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
 	 */
 	public function read_token( string $text, int $offset = 0, &$matched_token_byte_length = null, $case_sensitivity = 'case-sensitive' ): ?string {
@@ -533,9 +536,17 @@ class WP_Token_Map {
 
 		// Search for a long word first, if the text is long enough, and if that fails, a short one.
 		if ( $text_length > $this->key_length ) {
-			$group_key = substr( $text, $offset, $this->key_length );
+			/*
+			 * Keys cannot contain null bytes, which is taken care of for the full words,
+			 * but here it’s required to reject group keys with null bytes so that the
+			 * lookup doesn’t get off track when scanning the group string.
+			 */
+			if ( strcspn( $text, "\x00", $offset, $this->key_length ) < $this->key_length ) {
+				return null;
+			}
 
-			$group_at = $ignore_case ? stripos( $this->groups, $group_key ) : strpos( $this->groups, $group_key );
+			$group_key = substr( $text, $offset, $this->key_length );
+			$group_at  = $ignore_case ? stripos( $this->groups, $group_key ) : strpos( $this->groups, $group_key );
 			if ( false === $group_at ) {
 				// Perhaps a short word then.
 				return strlen( $this->small_words ) > 0
@@ -577,7 +588,6 @@ class WP_Token_Map {
 	 * @param int      $offset                     Optional. How many bytes into the string where the lookup key ought to start. Default 0.
 	 * @param int|null &$matched_token_byte_length Optional. Holds byte-length of found lookup key if matched, otherwise not set. Default null.
 	 * @param string   $case_sensitivity           Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
-	 *
 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
 	 */
 	private function read_small_token( string $text, int $offset = 0, &$matched_token_byte_length = null, $case_sensitivity = 'case-sensitive' ): ?string {

@@ -9,6 +9,7 @@
  *
  * @group blocks
  * @group block-hooks
+ *
  * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
  */
 class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {

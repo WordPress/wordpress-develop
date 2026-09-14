@@ -70,7 +70,7 @@ body {
 
 #customize-save-button-wrapper {
 	float: right;
-	margin-top: 3px; /* Vertically center 40px button in 45px header */
+	margin-top: 7px; /* Vertically center 32px button in 45px header */
 }
 
 body:not(.ready) #customize-save-button-wrapper .save {
@@ -570,6 +570,10 @@ body.trashing #publish-settings {
 
 .accordion-section-title button.accordion-trigger:has(.menu-in-location) {
 	display: block;
+}
+
+.accordion-section-title button.accordion-trigger .spinner {
+	margin-top: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2489,12 +2493,20 @@ body.cheatin p {
  * Widgets and Menus common styles
  */
 
+.customize-control-nav_menu-buttons,
+.customize-control-widgets-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+}
+
 /* higher specificity than .wp-core-ui .button */
 #customize-theme-controls .add-new-widget,
 #customize-theme-controls .add-new-menu-item {
 	cursor: pointer;
-	float: right;
-	margin: 0 0 0 10px;
+	margin: 0;
 	transition: all 0.2s;
 	-webkit-user-select: none;
 	user-select: none;
@@ -2526,7 +2538,6 @@ body.cheatin p {
 
 /* Reordering */
 .reorder-toggle {
-	float: right;
 	padding: 5px 8px;
 	text-decoration: none;
 	cursor: pointer;
@@ -2996,9 +3007,8 @@ body.adding-widget .add-new-widget:before,
 	}
 
 	.wp-core-ui.wp-customizer .button {
-		min-height: 30px;
 		padding: 0 14px;
-		line-height: 2;
+		line-height: 2.14285714; /* 30px */
 		font-size: 14px;
 		vertical-align: middle;
 	}

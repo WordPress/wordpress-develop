@@ -232,6 +232,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertSameSets( $value, wp_array_slice_assoc( $term, array_keys( $value ) ) );
 
 		$menu_object = wp_get_nav_menu_object( $menu_id );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( (object) $term, $menu_object );
 		$this->assertSame( $post_value['name'], $menu_object->name );
 
@@ -277,6 +279,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertSame( $menu_id, $term['term_taxonomy_id'] );
 
 		$menu_object = wp_get_nav_menu_object( $menu_id );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( (object) $term, $menu_object );
 		$this->assertSame( $post_value['name'], $menu_object->name );
 
