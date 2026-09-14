@@ -335,4 +335,18 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$future_date_string = date_format( date_create( "@{$future_time}" ), 'Y-m-d H:i:s' );
 		$this->assertSame( $future_date_string, $after->post_date );
 	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_string_date_created_is_accepted(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$date_string = '1984-01-11 05:00:00';
+		$result      = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', array( 'dateCreated' => $date_string ) ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result );
+		$this->assertSame( $date_string, get_post( $post_id )->post_date );
+	}
 }
