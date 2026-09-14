@@ -2526,8 +2526,7 @@ function wp_insert_user( $userdata ) {
 
 	$meta['show_admin_bar_front'] = empty( $userdata['show_admin_bar_front'] ) ? 'true' : $userdata['show_admin_bar_front'];
 
-	// The row is read back by get_user_locale(), which is documented to return a string.
-	$meta['locale'] = isset( $userdata['locale'] ) && is_string( $userdata['locale'] ) ? $userdata['locale'] : '';
+	$meta['locale'] = $userdata['locale'] ?? '';
 
 	$compacted = compact( 'user_pass', 'user_nicename', 'user_email', 'user_url', 'user_registered', 'user_activation_key', 'display_name' );
 	$data      = wp_unslash( $compacted );
