@@ -737,6 +737,7 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
  * @return mixed An array of default values if `$single` is false.
  *               The default value of the meta field if `$single` is true.
  *
+ * @phpstan-param int|numeric-string $object_id
  * @phpstan-return ( $single is true ? mixed : list<mixed> )
  */
 function get_metadata_default( $meta_type, $object_id, $meta_key, $single = false ) {
@@ -745,6 +746,11 @@ function get_metadata_default( $meta_type, $object_id, $meta_key, $single = fals
 	} else {
 		$value = array();
 	}
+
+	if ( ! is_numeric( $object_id ) ) {
+		return $value;
+	}
+	$object_id = (int) $object_id;
 
 	/**
 	 * Filters the default metadata value for a specified meta key and object.
