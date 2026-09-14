@@ -580,8 +580,8 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *               with {@see register_meta()} is never stored, so it is returned with
  *               the type it was registered with, which may be an integer, float, or
  *               boolean.
- * @phpstan-param int|numeric-string $comment_id
  *
+ * @phpstan-param int|numeric-string $comment_id
  * @phpstan-return (
  *     $key is ''
  *         ? array<string, list<string>>|false
