@@ -716,11 +716,20 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 	 * Because API preloading can call the_content and other filters, plugins
 	 * can unexpectedly modify the global $post or enqueue assets which are not
 	 * intended for the block editor.
+	 *
+	 * Copies are swapped in for the duration of the preload and the original
+	 * instances are restored afterwards, so that hooks and other references
+	 * bound to those instances remain valid.
 	 */
-	$backup_global_post       = ! empty( $post ) ? clone $post : $post;
-	$backup_wp_scripts        = ! empty( $wp_scripts ) ? clone $wp_scripts : $wp_scripts;
-	$backup_wp_styles         = ! empty( $wp_styles ) ? clone $wp_styles : $wp_styles;
-	$backup_wp_script_modules = ! empty( $wp_script_modules ) ? clone $wp_script_modules : $wp_script_modules;
+	$original_post              = $post;
+	$original_wp_scripts        = $wp_scripts;
+	$original_wp_styles         = $wp_styles;
+	$original_wp_script_modules = $wp_script_modules;
+
+	$post              = ! empty( $post ) ? clone $post : $post;
+	$wp_scripts        = ! empty( $wp_scripts ) ? clone $wp_scripts : $wp_scripts;
+	$wp_styles         = ! empty( $wp_styles ) ? clone $wp_styles : $wp_styles;
+	$wp_script_modules = ! empty( $wp_script_modules ) ? clone $wp_script_modules : $wp_script_modules;
 
 	foreach ( $preload_paths as &$path ) {
 		if ( is_string( $path ) && ! str_starts_with( $path, '/' ) ) {
@@ -741,11 +750,11 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 		array()
 	);
 
-	// Restore the globals $post, $wp_scripts, $wp_styles, and $wp_script_modules as they were before API preloading.
-	$post              = $backup_global_post;
-	$wp_scripts        = $backup_wp_scripts;
-	$wp_styles         = $backup_wp_styles;
-	$wp_script_modules = $backup_wp_script_modules;
+	// Restore the original $post, $wp_scripts, $wp_styles, and $wp_script_modules instances.
+	$post              = $original_post;
+	$wp_scripts        = $original_wp_scripts;
+	$wp_styles         = $original_wp_styles;
+	$wp_script_modules = $original_wp_script_modules;
 
 	wp_add_inline_script(
 		'wp-api-fetch',

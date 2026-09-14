@@ -42,7 +42,12 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$wp_script_modules                = null;
 		wp_scripts();
 		wp_styles();
-		wp_script_modules();
+		/*
+		 * The script module print callbacks are bound to the instance that
+		 * registers them, so the fresh instance must register its own hooks.
+		 * WP_UnitTestCase restores $wp_filter between tests.
+		 */
+		wp_script_modules()->add_hooks();
 	}
 
 	public function tear_down() {
