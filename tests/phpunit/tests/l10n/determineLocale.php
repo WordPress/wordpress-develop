@@ -314,6 +314,8 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 * subject and returns an array, so `wp-login.php?wp_lang[]=de_DE` reaches
 	 * the return statement with an array. No authentication is needed.
 	 *
+	 * @ticket 66106
+	 *
 	 * @dataProvider data_array_request_value
 	 *
 	 * @param array $value Array request value.
@@ -326,6 +328,8 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66106
+	 *
 	 * @dataProvider data_array_request_value
 	 *
 	 * @param array $value Array request value.
@@ -338,6 +342,8 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66106
+	 *
 	 * @dataProvider data_array_request_value
 	 *
 	 * @param array $value Array request value.
@@ -353,6 +359,8 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 * An array locale reaches WP_Textdomain_Registry::set(), which uses it as
 	 * an array key and throws a TypeError, so translating any string for an
 	 * unloaded text domain takes down the login page for an anonymous visitor.
+	 *
+	 * @ticket 66106
 	 */
 	public function test_array_wp_lang_param_does_not_fatal_in_the_textdomain_registry(): void {
 		$GLOBALS['pagenow'] = 'wp-login.php';
@@ -377,6 +385,8 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	/**
 	 * The `$wp_local_package` global is untyped and only checked for truthiness.
 	 *
+	 * @ticket 66106
+	 *
 	 * @dataProvider data_non_string_locale
 	 *
 	 * @param mixed $value Non-string value.
@@ -390,6 +400,8 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	/**
 	 * The `determine_locale` filter result is returned unchecked, unlike
 	 * `pre_determine_locale`, which is guarded with is_string().
+	 *
+	 * @ticket 66106
 	 *
 	 * @dataProvider data_non_string_locale
 	 *
@@ -409,6 +421,8 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	/**
 	 * An array `locale` user meta row reaches determine_locale() through
 	 * get_user_locale() on every admin request.
+	 *
+	 * @ticket 66106
 	 *
 	 * @dataProvider data_non_string_user_locale_meta
 	 *

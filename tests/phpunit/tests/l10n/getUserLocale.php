@@ -152,6 +152,8 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	 * guard passes it through and callers receive an array where the documented
 	 * return type is a string.
 	 *
+	 * @ticket 66106
+	 *
 	 * @dataProvider data_non_string_user_locale_meta
 	 *
 	 * @param mixed $meta_value Value stored in the `locale` user meta row.
@@ -164,6 +166,8 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66106
+	 *
 	 * @dataProvider data_non_string_user_locale_meta
 	 *
 	 * @param mixed $meta_value Value stored in the `locale` user meta row.
@@ -195,6 +199,8 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	 * An array locale reaches WP_Textdomain_Registry::set(), which uses it as an
 	 * array key and throws a TypeError, so translating any string for an
 	 * unloaded text domain takes down the request.
+	 *
+	 * @ticket 66106
 	 */
 	public function test_array_user_locale_meta_does_not_fatal_in_the_textdomain_registry(): void {
 		set_current_screen( 'dashboard' );

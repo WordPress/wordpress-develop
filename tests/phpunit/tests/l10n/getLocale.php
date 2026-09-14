@@ -97,6 +97,8 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 * written by a direct database query survives to the return value: a
 	 * non-empty array passes both `false !== $db_locale` and `empty( $locale )`.
 	 *
+	 * @ticket 66106
+	 *
 	 * @group ms-excluded
 	 *
 	 * @dataProvider data_stored_non_string_locale
@@ -117,6 +119,8 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66106
+	 *
 	 * @group ms-required
 	 *
 	 * @dataProvider data_stored_non_string_locale
@@ -149,6 +153,8 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 * The `$locale` global short-circuits the function before any of its own
 	 * guards run.
 	 *
+	 * @ticket 66106
+	 *
 	 * @dataProvider data_non_string_locale
 	 *
 	 * @param mixed $value Non-string value.
@@ -166,6 +172,8 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 	/**
 	 * The `locale` filter result is returned unchecked.
+	 *
+	 * @ticket 66106
 	 *
 	 * @dataProvider data_non_string_locale
 	 *
@@ -191,6 +199,8 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 	/**
 	 * The `locale` filter also runs on the `$locale` global short-circuit path.
+	 *
+	 * @ticket 66106
 	 *
 	 * @dataProvider data_non_string_locale
 	 *
@@ -220,6 +230,8 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 * get_option() applies it only when the option exists. There is no `WPLANG`
 	 * row in the test database, so the row is written first, otherwise the
 	 * function takes the "no such option" branch and the filter never runs.
+	 *
+	 * @ticket 66106
 	 *
 	 * @group ms-excluded
 	 *
