@@ -592,6 +592,8 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *               or if `$meta_type` is not specified.
  *               An empty array if a valid but non-existing object ID is passed and `$single` is false.
  *               An empty string if a valid but non-existing object ID is passed and `$single` is true.
+ *               The same empty array or empty string if `$meta_type` has no metadata table, in which
+ *               case there is no cache to return even when `$meta_key` is not specified.
  *               Note: Non-serialized values are returned as strings:
  *               - false values are returned as empty strings ('')
  *               - true values are returned as '1'
@@ -605,7 +607,9 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  * @phpstan-param int|numeric-string $object_id
  * @phpstan-return (
  *     $meta_key is ''|'0'
- *         ? array<array-key, list<string>>|false
+ *         ? ( $single is true
+ *             ? array<array-key, list<string>>|string|false
+ *             : array<array-key, list<string>>|false )
  *         : ( $single is true
  *             ? mixed
  *             : list<mixed>|false )
