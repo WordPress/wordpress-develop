@@ -2888,6 +2888,9 @@ function get_post_custom( $post_id = 0 ) {
 
 	if ( ! $post_id ) {
 		$post_id = get_the_ID();
+		if ( false === $post_id ) {
+			return false;
+		}
 	}
 
 	return get_post_meta( $post_id );
