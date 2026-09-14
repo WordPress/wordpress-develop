@@ -156,7 +156,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $meta_value Value stored in the `locale` user meta row.
 	 */
-	public function test_returns_site_locale_for_non_string_user_locale_meta( $meta_value ) {
+	public function test_returns_site_locale_for_non_string_user_locale_meta( $meta_value ): void {
 		set_current_screen( 'dashboard' );
 		update_user_meta( self::$administrator_de_de, 'locale', $meta_value );
 
@@ -168,7 +168,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $meta_value Value stored in the `locale` user meta row.
 	 */
-	public function test_returns_a_string_for_non_string_user_locale_meta( $meta_value ) {
+	public function test_returns_a_string_for_non_string_user_locale_meta( $meta_value ): void {
 		set_current_screen( 'dashboard' );
 		update_user_meta( self::$administrator_de_de, 'locale', $meta_value );
 
@@ -178,9 +178,9 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{mixed}>
 	 */
-	public function data_non_string_user_locale_meta() {
+	public function data_non_string_user_locale_meta(): array {
 		// Scalars survive the meta round trip as strings, so only arrays and
 		// objects can come back from get_user_meta() with the wrong type.
 		return array(
@@ -196,7 +196,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	 * array key and throws a TypeError, so translating any string for an
 	 * unloaded text domain takes down the request.
 	 */
-	public function test_array_user_locale_meta_does_not_fatal_in_the_textdomain_registry() {
+	public function test_array_user_locale_meta_does_not_fatal_in_the_textdomain_registry(): void {
 		set_current_screen( 'dashboard' );
 		update_user_meta( self::$administrator_de_de, 'locale', array( 'de_DE' ) );
 

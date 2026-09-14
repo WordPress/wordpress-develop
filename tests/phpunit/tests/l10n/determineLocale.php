@@ -318,7 +318,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 *
 	 * @param array $value Array request value.
 	 */
-	public function test_wp_login_get_param_on_login_page_array( $value ) {
+	public function test_wp_login_get_param_on_login_page_array( $value ): void {
 		$GLOBALS['pagenow'] = 'wp-login.php';
 		$_GET['wp_lang']    = $value;
 
@@ -330,7 +330,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 *
 	 * @param array $value Array request value.
 	 */
-	public function test_wp_login_cookie_on_login_page_array( $value ) {
+	public function test_wp_login_cookie_on_login_page_array( $value ): void {
 		$GLOBALS['pagenow'] = 'wp-login.php';
 		$_COOKIE['wp_lang'] = $value;
 
@@ -342,7 +342,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 *
 	 * @param array $value Array request value.
 	 */
-	public function test_language_param_installing_array( $value ) {
+	public function test_language_param_installing_array( $value ): void {
 		$_REQUEST['language'] = $value;
 		wp_installing( true );
 
@@ -354,7 +354,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 * an array key and throws a TypeError, so translating any string for an
 	 * unloaded text domain takes down the login page for an anonymous visitor.
 	 */
-	public function test_array_wp_lang_param_does_not_fatal_in_the_textdomain_registry() {
+	public function test_array_wp_lang_param_does_not_fatal_in_the_textdomain_registry(): void {
 		$GLOBALS['pagenow'] = 'wp-login.php';
 		$_GET['wp_lang']    = array( 'de_DE' );
 
@@ -364,9 +364,9 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{non-empty-array<array-key, string>}>
 	 */
-	public function data_array_request_value() {
+	public function data_array_request_value(): array {
 		// An empty array is falsy, so it never reaches sanitize_locale_name().
 		return array(
 			'a list' => array( array( 'de_DE' ) ),
@@ -381,7 +381,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $value Non-string value.
 	 */
-	public function test_wp_local_package_global_installing_non_string( $value ) {
+	public function test_wp_local_package_global_installing_non_string( $value ): void {
 		$GLOBALS['wp_local_package'] = $value;
 		wp_installing( true );
 		$this->assertSame( 'en_US', determine_locale() );
@@ -395,7 +395,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $value Non-string value.
 	 */
-	public function test_ignores_a_non_string_determine_locale_filter( $value ) {
+	public function test_ignores_a_non_string_determine_locale_filter( $value ): void {
 		add_filter(
 			'determine_locale',
 			static function () use ( $value ) {
@@ -414,7 +414,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $meta_value Value stored in the `locale` user meta row.
 	 */
-	public function test_returns_a_string_for_a_non_string_user_locale_meta( $meta_value ) {
+	public function test_returns_a_string_for_a_non_string_user_locale_meta( $meta_value ): void {
 		set_current_screen( 'dashboard' );
 		wp_set_current_user( self::$user_id );
 		update_user_meta( self::$user_id, 'locale', $meta_value );
@@ -425,9 +425,9 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{mixed}>
 	 */
-	public function data_non_string_locale() {
+	public function data_non_string_locale(): array {
 		return array(
 			'a list'         => array( array( 'de_DE' ) ),
 			'a map'          => array( array( 'locale' => 'de_DE' ) ),
@@ -442,9 +442,9 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{mixed}>
 	 */
-	public function data_non_string_user_locale_meta() {
+	public function data_non_string_user_locale_meta(): array {
 		// Scalars survive the meta round trip as strings, so only arrays and
 		// objects can come back from get_user_meta() with the wrong type.
 		return array(

@@ -103,7 +103,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $value Non-string value.
 	 */
-	public function test_should_fall_back_on_en_US_for_a_non_string_option( $value ) {
+	public function test_should_fall_back_on_en_US_for_a_non_string_option( $value ): void {
 		global $locale;
 		$old_locale = $locale;
 		$locale     = null;
@@ -123,7 +123,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $value Non-string value.
 	 */
-	public function test_should_fall_back_on_en_US_for_a_non_string_site_option( $value ) {
+	public function test_should_fall_back_on_en_US_for_a_non_string_site_option( $value ): void {
 		global $locale, $wpdb;
 		$old_locale = $locale;
 		$locale     = null;
@@ -153,7 +153,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $value Non-string value.
 	 */
-	public function test_should_fall_back_on_en_US_for_a_non_string_locale_global( $value ) {
+	public function test_should_fall_back_on_en_US_for_a_non_string_locale_global( $value ): void {
 		global $locale;
 		$old_locale = $locale;
 		$locale     = $value;
@@ -171,7 +171,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $value Non-string value.
 	 */
-	public function test_should_ignore_a_non_string_locale_filter( $value ) {
+	public function test_should_ignore_a_non_string_locale_filter( $value ): void {
 		global $locale;
 		$old_locale = $locale;
 		$locale     = null;
@@ -196,7 +196,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $value Non-string value.
 	 */
-	public function test_should_ignore_a_non_string_locale_filter_on_the_global_path( $value ) {
+	public function test_should_ignore_a_non_string_locale_filter_on_the_global_path( $value ): void {
 		global $locale;
 		$old_locale = $locale;
 		$locale     = 'es_ES';
@@ -227,7 +227,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 *
 	 * @param mixed $value Non-string value.
 	 */
-	public function test_should_fall_back_on_en_US_for_a_non_string_option_filter( $value ) {
+	public function test_should_fall_back_on_en_US_for_a_non_string_option_filter( $value ): void {
 		global $locale;
 		$old_locale = $locale;
 		$locale     = null;
@@ -254,7 +254,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 * @param string $option Option name.
 	 * @param mixed  $value  Value to store.
 	 */
-	private function write_raw_option_row( $option, $value ) {
+	private function write_raw_option_row( $option, $value ): void {
 		global $wpdb;
 
 		$wpdb->replace(
@@ -271,9 +271,9 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{mixed}>
 	 */
-	public function data_non_string_locale() {
+	public function data_non_string_locale(): array {
 		return array(
 			'a list'         => array( array( 'de_DE' ) ),
 			'a map'          => array( array( 'locale' => 'de_DE' ) ),
@@ -288,9 +288,9 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{mixed}>
 	 */
-	public function data_stored_non_string_locale() {
+	public function data_stored_non_string_locale(): array {
 		// Scalars survive the storage round trip as strings, so only arrays and
 		// objects can come back from an option with the wrong type.
 		return array(
