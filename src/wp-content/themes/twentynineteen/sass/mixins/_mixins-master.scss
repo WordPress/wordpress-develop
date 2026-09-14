@@ -129,13 +129,4 @@
 	@extend %non-latin-fonts;
 }
 
-/* Build our non-latin font styles */
-%non-latin-fonts {
-	@each $lang, $font__fallback in $font__fallbacks {
-		&:lang(#{$lang}) {
-			font-family: unquote( $font__fallback );
-		}
-	}
-}
-
 @import "utilities";

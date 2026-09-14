@@ -1,0 +1,13 @@
+/* Build our non-latin font styles.
+ *
+ * Imported last from each entry point so these rules follow the font-family
+ * declarations they override. Dart Sass drops contextual @extend selectors it
+ * considers redundant, so they can no longer rely on specificity alone.
+ */
+%non-latin-fonts {
+	@each $lang, $font__fallback in $font__fallbacks {
+		&:lang(#{$lang}) {
+			font-family: unquote( $font__fallback );
+		}
+	}
+}
