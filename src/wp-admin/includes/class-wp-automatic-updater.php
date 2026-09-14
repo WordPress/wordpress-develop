@@ -1859,7 +1859,7 @@ Thanks! -- The WordPress Team"
 				$errors = array();
 			}
 
-			$slug_key = is_string( $plugin_slug ) && '' !== $plugin_slug ? $plugin_slug : 'unknown';
+			$slug_key            = is_string( $plugin_slug ) && '' !== $plugin_slug ? $plugin_slug : 'unknown';
 			$errors[ $slug_key ] = $fatal_error;
 
 			set_transient( 'wp_updater_last_fatal_error', $errors, 5 * MINUTE_IN_SECONDS );
