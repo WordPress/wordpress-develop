@@ -292,6 +292,109 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that trashing a published post invalidates the calendar cache.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_trashing_published_post_invalidates_calendar_cache() {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2025-02-14 12:00:00' ) );
+
+		// Populate the cache.
+		get_echo( 'get_calendar' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertSame( 0, get_num_queries() - $num_queries_start, 'Second call should be served from cache with zero queries.' );
+
+		// Trashing fires publish -> trash, which should invalidate the cache.
+		wp_trash_post( $post_id );
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'Published post should be moved to trash.' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertGreaterThan( 0, get_num_queries() - $num_queries_start, 'Trashing a published post should invalidate the calendar cache.' );
+	}
+
+	/**
+	 * Test that untrashing a post back to publish invalidates the calendar cache.
+	 *
+	 * Since WordPress 5.6.0, wp_untrash_post() restores posts to 'draft' by
+	 * default rather than the pre-trash status stored in _wp_trash_meta_status.
+	 * A trash -> draft transition would not involve 'publish' and would not
+	 * flush the calendar cache. Restore the previous status so the transition
+	 * is trash -> publish, which is the path that must invalidate.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_untrashing_post_invalidates_calendar_cache() {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2025-02-16 12:00:00' ) );
+
+		wp_trash_post( $post_id );
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'Post should be in trash before untrashing.' );
+
+		// Populate the cache after the publish -> trash invalidation has already fired.
+		get_echo( 'get_calendar' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertSame( 0, get_num_queries() - $num_queries_start, 'Second call should be served from cache with zero queries.' );
+
+		add_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+		wp_untrash_post( $post_id );
+		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+
+		$this->assertSame( 'publish', get_post_status( $post_id ), 'Untrashed post should be restored to publish, not draft.' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertGreaterThan( 0, get_num_queries() - $num_queries_start, 'Untrashing a post back to publish should invalidate the calendar cache.' );
+	}
+
+	/**
+	 * Test that publishing a scheduled post invalidates the calendar cache.
+	 *
+	 * wp-cron uses check_and_publish_future_post(), which calls wp_publish_post()
+	 * once the scheduled time has arrived. check_and_publish_future_post() itself
+	 * reschedules and returns when the post date is still in the future, so this
+	 * test calls wp_publish_post() to fire the future -> publish transition the
+	 * same way cron does at publish time.
+	 *
+	 * @ticket 61343
+	 */
+	public function test_scheduled_post_publish_invalidates_calendar_cache() {
+		$future_ts   = time() + ( 3 * DAY_IN_SECONDS );
+		$future_date = gmdate( 'Y-m-d H:i:s', $future_ts );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $future_date,
+				'post_status' => 'future',
+			)
+		);
+
+		$post = get_post( $post_id );
+		$this->assertSame( 'future', $post->post_status, 'Scheduled post should remain in future status until published.' );
+
+		// Navigate to the scheduled post's month so the calendar query covers it.
+		$this->go_to( '/?m=' . gmdate( 'Ym', strtotime( $post->post_date ) ) );
+
+		// Populate the cache. Creating a future post does not touch 'publish'.
+		get_echo( 'get_calendar' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertSame( 0, get_num_queries() - $num_queries_start, 'Second call should be served from cache with zero queries.' );
+
+		// Mimic the wp-cron publish path: future -> publish.
+		wp_publish_post( $post_id );
+		$this->assertSame( 'publish', get_post_status( $post_id ), 'Scheduled post should be published.' );
+
+		$num_queries_start = get_num_queries();
+		get_echo( 'get_calendar' );
+		$this->assertGreaterThan( 0, get_num_queries() - $num_queries_start, 'Publishing a scheduled post should invalidate the calendar cache.' );
+	}
+
+	/**
 	 * Test that the calendar uses individual cache keys per variation.
 	 *
 	 * @ticket 61343
