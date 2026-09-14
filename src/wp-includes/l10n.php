@@ -187,7 +187,7 @@ function determine_locale() {
 		}
 	}
 
-	// This value may come from the request, from user meta or from a global, and is not validated.
+	// This value may come from user meta or from a global, and is not validated.
 	if ( empty( $determined_locale ) || ! is_string( $determined_locale ) ) {
 		$determined_locale = get_locale();
 	}
