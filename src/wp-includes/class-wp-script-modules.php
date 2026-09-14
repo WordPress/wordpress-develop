@@ -429,11 +429,12 @@ class WP_Script_Modules {
 	 * footer.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 The callbacks are procedural functions that resolve the current global instance when they run.
 	 */
 	public function add_hooks() {
 		$is_block_theme = wp_is_block_theme();
 		$position       = $is_block_theme ? 'wp_head' : 'wp_footer';
-		add_action( $position, array( $this, 'print_import_map' ) );
+		add_action( $position, 'wp_print_script_module_import_map' );
 		if ( $is_block_theme ) {
 			/*
 			 * Modules can only be printed in the head for block themes because only with
@@ -442,14 +443,14 @@ class WP_Script_Modules {
 			 * template rendering, thus the import map must be printed in the footer,
 			 * followed by all enqueued modules.
 			 */
-			add_action( 'wp_head', array( $this, 'print_head_enqueued_script_modules' ) );
+			add_action( 'wp_head', 'wp_print_head_script_modules' );
 		}
-		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
-		add_action( $position, array( $this, 'print_script_module_preloads' ) );
+		add_action( 'wp_footer', 'wp_print_script_modules' );
+		add_action( $position, 'wp_print_script_module_preloads' );
 
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ), 9 );
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
+		add_action( 'admin_print_footer_scripts', 'wp_print_script_module_import_map', 9 );
+		add_action( 'admin_print_footer_scripts', 'wp_print_script_modules' );
+		add_action( 'admin_print_footer_scripts', 'wp_print_script_module_preloads' );
 
 		/*
 		 * Print translations after classic scripts like wp-i18n are loaded (at
@@ -457,13 +458,13 @@ class WP_Script_Modules {
 		 * execute. Script modules with type="module" are deferred by default,
 		 * so inline translation scripts at priority 11 will execute before them.
 		 */
-		add_action( 'wp_footer', array( $this, 'print_script_module_translations' ), 21 );
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_translations' ), 11 );
+		add_action( 'wp_footer', 'wp_print_script_module_translations', 21 );
+		add_action( 'admin_print_footer_scripts', 'wp_print_script_module_translations', 11 );
 
-		add_action( 'wp_footer', array( $this, 'print_script_module_data' ) );
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_data' ) );
-		add_action( 'wp_footer', array( $this, 'print_a11y_script_module_html' ), 20 );
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_a11y_script_module_html' ), 20 );
+		add_action( 'wp_footer', 'wp_print_script_module_data' );
+		add_action( 'admin_print_footer_scripts', 'wp_print_script_module_data' );
+		add_action( 'wp_footer', 'wp_print_a11y_script_module_html', 20 );
+		add_action( 'admin_print_footer_scripts', 'wp_print_a11y_script_module_html', 20 );
 	}
 
 	/**

@@ -2922,4 +2922,35 @@ HTML;
 		$this->assertSame( 'my-plugin', $seen_domain, 'load_script_module_textdomain() should be called with the overridden domain.' );
 		$this->assertStringContainsString( 'Hola', $output, 'Output should contain the translated string loaded under the overridden domain.' );
 	}
+
+	/**
+	 * Tests that the hooks added by add_hooks() print the script modules of the
+	 * current global instance, not the instance that added the hooks.
+	 *
+	 * @ticket 66100
+	 * @covers WP_Script_Modules::add_hooks
+	 */
+	public function test_add_hooks_callbacks_use_the_current_global_instance() {
+		global $wp_script_modules;
+
+		// Add the hooks the way wp-settings.php does, with the instance that is the global at that moment.
+		wp_script_modules()->add_hooks();
+
+		// Replace the global instance after the hooks have been added.
+		$wp_script_modules = new WP_Script_Modules();
+
+		wp_enqueue_script_module( 'test-hooks-global', '/test-hooks-global.js' );
+
+		$output = get_echo(
+			static function () {
+				do_action( 'admin_print_footer_scripts' );
+			}
+		);
+
+		$this->assertStringContainsString(
+			'test-hooks-global',
+			$output,
+			'The print callbacks added by add_hooks() must read the current global WP_Script_Modules instance.'
+		);
+	}
 }
