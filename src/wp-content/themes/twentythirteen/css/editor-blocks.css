@@ -56,7 +56,7 @@ Description: Used to style blocks in the editor.
 /* Main content width */
 
 .wp-block {
-	max-width: 634px; /* 604px + 30px to account for padding */
+	max-width: 604px;
 }
 
 .wp-block.alignwide,
