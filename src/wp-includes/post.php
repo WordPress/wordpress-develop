@@ -2937,7 +2937,7 @@ function get_post_custom_keys( $post_id = 0 ) {
  *                       meta for that key, or if the post meta could not be retrieved.
  *                       Values are always strings, as described for {@see get_post_custom()}.
  *
- * @phpstan-return ( $key is '' ? null : list<string>|null )
+ * @phpstan-return ( $key is ''|'0' ? null : list<string>|null )
  */
 function get_post_custom_values( $key = '', $post_id = 0 ) {
 	if ( ! $key ) {
