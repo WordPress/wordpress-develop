@@ -10,6 +10,7 @@
  * @subpackage Twenty_Eleven
  * @since Twenty Eleven 1.0
  */
+
 ?>
 	<article id="post-<?php the_ID(); ?>" <?php post_class( 'indexed' ); ?>>
 		<header class="entry-header">
