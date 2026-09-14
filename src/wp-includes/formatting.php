@@ -4125,14 +4125,22 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 	$original_text = $text;
 	$text          = wp_strip_all_tags( $text );
 	$num_words     = (int) $num_words;
+	$is_utf8       = preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) );
 
-	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) ) ) {
-		$text = trim( preg_replace( "/[\n\r\t ]+/", ' ', $text ), ' ' );
+	/*
+	 * When the charset is UTF-8, use a Unicode-aware whitespace pattern
+	 * so that non-breaking spaces, ideographic spaces (U+3000), and other
+	 * Unicode whitespace characters are treated as word separators.
+	 */
+	$spaces = $is_utf8 ? '/\s+/u' : "/[\n\r\t ]+/";
+
+	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && $is_utf8 ) {
+		$text = trim( preg_replace( $spaces, ' ', $text ), ' ' );
 		preg_match_all( '/./u', $text, $words_array );
 		$words_array = array_slice( $words_array[0], 0, $num_words + 1 );
 		$sep         = '';
 	} else {
-		$words_array = preg_split( "/[\n\r\t ]+/", $text, $num_words + 1, PREG_SPLIT_NO_EMPTY );
+		$words_array = preg_split( $spaces, $text, $num_words + 1, PREG_SPLIT_NO_EMPTY );
 		$sep         = ' ';
 	}
 
