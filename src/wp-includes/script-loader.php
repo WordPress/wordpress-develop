@@ -2498,6 +2498,459 @@ function script_concat_settings() {
 }
 
 /**
+ * Resolves a registered script or style handle to the URL it would be loaded from.
+ *
+ * Mirrors how {@see WP_Scripts::do_item()} and {@see WP_Styles::do_item()} build the
+ * URL they print, including the version query argument and the {@see 'script_loader_src'}
+ * and {@see 'style_loader_src'} filters, without printing anything or disturbing the queue.
+ *
+ * The registry is deliberately not typed as WP_Dependencies, whose subclasses need not declare the
+ * `base_url`, `content_url`, `default_version`, `text_direction` and `_css_href()` members the URL
+ * is built from. Static analysis does not object to the wider type, having no reason to expect a
+ * subclass beyond the two named here.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param WP_Scripts|WP_Styles $dependencies Registry to look the handle up in.
+ * @param string               $handle       Handle to resolve.
+ * @return string[] URLs the handle resolves to. Empty when the handle is not registered,
+ *                  aliases other handles without a source of its own, or is filtered away.
+ *
+ * @phpstan-param non-empty-string $handle
+ * @phpstan-return list<non-empty-string>
+ */
+function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
+	if ( ! isset( $dependencies->registered[ $handle ] ) ) {
+		return array();
+	}
+
+	$obj = $dependencies->registered[ $handle ];
+
+	// A handle may alias a set of other handles by having dependencies but no source.
+	if ( empty( $obj->src ) || ! is_string( $obj->src ) ) {
+		return array();
+	}
+
+	if ( $dependencies instanceof WP_Styles ) {
+		$href = $dependencies->_css_href( $obj->src, $obj->ver, $handle );
+
+		if ( ! is_string( $href ) || '' === $href ) {
+			return array();
+		}
+
+		$urls = array( $href );
+
+		/*
+		 * On RTL locales a handle may be served by a separate stylesheet, either replacing
+		 * the LTR one or loading alongside it. Follow the same rules WP_Styles::do_item() uses.
+		 */
+		if ( 'rtl' === $dependencies->text_direction && ! empty( $obj->extra['rtl'] ) ) {
+			if ( null === $obj->ver ) {
+				$ver = '';
+			} else {
+				$ver = $obj->ver ? $obj->ver : $dependencies->default_version;
+			}
+
+			if ( isset( $dependencies->args[ $handle ] ) ) {
+				$ver = $ver ? $ver . '&amp;' . $dependencies->args[ $handle ] : $dependencies->args[ $handle ];
+			}
+
+			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
+				$suffix   = isset( $obj->extra['suffix'] ) && is_string( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
+				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $dependencies->_css_href( $obj->src, $ver, "$handle-rtl" ) );
+			} elseif ( is_string( $obj->extra['rtl'] ) ) {
+				$rtl_href = $dependencies->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
+			} else {
+				$rtl_href = '';
+			}
+
+			if ( is_string( $rtl_href ) && '' !== $rtl_href ) {
+				if ( 'replace' === $obj->extra['rtl'] ) {
+					$urls = array( $rtl_href );
+				} else {
+					$urls[] = $rtl_href;
+				}
+			}
+		}
+
+		return $urls;
+	}
+
+	$src = $obj->src;
+
+	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $dependencies->content_url && str_starts_with( $src, $dependencies->content_url ) ) ) {
+		$src = $dependencies->base_url . $src;
+	}
+
+	$ver_to_add = '';
+	if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $dependencies->default_version ) ) {
+		$ver_to_add = $dependencies->default_version;
+	} elseif ( is_scalar( $obj->ver ) ) {
+		$ver_to_add = (string) $obj->ver;
+	}
+
+	if ( '' !== $ver_to_add ) {
+		$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
+	}
+
+	/** This filter is documented in wp-includes/class-wp-scripts.php */
+	$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
+
+	if ( ! is_string( $src ) || '' === $src ) {
+		return array();
+	}
+
+	return array( $src );
+}
+
+/**
+ * Expands a set of handles to include everything they depend on.
+ *
+ * Lets a caller name a few roots instead of restating a dependency tree that is already declared
+ * at registration, so the set keeps up with changes to those declarations on its own.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param WP_Dependencies $dependencies Registry to resolve the handles against.
+ * @param string[]        $handles      Root handles to expand.
+ * @return string[] The roots together with everything they depend on, roots first. Handles that
+ *                  are not registered are dropped, as are their dependencies.
+ *
+ * @phpstan-param non-empty-list<non-empty-string> $handles
+ * @phpstan-return list<non-empty-string>
+ */
+function _wp_expand_dependency_handles( WP_Dependencies $dependencies, array $handles ): array {
+	$expanded = array();
+	$queue    = array_values( $handles );
+
+	while ( $queue ) {
+		$handle = array_shift( $queue );
+
+		if ( isset( $expanded[ $handle ] ) || ! isset( $dependencies->registered[ $handle ] ) ) {
+			continue;
+		}
+
+		$expanded[ $handle ] = true;
+
+		foreach ( $dependencies->registered[ $handle ]->deps as $dependency ) {
+			if ( is_string( $dependency ) && '' !== $dependency && ! isset( $expanded[ $dependency ] ) ) {
+				$queue[] = $dependency;
+			}
+		}
+	}
+
+	return array_keys( $expanded );
+}
+
+/**
+ * Prints prefetch links for the assets of the screen the user is most likely to open next.
+ *
+ * Runs wherever the next screen can be predicted with confidence, and prefetches only what that
+ * screen is certain to need. Two cases qualify today:
+ *
+ * - The login screen, which is followed by an admin screen. With concatenation disabled that
+ *   screen downloads each core script and stylesheet separately, which is what makes an uncached
+ *   admin load slower than a concatenated one. Requesting them while the login form is on screen
+ *   puts them in the HTTP cache during the time the user spends typing credentials, so the
+ *   redirect that follows finds them already there.
+ * - The Dashboard and the post list tables, from which the editor is the usual next stop. Only the
+ *   editor's stylesheets are prefetched, not its scripts: the scripts run to well over a megabyte
+ *   compressed, which is far too much to spend on a screen the user may never open, whereas the
+ *   stylesheets are render-blocking and in the same size class as the login screen's own prefetch.
+ *
+ * Handles the current screen has already printed are skipped, so each context only fetches what it
+ * is actually adding.
+ *
+ * These are resources for the *next* navigation rather than for the screen printing them, which is
+ * what `rel="prefetch"` describes. `rel="preload"` would fetch them at the current document's
+ * priority and make cross-navigation reuse depend entirely on the static files' HTTP cache headers,
+ * which core does not control; browsers also warn about preloaded resources the document never uses.
+ * A prefetch is already dispatched at the browser's lowest priority, so it stays out of the way of
+ * that screen's own render-blocking assets without needing `fetchpriority`.
+ *
+ * The `as` attribute is still worth setting: it gives the request the same destination the admin
+ * screen will later ask for, which is what lets the prefetched response be reused.
+ *
+ * The admin-wide handles cover every admin screen rather than only the Dashboard, so that part of
+ * the list does not vary with where the login lands. Nothing is printed at all when the login is
+ * not going to lead to an admin screen: on the password reset, registration and logout flows, on
+ * an interim login, or when `redirect_to` points outside the admin.
+ *
+ * Nothing is printed when concatenation is enabled, since `load-scripts.php` and
+ * `load-styles.php` already collapse these handles into a handful of requests.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_preload_resources()
+ */
+function wp_prefetch_admin_assets(): void {
+	/*
+	 * Deliberately not the $concatenate_scripts global: script_concat_settings() often runs on a
+	 * login request before 'login_init' fires — anything registering a script on 'init' is enough
+	 * to trigger it — and at that point it evaluates is_admin() as false and settles the global on
+	 * false whatever the constant says. What matters here is what the admin screen this login leads
+	 * to will do, which is the constant together with the SCRIPT_DEBUG override.
+	 */
+	$admin_will_concatenate = ( defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true )
+		&& ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG );
+
+	if ( $admin_will_concatenate ) {
+		return;
+	}
+
+	$on_login       = ( 'login_head' === current_action() );
+	$script_handles = array();
+	$style_handles  = array();
+
+	if ( $on_login ) {
+		/*
+		 * Only the login form is followed by an admin screen. The password reset, registration,
+		 * logout confirmation and check-your-email flows all render through 'login_head' too, and
+		 * none of them leads anywhere these assets are wanted. An interim login re-authenticates
+		 * inside a modal on a page that has already loaded them, so it does not need them either.
+		 */
+		$login_action = isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] )
+			? sanitize_key( wp_unslash( $_REQUEST['action'] ) )
+			: 'login';
+
+		if ( 'login' !== $login_action || isset( $_REQUEST['interim-login'] ) ) {
+			return;
+		}
+
+		/*
+		 * Resolve where the login is going to land, the same way wp-login.php will: `redirect_to`
+		 * when one was given, and the admin otherwise. wp_validate_redirect() mirrors what
+		 * wp_safe_redirect() does with a value pointing off-host, which is to fall back to the admin.
+		 */
+		$next_screen = admin_url();
+
+		if ( isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
+			$next_screen = wp_validate_redirect( esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), admin_url() );
+		}
+
+		/*
+		 * When the login lands somewhere other than the admin, such as the front end or a plugin's
+		 * own screen, none of these assets are wanted.
+		 */
+		$admin_path = (string) wp_parse_url( admin_url(), PHP_URL_PATH );
+
+		if ( '' === $admin_path || ! str_starts_with( (string) wp_parse_url( $next_screen, PHP_URL_PATH ), $admin_path ) ) {
+			return;
+		}
+	} else {
+		/*
+		 * From the Dashboard and the post list tables, the editor is the usual next stop. Anywhere
+		 * else in the admin there is no destination worth guessing at.
+		 */
+		$screen = get_current_screen();
+
+		if ( ! $screen instanceof WP_Screen || ! in_array( $screen->base, array( 'dashboard', 'edit' ), true ) ) {
+			return;
+		}
+
+		$post_type        = ( 'edit' === $screen->base && $screen->post_type ) ? $screen->post_type : 'post';
+		$post_type_object = get_post_type_object( $post_type );
+
+		if ( ! $post_type_object instanceof WP_Post_Type ) {
+			return;
+		}
+
+		/*
+		 * A user who cannot create this post type will never reach the editor from here, and a post
+		 * type still using the classic editor would not load any of these stylesheets.
+		 */
+		if (
+			! current_user_can( $post_type_object->cap->create_posts ) ||
+			! use_block_editor_for_post_type( $post_type )
+		) {
+			return;
+		}
+
+		$next_screen = add_query_arg( 'post_type', $post_type, admin_url( 'post-new.php' ) );
+	}
+
+	if ( $on_login ) {
+		/*
+		 * The handles that load-scripts.php and load-styles.php concatenate on an admin screen.
+		 * Every handle listed here loads on all admin screens, not just the one the login happens
+		 * to land on, so the list does not depend on the destination. Screen-specific handles are
+		 * deliberately left out: `site-health` is concatenated on the Dashboard but nowhere else.
+		 * Handles registered without a source of their own, or not registered at all, are skipped.
+		 */
+		$script_handles = array(
+			'jquery-core',
+			'jquery-migrate',
+			'utils',
+			'hoverIntent',
+			'wp-dom-ready',
+			'wp-hooks',
+		);
+
+		$style_handles = array(
+			'dashicons',
+			'admin-bar',
+			'common',
+			'forms',
+			'admin-menu',
+			'dashboard',
+			'list-tables',
+			'edit',
+			'revisions',
+			'media',
+			'themes',
+			'about',
+			'nav-menus',
+			'wp-pointer',
+			'widgets',
+			'site-icon',
+			'l10n',
+			'wp-base-styles',
+			'wp-tooltip',
+			'buttons',
+			'wp-auth-check',
+			'wp-theme',
+			'wp-components',
+			'wp-commands',
+		);
+	}
+
+	/*
+	 * post-new.php always opens the editor, while post.php also handles trashing, restoring and
+	 * bulk edits, so it counts only when it is editing.
+	 */
+	$next_screen_file  = basename( (string) wp_parse_url( $next_screen, PHP_URL_PATH ) );
+	$next_screen_query = array();
+	wp_parse_str( (string) wp_parse_url( $next_screen, PHP_URL_QUERY ), $next_screen_query );
+
+	$next_screen_is_block_editor = 'post-new.php' === $next_screen_file
+		|| ( 'post.php' === $next_screen_file && 'edit' === ( $next_screen_query['action'] ?? '' ) );
+
+	if ( $next_screen_is_block_editor ) {
+		/*
+		 * Roots rather than the full set: everything these depend on is pulled in with them, so the
+		 * list follows the dependencies declared in wp_default_styles() instead of restating them.
+		 * `wp-edit-post` alone accounts for most of the editor chrome; the rest cover the media
+		 * modal, the block directory, the format library and the editor's own reset.
+		 */
+		$style_handles = array_merge(
+			$style_handles,
+			_wp_expand_dependency_handles(
+				wp_styles(),
+				array(
+					'wp-edit-post',
+					'wp-block-editor-content',
+					'wp-block-directory',
+					'wp-format-library',
+					'wp-reset-editor-styles',
+					'editor-buttons',
+					'media-views',
+					'imgareaselect',
+				)
+			)
+		);
+	}
+
+	$resources = array();
+
+	foreach (
+		array(
+			'script' => array( wp_scripts(), $script_handles ),
+			'style'  => array( wp_styles(), $style_handles ),
+		)
+		as $as => list( $dependencies, $handles )
+	) {
+		foreach ( $handles as $handle ) {
+			/*
+			 * Whichever screen this is running on shares some of these handles and has already
+			 * printed them by the time this runs, so the browser is fetching them anyway.
+			 * Prefetching them again would only add markup.
+			 */
+			if ( in_array( $handle, $dependencies->done, true ) ) {
+				continue;
+			}
+
+			foreach ( _wp_resolve_dependency_urls( $dependencies, $handle ) as $url ) {
+				$resources[] = array(
+					'href' => $url,
+					'as'   => $as,
+				);
+			}
+		}
+	}
+
+	/**
+	 * Filters the assets prefetched for the screen the user is expected to open next.
+	 *
+	 * Fires on any screen from which the next one can be predicted, so `$next_screen` is what
+	 * distinguishes the contexts: the login screen passes the URL it is about to redirect to, and
+	 * the Dashboard and post list tables pass the editor they expect the user to open.
+	 *
+	 * Only the `href` and `as` attributes below are printed; any other key is ignored. Resources
+	 * sharing an `href` are collapsed to the first of them, so a callback may append without
+	 * checking what is already there. Returning an empty array turns the prefetching off.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array  $resources {
+	 *     Array of resources and their attributes to prefetch.
+	 *
+	 *     @type array ...$0 {
+	 *         Array of resource attributes.
+	 *
+	 *         @type string $href URL to prefetch. Required.
+	 *         @type string $as   How the browser should treat the resource
+	 *                            (`script`, `style`, `image`, `document`, etc). Required.
+	 *     }
+	 * }
+	 * @param string $next_screen URL of the screen the assets are being prefetched for. Always
+	 *                            points into the admin, since nothing is prefetched otherwise.
+	 *                            From the login screen this is the redirect target, already run
+	 *                            through wp_validate_redirect() with the admin as the fallback,
+	 *                            and it may be relative: it is the value as wp_safe_redirect()
+	 *                            will receive it, so a request-supplied path is passed through
+	 *                            unchanged and only the fallback is a full URL.
+	 */
+	$resources = apply_filters( 'prefetch_admin_assets', $resources, $next_screen );
+
+	if ( ! is_array( $resources ) ) {
+		return;
+	}
+
+	$unique_resources = array();
+
+	// Parse the complete resource list and extract unique resources.
+	foreach ( $resources as $resource ) {
+		if ( ! is_array( $resource ) ) {
+			continue;
+		}
+
+		$href = $resource['href'] ?? '';
+		$as   = $resource['as'] ?? '';
+
+		if ( ! is_string( $href ) || '' === $href || ! is_string( $as ) || '' === $as ) {
+			continue;
+		}
+
+		if ( isset( $unique_resources[ $href ] ) ) {
+			continue;
+		}
+
+		$unique_resources[ $href ] = $as;
+	}
+
+	// Build and output the HTML for each unique resource.
+	foreach ( $unique_resources as $href => $as ) {
+		printf(
+			"<link rel='prefetch' href='%s' as='%s' />\n",
+			esc_url( $href ),
+			esc_attr( $as )
+		);
+	}
+}
+
+/**
  * Handles the enqueueing of block scripts and styles that are common to both
  * the editor and the front-end.
  *
