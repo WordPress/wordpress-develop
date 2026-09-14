@@ -2906,11 +2906,12 @@ function delete_get_calendar_cache() {
 }
 
 /**
- * Invalidates the get_calendar() cache when a post's published state changes.
+ * Invalidates the get_calendar() cache when a status transition involves a
+ * published post.
  *
  * get_calendar() only reflects published posts, so the cache only needs to be
- * cleared when a post enters or leaves the 'publish' status, such as publishing,
- * unpublishing, trashing, or editing the date of a published post. Limiting
+ * cleared when either the old or the new status is 'publish' — publishing a
+ * post, updating an already-published post, unpublishing, or trashing. Limiting
  * invalidation to these transitions avoids clearing the cache on unrelated
  * events such as autosaves, draft saves, or comment count updates.
  *
