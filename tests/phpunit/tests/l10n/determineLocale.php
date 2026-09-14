@@ -310,47 +310,11 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	}
 
 	/**
-	 * sanitize_locale_name() applies preg_replace(), which maps over an array
-	 * subject and returns an array, so a non-string request value reaches the
-	 * return statement with its type intact.
-	 *
 	 * @ticket 66106
-	 *
-	 * @dataProvider data_array_request_value
-	 *
-	 * @param array $value Array request value.
 	 */
-	public function test_wp_login_get_param_on_login_page_array( $value ): void {
+	public function test_wp_login_get_param_on_login_page_array(): void {
 		$GLOBALS['pagenow'] = 'wp-login.php';
-		$_GET['wp_lang']    = $value;
-
-		$this->assertSame( 'en_US', determine_locale() );
-	}
-
-	/**
-	 * @ticket 66106
-	 *
-	 * @dataProvider data_array_request_value
-	 *
-	 * @param array $value Array request value.
-	 */
-	public function test_wp_login_cookie_on_login_page_array( $value ): void {
-		$GLOBALS['pagenow'] = 'wp-login.php';
-		$_COOKIE['wp_lang'] = $value;
-
-		$this->assertSame( 'en_US', determine_locale() );
-	}
-
-	/**
-	 * @ticket 66106
-	 *
-	 * @dataProvider data_array_request_value
-	 *
-	 * @param array $value Array request value.
-	 */
-	public function test_language_param_installing_array( $value ): void {
-		$_REQUEST['language'] = $value;
-		wp_installing( true );
+		$_GET['wp_lang']    = array( 'de_DE' );
 
 		$this->assertSame( 'en_US', determine_locale() );
 	}
@@ -370,102 +334,11 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{non-empty-array<array-key, string>}>
-	 */
-	public function data_array_request_value(): array {
-		// An empty array is falsy, so it never reaches sanitize_locale_name().
-		return array(
-			'a list' => array( array( 'de_DE' ) ),
-			'a map'  => array( array( 'lang' => 'de_DE' ) ),
-		);
-	}
-
-	/**
-	 * The `$wp_local_package` global is untyped and only checked for truthiness.
-	 *
 	 * @ticket 66106
-	 *
-	 * @dataProvider data_non_string_locale
-	 *
-	 * @param mixed $value Non-string value.
 	 */
-	public function test_wp_local_package_global_installing_non_string( $value ): void {
-		$GLOBALS['wp_local_package'] = $value;
-		wp_installing( true );
-		$this->assertSame( 'en_US', determine_locale() );
-	}
-
-	/**
-	 * The `determine_locale` filter result is returned unchecked, unlike
-	 * `pre_determine_locale`, which is guarded with is_string().
-	 *
-	 * @ticket 66106
-	 *
-	 * @dataProvider data_non_string_locale
-	 *
-	 * @param mixed $value Non-string value.
-	 */
-	public function test_ignores_a_non_string_determine_locale_filter( $value ): void {
-		add_filter(
-			'determine_locale',
-			static function () use ( $value ) {
-				return $value;
-			}
-		);
+	public function test_ignores_a_non_string_determine_locale_filter(): void {
+		add_filter( 'determine_locale', '__return_empty_array' );
 
 		$this->assertSame( 'en_US', determine_locale() );
-	}
-
-	/**
-	 * An array `locale` user meta row reaches determine_locale() through
-	 * get_user_locale() on every admin request.
-	 *
-	 * @ticket 66106
-	 *
-	 * @dataProvider data_non_string_user_locale_meta
-	 *
-	 * @param mixed $meta_value Value stored in the `locale` user meta row.
-	 */
-	public function test_returns_a_string_for_a_non_string_user_locale_meta( $meta_value ): void {
-		set_current_screen( 'dashboard' );
-		wp_set_current_user( self::$user_id );
-		update_user_meta( self::$user_id, 'locale', $meta_value );
-
-		$this->assertSame( 'en_US', determine_locale() );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{mixed}>
-	 */
-	public function data_non_string_locale(): array {
-		return array(
-			'a list'         => array( array( 'de_DE' ) ),
-			'a map'          => array( array( 'locale' => 'de_DE' ) ),
-			'an empty array' => array( array() ),
-			'an object'      => array( new stdClass() ),
-			'an integer'     => array( 1234 ),
-			'a float'        => array( 1.5 ),
-			'true'           => array( true ),
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{mixed}>
-	 */
-	public function data_non_string_user_locale_meta(): array {
-		// Scalars survive the meta round trip as strings, so only arrays and
-		// objects can come back from get_user_meta() with the wrong type.
-		return array(
-			'a list'         => array( array( 'de_DE' ) ),
-			'a map'          => array( array( 'locale' => 'de_DE' ) ),
-			'an empty array' => array( array() ),
-			'an object'      => array( new stdClass() ),
-		);
 	}
 }

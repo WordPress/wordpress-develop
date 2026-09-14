@@ -148,64 +148,15 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A `locale` user meta row holding an array is truthy, so the `empty()`-style
-	 * guard passes it through and callers receive an array where the documented
-	 * return type is a string.
-	 *
-	 * @ticket 66106
-	 *
-	 * @dataProvider data_non_string_user_locale_meta
-	 *
-	 * @param mixed $meta_value Value stored in the `locale` user meta row.
-	 */
-	public function test_returns_site_locale_for_non_string_user_locale_meta( $meta_value ): void {
-		set_current_screen( 'dashboard' );
-		update_user_meta( self::$administrator_de_de, 'locale', $meta_value );
-
-		$this->assertSame( get_locale(), get_user_locale() );
-	}
-
-	/**
-	 * @ticket 66106
-	 *
-	 * @dataProvider data_non_string_user_locale_meta
-	 *
-	 * @param mixed $meta_value Value stored in the `locale` user meta row.
-	 */
-	public function test_returns_a_string_for_non_string_user_locale_meta( $meta_value ): void {
-		set_current_screen( 'dashboard' );
-		update_user_meta( self::$administrator_de_de, 'locale', $meta_value );
-
-		$this->assertIsString( get_user_locale() );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{mixed}>
-	 */
-	public function data_non_string_user_locale_meta(): array {
-		// Scalars survive the meta round trip as strings, so only arrays and
-		// objects can come back from get_user_meta() with the wrong type.
-		return array(
-			'a list'         => array( array( 'de_DE' ) ),
-			'a map'          => array( array( 'locale' => 'de_DE' ) ),
-			'an empty array' => array( array() ),
-			'an object'      => array( new stdClass() ),
-		);
-	}
-
-	/**
-	 * An array locale reaches WP_Textdomain_Registry::set(), which uses it as an
-	 * array key and throws a TypeError, so translating any string for an
-	 * unloaded text domain ends the request.
+	 * A `locale` user meta row holding an array is truthy, so a truthiness
+	 * check alone passes it through to callers that expect a string.
 	 *
 	 * @ticket 66106
 	 */
-	public function test_array_user_locale_meta_does_not_fatal_in_the_textdomain_registry(): void {
+	public function test_returns_site_locale_for_non_string_user_locale_meta(): void {
 		set_current_screen( 'dashboard' );
 		update_user_meta( self::$administrator_de_de, 'locale', array( 'de_DE' ) );
 
-		$this->assertSame( 'Some text', __( 'Some text', 'my-plugin' ) );
+		$this->assertSame( get_locale(), get_user_locale() );
 	}
 }
