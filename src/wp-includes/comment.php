@@ -2196,6 +2196,8 @@ function wp_insert_comment( $commentdata ) {
 		'user_id'
 	);
 
+	$compacted = _wp_encode_emoji_in_fields( $compacted, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+
 	if ( ! $wpdb->insert( $wpdb->comments, $compacted ) ) {
 		return false;
 	}
@@ -2979,6 +2981,8 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	);
 
 	$data = wp_array_slice_assoc( $data, $keys );
+
+	$data = _wp_encode_emoji_in_fields( $data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 	$result = $wpdb->update( $wpdb->comments, $data, array( 'comment_ID' => $comment_id ) );
 

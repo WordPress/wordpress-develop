@@ -6127,6 +6127,42 @@ function wp_encode_emoji( $content ) {
 }
 
 /**
+ * Encodes emoji in the given fields of a data array whose corresponding
+ * database columns cannot natively store 4-byte UTF-8 characters.
+ *
+ * Used by wp_insert_post(), wp_insert_comment(), and wp_update_comment() so
+ * that emoji (and other 4-byte characters) are stored as HTML entities on
+ * `utf8`/`utf8mb3` columns instead of causing truncated or failed writes.
+ *
+ * @access private
+ * @since 7.1.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param array  $data   Array of field name => value pairs to check, keyed the
+ *                       same way as the corresponding database columns.
+ * @param string $table  Name of the database table the fields belong to.
+ * @param array  $fields Names of the fields within $data that may contain emoji.
+ * @return array $data with emoji encoded in the given fields, where needed.
+ */
+function _wp_encode_emoji_in_fields( $data, $table, $fields ) {
+	global $wpdb;
+
+	foreach ( $fields as $field ) {
+		if ( isset( $data[ $field ] ) ) {
+			$charset = $wpdb->get_col_charset( $table, $field );
+
+			// The 'utf8' character set is a deprecated alias of 'utf8mb3'. See <https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html>.
+			if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
+				$data[ $field ] = wp_encode_emoji( $data[ $field ] );
+			}
+		}
+	}
+
+	return $data;
+}
+
+/**
  * Converts emoji to a static img element.
  *
  * @since 4.2.0
