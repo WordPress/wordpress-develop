@@ -1091,8 +1091,8 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  *     $key is ''
  *         ? array<string, list<string>>|false
  *         : ( $single is true
- *             ? string|array<mixed>|object|false
- *             : list<string|array<mixed>|object>|false )
+ *             ? mixed
+ *             : list<mixed>|false )
  * )
  */
 function get_site_meta( $site_id, $key = '', $single = false ) {

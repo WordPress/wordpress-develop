@@ -603,8 +603,8 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *     $meta_key is ''
  *         ? array<string, list<string>>|false
  *         : ( $single is true
- *             ? string|array<mixed>|object|false
- *             : list<string|array<mixed>|object>|false )
+ *             ? mixed
+ *             : list<mixed>|false )
  * )
  */
 function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
@@ -639,8 +639,8 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  *     $meta_key is ''
  *         ? array<string, list<string>>|false|null
  *         : ( $single is true
- *             ? string|array<mixed>|object|false|null
- *             : list<string|array<mixed>|object>|false|null )
+ *             ? mixed
+ *             : list<mixed>|false|null )
  * )
  */
 function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false ) {
@@ -727,11 +727,7 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
  * @return mixed An array of default values if `$single` is false.
  *               The default value of the meta field if `$single` is true.
  *
- * @phpstan-return (
- *     $single is true
- *         ? string|array<mixed>|object
- *         : list<string|array<mixed>|object>
- * )
+ * @phpstan-return ( $single is true ? mixed : list<mixed> )
  */
 function get_metadata_default( $meta_type, $object_id, $meta_key, $single = false ) {
 	if ( $single ) {
