@@ -285,6 +285,70 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_icon_content_sources() {
+		return array(
+			'inline content' => array( false ),
+			'file path'      => array( true ),
+		);
+	}
+
+	/**
+	 * Should preserve the attributes that stroke-based icons rely on.
+	 *
+	 * Only covers the attributes allowed for stroke-based icons. Those that were
+	 * already allowed are covered by test_register_icon_sanitizes_content().
+	 *
+	 * @ticket 66101
+	 *
+	 * @dataProvider data_icon_content_sources
+	 *
+	 * @covers ::register
+	 *
+	 * @param bool $use_file_path Whether to register the icon from a file path.
+	 */
+	public function test_register_icon_preserves_stroke_attributes( $use_file_path ) {
+		$stroke   = 'style="fill: none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" vector-effect="non-scaling-stroke"';
+		$content  = '<svg fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" ' . $stroke . '>' .
+			'<path clip-rule="evenodd" ' . $stroke . ' />' .
+			'<polygon clip-rule="evenodd" ' . $stroke . ' />' .
+			'</svg>';
+		$name     = 'test-collection/stroke-icon';
+		$settings = array( 'label' => 'Stroke Icon' );
+
+		if ( $use_file_path ) {
+			$settings['file_path'] = $this->create_temp_icon_file( $content );
+		} else {
+			$settings['content'] = $content;
+		}
+
+		$this->assertTrue( $this->registry->register( $name, $settings ) );
+
+		$icon = $this->registry->get_registered_icon( $name );
+
+		$this->assertStringContainsString(
+			'<svg fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" ' . $stroke . '>',
+			$icon['content'],
+			'Attributes were altered or stripped from the svg element.'
+		);
+
+		$this->assertStringContainsString(
+			'<path clip-rule="evenodd" ' . $stroke . ' />',
+			$icon['content'],
+			'Attributes were altered or stripped from the path element.'
+		);
+
+		$this->assertStringContainsString(
+			'<polygon clip-rule="evenodd" ' . $stroke . ' />',
+			$icon['content'],
+			'Attributes were altered or stripped from the polygon element.'
+		);
+	}
+
+	/**
 	 * Should fail to register an icon that provides both `content` and `file_path`.
 	 *
 	 * @ticket 64847
