@@ -598,6 +598,7 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
  *
+ * @phpstan-param int|numeric-string $object_id
  * @phpstan-return (
  *     $meta_key is ''
  *         ? array<string, list<string>>|false
@@ -633,6 +634,7 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  *               or if `$meta_type` is not specified.
  *               Null if the value does not exist.
  *
+ * @phpstan-param int|numeric-string $object_id
  * @phpstan-return (
  *     $meta_key is ''
  *         ? array<string, list<string>>|false|null
