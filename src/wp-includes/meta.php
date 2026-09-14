@@ -750,7 +750,6 @@ function get_metadata_default( $meta_type, $object_id, $meta_key, $single = fals
 	if ( ! is_numeric( $object_id ) ) {
 		return $value;
 	}
-	$object_id = (int) $object_id;
 
 	/**
 	 * Filters the default metadata value for a specified meta key and object.
