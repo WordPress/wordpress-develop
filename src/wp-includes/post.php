@@ -2777,7 +2777,7 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  *
  * @phpstan-return (
  *     $key is ''|'0'
- *         ? array<string, list<string>>|false
+ *         ? array<array-key, list<string>>|false
  *         : ( $single is true
  *             ? mixed
  *             : list<mixed>|false )
@@ -2875,13 +2875,14 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array<string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
- *                                                 Post meta values will always be strings, even for values which would
- *                                                 otherwise be retrieved individually as arrays or objects via
- *                                                 {@see get_post_meta()}. An empty array is returned if the post has
- *                                                 no post meta.
+ * @return array<int|string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
+ *                                                     Post meta values will always be strings, even for values which
+ *                                                     would otherwise be retrieved individually as arrays or objects
+ *                                                     via {@see get_post_meta()}. A meta key which is a numeric string
+ *                                                     is keyed by the equivalent integer, as PHP casts such array keys.
+ *                                                     An empty array is returned if the post has no post meta.
  *
- * @phpstan-return array<string, list<string>>|false
+ * @phpstan-return array<array-key, list<string>>|false
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
@@ -2904,10 +2905,11 @@ function get_post_custom( $post_id = 0 ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return string[]|null Array of the meta field keys, if retrieved. Null if the post has no
- *                       post meta, or if the post meta could not be retrieved.
+ * @return array<int|string>|null Array of the meta field keys, if retrieved. Null if the post has no
+ *                                post meta, or if the post meta could not be retrieved. A key which is
+ *                                a numeric string is returned as the equivalent integer.
  *
- * @phpstan-return non-empty-list<string>|null
+ * @phpstan-return non-empty-list<array-key>|null
  */
 function get_post_custom_keys( $post_id = 0 ) {
 	$custom = get_post_custom( $post_id );

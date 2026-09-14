@@ -1305,7 +1305,7 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  *
  * @phpstan-return (
  *     $key is ''|'0'
- *         ? array<string, list<string>>|false
+ *         ? array<array-key, list<string>>|false
  *         : ( $single is true
  *             ? mixed
  *             : list<mixed>|false )

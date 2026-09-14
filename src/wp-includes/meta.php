@@ -605,7 +605,7 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  * @phpstan-param int|numeric-string $object_id
  * @phpstan-return (
  *     $meta_key is ''|'0'
- *         ? array<string, list<string>>|false
+ *         ? array<array-key, list<string>>|false
  *         : ( $single is true
  *             ? mixed
  *             : list<mixed>|false )
@@ -647,7 +647,7 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  * @phpstan-param int|numeric-string $object_id
  * @phpstan-return (
  *     $meta_key is ''|'0'
- *         ? array<string, list<string>>|false|null
+ *         ? array<array-key, list<string>>|false|null
  *         : ( $single is true
  *             ? string|array<mixed>|object|false|null
  *             : list<string|array<mixed>|object>|false|null )
