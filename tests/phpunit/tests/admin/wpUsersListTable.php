@@ -30,4 +30,26 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
+
+	/**
+	 * @ticket 57233
+	 * @group ms-required
+	 *
+	 * @covers WP_Users_List_Table::single_row
+	 */
+	public function test_reset_password_row_action_targets_site_users_screen() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user_id  = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$site_id  = get_current_blog_id();
+
+		grant_super_admin( $admin_id );
+		wp_set_current_user( $admin_id );
+
+		$table          = _get_list_table( 'WP_Users_List_Table', array( 'screen' => 'site-users-network' ) );
+		$table->site_id = $site_id;
+		$row            = $table->single_row( get_userdata( $user_id ) );
+
+		$reset_url = wp_nonce_url( "site-users.php?id={$site_id}&amp;action=resetpassword&amp;users={$user_id}", 'bulk-users' );
+		$this->assertStringContainsString( $reset_url, $row );
+	}
 }

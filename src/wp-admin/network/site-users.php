@@ -115,6 +115,27 @@ if ( $action ) {
 			}
 			break;
 
+		case 'resetpassword':
+			check_admin_referer( 'bulk-users' );
+
+			if ( ! current_user_can( 'edit_users' ) ) {
+				wp_die( __( 'Sorry, you are not allowed to edit users.' ), 403 );
+			}
+
+			if ( empty( $_REQUEST['users'] ) ) {
+				wp_safe_redirect( $referer );
+				exit;
+			}
+
+			$reset_count = _wp_send_password_reset_to_users( $_REQUEST['users'] );
+			if ( is_wp_error( $reset_count ) ) {
+				wp_die( $reset_count );
+			}
+
+			$update  = 'resetpassword';
+			$referer = add_query_arg( 'reset_count', $reset_count, $referer );
+			break;
+
 		case 'remove':
 			if ( ! current_user_can( 'remove_users' ) ) {
 				wp_die( __( 'Sorry, you are not allowed to remove users.' ), 403 );
@@ -294,6 +315,17 @@ if ( isset( $_GET['update'] ) ) :
 			break;
 		case 'err_new_dup':
 			$message = __( 'Duplicated username or email address.' );
+			break;
+		case 'resetpassword':
+			$type        = 'success';
+			$reset_count = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
+			if ( 1 === $reset_count ) {
+				$message = __( 'Password reset link sent.' );
+			} else {
+				/* translators: %s: Number of users. */
+				$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
+			}
+			$message = sprintf( $message, number_format_i18n( $reset_count ) );
 			break;
 	}
 
