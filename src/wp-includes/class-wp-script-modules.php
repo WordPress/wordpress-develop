@@ -429,7 +429,6 @@ class WP_Script_Modules {
 	 * footer.
 	 *
 	 * @since 6.5.0
-	 * @since 7.2.0 The callbacks are procedural functions that resolve the current global instance when they run.
 	 */
 	public function add_hooks() {
 		$is_block_theme = wp_is_block_theme();
