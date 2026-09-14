@@ -21,7 +21,6 @@
  * always be filtered using the {@see 'locale'} hook.
  *
  * @since 1.5.0
- * @since 7.2.0 Non-string and empty values are ignored.
  *
  * @global string $locale           The current locale.
  * @global string $wp_local_package Locale code of the package.
@@ -32,10 +31,7 @@ function get_locale() {
 	global $locale, $wp_local_package;
 
 	if ( isset( $locale ) ) {
-		/*
-		 * The global is set by wp-config.php, by a plugin, or by this function
-		 * on an earlier call, so it carries no type.
-		 */
+		// The global may be set by wp-config.php, by a plugin, or by an earlier call to this function.
 		if ( empty( $locale ) || ! is_string( $locale ) ) {
 			$locale = 'en_US';
 		}
@@ -81,10 +77,7 @@ function get_locale() {
 		}
 	}
 
-	/*
-	 * The value may have come from an option, a constant or a global, none of
-	 * which guarantee a type. Callers are documented to receive a string.
-	 */
+	// This value may come from a global, a constant or an option, none of which are validated.
 	if ( empty( $locale ) || ! is_string( $locale ) ) {
 		$locale = 'en_US';
 	}
@@ -114,7 +107,6 @@ function get_locale() {
  * returned. Otherwise it returns the locale of get_locale().
  *
  * @since 4.7.0
- * @since 7.2.0 A non-string `locale` user meta value is ignored.
  *
  * @param int|WP_User $user User's ID or a WP_User object. Defaults to current user.
  * @return string The locale of the user.
@@ -134,11 +126,7 @@ function get_user_locale( $user = 0 ) {
 		return get_locale();
 	}
 
-	/*
-	 * WP_User has no `locale` property. Reading it runs
-	 * get_user_meta( $user_id, 'locale', true ), so this is a read of untyped
-	 * storage and the row may hold anything, including an array.
-	 */
+	// WP_User has no `locale` property: this reads the unvalidated `locale` user meta row.
 	$locale = $user_object->locale;
 
 	if ( empty( $locale ) || ! is_string( $locale ) ) {
@@ -152,7 +140,6 @@ function get_user_locale( $user = 0 ) {
  * Determines the current locale desired for the request.
  *
  * @since 5.0.0
- * @since 7.2.0 Non-string and empty values are ignored.
  *
  * @global string $pagenow          The filename of the current screen.
  * @global string $wp_local_package Locale code of the package.
@@ -200,6 +187,7 @@ function determine_locale() {
 		}
 	}
 
+	// This value may come from the request, from user meta or from a global, and is not validated.
 	if ( empty( $determined_locale ) || ! is_string( $determined_locale ) ) {
 		$determined_locale = get_locale();
 	}
