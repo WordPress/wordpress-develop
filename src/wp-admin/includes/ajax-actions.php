@@ -2199,6 +2199,34 @@ function wp_ajax_inline_save() {
 }
 
 /**
+ * Ajax handler for returning the custom Quick Edit fields for a post.
+ *
+ * @since 7.2.0
+ */
+function wp_ajax_inline_edit_custom_box() {
+	check_ajax_referer( 'inlineeditnonce', '_inline_edit' );
+
+	$post_id = isset( $_POST['post_ID'] ) ? absint( $_POST['post_ID'] ) : 0;
+	$post    = get_post( $post_id );
+
+	if ( ! $post || ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( -1, 403 );
+	}
+
+	$screen_id = 'edit-' . $post->post_type;
+	$screen    = get_current_screen();
+	if ( ! $screen || $screen_id !== $screen->id ) {
+		set_current_screen( $screen_id );
+	}
+
+	$list_table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => get_current_screen() ) );
+
+	echo $list_table->get_inline_edit_custom_box( $post );
+
+	wp_die();
+}
+
+/**
  * Handles Quick Edit saving for a term via AJAX.
  *
  * @since 3.1.0
