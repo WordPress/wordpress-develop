@@ -1720,7 +1720,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
+		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ) );
 
 		// Make sure no queries were executed.
 		$this->assertSame( $num_queries, get_num_queries() );

@@ -669,7 +669,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			// Test adding the cap via a filter.
 			add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 			$has_cap = $user->has_cap( 'do_not_allow' );
-			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
+			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ) );
 			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 
 			if ( 'anonymous' === $role ) {
@@ -700,7 +700,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Test adding the cap via a filter.
 		add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 		$has_cap = self::$super_admin->has_cap( 'do_not_allow' );
-		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
+		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ) );
 		$this->assertFalse( $has_cap, 'Super admins should not have the do_not_allow capability' );
 	}
 
