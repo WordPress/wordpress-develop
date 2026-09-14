@@ -8843,8 +8843,8 @@ function wp_get_original_image_url( $attachment_id ) {
  * @since 7.2.0
  *
  * @param int $attachment_id Attachment ID.
- * @return int ID of the attachment the chain started from, or `$attachment_id` when the
- *             attachment was not created by editing another one.
+ * @return int ID of the attachment the chain of edits started from, or `$attachment_id`
+ *             if none is recorded.
  */
 function wp_get_original_attachment_id( $attachment_id ) {
 	$original_id = (int) get_post_meta( $attachment_id, '_wp_attachment_original_id', true );

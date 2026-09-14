@@ -1522,21 +1522,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		/*
-		 * Point an image created by editing another one back at the attachment its chain of
-		 * edits started from, so editors can offer a way to get back to the original. Just
-		 * the ID, like `featured_media`, with `0` meaning the image was not created by
-		 * editing another one: this describes a relationship to another attachment rather
-		 * than anything about this image's own file, so it sits alongside `post` rather than
-		 * inside `media_details`. The link added below lets clients fetch the original's URL
-		 * and dimensions with `_embed`.
-		 *
-		 * Only sent in the `edit` context: this is for people editing the image, and it would
-		 * otherwise tell visitors which images were made from which.
-		 *
-		 * The stored ID is trusted rather than checked against the original's file, because
-		 * deleting an attachment clears it from everything edited from it. A client that
-		 * follows a stale ID, such as one whose original is in the trash, simply gets no
-		 * record back.
+		 * ID of the attachment this image's chain of edits started from, or 0.
+		 * Edit context only, since only editors need it.
+		 * Not validated: deleting an attachment clears it from images edited from it.
 		 */
 		if ( in_array( 'original_attachment', $fields, true ) && 'edit' === $request['context'] ) {
 			$original_id = wp_get_original_attachment_id( $post->ID );
@@ -1855,7 +1843,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 
 		$schema['properties']['original_attachment'] = array(
-			'description' => __( 'The ID of the attachment this image was created from by editing, or 0 if it was not created by editing another image.' ),
+			'description' => __( 'The ID of the attachment this attachment\'s chain of edits started from, or 0 if none is recorded.' ),
 			'type'        => 'integer',
 			'context'     => array( 'edit' ),
 			'readonly'    => true,
