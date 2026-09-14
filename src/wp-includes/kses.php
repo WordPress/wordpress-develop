@@ -1983,6 +1983,14 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 function wp_kses_bad_protocol( $content, $allowed_protocols ) {
 	$content = wp_kses_no_null( $content );
 
+	// Preserve relative text fragment URLs when web protocols are allowed.
+	if (
+		( in_array( 'http', $allowed_protocols, true ) || in_array( 'https', $allowed_protocols, true ) ) &&
+		preg_match( '/^[^:&]*#:~:text=/', $content )
+	) {
+		return $content;
+	}
+
 	// Short-circuit if the string starts with `https://` or `http://`. Most common cases.
 	if (
 		( str_starts_with( $content, 'https://' ) && in_array( 'https', $allowed_protocols, true ) ) ||
