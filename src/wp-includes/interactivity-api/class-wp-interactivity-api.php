@@ -399,7 +399,6 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 * @since 6.9.0 Adds support for client-side navigation in script modules.
-	 * @since 7.2.0 The callbacks resolve the current global WP_Interactivity_API instance when they run.
 	 */
 	public function add_hooks() {
 		add_filter( 'script_module_data_@wordpress/interactivity', 'wp_interactivity_script_module_data' );
