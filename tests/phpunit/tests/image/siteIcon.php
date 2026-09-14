@@ -66,7 +66,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$sizes = array();
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[ 'site_icon-' . $size ] = array(
-				'width ' => $size,
+				'width'  => $size,
 				'height' => $size,
 				'crop'   => true,
 			);
@@ -82,7 +82,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$sizes = array();
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[ 'site_icon-' . $size ] = array(
-				'width ' => $size,
+				'width'  => $size,
 				'height' => $size,
 				'crop'   => true,
 			);
@@ -96,6 +96,43 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 
 		// Remove custom size.
 		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes, true ) ] );
+	}
+
+	/**
+	 * Tests that the registered sub-sizes are generated as square crops.
+	 *
+	 * @ticket 65345
+	 *
+	 * @covers WP_Site_Icon::additional_sizes
+	 */
+	public function test_additional_sizes_generate_square_subsizes() {
+		// A non-square source, large enough for every site icon size.
+		$filename = DIR_TESTDATA . '/images/waffles.jpg';
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, file_get_contents( $filename ) );
+
+		$attachment_id = $this->_make_attachment( $upload );
+		$file          = get_attached_file( $attachment_id );
+
+		$editor = wp_get_image_editor( $file );
+
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
+		add_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
+
+		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
+			$size_name = 'site_icon-' . $size;
+
+			$this->assertArrayHasKey( $size_name, $metadata['sizes'], "The {$size_name} sub-size was not generated." );
+			$this->assertSame(
+				array( $size, $size ),
+				array( $metadata['sizes'][ $size_name ]['width'], $metadata['sizes'][ $size_name ]['height'] ),
+				"The {$size_name} sub-size is not a square crop."
+			);
+		}
 	}
 
 	public function test_insert_cropped_attachment() {
