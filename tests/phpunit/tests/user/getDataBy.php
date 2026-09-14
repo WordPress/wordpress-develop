@@ -102,4 +102,51 @@ class Tests_User_GetDataBy extends WP_UnitTestCase {
 			'After the users last changed value is bumped, the lookup should query the database again.'
 		);
 	}
+
+	/**
+	 * Verifies that a negative cache entry for a not-yet-existing ID cannot
+	 * shadow a user that is subsequently inserted with that same ID.
+	 *
+	 * wp_insert_user() bumps the 'users' group last changed value immediately
+	 * after inserting the row, so the WP_User object constructed afterwards is
+	 * built from the real database row rather than the stale negative entry.
+	 *
+	 * @ticket 46388
+	 * @covers WP_User::get_data_by
+	 */
+	public function test_negative_cache_entry_does_not_shadow_newly_inserted_user() {
+		global $wpdb;
+
+		$next_user_id = (int) $wpdb->get_var( "SELECT `auto_increment` FROM INFORMATION_SCHEMA.TABLES WHERE table_name = '$wpdb->users'" );
+
+		// Prime the negative cache for the ID the next insert will be assigned.
+		$this->assertFalse( get_userdata( $next_user_id ), 'User should not exist yet.' );
+
+		$last_changed = wp_cache_get_last_changed( 'users' );
+		$this->assertNotFalse(
+			wp_cache_get( "notuser:{$next_user_id}:{$last_changed}", 'users' ),
+			'Negative cache entry should exist for the next auto-increment ID.'
+		);
+
+		$new_id = wp_insert_user(
+			array(
+				'user_login' => 'negative_cache_collision',
+				'user_pass'  => 'password',
+				'user_email' => 'negative_cache_collision@example.com',
+				'role'       => 'subscriber',
+			)
+		);
+
+		$this->assertSame( $next_user_id, $new_id, 'Inserted user should be assigned the predicted auto-increment ID.' );
+
+		$user = get_userdata( $new_id );
+
+		$this->assertNotFalse( $user, 'The newly inserted user should be loadable.' );
+		$this->assertContains( 'subscriber', $user->roles, 'The newly inserted user should have the requested role.' );
+		$this->assertSame(
+			array( 'subscriber' => true ),
+			get_user_meta( $new_id, $wpdb->prefix . 'capabilities', true ),
+			'Capabilities meta should be stored under the real user ID.'
+		);
+	}
 }

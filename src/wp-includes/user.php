@@ -2578,6 +2578,15 @@ function wp_insert_user( $userdata ) {
 	} else {
 		$wpdb->insert( $wpdb->users, $data );
 		$user_id = (int) $wpdb->insert_id;
+
+		/*
+		 * Bump the 'users' group last changed value before the user object is
+		 * constructed below. WP_User::get_data_by() caches non-existent IDs
+		 * under a "notuser" key salted with that value; without the bump, a
+		 * stale entry could shadow this just-inserted ID and produce an empty
+		 * user object.
+		 */
+		wp_cache_set_users_last_changed();
 	}
 
 	$user = new WP_User( $user_id );
