@@ -2083,6 +2083,44 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 65953
+	 */
+	public function test_get_routes_returns_array_when_rest_endpoints_filter_returns_null() {
+		$this->setExpectedIncorrectUsage( 'WP_REST_Server::get_routes' );
+
+		add_filter( 'rest_endpoints', '__return_null' );
+
+		$this->assertSame( array(), rest_get_server()->get_routes() );
+	}
+
+	/**
+	 * @ticket 65953
+	 */
+	public function test_dispatch_does_not_error_when_rest_endpoints_filter_returns_null() {
+		$this->setExpectedIncorrectUsage( 'WP_REST_Server::get_routes' );
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => array( 'GET' ),
+				'callback'            => static function () {
+					return new WP_REST_Response( 'data', 204 );
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		add_filter( 'rest_endpoints', '__return_null' );
+
+		$request  = new WP_REST_Request( 'GET', '/test-ns/v1/test' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 404, $response->get_status() );
+		$this->assertSame( 'rest_no_route', $response->as_error()->get_error_code() );
+	}
+
+	/**
 	 * @ticket 50244
 	 */
 	public function test_no_route() {
