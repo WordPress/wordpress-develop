@@ -1288,7 +1288,7 @@ function wp_dropdown_pages( $args = '' ) {
  *                                           the given n depth). Default 0.
  *     @type bool              $echo         Whether or not to echo the list of pages. Default true.
  *     @type string            $exclude      Comma-separated list of page IDs to exclude. Default empty.
- *     @type array             $include      Comma-separated list of page IDs to include. Default empty.
+ *     @type int[]|string      $include      Array or comma-separated list of page IDs to include. Default empty array.
  *     @type string            $link_after   Text or HTML to follow the page link label. Default null.
  *     @type string            $link_before  Text or HTML to precede the page link label. Default null.
  *     @type string            $post_type    Post type to query for. Default 'page'.
