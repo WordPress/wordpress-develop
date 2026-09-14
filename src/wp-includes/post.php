@@ -2875,7 +2875,7 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array<int|string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
+ * @return array<string|int, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
  *                                                     Post meta values will always be strings, even for values which
  *                                                     would otherwise be retrieved individually as arrays or objects
  *                                                     via {@see get_post_meta()}. A meta key which is a numeric string
@@ -2905,7 +2905,7 @@ function get_post_custom( $post_id = 0 ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array<int|string>|null Array of the meta field keys, if retrieved. Null if the post has no
+ * @return array<string|int>|null Array of the meta field keys, if retrieved. Null if the post has no
  *                                post meta, or if the post meta could not be retrieved. A key which is
  *                                a numeric string is returned as the equivalent integer.
  *
