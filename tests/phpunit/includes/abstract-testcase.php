@@ -1406,9 +1406,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		} else {
 			$req = $url;
 		}
-		if ( ! isset( $parts['query'] ) ) {
-			$parts['query'] = '';
-		}
+		$parts['query'] ??= '';
 
 		$_SERVER['REQUEST_URI'] = $req;
 		unset( $_SERVER['PATH_INFO'] );
