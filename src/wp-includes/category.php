@@ -22,6 +22,24 @@
  *     @type string $taxonomy Taxonomy to retrieve terms for. Default 'category'.
  * }
  * @return array List of category objects.
+ *
+ * @phpstan-return (
+ *     $args is array{fields: 'count', ...}
+ *         ? list<numeric-string>
+ *         : (
+ *             $args is array{fields: 'names'|'slugs', ...}
+ *                 ? list<string>
+ *                 : (
+ *                     $args is array{fields: 'id=>name'|'id=>slug', ...}
+ *                         ? array<int, string>
+ *                         : (
+ *                             $args is array{fields: 'id=>parent', ...}
+ *                                 ? array<int, int>
+ *                                 : ($args is array{fields: 'ids'|'tt_ids', ...} ? list<int> : array<int, WP_Term>)
+ *                         )
+ *                 )
+ *         )
+ * )
  */
 function get_categories( $args = '' ) {
 	$defaults = array( 'taxonomy' => 'category' );
@@ -88,6 +106,9 @@ function get_categories( $args = '' ) {
  * @return WP_Term|array|WP_Error|null Category data in type defined by $output parameter.
  *                                     Returns a WP_Term object with backwards compatible property aliases filled in.
  *                                     WP_Error if $category is empty, null if it does not exist.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return ($category is object ? array<array-key, mixed>|WP_Term : array<array-key, mixed>|WP_Term|WP_Error|null) & ($output is 'ARRAY_A' ? array<string, mixed>|WP_Error|null : ($output is 'ARRAY_N' ? array<int, mixed>|WP_Error|null : WP_Term|WP_Error|null))
  */
 function get_category( $category, $output = OBJECT, $filter = 'raw' ) {
 	$category = get_term( $category, 'category', $output, $filter );
@@ -121,6 +142,13 @@ function get_category( $category, $output = OBJECT, $filter = 'raw' ) {
  *                              correspond to a WP_Term object, an associative array, or a numeric array,
  *                              respectively. Default OBJECT.
  * @return WP_Term|array|WP_Error|null Type is based on $output value.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A'
+ *         ? array<string, mixed>|WP_Error|null
+ *         : ($output is 'ARRAY_N' ? array<int, mixed>|WP_Error|null : WP_Term|WP_Error|null)
+ * )
  */
 function get_category_by_path( $category_path, $full_match = true, $output = OBJECT ) {
 	$category_path  = rawurlencode( urldecode( $category_path ) );
@@ -259,6 +287,10 @@ function cat_is_ancestor_of( $cat1, $cat2 ) {
  * @param object|array $category Category data.
  * @param string       $context  Optional. Default 'display'.
  * @return object|array Same type as $category with sanitized data for safe use.
+ *
+ * @phpstan-template T of array|object
+ * @phpstan-param T $category
+ * @phpstan-return T
  */
 function sanitize_category( $category, $context = 'display' ) {
 	return sanitize_term( $category, 'category', $context );
@@ -293,6 +325,20 @@ function sanitize_category_field( $field, $value, $cat_id, $context ) {
  * }
  * @return WP_Term[]|int|WP_Error Array of 'post_tag' term objects, a count thereof,
  *                                or WP_Error if any of the taxonomies do not exist.
+ *
+ * @phpstan-return (
+ *     $args is array{fields: 'names'|'slugs', ...}
+ *         ? list<string>
+ *         : (
+ *             $args is array{fields: 'id=>name'|'id=>slug', ...}
+ *                 ? array<int, string>
+ *                 : (
+ *                     $args is array{fields: 'id=>parent', ...}
+ *                         ? array<int, int>
+ *                         : ( $args is array{fields: 'ids'|'tt_ids', ...} ? list<int> : array<int, WP_Term> )
+ *                 )
+ *         )
+ * )|WP_Error
  */
 function get_tags( $args = '' ) {
 	$defaults = array( 'taxonomy' => 'post_tag' );
