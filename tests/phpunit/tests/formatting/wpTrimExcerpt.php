@@ -353,7 +353,7 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		);
 
 		// Give the hooked block actual markup, as the 'hooked_block' filter allows.
-		$filter = static function ( $parsed_hooked_block ) {
+		$filter = static function ( array $parsed_hooked_block ): array {
 			$parsed_hooked_block['innerHTML']    = '<p>LEAKED HOOKED TEXT</p>';
 			$parsed_hooked_block['innerContent'] = array( '<p>LEAKED HOOKED TEXT</p>' );
 			return $parsed_hooked_block;
@@ -394,7 +394,7 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 			)
 		);
 
-		$filter = static function ( $parsed_hooked_block ) {
+		$filter = static function ( array $parsed_hooked_block ): array {
 			$parsed_hooked_block['innerHTML']    = '<p>HOOKED TEXT</p>';
 			$parsed_hooked_block['innerContent'] = array( '<p>HOOKED TEXT</p>' );
 			return $parsed_hooked_block;
@@ -405,6 +405,7 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		wp_trim_excerpt( '', $post );
 
 		// A subsequent front-end run of 'the_content' must still apply Block Hooks.
+		/** This filter is documented in wp-includes/post-template.php */
 		$content = apply_filters( 'the_content', get_the_content( '', false, $post ) );
 
 		remove_filter( 'hooked_block', $filter );
