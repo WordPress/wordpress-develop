@@ -444,7 +444,9 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we assume something is wrong and fail to schedule.
-	if ( 0 === $interval ) {
+	// A fractional interval (for example 0.5) is truncated to 0 by the modulo
+	// operator below, so it must be treated as invalid to avoid a fatal error.
+	if ( ! is_numeric( $interval ) || (int) $interval <= 0 ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_schedule',
