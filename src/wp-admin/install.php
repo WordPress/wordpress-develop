@@ -236,6 +236,7 @@ $php_version   = PHP_VERSION;
 $mysql_version = $wpdb->db_version();
 $php_compat    = version_compare( $php_version, $required_php_version, '>=' );
 $mysql_compat  = version_compare( $mysql_version, $required_mysql_version, '>=' ) || file_exists( WP_CONTENT_DIR . '/db.php' );
+$mysql_db_charset_compat = true;
 
 $version_url = sprintf(
 	/* translators: %s: WordPress version. */
@@ -286,7 +287,18 @@ if ( ! $mysql_compat && ! $php_compat ) {
 	);
 }
 
-if ( ! $mysql_compat || ! $php_compat ) {
+// Validate the defined DB_CHARSET to the database server list of CHARACTER SET list.
+if ( ! defined( 'DB_CHARSET' ) || ! DB_CHARSET || ! $wpdb->get_row( $wpdb->prepare( 'SHOW CHARACTER SET WHERE Charset = %s', DB_CHARSET ) ) ) {
+	$mysql_db_charset_compat = false;
+
+	$compat = sprintf(
+		/* translators: %s:  the value of the wp-config DB_CHARSET string. */
+		__( 'You cannot install because the DB_CHARSET defined in wp-config.php ("%s") is not supported by your database.' ),
+		DB_CHARSET
+	);
+}
+
+if ( ! $mysql_compat || ! $php_compat || ! $mysql_db_charset_compat ) {
 	display_header();
 	die( '<h1>' . __( 'Requirements Not Met' ) . '</h1><p>' . $compat . '</p></body></html>' );
 }
