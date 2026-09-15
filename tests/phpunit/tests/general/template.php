@@ -793,6 +793,83 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a block theme opens its own document rather than the deprecated fallback.
+	 *
+	 * A block theme ships no header.php, so locate_template() reaches
+	 * wp-includes/theme-compat/header.php, whose markup opens the page with the old default
+	 * theme's frame, site title and description.
+	 *
+	 * @ticket 55023
+	 *
+	 * @covers ::get_header
+	 */
+	public function test_get_header_uses_block_theme_document_when_theme_has_no_header() {
+		switch_theme( 'block-theme' );
+
+		$output = get_echo( 'get_header' );
+
+		$this->assertStringContainsString( '<!DOCTYPE html>', $output, 'The document should be opened.' );
+		$this->assertStringContainsString( '<body', $output, 'The body element should be opened.' );
+		$this->assertStringNotContainsString( 'id="page"', $output, 'The theme-compat page frame should not be printed.' );
+		$this->assertStringNotContainsString( 'id="header"', $output, 'The theme-compat header should not be printed.' );
+	}
+
+	/**
+	 * Tests that a block theme closes the document it opened.
+	 *
+	 * @ticket 55023
+	 *
+	 * @covers ::get_footer
+	 */
+	public function test_get_footer_uses_block_theme_document_when_theme_has_no_footer() {
+		switch_theme( 'block-theme' );
+
+		// As a page does: wp_head() is where the back-compat skip link action is unhooked.
+		get_echo( 'get_header' );
+		$output = get_echo( 'get_footer' );
+
+		$this->assertStringContainsString( '</body>', $output, 'The body element should be closed.' );
+		$this->assertStringContainsString( '</html>', $output, 'The document should be closed.' );
+		$this->assertStringNotContainsString( 'proudly powered by', $output, 'The theme-compat footer should not be printed.' );
+		$this->assertStringNotContainsString( 'id="footer"', $output, 'The theme-compat footer should not be printed.' );
+	}
+
+	/**
+	 * Tests that the deprecation notice for a missing header.php is not raised for block themes,
+	 * which are not expected to provide one.
+	 *
+	 * @ticket 55023
+	 *
+	 * @covers ::get_header
+	 */
+	public function test_get_header_does_not_deprecate_for_block_theme() {
+		switch_theme( 'block-theme' );
+
+		// Would trigger the deprecation notice handled by WP_UnitTestCase and fail the test.
+		get_echo( 'get_header' );
+
+		$this->assertTrue( wp_is_block_theme(), 'The test should run on a block theme.' );
+	}
+
+	/**
+	 * Tests that a classic theme without header.php keeps the deprecated fallback, so themes
+	 * relying on it are unaffected. camelCase is a classic fixture theme with no header.php.
+	 *
+	 * @ticket 55023
+	 *
+	 * @expectedDeprecated Theme without header.php
+	 *
+	 * @covers ::get_header
+	 */
+	public function test_get_header_still_falls_back_for_classic_theme() {
+		switch_theme( 'camelCase' );
+
+		$output = get_echo( 'get_header' );
+
+		$this->assertStringContainsString( 'id="page"', $output, 'The theme-compat markup should still be printed for classic themes.' );
+	}
+
+	/**
 	 * @ticket 40969
 	 *
 	 * @covers ::get_sidebar
