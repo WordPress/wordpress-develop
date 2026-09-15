@@ -1,0 +1,113 @@
+##
+# A GitHub Action that generates a list of files changed between the newly
+# tagged WordPress release and the previous release tag.
+#
+# This list is useful for updating documentation such as the HelpHub
+# "Files Changed" section for each release. It replaces the need to manually
+# run SVN or Git commands to produce the same output.
+#
+# Contributors can also run this workflow manually via the "workflow_dispatch"
+# event, providing custom tag inputs to compare any two releases.
+##
+name: Generate Changed Files List
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      compare_tag:
+        description: 'The newer tag to compare (e.g. 6.6.2)'
+        required: true
+        type: string
+      base_tag:
+        description: 'The older base tag to compare against (e.g. 6.6.1)'
+        required: true
+        type: string
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Generates a list of files changed between two version tags.
+  #
+  # Performs the following steps:
+  # - Checks out the repository with full history to access all tags.
+  # - Determines the current and previous version tags.
+  # - Generates a sorted list of changed files using git diff.
+  # - Displays the list in the workflow run summary.
+  # - Uploads the list as a downloadable workflow artifact.
+  generate:
+    name: Generate changed files list
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Determine the tags to compare
+        id: tags
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_COMPARE_TAG: ${{ inputs.compare_tag }}
+          INPUT_BASE_TAG: ${{ inputs.base_tag }}
+        run: |
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            CURRENT_TAG="${INPUT_COMPARE_TAG}"
+            PREVIOUS_TAG="${INPUT_BASE_TAG}"
+          else
+            CURRENT_TAG="${GITHUB_REF_NAME}"
+            # Find the most recent version tag preceding the current one.
+            PREVIOUS_TAG=$( git tag --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+(\.[0-9]+)?$' | grep -v "^${CURRENT_TAG}$" | head -1 )
+          fi
+
+          if [[ -z "${PREVIOUS_TAG}" ]]; then
+            echo "::error::Could not determine the previous version tag to compare against."
+            exit 1
+          fi
+
+          echo "Comparing ${PREVIOUS_TAG} to ${CURRENT_TAG}."
+          echo "current_tag=${CURRENT_TAG}" >> "$GITHUB_OUTPUT"
+          echo "previous_tag=${PREVIOUS_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate list of changed files
+        id: diff
+        env:
+          CURRENT_TAG: ${{ steps.tags.outputs.current_tag }}
+          PREVIOUS_TAG: ${{ steps.tags.outputs.previous_tag }}
+        run: |
+          git diff --name-status "${PREVIOUS_TAG}" "${CURRENT_TAG}" | sort > changed-files.txt
+
+          FILE_COUNT=$( wc -l < changed-files.txt | tr -d ' ' )
+
+          {
+            echo "## Files Changed: \`${PREVIOUS_TAG}\` → \`${CURRENT_TAG}\`"
+            echo ""
+            echo "**${FILE_COUNT} file(s) changed** between \`${PREVIOUS_TAG}\` and \`${CURRENT_TAG}\`."
+            echo ""
+            echo "Status codes: \`A\` = Added, \`D\` = Deleted, \`M\` = Modified, \`R\` = Renamed."
+            echo ""
+            echo '```'
+            cat changed-files.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "file_count=${FILE_COUNT}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload changed files list as artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: changed-files-${{ steps.tags.outputs.current_tag }}
+          path: changed-files.txt
+          if-no-files-found: error
