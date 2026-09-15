@@ -644,21 +644,21 @@ function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 
 	if ( false === $cookies_consent ) {
 		// Remove any existing cookies.
-		wp_unset_cookie(
+		wp_remove_cookie(
 			'comment_author_' . COOKIEHASH,
 			array(
 				'path'   => COOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			'comment_author_email_' . COOKIEHASH,
 			array(
 				'path'   => COOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			'comment_author_url_' . COOKIEHASH,
 			array(
 				'path'   => COOKIEPATH,

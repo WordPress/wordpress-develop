@@ -1261,42 +1261,42 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		}
 
 		// Auth cookies.
-		wp_unset_cookie(
+		wp_remove_cookie(
 			AUTH_COOKIE,
 			array(
 				'path'   => ADMIN_COOKIE_PATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			SECURE_AUTH_COOKIE,
 			array(
 				'path'   => ADMIN_COOKIE_PATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			AUTH_COOKIE,
 			array(
 				'path'   => PLUGINS_COOKIE_PATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			SECURE_AUTH_COOKIE,
 			array(
 				'path'   => PLUGINS_COOKIE_PATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			LOGGED_IN_COOKIE,
 			array(
 				'path'   => COOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			LOGGED_IN_COOKIE,
 			array(
 				'path'   => SITECOOKIEPATH,
@@ -1305,13 +1305,13 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		);
 
 		// Settings cookies.
-		wp_unset_cookie(
+		wp_remove_cookie(
 			'wp-settings-' . get_current_user_id(),
 			array(
 				'path' => SITECOOKIEPATH,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			'wp-settings-time-' . get_current_user_id(),
 			array(
 				'path' => SITECOOKIEPATH,
@@ -1319,28 +1319,28 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		);
 
 		// Old cookies.
-		wp_unset_cookie(
+		wp_remove_cookie(
 			AUTH_COOKIE,
 			array(
 				'path'   => COOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			AUTH_COOKIE,
 			array(
 				'path'   => SITECOOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			SECURE_AUTH_COOKIE,
 			array(
 				'path'   => COOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			SECURE_AUTH_COOKIE,
 			array(
 				'path'   => SITECOOKIEPATH,
@@ -1349,28 +1349,28 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		);
 
 		// Even older cookies.
-		wp_unset_cookie(
+		wp_remove_cookie(
 			USER_COOKIE,
 			array(
 				'path'   => COOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			PASS_COOKIE,
 			array(
 				'path'   => COOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			USER_COOKIE,
 			array(
 				'path'   => SITECOOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			PASS_COOKIE,
 			array(
 				'path'   => SITECOOKIEPATH,
@@ -1379,7 +1379,7 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		);
 
 		// Post password cookie.
-		wp_unset_cookie(
+		wp_remove_cookie(
 			'wp-postpass_' . COOKIEHASH,
 			array(
 				'path'   => COOKIEPATH,

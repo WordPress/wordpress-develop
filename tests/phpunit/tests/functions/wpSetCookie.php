@@ -5,7 +5,7 @@
  * @group cookies
  *
  * @covers ::wp_set_cookie
- * @covers ::wp_unset_cookie
+ * @covers ::wp_remove_cookie
  */
 class Tests_Functions_WpSetCookie extends WP_UnitTestCase {
 

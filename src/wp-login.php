@@ -1008,7 +1008,7 @@ switch ( $action ) {
 		}
 
 		if ( ! $user || is_wp_error( $user ) ) {
-			wp_unset_cookie(
+			wp_remove_cookie(
 				$rp_cookie,
 				array(
 					'path'   => $rp_path,
@@ -1544,7 +1544,7 @@ switch ( $action ) {
 		if ( isset( $_COOKIE[ $rp_cookie ] ) && is_string( $_COOKIE[ $rp_cookie ] ) ) {
 			$user_login      = sanitize_user( strtok( wp_unslash( $_COOKIE[ $rp_cookie ] ), ':' ) );
 			list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
-			wp_unset_cookie(
+			wp_remove_cookie(
 				$rp_cookie,
 				array(
 					'path'   => $rp_path,

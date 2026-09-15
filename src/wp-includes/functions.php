@@ -1658,7 +1658,7 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
  *     samesite?: 'Lax'|'Strict'|'None',
  * } $options
  */
-function wp_unset_cookie( string $name, array $options = array() ): bool {
+function wp_remove_cookie( string $name, array $options = array() ): bool {
 	$options['expires'] = time() - YEAR_IN_SECONDS;
 
 	return wp_set_cookie( $name, ' ', $options );

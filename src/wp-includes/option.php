@@ -1934,7 +1934,7 @@ function delete_all_user_settings() {
 	}
 
 	update_user_option( $user_id, 'user-settings', '', false );
-	wp_unset_cookie(
+	wp_remove_cookie(
 		'wp-settings-' . $user_id,
 		array(
 			'path' => SITECOOKIEPATH,

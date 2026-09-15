@@ -59,7 +59,7 @@ if ( $key ) {
 if ( null === $result && isset( $_COOKIE[ $activate_cookie ] ) ) {
 	$key    = $_COOKIE[ $activate_cookie ];
 	$result = wpmu_activate_signup( $key );
-	wp_unset_cookie(
+	wp_remove_cookie(
 		$activate_cookie,
 		array(
 			'path'   => $activate_path,

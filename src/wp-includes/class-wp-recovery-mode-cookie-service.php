@@ -80,14 +80,14 @@ final class WP_Recovery_Mode_Cookie_Service {
 	 * @since 5.2.0
 	 */
 	public function clear_cookie() {
-		wp_unset_cookie(
+		wp_remove_cookie(
 			RECOVERY_MODE_COOKIE,
 			array(
 				'path'   => COOKIEPATH,
 				'domain' => COOKIE_DOMAIN,
 			)
 		);
-		wp_unset_cookie(
+		wp_remove_cookie(
 			RECOVERY_MODE_COOKIE,
 			array(
 				'path'   => SITECOOKIEPATH,
