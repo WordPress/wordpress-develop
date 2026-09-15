@@ -1141,6 +1141,7 @@ HTML
 				'tax_query'      => array(),
 				'offset'         => 0,
 				'posts_per_page' => 2,
+				'paged'          => 1,
 			),
 			$query
 		);
@@ -1174,6 +1175,7 @@ HTML
 				'tax_query'      => array(),
 				'offset'         => 10,
 				'posts_per_page' => 5,
+				'paged'          => 3,
 			),
 			$query
 		);
@@ -1207,6 +1209,7 @@ HTML
 				'tax_query'      => array(),
 				'offset'         => 12,
 				'posts_per_page' => 5,
+				'paged'          => 3,
 			),
 			$query
 		);
