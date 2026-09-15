@@ -10,10 +10,26 @@
  */
 class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 
+	/**
+	 * The `force_ssl_admin()` value in effect before the test ran.
+	 *
+	 * @var bool
+	 */
+	private $forced_ssl_admin;
+
 	public function set_up() {
 		parent::set_up();
-		// Reset the `$forced` static variable before each test.
-		force_ssl_admin( false );
+		/*
+		 * Reset the `$forced` static variable before each test, keeping the value it held
+		 * so tear_down() can put it back. force_ssl_admin() returns the previous value.
+		 */
+		$this->forced_ssl_admin = force_ssl_admin( false );
+	}
+
+	public function tear_down() {
+		force_ssl_admin( $this->forced_ssl_admin );
+
+		parent::tear_down();
 	}
 
 	/**
