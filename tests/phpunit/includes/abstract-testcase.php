@@ -22,6 +22,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/** @var non-empty-string[] */
 	protected $caught_doing_it_wrong = array();
 
+	/**
+	 * URLs of blocked external HTTP requests made during the current test.
+	 *
+	 * @var list<non-falsy-string>
+	 */
+	protected array $blocked_http_requests = array();
+
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
 
@@ -112,7 +119,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		$this->factory = static::factory();
 
-		if ( ! self::$ignore_files ) {
+		if ( null === self::$ignore_files ) {
 			self::$ignore_files = $this->scan_user_uploads();
 		}
 
@@ -143,6 +150,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 1, 2 );
+
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS
+			&& ! in_array( 'external-http', $this->getGroups(), true )
+		) {
+			add_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX, 3 );
+		}
 	}
 
 	/**
@@ -207,7 +220,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		// Reset comment globals.
-		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt', 'in_comment_loop' );
 		foreach ( $comment_globals as $global ) {
 			$GLOBALS[ $global ] = null;
 		}
@@ -686,6 +699,34 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Blocks an external HTTP request that no other filter has answered.
+	 *
+	 * Added by set_up() for tests that are not in the `external-http` group, and
+	 * runs last on the filter so any mock set up by the test itself gets the
+	 * first say. Requests reaching this point are recorded and fail the test in
+	 * assert_post_conditions().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param false|array|WP_Error $response A preemptive response, or false when none was given.
+	 * @param array                $args     Request arguments.
+	 * @param string               $url      The request URL.
+	 * @return array|WP_Error The preemptive response, or an error for a blocked request.
+	 */
+	public function block_external_http_request( $response, array $args, string $url ) {
+		if ( false !== $response ) {
+			return $response;
+		}
+
+		$this->blocked_http_requests[] = $url;
+
+		return new WP_Error(
+			'test_external_http_blocked',
+			'External HTTP requests are blocked in tests that are not in the `external-http` group.'
+		);
+	}
+
+	/**
 	 * Detects post-test failure conditions.
 	 *
 	 * We use this method to detect expectedDeprecated and expectedIncorrectUsage annotations.
@@ -694,6 +735,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	protected function assert_post_conditions() {
 		$this->expectedDeprecated();
+
+		if ( $this->blocked_http_requests ) {
+			$this->fail(
+				"This test made an external HTTP request but is not in the `external-http` group.\n"
+				. "Add `@group external-http` to it, or mock the request with the `pre_http_request` filter.\n"
+				. '- ' . implode( "\n- ", array_unique( $this->blocked_http_requests ) )
+			);
+		}
 	}
 
 	/**
@@ -1535,11 +1584,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Deletes files added to the `uploads` directory during tests.
 	 *
 	 * This method works in tandem with the `set_up()` and `rmdir()` methods:
-	 * - `set_up()` scans the `uploads` directory before every test, and stores
-	 *   its contents inside of the `$ignore_files` property.
+	 * - `set_up()` stores the initial `uploads` directory snapshot in the
+	 *   `$ignore_files` property, including when the directory is empty.
 	 * - `rmdir()` and its helper methods only delete files that are not listed
 	 *   in the `$ignore_files` property. If called during `tear_down()` in tests,
-	 *   this will only delete files added during the previously run test.
+	 *   this deletes files added after the initial snapshot.
 	 */
 	public function remove_added_uploads() {
 		$uploads = wp_upload_dir();
@@ -1576,8 +1625,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return string[] List of file paths.
 	 */
 	public function scan_user_uploads() {
-		static $files = array();
-		if ( ! empty( $files ) ) {
+		static $files = null;
+		if ( null !== $files ) {
 			return $files;
 		}
 
