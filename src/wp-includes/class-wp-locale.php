@@ -119,6 +119,8 @@ class WP_Locale {
 	 *
 	 * @since 6.2.0
 	 * @var string
+	 *
+	 * @phpstan-var 'characters_excluding_spaces'|'characters_including_spaces'|'words'
 	 */
 	public $word_count_type;
 
@@ -442,6 +444,8 @@ class WP_Locale {
 	 *
 	 * @return string Localized word count type. Possible values are `characters_excluding_spaces`,
 	 *                `characters_including_spaces`, or `words`. Defaults to `words`.
+	 *
+	 * @phpstan-return 'characters_excluding_spaces'|'characters_including_spaces'|'words'
 	 */
 	public function get_word_count_type() {
 
