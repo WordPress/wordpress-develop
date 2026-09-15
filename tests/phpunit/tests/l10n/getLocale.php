@@ -90,4 +90,62 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	public function filter_get_locale() {
 		return 'foo';
 	}
+
+	/**
+	 * Nothing checks the type of the `WPLANG` option on the way out, so a row
+	 * written by a direct database query or a migration reaches the return value.
+	 *
+	 * @ticket 66106
+	 *
+	 * @group ms-excluded
+	 */
+	public function test_should_fall_back_on_en_US_for_a_non_string_option(): void {
+		global $locale, $wpdb;
+		$old_locale = $locale;
+		$locale     = null;
+
+		$wpdb->replace(
+			$wpdb->options,
+			array(
+				'option_name'  => 'WPLANG',
+				'option_value' => maybe_serialize( array( 'de_DE' ) ),
+			)
+		);
+		wp_cache_flush();
+
+		$found  = get_locale();
+		$locale = $old_locale;
+
+		$this->assertSame( 'en_US', $found );
+	}
+
+	/**
+	 * @ticket 66106
+	 */
+	public function test_should_fall_back_on_en_US_for_a_non_string_locale_global(): void {
+		global $locale;
+		$old_locale = $locale;
+		$locale     = array( 'de_DE' );
+
+		$found  = get_locale();
+		$locale = $old_locale;
+
+		$this->assertSame( 'en_US', $found );
+	}
+
+	/**
+	 * @ticket 66106
+	 */
+	public function test_should_ignore_a_non_string_locale_filter(): void {
+		global $locale;
+		$old_locale = $locale;
+		$locale     = 'es_ES';
+
+		add_filter( 'locale', '__return_empty_array' );
+
+		$found  = get_locale();
+		$locale = $old_locale;
+
+		$this->assertSame( 'es_ES', $found );
+	}
 }
