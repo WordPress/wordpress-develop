@@ -56,6 +56,14 @@ if ( ! defined( 'CUSTOM_TAGS' ) ) {
 // (e.g. if using namespaces / autoload in the current PHP environment).
 global $allowedposttags, $allowedtags, $allowedentitynames, $allowedxmlentitynames;
 
+/**
+ * Indicates which implementation of {@see \wp_kses()} is running.
+ *
+ * @global 'legacy'|'html-api' $wp_kses_operating_mode
+ */
+global $wp_kses_operating_mode;
+$wp_kses_operating_mode = 'legacy';
+
 if ( ! CUSTOM_TAGS ) {
 	/**
 	 * KSES global for default allowable HTML tags.
@@ -951,6 +959,8 @@ if ( ! CUSTOM_TAGS ) {
  *
  * @since 1.0.0
  *
+ * @global string $wp_kses_operating_mode
+ *
  * @param string         $content           Text content to filter.
  * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
  *                                          or a context name such as 'post'. {@see wp_kses_allowed_html()}
@@ -960,6 +970,10 @@ if ( ! CUSTOM_TAGS ) {
  * @return string Filtered content containing only the allowed HTML.
  */
 function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
+	global $wp_kses_operating_mode;
+
+	$wp_kses_operating_mode = 'legacy';
+
 	/**
 	 * Filters whether to rely on the legacy parsing inside `wp_kses()`.
 	 *
@@ -990,6 +1004,8 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
  *
  * @since 7.2.0
  *
+ * @global string $wp_kses_operating_mode
+ *
  * @param string $content              Text content to filter.
  * @param array[]|string $allowed_html An array of allowed HTML elements and attributes,
  *                                     or a context name such as 'post'. See wp_kses_allowed_html()
@@ -999,17 +1015,7 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
  * @return string Filtered content containing only the allowed HTML.
  */
 function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = array() ) {
-	// Remove filters built for legacy `wp_kses()`.
-	$had_pre_kses_less_than        = has_filter( 'pre_kses', 'wp_pre_kses_less_than' );
-	$had_pre_kses_block_attributes = has_filter( 'pre_kses', 'wp_pre_kses_block_attributes' );
-
-	if ( $had_pre_kses_less_than ) {
-		remove_filter( 'pre_kses', 'wp_pre_kses_less_than' );
-	}
-
-	if ( $had_pre_kses_block_attributes ) {
-		remove_filter( 'pre_kses', 'wp_pre_kses_block_attributes' );
-	}
+	global $wp_kses_operating_mode;
 
 	$allowed_html = is_array( $allowed_html )
 		? $allowed_html
@@ -1023,7 +1029,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 	$content = preg_replace( '/[\x01-\x08\x0B\x0C\x0E-\x1F]/', '', $content );
 
 	// Call legacy pre-kses filters that might have been added by plugins.
-	$content = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
+	$previous_kses_mode     = $wp_kses_operating_mode;
+	$wp_kses_operating_mode = 'html-api';
+	$content                = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
+	$wp_kses_operating_mode = $previous_kses_mode;
 
 	/*
 	 * The explanation for this call is that “the quoting from `preg_replace(//e)`
@@ -1660,18 +1669,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		}
 	};
 
-	$sanitized = $processor->sanitize();
-
-	// Restore filters built for legacy `wp_kses()`.
-	if ( $had_pre_kses_less_than ) {
-		add_filter( 'pre_kses', 'wp_pre_kses_less_than' );
-	}
-
-	if ( $had_pre_kses_block_attributes ) {
-		add_filter( 'pre_kses', 'wp_pre_kses_block_attributes', 10, 3 );
-	}
-
-	return $sanitized;
+	return $processor->sanitize();
 }
 
 /**
