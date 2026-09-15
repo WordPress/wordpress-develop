@@ -5,6 +5,22 @@
  * @package WordPress
  * @subpackage Theme
  * @since 3.4.0
+ *
+ * @phpstan-type ThemeKey 'Name'|'Version'|'Status'|'Title'|'Author'|'Author Name'|'Author URI'|'Description'|'Template'|'Stylesheet'|'Template Files'|'Stylesheet Files'|'Template Dir'|'Stylesheet Dir'|'Screenshot'|'Tags'|'Theme Root'|'Theme Root URI'|'Parent Theme'
+ * @phpstan-property-read string $name
+ * @phpstan-property-read string $title
+ * @phpstan-property-read string $version
+ * @phpstan-property-read string $parent_theme
+ * @phpstan-property-read string $template_dir
+ * @phpstan-property-read string $stylesheet_dir
+ * @phpstan-property-read string $template
+ * @phpstan-property-read string $stylesheet
+ * @phpstan-property-read string $screenshot
+ * @phpstan-property-read string $description
+ * @phpstan-property-read string $author
+ * @phpstan-property-read list<string> $tags
+ * @phpstan-property-read string $theme_root
+ * @phpstan-property-read string $theme_root_uri
  */
 #[AllowDynamicProperties]
 final class WP_Theme implements ArrayAccess {
@@ -654,6 +670,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 * @return bool
+	 *
+	 * @phpstan-return ($offset is ThemeKey ? true : false)
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetExists( $offset ) {
@@ -696,6 +714,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 * @return mixed
+	 *
+	 * @phpstan-return ($offset is ThemeKey ? mixed : null)
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
