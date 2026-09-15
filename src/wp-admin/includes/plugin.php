@@ -2126,6 +2126,36 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 }
 
 /**
+ * Determines whether the requested admin page is registered.
+ *
+ * This does not check whether the current user has the capability to access
+ * the page, only whether the page itself exists.
+ *
+ * @since 7.2.0
+ *
+ * @global string              $admin_page_parent  The parent slug of the current admin page.
+ * @global string              $plugin_page        The plugin page slug being loaded.
+ * @global array<string, true> $_registered_pages  Array of all registered admin page hooks.
+ *
+ * @return bool True if the admin page exists, false otherwise.
+ */
+function wp_admin_page_exists() {
+	global $admin_page_parent, $plugin_page, $_registered_pages;
+
+	$admin_page_parent ??= get_admin_page_parent();
+
+	if ( isset( $plugin_page ) ) {
+		$hookname = get_plugin_page_hookname( $plugin_page, $admin_page_parent );
+
+		if ( ! isset( $_registered_pages[ $hookname ] ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * Gets the hook name for the administrative page of a plugin.
  *
  * @since 1.5.0
@@ -2170,14 +2200,15 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  * @global array  $_wp_submenu_nopriv
  * @global string $plugin_page
  * @global array  $_registered_pages
+ * @global string $admin_page_parent
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
 function user_can_access_admin_page() {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
-		$plugin_page, $_registered_pages;
+		$plugin_page, $_registered_pages, $admin_page_parent;
 
-	$parent = get_admin_page_parent();
+	$parent = $admin_page_parent ?? get_admin_page_parent();
 
 	if ( ! isset( $plugin_page ) && isset( $_wp_submenu_nopriv[ $parent ][ $pagenow ] ) ) {
 		return false;
