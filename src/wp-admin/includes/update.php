@@ -642,6 +642,169 @@ function get_theme_updates() {
 }
 
 /**
+ * Gets plugin names for translation updates.
+ *
+ * @since 7.1.0
+ *
+ * @return string[] Plugin names keyed by plugin file, directory, basename, and slug.
+ */
+function wp_get_translation_update_plugin_names() {
+	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+	$plugin_names  = array();
+	$all_plugins   = get_plugins();
+	$plugin_update = get_site_transient( 'update_plugins' );
+
+	if ( is_object( $plugin_update ) ) {
+		$plugin_updates = array();
+
+		if ( ! empty( $plugin_update->response ) && is_array( $plugin_update->response ) ) {
+			$plugin_updates = array_merge( $plugin_updates, $plugin_update->response );
+		}
+
+		if ( ! empty( $plugin_update->no_update ) && is_array( $plugin_update->no_update ) ) {
+			$plugin_updates = array_merge( $plugin_updates, $plugin_update->no_update );
+		}
+
+		foreach ( $plugin_updates as $plugin_file => $plugin_data ) {
+			$plugin_data = (object) $plugin_data;
+
+			if ( ! empty( $plugin_data->slug ) && ! empty( $all_plugins[ $plugin_file ]['Name'] ) ) {
+				$plugin_names[ $plugin_data->slug ] = $all_plugins[ $plugin_file ]['Name'];
+			}
+		}
+	}
+
+	foreach ( $all_plugins as $plugin_file => $plugin_data ) {
+		$plugin_basename = dirname( $plugin_file );
+
+		if ( isset( $plugin_data['Name'] ) ) {
+			$plugin_names[ $plugin_file ]                     = $plugin_data['Name'];
+			$plugin_names[ basename( $plugin_file, '.php' ) ] = $plugin_data['Name'];
+
+			if ( '.' !== $plugin_basename ) {
+				$plugin_names[ $plugin_basename ] = $plugin_data['Name'];
+			}
+		}
+	}
+
+	return $plugin_names;
+}
+
+/**
+ * Gets the display name for a translation update.
+ *
+ * @since 7.1.0
+ *
+ * @param object        $update       Translation update object.
+ * @param string[]|null $plugin_names Optional. Plugin names keyed by plugin file, directory,
+ *                                    basename, and slug. Default null.
+ * @return string The translation update name.
+ */
+function wp_get_translation_update_name( $update, $plugin_names = null ) {
+	$type = isset( $update->type ) ? $update->type : '';
+	$slug = isset( $update->slug ) ? $update->slug : '';
+
+	switch ( $type ) {
+		case 'core':
+			return 'WordPress'; // Not translated.
+
+		case 'theme':
+			$theme = wp_get_theme( $slug );
+			if ( $theme->exists() ) {
+				return $theme->get( 'Name' );
+			}
+			break;
+
+		case 'plugin':
+			if ( null === $plugin_names ) {
+				$plugin_names = wp_get_translation_update_plugin_names();
+			}
+
+			if ( ! empty( $plugin_names[ $slug ] ) ) {
+				return $plugin_names[ $slug ];
+			}
+			break;
+	}
+
+	return $slug;
+}
+
+/**
+ * Gets the display language for a translation update.
+ *
+ * @since 7.1.0
+ *
+ * @param string $locale Translation update locale.
+ * @return string The translation update language.
+ */
+function wp_get_translation_update_language( $locale ) {
+	$translations = get_site_transient( 'available_translations' );
+
+	if ( is_array( $translations ) && ! empty( $translations[ $locale ]['native_name'] ) ) {
+		return sprintf(
+			/* translators: 1: Native language name, 2: Locale. */
+			__( '%1$s (%2$s)' ),
+			$translations[ $locale ]['native_name'],
+			$locale
+		);
+	}
+
+	return $locale;
+}
+
+/**
+ * Gets display data for available translation updates.
+ *
+ * @since 7.1.0
+ *
+ * @return array[] {
+ *     An array of translation update display data.
+ *
+ *     @type bool   $checked       Whether the translation update is selected for installation.
+ *     @type bool   $deferred      Whether the translation update has been deferred.
+ *     @type string $id            Translation update identifier.
+ *     @type string $language      Translation update language.
+ *     @type string $language_code Translation update locale.
+ *     @type string $name          Translation update name.
+ *     @type string $slug          Translation update slug.
+ *     @type string $type          Translation update type.
+ *     @type string $version       Translation update version.
+ * }
+ */
+function wp_get_translation_update_data() {
+	$available_updates            = wp_get_translation_updates();
+	$deferred_translation_updates = wp_get_deferred_translation_updates( $available_updates );
+	$plugin_names                 = null;
+	$translation_updates          = array();
+
+	foreach ( $available_updates as $update ) {
+		$translation_update_id = wp_get_translation_update_id( $update );
+		$language              = isset( $update->language ) ? $update->language : '';
+		$type                  = isset( $update->type ) ? $update->type : '';
+		$deferred              = isset( $deferred_translation_updates[ $translation_update_id ] );
+
+		if ( 'plugin' === $type && null === $plugin_names ) {
+			$plugin_names = wp_get_translation_update_plugin_names();
+		}
+
+		$translation_updates[] = array(
+			'checked'       => ! $deferred,
+			'deferred'      => $deferred,
+			'id'            => $translation_update_id,
+			'language'      => wp_get_translation_update_language( $language ),
+			'language_code' => $language,
+			'name'          => wp_get_translation_update_name( $update, $plugin_names ),
+			'slug'          => isset( $update->slug ) ? $update->slug : '',
+			'type'          => $type,
+			'version'       => isset( $update->version ) ? $update->version : '',
+		);
+	}
+
+	return $translation_updates;
+}
+
+/**
  * Adds a callback to display update information for themes with updates available.
  *
  * @since 3.1.0
