@@ -57,6 +57,8 @@ class Tests_View_Transitions_wpEnqueueViewTransitionsAdminCss extends WP_UnitTes
 	/**
 	 * Tests enqueuing admin view transitions CSS.
 	 *
+	 * @group assets
+	 *
 	 * @ticket 64470
 	 */
 	public function test_wp_enqueue_view_transitions_admin_css() {
