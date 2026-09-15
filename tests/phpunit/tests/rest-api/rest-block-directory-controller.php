@@ -273,7 +273,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		add_filter(
 			'pre_http_request',
 			static function ( $response, $parsed_args, $url ) use ( $blocked_host ) {
-				if ( @parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
+				if ( wp_parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
 					return new WP_Error( 'plugins_api_failed', "An expected error occurred connecting to $blocked_host because of a unit test", "cURL error 7: Failed to connect to $blocked_host port 80: Connection refused" );
 
 				}

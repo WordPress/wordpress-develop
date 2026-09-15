@@ -76,7 +76,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
@@ -100,7 +100,7 @@ jobs:
 
       - name: Install Playwright browsers
         if: ${{ inputs.install-playwright }}
-        run: npx playwright install --with-deps chromium
+        run: npm exec --no -- playwright install chromium
 
       - name: Build WordPress
         run: npm run build
@@ -143,6 +143,10 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+        env:
+          # Chromium is installed above and is the only browser the suite runs. Without this,
+          # `wp-scripts test-playwright` also downloads Firefox and WebKit on every run.
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ inputs.install-playwright && '1' || '' }}
 
       - name: Archive debug artifacts (screenshots, HTML snapshots)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

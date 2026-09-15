@@ -31,7 +31,6 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param array $args Array of arguments for inserting a term.
-	 *
 	 * @return int|WP_Error The term ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
@@ -53,7 +52,6 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int|object $term   The term to update.
 	 * @param array      $fields Array of arguments for updating a term.
-	 *
 	 * @return int|WP_Error The term ID on success, WP_Error object on failure.
 	 */
 	public function update_object( $term, $fields ) {
@@ -99,7 +97,6 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param array $args                   Array or string of arguments for inserting a term.
 	 * @param null  $generation_definitions The default values.
-	 *
 	 * @return WP_Term|WP_Error|null WP_Term on success. WP_Error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
@@ -120,7 +117,6 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param int $term_id ID of the term to retrieve.
-	 *
 	 * @return WP_Term|WP_Error|null WP_Term on success. WP_Error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
 	public function get_object_by_id( $term_id ) {
