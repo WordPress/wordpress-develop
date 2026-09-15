@@ -346,6 +346,43 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-string term name in `terms_names` returns an error instead of causing a fatal error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_terms_names_non_string_term_name
+	 *
+	 * @param mixed $term_name The term name to send.
+	 */
+	public function test_terms_names_non_string_term_name( $term_name ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$post   = array(
+			'post_title'  => 'Test',
+			'terms_names' => array(
+				'post_tag' => array( $term_name ),
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( 'Invalid term name.', $result->message );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{mixed}>
+	 */
+	public function data_terms_names_non_string_term_name(): array {
+		return array(
+			'array'   => array( array( 'foo', 'bar' ) ),
+			'integer' => array( 123 ),
+		);
+	}
+
+	/**
 	 * @ticket 28601
 	 */
 	public function test_invalid_post_date_does_not_fatal() {
