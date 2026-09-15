@@ -6255,7 +6255,7 @@ EOF;
 		wp_generate_attachment_metadata( $attachment_id, $file );
 
 		// Clean up the filter.
-		remove_filter( 'wp_editor_set_quality', array( $this, 'assert_dimensions_in_wp_editor_set_quality' ), 10, 3 );
+		remove_filter( 'wp_editor_set_quality', array( $this, 'assert_dimensions_in_wp_editor_set_quality' ) );
 	}
 
 	/**
