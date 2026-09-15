@@ -2557,6 +2557,9 @@ function wp_filter_out_block_nodes( $nodes ) {
  * @since 5.8.0
  */
 function wp_enqueue_global_styles() {
+	static $should_enqueue            = true;
+	static $deferred_check_registered = false;
+
 	$assets_on_demand = wp_should_load_block_assets_on_demand();
 	$is_block_theme   = wp_is_block_theme();
 	$is_classic_theme = ! $is_block_theme;
@@ -2587,14 +2590,67 @@ function wp_enqueue_global_styles() {
 	 * HEAD, replacing the placeholder.
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/64099
+	 * @link https://core.trac.wordpress.org/ticket/65336
 	 */
 	if ( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $assets_on_demand ) {
+		$should_enqueue = true;
+
+		/*
+		 * Queue the handle early so themes and plugins can dequeue it during wp_enqueue_scripts, even though the
+		 * stylesheet itself is not generated until wp_footer.
+		 */
+		wp_enqueue_style( 'global-styles' );
+
+		if ( ! $deferred_check_registered ) {
+			$deferred_check_registered = true;
+			add_action(
+				'wp_enqueue_scripts',
+				static function () use ( &$should_enqueue ) {
+					if ( false === has_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' ) ) {
+						$should_enqueue = false;
+						return;
+					}
+
+					if ( wp_style_is( 'global-styles', 'registered' ) ) {
+						$should_enqueue = wp_style_is( 'global-styles', 'enqueued' );
+						return;
+					}
+
+					/*
+					 * The handle was queued before registration. Attempt registration so its enqueue state reflects
+					 * whether it was dequeued during wp_enqueue_scripts.
+					 */
+					wp_register_style( 'global-styles', false );
+
+					if ( wp_style_is( 'global-styles', 'enqueued' ) ) {
+						wp_dequeue_style( 'global-styles' );
+						wp_deregister_style( 'global-styles' );
+						$should_enqueue = true;
+					} else {
+						wp_deregister_style( 'global-styles' );
+						$should_enqueue = false;
+					}
+				},
+				PHP_INT_MAX
+			);
+		}
+
 		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
 			wp_register_style( 'wp-global-styles-placeholder', false );
 			wp_add_inline_style( 'wp-global-styles-placeholder', ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer." }' );
 			wp_enqueue_style( 'wp-global-styles-placeholder' );
 		}
 		return;
+	}
+
+	/*
+	 * When loading block assets on demand in classic themes, global styles are generated in the footer. Respect
+	 * opt-outs that removed the wp_enqueue_scripts callback or dequeued the handle during wp_enqueue_scripts.
+	 */
+	if ( doing_action( 'wp_footer' ) && $is_classic_theme && $assets_on_demand ) {
+		if ( false === has_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' ) || ! $should_enqueue ) {
+			return;
+		}
 	}
 
 	/*
