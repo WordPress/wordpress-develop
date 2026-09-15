@@ -656,9 +656,6 @@ li#wp-admin-bar-menu-toggle {
 	.auto-fold #wpfooter {
 		position: relative;
 		margin-left: 0;
-	}
-
-	.auto-fold #wpcontent {
 		padding-left: 10px;
 	}
 
