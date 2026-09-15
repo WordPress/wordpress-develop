@@ -287,6 +287,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Logs user in.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Non-scalar credentials are treated as a failed login.
 	 *
 	 * @param string $username User's username.
 	 * @param string $password User's password.
@@ -304,6 +305,9 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		if ( $this->auth_failed ) {
 			$user = new WP_Error( 'login_prevented' );
+		} elseif ( ! is_scalar( $username ) || ! is_scalar( $password ) ) {
+			// A request can supply an array or object, which wp_authenticate() cannot handle.
+			$user = new WP_Error( 'invalid_credentials' );
 		} else {
 			$user = wp_authenticate( $username, $password );
 		}
