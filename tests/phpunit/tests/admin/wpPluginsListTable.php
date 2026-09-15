@@ -337,4 +337,155 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 
 		return $plugins_list;
 	}
+
+	/**
+	 * Tests that the Installed Plugins search matches the translated plugin
+	 * data shown in the list table, not only the original (untranslated) headers.
+	 *
+	 * The list table displays translated plugin names, but the search used to
+	 * filter against the raw plugin headers only, so searching by the displayed
+	 * (translated) name returned no results.
+	 *
+	 * @ticket 64188
+	 *
+	 * @covers WP_Plugins_List_Table::prepare_items
+	 * @covers WP_Plugins_List_Table::_search_callback
+	 */
+	public function test_search_matches_translated_plugin_data() {
+		global $status, $s;
+
+		wp_set_current_user( self::$admin_id );
+
+		$old_status = $status;
+		$status     = 'all';
+
+		// The search term only appears in the translated name, not the raw header.
+		$s = 'Wtyczka';
+
+		add_filter( 'all_plugins', array( $this, 'inject_translatable_plugin' ) );
+		add_filter( 'gettext', array( $this, 'filter_translate_plugin_name' ), 10, 3 );
+
+		$this->table->prepare_items();
+		$items = $this->table->items;
+
+		remove_filter( 'gettext', array( $this, 'filter_translate_plugin_name' ), 10 );
+		remove_filter( 'all_plugins', array( $this, 'inject_translatable_plugin' ) );
+
+		$status = $old_status;
+
+		$this->assertArrayHasKey(
+			'fake-translated-plugin/fake-translated-plugin.php',
+			$items,
+			'The plugin should be found when searching by its translated name.'
+		);
+	}
+
+	/**
+	 * Tests that the Installed Plugins search still matches the original
+	 * (untranslated) plugin headers, and does not match unrelated terms.
+	 *
+	 * @ticket 64188
+	 *
+	 * @covers WP_Plugins_List_Table::prepare_items
+	 * @covers WP_Plugins_List_Table::_search_callback
+	 *
+	 * @dataProvider data_search_terms_against_translatable_plugin
+	 *
+	 * @param string $search_term The value of the `$s` search global.
+	 * @param bool   $should_match Whether the injected plugin should be in the results.
+	 */
+	public function test_search_against_original_plugin_data( $search_term, $should_match ) {
+		global $status, $s;
+
+		wp_set_current_user( self::$admin_id );
+
+		$old_status = $status;
+		$status     = 'all';
+		$s          = $search_term;
+
+		add_filter( 'all_plugins', array( $this, 'inject_translatable_plugin' ) );
+		add_filter( 'gettext', array( $this, 'filter_translate_plugin_name' ), 10, 3 );
+
+		$this->table->prepare_items();
+		$items = $this->table->items;
+
+		remove_filter( 'gettext', array( $this, 'filter_translate_plugin_name' ), 10 );
+		remove_filter( 'all_plugins', array( $this, 'inject_translatable_plugin' ) );
+
+		$status = $old_status;
+
+		if ( $should_match ) {
+			$this->assertArrayHasKey(
+				'fake-translated-plugin/fake-translated-plugin.php',
+				$items,
+				"The plugin should be found when searching for '{$search_term}'."
+			);
+		} else {
+			$this->assertArrayNotHasKey(
+				'fake-translated-plugin/fake-translated-plugin.php',
+				$items,
+				"The plugin should not be found when searching for '{$search_term}'."
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_search_terms_against_translatable_plugin() {
+		return array(
+			'original (untranslated) name'    => array( 'Fake Translated Plugin', true ),
+			'translated name'                 => array( 'Wtyczka', true ),
+			'original name, different case'   => array( 'fake translated plugin', true ),
+			'translated name, different case' => array( 'wtyczka', true ),
+			'translated name, upper case'     => array( 'WTYCZKA', true ),
+			'unrelated term'                  => array( 'NoSuchPluginNameHere', false ),
+		);
+	}
+
+	/**
+	 * Injects a plugin whose translated name differs from its file header name.
+	 *
+	 * Used as a callback for the 'all_plugins' hook.
+	 *
+	 * @param array $all_plugins Array of plugin data keyed by plugin file.
+	 * @return array
+	 */
+	public function inject_translatable_plugin( $all_plugins ) {
+		$all_plugins['fake-translated-plugin/fake-translated-plugin.php'] = array(
+			'Name'        => 'Fake Translated Plugin',
+			'PluginURI'   => 'https://wordpress.org/',
+			'Version'     => '1.0.0',
+			'Description' => 'A fake plugin for testing translated search.',
+			'Author'      => 'WordPress',
+			'AuthorURI'   => 'https://wordpress.org/',
+			'TextDomain'  => 'fake-translated-plugin',
+			'DomainPath'  => '',
+			'Network'     => false,
+			'Title'       => 'Fake Translated Plugin',
+			'AuthorName'  => 'WordPress',
+		);
+
+		return $all_plugins;
+	}
+
+	/**
+	 * Simulates a translation of the fake plugin's name, as a loaded .mo file would.
+	 *
+	 * Used as a callback for the 'gettext' hook.
+	 *
+	 * @param string $translation Translated text.
+	 * @param string $text        Text to translate.
+	 * @param string $domain      Text domain.
+	 * @return string
+	 */
+	public function filter_translate_plugin_name( $translation, $text, $domain ) {
+		if ( 'fake-translated-plugin' === $domain && 'Fake Translated Plugin' === $text ) {
+			return 'Wtyczka testowa';
+		}
+
+		return $translation;
+	}
 }
