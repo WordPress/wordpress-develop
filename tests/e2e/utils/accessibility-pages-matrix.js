@@ -209,6 +209,27 @@ const pages = [
 		path: '/font-library.php?p=%2Ffont-list',
 		name: 'Fonts',
 		waitInterval: true,
+		stateVariants: [
+			{
+				name: 'default',
+			},
+			{
+				name: 'fonts-upload-tab',
+				setup: async ( page ) => {
+					const uploadTab = page.getByRole( 'tab', { name: 'Upload' } );
+					await uploadTab.click();
+					await page.getByRole( 'tabpanel', { name: 'Upload' } ).isVisible();
+				},
+			},
+			{
+				name: 'fonts-install-fonts-tab',
+				setup: async ( page ) => {
+					const installFontsTab = page.getByRole( 'tab', { name: 'Install Fonts' } );
+					await installFontsTab.click();
+					await page.getByRole( 'tabpanel', { name: 'Install Fonts' } ).isVisible();
+				},
+			},
+		],
 	},
 
 	// Plugins.
