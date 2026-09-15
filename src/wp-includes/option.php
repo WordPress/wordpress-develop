@@ -808,6 +808,44 @@ function wp_load_core_site_options( $network_id = null ) {
 }
 
 /**
+ * Marks or consumes the internal flag that tracks a pre-sanitized option value.
+ *
+ * When update_option() finds that an option does not exist yet, it sanitizes the value
+ * before delegating to add_option(). This function carries that fact across the two calls
+ * so the value is not passed through sanitize_option() a second time.
+ *
+ * The flag lives in a function-scoped static rather than in a global, so it cannot be read
+ * or written through `$GLOBALS`. Consuming the flag always clears it, so a value set for
+ * one delegation cannot survive into an unrelated add_option() call.
+ *
+ * This is an internal function and is not part of the public API.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param bool|null $set Optional. True to mark the value passed to the next add_option()
+ *                       call as already sanitized. Default null, which consumes and clears
+ *                       the flag.
+ * @return bool The flag value in effect for this call. When `$set` is passed, this is the
+ *              value now in effect; otherwise it is the previous value, which has just been
+ *              cleared.
+ */
+function wp_sanitize_option_pre_sanitized( $set = null ) {
+	static $pre_sanitized = false;
+
+	if ( null !== $set ) {
+		$pre_sanitized = (bool) $set;
+
+		return $pre_sanitized;
+	}
+
+	$consumed      = $pre_sanitized;
+	$pre_sanitized = false;
+
+	return $consumed;
+}
+
+/**
  * Updates the value of an option that was already added.
  *
  * You do not need to serialize values. If the value needs to be serialized,
@@ -926,6 +964,10 @@ function update_option( $option, $value, $autoload = null ) {
 
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
+		// The value has already been sanitized above. Signal that so
+		// add_option() does not sanitize it a second time.
+		// See https://core.trac.wordpress.org/ticket/21989.
+		wp_sanitize_option_pre_sanitized( true );
 		return add_option( $option, $value, '', $autoload );
 	}
 
@@ -1069,6 +1111,14 @@ function update_option( $option, $value, $autoload = null ) {
 function add_option( $option, $value = '', $deprecated = '', $autoload = null ) {
 	global $wpdb;
 
+	/*
+	 * Consume the flag set by update_option() when it delegates here, so a value that was
+	 * already sanitized is not sanitized a second time. Consuming happens before any of the
+	 * early returns below, so the flag cannot leak into a later add_option() call.
+	 * See https://core.trac.wordpress.org/ticket/21989.
+	 */
+	$pre_sanitized = wp_sanitize_option_pre_sanitized();
+
 	if ( ! empty( $deprecated ) ) {
 		_deprecated_argument( __FUNCTION__, '2.3.0' );
 	}
@@ -1110,7 +1160,9 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 		$value = clone $value;
 	}
 
-	$value = sanitize_option( $option, $value );
+	if ( ! $pre_sanitized ) {
+		$value = sanitize_option( $option, $value );
+	}
 
 	/*
 	 * Make sure the option doesn't already exist.
