@@ -83,6 +83,72 @@ concurrency:
 permissions: {}
 
 jobs:
+  # Reduce PR testing only when every changed file is an audited Core CSS or JS asset.
+  select-test-coverage:
+    name: Select PHPUnit coverage
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
+    outputs:
+      assets-only: ${{ steps.select.outputs.assets-only }}
+    steps:
+      - name: Checkout the PR merge commit
+        if: github.event_name == 'pull_request' && ! contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' )
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Select test coverage
+        id: select
+        env:
+          CHECK_ASSETS: ${{ github.event_name == 'pull_request' && ! contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) }}
+        run: |
+          assets_only=false
+          if [[ "$CHECK_ASSETS" == 'true' ]]; then
+            # Compare the tested merge result with its base parent. Include both paths of a rename.
+            changed_files="$RUNNER_TEMP/phpunit-changed-files"
+            if git diff --no-renames --name-only -z HEAD^1 HEAD > "$changed_files" && [[ -s "$changed_files" ]]; then
+              assets_only=true
+              while IFS= read -r -d '' file; do
+                case "$file" in
+                  src/js/*.js|src/js/*.css|src/wp-admin/css/*.css|src/wp-admin/js/*.js|src/wp-includes/css/*.css|src/wp-includes/js/*.js|src/wp-includes/js/*.css|src/wp-includes/build/*.js|src/wp-includes/build/*.css)
+                    ;;
+                  *)
+                    assets_only=false
+                    break
+                    ;;
+                esac
+              done < "$changed_files"
+            fi
+          fi
+          echo "assets-only=$assets_only" >> "$GITHUB_OUTPUT"
+
+  # One configuration keeps asset-dependent PHP tests visible on Core CSS/JS-only PRs.
+  test-assets:
+    name: Core assets
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: [ select-test-coverage, prepare-gutenberg ]
+    permissions:
+      contents: read
+    if: needs.select-test-coverage.outputs.assets-only == 'true'
+    with:
+      php: '8.3'
+      db-type: 'mysql'
+      db-version: '8.4'
+      phpunit-test-groups: 'assets'
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
   prepare-gutenberg:
     name: Prepare Gutenberg Assets
@@ -108,7 +174,7 @@ jobs:
   test-with-mysql:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
@@ -116,6 +182,7 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -202,13 +269,14 @@ jobs:
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -270,13 +338,14 @@ jobs:
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -326,13 +395,14 @@ jobs:
   html-api-test-groups:
     name: ${{ matrix.label }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -369,13 +439,14 @@ jobs:
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       ! startsWith( github.repository, 'WordPress/' ) &&
       github.event_name == 'pull_request' && (
         ! github.event.repository.private ||
@@ -436,10 +507,11 @@ jobs:
   pre-release-php-8-6:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -479,7 +551,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ prepare-gutenberg, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks, pre-release-php-8-6 ]
+    needs: [ select-test-coverage, prepare-gutenberg, test-assets, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks, pre-release-php-8-6 ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
