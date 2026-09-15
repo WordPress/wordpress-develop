@@ -4721,6 +4721,26 @@ function wp_ajax_update_plugin() {
 			$status['newVersion'] = sprintf( __( 'Version %s' ), $plugin_data['Version'] );
 		}
 
+		$pagenow = isset( $_POST['pagenow'] ) ? sanitize_key( $_POST['pagenow'] ) : '';
+
+		// If update request is coming from import page, do not return network activation link.
+		$plugins_url = ( 'import' === $pagenow ) ? admin_url( 'plugins.php' ) : network_admin_url( 'plugins.php' );
+
+		if ( current_user_can( 'activate_plugin', $plugin ) && is_plugin_inactive( $plugin ) ) {
+			$status['activateUrl'] = add_query_arg(
+				array(
+					'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $plugin ),
+					'action'   => 'activate',
+					'plugin'   => $plugin,
+				),
+				$plugins_url
+			);
+
+			if ( is_multisite() && current_user_can( 'manage_network_plugins' ) && 'import' !== $pagenow ) {
+				$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
+			}
+		}
+
 		wp_send_json_success( $status );
 	} elseif ( false === $result ) {
 		global $wp_filesystem;

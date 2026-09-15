@@ -612,6 +612,14 @@
 		}
 
 		$document.trigger( 'wp-plugin-update-success', response );
+
+		if ( response.activateUrl ) {
+			setTimeout( function() {
+				wp.updates.checkPluginDependencies( {
+					slug: response.slug
+				} );
+			}, 1000 );
+		}
 	};
 
 	/**
@@ -954,12 +962,12 @@
 	 * @param {string} response.activateUrl URL to activate the just checked plugin.
 	 */
 	wp.updates.checkPluginDependenciesSuccess = function( response ) {
-		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now, .update-now' ),
 			buttonText, ariaLabel;
 
-		// Transform the 'Install' button into an 'Activate' button.
+		// Transform the 'Install' or 'Update' button into an 'Activate' button.
 		$message
-			.removeClass( 'install-now installed button-disabled updated-message' )
+			.removeClass( 'install-now update-now installed button-disabled updated-message' )
 			.addClass( 'activate-now button-primary' )
 			.attr( 'href', response.activateUrl );
 
@@ -998,7 +1006,7 @@
 				{
 					status: 'dependencies-check-success',
 					slug: response.slug,
-					removeClasses: 'install-now installed button-disabled updated-message',
+					removeClasses: 'install-now update-now installed button-disabled updated-message',
 					addClasses: 'activate-now button-primary',
 					text: buttonText,
 					ariaLabel: ariaLabel,
@@ -1022,7 +1030,7 @@
 	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.checkPluginDependenciesError = function( response ) {
-		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now, .update-now' ),
 			buttonText = _x( 'Activate', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: 1: Plugin name, 2. The reason the plugin cannot be activated. */
@@ -1046,7 +1054,7 @@
 		$document.trigger( 'wp-check-plugin-dependencies-error', response );
 
 		$message
-			.removeClass( 'install-now installed updated-message' )
+			.removeClass( 'install-now update-now installed updated-message' )
 			.addClass( 'activate-now button-primary' )
 			.attr( 'aria-label', ariaLabel )
 			.text( buttonText );
@@ -1056,7 +1064,7 @@
 				{
 					status: 'dependencies-check-failed',
 					slug: response.slug,
-					removeClasses: 'install-now installed updated-message',
+					removeClasses: 'install-now update-now installed updated-message',
 					addClasses: 'activate-now button-primary',
 					text: buttonText,
 					ariaLabel: ariaLabel
