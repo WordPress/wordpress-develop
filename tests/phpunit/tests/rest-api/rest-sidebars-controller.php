@@ -45,6 +45,9 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$author_id );
+
+		// Rebuild the default widgets after the class clears the shared factory.
+		wp_widgets_init();
 	}
 
 	public function set_up() {
@@ -53,20 +56,22 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$admin_id );
 
 		// Unregister all widgets and sidebars.
-		global $wp_registered_sidebars, $_wp_sidebars_widgets;
+		global $wp_registered_sidebars, $_wp_sidebars_widgets, $sidebars_widgets;
 		$wp_registered_sidebars = array();
 		$_wp_sidebars_widgets   = array();
+		$sidebars_widgets       = array();
 		update_option( 'sidebars_widgets', array() );
 	}
 
 	public function clean_up_global_scope() {
-		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
+		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates, $sidebars_widgets;
 
 		$wp_registered_sidebars        = array();
 		$wp_registered_widgets         = array();
 		$wp_registered_widget_controls = array();
 		$wp_registered_widget_updates  = array();
 		$wp_widget_factory->widgets    = array();
+		$sidebars_widgets              = array();
 
 		parent::clean_up_global_scope();
 	}
@@ -85,12 +90,15 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	private function setup_sidebar( $id, $attrs = array(), $widgets = array() ) {
-		global $wp_registered_sidebars;
+		global $wp_registered_sidebars, $sidebars_widgets;
+		$sidebars_widgets = array();
+		if ( empty( $widgets ) ) {
+			$sidebars_widgets['wp_inactive_widgets'] = array();
+		}
+		$sidebars_widgets[ $id ] = $widgets;
 		update_option(
 			'sidebars_widgets',
-			array(
-				$id => $widgets,
-			)
+			$sidebars_widgets
 		);
 		$wp_registered_sidebars[ $id ] = array_merge(
 			array(
@@ -109,6 +117,13 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 				$wp_registered_widget['callback'][0]->_register();
 			}
 		}
+	}
+
+	private function register_new_sidebar( $args ) {
+		global $sidebars_widgets;
+		$sidebars_widgets = array( 'wp_inactive_widgets' => array() );
+
+		register_sidebar( $args );
 	}
 
 	/**
@@ -398,7 +413,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 53489
 	 */
 	public function test_get_items_when_registering_new_sidebars() {
-		register_sidebar(
+		$this->register_new_sidebar(
 			array(
 				'name'          => 'New Sidebar',
 				'id'            => 'new-sidebar',
@@ -448,7 +463,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 53646
 	 */
 	public function test_get_items_when_descriptions_have_markup() {
-		register_sidebar(
+		$this->register_new_sidebar(
 			array(
 				'name'          => 'New Sidebar',
 				'id'            => 'new-sidebar',
