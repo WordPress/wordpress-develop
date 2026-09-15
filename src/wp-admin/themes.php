@@ -366,7 +366,7 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 	);
 
 	foreach ( (array) $submenu['themes.php'] as $item ) {
-		$class = '';
+		$classes = array( 'button', 'button-compact' );
 
 		if ( in_array( $item[2], $forbidden_paths, true ) || str_starts_with( $item[2], 'customize.php' ) ) {
 			continue;
@@ -376,7 +376,7 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 		if ( 0 === strcmp( $self, $item[2] ) && empty( $parent_file )
 			|| $parent_file && $item[2] === $parent_file
 		) {
-			$class = ' current';
+			$classes[] = 'current';
 		}
 
 		if ( ! empty( $submenu[ $item[2] ] ) ) {
@@ -384,18 +384,39 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 			$menu_hook           = get_plugin_page_hook( $submenu[ $item[2] ][0][2], $item[2] );
 
 			if ( file_exists( WP_PLUGIN_DIR . "/{$submenu[$item[2]][0][2]}" ) || ! empty( $menu_hook ) ) {
-				$current_theme_actions[] = "<a class='button button-compact$class' href='admin.php?page={$submenu[$item[2]][0][2]}'>{$item[0]}</a>";
+				$url = admin_url( "admin.php?page={$submenu[$item[2]][0][2]}" );
 			} else {
-				$current_theme_actions[] = "<a class='button button-compact$class' href='{$submenu[$item[2]][0][2]}'>{$item[0]}</a>";
+				$url = admin_url( $submenu[ $item[2] ][0][2] );
 			}
+
+			$current_theme_actions[] = sprintf(
+				'<a class="%s" href="%s">%s</a>',
+				esc_attr( implode( ' ', $classes ) ),
+				esc_url( $url ),
+				esc_html( $item[0] )
+			);
 		} elseif ( ! empty( $item[2] ) && current_user_can( $item[1] ) ) {
 			$menu_file = $item[2];
 
 			if ( current_user_can( 'customize' ) ) {
 				if ( 'custom-header' === $menu_file ) {
-					$current_theme_actions[] = "<a class='button button-compact hide-if-no-customize$class' href='customize.php?autofocus[control]=header_image'>{$item[0]}</a>";
+					$customize_url = add_query_arg( array( 'autofocus' => array( 'control' => 'header_image' ) ), 'customize.php' );
+
+					$current_theme_actions[] = sprintf(
+						'<a class="%s" href="%s">%s</a>',
+						esc_attr( implode( ' ', array_merge( $classes, array( 'hide-if-no-customize' ) ) ) ),
+						esc_url( admin_url( $customize_url ) ),
+						esc_html( $item[0] )
+					);
 				} elseif ( 'custom-background' === $menu_file ) {
-					$current_theme_actions[] = "<a class='button button-compact hide-if-no-customize$class' href='customize.php?autofocus[control]=background_image'>{$item[0]}</a>";
+					$customize_url = add_query_arg( array( 'autofocus' => array( 'control' => 'background_image' ) ), 'customize.php' );
+
+					$current_theme_actions[] = sprintf(
+						'<a class="%s" href="%s">%s</a>',
+						esc_attr( implode( ' ', array_merge( $classes, array( 'hide-if-no-customize' ) ) ) ),
+						esc_url( admin_url( $customize_url ) ),
+						esc_html( $item[0] )
+					);
 				}
 			}
 
@@ -405,10 +426,17 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 			}
 
 			if ( file_exists( ABSPATH . "wp-admin/$menu_file" ) ) {
-				$current_theme_actions[] = "<a class='button button-compact$class' href='{$item[2]}'>{$item[0]}</a>";
+				$url = admin_url( $item[2] );
 			} else {
-				$current_theme_actions[] = "<a class='button button-compact$class' href='themes.php?page={$item[2]}'>{$item[0]}</a>";
+				$url = admin_url( "themes.php?page={$item[2]}" );
 			}
+
+			$current_theme_actions[] = sprintf(
+				'<a class="%s" href="%s">%s</a>',
+				esc_attr( implode( ' ', $classes ) ),
+				esc_url( $url ),
+				esc_html( $item[0] )
+			);
 		}
 	}
 }
