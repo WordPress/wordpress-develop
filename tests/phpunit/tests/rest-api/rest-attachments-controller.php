@@ -811,7 +811,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request        = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'status', 'private' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 401 );
 		// Properly authorized users can make the request.
 		wp_set_current_user( self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
@@ -844,7 +844,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request        = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'status', array( 'private', 'trash' ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 401 );
 		// Properly authorized users can make the request.
 		wp_set_current_user( self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );

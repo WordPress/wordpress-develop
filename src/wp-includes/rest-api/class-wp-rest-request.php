@@ -868,7 +868,10 @@ class WP_REST_Request implements ArrayAccess {
 				$sanitized_value = call_user_func( $param_args['sanitize_callback'], $value, $this, $key );
 
 				if ( is_wp_error( $sanitized_value ) ) {
-					$invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
+					$invalid_params[ $key ] = implode( ' ', $sanitized_value->get_error_messages() );
+
+					$error_data              = $sanitized_value->get_error_data();
+					$error_code              = $error_data['status'] ?? 400;
 					$invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
 				} else {
 					$this->params[ $type ][ $key ] = $sanitized_value;
@@ -882,7 +885,7 @@ class WP_REST_Request implements ArrayAccess {
 				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
 				array(
-					'status'  => 400,
+					'status'  => $error_code,
 					'params'  => $invalid_params,
 					'details' => $invalid_details,
 				)
