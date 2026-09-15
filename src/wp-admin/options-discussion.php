@@ -238,13 +238,13 @@ if ( ! $show_avatars ) {
 <?php
 $ratings = array(
 	/* translators: Content suitability rating: https://en.wikipedia.org/wiki/Motion_Picture_Association_of_America_film_rating_system */
-	'G'  => __( 'G &#8212; Suitable for all audiences' ),
+	'G'  => __( 'G &mdash; Suitable for all audiences' ),
 	/* translators: Content suitability rating: https://en.wikipedia.org/wiki/Motion_Picture_Association_of_America_film_rating_system */
-	'PG' => __( 'PG &#8212; Possibly offensive, usually for audiences 13 and above' ),
+	'PG' => __( 'PG &mdash; Possibly offensive, usually for audiences 13 and above' ),
 	/* translators: Content suitability rating: https://en.wikipedia.org/wiki/Motion_Picture_Association_of_America_film_rating_system */
-	'R'  => __( 'R &#8212; Intended for adult audiences above 17' ),
+	'R'  => __( 'R &mdash; Intended for adult audiences above 17' ),
 	/* translators: Content suitability rating: https://en.wikipedia.org/wiki/Motion_Picture_Association_of_America_film_rating_system */
-	'X'  => __( 'X &#8212; Even more mature than above' ),
+	'X'  => __( 'X &mdash; Even more mature than above' ),
 );
 foreach ( $ratings as $key => $rating ) :
 	$selected = ( get_option( 'avatar_rating' ) === $key ) ? 'checked="checked"' : '';
