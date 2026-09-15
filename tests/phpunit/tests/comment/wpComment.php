@@ -247,4 +247,25 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 		$this->assertFalse( $is_set, 'Expected __isset() to return false for an unattached comment.' );
 		$this->assertNull( $title, 'Expected __get() not to read the field from the global post.' );
 	}
+
+	/**
+	 * Tests that a cache miss is not stored while cache addition is suspended.
+	 *
+	 * @ticket 66006
+	 */
+	public function test_get_instance_does_not_cache_a_miss_while_cache_addition_is_suspended(): void {
+		clean_comment_cache( self::$comment_id );
+		$this->assertFalse( wp_cache_get( self::$comment_id, 'comment' ), 'The comment was cached before the test began.' );
+
+		$suspend = wp_suspend_cache_addition();
+		wp_suspend_cache_addition( true );
+
+		$comment = WP_Comment::get_instance( self::$comment_id );
+
+		wp_suspend_cache_addition( $suspend );
+
+		$this->assertInstanceOf( WP_Comment::class, $comment, 'A comment object was not returned.' );
+		$this->assertSame( self::$comment_id, (int) $comment->comment_ID, 'The wrong comment was returned.' );
+		$this->assertFalse( wp_cache_get( self::$comment_id, 'comment' ), 'The comment was added to the cache.' );
+	}
 }
