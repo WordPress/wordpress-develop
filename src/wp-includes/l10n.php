@@ -1735,7 +1735,7 @@ function wp_get_l10n_php_file_data( $php_file ) {
  *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explicit value of en_US
  *                                                  instead of an empty value. Default false.
  * }
- * @return string HTML dropdown list of languages.
+ * @return string|void HTML dropdown list of languages.
  */
 function wp_dropdown_languages( $args = array() ) {
 
@@ -1993,7 +1993,6 @@ function is_locale_switched() {
  * @param string|string[]|array[]|object $i18n_schema I18n schema for the setting.
  * @param string|string[]|array[]        $settings    Value for the settings.
  * @param string                         $textdomain  Textdomain to use with translations.
- *
  * @return string|string[]|array[] Translated settings.
  */
 function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdomain ) {
