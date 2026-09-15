@@ -12,6 +12,8 @@
  * @since 2.0.0
  *
  * @return int The link ID on success. The value 0 on failure.
+ *
+ * @phpstan-return int<0, max>
  */
 function add_link() {
 	return edit_link();
@@ -24,6 +26,8 @@ function add_link() {
  *
  * @param int $link_id Optional. ID of the link to edit. Default 0.
  * @return int The link ID on success. The value 0 on failure.
+ *
+ * @phpstan-return int<0, max>
  */
 function edit_link( $link_id = 0 ) {
 	if ( ! current_user_can( 'manage_links' ) ) {
@@ -56,6 +60,9 @@ function edit_link( $link_id = 0 ) {
  * @since 2.0.0
  *
  * @return stdClass Default link object.
+ *
+ * @phpstan-impure
+ * @phpstan-return object{link_url: string, link_name: string, link_visible: 'Y'}&stdClass
  */
 function get_default_link_to_edit() {
 	$link = new stdClass();
@@ -122,6 +129,8 @@ function wp_delete_link( $link_id ) {
  *
  * @param int $link_id Link ID to look up.
  * @return int[] The IDs of the requested link's categories.
+ *
+ * @phpstan-return ($link_id is empty ? array{} : array<int, int<1, max>>)
  */
 function wp_get_link_cats( $link_id = 0 ) {
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );
@@ -170,6 +179,8 @@ function get_link_to_edit( $link ) {
  * }
  * @param bool  $wp_error Optional. Whether to return a WP_Error object on failure. Default false.
  * @return int|WP_Error The link ID on success. The value 0 or WP_Error on failure.
+ *
+ * @phpstan-return ($wp_error is false ? int<0, max> : int<0, max>|WP_Error)
  */
 function wp_insert_link( $linkdata, $wp_error = false ) {
 	global $wpdb;
@@ -296,6 +307,8 @@ function wp_set_link_cats( $link_id = 0, $link_categories = array() ) {
  *
  * @param array $linkdata Link data to update. See wp_insert_link() for accepted arguments.
  * @return int The updated link ID on success. The value 0 on failure.
+ *
+ * @phpstan-return int<0, max>
  */
 function wp_update_link( $linkdata ) {
 	$link_id = (int) $linkdata['link_id'];
