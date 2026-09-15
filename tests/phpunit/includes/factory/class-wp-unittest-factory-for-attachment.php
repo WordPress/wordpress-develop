@@ -60,8 +60,18 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 * @return int|WP_Error The attachment ID on success, WP_Error object on failure.
 	 */
 	public function create_upload_object( $file, $parent_post_id = 0 ) {
-		$contents = file_get_contents( $file );
-		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );
+		$contents      = file_get_contents( $file );
+		$upload_dir    = wp_upload_dir();
+		$file_basename = wp_basename( $file );
+		$file_path     = $upload_dir['path'] . '/' . $file_basename;
+		if ( ! file_exists( $file_path ) ) {
+			$upload = wp_upload_bits( $file_basename, null, $contents );
+		} else {
+			$upload = array(
+				'file' => $file_path,
+				'url'  => $upload_dir['url'] . '/' . $file_basename,
+			);
+		}
 
 		$type = '';
 		if ( ! empty( $upload['type'] ) ) {
