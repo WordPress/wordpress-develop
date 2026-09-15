@@ -1495,6 +1495,9 @@ class WP_Debug_Data {
 	 * Gets the WordPress constants section of the debug data.
 	 *
 	 * @since 6.7.0
+	 * @since 7.2.0 Removed the `COMPRESS_SCRIPTS` and `COMPRESS_CSS` constants, which no longer have
+	 *              any practical effect on most hosts and are being phased out along with the rest of
+	 *              the wp-admin script/style concatenation feature.
 	 *
 	 * @return array<string, string|array> The WordPress constants debug data.
 	 */
@@ -1514,24 +1517,6 @@ class WP_Debug_Data {
 		} else {
 			$concatenate_scripts       = __( 'Undefined' );
 			$concatenate_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_SCRIPTS.
-		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
-			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
-		} else {
-			$compress_scripts       = __( 'Undefined' );
-			$compress_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_CSS.
-		if ( defined( 'COMPRESS_CSS' ) ) {
-			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
-		} else {
-			$compress_css       = __( 'Undefined' );
-			$compress_css_debug = 'undefined';
 		}
 
 		// Check WP_ENVIRONMENT_TYPE.
@@ -1613,16 +1598,6 @@ class WP_Debug_Data {
 				'label' => 'CONCATENATE_SCRIPTS',
 				'value' => $concatenate_scripts,
 				'debug' => $concatenate_scripts_debug,
-			),
-			'COMPRESS_SCRIPTS'    => array(
-				'label' => 'COMPRESS_SCRIPTS',
-				'value' => $compress_scripts,
-				'debug' => $compress_scripts_debug,
-			),
-			'COMPRESS_CSS'        => array(
-				'label' => 'COMPRESS_CSS',
-				'value' => $compress_css,
-				'debug' => $compress_css_debug,
 			),
 			'WP_ENVIRONMENT_TYPE' => array(
 				'label' => 'WP_ENVIRONMENT_TYPE',
