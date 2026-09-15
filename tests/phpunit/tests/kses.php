@@ -2910,4 +2910,866 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * Test that wp_filter_post_kses() filters img tags correctly and allows the srcset element.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_filter_post_kses_img() {
+		global $allowedposttags;
+
+		$attributes = array(
+			'class'    => 'classname',
+			'id'       => 'idattr',
+			'style'    => 'color: red;',
+			'alt'      => 'alt',
+			'src'      => '/test.png',
+			'srcset'   => '/test.png 1x, /test-2x.png 2x, /test-3x.png',
+			'width'    => '100',
+			'height'   => '100',
+			'usemap'   => '#hash',
+			'vspace'   => '20',
+			'hspace'   => '20',
+			'longdesc' => 'this is the longdesc',
+			'align'    => 'middle',
+			'border'   => '5',
+			'sizes'    => '(max-width: 600px) 100vw, 50vw',
+		);
+
+		foreach ( $attributes as $name => $value ) {
+			$string        = "<img $name='$value' />";
+			$expect_string = '<img ' . $name . '="' . trim( $value, ';' ) . '" />';
+
+			$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+		}
+	}
+
+	/**
+	 * @ticket 29807
+	 *
+	 * @param string $unfiltered Unfiltered srcset value before wp_kses.
+	 * @param string $expected   Expected srcset value after wp_kses.
+	 *
+	 * @dataProvider data_wp_kses_srcset
+	 */
+	public function test_wp_kses_srcset( $unfiltered, $expected ) {
+		$unfiltered = "<img src='test.png' srcset='{$unfiltered}' />";
+		$expected   = '<img src="test.png" srcset="' . $expected . '" />';
+		$this->assertSame( $expected, wp_kses_post( $unfiltered ) );
+	}
+
+	public function data_wp_kses_srcset() {
+		return array(
+			array(
+				'/test.png 1x, /test-2x.png 2x',
+				'/test.png 1x, /test-2x.png 2x',
+			),
+			array(
+				'bad://localhost/test.png 1x, http://localhost/test-2x.png 2x',
+				'//localhost/test.png 1x, http://localhost/test-2x.png 2x',
+			),
+			array(
+				'http://localhost/test.png 1x, bad://localhost/test-2x.png 2x',
+				'http://localhost/test.png 1x, //localhost/test-2x.png 2x',
+			),
+			array(
+				'http://localhost/test.png,big 1x, bad://localhost/test.png,medium 2x',
+				'http://localhost/test.png,big 1x, //localhost/test.png,medium 2x',
+			),
+			array(
+				'path/to/test.png 1x, path/to/test-2x.png 2x',
+				'path/to/test.png 1x, path/to/test-2x.png 2x',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 29807
+	 */
+	public function test_wp_filter_post_kses_picture() {
+		global $allowedposttags;
+
+		$html = '<picture><source srcset="pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		$html = '<picture><source srcset="https://wordpress.org/pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="https://wordpress.org/pear-tablet.jpeg 500w, https://wordpress.org/pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Test bad protocol in srcset.
+		$original = '<picture><source srcset="bad://pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$expected = '<picture><source srcset="//pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$this->assertSame( $expected, wp_kses( $original, $allowedposttags ) );
+	}
+
+	/**
+	 * Test wp_kses_sanitize_uris function directly.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_sanitize_uris
+	 */
+	public function test_wp_kses_sanitize_uris( $attrname, $attrvalue, $expected, $multi_uri = array( 'srcset' ) ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $multi_uri );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_sanitize_uris() {
+		return array(
+			// Test non-URI attribute.
+			array( 'alt', 'description', 'description' ),
+
+			// Test single URI attribute.
+			array( 'src', 'http://example.com/image.jpg', 'http://example.com/image.jpg' ),
+
+			// Test single URI with bad protocol.
+			array( 'src', 'javascript:alert(1)', 'alert(1)' ),
+
+			// Test srcset with multiple URIs.
+			array( 'srcset', 'image1.jpg 1x, image2.jpg 2x', 'image1.jpg 1x, image2.jpg 2x' ),
+
+			// Test srcset with bad protocol.
+			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'alert(1) 1x, http://example.com/image.jpg 2x' ),
+
+			// A custom $multi_uri_attrs entry is sanitized per URL even when the attribute
+			// is not registered as a URI attribute (fail-safe: one registration suffices).
+			array( 'custom', 'javascript:alert(1), url2.jpg', 'alert(1), url2.jpg', array( 'custom' ) ),
+
+			// Uppercase attribute name on a single-URI attribute is normalised.
+			array( 'SRC', 'javascript:alert(1)', 'alert(1)' ),
+
+			// Mixed-case attribute name on a multi-URI attribute splits correctly.
+			array( 'SrcSet', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'alert(1) 1x, http://example.com/image.jpg 2x' ),
+
+			// Empty $multi_uri falls through to single-URI handling for a URI attribute.
+			// The whole value is treated as one URL, so wp_kses_bad_protocol() strips more than per-entry parsing would.
+			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', '//example.com/image.jpg 2x', array() ),
+		);
+	}
+
+	/**
+	 * Test that a custom attribute can opt in to multi-URI sanitization.
+	 *
+	 * Passing the attribute in $multi_uri_attrs is sufficient for per-URL
+	 * sanitization to apply; it does not additionally need to be registered
+	 * via the `wp_kses_uri_attributes` filter.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 */
+	public function test_wp_kses_sanitize_uris_custom_multi_uri_attribute() {
+		$result = wp_kses_sanitize_uris(
+			'data-srcset',
+			'javascript:alert(1) 1x, https://example.com/img.jpg 2x',
+			wp_allowed_protocols(),
+			array( 'data-srcset' )
+		);
+
+		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
+	}
+
+	/**
+	 * Test edge cases for srcset sanitization.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_edge_cases
+	 */
+	public function test_wp_kses_srcset_edge_cases( $srcset_value, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $srcset_value, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_edge_cases() {
+		return array(
+			// Test an empty srcset.
+			array( '', '' ),
+
+			// Srcset with extra whitespace is preserved byte for byte.
+			array( '  image1.jpg 1x  ,   image2.jpg 2x  ', '  image1.jpg 1x  ,   image2.jpg 2x  ' ),
+
+			// Newlines are srcset whitespace and are preserved.
+			array( "image1.jpg 1x,\nimage2.jpg 2x", "image1.jpg 1x,\nimage2.jpg 2x" ),
+
+			// Srcset with single URL and no descriptor.
+			array( 'image.jpg', 'image.jpg' ),
+
+			// Srcset with complex descriptors.
+			array( 'small.jpg 480w, medium.jpg 800w, large.jpg 1200w', 'small.jpg 480w, medium.jpg 800w, large.jpg 1200w' ),
+		);
+	}
+
+	/**
+	 * Test malicious input sanitization in srcset.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_malicious_input() {
+		global $allowedposttags;
+
+		// JavaScript in srcset - the entire img tag gets escaped when it contains dangerous content.
+		$original = '<img srcset="javascript:alert(1) 1x, data:text/html,<script>alert(1)</script> 2x" />';
+		$result   = wp_kses( $original, $allowedposttags );
+		// The whole img tag should be escaped when it contains script content.
+		$this->assertStringStartsWith( '&lt;', $result );
+
+		// Script tag in picture element (should be stripped).
+		$original = '<picture><script>alert(1)</script><source srcset="image.jpg"><img src="fallback.jpg"></picture>';
+		$result   = wp_kses( $original, $allowedposttags );
+		// Script content should be converted to text, not completely removed.
+		$this->assertStringContainsString( 'alert(1)', $result );
+		$this->assertStringNotContainsString( '<script>', $result );
+
+		// Onclick in source element (should be stripped).
+		$original = '<picture><source srcset="image.jpg" onclick="alert(1)"><img src="fallback.jpg"></picture>';
+		$expected = '<picture><source srcset="image.jpg"><img src="fallback.jpg"></picture>';
+		$this->assertSame( $expected, wp_kses( $original, $allowedposttags ) );
+	}
+
+	/**
+	 * Test sizes attribute handling.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_sizes_attribute() {
+		global $allowedposttags;
+
+		// Valid sizes attribute.
+		$html = '<img src="image.jpg" sizes="(max-width: 600px) 100vw, 50vw" />';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Complex sizes with multiple conditions.
+		$html = '<img src="image.jpg" sizes="(max-width: 320px) 280px, (max-width: 640px) 580px, 800px" />';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Sizes in source element.
+		$html = '<picture><source srcset="mobile.jpg" sizes="100vw" media="(max-width: 600px)"><img src="desktop.jpg"></picture>';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+	}
+
+	/**
+	 * Test comprehensive responsive image scenarios.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_comprehensive_responsive_images() {
+		global $allowedposttags;
+
+		// Test complex srcset with width descriptors.
+		$html = '<img src="default.jpg" srcset="small.jpg 480w, medium.jpg 768w, large.jpg 1024w, xlarge.jpg 1440w" sizes="(max-width: 480px) 100vw, (max-width: 768px) 75vw, 50vw" alt="Responsive image" />';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Test picture with multiple sources and mixed protocols.
+		$original = '<picture><source srcset="javascript:void(0) 480w, https://example.com/mobile.webp 480w" type="image/webp" media="(max-width: 600px)"><source srcset="bad://example.com/tablet.jpg 768w, https://example.com/tablet.jpg 768w" type="image/jpeg" media="(max-width: 1200px)"><img src="https://example.com/desktop.jpg" alt="Picture element test" /></picture>';
+		$result   = wp_kses( $original, $allowedposttags );
+
+		// Should remove bad protocols but keep valid ones.
+		$this->assertStringContainsString( 'https://example.com/mobile.webp', $result );
+		$this->assertStringContainsString( 'https://example.com/tablet.jpg', $result );
+		$this->assertStringNotContainsString( 'javascript:', $result );
+		$this->assertStringNotContainsString( 'bad://', $result );
+
+		// Test nested picture scenario.
+		$original = '<picture><picture><source srcset="inner.jpg"></picture><source srcset="outer.jpg"><img src="fallback.jpg"></picture>';
+		$result   = wp_kses( $original, $allowedposttags );
+		// KSES allows the nesting but should preserve the structure.
+		$this->assertStringContainsString( '<picture>', $result );
+		$this->assertStringContainsString( '<source', $result );
+	}
+
+	/**
+	 * Test that srcset URLs containing commas in the URL path are not broken.
+	 *
+	 * CDN image resizers (e.g. Cloudflare) use commas in URL paths like:
+	 * cdn-cgi/image/format=auto,quality=80,width=412/https://bucket.example/img.jpg
+	 *
+	 * The srcset splitting logic must distinguish between commas that separate
+	 * srcset entries (followed by a URL) and commas within a single URL.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_with_commas_in_urls
+	 */
+	public function test_wp_kses_srcset_with_commas_in_urls( $input, $expected ) {
+		$unfiltered = "<img src='test.png' srcset='{$input}' />";
+		$expected   = '<img src="test.png" srcset="' . $expected . '" />';
+		$this->assertSame( $expected, wp_kses_post( $unfiltered ) );
+	}
+
+	public function data_wp_kses_srcset_with_commas_in_urls() {
+		return array(
+			'CDN resizer URL with commas in path, multiple srcset entries' => array(
+				'https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=412,height=275,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/wp-content/uploads/2025/08/photo.jpg 412w, https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=824,height=550,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/wp-content/uploads/2025/08/photo.jpg 824w',
+				'https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=412,height=275,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/wp-content/uploads/2025/08/photo.jpg 412w, https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=824,height=550,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/wp-content/uploads/2025/08/photo.jpg 824w',
+			),
+			'single CDN resizer URL with commas, no srcset separator' => array(
+				'https://resizer.example/cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg',
+				'https://resizer.example/cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg',
+			),
+			'CDN resizer URL with commas, pixel density descriptor'   => array(
+				'https://resizer.example/cdn-cgi/image/format=auto,quality=80,width=200/https://bucket.example/img.jpg 1x, https://resizer.example/cdn-cgi/image/format=auto,quality=80,width=400/https://bucket.example/img.jpg 2x',
+				'https://resizer.example/cdn-cgi/image/format=auto,quality=80,width=200/https://bucket.example/img.jpg 1x, https://resizer.example/cdn-cgi/image/format=auto,quality=80,width=400/https://bucket.example/img.jpg 2x',
+			),
+		);
+	}
+
+	/**
+	 * Test that srcset values preserve their original spacing.
+	 *
+	 * wp_kses_sanitize_uris() should not add or remove spaces around commas.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_preserves_spacing
+	 */
+	public function test_wp_kses_srcset_preserves_spacing( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_preserves_spacing() {
+		return array(
+			'no space after comma'        => array(
+				'image1.jpg 1x,image2.jpg 2x',
+				'image1.jpg 1x,image2.jpg 2x',
+			),
+			'single space after comma'    => array(
+				'image1.jpg 1x, image2.jpg 2x',
+				'image1.jpg 1x, image2.jpg 2x',
+			),
+			'multiple spaces after comma' => array(
+				'image1.jpg 1x,  image2.jpg 2x',
+				'image1.jpg 1x,  image2.jpg 2x',
+			),
+		);
+	}
+
+	/**
+	 * Test that decoding and fetchpriority attributes are allowed on img tags.
+	 *
+	 * These attributes are commonly added by WordPress core for performance
+	 * optimization and should not be stripped by KSES.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_img_decoding_and_fetchpriority() {
+		global $allowedposttags;
+
+		// Test decoding attribute.
+		$html = '<img src="test.jpg" decoding="async" />';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Test fetchpriority attribute.
+		$html = '<img src="test.jpg" fetchpriority="high" />';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Test full real-world img tag with all responsive attributes.
+		$html = '<img src="test.jpg" decoding="async" fetchpriority="high" srcset="small.jpg 1x, large.jpg 2x" sizes="100vw" loading="lazy" />';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+	}
+
+	/**
+	 * Test that wp_kses_uri_attributes() includes srcset.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_uri_attributes
+	 */
+	public function test_wp_kses_uri_attributes_includes_srcset() {
+		$uri_attrs = wp_kses_uri_attributes();
+
+		$this->assertContains( 'srcset', $uri_attrs, 'srcset should be a URI attribute.' );
+		$this->assertContains( 'src', $uri_attrs, 'src should be a URI attribute.' );
+		$this->assertContains( 'href', $uri_attrs, 'href should be a URI attribute.' );
+		$this->assertContains( 'action', $uri_attrs, 'action should be a URI attribute.' );
+	}
+
+	/**
+	 * Test wp_kses_one_attr() with srcset attribute.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_one_attr
+	 */
+	public function test_wp_kses_one_attr_srcset() {
+		// Valid multi-URI srcset passes through.
+		$result = wp_kses_one_attr( ' srcset="image1.jpg 1x, image2.jpg 2x"', 'img' );
+		$this->assertSame( ' srcset="image1.jpg 1x, image2.jpg 2x"', $result );
+
+		// Bad protocol in srcset is stripped.
+		$result = wp_kses_one_attr( ' srcset="javascript:alert(1) 1x, https://example.com/img.jpg 2x"', 'img' );
+		$this->assertStringNotContainsString( 'javascript:', $result );
+		$this->assertStringContainsString( 'https://example.com/img.jpg', $result );
+	}
+
+	/**
+	 * Test source element attribute handling.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_source_element_attributes() {
+		global $allowedposttags;
+
+		// All four allowed attributes together.
+		$html = '<source srcset="img.jpg" type="image/webp" media="(min-width: 800px)" sizes="100vw">';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Disallowed attribute (src) is stripped from source.
+		$original = '<source srcset="img.jpg" src="fallback.jpg">';
+		$expected = '<source srcset="img.jpg">';
+		$this->assertSame( $expected, wp_kses( $original, $allowedposttags ) );
+
+		// Event handler is stripped.
+		$original = '<source srcset="img.jpg" onerror="alert(1)">';
+		$expected = '<source srcset="img.jpg">';
+		$this->assertSame( $expected, wp_kses( $original, $allowedposttags ) );
+	}
+
+	/**
+	 * Test picture element edge cases.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_picture_element_edge_cases() {
+		global $allowedposttags;
+
+		// Empty picture element passes through.
+		$html = '<picture></picture>';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Picture without fallback img.
+		$html = '<picture><source srcset="img.webp" type="image/webp"></picture>';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Picture with only img, no source elements.
+		$html = '<picture><img src="only-img.jpg" /></picture>';
+		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+	}
+
+	/**
+	 * Test that disabling srcset sanitization requires removal from both lists.
+	 *
+	 * Multi-URI attributes are sanitized in their own right, so removing srcset
+	 * from `wp_kses_uri_attributes` alone leaves per-URL sanitization in place
+	 * (fail-safe). Only removing it from `wp_kses_multi_uri_attributes` as well
+	 * disables sanitization.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_uri_attributes_filter() {
+		$allowed_protocols = wp_allowed_protocols();
+
+		$remove_srcset = static function ( $attrs ) {
+			return array_diff( $attrs, array( 'srcset' ) );
+		};
+
+		// Removing srcset from the URI attributes list alone does not disable sanitization.
+		add_filter( 'wp_kses_uri_attributes', $remove_srcset );
+		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
+		$this->assertSame( 'alert(1) 1x', $result, 'srcset should remain sanitized while still a multi-URI attribute' );
+
+		// Removing it from the multi-URI attributes list as well disables sanitization.
+		add_filter( 'wp_kses_multi_uri_attributes', $remove_srcset );
+		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
+		$this->assertSame( 'javascript:alert(1) 1x', $result, 'srcset should not be sanitized once removed from both lists' );
+
+		remove_filter( 'wp_kses_uri_attributes', $remove_srcset );
+		remove_filter( 'wp_kses_multi_uri_attributes', $remove_srcset );
+
+		// With the filters removed, bad protocols are stripped again.
+		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
+		$this->assertStringNotContainsString( 'javascript:', $result );
+	}
+
+	/**
+	 * Test srcset with no descriptor on the final entry.
+	 *
+	 * The last srcset candidate often omits the width/pixel descriptor.
+	 * URLs with commas in the final descriptor-less entry must be preserved.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_no_final_descriptor
+	 */
+	public function test_wp_kses_srcset_no_final_descriptor( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_no_final_descriptor() {
+		return array(
+			'CDN URL with commas, no descriptor on last entry' => array(
+				'https://cdn.example/image/format=auto,quality=80/img.jpg 400w, https://cdn.example/image/format=auto,quality=80/img-large.jpg',
+				'https://cdn.example/image/format=auto,quality=80/img.jpg 400w, https://cdn.example/image/format=auto,quality=80/img-large.jpg',
+			),
+			'simple URLs, no descriptor on last entry' => array(
+				'small.jpg 300w, medium.jpg 600w, large.jpg',
+				'small.jpg 300w, medium.jpg 600w, large.jpg',
+			),
+			'single URL without any descriptor'        => array(
+				'only-image.jpg',
+				'only-image.jpg',
+			),
+		);
+	}
+
+	/**
+	 * Test srcset with decimal pixel density descriptors.
+	 *
+	 * Descriptors like 1.5x and 2.5x are valid per the HTML spec.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_decimal_descriptors
+	 */
+	public function test_wp_kses_srcset_decimal_descriptors( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_decimal_descriptors() {
+		return array(
+			'decimal pixel density descriptors'     => array(
+				'image-1x.jpg 1x, image-1.5x.jpg 1.5x, image-2x.jpg 2x',
+				'image-1x.jpg 1x, image-1.5x.jpg 1.5x, image-2x.jpg 2x',
+			),
+			'mixed integer and decimal descriptors' => array(
+				'small.jpg 1x, medium.jpg 2x, large.jpg 3x',
+				'small.jpg 1x, medium.jpg 2x, large.jpg 3x',
+			),
+			'high density descriptor'               => array(
+				'low.jpg 1x, high.jpg 4x',
+				'low.jpg 1x, high.jpg 4x',
+			),
+		);
+	}
+
+	/**
+	 * Test picture element with WebP/AVIF type-based fallback pattern.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_picture_type_fallback() {
+		$html     = '<picture>'
+			. '<source srcset="photo.avif" type="image/avif">'
+			. '<source srcset="photo.webp" type="image/webp">'
+			. '<img src="photo.jpg" alt="Photo" width="800" height="600" />'
+			. '</picture>';
+		$expected = $html;
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test picture element with art direction using media queries and srcset descriptors.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_picture_art_direction() {
+		$html     = '<picture>'
+			. '<source media="(min-width: 1200px)" srcset="hero-wide-1x.jpg 1x, hero-wide-2x.jpg 2x">'
+			. '<source media="(min-width: 600px)" srcset="hero-medium-400.jpg 400w, hero-medium-800.jpg 800w" sizes="100vw">'
+			. '<img src="hero-small.jpg" srcset="hero-small-300.jpg 300w, hero-small-600.jpg 600w" sizes="100vw" alt="Hero" />'
+			. '</picture>';
+		$expected = $html;
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test srcset with protocol-relative URLs.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_srcset_protocol_relative_urls() {
+		$allowed_protocols = wp_allowed_protocols();
+		$input             = '//cdn.example.com/img-300.jpg 300w, //cdn.example.com/img-600.jpg 600w';
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $input, $result );
+	}
+
+	/**
+	 * Test that source element strips disallowed src attribute.
+	 *
+	 * The source element allows srcset but not src.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_source_strips_src_attribute() {
+		$html     = '<source src="not-allowed.jpg" srcset="allowed.jpg" type="image/jpeg">';
+		$expected = '<source srcset="allowed.jpg" type="image/jpeg">';
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test CDN URLs with gravity parameter containing x notation in srcset.
+	 *
+	 * Ensures that CDN-style gravity=0.5x0.5 is not mistaken for a pixel density descriptor.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_srcset_cdn_gravity_parameter() {
+		$html     = '<img src="https://resizer.example/cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg" '
+			. 'srcset="https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=412,height=275,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/img.jpg 412w, '
+			. 'https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=824,height=550,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/img.jpg 824w" '
+			. 'decoding="async" fetchpriority="high" width="824" height="550" alt="Test" />';
+		$expected = $html;
+		$this->assertSame( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test srcset with bad protocols on entries separated by decimal descriptors.
+	 *
+	 * Ensures the split pattern recognises descriptors like "1.5x" as entry
+	 * boundaries so per-entry protocol sanitization still applies.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_decimal_descriptor_bad_protocol
+	 */
+	public function test_wp_kses_srcset_decimal_descriptor_bad_protocol( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_decimal_descriptor_bad_protocol() {
+		return array(
+			'bad protocol after decimal descriptor'  => array(
+				'good.jpg 1.5x, javascript:alert(1) 2x',
+				'good.jpg 1.5x, alert(1) 2x',
+			),
+			'bad protocol before decimal descriptor' => array(
+				'javascript:alert(1) 1.5x, good.jpg 2x',
+				'alert(1) 1.5x, good.jpg 2x',
+			),
+			'three entries with middle decimal descriptor and bad middle URL' => array(
+				'image-1x.jpg 1x, javascript:alert(1) 1.5x, image-2x.jpg 2x',
+				'image-1x.jpg 1x, alert(1) 1.5x, image-2x.jpg 2x',
+			),
+		);
+	}
+
+	/**
+	 * Test malformed srcset values (leading/trailing/consecutive commas).
+	 *
+	 * wp_kses_sanitize_uris() should not throw and should still strip bad protocols.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_malformed
+	 */
+	public function test_wp_kses_srcset_malformed( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_malformed() {
+		return array(
+			'trailing comma after descriptor' => array(
+				'image.jpg 1x,',
+				'image.jpg 1x,',
+			),
+			'leading comma'                   => array(
+				', image.jpg 1x',
+				', image.jpg 1x',
+			),
+			'whitespace only'                 => array(
+				'   ',
+				'   ',
+			),
+		);
+	}
+
+	/**
+	 * Test wp_kses_one_attr() with the sizes attribute.
+	 *
+	 * sizes is not a URI attribute, so it must pass through unchanged (apart from
+	 * the standard attribute reformatting done by wp_kses_one_attr()).
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_one_attr
+	 */
+	public function test_wp_kses_one_attr_sizes() {
+		$result = wp_kses_one_attr( ' sizes="(max-width: 600px) 100vw, 50vw"', 'img' );
+		$this->assertSame( ' sizes="(max-width: 600px) 100vw, 50vw"', $result );
+	}
+
+	/**
+	 * Test srcset entries without descriptors are still sanitized individually.
+	 *
+	 * Per the HTML spec, the descriptor is optional, so "safe.jpg, evil.jpg" contains
+	 * two candidates. URLs in srcset must encode whitespace as %20, so a comma
+	 * adjacent to whitespace always separates two entries and each entry must be
+	 * protocol-checked on its own.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 * @dataProvider data_wp_kses_srcset_entries_without_descriptors
+	 */
+	public function test_wp_kses_srcset_entries_without_descriptors( $input, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result            = wp_kses_sanitize_uris( 'srcset', $input, $allowed_protocols );
+		$this->assertSame( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_entries_without_descriptors() {
+		return array(
+			'bad protocol in second descriptor-less entry' => array(
+				'safe.jpg, javascript:alert(1)',
+				'safe.jpg, alert(1)',
+			),
+			'bad protocol in first descriptor-less entry'  => array(
+				'javascript:alert(1), safe.jpg',
+				'alert(1), safe.jpg',
+			),
+			'comma before whitespace separates entries'    => array(
+				'a.jpg ,javascript:alert(1) 2x',
+				'a.jpg ,alert(1) 2x',
+			),
+			'descriptor-less entries with valid URLs pass through' => array(
+				'small.jpg, large.jpg',
+				'small.jpg, large.jpg',
+			),
+			'comma without adjacent whitespace stays part of the URL' => array(
+				'cdn.example/format=auto,quality=80/img.jpg',
+				'cdn.example/format=auto,quality=80/img.jpg',
+			),
+		);
+	}
+
+	/**
+	 * Test that wp_kses_multi_uri_attributes() includes srcset by default.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_multi_uri_attributes
+	 */
+	public function test_wp_kses_multi_uri_attributes_includes_srcset() {
+		$this->assertContains( 'srcset', wp_kses_multi_uri_attributes(), 'srcset should be a multi-URI attribute by default.' );
+	}
+
+	/**
+	 * Test that the wp_kses_multi_uri_attributes filter feeds the default
+	 * $multi_uri_attrs list of wp_kses_sanitize_uris().
+	 *
+	 * An attribute added to the `wp_kses_multi_uri_attributes` filter receives
+	 * per-URL sanitization without callers having to pass an explicit
+	 * $multi_uri_attrs argument, and without also being registered via the
+	 * `wp_kses_uri_attributes` filter (fail-safe: one registration suffices).
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_multi_uri_attributes
+	 * @covers ::wp_kses_sanitize_uris
+	 */
+	public function test_wp_kses_multi_uri_attributes_filter_applies_by_default() {
+		$add_custom = static function ( $attrs ) {
+			$attrs[] = 'data-srcset';
+			return $attrs;
+		};
+		add_filter( 'wp_kses_multi_uri_attributes', $add_custom );
+
+		$result = wp_kses_sanitize_uris(
+			'data-srcset',
+			'javascript:alert(1) 1x, https://example.com/img.jpg 2x',
+			wp_allowed_protocols()
+		);
+
+		remove_filter( 'wp_kses_multi_uri_attributes', $add_custom );
+
+		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
+	}
+
+	/**
+	 * Test that candidates after invalid descriptors are still protocol-checked.
+	 *
+	 * Per the HTML specification's srcset parsing algorithm, a comma inside a
+	 * descriptor terminates the candidate, even when the descriptor itself is
+	 * invalid (like "2q"). So in "a.jpg 2q,javascript:alert(1)" a browser reads
+	 * "javascript:alert(1)" as a candidate URL of its own, and KSES must
+	 * protocol-check it individually.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 * @dataProvider data_wp_kses_srcset_invalid_descriptor_comma
+	 */
+	public function test_wp_kses_srcset_invalid_descriptor_comma( $input, $expected ) {
+		$this->assertSame( $expected, wp_kses_sanitize_uris( 'srcset', $input, wp_allowed_protocols() ) );
+	}
+
+	public function data_wp_kses_srcset_invalid_descriptor_comma() {
+		return array(
+			'comma in invalid descriptor starts a new candidate' => array(
+				'a.jpg 2q,javascript:alert(1)',
+				'a.jpg 2q,alert(1)',
+			),
+			'comma in invalid descriptor after a path query starts a new candidate' => array(
+				'a.jpg/?v=1 2q,javascript:alert(1)',
+				'a.jpg/?v=1 2q,alert(1)',
+			),
+		);
+	}
+
+	/**
+	 * Test that URLs without a browser-parseable scheme are left intact.
+	 *
+	 * Per the HTML specification, a comma not terminating a run of
+	 * non-whitespace characters belongs to the URL, so `a.jpg,https://…` is a
+	 * single relative URL. Its prefix before the colon (`a.jpg,https`) is not a
+	 * valid URL scheme, so no browser parses a protocol out of it; protocol
+	 * sanitization must leave it alone rather than rewrite the same-origin
+	 * relative URL into a cross-origin one.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 * @dataProvider data_wp_kses_srcset_schemeless_urls_with_colons
+	 */
+	public function test_wp_kses_srcset_schemeless_urls_with_colons( $input, $expected ) {
+		$this->assertSame( $expected, wp_kses_sanitize_uris( 'srcset', $input, wp_allowed_protocols() ) );
+	}
+
+	public function data_wp_kses_srcset_schemeless_urls_with_colons() {
+		return array(
+			'tight comma with a colon later stays one relative URL' => array(
+				'a.jpg,https://example.com/b.jpg',
+				'a.jpg,https://example.com/b.jpg',
+			),
+			'relative CDN proxy URL wrapping an absolute URL'       => array(
+				'cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg 1x, b.jpg 2x',
+				'cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg 1x, b.jpg 2x',
+			),
+			'a scheme-shaped prefix is still protocol-checked'      => array(
+				'javascript:alert(1),safe.jpg',
+				'alert(1),safe.jpg',
+			),
+			'an entity-encoded colon is still protocol-checked'     => array(
+				'javascript&#58;alert(1) 1x, safe.jpg 2x',
+				'alert(1) 1x, safe.jpg 2x',
+			),
+			'an entity-encoded comma cannot fake a scheme prefix'   => array(
+				'a.jpg&#44;https://example.com/b.jpg',
+				'a.jpg&#44;https://example.com/b.jpg',
+			),
+		);
+	}
+
+	/**
+	 * Test that data: URIs in srcset follow the allowed-protocols policy.
+	 *
+	 * `data` is not in wp_allowed_protocols(), so data: URIs are stripped from
+	 * srcset candidates just as they are from src and href. Sites that need
+	 * data: image placeholders can allow them via the `kses_allowed_protocols`
+	 * filter, which extends to each srcset candidate.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 */
+	public function test_wp_kses_srcset_data_uris_follow_allowed_protocols() {
+		$srcset = 'data:image/gif;base64,R0lGODlhAQABAAAAACw= 1x, real.jpg 2x';
+
+		$this->assertSame(
+			'image/gif;base64,R0lGODlhAQABAAAAACw= 1x, real.jpg 2x',
+			wp_kses_sanitize_uris( 'srcset', $srcset, wp_allowed_protocols() ),
+			'data: URIs should be stripped from srcset candidates by default, consistent with src'
+		);
+
+		$this->assertSame(
+			$srcset,
+			wp_kses_sanitize_uris( 'srcset', $srcset, array_merge( wp_allowed_protocols(), array( 'data' ) ) ),
+			'An extended protocol allowlist should apply to each srcset candidate'
+		);
+	}
 }
