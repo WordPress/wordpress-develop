@@ -12,7 +12,7 @@
 	},
 	"engines": {
 		"node": ">=24.18.0",
-		"npm": ">=11.16.0"
+		"npm": ">=12.0.2"
 	},
 	"devEngines": {
 		"runtime": {
@@ -21,7 +21,7 @@
 		},
 		"packageManager": {
 			"name": "npm",
-			"version": ">=11.16.0",
+			"version": ">=12.0.2",
 			"onFail": "error"
 		}
 	},
@@ -158,5 +158,15 @@
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
 		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg"
+	},
+	"allowScripts": {
+		"@parcel/watcher": false,
+		"core-js": false,
+		"core-js-pure": false,
+		"fsevents": false,
+		"gifsicle@4.0.1": true,
+		"jpegtran-bin@4.0.0": true,
+		"optipng-bin@5.1.0": true,
+		"unrs-resolver": false
 	}
 }
