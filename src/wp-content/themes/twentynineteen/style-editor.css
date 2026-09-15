@@ -1293,6 +1293,10 @@ figcaption,
   margin-left: 0;
 }
 
+.wp-block-separator.alignfull:not(.is-style-dots) {
+  width: 100%;
+}
+
 .wp-block-separator.is-style-dots {
   color: #767676;
 }
