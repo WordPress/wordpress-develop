@@ -15,6 +15,33 @@
 
 body {
 	background: variables.$body-background;
+
+	--wp-admin-color-base: #{variables.$base-color};
+	--wp-admin-color-text: #{variables.$text-color};
+	--wp-admin-color-icon: #{variables.$icon-color};
+	--wp-admin-color-highlight: #{variables.$highlight-color};
+	--wp-admin-color-highlight--rgb: #{color.red(variables.$highlight-color)}, #{color.green(variables.$highlight-color)}, #{color.blue(variables.$highlight-color)};
+	--wp-admin-color-highlight-darker-10: #{color.adjust(variables.$highlight-color, $lightness: -5%)};
+	--wp-admin-color-highlight-darker-10--rgb: #{color.red(color.adjust(variables.$highlight-color, $lightness: -5%))}, #{color.green(color.adjust(variables.$highlight-color, $lightness: -5%))}, #{color.blue(color.adjust(variables.$highlight-color, $lightness: -5%))};
+	--wp-admin-color-highlight-darker-20: #{color.adjust(variables.$highlight-color, $lightness: -10%)};
+	--wp-admin-color-highlight-darker-20--rgb: #{color.red(color.adjust(variables.$highlight-color, $lightness: -10%))}, #{color.green(color.adjust(variables.$highlight-color, $lightness: -10%))}, #{color.blue(color.adjust(variables.$highlight-color, $lightness: -10%))};
+	--wp-admin-color-notification: #{variables.$notification-color};
+	--wp-admin-color-body-background: #{variables.$body-background};
+	--wp-admin-color-link: #{variables.$link};
+	--wp-admin-color-menu-background: #{variables.$menu-background};
+	--wp-admin-color-menu-text: #{variables.$menu-text};
+	--wp-admin-color-menu-icon: #{variables.$menu-icon};
+	--wp-admin-color-menu-highlight-text: #{variables.$menu-highlight-text};
+	--wp-admin-color-menu-highlight-icon: #{variables.$menu-highlight-icon};
+	--wp-admin-color-menu-highlight-background: #{variables.$menu-highlight-background};
+	--wp-admin-color-menu-submenu-text: #{variables.$menu-submenu-text};
+	--wp-admin-color-menu-submenu-background: #{variables.$menu-submenu-background};
+	--wp-admin-color-menu-submenu-focus-text: #{variables.$menu-submenu-focus-text};
+	--wp-admin-color-menu-bubble-text: #{variables.$menu-bubble-text};
+	--wp-admin-color-menu-bubble-background: #{variables.$menu-bubble-background};
+	--wp-admin-color-menu-collapse-text: #{variables.$menu-collapse-text};
+	--wp-admin-color-menu-collapse-icon: #{variables.$menu-collapse-icon};
+	--wp-admin-color-menu-collapse-focus-icon: #{variables.$menu-collapse-focus-icon};
 }
 
 
