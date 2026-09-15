@@ -343,7 +343,7 @@
 		image_align_left: "Left",
 		image_align_right: "Right",
 		link_title: "Insert/edit link",
-		link_url: "Link URL",
+		link_url: "Link To",
 		link_target: "Target",
 		link_target_same: "Open link in the same window",
 		link_target_blank: "Open link in a new window",
@@ -473,7 +473,7 @@
 		wp_more_alt: "More...",
 		wp_page_alt: "Next page...",
 		add_media: "Add Media",
-		add_image: "Add an Image",
+		add_image: "Add Image",
 		add_video: "Add Video",
 		add_audio: "Add Audio",
 		editgallery: "Edit Gallery",
@@ -511,6 +511,6 @@
 		s130: "130%",
 		img_title: "Title",
 		caption: "Caption",
-		alt: "Alternative Text"
+		alt: "Alt Text"
 	});
 }());
