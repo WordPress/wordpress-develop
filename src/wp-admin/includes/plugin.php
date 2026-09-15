@@ -1087,7 +1087,7 @@ function validate_active_plugins() {
 
 	// Invalid plugins get deactivated.
 	foreach ( $plugins as $plugin ) {
-		$result = validate_plugin( $plugin );
+		$result = validate_plugin( $plugin, true );
 		if ( is_wp_error( $result ) ) {
 			$invalid[ $plugin ] = $result;
 			deactivate_plugins( $plugin, true );
@@ -1103,20 +1103,25 @@ function validate_active_plugins() {
  *
  * @since 2.5.0
  *
- * @param string $plugin Path to the plugin file relative to the plugins directory.
+ * @param string $plugin            Path to the plugin file relative to the plugins' directory.
+ * @param bool   $need_check_exists Whether to bypass the plugin file exists check, default is false which will check file exists.
  * @return int|WP_Error 0 on success, WP_Error on failure.
  */
-function validate_plugin( $plugin ) {
+function validate_plugin( $plugin, $need_check_exists = false ) {
 	if ( validate_file( $plugin ) ) {
 		return new WP_Error( 'plugin_invalid', __( 'Invalid plugin path.' ) );
 	}
-	if ( ! file_exists( WP_PLUGIN_DIR . '/' . $plugin ) ) {
-		return new WP_Error( 'plugin_not_found', __( 'Plugin file does not exist.' ) );
-	}
 
-	$installed_plugins = get_plugins();
-	if ( ! isset( $installed_plugins[ $plugin ] ) ) {
-		return new WP_Error( 'no_plugin_header', __( 'The plugin does not have a valid header.' ) );
+	if ( ! $need_check_exists ) {
+
+		if ( ! file_exists( WP_PLUGIN_DIR . '/' . $plugin ) ) {
+			return new WP_Error( 'plugin_not_found', __( 'Plugin file does not exist.' ) );
+		}
+
+		$installed_plugins = get_plugins();
+		if ( ! isset( $installed_plugins[ $plugin ] ) ) {
+			return new WP_Error( 'no_plugin_header', __( 'The plugin does not have a valid header.' ) );
+		}
 	}
 	return 0;
 }
