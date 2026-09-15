@@ -288,7 +288,7 @@ class Featured_Content {
 	public static function hide_featured_term( $terms, $taxonomies, $args ) {
 
 		// This filter is only appropriate on the front end.
-		if ( is_admin() ) {
+		if ( is_admin() || ( function_exists( 'wp_is_serving_rest_request' ) && wp_is_serving_rest_request() ) ) {
 			return $terms;
 		}
 
@@ -335,7 +335,7 @@ class Featured_Content {
 	public static function hide_the_featured_term( $terms, $id, $taxonomy ) {
 
 		// This filter is only appropriate on the front end.
-		if ( is_admin() ) {
+		if ( is_admin() || ( function_exists( 'wp_is_serving_rest_request' ) && wp_is_serving_rest_request() ) ) {
 			return $terms;
 		}
 
