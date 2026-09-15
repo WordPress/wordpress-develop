@@ -39,7 +39,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		unset( $_SERVER['HTTP_ORIGIN'] );
+		unset( $_SERVER['HTTP_ORIGIN'], $_GET['_envelope'] );
 
 		global $wp_rest_server;
 		$wp_rest_server = null;
@@ -280,16 +280,17 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A value set on the response wins over the filter, and the filter does not run.
+	 * The filter runs even when the response set its own value, and can replace it.
 	 *
-	 * The response header is the more specific instruction: the filter shapes the
-	 * default, and there is no default to shape once the response has supplied one.
+	 * If the filter only ran when there was no response value, it could add methods
+	 * but never narrow or replace a value the response set -- a site could not use it
+	 * to enforce a stricter list against a plugin response.
 	 *
 	 * @ticket 46992
 	 *
 	 * @requires function xdebug_get_headers
 	 */
-	public function test_response_value_takes_precedence_over_the_filter() {
+	public function test_filter_can_override_a_response_value() {
 		$filter_ran = false;
 
 		add_filter(
@@ -310,8 +311,69 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 
 		$headers = $this->serve_and_get_headers();
 
-		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
-		$this->assertNotContains( 'Access-Control-Allow-Methods: OPTIONS, DELETE', $headers );
-		$this->assertFalse( $filter_ran, 'The filter ran even though the response set the header.' );
+		$this->assertTrue( $filter_ran, 'The filter did not run even though the response set the header.' );
+		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, DELETE', $headers );
+		$this->assertNotContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
+	}
+
+	/**
+	 * The filter is seeded with the response's own value, split into an array, rather
+	 * than with the default list, when the response has set one.
+	 *
+	 * @ticket 46992
+	 *
+	 * @requires function xdebug_get_headers
+	 */
+	public function test_filter_receives_the_response_value_when_the_response_set_one() {
+		$received = null;
+
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $response ) {
+				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
+				return $response;
+			}
+		);
+
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function ( $methods ) use ( &$received ) {
+				$received = $methods;
+				return $methods;
+			}
+		);
+
+		$this->serve_and_get_headers();
+
+		$this->assertSame( array( 'OPTIONS', 'GET' ), $received );
+	}
+
+	/**
+	 * Under `?_envelope=1`, a response header is not seen and the default is sent.
+	 *
+	 * envelope_response() runs on 'rest_post_dispatch', ahead of rest_send_cors_headers(),
+	 * and relocates the response's own headers into the response body, building a fresh
+	 * response with none of its own headers. rest_send_cors_headers() never sees the
+	 * value the response set, so the filtered default goes out on the wire instead.
+	 *
+	 * @ticket 46992
+	 *
+	 * @requires function xdebug_get_headers
+	 */
+	public function test_envelope_response_does_not_see_a_response_value() {
+		$_GET['_envelope'] = '1';
+
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $response ) {
+				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
+				return $response;
+			}
+		);
+
+		$headers = $this->serve_and_get_headers();
+
+		$this->assertContains( self::DEFAULT_ALLOW_METHODS, $headers );
+		$this->assertNotContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
 	}
 }
