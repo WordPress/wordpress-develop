@@ -11,6 +11,10 @@
 class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * Sets up each test method.
+	 *
+	 * @global WP_Scripts        $wp_scripts
+	 * @global WP_Styles         $wp_styles
+	 * @global WP_Script_Modules $wp_script_modules
 	 */
 	public function set_up() {
 		global $post;
@@ -750,6 +754,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		$admin_footer_scripts = get_echo(
 			static function () {
+				/** This action is documented in wp-admin/admin-footer.php */
 				do_action( 'admin_print_footer_scripts' );
 			}
 		);
