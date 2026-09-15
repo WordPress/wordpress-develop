@@ -154,9 +154,6 @@ if ( wp_use_widgets_block_editor() ) {
 	$body_class .= ' wp-embed-responsive';
 }
 
-/** This filter is documented in wp-admin/admin-header.php */
-$body_class = apply_filters( 'admin_body_class', $body_class );
-
 $admin_title = sprintf( $wp_customize->get_document_title_template(), __( 'Loading&hellip;' ) );
 
 ?>
@@ -188,6 +185,12 @@ do_action( 'customize_controls_print_scripts' );
  * @since 5.5.0
  */
 do_action( 'customize_controls_head' );
+
+/** This filter is documented in wp-admin/admin-header.php */
+$additional_body_class = apply_filters( 'admin_body_class', '' );
+if ( is_string( $additional_body_class ) && '' !== $additional_body_class ) {
+	$body_class .= ' ' . $additional_body_class;
+}
 ?>
 </head>
 <body class="<?php echo esc_attr( $body_class ); ?>">
