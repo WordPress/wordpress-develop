@@ -577,6 +577,21 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		// A proper archive should have a style.css file in the single subdirectory.
 		if ( ! file_exists( $working_directory . 'style.css' ) ) {
+			// Check if the package is a plugin.
+			$plugin_files = glob( $working_directory . '*.php' );
+			if ( $plugin_files ) {
+				foreach ( $plugin_files as $file ) {
+					$plugin_data = get_plugin_data( $file, false, false );
+					if ( ! empty( $plugin_data['Name'] ) ) {
+						return new WP_Error(
+							'incompatible_archive_plugin_detected',
+							$this->strings['incompatible_archive'],
+							__( 'The uploaded package appears to be a plugin. Please upload it in the Plugins menu.' )
+						);
+					}
+				}
+			}
+
 			return new WP_Error(
 				'incompatible_archive_theme_no_style',
 				$this->strings['incompatible_archive'],
