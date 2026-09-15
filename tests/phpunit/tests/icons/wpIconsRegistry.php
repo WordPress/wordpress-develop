@@ -453,4 +453,49 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 		$this->assertNull( $icon['content'] );
 	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_register_icon_preserves_rect_and_circle() {
+		return array(
+			'rect'   => array( '<rect fill="currentColor" fill-rule="evenodd" x="4" y="5" width="16" height="14" rx="2" ry="2" transform="rotate(45)" />' ),
+			'circle' => array( '<circle fill="currentColor" fill-rule="evenodd" cx="12" cy="12" r="3" transform="rotate(45)" />' ),
+		);
+	}
+
+	/**
+	 * Should preserve the `rect` and `circle` elements that library icons are drawn with.
+	 *
+	 * @ticket 66112
+	 *
+	 * @dataProvider data_register_icon_preserves_rect_and_circle
+	 *
+	 * @covers ::register
+	 *
+	 * @param string $shape Shape element the icon is drawn with.
+	 */
+	public function test_register_icon_preserves_rect_and_circle( $shape ) {
+		$name = 'test-collection/shape-icon';
+
+		$this->assertTrue(
+			$this->registry->register(
+				$name,
+				array(
+					'label'   => 'Shape Icon',
+					'content' => '<svg viewbox="0 0 24 24">' . $shape . '</svg>',
+				)
+			)
+		);
+
+		$icon = $this->registry->get_registered_icon( $name );
+
+		$this->assertStringContainsString(
+			$shape,
+			$icon['content'],
+			'Attributes were altered or stripped from the shape element.'
+		);
+	}
 }

@@ -261,6 +261,25 @@ class WP_Icons_Registry {
 				'transform' => true,
 				'focusable' => true,
 			),
+			'rect'    => array(
+				'fill'      => true,
+				'fill-rule' => true,
+				'x'         => true,
+				'y'         => true,
+				'width'     => true,
+				'height'    => true,
+				'rx'        => true,
+				'ry'        => true,
+				'transform' => true,
+			),
+			'circle'  => array(
+				'fill'      => true,
+				'fill-rule' => true,
+				'cx'        => true,
+				'cy'        => true,
+				'r'         => true,
+				'transform' => true,
+			),
 		);
 		return wp_kses( $icon_content, $allowed_tags );
 	}
