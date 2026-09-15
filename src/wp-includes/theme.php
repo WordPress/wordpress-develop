@@ -2161,14 +2161,15 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 }
 
 /**
- * Adds callback for custom TinyMCE editor stylesheets.
+ * Adds callback for editor stylesheets.
  *
- * The parameter $stylesheet is the name of the stylesheet, relative to
- * the theme root. It also accepts an array of stylesheets.
- * It is optional and defaults to 'editor-style.css'.
+ * This function allows you to add custom stylesheets to the editor.
+ * It works for both the classic editor (TinyMCE) and the block editor (Gutenberg).
+ * The parameter $stylesheet can accept a single stylesheet filename (relative to the theme root),
+ * or an array of stylesheets. If no parameter is provided, the default 'editor-style.css' is used.
  *
  * This function automatically adds another stylesheet with -rtl prefix, e.g. editor-style-rtl.css.
- * If that file doesn't exist, it is removed before adding the stylesheet(s) to TinyMCE.
+ * If that file doesn't exist, it is removed before adding the stylesheet(s) to editor.
  * If an array of stylesheets is passed to add_editor_style(),
  * RTL is only added for the first stylesheet.
  *
@@ -2180,7 +2181,7 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  * @global array $editor_styles
  *
  * @param array|string $stylesheet Optional. Stylesheet name or array thereof, relative to theme root.
- *                                 Defaults to 'editor-style.css'
+ *                                 Defaults to 'editor-style.css'.
  */
 function add_editor_style( $stylesheet = 'editor-style.css' ) {
 	global $editor_styles;
