@@ -362,6 +362,116 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * The 'methods' arg should split comma-separated values given inside an array,
+	 * matching how the string form is handled.
+	 *
+	 * @ticket 65905
+	 */
+	public function test_route_method_array_with_comma_separated_values() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( 'GET,POST', 'DELETE' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
+
+		$this->assertSame(
+			array(
+				'GET'    => true,
+				'POST'   => true,
+				'DELETE' => true,
+			),
+			$routes['/test-ns/test'][0]['methods']
+		);
+	}
+
+	/**
+	 * A multi-method constant inside an array should register each of its methods.
+	 *
+	 * WP_REST_Server::EDITABLE is 'POST, PUT, PATCH'. Before #65905 the array form did not
+	 * split it, registering the single unmatchable key 'POST, PUT, PATCH'.
+	 *
+	 * @ticket 65905
+	 */
+	public function test_route_method_array_with_multi_method_constant() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::EDITABLE ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
+
+		$this->assertSame(
+			array(
+				'GET'   => true,
+				'POST'  => true,
+				'PUT'   => true,
+				'PATCH' => true,
+			),
+			$routes['/test-ns/test'][0]['methods']
+		);
+	}
+
+	/**
+	 * Each method of a multi-method constant given in an array should route.
+	 *
+	 * The registered keys are asserted above; this covers the behavior a plugin author
+	 * actually observes, which was a 404.
+	 *
+	 * @ticket 65905
+	 */
+	public function test_route_method_array_with_multi_method_constant_dispatches() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::EDITABLE ),
+				'callback'            => static function () {
+					return new WP_REST_Response( 'ok', 200 );
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		foreach ( array( 'GET', 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$response = rest_get_server()->dispatch( new WP_REST_Request( $method, '/test-ns/test' ) );
+
+			$this->assertSame( 200, $response->get_status(), "$method should route to the handler." );
+		}
+	}
+
+	/**
+	 * An empty 'methods' array should register no methods rather than an empty one.
+	 *
+	 * @ticket 65905
+	 */
+	public function test_route_method_empty_array() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array(),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
+
+		$this->assertSame( array(), $routes['/test-ns/test'][0]['methods'] );
+	}
+
 	public function test_options_request() {
 		register_rest_route(
 			'test-ns',
