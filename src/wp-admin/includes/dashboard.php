@@ -1653,38 +1653,45 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
 }
 
 /**
- * Displays file upload quota on dashboard.
+ * Displays storage space information of a blog on the WordPress dashboard.
  *
  * Runs on the {@see 'activity_box_end'} hook in wp_dashboard_right_now().
  *
+ * This function checks the space used and the space allowed for uploads on the site,
+ * then displays this information in the dashboard with a link to manage uploads.
+ * It also includes a visual warning if the space usage exceeds 70% of the allowed quota.
+ *
  * @since 3.0.0
  *
- * @return true|null True if not multisite, user can't upload files, or the space check option is disabled.
+ * @see get_space_usage() for retrieving the current space usage information in formatted string.
+ *
+ * @return true|void True if not multisite, user can't upload files; else it outputs the storage space information directly in the dashboard.
  */
 function wp_dashboard_quota() {
-	if ( ! is_multisite() || ! current_user_can( 'upload_files' )
-		|| get_site_option( 'upload_space_check_disabled' )
-	) {
+	if ( ! is_multisite() || ! current_user_can( 'upload_files' ) ) {
 		return true;
 	}
 
-	$quota = get_space_allowed();
-	$used  = get_space_used();
+	$used = get_space_used();
 
-	if ( $used > $quota ) {
-		$percentused = '100';
-	} else {
-		$percentused = ( $used / $quota ) * 100;
+	$used_class = '';
+	if ( ! get_site_option( 'upload_space_check_disabled' ) ) {
+		$quota = get_space_allowed();
+		if ( $used > $quota ) {
+			$percentused = '100';
+		} else {
+			$percentused = ( $used / $quota ) * 100;
+			$used_class  = ( $percentused >= 70 ) ? ' warning' : '';
+			$percentused = number_format( $percentused );
+		}
 	}
 
-	$used_class  = ( $percentused >= 70 ) ? ' warning' : '';
-	$used        = round( $used, 2 );
-	$percentused = number_format( $percentused );
-
+	$used = round( $used, 2 );
 	?>
 	<h3 class="mu-storage"><?php _e( 'Storage Space' ); ?></h3>
 	<div class="mu-storage">
-	<ul>
+	<ul> 
+	<?php if ( isset( $quota ) ) : ?>
 		<li class="storage-count">
 			<?php
 			$text = sprintf(
@@ -1700,18 +1707,14 @@ function wp_dashboard_quota() {
 				__( 'Manage Uploads' )
 			);
 			?>
-		</li><li class="storage-count <?php echo $used_class; ?>">
+		</li>
+	<?php endif; ?>
+		<li class="storage-count <?php echo $used_class; ?>">
 			<?php
-			$text = sprintf(
-				/* translators: 1: Number of megabytes, 2: Percentage. */
-				__( '%1$s MB (%2$s%%) Space Used' ),
-				number_format_i18n( $used, 2 ),
-				$percentused
-			);
 			printf(
 				'<a href="%1$s" class="musublink">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
-				$text,
+				get_space_usage(),
 				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
 			);
