@@ -1476,6 +1476,8 @@ function wp_is_theme_directory_ignored( $path ) {
  * @since 6.0.0 Adds the whole theme to the export archive.
  *
  * @return WP_Error|string Path of the ZIP file or error on failure.
+ *
+ * @phpstan-return non-falsy-string|WP_Error
  */
 function wp_generate_block_templates_export_file() {
 	$wp_version = wp_get_wp_version();
@@ -1696,6 +1698,8 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  *                                    prepared for inserting or updating the database.
  * @param WP_REST_Request $deprecated Deprecated. Not used.
  * @return stdClass|WP_Error The updated object representing a template or template part.
+ *
+ * @phpstan-param null $deprecated
  */
 function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
 	if ( null !== $deprecated ) {
