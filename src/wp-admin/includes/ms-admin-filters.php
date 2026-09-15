@@ -29,11 +29,15 @@ add_filter( 'wp_insert_post_data', 'avoid_blog_page_permalink_collision', 10, 2 
 add_filter( 'import_allow_create_users', 'check_import_new_users' );
 
 // Notices hooks.
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'admin_notices', 'site_admin_notice' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'network_admin_notices', 'site_admin_notice' );
 
 // Update hooks.
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'network_admin_notices', 'update_nag', 3 );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'network_admin_notices', 'maintenance_nag', 10 );
 
 // Network Admin hooks.
