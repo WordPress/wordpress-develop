@@ -1322,7 +1322,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( ! validate_username( $username ) ) {
 			return new WP_Error(
 				'rest_user_invalid_username',
-				__( 'This username is invalid because it uses illegal characters. Please enter a valid username.' ),
+				__( 'This username is invalid because it uses disallowed characters. Please enter a valid username.' ),
 				array( 'status' => 400 )
 			);
 		}
