@@ -58,3 +58,4 @@ jobs:
           name: wordpress-develop
           path: develop.zip
           if-no-files-found: error
+          retention-days: 1
