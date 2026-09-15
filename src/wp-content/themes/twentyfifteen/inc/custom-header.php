@@ -8,7 +8,7 @@
  */
 
 /**
- * Set up the WordPress core custom header feature.
+ * Sets up the WordPress core custom header feature.
  *
  * @uses twentyfifteen_header_style()
  */
@@ -47,7 +47,7 @@ function twentyfifteen_custom_header_setup() {
 add_action( 'after_setup_theme', 'twentyfifteen_custom_header_setup' );
 
 /**
- * Convert HEX to RGB.
+ * Converts HEX to RGB.
  *
  * @since Twenty Fifteen 1.0
  *
@@ -95,7 +95,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 
 		// If we get this far, we have custom styles. Let's do this.
 		?>
-		<style type="text/css" id="twentyfifteen-header-css">
+		<style id="twentyfifteen-header-css">
 		<?php
 		// Short header for when there is no Custom Header and Header Text is hidden.
 		if ( empty( $header_image ) && ! display_header_text() ) :

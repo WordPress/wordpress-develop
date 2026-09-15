@@ -226,10 +226,16 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 	public function test_translate_plural_complex() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/l10n/plural-complex.mo' );
 
+		$this->assertSame( '%s razpoložljiva posodobitev', _n( '%s update available', '%s updates available', '1', 'wp-tests-domain' ) ); // 1, 101, 201
 		$this->assertSame( '%s razpoložljiva posodobitev', _n( '%s update available', '%s updates available', 101, 'wp-tests-domain' ) ); // 1, 101, 201
 		$this->assertSame( '%s razpoložljivi posodobitvi', _n( '%s update available', '%s updates available', 102, 'wp-tests-domain' ) ); // 2, 102, 202
 		$this->assertSame( '%s razpoložljive posodobitve', _n( '%s update available', '%s updates available', 103, 'wp-tests-domain' ) ); // 3, 4, 103
 		$this->assertSame( '%s razpoložljivih posodobitev', _n( '%s update available', '%s updates available', 5, 'wp-tests-domain' ) ); // 0, 5, 6
+
+		// Test with strings that are not in the translation files.
+		$this->assertSame( 'Singular', _n( 'Singular', 'Plural', 1, 'wp-tests-domain' ) );
+		$this->assertSame( 'Singular', _n( 'Singular', 'Plural', '1', 'wp-tests-domain' ) );
+		$this->assertSame( 'Plural', _n( 'Singular', 'Plural', 2, 'wp-tests-domain' ) );
 	}
 
 	/**
@@ -239,10 +245,16 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 	public function test_translate_plural_complex_php() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/l10n/plural-complex.php' );
 
+		$this->assertSame( '%s razpoložljiva posodobitev', _n( '%s update available', '%s updates available', '1', 'wp-tests-domain' ) ); // 1, 101, 201
 		$this->assertSame( '%s razpoložljiva posodobitev', _n( '%s update available', '%s updates available', 101, 'wp-tests-domain' ) ); // 1, 101, 201
 		$this->assertSame( '%s razpoložljivi posodobitvi', _n( '%s update available', '%s updates available', 102, 'wp-tests-domain' ) ); // 2, 102, 202
 		$this->assertSame( '%s razpoložljive posodobitve', _n( '%s update available', '%s updates available', 103, 'wp-tests-domain' ) ); // 3, 4, 103
 		$this->assertSame( '%s razpoložljivih posodobitev', _n( '%s update available', '%s updates available', 5, 'wp-tests-domain' ) ); // 0, 5, 6
+
+		// Test with strings that are not in the translation files.
+		$this->assertSame( 'Singular', _n( 'Singular', 'Plural', 1, 'wp-tests-domain' ) );
+		$this->assertSame( 'Singular', _n( 'Singular', 'Plural', '1', 'wp-tests-domain' ) );
+		$this->assertSame( 'Plural', _n( 'Singular', 'Plural', 2, 'wp-tests-domain' ) );
 	}
 
 	/**

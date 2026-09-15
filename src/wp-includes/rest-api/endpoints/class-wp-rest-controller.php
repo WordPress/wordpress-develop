@@ -571,7 +571,7 @@ abstract class WP_REST_Controller {
 	 */
 	public function get_fields_for_response( $request ) {
 		$schema     = $this->get_item_schema();
-		$properties = isset( $schema['properties'] ) ? $schema['properties'] : array();
+		$properties = $schema['properties'] ?? array();
 
 		$additional_fields = $this->get_additional_fields();
 
@@ -668,7 +668,7 @@ abstract class WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @see https://github.com/WP-API/WP-API/issues/1585
+	 * @link https://github.com/WP-API/WP-API/issues/1585
 	 *
 	 * @todo Remove this in favour of https://core.trac.wordpress.org/ticket/34659
 	 *

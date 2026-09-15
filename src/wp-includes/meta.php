@@ -592,11 +592,28 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *               or if `$meta_type` is not specified.
  *               An empty array if a valid but non-existing object ID is passed and `$single` is false.
  *               An empty string if a valid but non-existing object ID is passed and `$single` is true.
+ *               The same empty array or empty string if `$meta_type` has no metadata table, in which
+ *               case there is no cache to return even when `$meta_key` is not specified.
  *               Note: Non-serialized values are returned as strings:
  *               - false values are returned as empty strings ('')
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-param int|numeric-string $object_id
+ * @phpstan-return (
+ *     $meta_key is ''|'0'
+ *         ? ( $single is true
+ *             ? array<array-key, list<string>>|string|false
+ *             : array<array-key, list<string>>|false )
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
@@ -624,6 +641,21 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  *               False for an invalid `$object_id` (non-numeric, zero, or negative value),
  *               or if `$meta_type` is not specified.
  *               Null if the value does not exist.
+ *               Only stored values are returned. Unlike {@see get_metadata()}, a default
+ *               registered with {@see register_meta()} is never consulted, so a value is
+ *               always a string unless it was stored serialized, in which case the array
+ *               or object retains its original type.
+ *               When `$meta_key` is not specified, the values are returned exactly as
+ *               they are held in the object cache, which means they are still serialized.
+ *
+ * @phpstan-param int|numeric-string $object_id
+ * @phpstan-return (
+ *     $meta_key is ''|'0'
+ *         ? array<array-key, list<string>>|false|null
+ *         : ( $single is true
+ *             ? string|array<mixed>|object|false|null
+ *             : list<string|array<mixed>|object>|false|null )
+ * )
  */
 function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
@@ -674,11 +706,7 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 
 	if ( ! $meta_cache ) {
 		$meta_cache = update_meta_cache( $meta_type, array( $object_id ) );
-		if ( isset( $meta_cache[ $object_id ] ) ) {
-			$meta_cache = $meta_cache[ $object_id ];
-		} else {
-			$meta_cache = null;
-		}
+		$meta_cache = $meta_cache[ $object_id ] ?? null;
 	}
 
 	if ( ! $meta_key ) {
@@ -712,6 +740,9 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
  *                          This parameter has no effect if `$meta_key` is not specified. Default false.
  * @return mixed An array of default values if `$single` is false.
  *               The default value of the meta field if `$single` is true.
+ *
+ * @phpstan-param int|numeric-string $object_id
+ * @phpstan-return ( $single is true ? mixed : list<mixed> )
  */
 function get_metadata_default( $meta_type, $object_id, $meta_key, $single = false ) {
 	if ( $single ) {
@@ -1401,6 +1432,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
  * @since 6.7.0 The `label` argument was added to the arguments array.
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param string       $object_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                                  'user', or any other object type with an associated meta table.
  * @param string       $meta_key    Meta key to register.
@@ -1429,7 +1462,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key. Can only be used when the
  *                                         object type is 'post'.
  * }
- * @param string|array $deprecated Deprecated. Use `$args` instead.
+ * @param string|array $deprecated  Deprecated. Use `$args` instead.
  * @return bool True if the meta key was successfully registered in the global array, false if not.
  *              Registering a meta key with distinct sanitize and auth callbacks will fire those callbacks,
  *              but will not add to the global registry.
@@ -1571,6 +1604,8 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
  *
  * @since 5.5.0
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param mixed  $value     Current value passed to filter.
  * @param int    $object_id ID of the object metadata is for.
  * @param string $meta_key  Metadata key.
@@ -1650,6 +1685,8 @@ function registered_meta_key_exists( $object_type, $meta_key, $object_subtype = 
  * @since 4.6.0
  * @since 4.9.8 The `$object_subtype` parameter was added.
  *
+ * @global array $wp_meta_keys Global registry for meta keys.
+ *
  * @param string $object_type    Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                               'user', or any other object type with an associated meta table.
  * @param string $meta_key       Metadata key.
@@ -1699,6 +1736,8 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
  *
  * @since 4.6.0
  * @since 4.9.8 The `$object_subtype` parameter was added.
+ *
+ * @global array $wp_meta_keys Global registry for meta keys.
  *
  * @param string $object_type    Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                               'user', or any other object type with an associated meta table.
@@ -1785,6 +1824,7 @@ function _wp_register_meta_args_allowed_list( $args, $default_args ) {
  * Returns the object subtype for a given object ID of a specific type.
  *
  * @since 4.9.8
+ * @since 7.2.0 Added support for 'blog' object type in multisite.
  *
  * @param string $object_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                            'user', or any other object type with an associated meta table.
@@ -1829,6 +1869,19 @@ function get_object_subtype( $object_type, $object_id ) {
 			}
 
 			$object_subtype = 'user';
+			break;
+
+		case 'blog':
+			if ( ! is_multisite() || $object_id <= 0 ) {
+				break;
+			}
+
+			$site = get_site( $object_id );
+			if ( ! $site ) {
+				break;
+			}
+
+			$object_subtype = 'blog';
 			break;
 	}
 

@@ -33,24 +33,42 @@ if ( ! function_exists( '_' ) ) {
  *
  * @ignore
  * @since 4.2.2
+ * @since 6.9.0 Deprecated the `$set` argument.
  * @access private
  *
- * @param bool $set - Used for testing only
- *             null   : default - get PCRE/u capability
- *             false  : Used for testing - return false for future calls to this function
- *             'reset': Used for testing - restore default behavior of this function
+ * @param bool $set Deprecated. This argument is no longer used for testing purposes.
  */
 function _wp_can_use_pcre_u( $set = null ) {
-	static $utf8_pcre = 'reset';
+	static $utf8_pcre = null;
 
-	if ( null !== $set ) {
-		$utf8_pcre = $set;
+	if ( isset( $set ) ) {
+		_deprecated_argument( __FUNCTION__, '6.9.0' );
 	}
 
-	if ( 'reset' === $utf8_pcre ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentional error generated to detect PCRE/u support.
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
+	if ( isset( $utf8_pcre ) ) {
+		return $utf8_pcre;
 	}
+
+	$utf8_pcre = true;
+	set_error_handler(
+		function ( $errno, $errstr ) use ( &$utf8_pcre ) {
+			if ( str_starts_with( $errstr, 'preg_match():' ) ) {
+				$utf8_pcre = false;
+				return true;
+			}
+
+			return false;
+		},
+		E_WARNING
+	);
+
+	/*
+	 * Attempt to compile a PCRE pattern with the PCRE_UTF8 flag. For
+	 * systems lacking Unicode support this will trigger a warning
+	 * during compilation, which the error handler will intercept.
+	 */
+	preg_match( '//u', '' );
+	restore_error_handler();
 
 	return $utf8_pcre;
 }
@@ -92,6 +110,149 @@ function _is_utf8_charset( $charset_slug ) {
 	);
 }
 
+if ( ! function_exists( 'mb_chr' ) ) :
+	/**
+	 * Compat function to mimic mb_chr().
+	 *
+	 * @ignore
+	 * @since 7.1.0
+	 *
+	 * @see _mb_ord()
+	 *
+	 * @param int          $codepoint A Unicode codepoint value, e.g. 128024 for U+1F418 ELEPHANT
+	 * @param "UTF-8"|null $encoding  Must be 'UTF-8' or null.
+	 * @return string|false A string containing the requested character, if it can be represented in the specified encoding or false on failure.
+	 */
+	function mb_chr( $codepoint, $encoding = null ) {
+		return _mb_chr( $codepoint, $encoding );
+	}
+endif;
+
+/**
+ * Internal compat function to mimic mb_chr().
+ *
+ * @ignore
+ * @since 7.1.0
+ *
+ * @param int          $codepoint A Unicode codepoint value, e.g. 128024 for U+1F418 ELEPHANT
+ * @param "UTF-8"|null $encoding  Must be 'UTF-8' or null.
+ * @return string|false A string containing the requested character, if it can be represented in the specified encoding or false on failure.
+ */
+function _mb_chr( $codepoint, $encoding = null ) {
+	if ( ! is_int( $codepoint ) || ( isset( $encoding ) && 'UTF-8' !== $encoding ) ) {
+		return false;
+	}
+
+	// Pre-check to ensure a valid code point.
+	if (
+		$codepoint < 0 ||
+		( $codepoint >= 0xD800 && $codepoint <= 0xDFFF ) ||
+		$codepoint > 0x10FFFF
+	) {
+		return false;
+	}
+
+	if ( $codepoint <= 0x7F ) {
+		return chr( $codepoint );
+	}
+
+	if ( $codepoint <= 0x7FF ) {
+		$byte1 = chr( ( $codepoint >> 6 ) | 0xC0 );
+		$byte2 = chr( $codepoint & 0x3F | 0x80 );
+
+		return "{$byte1}{$byte2}";
+	}
+
+	if ( $codepoint <= 0xFFFF ) {
+		$byte1 = chr( ( $codepoint >> 12 ) | 0xE0 );
+		$byte2 = chr( ( $codepoint >> 6 ) & 0x3F | 0x80 );
+		$byte3 = chr( $codepoint & 0x3F | 0x80 );
+
+		return "{$byte1}{$byte2}{$byte3}";
+	}
+
+	// Any values above U+10FFFF are eliminated above in the pre-check.
+	$byte1 = chr( ( $codepoint >> 18 ) | 0xF0 );
+	$byte2 = chr( ( $codepoint >> 12 ) & 0x3F | 0x80 );
+	$byte3 = chr( ( $codepoint >> 6 ) & 0x3F | 0x80 );
+	$byte4 = chr( $codepoint & 0x3F | 0x80 );
+
+	return "{$byte1}{$byte2}{$byte3}{$byte4}";
+}
+
+if ( ! function_exists( 'mb_ord' ) ) :
+	/**
+	 * Compat function to mimic mb_ord().
+	 *
+	 * @ignore
+	 * @since 7.1.0
+	 *
+	 * @see _mb_ord()
+	 *
+	 * @param string       $string   Return the code point at the start of this string.
+	 * @param "UTF-8"|null $encoding Must be 'UTF-8' or null.
+	 * @return int|false The Unicode code point for the first character of string or false on failure.
+	 */
+	function mb_ord( $string, $encoding = null ) {
+		return _mb_ord( $string, $encoding );
+	}
+endif;
+
+/**
+ * Internal compat function to mimic mb_ord().
+ *
+ * @ignore
+ * @since 7.1.0
+ *
+ * @param string       $string   Return the code point at the start of this string.
+ * @param "UTF-8"|null $encoding Must be 'UTF-8' or null.
+ * @return int|false The Unicode code point for the first character of string or false on failure.
+ */
+function _mb_ord( $string, $encoding = null ) {
+	if ( ! is_string( $string ) || '' === $string || ( isset( $encoding ) && 'UTF-8' !== $encoding ) ) {
+		return false;
+	}
+
+	$byte_length    = 0;
+	$invalid_length = 0;
+	$found_count    = _wp_scan_utf8( $string, $byte_length, $invalid_length, null, 1 );
+
+	if ( 1 !== $found_count ) {
+		return false;
+	}
+
+	// These are valid code points, so no further validation is required.
+	$b0 = ord( $string[0] );
+
+	switch ( $byte_length ) {
+		case 1:
+			return $b0;
+
+		case 2:
+			return (
+				( ( $b0 & 0x1F ) << 6 ) |
+				( ( ord( $string[1] ) & 0x3F ) )
+			);
+
+		case 3:
+			return (
+				( ( $b0 & 0x0F ) << 12 ) |
+				( ( ord( $string[1] ) & 0x3F ) << 6 ) |
+				( ( ord( $string[2] ) & 0x3F ) )
+			);
+
+		case 4:
+			return (
+				( ( $b0 & 0x07 ) << 18 ) |
+				( ( ord( $string[1] ) & 0x3F ) << 12 ) |
+				( ( ord( $string[2] ) & 0x3F ) << 6 ) |
+				( ( ord( $string[3] ) & 0x3F ) )
+			);
+	}
+
+	return false;
+}
+
 if ( ! function_exists( 'mb_substr' ) ) :
 	/**
 	 * Compat function to mimic mb_substr().
@@ -116,15 +277,15 @@ endif;
 /**
  * Internal compat function to mimic mb_substr().
  *
- * Only understands UTF-8 and 8bit. All other character sets will be treated as 8bit.
- * For `$encoding === UTF-8`, the `$str` input is expected to be a valid UTF-8 byte
- * sequence. The behavior of this function for invalid inputs is undefined.
+ * Only supports UTF-8 and non-shifting single-byte encodings. For all other encodings
+ * expect the substrings to be misaligned. When the given encoding (or the `blog_charset`
+ * if none is provided) isn’t UTF-8 then the function returns the output of {@see \substr()}.
  *
  * @ignore
  * @since 3.2.0
  *
  * @param string      $str      The string to extract the substring from.
- * @param int         $start    Position to being extraction from in `$str`.
+ * @param int         $start    Character offset at which to start the substring extraction.
  * @param int|null    $length   Optional. Maximum number of characters to extract from `$str`.
  *                              Default null.
  * @param string|null $encoding Optional. Character encoding to use. Default null.
@@ -135,56 +296,46 @@ function _mb_substr( $str, $start, $length = null, $encoding = null ) {
 		return '';
 	}
 
-	if ( null === $encoding ) {
-		$encoding = get_option( 'blog_charset' );
-	}
-
-	/*
-	 * The solution below works only for UTF-8, so in case of a different
-	 * charset just use built-in substr().
-	 */
-	if ( ! _is_utf8_charset( $encoding ) ) {
-		return is_null( $length ) ? substr( $str, $start ) : substr( $str, $start, $length );
-	}
-
-	if ( _wp_can_use_pcre_u() ) {
-		// Use the regex unicode support to separate the UTF-8 characters into an array.
-		preg_match_all( '/./us', $str, $match );
-		$chars = is_null( $length ) ? array_slice( $match[0], $start ) : array_slice( $match[0], $start, $length );
-		return implode( '', $chars );
-	}
-
-	$regex = '/(
-		[\x00-\x7F]                  # single-byte sequences   0xxxxxxx
-		| [\xC2-\xDF][\x80-\xBF]       # double-byte sequences   110xxxxx 10xxxxxx
-		| \xE0[\xA0-\xBF][\x80-\xBF]   # triple-byte sequences   1110xxxx 10xxxxxx * 2
-		| [\xE1-\xEC][\x80-\xBF]{2}
-		| \xED[\x80-\x9F][\x80-\xBF]
-		| [\xEE-\xEF][\x80-\xBF]{2}
-		| \xF0[\x90-\xBF][\x80-\xBF]{2} # four-byte sequences   11110xxx 10xxxxxx * 3
-		| [\xF1-\xF3][\x80-\xBF]{3}
-		| \xF4[\x80-\x8F][\x80-\xBF]{2}
-	)/x';
-
-	// Start with 1 element instead of 0 since the first thing we do is pop.
-	$chars = array( '' );
-
-	do {
-		// We had some string left over from the last round, but we counted it in that last round.
-		array_pop( $chars );
+	// The solution below works only for UTF-8; treat all other encodings as byte streams.
+	if ( ! _is_utf8_charset( $encoding ?? get_option( 'blog_charset' ) ) ) {
+		$result = is_null( $length ) ? substr( $str, $start ) : substr( $str, $start, $length );
 
 		/*
-		 * Split by UTF-8 character, limit to 1000 characters (last array element will contain
-		 * the rest of the string).
+		 * For an out-of-range start, substr() returns false on PHP < 8.0 but an
+		 * empty string on PHP >= 8.0. mb_substr() always returns an empty string,
+		 * so normalize to match its behavior across all supported PHP versions.
 		 */
-		$pieces = preg_split( $regex, $str, 1000, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
+		return false === $result ? '' : $result;
+	}
 
-		$chars = array_merge( $chars, $pieces );
+	$total_length = ( $start < 0 || $length < 0 )
+		? _wp_utf8_codepoint_count( $str )
+		: 0;
 
-		// If there's anything left over, repeat the loop.
-	} while ( count( $pieces ) > 1 && $str = array_pop( $pieces ) );
+	$normalized_start = $start < 0
+		? max( 0, $total_length + $start )
+		: $start;
 
-	return implode( '', array_slice( $chars, $start, $length ) );
+	/*
+	 * The starting offset is provided as characters, which means this needs to
+	 * find how many bytes that many characters occupies at the start of the string.
+	 */
+	$starting_byte_offset = _wp_utf8_codepoint_span( $str, 0, $normalized_start );
+
+	$normalized_length = $length < 0
+		? max( 0, $total_length - $normalized_start + $length )
+		: $length;
+
+	/*
+	 * This is the main step. It finds how many bytes the given length of code points
+	 * occupies in the input, starting at the byte offset calculated above.
+	 */
+	$byte_length = isset( $normalized_length )
+		? _wp_utf8_codepoint_span( $str, $starting_byte_offset, $normalized_length )
+		: ( strlen( $str ) - $starting_byte_offset );
+
+	// The result is a normal byte-level substring using the computed ranges.
+	return substr( $str, $starting_byte_offset, $byte_length );
 }
 
 if ( ! function_exists( 'mb_strlen' ) ) :
@@ -208,143 +359,96 @@ endif;
 /**
  * Internal compat function to mimic mb_strlen().
  *
- * Only understands UTF-8 and 8bit. All other character sets will be treated as 8bit.
- * For `$encoding === UTF-8`, the `$str` input is expected to be a valid UTF-8 byte
- * sequence. The behavior of this function for invalid inputs is undefined.
+ * Only supports UTF-8 and non-shifting single-byte encodings. For all other
+ * encodings expect the counts to be wrong. When the given encoding (or the
+ * `blog_charset` if none is provided) isn’t UTF-8 then the function returns
+ * the byte-count of the provided string.
  *
  * @ignore
  * @since 4.2.0
  *
  * @param string      $str      The string to retrieve the character length from.
- * @param string|null $encoding Optional. Character encoding to use. Default null.
- * @return int String length of `$str`.
+ * @param string|null $encoding Optional. Count characters according to this encoding.
+ *                              Default is to consult `blog_charset`.
+ * @return int Count of code points if UTF-8, byte length otherwise.
  */
 function _mb_strlen( $str, $encoding = null ) {
-	if ( null === $encoding ) {
-		$encoding = get_option( 'blog_charset' );
-	}
-
-	/*
-	 * The solution below works only for UTF-8, so in case of a different charset
-	 * just use built-in strlen().
-	 */
-	if ( ! _is_utf8_charset( $encoding ) ) {
-		return strlen( $str );
-	}
-
-	if ( _wp_can_use_pcre_u() ) {
-		// Use the regex unicode support to separate the UTF-8 characters into an array.
-		preg_match_all( '/./us', $str, $match );
-		return count( $match[0] );
-	}
-
-	$regex = '/(?:
-		[\x00-\x7F]                  # single-byte sequences   0xxxxxxx
-		| [\xC2-\xDF][\x80-\xBF]       # double-byte sequences   110xxxxx 10xxxxxx
-		| \xE0[\xA0-\xBF][\x80-\xBF]   # triple-byte sequences   1110xxxx 10xxxxxx * 2
-		| [\xE1-\xEC][\x80-\xBF]{2}
-		| \xED[\x80-\x9F][\x80-\xBF]
-		| [\xEE-\xEF][\x80-\xBF]{2}
-		| \xF0[\x90-\xBF][\x80-\xBF]{2} # four-byte sequences   11110xxx 10xxxxxx * 3
-		| [\xF1-\xF3][\x80-\xBF]{3}
-		| \xF4[\x80-\x8F][\x80-\xBF]{2}
-	)/x';
-
-	// Start at 1 instead of 0 since the first thing we do is decrement.
-	$count = 1;
-
-	do {
-		// We had some string left over from the last round, but we counted it in that last round.
-		--$count;
-
-		/*
-		 * Split by UTF-8 character, limit to 1000 characters (last array element will contain
-		 * the rest of the string).
-		 */
-		$pieces = preg_split( $regex, $str, 1000 );
-
-		// Increment.
-		$count += count( $pieces );
-
-		// If there's anything left over, repeat the loop.
-	} while ( $str = array_pop( $pieces ) );
-
-	// Fencepost: preg_split() always returns one extra item in the array.
-	return --$count;
+	return _is_utf8_charset( $encoding ?? get_option( 'blog_charset' ) )
+		? _wp_utf8_codepoint_count( $str )
+		: strlen( $str );
 }
 
-// sodium_crypto_box() was introduced in PHP 7.2.
+if ( ! function_exists( 'utf8_encode' ) ) :
+	if ( extension_loaded( 'mbstring' ) ) :
+		/**
+		 * Converts a string from ISO-8859-1 to UTF-8.
+		 *
+		 * @deprecated Use {@see \mb_convert_encoding()} instead.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $iso_8859_1_text Text treated as ISO-8859-1 (latin1) bytes.
+		 * @return string Text converted into a UTF-8.
+		 */
+		function utf8_encode( $iso_8859_1_text ): string {
+			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+
+			return mb_convert_encoding( $iso_8859_1_text, 'UTF-8', 'ISO-8859-1' );
+		}
+
+	else :
+		/**
+		 * @ignore
+		 * @private
+		 *
+		 * @since 6.9.0
+		 */
+		function utf8_encode( $iso_8859_1_text ): string {
+			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+
+			return _wp_utf8_encode_fallback( $iso_8859_1_text );
+		}
+
+	endif;
+endif;
+
+if ( ! function_exists( 'utf8_decode' ) ) :
+	if ( extension_loaded( 'mbstring' ) ) :
+		/**
+		 * Converts a string from UTF-8 to ISO-8859-1.
+		 *
+		 * @deprecated Use {@see \mb_convert_encoding()} instead.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $utf8_text Text treated as UTF-8.
+		 * @return string Text converted into ISO-8859-1.
+		 */
+		function utf8_decode( $utf8_text ): string {
+			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+
+			return mb_convert_encoding( $utf8_text, 'ISO-8859-1', 'UTF-8' );
+		}
+
+	else :
+		/**
+		 * @ignore
+		 * @private
+		 *
+		 * @since 6.9.0
+		 */
+		function utf8_decode( $utf8_text ): string {
+			_deprecated_function( __FUNCTION__, '6.9.0', 'mb_convert_encoding' );
+
+			return _wp_utf8_decode_fallback( $utf8_text );
+		}
+
+	endif;
+endif;
+
+// sodium_crypto_box() was introduced with Sodium in PHP 7.2, but the extension may not be enabled.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
-}
-
-if ( ! function_exists( 'is_countable' ) ) {
-	/**
-	 * Polyfill for is_countable() function added in PHP 7.3.
-	 *
-	 * Verify that the content of a variable is an array or an object
-	 * implementing the Countable interface.
-	 *
-	 * @since 4.9.6
-	 *
-	 * @param mixed $value The value to check.
-	 * @return bool True if `$value` is countable, false otherwise.
-	 */
-	function is_countable( $value ) {
-		return ( is_array( $value )
-			|| $value instanceof Countable
-			|| $value instanceof SimpleXMLElement
-			|| $value instanceof ResourceBundle
-		);
-	}
-}
-
-if ( ! function_exists( 'array_key_first' ) ) {
-	/**
-	 * Polyfill for array_key_first() function added in PHP 7.3.
-	 *
-	 * Get the first key of the given array without affecting
-	 * the internal array pointer.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param array $array An array.
-	 * @return string|int|null The first key of array if the array
-	 *                         is not empty; `null` otherwise.
-	 */
-	function array_key_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
-		if ( empty( $array ) ) {
-			return null;
-		}
-
-		foreach ( $array as $key => $value ) {
-			return $key;
-		}
-	}
-}
-
-if ( ! function_exists( 'array_key_last' ) ) {
-	/**
-	 * Polyfill for `array_key_last()` function added in PHP 7.3.
-	 *
-	 * Get the last key of the given array without affecting the
-	 * internal array pointer.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param array $array An array.
-	 * @return string|int|null The last key of array if the array
-	 *.                        is not empty; `null` otherwise.
-	 */
-	function array_key_last( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
-		if ( empty( $array ) ) {
-			return null;
-		}
-
-		end( $array );
-
-		return key( $array );
-	}
 }
 
 if ( ! function_exists( 'array_is_list' ) ) {
@@ -539,6 +643,114 @@ if ( ! function_exists( 'array_all' ) ) {
 	}
 }
 
+if ( ! function_exists( 'array_first' ) ) {
+	/**
+	 * Polyfill for `array_first()` function added in PHP 8.5.
+	 *
+	 * Returns the first element of an array.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $array The array to get the first element from.
+	 * @return mixed|null The first element of the array, or null if the array is empty.
+	 */
+	function array_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		if ( empty( $array ) ) {
+			return null;
+		}
+
+		foreach ( $array as $value ) {
+			return $value;
+		}
+	}
+}
+
+if ( ! function_exists( 'array_last' ) ) {
+	/**
+	 * Polyfill for `array_last()` function added in PHP 8.5.
+	 *
+	 * Returns the last element of an array.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $array The array to get the last element from.
+	 * @return mixed|null The last element of the array, or null if the array is empty.
+	 */
+	function array_last( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		if ( empty( $array ) ) {
+			return null;
+		}
+
+		return $array[ array_key_last( $array ) ];
+	}
+}
+
+if ( ! function_exists( 'clamp' ) ) {
+	/**
+	 * Polyfill for `clamp()` function added in PHP 8.6.
+	 *
+	 * Clamps a value to be within the range of a given minimum and maximum.
+	 *
+	 * If the value is within the bounds, the original value is returned.
+	 * If it is not within the bounds, the closest bound is returned.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param mixed $value The value to clamp.
+	 * @param mixed $min   The minimum bound. Must be less than or equal to `$max`.
+	 * @param mixed $max   The maximum bound. Must be greater than or equal to `$min`.
+	 * @return mixed The clamped value. Either `$value`, `$min`, or `$max`.
+	 *
+	 * @throws ValueError               If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class exists (PHP 8.0+ or polyfilled).
+	 * @throws InvalidArgumentException If `$min` is greater than `$max`, or if `$min` or `$max` is NAN, and the ValueError class does not exist (PHP 7.x).
+	 *
+	 * @phpstan-template TValue
+	 * @phpstan-template TMin
+	 * @phpstan-template TMax
+	 * @phpstan-param TValue $value
+	 * @phpstan-param TMin   $min
+	 * @phpstan-param TMax   $max
+	 * @phpstan-return TValue|TMin|TMax
+	 */
+	function clamp( $value, $min, $max ) {
+		$throw_value_error = static function ( string $message ) {
+			// The ValueError class was introduced in PHP 8, so in 7.4 throw InvalidArgumentException instead.
+			if ( ! class_exists( 'ValueError', false ) ) {
+				throw new InvalidArgumentException( $message );
+			}
+			throw new ValueError( $message );
+		};
+
+		if ( is_float( $min ) && is_nan( $min ) ) {
+			$throw_value_error( 'clamp(): Argument #2 ($min) must not be NAN' );
+		}
+
+		if ( is_float( $max ) && is_nan( $max ) ) {
+			$throw_value_error( 'clamp(): Argument #3 ($max) must not be NAN' );
+		}
+
+		if ( $max < $min ) {
+			$throw_value_error( 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)' );
+		}
+
+		/*
+		 * The upper bound is checked before the lower bound to match the order in PHP's
+		 * implementation. Comparison in PHP is not transitive when operands of different
+		 * types are mixed (for example, comparing against a bool coerces both operands to
+		 * bool), so both bounds can compare as exceeded at once, and the first check wins.
+		 */
+		if ( $value > $max ) {
+			return $max;
+		}
+
+		if ( $value < $min ) {
+			return $min;
+		}
+
+		return $value;
+	}
+}
+
 // IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
 if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 	define( 'IMAGETYPE_AVIF', 19 );
@@ -549,7 +761,7 @@ if ( ! defined( 'IMG_AVIF' ) ) {
 	define( 'IMG_AVIF', IMAGETYPE_AVIF );
 }
 
-// IMAGETYPE_HEIC constant is not yet defined in PHP as of PHP 8.3.
-if ( ! defined( 'IMAGETYPE_HEIC' ) ) {
-	define( 'IMAGETYPE_HEIC', 99 );
+// IMAGETYPE_HEIF constant is only defined in PHP 8.5 or later.
+if ( ! defined( 'IMAGETYPE_HEIF' ) ) {
+	define( 'IMAGETYPE_HEIF', 20 );
 }

@@ -1,0 +1,216 @@
+##
+# A reusable workflow that runs PHP Static Analysis tests.
+##
+name: PHP Static Analysis
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs PHP static analysis tests.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Sets up PHP.
+  # - Logs debug information.
+  # - Installs Composer dependencies.
+  # - Make Composer packages available globally.
+  # - Installs npm dependencies.
+  # - Builds WordPress.
+  # - Configures caching for PHPStan static analysis scans.
+  # - Runs PHPStan static analysis (with Pull Request annotations).
+  # - Checks whether the baselines need regenerating.
+  # - Saves the PHPStan result cache.
+  # - Ensures version-controlled files are not modified or deleted.
+  phpstan:
+    name: Run PHP static analysis
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: none
+          tools: cs2pr
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          composer --version
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Make Composer packages available globally
+        run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
+
+      - name: Install npm dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build WordPress
+        run: npm run build:dev
+
+      # The directory holds more than the analysis results. PHPStan also stores what it read out of
+      # each source file there, the docblocks and signatures it found, keyed by that file's contents
+      # and nothing else. The extensions in `tests/phpstan` change what reading a file yields without
+      # changing the file: a parser node visitor rewrites a docblock in the syntax tree, and the bytes
+      # on disk stay as they were. A cache written before one of them changed therefore answers with
+      # what the old code saw, and the analysis silently runs against types no longer derived.
+      #
+      # Keying on the configuration and the extensions keeps a run from restoring a cache that
+      # predates either. The baselines are left out of the key: they only decide which reported errors
+      # are ignored, PHPStan invalidates the results cache on a configuration change by itself, and
+      # including them would discard the whole cache every time one is regenerated.
+      #
+      # The cache is renamed rather than only prefixed, because the key this replaces restored on
+      # `phpstan-result-cache-`, which every key below still begins with. A branch that has not
+      # merged this commit yet runs the workflow it has, and that workflow would prefix-match the
+      # caches written here: it would analyse without the extensions against reflection derived with
+      # them. A name of its own leaves those runs restoring only their own caches.
+      - name: Cache PHP Static Analysis scan cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache # This is defined in the base.neon file.
+          key: "phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+          restore-keys: |
+            phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-
+
+      - name: Run PHP static analysis tests
+        id: phpstan
+        run: |
+          # The report is written to a file as well as piped to cs2pr, so that the step below
+          # can look at it.
+          #
+          # cs2pr exits successfully so that reported errors annotate the pull request without
+          # failing the run. A pipeline reports only the status of its last command, so that
+          # also discards the status of the analysis itself. Recover it from PIPESTATUS.
+          composer run phpstan -- -vvv --error-format=checkstyle | tee "${RUNNER_TEMP}/phpstan-report.xml" | cs2pr --errors-as-warnings --graceful-warnings
+          status="${PIPESTATUS[0]}"
+
+          # PHPStan exits 1 when it has errors to report, which is the expected case here and
+          # is what the annotations are for. Anything higher means it did not finish at all,
+          # which would otherwise pass silently, since the discarded status was the only sign.
+          if [ "${status}" -gt 1 ]; then
+            echo "::error title=PHPStan did not complete::The analysis exited with status ${status}, so the code was not fully checked. This is a failure of the run itself rather than a problem found in the code."
+            exit "${status}"
+          fi
+
+      # An ignored error that no longer occurs, or occurs a different number of times, is
+      # reported under an `ignore.*` identifier. That is not something to fix in the code: the
+      # usual cause is that the error *was* fixed, leaving a baseline describing a state that
+      # no longer exists. PHPStan does not allow those reports to be ignored or baselined.
+      #
+      # The analysis above is reported as warnings, so this would otherwise surface as a
+      # passing run carrying an annotation that reads like a complaint about a fix. Call it
+      # out on its own, and say what to do about it.
+      #
+      # Detection is on the identifier rather than the message, which is prose and may be
+      # reworded in any release. The checkstyle format carries it in the `source` attribute.
+      - name: Check whether the baselines need regenerating
+        if: ${{ !cancelled() }}
+        env:
+          BASELINES_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}/tests/phpstan/baselines
+          README_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/tests/phpstan/README.md
+        run: |
+          # This step runs even when the analysis above it failed, in which case the report may
+          # never have been written. That failure is reported there, so there is nothing to add
+          # here beyond staying quiet about a file that was never going to exist.
+          if [ ! -f "${RUNNER_TEMP}/phpstan-report.xml" ]; then
+            exit 0
+          fi
+
+          # Leave the run alone unless PHPStan reported an ignore error, because everything
+          # below concerns an ignore configuration that no longer describes the code, and
+          # nothing else. Those errors are `ignore.unmatched`, where a pattern matched nothing
+          # at all, and `ignore.count`, where it matched a different number of times than the
+          # entry records. The `ignore.` prefix is matched rather than those two names so that
+          # any later addition to the group is caught as well.
+          if ! grep -q 'source="ignore\.' "${RUNNER_TEMP}/phpstan-report.xml"; then
+            exit 0
+          fi
+
+          # The summary is Markdown, and its code spans and fences are written literally, so the
+          # heredoc is quoted to keep the backticks out of the shell's hands. The links are
+          # written in reference style for the same reason: the URLs are the only part needing
+          # a variable, so defining them afterwards keeps the whole of the prose in here.
+          #
+          # A newline renders as a line break rather than a space, so each paragraph is one
+          # line however long that makes it, and the rendered summary wraps to its own width.
+          cat >> "${GITHUB_STEP_SUMMARY}" <<'SUMMARY'
+          ## PHPStan baselines are out of date
+
+          An ignored error no longer occurs, or occurs a different number of times, so PHPStan reported it under an `ignore.unmatched` or `ignore.count` identifier.
+
+          **If you fixed the error, this is expected.** Each baseline entry records an exact count for a specific file, so that a new occurrence of an already baselined error is reported rather than absorbed. That same exactness means fixing one leaves the baseline describing a state that no longer exists. There is nothing to fix in the code; the baselines just need to catch up.
+
+          Regenerate them and commit the result:
+
+          ```bash
+          npm run typecheck:php:baselines
+          ```
+
+          or, outside the Docker environment:
+
+          ```bash
+          composer phpstan:baselines
+          ```
+
+          That rewrites the files under [`tests/phpstan/baselines`][baselines], deletes any whose errors are now all fixed, and updates the list of them in `phpstan.neon.dist`.
+
+          Where the report names an `@phpstan-ignore` annotation in the code rather than a baseline entry, remove that annotation instead; regenerating will not clear it.
+
+          See [`tests/phpstan/README.md`][readme] for details.
+
+          SUMMARY
+
+          {
+            echo "[baselines]: ${BASELINES_URL}"
+            echo "[readme]: ${README_URL}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` or \`composer phpstan:baselines\` and commit the updated baselines. See ${README_URL}"
+          exit 1
+
+      - name: "Save result cache"
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        if: ${{ !cancelled() }}
+        with:
+          path: .cache
+          key: "phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

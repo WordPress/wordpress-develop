@@ -17,14 +17,22 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	/**
 	 * Original value of $GLOBALS['hook_suffix'].
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	private static $original_hook_suffix;
+
+	/**
+	 * Whether $GLOBALS['hook_suffix'] existed before the test class ran.
+	 *
+	 * @var bool
+	 */
+	private static $hook_suffix_was_set;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		static::$original_hook_suffix = $GLOBALS['hook_suffix'];
+		static::$hook_suffix_was_set  = array_key_exists( 'hook_suffix', $GLOBALS );
+		static::$original_hook_suffix = $GLOBALS['hook_suffix'] ?? null;
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 	}
@@ -37,8 +45,12 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	public function clean_up_global_scope() {
-		global $hook_suffix;
-		$hook_suffix = static::$original_hook_suffix;
+		if ( static::$hook_suffix_was_set ) {
+			$GLOBALS['hook_suffix'] = static::$original_hook_suffix;
+		} else {
+			unset( $GLOBALS['hook_suffix'] );
+		}
+
 		parent::clean_up_global_scope();
 	}
 
@@ -61,20 +73,21 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$hook = new MockAction();
 		add_filter( 'list_table_primary_column', array( $hook, 'filter' ) );
 
-		/*
-		 * Set a dummy value for the current screen in the admin to prevent
-		 * `_get_list_table()` throwing.
-		 */
-		$GLOBALS['hook_suffix'] = 'my-hook';
-
-		$list_table = _get_list_table( $list_class );
+		$list_table = _get_list_table(
+			$list_class,
+			array( 'screen' => 'wp-list-table-test-' . sanitize_key( $list_class ) )
+		);
 
 		$column_headers = new ReflectionProperty( $list_table, '_column_headers' );
-		$column_headers->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$column_headers->setAccessible( true );
+		}
 		$column_headers->setValue( $list_table, $headers );
 
 		$column_info = new ReflectionMethod( $list_table, 'get_column_info' );
-		$column_info->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$column_info->setAccessible( true );
+		}
 
 		$this->assertSame( $expected, $column_info->invoke( $list_table ), 'The actual columns did not match the expected columns' );
 		$this->assertSame( $expected_hook_count, $hook->get_call_count(), 'The hook was not called the expected number of times' );
@@ -93,7 +106,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		 */
 		$list_primary_columns = array(
 			'WP_Application_Passwords_List_Table'         => 'name',
-			'WP_Comments_List_Table'                      => 'author',
+			'WP_Comments_List_Table'                      => 'comment',
 			'WP_Links_List_Table'                         => 'name',
 			'WP_Media_List_Table'                         => 'title',
 			'WP_MS_Sites_List_Table'                      => 'blogname',
@@ -160,7 +173,9 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 */
 	public function test_get_views_links( $link_data, $expected ) {
 		$get_views_links = new ReflectionMethod( $this->list_table, 'get_views_links' );
-		$get_views_links->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_views_links->setAccessible( true );
+		}
 
 		$actual = $get_views_links->invokeArgs( $this->list_table, array( $link_data ) );
 
@@ -275,7 +290,9 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 */
 	public function test_get_views_links_doing_it_wrong( $link_data ) {
 		$get_views_links = new ReflectionMethod( $this->list_table, 'get_views_links' );
-		$get_views_links->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_views_links->setAccessible( true );
+		}
 		$get_views_links->invokeArgs( $this->list_table, array( $link_data ) );
 	}
 

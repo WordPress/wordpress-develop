@@ -138,9 +138,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		// +1 for the default user created during installation.
 		$this->assertCount( 13, $users );
-		foreach ( $users as $user ) {
-			$this->assertInstanceOf( 'WP_User', $user );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_User', $users );
 
 		$users = new WP_User_Query(
 			array(
@@ -150,9 +148,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 		$users = $users->get_results();
 		$this->assertCount( 13, $users );
-		foreach ( $users as $user ) {
-			$this->assertInstanceOf( 'WP_User', $user );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_User', $users );
 	}
 
 	/**
@@ -1416,9 +1412,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->assertCount( 2, $users );
 
-		foreach ( $users as $user ) {
-			$this->assertInstanceOf( 'WP_User', $user );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_User', $users );
 	}
 
 	/**
@@ -1430,9 +1424,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		// +1 for the default user created during installation.
 		$this->assertCount( 8, $users );
-		foreach ( $users as $user ) {
-			$this->assertInstanceOf( 'WP_User', $user );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_User', $users );
 	}
 
 	/**
@@ -1664,20 +1656,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_search_by_display_name_only() {
 
-		$new_user1          = self::factory()->user->create(
+		$new_user1  = self::factory()->user->create(
 			array(
 				'user_login'   => 'name1',
 				'display_name' => 'Sophia Andresen',
 			)
 		);
-		self::$author_ids[] = $new_user1;
+		$author_ids = array_merge( self::$author_ids, array( $new_user1 ) );
 
 		$q = new WP_User_Query(
 			array(
 				'search'         => '*Sophia*',
 				'fields'         => '',
 				'search_columns' => array( 'display_name' ),
-				'include'        => self::$author_ids,
+				'include'        => $author_ids,
 			)
 		);
 
@@ -1692,20 +1684,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_search_by_display_name_only_ignore_others() {
 
-		$new_user1          = self::factory()->user->create(
+		$new_user1  = self::factory()->user->create(
 			array(
 				'user_login'   => 'Sophia Andresen',
 				'display_name' => 'name1',
 			)
 		);
-		self::$author_ids[] = $new_user1;
+		$author_ids = array_merge( self::$author_ids, array( $new_user1 ) );
 
 		$q = new WP_User_Query(
 			array(
 				'search'         => '*Sophia*',
 				'fields'         => '',
 				'search_columns' => array( 'display_name' ),
-				'include'        => self::$author_ids,
+				'include'        => $author_ids,
 			)
 		);
 
@@ -1728,7 +1720,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
+		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ) );
 
 		// Make sure no queries were executed.
 		$this->assertSame( $num_queries, get_num_queries() );
@@ -1738,6 +1730,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		// Make sure manually setting total_users doesn't get overwritten.
 		$this->assertSame( 1, $q->total_users );
+	}
+
+	/**
+	 * @ticket 47719
+	 */
+	public function test_include_should_return_no_users_when_0() {
+		$query = new WP_User_Query(
+			array(
+				'role'    => '',
+				'include' => array( 0 ),
+			)
+		);
+
+		$this->assertSame( array(), $query->get_results() );
 	}
 
 	public static function filter_users_pre_query( $posts, $query ) {

@@ -395,9 +395,13 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	public function test_build_atts_should_build_attributes( $atts, $expected ) {
 		$build_atts_reflection = new ReflectionMethod( $this->walker, 'build_atts' );
 
-		$build_atts_reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$build_atts_reflection->setAccessible( true );
+		}
 		$actual = $build_atts_reflection->invoke( $this->walker, $atts );
-		$build_atts_reflection->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$build_atts_reflection->setAccessible( false );
+		}
 
 		$this->assertSame( $expected, $actual );
 	}

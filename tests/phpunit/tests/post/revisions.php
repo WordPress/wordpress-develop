@@ -930,4 +930,63 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			'The title of the second revision was incorrect.'
 		);
 	}
+
+	/**
+	 * @ticket 64314
+	 * @covers ::wp_save_post_revision
+	 */
+	public function test_wp_save_post_revision_with_array_post_meta() {
+		// This filter is true by default, but this is explicitly to test looking for differences among non-scalar fields.
+		add_filter( 'wp_save_post_revision_check_for_changes', '__return_true' );
+
+		$post_id  = self::factory()->post->create();
+		$meta_key = 'favorite_things';
+
+		// Ensure the post meta is saved with each revision.
+		add_filter(
+			'wp_post_revision_meta_keys',
+			static function ( $meta_keys ) use ( $meta_key ) {
+				$meta_keys[] = $meta_key;
+				return $meta_keys;
+			}
+		);
+
+		// Ensure the post meta are used when determining whether a revision should be saved.
+		add_filter(
+			'_wp_post_revision_fields',
+			static function ( $fields ) use ( $meta_key ) {
+				$fields[ $meta_key ] = 'Favorite Things';
+				return $fields;
+			}
+		);
+
+		// Set initial value.
+		$initial_favorites = array(
+			'raindrops on roses',
+			'whiskers on kittens',
+			'bright copper kettles',
+		);
+		update_post_meta( $post_id, $meta_key, $initial_favorites );
+
+		// Save the first revision.
+		$revision_id_1 = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $revision_id_1, 'Expected first revision to be created.' );
+		$this->assertCount( 1, wp_get_post_revisions( $post_id ), 'First revision should be created.' );
+		$this->assertSame( $initial_favorites, get_post_meta( $revision_id_1, $meta_key, true ), 'Expected first revision post meta to have the initial value.' );
+
+		// Save the second revision.
+		$updated_favorites = array_merge(
+			$initial_favorites,
+			array(
+				'warm woolen mittens',
+				'crisp apple strudels',
+				'brown paper packages tied up with strings',
+			)
+		);
+		update_post_meta( $post_id, $meta_key, $updated_favorites );
+		$revision_id_2 = wp_save_post_revision( $post_id );
+		$this->assertIsInt( $revision_id_2, 'Expected second revision to be created.' );
+		$this->assertCount( 2, wp_get_post_revisions( $post_id ), 'Second revision should be created after array field change.' );
+		$this->assertSame( $updated_favorites, get_post_meta( $revision_id_2, $meta_key, true ), 'Expected second revision post meta to have the updated value.' );
+	}
 }

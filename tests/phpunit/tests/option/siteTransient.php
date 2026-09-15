@@ -71,4 +71,88 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$this->assertArrayNotHasKey( '_site_transient_' . $key, $options );
 	}
+
+	/**
+	 * Ensure site transients are stored in the options table on single site installations.
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers ::set_site_transient
+	 */
+	public function test_site_transient_stored_in_options_on_single_site() {
+		global $wpdb;
+		$key   = 'test_site_transient_stored_in_options_on_single_site';
+		$value = 'Test Site Transient Value';
+
+		set_site_transient( $key, $value );
+
+		$option = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT option_name, option_value from {$wpdb->options} WHERE option_name = %s",
+				'_site_transient_' . $key
+			)
+		);
+		$this->assertEquals(
+			(object) array(
+				'option_name'  => '_site_transient_' . $key,
+				'option_value' => $value,
+			),
+			$option,
+			'Site transient should be stored in the options table on single site installations.'
+		);
+	}
+
+	/**
+	 * Ensure site transients are stored in the sitemeta table on multisite.
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::set_site_transient
+	 */
+	public function test_site_transients_stored_in_site_meta_on_ms() {
+		global $wpdb;
+		$key   = 'test_site_transient_stored_in_site_meta_on_ms';
+		$value = 'Test Site Transient Value';
+
+		set_site_transient( $key, $value );
+
+		$option = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT meta_key, meta_value from {$wpdb->sitemeta} WHERE meta_key = %s",
+				'_site_transient_' . $key
+			)
+		);
+		$this->assertEquals(
+			(object) array(
+				'meta_key'   => '_site_transient_' . $key,
+				'meta_value' => $value,
+			),
+			$option,
+			'Site transient should be stored in sitemeta table on multisite.'
+		);
+	}
+
+	/**
+	 * Ensure site transients are not stored in the options table on multisite.
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::set_site_transient
+	 */
+	public function test_site_transients_not_stored_in_options_table_on_ms() {
+		global $wpdb;
+		$key   = 'test_site_transients_not_stored_in_options_table_on_ms';
+		$value = 'Test Site Transient Value';
+
+		set_site_transient( $key, $value );
+
+		$option = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT option_name, option_value from {$wpdb->options} WHERE option_name = %s",
+				'_site_transient_' . $key
+			)
+		);
+
+		$this->assertNull( $option, 'Querying option table should not return transient on multisite.' );
+	}
 }

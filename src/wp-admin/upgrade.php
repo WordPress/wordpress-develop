@@ -23,11 +23,7 @@ require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 delete_site_transient( 'update_core' );
 
-if ( isset( $_GET['step'] ) ) {
-	$step = $_GET['step'];
-} else {
-	$step = 0;
-}
+$step = $_GET['step'] ?? 0;
 
 // Do it. No output.
 if ( 'upgrade_db' === $step ) {
@@ -84,8 +80,8 @@ header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option
 	<title><?php _e( 'WordPress &rsaquo; Update' ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
-<body class="wp-core-ui">
-<p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>"><?php _e( 'WordPress' ); ?></a></p>
+<body class="wp-core-ui admin-color-modern">
+<p id="logo"><?php _e( 'WordPress' ); ?></p>
 
 <?php if ( (int) get_option( 'db_version' ) === $wp_db_version || ! is_blog_installed() ) : ?>
 
