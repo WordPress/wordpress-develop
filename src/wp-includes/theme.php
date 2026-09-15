@@ -896,6 +896,25 @@ function switch_theme( $stylesheet ) {
  * @return bool
  */
 function validate_current_theme() {
+	$has_json_metadata_name = static function ( $theme_directory ) {
+		$theme_json_file = $theme_directory . '/theme.json';
+
+		if ( ! is_readable( $theme_json_file ) ) {
+			return false;
+		}
+
+		$contents = @file_get_contents( $theme_json_file );
+		if ( false === $contents ) {
+			return false;
+		}
+
+		$theme_json_data = json_decode( $contents, true );
+		return is_array( $theme_json_data )
+			&& isset( $theme_json_data['metadata'] )
+			&& is_array( $theme_json_data['metadata'] )
+			&& ! empty( $theme_json_data['metadata']['name'] );
+	};
+
 	/**
 	 * Filters whether to validate the active theme.
 	 *
@@ -913,9 +932,9 @@ function validate_current_theme() {
 		&& ! file_exists( get_template_directory() . '/index.php' )
 	) {
 		// Invalid.
-	} elseif ( ! file_exists( get_template_directory() . '/style.css' ) ) {
+	} elseif ( ! file_exists( get_template_directory() . '/style.css' ) && ! $has_json_metadata_name( get_template_directory() ) ) {
 		// Invalid.
-	} elseif ( is_child_theme() && ! file_exists( get_stylesheet_directory() . '/style.css' ) ) {
+	} elseif ( is_child_theme() && ! file_exists( get_stylesheet_directory() . '/style.css' ) && ! $has_json_metadata_name( get_stylesheet_directory() ) ) {
 		// Invalid.
 	} else {
 		// Valid.
