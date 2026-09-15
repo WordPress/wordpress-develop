@@ -1987,7 +1987,7 @@ div.action-links,
 
 	.plugins .active th.check-column input,
 	.plugins .active td.check-column input {
-		margin-left: 0px;
+		margin-left: 0;
 	}
 
 	.plugins tr.active,
