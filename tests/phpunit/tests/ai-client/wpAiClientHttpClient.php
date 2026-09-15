@@ -22,20 +22,6 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	private $psr17_factory;
 
 	/**
-	 * Captured URL from the last intercepted HTTP request.
-	 *
-	 * @var string
-	 */
-	private $captured_url;
-
-	/**
-	 * Captured args from the last intercepted HTTP request.
-	 *
-	 * @var array
-	 */
-	private $captured_args;
-
-	/**
 	 * Sets up a fresh client instance before each test.
 	 */
 	public function set_up() {
