@@ -805,6 +805,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -828,7 +829,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'.wp-block-heading.has-white-color{color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
+			':where(.wp-block-heading).has-white-color{color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-background-color{background-color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( array( 'presets' ) )
 		);
 	}
@@ -894,6 +895,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
@@ -926,7 +928,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$styles    = ':root :where(.wp-block-group){color: red;}';
-		$presets   = '.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
+		$presets   = ':where(.wp-block-group).has-grey-color{color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
 		$variables = '.wp-block-group{--wp--preset--color--grey: grey;}';
 
 		$all = $variables . $styles . $presets;
@@ -1444,6 +1446,162 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertStringContainsString( '@media (width <= 480px)', $actual_styles );
 		$this->assertStringContainsString( $mobile_gap, $actual_styles );
 		$this->assertLessThan( strpos( $actual_styles, $mobile_gap ), strpos( $actual_styles, $default_gap ) );
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_styles_defined_only_in_a_breakpoint() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'red',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: red;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_pseudo_styles_defined_only_in_a_breakpoint() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										':hover' => array(
+											'color' => array(
+												'text' => 'red',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: red;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_styles_defined_only_in_separate_breakpoints() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'red',
+										),
+									),
+								),
+							),
+							'@tablet' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'blue',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$link_selector = ':root :where(.wp-block-group a:where(:not(.wp-element-button)))';
+		$expected      = '@media (width <= 480px){' . $link_selector . '{color: red;}}' .
+			'@media (480px < width <= 782px){' . $link_selector . '{color: blue;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_does_not_duplicate_base_element_styles_into_pseudo_rule() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'elements' => array(
+								'link' => array(
+									'color' => array(
+										'text' => 'blue',
+									),
+								),
+							),
+							'@mobile'  => array(
+								'elements' => array(
+									'link' => array(
+										':hover' => array(
+											'color' => array(
+												'text' => 'darkred',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$link_selector = ':root :where(.wp-block-group a:where(:not(.wp-element-button)))';
+		$expected      = $link_selector . '{color: blue;}' .
+			'@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: darkred;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
 	}
 
 	/**
@@ -7450,8 +7608,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_block_style_variation_selector
 	 *
-	 * @param string $selector  CSS selector.
-	 * @param string $expected  Expected block style variation CSS selector.
+	 * @param string $selector CSS selector.
+	 * @param string $expected Expected block style variation CSS selector.
 	 */
 	public function test_get_block_style_variation_selector( $selector, $expected ) {
 		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
@@ -7669,6 +7827,193 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $button_variations );
+	}
+
+	/**
+	 * Tests that a block style variation declaring `spacing.blockGap` emits a layout
+	 * gap rule scoped to the variation.
+	 *
+	 * The variation node carries the variation slug in its `name`, which
+	 * `get_layout_styles()` reads as a block name. The metadata passed to that
+	 * method therefore has to name the block the variation belongs to.
+	 *
+	 * @ticket 66044
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_block_style_variation_with_block_gap_emits_layout_styles() {
+		$registry = WP_Block_Styles_Registry::get_instance();
+		$registry->register( 'core/group', array( 'name' => 'custom-group' ) );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'custom-group' => array(
+									'spacing' => array(
+										'blockGap' => '3em',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'blocks'
+		);
+
+		$stylesheet = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			array( 'custom' ),
+			array(
+				'include_block_style_variations' => true,
+				'skip_root_layout_styles'        => true,
+			)
+		);
+
+		$registry->unregister( 'core/group', 'custom-group' );
+
+		$this->assertStringContainsString(
+			':root :where(.wp-block-group.is-style-custom-group.wp-block-group-is-layout-flex){gap: 3em;}',
+			$stylesheet,
+			'The variation should emit a gap rule scoped to itself.'
+		);
+	}
+
+	/**
+	 * Tests that a block style variation declaring `spacing.blockGap` inside a
+	 * viewport breakpoint emits a layout gap rule within the media query.
+	 *
+	 * The responsive branch takes its own copy of the variation metadata, so it
+	 * needs the owning block name for the same reason the base branch does.
+	 *
+	 * @ticket 66044
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_block_style_variation_with_responsive_block_gap_emits_layout_styles() {
+		$registry = WP_Block_Styles_Registry::get_instance();
+		$registry->register( 'core/group', array( 'name' => 'custom-group' ) );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing'  => array(
+						'blockGap' => true,
+					),
+					'viewport' => array(
+						'mobile' => '599px',
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'custom-group' => array(
+									'spacing' => array(
+										'blockGap' => '3em',
+									),
+									'@mobile' => array(
+										'spacing' => array(
+											'blockGap' => '1em',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'blocks'
+		);
+
+		$stylesheet = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			array( 'custom' ),
+			array(
+				'include_block_style_variations' => true,
+				'skip_root_layout_styles'        => true,
+			)
+		);
+
+		$registry->unregister( 'core/group', 'custom-group' );
+
+		$this->assertStringContainsString(
+			'@media (width <= 599px)',
+			$stylesheet,
+			'The breakpoint media query should be emitted.'
+		);
+		$this->assertStringContainsString(
+			':root :where(.wp-block-group.is-style-custom-group.wp-block-group-is-layout-flex){gap: 1em;}',
+			$stylesheet,
+			'The variation should emit a gap rule inside the breakpoint.'
+		);
+	}
+
+	/**
+	 * Tests that the layout support check still applies to a variation's blockGap.
+	 *
+	 * The variation metadata carries the block it belongs to, so a block without
+	 * layout support emits no gap rule -- the check is answered, not skipped.
+	 *
+	 * @ticket 66044
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_block_style_variation_block_gap_respects_layout_support() {
+		$registry = WP_Block_Styles_Registry::get_instance();
+		$registry->register( 'core/paragraph', array( 'name' => 'custom-paragraph' ) );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'variations' => array(
+								'custom-paragraph' => array(
+									'spacing' => array(
+										'blockGap' => '3em',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'blocks'
+		);
+
+		$stylesheet = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			array( 'custom' ),
+			array(
+				'include_block_style_variations' => true,
+				'skip_root_layout_styles'        => true,
+			)
+		);
+
+		$registry->unregister( 'core/paragraph', 'custom-paragraph' );
+
+		$this->assertStringNotContainsString(
+			'is-style-custom-paragraph',
+			$stylesheet,
+			'core/paragraph has no layout support, so its variation should emit no gap rule.'
+		);
 	}
 
 	/**
@@ -8082,6 +8427,94 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected = ':root :where(p){color: black;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 		$this->assertStringNotContainsString( 'p:hover{', $theme_json->get_stylesheet( array( 'styles' ) ) );
+	}
+
+	/**
+	 * Tests that responsive pseudo-states are kept only for supported blocks.
+	 *
+	 * @covers WP_Theme_JSON::sanitize
+	 *
+	 * @ticket 66003
+	 */
+	public function test_sanitize_keeps_responsive_pseudo_states_on_supported_blocks_only() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button'          => array(
+							'@mobile' => array(
+								':hover' => array(
+									'color' => array(
+										'text' => 'blue',
+									),
+								),
+							),
+						),
+						'core/paragraph'       => array(
+							'color'   => array(
+								'text' => 'black',
+							),
+							'@mobile' => array(
+								'color'  => array(
+									'text' => 'green',
+								),
+								':hover' => array(
+									'color' => array(
+										'text' => 'red',
+									),
+								),
+							),
+						),
+						'core/navigation-link' => array(
+							'-current' => array(
+								'color' => array(
+									'text' => 'purple',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual = $theme_json->get_raw_data();
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/button'          => array(
+						'@mobile' => array(
+							':hover' => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+						),
+					),
+					'core/paragraph'       => array(
+						'color'   => array(
+							'text' => 'black',
+						),
+						'@mobile' => array(
+							'color' => array(
+								'text' => 'green',
+							),
+						),
+					),
+					'core/navigation-link' => array(
+						'-current' => array(
+							'color' => array(
+								'text' => 'purple',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
 	/**

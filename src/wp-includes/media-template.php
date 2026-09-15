@@ -178,7 +178,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the media frame: used both in the media grid and in the media modal. ?>
 	<script type="text/html" id="tmpl-media-frame">
-		<div class="media-frame-title" id="media-frame-title"></div>
+		<div class="media-frame-title"></div>
 		<h2 class="media-frame-menu-heading"><?php _ex( 'Actions', 'media modal menu actions' ); ?></h2>
 		<button type="button" class="button button-link media-frame-menu-toggle" aria-expanded="false">
 			<?php _ex( 'Menu', 'media modal menu' ); ?>
@@ -201,7 +201,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the media modal. ?>
 	<script type="text/html" id="tmpl-media-modal">
-		<div id="wp-media-modal" tabindex="0" class="<?php echo $class; ?>" role="dialog" aria-labelledby="media-frame-title">
+		<div id="wp-media-modal" tabindex="0" class="<?php echo $class; ?>" role="dialog" aria-labelledby="{{ data.titleId }}">
 			<# if ( data.hasCloseButton ) { #>
 				<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">
 					<?php
@@ -1619,11 +1619,17 @@ function wp_print_media_templates() {
 			 * The crossorigin attribute is added unconditionally to all relevant
 			 * media tags to ensure cross-origin isolation works regardless of
 			 * the final URL value at render time.
+			 *
+			 * IMG is intentionally excluded, matching wp_add_crossorigin_attributes().
+			 * Under Document-Isolation-Policy: isolate-and-credentialless the browser
+			 * loads cross-origin images in credentialless mode without CORS headers,
+			 * so adding crossorigin="anonymous" would force a CORS request and break
+			 * previews of images served without Access-Control-Allow-Origin headers.
 			 */
 			$template_processor = new WP_HTML_Tag_Processor( $script_processor->get_modifiable_text() );
 			while ( $template_processor->next_tag() ) {
 				if (
-					in_array( $template_processor->get_tag(), array( 'AUDIO', 'IMG', 'VIDEO' ), true )
+					in_array( $template_processor->get_tag(), array( 'AUDIO', 'VIDEO' ), true )
 					&& ! is_string( $template_processor->get_attribute( 'crossorigin' ) )
 				) {
 					$template_processor->set_attribute( 'crossorigin', 'anonymous' );

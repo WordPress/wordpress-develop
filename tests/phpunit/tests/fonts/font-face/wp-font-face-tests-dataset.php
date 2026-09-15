@@ -308,11 +308,7 @@ CSS
 			);
 		}
 
-		if ( isset( $data[ $key ] ) ) {
-			return $data[ $key ];
-		}
-
-		return $data;
+		return $data[ $key ] ?? $data;
 	}
 
 	public static function get_custom_font_families( $key = '' ) {
@@ -397,11 +393,7 @@ CSS
 			);
 		}
 
-		if ( isset( $data[ $key ] ) ) {
-			return $data[ $key ];
-		}
-
-		return $data;
+		return $data[ $key ] ?? $data;
 	}
 
 	public static function get_custom_style_variations( $key = '' ) {
@@ -488,10 +480,6 @@ CSS;
 			);
 		}
 
-		if ( isset( $data[ $key ] ) ) {
-			return $data[ $key ];
-		}
-
-		return $data;
+		return $data[ $key ] ?? $data;
 	}
 }

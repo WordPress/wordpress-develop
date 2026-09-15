@@ -538,4 +538,30 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		// Script and audio should have crossorigin.
 		$this->assertSame( 2, substr_count( $output, 'crossorigin="anonymous"' ), 'Script and audio should both get crossorigin, but not img.' );
 	}
+
+	/**
+	 * IMG tags in the media manager templates must not receive
+	 * crossorigin="anonymous", matching wp_add_crossorigin_attributes().
+	 *
+	 * Adding the attribute forces a CORS request that breaks previews of
+	 * images served without Access-Control-Allow-Origin headers, such as
+	 * media offloaded to a CDN.
+	 *
+	 * @ticket 65673
+	 *
+	 * @covers ::wp_print_media_templates
+	 */
+	public function test_print_media_templates_does_not_add_crossorigin_to_img() {
+		require_once ABSPATH . WPINC . '/media-template.php';
+
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		ob_start();
+		wp_print_media_templates();
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '/<img\b/i', $output, 'Expected the media templates to contain IMG tags.' );
+		$this->assertDoesNotMatchRegularExpression( '/<img\b[^>]*\bcrossorigin\b/i', $output, 'IMG tags in the media templates must not receive a crossorigin attribute.' );
+		$this->assertMatchesRegularExpression( '/<(?:audio|video)\b[^>]*crossorigin="anonymous"/i', $output, 'AUDIO and VIDEO tags in the media templates should still receive crossorigin="anonymous".' );
+	}
 }

@@ -46,6 +46,7 @@ class WP_Icons_Registry {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 The icon name must be namespaced in the form "collection/icon-name".
+	 * @since 7.2.0 Added the `public` property.
 	 *
 	 * @param string $icon_name       Namespaced icon name in the form "collection/icon-name"
 	 *                                (e.g. "core/arrow-left").
@@ -57,6 +58,10 @@ class WP_Icons_Registry {
 	 *                             If not provided, the content will be retrieved from the `file_path` if set.
 	 *                             If both `content` and `file_path` are not set, the icon will not be registered.
 	 *     @type string $file_path Optional. The full path to the file containing the icon content.
+	 *     @type bool   $public    Optional. Whether the icon is exposed through the REST API, and
+	 *                             therefore selectable in the editor's icon picker. Non-public icons
+	 *                             stay available to server-side code via {@see wp_get_icon()}.
+	 *                             Default true.
 	 * }
 	 * @return bool True if the icon was registered with success and false otherwise.
 	 */
@@ -92,16 +97,16 @@ class WP_Icons_Registry {
 			return false;
 		}
 
-		if ( ! preg_match( '/^[a-z0-9][a-z0-9_-]*$/', $unqualified_name ) ) {
+		if ( ! preg_match( '/^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/', $unqualified_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Icon names must start with a lowercase letter or digit and contain only lowercase letters, digits, hyphens, and underscores.' ),
+				__( 'Icon names must start and end with a lowercase letter or digit and contain only lowercase letters, digits, hyphens, and underscores.' ),
 				'7.1.0'
 			);
 			return false;
 		}
 
-		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path' ), 1 );
+		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path', 'public' ), 1 );
 		foreach ( array_keys( $icon_properties ) as $key ) {
 			if ( ! array_key_exists( $key, $allowed_keys ) ) {
 				_doing_it_wrong(
@@ -139,6 +144,15 @@ class WP_Icons_Registry {
 			return false;
 		}
 
+		if ( isset( $icon_properties['public'] ) && ! is_bool( $icon_properties['public'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Icon public property must be a boolean.' ),
+				'7.2.0'
+			);
+			return false;
+		}
+
 		if (
 			( ! isset( $icon_properties['content'] ) && ! isset( $icon_properties['file_path'] ) ) ||
 			( isset( $icon_properties['content'] ) && isset( $icon_properties['file_path'] ) )
@@ -170,6 +184,8 @@ class WP_Icons_Registry {
 				);
 				return false;
 			}
+
+			$icon_properties['content'] = $sanitized_icon_content;
 		}
 
 		$qualified_name = $collection . '/' . $unqualified_name;
@@ -318,8 +334,8 @@ class WP_Icons_Registry {
 			return null;
 		}
 
-		$icon            = $this->registered_icons[ $icon_name ];
-		$icon['content'] = $icon['content'] ?? $this->get_content( $icon_name );
+		$icon              = $this->registered_icons[ $icon_name ];
+		$icon['content'] ??= $this->get_content( $icon_name );
 
 		return $icon;
 	}
@@ -344,8 +360,8 @@ class WP_Icons_Registry {
 				continue;
 			}
 
-			$icon['content'] = $icon['content'] ?? $this->get_content( $icon['name'] );
-			$icons[]         = $icon;
+			$icon['content'] ??= $this->get_content( $icon['name'] );
+			$icons[]           = $icon;
 		}
 
 		return $icons;
@@ -373,9 +389,7 @@ class WP_Icons_Registry {
 	 * @return WP_Icons_Registry The main instance.
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
+		self::$instance ??= new self();
 
 		return self::$instance;
 	}
