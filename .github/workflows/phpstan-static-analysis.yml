@@ -20,6 +20,7 @@ on:
       - 'tests/phpstan/base.neon'
       - 'tests/phpstan/baselines/**'
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/phpstan-static-analysis.yml'
       - '.github/workflows/reusable-phpstan-static-analysis-v1.yml'
   workflow_dispatch:
