@@ -747,6 +747,10 @@
 			}
 		}
 
+		&.alignfull:not(.is-style-dots) {
+			max-width: none;
+		}
+
 		/* Remove duplicate rule-line when a separator
 		 * is followed by an H1, or H2 */
 		& + h1,
