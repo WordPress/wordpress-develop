@@ -237,8 +237,23 @@ if ( is_network_admin() ) {
 
 $admin_body_class .= ' no-customize-support svg';
 
+/*
+ * Rounded #wpcontent canvas chrome. Skip full-screen editors and Boot/WP Build
+ * admin pages (Fonts, Connectors), which bring their own stage layout.
+ */
+$is_boot_admin_page = in_array(
+	$current_screen->id,
+	array(
+		'font-library',
+		'options-connectors',
+	),
+	true
+);
+
 if ( $current_screen->is_block_editor() ) {
 	$admin_body_class .= ' block-editor-page wp-embed-responsive';
+} elseif ( ! $is_boot_admin_page ) {
+	$admin_body_class .= ' admin-stage-rounded';
 }
 
 $admin_body_class .= ' wp-theme-' . sanitize_html_class( get_template() );

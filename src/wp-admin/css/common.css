@@ -12,7 +12,7 @@
 }
 
 @media (min-width: 782px) {
-	#wpwrap {
+	body.admin-stage-rounded #wpwrap {
 		padding-bottom: var(--wpds-dimension-padding-sm);
 		padding-right: var(--wpds-dimension-padding-sm);
 	}
@@ -28,7 +28,7 @@
 }
 
 @media (min-width: 782px) {
-	#wpcontent {
+	body.admin-stage-rounded #wpcontent {
 		border-radius: var(--wpds-border-radius-xl);
 		min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - var(--wpds-dimension-padding-sm));
 		overflow: clip;
@@ -2423,7 +2423,7 @@ html.wp-toolbar {
 }
 
 @media (min-width: 782px) {
-	#wpfooter {
+	body.admin-stage-rounded #wpfooter {
 		border-radius: 0 0 var(--wpds-border-radius-xl) var(--wpds-border-radius-xl);
 		overflow: clip;
 	}
