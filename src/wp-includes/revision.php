@@ -18,6 +18,8 @@
  *                                  for insertion as a post revision. Default empty array.
  * @param bool          $deprecated Not used.
  * @return string[] Array of fields that can be versioned.
+ *
+ * @phpstan-param false $deprecated
  */
 function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 	static $fields = null;
@@ -307,6 +309,12 @@ function wp_get_post_autosave( $post_id, $user_id = 0 ) {
  *
  * @param int|WP_Post $post Post ID or post object.
  * @return int|false ID of revision's parent on success, false if not a revision.
+ *
+ * @phpstan-return (
+ *     $post is WP_Post
+ *         ? false|int<0, max>
+ *         : ($post is int<min, 0> ? false : false|int<0, max>)
+ * )
  */
 function wp_is_post_revision( $post ) {
 	$post = wp_get_post_revision( $post );

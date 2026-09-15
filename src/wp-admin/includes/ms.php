@@ -1187,6 +1187,8 @@ function network_edit_site_nav( $args = array() ) {
  * @since 4.9.0
  *
  * @return array Help tab arguments.
+ *
+ * @phpstan-return array{id: 'overview', title: string, content: non-falsy-string}
  */
 function get_site_screen_help_tab_args() {
 	return array(
@@ -1211,6 +1213,8 @@ function get_site_screen_help_tab_args() {
  * @since 4.9.0
  *
  * @return string Help sidebar content.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_site_screen_help_sidebar_content() {
 	return '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .

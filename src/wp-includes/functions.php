@@ -31,6 +31,8 @@ require ABSPATH . WPINC . '/option.php';
  * @param bool   $translate Whether the return date should be translated. Default true.
  * @return string|int|false Integer if `$format` is 'U' or 'G', string otherwise.
  *                          False on failure.
+ *
+ * @phpstan-return ($format is 'G'|'U' ? int|false : string|false)
  */
 function mysql2date( $format, $date, $translate = true ) {
 	if ( empty( $date ) ) {
@@ -74,6 +76,8 @@ function mysql2date( $format, $date, $translate = true ) {
  *                     or PHP date format string (e.g. 'Y-m-d').
  * @param bool   $gmt  Optional. Whether to use GMT timezone. Default false.
  * @return int|string Integer if `$type` is 'timestamp' or 'U', string otherwise.
+ *
+ * @phpstan-return ($type is 'timestamp'|'U' ? int : string)
  */
 function current_time( $type, $gmt = false ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
@@ -465,6 +469,7 @@ function number_format_i18n( $number, $decimals = 0 ) {
  * @return string|false Number string on success, false on failure.
  *
  * @phpstan-param int|float|numeric-string $bytes
+ * @phpstan-return ( $bytes is int<0, max> ? string : string|false )
  */
 function size_format( $bytes, $decimals = 0 ) {
 	if ( ! is_numeric( $bytes ) ) {
@@ -632,6 +637,10 @@ function get_weekstartend( $mysqlstring, $start_of_week = '' ) {
  *
  * @param string|array|object $data Data that might be serialized.
  * @return mixed A scalar data.
+ *
+ * @phpstan-template T of mixed
+ * @phpstan-param T $data
+ * @phpstan-return (T is array|object|string ? string : T)
  */
 function maybe_serialize( $data ) {
 	if ( is_array( $data ) || is_object( $data ) ) {
@@ -840,6 +849,8 @@ function xmlrpc_removepostdata( $content ) {
  *
  * @param string $content Content to extract URLs from.
  * @return string[] Array of URLs found in passed string.
+ *
+ * @phpstan-return ($content is empty ? array{} : list<string>)
  */
 function wp_extract_urls( $content ) {
 	preg_match_all(
@@ -993,6 +1004,8 @@ function do_enclose( $content, $post ) {
  * @param string $url        URL to retrieve HTTP headers from.
  * @param bool   $deprecated Not Used.
  * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
+ *
+ * @phpstan-param false $deprecated
  */
 function wp_get_http_headers( $url, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -1022,6 +1035,8 @@ function wp_get_http_headers( $url, $deprecated = false ) {
  * @global string $previousday The day of the previous post in the loop.
  *
  * @return int 1 when new day, 0 if not a new day.
+ *
+ * @phpstan-return 0|1
  */
 function is_new_day() {
 	global $currentday, $previousday;
@@ -1600,6 +1615,9 @@ function get_num_queries() {
  *
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
  * @return bool True if 'y', false on anything else.
+ *
+ * @phpstan-pure
+ * @phpstan-return ($yn is 'y' ? true : false)
  */
 function bool_from_yn( $yn ) {
 	return ( 'y' === strtolower( $yn ) );
@@ -1879,6 +1897,8 @@ function is_blog_installed() {
  * @param int|string $action    Optional. Nonce action name. Default -1.
  * @param string     $name      Optional. Nonce name. Default '_wpnonce'.
  * @return string Escaped URL with nonce action added.
+ *
+ * @phpstan-param -1|string $action
  */
 function wp_nonce_url( $actionurl, $action = -1, $name = '_wpnonce' ) {
 	$actionurl = str_replace( '&amp;', '&', $actionurl );
@@ -1910,6 +1930,8 @@ function wp_nonce_url( $actionurl, $action = -1, $name = '_wpnonce' ) {
  * @param bool       $referer Optional. Whether to set the referer field for validation. Default true.
  * @param bool       $display Optional. Whether to display or return hidden form field. Default true.
  * @return string Nonce field HTML markup.
+ *
+ * @phpstan-param -1|string $action
  */
 function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $display = true ) {
 	$name        = esc_attr( $name );
@@ -2131,6 +2153,9 @@ function wp_mkdir_p( $target ) {
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
+ *
+ * @phpstan-assert-if-true =non-falsy-string $path
+ * @phpstan-return ($path is non-falsy-string ? bool : false)
  */
 function path_is_absolute( $path ) {
 	/*
@@ -2173,6 +2198,8 @@ function path_is_absolute( $path ) {
  * @param string $base Base path.
  * @param string $path Path relative to $base.
  * @return string The path with the base or absolute path.
+ *
+ * @phpstan-return non-falsy-string
  */
 function path_join( $base, $path ) {
 	if ( path_is_absolute( $path ) ) {
@@ -2939,6 +2966,9 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * }
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
  *                |array{ error: string, ... }
+ *
+ * @phpstan-param non-empty-string $name
+ * @phpstan-param null $deprecated
  */
 function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	if ( ! empty( $deprecated ) ) {
@@ -4459,6 +4489,9 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  * @param int   $depth Optional. Maximum depth to walk through $value. Must be
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded.
+ *
+ * @phpstan-param int<1, max> $depth
+ * @phpstan-return non-empty-string|false
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 	$json = json_encode( $value, $flags, $depth );
@@ -5416,6 +5449,8 @@ function _wp_to_kebab_case( $input_string ) {
  * @return bool Whether the variable is a list.
  *
  * @phpstan-assert-if-true array<int, mixed> $data
+ * @phpstan-pure
+ * @phpstan-return ($data is array<int, mixed> ? true : false)
  */
 function wp_is_numeric_array( $data ): bool {
 	if ( ! is_array( $data ) ) {
@@ -6227,6 +6262,8 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  *                              before passing to this function to avoid being stripped {@see wp_kses()}.
  * @param int    $error_level   Optional. The designated error type for this error.
  *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
+ *
+ * @phpstan-param \E_USER_ERROR|\E_USER_WARNING|\E_USER_NOTICE|\E_USER_DEPRECATED $error_level
  */
 function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTICE ) {
 	/**
@@ -6414,6 +6451,8 @@ function iis7_supports_permalinks() {
  * @param string   $file          File path.
  * @param string[] $allowed_files Optional. Array of allowed files. Default empty array.
  * @return int 0 means nothing is wrong, greater than 0 means something was wrong.
+ *
+ * @phpstan-return ($file is '' ? 0 : ($allowed_files is empty ? 0|1|2 : 0|1|2|3))
  */
 function validate_file( $file, $allowed_files = array() ) {
 	if ( ! is_scalar( $file ) || '' === $file ) {
@@ -7170,6 +7209,8 @@ function __return_false() { // phpcs:ignore WordPress.NamingConventions.ValidFun
  * @since 3.0.0
  *
  * @return int 0.
+ *
+ * @phpstan-return 0
  */
 function __return_zero() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return 0;
@@ -7183,6 +7224,8 @@ function __return_zero() { // phpcs:ignore WordPress.NamingConventions.ValidFunc
  * @since 3.0.0
  *
  * @return array Empty array.
+ *
+ * @phpstan-return array{}
  */
 function __return_empty_array() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return array();
@@ -7211,6 +7254,8 @@ function __return_null() { // phpcs:ignore WordPress.NamingConventions.ValidFunc
  * @see __return_null()
  *
  * @return string Empty string.
+ *
+ * @phpstan-return ''
  */
 function __return_empty_string() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return '';
@@ -7424,6 +7469,8 @@ function wp_allowed_protocols() {
  *                             the raw array returned. Default true.
  * @return string|array Either a string containing a reversed comma separated trace or an array
  *                      of individual calls.
+ *
+ * @phpstan-return ($pretty is true ? string : list<string>)
  */
 function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pretty = true ) {
 	static $truncate_paths;
@@ -7556,6 +7603,8 @@ function _device_can_upload() {
  *
  * @param string $path The resource path or URL.
  * @return bool True if the path is a stream URL.
+ *
+ * @phpstan-assert-if-true =non-falsy-string $path
  */
 function wp_is_stream( $path ) {
 	$scheme_separator = strpos( $path, '://' );
@@ -7733,6 +7782,8 @@ function wp_auth_check( $response ) {
  *
  * @param string $tag An HTML tag name. Example: 'video'.
  * @return string Tag RegEx.
+ *
+ * @phpstan-return ( $tag is ''|'0' ? '' : non-falsy-string )
  */
 function get_tag_regex( $tag ) {
 	if ( empty( $tag ) ) {
@@ -8142,6 +8193,9 @@ function wp_raise_memory_limit( $context = 'admin' ) {
  * @since 7.0.0 Uses wp_rand if available.
  *
  * @return string UUID.
+ *
+ * @phpstan-impure
+ * @phpstan-return lowercase-string&non-falsy-string
  */
 function wp_generate_uuid4() {
 	static $backup_randomizer = false;
@@ -8179,6 +8233,11 @@ function wp_generate_uuid4() {
  * @param int   $version Specify which version of UUID to check against. Default is none,
  *                       to accept any UUID version. Otherwise, only version allowed is `4`.
  * @return bool The string is a valid UUID or false on failure.
+ *
+ * @phpstan-template TUuid of string
+ * @phpstan-param TUuid $uuid
+ * @phpstan-assert-if-true =TUuid&lowercase-string&non-falsy-string $uuid
+ * @phpstan-return ($version is 4|null ? bool : false)
  */
 function wp_is_uuid( $uuid, $version = null ) {
 
@@ -8211,6 +8270,9 @@ function wp_is_uuid( $uuid, $version = null ) {
  *
  * @param string $prefix Prefix for the returned ID.
  * @return string Unique ID.
+ *
+ * @phpstan-impure
+ * @phpstan-return ($prefix is ''|numeric-string ? numeric-string : string)&non-falsy-string&($prefix is lowercase-string ? lowercase-string : string)
  */
 function wp_unique_id( $prefix = '' ) {
 	static $id_counter = 0;
@@ -8230,6 +8292,9 @@ function wp_unique_id( $prefix = '' ) {
  *
  * @param string $prefix Optional. Prefix for the returned ID. Default empty string.
  * @return string Incremental ID per prefix.
+ *
+ * @phpstan-impure
+ * @phpstan-return ($prefix is ''|numeric-string ? numeric-string : string)&non-falsy-string&($prefix is lowercase-string ? lowercase-string : string)
  */
 function wp_unique_prefixed_id( $prefix = '' ) {
 	static $id_counters = array();
@@ -8263,6 +8328,9 @@ function wp_unique_prefixed_id( $prefix = '' ) {
  * @param array  $data   The input array to generate an ID from.
  * @param string $prefix Optional. A prefix to prepend to the generated ID. Default empty string.
  * @return string The generated unique ID for the array.
+ *
+ * @phpstan-param non-empty-array $data
+ * @phpstan-return ($prefix is lowercase-string ? lowercase-string&non-falsy-string : non-falsy-string)
  */
 function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
 	if ( empty( $data ) ) {
@@ -9160,6 +9228,8 @@ function clean_dirsize_cache( $path ) {
  * @since 6.7.0
  *
  * @return string The current WordPress version.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_get_wp_version() {
 	static $wp_version;
@@ -9427,6 +9497,8 @@ function wp_is_heic_image_mime_type( $mime_type ) {
  *
  * @param string $message The message to hash.
  * @return string The hash of the message.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_fast_hash(
 	#[\SensitiveParameter]
