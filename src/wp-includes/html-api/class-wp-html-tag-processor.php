@@ -1207,11 +1207,12 @@ class WP_HTML_Tag_Processor {
 
 		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
 
-		$at = 0;
-		while ( $at < strlen( $class ) ) {
+		$at           = 0;
+		$class_length = strlen( $class );
+		while ( $at < $class_length ) {
 			// Skip past any initial boundary characters.
 			$at += strspn( $class, " \t\f\r\n", $at );
-			if ( $at >= strlen( $class ) ) {
+			if ( $at >= $class_length ) {
 				return;
 			}
 
