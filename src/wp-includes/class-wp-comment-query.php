@@ -544,6 +544,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
+	 * @since 7.2.0 Excludes every internal comment type, unless 'all' or that type is requested.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -779,13 +780,16 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
-		// Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
-		if (
-			! in_array( 'all', $raw_types['IN'], true ) &&
-			! in_array( 'note', $raw_types['IN'], true ) &&
-			! in_array( 'note', $raw_types['NOT IN'], true )
-		) {
-			$raw_types['NOT IN'][] = 'note';
+		// Exclude internal comment types, unless 'all' types or a specific internal type is explicitly requested.
+		if ( ! in_array( 'all', $raw_types['IN'], true ) ) {
+			foreach ( wp_get_internal_comment_types() as $internal_type ) {
+				if (
+					! in_array( $internal_type, $raw_types['IN'], true ) &&
+					! in_array( $internal_type, $raw_types['NOT IN'], true )
+				) {
+					$raw_types['NOT IN'][] = $internal_type;
+				}
+			}
 		}
 
 		$comment_types = array();
