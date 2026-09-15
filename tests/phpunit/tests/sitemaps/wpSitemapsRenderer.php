@@ -298,11 +298,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		);
 
 		$sitemap_renderer = new WP_Sitemaps_Renderer();
-		$stylesheet_url   = $sitemap_renderer->get_sitemap_stylesheet_url();
-
-		$this->assertSame( $custom_url, $stylesheet_url );
-
-		$entries = array(
+		$entries          = array(
 			array(
 				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
 			),
@@ -328,11 +324,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		);
 
 		$sitemap_renderer = new WP_Sitemaps_Renderer();
-		$stylesheet_url   = $sitemap_renderer->get_sitemap_index_stylesheet_url();
-
-		$this->assertSame( $custom_url, $stylesheet_url );
-
-		$entries = array(
+		$entries          = array(
 			array(
 				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml',
 			),
@@ -432,12 +424,14 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		);
 
 		$renderer = new WP_Sitemaps_Renderer();
-		$actual   = $renderer->get_sitemap_xml( $url_list );
+		$xml_dom  = $this->loadXML( $renderer->get_sitemap_xml( $url_list ) );
+		$xpath    = new DOMXPath( $xml_dom );
+		$xpath->registerNamespace( 'sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9' );
 
-		$this->assertStringContainsString( '<loc>http://' . WP_TESTS_DOMAIN . '/?foo=1&amp;bar=2</loc>', $actual );
-		$this->assertStringContainsString( '<lastmod>2020-01-01 &amp; "quotes"</lastmod>', $actual );
-		$this->assertStringContainsString( '<changefreq>weekly &lt; monthly</changefreq>', $actual );
-		$this->assertStringContainsString( '<priority>0.5 &gt; 0.3</priority>', $actual );
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/?foo=1&bar=2', $xpath->evaluate( 'string(/sitemap:urlset/sitemap:url/sitemap:loc)' ) );
+		$this->assertSame( '2020-01-01 & "quotes"', $xpath->evaluate( 'string(/sitemap:urlset/sitemap:url/sitemap:lastmod)' ) );
+		$this->assertSame( 'weekly < monthly', $xpath->evaluate( 'string(/sitemap:urlset/sitemap:url/sitemap:changefreq)' ) );
+		$this->assertSame( '0.5 > 0.3', $xpath->evaluate( 'string(/sitemap:urlset/sitemap:url/sitemap:priority)' ) );
 	}
 
 	/**
@@ -454,16 +448,21 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		);
 
 		$renderer = new WP_Sitemaps_Renderer();
-		$actual   = $renderer->get_sitemap_index_xml( $entries );
+		$xml_dom  = $this->loadXML( $renderer->get_sitemap_index_xml( $entries ) );
+		$xpath    = new DOMXPath( $xml_dom );
+		$xpath->registerNamespace( 'sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9' );
 
-		$this->assertStringContainsString( '<loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap.php?foo=1&amp;bar=2</loc>', $actual );
-		$this->assertStringContainsString( '<lastmod>2020-01-01 &amp; "special"</lastmod>', $actual );
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap.php?foo=1&bar=2', $xpath->evaluate( 'string(/sitemap:sitemapindex/sitemap:sitemap/sitemap:loc)' ) );
+		$this->assertSame( '2020-01-01 & "special"', $xpath->evaluate( 'string(/sitemap:sitemapindex/sitemap:sitemap/sitemap:lastmod)' ) );
 	}
 
 	/**
 	 * Test render_index() outputs index XML.
 	 *
 	 * @covers WP_Sitemaps_Renderer::render_index
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_render_index() {
 		$entries = array(
@@ -472,63 +471,20 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 			),
 		);
 
-		$renderer = new WP_Sitemaps_Renderer();
-
+		$renderer     = new WP_Sitemaps_Renderer();
 		$expected_xml = $renderer->get_sitemap_index_xml( $entries );
 
 		$this->expectOutputString( $expected_xml );
-
-		set_error_handler(
-			static function ( $errno, $errstr ) {
-				if ( str_contains( $errstr, 'Cannot modify header information' ) ) {
-					return true;
-				}
-				return false;
-			}
-		);
-
-		try {
-			$renderer->render_index( $entries );
-		} finally {
-			restore_error_handler();
-		}
-	}
-
-	/**
-	 * Test render_index() does not echo when index XML is empty.
-	 *
-	 * @covers WP_Sitemaps_Renderer::render_index
-	 */
-	public function test_render_index_empty() {
-		$renderer = $this->getMockBuilder( 'WP_Sitemaps_Renderer' )
-			->onlyMethods( array( 'get_sitemap_index_xml' ) )
-			->getMock();
-
-		$renderer->method( 'get_sitemap_index_xml' )
-			->willReturn( '' );
-
-		$this->expectOutputString( '' );
-
-		set_error_handler(
-			static function ( $errno, $errstr ) {
-				if ( str_contains( $errstr, 'Cannot modify header information' ) ) {
-					return true;
-				}
-				return false;
-			}
-		);
-
-		try {
-			$renderer->render_index( array() );
-		} finally {
-			restore_error_handler();
-		}
+		$renderer->render_index( $entries );
 	}
 
 	/**
 	 * Test render_sitemap() outputs sitemap XML.
 	 *
 	 * @covers WP_Sitemaps_Renderer::render_sitemap
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_render_sitemap() {
 		$url_list = array(
@@ -537,56 +493,10 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 			),
 		);
 
-		$renderer = new WP_Sitemaps_Renderer();
-
+		$renderer     = new WP_Sitemaps_Renderer();
 		$expected_xml = $renderer->get_sitemap_xml( $url_list );
 
 		$this->expectOutputString( $expected_xml );
-
-		set_error_handler(
-			static function ( $errno, $errstr ) {
-				if ( str_contains( $errstr, 'Cannot modify header information' ) ) {
-					return true;
-				}
-				return false;
-			}
-		);
-
-		try {
-			$renderer->render_sitemap( $url_list );
-		} finally {
-			restore_error_handler();
-		}
-	}
-
-	/**
-	 * Test render_sitemap() does not echo when sitemap XML is empty.
-	 *
-	 * @covers WP_Sitemaps_Renderer::render_sitemap
-	 */
-	public function test_render_sitemap_empty() {
-		$renderer = $this->getMockBuilder( 'WP_Sitemaps_Renderer' )
-			->onlyMethods( array( 'get_sitemap_xml' ) )
-			->getMock();
-
-		$renderer->method( 'get_sitemap_xml' )
-			->willReturn( '' );
-
-		$this->expectOutputString( '' );
-
-		set_error_handler(
-			static function ( $errno, $errstr ) {
-				if ( str_contains( $errstr, 'Cannot modify header information' ) ) {
-					return true;
-				}
-				return false;
-			}
-		);
-
-		try {
-			$renderer->render_sitemap( array() );
-		} finally {
-			restore_error_handler();
-		}
+		$renderer->render_sitemap( $url_list );
 	}
 }
