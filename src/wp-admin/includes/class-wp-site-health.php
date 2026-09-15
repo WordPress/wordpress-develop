@@ -1317,7 +1317,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if the site can communicate with WordPress.org.
+	 * Tests if the site can communicate with the WordPress API.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1325,7 +1325,7 @@ class WP_Site_Health {
 	 */
 	public function get_test_dotorg_communication() {
 		$result = array(
-			'label'       => __( 'Can communicate with WordPress.org' ),
+			'label'       => __( 'Can communicate with the WordPress API' ),
 			'status'      => '',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -1340,7 +1340,7 @@ class WP_Site_Health {
 		);
 
 		$wp_dotorg = wp_remote_get(
-			'https://api.wordpress.org',
+			wp_get_api_hostname(),
 			array(
 				'timeout' => 10,
 			)
@@ -1350,7 +1350,17 @@ class WP_Site_Health {
 		} else {
 			$result['status'] = 'critical';
 
-			$result['label'] = __( 'Could not reach WordPress.org' );
+			$result['label'] = __( 'Could not reach the WordPress API' );
+
+			/*
+			 * By validating that the parsed URL does not return `null`,
+			 * we avoid a deprecation warning when running `gethostbyname()` later.
+			 */
+			$api_hostname    = wp_get_api_hostname();
+			$parsed_hostname = parse_url( $api_hostname, PHP_URL_HOST );
+			if ( null === $parsed_hostname ) {
+				$parsed_hostname = $api_hostname;
+			}
 
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
@@ -1359,9 +1369,9 @@ class WP_Site_Health {
 					/* translators: Hidden accessibility text. */
 					__( 'Error' ),
 					sprintf(
-						/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
-						__( 'Your site is unable to reach WordPress.org at %1$s, and returned the error: %2$s' ),
-						gethostbyname( 'api.wordpress.org' ),
+						/* translators: 1: The IP address the WordPress API resolves to. 2: The error returned by the lookup. */
+						__( 'Your site is unable to reach the WordPress API at %1$s, and returned the error: %2$s' ),
+						gethostbyname( $parsed_hostname ),
 						$wp_dotorg->get_error_message()
 					)
 				)
