@@ -456,7 +456,10 @@ class WP_Comment_Query {
 		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
 
 		$key          = md5( serialize( $_args ) );
-		$last_changed = wp_cache_get_last_changed( 'comment' );
+		$last_changed = (array) wp_cache_get_last_changed( 'comment-queries' );
+		if ( ! empty( $this->meta_query->queries ) || str_contains( $this->request, $wpdb->commentmeta ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'comment-meta' );
+		}
 
 		$cache_key   = "get_comments:$key";
 		$cache_value = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
@@ -1049,7 +1052,7 @@ class WP_Comment_Query {
 		);
 
 		$key          = md5( serialize( wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) ) ) );
-		$last_changed = wp_cache_get_last_changed( 'comment' );
+		$last_changed = wp_cache_get_last_changed( 'comment-queries' );
 
 		// Fetch an entire level of the descendant tree at a time.
 		$level        = 0;

@@ -47,12 +47,12 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 */
 	public function test_get_pages_cache() {
 		self::factory()->post->create_many( 3, array( 'post_type' => 'page' ) );
-		wp_cache_delete( 'last_changed', 'posts' );
-		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
+		wp_cache_delete( 'last_changed', 'post-queries' );
+		$this->assertFalse( wp_cache_get( 'last_changed', 'post-queries' ) );
 
 		$pages = get_pages();
 		$this->assertCount( 3, $pages );
-		$time1 = wp_cache_get( 'last_changed', 'posts' );
+		$time1 = wp_cache_get( 'last_changed', 'post-queries' );
 		$this->assertNotEmpty( $time1 );
 		$num_queries = get_num_queries();
 		$this->assertContainsOnlyInstancesOf( 'WP_Post', $pages );
@@ -60,7 +60,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// Again. num_queries and last_changed should remain the same.
 		$pages = get_pages();
 		$this->assertCount( 3, $pages );
-		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'post-queries' ) );
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertContainsOnlyInstancesOf( 'WP_Post', $pages );
 
@@ -68,7 +68,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// different args to get_pages(). num_queries should bump by 1.
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
-		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'post-queries' ) );
 		$this->assertSame( $num_queries + 1, get_num_queries() );
 		$this->assertContainsOnlyInstancesOf( 'WP_Post', $pages );
 
@@ -77,45 +77,45 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// Again. num_queries and last_changed should remain the same.
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
-		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'post-queries' ) );
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertContainsOnlyInstancesOf( 'WP_Post', $pages );
 
 		// Do the first query again. The interim queries should not affect it.
 		$pages = get_pages();
 		$this->assertCount( 3, $pages );
-		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'post-queries' ) );
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertContainsOnlyInstancesOf( 'WP_Post', $pages );
 
 		// Force last_changed to increment.
 		clean_post_cache( $pages[0]->ID );
-		$this->assertNotEquals( $time1, $time2 = wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertNotEquals( $time1, $time2 = wp_cache_get( 'last_changed', 'post-queries' ) );
 		get_post( $pages[0]->ID );
 		$num_queries = get_num_queries();
 
 		// last_changed bumped so num_queries should increment.
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
-		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'post-queries' ) );
 		$this->assertSame( $num_queries + 1, get_num_queries() );
 		$this->assertContainsOnlyInstancesOf( 'WP_Post', $pages );
 
-		$last_changed = wp_cache_get( 'last_changed', 'posts' );
+		$last_changed = wp_cache_get( 'last_changed', 'post-queries' );
 
 		// This should bump last_changed.
 		wp_delete_post( $pages[0]->ID );
 		$old_changed_float = $this->_microtime_to_float( $last_changed );
-		$new_changed_float = $this->_microtime_to_float( wp_cache_get( 'last_changed', 'posts' ) );
+		$new_changed_float = $this->_microtime_to_float( wp_cache_get( 'last_changed', 'post-queries' ) );
 		$this->assertGreaterThan( $old_changed_float, $new_changed_float );
 
 		$num_queries  = get_num_queries();
-		$last_changed = wp_cache_get( 'last_changed', 'posts' );
+		$last_changed = wp_cache_get( 'last_changed', 'post-queries' );
 
 		// num_queries should bump after wp_delete_post() bumps last_changed.
 		$pages = get_pages();
 		$this->assertCount( 2, $pages );
-		$this->assertSame( $last_changed, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $last_changed, wp_cache_get( 'last_changed', 'post-queries' ) );
 		$this->assertSame( $num_queries + 1, get_num_queries() );
 		$this->assertContainsOnlyInstancesOf( 'WP_Post', $pages );
 	}
