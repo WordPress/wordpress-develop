@@ -1231,6 +1231,11 @@ function _wp_kses_sanitize_note_mention_classes( $content ): string {
  * @return string Filtered content through {@see 'pre_kses'} hook.
  */
 function wp_kses_hook( $content, $allowed_html, $allowed_protocols ) {
+	$remove_filter = 'pre_term_name' === current_filter();
+
+	if( $remove_filter ){
+		remove_filter( 'pre_kses', 'wp_pre_kses_block_attributes', 10 );
+	}
 	/**
 	 * Filters content to be run through KSES.
 	 *
@@ -1242,7 +1247,13 @@ function wp_kses_hook( $content, $allowed_html, $allowed_protocols ) {
 	 *                                          for the list of accepted context names.
 	 * @param string[]       $allowed_protocols Array of allowed URL protocols.
 	 */
-	return apply_filters( 'pre_kses', $content, $allowed_html, $allowed_protocols );
+	$content = apply_filters( 'pre_kses', $content, $allowed_html, $allowed_protocols );
+
+	if( $remove_filter ){
+		add_filter( 'pre_kses', 'wp_pre_kses_block_attributes', 10, 3 );
+	}
+
+	return $content;
 }
 
 /**
