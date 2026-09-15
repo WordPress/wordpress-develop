@@ -144,7 +144,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-user.php
 		-
-			message: '#^Property WP_Widget\:\:\$alt_option_name \(string\) in isset\(\) is not nullable\.$#'
+			message: '#^Property WP_Widget\<T of array \= array\<string, mixed\>\>\:\:\$alt_option_name \(string\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php
