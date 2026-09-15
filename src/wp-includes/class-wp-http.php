@@ -633,6 +633,15 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return array{
+	 *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+	 *     body: string,
+	 *     response: array{code: int, message: string},
+	 *     cookies: array<int, WP_Http_Cookie>,
+	 *     filename: string|null,
+	 *     http_response: WP_HTTP_Requests_Response,
+	 * }|WP_Error
 	 */
 	public function post( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'POST' );
@@ -651,6 +660,15 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return array{
+	 *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+	 *     body: string,
+	 *     response: array{code: int, message: string},
+	 *     cookies: array<int, WP_Http_Cookie>,
+	 *     filename: string|null,
+	 *     http_response: WP_HTTP_Requests_Response,
+	 * }|WP_Error
 	 */
 	public function get( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'GET' );
@@ -669,6 +687,15 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return array{
+	 *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary,
+	 *     body: string,
+	 *     response: array{code: int, message: string},
+	 *     cookies: array<int, WP_Http_Cookie>,
+	 *     filename: string|null,
+	 *     http_response: WP_HTTP_Requests_Response,
+	 * }|WP_Error
 	 */
 	public function head( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'HEAD' );
