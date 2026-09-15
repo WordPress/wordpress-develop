@@ -299,6 +299,15 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';
+/*
+ * Preserve public query variables registered by plugins during bootstrap.
+ *
+ * Core tests reset these variables between tests, while plugin tests expect
+ * registrations made on `init` to remain available throughout the test run.
+ */
+if ( ! defined( 'WP_RUN_CORE_TESTS' ) || ! WP_RUN_CORE_TESTS ) {
+	$GLOBALS['_wp_tests_initial_public_query_vars'] = $GLOBALS['wp']->public_query_vars;
+}
 
 // Override the PHPMailer.
 require_once __DIR__ . '/mock-mailer.php';
