@@ -100,30 +100,37 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 * @return array<non-falsy-string, array{ test_value: mixed, expected_value: non-negative-int }>
 	 */
 	public function data_absint_other_types(): array {
+		/*
+		 * The largest power of two which fits in an integer, and which is therefore
+		 * also exactly representable as a float: 2^62 on 64-bit builds, 2^30 on
+		 * 32-bit builds. A literal would be parsed as a float on 32-bit builds.
+		 */
+		$large_in_range_value = ( PHP_INT_MAX >> 1 ) + 1;
+
 		return array(
-			'null'                         => array(
+			'null'                          => array(
 				'test_value'     => null,
 				'expected_value' => 0,
 			),
-			'true'                         => array(
+			'true'                          => array(
 				'test_value'     => true,
 				'expected_value' => 1,
 			),
-			'false'                        => array(
+			'false'                         => array(
 				'test_value'     => false,
 				'expected_value' => 0,
 			),
-			'empty array'                  => array(
+			'empty array'                   => array(
 				'test_value'     => array(),
 				'expected_value' => 0,
 			),
-			'large in-range float (2^62)'  => array(
-				'test_value'     => 4611686018427387904.0,
-				'expected_value' => 4611686018427387904,
+			'large in-range float'          => array(
+				'test_value'     => (float) $large_in_range_value,
+				'expected_value' => $large_in_range_value,
 			),
-			'large in-range float (-2^62)' => array(
-				'test_value'     => -4611686018427387904.0,
-				'expected_value' => 4611686018427387904,
+			'large in-range negative float' => array(
+				'test_value'     => (float) -$large_in_range_value,
+				'expected_value' => $large_in_range_value,
 			),
 		);
 	}
