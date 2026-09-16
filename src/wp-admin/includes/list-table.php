@@ -15,7 +15,7 @@
  * @global string $hook_suffix
  *
  * @param string $class_name The type of the list table, which is the class name.
- * @param array $args {
+ * @param array  $args       {
  *     Optional. Arguments to pass to the class.
  *
  *     @type string                $plural   Plural value used for labels and the objects being listed.
