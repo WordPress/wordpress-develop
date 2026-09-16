@@ -16,7 +16,12 @@
  *
  * @param string $class_name The type of the list table, which is the class name.
  * @param array  $args       Optional. Arguments to pass to the class. Accepts 'screen'.
- * @return WP_List_Table|false List table object on success, false if the class does not exist.
+ * @return WP_List_Table|false List table object of the type given in `$class_name`
+ *                             on success, false if the class does not exist.
+ *
+ * @phpstan-template T of WP_List_Table
+ * @phpstan-param class-string<T> $class_name
+ * @phpstan-return T|false
  */
 function _get_list_table( $class_name, $args = array() ) {
 	$core_classes = array(
