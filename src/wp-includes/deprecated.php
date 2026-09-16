@@ -4550,9 +4550,8 @@ function _filter_query_attachment_filenames( $clauses ) {
 /**
  * Retrieves a page given its title.
  *
- * If more than one post uses the same title, the post with the smallest ID will be returned.
- * Be careful: in case of more than one post having the same title, it will check the oldest
- * publication date, not the smallest ID.
+ * If more than one post uses the same title, which one is returned is not deterministic,
+ * as the query used to find the post does not specify an order.
  *
  * Because this function uses the MySQL '=' comparison, $page_title will usually be matched
  * as case-insensitive with default collation.
