@@ -1217,6 +1217,61 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a whitespace-only CDATA section at an integration point keeps the insertion mode after the body.
+	 *
+	 * In the "after body" and "after after body" insertion modes, whitespace-only
+	 * character tokens are processed using the rules for "in body" and the
+	 * insertion mode is kept, while any other token switches the insertion mode
+	 * back to "in body". Foreign content stays open after the BODY closer, so
+	 * character tokens at an integration point reach these modes.
+	 *
+	 * The comment after the foreign content is processed in the kept mode, where
+	 * comments are not supported. If a whitespace-only CDATA section switched the
+	 * mode, the comment would be inserted into the BODY element instead.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_whitespace_character_tokens_at_integration_point_after_body
+	 *
+	 * @param string $html       Document whose foreign content is still open when the body is closed.
+	 * @param string $token_name Name of the whitespace-only character token in the document.
+	 */
+	public function test_whitespace_character_token_at_integration_point_after_body_keeps_insertion_mode( string $html, string $token_name ) {
+		$processor = WP_HTML_Processor::create_full_parser( $html );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->next_token(), "Failed to find the expected {$token_name} token." );
+		$this->assertSame( $token_name, $processor->get_token_name(), 'Found the wrong token after the TITLE element.' );
+		$this->assertSame( ' ', $processor->get_modifiable_text(), 'Found the wrong whitespace content.' );
+
+		$visited = array();
+		while ( $processor->next_token() ) {
+			$visited[] = $processor->get_token_name();
+		}
+
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_UNSUPPORTED,
+			$processor->get_last_error(),
+			'Should have stopped at the comment after the body instead of inserting it into the BODY element.'
+		);
+		$this->assertNotContains( '#comment', $visited, 'Should not have inserted the comment after the body into the BODY element.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_whitespace_character_tokens_at_integration_point_after_body() {
+		return array(
+			'After body, text'        => array( '<svg><g></body><title> </title></g></svg><!--c-->', '#text' ),
+			'After body, CDATA'       => array( '<svg><g></body><title><![CDATA[ ]]></title></g></svg><!--c-->', '#cdata-section' ),
+			'After after body, text'  => array( '<svg><g></body></html><title> </title></g></svg><!--c-->', '#text' ),
+			'After after body, CDATA' => array( '<svg><g></body></html><title><![CDATA[ ]]></title></g></svg><!--c-->', '#cdata-section' ),
+		);
+	}
+
+	/**
 	 * Ensures that the processor stops correctly on a FORM tag closer token.
 	 *
 	 * Form tag closers have complicated conditions. There was a bug where the processor

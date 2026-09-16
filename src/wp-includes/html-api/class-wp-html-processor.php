@@ -1586,6 +1586,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
@@ -1679,6 +1680,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
@@ -1761,6 +1763,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
@@ -1854,6 +1857,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			case '#text':
+			case '#cdata-section':
 				/*
 				 * > A character token that is one of U+0009 CHARACTER TABULATION,
 				 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
@@ -2086,6 +2090,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_head();
 				}
@@ -2189,6 +2194,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
@@ -3463,6 +3469,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > tbody, template, tfoot, thead, or tr element
 			 */
 			case '#text':
+			case '#cdata-section':
 				$current_node      = $this->state->stack_of_open_elements->current_node();
 				$current_node_name = $current_node ? $current_node->node_name : null;
 				if (
@@ -3827,6 +3834,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
@@ -4260,6 +4268,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case '#text':
+			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
@@ -4391,6 +4400,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Process the token using the rules for the "in body" insertion mode.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
@@ -4486,6 +4496,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
@@ -4608,6 +4619,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
@@ -4714,6 +4726,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Process the token using the rules for the "in body" insertion mode.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
@@ -4783,6 +4796,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
+			case '#cdata-section':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
