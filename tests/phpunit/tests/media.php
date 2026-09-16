@@ -4837,6 +4837,123 @@ EOF;
 	}
 
 	/**
+	 * @ticket 59577
+	 *
+	 * @covers ::get_the_block_template_html
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_filter_content_tags_adds_loading_optimization_to_images_in_block_template() {
+		global $_wp_current_template_id, $_wp_current_template_content;
+
+		$this->force_omit_loading_attr_threshold( 3 );
+
+		$img                 = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$authored_marker_img = str_replace( '<img ', '<img data-wp-block-template-filtered="true" ', $img );
+
+		register_block_pattern(
+			'tests/template-images',
+			array(
+				'title'   => 'Template images',
+				'content' => str_replace( ' class="', ' class="template-image-3 ', $img ) .
+					str_replace( ' class="', ' class="template-image-4 ', $img ),
+			)
+		);
+
+		$_wp_current_template_id      = get_stylesheet() . '//single';
+		$_wp_current_template_content = str_replace( ' class="', ' class="template-image-1 ', $authored_marker_img ) .
+			str_replace( ' class="', ' class="template-image-2 ', $img ) .
+			'<!-- wp:pattern {"slug":"tests/template-images"} /-->';
+
+		try {
+			$html = get_the_block_template_html();
+		} finally {
+			unregister_block_pattern( 'tests/template-images' );
+		}
+
+		$this->assertSame(
+			4,
+			substr_count( $html, 'decoding="async"' ),
+			'Every template image should get decoding="async".'
+		);
+		$this->assertSame(
+			1,
+			substr_count( $html, 'fetchpriority="high"' ),
+			'Only the first eligible template image should get fetchpriority="high".'
+		);
+		$this->assertSame(
+			1,
+			substr_count( $html, 'loading="lazy"' ),
+			'Only images after the omit-loading threshold should get loading="lazy".'
+		);
+		$this->assertStringContainsString(
+			'data-wp-block-template-filtered="true"',
+			$html,
+			'Authored attributes that resemble the internal marker should be preserved.'
+		);
+	}
+
+	/**
+	 * @ticket 59577
+	 *
+	 * @covers ::get_the_block_template_html
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_filter_content_tags_does_not_reprocess_images_in_block_template_with_more_specific_context() {
+		global $_wp_current_template_id, $_wp_current_template_content, $post, $wp_query, $wp_the_query;
+
+		$this->force_omit_loading_attr_threshold( 1 );
+
+		$post_content           = '<img src="https://example.org/image.jpg" width="100" height="100" alt="">';
+		$optimized_post_content = str_replace( '<img', '<img decoding="async"', $post_content );
+		$template_context_count = 0;
+		$count_template_context = static function ( $filtered_image, $context ) use ( &$template_context_count ) {
+			if ( 'template' === $context ) {
+				++$template_context_count;
+			}
+			return $filtered_image;
+		};
+
+		wp_update_post(
+			array(
+				'ID'           => self::$post_ids['publish'],
+				'post_content' => $post_content,
+			)
+		);
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
+		$wp_the_query = $wp_query;
+		$post         = get_post( self::$post_ids['publish'] );
+
+		$_wp_current_template_id      = get_stylesheet() . '//single';
+		$_wp_current_template_content = '<!-- wp:post-content /-->' . $optimized_post_content;
+
+		add_filter( 'wp_content_img_tag', $count_template_context, 10, 2 );
+		try {
+			$html = get_the_block_template_html();
+		} finally {
+			remove_filter( 'wp_content_img_tag', $count_template_context, 10 );
+		}
+
+		$this->assertSame(
+			1,
+			$template_context_count,
+			'Only the direct template image should be processed in the template context.'
+		);
+		$this->assertSame(
+			1,
+			substr_count( $html, 'loading="lazy"' ),
+			'Only the direct template image should get loading="lazy".'
+		);
+		$this->assertStringNotContainsString(
+			'data-wp-block-template-filtered',
+			$html,
+			'The internal marker should not be included in the output.'
+		);
+	}
+
+	/**
 	 * @ticket 58089
 	 * @ticket 58235
 	 * @ticket 58892
@@ -6461,18 +6578,32 @@ EOF;
 
 	/**
 	 * @ticket 58235
+	 * @ticket 59577
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
-	public function test_wp_get_loading_optimization_attributes_skip_for_block_template() {
+	public function test_wp_get_loading_optimization_attributes_for_block_template() {
 		$attr = $this->get_width_height_for_high_priority();
 
-		// Skip logic if context is `template`.
 		$this->assertSame(
 			array(),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'template' ),
-			'Skip logic and return blank array for block template.'
+			'Images in the overall block template should only be handled during block template rendering.'
 		);
+
+		$GLOBALS['_wp_block_template_content_filtering'] = 'test-token';
+		try {
+			$this->assertSameSetsWithIndex(
+				array(
+					'decoding'      => 'async',
+					'fetchpriority' => 'high',
+				),
+				wp_get_loading_optimization_attributes( 'img', $attr, 'template' ),
+				'Images in the overall block template should receive loading optimization attributes.'
+			);
+		} finally {
+			unset( $GLOBALS['_wp_block_template_content_filtering'] );
+		}
 	}
 
 	/**
