@@ -558,7 +558,7 @@ input[type="number"].tiny-text {
 	float: left;
 	margin-right: 6px;
 	max-width: 12.5rem;
-	padding: 0 24px 0 8px;
+	padding: 0 24px 0 12px;
 }
 
 .wp-core-ui .tablenav .button {
