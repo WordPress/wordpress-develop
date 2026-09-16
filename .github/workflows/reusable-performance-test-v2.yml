@@ -154,6 +154,7 @@ jobs:
         run: npm run env:start
 
       - name: Build WordPress
+        timeout-minutes: 3
         run: npm run build
 
       - name: Download previous build artifact (target branch or previous commit)
