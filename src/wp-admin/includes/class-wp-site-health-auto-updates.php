@@ -214,44 +214,20 @@ class WP_Site_Health_Auto_Updates {
 	 * @return array The test results.
 	 */
 	public function test_vcs_abspath() {
-		$context_dirs = array( ABSPATH );
-		$vcs_dirs     = array( '.svn', '.git', '.hg', '.bzr' );
-		$check_dirs   = array();
-
-		foreach ( $context_dirs as $context_dir ) {
-			// Walk up from $context_dir to the root.
-			do {
-				$check_dirs[] = $context_dir;
-
-				// Once we've hit '/' or 'C:\', we need to stop. dirname will keep returning the input here.
-				if ( dirname( $context_dir ) === $context_dir ) {
-					break;
-				}
-
-				// Continue one level at a time.
-			} while ( $context_dir = dirname( $context_dir ) );
+		if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
 		}
 
-		$check_dirs = array_unique( $check_dirs );
-		$updater    = new WP_Automatic_Updater();
-		$checkout   = false;
-
-		// Search all directories we've found for evidence of version control.
-		foreach ( $vcs_dirs as $vcs_dir ) {
-			foreach ( $check_dirs as $check_dir ) {
-				if ( ! $updater->is_allowed_dir( $check_dir ) ) {
-					continue;
-				}
-
-				$checkout = is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
-				if ( $checkout ) {
-					break 2;
-				}
-			}
-		}
+		$updater   = new WP_Automatic_Updater();
+		$details   = $updater->get_vcs_checkout_details( ABSPATH );
+		$checkout  = $details['checkout'];
+		$check_dir = $details['check_dir'];
+		$vcs_dir   = $details['vcs_dir'];
 
 		/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-		if ( $checkout && ! apply_filters( 'automatic_updates_is_vcs_checkout', true, ABSPATH ) ) {
+		$filtered = apply_filters( 'automatic_updates_is_vcs_checkout', $checkout, ABSPATH );
+
+		if ( $checkout && ! $filtered ) {
 			return array(
 				'description' => sprintf(
 					/* translators: 1: Folder name. 2: Version control directory. 3: Filter name. */
