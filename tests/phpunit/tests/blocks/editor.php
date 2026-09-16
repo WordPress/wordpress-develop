@@ -91,7 +91,11 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * @var WP_Script_Modules|null
 	 */
-	protected $original_wp_script_modules;
+	protected ?WP_Scripts $original_wp_scripts;
+
+	protected ?WP_Styles $original_wp_styles;
+
+	protected ?WP_Script_Modules $original_wp_script_modules;
 
 	/**
 	 * Original stylesheet.
