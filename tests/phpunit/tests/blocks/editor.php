@@ -16,6 +16,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		global $post;
 
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 
@@ -51,6 +52,11 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$wp_rest_server = null;
 		global $post_ID;
 		$post_ID = null;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
@@ -63,6 +69,13 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 * @var WP_Styles|null
 	 */
 	protected $original_wp_styles;
+
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
 
 	public function filter_set_block_categories_post( $block_categories, $post ) {
 		if ( empty( $post ) ) {

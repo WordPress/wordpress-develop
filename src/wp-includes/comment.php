@@ -20,9 +20,13 @@
  * If the comment author was approved before, then the comment is automatically
  * approved.
  *
+ * Pingbacks originating from the same site are automatically approved, as the
+ * link they report was created by someone who can already publish here.
+ *
  * If all checks pass, the function will return true.
  *
  * @since 1.2.0
+ * @since 7.1.0 Pingbacks from the same site are no longer held for moderation.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -161,6 +165,36 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 			} else {
 				return false;
 			}
+		} elseif ( 'pingback' === $comment_type ) {
+			/*
+			 * Only pingbacks are considered. A pingback is verified before it reaches
+			 * this point: the source page is fetched, it must link to the target, and
+			 * the comment is built from that fetched page. A trackback carries no such
+			 * proof. Its source URL, title, and excerpt are unverified request data, so
+			 * a forged trackback naming a local post as its source would be approved.
+			 */
+
+			// url_to_postid() compares hostnames, so it returns 0 for any URL that only appears to be local.
+			$source_id = url_to_postid( wp_unslash( $url ) );
+
+			// Approve pingbacks reporting a link that someone who can already publish here created.
+			$approve_pingback = $source_id > 0 && 'publish' === get_post_status( $source_id );
+
+			/**
+			 * Filters whether a pingback is approved without being held for moderation.
+			 *
+			 * Defaults to true for pingbacks originating from a published post on the same
+			 * site, and false for every other pingback. Trackbacks are never considered,
+			 * as they cannot be verified.
+			 *
+			 * @since 7.1.0
+			 *
+			 * @param bool   $approve_pingback Whether to auto-approve the pingback.
+			 * @param int    $source_id        ID of the post on this site the pingback
+			 *                                 originated from, or 0 if it came from elsewhere.
+			 * @param string $url              The URL the pingback was sent from.
+			 */
+			return (bool) apply_filters( 'wp_auto_approve_ping', $approve_pingback, $source_id, $url );
 		} else {
 			return false;
 		}
@@ -542,7 +576,19 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
  * @phpstan-param int|numeric-string $comment_id
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
@@ -1213,7 +1259,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 	 *     @type int    $per_page  Number of comments per page.
 	 *     @type int    $max_depth Maximum comment threading depth allowed.
 	 * }
-	 * @param int $comment_id ID of the comment.
+	 * @param int   $comment_id    ID of the comment.
 	 */
 	return apply_filters( 'get_page_of_comment', (int) $page, $args, $original_args, $comment_id );
 }
@@ -3411,8 +3457,8 @@ function wp_should_disable_pings_for_environment() {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param bool   $should_disable  Whether pings should be disabled. Default true
-	 *                                for non-production environments, false for production.
+	 * @param bool   $should_disable   Whether pings should be disabled. Default true
+	 *                                 for non-production environments, false for production.
 	 * @param string $environment_type The current environment type as returned by
 	 *                                 wp_get_environment_type().
 	 */
@@ -3651,7 +3697,7 @@ function trackback( $trackback_url, $title, $excerpt, $post_id ) {
  * @since 1.2.0
  *
  * @param string $server Host of blog to connect to.
- * @param string $path Path to send the ping.
+ * @param string $path   Path to send the ping.
  */
 function weblog_ping( $server = '', $path = '' ) {
 	require_once ABSPATH . WPINC . '/class-IXR.php';

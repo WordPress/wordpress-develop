@@ -112,11 +112,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Run CSS precommit tasks
+        if: ${{ inputs.directory == 'src' }}
+        run: npm run grunt precommit:css
+
       - name: Ensure certificates files are updated
         if: ${{ inputs.test-certificates }}
         run: npm run grunt copy:certificates && npm run grunt build:certificates
 
       - name: Build WordPress to run from ${{ inputs.directory }}
+        timeout-minutes: 3
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
 
       - name: Ensure version-controlled files are not modified or deleted during building

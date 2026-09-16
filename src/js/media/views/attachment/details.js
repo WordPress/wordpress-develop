@@ -33,8 +33,6 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param {MouseEvent} event A click event.
-	 *
 	 * @return {void}
 	 */
 	 copyAttachmentDetailsURLClipboard: function() {

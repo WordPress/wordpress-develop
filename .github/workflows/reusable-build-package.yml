@@ -44,6 +44,7 @@ jobs:
         run: npm ci
 
       - name: Build WordPress
+        timeout-minutes: 3
         run: npm run build
 
       - name: Prepare the directory structure for the ZIP
