@@ -894,7 +894,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $node_namespace       Actual namespace of the adjusted current node.
 	 * @param bool   $is_integration_point Whether the adjusted current node is an integration point.
-	 * @return bool Whether the namespace was valid and changed.
+	 * @return bool Whether the namespace was valid and the context was set.
 	 */
 	final protected function set_tokenizer_context( string $node_namespace, bool $is_integration_point ): bool {
 		if ( ! in_array( $node_namespace, array( 'html', 'math', 'svg' ), true ) ) {
