@@ -10,8 +10,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 	/**
 	 * The value of the `$locale` global before the current test ran.
-	 *
-	 * @var string|null
 	 */
 	private ?string $original_locale = null;
 
