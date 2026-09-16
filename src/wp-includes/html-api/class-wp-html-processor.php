@@ -2330,28 +2330,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			/*
-			 * A CDATA section is a run of character tokens. The tokenizer only
-			 * recognizes one when the adjusted current node is in a foreign
-			 * namespace, which includes HTML and MathML integration points, where
-			 * character tokens are processed in the current insertion mode.
-			 *
-			 * Classify the section's contents the way text nodes are classified,
-			 * from the bytes between `<![CDATA[` and `]]>`, then fall through to
-			 * the text node handling.
+			 * A CDATA section is a run of character tokens and follows the
+			 * rules for text nodes. The tokenizer only recognizes one when the
+			 * adjusted current node is in a foreign namespace, which includes
+			 * HTML and MathML integration points, where character tokens are
+			 * processed in the current insertion mode.
 			 */
-			case '#cdata-section':
-				$cdata_token  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-				$cdata_start  = $cdata_token->start + 9;
-				$cdata_length = $cdata_token->length - 12;
-				if ( strspn( $this->html, "\0", $cdata_start, $cdata_length ) === $cdata_length ) {
-					$this->text_node_classification = parent::TEXT_IS_NULL_SEQUENCE;
-				} elseif ( strspn( $this->html, "\0 \t\n\f\r", $cdata_start, $cdata_length ) === $cdata_length ) {
-					$this->text_node_classification = parent::TEXT_IS_WHITESPACE;
-				} else {
-					$this->text_node_classification = parent::TEXT_IS_GENERIC;
-				}
-				// Fall through.
 			case '#text':
+			case '#cdata-section':
 				/*
 				 * > A character token that is U+0000 NULL
 				 *
@@ -4854,7 +4840,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		switch ( $op ) {
+			/*
+			 * CDATA sections are runs of character tokens and
+			 * follow the same rules as text nodes.
+			 */
 			case '#text':
+			case '#cdata-section':
 				/*
 				 * > A character token that is U+0000 NULL
 				 *
@@ -4867,24 +4858,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * contain character references which decode only to whitespace.
 				 */
 				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
-					$this->state->frameset_ok = false;
-				}
-
-				$this->insert_foreign_element( $this->state->current_token, false );
-				return true;
-
-			/*
-			 * CDATA sections are alternate wrappers for text content and therefore
-			 * ought to follow the same rules as text nodes.
-			 */
-			case '#cdata-section':
-				/*
-				 * NULL bytes and whitespace do not change the frameset-ok flag.
-				 */
-				$current_token        = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-				$cdata_content_start  = $current_token->start + 9;
-				$cdata_content_length = $current_token->length - 12;
-				if ( strspn( $this->html, "\0 \t\n\f\r", $cdata_content_start, $cdata_content_length ) !== $cdata_content_length ) {
 					$this->state->frameset_ok = false;
 				}
 

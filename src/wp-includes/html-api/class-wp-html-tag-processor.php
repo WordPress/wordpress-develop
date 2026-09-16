@@ -581,7 +581,8 @@ class WP_HTML_Tag_Processor {
 	protected $comment_type = null;
 
 	/**
-	 * What kind of text the matched text node represents, if it was subdivided.
+	 * What kind of text the matched text node represents, if it was subdivided,
+	 * or what kind of text the matched CDATA section contains.
 	 *
 	 * @see self::TEXT_IS_NULL_SEQUENCE
 	 * @see self::TEXT_IS_WHITESPACE
@@ -589,6 +590,7 @@ class WP_HTML_Tag_Processor {
 	 * @see self::subdivide_text_appropriately
 	 *
 	 * @since 6.7.0
+	 * @since 7.2.0 Also classifies CDATA sections.
 	 *
 	 * @var string
 	 */
@@ -1981,6 +1983,19 @@ class WP_HTML_Tag_Processor {
 					$this->text_length          = $closer_at - $this->text_starts_at;
 					$this->token_length         = $closer_at + 3 - $this->token_starts_at;
 					$this->bytes_already_parsed = $closer_at + 3;
+
+					/*
+					 * A CDATA section is a run of character tokens. Classify it the
+					 * way a text node is classified so that tree construction can
+					 * apply the character token rules to it. CDATA section data
+					 * contains no character references, so this is a byte scan.
+					 */
+					if ( $this->text_length === strspn( $html, "\x00", $this->text_starts_at, $this->text_length ) ) {
+						$this->text_node_classification = self::TEXT_IS_NULL_SEQUENCE;
+					} elseif ( $this->text_length === strspn( $html, "\x00 \t\n\f\r", $this->text_starts_at, $this->text_length ) ) {
+						$this->text_node_classification = self::TEXT_IS_WHITESPACE;
+					}
+
 					return true;
 				}
 
