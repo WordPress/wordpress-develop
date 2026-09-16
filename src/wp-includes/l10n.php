@@ -1269,8 +1269,8 @@ function _load_script_textdomain_from_src( string $handle, string $src, string $
 		 * See https://core.trac.wordpress.org/ticket/60891 and https://core.trac.wordpress.org/ticket/62016.
 		 */
 
-		$theme_dir = array_slice( explode( '/', $theme_root ), -1 );
-		$dirname   = $theme_dir[0] === $relative[0] ? 'themes' : 'plugins';
+		$theme_dir = array_last( explode( '/', $theme_root ) );
+		$dirname   = $theme_dir === $relative[0] ? 'themes' : 'plugins';
 
 		$languages_path = WP_LANG_DIR . '/' . $dirname;
 
