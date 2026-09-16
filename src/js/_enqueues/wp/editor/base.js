@@ -51,7 +51,6 @@ window.wp = window.wp || {};
 						 * unknown hardware pointers.
 						 */
 						isPointingDevice = event.detail > 0 || ( event.pointerType !== undefined && event.pointerType !== '' );
-						console.log( isPointingDevice );
 
 						id = target.attr( 'data-wp-editor-id' );
 						mode = target.hasClass( 'switch-tmce' ) ? 'tmce' : 'html';
