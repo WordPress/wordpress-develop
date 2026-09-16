@@ -1790,6 +1790,24 @@ function wp_doing_cron() {
 }
 
 /**
+ * Determines whether the current request is a WP-CLI request.
+ *
+ * @since {{VERSION}}
+ *
+ * @return bool True if it's a WP-CLI request, false otherwise.
+ */
+function wp_doing_cli() {
+	/**
+	 * Filters whether the current request is a WP-CLI request.
+	 *
+	 * @since {{VERSION}}
+	 *
+	 * @param bool $wp_doing_cli Whether the current request is a WP-CLI request.
+	 */
+	return apply_filters( 'wp_doing_cli', defined( 'WP_CLI' ) && WP_CLI );
+}
+
+/**
  * Checks whether the given variable is a WordPress Error.
  *
  * Returns whether `$thing` is an instance of the `WP_Error` class.
