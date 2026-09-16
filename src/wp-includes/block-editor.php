@@ -768,7 +768,19 @@ function get_block_editor_theme_styles() {
 
 	$styles = array();
 
-	if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
+	if ( ! current_theme_supports( 'editor-styles' ) ) {
+		return $styles;
+	}
+
+	$editor_styles = array_unique( array_filter( $editor_styles ) );
+
+	if ( $editor_styles ) {
+		$style_uri      = get_stylesheet_directory_uri();
+		$style_dir      = get_stylesheet_directory();
+		$is_child_theme = is_child_theme();
+		$template_uri   = $is_child_theme ? get_template_directory_uri() : '';
+		$template_dir   = $is_child_theme ? get_template_directory() : '';
+
 		foreach ( $editor_styles as $style ) {
 			if ( preg_match( '~^(https?:)?//~', $style ) ) {
 				$response = wp_remote_get( $style );
@@ -780,11 +792,26 @@ function get_block_editor_theme_styles() {
 					);
 				}
 			} else {
-				$file = get_theme_file_path( $style );
+				$style = ltrim( $style, '/' );
+
+				// Look in a parent theme first, that way child theme CSS overrides.
+				if ( $is_child_theme && $style_dir !== $template_dir ) {
+					$parent_file = $template_dir . '/' . $style;
+					if ( is_file( $parent_file ) ) {
+						$styles[] = array(
+							'css'            => file_get_contents( $parent_file ),
+							'baseURL'        => $template_uri . '/' . $style,
+							'__unstableType' => 'theme',
+							'isGlobalStyles' => false,
+						);
+					}
+				}
+
+				$file = $style_dir . '/' . $style;
 				if ( is_file( $file ) ) {
 					$styles[] = array(
 						'css'            => file_get_contents( $file ),
-						'baseURL'        => get_theme_file_uri( $style ),
+						'baseURL'        => $style_uri . '/' . $style,
 						'__unstableType' => 'theme',
 						'isGlobalStyles' => false,
 					);
