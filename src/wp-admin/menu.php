@@ -94,18 +94,32 @@ $menu[15] = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-
 
 // $menu[20] = Pages.
 
-// Avoid the comment count query for users who cannot edit_posts.
-if ( current_user_can( 'edit_posts' ) ) {
-	$awaiting_moderation      = wp_count_comments();
-	$awaiting_moderation      = $awaiting_moderation->moderated;
-	$awaiting_moderation_i18n = number_format_i18n( $awaiting_moderation );
-	/* translators: %s: Number of comments. */
-	$awaiting_moderation_text = sprintf( _n( '%s Comment in moderation', '%s Comments in moderation', $awaiting_moderation ), $awaiting_moderation_i18n );
+$can_edit_posts           = current_user_can( 'edit_posts' );
+$can_moderate_comments    = current_user_can( 'moderate_comments' );
+$comments_cap             = 'do_not_allow';
+$comments_label           = '';
+$awaiting_moderation      = 0;
+$awaiting_moderation_i18n = '';
+$awaiting_moderation_text = '';
+
+if ( $can_edit_posts || $can_moderate_comments ) {
+	$comments_cap   = $can_moderate_comments ? 'moderate_comments' : 'edit_posts';
+	$comments_label = __( 'Comments' );
+
+	// Avoid the comment count query for users who cannot moderate comments.
+	if ( $can_moderate_comments ) {
+		$awaiting_moderation      = wp_count_comments();
+		$awaiting_moderation      = $awaiting_moderation->moderated;
+		$awaiting_moderation_i18n = number_format_i18n( $awaiting_moderation );
+		/* translators: %s: Number of comments. */
+		$awaiting_moderation_text = sprintf( _n( '%s Comment in moderation', '%s Comments in moderation', $awaiting_moderation ), $awaiting_moderation_i18n );
+		/* translators: %s: Number of comments. */
+		$comments_label = sprintf( __( 'Comments %s' ), '<span class="awaiting-mod count-' . absint( $awaiting_moderation ) . '"><span class="pending-count" aria-hidden="true">' . $awaiting_moderation_i18n . '</span><span class="comments-in-moderation-text screen-reader-text">' . $awaiting_moderation_text . '</span></span>' );
+	}
 
 	$menu[25] = array(
-		/* translators: %s: Number of comments. */
-		sprintf( __( 'Comments %s' ), '<span class="awaiting-mod count-' . absint( $awaiting_moderation ) . '"><span class="pending-count" aria-hidden="true">' . $awaiting_moderation_i18n . '</span><span class="comments-in-moderation-text screen-reader-text">' . $awaiting_moderation_text . '</span></span>' ),
-		'edit_posts',
+		$comments_label,
+		$comments_cap,
 		'edit-comments.php',
 		'',
 		'menu-top menu-icon-comments',
@@ -113,10 +127,10 @@ if ( current_user_can( 'edit_posts' ) ) {
 		'dashicons-admin-comments',
 	);
 
-	unset( $awaiting_moderation );
+	$submenu['edit-comments.php'][0] = array( __( 'All Comments' ), $comments_cap, 'edit-comments.php' );
 }
 
-$submenu['edit-comments.php'][0] = array( __( 'All Comments' ), 'edit_posts', 'edit-comments.php' );
+unset( $awaiting_moderation, $awaiting_moderation_i18n, $awaiting_moderation_text, $can_edit_posts, $can_moderate_comments, $comments_cap, $comments_label );
 
 $_wp_last_object_menu = 25; // The index of the last top-level menu in the object menu group.
 
