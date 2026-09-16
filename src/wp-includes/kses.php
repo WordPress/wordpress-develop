@@ -1370,7 +1370,7 @@ function wp_kses_uri_attributes() {
  * Attributes should still be added to both lists so that code consulting only
  * {@see wp_kses_uri_attributes()} recognizes them as URI attributes.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @return string[] HTML attribute names whose value contains a list of URLs.
  */
@@ -1388,7 +1388,7 @@ function wp_kses_multi_uri_attributes() {
 	 * filter so that code consulting only that list recognizes them as URI
 	 * attributes.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param string[] $multi_uri_attributes HTML attribute names whose value contains a list of URLs.
 	 */
@@ -1805,7 +1805,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  * For attributes that can contain multiple URIs (such as 'srcset'), it splits the value and sanitizes each URI individually.
  * All URI values are passed through {@see wp_kses_bad_protocol()} to remove disallowed protocols (e.g., 'javascript:').
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param string        $attr_name         The attribute name to test.
  * @param string        $attr_value        The attribute value to sanitize.

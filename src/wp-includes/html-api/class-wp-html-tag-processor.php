@@ -4672,7 +4672,9 @@ class WP_HTML_Tag_Processor {
 				"'" => '&apos;',
 			);
 
-			if ( in_array( $comparable_name, wp_kses_multi_uri_attributes(), true ) ) {
+			$multi_uri_attrs = wp_kses_multi_uri_attributes();
+
+			if ( in_array( $comparable_name, $multi_uri_attrs, true ) ) {
 				/*
 				 * Multi-URI attributes such as srcset contain a comma-separated list
 				 * of URLs with optional width/density descriptors, not a single URL.
@@ -4681,7 +4683,7 @@ class WP_HTML_Tag_Processor {
 				 * is sanitized individually before the value receives the standard
 				 * attribute escaping.
 				 */
-				$escaped_new_value = strtr( wp_kses_sanitize_uris( $comparable_name, $value, wp_allowed_protocols() ), $syntax_characters );
+				$escaped_new_value = strtr( wp_kses_sanitize_uris( $comparable_name, $value, wp_allowed_protocols(), $multi_uri_attrs ), $syntax_characters );
 			} elseif ( in_array( $comparable_name, wp_kses_uri_attributes(), true ) ) {
 				$escaped_new_value = esc_url( $value );
 			} else {
