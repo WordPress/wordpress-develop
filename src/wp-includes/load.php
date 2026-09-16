@@ -1481,6 +1481,13 @@ function absint( $maybeint ): int {
 		}
 	}
 
+	/*
+	 * Casting from an unknown type is the entire contract of this function, so this conversion is
+	 * deliberate: arrays, objects, and resources are converted exactly as PHP has always converted
+	 * them here, and narrowing the type first would change long-standing behavior. PHPStan flags
+	 * such casts for good reason, but that reasoning does not apply here; if the rule level is
+	 * ever raised to 9, the resulting `cast.int` error will need to be ignored or baselined.
+	 */
 	$maybeint = (int) $maybeint;
 
 	if ( PHP_INT_MIN === $maybeint ) {
