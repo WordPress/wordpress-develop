@@ -7608,8 +7608,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_block_style_variation_selector
 	 *
-	 * @param string $selector  CSS selector.
-	 * @param string $expected  Expected block style variation CSS selector.
+	 * @param string $selector CSS selector.
+	 * @param string $expected Expected block style variation CSS selector.
 	 */
 	public function test_get_block_style_variation_selector( $selector, $expected ) {
 		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );

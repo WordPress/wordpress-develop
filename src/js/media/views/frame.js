@@ -89,9 +89,9 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	/**
 	 * Map activeMode collection events to the frame.
 	 *
-	 * @param {Backbone.Model}      model
-	 * @param {Backbone.Collection} collection
-	 * @param {Object}              options
+	 * @param {Backbone.Model}      model      The model that triggered the event.
+	 * @param {Backbone.Collection} collection The collection to which the model belongs.
+	 * @param {Object}              options    The options object associated with the event.
 	 */
 	triggerModeEvents: function( model, collection, options ) {
 		var collectionEvent,

@@ -301,7 +301,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			true
 		);
 
-		remove_filter( 'wp_update_comment_data', array( $this, 'wp_update_comment_data_filter' ), 10, 3 );
+		remove_filter( 'wp_update_comment_data', array( $this, 'wp_update_comment_data_filter' ) );
 
 		$this->assertWPError( $result );
 	}

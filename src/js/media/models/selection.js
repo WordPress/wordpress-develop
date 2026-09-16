@@ -18,8 +18,8 @@ Selection = Attachments.extend(/** @lends wp.media.model.Selection.prototype */{
 	 * Binds `single` instead of using the context argument to ensure
 	 * it receives no parameters.
 	 *
-	 * @param {Array} [models=[]] Array of models used to populate the collection.
-	 * @param {Object} [options={}]
+	 * @param {Array}  [models=[]]  Array of models used to populate the collection.
+	 * @param {Object} [options={}] Additional options for the selection.
 	 */
 	initialize: function( models, options ) {
 		/**
@@ -35,8 +35,8 @@ Selection = Attachments.extend(/** @lends wp.media.model.Selection.prototype */{
 	 * If the workflow does not support multi-select, clear out the selection
 	 * before adding a new attachment to it.
 	 *
-	 * @param {Array} models
-	 * @param {Object} options
+	 * @param {Array}  models  The models to add to the selection.
+	 * @param {Object} options Additional options for adding the models.
 	 * @return {wp.media.model.Attachment[]} The added attachments.
 	 */
 	add: function( models, options ) {
@@ -52,7 +52,7 @@ Selection = Attachments.extend(/** @lends wp.media.model.Selection.prototype */{
 	/**
 	 * Fired when toggling (clicking on) an attachment in the modal.
 	 *
-	 * @param {undefined|boolean|wp.media.model.Attachment} model
+	 * @param {undefined|boolean|wp.media.model.Attachment} model The model to set as the single selection, or a boolean to clear it.
 	 *
 	 * @fires wp.media.model.Selection#selection:single
 	 * @fires wp.media.model.Selection#selection:unsingle
