@@ -392,7 +392,7 @@
 		$pluginsNavMenuUpdateCount.each( function( index, element ) {
 			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.plugins );
 		} );
-		if ( settings.totals.counts.total > 0 ) {
+		if ( settings.totals.counts.plugins > 0 ) {
 			$pluginsNavMenuUpdateCount.find( '.plugin-count' ).text( settings.totals.counts.plugins );
 		} else {
 			$pluginsNavMenuUpdateCount.remove();
@@ -402,7 +402,7 @@
 		$appearanceNavMenuUpdateCount.each( function( index, element ) {
 			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.themes );
 		} );
-		if ( settings.totals.counts.total > 0 ) {
+		if ( settings.totals.counts.themes > 0 ) {
 			$appearanceNavMenuUpdateCount.find( '.theme-count' ).text( settings.totals.counts.themes );
 		} else {
 			$appearanceNavMenuUpdateCount.remove();
