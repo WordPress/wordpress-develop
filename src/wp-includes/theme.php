@@ -2199,6 +2199,35 @@ function add_editor_style( $stylesheet = 'editor-style.css' ) {
 }
 
 /**
+ * Removes a stylesheet from the editor.
+ *
+ * @since 7.1.0
+ *
+ * @global array $editor_styles Registered editor stylesheets.
+ *
+ * @param string|string[] $stylesheet Stylesheet name or array of stylesheet names
+ *                                    to remove.
+ * @return bool True on success, false if there were no stylesheets to remove
+ *              or if the specified stylesheet was not found.
+ */
+function remove_editor_style( $stylesheet ) {
+	global $editor_styles;
+
+	if ( ! is_array( $editor_styles ) || ! count( $editor_styles ) ) {
+		return false;
+	}
+
+	$stylesheet = (array) $stylesheet;
+	$previous   = $editor_styles;
+
+	foreach ( $stylesheet as $style ) {
+		$editor_styles = array_values( array_diff( $editor_styles, array( $style ) ) );
+	}
+
+	return $editor_styles !== $previous;
+}
+
+/**
  * Removes all visual editor stylesheets.
  *
  * @since 3.1.0
