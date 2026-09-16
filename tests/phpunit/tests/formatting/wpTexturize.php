@@ -157,6 +157,75 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		// $this->assertSame( '&#8220;<strong>Quoted Text</strong>&#8221;,', wptexturize( '"<strong>Quoted Text</strong>",' ) );
 	}
 
+
+	/**
+	 * @ticket 18549
+	 */
+	public function test_historic_quotes_around_inline_html() {
+		$this->assertSame( 'The word is &#8220;<a href="http://example.com/">quoted</a>&#8221;.', wptexturize( 'The word is "<a href="http://example.com/">quoted</a>".' ) );
+		$this->assertSame( 'The word is &#8216;<a href="http://example.com/">quoted</a>&#8217;', wptexturize( 'The word is \'<a href="http://example.com/">quoted</a>\'' ) );
+		$this->assertSame( 'The word is &#8216;<a href="http://example.com/">quoted.</a>&#8217;', wptexturize( 'The word is \'<a href="http://example.com/">quoted.</a>\'' ) );
+		$this->assertSame( 'The word is &#8216;<a href="http://example.com/">quoted</a>&#8217;.', wptexturize( 'The word is \'<a href="http://example.com/">quoted</a>\'.' ) );
+		$this->assertSame( 'The word is &#8216;<a href="http://example.com/">quot</a>&#8217;d', wptexturize( 'The word is \'<a href="http://example.com/">quot</a>\'d' ) );
+	}
+
+	/**
+	 * @ticket 18549
+	 */
+	public function test_historic_texturize_around_html_cases() {
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link and a period</a>&#8221;.', wptexturize( 'Here is "<a href="http://example.com">a test with a link and a period</a>".' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;, and a comma.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>", and a comma.' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;; and a semi-colon.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"; and a semi-colon.' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;- and a dash.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"- and a dash.' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;&#8230; and ellipses.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"... and ellipses.' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;… and a Unicode ellipsis.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"… and a Unicode ellipsis.' ) );
+		$this->assertSame( '&#8220;<em>引用</em>&#8221;。', wptexturize( '"<em>引用</em>"。' ) );
+		$this->assertSame( '&#8220;<em>引用</em>&#8221;，然后继续。', wptexturize( '"<em>引用</em>"，然后继续。' ) );
+		$this->assertSame( 'Here is &#8220;a test <a href="http://example.com">with a link</a>&#8221;.', wptexturize( 'Here is "a test <a href="http://example.com">with a link</a>".' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;and a word stuck to the end.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"and a word stuck to the end.' ) );
+		$this->assertSame( '&#8216;<strong>Quoted Text</strong>&#8217;,', wptexturize( "'<strong>Quoted Text</strong>'," ) );
+		$this->assertSame( '&#8220;<strong>Quoted Text</strong>&#8221;,', wptexturize( '"<strong>Quoted Text</strong>",' ) );
+		$this->assertSame( '<strong>Read more: </strong>&#8220;<a>Something (else)</a>&#8221;</p>', wptexturize( '<strong>Read more: </strong>"<a>Something (else)</a>"</p>' ) );
+	}
+
+	/**
+	 * @ticket 18549
+	 */
+	public function test_historic_apostrophe_after_inline_formatting_tag() {
+		$this->assertSame( '<strong>He</strong>&#8217;s here.', wptexturize( "<strong>He</strong>'s here." ) );
+		$this->assertSame( '<em>It</em>&#8217;s fine.', wptexturize( "<em>It</em>'s fine." ) );
+		$this->assertSame( '<a href="http://example.org">Dan</a>&#8217;s truck', wptexturize( '<a href="http://example.org">Dan</a>\'s truck' ) );
+		$this->assertSame( '<strong>rock</strong>&#8217;n&#8217;roll', wptexturize( "<strong>rock</strong>'n'roll" ) );
+		$this->assertSame( '&#038;<strong>x</strong>&#8217;s', wptexturize( "&<strong>x</strong>'s" ) );
+		$this->assertSame( '<em>&#8220;John&#8221;</em>&#8217;s', wptexturize( '<em>"John"</em>\'s' ) );
+		$this->assertSame( '<em>&#8216;John&#8217;</em>&#8217;s', wptexturize( "<em>'John'</em>'s" ) );
+	}
+
+	/**
+	 * @ticket 18549
+	 */
+	public function test_historic_inline_tag_quote_requires_adjacency() {
+		$this->assertSame( '<strong>He</strong> &#8216;go&#8217;', wptexturize( "<strong>He</strong> 'go'" ) );
+		$this->assertSame( '<strong>He said</strong> &#8220;go&#8221;', wptexturize( '<strong>He said</strong> "go"' ) );
+	}
+
+	/**
+	 * The apostrophe after a closing inline tag is localizable (it uses the
+	 * `apostrophe` _x() string) and the preceding word-context check is Unicode
+	 * aware, so Romance-language elision and multibyte words resolve correctly.
+	 *
+	 * @ticket 18549
+	 */
+	public function test_historic_apostrophe_after_inline_tag_i18n() {
+		// French elision exposed by bolding a leading letter.
+		$this->assertSame( '<strong>l</strong>&#8217;homme', wptexturize( "<strong>l</strong>'homme" ) );
+		$this->assertSame( '<em>l</em>&#8217;eau', wptexturize( "<em>l</em>'eau" ) );
+		// Multibyte word context before the closing tag.
+		$this->assertSame( '<strong>café</strong>&#8217;s', wptexturize( "<strong>café</strong>'s" ) );
+		$this->assertSame( '<em>naïve</em>&#8217;s', wptexturize( "<em>naïve</em>'s" ) );
+	}
+
 	public function test_x() {
 		$this->assertSame( '14&#215;24', wptexturize( '14x24' ) );
 	}
