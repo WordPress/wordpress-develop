@@ -65,6 +65,22 @@ class WP_Site_Query {
 	public $date_query = false;
 
 	/**
+	 * Taxonomy query container.
+	 *
+	 * @since x.x.x
+	 * @var WP_Tax_Query A taxonomy query instance.
+	 */
+	public $tax_query = false;
+
+	/**
+	 * Taxonomy query clauses.
+	 *
+	 * @since x.x.x
+	 * @var array
+	 */
+	protected $tax_query_clauses;
+
+	/**
 	 * Query vars set by the user.
 	 *
 	 * @since 4.6.0
@@ -112,6 +128,7 @@ class WP_Site_Query {
 	 * @since 5.1.0 Introduced the 'update_site_meta_cache', 'meta_query', 'meta_key',
 	 *              'meta_compare_key', 'meta_value', 'meta_type', and 'meta_compare' parameters.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
+	 * @since x.x.x Introduced the 'tax_query' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of site query parameters. Default empty.
@@ -183,6 +200,8 @@ class WP_Site_Query {
 	 *                                                   See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type array           $meta_query             An associative array of WP_Meta_Query arguments.
 	 *                                                   See WP_Meta_Query::__construct() for accepted values.
+	 *     @type array           $tax_query              An associative array of WP_Tax_Query arguments.
+	 *                                                   See WP_Tax_Query::__construct() for accepted values.
 	 * }
 	 */
 	public function __construct( $query = '' ) {
@@ -224,6 +243,7 @@ class WP_Site_Query {
 			'meta_value'             => '',
 			'meta_type'              => '',
 			'meta_compare'           => '',
+			'tax_query'              => '',
 		);
 
 		if ( ! empty( $query ) ) {
@@ -306,6 +326,21 @@ class WP_Site_Query {
 			$this->meta_query_clauses = $this->meta_query->get_sql( 'blog', $wpdb->blogs, 'blog_id', $this );
 		}
 
+		// Parse taxonomy query.
+		if ( ! empty( $this->query_vars['tax_query'] ) && is_array( $this->query_vars['tax_query'] ) ) {
+			$this->tax_query = new WP_Tax_Query( $this->query_vars['tax_query'] );
+			$this->tax_query_clauses = $this->tax_query->get_sql( $wpdb->blogs, 'blog_id' );
+		}
+
+		/**
+		 * Fires after the site taxonomy query has been parsed.
+		 *
+		 * @since x.x.x
+		 *
+		 * @param WP_Site_Query $query The WP_Site_Query instance (passed by reference).
+		 */
+		do_action_ref_array( 'parse_site_tax_query', array( &$this ) );
+
 		$site_data = null;
 
 		/**
@@ -383,7 +418,10 @@ class WP_Site_Query {
 		// If querying for a count only, there's nothing more to do.
 		if ( $this->query_vars['count'] ) {
 			// $site_ids is actually a count in this case.
-			return (int) $site_ids;
+			$count = (int) $site_ids;
+			// Set found_sites for consistency with non-count queries.
+			$this->found_sites = $count;
+			return $count;
 		}
 
 		$site_ids = array_map( 'intval', $site_ids );
@@ -497,6 +535,9 @@ class WP_Site_Query {
 
 		if ( $this->query_vars['count'] ) {
 			$fields = 'COUNT(*)';
+			if ( ! empty( $this->tax_query_clauses ) ) {
+				$fields = "COUNT(DISTINCT {$wpdb->blogs}.blog_id)";
+			}
 		} else {
 			$fields = "{$wpdb->blogs}.blog_id";
 		}
@@ -645,6 +686,17 @@ class WP_Site_Query {
 
 			// Strip leading 'AND'.
 			$this->sql_clauses['where']['meta_query'] = preg_replace( '/^\s*AND\s*/', '', $this->meta_query_clauses['where'] );
+
+			if ( ! $this->query_vars['count'] ) {
+				$groupby = "{$wpdb->blogs}.blog_id";
+			}
+		}
+
+		if ( ! empty( $this->tax_query_clauses ) ) {
+			$join .= $this->tax_query_clauses['join'];
+
+			// Strip leading 'AND'.
+			$this->sql_clauses['where']['tax_query'] = preg_replace( '/^\s*AND\s*/', '', $this->tax_query_clauses['where'] );
 
 			if ( ! $this->query_vars['count'] ) {
 				$groupby = "{$wpdb->blogs}.blog_id";
