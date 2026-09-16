@@ -1990,9 +1990,9 @@ class WP_HTML_Tag_Processor {
 					 * apply the character token rules to it. CDATA section data
 					 * contains no character references, so this is a byte scan.
 					 */
-					if ( $this->text_length === strspn( $html, "\x00", $this->text_starts_at, $this->text_length ) ) {
+					if ( strspn( $html, "\x00", $this->text_starts_at, $this->text_length ) === $this->text_length ) {
 						$this->text_node_classification = self::TEXT_IS_NULL_SEQUENCE;
-					} elseif ( $this->text_length === strspn( $html, "\x00 \t\n\f\r", $this->text_starts_at, $this->text_length ) ) {
+					} elseif ( strspn( $html, "\x00 \t\n\f\r", $this->text_starts_at, $this->text_length ) === $this->text_length ) {
 						$this->text_node_classification = self::TEXT_IS_WHITESPACE;
 					}
 
