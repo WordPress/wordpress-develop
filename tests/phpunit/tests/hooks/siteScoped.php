@@ -142,6 +142,102 @@ class Tests_Hooks_SiteScoped extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group ms-required
+	 *
+	 * @covers ::add_filter
+	 * @covers ::apply_filters
+	 */
+	public function test_site_scoped_callbacks_follow_switch_to_blog_and_restore_current_blog() {
+		$hook_name     = __FUNCTION__;
+		$other_blog_id = self::factory()->blog->create();
+
+		add_filter(
+			$hook_name,
+			static function ( $value ) {
+				$value[] = 'global';
+
+				return $value;
+			}
+		);
+		add_filter(
+			$hook_name,
+			static function ( $value ) {
+				$value[] = 'original';
+
+				return $value;
+			},
+			10,
+			1,
+			$this->original_blog_id
+		);
+		add_filter(
+			$hook_name,
+			static function ( $value ) {
+				$value[] = 'other';
+
+				return $value;
+			},
+			10,
+			1,
+			$other_blog_id
+		);
+
+		$original_result = apply_filters( $hook_name, array() );
+
+		switch_to_blog( $other_blog_id );
+		try {
+			$other_result = apply_filters( $hook_name, array() );
+		} finally {
+			restore_current_blog();
+		}
+
+		$restored_result = apply_filters( $hook_name, array() );
+
+		$this->assertSame( array( 'global', 'original' ), $original_result );
+		$this->assertSame( array( 'global', 'other' ), $other_result );
+		$this->assertSame( array( 'global', 'original' ), $restored_result );
+		$this->assertSame( $this->original_blog_id, get_current_blog_id() );
+	}
+
+	/**
+	 * @group ms-required
+	 *
+	 * @covers ::add_filter
+	 * @covers ::apply_filters
+	 */
+	public function test_same_callback_has_independent_global_and_site_identities_across_real_site_switches() {
+		$hook_name     = __FUNCTION__;
+		$other_blog_id = self::factory()->blog->create();
+		$callback      = static function ( $value ) {
+			$value[] = get_current_blog_id();
+
+			return $value;
+		};
+
+		add_filter( $hook_name, $callback );
+		add_filter( $hook_name, $callback, 10, 1, $this->original_blog_id );
+		add_filter( $hook_name, $callback, 10, 1, $other_blog_id );
+
+		$this->assertCount( 3, $GLOBALS['wp_filter'][ $hook_name ]->callbacks[10] );
+
+		$original_result = apply_filters( $hook_name, array() );
+
+		switch_to_blog( $other_blog_id );
+		try {
+			$other_result = apply_filters( $hook_name, array() );
+		} finally {
+			restore_current_blog();
+		}
+
+		$this->assertSame(
+			array( $this->original_blog_id, $this->original_blog_id ),
+			$original_result
+		);
+		$this->assertSame( array( $other_blog_id, $other_blog_id ), $other_result );
+		$this->assertSame( $this->original_blog_id, get_current_blog_id() );
+	}
+
+	/**
 	 * @covers ::add_filter
 	 * @covers ::apply_filters
 	 */
