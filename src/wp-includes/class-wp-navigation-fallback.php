@@ -69,7 +69,7 @@ class WP_Navigation_Fallback {
 	 */
 	public static function get_fallback() {
 		/**
-		 * Filters whether or not a fallback should be created.
+		 * Filters whether a fallback should be created.
 		 *
 		 * @since 6.3.0
 		 *
@@ -291,7 +291,7 @@ class WP_Navigation_Fallback {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @return string default blocks markup to use a the fallback.
+	 * @return string Default blocks markup to use as the fallback.
 	 */
 	private static function get_default_fallback_blocks() {
 		$registry = WP_Block_Type_Registry::get_instance();
