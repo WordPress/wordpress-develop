@@ -83,10 +83,11 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Reduce PR testing only when every changed file is an audited Core CSS or JS asset.
+  # Reduce PR testing only for audited Core assets and unrelated companion files.
   select-test-coverage:
     name: Select PHPUnit coverage
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     permissions:
       contents: read
     if: |
@@ -118,22 +119,37 @@ jobs:
             # Compare the tested merge result with its base parent. Include both paths of a rename.
             changed_files="$RUNNER_TEMP/phpunit-changed-files"
             if git diff --no-renames --name-only -z HEAD^1 HEAD > "$changed_files" && [[ -s "$changed_files" ]]; then
-              assets_only=true
               while IFS= read -r -d '' file; do
                 case "$file" in
-                  src/js/*.js|src/js/*.css|src/wp-admin/css/*.css|src/wp-admin/js/*.js|src/wp-includes/css/*.css|src/wp-includes/js/*.js|src/wp-includes/js/*.css|src/wp-includes/build/*.js|src/wp-includes/build/*.css)
+                  # Preserve the workflow's explicit inclusions before ignoring Markdown files.
+                  SECURITY.md|tests/phpunit/*|tools/gutenberg/*|tools/local-env/*|tools/vendors/*|tools/webpack/*)
                     ;;
-                  *)
-                    assets_only=false
-                    break
+                  src/js/*.js|src/js/*.css|src/wp-admin/css/*.css|src/wp-admin/css/colors/*.scss|src/wp-includes/css/*.css|src/wp-includes/build/*.js)
+                    assets_only=true
+                    continue
+                    ;;
+                  # These companion files are excluded by the workflow's path filters.
+                  *.md|tests/qunit/*|typings/*|.eslintrc-jsdoc.js|.prettierrc.js|eslint.config.js|jsdoc.conf.json|tsconfig.json)
+                    continue
                     ;;
                 esac
+                printf 'Running the normal PHPUnit matrix: %q is outside the audited asset paths.\n' "$file"
+                assets_only=false
+                break
               done < "$changed_files"
+              if [[ "$assets_only" == 'false' ]]; then
+                echo 'Reduced coverage requires an audited asset change and no other relevant changes.'
+              fi
+            else
+              echo 'Running the normal PHPUnit matrix: changed paths are unavailable or empty.'
             fi
+          else
+            echo 'Keeping the existing PHPUnit matrix for this event or the Full PHPUnit Matrix label.'
           fi
           echo "assets-only=$assets_only" >> "$GITHUB_OUTPUT"
 
-  # One configuration keeps asset-dependent PHP tests visible on Core CSS/JS-only PRs.
+  # One configuration keeps asset-dependent PHP tests visible on Core asset-only PRs.
+  # Single site only. Asset tests must not also belong to groups excluded by phpunit.xml.dist.
   test-assets:
     name: Core assets
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
