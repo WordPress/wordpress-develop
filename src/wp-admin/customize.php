@@ -230,7 +230,7 @@ if ( is_string( $additional_body_class ) && '' !== $additional_body_class ) {
 
 		<div id="customize-sidebar-outer-content">
 			<div id="customize-outer-theme-controls">
-				<ul class="customize-outer-pane-parent"><?php // Outer panel and sections are not implemented, but its here as a placeholder to avoid any side-effect in api.Section. ?></ul>
+				<ul class="customize-outer-pane-parent"><!-- Outer panel and sections are not implemented, but its here as a placeholder to avoid any side-effect in api.Section --></ul>
 			</div>
 		</div>
 
@@ -269,7 +269,7 @@ if ( is_string( $additional_body_class ) && '' !== $additional_body_class ) {
 				</div>
 
 				<div id="customize-theme-controls">
-					<ul class="customize-pane-parent"><?php // Panels and sections are managed here via JavaScript ?></ul>
+					<ul class="customize-pane-parent"><!-- Panels and sections are managed here via JavaScript --></ul>
 				</div>
 			</div>
 		</div>
