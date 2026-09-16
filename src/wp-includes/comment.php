@@ -3147,7 +3147,13 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$comments       = (array) $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_parent, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_type != 'note'", $post_id ) );
+		/** @var list<object{ comment_ID: numeric-string, comment_parent: numeric-string, comment_approved: numeric-string }>|null $comments */
+		$comments = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_parent, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_type != 'note'", $post_id ) );
+
+		if ( null === $comments ) {
+			$comments = array();
+		}
+
 		$comments_by_id = array();
 
 		// Create a lookup array by comment ID.
