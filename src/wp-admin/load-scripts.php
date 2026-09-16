@@ -45,7 +45,22 @@ require ABSPATH . WPINC . '/script-loader.php';
 require ABSPATH . WPINC . '/version.php';
 
 $expires_offset = 31536000; // 1 year.
-$out            = '';
+
+/*
+ * Begin the concatenated output with an empty statement.
+ *
+ * The concatenated files are appended one after another, so a "use strict"
+ * directive at the very top of the first bundled script (for example the
+ * one shipped in wp-includes/js/dist/hooks.js) would be treated as the
+ * directive prologue for the entire file. That would force every legacy,
+ * non-strict script bundled afterwards (such as ThickBox) to run in strict
+ * mode, where implicit global assignments throw a ReferenceError.
+ *
+ * Prepending an empty statement ensures any later "use strict" string is no
+ * longer the first statement, so it is evaluated as a harmless expression
+ * rather than enabling strict mode for the whole concatenated file.
+ */
+$out = ";\n";
 
 $wp_scripts = new WP_Scripts();
 wp_default_scripts( $wp_scripts );
