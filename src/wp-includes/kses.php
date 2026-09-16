@@ -1206,7 +1206,18 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						// Apply special filtering for block comment delimiters with JSON attributes.
-						$comment         = substr( $this->html, $here->start, $here->length );
+						$comment = substr( $this->html, $here->start, $here->length );
+
+						/*
+						 * A comment like `<!-- notes --!>` still appears as a normative HTML comment,
+						 * but as an incorrectly-closed comment. Ignore these as well, as part of only
+						 * allowing normative comment contents.
+						 */
+						$was_incorrectly_closed = '!' === $comment[ strlen( $comment ) - 2 ];
+						if ( $was_incorrectly_closed ) {
+							break;
+						}
+
 						$block_processor = new WP_Block_Processor( $comment );
 						if ( $block_processor->next_token() && $block_processor->opens_block() ) {
 							$original_attributes = $block_processor->allocate_and_return_parsed_attributes();
@@ -1233,23 +1244,15 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						/*
-						 * Ensure that normalization does not create a block where none
-						 * previously existed. Should this be the case, there are two
-						 * options: leave the incorrect-closed-comment in place; or
-						 * remove the entire comment.
-						 *
-						 * For the sake of sanitization, remove the comment entirely.
+						 * Legacy `wp_kses()` recursively calls itself on the contents of comments.
+						 * Since comment content is not escaped, this changes the meaning of those
+						 * comments when parsed. Still, code often expects to find tag-like syntax
+						 * only when they are real tags. This legacy defect is preserved to avoid
+						 * presenting content that downstream parsers might misinterpret as markup.
 						 */
-						$was_incorrectly_closed = '!' === $comment[ strlen( $comment ) - 2 ];
-						$normalized             = "<!--{$text}-->";
-						if ( $was_incorrectly_closed ) {
-							$block_processor = new WP_Block_Processor( $normalized );
-							if ( $block_processor->next_token() && ! $block_processor->is_html() ) {
-								break;
-							}
-						}
+						$text = strtr( $text, array( '<' => '&lt;' ) );
 
-						$output .= $normalized;
+						$output .= "<!--{$text}-->";
 						break;
 
 					/*
