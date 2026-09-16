@@ -2342,7 +2342,7 @@ function wp_ajax_widgets_order() {
 	unset( $_POST['savewidgets'], $_POST['action'] );
 
 	// Save widgets order for all sidebars.
-	if ( is_array( $_POST['sidebars'] ) ) {
+	if ( isset( $_POST['sidebars'] ) && is_array( $_POST['sidebars'] ) ) {
 		$sidebars = array();
 
 		foreach ( wp_unslash( $_POST['sidebars'] ) as $key => $val ) {
