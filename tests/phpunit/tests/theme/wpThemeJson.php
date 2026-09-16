@@ -1249,6 +1249,49 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65865
+	 */
+	public function test_get_viewport_media_queries_omits_tablet_when_breakpoints_mix_absolute_and_relative_units() {
+		$this->assertSame(
+			array(
+				'@mobile'  => '@media (width <= 30em)',
+				'@desktop' => '@media (width > 30em)',
+			),
+			WP_Theme_JSON::get_viewport_media_queries(
+				array(
+					'mobile' => '30em',
+					'tablet' => '580px',
+				),
+				array(
+					'include_desktop' => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * @ticket 65865
+	 */
+	public function test_get_viewport_media_queries_keeps_tablet_when_breakpoints_mix_em_and_rem() {
+		$this->assertSame(
+			array(
+				'@mobile'  => '@media (width <= 30em)',
+				'@tablet'  => '@media (30em < width <= 48rem)',
+				'@desktop' => '@media (width > 48rem)',
+			),
+			WP_Theme_JSON::get_viewport_media_queries(
+				array(
+					'mobile' => '30em',
+					'tablet' => '48rem',
+				),
+				array(
+					'include_desktop' => true,
+				)
+			)
+		);
+	}
+
+	/**
 	 * @ticket 65596
 	 */
 	public function test_get_stylesheet_uses_custom_viewport_breakpoints_for_responsive_block_styles() {
