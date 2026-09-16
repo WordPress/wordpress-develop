@@ -51,8 +51,8 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 	/**
 	 * Creates a view for the given options and id.
 	 *
-	 * @param {Object} options
-	 * @param {string} id
+	 * @param {Object} options The options for creating the view.
+	 * @param {string} id      The id of the view to create.
 	 * @return {wp.media.View} The view instance.
 	 */
 	toView: function( options, id ) {
