@@ -3387,6 +3387,63 @@ HTML;
 	}
 
 	/**
+	 * Test that a candidate whose URL is emptied is removed along with its descriptors.
+	 *
+	 * wp_kses_bad_protocol() returns an empty string when it cannot settle on a
+	 * URL, for example after six rounds of scheme stripping. Emitting the empty
+	 * URL and keeping the descriptors would shift the descriptors into URL
+	 * position: a browser reads `100w` as the next candidate's URL and requests
+	 * it as a relative URL.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_sanitize_uris
+	 * @dataProvider data_wp_kses_srcset_drops_emptied_candidate
+	 *
+	 * @param string $input    srcset value to sanitize.
+	 * @param string $expected Expected srcset value after sanitization.
+	 */
+	public function test_wp_kses_srcset_drops_emptied_candidate( $input, $expected ) {
+		$this->assertSame( $expected, wp_kses_sanitize_uris( 'srcset', $input, wp_allowed_protocols() ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * `a:b:c:d:e:f:g` is a URL wp_kses_bad_protocol() empties: it strips one
+	 * scheme per pass and gives up after six, returning an empty string.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_srcset_drops_emptied_candidate() {
+		return array(
+			'first candidate emptied'  => array(
+				'a:b:c:d:e:f:g 100w, safe.jpg 200w',
+				'safe.jpg 200w',
+			),
+			'last candidate emptied'   => array(
+				'safe.jpg 200w, a:b:c:d:e:f:g 100w',
+				'safe.jpg 200w',
+			),
+			'middle candidate emptied' => array(
+				'a.jpg 1x, a:b:c:d:e:f:g 2x, c.jpg 3x',
+				'a.jpg 1x, c.jpg 3x',
+			),
+			'only candidate emptied'   => array(
+				'a:b:c:d:e:f:g 100w',
+				'',
+			),
+			'no descriptor to shift'   => array(
+				'a:b:c:d:e:f:g, safe.jpg 200w',
+				'safe.jpg 200w',
+			),
+			'two in a row emptied'     => array(
+				'a.jpg 1x, a:b:c:d:e:f:g 2x, h:i:j:k:l:m:n 3x, d.jpg 4x',
+				'a.jpg 1x, d.jpg 4x',
+			),
+		);
+	}
+
+	/**
 	 * Test srcset with no descriptor on the final entry.
 	 *
 	 * The last srcset candidate often omits the width/pixel descriptor.

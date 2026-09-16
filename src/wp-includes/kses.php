@@ -1839,7 +1839,8 @@ function wp_kses_sanitize_uris( $attr_name, $attr_value, $allowed_protocols, $mu
 		 *
 		 * Only the URLs are sanitized. Whitespace, separating commas, and
 		 * descriptors are preserved byte for byte, so a value containing only
-		 * allowed URLs round-trips unchanged.
+		 * allowed URLs round-trips unchanged. A candidate whose URL does not
+		 * survive sanitization is removed in full, descriptors included.
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/images.html#parsing-a-srcset-attribute
 		 */
@@ -1847,14 +1848,18 @@ function wp_kses_sanitize_uris( $attr_name, $attr_value, $allowed_protocols, $mu
 		$length     = strlen( $attr_value );
 		$at         = 0;
 		$result     = '';
+		$dropped    = false;
 
 		while ( $at < $length ) {
-			// Copy the whitespace and commas separating candidates.
+			// The whitespace and commas separating this candidate from the previous one.
 			$separator_length = strspn( $attr_value, "{$whitespace},", $at );
-			$result          .= substr( $attr_value, $at, $separator_length );
+			$separator        = substr( $attr_value, $at, $separator_length );
 			$at              += $separator_length;
 
 			if ( $at >= $length ) {
+				if ( ! $dropped ) {
+					$result .= $separator;
+				}
 				break;
 			}
 
@@ -1867,6 +1872,29 @@ function wp_kses_sanitize_uris( $attr_name, $attr_value, $allowed_protocols, $mu
 			$trimmed_url     = rtrim( $url, ',' );
 			$trailing_commas = strlen( $url ) - strlen( $trimmed_url );
 			$url             = $trimmed_url;
+
+			/*
+			 * A URL terminated by a comma has no descriptors. Otherwise the
+			 * descriptors run to the first comma outside parentheses.
+			 */
+			$descriptor_start = $at;
+			if ( 0 === $trailing_commas ) {
+				$in_parens = false;
+				while ( $at < $length ) {
+					$char = $attr_value[ $at ];
+					if ( $in_parens ) {
+						if ( ')' === $char ) {
+							$in_parens = false;
+						}
+					} elseif ( '(' === $char ) {
+						$in_parens = true;
+					} elseif ( ',' === $char ) {
+						break;
+					}
+					++$at;
+				}
+			}
+			$descriptors = substr( $attr_value, $descriptor_start, $at - $descriptor_start );
 
 			/*
 			 * Sanitize the URL's protocol only when the text before its first colon
@@ -1899,30 +1927,28 @@ function wp_kses_sanitize_uris( $attr_name, $attr_value, $allowed_protocols, $mu
 				$url = wp_kses_bad_protocol( $url, $allowed_protocols );
 			}
 
-			$result .= $url . str_repeat( ',', $trailing_commas );
-
-			// A URL terminated by a comma has no descriptors.
-			if ( $trailing_commas > 0 ) {
+			if ( '' === $url ) {
+				/*
+				 * Sanitization emptied the URL, so the candidate is dropped whole.
+				 * Leaving its descriptors behind would shift them into URL position:
+				 * a browser reads the first of them as the next candidate's URL and
+				 * requests it as a relative URL.
+				 */
+				$dropped = true;
 				continue;
 			}
 
-			// Copy any descriptors verbatim: everything up to the first comma outside parentheses.
-			$descriptor_start = $at;
-			$in_parens        = false;
-			while ( $at < $length ) {
-				$char = $attr_value[ $at ];
-				if ( $in_parens ) {
-					if ( ')' === $char ) {
-						$in_parens = false;
-					}
-				} elseif ( '(' === $char ) {
-					$in_parens = true;
-				} elseif ( ',' === $char ) {
-					break;
-				}
-				++$at;
+			if ( $dropped ) {
+				/*
+				 * An earlier candidate was removed along with the separator that
+				 * preceded it, so the original separator here cannot be trusted to
+				 * join what remains. Emit a well-formed one instead.
+				 */
+				$separator = '' === $result ? '' : ', ';
+				$dropped   = false;
 			}
-			$result .= substr( $attr_value, $descriptor_start, $at - $descriptor_start );
+
+			$result .= $separator . $url . str_repeat( ',', $trailing_commas ) . $descriptors;
 		}
 
 		return $result;
