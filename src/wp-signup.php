@@ -410,6 +410,7 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 	<p><?php _e( 'If you are not going to use a great site domain, leave it for a new user. Now have at it!' ); ?></p>
 	<form id="setupform" method="post" action="wp-signup.php">
 		<input type="hidden" name="stage" value="gimmeanotherblog" />
+		<?php wp_nonce_field( 'add-another-blog' ); ?>
 		<?php
 		/**
 		 * Fires when hidden sign-up form fields output when creating another site or user.
@@ -447,6 +448,10 @@ function validate_another_blog_signup() {
 	if ( ! is_user_logged_in() ) {
 		die();
 	}
+
+	// CSRF protection: prevent logged-in users from being tricked into creating
+	// another site via a cross-site request.
+	check_admin_referer( 'add-another-blog' );
 
 	$result = validate_blog_form();
 
