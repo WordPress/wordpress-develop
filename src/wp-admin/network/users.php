@@ -104,10 +104,15 @@ if ( isset( $_GET['action'] ) ) {
 								 */
 								if ( apply_filters( 'propagate_network_user_spam_to_blogs', false, $user_id ) ) {
 									foreach ( get_blogs_of_user( $user_id, true ) as $details ) {
-										// Assuming the main site is not a spam.
-										if ( ! is_main_site( $details->userblog_id ) ) {
-											update_blog_status( $details->userblog_id, 'spam', '1' );
+										// Do not mark the main site as spam, and only affect the current network.
+										if ( is_main_site( $details->userblog_id ) || get_current_network_id() !== $details->site_id ) {
+											continue;
 										}
+										// Only mark sites where the user is the registered site admin.
+										if ( get_blog_option( $details->userblog_id, 'admin_email' ) !== $user->user_email ) {
+											continue;
+										}
+										update_blog_status( $details->userblog_id, 'spam', '1' );
 									}
 								}
 
@@ -132,15 +137,19 @@ if ( isset( $_GET['action'] ) ) {
 								}
 
 								$userfunction = 'all_notspam';
-								$blogs        = get_blogs_of_user( $user_id, true );
 
 								/** This filter is documented in wp-admin/network/users.php */
 								if ( apply_filters( 'propagate_network_user_spam_to_blogs', false, $user_id ) ) {
 									foreach ( get_blogs_of_user( $user_id, true ) as $details ) {
-										if ( ! is_main_site( $details->userblog_id ) && get_current_network_id() === $details->site_id ) {
-											// Assuming main site is never a spam and part of the current network.
-											update_blog_status( $details->userblog_id, 'spam', '0' );
+										// Do not unmark the main site as spam, and only affect the current network.
+										if ( is_main_site( $details->userblog_id ) || get_current_network_id() !== $details->site_id ) {
+											continue;
 										}
+										// Only unmark sites where the user is the registered site admin.
+										if ( get_blog_option( $details->userblog_id, 'admin_email' ) !== $user->user_email ) {
+											continue;
+										}
+										update_blog_status( $details->userblog_id, 'spam', '0' );
 									}
 								}
 
