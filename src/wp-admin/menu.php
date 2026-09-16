@@ -61,7 +61,8 @@ if ( ! is_multisite() ) {
 		number_format_i18n( $update_data['counts']['total'] )
 	);
 
-	$updates_description = '<span id="wp-menu-updates-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">' . $updates_text . '</span>';
+	// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+	$updates_description = '<span id="wp-menu-updates-count-description" hidden>' . $updates_text . '</span>';
 
 	$submenu['index.php'][10] = array(
 		sprintf(
@@ -135,7 +136,8 @@ if ( current_user_can( 'edit_posts' ) ) {
 	// Associate the hidden count description with the link. See _wp_menu_output().
 	$menu[25]['count_description'] = array(
 		'id'   => 'wp-menu-comments-count-description',
-		'html' => '<span id="wp-menu-comments-count-description" class="wp-menu-count-description comments-in-moderation-text screen-reader-text" aria-hidden="true">' . $awaiting_moderation_text . '</span>',
+		// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+		'html' => '<span id="wp-menu-comments-count-description" class="comments-in-moderation-text" hidden>' . $awaiting_moderation_text . '</span>',
 	);
 
 	unset( $awaiting_moderation );
@@ -252,7 +254,8 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 		number_format_i18n( $update_data['counts']['themes'] )
 	);
 
-	$description = '<span id="wp-menu-themes-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">' . $themes_text . '</span>';
+	// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+	$description = '<span id="wp-menu-themes-count-description" hidden>' . $themes_text . '</span>';
 }
 
 	/* translators: %s: Number of available theme updates. */
@@ -367,7 +370,8 @@ if ( ! is_multisite() && current_user_can( 'update_plugins' ) ) {
 		number_format_i18n( $update_data['counts']['plugins'] )
 	);
 
-	$description = '<span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">' . $plugins_text . '</span>';
+	// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+	$description = '<span id="wp-menu-plugins-count-description" hidden>' . $plugins_text . '</span>';
 }
 
 /* translators: %s: Number of available plugin updates. */
@@ -452,7 +456,8 @@ if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
 		number_format_i18n( $issue_counts['critical'] )
 	);
 
-	$site_health_description = '<span id="wp-menu-site-health-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">' . $site_health_text . '</span>';
+	// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+	$site_health_description = '<span id="wp-menu-site-health-count-description" hidden>' . $site_health_text . '</span>';
 }
 
 $menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'dashicons-admin-tools' );
