@@ -97,6 +97,8 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
 	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
 	 * @return WP_User|false WP_User object on success, false on failure.
+	 *
+	 * @phpstan-return ($field is 'id'|'ID' ? ($value is int<min, 0> ? false : WP_User|false) : WP_User|false)
 	 */
 	function get_user_by( $field, $value ) {
 		$userdata = WP_User::get_data_by( $field, $value );
@@ -185,6 +187,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * @param string|string[] $attachments Optional. Paths to files to attach.
 	 * @param string|string[] $embeds      Optional. Paths to files to embed.
 	 * @return bool Whether the email was sent successfully.
+	 *
+	 * @phpstan-impure
 	 */
 	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array(), $embeds = array() ) {
 		// Compact the input, apply the filters, and extract them back out.
@@ -2440,6 +2444,9 @@ if ( ! function_exists( 'wp_nonce_tick' ) ) :
 	 *
 	 * @param string|int $action Optional. The nonce action. Default -1.
 	 * @return float Float value rounded up to the next highest integer.
+	 *
+	 * @phpstan-param -1|string $action
+	 * @phpstan-impure
 	 */
 	function wp_nonce_tick( $action = -1 ) {
 		/**
@@ -2470,6 +2477,9 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 	 * @return int|false 1 if the nonce is valid and generated between 0-12 hours ago,
 	 *                   2 if the nonce is valid and generated between 12-24 hours ago.
 	 *                   False if the nonce is invalid.
+	 *
+	 * @phpstan-param -1|string $action
+	 * @phpstan-return 1|2|false
 	 */
 	function wp_verify_nonce( $nonce, $action = -1 ) {
 		$nonce = (string) $nonce;
@@ -2533,6 +2543,9 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 	 *
 	 * @param string|int $action Scalar value to add context to the nonce.
 	 * @return string The token.
+	 *
+	 * @phpstan-param -1|string $action
+	 * @phpstan-return lowercase-string&non-falsy-string
 	 */
 	function wp_create_nonce( $action = -1 ) {
 		$user = wp_get_current_user();
@@ -2715,6 +2728,9 @@ if ( ! function_exists( 'wp_hash' ) ) :
 	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce).
 	 * @param string $algo   Hashing algorithm to use. Default: 'md5'.
 	 * @return string Hash of $data.
+	 *
+	 * @phpstan-param 'auth'|'logged_in'|'nonce'|'secure_auth' $scheme
+	 * @phpstan-return lowercase-string&non-falsy-string
 	 */
 	function wp_hash( $data, $scheme = 'auth', $algo = 'md5' ) {
 		$salt = wp_salt( $scheme );
@@ -2960,6 +2976,8 @@ if ( ! function_exists( 'wp_generate_password' ) ) :
 	 * @param bool $extra_special_chars Optional. Whether to include other special characters.
 	 *                                  Used when generating secret keys and salts. Default false.
 	 * @return string The random password.
+	 *
+	 * @phpstan-impure
 	 */
 	function wp_generate_password( $length = 12, $special_chars = true, $extra_special_chars = false ) {
 		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -3005,6 +3023,8 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 * @param int $max Optional. Upper limit for the generated number.
 	 *                 Accepts positive integers. Defaults to 4294967295.
 	 * @return int A random non-negative number between min and max.
+	 *
+	 * @phpstan-impure
 	 */
 	function wp_rand( $min = null, $max = null ) {
 		global $rnd_value;

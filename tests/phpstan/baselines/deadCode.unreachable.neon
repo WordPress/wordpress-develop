@@ -31,7 +31,7 @@ parameters:
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
-			count: 3
+			count: 2
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'

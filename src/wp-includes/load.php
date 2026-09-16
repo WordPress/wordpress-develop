@@ -11,6 +11,8 @@
  * @since 4.4.0
  *
  * @return string The HTTP protocol. Default: HTTP/1.0.
+ *
+ * @phpstan-return 'HTTP/1.0'|'HTTP/1.1'|'HTTP/2'|'HTTP/2.0'|'HTTP/3'
  */
 function wp_get_server_protocol() {
 	$protocol = $_SERVER['SERVER_PROTOCOL'] ?? '';
@@ -1464,6 +1466,31 @@ function is_multisite() {
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
+ *
+ * @phpstan-template T of int
+ * @phpstan-param T|scalar|array|resource|null $maybeint
+ * @phpstan-pure
+ * @phpstan-return (
+ *     $maybeint is T&int<0, max>
+ *         ? T
+ *         : (
+ *             $maybeint is int<min, -1>
+ *                 ? int<1, max>
+ *                 : (
+ *                     $maybeint is empty
+ *                         ? 0
+ *                         : (
+ *                             $maybeint is numeric-string
+ *                                 ? int<0, max>
+ *                                 : (
+ *                                     $maybeint is string
+ *                                         ? 0
+ *                                         : ($maybeint is true|non-empty-array ? 1 : ($maybeint is bool ? 0|1 : int<0, max>))
+ *                                 )
+ *                         )
+ *                 )
+ *         )
+ * )
  */
 function absint( $maybeint ) {
 	return abs( (int) $maybeint );
@@ -1477,6 +1504,8 @@ function absint( $maybeint ) {
  * @global int $blog_id
  *
  * @return int Site ID.
+ *
+ * @phpstan-return int<0, max>
  */
 function get_current_blog_id() {
 	global $blog_id;
@@ -1800,6 +1829,7 @@ function wp_doing_cron() {
  * @return bool Whether the variable is an instance of WP_Error.
  *
  * @phpstan-assert-if-true WP_Error $thing
+ * @phpstan-return ($thing is WP_Error ? true : false)
  */
 function is_wp_error( $thing ) {
 	$is_wp_error = ( $thing instanceof WP_Error );

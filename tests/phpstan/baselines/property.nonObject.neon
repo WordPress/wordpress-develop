@@ -74,16 +74,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-plugin-install-list-table.php
 		-
-			message: '#^Cannot access property \$parent on array\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-terms-list-table.php
-		-
-			message: '#^Cannot access property \$term_id on array\|object\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-terms-list-table.php
-		-
 			message: '#^Cannot access property \$info on array\|object\.$#'
 			identifier: property.nonObject
 			count: 1
@@ -184,20 +174,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Cannot access property \$object_id on array\|WP_Error\|WP_Term\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-includes/class-wp-term-query.php
-		-
 			message: '#^Cannot access property \$term_id on string\|WP_Customize_Setting\.$#'
 			identifier: property.nonObject
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-control.php
-		-
-			message: '#^Cannot access property \$link_id on array\|object\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: ../../../src/wp-includes/link-template.php
 		-
 			message: '#^Cannot access property \$plugins on array\|object\.$#'
 			identifier: property.nonObject
@@ -219,17 +199,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-plugins-controller.php
 		-
-			message: '#^Cannot access property \$parent on array\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-includes/taxonomy.php
-		-
 			message: '#^Cannot access property \$template_name on array\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: ../../../src/wp-includes/taxonomy.php
-		-
-			message: '#^Cannot access property \$term_id on array\|object\.$#'
-			identifier: property.nonObject
-			count: 4
 			path: ../../../src/wp-includes/taxonomy.php

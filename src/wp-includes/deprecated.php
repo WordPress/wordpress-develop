@@ -2518,6 +2518,16 @@ function is_taxonomy( $taxonomy ) {
  * @param string $taxonomy The taxonomy name to use
  * @param int $parent ID of parent term under which to confine the exists search.
  * @return mixed Get the term ID or term object, if exists.
+ *
+ * @phpstan-return (
+ *     $term is 0
+ *         ? 0
+ *         : (
+ *             $term is ''
+ *                 ? null
+ *                 : ($taxonomy is '' ? string|null : array{term_id: string, term_taxonomy_id: string}|null)
+ *         )
+ * )
  */
 function is_term( $term, $taxonomy = '', $parent = 0 ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'term_exists()' );
@@ -6498,6 +6508,9 @@ function wp_print_auto_sizes_contain_css_fix() {
  *
  * @param string|array $gpc String or array of data to slash.
  * @return string|array Slashed `$gpc`.
+ *
+ * @phpstan-pure
+ * @phpstan-return ($gpc is string ? string : array)
  */
 function addslashes_gpc( $gpc ) {
 	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_slash()' );

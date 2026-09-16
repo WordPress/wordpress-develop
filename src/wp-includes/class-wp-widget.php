@@ -16,6 +16,8 @@
  *
  * @since 2.8.0
  * @since 4.4.0 Moved to its own file from wp-includes/widgets.php
+ *
+ * @phpstan-template T of array = array<string, mixed>
  */
 #[AllowDynamicProperties]
 class WP_Widget {
@@ -109,6 +111,23 @@ class WP_Widget {
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance The settings for the particular instance of the widget.
+	 *
+	 * @phpstan-param T $instance
+	 * @phpstan-param array{
+	 *     name: string,
+	 *     id: string,
+	 *     description: string,
+	 *     class: string,
+	 *     before_widget: string,
+	 *     after_widget: string,
+	 *     before_title: string,
+	 *     after_title: string,
+	 *     before_sidebar: string,
+	 *     after_sidebar: string,
+	 *     show_in_rest: boolean,
+	 *     widget_id: string,
+	 *     widget_name: string,
+	 * } $args
 	 */
 	public function widget( $args, $instance ) {
 		die( 'function WP_Widget::widget() must be overridden in a subclass.' );
@@ -127,6 +146,9 @@ class WP_Widget {
 	 *                            WP_Widget::form().
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Settings to save or bool false to cancel saving.
+	 *
+	 * @phpstan-param T $new_instance
+	 * @phpstan-param T $old_instance
 	 */
 	public function update( $new_instance, $old_instance ) {
 		return $new_instance;
@@ -140,6 +162,8 @@ class WP_Widget {
 	 * @param array $instance The settings for the particular instance of the widget.
 	 * @return string|void Default return is 'noform'. A subclass which echoes its own
 	 *                     form returns nothing.
+	 *
+	 * @phpstan-param T $instance
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
@@ -213,6 +237,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string Name attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_name( $field_name ) {
 		$pos = strpos( $field_name, '[' );
@@ -238,6 +264,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string ID attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_id( $field_name ) {
 		$field_name = str_replace( array( '[]', '[', ']' ), array( '', '-', '' ), $field_name );
@@ -357,6 +385,8 @@ class WP_Widget {
 	 *
 	 *     @type int $number Number increment used for multiples of the same widget.
 	 * }
+	 *
+	 * @final
 	 */
 	public function display_callback( $args, $widget_args = 1 ) {
 		if ( is_numeric( $widget_args ) ) {
@@ -408,6 +438,9 @@ class WP_Widget {
 	 * @global array $wp_registered_widgets
 	 *
 	 * @param int $deprecated Not used.
+	 *
+	 * @phpstan-param 1 $deprecated
+	 * @final
 	 */
 	public function update_callback( $deprecated = 1 ) {
 		global $wp_registered_widgets;
@@ -500,6 +533,8 @@ class WP_Widget {
 	 *     @type int $number Number increment used for multiples of the same widget.
 	 * }
 	 * @return string|null
+	 *
+	 * @final
 	 */
 	public function form_callback( $widget_args = 1 ) {
 		if ( is_numeric( $widget_args ) ) {

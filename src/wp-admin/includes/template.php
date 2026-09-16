@@ -1302,6 +1302,8 @@ function _get_plugin_from_callback( $callback ) {
  *                                      Often this is the object that's the focus of the current screen,
  *                                      for example a `WP_Post` or `WP_Comment` object.
  * @return int Number of meta_boxes.
+ *
+ * @phpstan-return int<0, max>
  */
 function do_meta_boxes( $screen, $context, $data_object ) {
 	global $wp_meta_boxes;
@@ -1708,6 +1710,8 @@ function add_settings_section( $id, $title, $callback, $page, $args = array() ) 
  *     @type string $class     CSS Class to be added to the `<tr>` element when the
  *                             field is output.
  * }
+ *
+ * @phpstan-return void
  */
 function add_settings_field( $id, $title, $callback, $page, $section = 'default', $args = array() ) {
 	global $wp_settings_fields;
@@ -2124,6 +2128,8 @@ function _admin_search_query() {
  *
  * @param string $title      Optional. Title of the Iframe page. Default empty.
  * @param bool   $deprecated Not used.
+ *
+ * @phpstan-param false $deprecated
  */
 function iframe_header( $title = '', $deprecated = false ) {
 	global $hook_suffix, $admin_body_class, $body_id, $wp_locale;
@@ -2633,6 +2639,8 @@ function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap =
  *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
  *                                       Default empty string.
  * @return string Submit button HTML.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_submit_button( $text = '', $type = 'primary large', $name = 'submit', $wrap = true, $other_attributes = '' ) {
 	if ( ! is_array( $type ) ) {

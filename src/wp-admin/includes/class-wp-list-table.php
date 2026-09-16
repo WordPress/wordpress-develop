@@ -319,6 +319,9 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @param array|string $args Array or string of arguments with information about the pagination.
+	 *
+	 * @phpstan-param array{total_items?: int, total_pages?: int, per_page?: int} $args
+	 * @phpstan-return void
 	 */
 	protected function set_pagination_args( $args ) {
 		$args = wp_parse_args(
