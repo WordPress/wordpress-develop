@@ -3307,12 +3307,12 @@ HTML;
 	public function test_wp_kses_source_element_attributes() {
 		global $allowedposttags;
 
-		// All four allowed attributes together.
-		$html = '<source srcset="img.jpg" type="image/webp" media="(min-width: 800px)" sizes="100vw">';
+		// All allowed attributes together.
+		$html = '<source srcset="img.jpg" type="image/webp" media="(min-width: 800px)" sizes="100vw" width="800" height="600">';
 		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
 
-		// Disallowed attribute (src) is stripped from source.
-		$original = '<source srcset="img.jpg" src="fallback.jpg">';
+		// Disallowed attribute is stripped from source.
+		$original = '<source srcset="img.jpg" charset="utf-8">';
 		$expected = '<source srcset="img.jpg">';
 		$this->assertSame( $expected, wp_kses( $original, $allowedposttags ) );
 
@@ -3484,15 +3484,25 @@ HTML;
 	}
 
 	/**
-	 * Test that source element strips disallowed src attribute.
+	 * Test that source element keeps its src attribute.
 	 *
-	 * The source element allows srcset but not src.
+	 * A source element inside picture carries srcset, but inside the audio and
+	 * video elements - both already allowed - it carries src instead. Stripping
+	 * src would leave a source element that reads as valid markup and loads
+	 * nothing.
 	 *
 	 * @ticket 29807
 	 */
-	public function test_wp_kses_source_strips_src_attribute() {
-		$html     = '<source src="not-allowed.jpg" srcset="allowed.jpg" type="image/jpeg">';
-		$expected = '<source srcset="allowed.jpg" type="image/jpeg">';
+	public function test_wp_kses_source_allows_src_attribute() {
+		$html = '<source src="movie.mp4" type="video/mp4">';
+		$this->assertSame( $html, wp_kses_post( $html ) );
+
+		$html = '<video controls><source src="movie.mp4" type="video/mp4"><source src="movie.webm" type="video/webm"></video>';
+		$this->assertSame( $html, wp_kses_post( $html ) );
+
+		// src is a single-URI attribute, so a disallowed protocol is still stripped.
+		$html     = '<source src="javascript:alert(1)" type="video/mp4">';
+		$expected = '<source src="alert(1)" type="video/mp4">';
 		$this->assertSame( $expected, wp_kses_post( $html ) );
 	}
 

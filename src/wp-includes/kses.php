@@ -305,10 +305,13 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'small'      => array(),
 		'source'     => array(
+			'height' => true,
 			'media'  => true,
 			'sizes'  => true,
+			'src'    => true,
 			'srcset' => true,
 			'type'   => true,
+			'width'  => true,
 		),
 		'strike'     => array(),
 		'strong'     => array(),
