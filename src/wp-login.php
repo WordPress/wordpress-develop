@@ -1208,7 +1208,7 @@ switch ( $action ) {
 		$redirect_to = admin_url();
 		$errors      = new WP_Error();
 
-		if ( 'confirm' === $_GET['checkemail'] ) {
+		if ( isset( $_GET['checkemail'] ) && 'confirm' === $_GET['checkemail'] ) {
 			$errors->add(
 				'confirm',
 				sprintf(
@@ -1218,7 +1218,7 @@ switch ( $action ) {
 				),
 				'message'
 			);
-		} elseif ( 'registered' === $_GET['checkemail'] ) {
+		} elseif ( isset( $_GET['checkemail'] ) && 'registered' === $_GET['checkemail'] ) {
 			$errors->add(
 				'registered',
 				sprintf(
@@ -1228,6 +1228,9 @@ switch ( $action ) {
 				),
 				'message'
 			);
+		} else {
+			wp_redirect( wp_login_url() );
+			exit;
 		}
 
 		/** This action is documented in wp-login.php */
