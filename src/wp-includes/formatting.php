@@ -2208,6 +2208,96 @@ function sanitize_key( $key ) {
 }
 
 /**
+ * Transforms rich-text markup into HTML title element content.
+ *
+ * HTML’s TITLE element contains no inner markup, only plaintext content
+ * with the possibility of containing character references. Any characters
+ * which would normally be interpreted as HTML syntax, apart from character
+ * references, is interpreted as plaintext, other than a closing TITLE tag.
+ *
+ * This function takes HTML markup as input, such as a rich-text version of
+ * a post’s title (since post titles in a theme may render as HTML), and
+ * produces a plaintext string safe and suitable for rendering into the
+ * TITLE element on an HTML page.
+ *
+ * This is not to be used when generating XML outputs.
+ *
+ * Example:
+ *
+ *     echo '<title>' . wp_html_title( $post->post_content ) . '</title>';
+ *
+ *     // Non-text content is removed.
+ *     'Thank goodness!' === wp_html_title( 'Thank <em>good<!-- but not great -->ness</em>!' );
+ *
+ *     // The content is treated as HTML, and encoded appropriately.
+ *     $title = '&lt;IMG loading="lazy"> & friends are neat tags.'
+ *     '&lt;IMG loading=&quot;lazy&quot;&gt; &amp; friends are neat tags.' === wp_html_title( $title );
+ *
+ * @todo Use the HTML Processor and skip over hidden or aria-hidden content, invisible content, etc…
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string $rich_title_markup Should be rendered in an HTML TITLE element.
+ * @return string Plaintext value of input with appropriate characters encoded
+ *                which is safe for printing into an HTML TITLE element.
+ */
+function wp_html_title( $rich_title_markup ): string {
+	if ( ! is_string( $rich_title_markup ) && ! method_exists( $rich_title_markup, '__toString' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			'Must pass a string or stringable value.',
+			'{WP_VERSION}'
+		);
+
+		return '';
+	}
+
+	// Speedup: If there are no HTML syntax characters then it’s safe to use directly.
+	if ( strlen( $rich_title_markup ) === strcspn( $rich_title_markup, '"&\'<>' ) ) {
+		return $rich_title_markup;
+	}
+
+	/*
+	 * This next section parses the title as HTML, extracts the text nodes,
+	 * and then re-encodes the text as a single HTML text node. This is a
+	 * bit convoluted, but it normalizes a number of ways post titles can
+	 * come in mixed forms.
+	 *
+	 * Notably, the type of a post title in WordPress is rich HTML. When
+	 * printed inside a typical theme layout, titles often contain inline
+	 * formatting like EM and CODE elements. However, the type of the HTML
+	 * TITLE element is parsed character data, meaning plaintext with
+	 * decoded character references.
+	 *
+	 * If `The <em>real</em> "deal".` were written inside that TITLE, then a
+	 * browser would display the `<em>` and `</em>` tags verbatim as text
+	 * instead of italicising the `real` between them.
+	 *
+	 * This is therefore why the roundtrip through the parser/printer is
+	 * relevant. First the plaintext content is extracted, then it is safely
+	 * encoded to avoid being later treated incorrectly as syntax.
+	 *
+	 *       Input: `The <em>real</em> "deal".`
+	 *        Text: `The real "deal".`
+	 *     Encoded: `The real &quot;deal&quot;.`
+	 */
+
+	$title     = '';
+	$processor = new WP_HTML_Tag_Processor( $rich_title_markup );
+	while ( $processor->next_token() ) {
+		if ( '#text' === $processor->get_token_name() ) {
+			$title .= $processor->get_modifiable_text();
+		}
+	}
+
+	$processor = new WP_HTML_Tag_Processor( ' ' );
+	$processor->next_token();
+	$processor->set_modifiable_text( $title );
+
+	return $processor->get_updated_html();
+}
+
+/**
  * Sanitizes a string into a slug, which can be used in URLs or HTML attributes.
  *
  * By default, converts accent characters to ASCII characters and further
