@@ -1249,6 +1249,138 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A `px` breakpoint cannot be ordered against a font-relative one, so the
+	 * tablet range is dropped rather than emitted unordered.
+	 *
+	 * @ticket 65833
+	 *
+	 * @dataProvider data_viewport_breakpoints_without_a_shared_base
+	 *
+	 * @param array $viewport_settings Viewport settings to sanitize.
+	 * @param array $expected          Expected media queries.
+	 */
+	public function test_get_viewport_media_queries_omits_tablet_when_breakpoints_do_not_share_a_base( $viewport_settings, $expected ) {
+		$this->assertSame(
+			$expected,
+			WP_Theme_JSON::get_viewport_media_queries(
+				$viewport_settings,
+				array(
+					'include_desktop' => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_viewport_breakpoints_without_a_shared_base() {
+		return array(
+			'font-relative mobile, pixel tablet' => array(
+				'viewport_settings' => array(
+					'mobile' => '30em',
+					'tablet' => '500px',
+				),
+				'expected'          => array(
+					'@mobile'  => '@media (width <= 30em)',
+					'@desktop' => '@media (width > 30em)',
+				),
+			),
+			'pixel mobile, font-relative tablet' => array(
+				'viewport_settings' => array(
+					'mobile' => '400px',
+					'tablet' => '30em',
+				),
+				'expected'          => array(
+					'@mobile'  => '@media (width <= 400px)',
+					'@desktop' => '@media (width > 400px)',
+				),
+			),
+		);
+	}
+
+	/**
+	 * `em` and `rem` resolve against the same base in a media query, so they can
+	 * be ordered against each other.
+	 *
+	 * @ticket 65833
+	 *
+	 * @dataProvider data_viewport_breakpoints_with_a_shared_base
+	 *
+	 * @param array $viewport_settings Viewport settings to sanitize.
+	 * @param array $expected          Expected media queries.
+	 */
+	public function test_get_viewport_media_queries_keeps_tablet_when_breakpoints_share_a_base( $viewport_settings, $expected ) {
+		$this->assertSame(
+			$expected,
+			WP_Theme_JSON::get_viewport_media_queries(
+				$viewport_settings,
+				array(
+					'include_desktop' => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_viewport_breakpoints_with_a_shared_base() {
+		return array(
+			'em mobile, rem tablet' => array(
+				'viewport_settings' => array(
+					'mobile' => '30em',
+					'tablet' => '40rem',
+				),
+				'expected'          => array(
+					'@mobile'  => '@media (width <= 30em)',
+					'@tablet'  => '@media (30em < width <= 40rem)',
+					'@desktop' => '@media (width > 40rem)',
+				),
+			),
+			'rem mobile, em tablet' => array(
+				'viewport_settings' => array(
+					'mobile' => '30rem',
+					'tablet' => '40em',
+				),
+				'expected'          => array(
+					'@mobile'  => '@media (width <= 30rem)',
+					'@tablet'  => '@media (30rem < width <= 40em)',
+					'@desktop' => '@media (width > 40em)',
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 65833
+	 */
+	public function test_viewport_settings_omit_tablet_when_breakpoints_do_not_share_a_base() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'viewport' => array(
+						'mobile' => '30em',
+						'tablet' => '500px',
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'mobile' => '30em',
+			),
+			$theme_json->get_raw_data()['settings']['viewport']
+		);
+	}
+
+	/**
 	 * @ticket 65596
 	 */
 	public function test_get_stylesheet_uses_custom_viewport_breakpoints_for_responsive_block_styles() {
