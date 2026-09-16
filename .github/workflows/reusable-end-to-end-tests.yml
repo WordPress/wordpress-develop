@@ -103,6 +103,7 @@ jobs:
         run: npm exec --no -- playwright install chromium
 
       - name: Build WordPress
+        timeout-minutes: 3
         run: npm run build
 
       - name: Start Docker environment
