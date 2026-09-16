@@ -347,7 +347,21 @@ function wp_set_script_translations( $handle, $domain = 'default', $path = '' ) 
 		return false;
 	}
 
-	return $wp_scripts->set_translations( $handle, $domain, $path );
+	$result = $wp_scripts->set_translations( $handle, $domain, $path );
+
+	if ( ! $result ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: Script handle. */
+				__( 'The script "%s" must be registered before translations can be set.' ),
+				$handle
+			),
+			'7.1.0'
+		);
+	}
+
+	return $result;
 }
 
 /**
