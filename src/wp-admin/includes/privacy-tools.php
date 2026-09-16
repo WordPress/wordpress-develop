@@ -554,6 +554,9 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		$zip->close();
 
 		if ( ! $error ) {
+			// Schedule the (one-off) cleanup of this export file.
+			wp_schedule_delete_personal_data_export_file();
+
 			/**
 			 * Fires right after all personal data has been written to the export file.
 			 *
