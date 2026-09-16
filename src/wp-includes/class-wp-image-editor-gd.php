@@ -435,7 +435,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @param bool $horz Flip along Horizontal Axis.
 	 * @param bool $vert Flip along Vertical Axis.
-	 * @return true|WP_Error
+	 * @return bool|WP_Error
 	 */
 	public function flip( $horz, $vert ) {
 		if ( ! is_gd_image( $this->image ) ) {
