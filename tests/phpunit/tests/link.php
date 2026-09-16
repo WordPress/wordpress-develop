@@ -77,29 +77,30 @@ class Tests_Link extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30910
+	 * @ticket 49871
 	 */
-	public function test_get_permalink_should_not_reveal_post_name_for_post_with_post_status_future() {
-		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
-
-		flush_rewrite_rules();
+	public function test_get_permalink_should_return_pretty_permalink_for_post_with_post_status_future() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$p = self::factory()->post->create(
 			array(
-				'post_status' => 'publish',
-				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
+				'post_status' => 'future',
+				'post_name'   => 'message-from-the-past',
+				'post_date'   => '2037-12-09 20:19:00',
 			)
 		);
 
-		$non_pretty_permalink = add_query_arg( 'p', $p, trailingslashit( home_url() ) );
+		$pretty_permalink = home_url( '/2037/12/09/message-from-the-past/' );
 
-		$this->assertSame( $non_pretty_permalink, get_permalink( $p ) );
+		$this->assertSame( $pretty_permalink, get_permalink( $p ) );
 	}
 
 	/**
 	 * @ticket 30910
+	 * @ticket 49871
 	 */
-	public function test_get_permalink_should_not_reveal_post_name_for_cpt_with_post_status_future() {
-		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+	public function test_get_permalink_should_return_pretty_permalink_for_cpt_with_post_status_future() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		register_post_type( 'wptests_pt', array( 'public' => true ) );
 
@@ -109,19 +110,14 @@ class Tests_Link extends WP_UnitTestCase {
 			array(
 				'post_status' => 'future',
 				'post_type'   => 'wptests_pt',
+				'post_name'   => 'future-cpt',
 				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 
-		$non_pretty_permalink = add_query_arg(
-			array(
-				'post_type' => 'wptests_pt',
-				'p'         => $p,
-			),
-			trailingslashit( home_url() )
-		);
+		$pretty_permalink = home_url( '/wptests_pt/future-cpt/' );
 
-		$this->assertSame( $non_pretty_permalink, get_permalink( $p ) );
+		$this->assertSame( $pretty_permalink, get_permalink( $p ) );
 	}
 
 	/**

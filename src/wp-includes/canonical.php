@@ -66,6 +66,36 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return null;
 	}
 
+	$redirect_post_id = 0;
+	foreach ( array( 'p', 'page_id', 'attachment_id' ) as $query_var ) {
+		$redirect_post_id = get_query_var( $query_var );
+
+		if ( $redirect_post_id ) {
+			$redirect_post_id = absint( $redirect_post_id );
+			break;
+		}
+	}
+
+	if ( $redirect_post_id ) {
+		$redirect_post = get_post( $redirect_post_id );
+
+		if (
+			(
+				$redirect_post &&
+				'future' === get_post_status( $redirect_post )
+			)
+			||
+			(
+				$redirect_post &&
+				'attachment' === $redirect_post->post_type &&
+				$redirect_post->post_parent &&
+				'future' === get_post_status( $redirect_post->post_parent )
+			)
+		) {
+			return null;
+		}
+	}
+
 	if ( ! $requested_url && isset( $_SERVER['HTTP_HOST'] ) ) {
 		// Build the URL in the address bar.
 		$requested_url  = is_ssl() ? 'https://' : 'http://';
