@@ -23,7 +23,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	private $error;
 
 	/**
-	 * @return bool
+	 * Checks if the current user has permissions to perform an Ajax action.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return bool Whether the current user can perform an Ajax action.
 	 */
 	public function ajax_user_can() {
 		return current_user_can( 'install_plugins' );
@@ -80,11 +84,15 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global array  $tabs
-	 * @global string $tab
-	 * @global int    $paged
-	 * @global string $type
-	 * @global string $term
+	 * Prepares the plugins list for display.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global array  $tabs  The tabs shown on the Add Plugins screen.
+	 * @global string $tab   The current active tab.
+	 * @global int    $paged The current page number.
+	 * @global string $type  The type of search being performed.
+	 * @global string $term  The search term.
 	 */
 	public function prepare_items() {
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
@@ -287,6 +295,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Outputs the message when no plugins are found.
+	 *
+	 * @since 3.1.0
 	 */
 	public function no_items() {
 		if ( isset( $this->error ) ) {
@@ -307,10 +318,14 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global array $tabs
-	 * @global string $tab
+	 * Gets the list of views (tabs) available for the plugins list table.
 	 *
-	 * @return array
+	 * @since 3.1.0
+	 *
+	 * @global array<string, string> $tabs The tabs shown on the Add Plugins screen.
+	 * @global string                $tab  The current active tab.
+	 *
+	 * @return array<string, string> Array of view links keyed by their ID.
 	 */
 	protected function get_views() {
 		global $tabs, $tab;
@@ -331,6 +346,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 	/**
 	 * Overrides parent views so we can use the filter bar display.
+	 *
+	 * @since 3.1.0
 	 *
 	 * @global string $tab The current tab.
 	 */
@@ -403,9 +420,13 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $tab
+	 * Generates the table navigation.
 	 *
-	 * @param string $which
+	 * @since 3.1.0
+	 *
+	 * @global string $tab The current active tab.
+	 *
+	 * @param string $which The location of the pagination: 'top' or 'bottom'.
 	 */
 	protected function display_tablenav( $which ) {
 		if ( 'featured' === $GLOBALS['tab'] ) {
@@ -439,23 +460,35 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * Gets the list of CSS classes for the table container.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return string[] CSS classes.
 	 */
 	protected function get_table_classes() {
 		return array( 'widefat', $this->_args['plural'] );
 	}
 
 	/**
-	 * @return string[] Array of column titles keyed by their column name.
+	 * Gets the list of columns for the plugins list table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return array<string, string> Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		return array();
 	}
 
 	/**
-	 * @param object $plugin_a
-	 * @param object $plugin_b
-	 * @return int
+	 * Callback for sorting plugins.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param object $plugin_a The first plugin object.
+	 * @param object $plugin_b The second plugin object.
+	 * @return int Comparison result.
 	 */
 	private function order_callback( $plugin_a, $plugin_b ) {
 		$orderby = $this->orderby;
