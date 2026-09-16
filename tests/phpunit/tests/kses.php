@@ -3112,11 +3112,29 @@ HTML;
 	public function test_wp_kses_malicious_input() {
 		global $allowedposttags;
 
-		// JavaScript in srcset - the entire img tag gets escaped when it contains dangerous content.
+		// A disallowed protocol is stripped from the candidate it appears in.
+		$original = '<img srcset="javascript:alert(1) 1x, https://example.com/large.jpg 2x" />';
+		$result   = wp_kses( $original, $allowedposttags );
+		$this->assertStringNotContainsString(
+			'javascript:',
+			$result,
+			'A disallowed protocol survived srcset sanitization.'
+		);
+		$this->assertSame(
+			'<img srcset="alert(1) 1x, https://example.com/large.jpg 2x" />',
+			$result,
+			'Stripping a protocol should leave the rest of the candidate list intact.'
+		);
+
+		/*
+		 * Markup inside srcset ends the tag as far as the HTML parser is concerned,
+		 * so kses emits the whole thing as escaped text rather than as an element.
+		 */
 		$original = '<img srcset="javascript:alert(1) 1x, data:text/html,<script>alert(1)</script> 2x" />';
 		$result   = wp_kses( $original, $allowedposttags );
-		// The whole img tag should be escaped when it contains script content.
 		$this->assertStringStartsWith( '&lt;', $result );
+		$this->assertStringNotContainsString( '<script>', $result, 'A script element was emitted.' );
+		$this->assertStringNotContainsString( '<img', $result, 'An img element was emitted.' );
 
 		// Script tag in picture element (should be stripped).
 		$original = '<picture><script>alert(1)</script><source srcset="image.jpg"><img src="fallback.jpg"></picture>';
