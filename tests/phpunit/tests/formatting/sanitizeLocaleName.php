@@ -52,7 +52,7 @@ class Tests_Formatting_SanitizeLocaleName extends WP_UnitTestCase {
 	 *
 	 * @ticket 66106
 	 */
-	public function test_sanitize_locale_name_returns_empty_string_for_a_non_string() {
-		$this->assertSame( '', sanitize_locale_name( array( 'de_DE' ) ) );
+	public function test_sanitize_locale_name_returns_empty_string_for_a_non_string(): void {
+		$this->assertSame( '', sanitize_locale_name( array( 'de_DE' ) ) ); // @phpstan-ignore argument.type (Passing an array is intentional here.)
 	}
 }
