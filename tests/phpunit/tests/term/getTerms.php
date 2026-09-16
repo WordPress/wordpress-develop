@@ -1285,7 +1285,12 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $laval ), $terms );
+		/**
+		 * Dorval is also expected here as a childless descendant of Quebec.
+		 * Previously, Dorval was improperly excluded because the recursion broke
+		 * when the intermediate parent Montreal was excluded by the childless filter.
+		 */
+		$this->assertSameSets( array( $laval, $dorval ), $terms );
 	}
 
 	/**
@@ -3558,5 +3563,36 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		}
 
 		wp_cache_delete( 'last_changed', 'terms' );
+	}
+
+	/**
+	 * @ticket 52904
+	 */
+	public function test_get_terms_child_of_with_name__like_filter() {
+		$parent     = self::factory()->category->create( array( 'name' => 'Parent' ) );
+		$child      = self::factory()->category->create(
+			array(
+				'parent' => $parent,
+				'name'   => 'Child',
+			)
+		);
+		$grandchild = self::factory()->category->create(
+			array(
+				'parent' => $child,
+				'name'   => 'Grandchild',
+			)
+		);
+
+		$terms = get_terms(
+			'category',
+			array(
+				'child_of'   => $parent,
+				'name__like' => 'Grandchild',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSameSets( array( $grandchild ), $terms );
 	}
 }
