@@ -69,6 +69,9 @@ function _get_list_table( $class_name, $args = array() ) {
 		 *
 		 * @param string $class_name The list table class to use.
 		 * @param array  $args       An array containing _get_list_table() arguments.
+		 *
+		 * @phpstan-template T of WP_List_Table
+		 * @phpstan-param class-string<T> $class_name
 		 */
 		$custom_class_name = apply_filters( 'wp_list_table_class_name', $class_name, $args );
 
