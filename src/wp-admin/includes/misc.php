@@ -1325,7 +1325,7 @@ function wp_refresh_heartbeat_nonces( $response ) {
 }
 
 /**
- * Disables suspension of Heartbeat on the Add/Edit Post screens.
+ * Disables suspension of Heartbeat and sets post lock data on the Add/Edit Post screens.
  *
  * @since 3.8.0
  *
@@ -1339,6 +1339,9 @@ function wp_heartbeat_set_suspension( $settings ) {
 
 	if ( 'post.php' === $pagenow || 'post-new.php' === $pagenow ) {
 		$settings['suspension'] = 'disable';
+
+		/** This filter is documented in wp-admin/includes/ajax-actions.php */
+		$settings['post_lock_window'] = apply_filters( 'wp_check_post_lock_window', 150 );
 	}
 
 	return $settings;
