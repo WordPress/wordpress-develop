@@ -390,11 +390,6 @@ blockquote :where(cite) i {
 	font-style: italic;
 }
 
-blockquote strong,
-blockquote b {
-	font-weight: 400;
-}
-
 blockquote > :last-child {
 	margin-bottom: 0;
 }
