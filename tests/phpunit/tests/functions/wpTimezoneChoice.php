@@ -16,15 +16,9 @@ class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 		restore_current_locale();
 
 		/*
-		 * wp_timezone_choice() records the locale of the `continents-cities` translations
-		 * it loaded in a function static that nothing outside the function can reset, and
-		 * restoring the locale above reloads those translations without updating it. Call
-		 * the function with the restored locale so the static matches the loaded
-		 * translations again. This runs after every test because the class cannot tell
-		 * which of them left the static set.
-		 *
-		 * It must run before parent::tear_down(): the call fires the load_textdomain and
-		 * gettext hooks, and the parent restores the hook snapshot taken in set_up().
+		 * Resync the translation locale wp_timezone_choice() keeps in a function static with
+		 * the translations restore_current_locale() reloaded. This fires load_textdomain and
+		 * gettext hooks, so it must precede parent::tear_down() restoring the hook snapshot.
 		 */
 		wp_timezone_choice( '', get_locale() );
 
