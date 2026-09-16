@@ -1203,6 +1203,40 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Malformed email addresses should use the user_email error code.
+	 *
+	 * @ticket 60737
+	 */
+	public function test_register_new_user_invalid_email_format_uses_user_email_error_code() {
+		$response = register_new_user( 'testuser60737', 'not-an-email' );
+
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertSame( 'user_email', $response->get_error_code() );
+	}
+
+	/**
+	 * Malformed email addresses should use the user_email error code.
+	 *
+	 * @ticket 60737
+	 */
+	public function test_edit_user_invalid_email_format_uses_user_email_error_code() {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = get_userdata( $user_id );
+
+		$_POST['email']        = 'not-an-email';
+		$_POST['user_login']   = $user->user_login;
+		$_POST['nickname']     = $user->nickname;
+		$_POST['first_name']   = $user->first_name;
+		$_POST['last_name']    = $user->last_name;
+		$_POST['display_name'] = $user->display_name;
+
+		$response = edit_user( $user_id );
+
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertSame( 'user_email', $response->get_error_code() );
+	}
+
+	/**
 	 * @ticket 27317
 	 * @group ms-required
 	 */
