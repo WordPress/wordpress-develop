@@ -36,4 +36,23 @@ class Tests_Functions_wpGuessUrl extends WP_UnitTestCase {
 			'file extension, query var, no trailing slash' => array( 'url' => 'wp-login.php?foo=bar' ),
 		);
 	}
+
+	/**
+	 * Tests that wp_guess_url() does not make an HTTP request to detect HTTPS support.
+	 *
+	 * @ticket 52388
+	 */
+	public function test_wp_guess_url_does_not_make_http_request() {
+		$request_made = false;
+		$filter       = static function () use ( &$request_made ) {
+			$request_made = true;
+			return new WP_Error();
+		};
+
+		add_filter( 'pre_http_request', $filter );
+		wp_guess_url();
+		remove_filter( 'pre_http_request', $filter );
+
+		$this->assertFalse( $request_made );
+	}
 }
