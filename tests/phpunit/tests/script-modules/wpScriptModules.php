@@ -1860,6 +1860,8 @@ HTML;
 	 * otherwise the import map points to a non-existent file under
 	 * SCRIPT_DEBUG. The exceptions below must mirror that special case.
 	 *
+	 * @group assets
+	 *
 	 * @ticket 65664
 	 *
 	 * @covers ::wp_default_script_modules
