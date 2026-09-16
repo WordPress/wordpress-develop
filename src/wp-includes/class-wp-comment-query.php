@@ -18,6 +18,30 @@
 class WP_Comment_Query {
 
 	/**
+	 * Columns of the `$wpdb->comments` table.
+	 *
+	 * @since 7.1.0
+	 * @var string[]
+	 */
+	private const COLUMNS = array(
+		'comment_ID',
+		'comment_post_ID',
+		'comment_author',
+		'comment_author_email',
+		'comment_author_url',
+		'comment_author_IP',
+		'comment_date',
+		'comment_date_gmt',
+		'comment_content',
+		'comment_karma',
+		'comment_approved',
+		'comment_agent',
+		'comment_type',
+		'comment_parent',
+		'user_id',
+	);
+
+	/**
 	 * SQL for database query.
 	 *
 	 * @since 4.0.1
@@ -163,8 +187,23 @@ class WP_Comment_Query {
 	 *                                                      comment objects (false). Default false.
 	 *     @type array           $date_query                Date query clauses to limit comments by. See WP_Date_Query.
 	 *                                                      Default null.
-	 *     @type string          $fields                    Comment fields to return. Accepts 'ids' for comment IDs
-	 *                                                      only or empty for all fields. Default empty.
+	 *     @type string|string[] $fields                    Which fields to return. Accepts:
+	 *                                                      - '' (empty) Returns an array of `WP_Comment` objects (default).
+	 *                                                      - 'ids' Returns a flat array of comment IDs (`int[]`).
+	 *                                                      - Any column of the `$wpdb->comments` table (e.g.
+	 *                                                        'comment_post_ID', 'user_id', 'comment_parent') Returns
+	 *                                                        a flat array of distinct values for that column.
+	 *                                                      - A 'col_a=>col_b' pair of column names (e.g.
+	 *                                                        'comment_ID=>comment_post_ID') Returns an associative
+	 *                                                        array keyed by the first column's value with the second
+	 *                                                        column's value as the entry.
+	 *                                                      - An array of column names. Returns an array of `stdClass`
+	 *                                                        objects with the requested columns as properties
+	 *                                                        (one entry per matched comment, no deduplication).
+	 *                                                      Column names must be passed in their exact case, except
+	 *                                                      the `ID` segment of `comment_ID` / `comment_post_ID`,
+	 *                                                      which is accepted in any case.
+	 *                                                      Default empty.
 	 *     @type array           $include_unapproved        Array of IDs or email addresses of users whose unapproved
 	 *                                                      comments will be returned by the query regardless of
 	 *                                                      `$status`. Default empty.
@@ -458,6 +497,24 @@ class WP_Comment_Query {
 		$key          = md5( serialize( $_args ) );
 		$last_changed = wp_cache_get_last_changed( 'comment' );
 
+		/*
+		 * Projection-result cache. When `fields` selects a subset of columns,
+		 * cache the projected result separately so a repeat call skips both the
+		 * base SELECT and the projection SELECT. Both caches share the comment
+		 * `$last_changed` salt, so any comment mutation invalidates them
+		 * together.
+		 */
+		$field_selection = $this->query_vars['count'] ? null : $this->parse_fields( $this->query_vars['fields'] );
+		$field_cache_key = null;
+		if ( null !== $field_selection ) {
+			$field_cache_key   = "get_comments:$key:fields:" . md5( serialize( $field_selection ) );
+			$field_cache_value = wp_cache_get_salted( $field_cache_key, 'comment-queries', $last_changed );
+			if ( false !== $field_cache_value ) {
+				$this->comments = $field_cache_value;
+				return $this->comments;
+			}
+		}
+
 		$cache_key   = "get_comments:$key";
 		$cache_value = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
 		if ( false === $cache_value ) {
@@ -494,6 +551,12 @@ class WP_Comment_Query {
 
 		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->comments = $comment_ids;
+			return $this->comments;
+		}
+
+		if ( null !== $field_selection ) {
+			$this->comments = $this->get_comment_field_values( $comment_ids, $field_selection );
+			wp_cache_set_salted( $field_cache_key, $this->comments, 'comment-queries', $last_changed );
 			return $this->comments;
 		}
 
@@ -1007,6 +1070,134 @@ class WP_Comment_Query {
 	}
 
 	/**
+	 * Normalizes the `fields` query var into a tagged tuple consumed by
+	 * `get_comment_field_values()`, or null when `fields` is the default
+	 * empty value, `'ids'`, or anything else this method does not recognize.
+	 *
+	 * Return shapes:
+	 *   - `array( 'col', $column )`            — single column, DISTINCT.
+	 *   - `array( 'map', $key_col, $val_col )` — `'col_a=>col_b'` associative map.
+	 *   - `array( 'list', $columns )`          — array form, returns `stdClass[]`.
+	 *
+	 * Column names must be passed in their exact case; the only exception is
+	 * the `ID` segment of `comment_ID` / `comment_post_ID`, which is accepted
+	 * in any case.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string[]|string $fields Raw `fields` query var.
+	 * @return array{ 'list', non-empty-string[] }
+	 *         |array{ 'map', non-empty-string, non-empty-string }
+	 *         |array{ 'col', non-empty-string }
+	 *         |null
+	 */
+	private function parse_fields( $fields ): ?array {
+		if ( is_array( $fields ) ) {
+			$columns = array();
+			foreach ( $fields as $field ) {
+				$col = is_string( $field ) ? $this->parse_field_column( $field ) : null;
+				if ( null !== $col ) {
+					$columns[ $col ] = $col;
+				}
+			}
+			return $columns ? array( 'list', array_values( $columns ) ) : null;
+		}
+
+		if ( ! is_string( $fields ) || '' === $fields || 'ids' === $fields ) {
+			return null;
+		}
+
+		// 'col_a=>col_b' — associative array, keyed by col_a, valued by col_b.
+		if ( str_contains( $fields, '=>' ) ) {
+			list( $key, $value ) = array_map( 'trim', explode( '=>', $fields, 2 ) );
+
+			$key   = $this->parse_field_column( $key );
+			$value = $this->parse_field_column( $value );
+
+			if ( null === $key || null === $value ) {
+				return null;
+			}
+
+			return array( 'map', $key, $value );
+		}
+
+		$col = $this->parse_field_column( $fields );
+
+		return null === $col ? null : array( 'col', $col );
+	}
+
+	/**
+	 * Returns the canonical column name for a `fields` value, or null if it is
+	 * not a known column of `$wpdb->comments`. See `parse_fields()` for the case
+	 * rules.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $field Field name.
+	 * @return non-empty-string|null Canonical column name or null if unknown.
+	 */
+	private function parse_field_column( string $field ): ?string {
+		if ( in_array( $field, self::COLUMNS, true ) ) {
+			return $field;
+		}
+
+		// Accept any case for the `ID` segment of `comment_ID` / `comment_post_ID`.
+		if ( preg_match( '/^(comment(?:_post)?_)([iI][dD])$/', $field, $matches ) ) {
+			return $matches[1] . 'ID';
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns column values from the comments table for a given list of comment
+	 * IDs, dispatching on the tag produced by `parse_fields()`.
+	 *
+	 * Single-column results are `DISTINCT` so callers can drop the surrounding
+	 * `array_unique( wp_list_pluck( ... ) )`. Map results are an associative
+	 * array keyed by the first column; on duplicate keys, later rows overwrite
+	 * earlier ones (standard PHP array semantics). Array-form results return
+	 * one `stdClass` per matched row with no deduplication.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param int[] $comment_ids Comment IDs to fetch values for.
+	 * @param array $fields      Tagged tuple from `parse_fields()`.
+	 * @return array
+	 */
+	private function get_comment_field_values( array $comment_ids, array $fields ) {
+		global $wpdb;
+
+		if ( empty( $comment_ids ) ) {
+			return array();
+		}
+
+		$ids_sql = implode( ',', array_map( 'intval', $comment_ids ) );
+
+		switch ( $fields[0] ) {
+			case 'col':
+				$column = $fields[1];
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				return $wpdb->get_col( "SELECT DISTINCT `$column` FROM $wpdb->comments WHERE comment_ID IN ($ids_sql)" );
+
+			case 'map':
+				list( , $key_column, $value_column ) = $fields;
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$rows = $wpdb->get_results( "SELECT `$key_column`, `$value_column` FROM $wpdb->comments WHERE comment_ID IN ($ids_sql)", ARRAY_A );
+				return array_column( $rows, $value_column, $key_column );
+
+			case 'list':
+				$select = '`' . implode( '`, `', $fields[1] ) . '`';
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				return $wpdb->get_results( "SELECT $select FROM $wpdb->comments WHERE comment_ID IN ($ids_sql)" );
+		}
+
+		return array();
+	}
+
+	/**
 	 * Populates found_comments and max_num_pages properties for the current
 	 * query if the limit clause was used.
 	 *
@@ -1192,23 +1383,7 @@ class WP_Comment_Query {
 	protected function parse_orderby( $orderby ) {
 		global $wpdb;
 
-		$allowed_keys = array(
-			'comment_agent',
-			'comment_approved',
-			'comment_author',
-			'comment_author_email',
-			'comment_author_IP',
-			'comment_author_url',
-			'comment_content',
-			'comment_date',
-			'comment_date_gmt',
-			'comment_ID',
-			'comment_karma',
-			'comment_parent',
-			'comment_post_ID',
-			'comment_type',
-			'user_id',
-		);
+		$allowed_keys = self::COLUMNS;
 
 		if ( ! empty( $this->query_vars['meta_key'] ) ) {
 			$allowed_keys[] = $this->query_vars['meta_key'];
