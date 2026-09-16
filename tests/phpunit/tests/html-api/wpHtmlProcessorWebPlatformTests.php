@@ -28,6 +28,8 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	 */
 	const SKIP_TESTS = array(
 		'noscript01/line0014' => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'template/line0606'   => 'Unimplemented: The parser does not reset the frameset-ok flag when the BODY element is inserted implicitly (whatwg/html#12908).',
+		'template/line0619'   => 'Unimplemented: The parser does not reset the frameset-ok flag when the BODY element is inserted implicitly (whatwg/html#12908).',
 		'tests14/line0022'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests14/line0055'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests19/line0488'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
