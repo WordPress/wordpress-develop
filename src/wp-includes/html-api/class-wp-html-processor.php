@@ -1104,6 +1104,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			)
 		);
 
+		/*
+		 * A CDATA section is a run of character tokens, one per byte of its
+		 * data, so an empty section emits no character token at all. Where
+		 * it is processed in the current insertion mode there is nothing to
+		 * process: no token to ignore, no active formatting elements to
+		 * reconstruct, and nothing to switch the "after body" and "after
+		 * after body" insertion modes back to "in body". In foreign content
+		 * the empty section is still inserted as a node.
+		 */
+		if (
+			$parse_in_current_insertion_mode &&
+			'#cdata-section' === $token_name &&
+			'' === $this->get_modifiable_text()
+		) {
+			return $this->step();
+		}
+
 		try {
 			if ( ! $parse_in_current_insertion_mode ) {
 				return $this->step_in_foreign_content();

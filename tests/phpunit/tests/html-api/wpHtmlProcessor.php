@@ -1117,6 +1117,36 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that an empty CDATA section is ignored at an integration point.
+	 *
+	 * A CDATA section is a run of character tokens, so an empty section
+	 * emits no token at all.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_empty_cdata_section_is_ignored_at_integration_point() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><title><![CDATA[]]><b></b></title></svg>' );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the token after the ignored CDATA section.' );
+		$this->assertSame( 'B', $processor->get_tag(), 'An empty CDATA section should be ignored at an integration point.' );
+	}
+
+	/**
+	 * Ensures that an empty CDATA section in foreign content is still visited.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_empty_cdata_section_in_foreign_content_is_visited() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><![CDATA[]]></svg>' );
+
+		$this->assertTrue( $processor->next_tag( 'SVG' ), 'Failed to find the SVG element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( '#cdata-section', $processor->get_token_name(), 'An empty CDATA section in foreign content should be visited.' );
+		$this->assertSame( '', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+	}
+
+	/**
 	 * Ensures that text and CDATA sections at an integration point report the same namespace.
 	 *
 	 * @ticket 65967
@@ -1346,6 +1376,63 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			}
 		}
 		return $cases;
+	}
+
+	/**
+	 * Ensures that an empty CDATA section at an integration point keeps the insertion mode after the body.
+	 *
+	 * A CDATA section is a run of character tokens, so an empty section
+	 * emits no token and no insertion mode processes anything for it. In
+	 * the "after body" and "after after body" insertion modes any token
+	 * other than whitespace switches the insertion mode back to "in body";
+	 * an empty section must not, because there is no token to switch it.
+	 *
+	 * The comment after the foreign content shows which mode was in effect:
+	 * "in body" inserts it into the BODY element, while the after-body modes
+	 * stop because comments are not supported there. The document with the
+	 * empty section must stop exactly as the document without it does.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_empty_cdata_sections_after_body
+	 *
+	 * @param string $closers Tag closers that select the insertion mode before the foreign content ends.
+	 */
+	public function test_empty_cdata_section_at_integration_point_after_body_keeps_insertion_mode( string $closers ) {
+		$cdata   = WP_HTML_Processor::create_full_parser( "<svg><g>{$closers}<title><![CDATA[]]></title></g></svg><!--c-->" );
+		$control = WP_HTML_Processor::create_full_parser( "<svg><g>{$closers}<title></title></g></svg><!--c-->" );
+
+		$cdata_visited = array();
+		while ( $cdata->next_token() ) {
+			$cdata_visited[] = $cdata->get_token_name();
+		}
+
+		$control_visited = array();
+		while ( $control->next_token() ) {
+			$control_visited[] = $control->get_token_name();
+		}
+
+		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $control->get_last_error(), 'The document without the CDATA section should have stopped at the comment after the body.' );
+		$this->assertSame( $control->get_last_error(), $cdata->get_last_error(), 'Should have stopped at the comment after the body as the document without the CDATA section does.' );
+		$this->assertSame(
+			$control->get_unsupported_exception()->getMessage(),
+			$cdata->get_unsupported_exception()->getMessage(),
+			'Should have stopped for the same reason as the document without the CDATA section.'
+		);
+		$this->assertSame( $control_visited, $cdata_visited, 'Should have visited the same tokens as the document without the CDATA section.' );
+		$this->assertNotContains( '#comment', $cdata_visited, 'Should not have inserted the comment after the body into the BODY element.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_empty_cdata_sections_after_body() {
+		return array(
+			'After body'       => array( '</body>' ),
+			'After after body' => array( '</body></html>' ),
+		);
 	}
 
 	/**
