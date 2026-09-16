@@ -466,8 +466,9 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		'em'      => array(),
 		'strong'  => array(),
 	);
+	$plugin_display_name = '<strong>' . wp_kses( $plugin_data['Name'], $plugins_allowedtags ) . '</strong>';
 
-	$plugin_name = wp_kses( $plugin_data['Name'], $plugins_allowedtags );
+	$plugin_name = strip_tags( $plugin_display_name );
 	$plugin_slug = $response->slug ?? $response->id;
 
 	if ( isset( $response->slug ) ) {
@@ -522,41 +523,41 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 			printf(
 				/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number. */
 				__( 'There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a>.' ),
-				$plugin_name,
+				$plugin_display_name,
 				esc_url( $details_url ),
 				sprintf(
 					'class="thickbox open-plugin-details-modal" aria-label="%s"',
 					/* translators: 1: Plugin name, 2: Version number. */
 					esc_attr( sprintf( __( 'View %1$s version %2$s details' ), $plugin_name, $response->new_version ) )
 				),
-				esc_attr( $response->new_version )
+				esc_html( $response->new_version )
 			);
 		} elseif ( empty( $response->package ) ) {
 			printf(
 				/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number. */
 				__( 'There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a>. <em>Automatic update is unavailable for this plugin.</em>' ),
-				$plugin_name,
+				$plugin_display_name,
 				esc_url( $details_url ),
 				sprintf(
 					'class="thickbox open-plugin-details-modal" aria-label="%s"',
 					/* translators: 1: Plugin name, 2: Version number. */
 					esc_attr( sprintf( __( 'View %1$s version %2$s details' ), $plugin_name, $response->new_version ) )
 				),
-				esc_attr( $response->new_version )
+				esc_html( $response->new_version )
 			);
 		} else {
 			if ( $compatible_php ) {
 				printf(
 					/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number, 5: Update URL, 6: Additional link attributes. */
 					__( 'There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s" %6$s>update now</a>.' ),
-					$plugin_name,
+					$plugin_display_name,
 					esc_url( $details_url ),
 					sprintf(
 						'class="thickbox open-plugin-details-modal" aria-label="%s"',
 						/* translators: 1: Plugin name, 2: Version number. */
 						esc_attr( sprintf( __( 'View %1$s version %2$s details' ), $plugin_name, $response->new_version ) )
 					),
-					esc_attr( $response->new_version ),
+					esc_html( $response->new_version ),
 					wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' ) . $file, 'upgrade-plugin_' . $file ),
 					sprintf(
 						'class="update-link" aria-label="%s"',
@@ -568,14 +569,14 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 				printf(
 					/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number 5: URL to Update PHP page. */
 					__( 'There is a new version of %1$s available, but it does not work with your version of PHP. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s">learn more about updating PHP</a>.' ),
-					$plugin_name,
+					$plugin_display_name,
 					esc_url( $details_url ),
 					sprintf(
 						'class="thickbox open-plugin-details-modal" aria-label="%s"',
 						/* translators: 1: Plugin name, 2: Version number. */
 						esc_attr( sprintf( __( 'View %1$s version %2$s details' ), $plugin_name, $response->new_version ) )
 					),
-					esc_attr( $response->new_version ),
+					esc_html( $response->new_version ),
 					esc_url( wp_get_update_php_url() )
 				);
 				wp_update_php_annotation( '<br><em>', '</em>' );
