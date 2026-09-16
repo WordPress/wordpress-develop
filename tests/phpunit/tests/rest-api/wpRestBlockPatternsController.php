@@ -236,17 +236,8 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * Mocks requests to the wordpress.org pattern directory with an empty result set.
-	 *
-	 * @param false|array|WP_Error $response    Filtered response.
-	 * @param array                $parsed_args HTTP request arguments.
-	 * @param string               $url         Request URL.
-	 * @return false|array|WP_Error Mocked response for api.wordpress.org, otherwise the unfiltered value.
 	 */
-	public function mock_pattern_directory_request( $response, $parsed_args, $url ) {
-		if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
-			return $response;
-		}
-
+	public function mock_pattern_directory_request() {
 		return array(
 			'headers'  => array(),
 			'body'     => '[]',
