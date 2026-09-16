@@ -49,6 +49,10 @@ if ( ! is_multisite() ) {
 		$capability = 'update_languages';
 	}
 
+	if ( ! isset( $update_data ) ) {
+		$update_data = wp_get_update_data();
+	}
+
 	$updates_count = sprintf(
 		'<span class="update-plugins count-%s" aria-hidden="true"><span class="update-count">%s</span></span>',
 		$update_data['counts']['total'],
