@@ -1779,6 +1779,57 @@ function wp_set_post_lock( $post ) {
 }
 
 /**
+ * Acquires a Site Editor post lock during REST API edit-context responses.
+ *
+ * The classic editor calls {@see wp_set_post_lock()} when an edit screen renders,
+ * but Site Editor templates ({@see wp_template}, {@see wp_template_part}) are
+ * loaded over the REST API instead of through `post.php`. This function bridges
+ * that gap so the existing Heartbeat-based post locking workflow can be reused
+ * for the Site Editor.
+ *
+ * Hooked to `rest_prepare_wp_template` and `rest_prepare_wp_template_part`. The
+ * lock is only acquired when the request `context` is `edit` and the
+ * `wp_apply_site_editor_post_lock` filter does not opt out (for example, when a
+ * real-time collaboration plugin is active).
+ *
+ * @since 7.1.0
+ *
+ * @param WP_REST_Response $response The response object.
+ * @param WP_Post          $post     The post object being prepared.
+ * @param WP_REST_Request  $request  The current request.
+ * @return WP_REST_Response The unchanged response object.
+ */
+function wp_set_site_editor_post_lock_on_rest_prepare( $response, $post, $request ) {
+	if ( 'edit' !== $request['context'] ) {
+		return $response;
+	}
+
+	if ( empty( $post ) || empty( $post->ID ) ) {
+		return $response;
+	}
+
+	/**
+	 * Filters whether the Site Editor post lock should be applied to a template.
+	 *
+	 * Returning false disables both lock acquisition during REST edit-context
+	 * reads and the "Take over" flow on `site-editor.php`. Real-time
+	 * collaboration plugins can short-circuit the entire lock pipeline here.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param bool    $apply Whether to apply the Site Editor post lock. Default true.
+	 * @param WP_Post $post  The template post being prepared.
+	 */
+	if ( ! apply_filters( 'wp_apply_site_editor_post_lock', true, $post ) ) {
+		return $response;
+	}
+
+	wp_set_post_lock( $post );
+
+	return $response;
+}
+
+/**
  * Outputs the HTML for the notice to say that someone else is editing or has taken over editing of this post.
  *
  * @since 2.8.5
