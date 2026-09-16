@@ -398,9 +398,9 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string   $style_value  A single CSS preset value.
-	 * @param string[] $css_vars     An associate array of CSS var patterns
-	 *                               used to generate the var string.
+	 * @param string   $style_value A single CSS preset value.
+	 * @param string[] $css_vars    An associate array of CSS var patterns
+	 *                              used to generate the var string.
 	 * @return string The CSS var, or an empty string if no match for slug found.
 	 */
 	protected static function get_css_var_value( $style_value, $css_vars ) {
