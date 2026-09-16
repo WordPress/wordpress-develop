@@ -586,6 +586,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @see self::TEXT_IS_NULL_SEQUENCE
 	 * @see self::TEXT_IS_WHITESPACE
+	 * @see self::TEXT_IS_WHITESPACE_WITH_NULLS
 	 * @see self::TEXT_IS_GENERIC
 	 * @see self::subdivide_text_appropriately
 	 *
@@ -1989,11 +1990,20 @@ class WP_HTML_Tag_Processor {
 					 * way a text node is classified so that tree construction can
 					 * apply the character token rules to it. CDATA section data
 					 * contains no character references, so this is a byte scan.
+					 *
+					 * Unlike a text node, a CDATA section is one token and cannot
+					 * be subdivided into runs of NULL bytes and whitespace, so a
+					 * section holding both gets its own classification: the NULL
+					 * bytes are not whitespace in the insertion modes that only
+					 * accept whitespace, yet they do not change the frameset-ok
+					 * flag where whitespace is inserted.
 					 */
 					if ( strspn( $html, "\x00", $this->text_starts_at, $this->text_length ) === $this->text_length ) {
 						$this->text_node_classification = self::TEXT_IS_NULL_SEQUENCE;
-					} elseif ( strspn( $html, "\x00 \t\n\f\r", $this->text_starts_at, $this->text_length ) === $this->text_length ) {
+					} elseif ( strspn( $html, " \t\n\f\r", $this->text_starts_at, $this->text_length ) === $this->text_length ) {
 						$this->text_node_classification = self::TEXT_IS_WHITESPACE;
+					} elseif ( strspn( $html, "\x00 \t\n\f\r", $this->text_starts_at, $this->text_length ) === $this->text_length ) {
+						$this->text_node_classification = self::TEXT_IS_WHITESPACE_WITH_NULLS;
 					}
 
 					return true;
@@ -5446,6 +5456,23 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 */
 	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
+
+	/**
+	 * Indicates that a CDATA section comprises only whitespace and NULL bytes,
+	 * with at least one of each.
+	 *
+	 * A text node with this content is subdivided into runs of whitespace and
+	 * runs of NULL bytes, each its own token. A CDATA section is one token, so
+	 * tree construction needs to know that it is not whitespace, because a
+	 * NULL byte is not one of the whitespace characters an insertion mode may
+	 * accept, and that it is not generic text, because neither whitespace nor
+	 * a NULL byte changes the frameset-ok flag.
+	 *
+	 * @see self::$text_node_classification
+	 *
+	 * @since 7.2.0
+	 */
+	const TEXT_IS_WHITESPACE_WITH_NULLS = 'TEXT_IS_WHITESPACE_WITH_NULLS';
 
 	/**
 	 * Wakeup magic method.

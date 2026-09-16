@@ -1272,6 +1272,139 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a CDATA section of whitespace and NULL bytes at an integration point switches the insertion mode after the body.
+	 *
+	 * In the "after body" and "after after body" insertion modes only
+	 * whitespace character tokens keep the insertion mode; a NULL character
+	 * token is "anything else" and switches the insertion mode back to
+	 * "in body", where it is ignored. The equivalent text is subdivided into
+	 * whitespace and NULL tokens, so its NULL token switches the mode; a CDATA
+	 * section is one token and must switch the mode the same way.
+	 *
+	 * The comment after the foreign content shows which mode was in effect:
+	 * "in body" inserts it into the BODY element, while the after-body modes
+	 * stop because comments are not supported there.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_cdata_sections_of_whitespace_and_null_bytes_after_body
+	 *
+	 * @param string $closers Tag closers that select the insertion mode before the foreign content ends.
+	 * @param string $content Whitespace and NULL bytes to place inside the CDATA section and the text.
+	 */
+	public function test_cdata_section_of_whitespace_and_null_bytes_at_integration_point_after_body_switches_insertion_mode( string $closers, string $content ) {
+		$cdata = WP_HTML_Processor::create_full_parser( "<svg><g>{$closers}<title><![CDATA[{$content}]]></title></g></svg><!--c-->" );
+		$text  = WP_HTML_Processor::create_full_parser( "<svg><g>{$closers}<title>{$content}</title></g></svg><!--c-->" );
+
+		$this->assertTrue( $cdata->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $cdata->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( '#cdata-section', $cdata->get_token_name(), 'Found the wrong token after the TITLE element.' );
+		$this->assertSame(
+			str_replace( array( "\0", "\r" ), array( '', "\n" ), $content ),
+			$cdata->get_modifiable_text(),
+			'Should have removed the NULL bytes from the CDATA section and normalized its newlines.'
+		);
+
+		$comment_breadcrumbs = null;
+		while ( $cdata->next_token() ) {
+			if ( '#comment' === $cdata->get_token_name() ) {
+				$comment_breadcrumbs = $cdata->get_breadcrumbs();
+			}
+		}
+
+		$text_comment_breadcrumbs = null;
+		while ( $text->next_token() ) {
+			if ( '#comment' === $text->get_token_name() ) {
+				$text_comment_breadcrumbs = $text->get_breadcrumbs();
+			}
+		}
+
+		$this->assertNull( $text->get_last_error(), 'The equivalent text should have parsed without error.' );
+		$this->assertNull( $cdata->get_last_error(), 'Should have switched to the "in body" insertion mode and inserted the comment.' );
+		$this->assertSame( array( 'HTML', 'BODY', '#comment' ), $text_comment_breadcrumbs, 'The equivalent text should have inserted the comment into the BODY element.' );
+		$this->assertSame( $text_comment_breadcrumbs, $comment_breadcrumbs, 'Should have inserted the comment where the equivalent text inserts it.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_cdata_sections_of_whitespace_and_null_bytes_after_body() {
+		$cases = array();
+		foreach ( array(
+			'After body'       => '</body>',
+			'After after body' => '</body></html>',
+		) as $mode => $closers ) {
+			foreach ( array(
+				'leading NULL'    => "\0 ",
+				'trailing NULL'   => " \0",
+				'surrounded NULL' => " \0 ",
+				'every kind'      => " \t\n\f\r\0",
+			) as $name => $content ) {
+				$cases[ "{$mode}, {$name}" ] = array( $closers, $content );
+			}
+		}
+		return $cases;
+	}
+
+	/**
+	 * Ensures that a CDATA section at an integration point changes the frameset-ok flag the way its text would.
+	 *
+	 * In the "in body" insertion mode whitespace and NULL character tokens
+	 * leave the frameset-ok flag alone, while any other character token sets
+	 * it to "not ok". A CDATA section of whitespace and NULL bytes is one
+	 * token, and must not be treated as generic text.
+	 *
+	 * The processor stops at a FRAMESET start tag in the "in body" insertion
+	 * mode unless the frameset-ok flag is "not ok", in which case the tag is
+	 * ignored. The equivalent text is parsed alongside to show the expected
+	 * outcome.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_cdata_sections_and_frameset_ok
+	 *
+	 * @param string $content         Content of the CDATA section and of the equivalent text.
+	 * @param bool   $is_frameset_ok  Whether the FRAMESET start tag after the content should stop the processor.
+	 */
+	public function test_cdata_section_at_integration_point_changes_frameset_ok_like_text( string $content, bool $is_frameset_ok ) {
+		$cdata = WP_HTML_Processor::create_full_parser( "<svg><title><![CDATA[{$content}]]></title></svg><frameset>" );
+		$text  = WP_HTML_Processor::create_full_parser( "<svg><title>{$content}</title></svg><frameset>" );
+
+		while ( $cdata->next_token() ) {
+			continue;
+		}
+		while ( $text->next_token() ) {
+			continue;
+		}
+
+		if ( $is_frameset_ok ) {
+			$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $text->get_last_error(), 'The equivalent text should have left frameset-ok set and stopped at the FRAMESET tag.' );
+			$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $cdata->get_last_error(), 'Should have left frameset-ok set and stopped at the FRAMESET tag.' );
+			$this->assertSame( 'Cannot process non-ignored FRAMESET tags.', $cdata->get_unsupported_exception()->getMessage(), 'Should have stopped at the FRAMESET tag.' );
+		} else {
+			$this->assertNull( $text->get_last_error(), 'The equivalent text should have cleared frameset-ok so that the FRAMESET tag is ignored.' );
+			$this->assertNull( $cdata->get_last_error(), 'Should have cleared frameset-ok so that the FRAMESET tag is ignored.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_cdata_sections_and_frameset_ok() {
+		return array(
+			'Whitespace'               => array( ' ', true ),
+			'NULL bytes'               => array( "\0\0", true ),
+			'Whitespace and NULL byte' => array( " \0 ", true ),
+			'Text'                     => array( 'x', false ),
+			'Text with NULL byte'      => array( " \0x ", false ),
+		);
+	}
+
+	/**
 	 * Ensures that the processor stops correctly on a FORM tag closer token.
 	 *
 	 * Form tag closers have complicated conditions. There was a bug where the processor
