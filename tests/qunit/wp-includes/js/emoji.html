@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>wp.emoji QUnit Test Suite</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+		<!-- QUnit -->
+		<link rel="stylesheet" href="../../../../node_modules/qunit/qunit/qunit.css" type="text/css" media="screen" />
+		<script src="../../../../node_modules/qunit/qunit/qunit.js"></script>
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<div id="qunit-fixture"></div>
+
+		<script src="../../../../build/wp-includes/js/twemoji.js"></script>
+		<script>
+			window._wpemojiSettings = {
+				baseUrl: 'https://s.w.org/images/core/emoji/17.0.2/72x72/',
+				ext: '.png',
+				svgUrl: 'https://s.w.org/images/core/emoji/17.0.2/svg/',
+				svgExt: '.svg',
+				supports: {
+					everything: false,
+					everythingExceptFlag: false
+				}
+			};
+		</script>
+		<script src="../../../../build/wp-includes/js/wp-emoji.js"></script>
+		<script src="emoji.js"></script>
+	</body>
+</html>
