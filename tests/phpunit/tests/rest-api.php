@@ -1046,6 +1046,81 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, rest_filter_response_by_context( $data, $schema, 'view' ) );
 	}
 
+	public function test_register_route_with_resolvable_options_closure() {
+		register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			static function () {
+				return array(
+					'callback'            => '__return_true',
+					'permission_callback' => '__return_true',
+				);
+			}
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-ns/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-ns/v1/my-route' )->get_data() );
+	}
+
+	public function test_register_route_with_resolvable_options_arrow() {
+		register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			static fn () => array(
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-ns/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-ns/v1/my-route' )->get_data() );
+	}
+
+	public function test_register_route_with_resolvable_options_named_function() {
+		function test_register_route_with_resolvable_options_named_function__options() {
+			return array(
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			);
+		}
+		register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			'test_register_route_with_resolvable_options_named_function__options'
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-ns/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-ns/v1/my-route' )->get_data() );
+	}
+
+	public function test_register_route_with_resolvable_options_method() {
+		$obj = new class() {
+			public function get_options() {
+				return array(
+					'callback'            => '__return_true',
+					'permission_callback' => '__return_true',
+				);
+			}
+		};
+
+		register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array( $obj, 'get_options' )
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-ns/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-ns/v1/my-route' )->get_data() );
+	}
+
 	/**
 	 * @ticket 49749
 	 */
