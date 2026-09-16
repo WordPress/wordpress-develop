@@ -482,13 +482,35 @@ function rss_enclosure() {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
 
-				if ( count( $enclosure ) < 3 ) {
-					continue;
+				$url    = '';
+				$type   = '';
+				$length = 0;
+
+				$mimes = get_allowed_mime_types();
+
+				// Parse URL.
+				if ( isset( $enclosure[0] ) && is_string( $enclosure[0] ) ) {
+					$url = trim( $enclosure[0] );
 				}
 
-				// Only get the first element, e.g. 'audio/mpeg' from 'audio/mpeg mpga mp2 mp3'.
-				$t    = preg_split( '/[ \t]/', trim( $enclosure[2] ) );
-				$type = $t[0];
+				// Parse length and type.
+				for ( $i = 1; $i <= 2; $i++ ) {
+					if ( isset( $enclosure[ $i ] ) ) {
+						$t = trim( $enclosure[ $i ] );
+						if ( is_numeric( $t ) ) {
+							$length = $t;
+						} elseif ( in_array( $t, $mimes, true ) ) {
+							$type = $t;
+						}
+					}
+				}
+
+				$html_link_tag = sprintf(
+					"<enclosure url=\"%s\" length=\"%d\" type=\"%s\" />\n",
+					esc_url( $url ),
+					esc_attr( $length ),
+					esc_attr( $type )
+				);
 
 				/**
 				 * Filters the RSS enclosure HTML link tag for the current post.
@@ -497,7 +519,7 @@ function rss_enclosure() {
 				 *
 				 * @param string $html_link_tag The HTML link tag with a URI and other attributes.
 				 */
-				echo apply_filters( 'rss_enclosure', '<enclosure url="' . esc_url( trim( $enclosure[0] ) ) . '" length="' . absint( trim( $enclosure[1] ) ) . '" type="' . esc_attr( $type ) . '" />' . "\n" );
+				echo apply_filters( 'rss_enclosure', $html_link_tag );
 			}
 		}
 	}
@@ -540,10 +562,11 @@ function atom_enclosure() {
 				// Parse length and type.
 				for ( $i = 1; $i <= 2; $i++ ) {
 					if ( isset( $enclosure[ $i ] ) ) {
-						if ( is_numeric( $enclosure[ $i ] ) ) {
-							$length = trim( $enclosure[ $i ] );
-						} elseif ( in_array( $enclosure[ $i ], $mimes, true ) ) {
-							$type = trim( $enclosure[ $i ] );
+						$t = trim( $enclosure[ $i ] );
+						if ( is_numeric( $t ) ) {
+							$length = $t;
+						} elseif ( in_array( $t, $mimes, true ) ) {
+							$type = $t;
 						}
 					}
 				}
