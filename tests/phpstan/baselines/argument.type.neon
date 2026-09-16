@@ -69,6 +69,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
+			message: '#^Parameter \#2 \$args of function _get_list_table expects array\{plural\?\: string, singular\?\: string, ajax\?\: bool, screen\?\: string, \.\.\.\}, array\{screen\: WP_Screen\|null\} given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
 			message: '#^Parameter \#2 \$compare_from of function wp_get_revision_ui_diff expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -199,6 +204,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/import.php
 		-
+			message: '#^Parameter \#1 \$args of class WP_List_Table constructor expects array\{plural\?\: string, singular\?\: string, ajax\?\: bool, screen\?\: string, \.\.\.\}\|string, array\{plural\?\: string, singular\?\: string, ajax\?\: bool, screen\: WP_Screen\|null, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/list-table.php
+		-
 			message: '#^Parameter \#1 \$number of function number_format_i18n expects float, string given\.$#'
 			identifier: argument.type
 			count: 3
@@ -313,6 +323,11 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/update-core.php
+		-
+			message: '#^Parameter \#2 \$args of function _get_list_table expects array\{plural\?\: string, singular\?\: string, ajax\?\: bool, screen\?\: string, \.\.\.\}, array\{screen\: WP_Screen\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/update.php
 		-
 			message: '#^Parameter \#1 \$timestamp of function wp_schedule_event expects int, float given\.$#'
 			identifier: argument.type
