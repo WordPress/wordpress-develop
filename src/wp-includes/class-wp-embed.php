@@ -251,7 +251,7 @@ class WP_Embed {
 		$cache      = '';
 		$cache_time = 0;
 
-		$cached_post_id = $this->find_oembed_post_id( $key_suffix );
+		$cached_post_id = 0;
 
 		if ( $post_id ) {
 			$cache      = get_post_meta( $post_id, $cachekey, true );
@@ -260,11 +260,14 @@ class WP_Embed {
 			if ( ! $cache_time ) {
 				$cache_time = 0;
 			}
-		} elseif ( $cached_post_id ) {
-			$cached_post = get_post( $cached_post_id );
+		} else {
+			$cached_post_id = $this->find_oembed_post_id( $key_suffix );
+			if ( $cached_post_id ) {
+				$cached_post = get_post( $cached_post_id );
 
-			$cache      = $cached_post->post_content;
-			$cache_time = strtotime( $cached_post->post_modified_gmt );
+				$cache      = $cached_post->post_content;
+				$cache_time = strtotime( $cached_post->post_modified_gmt );
+			}
 		}
 
 		$cached_recently = ( time() - $cache_time ) < $ttl;
