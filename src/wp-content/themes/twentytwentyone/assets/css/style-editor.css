@@ -1446,6 +1446,10 @@ p.has-background {
 	padding: var(--global--spacing-unit);
 }
 
+p.has-text-color:not(.has-link-color) a {
+	color: currentColor;
+}
+
 pre.wp-block-preformatted {
 	overflow-x: auto;
 	white-space: pre !important;
