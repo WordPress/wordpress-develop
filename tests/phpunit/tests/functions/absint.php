@@ -13,20 +13,20 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 * @ticket 60101
 	 *
 	 * @dataProvider data_absint
+	 *
+	 * @param mixed            $test_value
+	 * @param non-negative-int $expected_value
 	 */
-	public function test_absint( $test_value, $expected_value ) {
+	public function test_absint( $test_value, int $expected_value ) {
 		$this->assertSame( $expected_value, absint( $test_value ) );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[] Test parameters {
-	 *     @type string $test_value Test value.
-	 *     @type string $expected   Expected return value.
-	 * }
+	 * @return array<non-falsy-string, array{ test_value: mixed, expected_value: non-negative-int }>
 	 */
-	public function data_absint() {
+	public function data_absint(): array {
 		return array(
 			'1 int'                 => array(
 				'test_value'     => 1,
@@ -87,8 +87,8 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_absint_other_types
 	 *
-	 * @param mixed $test_value     Test value.
-	 * @param int   $expected_value Expected return value.
+	 * @param mixed            $test_value     Test value.
+	 * @param non-negative-int $expected_value Expected return value.
 	 */
 	public function test_absint_other_types( $test_value, int $expected_value ): void {
 		$this->assertSame( $expected_value, absint( $test_value ) );
@@ -97,7 +97,7 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ test_value: mixed, expected_value: non-negative-int }>
 	 */
 	public function data_absint_other_types(): array {
 		return array(
@@ -165,8 +165,8 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_absint_extreme_values
 	 *
-	 * @param mixed $test_value     Test value.
-	 * @param int   $expected_value Expected return value.
+	 * @param mixed            $test_value     Test value.
+	 * @param non-negative-int $expected_value Expected return value.
 	 */
 	public function test_absint_extreme_values( $test_value, int $expected_value ): void {
 		$this->assertSame( $expected_value, absint( $test_value ) );
@@ -175,7 +175,7 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ test_value: mixed, expected_value: non-negative-int }>
 	 */
 	public function data_absint_extreme_values(): array {
 		return array(
@@ -223,8 +223,8 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_absint_unrepresentable_floats
 	 *
-	 * @param float $test_value     Test value.
-	 * @param int   $expected_value Expected return value.
+	 * @param float            $test_value     Test value.
+	 * @param non-negative-int $expected_value Expected return value.
 	 */
 	public function test_absint_unrepresentable_floats( float $test_value, int $expected_value ): void {
 		$this->assertSame( $expected_value, absint( $test_value ) );
@@ -233,7 +233,7 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ test_value: float, expected_value: non-negative-int }>
 	 */
 	public function data_absint_unrepresentable_floats(): array {
 		return array(
