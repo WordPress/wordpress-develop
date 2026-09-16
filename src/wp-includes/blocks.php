@@ -430,7 +430,16 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 		if ( is_rtl() && file_exists( $rtl_file ) ) {
 			wp_style_add_data( $style_handle_name, 'rtl', 'replace' );
-			wp_style_add_data( $style_handle_name, 'suffix', $suffix );
+			/*
+			 * Core block files use a '.min' suffix (e.g. style.min.css) when
+			 * SCRIPT_DEBUG is false, so the suffix must be stored so that
+			 * WP_Styles::do_item() can construct the correct RTL URL via str_replace.
+			 * Non-core block files registered from block.json never use a '.min'
+			 * suffix, so storing a non-empty suffix would cause str_replace() to
+			 * search for '.min.css' in a filename that only contains '.css',
+			 * silently failing to rewrite the URL to its RTL counterpart.
+			 */
+			wp_style_add_data( $style_handle_name, 'suffix', $is_core_block ? $suffix : '' );
 			wp_style_add_data( $style_handle_name, 'path', $rtl_file );
 		}
 	}
