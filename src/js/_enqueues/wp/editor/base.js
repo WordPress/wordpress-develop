@@ -21,7 +21,8 @@ window.wp = window.wp || {};
 	 */
 	function SwitchEditors() {
 		var tinymce, $$,
-			exports = {};
+			exports = {},
+			isPointingDevice = false;
 
 		/**
 		 * Initializes the editor utility functions.
@@ -42,7 +43,16 @@ window.wp = window.wp || {};
 					var id, mode,
 						target = $$( event.target );
 
+
 					if ( target.hasClass( 'wp-switch-editor' ) ) {
+						/*
+						 * Determine whether the click event is fired by using
+						 * a pointing device including Safari fallback and
+						 * unknown hardware pointers.
+						 */
+						isPointingDevice = event.detail > 0 || ( event.pointerType !== undefined && event.pointerType !== '' );
+						console.log( isPointingDevice );
+
 						id = target.attr( 'data-wp-editor-id' );
 						mode = target.hasClass( 'switch-tmce' ) ? 'tmce' : 'html';
 						switchEditor( id, mode );
@@ -118,6 +128,30 @@ window.wp = window.wp || {};
 				addHTMLBookmarkInTextAreaContent( $textarea );
 
 				if ( editor ) {
+					// Store the original TinyMCE editor focus() method.
+					const originalEditorFocusInstance = editor.focus;
+
+					/*
+					 * Override the editor's focus method to conditionally skip
+					 * focusing the editor based on the input device. Note that
+					 * editor.focus() aleady uses a `skipFocus` parameter. When
+					 * it is true, it calls activateEditor(editor) instead of
+					 * focusEditor(editor).
+					 */
+					editor.focus = function ( skipFocus ) {
+						if ( ! isPointingDevice) {
+							skipFocus = true;
+						}
+
+						originalEditorFocusInstance.call( editor, skipFocus );
+					};
+
+					/*
+					 * The editor show() method calls several other methods that
+					 * end up setting focus to the editor. We want to skip
+					 * setting focus when switching editors and the user is
+					 * using a keyboard or a non-pointing device.
+					 */
 					editor.show();
 
 					// No point to resize the iframe in iOS.
@@ -534,7 +568,9 @@ window.wp = window.wp || {};
 				endNode = editor.$( '.mce_SELRES_end' ).attr( 'data-mce-bogus', 1 );
 
 			if ( startNode.length ) {
-				editor.focus();
+				if ( isPointingDevice ) {
+					editor.focus();
+				}
 
 				if ( ! endNode.length ) {
 					editor.selection.select( startNode[0] );
@@ -842,11 +878,13 @@ window.wp = window.wp || {};
 				// Wait for the Visual editor to be hidden, then focus and scroll to the position.
 				setTimeout( function() {
 					textArea.setSelectionRange( start, end );
-					if ( textArea.blur ) {
-						// Defocus before focusing.
-						textArea.blur();
+					if ( isPointingDevice ) {
+						if ( textArea.blur ) {
+							// Defocus before focusing.
+							textArea.blur();
+						}
+						textArea.focus();
 					}
-					textArea.focus();
 				}, 100 );
 			}
 		}
