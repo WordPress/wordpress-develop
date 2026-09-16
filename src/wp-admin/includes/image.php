@@ -622,19 +622,19 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 		if ( ! empty( $exists ) ) {
 			update_post_meta( $attachment_id, '_thumbnail_id', $exists );
 		} else {
-			$ext = '.jpg';
+			$extension = '.jpg';
 			switch ( $metadata['image']['mime'] ) {
 				case 'image/gif':
-					$ext = '.gif';
+					$extension = '.gif';
 					break;
 				case 'image/png':
-					$ext = '.png';
+					$extension = '.png';
 					break;
 				case 'image/webp':
-					$ext = '.webp';
+					$extension = '.webp';
 					break;
 			}
-			$basename = str_replace( '.', '-', wp_basename( $file ) ) . '-image' . $ext;
+			$basename = str_replace( '.', '-', wp_basename( $file ) ) . '-image' . $extension;
 			$uploaded = wp_upload_bits( $basename, '', $metadata['image']['data'] );
 			if ( false === $uploaded['error'] ) {
 				$image_attachment = array(
@@ -703,8 +703,8 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				 * Ensure the PDF preview image does not overwrite any JPEG images that already exist.
 				 */
 				$dirname      = dirname( $file ) . '/';
-				$ext          = '.' . pathinfo( $file, PATHINFO_EXTENSION );
-				$preview_file = $dirname . wp_unique_filename( $dirname, wp_basename( $file, $ext ) . '-pdf.jpg' );
+				$extension          = '.' . pathinfo( $file, PATHINFO_EXTENSION );
+				$preview_file = $dirname . wp_unique_filename( $dirname, wp_basename( $file, $extension ) . '-pdf.jpg' );
 
 				$uploaded = $editor->save( $preview_file, 'image/jpeg' );
 				unset( $editor );
