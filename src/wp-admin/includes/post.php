@@ -1708,11 +1708,14 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $post ID or object of the post to check for editing.
+ * @param int|WP_Post $post        ID or object of the post to check for editing.
+ * @param string      $active_lock Optional. The active lock held by the current editing session.
+ *                                 When provided, the current user's stale lock is treated as locked.
  * @return int|false ID of the user with lock. False if the post does not exist, post is not locked,
- *                   the user with lock does not exist, or the post is locked by current user.
+ *                   the user with lock does not exist, or the post is locked by the current session.
  */
-function wp_check_post_lock( $post ) {
+function wp_check_post_lock( $post, $active_lock = '' ) {
+
 	$post = get_post( $post );
 
 	if ( ! $post ) {
@@ -1725,9 +1728,10 @@ function wp_check_post_lock( $post ) {
 		return false;
 	}
 
-	$lock = explode( ':', $lock );
-	$time = $lock[0];
-	$user = isset( $lock[1] ) ? (int) $lock[1] : (int) get_post_meta( $post->ID, '_edit_last', true );
+	$lock_value = $lock;
+	$lock       = explode( ':', $lock );
+	$time       = $lock[0];
+	$user       = isset( $lock[1] ) ? (int) $lock[1] : (int) get_post_meta( $post->ID, '_edit_last', true );
 
 	if ( ! get_userdata( $user ) ) {
 		return false;
@@ -1736,13 +1740,18 @@ function wp_check_post_lock( $post ) {
 	/** This filter is documented in wp-admin/includes/ajax-actions.php */
 	$time_window = apply_filters( 'wp_check_post_lock_window', 150 );
 
-	if ( $time && $time > time() - $time_window && get_current_user_id() !== $user ) {
-		return $user;
+	if ( $time && $time > time() - $time_window ) {
+		if ( get_current_user_id() !== $user ) {
+			return $user;
+		}
+
+		if ( $active_lock && $active_lock !== $lock_value ) {
+			return $user;
+		}
 	}
 
 	return false;
 }
-
 /**
  * Marks the post as currently being edited by the current user.
  *
@@ -2088,7 +2097,9 @@ function post_preview() {
 
 	$is_autosave = false;
 
-	if ( ! wp_check_post_lock( $post->ID ) && get_current_user_id() === (int) $post->post_author
+	$active_post_lock = $post_data['active_post_lock'] ?? '';
+
+	if ( ! wp_check_post_lock( $post->ID, $active_post_lock ) && get_current_user_id() === (int) $post->post_author
 		&& ( 'draft' === $post->post_status || 'auto-draft' === $post->post_status )
 	) {
 		$saved_post_id = edit_post();
@@ -2163,7 +2174,9 @@ function wp_autosave( $post_data ) {
 		$post_data['post_category'] = explode( ',', $post_data['catslist'] );
 	}
 
-	if ( ! wp_check_post_lock( $post->ID ) && get_current_user_id() === (int) $post->post_author
+	$active_post_lock = $post_data['active_post_lock'] ?? '';
+
+	if ( ! wp_check_post_lock( $post->ID, $active_post_lock ) && get_current_user_id() === (int) $post->post_author
 		&& ( 'auto-draft' === $post->post_status || 'draft' === $post->post_status )
 	) {
 		// Drafts and auto-drafts are just overwritten by autosave for the same user if the post is not locked.
