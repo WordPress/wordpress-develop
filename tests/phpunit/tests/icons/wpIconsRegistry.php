@@ -453,4 +453,27 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 		$this->assertNull( $icon['content'] );
 	}
+
+	/**
+	 * Should reject a `public` property that is not a boolean.
+	 *
+	 * @ticket 66087
+	 *
+	 * @covers ::register
+	 *
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 */
+	public function test_register_rejects_non_boolean_public_property() {
+		$result = $this->registry->register(
+			'test-collection/invalid-visibility',
+			array(
+				'label'   => 'Icon',
+				'content' => '<svg></svg>',
+				'public'  => 'yes',
+			)
+		);
+
+		$this->assertFalse( $result );
+		$this->assertFalse( $this->registry->is_registered( 'test-collection/invalid-visibility' ) );
+	}
 }
