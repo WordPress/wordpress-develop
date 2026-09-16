@@ -386,12 +386,10 @@ CSS
 			),
 		);
 
-		if ( null === $data ) {
-			$data = array(
-				'input'    => $custom_theme_json_fonts,
-				'expected' => $expected_font_faces,
-			);
-		}
+		$data ??= array(
+			'input'    => $custom_theme_json_fonts,
+			'expected' => $expected_font_faces,
+		);
 
 		return $data[ $key ] ?? $data;
 	}
@@ -473,12 +471,10 @@ CSS
 @font-face{font-family:"DM Sans";font-style:italic;font-weight:500;font-display:fallback;src:url('{$uri}dm-sans/DMSans-Medium-Italic.woff2') format('woff2');font-stretch:normal;}
 CSS;
 
-		if ( null === $data ) {
-			$data = array(
-				'expected'        => $expected_font_families,
-				'expected_styles' => $expected_styles,
-			);
-		}
+		$data ??= array(
+			'expected'        => $expected_font_families,
+			'expected_styles' => $expected_styles,
+		);
 
 		return $data[ $key ] ?? $data;
 	}
