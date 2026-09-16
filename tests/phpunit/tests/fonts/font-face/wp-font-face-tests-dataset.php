@@ -308,11 +308,7 @@ CSS
 			);
 		}
 
-		if ( isset( $data[ $key ] ) ) {
-			return $data[ $key ];
-		}
-
-		return $data;
+		return $data[ $key ] ?? $data;
 	}
 
 	public static function get_custom_font_families( $key = '' ) {
@@ -390,18 +386,12 @@ CSS
 			),
 		);
 
-		if ( null === $data ) {
-			$data = array(
-				'input'    => $custom_theme_json_fonts,
-				'expected' => $expected_font_faces,
-			);
-		}
+		$data ??= array(
+			'input'    => $custom_theme_json_fonts,
+			'expected' => $expected_font_faces,
+		);
 
-		if ( isset( $data[ $key ] ) ) {
-			return $data[ $key ];
-		}
-
-		return $data;
+		return $data[ $key ] ?? $data;
 	}
 
 	public static function get_custom_style_variations( $key = '' ) {
@@ -481,17 +471,11 @@ CSS
 @font-face{font-family:"DM Sans";font-style:italic;font-weight:500;font-display:fallback;src:url('{$uri}dm-sans/DMSans-Medium-Italic.woff2') format('woff2');font-stretch:normal;}
 CSS;
 
-		if ( null === $data ) {
-			$data = array(
-				'expected'        => $expected_font_families,
-				'expected_styles' => $expected_styles,
-			);
-		}
+		$data ??= array(
+			'expected'        => $expected_font_families,
+			'expected_styles' => $expected_styles,
+		);
 
-		if ( isset( $data[ $key ] ) ) {
-			return $data[ $key ];
-		}
-
-		return $data;
+		return $data[ $key ] ?? $data;
 	}
 }

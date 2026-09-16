@@ -13,6 +13,7 @@ on:
       - 'docker-compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
+      - 'wp-cli.yml'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
       - 'Gruntfile.js'
@@ -41,6 +42,7 @@ on:
       - 'docker-compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
+      - 'wp-cli.yml'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
       - 'Gruntfile.js'

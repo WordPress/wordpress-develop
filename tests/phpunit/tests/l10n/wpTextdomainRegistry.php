@@ -23,6 +23,7 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		wp_cache_delete( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' );
 		wp_cache_delete( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' );
 		wp_cache_delete( md5( WP_LANG_DIR . '/' ), 'translation_files' );
+		wp_cache_delete( md5( WP_PLUGIN_DIR . '/custom-internationalized-plugin/languages/' ), 'translation_files' );
 
 		parent::tear_down();
 	}
@@ -111,6 +112,75 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A cached value that is not an array of strings is discarded and replaced
+	 * by a fresh lookup.
+	 *
+	 * @ticket 66063
+	 *
+	 * @covers ::get_language_files_from_path
+	 *
+	 * @dataProvider data_get_language_files_from_path_ignores_invalid_cached_values
+	 *
+	 * @param mixed $cached_value Value seeded into the cache.
+	 */
+	public function test_get_language_files_from_path_ignores_invalid_cached_values( $cached_value ): void {
+		$path      = WP_LANG_DIR . '/plugins/';
+		$cache_key = md5( $path );
+
+		wp_cache_set( $cache_key, $cached_value, 'translation_files' );
+
+		$result = $this->instance->get_language_files_from_path( $path );
+
+		$this->assertIsArray( $result, 'An array should be returned' );
+		$this->assertNotEmpty( $result, 'The files should have been looked up instead of using the cached value' );
+		foreach ( $result as $file ) {
+			$this->assertIsString( $file, 'All returned entries should be strings' );
+		}
+		$this->assertSame(
+			$result,
+			wp_cache_get( $cache_key, 'translation_files' ),
+			'The invalid cached value should have been replaced'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_language_files_from_path_ignores_invalid_cached_values(): array {
+		return array(
+			'string'                => array( 'not-an-array' ),
+			'integer'               => array( 1 ),
+			'null'                  => array( null ),
+			'object'                => array( (object) array( WP_LANG_DIR . '/plugins/foo-de_DE.mo' ) ),
+			'array with an array'   => array( array( WP_LANG_DIR . '/plugins/foo-de_DE.mo', array( 'bar-de_DE.mo' ) ) ),
+			'array with an integer' => array( array( WP_LANG_DIR . '/plugins/foo-de_DE.mo', 1 ) ),
+			'array with null'       => array( array( null ) ),
+		);
+	}
+
+	/**
+	 * An empty array is a valid cached result for a directory without translation
+	 * files and must not cause a new lookup.
+	 *
+	 * @ticket 66063
+	 *
+	 * @covers ::get_language_files_from_path
+	 */
+	public function test_get_language_files_from_path_keeps_cached_empty_array(): void {
+		$path = WP_LANG_DIR . '/plugins/';
+
+		wp_cache_set( md5( $path ), array(), 'translation_files' );
+
+		$this->assertSame(
+			array(),
+			$this->instance->get_language_files_from_path( $path ),
+			'A cached empty array should be returned without looking up the files'
+		);
+	}
+
+	/**
 	 * @covers ::invalidate_mo_files_cache
 	 */
 	public function test_invalidate_mo_files_cache() {
@@ -148,6 +218,172 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' ) );
 		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' ) );
 		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/' ), 'translation_files' ) );
+	}
+
+	/**
+	 * The registry answers "yes" for a text domain it has never looked up,
+	 * so that _load_textdomain_just_in_time() gets a chance to resolve it.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::has
+	 */
+	public function test_has_returns_true_for_unknown_text_domain() {
+		$this->assertTrue( $this->instance->has( 'unknown-plugin' ) );
+	}
+
+	/**
+	 * A lookup that found nothing still records the (negative) result for the
+	 * current locale, which keeps has() truthy.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::has
+	 * @covers ::get
+	 */
+	public function test_has_returns_true_after_unsuccessful_lookup() {
+		$this->assertFalse(
+			$this->instance->get( 'unknown-plugin', 'de_DE' ),
+			'A text domain without translations should not resolve to a path'
+		);
+		$this->assertTrue(
+			$this->instance->has( 'unknown-plugin' ),
+			'The negative result for the current locale should still be reported as available'
+		);
+	}
+
+	/**
+	 * Registering a custom path late must not make previously found translations
+	 * unreachable.
+	 *
+	 * load_plugin_textdomain() and load_theme_textdomain() only register a custom
+	 * path and hand the actual loading off to _load_textdomain_just_in_time(),
+	 * which bails early when has() returns false.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::has
+	 * @covers ::set_custom_path
+	 */
+	public function test_has_after_custom_path_is_registered_following_a_successful_lookup() {
+		// A first locale resolves to the WordPress languages directory.
+		$this->assertSame(
+			WP_LANG_DIR . '/plugins/',
+			$this->instance->get( 'internationalized-plugin', 'de_DE' ),
+			'de_DE translations should be found in the WordPress languages directory'
+		);
+
+		// A second locale has no translations at all, so 'current' becomes false.
+		$this->assertFalse(
+			$this->instance->get( 'internationalized-plugin', 'fr_FR' ),
+			'There should be no fr_FR translations'
+		);
+
+		// Only now does the plugin call load_plugin_textdomain().
+		$this->instance->set_custom_path(
+			'internationalized-plugin',
+			WP_PLUGIN_DIR . '/custom-internationalized-plugin/languages'
+		);
+
+		$this->assertTrue(
+			$this->instance->has( 'internationalized-plugin' ),
+			'Registering a custom path should not hide the already known translations'
+		);
+		$this->assertSame(
+			WP_LANG_DIR . '/plugins/',
+			$this->instance->get( 'internationalized-plugin', 'de_DE' ),
+			'de_DE translations should still be found after registering a custom path'
+		);
+	}
+
+	/**
+	 * Same as above, except that no locale ever resolved, so there is nothing
+	 * left to remember once the negative results have been discarded.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::has
+	 * @covers ::set_custom_path
+	 */
+	public function test_has_after_custom_path_is_registered_following_an_unsuccessful_lookup() {
+		$this->assertFalse(
+			$this->instance->get( 'unknown-plugin', 'de_DE' ),
+			'There should be no de_DE translations'
+		);
+
+		$this->instance->set_custom_path(
+			'unknown-plugin',
+			WP_PLUGIN_DIR . '/custom-internationalized-plugin/languages'
+		);
+
+		$this->assertTrue(
+			$this->instance->has( 'unknown-plugin' ),
+			'The newly registered custom path should be given a chance'
+		);
+	}
+
+	/**
+	 * Text domains are matched in full, not by prefix.
+	 *
+	 * "internationalized-plugin-de_DE.mo" must not count as a translation for the
+	 * "internationalized" text domain just because the file name starts with it.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::get
+	 * @covers ::has
+	 * @dataProvider data_text_domains_sharing_a_prefix
+	 *
+	 * @param string $domain Text domain that has no translations of its own.
+	 * @param string $locale Locale to look up.
+	 */
+	public function test_translations_are_not_shared_between_text_domains_with_a_common_prefix( $domain, $locale ) {
+		$this->assertFalse(
+			$this->instance->get( $domain, $locale ),
+			'A text domain sharing a prefix with a translated one should not resolve to a path'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_text_domains_sharing_a_prefix() {
+		return array(
+			// "internationalized-plugin-{de_DE,es_ES}.mo" exist, "internationalized-*" do not.
+			'prefix of a domain with .mo files'     => array( 'internationalized', 'de_DE' ),
+			'prefix of a domain with .mo files, es' => array( 'internationalized', 'es_ES' ),
+			// "internationalized-plugin-2-de_DE.l10n.php" exists, but is not a
+			// translation of "internationalized-plugin".
+			'domain whose sibling adds a suffix'    => array( 'internationalized-plugin', 'fr_FR' ),
+		);
+	}
+
+	/**
+	 * Once a custom path is registered, the domain must stay resolvable even when
+	 * an unrelated text domain shares its prefix.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::has
+	 * @covers ::set_custom_path
+	 */
+	public function test_has_with_custom_path_is_unaffected_by_text_domains_sharing_a_prefix() {
+		$this->assertFalse(
+			$this->instance->get( 'internationalized', 'de_DE' ),
+			'The "internationalized" text domain has no translations of its own'
+		);
+
+		$this->instance->set_custom_path(
+			'internationalized',
+			WP_PLUGIN_DIR . '/custom-internationalized-plugin/languages'
+		);
+
+		$this->assertTrue(
+			$this->instance->has( 'internationalized' ),
+			'The newly registered custom path should be given a chance'
+		);
 	}
 
 	public function data_domains_locales() {

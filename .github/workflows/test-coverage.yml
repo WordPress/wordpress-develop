@@ -52,6 +52,7 @@ env:
 jobs:
   # Downloads and verifies the Gutenberg build once for all coverage jobs.
   prepare-gutenberg:
+    name: Prepare Gutenberg Assets
     uses: ./.github/workflows/reusable-prepare-gutenberg.yml
     permissions:
       contents: read
@@ -76,7 +77,7 @@ jobs:
       php: '8.3'
       multisite: ${{ matrix.multisite }}
       coverage-report: ${{ matrix.coverage-report }}
-      gutenberg-artifact: gutenberg-build
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
