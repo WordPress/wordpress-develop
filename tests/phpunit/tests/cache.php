@@ -457,14 +457,16 @@ class Tests_Cache extends WP_UnitTestCase {
 	public function test_wp_cache_get_multiple() {
 		wp_cache_set( 'foo1', 'bar', 'group1' );
 		wp_cache_set( 'foo2', 'bar', 'group1' );
-		wp_cache_set( 'foo1', 'bar', 'group2' );
+		wp_cache_set( 'foo3', 'bar', 'group2' );
+		wp_cache_set( 'foo1', 'bar2', 'group2' );
 
-		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3' ), 'group1' );
+		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3', 'foo4' ), 'group1' );
 
 		$expected = array(
 			'foo1' => 'bar',
 			'foo2' => 'bar',
 			'foo3' => false,
+			'foo4' => false,
 		);
 
 		$this->assertSame( $expected, $found );
@@ -479,7 +481,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		wp_cache_set( 'foo3', 'bar', 'group2' );
 
 		$found = wp_cache_delete_multiple(
-			array( 'foo1', 'foo2', 'foo3' ),
+			array( 'foo1', 'foo2', 'foo3', 'foo4' ),
 			'group1'
 		);
 
@@ -487,8 +489,16 @@ class Tests_Cache extends WP_UnitTestCase {
 			'foo1' => true,
 			'foo2' => true,
 			'foo3' => false,
+			'foo4' => false,
 		);
 
 		$this->assertSame( $expected, $found );
+
+		// Verify that foo1 and foo2 were actually deleted from group1.
+		$this->assertFalse( wp_cache_get( 'foo1', 'group1' ) );
+		$this->assertFalse( wp_cache_get( 'foo2', 'group1' ) );
+
+		// Verify that foo3 in group2 was untouched.
+		$this->assertSame( 'bar', wp_cache_get( 'foo3', 'group2' ) );
 	}
 }
