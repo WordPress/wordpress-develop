@@ -236,6 +236,34 @@ define( 'WP_MAX_MEMORY_LIMIT', -1 );
 
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
 
+if ( ! defined( 'UPLOADS' ) ) {
+	define( 'UPLOADS', 'wp-content/test-suite-uploads' );
+
+	/*
+	 * Delete the test uploads dir exactly once per run, via a lock file ( we need it cos each
+	 * @runInSeparateProcess test re-executes this in its own process). The filename is hidden
+	 * ( dot-prefixed ) and suffixed with a hash of the current date so the lock is scoped to
+	 * a single day's run rather than using a fixed, guessable filename.
+	 */
+	$uploads_hash             = substr( md5( gmdate( 'Y-m-d' ) ), 0, 12 );
+	$uploads_test_run_lock    = ABSPATH . 'wp-content/uploads/.test-suite-uploads-' . $uploads_hash . '.lock';
+	$delete_tests_uploads_dir = ! file_exists( $uploads_test_run_lock );
+
+	if ( $delete_tests_uploads_dir ) {
+		touch( $uploads_test_run_lock );
+
+		register_shutdown_function(
+			function () use ( $uploads_test_run_lock ) {
+				if ( file_exists( $uploads_test_run_lock ) ) {
+					unlink( $uploads_test_run_lock );
+				}
+			}
+		);
+	}
+
+	unset( $uploads_test_run_lock, $uploads_hash );
+}
+
 $PHP_SELF            = '/index.php';
 $GLOBALS['PHP_SELF'] = '/index.php';
 $_SERVER['PHP_SELF'] = '/index.php';
@@ -299,6 +327,22 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';
+
+// Process delete wp-content/test-suite-uploads folder.
+if ( ! empty( $delete_tests_uploads_dir ) ) {
+	$uploads_test_run_dir = ABSPATH . UPLOADS;
+
+	if ( is_dir( $uploads_test_run_dir ) ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		WP_Filesystem();
+
+		global $wp_filesystem;
+		$wp_filesystem->delete( $uploads_test_run_dir, true );
+	}
+
+	unset( $uploads_test_run_dir );
+}
+unset( $delete_tests_uploads_dir );
 
 // Override the PHPMailer.
 require_once __DIR__ . '/mock-mailer.php';

@@ -216,7 +216,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -246,7 +246,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -284,7 +284,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -333,7 +333,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -363,7 +363,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -409,7 +409,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -467,7 +467,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp/wp-*.php',
 				'/wp/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
