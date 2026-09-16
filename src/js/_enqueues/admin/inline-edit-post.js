@@ -29,6 +29,8 @@ window.wp = window.wp || {};
 
 	window.inlineEditPost = {
 
+	_beforeUnloadHandler: null,
+
 	/**
 	 * Initializes the inline and bulk post editor.
 	 *
@@ -165,6 +167,10 @@ window.wp = window.wp || {};
 				e.preventDefault();
 				t.setBulk();
 			} else if ( $('form#posts-filter tr.inline-editor').length > 0 ) {
+				if ( t._beforeUnloadHandler && ! window.confirm( wp.i18n.__( 'The changes you made will be lost. Do you want to continue?' ) ) ) {
+					e.preventDefault();
+					return;
+				}
 				t.revert();
 			}
 		});
@@ -198,6 +204,11 @@ window.wp = window.wp || {};
 		var te = '', type = this.type, c = true;
 		var checkedPosts = $( 'tbody .check-column input[type="checkbox"]:checked' );
 		var categories = {};
+
+		if ( this._beforeUnloadHandler && ! window.confirm( wp.i18n.__( 'The changes you made will be lost. Do you want to continue?' ) ) ) {
+			return;
+		}
+
 		this.revert();
 
 		$( '#bulk-edit td' ).attr( 'colspan', $( 'th:visible, td:visible', '.widefat:first thead' ).length );
@@ -323,6 +334,10 @@ window.wp = window.wp || {};
 		$( '#bulk-edit .inline-edit-wrapper' ).attr( 'tabindex', '-1' ).focus();
 		// Scrolls to the top of the table where the editor is rendered.
 		$('html, body').animate( { scrollTop: 0 }, 'fast' );
+
+		$( ':input', '#bulk-edit' ).off( 'change.inlineEdit input.inlineEdit' ).one( 'change.inlineEdit input.inlineEdit', function() {
+			inlineEditPost._guardNavigation();
+		} );
 	},
 
 	/**
@@ -338,6 +353,11 @@ window.wp = window.wp || {};
 	 */
 	edit : function(id) {
 		var t = this, fields, editRow, rowData, status, pageOpt, pageLevel, nextPage, pageLoop = true, nextLevel, f, val, pw;
+
+		if ( t._beforeUnloadHandler && ! window.confirm( wp.i18n.__( 'The changes you made will be lost. Do you want to continue?' ) ) ) {
+			return false;
+		}
+
 		t.revert();
 
 		if ( typeof(id) === 'object' ) {
@@ -482,6 +502,10 @@ window.wp = window.wp || {};
 		$(editRow).attr('id', 'edit-'+id).addClass('inline-editor').show();
 		$('.ptitle', editRow).trigger( 'focus' );
 
+		$( ':input', editRow ).one( 'change.inlineEdit input.inlineEdit', function() {
+			t._guardNavigation();
+		} );
+
 		return false;
 	},
 
@@ -525,6 +549,7 @@ window.wp = window.wp || {};
 
 				if (r) {
 					if ( -1 !== r.indexOf( '<tr' ) ) {
+						inlineEditPost._unguardNavigation();
 						$(inlineEditPost.what+id).siblings('tr.hidden').addBack().remove();
 						$('#edit-'+id).before(r).remove();
 						$( inlineEditPost.what + id ).hide().fadeIn( 400, function() {
@@ -566,6 +591,7 @@ window.wp = window.wp || {};
 			id = $( '.inline-editor', $tableWideFat ).attr( 'id' );
 
 		if ( id ) {
+			this._unguardNavigation();
 			$( '.spinner', $tableWideFat ).removeClass( 'is-active' );
 
 			if ( 'bulk-edit' === id ) {
@@ -610,6 +636,39 @@ window.wp = window.wp || {};
 		var id = $(o).closest('tr').attr('id'),
 			parts = id.split('-');
 		return parts[parts.length - 1];
+	},
+
+	/**
+	 * Sets a beforeunload handler to warn about unsaved Quick Edit or Bulk Edit changes.
+	 *
+	 * @since x.x.x
+	 * @memberof inlineEditPost
+	 * @return {void}
+	 */
+	_guardNavigation: function() {
+		var t = this;
+		if ( t._beforeUnloadHandler ) {
+			return;
+		}
+		t._beforeUnloadHandler = function( event ) {
+			event.preventDefault();
+			event.returnValue = '';
+		};
+		window.addEventListener( 'beforeunload', t._beforeUnloadHandler );
+	},
+
+	/**
+	 * Removes the beforeunload handler set by _guardNavigation().
+	 *
+	 * @since x.x.x
+	 * @memberof inlineEditPost
+	 * @return {void}
+	 */
+	_unguardNavigation: function() {
+		if ( this._beforeUnloadHandler ) {
+			window.removeEventListener( 'beforeunload', this._beforeUnloadHandler );
+			this._beforeUnloadHandler = null;
+		}
 	}
 };
 
