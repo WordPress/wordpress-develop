@@ -1413,8 +1413,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$html .= "<?{$this->get_tag()} {$this->get_modifiable_text()}?>";
 				break;
 
+			/*
+			 * A CDATA section at an integration point is a run of character
+			 * tokens in the HTML namespace, whose NULL bytes are removed. That
+			 * removal can leave a `]]>` in the text, so it must be serialized
+			 * as escaped text or the closer would end the section early and
+			 * turn the rest of the text into markup.
+			 *
+			 * In foreign content the CDATA form is kept: NULL bytes become
+			 * U+FFFD there and the tokenizer ends the section at the first
+			 * `]]>`, so the text cannot contain the closer.
+			 */
 			case '#cdata-section':
-				$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
+				$html .= 'html' === $this->get_namespace()
+					? self::escape_text_for_serialization( $this->get_modifiable_text() )
+					: "<![CDATA[{$this->get_modifiable_text()}]]>";
 				break;
 		}
 
