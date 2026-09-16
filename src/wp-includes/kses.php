@@ -1177,22 +1177,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			}
 
 			if ( 'math' === $namespace && ! $self_closing ) {
-				if (
-					in_array(
-						$token_name,
-						array(
-							'MI',
-							'MO',
-							'MN',
-							'MS',
-							'MTEXT',
-						),
-						true
-					)
-				) {
-					return true;
-				}
-
 				$encoding = $this->get_attribute( 'encoding' );
 				if (
 					'ANNOTATION-XML' === $token_name &&
@@ -1268,8 +1252,39 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				$token_type = $this->get_token_type();
 				$namespace  = $this->get_namespace();
 				$is_closer  = $this->is_tag_closer();
-				$text       = $this->get_modifiable_text();
 				$here       = $this->get_span();
+
+				$in_mathml_text = (
+					'math' === $namespace &&
+					in_array(
+						end( $this->foreign_content_stack ),
+						array(
+							'MI',
+							'MN',
+							'MO',
+							'MS',
+							'MTEXT',
+						),
+						true
+					)
+				);
+
+				/*
+				 * While content inside integration points is generally not allowed here,
+				 * character data inside the MathML text elements _is_ allowed. This is
+				 * because the rules only change slightly: NULL bytes are removed instead
+				 * of being replaced with the Unicode replacement character U+FFFD; and
+				 * active formats are reconstructed. The format reconstruction doesn’t
+				 * occur here but a browser will still do so; this sanitizer is generally
+				 * unaware of nesting structure.
+				 */
+				if ( $in_mathml_text && '#text' === $token_type ) {
+					$this->change_parsing_namespace( 'html' );
+					$text = $this->get_modifiable_text();
+					$this->change_parsing_namespace( $namespace );
+				} else {
+					$text = $this->get_modifiable_text();
+				}
 
 				/*
 				 * Enter the foreign content and change the parsing namespace
@@ -1479,8 +1494,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						 * or insertion mode.
 						 */
 						if (
-							'html' !== $namespace &&
-							$this->could_potentially_escape_foreign_content()
+							( 'html' !== $namespace && $this->could_potentially_escape_foreign_content() ) ||
+							( $in_mathml_text && ! $is_closer )
 						) {
 							return substr( $output, 0, $foreign_content_starts_at );
 						}
