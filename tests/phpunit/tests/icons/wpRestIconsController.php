@@ -537,4 +537,76 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertErrorResponse( 'rest_cannot_view', $response, 401 );
 	}
+
+	/**
+	 * Test that icons registered as non-public are omitted from the collection.
+	 *
+	 * @ticket 66087
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_omits_non_public_icons() {
+		wp_register_icon_collection( 'rest-visibility-list', array( 'label' => 'REST Visibility' ) );
+		wp_register_icon(
+			'rest-visibility-list/visible',
+			array(
+				'label'   => 'Visible',
+				'content' => '<svg><path d="M0 0"/></svg>',
+			)
+		);
+		wp_register_icon(
+			'rest-visibility-list/hidden',
+			array(
+				'label'   => 'Hidden',
+				'content' => '<svg><path d="M1 1"/></svg>',
+				'public'  => false,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertContains( 'rest-visibility-list/visible', $names );
+		$this->assertNotContains( 'rest-visibility-list/hidden', $names );
+
+		wp_unregister_icon_collection( 'rest-visibility-list' );
+	}
+
+	/**
+	 * Test that a non-public icon is reported as not found by name, while
+	 * remaining available to server-side code.
+	 *
+	 * @ticket 66087
+	 *
+	 * @covers ::get_item
+	 * @covers ::get_icon
+	 */
+	public function test_get_item_returns_404_for_non_public_icon() {
+		wp_register_icon_collection( 'rest-visibility-single', array( 'label' => 'REST Visibility' ) );
+		wp_register_icon(
+			'rest-visibility-single/hidden',
+			array(
+				'label'   => 'Hidden',
+				'content' => '<svg><path d="M1 1"/></svg>',
+				'public'  => false,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/rest-visibility-single/hidden' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_icon_not_found', $response, 404 );
+
+		// The icon is hidden from the REST API, not unregistered.
+		$this->assertStringContainsString( '<svg', wp_get_icon( 'rest-visibility-single/hidden' ) );
+
+		wp_unregister_icon_collection( 'rest-visibility-single' );
+	}
 }

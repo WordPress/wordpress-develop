@@ -14,11 +14,11 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * Triggered when attachment details change
 	 * Overrides Backbone.Model.sync
 	 *
-	 * @param {string} method
-	 * @param {wp.media.model.Attachment} model
-	 * @param {Object} [options={}]
+	 * @param {string}                    method       The method to be performed: 'read', 'update', or 'delete'.
+	 * @param {wp.media.model.Attachment} model        The attachment model being synced.
+	 * @param {Object}                    [options={}] Optional. Additional options for the sync operation.
 	 *
-	 * @return {Promise}
+	 * @return {jQuery.Promise} A jQuery Promise that is resolved or rejected based on the success of the sync operation.
 	 */
 	sync: function( method, model, options ) {
 		// If the attachment does not yet have an `id`, return an instantly
@@ -113,12 +113,14 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 		return resp;
 	},
 	/**
-	 * @param {Object} data The properties to be saved.
+	 * Saves attachment details using the `save-attachment-compat` action.
+	 *
+	 * @param {Object} data    The properties to be saved.
 	 * @param {Object} options Sync options. e.g. patch, wait, success, error.
 	 *
 	 * @this Backbone.Model
 	 *
-	 * @return {Promise}
+	 * @return {jQuery.Promise} A jQuery Promise that is resolved or rejected based on the success of the sync operation.
 	 */
 	saveCompat: function( data, options ) {
 		var model = this;
@@ -142,8 +144,8 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 *
 	 * @static
 	 *
-	 * @param {Object} attrs
-	 * @return {wp.media.model.Attachment}
+	 * @param {Object} attrs The attributes for the new attachment model.
+	 * @return {wp.media.model.Attachment} The newly created attachment model.
 	 */
 	create: function( attrs ) {
 		var Attachments = wp.media.model.Attachments;
@@ -156,8 +158,8 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 	 * it returns the specified attachment.
 	 *
 	 * @static
-	 * @param {string} id A string used to identify a model.
-	 * @param {Backbone.Model|undefined} attachment
+	 * @param {string}                   id         A string used to identify a model.
+	 * @param {Backbone.Model|undefined} attachment The attachment model to retrieve or create.
 	 * @return {wp.media.model.Attachment}
 	 */
 	get: _.memoize( function( id, attachment ) {
