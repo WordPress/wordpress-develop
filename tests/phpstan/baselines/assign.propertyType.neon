@@ -36,12 +36,12 @@ parameters:
 		-
 			message: '#^Property WP_Query\:\:\$posts \(array\<int\|WP_Post\>\|null\) does not accept list\<stdClass\>\|null\.$#'
 			identifier: assign.propertyType
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/class-wp-query.php
 		-
 			message: '#^Property WP_Query\:\:\$posts \(array\<int\|WP_Post\>\|null\) does not accept list\<string\|null\>\.$#'
 			identifier: assign.propertyType
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/class-wp-query.php
 		-
 			message: '#^Property WP_Rewrite\:\:\$rules \(array\<string\>\) does not accept string\.$#'

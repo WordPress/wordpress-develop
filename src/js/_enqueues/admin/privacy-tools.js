@@ -71,7 +71,7 @@ jQuery( function( $ ) {
 				'<p>' + summaryMessage + '</p>' +
 				itemList +
 				'</div>' +
-				'</td>' +
+				'</th>' +
 				'</tr>';
 		});
 	}

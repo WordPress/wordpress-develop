@@ -29,6 +29,7 @@
 		"ext-igbinary": "*",
 		"ext-imagick": "*",
 		"ext-intl": "*",
+		"ext-libxml": "*",
 		"ext-mbstring": "*",
 		"ext-memcached": "*",
 		"ext-mysqli": "*",

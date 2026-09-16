@@ -6,11 +6,11 @@
  *
  * A state has an event-driven lifecycle:
  *
- *     'ready'      triggers when a state is added to a state machine's collection.
- *     'activate'   triggers when a state is activated by a state machine.
- *     'deactivate' triggers when a state is deactivated by a state machine.
- *     'reset'      is not triggered automatically. It should be invoked by the
- *                  proper controller to reset the state to its default.
+ * 'ready'      triggers when a state is added to a state machine's collection.
+ * 'activate'   triggers when a state is activated by a state machine.
+ * 'deactivate' triggers when a state is deactivated by a state machine.
+ * 'reset'      is not triggered automatically. It should be invoked by the
+ * proper controller to reset the state to its default.
  *
  * @memberOf wp.media.controller
  *
@@ -85,7 +85,7 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	 *
 	 * @since 3.5.0
 	 * @access private
-	*/
+	 */
 	_preActivate: function() {
 		this.active = true;
 	},

@@ -216,9 +216,7 @@ class HookDocBlock {
 				// depend on where the checkout lives.
 				$key = $this->getRootRelativePath( $target );
 
-				if ( ! isset( $docs[ $key ] ) ) {
-					$docs[ $key ] = $this->getHookDocs( $target );
-				}
+				$docs[ $key ] ??= $this->getHookDocs( $target );
 			}
 		}
 
@@ -562,9 +560,7 @@ class HookDocBlock {
 	 * @return HookDocs
 	 */
 	private function getHookDocs( string $file ): array {
-		if ( ! isset( $this->fileHookDocs[ $file ] ) ) {
-			$this->fileHookDocs[ $file ] = self::loadHookDocs( $file );
-		}
+		$this->fileHookDocs[ $file ] ??= self::loadHookDocs( $file );
 
 		return $this->fileHookDocs[ $file ];
 	}
@@ -663,9 +659,7 @@ class HookDocBlock {
 			$name_expr = $args[0]->value;
 
 			if ( $name_expr instanceof String_ ) {
-				if ( ! isset( $docs['exact'][ $name_expr->value ] ) ) {
-					$docs['exact'][ $name_expr->value ] = $doc->getText();
-				}
+				$docs['exact'][ $name_expr->value ] ??= $doc->getText();
 				continue;
 			}
 
