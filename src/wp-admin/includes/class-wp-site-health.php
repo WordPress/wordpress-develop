@@ -2790,20 +2790,36 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if opcode cache is enabled and available.
+	 * Tests if opcode cache is enabled and available, and checks for saturation.
+	 *
+	 * Detects three distinct saturation conditions when OPcache is enabled:
+	 * memory full, interned strings buffer exhausted, and key/script table full.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @return array<string, string|array<string, string>> The test result.
 	 */
 	public function get_test_opcode_cache(): array {
-		$opcode_cache_enabled = false;
+		$status = false;
+
 		if ( function_exists( 'opcache_get_status' ) ) {
 			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
-			if ( $status && true === $status['opcache_enabled'] ) {
-				$opcode_cache_enabled = true;
-			}
 		}
+
+		/**
+		 * Filters the OPcache status data used by the Site Health opcode cache test.
+		 *
+		 * Allows overriding the array returned by opcache_get_status() for testing
+		 * or for environments where the built-in function does not reflect reality.
+		 * Return false to indicate OPcache is unavailable.
+		 *
+		 * @since x.x.x
+		 *
+		 * @param array|false $status The OPcache status array, or false if unavailable.
+		 */
+		$status = apply_filters( 'wp_site_health_opcache_status', $status );
+
+		$opcode_cache_enabled = $status && isset( $status['opcache_enabled'] ) && true === $status['opcache_enabled'];
 
 		$result = array(
 			'label'       => __( 'Opcode cache is enabled' ),
@@ -2830,6 +2846,84 @@ class WP_Site_Health {
 			$result['status']       = 'recommended';
 			$result['label']        = __( 'Opcode cache is not enabled' );
 			$result['description'] .= '<p>' . __( 'Enabling this cache can significantly improve the performance of your site.' ) . '</p>';
+			return $result;
+		}
+
+		if ( $status ) {
+			$saturation_notices = array();
+
+			// Check if OPcache memory is full or has been reset due to memory exhaustion.
+			$memory_oom = isset( $status['opcache_statistics']['oom_restarts'] ) && $status['opcache_statistics']['oom_restarts'] > 0;
+			if ( ! empty( $status['cache_full'] ) || $memory_oom ) {
+				$saturation_notices[] = sprintf(
+					/* translators: %s: PHP ini setting name. */
+					__( 'The opcode cache memory is full and PHP is evicting scripts to make room for new ones, which reduces caching effectiveness. Consider increasing the %s PHP setting.' ),
+					'<code>opcache.memory_consumption</code>'
+				);
+			} elseif ( isset(
+				$status['memory_usage']['free_memory'],
+				$status['memory_usage']['used_memory'],
+				$status['memory_usage']['wasted_memory']
+			) ) {
+				$total_memory = $status['memory_usage']['free_memory'] + $status['memory_usage']['used_memory'] + $status['memory_usage']['wasted_memory'];
+				if ( $total_memory > 0 ) {
+					$used_percent = ( $status['memory_usage']['used_memory'] + $status['memory_usage']['wasted_memory'] ) / $total_memory;
+					if ( $used_percent > 0.9 ) {
+						$saturation_notices[] = sprintf(
+							/* translators: 1: Percentage of OPcache memory in use. 2: PHP ini setting name. */
+							__( 'The opcode cache memory is nearly full (%1$d%% used). Consider increasing the %2$s PHP setting.' ),
+							(int) ( $used_percent * 100 ),
+							'<code>opcache.memory_consumption</code>'
+						);
+					}
+				}
+			}
+
+			// Check if the interned strings buffer is nearly exhausted.
+			if ( isset( $status['interned_strings_usage']['free_memory'], $status['interned_strings_usage']['buffer_size'] )
+				&& $status['interned_strings_usage']['buffer_size'] > 0 ) {
+				$interned_free_ratio = $status['interned_strings_usage']['free_memory'] / $status['interned_strings_usage']['buffer_size'];
+				if ( $interned_free_ratio < 0.1 ) {
+					$saturation_notices[] = sprintf(
+						/* translators: 1: Percentage of OPcache interned strings buffer in use. 2: PHP ini setting name. */
+						__( 'The interned strings buffer is nearly exhausted (%1$d%% used). Consider increasing the %2$s PHP setting.' ),
+						(int) ( ( 1 - $interned_free_ratio ) * 100 ),
+						'<code>opcache.interned_strings_buffer</code>'
+					);
+				}
+			}
+
+			// Check if the script/key hash table has overflowed or is nearly full.
+			if ( ! empty( $status['opcache_statistics']['hash_restarts'] ) ) {
+				$saturation_notices[] = sprintf(
+					/* translators: %s: PHP ini setting name. */
+					__( 'The opcode cache key table has overflowed and been reset. Consider increasing the %s PHP setting.' ),
+					'<code>opcache.max_accelerated_files</code>'
+				);
+			} elseif ( isset( $status['opcache_statistics']['num_cached_keys'], $status['opcache_statistics']['max_cached_keys'] )
+				&& $status['opcache_statistics']['max_cached_keys'] > 0 ) {
+				$key_usage = $status['opcache_statistics']['num_cached_keys'] / $status['opcache_statistics']['max_cached_keys'];
+				if ( $key_usage > 0.9 ) {
+					$saturation_notices[] = sprintf(
+						/* translators: 1: Percentage of OPcache key slots in use. 2: PHP ini setting name. */
+						__( 'The opcode cache key table is nearly full (%1$d%% used). Consider increasing the %2$s PHP setting.' ),
+						(int) ( $key_usage * 100 ),
+						'<code>opcache.max_accelerated_files</code>'
+					);
+				}
+			}
+
+			if ( ! empty( $saturation_notices ) ) {
+				$result['status'] = 'recommended';
+				$result['label']  = __( 'Opcode cache is enabled, but appears saturated' );
+				foreach ( $saturation_notices as $notice ) {
+					$result['description'] .= '<p>' . $notice . '</p>';
+				}
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'Ask your hosting provider or server administrator about increasing these opcode cache settings.' )
+				);
+			}
 		}
 
 		return $result;
