@@ -57,7 +57,7 @@ class WP_Icon_Collections_Registry {
 			return false;
 		}
 
-		if ( ! preg_match( '/^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$/', $collection_slug ) ) {
+		if ( '_builtin' !== $collection_slug && ! preg_match( '/^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$/', $collection_slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Icon collection slug must start and end with a lowercase letter or digit and contain only lowercase letters, digits, hyphens, and underscores.' ),
@@ -138,12 +138,28 @@ class WP_Icon_Collections_Registry {
 	 *
 	 * Any icons registered under the given collection are also unregistered.
 	 *
+	 * The built-in collection is used by WordPress itself and cannot be unregistered.
+	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 The built-in collection cannot be unregistered.
 	 *
 	 * @param string $collection_slug Icon collection slug.
 	 * @return bool True if the collection was unregistered successfully, false otherwise.
 	 */
 	public function unregister( $collection_slug ) {
+		if ( '_builtin' === $collection_slug ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: Icon collection slug. */
+					__( 'The "%s" icon collection is used by WordPress and cannot be unregistered.' ),
+					$collection_slug
+				),
+				'7.2.0'
+			);
+			return false;
+		}
+
 		if ( ! $this->is_registered( $collection_slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,

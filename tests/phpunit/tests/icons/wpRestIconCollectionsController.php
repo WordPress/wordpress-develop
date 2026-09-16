@@ -294,6 +294,43 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 	}
 
 	/**
+	 * Test that the built-in collection is not exposed by the icon collections
+	 * endpoint.
+	 *
+	 * @ticket 66114
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_omits_the_builtin_collection() {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icon-collections' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$slugs = wp_list_pluck( $response->get_data(), 'slug' );
+		$this->assertContains( 'core', $slugs );
+		$this->assertNotContains( '_builtin', $slugs );
+	}
+
+	/**
+	 * Test that the built-in collection is reported as not found when requested
+	 * by slug.
+	 *
+	 * @ticket 66114
+	 *
+	 * @covers ::get_icon_collection
+	 */
+	public function test_get_icon_collection_returns_error_for_the_builtin_collection() {
+		$controller = new WP_REST_Icon_Collections_Controller();
+		$collection = $controller->get_icon_collection( '_builtin' );
+
+		$this->assertWPError( $collection );
+		$this->assertSame( 'rest_icon_collection_not_found', $collection->get_error_code() );
+	}
+
+	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {

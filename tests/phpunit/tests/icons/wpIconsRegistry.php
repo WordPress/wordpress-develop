@@ -476,4 +476,31 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$this->assertFalse( $result );
 		$this->assertFalse( $this->registry->is_registered( 'test-collection/invalid-visibility' ) );
 	}
+
+	/**
+	 * Should fail to unregister an icon in the built-in collection, and leave it
+	 * registered.
+	 *
+	 * @ticket 66114
+	 *
+	 * @covers ::unregister
+	 *
+	 * @expectedIncorrectUsage WP_Icons_Registry::unregister
+	 */
+	public function test_unregister_builtin_icon_fails() {
+		$builtin   = '_builtin';
+		$icon_name = $builtin . '/alpha';
+
+		$this->registry->register(
+			$icon_name,
+			array(
+				'label'   => 'Alpha',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		$this->assertTrue( $this->registry->is_registered( $icon_name ), 'The icon should be registered to begin with.' );
+		$this->assertFalse( $this->registry->unregister( $icon_name ), 'Unregistering a built-in icon should fail.' );
+		$this->assertTrue( $this->registry->is_registered( $icon_name ), 'The icon should still be registered.' );
+	}
 }
