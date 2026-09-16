@@ -414,7 +414,7 @@ function wp_maintenance() {
 	header( 'Retry-After: 600' );
 
 	wp_die(
-		__( 'Briefly unavailable for scheduled maintenance. Check back in a minute.' ),
+		__( 'Briefly unavailable for scheduled maintenance. Check back shortly.' ),
 		__( 'Maintenance' ),
 		503
 	);
