@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 /*
 Theme Name: Twenty Twenty
 Text Domain: twentytwenty
@@ -716,6 +718,7 @@ input[type="checkbox"] {
 input[type="checkbox"]:checked::before {
 	/* Use the "Yes" SVG Dashicon */
 	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23000000%27%2F%3E%3C%2Fsvg%3E");
+	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23000000%27%2F%3E%3C%2Fsvg%3E") / '';
 	position: absolute;
 	display: inline-block;
 	margin: -0.1875rem -0.25rem 0 0;
@@ -3233,6 +3236,7 @@ figure.wp-block-gallery.alignfull {
 	border-radius: 50%;
 	color: #cd2653;
 	content: "”";
+	content: "”" / '';
 	display: block;
 	font-size: 6.2rem;
 	font-weight: 500;
@@ -3369,6 +3373,8 @@ hr.wp-block-separator {
 .wp-block-separator.is-style-dots::before {
 	background: none;
 	color: inherit;
+	content: "···";
+	content: "···" / '';
 	font-size: 3.2rem;
 	font-weight: 700;
 	height: auto;
@@ -3383,6 +3389,9 @@ hr.wp-block-separator {
 	content: none;
 }
 
+.wp-block-separator.is-style-dots {
+	height: auto;
+}
 
 /* Block: Search ----------------------------- */
 
@@ -4386,6 +4395,7 @@ div.comment:first-of-type {
 
 .widget_rss cite::before {
 	content: "— ";
+	content: "— " / '';
 }
 
 /* Widget: Search ---------------------------- */
