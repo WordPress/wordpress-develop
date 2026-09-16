@@ -2948,6 +2948,10 @@ function get_post_custom_values( $key = '', $post_id = 0 ) {
 
 	$custom = get_post_custom( $post_id );
 
+	if ( ! is_array( $custom ) ) {
+		return null;
+	}
+
 	return $custom[ $key ] ?? null;
 }
 
