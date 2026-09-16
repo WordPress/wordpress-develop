@@ -741,6 +741,7 @@ class WP_Query {
 	 *                                                   - 'relevance'
 	 *                                                   - 'RAND(x)' (where 'x' is an integer seed value)
 	 *                                                   - 'comment_count'
+	 *                                                   - 'comment_date'
 	 *                                                   - 'meta_value'
 	 *                                                   - 'meta_value_num'
 	 *                                                   - 'post__in'
@@ -1711,6 +1712,7 @@ class WP_Query {
 			'ID',
 			'menu_order',
 			'comment_count',
+			'comment_date',
 			'rand',
 			'post__in',
 			'post_parent__in',
@@ -1759,6 +1761,9 @@ class WP_Query {
 			case 'menu_order':
 			case 'comment_count':
 				$orderby_clause = "{$wpdb->posts}.{$orderby}";
+				break;
+			case 'comment_date':
+				$orderby_clause = 'ISNULL(wp_query_comments_last.comment_date), wp_query_comments_last.comment_date';
 				break;
 			case 'rand':
 				$orderby_clause = 'RAND()';
@@ -2480,6 +2485,8 @@ class WP_Query {
 			$query_vars['order'] = '';
 		}
 
+		$orderby_comment_date = false;
+
 		// Order by.
 		if ( empty( $query_vars['orderby'] ) ) {
 			/*
@@ -2504,6 +2511,10 @@ class WP_Query {
 						continue;
 					}
 
+					if ( 'comment_date' === $orderby ) {
+						$orderby_comment_date = true;
+					}
+
 					$orderby_array[] = $parsed . ' ' . $this->parse_order( $order );
 				}
 				$orderby = implode( ', ', $orderby_array );
@@ -2519,6 +2530,10 @@ class WP_Query {
 						continue;
 					}
 
+					if ( 'comment_date' === $orderby ) {
+						$orderby_comment_date = true;
+					}
+
 					$orderby_array[] = $parsed;
 				}
 				$orderby = implode( ' ' . $query_vars['order'] . ', ', $orderby_array );
@@ -2529,6 +2544,16 @@ class WP_Query {
 					$orderby .= " {$query_vars['order']}";
 				}
 			}
+		}
+
+		if ( $orderby_comment_date ) {
+			$join .= " LEFT JOIN (
+				SELECT comment_post_ID, MAX(comment_date) AS comment_date
+				FROM {$wpdb->comments}
+				WHERE comment_approved = '1'
+				AND comment_type != 'note'
+				GROUP BY comment_post_ID
+			) AS wp_query_comments_last ON ( {$wpdb->posts}.ID = wp_query_comments_last.comment_post_ID )";
 		}
 
 		// Order search results by relevance only when another "orderby" is not specified in the query.
