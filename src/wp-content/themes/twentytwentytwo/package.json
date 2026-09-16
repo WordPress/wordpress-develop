@@ -14,7 +14,18 @@
 	"homepage": "https://wordpress.org/themes/twentytwentytwo/",
 	"engines": {
 		"node": ">=24.18.0",
-		"npm": ">=11.16.0"
+		"npm": ">=12.0.2"
+	},
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": ">=24.18.0"
+		},
+		"packageManager": {
+			"name": "npm",
+			"version": ">=12.0.2",
+			"onFail": "error"
+		}
 	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^6.34.0",
@@ -28,5 +39,8 @@
   "scripts": {
     "build": "postcss style.css --use cssnano -o style.min.css --no-map",
     "watch": "postcss style.css --use cssnano -o style.min.css --no-map --watch"
-  }
+  },
+	"allowScripts": {
+		"fsevents": false
+	}
 }
