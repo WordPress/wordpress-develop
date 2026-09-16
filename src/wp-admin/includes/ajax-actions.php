@@ -5484,7 +5484,13 @@ function wp_ajax_health_check_loopback_requests() {
 /**
  * Handles site health check to update the result status via AJAX.
  *
+ * The aggregate counts and the full per-test results are sent as two independent
+ * requests, so a large results payload cannot prevent the lightweight counts from being
+ * refreshed. Each is handled on its own here, and either may be omitted.
+ *
  * @since 5.2.0
+ * @since 7.1.0 The submitted counts are validated, and the optional full per-test results
+ *              are sanitized and cached separately as the authoritative detailed results.
  */
 function wp_ajax_health_check_site_status_result() {
 	check_ajax_referer( 'health-check-site-status-result' );
@@ -5493,7 +5499,40 @@ function wp_ajax_health_check_site_status_result() {
 		wp_send_json_error();
 	}
 
-	set_transient( 'health-check-site-status-result', wp_json_encode( $_POST['counts'] ) );
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
+	}
+
+	$save_results = array();
+
+	// Refresh the lightweight, autoloaded aggregate counts used by the admin menu and Dashboard.
+	// TODO: We don't need to keep this anymore. We can just obtain the counts at runtime from the stored results.
+	if ( isset( $_POST['counts'] ) && is_array( $_POST['counts'] ) ) {
+		$counts         = wp_unslash( $_POST['counts'] );
+		$save_results[] = WP_Site_Health::set_site_status_counts( $counts );
+	}
+
+	/*
+	 * Cache the full per-test results as the authoritative detailed results. These include
+	 * the asynchronous tests that require JavaScript to run. The values are sanitized in
+	 * WP_Site_Health::update_site_status_detail().
+	 */
+	if ( isset( $_POST['results'] ) && is_string( $_POST['results'] ) ) {
+		$results = json_decode( wp_unslash( $_POST['results'] ), true );
+
+		if ( is_array( $results ) ) {
+			$save_results[] = WP_Site_Health::update_site_status_detail( $results );
+		}
+	}
+
+	if ( count( $save_results ) === 0 ) {
+		wp_send_json_error();
+	}
+
+	$errors = array_filter( $save_results, 'is_wp_error' );
+	if ( count( $errors ) > 0 ) {
+		wp_send_json_error( reset( $errors ) );
+	}
 
 	wp_send_json_success();
 }
