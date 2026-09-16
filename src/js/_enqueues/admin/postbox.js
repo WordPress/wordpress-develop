@@ -394,6 +394,24 @@
 				opacity: 0.65,
 				start: function() {
 					$( 'body' ).addClass( 'is-dragging-metaboxes' );
+
+					/*
+					 * Equalize the height of the dashboard sortable drop areas to the
+					 * tallest column. The drop placeholder only appears where the dragged
+					 * item overlaps a `.meta-box-sortables` area, so without this a widget
+					 * dragged past the end of a shorter column gets no drop indicator.
+					 */
+					var $dashboardSortables = $( '#dashboard-widgets .meta-box-sortables' ),
+						maxSortableHeight = 0;
+
+					$dashboardSortables.each( function() {
+						maxSortableHeight = Math.max( maxSortableHeight, $( this ).height() );
+					});
+
+					if ( maxSortableHeight ) {
+						$dashboardSortables.css( 'min-height', maxSortableHeight + 'px' );
+					}
+
 					// Refresh the cached positions of all the sortable items so that the min-height set while dragging works.
 					$( '.meta-box-sortables' ).sortable( 'refreshPositions' );
 				},
@@ -401,6 +419,9 @@
 					var $el = $( this );
 
 					$( 'body' ).removeClass( 'is-dragging-metaboxes' );
+
+					// Remove the temporary equal-height drop areas set in `start`.
+					$( '#dashboard-widgets .meta-box-sortables' ).css( 'min-height', '' );
 
 					if ( $el.find( '#dashboard_browser_nag' ).is( ':visible' ) && 'dashboard_browser_nag' != this.firstChild.id ) {
 						$el.sortable('cancel');
