@@ -132,6 +132,115 @@ class Tests_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Non-array values that can not be used as a meta cache entry.
+	 *
+	 * @return array<string, array{mixed}>
+	 */
+	public function data_non_array_cache_values(): array {
+		return array(
+			'object'  => array( new stdClass() ),
+			'string'  => array( 'meta_value' ),
+			'integer' => array( 1 ),
+			'float'   => array( 1.5 ),
+			'true'    => array( true ),
+		);
+	}
+
+	/**
+	 * @ticket 66091
+	 *
+	 * @dataProvider data_non_array_cache_values
+	 *
+	 * @param mixed $cached_value Value to place in the meta cache.
+	 */
+	public function test_metadata_exists_treats_non_array_cache_value_as_miss( $cached_value ): void {
+		wp_cache_set( self::$author->ID, $cached_value, 'user_meta' );
+
+		$this->assertTrue( metadata_exists( 'user', self::$author->ID, 'meta_key' ) );
+		$this->assertFalse( metadata_exists( 'user', self::$author->ID, 'foobarbaz' ) );
+		$this->assertIsArray( wp_cache_get( self::$author->ID, 'user_meta' ), 'The unusable cache value should have been replaced.' );
+	}
+
+	/**
+	 * @ticket 66091
+	 *
+	 * @dataProvider data_non_array_cache_values
+	 *
+	 * @param mixed $cached_value Value to place in the meta cache.
+	 */
+	public function test_get_metadata_treats_non_array_cache_value_as_miss( $cached_value ): void {
+		wp_cache_set( self::$author->ID, $cached_value, 'user_meta' );
+
+		$this->assertSame( 'meta_value', get_metadata( 'user', self::$author->ID, 'meta_key', true ) );
+		$this->assertSame( array( 'meta_value' ), get_metadata( 'user', self::$author->ID, 'meta_key' ) );
+		$this->assertIsArray( wp_cache_get( self::$author->ID, 'user_meta' ), 'The unusable cache value should have been replaced.' );
+	}
+
+	/**
+	 * @ticket 66091
+	 *
+	 * @dataProvider data_non_array_cache_values
+	 *
+	 * @param mixed $cached_value Value to place in the meta cache.
+	 */
+	public function test_get_metadata_with_empty_key_treats_non_array_cache_value_as_miss( $cached_value ): void {
+		wp_cache_set( self::$author->ID, $cached_value, 'user_meta' );
+
+		$meta = get_metadata( 'user', self::$author->ID );
+
+		$this->assertIsArray( $meta );
+		$this->assertSame( array( 'meta_value' ), $meta['meta_key'] );
+	}
+
+	/**
+	 * @ticket 66091
+	 *
+	 * @dataProvider data_non_array_cache_values
+	 *
+	 * @param mixed $cached_value Value to place in the meta cache.
+	 */
+	public function test_update_meta_cache_replaces_non_array_cache_value( $cached_value ): void {
+		wp_cache_set( self::$author->ID, $cached_value, 'user_meta' );
+
+		$meta_cache = update_meta_cache( 'user', array( self::$author->ID ) );
+
+		$this->assertIsArray( $meta_cache[ self::$author->ID ] );
+		$this->assertSame( array( 'meta_value' ), $meta_cache[ self::$author->ID ]['meta_key'] );
+
+		$cached = wp_cache_get( self::$author->ID, 'user_meta' );
+		$this->assertIsArray( $cached, 'The unusable cache value should have been replaced.' );
+		$this->assertSame( array( 'meta_value' ), $cached['meta_key'] );
+	}
+
+	/**
+	 * @ticket 66091
+	 */
+	public function test_update_meta_cache_replaces_non_array_cache_value_for_object_without_meta(): void {
+		$term_id = self::factory()->term->create();
+
+		wp_cache_set( $term_id, new stdClass(), 'term_meta' );
+
+		$meta_cache = update_meta_cache( 'term', array( $term_id ) );
+
+		$this->assertSame( array(), $meta_cache[ $term_id ] );
+		$this->assertSame( array(), wp_cache_get( $term_id, 'term_meta' ) );
+	}
+
+	/**
+	 * @ticket 66091
+	 */
+	public function test_update_meta_cache_removes_non_array_cache_value_while_cache_addition_is_suspended(): void {
+		wp_cache_set( self::$author->ID, new stdClass(), 'user_meta' );
+
+		wp_suspend_cache_addition( true );
+		$meta_cache = update_meta_cache( 'user', array( self::$author->ID ) );
+		wp_suspend_cache_addition( false );
+
+		$this->assertSame( array( 'meta_value' ), $meta_cache[ self::$author->ID ]['meta_key'] );
+		$this->assertFalse( wp_cache_get( self::$author->ID, 'user_meta' ), 'The unusable cache value should be removed but not replaced while cache addition is suspended.' );
+	}
+
+	/**
 	 * @ticket 18158
 	 */
 	public function test_user_metadata_not_exists() {
