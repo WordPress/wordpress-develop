@@ -166,6 +166,8 @@ jobs:
           package-manager-cache: false
 
       - name: Set up npm
+        # A workflow_dispatch run can check out a release branch, which lacks the action.
+        if: ${{ hashFiles('.github/actions/setup-npm/action.yml') != '' }}
         uses: ./.github/actions/setup-npm
         with:
           working-directory: src/wp-content/themes/${{ matrix.theme }}
@@ -255,7 +257,8 @@ jobs:
           package-manager-cache: false
 
       - name: Set up npm
-        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        # A workflow_dispatch run can check out a release branch, which lacks the action.
+        if: ${{ ( matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive' ) && hashFiles('.github/actions/setup-npm/action.yml') != '' }}
         uses: ./.github/actions/setup-npm
         with:
           working-directory: src/wp-content/themes/${{ matrix.theme }}
