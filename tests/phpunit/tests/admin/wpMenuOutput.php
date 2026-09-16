@@ -55,7 +55,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 
 		$menu[0]['count_description'] = array(
 			'id'   => 'wp-menu-plugins-count-description',
-			'html' => '<span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
+			'html' => '<span id="wp-menu-plugins-count-description" hidden>2 plugin updates available</span>',
 		);
 
 		$output = get_echo( '_wp_menu_output', array( $menu, array() ) );
@@ -87,7 +87,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 
 		$submenu['index.php'][10]['count_description'] = array(
 			'id'   => 'wp-menu-updates-count-description',
-			'html' => '<span id="wp-menu-updates-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 updates available</span>',
+			'html' => '<span id="wp-menu-updates-count-description" hidden>2 updates available</span>',
 		);
 
 		$output = get_echo( '_wp_menu_output', array( $menu, $submenu ) );
@@ -117,7 +117,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 
 		$menu[0]['count_description'] = array(
 			'id'   => 'wp-menu-plugins-count-description',
-			'html' => '<span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
+			'html' => '<span id="wp-menu-plugins-count-description" hidden>2 plugin updates available</span>',
 		);
 
 		$submenu = array(
@@ -156,7 +156,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 
 		$menu[0]['count_description'] = array(
 			'id'   => 'wp-menu-plugins-count-description',
-			'html' => '<span id="wp-menu-plugins-count-description" class="wp-menu-count-description screen-reader-text" aria-hidden="true">2 plugin updates available</span>',
+			'html' => '<span id="wp-menu-plugins-count-description" hidden>2 plugin updates available</span>',
 		);
 
 		$output = get_echo( '_wp_menu_output', array( $menu, array() ) );
