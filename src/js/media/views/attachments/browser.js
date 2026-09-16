@@ -187,8 +187,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		/**
-		* @member {wp.media.view.Toolbar}
-		*/
+		 * @member {wp.media.view.Toolbar}
+		 */
 		this.toolbar = new wp.media.view.Toolbar( toolbarOptions );
 
 		this.views.add( this.toolbar );

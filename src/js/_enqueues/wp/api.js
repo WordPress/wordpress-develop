@@ -206,8 +206,8 @@
 	/**
 	 * Extract a route part based on negative index.
 	 *
-	 * @param {string}   route          The endpoint route.
-	 * @param {number}   part           The number of parts from the end of the route to retrieve. Default 1.
+	 * @param {string}  route           The endpoint route.
+	 * @param {number}  part            The number of parts from the end of the route to retrieve. Default 1.
 	 *                                  Example route `/a/b/c`: part 1 is `c`, part 2 is `b`, part 3 is `a`.
 	 * @param {string}  [versionString] Version string, defaults to `wp.api.versionString`.
 	 * @param {boolean} [reverse]       Whether to reverse the order when extracting the route part. Optional, default false.
@@ -313,7 +313,7 @@
 	 *
 	 * @param {Backbone Model} model          The model to attach helpers and mixins to.
 	 * @param {string}         modelClassName The classname of the constructed model.
-	 * @param {Object} 	       loadingObjects An object containing the models and collections we are building.
+	 * @param {Object}         loadingObjects An object containing the models and collections we are building.
 	 * @return {undefined} No return value.
 	 */
 	wp.api.utils.addMixinsAndHelpers = function( model, modelClassName, loadingObjects ) {
@@ -858,9 +858,8 @@
 			initialize: function() {
 
 				/**
-				* Types that don't support trashing require passing ?force=true to delete.
-				*
-				*/
+				 * Types that don't support trashing require passing ?force=true to delete.
+				 */
 				if ( -1 === _.indexOf( trashableTypes, this.name ) ) {
 					this.requireForceForDelete = true;
 				}
@@ -1546,7 +1545,7 @@
 	/**
 	 * Initialize the wp-api, optionally passing the API root.
 	 *
-	 * @param {Object} [args]
+	 * @param {Object} [args]               The arguments for initializing the wp-api.
 	 * @param {string} [args.nonce]         The nonce. Optional, defaults to wpApiSettings.nonce.
 	 * @param {string} [args.apiRoot]       The api root. Optional, defaults to wpApiSettings.root.
 	 * @param {string} [args.versionString] The version string. Optional, defaults to wpApiSettings.root.
