@@ -63,6 +63,19 @@ function _block_bindings_post_data_get_value( array $source_args, $block_instanc
 		return esc_attr( get_the_date( 'c', $post_id ) );
 	}
 
+	if ( 'featured_media.id' === $field ) {
+		return get_post_thumbnail_id( $post_id );
+	}
+
+	if ( 'featured_media.url' === $field ) {
+		if ( 'core/cover' === $block_name && isset( $block_instance->attributes['sizeSlug'] ) ) {
+			$size_slug = $block_instance->attributes['sizeSlug'];
+			return get_the_post_thumbnail_url( $post_id, $size_slug );
+		}
+
+		return get_the_post_thumbnail_url( $post_id );
+	}
+
 	if ( 'modified' === $field ) {
 		// Only return the modified date if it is later than the publishing date.
 		if ( get_the_modified_date( 'U', $post_id ) > get_the_date( 'U', $post_id ) ) {
