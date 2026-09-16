@@ -639,9 +639,48 @@ switch ( $action ) {
 
 				<table class="form-table" role="presentation">
 					<tr class="user-description-wrap">
-						<th><label for="description"><?php _e( 'Biographical Info' ); ?></label></th>
-						<td><textarea name="description" id="description" rows="5" cols="30"><?php echo $profile_user->description; // textarea_escaped ?></textarea>
-						<p class="description"><?php _e( 'Share a little biographical information to fill out your profile. This may be shown publicly.' ); ?></p></td>
+						<th>
+							<label for="description"><?php _e( 'Biographical Info' ); ?></label>
+						</th>
+						<td>
+							<?php
+							$use_rich_editor = apply_filters(
+								'user_profile_biography_rich_editor',
+								true,
+								$profile_user
+							);
+
+							if ( $use_rich_editor ) {
+								wp_editor(
+									$profile_user->description,
+									'description',
+									array(
+										'textarea_name' => 'description',
+										'textarea_rows' => 5,
+										'media_buttons' => false,
+										'teeny'         => false,
+										'quicktags'     => false,
+										'tinymce'       => array(
+											'toolbar1' => 'bold italic | bullist numlist | link unlink',
+											'toolbar2' => '',
+											'menubar' => false,
+										),
+									)
+								);
+							} else {
+								?>
+								<textarea name="description" id="description" rows="5" cols="30">
+									<?php
+										echo esc_textarea( $profile_user->description );
+									?>
+								</textarea>
+								<?php
+							}
+							?>
+							<p class="description">
+								<?php _e( 'Share a little biographical information to fill out your profile. This may be shown publicly.' ); ?>
+							</p>
+						</td>
 					</tr>
 
 					<?php if ( get_option( 'show_avatars' ) ) : ?>
