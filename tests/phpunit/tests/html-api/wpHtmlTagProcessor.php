@@ -1165,10 +1165,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensure that setting a srcset attribute preserves the value as-is.
 	 *
-	 * srcset is a URI attribute per wp_kses_uri_attributes(), but unlike single-URL
-	 * attributes it holds a comma-separated list of URLs with optional descriptors.
-	 * Passing the whole value through esc_url() would encode the descriptor spaces
-	 * as %20 and collapse the list into one broken URL.
+	 * srcset is a URI attribute per wp_kses_multi_uri_attributes(), but unlike
+	 * single-URL attributes it holds a comma-separated list of URLs with optional
+	 * descriptors. Passing the whole value through esc_url() would encode the
+	 * descriptor spaces as %20 and collapse the list into one broken URL.
 	 *
 	 * @ticket 29807
 	 *
@@ -1196,10 +1196,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * Ensure that set_attribute() consults wp_kses_multi_uri_attributes() rather
 	 * than hardcoding srcset.
 	 *
-	 * A URI attribute normally passes through esc_url(), which would corrupt a
-	 * srcset-style list by encoding the descriptor spaces. An attribute added to
-	 * both the `wp_kses_uri_attributes` and `wp_kses_multi_uri_attributes`
-	 * filters must skip esc_url() and keep its list value intact.
+	 * An attribute on the `wp_kses_uri_attributes` list passes through esc_url(),
+	 * which corrupts a srcset-style list by encoding the descriptor spaces. Adding
+	 * it to `wp_kses_multi_uri_attributes` must make set_attribute() skip esc_url()
+	 * and keep the list value intact. This is why srcset itself belongs only to the
+	 * multi-URI list.
 	 *
 	 * @ticket 29807
 	 *

@@ -1339,7 +1339,6 @@ function wp_kses_uri_attributes() {
 		'poster',
 		'profile',
 		'src',
-		'srcset',
 		'usemap',
 		'xmlns',
 	);
@@ -1368,10 +1367,11 @@ function wp_kses_uri_attributes() {
  * into individual candidates so each URL can be sanitized on its own, and must
  * not be passed through `esc_url()` as a whole.
  *
- * An attribute in this list is sanitized as a URI attribute in its own right:
- * it does not additionally need to be present in {@see wp_kses_uri_attributes()}.
- * Attributes should still be added to both lists so that code consulting only
- * {@see wp_kses_uri_attributes()} recognizes them as URI attributes.
+ * An attribute in this list is sanitized as a URI attribute in its own right and
+ * must not also appear in {@see wp_kses_uri_attributes()}, which is documented as
+ * holding attributes whose value is a single URL. Code consulting that list passes
+ * the value through `esc_url()`, which encodes the descriptor spaces and collapses
+ * the whole candidate list into one broken URL.
  *
  * @since 7.2.0
  *
@@ -1386,10 +1386,9 @@ function wp_kses_multi_uri_attributes() {
 	 * Filters the list of attributes whose value contains a list of URLs.
 	 *
 	 * Use this filter to add attributes that, like `srcset`, contain multiple
-	 * comma-separated URLs with optional descriptors. Attributes added here
-	 * are sanitized per URL; also add them to the `wp_kses_uri_attributes`
-	 * filter so that code consulting only that list recognizes them as URI
-	 * attributes.
+	 * comma-separated URLs with optional descriptors. Attributes added here are
+	 * sanitized per URL and must not also be added to the `wp_kses_uri_attributes`
+	 * filter, whose consumers treat a value as a single URL.
 	 *
 	 * @since 7.2.0
 	 *

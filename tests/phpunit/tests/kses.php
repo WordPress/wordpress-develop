@@ -3041,9 +3041,14 @@ HTML;
 			// Mixed-case attribute name on a multi-URI attribute splits correctly.
 			array( 'SrcSet', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'alert(1) 1x, http://example.com/image.jpg 2x' ),
 
-			// Empty $multi_uri falls through to single-URI handling for a URI attribute.
-			// The whole value is treated as one URL, so wp_kses_bad_protocol() strips more than per-entry parsing would.
-			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', '//example.com/image.jpg 2x', array() ),
+			// Empty $multi_uri falls through to single-URI handling, and srcset is
+			// deliberately not on that list: a caller that empties the multi-URI list
+			// opts out of srcset sanitization rather than getting esc_url()-style
+			// handling that would corrupt the candidate list.
+			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', array() ),
+
+			// Emptying $multi_uri does not affect a single-URI attribute.
+			array( 'src', 'javascript:alert(1)', 'alert(1)', array() ),
 		);
 	}
 
@@ -3268,15 +3273,20 @@ HTML;
 	}
 
 	/**
-	 * Test that wp_kses_uri_attributes() includes srcset.
+	 * Test that wp_kses_uri_attributes() excludes srcset.
+	 *
+	 * The list holds attributes whose value is a single URL, and its consumers
+	 * act on that: esc_url() on a srcset value encodes the descriptor spaces and
+	 * collapses the candidate list into one broken URL. srcset belongs to
+	 * {@see wp_kses_multi_uri_attributes()} alone.
 	 *
 	 * @ticket 29807
 	 * @covers ::wp_kses_uri_attributes
 	 */
-	public function test_wp_kses_uri_attributes_includes_srcset() {
+	public function test_wp_kses_uri_attributes_excludes_srcset() {
 		$uri_attrs = wp_kses_uri_attributes();
 
-		$this->assertContains( 'srcset', $uri_attrs, 'srcset should be a URI attribute.' );
+		$this->assertNotContains( 'srcset', $uri_attrs, 'srcset should not be a single-URI attribute.' );
 		$this->assertContains( 'src', $uri_attrs, 'src should be a URI attribute.' );
 		$this->assertContains( 'href', $uri_attrs, 'href should be a URI attribute.' );
 		$this->assertContains( 'action', $uri_attrs, 'action should be a URI attribute.' );
@@ -3344,12 +3354,10 @@ HTML;
 	}
 
 	/**
-	 * Test that disabling srcset sanitization requires removal from both lists.
+	 * Test that srcset sanitization is governed by the multi-URI list alone.
 	 *
-	 * Multi-URI attributes are sanitized in their own right, so removing srcset
-	 * from `wp_kses_uri_attributes` alone leaves per-URL sanitization in place
-	 * (fail-safe). Only removing it from `wp_kses_multi_uri_attributes` as well
-	 * disables sanitization.
+	 * srcset is not a single-URI attribute, so the `wp_kses_uri_attributes`
+	 * filter has no say over it; `wp_kses_multi_uri_attributes` does.
 	 *
 	 * @ticket 29807
 	 */
@@ -3360,15 +3368,15 @@ HTML;
 			return array_diff( $attrs, array( 'srcset' ) );
 		};
 
-		// Removing srcset from the URI attributes list alone does not disable sanitization.
+		// Removing srcset from the single-URI attributes list changes nothing.
 		add_filter( 'wp_kses_uri_attributes', $remove_srcset );
 		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
 		$this->assertSame( 'alert(1) 1x', $result, 'srcset should remain sanitized while still a multi-URI attribute' );
 
-		// Removing it from the multi-URI attributes list as well disables sanitization.
+		// Removing it from the multi-URI attributes list disables sanitization.
 		add_filter( 'wp_kses_multi_uri_attributes', $remove_srcset );
 		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
-		$this->assertSame( 'javascript:alert(1) 1x', $result, 'srcset should not be sanitized once removed from both lists' );
+		$this->assertSame( 'javascript:alert(1) 1x', $result, 'srcset should not be sanitized once removed from the multi-URI list' );
 
 		remove_filter( 'wp_kses_uri_attributes', $remove_srcset );
 		remove_filter( 'wp_kses_multi_uri_attributes', $remove_srcset );
