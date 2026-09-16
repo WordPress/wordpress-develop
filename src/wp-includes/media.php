@@ -3893,13 +3893,8 @@ function wp_video_shortcode( $attr, $content = '' ) {
 			$atts['src'] = remove_query_arg( 'feature', $atts['src'] );
 			$atts['src'] = set_url_scheme( $atts['src'], 'https' );
 		} elseif ( $is_vimeo ) {
-			// Remove all query arguments and force SSL - see #40866.
-			$parsed_vimeo_url = wp_parse_url( $atts['src'] );
-			$vimeo_src        = 'https://' . $parsed_vimeo_url['host'] . $parsed_vimeo_url['path'];
-
-			// Add loop param for mejs bug - see #40977, not needed after #39686.
-			$loop        = $atts['loop'] ? '1' : '0';
-			$atts['src'] = add_query_arg( 'loop', $loop, $vimeo_src );
+			// Force SSL - see #40866.
+			$atts['src'] = set_url_scheme( $atts['src'], 'https' );
 		}
 	}
 
