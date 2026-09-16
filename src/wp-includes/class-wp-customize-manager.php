@@ -2151,6 +2151,17 @@ final class WP_Customize_Manager {
 			restore_previous_locale();
 		}
 
+		/*
+		 * Export custom-background element, class, and selector into the preview frame.
+		 * bgElement and bgClass are exported separately so the JS can toggle the class
+		 * on the correct DOM element; bgSelector is the final CSS selector used in the
+		 * injected <style> tag.
+		 */
+		$has_custom_bg   = current_theme_supports( 'custom-background' );
+		$bg_element      = $has_custom_bg ? tag_escape( get_theme_support( 'custom-background', 'background-element' ) ) : 'body';
+		$bg_class        = $has_custom_bg ? sanitize_html_class( get_theme_support( 'custom-background', 'background-class' ) ) : 'custom-background';
+		$bg_selector     = $has_custom_bg ? sprintf( get_theme_support( 'custom-background', 'background-selector' ), $bg_element, $bg_class ) : 'body.custom-background';
+
 		$settings = array(
 			'changeset'         => array(
 				'uuid'      => $this->changeset_uuid(),
@@ -2164,6 +2175,9 @@ final class WP_Customize_Manager {
 				'stylesheet'   => $this->get_stylesheet(),
 				'active'       => $this->is_theme_active(),
 				'isBlockTheme' => wp_is_block_theme(),
+				'bgElement'    => $bg_element,
+				'bgClass'      => $bg_class,
+				'bgSelector'   => $bg_selector,
 			),
 			'url'               => array(
 				'self'          => $self_url,

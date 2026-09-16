@@ -1948,7 +1948,11 @@ function _custom_background_cb() {
 	$processor = new WP_HTML_Tag_Processor( '<style id="custom-background-css"></style>' );
 	$processor->next_tag();
 
-	$style_tag_content = 'body.custom-background { ' . trim( $style ) . ' }';
+	$element  = tag_escape( get_theme_support( 'custom-background', 'background-element' ) );
+	$class    = sanitize_html_class( get_theme_support( 'custom-background', 'background-class' ) );
+	$selector = sprintf( get_theme_support( 'custom-background', 'background-selector' ), $element, $class );
+
+	$style_tag_content = $selector . ' { ' . trim( $style ) . ' }';
 	$processor->set_modifiable_text( "\n{$style_tag_content}\n" );
 	echo "{$processor->get_updated_html()}\n";
 }
@@ -2893,6 +2897,9 @@ function add_theme_support( $feature, ...$args ) {
 				'wp-head-callback'       => '_custom_background_cb',
 				'admin-head-callback'    => '',
 				'admin-preview-callback' => '',
+				'background-element'     => 'body',
+				'background-class'       => 'custom-background',
+				'background-selector'    => '%1$s.%2$s', // sprintf template: %1$s = background-element, %2$s = background-class.
 			);
 
 			$jit = isset( $args[0]['__jit'] );
