@@ -607,6 +607,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group assets
+	 *
 	 * @ticket 58394
 	 * @ticket 63887
 	 *
@@ -745,6 +747,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * wp_filesize should be only be called once, as on the second run of wp_maybe_inline_styles,
 	 * src will be set to false and filesize will not be requested.
 	 *
+	 * @group assets
+	 *
 	 * @ticket 58394
 	 *
 	 * @covers ::wp_maybe_inline_styles
@@ -853,6 +857,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group assets
+	 *
 	 * @ticket 64447
 	 *
 	 * @covers ::wp_maybe_inline_styles
