@@ -2275,12 +2275,31 @@ function sanitize_title_for_query( $title ) {
  * @param string $title     The title to be sanitized.
  * @param string $raw_title Optional. Not used. Default empty.
  * @param string $context   Optional. The operation for which the string is sanitized.
- *                          When set to 'save', additional entities are converted to hyphens
- *                          or stripped entirely. Default 'display'.
+ *                          When set to 'save', HTML entities are decoded to raw UTF-8 and
+ *                          Unicode dash punctuation and separators are converted to hyphens.
+ *                          Default 'display'.
  * @return string The sanitized title.
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
 	$title = strip_tags( $title );
+
+	if ( 'save' === $context ) {
+		/*
+		 * Decode HTML entities to raw UTF-8, ensuring all representations of the same
+		 * character are treated identically.
+		 */
+		$title = WP_HTML_Decoder::decode_text_node( $title );
+
+		$title = str_replace( '&', '', $title );
+
+		if ( _wp_can_use_pcre_u() ) {
+			$title = preg_replace( '~[\p{Pd}\p{Z}]~u', '-', $title );
+		}
+
+		// Convert forward slash to hyphen.
+		$title = str_replace( '/', '-', $title );
+	}
+
 	// Preserve escaped octets.
 	$title = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '---$1---', $title );
 	// Remove percent signs that are not part of an octet.
@@ -2298,12 +2317,38 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = strtolower( $title );
 
 	if ( 'save' === $context ) {
-		// Convert &nbsp, non-breaking hyphen, &ndash, and &mdash to hyphens.
+		/*
+		 * Convert known dash punctuation and space separator variants to hyphens.
+		 *
+		 * These are the percent-encoded UTF-8 forms produced by utf8_uri_encode().
+		 * When _wp_can_use_pcre_u() is true, raw UTF-8 dash/space chars were already
+		 * replaced by PCRE above, so these str_replace() calls become no-ops for those.
+		 * They remain necessary to handle inputs that arrived as pre-encoded percent
+		 * sequences.
+		 */
 		$title = str_replace( array( '%c2%a0', '%e2%80%91', '%e2%80%93', '%e2%80%94' ), '-', $title );
-		// Convert &nbsp, non-breaking hyphen, &ndash, and &mdash HTML entities to hyphens.
-		$title = str_replace( array( '&nbsp;', '&#8209;', '&#160;', '&ndash;', '&#8211;', '&mdash;', '&#8212;' ), '-', $title );
-		// Convert forward slash to hyphen.
-		$title = str_replace( '/', '-', $title );
+
+		// Convert space separator variants (percent-encoded) to hyphen.
+		$title = str_replace(
+			array(
+				'%e2%80%80', // En quad.
+				'%e2%80%81', // Em quad.
+				'%e2%80%82', // En space.
+				'%e2%80%83', // Em space.
+				'%e2%80%84', // Three-per-em space.
+				'%e2%80%85', // Four-per-em space.
+				'%e2%80%86', // Six-per-em space.
+				'%e2%80%87', // Figure space.
+				'%e2%80%88', // Punctuation space.
+				'%e2%80%89', // Thin space.
+				'%e2%80%8a', // Hair space.
+				'%e2%80%a8', // Line separator.
+				'%e2%80%a9', // Paragraph separator.
+				'%e2%80%af', // Narrow no-break space.
+			),
+			'-',
+			$title
+		);
 
 		// Strip these characters entirely.
 		$title = str_replace(
@@ -2359,28 +2404,6 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%ef%bf%bc', // Object replacement character.
 			),
 			'',
-			$title
-		);
-
-		// Convert non-visible characters that display with a width to hyphen.
-		$title = str_replace(
-			array(
-				'%e2%80%80', // En quad.
-				'%e2%80%81', // Em quad.
-				'%e2%80%82', // En space.
-				'%e2%80%83', // Em space.
-				'%e2%80%84', // Three-per-em space.
-				'%e2%80%85', // Four-per-em space.
-				'%e2%80%86', // Six-per-em space.
-				'%e2%80%87', // Figure space.
-				'%e2%80%88', // Punctuation space.
-				'%e2%80%89', // Thin space.
-				'%e2%80%8a', // Hair space.
-				'%e2%80%a8', // Line separator.
-				'%e2%80%a9', // Paragraph separator.
-				'%e2%80%af', // Narrow no-break space.
-			),
-			'-',
 			$title
 		);
 
