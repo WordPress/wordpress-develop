@@ -370,13 +370,14 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 *
 	 * @since 5.0.0
 	 * @since 6.4.0 The `$meta` parameter was added.
+	 * @since 7.1.0 Compares incoming data against the existing autosave instead
+	 *              of the published post.
 	 *
 	 * @param array $post_data Associative array containing the post data.
 	 * @param array $meta      Associative array containing the post meta data.
 	 * @return mixed The autosave revision ID or WP_Error.
 	 */
 	public function create_post_autosave( $post_data, array $meta = array() ) {
-
 		$post_id = (int) $post_data['ID'];
 		$post    = get_post( $post_id );
 
@@ -384,30 +385,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		// Only create an autosave when it is different from the saved post.
-		$autosave_is_different = false;
-		$new_autosave          = _wp_post_revision_data( $post_data, true );
+		$new_autosave = _wp_post_revision_data( $post_data, true );
 
-		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-				$autosave_is_different = true;
-				break;
-			}
-		}
-
-		// Check if meta values have changed.
 		if ( ! empty( $meta ) ) {
 			$revisioned_meta_keys = wp_post_revision_meta_keys( $post->post_type );
-			foreach ( $revisioned_meta_keys as $meta_key ) {
-				// get_metadata_raw is used to avoid retrieving the default value.
-				$old_meta = get_metadata_raw( 'post', $post_id, $meta_key, true );
-				$new_meta = $meta[ $meta_key ] ?? '';
-
-				if ( $new_meta !== $old_meta ) {
-					$autosave_is_different = true;
-					break;
-				}
-			}
 		}
 
 		$user_id = get_current_user_id();
@@ -415,12 +396,43 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		// Store one autosave per author. If there is already an autosave, overwrite it.
 		$old_autosave = wp_get_post_autosave( $post_id, $user_id );
 
-		if ( ! $autosave_is_different && $old_autosave ) {
-			// Nothing to save, return the existing autosave.
-			return $old_autosave->ID;
-		}
-
 		if ( $old_autosave ) {
+			/*
+			 * When an autosave revision already exists, compare the incoming data
+			 * against its current field values rather than the published post. A field
+			 * reverted to the published value - such as a title edit that was undone -
+			 * must still overwrite any stale value in the existing autosave, otherwise
+			 * consumers like Preview will display incorrect content indefinitely.
+			 */
+			$autosave_is_different = false;
+			foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
+				if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $old_autosave->$field ) ) {
+					$autosave_is_different = true;
+					break;
+				}
+			}
+
+			if ( ! $autosave_is_different && ! empty( $meta ) ) {
+				foreach ( $revisioned_meta_keys as $meta_key ) {
+					if ( ! array_key_exists( $meta_key, $meta ) ) {
+						continue;
+					}
+
+					$old_meta_value = get_metadata_raw( 'post', $old_autosave->ID, $meta_key, true );
+					$new_meta_value = $meta[ $meta_key ];
+
+					if ( $new_meta_value !== $old_meta_value ) {
+						$autosave_is_different = true;
+						break;
+					}
+				}
+			}
+
+			if ( ! $autosave_is_different ) {
+				// Nothing to save, return the existing autosave.
+				return $old_autosave->ID;
+			}
+
 			$new_autosave['ID']          = $old_autosave->ID;
 			$new_autosave['post_author'] = $user_id;
 
