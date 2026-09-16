@@ -1671,6 +1671,10 @@ function wp_dashboard_quota() {
 	$quota = get_space_allowed();
 	$used  = get_space_used();
 
+	if ( $quota <= 0 ) {
+		return;
+	}
+
 	if ( $used > $quota ) {
 		$percentused = '100';
 	} else {
