@@ -1461,8 +1461,11 @@ function is_multisite() {
  * Converts a value to non-negative integer.
  *
  * @since 2.5.0
- * @since 7.2.0 The `int` return type was added. Values beyond the integer
+ * @since 7.2.0 The `int` return type was added. Finite values beyond the integer
  *              range are now capped at `PHP_INT_MAX` rather than overflowing.
+ *              Non-finite values continue to return `0`, as `NAN` and `INF` have
+ *              always cast to `0`; note that this includes numeric strings beyond
+ *              the float range, such as `'1e309'`, which become `INF` when cast.
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
