@@ -445,9 +445,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		if ( $horz && $vert ) {
 			return imageflip( $this->image, IMG_FLIP_BOTH );
 		} elseif ( $horz ) {
-			return imageflip( $this->image, IMG_FLIP_HORIZONTAL );
-		} elseif ( $vert ) {
 			return imageflip( $this->image, IMG_FLIP_VERTICAL );
+		} elseif ( $vert ) {
+			return imageflip( $this->image, IMG_FLIP_HORIZONTAL );
 		}
 
 		return true;
