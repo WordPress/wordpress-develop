@@ -122,22 +122,22 @@ foreach ( array( 'user_register', 'deleted_user' ) as $action ) {
 }
 
 // Post meta.
-add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
-add_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' );
-add_action( 'deleted_post_meta', 'wp_cache_set_posts_last_changed' );
+add_action( 'added_post_meta', 'wp_cache_set_posts_meta_last_changed' );
+add_action( 'updated_post_meta', 'wp_cache_set_posts_meta_last_changed' );
+add_action( 'deleted_post_meta', 'wp_cache_set_posts_meta_last_changed' );
 
 // User meta.
-add_action( 'added_user_meta', 'wp_cache_set_users_last_changed' );
-add_action( 'updated_user_meta', 'wp_cache_set_users_last_changed' );
-add_action( 'deleted_user_meta', 'wp_cache_set_users_last_changed' );
+add_action( 'added_user_meta', 'wp_cache_set_users_meta_last_changed' );
+add_action( 'updated_user_meta', 'wp_cache_set_users_meta_last_changed' );
+add_action( 'deleted_user_meta', 'wp_cache_set_users_meta_last_changed' );
 add_action( 'add_user_role', 'wp_cache_set_users_last_changed' );
 add_action( 'set_user_role', 'wp_cache_set_users_last_changed' );
 add_action( 'remove_user_role', 'wp_cache_set_users_last_changed' );
 
 // Term meta.
-add_action( 'added_term_meta', 'wp_cache_set_terms_last_changed' );
-add_action( 'updated_term_meta', 'wp_cache_set_terms_last_changed' );
-add_action( 'deleted_term_meta', 'wp_cache_set_terms_last_changed' );
+add_action( 'added_term_meta', 'wp_cache_set_terms_meta_last_changed' );
+add_action( 'updated_term_meta', 'wp_cache_set_terms_meta_last_changed' );
+add_action( 'deleted_term_meta', 'wp_cache_set_terms_meta_last_changed' );
 add_filter( 'get_term_metadata', 'wp_check_term_meta_support_prefilter' );
 add_filter( 'add_term_metadata', 'wp_check_term_meta_support_prefilter' );
 add_filter( 'update_term_metadata', 'wp_check_term_meta_support_prefilter' );
@@ -148,9 +148,9 @@ add_filter( 'delete_term_metadata_by_mid', 'wp_check_term_meta_support_prefilter
 add_filter( 'update_term_metadata_cache', 'wp_check_term_meta_support_prefilter' );
 
 // Comment meta.
-add_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
-add_action( 'updated_comment_meta', 'wp_cache_set_comments_last_changed' );
-add_action( 'deleted_comment_meta', 'wp_cache_set_comments_last_changed' );
+add_action( 'added_comment_meta', 'wp_cache_set_comments_meta_last_changed' );
+add_action( 'updated_comment_meta', 'wp_cache_set_comments_meta_last_changed' );
+add_action( 'deleted_comment_meta', 'wp_cache_set_comments_meta_last_changed' );
 add_action( 'init', 'wp_create_initial_comment_meta' );
 
 // Places to balance tags on input.
