@@ -152,6 +152,85 @@ class Tests_Option_Multisite extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that get_blog_option() on another site does not set $GLOBALS['switched'].
+	 *
+	 * @covers ::get_blog_option
+	 * @covers ::_get_option_from_blog
+	 */
+	public function test_get_blog_option_does_not_switch_context() {
+		$user_id = self::factory()->user->create();
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+				'public'  => 1,
+			)
+		);
+
+		$this->assertNotEquals( get_current_blog_id(), $blog_id );
+
+		get_blog_option( $blog_id, 'blogname' );
+
+		$this->assertFalse(
+			isset( $GLOBALS['switched'] ) && $GLOBALS['switched'],
+			'$GLOBALS[\'switched\'] should not be true after get_blog_option() on another site'
+		);
+	}
+
+	/**
+	 * Verifies that update_blog_option() on another site does not set $GLOBALS['switched'].
+	 *
+	 * @covers ::update_blog_option
+	 */
+	public function test_update_blog_option_does_not_switch_context() {
+		$user_id = self::factory()->user->create();
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+				'public'  => 1,
+			)
+		);
+
+		update_blog_option( $blog_id, 'test_no_switch_option', 'test_value' );
+
+		$this->assertFalse(
+			isset( $GLOBALS['switched'] ) && $GLOBALS['switched'],
+			'$GLOBALS[\'switched\'] should not be true after update_blog_option() on another site'
+		);
+
+		// Clean up.
+		delete_blog_option( $blog_id, 'test_no_switch_option' );
+	}
+
+	/**
+	 * Verifies that WP_Site::__get('blogname') returns a correct value without switching.
+	 *
+	 * @covers WP_Site::__get
+	 */
+	public function test_wp_site_get_blogname_without_switching() {
+		$user_id = self::factory()->user->create();
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+				'public'  => 1,
+			)
+		);
+
+		// Set a known blogname on the other site.
+		update_blog_option( $blog_id, 'blogname', 'Test Site Name' );
+
+		// Clear the site-details cache to force get_details() to run.
+		wp_cache_delete( $blog_id, 'site-details' );
+
+		$site = get_site( $blog_id );
+		$this->assertSame( 'Test Site Name', $site->blogname );
+
+		$this->assertFalse(
+			isset( $GLOBALS['switched'] ) && $GLOBALS['switched'],
+			'$GLOBALS[\'switched\'] should not be true after accessing WP_Site::blogname'
+		);
+	}
+
+	/**
 	 * @group multisite
 	 *
 	 * @covers ::get_site_option
