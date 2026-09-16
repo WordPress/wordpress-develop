@@ -231,7 +231,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	$message = apply_filters( 'login_message', $message );
 
 	if ( ! empty( $message ) ) {
-		echo $message . "\n";
+		echo wp_kses_post( $message ) . "\n";
 	}
 
 	// In case a plugin uses $error rather than the $wp_errors object.
