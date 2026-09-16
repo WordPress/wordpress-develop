@@ -129,21 +129,19 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Every supported PHP version. Intermediate versions are excluded below when not running the full matrix.
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
-        # Every tested MySQL version. Versions are excluded below when not running the full matrix.
         db-version: [ '5.7', '8.0', '8.4', '9.7' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
-        # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every version above.
+        # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every PHP and MySQL version above.
         # All other runs exclude the versions noted below to keep the number of jobs manageable.
         full-matrix:
           - ${{ github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
 
         exclude:
-          # Outside of the full matrix, only the highest and lowest PHP version of each major are tested.
+          # Outside the full matrix, only the highest and lowest PHP version of each major are tested.
           - full-matrix: false
             php: '8.1'
           - full-matrix: false
@@ -152,7 +150,7 @@ jobs:
             php: '8.3'
           - full-matrix: false
             php: '8.4'
-          # Outside of the full matrix, MySQL 5.7 compatibility and the widely used 8.x releases are tested.
+          # Outside the full matrix, MySQL 5.7 compatibility and the widely used 8.x releases are tested.
           - full-matrix: false
             db-version: '9.7'
 
@@ -240,20 +238,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Every supported PHP version. Intermediate versions are excluded below when not running the full matrix.
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mariadb' ]
-        # Every tested MariaDB version. Versions are excluded below when not running the full matrix.
         db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
         multisite: [ false, true ]
         memcached: [ false ]
-        # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every version above.
+        # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every PHP and MariaDB version above.
         # All other runs exclude the versions noted below to keep the number of jobs manageable.
         full-matrix:
           - ${{ github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
 
         exclude:
-          # Outside of the full matrix, only the highest and lowest PHP version of each major are tested.
+          # Outside the full matrix, only the highest and lowest PHP version of each major are tested.
           - full-matrix: false
             php: '8.1'
           - full-matrix: false
@@ -262,7 +258,7 @@ jobs:
             php: '8.3'
           - full-matrix: false
             php: '8.4'
-          # Outside of the full matrix, MariaDB 5.5 compatibility, 10.6, and newer LTS releases are tested.
+          # Outside the full matrix, MariaDB 5.5 compatibility, 10.6, and newer LTS releases are tested.
           - full-matrix: false
             db-version: '10.3'
           - full-matrix: false
@@ -328,7 +324,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Every supported PHP version. Intermediate versions are excluded below when not running the full matrix.
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '12.1' ]
@@ -344,7 +339,7 @@ jobs:
           # Exclude version combinations that don't exist.
           - db-type: 'mysql'
             db-version: '12.1'
-          # Outside of the full matrix, only the highest and lowest PHP version of each major are tested.
+          # Outside the full matrix, only the highest and lowest PHP version of each major are tested.
           - full-matrix: false
             php: '8.1'
           - full-matrix: false
