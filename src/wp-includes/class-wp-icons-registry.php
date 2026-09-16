@@ -242,38 +242,87 @@ class WP_Icons_Registry {
 	/**
 	 * Sanitizes the icon SVG content.
 	 *
-	 * Logic borrowed from twentytwenty.
-	 * @see twentytwenty_get_theme_svg
-	 *
 	 * @since 7.0.0
 	 *
 	 * @param string $icon_content The icon SVG content to sanitize.
 	 * @return string The sanitized icon SVG content.
 	 */
 	protected function sanitize_icon_content( $icon_content ) {
+		$stroke_attributes = array(
+			'style'             => true,
+			'stroke'            => true,
+			'stroke-width'      => true,
+			'stroke-linecap'    => true,
+			'stroke-linejoin'   => true,
+			'stroke-miterlimit' => true,
+			'vector-effect'     => true,
+		);
+
 		$allowed_tags = array(
-			'svg'     => array(
-				'class'       => true,
-				'xmlns'       => true,
-				'width'       => true,
-				'height'      => true,
-				'viewbox'     => true,
-				'aria-hidden' => true,
-				'role'        => true,
-				'focusable'   => true,
+			'svg'     => array_merge(
+				array(
+					'class'       => true,
+					'xmlns'       => true,
+					'width'       => true,
+					'height'      => true,
+					'viewbox'     => true,
+					'aria-hidden' => true,
+					'role'        => true,
+					'focusable'   => true,
+					'fill'        => true,
+					'fill-rule'   => true,
+					'clip-rule'   => true,
+				),
+				$stroke_attributes
 			),
-			'path'    => array(
-				'fill'      => true,
-				'fill-rule' => true,
-				'd'         => true,
-				'transform' => true,
+			'path'    => array_merge(
+				array(
+					'fill'      => true,
+					'fill-rule' => true,
+					'clip-rule' => true,
+					'd'         => true,
+					'opacity'   => true,
+					'transform' => true,
+				),
+				$stroke_attributes
 			),
-			'polygon' => array(
-				'fill'      => true,
-				'fill-rule' => true,
-				'points'    => true,
-				'transform' => true,
-				'focusable' => true,
+			'polygon' => array_merge(
+				array(
+					'fill'      => true,
+					'fill-rule' => true,
+					'clip-rule' => true,
+					'points'    => true,
+					'transform' => true,
+					'focusable' => true,
+				),
+				$stroke_attributes
+			),
+			'rect'    => array_merge(
+				array(
+					'fill'      => true,
+					'fill-rule' => true,
+					'clip-rule' => true,
+					'x'         => true,
+					'y'         => true,
+					'width'     => true,
+					'height'    => true,
+					'rx'        => true,
+					'ry'        => true,
+					'transform' => true,
+				),
+				$stroke_attributes
+			),
+			'circle'  => array_merge(
+				array(
+					'fill'      => true,
+					'fill-rule' => true,
+					'clip-rule' => true,
+					'cx'        => true,
+					'cy'        => true,
+					'r'         => true,
+					'transform' => true,
+				),
+				$stroke_attributes
 			),
 		);
 		return wp_kses( $icon_content, $allowed_tags );
