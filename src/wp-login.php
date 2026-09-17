@@ -1626,13 +1626,9 @@ switch ( $action ) {
 		$login_script .= 'try {';
 
 		if ( $user_login ) {
-			$login_script .= 'd = document.getElementById( "user_pass" ); d.value = "";';
+			$login_script .= 'd = document.getElementById( "user_pass" );';
 		} else {
 			$login_script .= 'd = document.getElementById( "user_login" );';
-
-			if ( $errors->get_error_code() === 'invalid_username' ) {
-				$login_script .= 'd.value = "";';
-			}
 		}
 
 		$login_script .= 'd.focus(); d.select();';
