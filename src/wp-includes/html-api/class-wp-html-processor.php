@@ -664,6 +664,57 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Progress through a document pausing on tags matching the provided CSS selector string.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment(
+	 *         '<meta charset="utf-8"><title>Example</title><meta property="og:type" content="website"><meta property="og:description" content="An example.">'
+	 *     );
+	 *     while ( $processor->select( 'meta[property^="og:" i]' ) ) {
+	 *         // Loop is entered twice.
+	 *         var_dump(
+	 *             $processor->get_tag(),                   // string(4) "META"
+	 *             $processor->get_attribute( 'property' ), // string(7) "og:type" / string(14) "og:description"
+	 *             $processor->get_attribute( 'content' ),  // string(7) "website" / string(11) "An example."
+	 *         );
+	 *     }
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @param string $selector_string Selector string.
+	 * @return bool Whether a selection was found.
+	 */
+	public function select( $selector_string ): bool {
+		static $previous_selector_string = null;
+		static $previous_selector        = null;
+
+		$selector = $selector_string === $previous_selector_string
+			? $previous_selector
+			: WP_CSS_Complex_Selector_List::from_selectors( $selector_string );
+
+		$previous_selector        = $selector;
+		$previous_selector_string = $selector_string;
+
+		if ( null === $selector ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf( 'Received unsupported or invalid selector "%s".', $selector_string ),
+				'{WP_VERSION}'
+			);
+			return false;
+		}
+
+		while ( $this->next_tag() ) {
+			if ( $selector->matches( $this ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Finds the next tag matching the $query.
 	 *
 	 * @todo Support matching the class name and tag name.
