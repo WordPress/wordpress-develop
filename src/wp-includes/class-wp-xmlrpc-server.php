@@ -966,6 +966,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @param mixed $date Client-supplied date value.
 	 * @return IXR_Date|IXR_Error IXR_Date object on success, IXR_Error if the value is not a date.
+	 *
+	 * @phpstan-return ( $date is IXR_Date|string ? IXR_Date : IXR_Error )
 	 */
 	protected function _convert_client_date( $date ) {
 		if ( $date instanceof IXR_Date ) {
