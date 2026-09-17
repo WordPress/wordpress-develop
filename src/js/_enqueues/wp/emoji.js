@@ -108,18 +108,12 @@
 					}
 
 					// Loop through all the added nodes.
-					for ( let node of addedNodes ) {
+					for ( const addedNode of addedNodes ) {
 						// Emoji in a text node are replaced by parsing the element which contains it.
-						if ( node instanceof Text ) {
-							if ( ! node.parentElement ) {
-								continue;
-							}
+						const node = addedNode instanceof Text ? addedNode.parentElement : addedNode;
 
-							node = node.parentElement;
-						}
-
-						if ( test( node.textContent ) ) {
-							parse( /** @type {HTMLElement} */ ( node ) );
+						if ( node instanceof HTMLElement && test( node.textContent ) ) {
+							parse( node );
 						}
 					}
 				}
