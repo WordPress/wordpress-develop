@@ -9,7 +9,7 @@
 const selector = 'script#wp-emoji-settings';
 const script = document.querySelector( selector );
 if ( ! ( script instanceof HTMLScriptElement ) ) {
-	throw new Error( `Element missing: ${ selector }`);
+	throw new Error( `Element missing: ${ selector }` );
 }
 const settings = /** @type {WPEmojiSettings} */ ( JSON.parse( script.text ) );
 
@@ -188,7 +188,7 @@ function emojiRendersEmptyCenterPoint( context, emoji ) {
 	context.fillText( emoji, 0, 0 );
 
 	// Test if the center point (16, 16) is empty (0,0,0,0).
-	const centerPoint = context.getImageData(16, 16, 1, 1);
+	const centerPoint = context.getImageData( 16, 16, 1, 1 );
 	for ( let i = 0; i < centerPoint.data.length; i++ ) {
 		if ( centerPoint.data[ i ] !== 0 ) {
 			// Stop checking the moment it's known not to be empty.
