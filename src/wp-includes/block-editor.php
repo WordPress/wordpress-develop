@@ -751,7 +751,10 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 	);
 
 	// Restore the original $post, $wp_scripts, $wp_styles, and $wp_script_modules instances.
-	$post              = $original_post;
+	$post = $original_post;
+	if ( ! empty( $post ) ) {
+		setup_postdata( $post );
+	}
 	$wp_scripts        = $original_wp_scripts;
 	$wp_styles         = $original_wp_styles;
 	$wp_script_modules = $original_wp_script_modules;
