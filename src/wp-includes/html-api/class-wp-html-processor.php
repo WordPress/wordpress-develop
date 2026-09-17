@@ -5133,6 +5133,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Indicates the namespace of the current token, or "html" if there is none.
 	 *
+	 * @since 6.7.0
+	 *
 	 * @return string One of "html", "math", or "svg".
 	 */
 	public function get_namespace(): string {
