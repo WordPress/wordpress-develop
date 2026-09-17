@@ -124,6 +124,42 @@ function setSessionSupportTests( supportTests ) {
 /**
  * Checks if two sets of Emoji characters render the same visually.
  *
+ * @callback EmojiSetsRenderIdentically
+ *
+ * @param {EmojiTestContext} context 2D Context.
+ * @param {string}           set1    Set of Emoji to test.
+ * @param {string}           set2    Set of Emoji to test.
+ *
+ * @return {boolean} True if the two sets render the same.
+ */
+
+/**
+ * Checks if the center point of a single emoji is empty.
+ *
+ * @callback EmojiRendersEmptyCenterPoint
+ *
+ * @param {EmojiTestContext} context 2D Context.
+ * @param {string}           emoji   Emoji to test.
+ *
+ * @return {boolean} True if the center point is empty.
+ */
+
+/**
+ * Determines if the browser properly renders Emoji that Twemoji can supplement.
+ *
+ * @callback BrowserSupportsEmoji
+ *
+ * @param {EmojiTestContext}             context                      2D Context.
+ * @param {keyof SupportTests}           type                         Which support test to run.
+ * @param {EmojiSetsRenderIdentically}   emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {EmojiRendersEmptyCenterPoint} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ *
+ * @return {boolean} True if the browser can render emoji, false if it cannot.
+ */
+
+/**
+ * Checks if two sets of Emoji characters render the same visually.
+ *
  * This is used to determine if the browser is rendering an emoji with multiple data points
  * correctly. set1 is the emoji in the correct form, using a zero-width joiner. set2 is the emoji
  * in the incorrect form, using a zero-width space. If the two sets render the same, then the browser
@@ -218,10 +254,10 @@ function emojiRendersEmptyCenterPoint( context, emoji ) {
  *
  * @private
  *
- * @param {EmojiTestContext} context                      2D Context.
- * @param {string}           type                         Whether to test for support of "flag" or "emoji".
- * @param {Function}         emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
- * @param {Function}         emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ * @param {EmojiTestContext}             context                      2D Context.
+ * @param {keyof SupportTests}           type                         Which support test to run.
+ * @param {EmojiSetsRenderIdentically}   emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {EmojiRendersEmptyCenterPoint} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
  *
  * @return {boolean} True if the browser can render emoji, false if it cannot.
  */
@@ -311,10 +347,10 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
  *
  * @private
  *
- * @param {Array<keyof SupportTests>} tests                        Which support tests to run.
- * @param {Function}                  browserSupportsEmoji         Reference to browserSupportsEmoji function, needed due to minification.
- * @param {Function}                  emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
- * @param {Function}                  emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ * @param {Array<keyof SupportTests>}    tests                        Which support tests to run.
+ * @param {BrowserSupportsEmoji}         browserSupportsEmoji         Reference to browserSupportsEmoji function, needed due to minification.
+ * @param {EmojiSetsRenderIdentically}   emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {EmojiRendersEmptyCenterPoint} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
  *
  * @return {SupportTests} Support tests.
  */
