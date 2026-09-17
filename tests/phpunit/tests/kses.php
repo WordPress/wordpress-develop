@@ -1455,6 +1455,23 @@ EOF;
 				'css'      => 'white-space: pre-line',
 				'expected' => 'white-space: pre-line',
 			),
+			// `text-shadow` introduced in 7.2.0.
+			array(
+				'css'      => 'text-shadow: none',
+				'expected' => 'text-shadow: none',
+			),
+			array(
+				'css'      => 'text-shadow: 1px 1px 2px #000000',
+				'expected' => 'text-shadow: 1px 1px 2px #000000',
+			),
+			array(
+				'css'      => 'text-shadow: 1px 1px 2px #000000, 0 0 1em #ff0000',
+				'expected' => 'text-shadow: 1px 1px 2px #000000, 0 0 1em #ff0000',
+			),
+			array(
+				'css'      => 'text-shadow: var(--wp--preset--text-shadow--soft)',
+				'expected' => 'text-shadow: var(--wp--preset--text-shadow--soft)',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
