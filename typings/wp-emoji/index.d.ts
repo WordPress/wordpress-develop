@@ -70,27 +70,37 @@ declare var _wpemojiSettings: WPEmojiSettings;
 /**
  * Options accepted by `twemoji.parse()`.
  *
- * Note that `doNotParse` is not part of the upstream library. The vendored copy in
- * js/_enqueues/vendor/twemoji.js was patched to add it.
+ * Taken from the vendored copy in js/_enqueues/vendor/twemoji.js rather than from the library's own
+ * documentation, since that copy is patched: `doNotParse` is WordPress's own addition and is not
+ * part of the library upstream.
  */
 interface TwemojiParseOptions {
 	/** Base URL to prepend to each image source. */
 	base?: string;
 	/** File extension to append to each image source. */
 	ext?: string;
+	/** Asset size, squared into a path segment: 72 becomes 72x72. */
+	size?: string | number;
+	/** Path segment to use in place of the size, when the assets are not in a square named folder. */
+	folder?: string;
 	/** Class name to give each generated image. */
 	className?: string;
 	/** Returns the source for an icon, or false to leave the character as it is. */
 	callback?: ( icon: string, options: TwemojiResolvedParseOptions ) => string | false;
-	/** Returns the attributes to set on each generated image. */
-	attributes?: ( rawText: string, iconId: string ) => Record< string, string >;
+	/**
+	 * Returns the attributes to set on each generated image.
+	 *
+	 * Null is allowed, and is what Twemoji itself falls back to: the result is only ever read with
+	 * `for...in`, which does nothing when given it.
+	 */
+	attributes?: ( rawText: string, iconId: string ) => Record< string, string > | null;
 	/** Runs on the generated image when it fails to load, with the image as `this`. */
 	onerror?: ( this: HTMLImageElement ) => void;
 	/**
 	 * Returns true to leave an element, and everything under it, unparsed.
 	 *
-	 * Twemoji only calls this for element nodes, and never for anything inside an SVG, so callers do
-	 * not have to test for either.
+	 * Twemoji only calls this for element nodes, never for anything within an SVG, and never for
+	 * script, style and the like, so callers do not have to test for any of those.
 	 */
 	doNotParse?: ( element: Element ) => boolean;
 }
@@ -102,6 +112,7 @@ interface TwemojiParseOptions {
 interface TwemojiResolvedParseOptions extends TwemojiParseOptions {
 	base: string;
 	ext: string;
+	size: string | number;
 	className: string;
 }
 
@@ -109,7 +120,11 @@ interface TwemojiResolvedParseOptions extends TwemojiParseOptions {
  * The vendored Twemoji library.
  *
  * Absent until js/_enqueues/vendor/twemoji.js has loaded, so callers must guard with a `typeof`
- * check. Only the members which WordPress itself uses are declared.
+ * check.
+ *
+ * Only what WordPress itself uses is declared. The library also exposes `replace()`, `test()`,
+ * `convert`, and the defaults behind the options above, and `parse()` additionally accepts a
+ * callback in place of the options object. None of that is described here.
  */
 interface Twemoji {
 	/** Replaces the emoji in an element, in place. */
