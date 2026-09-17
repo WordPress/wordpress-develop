@@ -378,6 +378,158 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61996
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_prefer_published_page_over_draft_with_same_slug() {
+		global $wpdb;
+
+		// Create a published page first so we can use it as a target.
+		$published = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'conflict-slug',
+				'post_status' => 'publish',
+			)
+		);
+
+		// Force a draft to share the same post_name (bypass the uniqueness check).
+		$draft = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'draft-slug',
+				'post_status' => 'draft',
+			)
+		);
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'conflict-slug' ), array( 'ID' => $draft ) );
+		clean_post_cache( $draft );
+
+		$found = get_page_by_path( 'conflict-slug' );
+
+		$this->assertSame( $published, $found->ID, 'Published page should be preferred over a draft sharing the same slug.' );
+	}
+
+	/**
+	 * @ticket 61996
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_prefer_published_nested_page_over_draft_with_same_path() {
+		global $wpdb;
+
+		// Create the published hierarchy: parent/child.
+		$published_parent = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'shared-parent',
+				'post_status' => 'publish',
+			)
+		);
+		$published_child  = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'shared-child',
+				'post_status' => 'publish',
+				'post_parent' => $published_parent,
+			)
+		);
+
+		// Create draft pages and force them to share the same post_names.
+		$draft_parent = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'draft-parent',
+				'post_status' => 'draft',
+			)
+		);
+		$draft_child  = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'draft-child',
+				'post_status' => 'draft',
+				'post_parent' => $draft_parent,
+			)
+		);
+
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'shared-parent' ), array( 'ID' => $draft_parent ) );
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'shared-child' ), array( 'ID' => $draft_child ) );
+		clean_post_cache( $draft_parent );
+		clean_post_cache( $draft_child );
+
+		$found = get_page_by_path( 'shared-parent/shared-child' );
+
+		$this->assertSame( $published_child, $found->ID, 'Published nested page should be preferred over a draft sharing the same path.' );
+	}
+
+	/**
+	 * @ticket 61996
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_return_draft_when_no_viewable_page_exists_with_same_slug() {
+		global $wpdb;
+
+		$draft_a = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'only-draft-slug',
+				'post_status' => 'draft',
+			)
+		);
+
+		// A second draft shares the slug; the first one (lower ID) should be returned
+		// since neither is viewable and existing fallback behaviour is preserved.
+		$draft_b = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'only-draft-slug-b',
+				'post_status' => 'draft',
+			)
+		);
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'only-draft-slug' ), array( 'ID' => $draft_b ) );
+		clean_post_cache( $draft_b );
+
+		$found = get_page_by_path( 'only-draft-slug' );
+
+		$this->assertNotNull( $found, 'A draft page should still be returned when no viewable page exists.' );
+		$this->assertContains( $found->ID, array( $draft_a, $draft_b ), 'The returned page should be one of the drafts sharing the slug.' );
+	}
+
+	/**
+	 * @ticket 61996
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_prefer_published_page_over_draft_when_post_type_is_array() {
+		global $wpdb;
+
+		register_post_type( 'wptests_pt' );
+
+		$published = self::factory()->post->create(
+			array(
+				'post_type'   => 'wptests_pt',
+				'post_name'   => 'array-type-conflict-slug',
+				'post_status' => 'publish',
+			)
+		);
+
+		$draft = self::factory()->post->create(
+			array(
+				'post_type'   => 'wptests_pt',
+				'post_name'   => 'array-type-draft-slug',
+				'post_status' => 'draft',
+			)
+		);
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'array-type-conflict-slug' ), array( 'ID' => $draft ) );
+		clean_post_cache( $draft );
+
+		$found = get_page_by_path( 'array-type-conflict-slug', OBJECT, array( 'wptests_pt' ) );
+
+		$this->assertSame( $published, $found->ID, 'Published page should be preferred over a draft when $post_type is passed as an array.' );
+	}
+
+	/**
 	 * @ticket 37611
 	 */
 	public function test_output_param_should_be_obeyed_for_cached_value() {
