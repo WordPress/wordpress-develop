@@ -359,7 +359,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/install.php
 		-
-			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int given\.$#'
+			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/nav-menus.php
