@@ -78,19 +78,6 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	/**
-	 * @var WP_Scripts|null
-	 */
-	protected $original_wp_scripts;
-
-	/**
-	 * @var WP_Styles|null
-	 */
-	protected $original_wp_styles;
-
-	/**
-	 * @var WP_Script_Modules|null
-	 */
 	protected ?WP_Scripts $original_wp_scripts;
 
 	protected ?WP_Styles $original_wp_styles;
