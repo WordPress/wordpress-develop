@@ -598,4 +598,28 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 		$this->assertSame( 400, $result->code );
 	}
+
+	/**
+	 * Ensure a stored modified date that is not a string skips the `if_not_modified_since` check
+	 * instead of causing a fatal error.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_non_string_stored_modified_date_skips_if_not_modified_since(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$cached_post                    = (object) get_object_vars( get_post( $post_id ) );
+		$cached_post->post_modified_gmt = array( 'not a date' );
+		wp_cache_set( $post_id, $cached_post, 'posts' );
+
+		$struct = array(
+			'post_title'            => 'Updated',
+			'if_not_modified_since' => new IXR_Date( time() ),
+		);
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
+
+		$this->assertTrue( $result );
+		$this->assertSame( 'Updated', get_post( $post_id )->post_title );
+	}
 }

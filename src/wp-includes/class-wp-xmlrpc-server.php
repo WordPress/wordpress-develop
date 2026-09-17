@@ -929,11 +929,13 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Converts a WordPress date string to an IXR_Date object.
 	 *
+	 * @since 7.2.0 A value that is not a string is treated as an empty date.
+	 *
 	 * @param string $date Date string to convert.
 	 * @return IXR_Date IXR_Date object.
 	 */
 	protected function _convert_date( $date ) {
-		if ( '0000-00-00 00:00:00' === $date ) {
+		if ( ! is_string( $date ) || '0000-00-00 00:00:00' === $date ) {
 			return new IXR_Date( '00000000T00:00:00Z' );
 		}
 		return new IXR_Date( mysql2date( 'Ymd\TH:i:s', $date, false ) );
@@ -947,7 +949,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return IXR_Date IXR_Date object.
 	 */
 	protected function _convert_date_gmt( $date_gmt, $date ) {
-		if ( '0000-00-00 00:00:00' !== $date && '0000-00-00 00:00:00' === $date_gmt ) {
+		if ( is_string( $date ) && '0000-00-00 00:00:00' !== $date && '0000-00-00 00:00:00' === $date_gmt ) {
 			return new IXR_Date( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $date, false ), 'Ymd\TH:i:s' ) );
 		}
 		return $this->_convert_date( $date_gmt );
@@ -1860,8 +1862,13 @@ class wp_xmlrpc_server extends IXR_Server {
 				return $if_not_modified_since;
 			}
 
+			$post_modified_timestamp = false;
+			if ( is_string( $post['post_modified_gmt'] ) ) {
+				$post_modified_timestamp = mysql2date( 'U', $post['post_modified_gmt'] );
+			}
+
 			// If the post has been modified since the date provided, return an error.
-			if ( mysql2date( 'U', $post['post_modified_gmt'] ) > $if_not_modified_since->getTimestamp() ) {
+			if ( false !== $post_modified_timestamp && $post_modified_timestamp > $if_not_modified_since->getTimestamp() ) {
 				return new IXR_Error( 409, __( 'There is a revision of this post that is more recent.' ) );
 			}
 		}
