@@ -1078,10 +1078,10 @@ function user_can_for_site( $user, $site_id, $capability, ...$args ) {
  *
  * @return WP_Roles WP_Roles global instance if not already instantiated.
  */
-function wp_roles() {
+function wp_roles(): WP_Roles {
 	global $wp_roles;
 
-	if ( ! isset( $wp_roles ) ) {
+	if ( ! ( $wp_roles instanceof WP_Roles ) ) {
 		$wp_roles = new WP_Roles();
 	}
 	return $wp_roles;
@@ -1163,11 +1163,7 @@ function remove_role( $role ) {
 function get_super_admins() {
 	global $super_admins;
 
-	if ( isset( $super_admins ) ) {
-		return $super_admins;
-	} else {
-		return get_site_option( 'site_admins', array( 'admin' ) );
-	}
+	return $super_admins ?? get_site_option( 'site_admins', array( 'admin' ) );
 }
 
 /**

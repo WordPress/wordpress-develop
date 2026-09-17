@@ -1936,7 +1936,6 @@ final class WP_Customize_Manager {
 					'<code>customize_messenger_channel</code>'
 				)
 			);
-			return;
 		}
 
 		$this->prepare_controls();
@@ -3166,7 +3165,6 @@ final class WP_Customize_Manager {
 					'code'    => 'non_existent_changeset',
 				)
 			);
-			return;
 		}
 
 		if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
@@ -3197,7 +3195,6 @@ final class WP_Customize_Manager {
 					'code'    => 'changeset_already_trashed',
 				)
 			);
-			return;
 		}
 
 		$r = $this->trash_changeset_post( $changeset_post_id );
@@ -3253,7 +3250,7 @@ final class WP_Customize_Manager {
 	 * @since 4.9.0
 	 *
 	 * @param int  $changeset_post_id Changeset post ID.
-	 * @param bool $take_over Whether to take over the changeset. Default false.
+	 * @param bool $take_over         Whether to take over the changeset. Default false.
 	 */
 	public function set_changeset_lock( $changeset_post_id, $take_over = false ) {
 		if ( $changeset_post_id ) {
@@ -3875,9 +3872,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Setting|null The setting, if set.
 	 */
 	public function get_setting( $id ) {
-		if ( isset( $this->settings[ $id ] ) ) {
-			return $this->settings[ $id ];
-		}
+		return $this->settings[ $id ] ?? null;
 	}
 
 	/**
@@ -3927,9 +3922,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Panel|null Requested panel instance, if set.
 	 */
 	public function get_panel( $id ) {
-		if ( isset( $this->panels[ $id ] ) ) {
-			return $this->panels[ $id ];
-		}
+		return $this->panels[ $id ] ?? null;
 	}
 
 	/**
@@ -4023,9 +4016,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Section|null The section, if set.
 	 */
 	public function get_section( $id ) {
-		if ( isset( $this->sections[ $id ] ) ) {
-			return $this->sections[ $id ];
-		}
+		return $this->sections[ $id ] ?? null;
 	}
 
 	/**
@@ -4102,9 +4093,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Control|null The control object, if set.
 	 */
 	public function get_control( $id ) {
-		if ( isset( $this->controls[ $id ] ) ) {
-			return $this->controls[ $id ];
-		}
+		return $this->controls[ $id ] ?? null;
 	}
 
 	/**
@@ -4962,7 +4951,7 @@ final class WP_Customize_Manager {
 				/* translators: %d: Number of themes being displayed, which cannot currently consider singular vs. plural forms. */
 				'announceThemeCount'   => __( 'Displaying %d themes' ),
 				/* translators: %s: Theme name. */
-				'announceThemeDetails' => __( 'Showing details for theme: %s' ),
+				'announceThemeDetails' => __( 'Theme details: %s' ),
 			),
 		);
 
@@ -5811,7 +5800,7 @@ final class WP_Customize_Manager {
 			get_pages(
 				array(
 					'number'       => 1,
-					'hierarchical' => 0,
+					'hierarchical' => false,
 				)
 			)
 		);

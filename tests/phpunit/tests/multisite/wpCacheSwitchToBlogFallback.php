@@ -121,8 +121,8 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		$this->assertTrue( function_exists( 'wp_cache_switch_to_blog_fallback' ), 'wp_cache_switch_to_blog_fallback() should always exist' );
 
 		// Both should be callable.
-		$this->assertTrue( is_callable( 'wp_cache_switch_to_blog' ) );
-		$this->assertTrue( is_callable( 'wp_cache_switch_to_blog_fallback' ) );
+		$this->assertIsCallable( 'wp_cache_switch_to_blog' );
+		$this->assertIsCallable( 'wp_cache_switch_to_blog_fallback' );
 	}
 
 	/**
