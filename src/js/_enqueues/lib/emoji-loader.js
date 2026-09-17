@@ -5,13 +5,23 @@
 // Note: This is loaded as a script module, so there is no need for an IIFE to prevent pollution of the global scope.
 
 /**
+ * Emoji script source URLs as exported in PHP via _print_emoji_detection_script().
+ *
+ * @typedef WPEmojiSettingsSource
+ * @type {Object}
+ * @property {string} [concatemoji] URL for the concatenated emoji script.
+ * @property {string} [twemoji]     URL for the Twemoji script.
+ * @property {string} [wpemoji]     URL for the wp-emoji script.
+ */
+
+/**
  * Emoji Settings as exported in PHP via _print_emoji_detection_script().
+ *
  * @typedef WPEmojiSettings
  * @type {Object}
- * @property {?object} source
- * @property {?string} source.concatemoji
- * @property {?string} source.twemoji
- * @property {?string} source.wpemoji
+ * @property {WPEmojiSettingsSource} [source] Emoji script source URLs.
+ * @property {EmojiSupports}         supports Which emoji the browser supports. Not exported from
+ *                                            PHP; populated by this script.
  */
 
 const selector = 'script#wp-emoji-settings';
@@ -22,17 +32,33 @@ if ( ! ( script instanceof HTMLScriptElement ) ) {
 const settings = /** @type {WPEmojiSettings} */ ( JSON.parse( script.text ) );
 
 // For compatibility with other scripts that read from this global, in particular wp-includes/js/wp-emoji.js (source file: js/_enqueues/wp/emoji.js).
-window._wpemojiSettings = settings;
+/** @type {Window & { _wpemojiSettings?: WPEmojiSettings }} */ ( window )._wpemojiSettings = settings;
 
 /**
- * Support tests.
+ * Results of the emoji support tests.
+ *
  * @typedef SupportTests
  * @type {Object}
- * @property {?boolean} flag
- * @property {?boolean} emoji
+ * @property {boolean} flag  Whether the browser renders flag emoji.
+ * @property {boolean} emoji Whether the browser renders emoji.
+ */
+
+/**
+ * Emoji support as exposed on the settings object for other scripts to read.
+ *
+ * The individual test results are absent until the support tests have completed.
+ *
+ * @typedef EmojiSupports
+ * @type {Object}
+ * @property {boolean} everything           Whether the browser passed every test.
+ * @property {boolean} everythingExceptFlag Whether the browser passed every test but the flag test.
+ * @property {boolean} [flag]               Whether the browser renders flag emoji.
+ * @property {boolean} [emoji]              Whether the browser renders emoji.
  */
 
 const sessionStorageKey = 'wpEmojiSettingsSupports';
+
+/** @type {Array<keyof SupportTests>} */
 const tests = [ 'flag', 'emoji' ];
 
 /**
@@ -49,7 +75,7 @@ function supportsWorkerOffloading() {
 		typeof Worker !== 'undefined' &&
 		typeof OffscreenCanvas !== 'undefined' &&
 		typeof URL !== 'undefined' &&
-		URL.createObjectURL &&
+		typeof URL.createObjectURL === 'function' &&
 		typeof Blob !== 'undefined'
 	);
 }
@@ -72,10 +98,13 @@ function supportsWorkerOffloading() {
  */
 function getSessionSupportTests() {
 	try {
+		const itemJson = sessionStorage.getItem( sessionStorageKey );
+		if ( null === itemJson ) {
+			return null;
+		}
+
 		/** @type {SessionSupportTests} */
-		const item = JSON.parse(
-			sessionStorage.getItem( sessionStorageKey )
-		);
+		const item = JSON.parse( itemJson );
 		if (
 			typeof item === 'object' &&
 			typeof item.timestamp === 'number' &&
@@ -302,10 +331,10 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
  *
  * @private
  *
- * @param {string[]} tests                        Tests.
- * @param {Function} browserSupportsEmoji         Reference to browserSupportsEmoji function, needed due to minification.
- * @param {Function} emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
- * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ * @param {Array<keyof SupportTests>} tests                        Tests.
+ * @param {Function}                  browserSupportsEmoji         Reference to browserSupportsEmoji function, needed due to minification.
+ * @param {Function}                  emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {Function}                  emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
  *
  * @return {SupportTests} Support tests.
  */
@@ -320,7 +349,13 @@ function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentica
 		canvas = document.createElement( 'canvas' );
 	}
 
-	const context = canvas.getContext( '2d', { willReadFrequently: true } );
+	/*
+	 * Note: The OffscreenCanvas 2D context implements everything the tests below use, so it is cast
+	 * to the canvas 2D context rather than each test having to account for both.
+	 */
+	const context = /** @type {CanvasRenderingContext2D} */ (
+		/** @type {unknown} */ ( canvas.getContext( '2d', { willReadFrequently: true } ) )
+	);
 
 	/*
 	 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
@@ -330,7 +365,7 @@ function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentica
 	context.textBaseline = 'top';
 	context.font = '600 32px Arial';
 
-	const supports = {};
+	const supports = /** @type {SupportTests} */ ( {} );
 	tests.forEach( ( test ) => {
 		supports[ test ] = browserSupportsEmoji( context, test, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
 	} );
@@ -361,10 +396,11 @@ settings.supports = {
 };
 
 // Obtain the emoji support from the browser, asynchronously when possible.
-new Promise( ( resolve ) => {
-	let supportTests = getSessionSupportTests();
-	if ( supportTests ) {
-		resolve( supportTests );
+/** @type {Promise<SupportTests>} */
+const supportTestsPromise = new Promise( ( resolve ) => {
+	const sessionSupportTests = getSessionSupportTests();
+	if ( sessionSupportTests ) {
+		resolve( sessionSupportTests );
 		return;
 	}
 
@@ -387,19 +423,21 @@ new Promise( ( resolve ) => {
 			} );
 			const worker = new Worker( URL.createObjectURL( blob ), { name: 'wpTestEmojiSupports' } );
 			worker.onmessage = ( event ) => {
-				supportTests = event.data;
-				setSessionSupportTests( supportTests );
+				const workerSupportTests = /** @type {SupportTests} */ ( event.data );
+				setSessionSupportTests( workerSupportTests );
 				worker.terminate();
-				resolve( supportTests );
+				resolve( workerSupportTests );
 			};
 			return;
 		} catch ( e ) {}
 	}
 
-	supportTests = testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
-	setSessionSupportTests( supportTests );
-	resolve( supportTests );
-} )
+	const testedSupportTests = testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
+	setSessionSupportTests( testedSupportTests );
+	resolve( testedSupportTests );
+} );
+
+supportTestsPromise
 	// Once the browser emoji support has been obtained from the session, finalize the settings.
 	.then( ( supportTests ) => {
 		/*
@@ -407,15 +445,17 @@ new Promise( ( resolve ) => {
 		 * support settings accordingly.
 		 */
 		for ( const test in supportTests ) {
-			settings.supports[ test ] = supportTests[ test ];
+			const key = /** @type {keyof SupportTests} */ ( test );
+			const supported = supportTests[ key ];
+
+			settings.supports[ key ] = supported;
 
 			settings.supports.everything =
-				settings.supports.everything && settings.supports[ test ];
+				settings.supports.everything && supported;
 
-			if ( 'flag' !== test ) {
+			if ( 'flag' !== key ) {
 				settings.supports.everythingExceptFlag =
-					settings.supports.everythingExceptFlag &&
-					settings.supports[ test ];
+					settings.supports.everythingExceptFlag && supported;
 			}
 		}
 
