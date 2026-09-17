@@ -371,6 +371,30 @@ QUnit.test( 'leaves alone an image replaced by its own alternative text', async 
 	assert.strictEqual( twemoji.calls, 0, 'The text which replaced the image is not parsed back into one.' );
 } );
 
+QUnit.test( 'parses other additions delivered alongside a fallback', async function ( assert ) {
+	const nodes = emojiImageParagraph( 'load-failed' );
+
+	await attachToFixture( nodes.paragraph );
+
+	const other = emojiFixtureElement( EMOJI );
+
+	twemoji.calls = 0;
+	twemoji.lastObject = null;
+
+	/*
+	 * Both changes are made before waiting, so that the observer is given the two records in one
+	 * call. The fallback comes first: recognizing it must not stop the rest of the records being
+	 * looked at, which is the difference between skipping that record and abandoning the callback.
+	 */
+	nodes.paragraph.replaceChild( document.createTextNode( EMOJI ), nodes.image );
+	document.getElementById( 'qunit-fixture' ).appendChild( other );
+
+	await afterMutations();
+
+	assert.strictEqual( twemoji.calls, 1, 'Twemoji is called once.' );
+	assert.strictEqual( twemoji.lastObject, other, 'The element added alongside the fallback is still parsed.' );
+} );
+
 QUnit.test( 'parses the same replacement when the image was not marked', async function ( assert ) {
 	const nodes = emojiImageParagraph();
 
