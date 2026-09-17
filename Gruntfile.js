@@ -1086,25 +1086,53 @@ module.exports = function(grunt) {
 				/*
 				 * Limit JSHint's run to a single specified plugin directory:
 				 *
-				 *    grunt jshint:plugins --dir=foldername
+				 * Usage example:
+				 * grunt jshint:plugins --dir=foldername
+				 *
+				 * Also, skips minified files that may not have a filename ending
+				 * with `.min.js` automatically. Assuming they have lines longer
+				 * than 500 characters.
 				 */
 				filter: function( dirpath ) {
-					var index, dir = grunt.option( 'dir' );
-
-					// Don't filter when no target folder is specified.
-					if ( ! dir ) {
-						return true;
+					// Bypasses folder targets so fs.readFileSync doesn't throw errors.
+					if ( ! fs.lstatSync( dirpath ).isFile() ) {
+						return false;
 					}
 
-					dirpath = dirpath.replace( /\\/g, '/' );
-					index = dirpath.lastIndexOf( '/' + dir );
+					// If `--dir` is provided.
+					var dir = grunt.option( 'dir' );
+					if ( dir ) {
+						var normalizedPath = dirpath.replace( /\\/g, '/' );
+						var index = normalizedPath.lastIndexOf( '/' + dir );
 
-					// Match only the folder name passed from cli.
-					if ( -1 !== index ) {
-						return true;
+						// If a directory was requested but this file isn't in it, exclude it.
+						if ( -1 === index ) {
+							return false;
+						}
 					}
 
-					return false;
+					// Read the file and inspect line lengths to catch minified/bundled code.
+					var content;
+					try {
+						content = fs.readFileSync( dirpath, 'utf-8' );
+					} catch ( error ) {
+						grunt.log.writeln( 'Could not read file: ' + dirpath + ' (Error: ' + error.message + ')' );
+						return false;
+					}
+
+					var lines = content.split( '\n' );
+
+					// Cap the maximum number of iterations at 5 lines.
+					for ( var i = 0; i < Math.min( lines.length, 5 ); i++ ) {
+						// Exclude files with lines longer than 500 characters.
+						if ( lines[i].length > 500 ) {
+							grunt.log.writeln( 'Skipping minified file: ' + dirpath );
+							return false;
+						}
+					}
+
+					// File passed both independent checks: proceed with JSHint.
+    				return true;
 				}
 			}
 		},
