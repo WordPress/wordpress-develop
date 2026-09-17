@@ -48,27 +48,6 @@
 		let count = 0;
 
 		/**
-		 * Detect if the browser supports SVG.
-		 *
-		 * @since 4.6.0
-		 * @private
-		 *
-		 * @see Modernizr
-		 * @link https://github.com/Modernizr/Modernizr/blob/master/feature-detects/svg/asimg.js
-		 *
-		 * @return {boolean} True if the browser supports svg, false if not.
-		 */
-		function browserSupportsSvgAsImage() {
-			if ( !! document.implementation.hasFeature ) {
-				return document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#Image', '1.1' );
-			}
-
-			// document.implementation.hasFeature is deprecated. It can be presumed
-			// if future browsers remove it, the browser will support SVGs as images.
-			return true;
-		}
-
-		/**
 		 * Runs when the document load event is fired, so we can do our first parse of
 		 * the page.
 		 *
@@ -216,8 +195,8 @@
 
 			/** @type {TwemojiParseOptions} */
 			const params = {
-				base: browserSupportsSvgAsImage() ? settings.svgUrl : settings.baseUrl,
-				ext:  browserSupportsSvgAsImage() ? settings.svgExt : settings.ext,
+				base: settings.svgUrl,
+				ext:  settings.svgExt,
 				className: args.className || 'emoji',
 				callback: function( icon, options ) {
 					// Ignore some standard characters that TinyMCE recommends in its character map.

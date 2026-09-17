@@ -38,9 +38,15 @@ interface EmojiSupports {
  * Emoji settings as exported in PHP via `_print_emoji_detection_script()`.
  */
 interface WPEmojiSettings {
-	/** Base URL for the PNG emoji images. */
+	/**
+	 * Base URL for the PNG emoji images.
+	 *
+	 * No longer read by any script, since wp-emoji always uses the SVG images. Still exported, both
+	 * for anything reading the settings itself and because the emoji_url filter behind it also
+	 * feeds wp_staticize_emoji().
+	 */
 	baseUrl: string;
-	/** File extension for the PNG emoji images. */
+	/** File extension for the PNG emoji images. See the note on baseUrl. */
 	ext: string;
 	/** Base URL for the SVG emoji images. */
 	svgUrl: string;
