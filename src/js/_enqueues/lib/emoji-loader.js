@@ -262,6 +262,7 @@ function emojiRendersEmptyCenterPoint( context, emoji ) {
  * @return {boolean} True if the browser can render emoji, false if it cannot.
  */
 function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint ) {
+	/** @type {boolean} */
 	let isIdentical;
 
 	switch ( type ) {
@@ -437,11 +438,10 @@ const supportTestsPromise = new Promise( ( resolve ) => {
 				type: 'text/javascript'
 			} );
 			const worker = new Worker( URL.createObjectURL( blob ), { name: 'wpTestEmojiSupports' } );
-			worker.onmessage = ( event ) => {
-				const workerSupportTests = /** @type {SupportTests} */ ( event.data );
-				setSessionSupportTests( workerSupportTests );
+			worker.onmessage = ( /** @type {MessageEvent<SupportTests>} */ event ) => {
+				setSessionSupportTests( event.data );
 				worker.terminate();
-				resolve( workerSupportTests );
+				resolve( event.data );
 			};
 			return;
 		} catch ( e ) {}
