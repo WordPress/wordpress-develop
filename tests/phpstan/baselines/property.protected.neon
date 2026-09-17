@@ -19,17 +19,17 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Access to protected property WP_List_Table\:\:\$screen\.$#'
+			message: '#^Access to protected property WP_Privacy_Data_Removal_Requests_List_Table\:\:\$screen\.$#'
 			identifier: property.protected
 			count: 1
 			path: ../../../src/wp-admin/erase-personal-data.php
 		-
-			message: '#^Access to protected property WP_List_Table\:\:\$screen\.$#'
+			message: '#^Access to protected property WP_Privacy_Data_Export_Requests_List_Table\:\:\$screen\.$#'
 			identifier: property.protected
 			count: 1
 			path: ../../../src/wp-admin/export-personal-data.php
 		-
-			message: '#^Access to protected property WP_List_Table\:\:\$screen\.$#'
+			message: '#^Access to protected property WP_Posts_List_Table\:\:\$screen\.$#'
 			identifier: property.protected
 			count: 1
 			path: ../../../src/wp-admin/includes/ajax-actions.php
