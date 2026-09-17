@@ -240,6 +240,18 @@ class WP_Icons_Registry {
 	}
 
 	/**
+	 * Builds the allowed attribute list for wp_kses() from attribute names.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param non-empty-string ...$attribute_names Attribute names to allow.
+	 * @return array<non-empty-string, true> Attribute names mapped to true.
+	 */
+	private function get_allowed_attribute_list( ...$attribute_names ): array {
+		return array_fill_keys( $attribute_names, true );
+	}
+
+	/**
 	 * Sanitizes the icon SVG content.
 	 *
 	 * @since 7.0.0
@@ -248,79 +260,79 @@ class WP_Icons_Registry {
 	 * @return string The sanitized icon SVG content.
 	 */
 	protected function sanitize_icon_content( $icon_content ) {
-		$stroke_attributes = array(
-			'style'             => true,
-			'stroke'            => true,
-			'stroke-width'      => true,
-			'stroke-linecap'    => true,
-			'stroke-linejoin'   => true,
-			'stroke-miterlimit' => true,
-			'vector-effect'     => true,
+		$stroke_attributes = $this->get_allowed_attribute_list(
+			'style',
+			'stroke',
+			'stroke-width',
+			'stroke-linecap',
+			'stroke-linejoin',
+			'stroke-miterlimit',
+			'vector-effect',
 		);
 
 		$allowed_tags = array(
 			'svg'     => array_merge(
-				array(
-					'class'       => true,
-					'xmlns'       => true,
-					'width'       => true,
-					'height'      => true,
-					'viewbox'     => true,
-					'aria-hidden' => true,
-					'role'        => true,
-					'focusable'   => true,
-					'fill'        => true,
-					'fill-rule'   => true,
-					'clip-rule'   => true,
+				$this->get_allowed_attribute_list(
+					'class',
+					'xmlns',
+					'width',
+					'height',
+					'viewbox',
+					'aria-hidden',
+					'role',
+					'focusable',
+					'fill',
+					'fill-rule',
+					'clip-rule',
 				),
 				$stroke_attributes
 			),
 			'path'    => array_merge(
-				array(
-					'fill'      => true,
-					'fill-rule' => true,
-					'clip-rule' => true,
-					'd'         => true,
-					'opacity'   => true,
-					'transform' => true,
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'd',
+					'opacity',
+					'transform',
 				),
 				$stroke_attributes
 			),
 			'polygon' => array_merge(
-				array(
-					'fill'      => true,
-					'fill-rule' => true,
-					'clip-rule' => true,
-					'points'    => true,
-					'transform' => true,
-					'focusable' => true,
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'points',
+					'transform',
+					'focusable',
 				),
 				$stroke_attributes
 			),
 			'rect'    => array_merge(
-				array(
-					'fill'      => true,
-					'fill-rule' => true,
-					'clip-rule' => true,
-					'x'         => true,
-					'y'         => true,
-					'width'     => true,
-					'height'    => true,
-					'rx'        => true,
-					'ry'        => true,
-					'transform' => true,
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'x',
+					'y',
+					'width',
+					'height',
+					'rx',
+					'ry',
+					'transform',
 				),
 				$stroke_attributes
 			),
 			'circle'  => array_merge(
-				array(
-					'fill'      => true,
-					'fill-rule' => true,
-					'clip-rule' => true,
-					'cx'        => true,
-					'cy'        => true,
-					'r'         => true,
-					'transform' => true,
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'cx',
+					'cy',
+					'r',
+					'transform',
 				),
 				$stroke_attributes
 			),
