@@ -1100,11 +1100,15 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			return true;
 		}
 
-		private function could_escape_foreign_content( bool $is_inside_mathml_text_integration_point ) {
+		private function could_escape_foreign_content( bool $is_inside_mathml_text_integration_point, bool $is_inside_svg_html_integreation_point ) {
 			$token_name   = $this->get_token_name();
 			$is_closer    = $this->is_tag_closer();
 			$namespace    = $this->get_namespace();
 			$self_closing = ! $is_closer && $this->has_self_closing_flag();
+
+			if ( ! $is_closer && $is_inside_svg_html_integreation_point ) {
+				return true;
+			}
 
 			/*
 			 * These two elements are excepted in HTML from the normal processing
@@ -1231,22 +1235,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				}
 			}
 
-			if (
-				'svg' === $namespace &&
-				! $is_closer &&
-				in_array(
-					$token_name,
-					array(
-						'FOREIGNOBJECT',
-						'DESC',
-						'TITLE',
-					),
-					true
-				)
-			) {
-				return true;
-			}
-
 			return false;
 		}
 
@@ -1297,6 +1285,17 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					)
 				);
 
+				$is_in_svg_html_integration_point = (
+					'svg' === $namespace &&
+					! $is_closer &&
+					( 'FOREIGNOBJECT' === $token_name || 'DESC' === $token_name || 'TITLE' === $token_name )
+				);
+
+				$is_in_text_integration_point = (
+					$is_in_mathml_text_integration_point ||
+					$is_in_svg_html_integration_point
+				);
+
 				/*
 				 * While content inside integration points is generally not allowed here,
 				 * character data inside the MathML text elements _is_ allowed. This is
@@ -1306,7 +1305,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * occur here but a browser will still do so; this sanitizer is generally
 				 * unaware of nesting structure.
 				 */
-				if ( $is_in_mathml_text_integration_point && '#text' === $token_type ) {
+				if ( $is_in_text_integration_point && '#text' === $token_type ) {
 					$this->change_parsing_namespace( 'html' );
 					$text = $this->get_modifiable_text();
 					$this->change_parsing_namespace( $namespace );
@@ -1506,7 +1505,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
-						if ( $is_in_mathml_text_integration_point ) {
+						if ( $is_in_text_integration_point ) {
 							/*
 							 * As of the writing of this code, Chrome 153.0.8010.48 and Safari 26.6.1
 							 * both incorrectly treat the CDATA section inside a MathML integration
@@ -1545,7 +1544,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						 */
 						if (
 							'html' !== $namespace &&
-							$this->could_escape_foreign_content( $is_in_mathml_text_integration_point )
+							$this->could_escape_foreign_content(
+								$is_in_mathml_text_integration_point,
+								$is_in_svg_html_integration_point
+							)
 						) {
 							return substr( $output, 0, $foreign_content_starts_at );
 						}
