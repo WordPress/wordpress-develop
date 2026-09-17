@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that runs the performance test suite.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
 ##
 name: Run performance Tests
 

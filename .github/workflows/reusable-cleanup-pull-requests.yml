@@ -3,6 +3,8 @@
 # tickets that are referenced as fixed in commit messages.
 #
 # More info about using GitHub pull requests for contributing to WordPress can be found in the handbook: https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
 ##
 name: Run pull request cleanup
 

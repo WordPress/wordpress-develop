@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that tests the WordPress Core build process.
+#
+# This workflow is used by `trunk` and branches >= 4.7.
 ##
 name: Test the WordPress Build Process
 

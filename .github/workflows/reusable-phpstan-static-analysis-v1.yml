@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that runs PHP Static Analysis tests.
+#
+# This workflow is used by `trunk` and branches >= 7.0.
 ##
 name: PHP Static Analysis
 

@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that builds and packages WordPress. The resulting package can be used to test upgrading and installing.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
 ##
 name: Build and package WordPress
 
