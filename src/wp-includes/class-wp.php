@@ -218,7 +218,7 @@ class WP {
 
 			// Look for matches.
 			$request_match = $requested_path;
-			if ( empty( $request_match ) ) {
+			if ( '' === $request_match ) {
 				// An empty request could only match against ^$ regex.
 				if ( isset( $rewrite['$'] ) ) {
 					$this->matched_rule = '$';
