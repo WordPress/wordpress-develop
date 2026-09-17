@@ -1896,10 +1896,35 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 			// Remove any exclusions from the term array to include.
 			$term_array = array_diff( $term_array, (array) $excluded_terms );
 
+			/**
+			 * Filters the IDs of the terms used to determine an adjacent post.
+			 *
+			 * The dynamic portion of the hook name, `$adjacent`, refers to the type
+			 * of adjacency, 'next' or 'previous'.
+			 *
+			 * Possible hook names include:
+			 *
+			 *  - `get_next_post_terms`
+			 *  - `get_previous_post_terms`
+			 *
+			 * Returning an empty array causes `get_adjacent_post()` to return an empty
+			 * string, matching the behavior of a post that belongs to no terms.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param int[]        $term_array     Array of term IDs belonging to the current post, with excluded terms removed.
+			 * @param WP_Post      $post           WP_Post object.
+			 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
+			 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
+			 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+			 */
+			$term_array = apply_filters( "get_{$adjacent}_post_terms", $term_array, $post, $taxonomy, $in_same_term, $excluded_terms );
+
 			if ( ! $term_array ) {
 				return '';
 			}
 
+			// Cast to integers so that filtered values are safe to interpolate into the query.
 			$term_array = array_map( 'intval', $term_array );
 
 			$where .= ' AND tt.term_id IN (' . implode( ',', $term_array ) . ')';
