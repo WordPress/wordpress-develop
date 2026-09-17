@@ -1138,7 +1138,7 @@ function update_site_meta( $site_id, $meta_key, $meta_value, $prev_value = '' ) 
  * @return bool Whether the site meta key was deleted from the database.
  */
 function delete_site_meta_by_key( $meta_key ) {
-	return delete_metadata( 'blog', null, $meta_key, '', true );
+	return delete_metadata( 'blog', 0, $meta_key, '', true );
 }
 
 /**
