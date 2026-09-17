@@ -472,9 +472,9 @@ if ( $messages ) {
 	wp_admin_notice(
 		implode( ' ', $messages ),
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 }

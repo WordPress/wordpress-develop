@@ -1460,8 +1460,8 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 				$messages[] = wp_get_admin_notice(
 					$menu_item_db_id->get_error_message(),
 					array(
-						'id'                 => 'message',
-						'additional_classes' => array( 'error' ),
+						'id'   => 'message',
+						'type' => 'error',
 					)
 				);
 			} else {
@@ -1514,9 +1514,9 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	/* translators: %s: Nav menu title. */
 	$message     = sprintf( __( '%s has been updated.' ), '<strong>' . $nav_menu_selected_title . '</strong>' );
 	$notice_args = array(
-		'id'                 => 'message',
-		'dismissible'        => true,
-		'additional_classes' => array( 'updated' ),
+		'id'          => 'message',
+		'dismissible' => true,
+		'type'        => 'success',
 	);
 
 	$messages[] = wp_get_admin_notice( $message, $notice_args );

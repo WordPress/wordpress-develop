@@ -295,7 +295,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			wp_admin_notice(
 				$error_message,
 				array(
-					'additional_classes' => array( 'inline', 'error' ),
+					'type'               => 'error',
+					'additional_classes' => array( 'inline' ),
 					'paragraph_wrap'     => false,
 				)
 			);
