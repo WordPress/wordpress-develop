@@ -181,6 +181,9 @@
 			// Compose the params for the twitter emoji library.
 			args = args || {};
 
+			// The caller may replace the attributes given to every generated image.
+			const attributes = typeof args.imgAttr === 'object' ? args.imgAttr : { role: 'img' };
+
 			/** @type {TwemojiParseOptions} */
 			const params = {
 				base: settings.svgUrl,
@@ -209,7 +212,7 @@
 
 					return ''.concat( options.base, icon, options.ext );
 				},
-				attributes: () => ( { role: 'img' } ),
+				attributes: () => attributes,
 				onerror: function () {
 					/*
 					 * Put the emoji character back in place of the image which failed to load. The
@@ -226,12 +229,6 @@
 					return element.classList.contains( 'wp-exclude-emoji' );
 				}
 			};
-
-			if ( typeof args.imgAttr === 'object' ) {
-				const imgAttr = args.imgAttr;
-
-				params.attributes = () => imgAttr;
-			}
 
 			return twemoji.parse( object, params );
 		}
