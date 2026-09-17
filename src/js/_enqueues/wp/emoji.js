@@ -26,8 +26,8 @@
 	 * @since 4.2.0
 	 * @access private
 	 *
-	 * @see  Twitter Emoji library
-	 * @link https://github.com/twitter/twemoji
+	 * @see  Twemoji
+	 * @link https://github.com/jdecked/twemoji
 	 *
 	 * @return {{
 	 *     parse: ( object: HTMLElement|string, args?: WPEmojiParseArgs ) => HTMLElement|string,
