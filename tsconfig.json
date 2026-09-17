@@ -11,6 +11,7 @@
 		"erasableSyntaxOnly": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
+		"allowUnreachableCode": false,
 		"skipLibCheck": true,
 		"isolatedModules": true,
 		"allowSyntheticDefaultImports": true,
