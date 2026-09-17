@@ -246,19 +246,9 @@
 						twemoji.parentNode.replaceChild( document.createTextNode( twemoji.alt ), twemoji );
 					}
 				},
-				doNotParse: function( node ) {
-					const className = node && /** @type {Element} */ ( node ).className;
-
-					if (
-						className &&
-						typeof className === 'string' &&
-						className.indexOf( 'wp-exclude-emoji' ) !== -1
-					) {
-						// Do not parse this node. Emojis will not be replaced in this node and all sub-nodes.
-						return true;
-					}
-
-					return false;
+				doNotParse: function( element ) {
+					// Emoji will not be replaced in this element, nor in any of its descendants.
+					return element.classList.contains( 'wp-exclude-emoji' );
 				}
 			};
 

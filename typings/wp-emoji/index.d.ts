@@ -86,8 +86,13 @@ interface TwemojiParseOptions {
 	attributes?: ( rawText: string, iconId: string ) => Record< string, string >;
 	/** Runs on the generated image when it fails to load, with the image as `this`. */
 	onerror?: ( this: HTMLImageElement ) => void;
-	/** Returns true to leave a node, and everything under it, unparsed. */
-	doNotParse?: ( node: Node ) => boolean;
+	/**
+	 * Returns true to leave an element, and everything under it, unparsed.
+	 *
+	 * Twemoji only calls this for element nodes, and never for anything inside an SVG, so callers do
+	 * not have to test for either.
+	 */
+	doNotParse?: ( element: Element ) => boolean;
 }
 
 /**
