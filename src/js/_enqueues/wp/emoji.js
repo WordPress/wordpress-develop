@@ -216,22 +216,13 @@
 				},
 				onerror: function() {
 					/*
-					 * TODO: This handler never does anything. It refers to the Twemoji library object
-					 * in three places where it means the image element, which is what Twemoji's own
-					 * onerror uses and what `this` is bound to here. The library object has no
-					 * parentNode, so the condition below is never true: the data-error attribute is
-					 * never set, and a broken image is never replaced by its alt text. The
-					 * MutationObserver above tests for that same attribute, so it is dead too.
-					 *
-					 * Fixing this changes behavior, so it is being tracked separately. The
-					 * @ts-expect-error directives below are what keep that decision from being made
-					 * silently here; they will start failing once the references are corrected.
+					 * Put the emoji character back in place of the image which failed to load. The
+					 * attribute is what tells the MutationObserver above that this replacement is
+					 * the one it must not turn straight back into an image.
 					 */
-					// @ts-expect-error -- See the note above.
-					if ( twemoji.parentNode ) {
+					if ( this.parentNode ) {
 						this.setAttribute( 'data-error', 'load-failed' );
-						// @ts-expect-error -- See the note above.
-						twemoji.parentNode.replaceChild( document.createTextNode( twemoji.alt ), twemoji );
+						this.parentNode.replaceChild( document.createTextNode( this.alt ), this );
 					}
 				},
 				doNotParse: function( element ) {
