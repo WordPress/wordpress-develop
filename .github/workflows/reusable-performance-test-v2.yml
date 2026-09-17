@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that runs the performance test suite.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
 ##
 name: Run performance Tests
 
@@ -154,6 +156,7 @@ jobs:
         run: npm run env:start
 
       - name: Build WordPress
+        timeout-minutes: 5
         run: npm run build
 
       - name: Download previous build artifact (target branch or previous commit)
