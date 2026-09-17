@@ -452,5 +452,5 @@ QUnit.test( 'parses the same replacement when the image was not marked', async f
 	await afterMutations();
 
 	assert.strictEqual( twemoji.calls, 1, 'Twemoji is called once.' );
-	assert.strictEqual( twemoji.lastObject, nodes.paragraph, 'It is the marker, and nothing else, which stops the replacement being parsed.' );
+	assert.strictEqual( twemoji.lastObject, nodes.paragraph, 'Without the marker, the element containing the replacement is parsed.' );
 } );
