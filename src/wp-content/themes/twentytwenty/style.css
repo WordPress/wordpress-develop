@@ -3652,7 +3652,9 @@ figure.wp-block-table.is-style-stripes {
 .entry-content .wp-block-file {
 	font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
 }
-
+.entry-content .wp-block-search {
+	font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
+}
 @supports ( font-variation-settings: normal ) {
 
 	.entry-content h1,
