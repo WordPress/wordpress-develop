@@ -217,4 +217,15 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 		$this->assertSame( $date_string, get_post( $result )->post_date );
 	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_non_array_content_struct_returns_error(): void {
+		$this->make_user_by_role( 'author' );
+
+		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', 'not a struct' ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
 }

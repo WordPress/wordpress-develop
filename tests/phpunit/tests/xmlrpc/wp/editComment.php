@@ -110,4 +110,16 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 		$this->assertSame( $date_string, get_comment( $comment_id )->comment_date_gmt );
 	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_non_array_content_struct_returns_error(): void {
+		$this->make_user_by_role( 'administrator' );
+		$comment_id = self::factory()->comment->create();
+
+		$result = $this->myxmlrpcserver->wp_editComment( array( 1, 'administrator', 'administrator', $comment_id, 'not a struct' ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
 }

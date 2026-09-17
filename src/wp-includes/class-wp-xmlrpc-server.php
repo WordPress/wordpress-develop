@@ -828,6 +828,25 @@ class wp_xmlrpc_server extends IXR_Server {
 	}
 
 	/**
+	 * Checks that the content struct argument received from a client is an array.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $content_struct The content struct argument to check.
+	 * @return bool True if `$content_struct` is an array, false otherwise.
+	 *
+	 * @phpstan-assert-if-true array $content_struct
+	 */
+	protected function _is_content_struct_array( $content_struct ): bool {
+		if ( ! is_array( $content_struct ) ) {
+			$this->error = new IXR_Error( 400, __( 'The content struct argument must be an array.' ) );
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Prepares taxonomy data for return in an XML-RPC object.
 	 *
 	 * @param WP_Taxonomy $taxonomy The unprepared taxonomy data.
@@ -1329,6 +1348,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Creates a new post for any registered post type.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @link https://en.wikipedia.org/wiki/RSS_enclosure for information on RSS enclosures.
 	 *
@@ -1382,6 +1402,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$username       = $args[1];
 		$password       = $args[2];
 		$content_struct = $args[3];
+
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
@@ -1787,6 +1811,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * should be changed. All other fields will retain their existing values.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -1810,6 +1835,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password       = $args[2];
 		$post_id        = (int) $args[3];
 		$content_struct = $args[4];
+
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
@@ -3900,6 +3929,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *  - 'status'. Common statuses are 'approve', 'hold', 'spam'. See get_comment_statuses() for more details.
 	 *
 	 * @since 2.7.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -3919,6 +3949,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password       = $args[2];
 		$comment_id     = (int) $args[3];
 		$content_struct = $args[4];
+
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
@@ -5482,6 +5516,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *  - wp_post_thumbnail
 	 *
 	 * @since 1.5.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -5501,6 +5536,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password       = $args[2];
 		$content_struct = $args[3];
 		$publish        = $args[4] ?? 0;
+
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
@@ -5887,6 +5926,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Edits a post.
 	 *
 	 * @since 1.5.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -5907,6 +5947,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password       = $args[2];
 		$content_struct = $args[3];
 		$publish        = $args[4] ?? 0;
+
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
