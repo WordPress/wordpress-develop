@@ -26,14 +26,12 @@
 	 * @since 4.2.0
 	 * @access private
 	 *
-	 * @class
-	 *
 	 * @see  Twitter Emoji library
 	 * @link https://github.com/twitter/twemoji
 	 *
 	 * @return {{
-	 *     parse: typeof parse,
-	 *     test: typeof test,
+	 *     parse: ( object: HTMLElement|string, args?: WPEmojiParseArgs ) => HTMLElement|string,
+	 *     test: ( text: ?string ) => boolean
 	 * }} The wpEmoji parse and test functions.
 	 */
 	function wpEmoji() {
@@ -243,6 +241,6 @@
 	/**
 	 * @namespace wp.emoji
 	 */
-	window.wp.emoji = new wpEmoji();
+	window.wp.emoji = wpEmoji();
 
 } )( window, window._wpemojiSettings );
