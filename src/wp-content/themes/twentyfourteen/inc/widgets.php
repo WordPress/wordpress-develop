@@ -1,13 +1,19 @@
 <?php
 /**
+ * Twenty Fourteen Ephemera Widget class
+ *
+ * @package WordPress
+ * @subpackage Twenty_Fourteen
+ * @since Twenty Fourteen 1.0
+ */
+
+/**
  * Custom Widget for displaying specific post formats
  *
  * Displays posts from Aside, Quote, Video, Audio, Image, Gallery, and Link formats.
  *
  * @link https://developer.wordpress.org/themes/functionality/widgets/#developing-widgets
  *
- * @package WordPress
- * @subpackage Twenty_Fourteen
  * @since Twenty Fourteen 1.0
  */
 class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {

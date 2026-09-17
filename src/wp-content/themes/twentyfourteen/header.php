@@ -8,6 +8,7 @@
  * @subpackage Twenty_Fourteen
  * @since Twenty Fourteen 1.0
  */
+
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>

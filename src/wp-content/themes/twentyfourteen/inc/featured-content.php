@@ -1,13 +1,19 @@
 <?php
 /**
- * Twenty Fourteen Featured Content
+ * Twenty Fourteen Featured Content class
  *
+ * @package WordPress
+ * @subpackage Twenty_Fourteen
+ * @since Twenty Fourteen 1.0
+ */
+
+/**
  * This module allows you to define a subset of posts to be displayed
  * in the theme's Featured Content area.
  *
  * For maximum compatibility with different methods of posting users
  * will designate a featured post tag to associate posts with. Since
- * this tag now has special meaning beyond that of a normal tags, users
+ * this tag now has special meaning beyond that of normal tags, users
  * will have the ability to hide it from the front end of their site.
  */
 class Featured_Content {
