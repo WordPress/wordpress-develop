@@ -334,8 +334,6 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
 			const notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\u1FAC8' );
 			return ! notSupported;
 	}
-
-	return false;
 }
 
 /**
