@@ -50,6 +50,17 @@ class WP_Sitemaps_Renderer {
 	 * @return string Empty string.
 	 */
 	public function get_sitemap_index_stylesheet_url() {
+		/**
+		 * Filters the URL for the sitemap index stylesheet.
+		 *
+		 * If a falsey value is returned, no stylesheet will be used and
+		 * the "raw" XML of the sitemap index will be displayed.
+		 *
+		 * @since 5.5.0
+		 * @deprecated 7.2.0 Stylesheets are no longer supported.
+		 *
+		 * @param string $sitemap_url Full URL for the sitemaps index XSL file.
+		 */
 		apply_filters_deprecated( 'wp_sitemaps_stylesheet_index_url', array( '' ), '7.2.0' );
 
 		return '';

@@ -7,12 +7,14 @@
  * @package WordPress
  * @subpackage Sitemaps
  * @since 5.5.0
+ * @deprecated 7.2.0 Stylesheets are no longer supported.
  */
 
 /**
  * Stylesheet provider class.
  *
  * @since 5.5.0
+ * @deprecated 7.2.0 Stylesheets are no longer supported.
  */
 #[AllowDynamicProperties]
 class WP_Sitemaps_Stylesheet {
@@ -26,13 +28,8 @@ class WP_Sitemaps_Stylesheet {
 	 * @return never
 	 */
 	public function render_stylesheet( $type ) {
-		wp_die(
-			sprintf(
-				__( 'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-				__METHOD__,
-				'7.2.0'
-			)
-		);
+		_deprecated_function( __METHOD__, '7.2.0' );
+		exit;
 	}
 
 	/**
@@ -44,6 +41,7 @@ class WP_Sitemaps_Stylesheet {
 	 * @return string Empty string.
 	 */
 	public function get_sitemap_stylesheet() {
+		_deprecated_function( __METHOD__, '7.2.0' );
 		return '';
 	}
 
@@ -56,6 +54,7 @@ class WP_Sitemaps_Stylesheet {
 	 * @return string Empty string.
 	 */
 	public function get_sitemap_index_stylesheet() {
+		_deprecated_function( __METHOD__, '7.2.0' );
 		return '';
 	}
 
@@ -68,6 +67,16 @@ class WP_Sitemaps_Stylesheet {
 	 * @return string Empty string.
 	 */
 	public function get_stylesheet_css() {
+		_deprecated_function( __METHOD__, '7.2.0' );
+
+		/**
+		 * Filters the CSS only for the sitemap stylesheet.
+		 *
+		 * @since 5.5.0
+		 * @deprecated 7.2.0 Stylesheets are no longer supported.
+		 *
+		 * @param string $css CSS to be applied to default XSL file.
+		 */
 		apply_filters_deprecated( 'wp_sitemaps_stylesheet_css', array( '' ), '7.2.0' );
 
 		return '';
