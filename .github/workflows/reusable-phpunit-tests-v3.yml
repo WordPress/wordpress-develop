@@ -245,7 +245,7 @@ jobs:
         run: npm ci
 
       - name: Build WordPress
-        timeout-minutes: 3
+        timeout-minutes: 5
         run: npm run build:dev
         env:
           # The producer resolved this once. Matrix jobs must not re-resolve mutable GHCR tags.
