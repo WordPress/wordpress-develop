@@ -86,45 +86,36 @@
 			// Initialize the mutation observer, which checks all added nodes for
 			// replaceable emoji characters.
 			new MutationObserver( function( mutationRecords ) {
-				let i = mutationRecords.length;
-
-				while ( i-- ) {
-					const addedNodes = mutationRecords[ i ].addedNodes;
-					const removedNodes = mutationRecords[ i ].removedNodes;
-
-					let ii = addedNodes.length;
+				for ( const { addedNodes, removedNodes } of mutationRecords ) {
+					const addedNode = addedNodes[ 0 ];
+					const removedNode = removedNodes[ 0 ];
 
 					/*
 					 * Checks if an image has been replaced by a text element
 					 * with the same text as the alternate description of the replaced image.
 					 * (presumably because the image could not be loaded).
-					 * If it is, do absolutely nothing.
-					 *
-					 * Node type 3 is a TEXT_NODE.
-					 *
-					 * @link https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+					 * If it is, leave this record alone, so that the text is not turned
+					 * straight back into the image which just failed to load.
 					 */
 					if (
-						ii === 1 && removedNodes.length === 1 &&
-						addedNodes[0].nodeType === 3 &&
-						removedNodes[0].nodeName === 'IMG' &&
-						/** @type {Text} */ ( addedNodes[0] ).data === /** @type {HTMLImageElement} */ ( removedNodes[0] ).alt &&
-						'load-failed' === /** @type {HTMLImageElement} */ ( removedNodes[0] ).getAttribute( 'data-error' )
+						addedNodes.length === 1 && removedNodes.length === 1 &&
+						addedNode instanceof Text &&
+						removedNode instanceof HTMLImageElement &&
+						addedNode.data === removedNode.alt &&
+						'load-failed' === removedNode.getAttribute( 'data-error' )
 					) {
-						return;
+						continue;
 					}
 
 					// Loop through all the added nodes.
-					while ( ii-- ) {
-						let node = addedNodes[ ii ];
-
-						// Node type 3 is a TEXT_NODE.
-						if ( node.nodeType === 3 ) {
-							if ( ! node.parentNode ) {
+					for ( let node of addedNodes ) {
+						// Emoji in a text node are replaced by parsing the element which contains it.
+						if ( node instanceof Text ) {
+							if ( ! node.parentElement ) {
 								continue;
 							}
 
-							node = node.parentNode;
+							node = node.parentElement;
 						}
 
 						if ( test( node.textContent ) ) {
