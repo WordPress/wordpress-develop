@@ -102,7 +102,7 @@
 						addedNode instanceof Text &&
 						removedNode instanceof HTMLImageElement &&
 						addedNode.data === removedNode.alt &&
-						'load-failed' === removedNode.getAttribute( 'data-error' )
+						'load-failed' === removedNode.dataset.error
 					) {
 						continue;
 					}
@@ -221,7 +221,7 @@
 					 * the one it must not turn straight back into an image.
 					 */
 					if ( this.parentNode ) {
-						this.setAttribute( 'data-error', 'load-failed' );
+						this.dataset.error = 'load-failed';
 						this.parentNode.replaceChild( document.createTextNode( this.alt ), this );
 					}
 				},
