@@ -7,6 +7,31 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	protected $exclude_term;
 
 	/**
+	 * Term array returned by the adjacent post terms filter.
+	 *
+	 * @var int[]
+	 */
+	protected $filtered_terms = array();
+
+	/**
+	 * Arguments captured by the adjacent post terms filter.
+	 *
+	 * @var array|null
+	 */
+	protected $captured_terms_args = null;
+
+	public function tear_down() {
+		remove_filter( 'get_previous_post_terms', array( $this, 'filter_adjacent_post_terms' ) );
+		remove_filter( 'get_previous_post_terms', array( $this, 'filter_adjacent_post_terms_capture_args' ) );
+		remove_filter( 'get_next_post_terms', array( $this, 'filter_adjacent_post_terms' ) );
+
+		$this->filtered_terms      = array();
+		$this->captured_terms_args = null;
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 17807
 	 */
 	public function test_get_adjacent_post() {
@@ -349,6 +374,38 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	public function filter_excluded_terms( $excluded_terms ) {
 		$excluded_terms[] = $this->exclude_term;
 		return $excluded_terms;
+	}
+
+	/**
+	 * Replaces the resolved adjacent post term array.
+	 *
+	 * @param int[] $term_array Term IDs for the current post.
+	 * @return int[] Filtered term IDs.
+	 */
+	public function filter_adjacent_post_terms( $term_array ) {
+		return $this->filtered_terms;
+	}
+
+	/**
+	 * Captures the arguments passed to the adjacent post terms filter.
+	 *
+	 * @param int[]        $term_array     Term IDs for the current post.
+	 * @param WP_Post      $post           WP_Post object.
+	 * @param string       $taxonomy       Taxonomy.
+	 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
+	 * @param int[]|string $excluded_terms Excluded term IDs.
+	 * @return int[] Unmodified term IDs.
+	 */
+	public function filter_adjacent_post_terms_capture_args( $term_array, $post, $taxonomy, $in_same_term, $excluded_terms ) {
+		$this->captured_terms_args = array(
+			'term_array'     => $term_array,
+			'post'           => $post,
+			'taxonomy'       => $taxonomy,
+			'in_same_term'   => $in_same_term,
+			'excluded_terms' => $excluded_terms,
+		);
+
+		return $term_array;
 	}
 
 	/**
@@ -778,5 +835,212 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$next = get_adjacent_post( true, '', false, 'category' );
 		$this->assertInstanceOf( 'WP_Post', $next );
 		$this->assertSame( $post_ids[3], $next->ID ); // Post 4 (in category)
+	}
+
+	/**
+	 * Tests that the dynamic `get_{$adjacent}_post_terms` filter is applied and
+	 * receives the documented arguments.
+	 *
+	 * @ticket 35082
+	 */
+	public function test_get_adjacent_post_terms_filter_receives_documented_arguments() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'rewrite' => false ) );
+
+		$terms = self::factory()->term->create_many(
+			2,
+			array( 'taxonomy' => 'wptests_tax' )
+		);
+
+		$p1 = self::factory()->post->create( array( 'post_date' => '2015-08-27 12:00:00' ) );
+		$p2 = self::factory()->post->create( array( 'post_date' => '2015-08-25 12:00:00' ) );
+		$p3 = self::factory()->post->create( array( 'post_date' => '2015-08-26 12:00:00' ) );
+
+		wp_set_post_terms( $p1, array( $terms[0], $terms[1] ), 'wptests_tax' );
+		wp_set_post_terms( $p2, array( $terms[0] ), 'wptests_tax' );
+		wp_set_post_terms( $p3, array( $terms[0] ), 'wptests_tax' );
+
+		$this->go_to( get_permalink( $p1 ) );
+
+		add_filter( 'get_previous_post_terms', array( $this, 'filter_adjacent_post_terms_capture_args' ), 10, 5 );
+
+		$found = get_adjacent_post( true, array( $terms[1] ), true, 'wptests_tax' );
+
+		$args = $this->captured_terms_args;
+
+		remove_filter( 'get_previous_post_terms', array( $this, 'filter_adjacent_post_terms_capture_args' ), 10 );
+
+		$this->assertIsArray( $args['term_array'] );
+		// The excluded term is already removed by the time the filter runs.
+		$this->assertEquals( array( $terms[0] ), array_values( $args['term_array'] ) );
+
+		$this->assertInstanceOf( 'WP_Post', $args['post'] );
+		$this->assertSame( $p1, $args['post']->ID );
+		$this->assertSame( 'wptests_tax', $args['taxonomy'] );
+		$this->assertTrue( $args['in_same_term'] );
+		$this->assertEquals( array( $terms[1] ), $args['excluded_terms'] );
+
+		// The order of filtered terms must not change which post is returned.
+		$this->assertSame( $p3, $found->ID );
+	}
+
+	/**
+	 * Tests that filtering the term array down to a single child term changes which
+	 * post is treated as adjacent, which is the use case requested in the ticket.
+	 *
+	 * @ticket 35082
+	 */
+	public function test_get_adjacent_post_terms_filter_can_restrict_matching_to_a_child_term() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+				'rewrite'      => false,
+			)
+		);
+
+		$parent = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Parent',
+			)
+		);
+
+		$child = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Child',
+				'parent'   => $parent,
+			)
+		);
+
+		$p1 = self::factory()->post->create(
+			array(
+				'post_title' => 'First',
+				'post_date'  => '2015-01-01 12:00:00',
+			)
+		);
+
+		$p2 = self::factory()->post->create(
+			array(
+				'post_title' => 'Second',
+				'post_date'  => '2015-02-01 12:00:00',
+			)
+		);
+
+		$p3 = self::factory()->post->create(
+			array(
+				'post_title' => 'Third',
+				'post_date'  => '2015-03-01 12:00:00',
+			)
+		);
+
+		// First post is in the parent and the child term.
+		wp_set_post_terms( $p1, array( $parent, $child ), 'wptests_tax' );
+		// Second post only shares the parent term.
+		wp_set_post_terms( $p2, array( $parent ), 'wptests_tax' );
+		// Third post is in the parent and the child term.
+		wp_set_post_terms( $p3, array( $parent, $child ), 'wptests_tax' );
+
+		$this->go_to( get_permalink( $p1 ) );
+
+		// Without a filter the second post is adjacent, because it shares the parent term.
+		$unfiltered = get_adjacent_post( true, '', false, 'wptests_tax' );
+		$this->assertInstanceOf( 'WP_Post', $unfiltered );
+		$this->assertSame( $p2, $unfiltered->ID );
+
+		// Restricting the term array to the child term skips the second post.
+		$this->filtered_terms = array( $child );
+		add_filter( 'get_next_post_terms', array( $this, 'filter_adjacent_post_terms' ) );
+
+		$filtered = get_adjacent_post( true, '', false, 'wptests_tax' );
+
+		remove_filter( 'get_next_post_terms', array( $this, 'filter_adjacent_post_terms' ) );
+
+		$this->assertInstanceOf( 'WP_Post', $filtered );
+		$this->assertSame( $p3, $filtered->ID );
+	}
+
+	/**
+	 * Tests that the default behavior of `$in_same_term` is unchanged: a post that
+	 * only shares a parent term is still considered adjacent.
+	 *
+	 * @ticket 35082
+	 */
+	public function test_get_adjacent_post_in_same_term_still_matches_shared_parent_term() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+				'rewrite'      => false,
+			)
+		);
+
+		$parent = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Parent',
+			)
+		);
+
+		$child = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Child',
+				'parent'   => $parent,
+			)
+		);
+
+		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-01 12:00:00' ) );
+		$p2 = self::factory()->post->create( array( 'post_date' => '2015-02-01 12:00:00' ) );
+		$p3 = self::factory()->post->create( array( 'post_date' => '2015-03-01 12:00:00' ) );
+
+		wp_set_post_terms( $p1, array( $parent, $child ), 'wptests_tax' );
+		wp_set_post_terms( $p2, array( $parent ), 'wptests_tax' );
+		wp_set_post_terms( $p3, array( $parent, $child ), 'wptests_tax' );
+
+		$this->go_to( get_permalink( $p1 ) );
+
+		// The second post is adjacent because any shared term counts.
+		$next = get_adjacent_post( true, '', false, 'wptests_tax' );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertSame( $p2, $next->ID );
+
+		$previous = get_adjacent_post( true, '', true, 'wptests_tax' );
+		$this->assertSame( '', $previous );
+	}
+
+	/**
+	 * Tests that a filter removing every term does not generate an invalid query and
+	 * results in the existing "no adjacent post" behavior.
+	 *
+	 * @ticket 35082
+	 */
+	public function test_get_adjacent_post_terms_filter_returning_empty_array() {
+		global $wpdb;
+
+		register_taxonomy( 'wptests_tax', 'post', array( 'rewrite' => false ) );
+
+		$term = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+
+		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-01 12:00:00' ) );
+		$p2 = self::factory()->post->create( array( 'post_date' => '2015-02-01 12:00:00' ) );
+
+		wp_set_post_terms( $p1, array( $term ), 'wptests_tax' );
+		wp_set_post_terms( $p2, array( $term ), 'wptests_tax' );
+
+		$this->go_to( get_permalink( $p2 ) );
+
+		$this->filtered_terms = array();
+		add_filter( 'get_next_post_terms', array( $this, 'filter_adjacent_post_terms' ) );
+
+		$wpdb->last_error = '';
+		$found            = get_adjacent_post( true, '', false, 'wptests_tax' );
+
+		remove_filter( 'get_next_post_terms', array( $this, 'filter_adjacent_post_terms' ) );
+
+		$this->assertSame( '', $wpdb->last_error );
+		$this->assertSame( '', $found );
 	}
 }
