@@ -2,9 +2,19 @@
  * wp-emoji.js is used to replace emoji with images in browsers when the browser
  * doesn't support emoji natively.
  *
- * @param {Window} window   The global window object.
- * @param {Object} settings The settings object.
+ * @param {Window}          window   The global window object.
+ * @param {WPEmojiSettings} settings The settings object.
  * @output wp-includes/js/wp-emoji.js
+ */
+
+/**
+ * Additional options accepted by wp.emoji.parse().
+ *
+ * @typedef WPEmojiParseArgs
+ * @type {Object}
+ * @property {string}                 [className] Class name to give each generated image.
+ * @property {Record<string, string>} [imgAttr]   Attributes to set on each generated image, in
+ *                                                place of the default ones.
  */
 
 ( function( window, settings ) {
@@ -28,7 +38,10 @@
 		document = window.document,
 
 		// Private.
-		twemoji, timer,
+		/** @type {Twemoji|undefined} */
+		twemoji,
+		/** @type {number|undefined} */
+		timer,
 		loaded = false,
 		count = 0,
 		ie11 = window.navigator.userAgent.indexOf( 'Trident/7.0' ) > 0;
@@ -113,8 +126,8 @@
 							ii === 1 && removedNodes.length === 1 &&
 							addedNodes[0].nodeType === 3 &&
 							removedNodes[0].nodeName === 'IMG' &&
-							addedNodes[0].data === removedNodes[0].alt &&
-							'load-failed' === removedNodes[0].getAttribute( 'data-error' )
+							/** @type {Text} */ ( addedNodes[0] ).data === /** @type {HTMLImageElement} */ ( removedNodes[0] ).alt &&
+							'load-failed' === /** @type {HTMLImageElement} */ ( removedNodes[0] ).getAttribute( 'data-error' )
 						) {
 							return;
 						}
@@ -139,7 +152,7 @@
 									 * Node type 3 is a TEXT_NODE.
 									 */
 									while( node.nextSibling && 3 === node.nextSibling.nodeType ) {
-										node.nodeValue = node.nodeValue + node.nextSibling.nodeValue;
+										node.nodeValue = /** @type {string} */ ( node.nodeValue ) + /** @type {string} */ ( node.nextSibling.nodeValue );
 										node.parentNode.removeChild( node.nextSibling );
 									}
 								}
@@ -148,7 +161,7 @@
 							}
 
 							if ( test( node.textContent ) ) {
-								parse( node );
+								parse( /** @type {HTMLElement} */ ( node ) );
 							}
 						}
 					}
@@ -168,7 +181,7 @@
 		 *
 		 * @memberOf wp.emoji
 		 *
-		 * @param {string} text The string to test.
+		 * @param {?string} text The string to test.
 		 *
 		 * @return {boolean} Whether the string contains emoji characters.
 		 */
@@ -197,12 +210,13 @@
 		 * @memberOf wp.emoji
 		 *
 		 * @param {HTMLElement|string} object The element or string to parse.
-		 * @param {Object}             args   Additional options for Twemoji.
+		 * @param {WPEmojiParseArgs}   [args] Additional options for Twemoji.
 		 *
 		 * @return {HTMLElement|string} A string where all emoji are now image tags of
 		 *                              emoji. Or the element that was passed as the first argument.
 		 */
 		function parse( object, args ) {
+			/** @type {TwemojiParseOptions} */
 			var params;
 
 			/*
@@ -250,17 +264,32 @@
 					};
 				},
 				onerror: function() {
+					/*
+					 * TODO: This handler never does anything. It refers to the Twemoji library object
+					 * in three places where it means the image element, which is what Twemoji's own
+					 * onerror uses and what `this` is bound to here. The library object has no
+					 * parentNode, so the condition below is never true: the data-error attribute is
+					 * never set, and a broken image is never replaced by its alt text. The
+					 * MutationObserver above tests for that same attribute, so it is dead too.
+					 *
+					 * Fixing this changes behavior, so it is being tracked separately. The
+					 * @ts-expect-error directives below are what keep that decision from being made
+					 * silently here; they will start failing once the references are corrected.
+					 */
+					// @ts-expect-error -- See the note above.
 					if ( twemoji.parentNode ) {
 						this.setAttribute( 'data-error', 'load-failed' );
+						// @ts-expect-error -- See the note above.
 						twemoji.parentNode.replaceChild( document.createTextNode( twemoji.alt ), twemoji );
 					}
 				},
 				doNotParse: function( node ) {
+					var className = node && /** @type {Element} */ ( node ).className;
+
 					if (
-						node &&
-						node.className &&
-						typeof node.className === 'string' &&
-						node.className.indexOf( 'wp-exclude-emoji' ) !== -1
+						className &&
+						typeof className === 'string' &&
+						className.indexOf( 'wp-exclude-emoji' ) !== -1
 					) {
 						// Do not parse this node. Emojis will not be replaced in this node and all sub-nodes.
 						return true;
@@ -271,8 +300,10 @@
 			};
 
 			if ( typeof args.imgAttr === 'object' ) {
+				var imgAttr = args.imgAttr;
+
 				params.attributes = function() {
-					return args.imgAttr;
+					return imgAttr;
 				};
 			}
 

@@ -4,25 +4,7 @@
 
 // Note: This is loaded as a script module, so there is no need for an IIFE to prevent pollution of the global scope.
 
-/**
- * Emoji script source URLs as exported in PHP via _print_emoji_detection_script().
- *
- * @typedef WPEmojiSettingsSource
- * @type {Object}
- * @property {string} [concatemoji] URL for the concatenated emoji script.
- * @property {string} [twemoji]     URL for the Twemoji script.
- * @property {string} [wpemoji]     URL for the wp-emoji script.
- */
-
-/**
- * Emoji Settings as exported in PHP via _print_emoji_detection_script().
- *
- * @typedef WPEmojiSettings
- * @type {Object}
- * @property {WPEmojiSettingsSource} [source] Emoji script source URLs.
- * @property {EmojiSupports}         supports Which emoji the browser supports. Not exported from
- *                                            PHP; populated by this script.
- */
+// Note: The WPEmojiSettings and EmojiSupports types are declared in typings/wp-emoji, since wp-emoji.js reads them back.
 
 const selector = 'script#wp-emoji-settings';
 const script = document.querySelector( selector );
@@ -32,7 +14,7 @@ if ( ! ( script instanceof HTMLScriptElement ) ) {
 const settings = /** @type {WPEmojiSettings} */ ( JSON.parse( script.text ) );
 
 // For compatibility with other scripts that read from this global, in particular wp-includes/js/wp-emoji.js (source file: js/_enqueues/wp/emoji.js).
-/** @type {Window & { _wpemojiSettings?: WPEmojiSettings }} */ ( window )._wpemojiSettings = settings;
+window._wpemojiSettings = settings;
 
 /**
  * Results of the emoji support tests.
@@ -41,19 +23,6 @@ const settings = /** @type {WPEmojiSettings} */ ( JSON.parse( script.text ) );
  * @type {Object}
  * @property {boolean} flag  Whether the browser renders flag emoji.
  * @property {boolean} emoji Whether the browser renders emoji.
- */
-
-/**
- * Emoji support as exposed on the settings object for other scripts to read.
- *
- * The individual test results are absent until the support tests have completed.
- *
- * @typedef EmojiSupports
- * @type {Object}
- * @property {boolean} everything           Whether the browser passed every test.
- * @property {boolean} everythingExceptFlag Whether the browser passed every test but the flag test.
- * @property {boolean} [flag]               Whether the browser renders flag emoji.
- * @property {boolean} [emoji]              Whether the browser renders emoji.
  */
 
 const sessionStorageKey = 'wpEmojiSettingsSupports';
