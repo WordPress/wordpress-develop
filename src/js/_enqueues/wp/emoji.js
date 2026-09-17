@@ -34,8 +34,6 @@
 	 * @return {Object} The wpEmoji parse and test functions.
 	 */
 	function wpEmoji() {
-		const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
-
 		// Compression and maintain local scope.
 		const document = window.document;
 
@@ -105,59 +103,57 @@
 
 			// Initialize the mutation observer, which checks all added nodes for
 			// replaceable emoji characters.
-			if ( MutationObserver ) {
-				new MutationObserver( function( mutationRecords ) {
-					let i = mutationRecords.length;
+			new MutationObserver( function( mutationRecords ) {
+				let i = mutationRecords.length;
 
-					while ( i-- ) {
-						const addedNodes = mutationRecords[ i ].addedNodes;
-						const removedNodes = mutationRecords[ i ].removedNodes;
+				while ( i-- ) {
+					const addedNodes = mutationRecords[ i ].addedNodes;
+					const removedNodes = mutationRecords[ i ].removedNodes;
 
-						let ii = addedNodes.length;
+					let ii = addedNodes.length;
 
-						/*
-						 * Checks if an image has been replaced by a text element
-						 * with the same text as the alternate description of the replaced image.
-						 * (presumably because the image could not be loaded).
-						 * If it is, do absolutely nothing.
-						 *
-						 * Node type 3 is a TEXT_NODE.
-						 *
-						 * @link https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
-						 */
-						if (
-							ii === 1 && removedNodes.length === 1 &&
-							addedNodes[0].nodeType === 3 &&
-							removedNodes[0].nodeName === 'IMG' &&
-							/** @type {Text} */ ( addedNodes[0] ).data === /** @type {HTMLImageElement} */ ( removedNodes[0] ).alt &&
-							'load-failed' === /** @type {HTMLImageElement} */ ( removedNodes[0] ).getAttribute( 'data-error' )
-						) {
-							return;
+					/*
+					 * Checks if an image has been replaced by a text element
+					 * with the same text as the alternate description of the replaced image.
+					 * (presumably because the image could not be loaded).
+					 * If it is, do absolutely nothing.
+					 *
+					 * Node type 3 is a TEXT_NODE.
+					 *
+					 * @link https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+					 */
+					if (
+						ii === 1 && removedNodes.length === 1 &&
+						addedNodes[0].nodeType === 3 &&
+						removedNodes[0].nodeName === 'IMG' &&
+						/** @type {Text} */ ( addedNodes[0] ).data === /** @type {HTMLImageElement} */ ( removedNodes[0] ).alt &&
+						'load-failed' === /** @type {HTMLImageElement} */ ( removedNodes[0] ).getAttribute( 'data-error' )
+					) {
+						return;
+					}
+
+					// Loop through all the added nodes.
+					while ( ii-- ) {
+						let node = addedNodes[ ii ];
+
+						// Node type 3 is a TEXT_NODE.
+						if ( node.nodeType === 3 ) {
+							if ( ! node.parentNode ) {
+								continue;
+							}
+
+							node = node.parentNode;
 						}
 
-						// Loop through all the added nodes.
-						while ( ii-- ) {
-							let node = addedNodes[ ii ];
-
-							// Node type 3 is a TEXT_NODE.
-							if ( node.nodeType === 3 ) {
-								if ( ! node.parentNode ) {
-									continue;
-								}
-
-								node = node.parentNode;
-							}
-
-							if ( test( node.textContent ) ) {
-								parse( /** @type {HTMLElement} */ ( node ) );
-							}
+						if ( test( node.textContent ) ) {
+							parse( /** @type {HTMLElement} */ ( node ) );
 						}
 					}
-				} ).observe( document.body, {
-					childList: true,
-					subtree: true
-				} );
-			}
+				}
+			} ).observe( document.body, {
+				childList: true,
+				subtree: true
+			} );
 
 			parse( document.body );
 		}

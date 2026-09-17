@@ -12,9 +12,3 @@
  * two conflict. Code which may run in either context therefore has to declare it.
  */
 declare var WorkerGlobalScope: Function | undefined;
-
-/**
- * Vendor-prefixed aliases of `MutationObserver`, from before the unprefixed name was standardized.
- */
-declare var WebKitMutationObserver: typeof MutationObserver | undefined;
-declare var MozMutationObserver: typeof MutationObserver | undefined;
