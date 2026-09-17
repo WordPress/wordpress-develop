@@ -85,7 +85,7 @@
 
 			// Initialize the mutation observer, which checks all added nodes for
 			// replaceable emoji characters.
-			new MutationObserver( function ( mutationRecords ) {
+			new MutationObserver( ( mutationRecords ) => {
 				for ( const { addedNodes, removedNodes } of mutationRecords ) {
 					const addedNode = addedNodes[ 0 ];
 					const removedNode = removedNodes[ 0 ];
@@ -186,7 +186,7 @@
 				base: settings.svgUrl,
 				ext: settings.svgExt,
 				className: args.className || 'emoji',
-				callback: function ( icon, options ) {
+				callback: ( icon, options ) => {
 					// Ignore some standard characters that TinyMCE recommends in its character map.
 					switch ( icon ) {
 						case 'a9':
@@ -209,11 +209,7 @@
 
 					return ''.concat( options.base, icon, options.ext );
 				},
-				attributes: function () {
-					return {
-						role: 'img'
-					};
-				},
+				attributes: () => ( { role: 'img' } ),
 				onerror: function () {
 					/*
 					 * Put the emoji character back in place of the image which failed to load. The
@@ -225,7 +221,7 @@
 						this.parentNode.replaceChild( document.createTextNode( this.alt ), this );
 					}
 				},
-				doNotParse: function ( element ) {
+				doNotParse: ( element ) => {
 					// Emoji will not be replaced in this element, nor in any of its descendants.
 					return element.classList.contains( 'wp-exclude-emoji' );
 				}
@@ -234,9 +230,7 @@
 			if ( typeof args.imgAttr === 'object' ) {
 				const imgAttr = args.imgAttr;
 
-				params.attributes = function () {
-					return imgAttr;
-				};
+				params.attributes = () => imgAttr;
 			}
 
 			return twemoji.parse( object, params );
