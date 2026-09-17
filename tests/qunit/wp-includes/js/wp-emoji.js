@@ -310,6 +310,22 @@ function attachToFixture( element ) {
 }
 
 /**
+ * Adds an element of the given kind, holding an emoji, to the fixture.
+ *
+ * @param {string} namespace Namespace URI for the element.
+ * @param {string} name      Local name for the element.
+ *
+ * @return {Promise} A promise which settles once the observer has run.
+ */
+function attachNamespacedElement( namespace, name ) {
+	const element = document.createElementNS( namespace, name );
+
+	element.appendChild( document.createTextNode( EMOJI ) );
+
+	return attachToFixture( element );
+}
+
+/**
  * Builds a paragraph holding an emoji image, as Twemoji would have left it.
  *
  * @param {string} [error] Value for the data-error attribute.
@@ -369,6 +385,35 @@ QUnit.test( 'leaves alone an image replaced by its own alternative text', async 
 	await afterMutations();
 
 	assert.strictEqual( twemoji.calls, 0, 'The text which replaced the image is not parsed back into one.' );
+} );
+
+QUnit.test( 'leaves an SVG element alone', async function ( assert ) {
+	twemoji.calls = 0;
+
+	await attachNamespacedElement( 'http://www.w3.org/2000/svg', 'svg' );
+
+	assert.strictEqual( twemoji.calls, 0, 'An SVG element is not given to Twemoji, which would put an image inside it.' );
+} );
+
+QUnit.test( 'leaves a MathML element alone', async function ( assert ) {
+	twemoji.calls = 0;
+
+	await attachNamespacedElement( 'http://www.w3.org/1998/Math/MathML', 'math' );
+
+	assert.strictEqual( twemoji.calls, 0, 'A MathML element is not given to Twemoji.' );
+} );
+
+QUnit.test( 'leaves alone a text node added within an SVG element', async function ( assert ) {
+	const svg = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
+
+	await attachToFixture( svg );
+
+	twemoji.calls = 0;
+
+	svg.appendChild( document.createTextNode( EMOJI ) );
+	await afterMutations();
+
+	assert.strictEqual( twemoji.calls, 0, 'The SVG element containing the text is not parsed either.' );
 } );
 
 QUnit.test( 'parses other additions delivered alongside a fallback', async function ( assert ) {
