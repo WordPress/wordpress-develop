@@ -1100,11 +1100,37 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			return true;
 		}
 
-		private function could_potentially_escape_foreign_content() {
+		private function could_escape_foreign_content( bool $is_inside_mathml_text_integration_point ) {
 			$token_name   = $this->get_token_name();
 			$is_closer    = $this->is_tag_closer();
 			$namespace    = $this->get_namespace();
 			$self_closing = ! $is_closer && $this->has_self_closing_flag();
+
+			/*
+			 * These two elements are excepted in HTML from the normal processing
+			 * rules because they function in similar ways to character data.
+			 *
+			 * > The mglyph element is used to represent non-standard characters or
+			 * > symbols by images; the malignmark element establishes an alignment
+			 * > point for use within table constructs, and is otherwise invisible.
+			 *
+			 * They must contain no elements, so only allow self-closing tags.
+			 */
+			if ( ! $is_closer && $is_inside_mathml_text_integration_point ) {
+				return ! ( $self_closing && ( 'MGLYPH' === $token_name || 'MALIGNMARK' === $token_name ) );
+			}
+
+			if (
+				! $is_closer &&
+				'FONT' === $token_name &&
+				(
+					null !== $this->get_attribute( 'color' ) ||
+					null !== $this->get_attribute( 'face' ) ||
+					null !== $this->get_attribute( 'size' )
+				)
+			) {
+				return true;
+			}
 
 			if (
 				! $is_closer &&
@@ -1155,13 +1181,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						'U',
 						'UL',
 						'VAR',
-
-						/*
-						 * This is technically only necessary when it contains one
-						 * of the `color`, `face`, or `size` attributes, but this
-						 * is already a conservative system so it’s okay to reject.
-						 */
-						'FONT',
 
 						/*
 						 * This will be parsed as 'IMG'. (Don’t ask.)
@@ -1263,8 +1282,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				$is_closer  = $this->is_tag_closer();
 				$here       = $this->get_span();
 
-				$in_mathml_text = (
-					'math' === $namespace &&
+				$is_in_mathml_text_integration_point = (
+					'math' === $this->get_namespace() &&
 					in_array(
 						end( $this->foreign_content_stack ),
 						array(
@@ -1287,7 +1306,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * occur here but a browser will still do so; this sanitizer is generally
 				 * unaware of nesting structure.
 				 */
-				if ( $in_mathml_text && '#text' === $token_type ) {
+				if ( $is_in_mathml_text_integration_point && '#text' === $token_type ) {
 					$this->change_parsing_namespace( 'html' );
 					$text = $this->get_modifiable_text();
 					$this->change_parsing_namespace( $namespace );
@@ -1483,7 +1502,29 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					 * that exist for elements in the HTML namespace. Copy the token verbatim.
 					 */
 					case '#cdata-section':
-						if ( ! $skip_token ) {
+						if ( $skip_token ) {
+							break;
+						}
+
+						if ( $is_in_mathml_text_integration_point ) {
+							/*
+							 * As of the writing of this code, Chrome 153.0.8010.48 and Safari 26.6.1
+							 * both incorrectly treat the CDATA section inside a MathML integration
+							 * point as an invalid HTML comment. To prevent the misparse in the browser,
+							 * convert the CDATA section into escaped plaintext nodes.
+							 *
+							 * Once the minimum-supported browsers all correctly implement the HTML
+							 * specification on this point, this conversion can be removed.
+							 */
+							$output .= strtr(
+								$text,
+								array(
+									'<' => '&lt;',
+									'&' => '&amp;',
+									'>' => '&gt;',
+								)
+							);
+						} else {
 							$output .= substr( $this->html, $here->start, $here->length );
 						}
 						break;
@@ -1503,8 +1544,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						 * or insertion mode.
 						 */
 						if (
-							( 'html' !== $namespace && $this->could_potentially_escape_foreign_content() ) ||
-							( $in_mathml_text && ! $is_closer )
+							'html' !== $namespace &&
+							$this->could_escape_foreign_content( $is_in_mathml_text_integration_point )
 						) {
 							return substr( $output, 0, $foreign_content_starts_at );
 						}
