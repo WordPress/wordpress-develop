@@ -11,8 +11,8 @@ const EMOJI = '😀'; // Grinning face.
 /**
  * Builds a detached element containing the given text.
  *
- * @param {string} text      Text to place inside the element.
- * @param {string} className Class attribute for the element.
+ * @param {string} text        Text to place inside the element.
+ * @param {string} [className] Class attribute for the element.
  *
  * @return {HTMLElement} The element.
  */
@@ -312,9 +312,9 @@ function attachToFixture( element ) {
 /**
  * Builds a paragraph holding an emoji image, as Twemoji would have left it.
  *
- * @param {?string} error Value for the data-error attribute, or null to leave it off.
+ * @param {string} [error] Value for the data-error attribute.
  *
- * @return {Object} The paragraph and the image within it.
+ * @return {{ paragraph: HTMLParagraphElement, image: HTMLImageElement }} The paragraph and the image within it.
  */
 function emojiImageParagraph( error ) {
 	const paragraph = document.createElement( 'p' );
@@ -328,7 +328,7 @@ function emojiImageParagraph( error ) {
 
 	paragraph.appendChild( image );
 
-	return { paragraph: paragraph, image: image };
+	return { paragraph, image };
 }
 
 QUnit.test( 'parses an element added to the document', async function ( assert ) {
@@ -372,7 +372,7 @@ QUnit.test( 'leaves alone an image replaced by its own alternative text', async 
 } );
 
 QUnit.test( 'parses the same replacement when the image was not marked', async function ( assert ) {
-	const nodes = emojiImageParagraph( null );
+	const nodes = emojiImageParagraph();
 
 	await attachToFixture( nodes.paragraph );
 
