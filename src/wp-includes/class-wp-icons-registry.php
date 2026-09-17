@@ -866,25 +866,11 @@ class WP_Icons_Registry {
 					'viewbox',
 				)
 			),
-			// Animation elements.
-			'animate'             => array_merge(
-				$core_attributes,
-				$this->get_allowed_attribute_list(
-					'accumulate',
-					'additive',
-					'attributename',
-					'begin',
-					'calcmode',
-					'dur',
-					'end',
-					'from',
-					'keysplines',
-					'keytimes',
-					'repeatcount',
-					'to',
-					'values',
-				)
-			),
+			/*
+			 * Animation elements. `<animate>` and `<set>` are excluded: their
+			 * `attributeName` targets any attribute at runtime, letting them
+			 * replace a value wp_kses() already validated, such as `href`.
+			 */
 			'animatemotion'       => array_merge(
 				$core_attributes,
 				$this->get_allowed_attribute_list(
@@ -924,18 +910,17 @@ class WP_Icons_Registry {
 					'values',
 				)
 			),
-			'set'                 => array_merge(
-				$core_attributes,
-				$this->get_allowed_attribute_list(
-					'attributename',
-					'begin',
-					'dur',
-					'end',
-					'repeatcount',
-					'to',
-				)
-			),
 		);
+
+		/*
+		 * `xlink:href` holds a URI but is missing from wp_kses_uri_attributes(),
+		 * so wp_kses() would not run it through wp_kses_bad_protocol(). Add it
+		 * for this call only.
+		 */
+		$allow_xlink_href = static function ( $uri_attributes ) {
+			$uri_attributes[] = 'xlink:href';
+			return $uri_attributes;
+		};
 
 		$processor = WP_HTML_Processor::create_fragment( $html_containing_svg );
 		if ( ! $processor ) {
@@ -950,24 +935,30 @@ class WP_Icons_Registry {
 			return '';
 		}
 
-		$svg   = $processor->serialize_token();
-		$depth = $processor->get_current_depth();
-		while ( $processor->next_token() && $processor->get_current_depth() >= $depth ) {
-			$svg .= $processor->serialize_token();
-		}
-
 		/*
-		 * An early stop inside an SVG means truncated input, not unsupported
-		 * markup. Reject it: the parser can synthesize closing tags that were
-		 * never written, so no valid document remains to trust.
+		 * A self-closing `<svg />` has no descendants and no closing tag. Scanning
+		 * past it would swallow the next sibling and hide it from the check below.
 		 */
-		if (
-			null !== $processor->get_last_error()
-			|| $processor->paused_at_incomplete_token()
-		) {
-			return '';
+		$svg = $processor->serialize_token();
+		if ( $processor->expects_closer() ) {
+			$depth = $processor->get_current_depth();
+			while ( $processor->next_token() && $processor->get_current_depth() >= $depth ) {
+				$svg .= $processor->serialize_token();
+			}
+
+			/*
+			 * An early stop inside an SVG means truncated input, not unsupported
+			 * markup. Reject it: the parser can synthesize closing tags that were
+			 * never written, so no valid document remains to trust.
+			 */
+			if (
+				null !== $processor->get_last_error()
+				|| $processor->paused_at_incomplete_token()
+			) {
+				return '';
+			}
+			$svg .= '</svg>';
 		}
-		$svg .= '</svg>';
 
 		/*
 		 * Reject more than one top-level SVG. Nested SVGs were extracted above,
@@ -979,7 +970,11 @@ class WP_Icons_Registry {
 			}
 		}
 
-		return wp_kses( $svg, $allowed_tags );
+		add_filter( 'wp_kses_uri_attributes', $allow_xlink_href );
+		$sanitized_svg = wp_kses( $svg, $allowed_tags );
+		remove_filter( 'wp_kses_uri_attributes', $allow_xlink_href );
+
+		return $sanitized_svg;
 	}
 
 	/**
