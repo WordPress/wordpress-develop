@@ -40,8 +40,6 @@
 		const document = window.document;
 
 		// Private.
-		const ie11 = window.navigator.userAgent.indexOf( 'Trident/7.0' ) > 0;
-
 		/** @type {Twemoji|undefined} */
 		let twemoji;
 
@@ -145,21 +143,6 @@
 							if ( node.nodeType === 3 ) {
 								if ( ! node.parentNode ) {
 									continue;
-								}
-
-								if ( ie11 ) {
-									/*
-									 * IE 11's implementation of MutationObserver is buggy.
-									 * It unnecessarily splits text nodes when it encounters a HTML
-									 * template interpolation symbol ( "{{", for example ). So, we
-									 * join the text nodes back together as a work-around.
-									 *
-									 * Node type 3 is a TEXT_NODE.
-									 */
-									while( node.nextSibling && 3 === node.nextSibling.nodeType ) {
-										node.nodeValue = /** @type {string} */ ( node.nodeValue ) + /** @type {string} */ ( node.nextSibling.nodeValue );
-										node.parentNode.removeChild( node.nextSibling );
-									}
 								}
 
 								node = node.parentNode;
