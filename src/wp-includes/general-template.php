@@ -2443,8 +2443,8 @@ function wp_get_archives( $args = '' ) {
 		$arc_w_last = '';
 		if ( $results ) {
 			$after         = $parsed_args['after'];
-			$date_format   = get_option( 'date_format' );
 			$start_of_week = get_option( 'start_of_week' );
+			$date_format   = get_option( 'date_format' );
 			foreach ( (array) $results as $result ) {
 				if ( $result->week !== $arc_w_last ) {
 					$arc_year       = $result->yr;
