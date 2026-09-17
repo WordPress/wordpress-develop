@@ -244,8 +244,8 @@ class WP_Icons_Registry {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param non-empty-string ...$attribute_names Attribute names to allow.
-	 * @return array<non-empty-string, true> Attribute names mapped to true.
+	 * @param non-falsy-string ...$attribute_names Attribute names to allow.
+	 * @return array<non-falsy-string, true> Attribute names mapped to true.
 	 */
 	private function get_allowed_attribute_list( ...$attribute_names ): array {
 		return array_fill_keys( $attribute_names, true );
