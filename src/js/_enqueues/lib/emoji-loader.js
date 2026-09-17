@@ -254,7 +254,7 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
 
 			/*
 			 * Test for English flag compatibility. England is a country in the United Kingdom, it
-			 * does not have a two letter locale code but rather a five letter sub-division code.
+			 * does not have a two letter locale code but rather a five letter subdivision code.
 			 *
 			 * To test for support, we try to render it, and compare the rendering to how it would look if
 			 * the browser doesn't render it correctly (black flag emoji + [G] + [B] + [E] + [N] + [G]).
