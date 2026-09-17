@@ -267,3 +267,121 @@ QUnit.test( 'does nothing to an image which is not in the document', function ( 
 
 	assert.strictEqual( image.dataset.error, undefined, 'The image is left unmarked.' );
 } );
+
+/*
+ * Unlike everything above, these do attach their elements, because what is under test is the
+ * observer wp-emoji sets on the body.
+ */
+QUnit.module( 'wp-emoji mutation observer', {
+	beforeEach: function () {
+		window._wpemojiSettings.supports = {
+			everything: false,
+			everythingExceptFlag: false,
+			flag: false,
+			emoji: false
+		};
+	}
+} );
+
+/**
+ * Waits for pending mutation records to be delivered to the observer.
+ *
+ * Records reach an observer in a microtask, so settling on one puts this behind the observer's own
+ * callback. A timer cannot be used to wait: every test here is wrapped by sinon-test, which swaps
+ * the timers for a fake clock that nothing in this file advances.
+ *
+ * @return {Promise} A promise which settles once the observer has run.
+ */
+function afterMutations() {
+	return Promise.resolve();
+}
+
+/**
+ * Adds an element to the fixture, and returns once the observer has seen it.
+ *
+ * @param {HTMLElement} element Element to add.
+ *
+ * @return {Promise} A promise which settles once the observer has run.
+ */
+function attachToFixture( element ) {
+	document.getElementById( 'qunit-fixture' ).appendChild( element );
+
+	return afterMutations();
+}
+
+/**
+ * Builds a paragraph holding an emoji image, as Twemoji would have left it.
+ *
+ * @param {?string} error Value for the data-error attribute, or null to leave it off.
+ *
+ * @return {Object} The paragraph and the image within it.
+ */
+function emojiImageParagraph( error ) {
+	const paragraph = document.createElement( 'p' );
+	const image = document.createElement( 'img' );
+
+	image.alt = EMOJI;
+
+	if ( error ) {
+		image.dataset.error = error;
+	}
+
+	paragraph.appendChild( image );
+
+	return { paragraph: paragraph, image: image };
+}
+
+QUnit.test( 'parses an element added to the document', async function ( assert ) {
+	const element = emojiFixtureElement( EMOJI );
+
+	twemoji.calls = 0;
+	twemoji.lastObject = null;
+
+	await attachToFixture( element );
+
+	assert.strictEqual( twemoji.calls, 1, 'Twemoji is called once.' );
+	assert.strictEqual( twemoji.lastObject, element, 'Twemoji is given the added element.' );
+} );
+
+QUnit.test( 'parses the containing element of an added text node', async function ( assert ) {
+	const paragraph = document.createElement( 'p' );
+
+	await attachToFixture( paragraph );
+
+	twemoji.calls = 0;
+	twemoji.lastObject = null;
+
+	paragraph.appendChild( document.createTextNode( EMOJI ) );
+	await afterMutations();
+
+	assert.strictEqual( twemoji.calls, 1, 'Twemoji is called once.' );
+	assert.strictEqual( twemoji.lastObject, paragraph, 'Twemoji is given the containing element.' );
+} );
+
+QUnit.test( 'leaves alone an image replaced by its own alternative text', async function ( assert ) {
+	const nodes = emojiImageParagraph( 'load-failed' );
+
+	await attachToFixture( nodes.paragraph );
+
+	twemoji.calls = 0;
+
+	nodes.paragraph.replaceChild( document.createTextNode( EMOJI ), nodes.image );
+	await afterMutations();
+
+	assert.strictEqual( twemoji.calls, 0, 'The text which replaced the image is not parsed back into one.' );
+} );
+
+QUnit.test( 'parses the same replacement when the image was not marked', async function ( assert ) {
+	const nodes = emojiImageParagraph( null );
+
+	await attachToFixture( nodes.paragraph );
+
+	twemoji.calls = 0;
+	twemoji.lastObject = null;
+
+	nodes.paragraph.replaceChild( document.createTextNode( EMOJI ), nodes.image );
+	await afterMutations();
+
+	assert.strictEqual( twemoji.calls, 1, 'Twemoji is called once.' );
+	assert.strictEqual( twemoji.lastObject, nodes.paragraph, 'It is the marker, and nothing else, which stops the replacement being parsed.' );
+} );
