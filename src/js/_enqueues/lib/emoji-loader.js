@@ -50,10 +50,12 @@ function supportsWorkerOffloading() {
 }
 
 /**
+ * Support tests as they are stored in session storage.
+ *
  * @typedef SessionSupportTests
  * @type {Object}
- * @property {number}       timestamp
- * @property {SupportTests} supportTests
+ * @property {number}       timestamp    When the tests were run, in milliseconds since the epoch.
+ * @property {SupportTests} supportTests What the tests found.
  */
 
 /**
@@ -93,7 +95,7 @@ function getSessionSupportTests() {
  *
  * @private
  *
- * @param {SupportTests} supportTests Support tests.
+ * @param {SupportTests} supportTests What the tests found.
  */
 function setSessionSupportTests( supportTests ) {
 	try {
@@ -300,7 +302,7 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
  *
  * @private
  *
- * @param {Array<keyof SupportTests>} tests                        Tests.
+ * @param {Array<keyof SupportTests>} tests                        Which support tests to run.
  * @param {Function}                  browserSupportsEmoji         Reference to browserSupportsEmoji function, needed due to minification.
  * @param {Function}                  emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
  * @param {Function}                  emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
