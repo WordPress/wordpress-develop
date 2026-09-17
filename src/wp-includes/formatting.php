@@ -5180,6 +5180,22 @@ function sanitize_option( $option, $value ) {
 				$value = implode( "\n", $value );
 			}
 			break;
+
+		case '_site_transient_update_plugins':
+		case '_site_transient_update_themes':
+			$value = map_deep(
+				$value,
+				static function ( $scalar_value ) use ( &$error ) {
+					global $wpdb;
+
+					$scalar_value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $scalar_value );
+					if ( is_wp_error( $scalar_value ) ) {
+						$error = $scalar_value->get_error_message();
+					}
+					return $scalar_value;
+				}
+			);
+			break;
 	}
 
 	if ( null !== $error ) {
