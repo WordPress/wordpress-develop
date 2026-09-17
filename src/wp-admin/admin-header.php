@@ -238,21 +238,14 @@ if ( is_network_admin() ) {
 $admin_body_class .= ' no-customize-support svg';
 
 /*
- * Rounded #wpcontent canvas chrome. Skip full-screen editors and Boot/WP Build
- * admin pages (Fonts, Connectors), which bring their own stage layout.
+ * Rounded #wpcontent canvas chrome. Skip full-screen block editors, which
+ * bring their own layout. Boot/WP Build admin pages (Fonts, Connectors) keep
+ * this class; their surface margins are adjusted in common.css to avoid a
+ * double frame with #wpwrap padding.
  */
-$is_boot_admin_page = in_array(
-	$current_screen->id,
-	array(
-		'font-library',
-		'options-connectors',
-	),
-	true
-);
-
 if ( $current_screen->is_block_editor() ) {
 	$admin_body_class .= ' block-editor-page wp-embed-responsive';
-} elseif ( ! $is_boot_admin_page ) {
+} else {
 	$admin_body_class .= ' admin-stage-rounded';
 }
 

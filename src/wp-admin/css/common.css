@@ -33,6 +33,16 @@
 		min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px) - var(--wpds-dimension-padding-sm));
 		overflow: clip;
 	}
+
+	/*
+	 * #wpwrap already pads the bottom and end when the rounded admin canvas
+	 * is active — drop the matching Boot surface margins to avoid a double
+	 * frame (see packages/boot layout surfaces in Gutenberg).
+	 */
+	.boot-layout--single-page .boot-layout__surfaces {
+		margin-bottom: 0;
+		margin-inline-end: 0;
+	}
 }
 
 #wpcontent,
