@@ -28,6 +28,8 @@ function wp_register_icon_collection( $slug, $args ) {
 /**
  * Unregisters an icon collection.
  *
+ * The "_builtin" collection is used by WordPress itself and cannot be unregistered.
+ *
  * @since 7.1.0
  *
  * @param string $slug Icon collection slug.
@@ -44,10 +46,10 @@ function wp_unregister_icon_collection( $slug ) {
  * @since 7.2.0 Added the `public` property.
  *
  * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
- *                          (e.g. "my-plugin/arrow-left"). The "core" collection is
- *                          reserved for WordPress core icons; third-party code should
- *                          register icons under its own collection rather than the
- *                          "core" collection.
+ *                          (e.g. "my-plugin/arrow-left"). The "core" and "_builtin"
+ *                          collections are reserved for WordPress core icons;
+ *                          third-party code should register icons under its own
+ *                          collection rather than a reserved one.
  * @param array  $args      {
  *     List of properties for the icon.
  *
@@ -70,6 +72,9 @@ function wp_register_icon( $icon_name, $args ) {
 /**
  * Unregisters an icon.
  *
+ * Icons in the "_builtin" collection are used by WordPress itself and cannot
+ * be unregistered.
+ *
  * @since 7.1.0
  *
  * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
@@ -84,9 +89,17 @@ function wp_unregister_icon( $icon_name ) {
  * Registers the default icon collections.
  *
  * @since 7.1.0
+ * @since 7.2.0 Registers the built-in collection.
  * @access private
  */
 function _wp_register_default_icon_collections() {
+	wp_register_icon_collection(
+		'_builtin',
+		array(
+			'label'       => __( 'WordPress Built-in' ),
+			'description' => __( 'Built-in icon collection.' ),
+		)
+	);
 	wp_register_icon_collection(
 		'core',
 		array(
@@ -99,7 +112,11 @@ function _wp_register_default_icon_collections() {
 /**
  * Registers the default core icons from the manifest.
  *
+ * Icons flagged as `_builtin` in the manifest are also registered in the
+ * built-in collection, which cannot be unregistered.
+ *
  * @since 7.1.0
+ * @since 7.2.0 Registers the built-in copies of the icons WordPress renders itself.
  * @access private
  */
 function _wp_register_default_icons() {
@@ -144,6 +161,10 @@ function _wp_register_default_icons() {
 
 		if ( isset( $icon_data['public'] ) ) {
 			$icon_args['public'] = $icon_data['public'];
+		}
+
+		if ( ! empty( $icon_data['_builtin'] ) ) {
+			wp_register_icon( '_builtin/' . $icon_name, $icon_args );
 		}
 
 		wp_register_icon( 'core/' . $icon_name, $icon_args );

@@ -215,13 +215,30 @@ class WP_Icons_Registry {
 	/**
 	 * Unregisters an icon.
 	 *
+	 * Icons in the built-in collection are used by WordPress itself and cannot
+	 * be unregistered.
+	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Icons in the built-in collection cannot be unregistered.
 	 *
 	 * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
 	 *                          (e.g. "core/arrow-left").
 	 * @return bool True if the icon was unregistered successfully, false otherwise.
 	 */
 	public function unregister( $icon_name ) {
+		if ( is_string( $icon_name ) && str_starts_with( $icon_name, '_builtin/' ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: Icon name. */
+					__( 'The "%s" icon is used by WordPress and cannot be unregistered.' ),
+					$icon_name
+				),
+				'7.2.0'
+			);
+			return false;
+		}
+
 		if ( ! $this->is_registered( $icon_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,

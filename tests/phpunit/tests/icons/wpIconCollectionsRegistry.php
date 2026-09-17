@@ -201,4 +201,30 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	public function test_unregister_unknown_collection() {
 		$this->assertFalse( $this->collections->unregister( 'ghost' ) );
 	}
+
+	/**
+	 * Should register the reserved built-in collection, whose slug the general
+	 * slug pattern would otherwise reject.
+	 *
+	 * @ticket 66114
+	 *
+	 * @covers ::register
+	 */
+	public function test_builtin_collection_is_registered() {
+		$this->assertTrue( $this->collections->is_registered( '_builtin' ) );
+	}
+
+	/**
+	 * Should fail to unregister the built-in collection, and leave it intact.
+	 *
+	 * @ticket 66114
+	 *
+	 * @covers ::unregister
+	 *
+	 * @expectedIncorrectUsage WP_Icon_Collections_Registry::unregister
+	 */
+	public function test_unregister_builtin_collection_fails() {
+		$this->assertFalse( $this->collections->unregister( '_builtin' ) );
+		$this->assertTrue( $this->collections->is_registered( '_builtin' ) );
+	}
 }

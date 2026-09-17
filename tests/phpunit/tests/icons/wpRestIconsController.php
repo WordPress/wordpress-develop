@@ -609,4 +609,58 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 		wp_unregister_icon_collection( 'rest-visibility-single' );
 	}
+
+	/**
+	 * Test that icons in the built-in collection are omitted from the collection.
+	 *
+	 * @ticket 66114
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_omits_builtin_icons() {
+		wp_register_icon(
+			'_builtin/rest-builtin-list',
+			array(
+				'label'   => 'Built-in',
+				'content' => '<svg><path d="M2 2"/></svg>',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertNotContains( '_builtin/rest-builtin-list', $names );
+	}
+
+	/**
+	 * Test that an icon in the built-in collection is reported as not found by
+	 * name, while remaining available to server-side code.
+	 *
+	 * @ticket 66114
+	 *
+	 * @covers ::get_icon
+	 */
+	public function test_get_icon_returns_error_for_builtin_icon() {
+		wp_register_icon(
+			'_builtin/rest-builtin-single',
+			array(
+				'label'   => 'Built-in',
+				'content' => '<svg><path d="M3 3"/></svg>',
+			)
+		);
+
+		$controller = new WP_REST_Icons_Controller();
+		$icon       = $controller->get_icon( '_builtin/rest-builtin-single' );
+
+		$this->assertWPError( $icon );
+		$this->assertSame( 'rest_icon_not_found', $icon->get_error_code() );
+
+		// The icon is hidden from the REST API, not unregistered.
+		$this->assertStringContainsString( '<svg', wp_get_icon( '_builtin/rest-builtin-single' ) );
+	}
 }
