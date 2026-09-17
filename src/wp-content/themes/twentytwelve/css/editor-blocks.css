@@ -19,54 +19,65 @@ Description: Used to style blocks in the editor.
 1.0 General Typography
 --------------------------------------------------------------*/
 
+.editor-styles-wrapper,
 .edit-post-visual-editor .editor-block-list__block,
 .edit-post-visual-editor .editor-block-list__block p,
 .editor-default-block-appender textarea.editor-default-block-appender__content {
-	font-size: 14px;
+	font-size: 16px;
 }
 
+.editor-styles-wrapper,
 .editor-default-block-appender textarea.editor-default-block-appender__content {
 	font-family: "Open Sans", Helvetica, Arial, sans-serif;
 }
 
+.editor-styles-wrapper,
 .edit-post-visual-editor .editor-block-list__block {
 	color: #444;
 }
 
+.editor-styles-wrapper .wp-block-post-title,
 .editor-post-title__block .editor-post-title__input {
 	font-family: "Open Sans", Helvetica, Arial, sans-serif;
-	font-size: 20px;
+	font-size: 36px;
 	font-weight: 400;
 }
 
 @media screen and (min-width: 600px) {
+	.editor-styles-wrapper .wp-block-post-title,
 	.editor-post-title__block .editor-post-title__input {
-		font-size: 22px;
+		font-size: 24px;
 	}
 }
 
+.editor-styles-wrapper h1,
 .wp-block-freeform.block-library-rich-text__tinymce h1 {
+	font-size: 36px;
+}
+
+.editor-styles-wrapper h2,
+.wp-block-freeform.block-library-rich-text__tinymce h2 {
+	font-size: 30px;
+}
+
+.editor-styles-wrapper h3,
+.wp-block-freeform.block-library-rich-text__tinymce h3 {
+	font-size: 24px;
+}
+
+.editor-styles-wrapper h4,
+.wp-block-freeform.block-library-rich-text__tinymce h4 {
 	font-size: 21px;
 }
 
-.wp-block-freeform.block-library-rich-text__tinymce h2 {
+.editor-styles-wrapper h5,
+.wp-block-freeform.block-library-rich-text__tinymce h5 {
 	font-size: 18px;
 }
 
-.wp-block-freeform.block-library-rich-text__tinymce h3 {
-	font-size: 16px;
-}
-
-.wp-block-freeform.block-library-rich-text__tinymce h4 {
-	font-size: 14px;
-}
-
-.wp-block-freeform.block-library-rich-text__tinymce h5 {
-	font-size: 13px;
-}
-
+.editor-styles-wrapper h6,
 .wp-block-freeform.block-library-rich-text__tinymce h6 {
-	font-size: 12px;
+	font-size: 16px;
 }
 
 /*--------------------------------------------------------------
