@@ -87,4 +87,15 @@ class Tests_Formatting_wpTrimWords extends WP_UnitTestCase {
 		$this->assertSame( '', wp_trim_words( $this->long_text, null, '' ) );
 		$this->assertSame( 'Lorem ipsum dolor', wp_trim_words( $this->long_text, '3', '' ) );
 	}
+
+	/**
+	 * Ensures `<br>` is treated as a word boundary before tags are stripped, including with attributes.
+	 */
+	public function test_line_break_tags_become_word_separators_before_stripping_tags() {
+		$text = 'one<br>two<br/>three<br />four<BR>five<br class="a">six<br style="clear: both" data-x="y" />seven';
+		$this->assertSame(
+			'one two three four five six seven',
+			wp_trim_words( $text, 99, '' )
+		);
+	}
 }
