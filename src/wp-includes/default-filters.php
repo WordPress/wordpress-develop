@@ -246,6 +246,7 @@ add_filter( 'widget_text_content', 'do_shortcode', 11 ); // Runs after wpautop()
 add_filter( 'widget_text_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
 add_filter( 'widget_block_content', 'do_blocks', 9 );
+add_filter( 'widget_block_content', 'shortcode_unautop' );
 add_filter( 'widget_block_content', 'do_shortcode', 11 );
 add_filter( 'widget_block_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
