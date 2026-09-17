@@ -113,6 +113,15 @@ function setSessionSupportTests( supportTests ) {
 }
 
 /**
+ * A 2D context for the support tests.
+ *
+ * Which of the two it is depends on the kind of canvas it came from, and the tests use only what
+ * both provide.
+ *
+ * @typedef {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D} EmojiTestContext
+ */
+
+/**
  * Checks if two sets of Emoji characters render the same visually.
  *
  * This is used to determine if the browser is rendering an emoji with multiple data points
@@ -127,9 +136,9 @@ function setSessionSupportTests( supportTests ) {
  *
  * @private
  *
- * @param {CanvasRenderingContext2D} context 2D Context.
- * @param {string}                   set1    Set of Emoji to test.
- * @param {string}                   set2    Set of Emoji to test.
+ * @param {EmojiTestContext} context 2D Context.
+ * @param {string}           set1    Set of Emoji to test.
+ * @param {string}           set2    Set of Emoji to test.
  *
  * @return {boolean} True if the two sets render the same.
  */
@@ -177,8 +186,8 @@ function emojiSetsRenderIdentically( context, set1, set2 ) {
  *
  * @private
  *
- * @param {CanvasRenderingContext2D} context 2D Context.
- * @param {string}                   emoji   Emoji to test.
+ * @param {EmojiTestContext} context 2D Context.
+ * @param {string}           emoji   Emoji to test.
  *
  * @return {boolean} True if the center point is empty.
  */
@@ -209,10 +218,10 @@ function emojiRendersEmptyCenterPoint( context, emoji ) {
  *
  * @private
  *
- * @param {CanvasRenderingContext2D} context                      2D Context.
- * @param {string}                   type                         Whether to test for support of "flag" or "emoji".
- * @param {Function}                 emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
- * @param {Function}                 emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ * @param {EmojiTestContext} context                      2D Context.
+ * @param {string}           type                         Whether to test for support of "flag" or "emoji".
+ * @param {Function}         emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {Function}         emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
  *
  * @return {boolean} True if the browser can render emoji, false if it cannot.
  */
@@ -310,23 +319,22 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
  * @return {SupportTests} Support tests.
  */
 function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint ) {
-	let canvas;
+	/** @type {?EmojiTestContext} */
+	let context;
+
 	if (
 		typeof WorkerGlobalScope !== 'undefined' &&
 		self instanceof WorkerGlobalScope
 	) {
-		canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.
+		// Dimensions are default for HTMLCanvasElement.
+		context = new OffscreenCanvas( 300, 150 ).getContext( '2d', { willReadFrequently: true } );
 	} else {
-		canvas = document.createElement( 'canvas' );
+		context = document.createElement( 'canvas' ).getContext( '2d', { willReadFrequently: true } );
 	}
 
-	/*
-	 * Note: The OffscreenCanvas 2D context implements everything the tests below use, so it is cast
-	 * to the canvas 2D context rather than each test having to account for both.
-	 */
-	const context = /** @type {CanvasRenderingContext2D} */ (
-		/** @type {unknown} */ ( canvas.getContext( '2d', { willReadFrequently: true } ) )
-	);
+	if ( ! context ) {
+		throw new Error( 'Unable to obtain a 2D context for the emoji support tests.' );
+	}
 
 	/*
 	 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
