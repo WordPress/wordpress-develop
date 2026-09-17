@@ -183,6 +183,65 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61996
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_prefer_published_page_when_slug_conflicts_with_draft() {
+		global $wpdb;
+
+		$draft_parent = self::factory()->post->create_and_get(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+				'post_name'   => 'draft-parent',
+			)
+		);
+
+		$draft_child = self::factory()->post->create_and_get(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+				'post_name'   => 'draft-child',
+				'post_parent' => $draft_parent->ID,
+			)
+		);
+
+		$published_parent = self::factory()->post->create_and_get(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_name'   => 'published-parent',
+			)
+		);
+
+		$published_child = self::factory()->post->create_and_get(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_name'   => 'published-child',
+				'post_parent' => $published_parent->ID,
+			)
+		);
+
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'parent' ), array( 'ID' => $draft_parent->ID ) );
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'child' ), array( 'ID' => $draft_child->ID ) );
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'parent' ), array( 'ID' => $published_parent->ID ) );
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'child' ), array( 'ID' => $published_child->ID ) );
+
+		clean_post_cache( $draft_parent->ID );
+		clean_post_cache( $draft_child->ID );
+		clean_post_cache( $published_parent->ID );
+		clean_post_cache( $published_child->ID );
+
+		$found_child = get_page_by_path( 'parent/child' );
+		$this->assertSame( $published_child->ID, $found_child->ID );
+
+		$found_parent = get_page_by_path( 'parent' );
+		$this->assertSame( $published_parent->ID, $found_parent->ID );
+	}
+
+	/**
 	 * @ticket 56689
 	 *
 	 * @covers ::get_page_by_path
