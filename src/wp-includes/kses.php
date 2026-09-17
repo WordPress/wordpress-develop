@@ -1017,14 +1017,6 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 	global $wp_kses_operating_mode;
 
-	$allowed_html = is_array( $allowed_html )
-		? $allowed_html
-		: wp_kses_allowed_html( $allowed_html );
-
-	$allowed_protocols = empty( $allowed_protocols )
-		? wp_allowed_protocols()
-		: $allowed_protocols;
-
 	// Preserve legacy behavior of stripping unwanted C0 control characters.
 	$content = preg_replace( '/[\x01-\x08\x0B\x0C\x0E-\x1F]/', '', $content );
 
@@ -1034,6 +1026,14 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 	$content                = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
 	$wp_kses_operating_mode = $previous_kses_mode;
 
+	$allowed_html = is_array( $allowed_html )
+		? $allowed_html
+		: wp_kses_allowed_html( $allowed_html );
+
+	$allowed_protocols = empty( $allowed_protocols )
+		? wp_allowed_protocols()
+		: $allowed_protocols;
+
 	/*
 	 * The explanation for this call is that “the quoting from `preg_replace(//e)`
 	 * requires” it, but this version of `wp_kses()` doesn’t rely on PCRE functions
@@ -1041,21 +1041,21 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 	 */
 	//$content = wp_kses_stripslashes( $content );
 
-	$processor = new class( $content, $allowed_html, $allowed_protocols ) extends WP_HTML_Tag_Processor {
+	$processor = new class( $content, $allowed_html, $allowed_protocols, wp_kses_uri_attributes() ) extends WP_HTML_Tag_Processor {
 		private $allowed_html;
 
 		private $allowed_protocols;
 
 		private $foreign_content_stack = array();
 
-		private $uris;
+		private $uri_attributes;
 
-		public function __construct( $html, $allowed_html, $allowed_protocols ) {
+		public function __construct( $html, $allowed_html, $allowed_protocols, $uri_attributes ) {
 			parent::__construct( $html );
 
 			$this->allowed_html      = $allowed_html;
 			$this->allowed_protocols = $allowed_protocols;
-			$this->uris              = wp_kses_uri_attributes();
+			$this->uri_attributes    = $uri_attributes;
 		}
 
 		private function get_span() {
@@ -1070,15 +1070,14 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 		public function set_attribute( $name, $value ): bool {
 			$lower_name = strtolower( $name );
-			$is_url_ish = in_array( $lower_name, $this->uris, true );
+			$is_url_ish = in_array( $lower_name, $this->uri_attributes, true );
 
 			if ( ! $is_url_ish || ! is_string( $value ) ) {
 				return parent::set_attribute( $name, $value );
 			}
 
-			$escaped = wp_kses_bad_protocol( $value, $this->allowed_protocols );
 			$escaped = strtr(
-				$escaped,
+				$value,
 				array(
 					'<' => '&lt;',
 					'>' => '&gt;',
@@ -1087,8 +1086,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					"'" => '&apos;',
 				)
 			);
-			/** This filter is documented in wp-includes/formatting.php */
-			$escaped = apply_filters( 'attribute_escape', $escaped, $value );
 
 			// Set a benign placeholder to replace below.
 			if ( ! parent::set_attribute( $name, true ) ) {
@@ -1100,13 +1097,13 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			return true;
 		}
 
-		private function could_escape_foreign_content( bool $is_inside_mathml_text_integration_point, bool $is_inside_svg_html_integreation_point ) {
+		private function could_escape_foreign_content( bool $is_inside_mathml_text_integration_point, bool $is_inside_svg_html_integration_point ) {
 			$token_name   = $this->get_token_name();
 			$is_closer    = $this->is_tag_closer();
 			$namespace    = $this->get_namespace();
 			$self_closing = ! $is_closer && $this->has_self_closing_flag();
 
-			if ( ! $is_closer && $is_inside_svg_html_integreation_point ) {
+			if ( ! $is_closer && $is_inside_svg_html_integration_point ) {
 				return true;
 			}
 
@@ -1185,11 +1182,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						'U',
 						'UL',
 						'VAR',
-
-						/*
-						 * This will be parsed as 'IMG'. (Don’t ask.)
-						 */
-						'IMAGE',
 					),
 					true
 				) ||
@@ -1208,7 +1200,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				return true;
 			}
 
-			if ( 'math' === $namespace && ! $self_closing ) {
+			if ( 'math' === $namespace && ! $is_closer && ! $self_closing ) {
 				$encoding = $this->get_attribute( 'encoding' );
 				if (
 					'ANNOTATION-XML' === $token_name &&
@@ -1288,7 +1280,15 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				$is_in_svg_html_integration_point = (
 					'svg' === $namespace &&
 					! $is_closer &&
-					( 'FOREIGNOBJECT' === $token_name || 'DESC' === $token_name || 'TITLE' === $token_name )
+					in_array(
+						end( $this->foreign_content_stack ),
+						array(
+							'DESC',
+							'FOREIGNOBJECT',
+							'TITLE',
+						),
+						true
+					)
 				);
 
 				$is_in_text_integration_point = (
@@ -1462,9 +1462,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 							if ( isset( $original_attributes ) ) {
 								$block_type = $block_processor->get_block_type();
-								$block_type = str_starts_with( $block_type, 'core/' )
-									? substr( $block_type, /* 'core/' */ 5 )
-									: $block_type;
 
 								$filtered_attributes = filter_block_kses_value(
 									$original_attributes,
@@ -1474,6 +1471,11 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 								);
 
 								if ( $original_attributes !== $filtered_attributes ) {
+									// Strip the implicit `core/` prefix on serialization.
+									$block_type = str_starts_with( $block_type, 'core/' )
+										? substr( $block_type, /* 'core/' */ 5 )
+										: $block_type;
+
 									$serialized_attributes = serialize_block_attributes( $filtered_attributes );
 									$voider                = WP_Block_Processor::VOID === $block_processor->get_delimiter_type() ? '/' : '';
 									$text                  = " wp:{$block_type} {$serialized_attributes} {$voider}";
@@ -1518,13 +1520,17 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							$output .= strtr(
 								$text,
 								array(
-									'<' => '&lt;',
-									'&' => '&amp;',
-									'>' => '&gt;',
+									"\x00" => "\u{FFFD}",
+									'<'    => '&lt;',
+									'&'    => '&amp;',
+									'>'    => '&gt;',
 								)
 							);
 						} else {
-							$output .= substr( $this->html, $here->start, $here->length );
+							$output .= strtr(
+								substr( $this->html, $here->start, $here->length ),
+								array( "\x00" => "\u{FFFD}" )
+							);
 						}
 						break;
 
@@ -1607,15 +1613,15 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						if ( ! empty( $element_attributes['data-*'] ) ) {
 							if ( is_array( $attribute_names ) ) {
 								foreach ( $attribute_names as $name ) {
-									if ( ! str_starts_with( $name, 'data-' ) ) {
-										continue;
+									if (
+										1 === preg_match( '/^data-[a-z0-9_-]+$/', $name ) &&
+										(
+											! isset( $element_attributes[ $name ] ) ||
+											'' === $element_attributes[ $name ]
+										)
+									) {
+										$element_attributes[ $name ] = $element_attributes['data-*'];
 									}
-
-									if ( 1 !== preg_match( '/^data-[a-z0-9_-]+$/', $name ) ) {
-										continue;
-									}
-
-									$element_attributes[ $name ] = $element_attributes['data-*'];
 								}
 							}
 
@@ -1625,7 +1631,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						$tag_maker = new self(
 							"<{$tag_name}{$self_closer}>{$closing_tag}",
 							$this->allowed_html,
-							$this->allowed_protocols
+							$this->allowed_protocols,
+							$this->uri_attributes
 						);
 						$tag_maker->next_token();
 						if ( is_array( $attribute_names ) ) {
@@ -1641,14 +1648,20 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 								$value     = is_string( $raw_value ) ? $raw_value : '';
 
 								// Process the style attribute through CSS sanitization.
-								if ( 'style' === $name && is_string( $raw_value ) ) {
-									$style = safecss_filter_attr( $value );
-
-									if ( '' !== trim( $style ) ) {
-										$tag_maker->set_attribute( 'style', $style );
-										unset( $required_attributes['style'] );
+								if ( 'style' === $name ) {
+									if ( ! is_string( $raw_value ) ) {
+										continue;
 									}
-									continue;
+
+									$value = safecss_filter_attr( $value );
+									if ( '' === trim( $value ) ) {
+										continue;
+									}
+								}
+
+								$is_url_ish = in_array( strtolower( $name ), $this->uri_attributes, true );
+								if ( $is_url_ish ) {
+									$value = wp_kses_bad_protocol( $value, $this->allowed_protocols );
 								}
 
 								/*
@@ -1667,12 +1680,13 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 									}
 								}
 
-								if ( true === $raw_value && '' === $value ) {
-									$tag_maker->set_attribute( $name, true );
-								} else {
-									$tag_maker->set_attribute( $name, $value );
+								$did_set = ( true === $raw_value && '' === $value )
+									? $tag_maker->set_attribute( $name, true )
+									: $tag_maker->set_attribute( $name, $value );
+
+								if ( $did_set ) {
+									unset( $required_attributes[ $name ] );
 								}
-								unset( $required_attributes[ $name ] );
 							}
 						}
 
