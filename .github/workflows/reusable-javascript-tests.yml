@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that runs JavaScript tests.
+#
+# This workflow is used by `trunk` and branches >= 4.7.
 ##
 name: JavaScript tests
 

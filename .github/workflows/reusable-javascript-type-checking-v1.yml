@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that runs JavaScript Type Checking.
+#
+# This workflow is used by `trunk` and branches >= 7.0.
 ##
 name: JavaScript Type Checking
 
