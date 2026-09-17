@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that compares and publishes the performance tests.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
 ##
 name: Compare and publish performance Tests
 
