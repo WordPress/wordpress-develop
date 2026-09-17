@@ -31,7 +31,10 @@
 	 * @see  Twitter Emoji library
 	 * @link https://github.com/twitter/twemoji
 	 *
-	 * @return {Object} The wpEmoji parse and test functions.
+	 * @return {{
+	 *     parse: typeof parse,
+	 *     test: typeof test,
+	 * }} The wpEmoji parse and test functions.
 	 */
 	function wpEmoji() {
 		// Compression and maintain local scope.
@@ -265,10 +268,7 @@
 
 		load();
 
-		return {
-			parse: parse,
-			test: test
-		};
+		return { parse, test };
 	}
 
 	window.wp = window.wp || {};
