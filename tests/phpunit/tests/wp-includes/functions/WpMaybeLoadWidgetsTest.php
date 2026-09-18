@@ -1,12 +1,17 @@
 <?php
+
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use WP_UnitTestCase;
+
 /**
- * Tests for wp_maybe_load_widgets function.
+ * Tests for the `wp_maybe_load_widgets()` function.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_maybe_load_widgets
  */
-class Tests_Functions_WpMaybeLoadWidgets extends WP_UnitTestCase {
+class WpMaybeLoadWidgetsTest extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57201
