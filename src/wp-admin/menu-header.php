@@ -75,6 +75,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 	$first = true;
 	// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
+	// Optional 'count_description' = array( 'id' => string, 'html' => string ) for a counter's hidden description.
 	foreach ( $menu as $key => $item ) {
 		$admin_is_parent = false;
 		$class           = array();
@@ -145,6 +146,23 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 		$title = wptexturize( $item[0] );
 
+		/*
+		 * When a menu item carries a hidden count description (e.g. pending
+		 * updates or comments awaiting moderation), associate it with the link
+		 * via aria-describedby and render it inside the link. This keeps the
+		 * count out of the link's accessible name so voice control users can
+		 * operate it by its visible label, while the count is still announced by
+		 * assistive technologies. The id and markup are supplied explicitly by
+		 * the menu item's 'count_description' entry rather than parsed from the
+		 * title, so the association does not depend on the title's HTML shape.
+		 */
+		$describedby       = '';
+		$count_description = '';
+		if ( ! empty( $item['count_description']['id'] ) ) {
+			$describedby       = ' aria-describedby="' . esc_attr( $item['count_description']['id'] ) . '"';
+			$count_description = $item['count_description']['html'];
+		}
+
 		// Hide separators from screen readers.
 		if ( $is_separator ) {
 			$aria_hidden = ' aria-hidden="true"';
@@ -170,9 +188,9 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 					&& ! file_exists( ABSPATH . "/wp-admin/$menu_file" ) )
 			) {
 				$admin_is_parent = true;
-				echo "<a href='admin.php?page={$submenu_items[0][2]}'$class $aria_attributes><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>$title</div></a>";
+				echo "<a href='admin.php?page={$submenu_items[0][2]}'$class $aria_attributes$describedby><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>$title$count_description</div></a>";
 			} else {
-				echo "\n\t<a href='{$submenu_items[0][2]}'$class $aria_attributes><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>$title</div></a>";
+				echo "\n\t<a href='{$submenu_items[0][2]}'$class $aria_attributes$describedby><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>$title$count_description</div></a>";
 			}
 		} elseif ( ! empty( $item[2] ) && current_user_can( $item[1] ) ) {
 			$menu_hook = get_plugin_page_hook( $item[2], 'admin.php' );
@@ -189,19 +207,26 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 					&& ! file_exists( ABSPATH . "/wp-admin/$menu_file" ) )
 			) {
 				$admin_is_parent = true;
-				echo "\n\t<a href='admin.php?page={$item[2]}'$class $aria_attributes><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>{$item[0]}</div></a>";
+				echo "\n\t<a href='admin.php?page={$item[2]}'$class $aria_attributes$describedby><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>{$item[0]}$count_description</div></a>";
 			} else {
-				echo "\n\t<a href='{$item[2]}'$class $aria_attributes><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>{$item[0]}</div></a>";
+				echo "\n\t<a href='{$item[2]}'$class $aria_attributes$describedby><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>{$item[0]}$count_description</div></a>";
 			}
 		}
 
 		if ( ! empty( $submenu_items ) ) {
 			echo "\n\t<ul class='wp-submenu wp-submenu-wrap'>";
+
+			/*
+			 * The submenu head repeats the top-level title. The count description
+			 * is no longer part of the title itself (it is rendered from the item's
+			 * 'count_description' entry), so its id is not duplicated here.
+			 */
 			echo "<li class='wp-submenu-head' aria-hidden='true'>{$item[0]}</li>";
 
 			$first = true;
 
 			// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes.
+			// Optional 'count_description' = array( 'id' => string, 'html' => string ) for a counter's hidden description.
 			foreach ( $submenu_items as $sub_key => $sub_item ) {
 				if ( ! current_user_can( $sub_item[1] ) ) {
 					continue;
@@ -258,6 +283,14 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 				$title = wptexturize( $sub_item[0] );
 
+				// Associate a hidden count description with the submenu link. See above.
+				$sub_describedby       = '';
+				$sub_count_description = '';
+				if ( ! empty( $sub_item['count_description']['id'] ) ) {
+					$sub_describedby       = ' aria-describedby="' . esc_attr( $sub_item['count_description']['id'] ) . '"';
+					$sub_count_description = $sub_item['count_description']['html'];
+				}
+
 				if ( ! empty( $menu_hook )
 					|| ( ( 'index.php' !== $sub_item[2] )
 						&& file_exists( WP_PLUGIN_DIR . "/$sub_file" )
@@ -271,9 +304,9 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 					}
 
 					$sub_item_url = esc_url( $sub_item_url );
-					echo "<li$class><a href='$sub_item_url'$class$aria_attributes>$title</a></li>";
+					echo "<li$class><a href='$sub_item_url'$class$aria_attributes$sub_describedby>$title$sub_count_description</a></li>";
 				} else {
-					echo "<li$class><a href='{$sub_item[2]}'$class$aria_attributes>$title</a></li>";
+					echo "<li$class><a href='{$sub_item[2]}'$class$aria_attributes$sub_describedby>$title$sub_count_description</a></li>";
 				}
 			}
 			echo '</ul>';

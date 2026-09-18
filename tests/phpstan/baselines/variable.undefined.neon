@@ -324,11 +324,6 @@ parameters:
 			count: 9
 			path: ../../../src/wp-admin/maint/repair.php
 		-
-			message: '#^Variable \$update_data might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/menu.php
-		-
 			message: '#^Variable \$current_user might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2

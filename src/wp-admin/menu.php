@@ -49,18 +49,39 @@ if ( ! is_multisite() ) {
 		$capability = 'update_languages';
 	}
 
+	if ( ! isset( $update_data ) ) {
+		$update_data = wp_get_update_data();
+	}
+
+	$updates_count = sprintf(
+		'<span class="update-plugins count-%s" aria-hidden="true"><span class="update-count">%s</span></span>',
+		$update_data['counts']['total'],
+		number_format_i18n( $update_data['counts']['total'] )
+	);
+
+	$updates_text = sprintf(
+		/* translators: Hidden accessibility text. %s: Number of updates available. */
+		_n( '%s update available', '%s updates available', $update_data['counts']['total'] ),
+		number_format_i18n( $update_data['counts']['total'] )
+	);
+
+	// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+	$updates_description = '<span id="wp-menu-updates-count-description" hidden>' . $updates_text . '</span>';
+
 	$submenu['index.php'][10] = array(
 		sprintf(
 			/* translators: %s: Number of pending updates. */
 			__( 'Updates %s' ),
-			sprintf(
-				'<span class="update-plugins count-%s"><span class="update-count">%s</span></span>',
-				$update_data['counts']['total'],
-				number_format_i18n( $update_data['counts']['total'] )
-			)
+			$updates_count
 		),
 		$capability,
 		'update-core.php',
+	);
+
+	// Associate the hidden count description with the link. See _wp_menu_output().
+	$submenu['index.php'][10]['count_description'] = array(
+		'id'   => 'wp-menu-updates-count-description',
+		'html' => $updates_description,
 	);
 
 	unset( $capability );
@@ -103,14 +124,24 @@ if ( current_user_can( 'edit_posts' ) ) {
 	$awaiting_moderation_text = sprintf( _n( '%s Comment in moderation', '%s Comments in moderation', $awaiting_moderation ), $awaiting_moderation_i18n );
 
 	$menu[25] = array(
-		/* translators: %s: Number of comments. */
-		sprintf( __( 'Comments %s' ), '<span class="awaiting-mod count-' . absint( $awaiting_moderation ) . '"><span class="pending-count" aria-hidden="true">' . $awaiting_moderation_i18n . '</span><span class="comments-in-moderation-text screen-reader-text">' . $awaiting_moderation_text . '</span></span>' ),
+		sprintf(
+			/* translators: %s: Number of comments. */
+			__( 'Comments %s' ),
+			'<span class="awaiting-mod count-' . absint( $awaiting_moderation ) . '" aria-hidden="true"><span class="pending-count">' . $awaiting_moderation_i18n . '</span></span>'
+		),
 		'edit_posts',
 		'edit-comments.php',
 		'',
 		'menu-top menu-icon-comments',
 		'menu-comments',
 		'dashicons-admin-comments',
+	);
+
+	// Associate the hidden count description with the link. See _wp_menu_output().
+	$menu[25]['count_description'] = array(
+		'id'   => 'wp-menu-comments-count-description',
+		// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+		'html' => '<span id="wp-menu-comments-count-description" class="comments-in-moderation-text" hidden>' . $awaiting_moderation_text . '</span>',
 	);
 
 	unset( $awaiting_moderation );
@@ -208,21 +239,39 @@ $appearance_capability = current_user_can( 'switch_themes' ) ? 'switch_themes' :
 
 $menu[60] = array( __( 'Appearance' ), $appearance_capability, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-admin-appearance' );
 
-$count = '';
+$count       = '';
+$description = '';
 if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 	if ( ! isset( $update_data ) ) {
 		$update_data = wp_get_update_data();
 	}
 
 	$count = sprintf(
-		'<span class="update-plugins count-%s"><span class="theme-count">%s</span></span>',
+		'<span class="update-plugins count-%s" aria-hidden="true"><span class="theme-count">%s</span></span>',
 		$update_data['counts']['themes'],
 		number_format_i18n( $update_data['counts']['themes'] )
 	);
+
+	$themes_text = sprintf(
+		/* translators: Hidden accessibility text. %s: Number of available theme updates. */
+		_n( '%s theme update available', '%s theme updates available', $update_data['counts']['themes'] ),
+		number_format_i18n( $update_data['counts']['themes'] )
+	);
+
+	// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+	$description = '<span id="wp-menu-themes-count-description" hidden>' . $themes_text . '</span>';
 }
 
 	/* translators: %s: Number of available theme updates. */
 	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_capability, 'themes.php' );
+
+	// Associate the hidden count description with the link. See _wp_menu_output().
+if ( '' !== $description ) {
+	$submenu['themes.php'][5]['count_description'] = array(
+		'id'   => 'wp-menu-themes-count-description',
+		'html' => $description,
+	);
+}
 
 if ( wp_is_block_theme() ) {
 	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
@@ -307,20 +356,38 @@ function _add_plugin_file_editor_to_tools() {
 	);
 }
 
-$count = '';
+$count       = '';
+$description = '';
 if ( ! is_multisite() && current_user_can( 'update_plugins' ) ) {
 	if ( ! isset( $update_data ) ) {
 		$update_data = wp_get_update_data();
 	}
 	$count = sprintf(
-		'<span class="update-plugins count-%s"><span class="plugin-count">%s</span></span>',
+		'<span class="update-plugins count-%s" aria-hidden="true"><span class="plugin-count">%s</span></span>',
 		$update_data['counts']['plugins'],
 		number_format_i18n( $update_data['counts']['plugins'] )
 	);
+
+	$plugins_text = sprintf(
+		/* translators: Hidden accessibility text. %s: Number of available plugin updates. */
+		_n( '%s plugin update available', '%s plugin updates available', $update_data['counts']['plugins'] ),
+		number_format_i18n( $update_data['counts']['plugins'] )
+	);
+
+	// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+	$description = '<span id="wp-menu-plugins-count-description" hidden>' . $plugins_text . '</span>';
 }
 
 /* translators: %s: Number of available plugin updates. */
 $menu[65] = array( sprintf( __( 'Plugins %s' ), $count ), 'activate_plugins', 'plugins.php', '', 'menu-top menu-icon-plugins', 'menu-plugins', 'dashicons-admin-plugins' );
+
+// Associate the hidden count description with the link. See _wp_menu_output().
+if ( '' !== $description ) {
+	$menu[65]['count_description'] = array(
+		'id'   => 'wp-menu-plugins-count-description',
+		'html' => $description,
+	);
+}
 
 $submenu['plugins.php'][5] = array( __( 'Installed Plugins' ), 'activate_plugins', 'plugins.php' );
 
@@ -362,7 +429,8 @@ if ( current_user_can( 'list_users' ) ) {
 	}
 }
 
-$site_health_count = '';
+$site_health_count       = '';
+$site_health_description = '';
 if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
 	$get_issues = get_transient( 'health-check-site-status-result' );
 
@@ -381,10 +449,19 @@ if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
 	}
 
 	$site_health_count = sprintf(
-		'<span class="menu-counter site-health-counter count-%s"><span class="count">%s</span></span>',
+		'<span class="menu-counter site-health-counter count-%s" aria-hidden="true"><span class="count">%s</span></span>',
 		$issue_counts['critical'],
 		number_format_i18n( $issue_counts['critical'] )
 	);
+
+	$site_health_text = sprintf(
+		/* translators: Hidden accessibility text. %s: Number of critical Site Health checks. */
+		_n( '%s critical issue', '%s critical issues', $issue_counts['critical'] ),
+		number_format_i18n( $issue_counts['critical'] )
+	);
+
+	// Hidden count description; exposed to assistive tech via aria-describedby on the link.
+	$site_health_description = '<span id="wp-menu-site-health-count-description" hidden>' . $site_health_text . '</span>';
 }
 
 $menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'dashicons-admin-tools' );
@@ -393,6 +470,14 @@ $menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php',
 	$submenu['tools.php'][15] = array( __( 'Export' ), 'export', 'export.php' );
 	/* translators: %s: Number of critical Site Health checks. */
 	$submenu['tools.php'][20] = array( sprintf( __( 'Site Health %s' ), $site_health_count ), 'view_site_health_checks', 'site-health.php' );
+
+	// Associate the hidden count description with the link. See _wp_menu_output().
+if ( '' !== $site_health_description ) {
+	$submenu['tools.php'][20]['count_description'] = array(
+		'id'   => 'wp-menu-site-health-count-description',
+		'html' => $site_health_description,
+	);
+}
 	$submenu['tools.php'][25] = array( __( 'Export Personal Data' ), 'export_others_personal_data', 'export-personal-data.php' );
 	$submenu['tools.php'][30] = array( __( 'Erase Personal Data' ), 'erase_others_personal_data', 'erase-personal-data.php' );
 if ( is_multisite() && ! is_main_site() && '1' !== get_site()->deleted ) {
