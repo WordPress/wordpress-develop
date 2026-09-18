@@ -141,6 +141,7 @@ if ( 'grid' === $mode ) {
 	wp_enqueue_media();
 	wp_enqueue_script( 'media-grid' );
 	wp_enqueue_script( 'media' );
+	wp_enqueue_media_library_upload();
 
 	// Remove the error parameter added by deprecation of wp-admin/media.php.
 	add_filter(
