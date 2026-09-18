@@ -521,14 +521,13 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->go_to( '/?name=redirect-guess-collisio&post_type=post' );
 		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink() );
 
-		$this->go_to( '/?name=redirect-guess-collisio&post_type=page' );
-		$this->assertSame( get_permalink( $page_post ), redirect_guess_404_permalink(), 'Different post_type query var produced a colliding cached result.' );
-
-		// Re-run both to confirm both are independently cached and correct.
-		$this->go_to( '/?name=redirect-guess-collisio&post_type=post' );
+		// Re-run without navigating away (go_to() flushes the object cache) to confirm the cached result is reused.
 		$num_queries = get_num_queries();
 		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink() );
 		$this->assertSame( $num_queries, get_num_queries() );
+
+		$this->go_to( '/?name=redirect-guess-collisio&post_type=page' );
+		$this->assertSame( get_permalink( $page_post ), redirect_guess_404_permalink(), 'Different post_type query var produced a colliding cached result.' );
 	}
 
 	/**
