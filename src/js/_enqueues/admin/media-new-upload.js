@@ -258,6 +258,17 @@
 					finishUpload();
 				},
 				onError: function ( /** @type {UploadError} */ error ) {
+					// When the server can convert what the browser could
+					// not, plupload takes the file from here and builds
+					// its own progress item, so this one goes away.
+					if ( pipeline.handOffToClassic( up, error, nativeFile ) ) {
+						const item = getItem( file );
+						if ( item ) {
+							item.remove();
+						}
+						finishUpload();
+						return;
+					}
 					renderError(
 						file,
 						pipeline.getErrorText( error, nativeFile.name )
@@ -311,6 +322,8 @@
 		return;
 	}
 
+	// Either shape may already hold another script's handlers, which keep
+	// running ahead of the interceptor being bound.
 	const init = wpUploaderInit.init;
 	if ( typeof init === 'function' ) {
 		wpUploaderInit.init = function ( up ) {
@@ -318,8 +331,17 @@
 			bindUploader( up );
 		};
 	} else {
+		const postInit = init && init.PostInit;
 		wpUploaderInit.init = Object.assign( {}, init, {
-			PostInit: bindUploader,
+			PostInit: function (
+				/** @type {plupload.Uploader} */ up,
+				/** @type {unknown[]} */ ...args
+			) {
+				if ( typeof postInit === 'function' ) {
+					postInit.call( this, up, ...args );
+				}
+				bindUploader( up );
+			},
 		} );
 	}
 } )();

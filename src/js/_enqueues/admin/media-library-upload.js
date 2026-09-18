@@ -214,6 +214,13 @@
 					handleSuccess( wpUploader, model, attachment );
 				},
 				onError: function ( /** @type {UploadError} */ error ) {
+					// When the server can convert what the browser could
+					// not, plupload takes the file from here and builds
+					// its own tile, so this one goes away.
+					if ( pipeline.handOffToClassic( up, error, nativeFile ) ) {
+						model.destroy();
+						return;
+					}
 					handleError( wpUploader, model, error, nativeFile );
 				},
 				onProgress: function ( /** @type {number} */ percent ) {

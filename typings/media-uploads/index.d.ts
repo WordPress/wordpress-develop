@@ -63,6 +63,7 @@ declare namespace plupload {
 			priority?: number
 		): void;
 		removeFile( file: File ): void;
+		addFile( file: globalThis.File | globalThis.File[], fileName?: string ): void;
 		refresh(): void;
 
 		/**

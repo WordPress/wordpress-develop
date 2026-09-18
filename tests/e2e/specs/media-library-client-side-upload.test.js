@@ -56,6 +56,102 @@ async function failMediaCreate( page ) {
 	);
 }
 
+// A file plupload and the store both treat as HEIC but no browser can
+// decode: whether the server can convert it is what decides its path.
+const UNDECODABLE_HEIC = {
+	name: 'undecodable.heic',
+	mimeType: 'image/heic',
+	buffer: Buffer.from( 'not a HEIC image' ),
+};
+
+/**
+ * Counts the POST requests that upload a file, per transport.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {{ asyncUpload: number, rest: number }} Live counts.
+ */
+function countUploadRequests( page ) {
+	const counts = { asyncUpload: 0, rest: 0 };
+	page.on( 'request', ( request ) => {
+		if ( request.method() !== 'POST' ) {
+			return;
+		}
+		if ( request.url().includes( '/async-upload.php' ) ) {
+			counts.asyncUpload++;
+		} else if (
+			/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+		) {
+			counts.rest++;
+		}
+	} );
+	return counts;
+}
+
+/**
+ * Overrides the plupload defaults the grid's uploader is built from.
+ *
+ * wp_plupload_default_settings() prints `var _wpPluploadSettings` inline
+ * before wp-plupload.js runs, so an accessor installed ahead of it sees the
+ * assignment and can adjust the defaults before any uploader reads them.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {Record<string, unknown>}         defaults Defaults to override.
+ */
+async function overridePluploadDefaults( page, defaults ) {
+	await page.addInitScript( ( overrides ) => {
+		let settings;
+		Object.defineProperty( window, '_wpPluploadSettings', {
+			configurable: true,
+			get() {
+				return settings;
+			},
+			set( value ) {
+				settings = value;
+				if ( value && value.defaults ) {
+					Object.assign( value.defaults, overrides );
+				}
+			},
+		} );
+	}, defaults );
+}
+
+/**
+ * Stops the upload-media provider from ever rendering, so the store never
+ * receives the pipeline's settings.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function suppressProviderRender( page ) {
+	await page.addInitScript( () => {
+		let element;
+		window.wp = window.wp || {};
+		Object.defineProperty( window.wp, 'element', {
+			configurable: true,
+			get() {
+				return element;
+			},
+			set( value ) {
+				// The package's exports are getters, so copy before patching.
+				element = Object.assign( {}, value, {
+					createRoot( container ) {
+						const root = value.createRoot( container );
+						const render = root.render.bind( root );
+						root.render = ( node ) => {
+							const provider =
+								window.wp.uploadMedia &&
+								window.wp.uploadMedia.MediaUploadProvider;
+							if ( ! node || node.type !== provider ) {
+								render( node );
+							}
+						};
+						return root;
+					},
+				} );
+			},
+		} );
+	} );
+}
+
 test.describe( 'Media Library grid client-side uploads', () => {
 	test.afterEach( async ( { requestUtils } ) => {
 		await requestUtils.deleteAllMedia();
@@ -514,5 +610,121 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
 		expect( restUploadCount ).toBe( 0 );
+	} );
+
+	test( 'leaves files to the classic uploader until the pipeline settings have landed', async ( {
+		page,
+		admin,
+	} ) => {
+		// The store is configured by rendering a provider, which delivers
+		// its settings asynchronously. Never rendering it reproduces a file
+		// added inside that window: the pipeline must not claim the file,
+		// because the store would hand it to a no-op uploader.
+		await suppressProviderRender( page );
+
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const ready = await page.evaluate( () =>
+			window.wp.mediaUploadPipeline.isReady()
+		);
+		expect( ready ).toBe( false );
+
+		const counts = countUploadRequests( page );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect(
+			page.locator( 'li.attachment:not(.uploading)' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		expect( counts.asyncUpload ).toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+	} );
+
+	test( 'hands a HEIC the browser cannot decode to the server when it can convert it', async ( {
+		page,
+		admin,
+	} ) => {
+		// No heic_upload_error means the server's image editor handles HEIC.
+		await overridePluploadDefaults( page, { heic_upload_error: false } );
+
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const counts = countUploadRequests( page );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( UNDECODABLE_HEIC );
+
+		// The pipeline's decode failure is not shown; the file is re-queued
+		// on the classic uploader, which posts it to async-upload.php.
+		await expect
+			.poll( () => counts.asyncUpload, { timeout: 60_000 } )
+			.toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+		await expect( page.locator( 'li.attachment.uploading' ) ).toHaveCount(
+			0,
+			{ timeout: 60_000 }
+		);
+		await expect( page.locator( '.upload-error-message' ) ).not.toContainText(
+			'HEIC'
+		);
+	} );
+
+	test( 'reports the HEIC error when neither the browser nor the server can convert it', async ( {
+		page,
+		admin,
+	} ) => {
+		await overridePluploadDefaults( page, { heic_upload_error: true } );
+
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const counts = countUploadRequests( page );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( UNDECODABLE_HEIC );
+
+		// Nothing can convert the file, so the pipeline's message (which
+		// explains the platform limitation) is what the user sees.
+		const error = page.locator( '.upload-error' ).first();
+		await expect( error ).toBeVisible( { timeout: 60_000 } );
+		await expect( error.locator( '.upload-error-filename' ) ).toHaveText(
+			UNDECODABLE_HEIC.name
+		);
+		await expect( error.locator( '.upload-error-message' ) ).toContainText(
+			'HEIC'
+		);
+		expect( counts.asyncUpload ).toBe( 0 );
+		expect( counts.rest ).toBe( 0 );
+		await expect( page.locator( 'li.attachment.uploading' ) ).toHaveCount(
+			0
+		);
 	} );
 } );

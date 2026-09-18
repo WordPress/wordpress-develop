@@ -38,6 +38,10 @@ window.wp = window.wp || {};
 	const pending = new Map();
 	const active = new Map();
 
+	// Files handed back to classic plupload after the pipeline gave up on
+	// them, so the interceptors let plupload's own handler take them.
+	const classicFiles = new WeakSet();
+
 	const imageSizeCount = Object.keys( settings.allImageSizes || {} ).length;
 
 	/**
@@ -403,7 +407,10 @@ window.wp = window.wp || {};
 	 *
 	 * The provider renders asynchronously, so a file added before the
 	 * settings land must be left to classic plupload - a degradation,
-	 * never data loss.
+	 * never data loss. The store's default state already carries a no-op
+	 * `mediaUpload`, so only a setting the provider alone supplies proves
+	 * the real ones have landed: a file queued before that would be handed
+	 * to the no-op and never upload.
 	 *
 	 * @return {boolean} True when the store is ready to accept files.
 	 */
@@ -412,7 +419,9 @@ window.wp = window.wp || {};
 			return false;
 		}
 		const storeSettings = wp.data.select( uploadStore ).getSettings();
-		return Boolean( storeSettings && storeSettings.mediaUpload );
+		return Boolean(
+			storeSettings && storeSettings.mediaSideload === mediaSideload
+		);
 	}
 
 	/**
@@ -421,10 +430,11 @@ window.wp = window.wp || {};
 	 * Suppressing plupload's built-in FilesAdded handler is all-or-nothing,
 	 * so the whole batch stays on the classic path when any file cannot be
 	 * handled: plupload returns no native File for sources it cannot expose
-	 * as one (the html4 runtime, say), and audio files are left to the
-	 * classic upload so they keep the title and description that
+	 * as one (the html4 runtime, say), audio files are left to the classic
+	 * upload so they keep the title and description that
 	 * media_handle_upload() derives from their ID3 tags, which the REST
-	 * endpoint does not do.
+	 * endpoint does not do, and a file the pipeline already handed back to
+	 * plupload (see handOffToClassic()) is plupload's to upload.
 	 *
 	 * @param {plupload.File[]} files Files added to the plupload queue.
 	 * @return {boolean} True when every file can go through the pipeline.
@@ -434,11 +444,47 @@ window.wp = window.wp || {};
 			if ( plupload.FAILED === file.status ) {
 				return true;
 			}
-			if ( ! file.getNative || ! file.getNative() ) {
+			const nativeFile = file.getNative && file.getNative();
+			if ( ! nativeFile || classicFiles.has( nativeFile ) ) {
 				return false;
 			}
 			return ! /^audio\//i.test( file.type || '' );
 		} );
+	}
+
+	/**
+	 * Re-queues a file on classic plupload when the server can do what the
+	 * browser could not.
+	 *
+	 * The pipeline converts HEIC in the browser and fails outright when the
+	 * platform has no HEIC decoder (Linux, and Windows without the HEVC
+	 * extension), whereas the classic upload lets the server convert it.
+	 * When the server's image editor supports HEIC - plupload carries no
+	 * `heic_upload_error` setting then - the file goes back to plupload,
+	 * whose own FilesAdded handler queues and starts the classic upload.
+	 * Nothing else can convert it, so any other failure stands.
+	 *
+	 * @param {plupload.Uploader} up         The plupload uploader the file came from.
+	 * @param {UploadError}       error      Why the pipeline gave up on it.
+	 * @param {File}              nativeFile The file the pipeline was given.
+	 * @return {boolean} True when the file was handed to classic plupload.
+	 */
+	function handOffToClassic( up, error, nativeFile ) {
+		const errorCodes = wp.uploadMedia.ErrorCode || {};
+		if (
+			! error ||
+			! errorCodes.HEIC_DECODE_ERROR ||
+			error.code !== errorCodes.HEIC_DECODE_ERROR ||
+			! up ||
+			typeof up.addFile !== 'function' ||
+			( up.settings && up.settings.heic_upload_error )
+		) {
+			return false;
+		}
+
+		classicFiles.add( nativeFile );
+		up.addFile( nativeFile );
+		return true;
 	}
 
 	/**
@@ -572,6 +618,7 @@ window.wp = window.wp || {};
 		configure: configure,
 		isReady: isReady,
 		canHandleBatch: canHandleBatch,
+		handOffToClassic: handOffToClassic,
 		additionalDataFromParams: additionalDataFromParams,
 		queueFile: queueFile,
 		getErrorText: getErrorText,

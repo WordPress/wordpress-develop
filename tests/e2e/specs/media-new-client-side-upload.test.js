@@ -56,6 +56,46 @@ async function failMediaCreate( page ) {
 	);
 }
 
+// A file plupload and the store both treat as HEIC but no browser can
+// decode: whether the server can convert it is what decides its path.
+const UNDECODABLE_HEIC = {
+	name: 'undecodable.heic',
+	mimeType: 'image/heic',
+	buffer: Buffer.from( 'not a HEIC image' ),
+};
+
+/**
+ * Adjusts the settings plupload-handlers.js builds the uploader from.
+ *
+ * media_upload_form() assigns `wpUploaderInit` onto window inline before
+ * the footer scripts run, so an accessor installed ahead of it sees the
+ * assignment and can adjust the settings the way a plugin script would.
+ *
+ * @param {import('@playwright/test').Page}      page
+ * @param {( settings: Object ) => void} adjust Called with the settings.
+ */
+async function overrideUploaderInit( page, adjust ) {
+	// The adjustment runs in the page, so its source is inlined into the
+	// init script rather than passed as (non-serializable) data.
+	await page.addInitScript( {
+		content: `( function ( adjust ) {
+			let settings;
+			Object.defineProperty( window, 'wpUploaderInit', {
+				configurable: true,
+				get() {
+					return settings;
+				},
+				set( value ) {
+					settings = value;
+					if ( value ) {
+						adjust( value );
+					}
+				},
+			} );
+		} )( ${ adjust.toString() } );`,
+	} );
+}
+
 test.describe( 'Add New Media File client-side uploads', () => {
 	test.afterEach( async ( { requestUtils } ) => {
 		await requestUtils.deleteAllMedia();
@@ -666,5 +706,118 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		await dismiss.click();
 		await expect( notice ).toHaveCount( 0 );
 		await expect( page.locator( '#plupload-browse-button' ) ).toBeFocused();
+	} );
+
+	test( 'hands a HEIC the browser cannot decode to the server when it can convert it', async ( {
+		page,
+		admin,
+	} ) => {
+		// No heic_upload_error means the server's image editor handles HEIC.
+		await overrideUploaderInit( page, ( settings ) => {
+			settings.heic_upload_error = false;
+		} );
+
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		let asyncFileUploads = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				if ( ! /(^|&)fetch=/.test( request.postData() || '' ) ) {
+					asyncFileUploads++;
+				}
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( UNDECODABLE_HEIC );
+
+		// The pipeline's decode failure is not shown; the file is re-queued
+		// on the classic uploader, which posts it to async-upload.php.
+		await expect
+			.poll( () => asyncFileUploads, { timeout: 60_000 } )
+			.toBeGreaterThanOrEqual( 1 );
+		expect( restUploadCount ).toBe( 0 );
+
+		// Exactly one item is left for the file: the pipeline's progress item
+		// was dropped when the classic uploader took over.
+		await expect(
+			page.locator( '#media-items .media-item .error-div' )
+		).not.toContainText( 'HEIC' );
+		await expect(
+			page.locator( '#media-items .media-item .progress' )
+		).toHaveCount( 0, { timeout: 60_000 } );
+		await expect( page.locator( '#media-items .media-item' ) ).toHaveCount(
+			1
+		);
+	} );
+
+	test( 'keeps a PostInit handler another script placed in wpUploaderInit', async ( {
+		page,
+		admin,
+	} ) => {
+		// A plugin that adds its own handler map before the uploader is
+		// created must still see its PostInit run once the pipeline hooks in.
+		await overrideUploaderInit( page, ( settings ) => {
+			settings.init = {
+				PostInit() {
+					window.__pluginPostInitCalls =
+						( window.__pluginPostInitCalls || 0 ) + 1;
+				},
+			};
+		} );
+
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+
+		await expect
+			.poll( () => page.evaluate( () => window.__pluginPostInitCalls ) )
+			.toBe( 1 );
+
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if (
+				request.method() === 'POST' &&
+				/\/wp\/v2\/media(?:[?&]|$)/.test(
+					decodeURIComponent( request.url() )
+				)
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		// The pipeline's own hook still intercepted the upload.
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+		expect( restUploadCount ).toBe( 1 );
 	} );
 } );
