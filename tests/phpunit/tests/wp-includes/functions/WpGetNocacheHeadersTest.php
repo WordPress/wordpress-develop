@@ -1,12 +1,18 @@
 <?php
+
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use WP_UnitTest_Factory;
+use WP_UnitTestCase;
+
 /**
- * Tests for wp_get_nocache_headers().
+ * Tests for the `wp_get_nocache_headers()` function.
  *
  * @group functions
  *
  * @covers ::wp_get_nocache_headers
  */
-class Tests_Functions_wpGetNocacheHeaders extends WP_UnitTestCase {
+class WpGetNocacheHeadersTest extends WP_UnitTestCase {
 	/**
 	 * User ID.
 	 *
