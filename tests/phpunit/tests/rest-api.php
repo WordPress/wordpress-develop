@@ -367,8 +367,12 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * matching how the string form is handled.
 	 *
 	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
 	 */
 	public function test_route_method_array_with_comma_separated_values() {
+		global $wp_rest_server;
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -379,7 +383,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			)
 		);
 
-		$routes = $GLOBALS['wp_rest_server']->get_routes();
+		$routes = $wp_rest_server->get_routes();
 
 		$this->assertSame(
 			array(
@@ -398,8 +402,12 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * split it, registering the single unmatchable key 'POST, PUT, PATCH'.
 	 *
 	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
 	 */
 	public function test_route_method_array_with_multi_method_constant() {
+		global $wp_rest_server;
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -410,7 +418,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			)
 		);
 
-		$routes = $GLOBALS['wp_rest_server']->get_routes();
+		$routes = $wp_rest_server->get_routes();
 
 		$this->assertSame(
 			array(
@@ -455,8 +463,12 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * An empty 'methods' array should register no methods rather than an empty one.
 	 *
 	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
 	 */
 	public function test_route_method_empty_array() {
+		global $wp_rest_server;
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -467,7 +479,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			)
 		);
 
-		$routes = $GLOBALS['wp_rest_server']->get_routes();
+		$routes = $wp_rest_server->get_routes();
 
 		$this->assertSame( array(), $routes['/test-ns/test'][0]['methods'] );
 	}
