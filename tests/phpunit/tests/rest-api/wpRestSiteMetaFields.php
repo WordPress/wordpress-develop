@@ -10,7 +10,7 @@
  *
  * @coversDefaultClass WP_REST_Site_Meta_Fields
  */
-abstract class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
+class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $site_admins_saved;
 	protected static $site_id;
