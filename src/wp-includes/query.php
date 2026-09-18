@@ -681,6 +681,26 @@ function is_favicon() {
 }
 
 /**
+ * Is the query for a sitemap?
+ *
+ * @since 7.1.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool Whether the query is for a sitemap.
+ */
+function is_sitemap(): bool {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '7.1.0' );
+		return false;
+	}
+
+	return $wp_query->is_sitemap();
+}
+
+/**
  * Determines whether the query is for a search.
  *
  * For more information on this and similar theme functions, check out
@@ -936,6 +956,8 @@ function is_main_query() {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
+ * @phpstan-impure
+ *
  * @return bool True if posts are available, false if end of the loop.
  */
 function have_posts() {
@@ -1015,6 +1037,8 @@ function the_post() {
  * @since 2.2.0
  *
  * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @phpstan-impure
  *
  * @return bool True if comments are available, false if no more comments.
  */

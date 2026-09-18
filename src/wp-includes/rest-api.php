@@ -429,6 +429,10 @@ function create_initial_rest_routes() {
 	$icons_controller = new WP_REST_Icons_Controller();
 	$icons_controller->register_routes();
 
+	// Icon Collections.
+	$icon_collections_controller = new WP_REST_Icon_Collections_Controller();
+	$icon_collections_controller->register_routes();
+
 	// View Config.
 	$view_config_controller = new WP_REST_View_Config_Controller();
 	$view_config_controller->register_routes();
@@ -443,6 +447,15 @@ function create_initial_rest_routes() {
  */
 function rest_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+		return;
+	}
+
+	// Short-circuit before define()/die() if a REST dispatch is already in flight.
+	// serve_request() enforces this too; guarding here avoids the trailing die().
+	if ( isset( $GLOBALS['wp_rest_server'] )
+		&& $GLOBALS['wp_rest_server'] instanceof WP_REST_Server
+		&& $GLOBALS['wp_rest_server']->is_dispatching()
+	) {
 		return;
 	}
 
@@ -960,8 +973,8 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
-			$ref[ $next ] = $ref[ $next ] ?? array();
-			$ref          = &$ref[ $next ];
+			$ref[ $next ] ??= array();
+			$ref            = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
 		$ref[ $last ] = true;
@@ -1872,7 +1885,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
  * @since 5.6.0
  *
  * @param string $param The parameter name.
- * @param array $error  The error details.
+ * @param array  $error The error details.
  * @return WP_Error
  */
 function rest_format_combining_operation_error( $param, $error ) {
@@ -3434,6 +3447,27 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	return $endpoint_args;
 }
 
+/**
+ * Prevents users without the `manage_privacy_options` capability from
+ * changing the privacy policy page through the REST API.
+ *
+ * The settings endpoint only checks `manage_options`. On multisite the
+ * `manage_privacy_options` capability maps to `manage_network`, so a site
+ * administrator can read the setting but must not change it, matching the
+ * Settings > Privacy screen.
+ *
+ * @since 7.2.0
+ *
+ * @param bool   $updated Whether the setting update has already been handled.
+ * @param string $name    Setting name (as shown in REST API responses).
+ * @return bool Whether to short-circuit the update.
+ */
+function rest_restrict_privacy_policy_page_setting_update( $updated, $name ) {
+	if ( 'page_for_privacy_policy' === $name && ! current_user_can( 'manage_privacy_options' ) ) {
+		return true;
+	}
+	return $updated;
+}
 
 /**
  * Converts an error to a response object.
@@ -3445,7 +3479,6 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * @since 5.7.0
  *
  * @param WP_Error $error WP_Error instance.
- *
  * @return WP_REST_Response List of associative arrays with code and message keys.
  */
 function rest_convert_error_to_response( $error ) {

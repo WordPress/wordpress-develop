@@ -61,7 +61,37 @@ class Tests_Connectors_WpGetConnectors extends WP_UnitTestCase {
 			$this->assertArrayHasKey( 'authentication', $connector_data, "Connector '{$connector_id}' is missing 'authentication'." );
 			$this->assertIsArray( $connector_data['authentication'], "Connector '{$connector_id}' authentication should be an array." );
 			$this->assertArrayHasKey( 'method', $connector_data['authentication'], "Connector '{$connector_id}' authentication is missing 'method'." );
-			$this->assertContains( $connector_data['authentication']['method'], array( 'api_key', 'none' ), "Connector '{$connector_id}' has unexpected authentication method." );
+			$this->assertContains( $connector_data['authentication']['method'], array( 'api_key', 'application_password', 'none' ), "Connector '{$connector_id}' has unexpected authentication method." );
+		}
+	}
+
+	/**
+	 * @ticket 64850
+	 */
+	public function test_application_password_connector_has_setting_name(): void {
+		$connector_id = 'remote-site';
+
+		WP_Connector_Registry::get_instance()->register(
+			$connector_id,
+			array(
+				'name'           => 'Remote Site',
+				'description'    => 'Connects to a remote WordPress site.',
+				'type'           => 'content_source',
+				'authentication' => array(
+					'method' => 'application_password',
+				),
+			)
+		);
+
+		try {
+			$connector = wp_get_connectors()[ $connector_id ];
+
+			$this->assertSame( 'application_password', $connector['authentication']['method'] );
+			$this->assertSame( 'connectors_content_source_remote_site_application_password', $connector['authentication']['setting_name'] );
+		} finally {
+			if ( wp_is_connector_registered( $connector_id ) ) {
+				WP_Connector_Registry::get_instance()->unregister( $connector_id );
+			}
 		}
 	}
 

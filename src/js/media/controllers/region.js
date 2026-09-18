@@ -33,7 +33,7 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {string} mode
+	 * @param {string} mode The mode to activate on the region.
 	 *
 	 * @fires Region#activate
 	 * @fires Region#deactivate
@@ -72,7 +72,7 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {string} mode
+	 * @param {string} mode The mode to render on the region.
 	 *
 	 * @fires Region#create
 	 * @fires Region#render
@@ -94,8 +94,8 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 		 * Region view creation takes place in an event callback on the frame.
 		 *
 		 * @event wp.media.controller.Region#create
-		 * @type {object}
-		 * @property {object} view
+		 * @type {Object}
+		 * @property {Object} view
 		 */
 		this.trigger( 'create', set );
 		view = set.view;
@@ -106,7 +106,7 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 		 * Region view creation takes place in an event callback on the frame.
 		 *
 		 * @event wp.media.controller.Region#render
-		 * @type {object}
+		 * @type {Object}
 		 */
 		this.trigger( 'render', view );
 		if ( view ) {
@@ -120,7 +120,7 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 	 *
 	 * @since 3.5.0
 	 *
-	 * @return {wp.media.View}
+	 * @return {wp.media.View} Returns the region's view.
 	 */
 	get: function() {
 		return this.view.views.first( this.selector );
@@ -131,8 +131,8 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {Array|Object} views
-	 * @param {Object} [options={}]
+	 * @param {Array|Object} views        The views to set on the region.
+	 * @param {Object}       [options={}] Optional. Additional options for setting the views on the region.
 	 * @return {wp.Backbone.Subviews} Subviews is returned to allow chaining.
 	 */
 	set: function( views, options ) {
@@ -147,7 +147,7 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {string} event
+	 * @param {string} event The event to trigger on the region.
 	 * @return {undefined|wp.media.controller.Region} Returns itself to allow chaining.
 	 */
 	trigger: function( event ) {

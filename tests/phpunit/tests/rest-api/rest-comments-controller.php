@@ -2283,7 +2283,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 
-		remove_filter( 'rest_allow_anonymous_comments', array( $this, 'anonymous_comments_callback_null' ), 10, 2 );
+		remove_filter( 'rest_allow_anonymous_comments', array( $this, 'anonymous_comments_callback_null' ) );
 
 		$this->assertErrorResponse( 'rest_comment_login_required', $response, 401 );
 	}
@@ -2321,7 +2321,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$params = array(
 			'post'         => self::$post_id,
 			'author_name'  => 'Bleeding Gums Murphy',
-			'author_email' => 'murphy@' . rand_long_str( 60 ) . '.' . rand_long_str( 60 ) . '.com',
+			'author_email' => 'murphy@' . rand_long_str( 190 ) . '.com',
 			'author_url'   => 'http://jazz.gingivitis.com',
 			'content'      => 'This isn\'t a saxophone. It\'s an umbrella.',
 			'date'         => '1995-04-30T10:22:00',
@@ -2954,7 +2954,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$admin_id );
 
 		$params = array(
-			'author_email' => 'murphy@' . rand_long_str( 60 ) . '.' . rand_long_str( 60 ) . '.com',
+			'author_email' => 'murphy@' . rand_long_str( 190 ) . '.com',
 			'content'      => 'This isn\'t a saxophone. It\'s an umbrella.',
 		);
 
@@ -3024,7 +3024,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ) );
 
 		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
 	}
@@ -3646,7 +3646,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Create a test post with note.
 	 *
-	 * @param int $user_id Post author's user ID.
+	 * @param string $role User role to assign the post author.
 	 * @return int Post ID.
 	 */
 	protected function create_test_post_with_note( $role ) {

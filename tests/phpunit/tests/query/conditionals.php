@@ -39,6 +39,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		create_initial_taxonomies();
+		flush_rewrite_rules();
 	}
 
 	public function test_home() {
