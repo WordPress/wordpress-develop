@@ -5,15 +5,20 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::initialize
+ * @covers \WP_Plugin_Dependencies::initialize
  */
-class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_UnitTestCase {
+class InitializeTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that initialization runs only once.
@@ -82,9 +87,6 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 *
 	 * @ticket 22316
 	 *
-	 * @covers WP_Plugin_Dependencies::get_dependency_api_data
-	 * @covers WP_Plugin_Dependencies::get_plugins
-	 *
 	 * @dataProvider data_screens
 	 *
 	 * @global string $pagenow The filename of the current screen.
@@ -133,7 +135,6 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 *
 	 * @ticket 22316
 	 *
-	 * @covers WP_Plugin_Dependencies::get_dependency_api_data
 	 */
 	public function test_should_not_set_dependency_api_data() {
 		self::$instance::initialize();
@@ -147,9 +148,6 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 * Tests that dependency slugs are loaded and sanitized.
 	 *
 	 * @ticket 22316
-	 *
-	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
-	 * @covers WP_Plugin_Dependencies::sanitize_dependency_slugs
 	 *
 	 * @dataProvider data_should_sanitize_slugs
 	 *
@@ -272,8 +270,6 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 *
 	 * @ticket 22316
 	 *
-	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
-	 * @covers WP_Plugin_Dependencies::convert_to_slug
 	 */
 	public function test_should_slugify_dependent_files() {
 		$plugins = get_plugins();
