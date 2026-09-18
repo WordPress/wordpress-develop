@@ -669,7 +669,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			// Test adding the cap via a filter.
 			add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 			$has_cap = $user->has_cap( 'do_not_allow' );
-			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
+			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ) );
 			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 
 			if ( 'anonymous' === $role ) {
@@ -700,7 +700,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Test adding the cap via a filter.
 		add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 		$has_cap = self::$super_admin->has_cap( 'do_not_allow' );
-		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
+		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ) );
 		$this->assertFalse( $has_cap, 'Super admins should not have the do_not_allow capability' );
 	}
 
@@ -1178,8 +1178,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user = new WP_User( $id );
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
 
-		// Author = user level 2.
-		$this->assertEquals( 2, $user->user_level );
+		// Author = user level 2. Read from user meta, so a numeric string until set_role() recalculates it.
+		$this->assertSame( '2', $user->user_level );
 
 		// They get promoted to editor - level should get bumped to 7.
 		$user->set_role( 'editor' );
@@ -1405,7 +1405,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Add 'edit_foobars' primitive cap to a user.
 		$admin->add_cap( 'edit_foobars', true );
-		$admin = new WP_User( $admin->ID );
+		$admin                        = new WP_User( $admin->ID );
+		self::$users['administrator'] = $admin;
 		$this->assertTrue( $admin->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $author->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $editor->has_cap( $cap->create_posts ) );
