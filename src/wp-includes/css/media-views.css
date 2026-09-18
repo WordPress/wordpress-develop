@@ -985,6 +985,94 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 }
 
 /**
+ * Media Library settings
+ */
+.wp-core-ui .button.media-library-settings__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 32px;
+	padding: 0;
+	position: absolute;
+	right: 0;
+}
+
+.wp-core-ui .button.media-library-settings__toggle .dashicons {
+	line-height: 1;
+}
+
+.media-library-settings__dialog {
+	width: 320px;
+	max-width: calc(100vw - 32px);
+	padding: 0;
+	border: 1px solid #c3c4c7;
+}
+
+.media-library-settings__dialog::backdrop {
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.media-library-settings__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 8px 8px 16px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.media-library-settings__header h2 {
+	margin: 0;
+}
+
+.media-library-settings__body {
+	padding: 16px;
+}
+
+.media-library-settings__field {
+	margin: 0;
+}
+
+.media-library-settings__body .description {
+	margin: 4px 0 0;
+	padding-left: 1.5rem;
+}
+
+.media-library-settings__status {
+	margin: 8px 0 0;
+	min-height: 2.4em;
+	color: #3c434a;
+}
+
+.wp-core-ui .media-library-settings__close.button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	border: none;
+}
+
+.wp-core-ui .media-library-settings__close.button .dashicons {
+	line-height: 1;
+}
+
+@media screen and (max-width: 900px) {
+	.wp-core-ui .button.media-library-settings__toggle {
+		min-width: 40px;
+		min-height: 40px;
+		width: 40px;
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.wp-core-ui .button.media-library-settings__toggle {
+		position: static;
+		float: right;
+		margin-top: 1.125rem;
+	}
+}
+
+/**
  * Attachments
  */
 .wp-core-ui .attachments {
@@ -1293,6 +1381,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .attachments-browser .media-toolbar-primary {
 	max-width: calc( 33% - 20px );
+	padding-right: 40px;
 }
 
 .mode-grid .attachments-browser .media-toolbar-primary {
@@ -1361,6 +1450,11 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .more-loaded .attachment:not(.found-media) {
 	background: #dcdcde;
+}
+
+/* Kept in the DOM when infinite scrolling is turned back on, so it can be reused. */
+.attachments-browser:not(.has-load-more) .load-more-wrapper {
+	display: none;
 }
 
 .load-more-wrapper {
@@ -2885,6 +2979,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	.mode-grid .attachments-browser .media-toolbar-primary {
 		display: grid;
 		grid-template-columns: auto 1fr;
+		padding-right: 0;
 	}
 
 	.mode-grid .attachments-browser .media-toolbar-primary input[type="search"] {
@@ -2918,6 +3013,10 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		top: 0;
 		bottom: 0;
 		opacity: 0.6;
+	}
+
+	.media-library-settings__body .description {
+		padding-left: 2.125rem;
 	}
 }
 
