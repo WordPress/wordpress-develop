@@ -738,11 +738,14 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		),
 	);
 	$args     = wp_parse_args( $args, $defaults );
-	if ( $menu->count > 0 ) {
-		$items = get_posts( $args );
-	} else {
-		$items = array();
-	}
+
+	/*
+	 * The term count is not a reliable proxy for whether any items match $args:
+	 * it only counts published items, and it may be stale, for example while term
+	 * counting is deferred, or when a previously fetched WP_Term object is passed
+	 * as $menu. Let the query determine whether matching items exist.
+	 */
+	$items = get_posts( $args );
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
 

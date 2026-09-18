@@ -1392,4 +1392,182 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$post = get_post( $menu_item_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 	}
+
+	/**
+	 * Adds a menu item to the menu created in set_up().
+	 *
+	 * @param string $status Optional. Status for the new menu item. Default 'publish'.
+	 * @param string $title  Optional. Title for the new menu item. Default 'Example'.
+	 * @return int The menu item ID.
+	 */
+	private function add_custom_menu_item( $status = 'publish', $title = 'Example' ) {
+		return wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'   => 'custom',
+				'menu-item-title'  => $title,
+				'menu-item-url'    => 'https://example.org/',
+				'menu-item-status' => $status,
+			)
+		);
+	}
+
+	/**
+	 * Tests that menu items are returned for statuses that the term count does not track.
+	 *
+	 * The `nav_menu` term count only includes published items, so a menu holding
+	 * nothing but drafts reports a count of zero while still having items that
+	 * match a query for a non-default post status.
+	 *
+	 * @ticket 66102
+	 *
+	 * @dataProvider data_post_status_matching_a_draft_item
+	 *
+	 * @param string $post_status The 'post_status' argument to query with.
+	 */
+	public function test_wp_get_nav_menu_items_returns_draft_items_from_uncounted_menu( $post_status ) {
+		$menu_item_id = $this->add_custom_menu_item( 'draft' );
+
+		$menu = wp_get_nav_menu_object( $this->menu_id );
+		$this->assertSame( 0, $menu->count, 'The menu term count should not include draft items.' );
+
+		$items = wp_get_nav_menu_items( $this->menu_id, array( 'post_status' => $post_status ) );
+
+		$this->assertSame( array( $menu_item_id ), wp_list_pluck( $items, 'ID' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_post_status_matching_a_draft_item() {
+		return array(
+			'draft'         => array( 'draft' ),
+			'any'           => array( 'any' ),
+			'publish,draft' => array( 'publish,draft' ),
+		);
+	}
+
+	/**
+	 * Tests that a trashed item is returned when querying for the 'trash' status.
+	 *
+	 * Trashing the last published item returns the term count to zero, so the
+	 * trashed item must still be found by a query for that status.
+	 *
+	 * @ticket 66102
+	 */
+	public function test_wp_get_nav_menu_items_returns_trashed_items_from_uncounted_menu() {
+		$menu_item_id = $this->add_custom_menu_item();
+
+		wp_trash_post( $menu_item_id );
+
+		$menu = wp_get_nav_menu_object( $this->menu_id );
+		$this->assertSame( 0, $menu->count, 'The menu term count should not include trashed items.' );
+
+		$items = wp_get_nav_menu_items( $this->menu_id, array( 'post_status' => 'trash' ) );
+
+		$this->assertSame( array( $menu_item_id ), wp_list_pluck( $items, 'ID' ) );
+	}
+
+	/**
+	 * Tests that published items are returned while term counting is deferred.
+	 *
+	 * @ticket 66102
+	 */
+	public function test_wp_get_nav_menu_items_returns_items_while_term_counting_is_deferred() {
+		wp_defer_term_counting( true );
+
+		$menu_item_id = $this->add_custom_menu_item();
+
+		$menu = wp_get_nav_menu_object( $this->menu_id );
+		$this->assertSame( 0, $menu->count, 'The menu term count should still be deferred.' );
+
+		$items = wp_get_nav_menu_items( $this->menu_id );
+
+		wp_defer_term_counting( false );
+
+		$this->assertSame( array( $menu_item_id ), wp_list_pluck( $items, 'ID' ) );
+	}
+
+	/**
+	 * Tests that items are returned when a stale WP_Term object is passed as the menu.
+	 *
+	 * wp_get_nav_menu_object() returns a passed WP_Term object as is, so a snapshot
+	 * taken before any items were added must not gate the query.
+	 *
+	 * @ticket 66102
+	 */
+	public function test_wp_get_nav_menu_items_returns_items_for_stale_menu_object() {
+		$stale_menu = wp_get_nav_menu_object( $this->menu_id );
+
+		$menu_item_id = $this->add_custom_menu_item();
+
+		$this->assertSame( 0, $stale_menu->count, 'The menu object snapshot should have a stale count.' );
+
+		$items = wp_get_nav_menu_items( $stale_menu );
+
+		$this->assertSame( array( $menu_item_id ), wp_list_pluck( $items, 'ID' ) );
+	}
+
+	/**
+	 * Tests that items added to a draft-only menu do not all collide at position zero.
+	 *
+	 * wp_update_nav_menu_item() positions a new item after the last existing one, which
+	 * requires the existing draft items to be visible to wp_get_nav_menu_items().
+	 *
+	 * @ticket 66102
+	 */
+	public function test_wp_update_nav_menu_item_appends_to_a_draft_only_menu() {
+		$menu_orders = array();
+
+		foreach ( array( 'First', 'Second', 'Third' ) as $title ) {
+			$menu_orders[] = get_post_field( 'menu_order', $this->add_custom_menu_item( 'draft', $title ) );
+		}
+
+		$sorted = $menu_orders;
+		sort( $sorted, SORT_NUMERIC );
+
+		$this->assertSame( $sorted, $menu_orders, 'Each item should be positioned after the previous one.' );
+		$this->assertSame( $menu_orders, array_unique( $menu_orders ), 'No two items should share a position.' );
+	}
+
+	/**
+	 * Tests that a page already present as a draft item is not auto-added a second time.
+	 *
+	 * @ticket 66102
+	 */
+	public function test_wp_auto_add_pages_to_menu_does_not_duplicate_a_draft_item() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $page_id,
+				'menu-item-status'    => 'draft',
+			)
+		);
+
+		update_option( 'nav_menu_options', array( 'auto_add' => array( $this->menu_id ) ) );
+
+		wp_update_post(
+			array(
+				'ID'          => $page_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		$items = wp_get_nav_menu_items( $this->menu_id, array( 'post_status' => 'any' ) );
+
+		$this->assertCount( 1, $items, 'The page should not be added to the menu twice.' );
+	}
 }
