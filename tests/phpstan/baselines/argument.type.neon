@@ -689,16 +689,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/blocks.php
 		-
-			message: '#^Parameter \#1 \$post of function get_permalink expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/canonical.php
-		-
-			message: '#^Parameter \#1 \$post_id of function get_post_comments_feed_link expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/canonical.php
-		-
 			message: '#^Parameter \#2 \$callback of function preg_replace_callback expects callable\(array\<string\>\)\: string, ''lowercase_octets'' given\.$#'
 			identifier: argument.type
 			count: 1
