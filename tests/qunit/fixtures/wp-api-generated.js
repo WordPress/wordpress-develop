@@ -11267,7 +11267,7 @@ mockedApiResponse.Schema = {
                         "force": {
                             "type": "boolean",
                             "default": false,
-                            "description": "Required to be true, as sites do not support trashing.",
+                            "description": "Whether to set site to deleted and force deletion.",
                             "required": false
                         }
                     }
