@@ -1071,6 +1071,8 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
  * Used with `uasort()`.
  *
  * @since 3.1.0
+ * @since 7.2.0 Names are compared using a case- and accent-folded sort key,
+ *              and the callback always returns an integer.
  * @access private
  *
  * @param object $a The first object to compare.
@@ -1079,7 +1081,60 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
  *             or greater than zero if `$a->name` is greater than `$b->name`.
  */
 function _wp_object_name_sort_cb( $a, $b ) {
-	return strnatcasecmp( $a->name, $b->name );
+	$result = strnatcmp( _wp_object_name_sort_key( $a->name ), _wp_object_name_sort_key( $b->name ) );
+
+	if ( 0 === $result ) {
+		// Tie-break on the original name so that sorting is deterministic.
+		$result = strnatcmp( (string) $a->name, (string) $b->name );
+	}
+
+	return (int) $result;
+}
+
+/**
+ * Builds a case- and accent-insensitive sort key for an object name.
+ *
+ * `strnatcmp()` compares bytes, so it orders, for example, all uppercase Greek
+ * letters before all lowercase ones and separates accented letters from their
+ * unaccented equivalents. Folding the name first keeps such variants in a
+ * single, natural group.
+ *
+ * Both steps are conditional because neither mbstring nor intl is required by
+ * WordPress. Case folding alone already merges uppercase and lowercase forms;
+ * stripping combining marks additionally merges accented forms, but only when
+ * `Normalizer` (intl) is available.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $name The name to build a sort key for.
+ * @return string The folded sort key.
+ */
+function _wp_object_name_sort_key( $name ) {
+	$key = (string) $name;
+
+	if ( function_exists( 'mb_strtolower' ) ) {
+		$key = mb_strtolower( $key, 'UTF-8' );
+	} else {
+		$key = strtolower( $key );
+	}
+
+	if ( class_exists( 'Normalizer' ) ) {
+		/*
+		 * Decompose into base characters plus combining marks, then drop the marks.
+		 * The key is intentionally left decomposed: recomposing would put the
+		 * accents back and undo the fold.
+		 */
+		$decomposed = Normalizer::normalize( $key, Normalizer::FORM_D );
+		if ( is_string( $decomposed ) ) {
+			$stripped = preg_replace( '/\p{Mn}+/u', '', $decomposed );
+			if ( is_string( $stripped ) ) {
+				$key = $stripped;
+			}
+		}
+	}
+
+	return $key;
 }
 
 /**
