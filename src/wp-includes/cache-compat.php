@@ -313,6 +313,206 @@ if ( ! function_exists( 'wp_cache_set_multiple_salted' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'wp_cache_get_valid' ) ) :
+	/**
+	 * Retrieves the cache contents by key and group, only if they are valid.
+	 *
+	 * A validating wrapper around wp_cache_get(). The cache contents are returned
+	 * only when they match an expected `$type` and, if a `$callback` is provided,
+	 * the callback returns `true` for them. Otherwise `false` is returned, which
+	 * callers should treat as a cache miss: regenerate the value and store it
+	 * with wp_cache_set().
+	 *
+	 * The `$valid` parameter, passed by reference, is `true` only when the
+	 * contents were found and passed validation. Unlike the `$found` parameter
+	 * of wp_cache_get(), it is `false` for contents that were found but failed
+	 * validation. When the cached value itself can be `false` (the 'bool' type),
+	 * the return value is ambiguous, so check `$valid` instead. When a
+	 * not-found sentinel such as `false` or `-1` is cached alongside regular
+	 * contents, include the sentinel's type in `$type`.
+	 *
+	 * The callback receives one argument, the cache contents, and must return a
+	 * boolean. It may assume the contents matched an expected type, and must
+	 * tolerate any contents of those types without throwing. It must not access
+	 * the object cache or have side effects.
+	 *
+	 * Invalid contents are left in the cache by default, to be overwritten when
+	 * the caller regenerates the value. Passing `true` for `$delete_invalid`
+	 * deletes them instead, for callers that do not regenerate immediately.
+	 * Nothing is deleted on a plain cache miss or on incorrect usage of this
+	 * function.
+	 *
+	 * This is not a security boundary. A persistent cache backend unserializes
+	 * contents before this check runs, and passing validation does not make the
+	 * contents trustworthy.
+	 *
+	 * @link https://core.trac.wordpress.org/ticket/66005
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int|string      $key            The key under which the cache contents are stored.
+	 * @param string          $group          Where the cache contents are grouped.
+	 * @param string|string[] $type           The expected type of the cache contents, or a list of
+	 *                                        types of which the contents must match at least one.
+	 *                                        Accepts 'array', 'object', 'string', 'int', 'integer',
+	 *                                        'float', 'double', 'bool', 'boolean', or 'numeric'.
+	 * @param callable|string $callback       Optional. Callback to further validate the cache contents
+	 *                                        beyond the type check. Default empty string (no callback).
+	 * @param bool            $force          Optional. Whether to force an update of the local cache
+	 *                                        from the persistent cache. Default false.
+	 * @param bool            $delete_invalid Optional. Whether to delete the cache contents when they
+	 *                                        are found but fail validation. Default false.
+	 * @param bool|null       $valid          Optional. Whether the contents were found and passed
+	 *                                        validation (passed by reference). Disambiguates a return
+	 *                                        of false, a storable value. Default null.
+	 * @param-out bool $valid
+	 * @return mixed|false The cache contents on success, false if the contents are missing or invalid.
+	 */
+	function wp_cache_get_valid( $key, $group, $type, $callback = '', bool $force = false, bool $delete_invalid = false, ?bool &$valid = null ) {
+		$valid = false;
+
+		$type_checks = array(
+			'array'   => 'is_array',
+			'object'  => 'is_object',
+			'string'  => 'is_string',
+			'int'     => 'is_int',
+			'integer' => 'is_int',
+			'float'   => 'is_float',
+			'double'  => 'is_float',
+			'bool'    => 'is_bool',
+			'boolean' => 'is_bool',
+			'numeric' => 'is_numeric',
+		);
+
+		if ( ! is_array( $type ) ) {
+			$type = array( $type );
+		}
+
+		if ( array() === $type ) {
+			if ( ! function_exists( '__' ) ) {
+				wp_load_translations_early();
+			}
+
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'At least one expected type must be provided.' ),
+				'7.2.0'
+			);
+
+			return false;
+		}
+
+		foreach ( $type as $expected_type ) {
+			if ( ! is_string( $expected_type ) || ! isset( $type_checks[ $expected_type ] ) ) {
+				if ( ! function_exists( '__' ) ) {
+					wp_load_translations_early();
+				}
+
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: %s: List of valid cache content types. */
+						__( 'Each expected type must be one of: %s.' ),
+						"'" . implode( "', '", array_keys( $type_checks ) ) . "'"
+					),
+					'7.2.0'
+				);
+
+				return false;
+			}
+		}
+
+		if ( '' !== $callback && ! is_callable( $callback ) ) {
+			if ( ! function_exists( '__' ) ) {
+				wp_load_translations_early();
+			}
+
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'The validation callback is not callable.' ),
+				'7.2.0'
+			);
+
+			return false;
+		}
+
+		$found = false;
+		$value = wp_cache_get( $key, $group, $force, $found );
+
+		if ( ! $found ) {
+			return false;
+		}
+
+		$type_matched = false;
+
+		foreach ( $type as $expected_type ) {
+			if ( call_user_func( $type_checks[ $expected_type ], $value ) ) {
+				$type_matched = true;
+				break;
+			}
+		}
+
+		if ( ! $type_matched ) {
+			/**
+			 * Fires when cache contents were found but failed validation.
+			 *
+			 * Unless deletion was requested via the `$delete_invalid` parameter
+			 * of wp_cache_get_valid(), the invalid contents remain in the cache
+			 * until the caller overwrites them with wp_cache_set().
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param int|string $key    The key under which the cache contents are stored.
+			 * @param string     $group  Where the cache contents are grouped.
+			 * @param mixed      $value  The invalid cache contents.
+			 * @param string     $reason Why validation failed: 'type' if the contents were not
+			 *                           of an expected type, 'callback' if the validation
+			 *                           callback did not return true.
+			 */
+			do_action( 'wp_cache_get_valid_failed', $key, $group, $value, 'type' );
+
+			if ( $delete_invalid ) {
+				wp_cache_delete( $key, $group );
+			}
+
+			return false;
+		}
+
+		if ( '' !== $callback ) {
+			$callback_result = call_user_func( $callback, $value );
+
+			if ( ! is_bool( $callback_result ) ) {
+				if ( ! function_exists( '__' ) ) {
+					wp_load_translations_early();
+				}
+
+				_doing_it_wrong(
+					__FUNCTION__,
+					__( 'The validation callback must return a boolean.' ),
+					'7.2.0'
+				);
+
+				return false;
+			}
+
+			if ( true !== $callback_result ) {
+				/** This action is documented in wp-includes/cache-compat.php */
+				do_action( 'wp_cache_get_valid_failed', $key, $group, $value, 'callback' );
+
+				if ( $delete_invalid ) {
+					wp_cache_delete( $key, $group );
+				}
+
+				return false;
+			}
+		}
+
+		$valid = true;
+
+		return $value;
+	}
+endif;
+
 if ( ! function_exists( 'wp_cache_switch_to_blog' ) ) :
 	/**
 	 * Used when switch_to_blog() and restore_current_blog() are called, but
