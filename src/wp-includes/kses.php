@@ -2614,8 +2614,8 @@ function kses_init() {
  * Splits a string of CSS rules into declarations.
  *
  * The function splits at a semicolon that ends a declaration. It ignores a
- * semicolon inside a quoted string, inside a pair of parentheses, or after a
- * backslash escape. A font name, for example, can contain a semicolon.
+ * semicolon inside a quoted string or after a backslash escape. A font name,
+ * for example, can contain a semicolon.
  *
  * @since 7.2.0
  * @access private
@@ -2628,7 +2628,6 @@ function _wp_kses_split_css_declarations( $css ) {
 	$current      = '';
 	$length       = strlen( $css );
 	$quote        = '';
-	$depth        = 0;
 
 	for ( $offset = 0; $offset < $length; $offset++ ) {
 		$character = $css[ $offset ];
@@ -2653,21 +2652,7 @@ function _wp_kses_split_css_declarations( $css ) {
 			continue;
 		}
 
-		if ( '(' === $character ) {
-			++$depth;
-			$current .= $character;
-			continue;
-		}
-
-		if ( ')' === $character ) {
-			if ( $depth > 0 ) {
-				--$depth;
-			}
-			$current .= $character;
-			continue;
-		}
-
-		if ( ';' === $character && 0 === $depth ) {
+		if ( ';' === $character ) {
 			$declarations[] = $current;
 			$current        = '';
 			continue;
@@ -3012,8 +2997,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 		$css_item        = trim( $css_item );
 		$css_test_string = $css_item;
-		$css_selector    = '';
-		$css_declared    = '';
 		$found           = false;
 		$url_attr        = false;
 		$gradient_attr   = false;
@@ -3024,7 +3007,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		} else {
 			$parts        = explode( ':', $css_item, 2 );
 			$css_selector = trim( $parts[0] );
-			$css_declared = trim( $parts[1] );
 
 			// Allow assigning values to CSS variables.
 			if ( in_array( '--*', $allowed_attr, true ) && preg_match( '/^--[a-zA-Z0-9-_]+$/', $css_selector ) ) {
@@ -3036,11 +3018,24 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
+
+				/*
+				 * A font name is a CSS string. It can contain a semicolon, a
+				 * parenthesis, a backslash escape, and other punctuation that the
+				 * checks below reject. A value that the CSS font family grammar
+				 * accepts needs no further test, because the grammar rejects extra
+				 * tokens, an unsafe function such as `url()`, and any declaration
+				 * that follows.
+				 */
+				if ( 'font-family' === $css_selector && null !== WP_CSS_Font_Family::parse_list( trim( $parts[1] ) ) ) {
+					$css_test_string = '';
+				}
 			}
 
 			if ( $is_custom_var ) {
-				$url_attr      = str_starts_with( $css_declared, 'url(' );
-				$gradient_attr = str_contains( $css_declared, '-gradient(' );
+				$css_value     = trim( $parts[1] );
+				$url_attr      = str_starts_with( $css_value, 'url(' );
+				$gradient_attr = str_contains( $css_value, '-gradient(' );
 			}
 		}
 
@@ -3080,24 +3075,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			foreach ( $gradient_matches[0] as $gradient_match ) {
 				// Remove each `gradient()` bit that was matched above from the CSS.
 				$css_test_string = str_replace( $gradient_match, '', $css_test_string );
-			}
-		}
-
-		if ( $found && 'font-family' === $css_selector ) {
-			/*
-			 * A font name is a CSS string. It can contain a semicolon, a
-			 * parenthesis, a backslash escape, and other punctuation that the
-			 * checks below reject. Read the value with the CSS font family
-			 * grammar instead. The grammar rejects extra tokens, an unsafe
-			 * function such as `url()`, and any declaration that follows.
-			 */
-			if ( null !== WP_CSS_Font_Family::parse_list( $css_declared ) ) {
-				if ( '' !== $css ) {
-					$css .= ';';
-				}
-
-				$css .= $css_item;
-				continue;
 			}
 		}
 

@@ -120,16 +120,14 @@ final class WP_CSS_Font_Family {
 	 * @return array[]|null List of parsed entries, or null if the value is invalid.
 	 */
 	public static function parse_list( $value ) {
-		if ( ! is_string( $value ) ) {
-			return null;
-		}
-
-		if ( '' !== $value && 1 !== preg_match( '//u', $value ) ) {
+		if ( ! is_string( $value ) || 1 !== preg_match( '//u', $value ) ) {
 			// Reject invalid UTF-8 rather than replace characters in a name.
 			return null;
 		}
 
-		$value = self::preprocess( $value );
+		// Apply the CSS input preprocessing rules. See https://www.w3.org/TR/css-syntax-3/#input-preprocessing.
+		$value = str_replace( array( "\r\n", "\r", "\f" ), "\n", $value );
+		$value = str_replace( "\0", "\u{FFFD}", $value );
 
 		$length  = strlen( $value );
 		$offset  = 0;
@@ -163,10 +161,8 @@ final class WP_CSS_Font_Family {
 		}
 
 		// A reserved keyword is valid only as the single value of the property.
-		foreach ( $entries as $entry ) {
-			if ( 'keyword' === $entry['type'] && 1 !== count( $entries ) ) {
-				return null;
-			}
+		if ( count( $entries ) > 1 && in_array( 'keyword', array_column( $entries, 'type' ), true ) ) {
+			return null;
 		}
 
 		return $entries;
@@ -202,9 +198,10 @@ final class WP_CSS_Font_Family {
 		$entries = array();
 
 		foreach ( explode( ',', $value ) as $part ) {
+			// A part without a comma parses to one entry, such as a generic family.
 			$parsed = self::parse_list( $part );
 
-			if ( null !== $parsed && 1 === count( $parsed ) && 'keyword' !== $parsed[0]['type'] ) {
+			if ( null !== $parsed && 'keyword' !== $parsed[0]['type'] ) {
 				$entries[] = $parsed[0];
 				continue;
 			}
@@ -310,21 +307,6 @@ final class WP_CSS_Font_Family {
 	}
 
 	/**
-	 * Applies the CSS input preprocessing rules.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @link https://www.w3.org/TR/css-syntax-3/#input-preprocessing
-	 *
-	 * @param string $value Raw input.
-	 * @return string Preprocessed input.
-	 */
-	private static function preprocess( $value ) {
-		$value = str_replace( array( "\r\n", "\r", "\f" ), "\n", $value );
-		return str_replace( "\0", "\u{FFFD}", $value );
-	}
-
-	/**
 	 * Skips whitespace and comments.
 	 *
 	 * @since 7.2.0
@@ -389,39 +371,20 @@ final class WP_CSS_Font_Family {
 
 		$identifiers = array();
 
-		while ( true ) {
-			if ( ! self::starts_identifier( $value, $offset, $length ) ) {
-				break;
-			}
-
-			$identifier = self::consume_identifier( $value, $offset, $length );
-			if ( null === $identifier ) {
-				return null;
-			}
-
-			$identifiers[] = $identifier;
+		while ( self::starts_identifier( $value, $offset, $length ) ) {
+			$identifiers[] = self::consume_identifier( $value, $offset, $length );
 
 			/*
 			 * The `generic()` function names a generic family. It is only valid
 			 * as the complete family name.
 			 */
-			if ( 1 === count( $identifiers ) && 'generic' === strtolower( $identifier ) && $offset < $length && '(' === $value[ $offset ] ) {
+			if ( 1 === count( $identifiers ) && 'generic' === strtolower( $identifiers[0] ) && $offset < $length && '(' === $value[ $offset ] ) {
 				return self::consume_generic_function( $value, $offset, $length );
 			}
 
-			$saved = $offset;
+			// Whitespace and comments can separate the identifiers of one name.
 			if ( ! self::skip_whitespace_and_comments( $value, $offset, $length ) ) {
 				return null;
-			}
-
-			if ( $saved === $offset ) {
-				// Without whitespace, the identifier sequence ends here.
-				break;
-			}
-
-			if ( ! self::starts_identifier( $value, $offset, $length ) ) {
-				$offset = $saved;
-				break;
 			}
 		}
 
@@ -477,9 +440,6 @@ final class WP_CSS_Font_Family {
 		}
 
 		$identifier = self::consume_identifier( $value, $offset, $length );
-		if ( null === $identifier ) {
-			return null;
-		}
 
 		if ( ! self::skip_whitespace_and_comments( $value, $offset, $length ) ) {
 			return null;
@@ -553,12 +513,15 @@ final class WP_CSS_Font_Family {
 	/**
 	 * Consumes an identifier and returns its decoded text.
 	 *
+	 * The offset must point at the start of an identifier. See
+	 * {@see WP_CSS_Font_Family::starts_identifier()}.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $value  Preprocessed input.
 	 * @param int    $offset Current offset. Passed by reference.
 	 * @param int    $length Input length.
-	 * @return string|null The decoded text, or null if there is no identifier.
+	 * @return string The decoded text.
 	 */
 	private static function consume_identifier( $value, &$offset, $length ) {
 		$result = '';
@@ -585,13 +548,14 @@ final class WP_CSS_Font_Family {
 			break;
 		}
 
-		return '' === $result ? null : $result;
+		return $result;
 	}
 
 	/**
 	 * Consumes an escape sequence and returns the code point it encodes.
 	 *
-	 * The offset must point at the character after the backslash.
+	 * The offset must point at the character after the backslash, and that
+	 * character must exist.
 	 *
 	 * @since 7.2.0
 	 *
@@ -603,15 +567,13 @@ final class WP_CSS_Font_Family {
 	 * @return string The decoded text.
 	 */
 	private static function consume_escape( $value, &$offset, $length ) {
-		if ( $offset >= $length ) {
-			return "\u{FFFD}";
-		}
-
-		$character = $value[ $offset ];
-
-		if ( ! ctype_xdigit( $character ) ) {
+		if ( ! ctype_xdigit( $value[ $offset ] ) ) {
 			// The escape encodes the next code point. Copy its complete UTF-8 sequence.
-			$size    = self::utf8_sequence_length( $character );
+			$size = 1;
+			while ( $offset + $size < $length && 0x80 === ( ord( $value[ $offset + $size ] ) & 0xC0 ) ) {
+				++$size;
+			}
+
 			$result  = substr( $value, $offset, $size );
 			$offset += $size;
 			return $result;
@@ -624,20 +586,16 @@ final class WP_CSS_Font_Family {
 		}
 
 		// One whitespace character ends the hexadecimal escape.
-		if ( $offset < $length ) {
-			$next = $value[ $offset ];
-			if ( ' ' === $next || "\t" === $next || "\n" === $next ) {
-				++$offset;
-			}
+		if ( $offset < $length && in_array( $value[ $offset ], array( ' ', "\t", "\n" ), true ) ) {
+			++$offset;
 		}
 
-		$code_point = hexdec( $digits );
+		$code_point = (int) hexdec( $digits );
 
-		if ( 0 === $code_point || $code_point > 0x10FFFF || ( $code_point >= 0xD800 && $code_point <= 0xDFFF ) ) {
-			return "\u{FFFD}";
-		}
+		// Zero, a surrogate, and a code point above U+10FFFF decode to the replacement character.
+		$character = 0 === $code_point ? false : mb_chr( $code_point, 'UTF-8' );
 
-		return self::code_point_to_utf8( $code_point );
+		return false === $character ? "\u{FFFD}" : $character;
 	}
 
 	/**
@@ -658,15 +616,17 @@ final class WP_CSS_Font_Family {
 		$character = $value[ $offset ];
 
 		if ( '-' === $character ) {
+			// A hyphen starts an identifier when a hyphen, a name start, or an escape follows it.
 			if ( $offset + 1 >= $length ) {
 				return false;
 			}
 
-			$next = $value[ $offset + 1 ];
+			++$offset;
+			$character = $value[ $offset ];
 
-			return '-' === $next
-				|| self::is_identifier_start_character( $next )
-				|| self::is_valid_escape( $value, $offset + 1, $length );
+			if ( '-' === $character ) {
+				return true;
+			}
 		}
 
 		if ( '\\' === $character ) {
@@ -687,15 +647,7 @@ final class WP_CSS_Font_Family {
 	 * @return bool True if the backslash starts a valid escape.
 	 */
 	private static function is_valid_escape( $value, $offset, $length ) {
-		if ( $offset >= $length || '\\' !== $value[ $offset ] ) {
-			return false;
-		}
-
-		if ( $offset + 1 >= $length ) {
-			return false;
-		}
-
-		return "\n" !== $value[ $offset + 1 ];
+		return $offset + 1 < $length && '\\' === $value[ $offset ] && "\n" !== $value[ $offset + 1 ];
 	}
 
 	/**
@@ -725,62 +677,6 @@ final class WP_CSS_Font_Family {
 		return self::is_identifier_start_character( $character )
 			|| ( $character >= '0' && $character <= '9' )
 			|| '-' === $character;
-	}
-
-	/**
-	 * Returns the length in bytes of the UTF-8 sequence that a byte starts.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $character One byte of the input.
-	 * @return int The sequence length, from 1 to 4.
-	 */
-	private static function utf8_sequence_length( $character ) {
-		$code = ord( $character );
-
-		if ( $code < 0xC0 ) {
-			return 1;
-		}
-
-		if ( $code < 0xE0 ) {
-			return 2;
-		}
-
-		if ( $code < 0xF0 ) {
-			return 3;
-		}
-
-		return 4;
-	}
-
-	/**
-	 * Converts a code point into its UTF-8 sequence.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param int $code_point A Unicode code point.
-	 * @return string The UTF-8 sequence.
-	 */
-	private static function code_point_to_utf8( $code_point ) {
-		if ( $code_point < 0x80 ) {
-			return chr( $code_point );
-		}
-
-		if ( $code_point < 0x800 ) {
-			return chr( 0xC0 | ( $code_point >> 6 ) )
-				. chr( 0x80 | ( $code_point & 0x3F ) );
-		}
-
-		if ( $code_point < 0x10000 ) {
-			return chr( 0xE0 | ( $code_point >> 12 ) )
-				. chr( 0x80 | ( ( $code_point >> 6 ) & 0x3F ) )
-				. chr( 0x80 | ( $code_point & 0x3F ) );
-		}
-
-		return chr( 0xF0 | ( $code_point >> 18 ) )
-			. chr( 0x80 | ( ( $code_point >> 12 ) & 0x3F ) )
-			. chr( 0x80 | ( ( $code_point >> 6 ) & 0x3F ) )
-			. chr( 0x80 | ( $code_point & 0x3F ) );
 	}
 
 	/**
