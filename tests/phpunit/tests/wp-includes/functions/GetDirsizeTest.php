@@ -1,14 +1,24 @@
 <?php
 
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use WP_UnitTestCase;
+
 /**
- * Tests the get_dirsize() function.
+ * Tests for the `get_dirsize()` function.
  *
  * @group functions
  *
  * @covers ::get_dirsize
  */
-class Tests_Functions_GetDirsize extends WP_UnitTestCase {
-	private $test_dir;
+class GetDirsizeTest extends WP_UnitTestCase {
+
+	/**
+	 * Test directory path.
+	 *
+	 * @var string
+	 */
+	protected $test_dir;
 
 	public function set_up() {
 		parent::set_up();
