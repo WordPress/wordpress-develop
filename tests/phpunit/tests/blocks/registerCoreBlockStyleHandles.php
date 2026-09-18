@@ -181,12 +181,8 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 
 		$data = array();
 		foreach ( $core_blocks_meta as $name => $schema ) {
-			if ( ! isset( $schema['style'] ) ) {
-				$schema['style'] = "wp-block-$name";
-			}
-			if ( ! isset( $schema['editorStyle'] ) ) {
-				$schema['editorStyle'] = "wp-block-{$name}-editor";
-			}
+			$schema['style']       ??= "wp-block-$name";
+			$schema['editorStyle'] ??= "wp-block-{$name}-editor";
 
 			$data[ $name ] = $schema;
 		}
