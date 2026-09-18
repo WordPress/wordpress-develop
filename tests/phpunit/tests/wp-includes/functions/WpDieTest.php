@@ -1,13 +1,20 @@
 <?php
 
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use MockAction;
+use WP_Error;
+use WP_UnitTestCase;
+use WPDieException;
+
 /**
- * Tests the wp_die() function.
+ * Tests for the `wp_die()` function.
  *
  * @group functions
  *
  * @covers ::wp_die
  */
-class Tests_Functions_WpDie extends WP_UnitTestCase {
+class WpDieTest extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_die() calls the expected handler.
