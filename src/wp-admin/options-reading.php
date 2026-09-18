@@ -197,9 +197,10 @@ else :
 	<p class="description">
 		<?php
 		printf(
-			/* translators: %s: Documentation URL. */
-			__( 'Your theme determines how content is displayed in browsers. <a href="%s">Learn more about feeds</a>.' ),
-			__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
+			/* translators: 1: Documentation URL. 2: Accessibility text (do not translate). */
+			__( 'Your theme determines how content is displayed in browsers. <a href="%1$s" target="_blank" rel="noopener noreferrer">Learn more about feeds%2$s</a>.' ),
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' ) ),
+			'<span class="screen-reader-text"> ' . /* translators: Hidden accessibility text. */ __( '(opens in a new tab)' ) . '</span><span aria-hidden="true" class="dashicons dashicons-external"></span>'
 		);
 		?>
 	</p>
