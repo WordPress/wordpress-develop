@@ -26,6 +26,8 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the necessary REST API routes.
+	 *
+	 * @since 5.5.0
 	 */
 	public function register_routes() {
 		register_rest_route(

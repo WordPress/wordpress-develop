@@ -1442,6 +1442,8 @@ class WP_Block_Processor {
 	 *     $is_core_paragraph = $processor->is_block_type( 'core/paragraph' );
 	 *     $is_formula        = $processor->is_block_type( 'math-block/formula' );
 	 *
+	 * @since 6.9.0
+	 *
 	 * @param string $block_type Block type name for the desired block.
 	 *                           E.g. "paragraph", "core/paragraph", "math-blocks/formula".
 	 * @return bool Whether this delimiter represents a block of the given type.
