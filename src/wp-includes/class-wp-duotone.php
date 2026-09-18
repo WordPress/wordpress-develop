@@ -569,8 +569,8 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $duotone_attr The duotone attribute from a block.
 	 * @param string|string[] $duotone_attr The duotone attribute from a block.
+	 * @return bool True if the duotone preset present and valid.
 	 */
 	private static function is_preset( $duotone_attr ) {
 		if ( ! is_string( $duotone_attr ) ) {
@@ -753,8 +753,8 @@ class WP_Duotone {
 	 * @since 6.3.0
 	 * @deprecated 6.3.0
 	 *
-	 * @param  array $preset Duotone preset value as seen in theme.json.
-	 * @return string        Duotone filter CSS id.
+	 * @param array $preset Duotone preset value as seen in theme.json.
+	 * @return string Duotone filter CSS id.
 	 */
 	public static function get_filter_id_from_preset( $preset ) {
 		_deprecated_function( __FUNCTION__, '6.3.0' );
@@ -1080,9 +1080,9 @@ class WP_Duotone {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param  string   $block_content Rendered block content.
-	 * @param  array    $block         Block object.
-	 * @param  WP_Block $wp_block      The block instance.
+	 * @param string   $block_content Rendered block content.
+	 * @param array    $block         Block object.
+	 * @param WP_Block $wp_block      The block instance.
 	 * @return string Filtered block content.
 	 */
 	public static function render_duotone_support( $block_content, $block, $wp_block ) {
@@ -1191,8 +1191,7 @@ class WP_Duotone {
 		$tags->set_bookmark( 'wrapper-div' );
 		$tags->next_tag();
 
-		$inner_classnames = explode( ' ', $tags->get_attribute( 'class' ) );
-		foreach ( $inner_classnames as $classname ) {
+		foreach ( $tags->class_list() as $classname ) {
 			if ( str_starts_with( $classname, 'wp-duotone' ) ) {
 				$tags->remove_class( $classname );
 				$tags->seek( 'wrapper-div' );

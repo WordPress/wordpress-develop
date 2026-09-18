@@ -10,7 +10,7 @@
 if ( false ) {
 	?>
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>Error: PHP is not running</title>
@@ -143,7 +143,7 @@ function display_setup_form( $error = null ) {
 						<input type="password" name="admin_password" id="pass1" class="regular-text" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result admin-password-desc" />
 						<div id="pass-strength-result" aria-live="polite"></div>
 					</div>
-					<button type="button" class="button wp-hide-pw hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+					<button type="button" class="button wp-hide-pw user-new-password-toggle hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden"></span>
 						<span class="text"><?php _e( 'Hide' ); ?></span>
 					</button>
@@ -470,17 +470,30 @@ switch ( $step ) {
 }
 
 if ( ! wp_is_mobile() ) {
-	?>
-<script>var t = document.getElementById('weblog_title'); if (t){ t.focus(); }</script>
-	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		const t = document.getElementById( 'weblog_title' );
+		if ( t ) {
+			t.focus();
+		}
+		JS
+	);
 }
 
 wp_print_scripts( $scripts_to_print );
+
+wp_print_inline_script_tag(
+	<<<'JS'
+	/**
+	 * Shows the content intended only for browsers with JS enabled.
+	 *
+	 * @param {JQueryStatic} $ The jQuery object.
+	 */
+	jQuery( function ( $ ) {
+		$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
+	} );
+	JS
+);
 ?>
-<script>
-jQuery( function( $ ) {
-	$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
-} );
-</script>
 </body>
 </html>

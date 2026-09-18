@@ -151,6 +151,11 @@ class Tests_Template extends WP_UnitTestCase {
 			$registry->unregister( 'third-party/test' );
 		}
 
+		if ( isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+			remove_all_filters( 'theme_file_path' );
+			wp_theme_has_theme_json();
+		}
+
 		unset( $GLOBALS['_wp_tests_development_mode'] );
 		parent::tear_down();
 	}
@@ -1949,6 +1954,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
+	 *
+	 * @group assets
 	 *
 	 * @ticket 64099
 	 * @ticket 64354

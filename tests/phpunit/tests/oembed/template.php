@@ -19,6 +19,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$wp_scripts = null;
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_post() {
 		$user = self::factory()->user->create_and_get(
 			array(
@@ -51,6 +54,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Hello World', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_post_with_thumbnail() {
 		$post_id       = self::factory()->post->create(
 			array(
@@ -84,6 +90,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_404() {
 		$this->go_to( home_url( '/?p=123&embed=true' ) );
 		$GLOBALS['wp_query']->query_vars['embed'] = true;
@@ -99,6 +108,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_attachment() {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
@@ -128,6 +140,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_draft_post() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -151,6 +166,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_scheduled_post() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -175,6 +193,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_private_post() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -198,6 +219,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_private_post_with_permissions() {
 		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $user_id );
@@ -286,6 +310,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertFalse( get_post_embed_html( 200, 200 ) );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_get_post_embed_html() {
 		$post_id = self::factory()->post->create();
 		$title   = esc_attr(

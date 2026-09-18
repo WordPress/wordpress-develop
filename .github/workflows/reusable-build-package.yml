@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that builds and packages WordPress. The resulting package can be used to test upgrading and installing.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
 ##
 name: Build and package WordPress
 
@@ -29,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
@@ -44,6 +46,7 @@ jobs:
         run: npm ci
 
       - name: Build WordPress
+        timeout-minutes: 5
         run: npm run build
 
       - name: Prepare the directory structure for the ZIP

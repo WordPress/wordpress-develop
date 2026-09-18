@@ -89,7 +89,7 @@ final class WP_Screen {
 	 * have a `$parent_base` of 'edit'.
 	 *
 	 * @since 3.3.0
-	 * @var string|null
+	 * @var ?string
 	 */
 	public $parent_base;
 
@@ -99,7 +99,7 @@ final class WP_Screen {
 	 * Some `$parent_file` values are 'edit.php?post_type=page', 'edit.php', and 'options-general.php'.
 	 *
 	 * @since 3.3.0
-	 * @var string|null
+	 * @var ?string
 	 */
 	public $parent_file;
 
@@ -186,7 +186,7 @@ final class WP_Screen {
 	 * Stores the 'screen_settings' section of screen options.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var ?string
 	 */
 	private $_screen_settings;
 
@@ -205,8 +205,8 @@ final class WP_Screen {
 	 *
 	 * @global string $hook_suffix
 	 *
-	 * @param string|WP_Screen $hook_name Optional. The hook name (also known as the hook suffix) used to determine the screen.
-	 *                                    Defaults to the current $hook_suffix global.
+	 * @param string|WP_Screen|null $hook_name Optional. The hook name (also known as the hook suffix) used to determine the screen.
+	 *                                         Defaults to the current $hook_suffix global.
 	 * @return WP_Screen Screen object.
 	 */
 	public static function get( $hook_name = '' ) {
