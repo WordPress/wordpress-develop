@@ -1,13 +1,18 @@
 <?php
 
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use MockAction;
+use WP_UnitTestCase;
+
 /**
- * Tests the status_header() function.
+ * Tests for the `status_header()` function.
  *
  * @group functions
  *
  * @covers ::status_header
  */
-class Tests_Functions_StatusHeader extends WP_UnitTestCase {
+class StatusHeaderTest extends WP_UnitTestCase {
 
 	/**
 	 * Tests that status_header() correctly filters the header.
