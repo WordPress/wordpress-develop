@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Icons API: WP_Icons_Registry class
  *
@@ -34,66 +33,23 @@ class WP_Icons_Registry {
 	 *
 	 * WP_Icons_Registry is a singleton class, so keep this protected.
 	 *
-	 * For 7.0, the Icons Registry is closed for third-party icon registry,
-	 * serving only a subset of core icons.
-	 *
-	 * These icons are defined in @wordpress/packages (Gutenberg repository) as
-	 * SVG files and as entries in a single manifest file. On init, the
-	 * registry is loaded with those icons listed in the manifest.
+	 * Icons are populated via `_wp_register_default_icons()` during the
+	 * `init` action. Third-party icons can be registered via
+	 * {@see wp_register_icon()} once their collection is registered.
 	 *
 	 * @since 7.0.0
 	 */
-	protected function __construct() {
-		$icons_directory = __DIR__ . '/images/icon-library/';
-		$manifest_path   = __DIR__ . '/assets/icon-library-manifest.php';
-
-		if ( ! is_readable( $manifest_path ) ) {
-			wp_trigger_error(
-				__METHOD__,
-				__( 'Core icon collection manifest is missing or unreadable.' )
-			);
-			return;
-		}
-
-		$collection = include $manifest_path;
-
-		if ( empty( $collection ) ) {
-			wp_trigger_error(
-				__METHOD__,
-				__( 'Core icon collection manifest is empty or invalid.' )
-			);
-			return;
-		}
-
-		foreach ( $collection as $icon_name => $icon_data ) {
-			if (
-				empty( $icon_data['filePath'] )
-				|| ! is_string( $icon_data['filePath'] )
-			) {
-				_doing_it_wrong(
-					__METHOD__,
-					__( 'Core icon collection manifest must provide valid a "filePath" for each icon.' ),
-					'7.0.0'
-				);
-				return;
-			}
-
-			$this->register(
-				'core/' . $icon_name,
-				array(
-					'label'     => $icon_data['label'],
-					'file_path' => $icons_directory . $icon_data['filePath'],
-				)
-			);
-		}
-	}
+	protected function __construct() {}
 
 	/**
 	 * Registers an icon.
 	 *
 	 * @since 7.0.0
+	 * @since 7.1.0 The icon name must be namespaced in the form "collection/icon-name".
+	 * @since 7.2.0 Added the `public` property.
 	 *
-	 * @param string $icon_name       Icon name including namespace.
+	 * @param string $icon_name       Namespaced icon name in the form "collection/icon-name"
+	 *                                (e.g. "core/arrow-left").
 	 * @param array  $icon_properties {
 	 *     List of properties for the icon.
 	 *
@@ -102,10 +58,14 @@ class WP_Icons_Registry {
 	 *                             If not provided, the content will be retrieved from the `file_path` if set.
 	 *                             If both `content` and `file_path` are not set, the icon will not be registered.
 	 *     @type string $file_path Optional. The full path to the file containing the icon content.
+	 *     @type bool   $public    Optional. Whether the icon is exposed through the REST API, and
+	 *                             therefore selectable in the editor's icon picker. Non-public icons
+	 *                             stay available to server-side code via {@see wp_get_icon()}.
+	 *                             Default true.
 	 * }
 	 * @return bool True if the icon was registered with success and false otherwise.
 	 */
-	protected function register( $icon_name, $icon_properties ) {
+	public function register( $icon_name, $icon_properties ) {
 		if ( ! isset( $icon_name ) || ! is_string( $icon_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -115,7 +75,20 @@ class WP_Icons_Registry {
 			return false;
 		}
 
-		if ( preg_match( '/[A-Z]/', $icon_name ) ) {
+		// Require a namespaced name in the form "collection/icon-name".
+		if ( ! str_contains( $icon_name, '/' ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Icon name must be namespaced in the form "collection/icon-name".' ),
+				'7.1.0'
+			);
+			return false;
+		}
+
+		// Split the namespaced name into a collection slug and an unqualified icon name.
+		list( $collection, $unqualified_name ) = explode( '/', $icon_name, 2 );
+
+		if ( preg_match( '/[A-Z]/', $unqualified_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Icon names must not contain uppercase characters.' ),
@@ -124,32 +97,22 @@ class WP_Icons_Registry {
 			return false;
 		}
 
-		$name_matcher = '/^[a-z][a-z0-9-]*\/[a-z][a-z0-9-]*$/';
-		if ( ! preg_match( $name_matcher, $icon_name ) ) {
+		if ( ! preg_match( '/^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/', $unqualified_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Icon names must contain a namespace prefix. Example: my-plugin/my-custom-icon' ),
+				__( 'Icon names must start and end with a lowercase letter or digit and contain only lowercase letters, digits, hyphens, and underscores.' ),
 				'7.1.0'
 			);
 			return false;
 		}
 
-		if ( $this->is_registered( $icon_name ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Icon is already registered.' ),
-				'7.1.0'
-			);
-			return false;
-		}
-
-		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path' ), 1 );
+		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path', 'public' ), 1 );
 		foreach ( array_keys( $icon_properties ) as $key ) {
 			if ( ! array_key_exists( $key, $allowed_keys ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
-						// translators: %s is the name of any user-provided key
+						/* translators: %s: The name of a user-provided key. */
 						__( 'Invalid icon property: "%s".' ),
 						$key
 					),
@@ -159,11 +122,33 @@ class WP_Icons_Registry {
 			}
 		}
 
+		if ( ! WP_Icon_Collections_Registry::get_instance()->is_registered( $collection ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: Icon collection slug. */
+					__( 'Icon collection "%s" is not registered.' ),
+					$collection
+				),
+				'7.1.0'
+			);
+			return false;
+		}
+
 		if ( ! isset( $icon_properties['label'] ) || ! is_string( $icon_properties['label'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Icon label must be a string.' ),
 				'7.0.0'
+			);
+			return false;
+		}
+
+		if ( isset( $icon_properties['public'] ) && ! is_bool( $icon_properties['public'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Icon public property must be a boolean.' ),
+				'7.2.0'
 			);
 			return false;
 		}
@@ -199,23 +184,75 @@ class WP_Icons_Registry {
 				);
 				return false;
 			}
+
+			$icon_properties['content'] = $sanitized_icon_content;
+		}
+
+		$qualified_name = $collection . '/' . $unqualified_name;
+
+		if ( $this->is_registered( $qualified_name ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Icon is already registered.' ),
+				'7.1.0'
+			);
+			return false;
 		}
 
 		$icon = array_merge(
 			$icon_properties,
-			array( 'name' => $icon_name )
+			array(
+				'name'       => $qualified_name,
+				'collection' => $collection,
+			)
 		);
 
-		$this->registered_icons[ $icon_name ] = $icon;
+		$this->registered_icons[ $qualified_name ] = $icon;
 
 		return true;
 	}
 
 	/**
-	 * Sanitizes the icon SVG content.
+	 * Unregisters an icon.
 	 *
-	 * Logic borrowed from twentytwenty.
-	 * @see twentytwenty_get_theme_svg
+	 * @since 7.1.0
+	 *
+	 * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
+	 *                          (e.g. "core/arrow-left").
+	 * @return bool True if the icon was unregistered successfully, false otherwise.
+	 */
+	public function unregister( $icon_name ) {
+		if ( ! $this->is_registered( $icon_name ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: Icon name. */
+					__( 'Icon "%s" is not registered.' ),
+					$icon_name
+				),
+				'7.1.0'
+			);
+			return false;
+		}
+
+		unset( $this->registered_icons[ $icon_name ] );
+		return true;
+	}
+
+	/**
+	 * Builds the allowed attribute list for wp_kses() from attribute names.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param non-falsy-string ...$attribute_names Attribute names to allow.
+	 * @return array<non-falsy-string, true> Attribute names mapped to true.
+	 */
+	private function get_allowed_attribute_list( ...$attribute_names ): array {
+		return array_fill_keys( $attribute_names, true );
+	}
+
+	/**
+	 * Sanitizes the icon SVG content.
 	 *
 	 * @since 7.0.0
 	 *
@@ -223,29 +260,81 @@ class WP_Icons_Registry {
 	 * @return string The sanitized icon SVG content.
 	 */
 	protected function sanitize_icon_content( $icon_content ) {
+		$stroke_attributes = $this->get_allowed_attribute_list(
+			'style',
+			'stroke',
+			'stroke-width',
+			'stroke-linecap',
+			'stroke-linejoin',
+			'stroke-miterlimit',
+			'vector-effect',
+		);
+
 		$allowed_tags = array(
-			'svg'     => array(
-				'class'       => true,
-				'xmlns'       => true,
-				'width'       => true,
-				'height'      => true,
-				'viewbox'     => true,
-				'aria-hidden' => true,
-				'role'        => true,
-				'focusable'   => true,
+			'svg'     => array_merge(
+				$this->get_allowed_attribute_list(
+					'class',
+					'xmlns',
+					'width',
+					'height',
+					'viewbox',
+					'aria-hidden',
+					'role',
+					'focusable',
+					'fill',
+					'fill-rule',
+					'clip-rule',
+				),
+				$stroke_attributes
 			),
-			'path'    => array(
-				'fill'      => true,
-				'fill-rule' => true,
-				'd'         => true,
-				'transform' => true,
+			'path'    => array_merge(
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'd',
+					'opacity',
+					'transform',
+				),
+				$stroke_attributes
 			),
-			'polygon' => array(
-				'fill'      => true,
-				'fill-rule' => true,
-				'points'    => true,
-				'transform' => true,
-				'focusable' => true,
+			'polygon' => array_merge(
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'points',
+					'transform',
+					'focusable',
+				),
+				$stroke_attributes
+			),
+			'rect'    => array_merge(
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'x',
+					'y',
+					'width',
+					'height',
+					'rx',
+					'ry',
+					'transform',
+				),
+				$stroke_attributes
+			),
+			'circle'  => array_merge(
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'cx',
+					'cy',
+					'r',
+					'transform',
+				),
+				$stroke_attributes
 			),
 		);
 		return wp_kses( $icon_content, $allowed_tags );
@@ -261,10 +350,24 @@ class WP_Icons_Registry {
 	 */
 	protected function get_content( $icon_name ) {
 		if ( ! isset( $this->registered_icons[ $icon_name ]['content'] ) ) {
-			$content = file_get_contents(
-				$this->registered_icons[ $icon_name ]['file_path']
-			);
-			$content = $this->sanitize_icon_content( $content );
+			$file_path  = $this->registered_icons[ $icon_name ]['file_path'] ?? '';
+			$is_stringy = is_string( $file_path ) || ( is_object( $file_path ) && method_exists( $file_path, '__toString' ) );
+			$icon_path  = $is_stringy ? realpath( (string) $file_path ) : false;
+
+			if (
+				! is_string( $icon_path ) ||
+				! str_ends_with( $icon_path, '.svg' ) ||
+				! is_file( $icon_path ) ||
+				! is_readable( $icon_path )
+			) {
+				wp_trigger_error(
+					__METHOD__,
+					__( 'Icon file is missing or unreadable.' )
+				);
+				return null;
+			}
+
+			$content = $this->sanitize_icon_content( file_get_contents( $icon_path ) );
 
 			if ( empty( $content ) ) {
 				wp_trigger_error(
@@ -292,8 +395,8 @@ class WP_Icons_Registry {
 			return null;
 		}
 
-		$icon            = $this->registered_icons[ $icon_name ];
-		$icon['content'] = $icon['content'] ?? $this->get_content( $icon_name );
+		$icon              = $this->registered_icons[ $icon_name ];
+		$icon['content'] ??= $this->get_content( $icon_name );
 
 		return $icon;
 	}
@@ -302,6 +405,7 @@ class WP_Icons_Registry {
 	 * Retrieves all registered icons.
 	 *
 	 * @since 7.0.0
+	 * @since 7.1.0 Search also matches icon labels.
 	 *
 	 * @param string $search Optional. Search term by which to filter the icons.
 	 * @return array[] Array of arrays containing the registered icon properties.
@@ -317,8 +421,8 @@ class WP_Icons_Registry {
 				continue;
 			}
 
-			$icon['content'] = $icon['content'] ?? $this->get_content( $icon['name'] );
-			$icons[]         = $icon;
+			$icon['content'] ??= $this->get_content( $icon['name'] );
+			$icons[]           = $icon;
 		}
 
 		return $icons;
@@ -346,9 +450,7 @@ class WP_Icons_Registry {
 	 * @return WP_Icons_Registry The main instance.
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
+		self::$instance ??= new self();
 
 		return self::$instance;
 	}

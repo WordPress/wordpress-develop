@@ -28,6 +28,8 @@ EditorUploader = View.extend(/** @lends wp.media.view.EditorUploader.prototype *
 
 	/**
 	 * Bind drag'n'drop events to callbacks.
+	 *
+	 * @return {wp.media.view.EditorUploader} Chainable.
 	 */
 	initialize: function() {
 		this.initialized = false;
@@ -64,7 +66,7 @@ EditorUploader = View.extend(/** @lends wp.media.view.EditorUploader.prototype *
 	/**
 	 * Check browser support for drag'n'drop.
 	 *
-	 * @return {boolean}
+	 * @return {boolean} True if the browser supports drag'n'drop, false otherwise.
 	 */
 	browserSupport: function() {
 		var supports = false, div = document.createElement('div');
@@ -130,6 +132,7 @@ EditorUploader = View.extend(/** @lends wp.media.view.EditorUploader.prototype *
 	 * and upload the file immediately.
 	 *
 	 * @param {jQuery.Event} event The 'drop' event.
+	 * @return {void|boolean} False to prevent default behavior.
 	 */
 	drop: function( event ) {
 		var $wrap, uploadView;
@@ -174,6 +177,8 @@ EditorUploader = View.extend(/** @lends wp.media.view.EditorUploader.prototype *
 
 	/**
 	 * Add the files to the uploader.
+	 *
+	 * @return {wp.media.view.EditorUploader} Chainable.
 	 */
 	addFiles: function() {
 		if ( this.files.length ) {
