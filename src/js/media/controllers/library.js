@@ -58,6 +58,8 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
+	 * Initializes the Library controller.
+	 *
 	 * If a library isn't provided, query all media items.
 	 * If a selection instance isn't provided, create one.
 	 *
@@ -89,6 +91,8 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
+	 * Activates the Library controller.
+	 *
 	 * @since 3.5.0
 	 */
 	activate: function() {
@@ -105,6 +109,8 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
+	 * Deactivates the Library controller.
+	 *
 	 * @since 3.5.0
 	 */
 	deactivate: function() {
@@ -120,7 +126,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
-	 * Reset the library to its initial state.
+	 * Resets the library to its initial state.
 	 *
 	 * @since 3.5.0
 	 */
@@ -131,7 +137,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
-	 * Reset the attachment display settings defaults to the site options.
+	 * Resets the attachment display settings defaults to the site options.
 	 *
 	 * If site options don't define them, fall back to a persistent user setting.
 	 *
@@ -148,11 +154,11 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
-	 * Create a model to represent display settings (alignment, etc.) for an attachment.
+	 * Creates a model to represent display settings (alignment, etc.) for an attachment.
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment for which to create display settings.
 	 * @return {Backbone.Model} A model representing the display settings for the attachment.
 	 */
 	display: function( attachment ) {
@@ -165,11 +171,11 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
-	 * Given an attachment, create attachment display settings properties.
+	 * Given an attachment, creates attachment display settings properties.
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment for which to get the default display settings.
 	 * @return {Object} The default display settings for the attachment.
 	 */
 	defaultDisplaySettings: function( attachment ) {
@@ -186,11 +192,11 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
-	 * Whether an attachment is image.
+	 * Determines whether an attachment is an image.
 	 *
 	 * @since 4.4.1
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment to check.
 	 * @return {boolean} True if the attachment is an image, false otherwise.
 	 */
 	isImageAttachment: function( attachment ) {
@@ -203,11 +209,11 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
-	 * Whether an attachment can be embedded (audio or video).
+	 * Determines whether an attachment can be embedded (audio or video).
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment to check.
 	 * @return {boolean} True if the attachment can be embedded, false otherwise.
 	 */
 	canEmbed: function( attachment ) {
@@ -224,6 +230,8 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 
 
 	/**
+	 * Resets the content mode to the default.
+	 *
 	 * If the state is active, no items are selected, and the current
 	 * content mode is not an option in the state's router (provided
 	 * the state has a router), reset the content mode to the default.
@@ -254,7 +262,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment that was uploaded.
 	 */
 	uploading: function( attachment ) {
 		var content = this.frame.content;
@@ -270,7 +278,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	},
 
 	/**
-	 * Persist the mode of the content region as a user setting.
+	 * Persists the mode of the content region as a user setting.
 	 *
 	 * @since 3.5.0
 	 */

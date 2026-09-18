@@ -359,7 +359,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/install.php
 		-
-			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int given\.$#'
+			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/nav-menus.php
@@ -774,6 +774,11 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/class-wp-embed.php
 		-
+			message: '#^Parameter \#1 \$handle of function curl_getinfo expects resource, \(resource\|false\) given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/class-wp-http-curl.php
+		-
 			message: '#^Parameter \#3 \$value of function curl_setopt expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -929,6 +934,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/formatting.php
 		-
+			message: '#^Parameter \#1 \$finfo of function finfo_file expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/functions.php
+		-
 			message: '#^Parameter \#1 \$prefix of function uniqid expects string, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -1069,11 +1079,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-site.php
 		-
-			message: '#^Parameter \#2 \$object_id of function delete_metadata expects int, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/ms-site.php
-		-
 			message: '#^Parameter \#3 \$year of function wp_checkdate expects int, \(string\|false\) given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1119,7 +1124,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/pluggable.php
 		-
-			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array given\.$#'
+			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array\<mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post-template.php
@@ -1195,11 +1200,6 @@ parameters:
 			path: ../../../src/wp-includes/post.php
 		-
 			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Parameter \#2 \$object_id of function delete_metadata expects int, null given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/post.php

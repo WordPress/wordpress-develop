@@ -304,7 +304,7 @@ function wp_typography_get_preset_inline_style_value( $style_value, $css_propert
  * @return string Filtered block content.
  */
 function wp_render_typography_support( $block_content, $block ) {
-	if ( ! empty( $block['attrs']['fitText'] ) && $block['attrs']['fitText'] && ! is_admin() ) {
+	if ( ! empty( $block['attrs']['fitText'] ) && ! is_admin() ) {
 		wp_enqueue_script_module( '@wordpress/block-editor/utils/fit-text-frontend' );
 
 		// Add Interactivity API directives for fit text to work with client-side navigation.
@@ -561,8 +561,6 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  *                             Default is false.
  * @return string|null Font-size value or null if a size is not passed in $preset.
  */
-
-
 function wp_get_typography_font_size_value( $preset, $settings = array() ) {
 	if ( ! isset( $preset['size'] ) ) {
 		return null;

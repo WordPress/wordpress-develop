@@ -2739,6 +2739,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
  *
  * @since 4.7.0
  * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
+ * @since 7.2.0 The `wp_page_for_privacy_policy` option was registered, exposed as `page_for_privacy_policy`.
  */
 function register_initial_settings() {
 	register_setting(
@@ -2932,6 +2933,18 @@ function register_initial_settings() {
 	);
 
 	register_setting(
+		'reading',
+		'wp_page_for_privacy_policy',
+		array(
+			'show_in_rest' => array(
+				'name' => 'page_for_privacy_policy',
+			),
+			'type'         => 'integer',
+			'description'  => __( 'The ID of the page that should be displayed as the privacy policy page' ),
+		)
+	);
+
+	register_setting(
 		'discussion',
 		'default_ping_status',
 		array(
@@ -2978,7 +2991,7 @@ function register_initial_settings() {
  * @param string $option_group A settings group name. Should correspond to an allowed option key name.
  *                             Default allowed option key names include 'general', 'discussion', 'media',
  *                             'reading', 'writing', and 'options'.
- * @param string $option_name The name of an option to sanitize and save.
+ * @param string $option_name  The name of an option to sanitize and save.
  * @param array  $args {
  *     Data used to describe the setting when registered.
  *

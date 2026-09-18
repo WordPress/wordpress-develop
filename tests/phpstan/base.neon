@@ -276,3 +276,22 @@ parameters:
 				1: string,
 			}
 		'''
+
+		# The properties of a block style as WP_Block_Styles_Registry stores them, which is
+		# more than its register() hash accepts: `name` is required for a style to be
+		# registered at all, and `label` is filled in from the name when the caller omits
+		# it, so both are always present on the way back out. The shape stays open because
+		# the array is stored verbatim, so a caller's own keys survive — including into the
+		# REST response, which does not set `additionalProperties` to false. Read from
+		# procedural files as well as classes, which is why it is declared here.
+		Block_Style_Properties: '''
+			array{
+				name: string,
+				label: string,
+				inline_style?: string,
+				style_handle?: string,
+				is_default?: bool,
+				style_data?: array<string, mixed>,
+				...
+			}
+		'''

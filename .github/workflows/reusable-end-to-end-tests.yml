@@ -1,8 +1,7 @@
 ##
 # A reusable workflow that runs end-to-end tests.
 #
-# Branches 6.3 and earlier used Puppeteer instead of Playwright.
-# Use https://github.com/WordPress/wordpress-develop/tree/6.3/.github/workflows/reusable-end-to-end-tests.yml instead.
+# This workflow is used by `trunk` and branches >= 5.8.
 ##
 name: End-to-end Tests
 
@@ -103,6 +102,7 @@ jobs:
         run: npm exec --no -- playwright install chromium
 
       - name: Build WordPress
+        timeout-minutes: 5
         run: npm run build
 
       - name: Start Docker environment
