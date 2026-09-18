@@ -873,18 +873,53 @@ window.wp = window.wp || {};
 				start = selection.start,
 				end = selection.end || selection.start;
 
-			if ( textArea.focus ) {
-				// Wait for the Visual editor to be hidden, then focus and scroll to the position.
+			/*
+			 * Guard against the scenarios where editor.getElement() may return
+			 * something that isn't a standard textarea element e.g. the editor
+			 * may have been removed/destroyed/mutated.
+			 */
+			if ( ! textArea.focus ) {
+				return;
+			}
+
+			/**
+			 * Applies the selection range to the textarea.
+			 */
+			function applySelection() {
+				/*
+				 * In Safari, the focus event fires before the browser has fully
+				 * completed the focus transition. Calling setTimeout with a 0ms
+				 * delay queues the callback function task into the task queue
+				 * so that the callback is executed after all pending tasks have
+				 * cleared. Safe for other browsers.
+				 */
 				setTimeout( function() {
-					textArea.setSelectionRange( start, end );
-					if ( isPointingDevice ) {
-						if ( textArea.blur ) {
-							// Defocus before focusing.
-							textArea.blur();
-						}
-						textArea.focus();
+					// Guard against the editor being destroyed during the timeout.
+					if ( ! textArea.isConnected ) {
+						return;
 					}
+
+					textArea.setSelectionRange( start, end );
+				}, 0 );
+			}
+
+			// Logic for pointing devices.
+			if ( isPointingDevice ) {
+				setTimeout( function() {
+					applySelection();
+					if ( textArea.blur ) {
+						textArea.blur();
+					}
+					textArea.focus();
 				}, 100 );
+			} else {
+				/*
+				 * For non-pointing devices: wait until users move focus into the
+				 * textarea (e.g. via keyboard Tab), then restore the selection.
+				 * By using `once`, the listener is invoked at most once after
+				 * being added and it's automatically removed when invoked.
+				 */
+				textArea.addEventListener( 'focus', applySelection, { once: true } );
 			}
 		}
 
