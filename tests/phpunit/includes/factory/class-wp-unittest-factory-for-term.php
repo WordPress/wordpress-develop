@@ -6,9 +6,9 @@
  * Note: The below @method notations are defined solely for the benefit of IDEs,
  * as a way to indicate expected return values from the given factory methods.
  *
- * @method int|WP_Error          create( $args = array(), $generation_definitions = null )
- * @method WP_Term|WP_Error|null create_and_get( $args = array(), $generation_definitions = null )
- * @method (int|WP_Error)[]      create_many( $count, $args = array(), $generation_definitions = null )
+ * @method int          create( $args = array(), $generation_definitions = null )
+ * @method WP_Term|null create_and_get( $args = array(), $generation_definitions = null )
+ * @method int[]        create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 
@@ -94,21 +94,27 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * Create a term and returns it as an object.
 	 *
 	 * @since 4.3.0
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args                   Array or string of arguments for inserting a term.
 	 * @param null  $generation_definitions The default values.
-	 * @return WP_Term|WP_Error|null WP_Term on success. WP_Error if taxonomy does not exist. Null for miscellaneous failure.
+	 * @return WP_Term|null WP_Term on success. Null for miscellaneous failure.
+	 * @throws WP_UnitTest_Factory_Exception When the term could not be created or retrieved.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$term_id = $this->create( $args, $generation_definitions );
 
-		if ( is_wp_error( $term_id ) ) {
-			return $term_id;
-		}
-
 		$taxonomy = $args['taxonomy'] ?? $this->taxonomy;
 
-		return get_term( $term_id, $taxonomy );
+		$term = get_term( $term_id, $taxonomy );
+
+		if ( is_wp_error( $term ) ) {
+			throw new WP_UnitTest_Factory_Exception(
+				sprintf( 'Unable to retrieve the term with ID %d: %s', $term_id, $term->get_error_message() )
+			);
+		}
+
+		return $term;
 	}
 
 	/**

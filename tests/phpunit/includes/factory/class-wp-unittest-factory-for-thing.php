@@ -53,13 +53,15 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * Creates an object and returns its ID.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args                   Optional. The arguments for the object to create.
 	 *                                      Default empty array.
 	 * @param null  $generation_definitions Optional. The default values for the object.
 	 *                                      Default null.
 	 *
-	 * @return int|WP_Error The object ID on success, WP_Error object on failure.
+	 * @return int The object ID.
+	 * @throws WP_UnitTest_Factory_Exception When the object could not be created.
 	 */
 	public function create( $args = array(), $generation_definitions = null ) {
 		$generation_definitions ??= $this->default_generation_definitions;
@@ -67,17 +69,13 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		$generated_args = $this->generate_args( $args, $generation_definitions, $callbacks );
 		$object_id      = $this->create_object( $generated_args );
 
-		if ( ! $object_id || is_wp_error( $object_id ) ) {
-			return $object_id;
-		}
+		$object_id = $this->get_object_id( $object_id, 'Unable to create the object' );
 
 		if ( $callbacks ) {
 			$updated_fields = $this->apply_callbacks( $callbacks, $object_id );
 			$save_result    = $this->update_object( $object_id, $updated_fields );
 
-			if ( ! $save_result || is_wp_error( $save_result ) ) {
-				return $save_result;
-			}
+			$this->get_object_id( $save_result, 'Unable to update the object after creation' );
 		}
 
 		return $object_id;
@@ -87,22 +85,27 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * Creates and returns an object.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args                   Optional. The arguments for the object to create.
 	 *                                      Default empty array.
 	 * @param null  $generation_definitions Optional. The default values for the object.
 	 *                                      Default null.
 	 *
-	 * @return mixed The created object. Can be anything. WP_Error object on failure.
+	 * @return mixed The created object. Can be anything.
+	 * @throws WP_UnitTest_Factory_Exception When the object could not be created or retrieved.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$object_id = $this->create( $args, $generation_definitions );
+		$object    = $this->get_object_by_id( $object_id );
 
-		if ( is_wp_error( $object_id ) ) {
-			return $object_id;
+		if ( is_wp_error( $object ) ) {
+			throw new WP_UnitTest_Factory_Exception(
+				sprintf( 'Unable to retrieve the object with ID %d: %s', $object_id, $object->get_error_message() )
+			);
 		}
 
-		return $this->get_object_by_id( $object_id );
+		return $object;
 	}
 
 	/**
@@ -126,7 +129,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @param null  $generation_definitions Optional. The default values for the object.
 	 *                                      Default null.
 	 *
-	 * @return array
+	 * @return int[] An array of object IDs.
+	 * @throws WP_UnitTest_Factory_Exception When one of the objects could not be created.
 	 */
 	public function create_many( $count, $args = array(), $generation_definitions = null ) {
 		$results = array();
@@ -143,6 +147,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * possibly set callbacks on it.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array       $args                   Optional. The arguments to combine with defaults.
 	 *                                            Default empty array.
@@ -150,7 +155,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @param array|null  $callbacks              Optional. Array with callbacks to apply on the fields.
 	 *                                            Default null.
 	 *
-	 * @return array|WP_Error Combined array on success. WP_Error when default value is incorrect.
+	 * @return array The combined array.
+	 * @throws WP_UnitTest_Factory_Exception When a default value is neither a scalar nor a generator object.
 	 */
 	public function generate_args( $args = array(), $generation_definitions = null, &$callbacks = null ) {
 		$callbacks                = array();
@@ -171,9 +177,11 @@ abstract class WP_UnitTest_Factory_For_Thing {
 				} elseif ( is_object( $generator ) ) {
 					$args[ $field_name ] = sprintf( $generator->get_template_string(), $incr );
 				} else {
-					return new WP_Error(
-						'invalid_argument',
-						'Factory default value should be either a scalar or an generator object.'
+					throw new WP_UnitTest_Factory_Exception(
+						sprintf(
+							'Factory default value for the "%s" field should be either a scalar or a generator object.',
+							$field_name
+						)
 					);
 				}
 			}
@@ -212,6 +220,34 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 */
 	public function callback( $callback ) {
 		return new WP_UnitTest_Factory_Callback_After_Create( $callback );
+	}
+
+	/**
+	 * Validates the result of a create or update operation and returns the object ID.
+	 *
+	 * A WP_Error or a falsy result means the object could not be created or updated,
+	 * which is a fixture failure the test cannot recover from, so an exception is thrown
+	 * instead of returning the value to the caller.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int|WP_Error|false $object_id The value returned by create_object() or update_object().
+	 * @param string             $message   The message to use when the value is falsy.
+	 * @return int The object ID.
+	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object or falsy.
+	 */
+	protected function get_object_id( $object_id, $message ) {
+		if ( is_wp_error( $object_id ) ) {
+			throw new WP_UnitTest_Factory_Exception(
+				sprintf( '%s: %s', $message, $object_id->get_error_message() )
+			);
+		}
+
+		if ( ! $object_id ) {
+			throw new WP_UnitTest_Factory_Exception( $message );
+		}
+
+		return $object_id;
 	}
 
 	/**
