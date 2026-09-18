@@ -5402,7 +5402,7 @@ final class WP_Customize_Manager {
 				$this,
 				'header_image',
 				array(
-					'default'        => sprintf( get_theme_support( 'custom-header', 'default-image' ), get_template_directory_uri(), get_stylesheet_directory_uri() ),
+					'default'        => current_theme_supports( 'custom-header', 'random-default' ) ? 'random-default-image' : sprintf( get_theme_support( 'custom-header', 'default-image' ), get_template_directory_uri(), get_stylesheet_directory_uri() ),
 					'theme_supports' => 'custom-header',
 				)
 			)
