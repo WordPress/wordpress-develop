@@ -1450,6 +1450,15 @@ class WP_REST_Server {
 			/** This filter is documented in wp-admin/includes/image.php */
 			$available['image_size_threshold'] = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
 
+			// Image output formats.
+			$input_formats  = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/heic', 'image/heif' );
+			$output_formats = array();
+			foreach ( $input_formats as $mime_type ) {
+				/** This filter is documented in wp-includes/media.php */
+				$output_formats = apply_filters( 'image_editor_output_format', $output_formats, '', $mime_type );
+			}
+			$available['image_output_formats'] = (object) $output_formats;
+
 			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
 			$available['image_strip_meta'] = (bool) apply_filters( 'image_strip_meta', true );
 
