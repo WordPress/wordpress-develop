@@ -1238,27 +1238,68 @@ switch ( $action ) {
 		break;
 
 	case 'confirmaction':
-		if ( ! isset( $_GET['request_id'] ) ) {
+		if ( ! isset( $_GET['request_id'] ) && ! isset( $_POST['request_id'] ) ) {
 			wp_die( __( 'Missing request ID.' ) );
 		}
 
-		if ( ! isset( $_GET['confirm_key'] ) ) {
+		if ( ! isset( $_GET['confirm_key'] ) && ! isset( $_POST['confirm_key'] ) ) {
 			wp_die( __( 'Missing confirm key.' ) );
 		}
 
-		$request_id = (int) $_GET['request_id'];
-		$key        = sanitize_text_field( wp_unslash( $_GET['confirm_key'] ) );
+		$request_id = isset( $_POST['request_id'] ) ? (int) $_POST['request_id'] : (int) $_GET['request_id'];
+		$key        = isset( $_POST['confirm_key'] ) ? $_POST['confirm_key'] : $_GET['confirm_key'];
+		$key        = sanitize_text_field( wp_unslash( $key ) );
 		$result     = wp_validate_user_request_key( $request_id, $key );
 
 		if ( is_wp_error( $result ) ) {
+			if ( 'confirmed_request' === $result->get_error_code() ) {
+				login_header(
+					__( 'User action already confirmed.' ),
+					'<p class="message">' . esc_html( $result->get_error_message() ) . '</p>'
+				);
+				login_footer();
+				exit;
+			}
+
 			wp_die( $result );
+		}
+
+		if ( ! $http_post ) {
+			$request = wp_get_user_request( $request_id );
+
+			if ( 'export_personal_data' === $request->action_name ) {
+				$message = __( 'Please confirm that you want to export your personal data.' );
+			} elseif ( 'remove_personal_data' === $request->action_name ) {
+				$message = __( 'Please confirm that you want to erase your personal data.' );
+			} else {
+				$message = __( 'Please confirm this personal data request.' );
+			}
+
+			login_header(
+				__( 'Confirm personal data request' ),
+				'<p class="message">' . esc_html( $message ) . '</p>'
+			);
+
+			?>
+			<form name="confirm-user-request-form" id="confirm-user-request-form" action="<?php echo esc_url( site_url( 'wp-login.php?action=confirmaction', 'login_post' ) ); ?>" method="post">
+				<input type="hidden" name="request_id" value="<?php echo esc_attr( $request_id ); ?>" />
+				<input type="hidden" name="confirm_key" value="<?php echo esc_attr( $key ); ?>" />
+				<p class="submit">
+					<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Confirm request' ); ?>" />
+				</p>
+			</form>
+
+			<?php
+
+			login_footer();
+			exit;
 		}
 
 		/**
 		 * Fires an action hook when the account action has been confirmed by the user.
 		 *
 		 * Using this you can assume the user has agreed to perform the action by
-		 * clicking on the link in the confirmation email.
+		 * submitting the confirmation form.
 		 *
 		 * After firing this action hook the page will redirect to wp-login a callback
 		 * redirects or exits first.
