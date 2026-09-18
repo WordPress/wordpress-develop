@@ -2015,9 +2015,13 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	$query        = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
 	$key          = md5( $query );
-	$last_changed = (array) wp_cache_get_last_changed( 'posts' );
+	$last_changed = (array) wp_cache_get_last_changed( 'post-queries' );
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
 		$last_changed[] = wp_cache_get_last_changed( 'terms' );
+	}
+	// If this query has been filtered to include post meta table, then also include post meta last changed as part of the cache salt.
+	if ( str_contains( $query, $wpdb->postmeta ) ) {
+		$last_changed[] = wp_cache_get_last_changed( 'post_meta' );
 	}
 	$cache_key = "adjacent_post:$key";
 
