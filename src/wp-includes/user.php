@@ -4254,13 +4254,13 @@ function wp_user_personal_data_exporter( $email_address ) {
 }
 
 /**
-* Registers the personal data eraser for users.
-*
-* @since 7.1.0
-*
-* @param array $erasers An array of personal data erasers.
-* @return array An array of personal data erasers.
-*/
+ * Registers the personal data eraser for users.
+ *
+ * @since 7.1.0
+ *
+ * @param array $erasers An array of personal data erasers.
+ * @return array An array of personal data erasers.
+ */
 function wp_register_user_personal_data_eraser( $erasers ) {
 	$erasers['wordpress-user'] = array(
 		'eraser_friendly_name' => __( 'WordPress User' ),
@@ -4271,21 +4271,21 @@ function wp_register_user_personal_data_eraser( $erasers ) {
 }
 
 /**
-* Erases core user profile data for a personal data erasure request.
-*
-* @since 7.1.0
-*
-* @param string $email_address The user's email address.
-* @param int    $page          Unused. Part of the eraser signature.
-* @return array {
-*     Data removal results.
-*
-*     @type bool     $items_removed  Whether items were actually removed.
-*     @type bool     $items_retained Whether items were retained.
-*     @type string[] $messages       An array of messages about retained items.
-*     @type bool     $done           Whether the eraser is finished.
-* }
-*/
+ * Erases core user profile data for a personal data erasure request.
+ *
+ * @since 7.1.0
+ *
+ * @param string $email_address The user's email address.
+ * @param int    $page          Unused. Part of the eraser signature.
+ * @return array {
+ *     Data removal results.
+ *
+ *     @type bool     $items_removed  Whether items were actually removed.
+ *     @type bool     $items_retained Whether items were retained.
+ *     @type string[] $messages       An array of messages about retained items.
+ *     @type bool     $done           Whether the eraser is finished.
+ * }
+ */
 function wp_user_personal_data_eraser( $email_address, $page = 1 ) {
 	$response = array(
 		'items_removed'  => false,
@@ -4318,12 +4318,14 @@ function wp_user_personal_data_eraser( $email_address, $page = 1 ) {
 	 * @param string[] $meta_keys_to_erase User meta keys slated for deletion.
 	 * @param WP_User  $user               The user whose data is being erased.
 	 */
-	$meta_keys_to_erase = apply_filters( 'wp_privacy_user_personal_data_eraser_meta_keys', $meta_keys_to_erase, $user );
+	$meta_keys_to_erase = apply_filters(
+		'wp_privacy_user_personal_data_eraser_meta_keys',
+		$meta_keys_to_erase,
+		$user
+	);
 
 	foreach ( $meta_keys_to_erase as $meta_key ) {
-		$meta_key = sanitize_key( $meta_key );
-
-		if ( '' === $meta_key ) {
+		if ( ! is_string( $meta_key ) || '' === $meta_key ) {
 			continue;
 		}
 
