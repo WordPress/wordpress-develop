@@ -31,7 +31,6 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_NAVIGATION_OVERLAY' ) ) {
  * @since 5.9.0
  *
  * @param string $theme_stylesheet The stylesheet. Default is to leverage the main theme root.
- *
  * @return string[] {
  *     Folder names used by block themes.
  *
@@ -343,11 +342,22 @@ function _get_block_template_file( $template_type, $slug ) {
 	);
 	foreach ( $themes as $theme_slug => $theme_dir ) {
 		$template_base_paths = get_block_theme_folders( $theme_slug );
-		$file_path           = $theme_dir . '/' . $template_base_paths[ $template_type ] . '/' . $slug . '.html';
-		if ( file_exists( $file_path ) ) {
+		$template_dir        = $theme_dir . '/' . $template_base_paths[ $template_type ];
+		$file_path           = $template_dir . '/' . $slug . '.html';
+		$template_file       = realpath( $file_path );
+		$template_root       = realpath( $template_dir );
+
+		if (
+			false !== $template_file &&
+			false !== $template_root &&
+			str_starts_with(
+				wp_normalize_path( $template_file ),
+				trailingslashit( wp_normalize_path( $template_root ) )
+			)
+		) {
 			$new_template_item = array(
 				'slug'  => $slug,
-				'path'  => $file_path,
+				'path'  => $template_file,
 				'theme' => $theme_slug,
 				'type'  => $template_type,
 			);
@@ -416,8 +426,8 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			$template_base_path = $template_base_paths[ $template_type ];
 			$template_slug      = substr(
 				$template_file,
-				// Starting position of slug.
-				strpos( $template_file, $template_base_path . DIRECTORY_SEPARATOR ) + 1 + strlen( $template_base_path ),
+				// Starting position of the slug - the theme directory and the template base path.
+				strlen( $theme_dir . DIRECTORY_SEPARATOR . $template_base_path . DIRECTORY_SEPARATOR ),
 				// Subtract ending '.html'.
 				-5
 			);
@@ -460,7 +470,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 
 				if (
 					! $post_type ||
-					( $post_type && isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
+					( isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
 				) {
 					$template_files[ $template_slug ] = $candidate;
 				}
@@ -595,6 +605,7 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  *
  * @since 5.9.0
  * @since 6.3.0 Added `modified` property to template objects.
+ * @since 7.1.0 Added `date` property to template objects.
  * @access private
  *
  * @param array  $template_file Theme file.
@@ -617,6 +628,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template->has_theme_file = true;
 	$template->is_custom      = true;
 	$template->modified       = null;
+	$template->date           = null;
 
 	if ( 'wp_template' === $template_type ) {
 		$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template_file['slug'] );
@@ -728,7 +740,8 @@ function _wp_build_title_and_description_for_single_post_type_block_template( $p
 	);
 
 	$args = array(
-		'title' => $post_title,
+		'title'          => $post_title,
+		'posts_per_page' => 2,
 	);
 	$args = wp_parse_args( $args, $default_args );
 
@@ -867,6 +880,7 @@ function _build_block_template_object_from_post_object( $post, $terms = array(),
 	$template->is_custom      = empty( $meta['is_wp_suggestion'] );
 	$template->author         = $post->post_author;
 	$template->modified       = $post->post_modified;
+	$template->date           = $post->post_date;
 
 	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
@@ -1112,7 +1126,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *
 	 * @param WP_Block_Template[]|null $block_templates Return an array of block templates to short-circuit the default query,
 	 *                                                  or null to allow WP to run its normal queries.
-	 * @param array  $query {
+	 * @param array                    $query {
 	 *     Arguments to retrieve templates. All arguments are optional.
 	 *
 	 *     @type string[] $slug__in  List of slugs to include.
@@ -1120,7 +1134,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *     @type string   $area      A 'wp_template_part_area' taxonomy value to filter by (for 'wp_template_part' template type only).
 	 *     @type string   $post_type Post type to get the templates for.
 	 * }
-	 * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
+	 * @param string                   $template_type   Template type. Either 'wp_template' or 'wp_template_part'.
 	 */
 	$templates = apply_filters( 'pre_get_block_templates', null, $query, $template_type );
 	if ( ! is_null( $templates ) ) {
@@ -1261,7 +1275,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param WP_Block_Template[] $query_result Array of found block templates.
+	 * @param WP_Block_Template[] $query_result  Array of found block templates.
 	 * @param array               $query {
 	 *     Arguments to retrieve templates. All arguments are optional.
 	 *
@@ -1461,13 +1475,7 @@ function block_footer_area() {
 function wp_is_theme_directory_ignored( $path ) {
 	$directories_to_ignore = array( '.DS_Store', '.svn', '.git', '.hg', '.bzr', 'node_modules', 'vendor' );
 
-	foreach ( $directories_to_ignore as $directory ) {
-		if ( str_starts_with( $path, $directory ) ) {
-			return true;
-		}
-	}
-
-	return false;
+	return array_any( $directories_to_ignore, fn( $directory ) => str_starts_with( $path, $directory ) );
 }
 
 /**
@@ -1742,9 +1750,15 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 	// Required for the WP_Block_Template. Update the post object with the current time.
 	$post->post_modified = current_time( 'mysql' );
 
-	// If the post_author is empty, set it to the current user.
+	/*
+	 * If the post_author is empty, set it to the current user. If it arrived as
+	 * an int (e.g. from a REST controller), normalize it to a string, since the
+	 * resulting object is passed to new WP_Post().
+	 */
 	if ( empty( $post->post_author ) ) {
-		$post->post_author = get_current_user_id();
+		$post->post_author = (string) get_current_user_id();
+	} elseif ( is_int( $post->post_author ) ) {
+		$post->post_author = (string) $post->post_author;
 	}
 
 	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
