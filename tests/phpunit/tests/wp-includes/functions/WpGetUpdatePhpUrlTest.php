@@ -1,13 +1,17 @@
 <?php
 
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use WP_UnitTestCase;
+
 /**
- * Tests the wp_get_update_php_url() function.
+ * Tests for the `wp_get_update_php_url()` function.
  *
  * @group functions
  *
  * @covers ::wp_get_update_php_url
  */
-class Tests_Functions_WpGetUpdatePhpUrl extends WP_UnitTestCase {
+class WpGetUpdatePhpUrlTest extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_get_update_php_url() returns the default URL.
