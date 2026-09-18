@@ -410,8 +410,7 @@ function get_the_category_rss( $type = null ) {
 	$atom_scheme  = '';
 	if ( ! empty( $cat_names ) ) {
 		if ( 'atom' === $type ) {
-			// Escaped here as the scheme is the same for every term in the loop below.
-			$atom_scheme = esc_attr( get_bloginfo_rss( 'url' ) );
+			$atom_scheme = get_bloginfo_rss( 'url' );
 		} elseif ( 'rdf' !== $type ) {
 			$blog_charset = get_option( 'blog_charset' );
 		}
@@ -421,7 +420,7 @@ function get_the_category_rss( $type = null ) {
 		if ( 'rdf' === $type ) {
 			$the_list .= "\t\t<dc:subject><![CDATA[$cat_name]]></dc:subject>\n";
 		} elseif ( 'atom' === $type ) {
-			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" />', $atom_scheme, esc_attr( $cat_name ) );
+			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" />', esc_attr( $atom_scheme ), esc_attr( $cat_name ) );
 		} else {
 			$the_list .= "\t\t<category><![CDATA[" . html_entity_decode( $cat_name, ENT_COMPAT, $blog_charset ) . "]]></category>\n";
 		}
