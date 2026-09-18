@@ -3288,21 +3288,31 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 }
 
 /**
- * Exposes blocks with autoRegister flag for ServerSideRender in the editor.
+ * Exposes auto-registered blocks to the editor.
  *
- * Detects blocks that have the autoRegister flag set in their supports
- * and passes them to JavaScript for auto-registration with ServerSideRender.
+ * Passes the names of blocks with render callbacks and the markup for blocks
+ * registered with patterns to JavaScript.
  *
  * @access private
  * @since 7.0.0
+ * @since 7.1.0 Added pattern markup to the auto-registration data.
  */
 function _wp_enqueue_auto_register_blocks() {
-	$auto_register_blocks = array();
-	$registered_blocks    = WP_Block_Type_Registry::get_instance()->get_all_registered();
+	$auto_register_blocks         = array();
+	$auto_register_block_patterns = array();
+	$registered_blocks            = WP_Block_Type_Registry::get_instance()->get_all_registered();
 
 	foreach ( $registered_blocks as $block_name => $block_type ) {
 		if ( ! empty( $block_type->supports['autoRegister'] ) && ! empty( $block_type->render_callback ) ) {
 			$auto_register_blocks[] = $block_name;
+		}
+
+		if (
+			! empty( $block_type->supports['autoRegister'] ) &&
+			is_string( $block_type->pattern ) &&
+			'' !== $block_type->pattern
+		) {
+			$auto_register_block_patterns[ $block_name ] = $block_type->pattern;
 		}
 	}
 
@@ -3310,6 +3320,14 @@ function _wp_enqueue_auto_register_blocks() {
 		wp_add_inline_script(
 			'wp-block-library',
 			sprintf( 'window.__unstableAutoRegisterBlocks = %s;', wp_json_encode( $auto_register_blocks ) ),
+			'before'
+		);
+	}
+
+	if ( ! empty( $auto_register_block_patterns ) ) {
+		wp_add_inline_script(
+			'wp-block-library',
+			sprintf( 'window.__unstableAutoRegisterBlockPatterns = %s;', wp_json_encode( $auto_register_block_patterns ) ),
 			'before'
 		);
 	}
