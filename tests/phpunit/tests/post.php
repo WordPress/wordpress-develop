@@ -522,7 +522,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 		$this->assertSame( 'override-slug-' . $post->post_type, $post->post_name );
 
-		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
+		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ) );
 	}
 
 	public function filter_pre_wp_unique_post_slug( $override_slug, $slug, $post_id, $post_status, $post_type, $post_parent ) {
@@ -668,8 +668,6 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 52007
 	 * @covers ::stick_post
-	 *
-	 * @param mixed $stick Value to pass to stick_post().
 	 */
 	public function test_stick_post_removes_duplicate_post_ids_when_adding_new_value() {
 		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );

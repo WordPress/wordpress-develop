@@ -220,7 +220,7 @@ EOF;
 
 		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
 
-		$expected = join(
+		$expected = implode(
 			'',
 			array_map(
 				static function ( $id ) {

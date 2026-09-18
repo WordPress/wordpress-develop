@@ -212,6 +212,122 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests the value returned when the fields are limited to the ID and parent sub-set.
+	 *
+	 * The second query is served from the `post-queries` cache, which previously returned
+	 * the parent IDs keyed by the `post_parent:{$post_id}` cache keys they are stored
+	 * under rather than by post ID.
+	 *
+	 * The cache hit is not specific to an external object cache being in use: the second
+	 * query is served from the cache with the default in-memory implementation as well.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Query::query
+	 */
+	public function test_id_and_parent_subset_should_return_parent_ids_keyed_by_post_id_when_cached() {
+		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$this->assertIsInt( $parent_id, 'The parent page was not created.' );
+
+		$child_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_id,
+			)
+		);
+		$this->assertIsInt( $child_id, 'The child page was not created.' );
+
+		$query_args = array(
+			'post_type'      => 'page',
+			'fields'         => 'id=>parent',
+			'posts_per_page' => -1,
+			'orderby'        => 'ID',
+			'order'          => 'ASC',
+		);
+
+		$expected = array(
+			$parent_id => 0,
+			$child_id  => $parent_id,
+		);
+
+		$q1 = new WP_Query();
+		$this->assertSame( $expected, $q1->query( $query_args ), 'The uncached query is not of the expected form.' );
+
+		$q2 = new WP_Query();
+		$this->assertSame( $expected, $q2->query( $query_args ), 'The cached query is not of the expected form.' );
+	}
+
+	/**
+	 * Tests the value returned when the fields are limited to the ID and parent sub-set
+	 * and the query results are not cached.
+	 *
+	 * With caching disabled every query runs against the database, so the `post-queries`
+	 * cache is never consulted.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Query::query
+	 */
+	public function test_id_and_parent_subset_should_return_parent_ids_keyed_by_post_id_when_not_caching_results() {
+		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$this->assertIsInt( $parent_id, 'The parent page was not created.' );
+
+		$child_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_id,
+			)
+		);
+		$this->assertIsInt( $child_id, 'The child page was not created.' );
+
+		$query_args = array(
+			'post_type'      => 'page',
+			'fields'         => 'id=>parent',
+			'posts_per_page' => -1,
+			'orderby'        => 'ID',
+			'order'          => 'ASC',
+			'cache_results'  => false,
+		);
+
+		$expected = array(
+			$parent_id => 0,
+			$child_id  => $parent_id,
+		);
+
+		$q1 = new WP_Query();
+		$this->assertSame( $expected, $q1->query( $query_args ), 'First query is not of the expected form.' );
+
+		$q2 = new WP_Query();
+		$this->assertSame( $expected, $q2->query( $query_args ), 'Second query is not of the expected form.' );
+	}
+
+	/**
+	 * Tests the posts property when the fields are limited to the ID and parent sub-set
+	 * and the query matches nothing.
+	 *
+	 * An empty result set is cached like any other, and the cached branch only ever
+	 * appended to the posts property, so a second identical query left it as null where
+	 * the first left it an empty array.
+	 *
+	 * @ticket 65817
+	 */
+	public function test_id_and_parent_subset_should_populate_posts_property_when_cached_query_has_no_results() {
+		$query_args = array(
+			'post_type' => 'wptests_pt',
+			'fields'    => 'id=>parent',
+			'name'      => 'this-slug-does-not-exist',
+		);
+
+		$q1 = new WP_Query();
+		$this->assertSame( array(), $q1->query( $query_args ), 'The uncached query did not return an empty array.' );
+		$this->assertSame( array(), $q1->posts, 'The posts property is not an empty array after the uncached query.' );
+
+		$q2 = new WP_Query();
+		$this->assertSame( array(), $q2->query( $query_args ), 'The cached query did not return an empty array.' );
+		$this->assertSame( array(), $q2->posts, 'The posts property is not an empty array after the cached query.' );
+	}
+
+	/**
 	 * Filters the posts fields.
 	 *
 	 * @param string $fields The fields to SELECT.
