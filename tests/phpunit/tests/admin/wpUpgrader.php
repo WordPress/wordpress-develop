@@ -84,9 +84,31 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * @covers WP_Upgrader::__construct
 	 */
 	public function test_constructor_should_create_skin_when_one_is_not_provided() {
+
 		$instance = new WP_Upgrader();
 
 		$this->assertInstanceOf( WP_Upgrader_Skin::class, $instance->skin );
+	}
+
+	/**
+	 * Tests that the bulk plugin updater footer links back to a fresh Updates screen check.
+	 *
+	 * @ticket 48364
+	 *
+	 * @covers Bulk_Plugin_Upgrader_Skin::bulk_footer
+	 */
+	public function test_bulk_plugin_upgrader_skin_updates_page_link_should_force_check() {
+
+		$skin     = new Bulk_Plugin_Upgrader_Skin();
+		$upgrader = new WP_Upgrader( $skin );
+
+		$upgrader->init();
+
+		ob_start();
+		$skin->bulk_footer();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'update-core.php?force-check=1', $output );
 	}
 
 	/**
