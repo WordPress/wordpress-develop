@@ -1,17 +1,22 @@
 <?php
 
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use WP_UnitTestCase;
+
 /**
- * Tests for the wp_widgets_add_menu function.
+ * Tests for the `wp_widgets_add_menu()` function.
  *
  * @group functions
  *
  * @covers ::wp_widgets_add_menu
  */
-class Tests_Functions_wpWidgetsAddMenu extends WP_UnitTestCase {
+class WpWidgetsAddMenuTest extends WP_UnitTestCase {
 
 	public $submenu;
 
 	public function set_up() {
+		parent::set_up();
 		global $submenu;
 		$this->submenu = $submenu;
 		$submenu       = null;
@@ -20,6 +25,7 @@ class Tests_Functions_wpWidgetsAddMenu extends WP_UnitTestCase {
 	public function tear_down() {
 		global $submenu;
 		$submenu = $this->submenu;
+		parent::tear_down();
 	}
 
 	/**
@@ -29,7 +35,7 @@ class Tests_Functions_wpWidgetsAddMenu extends WP_UnitTestCase {
 		global $submenu;
 		wp_widgets_add_menu();
 
-		$expected['themes.php'][7] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
+		$expected['themes.php'][8] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
 		$this->assertEqualSets( $expected, $submenu );
 	}
 
@@ -51,16 +57,12 @@ class Tests_Functions_wpWidgetsAddMenu extends WP_UnitTestCase {
 	/**
 	 * @ticket 60179
 	 */
-	public function test_wp_widgets_add_menu_block_template_parts_supported() {
-		global $submenu, $_wp_theme_features;
+	public function test_wp_widgets_add_menu_block_theme() {
+		global $submenu;
 
-		$_wp_theme_features['block-template-parts'] = true;
-		add_filter( 'current_theme_supports-block-template-parts', '__return_true' );
+		switch_theme( 'block-theme' );
 
 		wp_widgets_add_menu();
-
-		unset( $_wp_theme_features['block-template-parts'] );
-		remove_filter( 'current_theme_supports-block-template-parts', '__return_true' );
 
 		$expected['themes.php'][] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
 		$this->assertEqualSets( $expected, $submenu );
