@@ -184,9 +184,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the list of theme features pulled from the WordPress.org API returns the expected data structure.
-	 *
-	 * Differences in the structure can also trigger failure by causing PHP notices/warnings.
+	 * Test that a mocked WordPress.org API response returns the expected translated list of theme features.
 	 *
 	 * @ticket 28121
 	 */
@@ -216,7 +214,6 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 		);
 
 		$featured_list_api = get_theme_feature_list( true );
-		$this->assertNonEmptyMultidimensionalArray( $featured_list_api );
 		$this->assertSame(
 			array(
 				'Subject'  => array(
