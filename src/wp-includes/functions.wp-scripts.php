@@ -228,6 +228,53 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 }
 
 /**
+ * Adds data to be passed from PHP to a registered script via a JSON script tag.
+ *
+ * The data is printed as a `<script type="application/json" id="{$handle}-js-data">` tag
+ * immediately before the script tag for the given handle. Because the tag type is
+ * `application/json`, the browser does not execute its contents, making this a
+ * non-blocking alternative to {@see wp_localize_script()} or {@see wp_add_inline_script()}.
+ *
+ * Data type fidelity is preserved: integers, booleans, arrays, and nested objects
+ * are all serialized correctly as JSON, unlike {@see wp_localize_script()} which
+ * coerces all top-level values to strings.
+ *
+ * The consuming script can read the data with a pattern like:
+ *
+ *     const dataContainer = document.getElementById( 'my-handle-js-data' );
+ *     let data = {};
+ *     if ( dataContainer ) {
+ *         try {
+ *             data = JSON.parse( dataContainer.textContent );
+ *         } catch {}
+ *     }
+ *
+ * Internally, this function adds a filter on `script_data_{$handle}` to merge
+ * `$data` into the script's data array. Multiple calls for the same handle are
+ * merged together.
+ *
+ * @since x.x.x
+ *
+ * @param string $handle Name of the script to attach data to. Must be lowercase.
+ * @param array  $data   Associative array of data to pass to the script.
+ * @return bool True on success, false if the script is not registered.
+ */
+function wp_add_script_data( $handle, array $data ) {
+	if ( ! wp_script_is( $handle, 'registered' ) ) {
+		return false;
+	}
+
+	add_filter(
+		"script_data_{$handle}",
+		static function ( array $existing ) use ( $data ): array {
+			return array_merge( $existing, $data );
+		}
+	);
+
+	return true;
+}
+
+/**
  * Registers a new script.
  *
  * Registers a script to be enqueued later using the wp_enqueue_script() function.
