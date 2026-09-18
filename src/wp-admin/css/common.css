@@ -3676,6 +3676,10 @@ img {
 	line-height: 180%;
 }
 
+.fileedit-sub .download-theme-form {
+	margin-top: 8px;
+}
+
 #file-editor-warning .file-editor-warning-content {
 	margin: 25px;
 }
