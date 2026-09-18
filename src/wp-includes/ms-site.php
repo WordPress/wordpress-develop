@@ -1060,6 +1060,8 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param non-negative-int $site_id
  */
 function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'blog', $site_id, $meta_key, $meta_value );
