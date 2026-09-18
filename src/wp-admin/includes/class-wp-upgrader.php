@@ -746,6 +746,8 @@ class WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
 	 * @param array $options {
 	 *     Array or string of arguments for upgrading/installing a package.
 	 *
@@ -772,6 +774,7 @@ class WP_Upgrader {
 	 *                              or false if unable to connect to the filesystem.
 	 */
 	public function run( $options ) {
+		global $wp_filesystem;
 
 		$defaults = array(
 			'package'                     => '', // Please always pass this.
@@ -905,6 +908,13 @@ class WP_Upgrader {
 				'hook_extra'                  => $options['hook_extra'],
 			)
 		);
+
+		if ( is_wp_error( $result ) && $options['clear_working']
+			&& $wp_filesystem instanceof WP_Filesystem_Base
+			&& $wp_filesystem->exists( $working_dir )
+		) {
+			$wp_filesystem->delete( $working_dir, true );
+		}
 
 		/**
 		 * Filters the result of WP_Upgrader::install_package().
