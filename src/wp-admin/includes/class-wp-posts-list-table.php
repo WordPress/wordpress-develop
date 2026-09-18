@@ -640,12 +640,24 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$mode_class = esc_attr( 'table-view-' . $mode );
 
-		return array(
-			'widefat',
-			'fixed',
-			'striped',
-			$mode_class,
-			is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts',
+		/**
+		 * Filters the CSS classes applied to the posts list table.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string[] $classes   An array of CSS classes for the posts list table.
+		 * @param string   $post_type The post type slug.
+		 */
+		return apply_filters(
+			'post_list_table_classes',
+			array(
+				'widefat',
+				'fixed',
+				'striped',
+				$mode_class,
+				is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts',
+			),
+			$this->screen->post_type
 		);
 	}
 
