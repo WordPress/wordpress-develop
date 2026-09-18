@@ -366,6 +366,8 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * Verifies that trailing bytes which could start a block comment delimiter
 	 * are not reported as a delimiter.
 	 *
+	 * @ticket 66138
+	 *
 	 * @dataProvider data_documents_ending_in_a_partial_delimiter
 	 *
 	 * @covers ::next_token()
@@ -374,7 +376,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * @param string[]    $block_types Printable block type of every delimiter in the document, in order.
 	 * @param string|null $last_error  Expected error after scanning the entire document.
 	 */
-	public function test_reports_no_delimiter_for_partial_delimiter_at_end_of_document( $html, $block_types, $last_error ) {
+	public function test_reports_no_delimiter_for_partial_delimiter_at_end_of_document( $html, $block_types, $last_error ): void {
 		$processor = new WP_Block_Processor( $html );
 
 		$found = array();
@@ -398,23 +400,21 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: string[], 2: string|null}>
 	 */
-	public static function data_documents_ending_in_a_partial_delimiter() {
-		$incomplete = WP_Block_Processor::INCOMPLETE_INPUT;
-
+	public static function data_documents_ending_in_a_partial_delimiter(): array {
 		return array(
 			// Documents ending in a partial delimiter with no earlier delimiter.
-			'Ends in <'                   => array( 'text<', array(), $incomplete ),
-			'Ends in <!'                  => array( 'text<!', array(), $incomplete ),
-			'Ends in <!-'                 => array( 'text<!-', array(), $incomplete ),
+			'Ends in <'                   => array( 'text<', array(), WP_Block_Processor::INCOMPLETE_INPUT ),
+			'Ends in <!'                  => array( 'text<!', array(), WP_Block_Processor::INCOMPLETE_INPUT ),
+			'Ends in <!-'                 => array( 'text<!-', array(), WP_Block_Processor::INCOMPLETE_INPUT ),
 
 			// Documents ending in a partial delimiter after an earlier delimiter.
-			'Opener, then ends in <'      => array( '<!-- wp:a -->text<', array( 'core/a' ), $incomplete ),
-			'Opener, then ends in <!'     => array( '<!-- wp:a -->text<!', array( 'core/a' ), $incomplete ),
-			'Opener, then ends in <!-'    => array( '<!-- wp:a -->text<!-', array( 'core/a' ), $incomplete ),
-			'Void, then ends in <!-'      => array( '<!-- wp:a /-->text<!-', array( 'core/a' ), $incomplete ),
-			'Closer, then ends in <'      => array( '<!-- /wp:a -->text<', array( 'core/a' ), $incomplete ),
+			'Opener, then ends in <'      => array( '<!-- wp:a -->text<', array( 'core/a' ), WP_Block_Processor::INCOMPLETE_INPUT ),
+			'Opener, then ends in <!'     => array( '<!-- wp:a -->text<!', array( 'core/a' ), WP_Block_Processor::INCOMPLETE_INPUT ),
+			'Opener, then ends in <!-'    => array( '<!-- wp:a -->text<!-', array( 'core/a' ), WP_Block_Processor::INCOMPLETE_INPUT ),
+			'Void, then ends in <!-'      => array( '<!-- wp:a /-->text<!-', array( 'core/a' ), WP_Block_Processor::INCOMPLETE_INPUT ),
+			'Closer, then ends in <'      => array( '<!-- /wp:a -->text<', array( 'core/a' ), WP_Block_Processor::INCOMPLETE_INPUT ),
 
 			// Documents which do not end in a partial delimiter.
 			'Contains < but ends in text' => array( 'a<b', array(), null ),
