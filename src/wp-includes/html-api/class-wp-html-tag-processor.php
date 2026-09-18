@@ -2789,7 +2789,7 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @param string $comparable_name The attribute name in its comparable form.
-	 * @return string|boolean|null Value of enqueued update if present, otherwise false.
+	 * @return string|bool|null Value of enqueued update if present, otherwise false.
 	 */
 	private function get_enqueued_attribute_value( string $comparable_name ) {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
@@ -3985,7 +3985,7 @@ class WP_HTML_Tag_Processor {
 			self::COMMENT_AS_HTML_COMMENT === $this->comment_type
 		) {
 			// Check if the text could close the comment.
-			if ( 1 === preg_match( '/--!?>/', $plaintext_content ) ) {
+			if ( 1 === preg_match( '/^-?>|--!?>/', $plaintext_content ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Comment text cannot contain a comment closer.' ),

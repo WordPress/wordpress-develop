@@ -2738,6 +2738,8 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $post_id
  */
 function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
 	// Make sure meta is deleted from the post, not from a revision.
@@ -2770,6 +2772,18 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -2818,7 +2832,7 @@ function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) 
  * @return bool Whether the post meta key was deleted from the database.
  */
 function delete_post_meta_by_key( $post_meta_key ) {
-	return delete_metadata( 'post', null, $post_meta_key, '', true );
+	return delete_metadata( 'post', 0, $post_meta_key, '', true );
 }
 
 /**
@@ -2863,17 +2877,23 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array<string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
- *                                                 Post meta values will always be strings, even for values which would
- *                                                 otherwise be retrieved individually as arrays or objects via
- *                                                 {@see get_post_meta()}. An empty array is returned if the post has
- *                                                 no post meta.
+ * @return array<string|int, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
+ *                                                     Post meta values will always be strings, even for values which
+ *                                                     would otherwise be retrieved individually as arrays or objects
+ *                                                     via {@see get_post_meta()}. A meta key which is a numeric string
+ *                                                     is keyed by the equivalent integer, as PHP casts such array keys.
+ *                                                     An empty array is returned if the post has no post meta.
+ *
+ * @phpstan-return array<array-key, list<string>>|false
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
 
 	if ( ! $post_id ) {
 		$post_id = get_the_ID();
+		if ( false === $post_id ) {
+			return false;
+		}
 	}
 
 	return get_post_meta( $post_id );
@@ -2887,7 +2907,11 @@ function get_post_custom( $post_id = 0 ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|null Array of the keys, if retrieved.
+ * @return array<string|int>|null Array of the meta field keys, if retrieved. Null if the post has no
+ *                                post meta, or if the post meta could not be retrieved. A key which is
+ *                                a numeric string is returned as the equivalent integer.
+ *
+ * @phpstan-return non-empty-list<array-key>|null
  */
 function get_post_custom_keys( $post_id = 0 ) {
 	$custom = get_post_custom( $post_id );
@@ -2913,7 +2937,11 @@ function get_post_custom_keys( $post_id = 0 ) {
  *
  * @param string $key     Optional. Meta field key. Default empty.
  * @param int    $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|null Meta field values.
+ * @return string[]|null Meta field values. Null if `$key` is not specified, if the post has no
+ *                       meta for that key, or if the post meta could not be retrieved.
+ *                       Values are always strings, as described for {@see get_post_custom()}.
+ *
+ * @phpstan-return ( $key is ''|'0' ? null : list<string>|null )
  */
 function get_post_custom_values( $key = '', $post_id = 0 ) {
 	if ( ! $key ) {
@@ -6949,7 +6977,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	wp_delete_object_term_relationships( $post_id, get_object_taxonomies( $post->post_type ) );
 
 	// Delete all for any posts.
-	delete_metadata( 'post', null, '_thumbnail_id', $post_id, true );
+	delete_metadata( 'post', 0, '_thumbnail_id', $post_id, true );
 
 	wp_defer_comment_counting( true );
 

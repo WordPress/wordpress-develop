@@ -57,7 +57,7 @@ function supportsWorkerOffloading() {
 /**
  * @typedef SessionSupportTests
  * @type {Object}
- * @property {number} timestamp
+ * @property {number}       timestamp
  * @property {SupportTests} supportTests
  */
 
@@ -128,8 +128,8 @@ function setSessionSupportTests( supportTests ) {
  * @private
  *
  * @param {CanvasRenderingContext2D} context 2D Context.
- * @param {string} set1 Set of Emoji to test.
- * @param {string} set2 Set of Emoji to test.
+ * @param {string}                   set1    Set of Emoji to test.
+ * @param {string}                   set2    Set of Emoji to test.
  *
  * @return {boolean} True if the two sets render the same.
  */
@@ -178,7 +178,7 @@ function emojiSetsRenderIdentically( context, set1, set2 ) {
  * @private
  *
  * @param {CanvasRenderingContext2D} context 2D Context.
- * @param {string} emoji Emoji to test.
+ * @param {string}                   emoji   Emoji to test.
  *
  * @return {boolean} True if the center point is empty.
  */
@@ -209,10 +209,10 @@ function emojiRendersEmptyCenterPoint( context, emoji ) {
  *
  * @private
  *
- * @param {CanvasRenderingContext2D} context 2D Context.
- * @param {string} type Whether to test for support of "flag" or "emoji".
- * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
- * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ * @param {CanvasRenderingContext2D} context                      2D Context.
+ * @param {string}                   type                         Whether to test for support of "flag" or "emoji".
+ * @param {Function}                 emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {Function}                 emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
  *
  * @return {boolean} True if the browser can render emoji, false if it cannot.
  */
@@ -279,13 +279,13 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
 			 * The hairy creature emoji is a single code point emoji. Testing for browser
 			 * support required testing the center point of the emoji to see if it is empty.
 			 *
-			 * 0xD83E 0x1FAC8 (\uD83E\u1FAC8) == 🫈 Hairy creature.
+			 * U+1FAC8 (\uD83E\uDEC8) == 🫈 Hairy creature.
 			 *
 			 * When updating this test, please ensure that the emoji is either a single code point
 			 * or switch to using the emojiSetsRenderIdentically function and testing with a zero-width
 			 * joiner vs a zero-width space.
 			 */
-			const notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\u1FAC8' );
+			const notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\uDEC8' );
 			return ! notSupported;
 	}
 
@@ -302,9 +302,9 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
  *
  * @private
  *
- * @param {string[]} tests Tests.
- * @param {Function} browserSupportsEmoji Reference to browserSupportsEmoji function, needed due to minification.
- * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {string[]} tests                        Tests.
+ * @param {Function} browserSupportsEmoji         Reference to browserSupportsEmoji function, needed due to minification.
+ * @param {Function} emojiSetsRenderIdentically   Reference to emojiSetsRenderIdentically function, needed due to minification.
  * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
  *
  * @return {SupportTests} Support tests.
