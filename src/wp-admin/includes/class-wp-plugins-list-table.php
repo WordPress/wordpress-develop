@@ -306,7 +306,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		if ( strlen( $s ) ) {
 			$status            = 'search';
-			$plugins['search'] = array_filter( $plugins['all'], array( $this, '_search_callback' ) );
+			$plugins['search'] = array_filter( $plugins['all'], array( $this, '_search_callback' ), ARRAY_FILTER_USE_BOTH );
 		}
 
 		/**
@@ -382,15 +382,35 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @global string $s URL encoded search term.
 	 *
-	 * @param array<string, mixed> $plugin Plugin data array to check against the search term.
+	 * @param array<string, mixed> $plugin      Plugin data array to check against the search term.
+	 * @param string               $plugin_file Optional. Plugin file path relative to the plugins
+	 *                                          directory. When provided, the plugin's translated data
+	 *                                          is also searched so that the search matches the
+	 *                                          translated name, description, and author shown in the
+	 *                                          list table. Default empty string.
 	 * @return bool True if the plugin matches the search term, false otherwise.
 	 */
-	public function _search_callback( $plugin ) {
+	public function _search_callback( $plugin, $plugin_file = '' ) {
 		global $s;
 
-		foreach ( $plugin as $value ) {
-			if ( is_string( $value ) && false !== stripos( strip_tags( $value ), urldecode( $s ) ) ) {
-				return true;
+		// Lowercase the term so the search stays case-insensitive.
+		$term = strtolower( urldecode( $s ) );
+
+		/*
+		 * Search the original (untranslated) plugin data as well as the translated
+		 * data shown in the list table, so searches match either the value in the
+		 * plugin's file header or the localized value displayed to the user.
+		 */
+		$plugin_data_sets = array( $plugin );
+		if ( '' !== $plugin_file ) {
+			$plugin_data_sets[] = _get_plugin_data_markup_translate( $plugin_file, $plugin, false, true );
+		}
+
+		foreach ( $plugin_data_sets as $plugin_data ) {
+			foreach ( $plugin_data as $value ) {
+				if ( is_string( $value ) && str_contains( strtolower( strip_tags( $value ) ), $term ) ) {
+					return true;
+				}
 			}
 		}
 
