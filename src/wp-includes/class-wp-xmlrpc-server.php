@@ -828,18 +828,18 @@ class wp_xmlrpc_server extends IXR_Server {
 	}
 
 	/**
-	 * Checks that the content struct argument received from a client is an array.
+	 * Checks that the content struct argument received from a client is an associative array.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param mixed $content_struct The content struct argument to check.
-	 * @return bool True if `$content_struct` is an array, false otherwise.
+	 * @return bool True if `$content_struct` is an associative array, false otherwise.
 	 *
-	 * @phpstan-assert-if-true array $content_struct
+	 * @phpstan-assert-if-true array<string, mixed> $content_struct
 	 */
 	protected function _is_content_struct_array( $content_struct ): bool {
-		if ( ! is_array( $content_struct ) ) {
-			$this->error = new IXR_Error( 400, __( 'The content struct argument must be an array.' ) );
+		if ( ! is_array( $content_struct ) || wp_is_numeric_array( $content_struct ) ) {
+			$this->error = new IXR_Error( 400, __( 'The content struct argument must be an associative array.' ) );
 			return false;
 		}
 
