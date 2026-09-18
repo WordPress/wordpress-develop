@@ -106,6 +106,7 @@ class WP_Application_Passwords {
 			'created'   => time(),
 			'last_used' => null,
 			'last_ip'   => null,
+			'expires'   => isset( $args['expires'] ) ? (int) $args['expires'] : null,
 		);
 
 		$passwords   = static::get_user_application_passwords( $user_id );
@@ -281,6 +282,14 @@ class WP_Application_Passwords {
 			}
 
 			$save = false;
+
+			if ( array_key_exists( 'expires', $update ) ) {
+				$expires = null === $update['expires'] ? null : (int) $update['expires'];
+				if ( ! array_key_exists( 'expires', $item ) || $item['expires'] !== $expires ) {
+					$item['expires'] = $expires;
+					$save            = true;
+				}
+			}
 
 			if ( ! empty( $update['name'] ) && $item['name'] !== $update['name'] ) {
 				$item['name'] = $update['name'];
