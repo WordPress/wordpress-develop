@@ -1336,7 +1336,7 @@ class WP_Block_Processor {
 			$comment_starting_at + 2 + $span_of_dashes < $search_end &&
 			'>' === $text[ $comment_starting_at + 2 + $span_of_dashes ]
 		) {
-			return $comment_starting_at + $span_of_dashes + 1;
+			return $comment_starting_at + 2 + $span_of_dashes + 1;
 		}
 
 		// Otherwise, there are other characters inside the comment, find the first `-->` or `--!>`.
