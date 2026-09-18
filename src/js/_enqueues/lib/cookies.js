@@ -69,15 +69,16 @@ window.wpCookies = {
 	 * @param {string}      [path]     Optional. The path on the server in which the cookie will be available on.
 	 * @param {string}      [domain]   Optional. The domain that the cookie is available to.
 	 * @param {boolean}     [secure]   Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.
+	 * @param {string}      [samesite] Optional. The SameSite attribute: 'Lax', 'Strict', or 'None'. Default 'Lax'.
 	 */
-	setHash: function( name, values_obj, expires, path, domain, secure ) {
+	setHash: function( name, values_obj, expires, path, domain, secure, samesite = 'Lax' ) {
 		var str = '';
 
 		this.each( values_obj, function( val, key ) {
 			str += ( ! str ? '' : '&' ) + key + '=' + val;
 		});
 
-		this.set( name, str, expires, path, domain, secure );
+		this.set( name, str, expires, path, domain, secure, samesite );
 	},
 
 	/**
@@ -121,14 +122,15 @@ window.wpCookies = {
 	 * The 'expires' arg can be either a JS Date() object set to the expiration date (back-compat)
 	 * or the number of seconds until expiration.
 	 *
-	 * @param {string}      name      The name of the cookie.
-	 * @param {string}      value     The value of the cookie.
-	 * @param {number|Date} [expires] Optional. Expiration time in seconds or a Date object.
-	 * @param {string}      [path]    Optional. The path on the server in which the cookie will be available on.
-	 * @param {string}      [domain]  Optional. The domain that the cookie is available to.
-	 * @param {boolean}     [secure]  Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.
+	 * @param {string}      name       The name of the cookie.
+	 * @param {string}      value      The value of the cookie.
+	 * @param {number|Date} [expires]  Optional. Expiration time in seconds or a Date object.
+	 * @param {string}      [path]     Optional. The path on the server in which the cookie will be available on.
+	 * @param {string}      [domain]   Optional. The domain that the cookie is available to.
+	 * @param {boolean}     [secure]   Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.
+	 * @param {string}      [samesite] Optional. The SameSite attribute: 'Lax', 'Strict', or 'None'. Default 'Lax'.
 	 */
-	set: function( name, value, expires, path, domain, secure ) {
+	set: function( name, value, expires, path, domain, secure, samesite = 'Lax' ) {
 		var d = new Date();
 
 		if ( typeof( expires ) === 'object' && expires.toGMTString ) {
@@ -144,7 +146,8 @@ window.wpCookies = {
 			( expires ? '; expires=' + expires : '' ) +
 			( path    ? '; path=' + path       : '' ) +
 			( domain  ? '; domain=' + domain   : '' ) +
-			( secure  ? '; secure'             : '' );
+			( secure  ? '; secure'             : '' ) +
+			'; SameSite=' + samesite;
 	},
 
 	/**
