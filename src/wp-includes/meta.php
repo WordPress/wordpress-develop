@@ -397,6 +397,8 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
  *                           ignoring the specified object_id. Otherwise, only delete
  *                           matching metadata entries for the specified object_id. Default false.
  * @return bool True on successful delete, false on failure.
+ *
+ * @phpstan-param non-negative-int $object_id
  */
 function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $delete_all = false ) {
 	global $wpdb;
