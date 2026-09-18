@@ -408,7 +408,7 @@ function get_the_category_rss( $type = null ) {
 
 	$blog_charset = '';
 	$atom_scheme  = '';
-	if ( ! empty( $cat_names ) ) {
+	if ( $cat_names ) {
 		if ( 'atom' === $type ) {
 			$atom_scheme = get_bloginfo_rss( 'url' );
 		} elseif ( 'rdf' !== $type ) {
