@@ -188,13 +188,51 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 *
 	 * Differences in the structure can also trigger failure by causing PHP notices/warnings.
 	 *
-	 * @group external-http
 	 * @ticket 28121
 	 */
 	public function test_get_theme_featured_list_api() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return array(
+					'headers'  => array(),
+					'body'     => wp_json_encode(
+						array(
+							'Subject'  => array( 'blog', 'news' ),
+							'Features' => array( 'custom-logo', 'unknown-feature' ),
+							'Layout'   => array( 'one-column' ),
+						)
+					),
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
+
 		$featured_list_api = get_theme_feature_list( true );
 		$this->assertNonEmptyMultidimensionalArray( $featured_list_api );
+		$this->assertSame(
+			array(
+				'Subject'  => array(
+					'blog' => 'Blog',
+					'news' => 'News',
+				),
+				'Features' => array(
+					'custom-logo'     => 'Custom Logo',
+					'unknown-feature' => 'unknown-feature',
+				),
+				'Layout'   => array(
+					'one-column' => 'One Column',
+				),
+			),
+			$featured_list_api
+		);
 	}
 
 	/**
