@@ -265,18 +265,24 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		$options = $allowed_options[ $option_page ];
 	}
 
+	$using_locales_default_date_format = false;
+	$using_locales_default_time_format = false;
 	if ( 'general' === $option_page ) {
 		// Handle custom date/time formats.
 		if ( ! empty( $_POST['date_format'] ) && isset( $_POST['date_format_custom'] )
 			&& '\c\u\s\t\o\m' === wp_unslash( $_POST['date_format'] )
 		) {
 			$_POST['date_format'] = $_POST['date_format_custom'];
+		} elseif ( __( 'F j, Y' ) === $_POST['date_format'] ) {
+			$using_locales_default_date_format = true;
 		}
 
 		if ( ! empty( $_POST['time_format'] ) && isset( $_POST['time_format_custom'] )
 			&& '\c\u\s\t\o\m' === wp_unslash( $_POST['time_format'] )
 		) {
 			$_POST['time_format'] = $_POST['time_format_custom'];
+		} elseif ( __( 'g:i a' ) === $_POST['time_format'] ) {
+			$using_locales_default_time_format = true;
 		}
 
 		// Map UTC+- timezones to gmt_offsets and set timezone_string to empty.
@@ -354,6 +360,16 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		$user_language_new = get_user_locale();
 		if ( $user_language_old !== $user_language_new ) {
 			load_default_textdomain( $user_language_new );
+
+			// Set date/time formats to the new locale's defaults if the
+			// old locale's defaults were used before the update.
+			if ( $using_locales_default_date_format ) {
+				update_option( 'date_format', __( 'F j, Y' ) );
+			}
+
+			if ( $using_locales_default_time_format ) {
+				update_option( 'time_format', __( 'g:i a' ) );
+			}
 		}
 	} else {
 		add_settings_error( 'general', 'settings_updated', __( 'Settings save failed.' ), 'error' );
