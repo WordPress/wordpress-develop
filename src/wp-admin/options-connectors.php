@@ -12,17 +12,23 @@ require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die(
-		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to manage connectors on this site.' ) . '</p>',
-		403
+		'',
+		array(
+			'heading'  => __( 'You need a higher level of permission.' ),
+			'response' => 503,
+		)
 	);
 }
 
 if ( ! class_exists( '\WordPress\AiClient\AiClient' ) || ! function_exists( 'wp_options_connectors_wp_admin_render_page' ) ) {
 	wp_die(
-		'<h1>' . __( 'The Connectors are not available.' ) . '</h1>' .
 		'<p>' . __( 'The Connectors page requires build files. Please build WordPress and try again.' ) . '</p>',
-		503
+		'',
+		array(
+			'heading'  => __( 'The Connectors are not available.' ),
+			'response' => 503,
+		)
 	);
 }
 
