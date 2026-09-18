@@ -46,9 +46,6 @@ class Tests_Multisite_UpdateBlogStatus extends WP_UnitTestCase {
 		$this->assertSame( 1, $test_action_counter->get_call_count() );
 	}
 
-	/**
-	 * @group external-http
-	 */
 	public function test_content_from_spam_blog_is_not_available() {
 		$spam_blog_id = self::factory()->blog->create();
 		switch_to_blog( $spam_blog_id );
@@ -66,6 +63,22 @@ class Tests_Multisite_UpdateBlogStatus extends WP_UnitTestCase {
 		$this->assertSame( $post_data['post_title'], $post->post_title );
 
 		update_blog_status( $spam_blog_id, 'spam', 1 );
+
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return array(
+					'headers'  => array(),
+					'body'     => '',
+					'response' => array(
+						'code'    => 404,
+						'message' => 'Not Found',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
 
 		$post_id = self::factory()->post->create(
 			array(
