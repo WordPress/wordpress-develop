@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { writeFileSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 /**
@@ -11,6 +12,58 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 let wpConfigOriginal;
 
+// The prefix used to trick WP into "not installed" mode. Kept as a single
+// constant since it has to stay in sync between the config rewrite and the
+// cleanup query below.
+const TEST_TABLE_PREFIX = 'wp_e2e_';
+
+/**
+ * Drops any tables left over under TEST_TABLE_PREFIX.
+ *
+ * Called both before the prefix swap (in case a previous run crashed and
+ * left stale tables behind — otherwise this run fails once and only
+ * "self-heals" on the next run) and after it (so the next run starts clean).
+ *
+ * Queries the database for whatever `TEST_TABLE_PREFIX`-prefixed tables
+ * actually exist rather than maintaining a hardcoded list, so it can't miss
+ * a table WordPress core adds in the future.
+ *
+ * `wp eval` exits 0 even when a `$wpdb->query()` call inside it returns
+ * false, so each DROP's result is checked explicitly and reported via
+ * `WP_CLI::error()`, which does set a non-zero exit code — otherwise a
+ * failed cleanup would silently report as a passing test.
+ */
+function dropE2eTables() {
+	// `_` is a single-character wildcard in SQL LIKE, so it must be escaped
+	// to match the prefix's underscores literally.
+	const likePattern = `${ TEST_TABLE_PREFIX.replace( /_/g, '\\_' ) }%`;
+
+	const dropTablesPhp = `
+		global $wpdb;
+		foreach ( $wpdb->get_col( "SHOW TABLES LIKE '${ likePattern }'" ) as $table ) {
+			$result = $wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+			if ( false === $result ) {
+				WP_CLI::error( "Failed to drop {$table}: {$wpdb->last_error}" );
+			}
+		}
+	`;
+
+	execFileSync(
+		process.execPath,
+		[
+			join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
+			'exec',
+			'--user',
+			'wp_php',
+			'cli',
+			'wp',
+			'eval',
+			dropTablesPhp,
+		],
+		{ stdio: 'inherit' }
+	);
+}
+
 test.describe( 'WordPress installation process', () => {
 	const wpConfig = join(
 		process.cwd(),
@@ -19,25 +72,52 @@ test.describe( 'WordPress installation process', () => {
 
 
 	test.beforeEach( async () => {
+		// Read this before the cleanup call below, which can throw. Otherwise,
+		// if it does, `afterEach` runs anyway (Playwright always runs it) and
+		// crashes trying to restore `wp-config.php` from an unset variable,
+		// masking the real cleanup error behind a confusing second one.
 		wpConfigOriginal = readFileSync( wpConfig, 'utf-8' );
+
+		dropE2eTables();
+
 		// Changing the table prefix tricks WP into new install mode.
-		writeFileSync(
-			wpConfig,
-			wpConfigOriginal.replace( `$table_prefix = 'wp_';`, `$table_prefix = 'wp_e2e_';` )
+		const wpConfigPatched = wpConfigOriginal.replace(
+			`$table_prefix = 'wp_';`,
+			`$table_prefix = '${ TEST_TABLE_PREFIX }';`
 		);
+
+		// A prior run killed after this rewrite but before `afterEach` restores
+		// it leaves wp-config.php stranded on TEST_TABLE_PREFIX. `.replace()`
+		// then silently no-ops instead of throwing, and since the tables were
+		// just cleared above, the site looks freshly uninstalled under the
+		// already-stranded prefix — the test would pass while leaving the
+		// checkout stuck. Fail loudly here instead.
+		if ( wpConfigPatched === wpConfigOriginal ) {
+			throw new Error(
+				`wp-config.php does not contain the default table prefix. An interrupted run may have left it on '${ TEST_TABLE_PREFIX }'.`
+			);
+		}
+
+		writeFileSync( wpConfig, wpConfigPatched );
 	} );
 
 	test.afterEach( async () => {
 		writeFileSync( wpConfig, wpConfigOriginal );
+
+		// The test completes a full install under TEST_TABLE_PREFIX. Drop
+		// those tables, otherwise the next run finds a pre-existing install
+		// and never reaches the installation screen it's meant to be testing.
+		dropE2eTables();
 	} );
 
 	test( 'should install WordPress with pre-existing database credentials', async ( { page } ) => {
-		await page.goto( '/' );
-
-		await expect(
-			page,
-			'should redirect to the installation page'
-		).toHaveURL( /wp-admin\/install\.php$/ );
+		// The config file was just rewritten on the host; retry the navigation
+		// (not just the URL check) since the container's view of the file can
+		// lag behind the write by a request or two.
+		await expect( async () => {
+			await page.goto( '/' );
+			expect( page.url() ).toMatch( /wp-admin\/install\.php$/ );
+		}, 'should redirect to the installation page' ).toPass( { timeout: 10_000 } );
 
 		await expect(
 			page.getByText( /WordPress database error/ ),

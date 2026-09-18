@@ -222,7 +222,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 			}
 			$callback_value = $property->getValue( $new_value );
 
-			$this->assertSame( null, $callback_value );
+			$this->assertNull( $callback_value );
 		} else {
 			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
 		}
