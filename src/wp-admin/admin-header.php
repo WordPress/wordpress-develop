@@ -237,8 +237,16 @@ if ( is_network_admin() ) {
 
 $admin_body_class .= ' no-customize-support svg';
 
+/*
+ * Rounded #wpcontent canvas chrome. Skip full-screen block editors, which
+ * bring their own layout. Boot/WP Build admin pages (Fonts, Connectors) keep
+ * this class; their surface margins are adjusted in common.css to avoid a
+ * double frame with #wpwrap padding.
+ */
 if ( $current_screen->is_block_editor() ) {
 	$admin_body_class .= ' block-editor-page wp-embed-responsive';
+} else {
+	$admin_body_class .= ' admin-stage-rounded';
 }
 
 $admin_body_class .= ' wp-theme-' . sanitize_html_class( get_template() );
