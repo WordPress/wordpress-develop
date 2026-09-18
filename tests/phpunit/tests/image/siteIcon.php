@@ -121,7 +121,6 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 
 		add_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
-		remove_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
 
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$size_name = 'site_icon-' . $size;
