@@ -69,13 +69,15 @@
  */
 (() => {
 
-	const toggletips = document.querySelectorAll( '.wp-is-toggletip' );
+	const toggletips = /** @type {NodeListOf<HTMLSpanElement>} */ ( document.querySelectorAll( '.wp-is-toggletip' ) );
+
+	/** @type {ReturnType<typeof setTimeout>} */
 	let openTimeout;
 
 	toggletips.forEach( function( toggletip ) {
-		let trigger = toggletip.querySelector( 'button.wp-tooltip__toggle' );
-		let hint    = toggletip.querySelector( '.wp-tooltip__hint' );
-		let dialog  = toggletip.querySelector( 'dialog.wp-tooltip__bubble' );
+		const trigger = /** @type {HTMLButtonElement|null} */ ( toggletip.querySelector( 'button.wp-tooltip__toggle' ) );
+		const hint    = /** @type {HTMLSpanElement|null} */ ( toggletip.querySelector( '.wp-tooltip__hint' ) );
+		const dialog  = /** @type {HTMLDialogElement|null} */ ( toggletip.querySelector( 'dialog.wp-tooltip__bubble' ) );
 
 		if ( ! trigger || ! hint ) {
 			return;
