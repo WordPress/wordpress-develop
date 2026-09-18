@@ -433,6 +433,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$actions       = array();
 		$post_type_obj = get_post_type_object( $this->screen->post_type );
 
+		// Bail if the post type is not registered, as can happen when the screen
+		// is built from a request parameter.
+		if ( ! $post_type_obj ) {
+			return $actions;
+		}
+
 		if ( current_user_can( $post_type_obj->cap->edit_posts ) ) {
 			if ( $this->is_trash ) {
 				$actions['untrash'] = __( 'Restore' );
