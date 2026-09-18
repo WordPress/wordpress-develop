@@ -27,6 +27,29 @@ class Tests_Fonts_WpCssFontFamily extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Generic arguments retain their meaning after the parser decodes CSS escapes.
+	 *
+	 * @ticket 63568
+	 * @covers ::parse_list
+	 */
+	public function test_parse_list_accepts_generic_arguments() {
+		foreach ( array( 'kai', 'fangsong', 'khmer-mul', 'nastaliq' ) as $argument ) {
+			$escaped = sprintf( '\\%x ', ord( $argument[0] ) ) . substr( $argument, 1 );
+			$entries = WP_CSS_Font_Family::parse_list( 'GENERIC(/* before */' . $escaped . '/* after */)' );
+
+			$this->assertSame(
+				array(
+					array(
+						'type'  => 'generic',
+						'value' => 'generic(' . $argument . ')',
+					),
+				),
+				$entries
+			);
+		}
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
@@ -172,6 +195,9 @@ class Tests_Fonts_WpCssFontFamily extends WP_UnitTestCase {
 			'a plain apostrophe name'      => array( "O'Reilly Sans" ),
 			'a trailing backslash'         => array( 'Inter\\' ),
 			'an unknown generic function'  => array( 'generic(font[name])' ),
+			'an unknown generic argument'  => array( 'generic(unknown)' ),
+			'an escaped generic delimiter' => array( 'generic(\\29\\3b color\\3a red)' ),
+			'an escaped generic comment'   => array( 'generic(\\29\\3b color\\3a red\\3b\\2f\\2a)' ),
 			'a keyword inside a list'      => array( 'inherit, serif' ),
 			'invalid UTF-8'                => array( "\"A\xC3\x28B\"" ),
 			'an at-rule'                   => array( '@import url(x)' ),

@@ -338,6 +338,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 	 */
 	public function data_invalid_font_family_values() {
 		return array(
+			'generic injection'      => array( 'generic(\\29\\3b color\\3a red)' ),
 			'a second declaration'   => array( '"A"; color:red' ),
 			'a javascript url'       => array( 'url(javascript:alert(1))' ),
 			'an expression function' => array( 'expression(alert(1))' ),

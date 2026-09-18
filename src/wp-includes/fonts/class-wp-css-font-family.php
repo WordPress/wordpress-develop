@@ -82,20 +82,6 @@ final class WP_CSS_Font_Family {
 	);
 
 	/**
-	 * Characters that the serializer writes as a hexadecimal CSS escape.
-	 *
-	 * `<` and `>` cannot close a `style` element. `&` cannot start an HTML
-	 * character reference. WordPress runs the post content of a font record
-	 * through KSES for a user without the `unfiltered_html` capability, and
-	 * KSES rewrites these characters. The escape keeps the name unchanged.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @var string
-	 */
-	const HTML_SIGNIFICANT_CHARACTERS = '<>&';
-
-	/**
 	 * Characters that the plain name compatibility path rejects.
 	 *
 	 * These characters start CSS syntax that a font name must not contain. The
@@ -261,27 +247,20 @@ final class WP_CSS_Font_Family {
 	 * @return string The name as a quoted CSS string.
 	 */
 	public static function serialize_name( $name ) {
-		$name   = (string) $name;
-		$result = '"';
-		$length = strlen( $name );
+		return '"' . preg_replace_callback(
+			'/[\x00-\x1f\x7f"\\\\<>&]/',
+			static function ( $matches ) {
+				if ( "\0" === $matches[0] ) {
+					return "\u{FFFD}";
+				}
+				if ( '"' === $matches[0] ) {
+					return '\\"';
+				}
 
-		for ( $offset = 0; $offset < $length; $offset++ ) {
-			$character = $name[ $offset ];
-			$code      = ord( $character );
-
-			if ( 0 === $code ) {
-				// CSS replaces NUL with the replacement character.
-				$result .= "\u{FFFD}";
-			} elseif ( $code < 0x20 || 0x7F === $code || '\\' === $character || false !== strpos( self::HTML_SIGNIFICANT_CHARACTERS, $character ) ) {
-				$result .= sprintf( '\\%x ', $code );
-			} elseif ( '"' === $character ) {
-				$result .= '\\"';
-			} else {
-				$result .= $character;
-			}
-		}
-
-		return $result . '"';
+				return sprintf( '\\%x ', ord( $matches[0] ) );
+			},
+			(string) $name
+		) . '"';
 	}
 
 	/**
@@ -393,28 +372,21 @@ final class WP_CSS_Font_Family {
 		}
 
 		$name = implode( ' ', $identifiers );
+		$type = 'name';
 
 		if ( 1 === count( $identifiers ) ) {
 			$lowercase = strtolower( $name );
 
 			if ( in_array( $lowercase, self::GENERIC_FAMILIES, true ) ) {
-				return array(
-					'type'  => 'generic',
-					'value' => $lowercase,
-				);
-			}
-
-			if ( in_array( $lowercase, self::RESERVED_KEYWORDS, true ) ) {
-				return array(
-					'type'  => 'keyword',
-					'value' => $lowercase,
-				);
+				$type = 'generic';
+			} elseif ( in_array( $lowercase, self::RESERVED_KEYWORDS, true ) ) {
+				$type = 'keyword';
 			}
 		}
 
 		return array(
-			'type'  => 'name',
-			'value' => $name,
+			'type'  => $type,
+			'value' => 'name' === $type ? $name : $lowercase,
 		);
 	}
 
@@ -439,7 +411,12 @@ final class WP_CSS_Font_Family {
 			return null;
 		}
 
-		$identifier = self::consume_identifier( $value, $offset, $length );
+		$identifier = strtolower( self::consume_identifier( $value, $offset, $length ) );
+
+		// Only defined generic arguments can enter CSS without quotes or escapes.
+		if ( ! in_array( $identifier, array( 'kai', 'fangsong', 'khmer-mul', 'nastaliq' ), true ) ) {
+			return null;
+		}
 
 		if ( ! self::skip_whitespace_and_comments( $value, $offset, $length ) ) {
 			return null;
@@ -453,7 +430,7 @@ final class WP_CSS_Font_Family {
 
 		return array(
 			'type'  => 'generic',
-			'value' => 'generic(' . strtolower( $identifier ) . ')',
+			'value' => 'generic(' . $identifier . ')',
 		);
 	}
 
@@ -539,13 +516,13 @@ final class WP_CSS_Font_Family {
 				continue;
 			}
 
-			if ( self::is_identifier_character( $character ) ) {
-				$result .= $character;
-				++$offset;
-				continue;
+			// Copy the literal bytes up to the next escape or token boundary.
+			if ( ! preg_match( '/\G[-_a-zA-Z0-9\x80-\xff]+/', $value, $matches, 0, $offset ) ) {
+				break;
 			}
 
-			break;
+			$result .= $matches[0];
+			$offset += strlen( $matches[0] );
 		}
 
 		return $result;
@@ -579,18 +556,14 @@ final class WP_CSS_Font_Family {
 			return $result;
 		}
 
-		$digits = '';
-		while ( $offset < $length && strlen( $digits ) < 6 && ctype_xdigit( $value[ $offset ] ) ) {
-			$digits .= $value[ $offset ];
-			++$offset;
-		}
+		$size       = strspn( $value, '0123456789abcdefABCDEF', $offset, 6 );
+		$code_point = (int) hexdec( substr( $value, $offset, $size ) );
+		$offset    += $size;
 
 		// One whitespace character ends the hexadecimal escape.
 		if ( $offset < $length && in_array( $value[ $offset ], array( ' ', "\t", "\n" ), true ) ) {
 			++$offset;
 		}
-
-		$code_point = (int) hexdec( $digits );
 
 		// Zero, a surrogate, and a code point above U+10FFFF decode to the replacement character.
 		$character = 0 === $code_point ? false : mb_chr( $code_point, 'UTF-8' );
@@ -609,31 +582,8 @@ final class WP_CSS_Font_Family {
 	 * @return bool True if an identifier starts at the offset.
 	 */
 	private static function starts_identifier( $value, $offset, $length ) {
-		if ( $offset >= $length ) {
-			return false;
-		}
-
-		$character = $value[ $offset ];
-
-		if ( '-' === $character ) {
-			// A hyphen starts an identifier when a hyphen, a name start, or an escape follows it.
-			if ( $offset + 1 >= $length ) {
-				return false;
-			}
-
-			++$offset;
-			$character = $value[ $offset ];
-
-			if ( '-' === $character ) {
-				return true;
-			}
-		}
-
-		if ( '\\' === $character ) {
-			return self::is_valid_escape( $value, $offset, $length );
-		}
-
-		return self::is_identifier_start_character( $character );
+		// Match two hyphens, or an optional hyphen before a name start or valid escape.
+		return $offset < $length && 1 === preg_match( '/\G(?:--|-?(?:[_a-zA-Z\x80-\xff]|\\\\[^\n]))/', $value, $matches, 0, $offset );
 	}
 
 	/**
@@ -648,35 +598,6 @@ final class WP_CSS_Font_Family {
 	 */
 	private static function is_valid_escape( $value, $offset, $length ) {
 		return $offset + 1 < $length && '\\' === $value[ $offset ] && "\n" !== $value[ $offset + 1 ];
-	}
-
-	/**
-	 * Checks whether a character can start an identifier.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $character One byte of the input.
-	 * @return bool True if the character can start an identifier.
-	 */
-	private static function is_identifier_start_character( $character ) {
-		return ( $character >= 'a' && $character <= 'z' )
-			|| ( $character >= 'A' && $character <= 'Z' )
-			|| '_' === $character
-			|| ord( $character ) >= 0x80;
-	}
-
-	/**
-	 * Checks whether a character can appear in an identifier.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $character One byte of the input.
-	 * @return bool True if the character can appear in an identifier.
-	 */
-	private static function is_identifier_character( $character ) {
-		return self::is_identifier_start_character( $character )
-			|| ( $character >= '0' && $character <= '9' )
-			|| '-' === $character;
 	}
 
 	/**

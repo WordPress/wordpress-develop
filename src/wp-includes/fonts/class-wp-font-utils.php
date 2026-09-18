@@ -46,10 +46,6 @@ class WP_Font_Utils {
 	 *                string if the value is invalid.
 	 */
 	public static function sanitize_font_family( $font_family ) {
-		if ( ! is_string( $font_family ) || '' === $font_family ) {
-			return '';
-		}
-
 		$entries = WP_CSS_Font_Family::parse_list_with_plain_names( $font_family );
 
 		if ( null === $entries ) {

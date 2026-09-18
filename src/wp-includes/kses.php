@@ -2625,7 +2625,7 @@ function kses_init() {
  */
 function _wp_kses_split_css_declarations( $css ) {
 	$declarations = array();
-	$current      = '';
+	$start        = 0;
 	$length       = strlen( $css );
 	$quote        = '';
 
@@ -2633,35 +2633,23 @@ function _wp_kses_split_css_declarations( $css ) {
 		$character = $css[ $offset ];
 
 		if ( '\\' === $character && $offset + 1 < $length ) {
-			$current .= $character . $css[ $offset + 1 ];
 			++$offset;
 			continue;
 		}
 
 		if ( '' !== $quote ) {
-			$current .= $character;
 			if ( $character === $quote ) {
 				$quote = '';
 			}
-			continue;
+		} elseif ( '"' === $character || "'" === $character ) {
+			$quote = $character;
+		} elseif ( ';' === $character ) {
+			$declarations[] = substr( $css, $start, $offset - $start );
+			$start          = $offset + 1;
 		}
-
-		if ( '"' === $character || "'" === $character ) {
-			$quote    = $character;
-			$current .= $character;
-			continue;
-		}
-
-		if ( ';' === $character ) {
-			$declarations[] = $current;
-			$current        = '';
-			continue;
-		}
-
-		$current .= $character;
 	}
 
-	$declarations[] = $current;
+	$declarations[] = substr( $css, $start );
 
 	return $declarations;
 }
