@@ -2103,7 +2103,7 @@ function wp_mkdir_p( $target ) {
 		$dir_perms = 0777;
 	}
 
-	if ( mkdir( $target, $dir_perms, true ) || is_dir( $target ) ) {
+	if ( @mkdir( $target, $dir_perms, true ) || is_dir( $target ) ) {
 
 		/*
 		 * If a umask is set that modifies $dir_perms, we'll have to re-set
