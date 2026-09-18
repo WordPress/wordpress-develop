@@ -609,6 +609,60 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that removing attributes preserves foreign-content tree semantics.
+	 *
+	 * @ticket 65372
+	 *
+	 * @covers ::remove_attribute
+	 *
+	 * @dataProvider data_remove_attribute_preserves_foreign_content_tree
+	 *
+	 * @param string $html                           HTML containing the attribute to remove.
+	 * @param string $tag_name                       Foreign element tag name to modify.
+	 * @param bool   $expected_has_self_closing_flag Expected self-closing flag state.
+	 * @param bool   $expected_expects_closer        Expected closer expectation.
+	 * @param array  $expected_text_breadcrumbs      Expected breadcrumbs for the following text.
+	 */
+	public function test_remove_attribute_preserves_foreign_content_tree( $html, $tag_name, $expected_has_self_closing_flag, $expected_expects_closer, $expected_text_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+		$this->assertTrue( $processor->next_tag( $tag_name ), "Failed to find the {$tag_name} tag: check test setup." );
+		$this->assertTrue( $processor->remove_attribute( 'attr' ), 'Could not remove the target attribute.' );
+
+		$processor = WP_HTML_Processor::create_fragment( $processor->get_updated_html() );
+		$this->assertTrue( $processor->next_tag( $tag_name ), "Failed to find the updated {$tag_name} tag." );
+		$this->assertNull( $processor->get_attribute( 'attr' ), 'The updated tag retained the removed attribute.' );
+		$this->assertSame( $expected_has_self_closing_flag, $processor->has_self_closing_flag(), 'Removing the attribute changed the self-closing flag state.' );
+		$this->assertSame( $expected_expects_closer, $processor->expects_closer(), 'Removing the attribute changed the closer expectation.' );
+
+		$this->assertTrue( $processor->next_token(), 'Failed to find text following the updated tag.' );
+		$this->assertSame( $expected_text_breadcrumbs, $processor->get_breadcrumbs(), 'Removing the attribute changed the text node ancestry.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_remove_attribute_preserves_foreign_content_tree() {
+		return array(
+			'SVG element without self-closing flag' => array(
+				'<svg><g /attr>inside</g></svg>',
+				'G',
+				false,
+				true,
+				array( 'HTML', 'BODY', 'SVG', 'G', '#text' ),
+			),
+			'MathML element with self-closing flag' => array(
+				'<math><mi /attr/>outside</math>',
+				'MI',
+				true,
+				false,
+				array( 'HTML', 'BODY', 'MATH', '#text' ),
+			),
+		);
+	}
+
+	/**
 	 * Ensures that expects_closer works for void-like elements in foreign content.
 	 *
 	 * For example, `<svg><input>text` creates an `svg:input` that contains a text node.
