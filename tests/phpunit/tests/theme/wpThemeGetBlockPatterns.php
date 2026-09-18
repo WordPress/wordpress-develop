@@ -19,14 +19,27 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	 */
 	private $initial_cache_object;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
 		$this->initial_cache_object = wp_using_ext_object_cache();
+		$this->original_stylesheet  = get_stylesheet();
 	}
 
 	public function tear_down() {
 		wp_using_ext_object_cache( $this->initial_cache_object );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
