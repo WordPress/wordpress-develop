@@ -383,9 +383,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	private static function get_html5_token_map() {
 		static $html5_token_map = null;
 
-		if ( ! isset( $html5_token_map ) ) {
-			$html5_token_map = WP_Token_Map::from_array( self::get_test_input_array( 'HTML5' ) );
-		}
+		$html5_token_map ??= WP_Token_Map::from_array( self::get_test_input_array( 'HTML5' ) );
 
 		return $html5_token_map;
 	}

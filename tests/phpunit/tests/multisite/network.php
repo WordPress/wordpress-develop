@@ -352,7 +352,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	public function test_get_dashboard_blog() {
 		// If there is no dashboard blog set, current blog is used.
 		$dashboard_blog = get_dashboard_blog();
-		$this->assertEquals( 1, $dashboard_blog->blog_id );
+		$this->assertSame( '1', $dashboard_blog->blog_id );
 
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user_id ) );
@@ -361,7 +361,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		// Set the dashboard blog to another one.
 		update_site_option( 'dashboard_blog', $blog_id );
 		$dashboard_blog = get_dashboard_blog();
-		$this->assertEquals( $blog_id, $dashboard_blog->blog_id );
+		$this->assertSame( (string) $blog_id, $dashboard_blog->blog_id );
 	}
 
 	/**
