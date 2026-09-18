@@ -122,11 +122,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						'callback'            => array( $this, 'sideload_item' ),
 						'permission_callback' => array( $this, 'sideload_item_permissions_check' ),
 						'args'                => array(
-							'id'                 => array(
+							'id'             => array(
 								'description' => __( 'Unique identifier for the attachment.' ),
 								'type'        => 'integer',
 							),
-							'image_size'         => array(
+							'image_size'     => array(
 								'description'       => __( 'Image size. Can be a single size name or an array of size names to register the same file under multiple sizes.' ),
 								'type'              => array( 'string', 'array' ),
 								'items'             => array(
@@ -158,15 +158,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 									return self::validate_image_size_names( $value, $param );
 								},
 							),
-							'convert_format'     => array(
+							'convert_format' => array(
 								'type'        => 'boolean',
 								'default'     => true,
 								'description' => __( 'Whether to convert image formats.' ),
-							),
-							'generate_sub_sizes' => array(
-								'description' => __( 'Whether to generate image sub sizes from the sideloaded file.' ),
-								'type'        => 'boolean',
-								'default'     => false,
 							),
 						),
 					),
