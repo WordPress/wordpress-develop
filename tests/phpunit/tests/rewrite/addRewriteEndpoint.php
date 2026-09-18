@@ -2,6 +2,8 @@
 
 /**
  * @group rewrite
+ *
+ * @covers ::add_rewrite_endpoint
  */
 class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 	private $qvs;

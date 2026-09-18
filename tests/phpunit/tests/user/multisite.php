@@ -20,8 +20,8 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 
 		$post = get_post( $post_id );
 
-		$this->assertNotEquals( $user1->ID, $post->post_author );
-		$this->assertEquals( $user2->ID, $post->post_author );
+		$this->assertNotSame( (string) $user1->ID, $post->post_author );
+		$this->assertSame( (string) $user2->ID, $post->post_author );
 	}
 
 	/**
@@ -80,9 +80,9 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 		$this->assertSame( $blog_ids, $blog_ids_of_user );
 
 		// Check if sites are flagged as expected.
-		$this->assertEquals( 1, $blogs_of_user[ $blog_ids[0] ]->spam );
-		$this->assertEquals( 1, $blogs_of_user[ $blog_ids[1] ]->archived );
-		$this->assertEquals( 1, $blogs_of_user[ $blog_ids[2] ]->deleted );
+		$this->assertSame( '1', $blogs_of_user[ $blog_ids[0] ]->spam );
+		$this->assertSame( '1', $blogs_of_user[ $blog_ids[1] ]->archived );
+		$this->assertSame( '1', $blogs_of_user[ $blog_ids[2] ]->deleted );
 
 		unset( $blog_ids[0] );
 		unset( $blog_ids[1] );
@@ -174,6 +174,71 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 		$this->assertFalse( is_user_member_of_blog( $user1_id ) );
 
 		wp_set_current_user( $old_current );
+	}
+
+	/**
+	 * Ensures the `is_user_member_of_blog` filter can override the return value
+	 * and receives the resolved user ID and blog ID.
+	 *
+	 * @ticket 65096
+	 *
+	 * @covers ::is_user_member_of_blog
+	 */
+	public function test_is_user_member_of_blog_filter() {
+		$user_id = self::factory()->user->create();
+		$blog_id = self::factory()->blog->create();
+
+		// Sanity check: the user is not a member of the blog by default.
+		$this->assertFalse( is_user_member_of_blog( $user_id, $blog_id ) );
+
+		$filter_args = array();
+		$filter      = function ( $is_member, $filtered_user_id, $filtered_blog_id ) use ( &$filter_args ) {
+			$filter_args[] = array( $is_member, $filtered_user_id, $filtered_blog_id );
+			return true;
+		};
+
+		add_filter( 'is_user_member_of_blog', $filter, 10, 3 );
+		$result = is_user_member_of_blog( $user_id, $blog_id );
+
+		$this->assertTrue( $result, 'Filter should be able to force a truthy return value.' );
+		$this->assertCount( 1, $filter_args, 'Filter should run exactly once per call on a valid multisite blog.' );
+		$this->assertSame( array( false, $user_id, $blog_id ), $filter_args[0], 'Filter should receive the computed membership, user ID, and blog ID.' );
+	}
+
+	/**
+	 * Ensures the `is_user_member_of_blog` filter is not invoked for requests
+	 * that short-circuit before the membership is computed.
+	 *
+	 * @ticket 65096
+	 *
+	 * @covers ::is_user_member_of_blog
+	 */
+	public function test_is_user_member_of_blog_filter_not_called_for_invalid_input() {
+		$filter_calls = 0;
+		$filter       = function ( $is_member ) use ( &$filter_calls ) {
+			++$filter_calls;
+			return $is_member;
+		};
+
+		add_filter( 'is_user_member_of_blog', $filter );
+
+		// No current user, and no user ID provided.
+		$old_current = get_current_user_id();
+		wp_set_current_user( 0 );
+		$is_member = is_user_member_of_blog();
+		wp_set_current_user( $old_current );
+		$this->assertFalse( $is_member, 'Filter should not run when no user ID was provided.' );
+
+		// Unknown user ID.
+		$this->assertFalse( is_user_member_of_blog( PHP_INT_MAX ), 'Filter should not run without a valid user ID.' );
+
+		// Known user, but an archived/deleted/spam site short-circuits.
+		$user_id = self::factory()->user->create();
+		$blog_id = self::factory()->blog->create();
+		update_blog_details( $blog_id, array( 'archived' => 1 ) );
+		$this->assertFalse( is_user_member_of_blog( $user_id, $blog_id ) );
+
+		$this->assertSame( 0, $filter_calls, 'Filter should not run when the function short-circuits before computing membership.' );
 	}
 
 	/**

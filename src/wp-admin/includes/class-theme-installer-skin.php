@@ -16,6 +16,14 @@
  * @see WP_Upgrader_Skin
  */
 class Theme_Installer_Skin extends WP_Upgrader_Skin {
+	/**
+	 * The upgrader instance.
+	 *
+	 * @since 2.8.0
+	 * @var Theme_Upgrader
+	 */
+	public $upgrader;
+
 	public $api;
 	public $type;
 	public $url;
@@ -45,7 +53,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 		$this->type      = $args['type'];
 		$this->url       = $args['url'];
-		$this->api       = isset( $args['api'] ) ? $args['api'] : array();
+		$this->api       = $args['api'] ?? array();
 		$this->overwrite = $args['overwrite'];
 
 		parent::__construct( $args );
@@ -248,7 +256,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 		$is_invalid_parent = false;
 		if ( ! empty( $new_theme_data['Template'] ) ) {
-			$is_invalid_parent = ! in_array( $new_theme_data['Template'], array_keys( $all_themes ), true );
+			$is_invalid_parent = ! isset( $all_themes[ $new_theme_data['Template'] ] );
 		}
 
 		$rows = array(
@@ -310,8 +318,8 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		$blocked_message  = '<p>' . esc_html__( 'The theme cannot be updated due to the following:' ) . '</p>';
 		$blocked_message .= '<ul class="ul-disc">';
 
-		$requires_php = isset( $new_theme_data['RequiresPHP'] ) ? $new_theme_data['RequiresPHP'] : null;
-		$requires_wp  = isset( $new_theme_data['RequiresWP'] ) ? $new_theme_data['RequiresWP'] : null;
+		$requires_php = $new_theme_data['RequiresPHP'] ?? null;
+		$requires_wp  = $new_theme_data['RequiresWP'] ?? null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(

@@ -621,7 +621,7 @@ https://wordpress.org/
 		 *
 		 * @since 5.6.0
 		 *
-		 * @param array $installed_email {
+		 * @param array   $installed_email {
 		 *     Used to build wp_mail().
 		 *
 		 *     @type string $to      The email address of the recipient.
@@ -629,11 +629,11 @@ https://wordpress.org/
 		 *     @type string $message The content of the email.
 		 *     @type string $headers Headers.
 		 * }
-		 * @param WP_User $user          The site administrator user object.
-		 * @param string  $blog_title    The site title.
-		 * @param string  $blog_url      The site URL.
-		 * @param string  $password      The site administrator's password. Note that a placeholder message
-		 *                               is usually passed instead of the user's actual password.
+		 * @param WP_User $user            The site administrator user object.
+		 * @param string  $blog_title      The site title.
+		 * @param string  $blog_url        The site URL.
+		 * @param string  $password        The site administrator's password. Note that a placeholder message
+		 *                                 is usually passed instead of the user's actual password.
 		 */
 		$installed_email = apply_filters( 'wp_installed_email', $installed_email, $user, $blog_title, $blog_url, $password );
 
@@ -884,6 +884,10 @@ function upgrade_all() {
 
 	if ( $wp_current_db_version < 60421 ) {
 		upgrade_682();
+	}
+
+	if ( $wp_current_db_version < 61644 ) {
+		upgrade_700();
 	}
 
 	maybe_disable_link_manager();
@@ -2033,24 +2037,14 @@ function upgrade_430_fix_comments() {
 
 	$content_length = $wpdb->get_col_length( $wpdb->comments, 'comment_content' );
 
-	if ( is_wp_error( $content_length ) ) {
-		return;
-	}
-
 	if ( false === $content_length ) {
 		$content_length = array(
 			'type'   => 'byte',
 			'length' => 65535,
 		);
-	} elseif ( ! is_array( $content_length ) ) {
-		$length         = (int) $content_length > 0 ? (int) $content_length : 65535;
-		$content_length = array(
-			'type'   => 'byte',
-			'length' => $length,
-		);
 	}
 
-	if ( 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
+	if ( ! is_array( $content_length ) || 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
 		// Sites with malformed DB schemas are on their own.
 		return;
 	}
@@ -2478,6 +2472,31 @@ function upgrade_682() {
 		$ping_sites_value = array_filter( $ping_sites_value );
 		$ping_sites_value = implode( "\n", $ping_sites_value );
 		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 7.0.
+ *
+ * @ignore
+ * @since 7.0.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_700() {
+	global $wp_current_db_version, $wpdb;
+
+	// Migrate users with 'fresh' admin color to 'modern'.
+	if ( $wp_current_db_version < 61644 ) {
+		$wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'modern' ),
+			array(
+				'meta_key'   => 'admin_color',
+				'meta_value' => 'fresh',
+			)
+		);
 	}
 }
 
@@ -3253,7 +3272,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( '0' === (string) $tableindex->Non_unique ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = '0' === (string) $tableindex->Non_unique;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 

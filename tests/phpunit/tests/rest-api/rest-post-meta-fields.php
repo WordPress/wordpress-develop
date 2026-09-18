@@ -21,7 +21,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
-		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
+		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'] ?? array();
 		self::$post_id            = $factory->post->create();
 		self::$cpt_post_id        = $factory->post->create( array( 'post_type' => 'cpt' ) );
 	}
@@ -2348,7 +2348,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( false, $data['meta']['authenticated'] );
+		$this->assertFalse( $data['meta']['authenticated'] );
 	}
 
 	/**

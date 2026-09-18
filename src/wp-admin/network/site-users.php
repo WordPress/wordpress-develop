@@ -236,7 +236,7 @@ if ( ! wp_is_large_network( 'users' ) && apply_filters( 'show_network_site_users
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
-<script type="text/javascript">
+<script>
 var current_site_id = <?php echo absint( $id ); ?>;
 </script>
 
@@ -376,11 +376,11 @@ if ( current_user_can( 'create_users' ) && apply_filters( 'show_network_site_use
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="user_username"><?php _e( 'Username' ); ?></label></th>
-			<td><input type="text" class="regular-text" name="user[username]" id="user_username" /></td>
+			<td><input type="text" class="regular-text ltr" name="user[username]" id="user_username" /></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="user_email"><?php _e( 'Email' ); ?></label></th>
-			<td><input type="text" class="regular-text" name="user[email]" id="user_email" /></td>
+			<td><input type="text" class="regular-text ltr" name="user[email]" id="user_email" /></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="new_role_newuser"><?php _e( 'Role' ); ?></label></th>

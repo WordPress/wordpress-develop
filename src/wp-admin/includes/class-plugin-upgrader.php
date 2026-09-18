@@ -490,8 +490,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return new WP_Error( 'incompatible_archive_no_plugins', $this->strings['incompatible_archive'], __( 'No valid plugins were found.' ) );
 		}
 
-		$requires_php = isset( $new_plugin_data['RequiresPHP'] ) ? $new_plugin_data['RequiresPHP'] : null;
-		$requires_wp  = isset( $new_plugin_data['RequiresWP'] ) ? $new_plugin_data['RequiresWP'] : null;
+		$requires_php = $new_plugin_data['RequiresPHP'] ?? null;
+		$requires_wp  = $new_plugin_data['RequiresWP'] ?? null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
@@ -542,9 +542,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		// Assume the requested plugin is the first in the list.
-		$plugin_files = array_keys( $plugin );
-
-		return $this->result['destination_name'] . '/' . $plugin_files[0];
+		return $this->result['destination_name'] . '/' . array_key_first( $plugin );
 	}
 
 	/**
@@ -570,7 +568,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $response;
 		}
 
-		$plugin = isset( $plugin['plugin'] ) ? $plugin['plugin'] : '';
+		$plugin = $plugin['plugin'] ?? '';
 		if ( empty( $plugin ) ) {
 			return new WP_Error( 'bad_request', $this->strings['bad_request'] );
 		}
@@ -604,7 +602,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $response;
 		}
 
-		$plugin = isset( $plugin['plugin'] ) ? $plugin['plugin'] : '';
+		$plugin = $plugin['plugin'] ?? '';
 
 		// Only run if plugin is active.
 		if ( ! is_plugin_active( $plugin ) ) {
@@ -640,7 +638,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $response;
 		}
 
-		$plugin = isset( $plugin['plugin'] ) ? $plugin['plugin'] : '';
+		$plugin = $plugin['plugin'] ?? '';
 
 		// Only run if plugin is active.
 		if ( ! is_plugin_active( $plugin ) ) {
@@ -679,7 +677,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $removed; // Pass errors through.
 		}
 
-		$plugin = isset( $plugin['plugin'] ) ? $plugin['plugin'] : '';
+		$plugin = $plugin['plugin'] ?? '';
 		if ( empty( $plugin ) ) {
 			return new WP_Error( 'bad_request', $this->strings['bad_request'] );
 		}

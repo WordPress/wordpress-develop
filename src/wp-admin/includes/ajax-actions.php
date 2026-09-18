@@ -12,7 +12,7 @@
 //
 
 /**
- * Handles the Heartbeat API in the no-privilege context via AJAX .
+ * Handles the Heartbeat API in the no-privilege context via AJAX.
  *
  * Runs when the user is not logged in.
  *
@@ -128,7 +128,7 @@ function wp_ajax_ajax_tag_search() {
 
 	if ( str_contains( $search, ',' ) ) {
 		$search = explode( ',', $search );
-		$search = $search[ count( $search ) - 1 ];
+		$search = array_last( $search );
 	}
 
 	$search = trim( $search );
@@ -285,6 +285,10 @@ function wp_ajax_oembed_cache() {
  * Handles user autocomplete via AJAX.
  *
  * @since 3.4.0
+ * @since 7.1.0 The search term is now sanitized, and a missing, non-string,
+ *              or empty term results in a `0` response instead of an empty array.
+ *
+ * @return never
  */
 function wp_ajax_autocomplete_user() {
 	if ( ! is_multisite() || ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) ) {
@@ -297,6 +301,20 @@ function wp_ajax_autocomplete_user() {
 	}
 
 	$return = array();
+
+	// Obtain the search term, and short-circuit missing/invalid search term.
+	if ( ! isset( $_REQUEST['term'] ) || ! is_string( $_REQUEST['term'] ) ) {
+		wp_die( 0 );
+	}
+	/*
+	 * Asterisks are trimmed since wildcards are appended below. Without this, a
+	 * term consisting only of asterisks would result in an empty search that
+	 * matches all users.
+	 */
+	$term = trim( sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ), '*' );
+	if ( '' === $term ) {
+		wp_die( 0 );
+	}
 
 	/*
 	 * Check the type of request.
@@ -342,7 +360,7 @@ function wp_ajax_autocomplete_user() {
 	$users = get_users(
 		array(
 			'blog_id'        => false,
-			'search'         => '*' . $_REQUEST['term'] . '*',
+			'search'         => '*' . $term . '*',
 			'include'        => $include_blog_users,
 			'exclude'        => $exclude_blog_users,
 			'search_columns' => array( 'user_login', 'user_nicename', 'user_email' ),
@@ -454,8 +472,8 @@ function wp_ajax_logged_in() {
  * @since 2.7.0
  * @access private
  *
- * @param int $comment_id
- * @param int $delta
+ * @param int $comment_id Comment ID.
+ * @param int $delta      Optional. Change in the number of total comments. Default -1.
  */
 function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 	$total    = isset( $_POST['_total'] ) ? (int) $_POST['_total'] : 0;
@@ -1241,7 +1259,7 @@ function wp_ajax_get_tagcloud() {
  *
  * @since 3.1.0
  *
- * @global int $post_id
+ * @global int $post_id Post ID.
  *
  * @param string $action Action to perform.
  */
@@ -1621,7 +1639,7 @@ function wp_ajax_add_meta() {
 	$post    = get_post( $post_id );
 
 	if ( isset( $_POST['metakeyselect'] ) || isset( $_POST['metakeyinput'] ) ) {
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( -1 );
 		}
 
@@ -1808,7 +1826,7 @@ function wp_ajax_closed_postboxes() {
 	$hidden = isset( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : array();
 	$hidden = array_filter( $hidden );
 
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -1839,7 +1857,7 @@ function wp_ajax_closed_postboxes() {
  */
 function wp_ajax_hidden_columns() {
 	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -1988,13 +2006,13 @@ function wp_ajax_menu_locations_save() {
 function wp_ajax_meta_box_order() {
 	check_ajax_referer( 'meta-box-order' );
 	$order        = isset( $_POST['order'] ) ? (array) $_POST['order'] : false;
-	$page_columns = isset( $_POST['page_columns'] ) ? $_POST['page_columns'] : 'auto';
+	$page_columns = $_POST['page_columns'] ?? 'auto';
 
 	if ( 'auto' !== $page_columns ) {
 		$page_columns = (int) $page_columns;
 	}
 
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -2041,6 +2059,13 @@ function wp_ajax_menu_quick_search() {
 function wp_ajax_get_permalink() {
 	check_ajax_referer( 'getpermalink', 'getpermalinknonce' );
 	$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
+	if ( ! $post_id ) {
+		// Bypass call to get_preview_post_link() for unspecified post ID.
+		wp_die( '' );
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( -1 );
+	}
 	wp_die( get_preview_post_link( $post_id ) );
 }
 
@@ -2052,8 +2077,15 @@ function wp_ajax_get_permalink() {
 function wp_ajax_sample_permalink() {
 	check_ajax_referer( 'samplepermalink', 'samplepermalinknonce' );
 	$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
-	$title   = isset( $_POST['new_title'] ) ? $_POST['new_title'] : '';
-	$slug    = isset( $_POST['new_slug'] ) ? $_POST['new_slug'] : null;
+	if ( ! $post_id ) {
+		// Bypass call to get_sample_permalink_html() for unspecified post ID.
+		wp_die( '' );
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( -1 );
+	}
+	$title = $_POST['new_title'] ?? '';
+	$slug  = $_POST['new_slug'] ?? null;
 	wp_die( get_sample_permalink_html( $post_id, $title, $slug ) );
 }
 
@@ -2106,6 +2138,9 @@ function wp_ajax_inline_save() {
 	$data = &$_POST;
 
 	$post = get_post( $post_id, ARRAY_A );
+	if ( ! $post ) {
+		wp_die();
+	}
 
 	// Since it's coming from the database.
 	$post = wp_slash( $post );
@@ -2353,9 +2388,9 @@ function wp_ajax_widgets_order() {
  *
  * @since 3.1.0
  *
- * @global array $wp_registered_widgets
- * @global array $wp_registered_widget_controls
- * @global array $wp_registered_widget_updates
+ * @global array $wp_registered_widgets         Registered widgets.
+ * @global array $wp_registered_widget_controls Registered widget controls.
+ * @global array $wp_registered_widget_updates  Registered widget updates.
  */
 function wp_ajax_save_widget() {
 	global $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
@@ -2382,7 +2417,7 @@ function wp_ajax_save_widget() {
 	 */
 	do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-	/** This action is documented in wp-admin/widgets.php */
+	/** This action is documented in wp-admin/widgets-form.php */
 	do_action( 'sidebar_admin_setup' );
 
 	$id_base      = wp_unslash( $_POST['id_base'] );
@@ -2393,7 +2428,7 @@ function wp_ajax_save_widget() {
 	$error        = '<p>' . __( 'An error has occurred. Please reload the page and try again.' ) . '</p>';
 
 	$sidebars = wp_get_sidebars_widgets();
-	$sidebar  = isset( $sidebars[ $sidebar_id ] ) ? $sidebars[ $sidebar_id ] : array();
+	$sidebar  = $sidebars[ $sidebar_id ] ?? array();
 
 	// Delete.
 	if ( isset( $_POST['delete_widget'] ) && $_POST['delete_widget'] ) {
@@ -2410,7 +2445,7 @@ function wp_ajax_save_widget() {
 			'delete_widget'      => '1',
 		);
 
-		/** This action is documented in wp-admin/widgets.php */
+		/** This action is documented in wp-admin/widgets-form.php */
 		do_action( 'delete_widget', $widget_id, $sidebar_id, $id_base );
 
 	} elseif ( $settings && preg_match( '/__i__|%i%/', key( $settings ) ) ) {
@@ -2462,7 +2497,7 @@ function wp_ajax_save_widget() {
  *
  * @since 3.9.0
  *
- * @global WP_Customize_Manager $wp_customize
+ * @global WP_Customize_Manager $wp_customize Customizer manager object.
  */
 function wp_ajax_update_widget() {
 	global $wp_customize;
@@ -2486,7 +2521,7 @@ function wp_ajax_delete_inactive_widgets() {
 	do_action( 'load-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	/** This action is documented in wp-admin/includes/ajax-actions.php */
 	do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-	/** This action is documented in wp-admin/widgets.php */
+	/** This action is documented in wp-admin/widgets-form.php */
 	do_action( 'sidebar_admin_setup' );
 
 	$sidebars_widgets = wp_get_sidebars_widgets();
@@ -3134,6 +3169,9 @@ function wp_ajax_save_attachment() {
 
 	$changes = $_REQUEST['changes'];
 	$post    = get_post( $id, ARRAY_A );
+	if ( ! $post ) {
+		wp_send_json_error();
+	}
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();
@@ -3225,6 +3263,9 @@ function wp_ajax_save_attachment_compat() {
 	}
 
 	$post = get_post( $id, ARRAY_A );
+	if ( ! $post ) {
+		wp_send_json_error();
+	}
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();
@@ -3353,12 +3394,12 @@ function wp_ajax_send_attachment_to_editor() {
 	remove_filter( 'media_send_to_editor', 'image_media_send_to_editor' );
 
 	if ( str_starts_with( $post->post_mime_type, 'image' ) ) {
-		$align = isset( $attachment['align'] ) ? $attachment['align'] : 'none';
-		$size  = isset( $attachment['image-size'] ) ? $attachment['image-size'] : 'medium';
-		$alt   = isset( $attachment['image_alt'] ) ? $attachment['image_alt'] : '';
+		$align = $attachment['align'] ?? 'none';
+		$size  = $attachment['image-size'] ?? 'medium';
+		$alt   = $attachment['image_alt'] ?? '';
 
 		// No whitespace-only captions.
-		$caption = isset( $attachment['post_excerpt'] ) ? $attachment['post_excerpt'] : '';
+		$caption = $attachment['post_excerpt'] ?? '';
 		if ( '' === trim( $caption ) ) {
 			$caption = '';
 		}
@@ -3368,7 +3409,7 @@ function wp_ajax_send_attachment_to_editor() {
 	} elseif ( wp_attachment_is( 'video', $post ) || wp_attachment_is( 'audio', $post ) ) {
 		$html = stripslashes_deep( $_POST['html'] );
 	} else {
-		$html = isset( $attachment['post_title'] ) ? $attachment['post_title'] : '';
+		$html = $attachment['post_title'] ?? '';
 		$rel  = $rel ? ' rel="attachment wp-att-' . $id . '"' : ''; // Hard-coded string, $id is already sanitized.
 
 		if ( ! empty( $url ) ) {
@@ -3421,7 +3462,7 @@ function wp_ajax_send_link_to_editor() {
 		$link_text = wp_basename( $src );
 	}
 
-	$post = get_post( isset( $_POST['post_id'] ) ? $_POST['post_id'] : 0 );
+	$post = get_post( $_POST['post_id'] ?? 0 );
 
 	// Ping WordPress for an embed.
 	$check_embed = $wp_embed->run_shortcode( '[embed]' . $src . '[/embed]' );
@@ -3588,7 +3629,7 @@ function wp_ajax_get_revision_diffs() {
  *
  * @since 3.8.0
  *
- * @global array $_wp_admin_css_colors
+ * @global array $_wp_admin_css_colors Registered admin CSS color schemes.
  */
 function wp_ajax_save_user_color_scheme() {
 	global $_wp_admin_css_colors;
@@ -3617,8 +3658,8 @@ function wp_ajax_save_user_color_scheme() {
  *
  * @since 3.9.0
  *
- * @global array $themes_allowedtags
- * @global array $theme_field_defaults
+ * @global array $themes_allowedtags   Allowed HTML tags for theme descriptions.
+ * @global array $theme_field_defaults Default theme fields.
  */
 function wp_ajax_query_themes() {
 	global $themes_allowedtags, $theme_field_defaults;
@@ -3647,7 +3688,7 @@ function wp_ajax_query_themes() {
 		}
 	}
 
-	$old_filter = isset( $args['browse'] ) ? $args['browse'] : 'search';
+	$old_filter = $args['browse'] ?? 'search';
 
 	/** This filter is documented in wp-admin/includes/class-wp-theme-install-list-table.php */
 	$args = apply_filters( 'install_themes_table_api_args_' . $old_filter, $args );
@@ -3750,8 +3791,8 @@ function wp_ajax_query_themes() {
  *
  * @global WP_Post    $post          Global post object.
  * @global WP_Embed   $wp_embed      WordPress Embed object.
- * @global WP_Scripts $wp_scripts
- * @global int        $content_width
+ * @global WP_Scripts $wp_scripts    Script dependencies object.
+ * @global int        $content_width Shared post content width.
  */
 function wp_ajax_parse_embed() {
 	global $post, $wp_embed, $content_width;
@@ -3891,7 +3932,7 @@ function wp_ajax_parse_embed() {
  * @since 4.0.0
  *
  * @global WP_Post    $post       Global post object.
- * @global WP_Scripts $wp_scripts
+ * @global WP_Scripts $wp_scripts Script dependencies object.
  */
 function wp_ajax_parse_media_shortcode() {
 	global $post, $wp_scripts;
@@ -4585,6 +4626,12 @@ function wp_ajax_activate_plugin() {
 
 	if ( ! current_user_can( 'activate_plugin', $status['plugin'] ) ) {
 		$status['errorMessage'] = __( 'Sorry, you are not allowed to activate plugins on this site.' );
+		wp_send_json_error( $status );
+	}
+
+	// A network-only plugin is activated for the entire network.
+	if ( is_multisite() && is_network_only_plugin( $status['plugin'] ) && ! current_user_can( 'manage_network_plugins' ) ) {
+		$status['errorMessage'] = __( 'Sorry, you are not allowed to activate this plugin.' );
 		wp_send_json_error( $status );
 	}
 

@@ -13,7 +13,7 @@
  * @return string The HTTP protocol. Default: HTTP/1.0.
  */
 function wp_get_server_protocol() {
-	$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
+	$protocol = $_SERVER['SERVER_PROTOCOL'] ?? '';
 
 	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {
 		$protocol = 'HTTP/1.0';
@@ -115,7 +115,7 @@ function wp_populate_basic_auth_from_authorization_header() {
 	}
 
 	// From our prior conditional, one of these must be set.
-	$header = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+	$header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
 
 	// Test to make sure the pattern matches expected.
 	if ( ! preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $header ) ) {
@@ -1461,12 +1461,44 @@ function is_multisite() {
  * Converts a value to non-negative integer.
  *
  * @since 2.5.0
+ * @since 7.2.0 The `int` return type was added. Finite values beyond the integer
+ *              range are now capped at `PHP_INT_MAX` rather than overflowing.
+ *              Non-finite values continue to return `0`, as `NAN` and `INF` have
+ *              always cast to `0`; note that this includes numeric strings beyond
+ *              the float range, such as `'1e309'`, which become `INF` when cast.
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
+ * @phpstan-return non-negative-int
  */
-function absint( $maybeint ) {
-	return abs( (int) $maybeint );
+function absint( $maybeint ): int {
+	if ( is_float( $maybeint ) ) {
+		if ( ! is_finite( $maybeint ) ) {
+			// Casting `NAN` or `INF` to int has produced `0` since PHP 7.0.
+			return 0;
+		}
+
+		if ( $maybeint <= (float) PHP_INT_MIN || $maybeint >= (float) PHP_INT_MAX ) {
+			// Casting a float beyond the integer range is unreliable and warns as of PHP 8.5.
+			return PHP_INT_MAX;
+		}
+	}
+
+	/*
+	 * Casting from an unknown type is the entire contract of this function, so this conversion is
+	 * deliberate: arrays, objects, and resources are converted exactly as PHP has always converted
+	 * them here, and narrowing the type first would change long-standing behavior. PHPStan flags
+	 * such casts for good reason, but that reasoning does not apply here; if the rule level is
+	 * ever raised to 9, the resulting `cast.int` error will need to be ignored or baselined.
+	 */
+	$maybeint = (int) $maybeint;
+
+	if ( PHP_INT_MIN === $maybeint ) {
+		// `abs( PHP_INT_MIN )` overflows to a float, as `PHP_INT_MAX` is one less than `-PHP_INT_MIN`.
+		return PHP_INT_MAX;
+	}
+
+	return abs( $maybeint );
 }
 
 /**
@@ -1798,6 +1830,8 @@ function wp_doing_cron() {
  *
  * @param mixed $thing The variable to check.
  * @return bool Whether the variable is an instance of WP_Error.
+ *
+ * @phpstan-assert-if-true WP_Error $thing
  */
 function is_wp_error( $thing ) {
 	$is_wp_error = ( $thing instanceof WP_Error );
@@ -2040,8 +2074,8 @@ function wp_is_site_protected_by_basic_auth( $context = '' ) {
 	 *
 	 * @since 5.6.1
 	 *
-	 * @param bool $is_protected Whether the site is protected by Basic Auth.
-	 * @param string $context    The context to check for protection. One of 'login', 'admin', or 'front'.
+	 * @param bool   $is_protected Whether the site is protected by Basic Auth.
+	 * @param string $context      The context to check for protection. One of 'login', 'admin', or 'front'.
 	 */
 	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected, $context );
 }

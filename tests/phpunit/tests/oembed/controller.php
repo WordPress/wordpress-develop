@@ -93,7 +93,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		unset( $response, $parsed_args );
 
 		$parsed_url = wp_parse_url( $url );
-		$query      = isset( $parsed_url['query'] ) ? $parsed_url['query'] : '';
+		$query      = $parsed_url['query'] ?? '';
 		parse_str( $query, $query_params );
 		$this->request_count += 1;
 

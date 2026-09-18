@@ -387,7 +387,7 @@ class getID3
 	 */
 	protected $startup_warning = '';
 
-	const VERSION           = '1.9.24-202509040923';
+	const VERSION           = '1.9.26-202609042051';
 	const FREAD_BUFFER_SIZE = 32768;
 
 	const ATTACHMENTS_NONE   = false;
@@ -1328,6 +1328,26 @@ class getID3
 							'fail_ape'  => 'ERROR',
 						),
 
+				// JXL  - still image - JPEG XL (bare codestream)
+				'jpegxl'  => array(
+							'pattern'   => '^\\xFF\\x0A',
+							'group'     => 'graphic',
+							'module'    => 'jpegxl',
+							'mime_type' => 'image/jxl',
+							'fail_id3'  => 'ERROR',
+							'fail_ape'  => 'ERROR',
+						),
+
+				// JXL  - still image - JPEG XL (ISO BMFF container)
+				'jpegxlbmff'  => array(
+							'pattern'   => '^\\x00\\x00\\x00\\x0CJXL\\x20\\x0D\\x0A\\x87\\x0A',
+							'group'     => 'graphic',
+							'module'    => 'jpegxl',
+							'mime_type' => 'image/jxl',
+							'fail_id3'  => 'ERROR',
+							'fail_ape'  => 'ERROR',
+						),
+
 				// PCD  - still image - Kodak Photo CD
 				'pcd'  => array(
 							'pattern'   => '^.{2048}PCD_IPI\\x00',
@@ -1820,7 +1840,7 @@ class getID3
 
 					if (file_exists(GETID3_HELPERAPPSDIR.'vorbiscomment.exe')) {
 
-						$commandline = '"'.GETID3_HELPERAPPSDIR.'vorbiscomment.exe" -w -c "'.$empty.'" "'.$file.'" "'.$temp.'"';
+						$commandline = '"'.GETID3_HELPERAPPSDIR.'vorbiscomment.exe" -w -c '.escapeshellarg($empty).' '.escapeshellarg($file).' '.escapeshellarg($temp);
 						$VorbisCommentError = shell_exec($commandline);
 
 					} else {
@@ -1950,6 +1970,12 @@ class getID3
 		// Set playtime string
 		if (!empty($this->info['playtime_seconds']) && empty($this->info['playtime_string'])) {
 			$this->info['playtime_string'] = getid3_lib::PlaytimeString($this->info['playtime_seconds']);
+		}
+
+		// Look up codec name if fourcc is set but codec is not
+		if (!empty($this->info['video']['fourcc']) && !isset($this->info['video']['codec'])) {
+			$this->include_module('audio-video.riff');
+			$this->info['video']['codec'] = getid3_riff::fourccLookup($this->info['video']['fourcc']);
 		}
 	}
 

@@ -173,12 +173,23 @@ final class WP_Block_Patterns_Registry {
 		} else {
 			$patterns = &$this->registered_patterns;
 		}
-		if ( ! isset( $patterns[ $pattern_name ]['content'] ) && isset( $patterns[ $pattern_name ]['filePath'] ) ) {
+
+		$file_path    = $patterns[ $pattern_name ]['filePath'] ?? '';
+		$is_stringy   = is_string( $file_path ) || ( is_object( $file_path ) && method_exists( $file_path, '__toString' ) );
+		$pattern_path = $is_stringy ? realpath( (string) $file_path ) : null;
+		if (
+			! isset( $patterns[ $pattern_name ]['content'] ) &&
+			is_string( $pattern_path ) &&
+			( str_ends_with( $pattern_path, '.php' ) || str_ends_with( $pattern_path, '.html' ) ) &&
+			is_file( $pattern_path ) &&
+			is_readable( $pattern_path )
+		) {
 			ob_start();
 			include $patterns[ $pattern_name ]['filePath'];
 			$patterns[ $pattern_name ]['content'] = ob_get_clean();
 			unset( $patterns[ $pattern_name ]['filePath'] );
 		}
+
 		return $patterns[ $pattern_name ]['content'];
 	}
 
@@ -216,10 +227,9 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		$patterns      = $outside_init_only
-				? $this->registered_patterns_outside_init
-				: $this->registered_patterns;
-		$hooked_blocks = get_hooked_blocks();
+		$patterns = $outside_init_only
+			? $this->registered_patterns_outside_init
+			: $this->registered_patterns;
 
 		foreach ( $patterns as $index => $pattern ) {
 			$content                       = $this->get_content( $pattern['name'], $outside_init_only );
@@ -270,9 +280,7 @@ final class WP_Block_Patterns_Registry {
 	 * @return WP_Block_Patterns_Registry The main instance.
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
+		self::$instance ??= new self();
 
 		return self::$instance;
 	}

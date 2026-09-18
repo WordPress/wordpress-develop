@@ -19,7 +19,7 @@ $pagenum       = $wp_list_table->get_pagenum();
 
 $action = $wp_list_table->current_action();
 
-$s = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
+$s = $_REQUEST['s'] ?? '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
 $temp_args = array(
@@ -293,7 +293,7 @@ if ( $action ) {
 			check_admin_referer( 'bulk-themes' );
 
 			/** This action is documented in wp-admin/network/site-themes.php */
-			$referer = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $referer, $action, $themes ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+			$referer = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $referer, $action, $themes, 0 ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 			wp_safe_redirect( $referer );
 			exit;

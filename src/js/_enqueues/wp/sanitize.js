@@ -2,8 +2,9 @@
  * @output wp-includes/js/wp-sanitize.js
  */
 
-/* eslint-env es6 */
-
+/**
+ * Provides helper functions to sanitize strings.
+ */
 ( function () {
 
 	window.wp = window.wp || {};
@@ -18,11 +19,15 @@
 		/**
 		 * Strip HTML tags.
 		 *
-		 * @param {string} text - Text to strip the HTML tags from.
+		 * @param {string} text Text to strip the HTML tags from.
 		 *
 		 * @return {string} Stripped text.
 		 */
 		stripTags: function( text ) {
+			if ( 'string' !== typeof text ) {
+				return '';
+			}
+
 			const domParser = new DOMParser();
 			const htmlDocument = domParser.parseFromString(
 				text,
@@ -47,7 +52,7 @@
 		/**
 		 * Strip HTML tags and convert HTML entities.
 		 *
-		 * @param {string} text - Text to strip tags and convert HTML entities.
+		 * @param {string} text Text to strip tags and convert HTML entities.
 		 *
 		 * @return {string} Sanitized text.
 		 */
