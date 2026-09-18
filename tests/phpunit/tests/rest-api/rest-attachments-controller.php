@@ -3497,18 +3497,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Test that still HEIC/HEIF uploads bypass the image editor support check.
+	 * Test that HEIC/HEIF uploads bypass the image editor support check.
 	 *
-	 * The browser's canvas fallback can always decode still HEIC/HEIF, so the
-	 * upload is allowed even when the server has no editor that supports it.
+	 * The browser's canvas fallback can decode HEIC/HEIF, so the upload is
+	 * allowed even when the server has no editor that supports it.
 	 *
 	 * @ticket 64915
 	 *
-	 * @dataProvider data_still_heic_mime_types
+	 * @dataProvider data_heic_mime_types
 	 *
-	 * @param string $mime_type Still HEIC/HEIF mime type.
+	 * @param string $mime_type HEIC/HEIF mime type.
 	 */
-	public function test_upload_still_heic_bypasses_unsupported_image_type_check( $mime_type ) {
+	public function test_upload_heic_bypasses_unsupported_image_type_check( $mime_type ) {
 		wp_set_current_user( self::$author_id );
 
 		add_filter( 'wp_image_editors', '__return_empty_array' );
@@ -3534,63 +3534,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Data provider for still HEIC/HEIF mime types.
+	 * Data provider for HEIC/HEIF mime types, still and sequence alike.
 	 *
 	 * @return array[]
 	 */
-	public function data_still_heic_mime_types() {
+	public function data_heic_mime_types() {
 		return array(
-			'heic' => array( 'image/heic' ),
-			'heif' => array( 'image/heif' ),
-		);
-	}
-
-	/**
-	 * Test that HEIC/HEIF sequence uploads do not bypass the editor support check.
-	 *
-	 * The multi-frame '-sequence' variants (Live Photos) cannot be processed by
-	 * the server or decoded by the browser fallback, so they should fall through
-	 * to the standard unsupported mime-type error rather than be stored.
-	 *
-	 * @ticket 64915
-	 *
-	 * @dataProvider data_heic_sequence_mime_types
-	 *
-	 * @param string $mime_type HEIC/HEIF sequence mime type.
-	 */
-	public function test_upload_heic_sequence_is_not_bypassed( $mime_type ) {
-		wp_set_current_user( self::$author_id );
-
-		add_filter( 'wp_image_editors', '__return_empty_array' );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
-		$request->set_file_params(
-			array(
-				'file' => array(
-					'name'     => 'live-photo.heic',
-					'type'     => $mime_type,
-					'tmp_name' => DIR_TESTDATA . '/images/test-image.heic',
-					'error'    => 0,
-					'size'     => filesize( DIR_TESTDATA . '/images/test-image.heic' ),
-				),
-			)
-		);
-
-		$controller = new WP_REST_Attachments_Controller( 'attachment' );
-		$result     = $controller->create_item_permissions_check( $request );
-
-		// Should fail: sequences are unsupported by both the server and the fallback.
-		$this->assertWPError( $result );
-		$this->assertSame( 'rest_upload_image_type_not_supported', $result->get_error_code() );
-	}
-
-	/**
-	 * Data provider for HEIC/HEIF sequence mime types.
-	 *
-	 * @return array[]
-	 */
-	public function data_heic_sequence_mime_types() {
-		return array(
+			'heic'          => array( 'image/heic' ),
+			'heif'          => array( 'image/heif' ),
 			'heic-sequence' => array( 'image/heic-sequence' ),
 			'heif-sequence' => array( 'image/heif-sequence' ),
 		);
