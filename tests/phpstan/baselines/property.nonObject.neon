@@ -24,16 +24,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
-			message: '#^Cannot access property \$id on int\|string\|WP_Term\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
-			message: '#^Cannot access property \$link on int\|string\|WP_Term\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
 			message: '#^Cannot access property \$name on array\|object\.$#'
 			identifier: property.nonObject
 			count: 1

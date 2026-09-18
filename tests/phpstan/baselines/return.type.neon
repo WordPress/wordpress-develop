@@ -49,11 +49,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
-			message: '#^Method WP_Block_Type\:\:__get\(\) should return array\<string\>\|string\|null but returns array\<array\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-type.php
-		-
 			message: '#^Method WP_Image_Editor_Imagick\:\:set_imagick_time_limit\(\) should return int\|null but returns float\.$#'
 			identifier: return.type
 			count: 1
@@ -148,11 +143,6 @@ parameters:
 			identifier: return.type
 			count: 2
 			path: ../../../src/wp-includes/revision.php
-		-
-			message: '#^Function term_exists\(\) should return array\{term_id\: numeric\-string, term_taxonomy_id\: numeric\-string\}\|int\|null but returns string\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/taxonomy.php
 		-
 			message: '#^Function _wp_get_current_user\(\) should return WP_User but returns null\.$#'
 			identifier: return.type

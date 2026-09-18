@@ -19,6 +19,11 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Strict comparison using \!\=\= between ''all'' and int will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: ../../../src/wp-admin/includes/class-wp-links-list-table.php
+		-
 			message: '#^Strict comparison using \!\=\= between null and string will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
@@ -28,11 +33,6 @@ parameters:
 			identifier: notIdentical.alwaysTrue
 			count: 2
 			path: ../../../src/wp-includes/class-wp-rewrite.php
-		-
-			message: '#^Strict comparison using \!\=\= between array\{\} and non\-empty\-array\<mixed, mixed\> will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-view-config-data.php
 		-
 			message: '#^Strict comparison using \!\=\= between ''Etc'' and ''Africa''\|''America''\|''Antarctica''\|''Arctic''\|''Asia''\|''Atlantic''\|''Australia''\|''Europe''\|''Indian''\|''Pacific'' will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue

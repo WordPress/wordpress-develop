@@ -1481,6 +1481,33 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 403, __( 'Invalid post type.' ) );
 		}
 
+		// Reject writes to internal-only builtin post types (e.g. customize_changeset)
+		// whose intended write path is a dedicated helper, not a generic post API.
+		$is_internal_only = (
+			empty( $post_type->public )
+			&& empty( $post_type->show_in_rest )
+			&& ! empty( $post_type->_builtin )
+		);
+
+		/**
+		 * Filters whether a post type accepts writes via XML-RPC.
+		 *
+		 * Defaults to false for internal-only builtin post types (public=false,
+		 * show_in_rest=false, _builtin=true), such as customize_changeset, whose
+		 * writes are meant to flow through dedicated helpers. Return true to opt
+		 * a post type back in.
+		 *
+		 * @since 7.1.1
+		 *
+		 * @param bool         $allowed   Whether the post type accepts XML-RPC writes.
+		 * @param WP_Post_Type $post_type The post type object.
+		 */
+		$allowed = apply_filters( 'xmlrpc_allow_post_type_writes', ! $is_internal_only, $post_type );
+
+		if ( ! $allowed ) {
+			return new IXR_Error( 403, __( 'Sorry, this post type is not supported over XML-RPC.' ) );
+		}
+
 		$update = ! empty( $post_data['ID'] );
 
 		if ( $update ) {
@@ -3250,7 +3277,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $1 Page ID.
 	 *     @type string $2 Username.
 	 *     @type string $3 Password.
-	 *     @type string $4 Content.
+	 *     @type array  $4 Content struct, with keys documented on {@see self::mw_newPost()}.
 	 *     @type int    $5 Publish flag. 0 for draft, 1 for publish.
 	 * }
 	 * @return array|IXR_Error

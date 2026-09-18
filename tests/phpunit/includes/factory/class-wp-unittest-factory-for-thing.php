@@ -62,9 +62,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @return int|WP_Error The object ID on success, WP_Error object on failure.
 	 */
 	public function create( $args = array(), $generation_definitions = null ) {
-		if ( is_null( $generation_definitions ) ) {
-			$generation_definitions = $this->default_generation_definitions;
-		}
+		$generation_definitions ??= $this->default_generation_definitions;
 
 		$generated_args = $this->generate_args( $args, $generation_definitions, $callbacks );
 		$object_id      = $this->create_object( $generated_args );
@@ -155,10 +153,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @return array|WP_Error Combined array on success. WP_Error when default value is incorrect.
 	 */
 	public function generate_args( $args = array(), $generation_definitions = null, &$callbacks = null ) {
-		$callbacks = array();
-		if ( is_null( $generation_definitions ) ) {
-			$generation_definitions = $this->default_generation_definitions;
-		}
+		$callbacks                = array();
+		$generation_definitions ??= $this->default_generation_definitions;
 
 		// Use the same incrementor for all fields belonging to this object.
 		$gen = new WP_UnitTest_Generator_Sequence();
