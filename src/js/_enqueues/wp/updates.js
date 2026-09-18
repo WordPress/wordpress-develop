@@ -1546,7 +1546,7 @@
 	 *                     decorated with an abort() method.
 	 */
 	wp.updates.updateTheme = function( args ) {
-		var $notice;
+		var $notice, $modalNotice;
 
 		args = _.extend( {
 			success: wp.updates.updateThemeSuccess,
@@ -1568,7 +1568,8 @@
 			$notice = $notice.addClass( 'updating-message' ).find( 'p' );
 
 		} else {
-			$notice = $( '#update-theme' ).closest( '.notice' ).removeClass( 'notice-large' );
+			$modalNotice = $( '.theme-info .notice[data-slug="' + args.slug + '"]' );
+			$notice = $modalNotice.removeClass( 'notice-large' );
 
 			$notice.find( 'h3' ).remove();
 
@@ -1603,6 +1604,8 @@
 	wp.updates.updateThemeSuccess = function( response ) {
 		var isModalOpen    = $( 'body.modal-open' ).length,
 			$theme         = $( '[data-slug="' + response.slug + '"]' ),
+			$modalNotice   = $( '.theme-info .notice[data-slug="' + response.slug + '"]' ),
+			isModalUpdate  = $modalNotice.length,
 			updatedMessage = {
 				className: 'updated-message notice-success notice-alt',
 				message:   _x( 'Updated!', 'theme' )
@@ -1619,7 +1622,7 @@
 				$theme.html( newText );
 			}
 
-			$notice = $( '.theme-info .notice' ).add( wp.customize.control( 'installed_theme_' + response.slug ).container.find( '.theme' ).find( '.update-message' ) );
+			$notice = $modalNotice.add( wp.customize.control( 'installed_theme_' + response.slug ).container.find( '.theme' ).find( '.update-message' ) );
 		} else if ( 'themes-network' === pagenow ) {
 			$notice = $theme.find( '.update-message' );
 
@@ -1630,13 +1633,13 @@
 			// Clear the "time to next auto-update" text.
 			$theme.find( '.auto-update-time' ).empty();
 		} else {
-			$notice = $( '.theme-info .notice' ).add( $theme.find( '.update-message' ) );
+			$notice = $modalNotice.add( $theme.find( '.update-message' ) );
 
 			// Focus on Customize button after updating.
-			if ( isModalOpen ) {
+			if ( isModalOpen && isModalUpdate ) {
 				$( '.load-customize:visible' ).trigger( 'focus' );
 				$( '.theme-info .theme-autoupdate' ).find( '.auto-update-time' ).empty();
-			} else {
+			} else if ( ! isModalOpen ) {
 				$theme.find( '.load-customize' ).trigger( 'focus' );
 			}
 		}
@@ -1649,7 +1652,7 @@
 		$document.trigger( 'wp-theme-update-success', response );
 
 		// Show updated message after modal re-rendered.
-		if ( isModalOpen && 'customize' !== pagenow ) {
+		if ( isModalOpen && isModalUpdate && 'customize' !== pagenow && ! $( '.theme-info .updated-message' ).length ) {
 			$( '.theme-info .theme-author' ).after( wp.updates.adminNotice( updatedMessage ) );
 		}
 	};
@@ -1665,7 +1668,9 @@
 	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.updateThemeError = function( response ) {
-		var $theme       = $( '[data-slug="' + response.slug + '"]' ),
+		var isModalOpen  = $( 'body.modal-open' ).length,
+			$theme       = $( '[data-slug="' + response.slug + '"]' ),
+			$modalNotice = $( '.theme-info .notice[data-slug="' + response.slug + '"]' ),
 			errorMessage = sprintf(
 				/* translators: %s: Error string for a failed update. */
 				 __( 'Update failed: %s' ),
@@ -1688,9 +1693,13 @@
 		if ( 'themes-network' === pagenow ) {
 			$notice = $theme.find( '.update-message ' );
 		} else {
-			$notice = $( '.theme-info .notice' ).add( $theme.find( '.notice' ) );
+			$notice = $modalNotice.add( $theme.find( '.notice' ) );
 
-			$( 'body.modal-open' ).length ? $( '.load-customize:visible' ).trigger( 'focus' ) : $theme.find( '.load-customize' ).trigger( 'focus');
+			if ( isModalOpen && $modalNotice.length ) {
+				$( '.load-customize:visible' ).trigger( 'focus' );
+			} else if ( ! isModalOpen ) {
+				$theme.find( '.load-customize' ).trigger( 'focus' );
+			}
 		}
 
 		wp.updates.addAdminNotice( {
