@@ -57,16 +57,33 @@ class IXR_Date {
         $this->timezone = substr($iso, 17);
     }
 
-    function getIso()
+    /**
+     * Gets the datetime in ISO format.
+     *
+     * @return string ISO datetime.
+     * @phpstan-return non-falsy-string
+     */
+    function getIso(): string
     {
         return $this->year.$this->month.$this->day.'T'.$this->hour.':'.$this->minute.':'.$this->second.$this->timezone;
     }
 
-    function getXml()
+    /**
+     * Gets the `dateTime.iso8601` XML tag.
+     *
+     * @return string A dateTime.iso8601 XML tag.
+     * @phpstan-return non-falsy-string
+     */
+    function getXml(): string
     {
         return '<dateTime.iso8601>'.$this->getIso().'</dateTime.iso8601>';
     }
 
+    /**
+     * Gets the timestamp.
+     *
+     * @return int|false Timestamp, or false on error.
+     */
     function getTimestamp()
     {
         return mktime($this->hour, $this->minute, $this->second, $this->month, $this->day, $this->year);
