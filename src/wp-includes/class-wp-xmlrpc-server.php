@@ -828,6 +828,25 @@ class wp_xmlrpc_server extends IXR_Server {
 	}
 
 	/**
+	 * Checks that the content struct argument received from a client is an associative array.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $content_struct The content struct argument to check.
+	 * @return bool True if `$content_struct` is an associative array, false otherwise.
+	 *
+	 * @phpstan-assert-if-true array<string, mixed> $content_struct
+	 */
+	protected function _is_content_struct_array( $content_struct ): bool {
+		if ( ! is_array( $content_struct ) || wp_is_numeric_array( $content_struct ) ) {
+			$this->error = new IXR_Error( 400, __( 'The content struct argument must be an associative array.' ) );
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Prepares taxonomy data for return in an XML-RPC object.
 	 *
 	 * @param WP_Taxonomy $taxonomy The unprepared taxonomy data.
@@ -910,11 +929,13 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Converts a WordPress date string to an IXR_Date object.
 	 *
+	 * @since 7.2.0 A value that is not a string is treated as an empty date.
+	 *
 	 * @param string $date Date string to convert.
 	 * @return IXR_Date IXR_Date object.
 	 */
 	protected function _convert_date( $date ) {
-		if ( '0000-00-00 00:00:00' === $date ) {
+		if ( ! is_string( $date ) || '0000-00-00 00:00:00' === $date ) {
 			return new IXR_Date( '00000000T00:00:00Z' );
 		}
 		return new IXR_Date( mysql2date( 'Ymd\TH:i:s', $date, false ) );
@@ -928,10 +949,36 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return IXR_Date IXR_Date object.
 	 */
 	protected function _convert_date_gmt( $date_gmt, $date ) {
-		if ( '0000-00-00 00:00:00' !== $date && '0000-00-00 00:00:00' === $date_gmt ) {
+		if ( is_string( $date ) && '0000-00-00 00:00:00' !== $date && '0000-00-00 00:00:00' === $date_gmt ) {
 			return new IXR_Date( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $date, false ), 'Ymd\TH:i:s' ) );
 		}
 		return $this->_convert_date( $date_gmt );
+	}
+
+	/**
+	 * Converts a client-supplied date value to an IXR_Date object.
+	 *
+	 * XML-RPC clients may send a date either as a dateTime.iso8601 value, which
+	 * arrives as an IXR_Date object, or as a plain string. Any other type cannot
+	 * be a date and results in an error.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $date Client-supplied date value.
+	 * @return IXR_Date|IXR_Error IXR_Date object on success, IXR_Error if the value is not a date.
+	 *
+	 * @phpstan-return ( $date is IXR_Date|string ? IXR_Date : IXR_Error )
+	 */
+	protected function _convert_client_date( $date ) {
+		if ( $date instanceof IXR_Date ) {
+			return $date;
+		}
+
+		if ( is_string( $date ) ) {
+			return $this->_convert_date( $date );
+		}
+
+		return new IXR_Error( 400, __( 'Dates must be a dateTime.iso8601 value or a string.' ) );
 	}
 
 	/**
@@ -1305,6 +1352,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Creates a new post for any registered post type.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @link https://en.wikipedia.org/wiki/RSS_enclosure for information on RSS enclosures.
 	 *
@@ -1359,13 +1407,17 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password       = $args[2];
 		$content_struct = $args[3];
 
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
+
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
 			return $this->error;
 		}
 
 		// Convert the date field back to IXR form.
-		if ( isset( $content_struct['post_date'] ) && ! ( $content_struct['post_date'] instanceof IXR_Date ) ) {
+		if ( isset( $content_struct['post_date'] ) && is_string( $content_struct['post_date'] ) ) {
 			$content_struct['post_date'] = $this->_convert_date( $content_struct['post_date'] );
 		}
 
@@ -1373,7 +1425,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		 * Ignore the existing GMT date if it is empty or a non-GMT date was supplied in $content_struct,
 		 * since _insert_post() will ignore the non-GMT date if the GMT date is set.
 		 */
-		if ( isset( $content_struct['post_date_gmt'] ) && ! ( $content_struct['post_date_gmt'] instanceof IXR_Date ) ) {
+		if ( isset( $content_struct['post_date_gmt'] ) && is_string( $content_struct['post_date_gmt'] ) ) {
 			if ( '0000-00-00 00:00:00' === $content_struct['post_date_gmt'] || isset( $content_struct['post_date'] ) ) {
 				unset( $content_struct['post_date_gmt'] );
 			} else {
@@ -1577,10 +1629,20 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		// Do some timestamp voodoo.
 		if ( ! empty( $post_data['post_date_gmt'] ) ) {
+			$post_date_gmt = $this->_convert_client_date( $post_data['post_date_gmt'] );
+			if ( $post_date_gmt instanceof IXR_Error ) {
+				return $post_date_gmt;
+			}
+
 			// We know this is supposed to be GMT, so we're going to slap that Z on there by force.
-			$date_created = rtrim( $post_data['post_date_gmt']->getIso(), 'Z' ) . 'Z';
+			$date_created = rtrim( $post_date_gmt->getIso(), 'Z' ) . 'Z';
 		} elseif ( ! empty( $post_data['post_date'] ) ) {
-			$date_created = $post_data['post_date']->getIso();
+			$post_date = $this->_convert_client_date( $post_data['post_date'] );
+			if ( $post_date instanceof IXR_Error ) {
+				return $post_date;
+			}
+
+			$date_created = $post_date->getIso();
 		}
 
 		// Default to not flagging the post date to be edited unless it's intentional.
@@ -1780,6 +1842,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * should be changed. All other fields will retain their existing values.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -1804,6 +1867,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$post_id        = (int) $args[3];
 		$content_struct = $args[4];
 
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
+
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
 			return $this->error;
@@ -1819,8 +1886,18 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( isset( $content_struct['if_not_modified_since'] ) ) {
+			$if_not_modified_since = $this->_convert_client_date( $content_struct['if_not_modified_since'] );
+			if ( $if_not_modified_since instanceof IXR_Error ) {
+				return $if_not_modified_since;
+			}
+
+			$post_modified_timestamp = false;
+			if ( is_string( $post['post_modified_gmt'] ) ) {
+				$post_modified_timestamp = mysql2date( 'U', $post['post_modified_gmt'] );
+			}
+
 			// If the post has been modified since the date provided, return an error.
-			if ( mysql2date( 'U', $post['post_modified_gmt'] ) > $content_struct['if_not_modified_since']->getTimestamp() ) {
+			if ( false !== $post_modified_timestamp && $post_modified_timestamp > $if_not_modified_since->getTimestamp() ) {
 				return new IXR_Error( 409, __( 'There is a revision of this post that is more recent.' ) );
 			}
 		}
@@ -3888,6 +3965,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *  - 'status'. Common statuses are 'approve', 'hold', 'spam'. See get_comment_statuses() for more details.
 	 *
 	 * @since 2.7.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -3907,6 +3985,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password       = $args[2];
 		$comment_id     = (int) $args[3];
 		$content_struct = $args[4];
+
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
@@ -3940,8 +4022,13 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		// Do some timestamp voodoo.
 		if ( ! empty( $content_struct['date_created_gmt'] ) ) {
+			$date_created_gmt = $this->_convert_client_date( $content_struct['date_created_gmt'] );
+			if ( $date_created_gmt instanceof IXR_Error ) {
+				return $date_created_gmt;
+			}
+
 			// We know this is supposed to be GMT, so we're going to slap that Z on there by force.
-			$date_created = rtrim( $content_struct['date_created_gmt']->getIso(), 'Z' ) . 'Z';
+			$date_created = rtrim( $date_created_gmt->getIso(), 'Z' ) . 'Z';
 
 			$comment['comment_date']     = get_date_from_gmt( $date_created );
 			$comment['comment_date_gmt'] = iso8601_to_datetime( $date_created, 'gmt' );
@@ -5465,6 +5552,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *  - wp_post_thumbnail
 	 *
 	 * @since 1.5.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -5484,6 +5572,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password       = $args[2];
 		$content_struct = $args[3];
 		$publish        = $args[4] ?? 0;
+
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
@@ -5698,10 +5790,20 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		// Do some timestamp voodoo.
 		if ( ! empty( $content_struct['date_created_gmt'] ) ) {
+			$date_created_gmt = $this->_convert_client_date( $content_struct['date_created_gmt'] );
+			if ( $date_created_gmt instanceof IXR_Error ) {
+				return $date_created_gmt;
+			}
+
 			// We know this is supposed to be GMT, so we're going to slap that Z on there by force.
-			$date_created = rtrim( $content_struct['date_created_gmt']->getIso(), 'Z' ) . 'Z';
+			$date_created = rtrim( $date_created_gmt->getIso(), 'Z' ) . 'Z';
 		} elseif ( ! empty( $content_struct['dateCreated'] ) ) {
-			$date_created = $content_struct['dateCreated']->getIso();
+			$date_created_object = $this->_convert_client_date( $content_struct['dateCreated'] );
+			if ( $date_created_object instanceof IXR_Error ) {
+				return $date_created_object;
+			}
+
+			$date_created = $date_created_object->getIso();
 		}
 
 		$post_date     = '';
@@ -5860,6 +5962,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Edits a post.
 	 *
 	 * @since 1.5.0
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -5880,6 +5983,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password       = $args[2];
 		$content_struct = $args[3];
 		$publish        = $args[4] ?? 0;
+
+		if ( ! $this->_is_content_struct_array( $content_struct ) ) {
+			return $this->error;
+		}
 
 		$user = $this->login( $username, $password );
 		if ( ! $user ) {
@@ -6104,10 +6211,20 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		// Do some timestamp voodoo.
 		if ( ! empty( $content_struct['date_created_gmt'] ) ) {
+			$date_created_gmt = $this->_convert_client_date( $content_struct['date_created_gmt'] );
+			if ( $date_created_gmt instanceof IXR_Error ) {
+				return $date_created_gmt;
+			}
+
 			// We know this is supposed to be GMT, so we're going to slap that Z on there by force.
-			$date_created = rtrim( $content_struct['date_created_gmt']->getIso(), 'Z' ) . 'Z';
+			$date_created = rtrim( $date_created_gmt->getIso(), 'Z' ) . 'Z';
 		} elseif ( ! empty( $content_struct['dateCreated'] ) ) {
-			$date_created = $content_struct['dateCreated']->getIso();
+			$date_created_object = $this->_convert_client_date( $content_struct['dateCreated'] );
+			if ( $date_created_object instanceof IXR_Error ) {
+				return $date_created_object;
+			}
+
+			$date_created = $date_created_object->getIso();
 		}
 
 		// Default to not flagging the post date to be edited unless it's intentional.
