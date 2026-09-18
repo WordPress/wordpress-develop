@@ -35,8 +35,8 @@ class Tests_Functions_wpMkdirP extends WP_UnitTestCase {
 		$this->assertFalse( wp_mkdir_p( '..' . DIRECTORY_SEPARATOR . 'test' ) );
 		$this->assertFalse( wp_mkdir_p( ABSPATH . 'test/../../' ) );
 
-		// this resolves to current dir so is found
-		$this->assertTrue( wp_mkdir_p( '../../../../' ) );
+		// Any `../` segments should be rejected, even if they would resolve back to the current directory.
+		$this->assertFalse( wp_mkdir_p( '../../../../' ) );
 	}
 
 	public function test_permissions_are_set() {
