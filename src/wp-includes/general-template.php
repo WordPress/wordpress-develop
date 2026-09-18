@@ -583,17 +583,12 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		 * attributes reproduce the accessible name and focus handling of the native element.
 		 */
 		$markup = sprintf(
-			'<div class="%1$s">' .
-				'<button type="button" class="wp-tooltip__toggle" popovertarget="%2$s" aria-label="%3$s" aria-haspopup="dialog">' .
-					'<span class="dashicons%4$s" aria-hidden="true"></span>' .
-				'</button>' .
-				'<span popover="hint" id="%2$s-hint" class="wp-tooltip__bubble wp-tooltip__hint" aria-hidden="true">' .
+			'<span class="%1$s">
+				%8$s
+				<span popover="hint" id="%2$s-hint" class="wp-tooltip__bubble wp-tooltip__hint" aria-hidden="true">' .
 					'<span class="wp-tooltip__text">%7$s</span>' .
 				'</span>' .
-				'<dialog popover="auto" id="%2$s" class="wp-tooltip__bubble" autofocus>' .
-			'<span class="%1$s">
-				%7$s
-				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
+				'<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
 						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
