@@ -96,7 +96,6 @@ class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	 * @since 4.9.6
 	 *
 	 * @param string $exports_dir The default personal data export directory.
-	 *
 	 * @return string The path to a folder that doesn't exist.
 	 */
 	public function filter_bad_exports_dir( $exports_dir ) {

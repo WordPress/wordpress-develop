@@ -2348,7 +2348,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( false, $data['meta']['authenticated'] );
+		$this->assertFalse( $data['meta']['authenticated'] );
 	}
 
 	/**
