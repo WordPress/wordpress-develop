@@ -21,14 +21,14 @@ class Tests_Functions_DefaultWpDieHandler extends WP_UnitTestCase {
 				'Something went wrong.',
 				'',
 				array(
-					'heading' => 'WordPress &rsaquo; Error',
+					'heading' => 'Error',
 					'exit'    => false,
 				),
 			)
 		);
 
 		$this->assertStringContainsString(
-			'<h1>WordPress &rsaquo; Error</h1><div class="wp-die-message">Something went wrong.</div>',
+			'<h1>Error</h1><div class="wp-die-message">Something went wrong.</div>',
 			$actual
 		);
 	}
