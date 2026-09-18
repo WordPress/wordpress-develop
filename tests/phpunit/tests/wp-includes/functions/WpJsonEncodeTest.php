@@ -1,13 +1,17 @@
 <?php
 
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use WP_UnitTestCase;
+
 /**
- * Tests the wp_json_encode() function.
+ * Tests for the `wp_json_encode()` function.
  *
  * @group functions
  *
  * @covers ::wp_json_encode
  */
-class Tests_Functions_WpJsonEncode extends WP_UnitTestCase {
+class WpJsonEncodeTest extends WP_UnitTestCase {
 
 	/**
 	 * Tests basic JSON encoding.
