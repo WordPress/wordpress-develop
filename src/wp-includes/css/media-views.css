@@ -336,7 +336,7 @@
 	grid-template-columns: repeat( 2, 1fr );
 	grid-template-rows: repeat( 2, 1fr );
 	grid-column-gap: 12px;
-	grid-row-gap: 0px;
+	grid-row-gap: 0;
 	align-items: end;
 }
 
@@ -564,7 +564,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	width: 16px;
 	height: 16px;
 	font-size: 16px;
-	margin-top: 0px;
+	margin-top: 0;
 }
 
 .media-sidebar .setting .value,
