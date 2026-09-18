@@ -532,6 +532,55 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that a comment whose JSON attributes are rejected is skipped whole.
+	 *
+	 * A block delimiter is a single HTML comment. When the content after the JSON
+	 * attributes rules out a delimiter, the scan resumes after that comment, not one
+	 * byte later, so a `<!--` inside the comment's text is not treated as the start
+	 * of another delimiter.
+	 *
+	 * @ticket 61401
+	 *
+	 * @dataProvider data_comments_with_rejected_json_attributes
+	 *
+	 * @param string   $html        Document to scan.
+	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
+	 */
+	public function test_skips_the_whole_comment_when_the_json_attributes_are_rejected( $html, $block_types ): void {
+		$processor = new WP_Block_Processor( $html );
+
+		$found = array();
+		while ( $processor->next_delimiter() ) {
+			$found[] = $processor->get_printable_block_type();
+		}
+
+		$this->assertSame(
+			$block_types,
+			$found,
+			'Should have found only the delimiters which are in the document.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_comments_with_rejected_json_attributes(): array {
+		return array(
+			// A `<!--` inside the comment's text does not start a delimiter.
+			'Opening inside the comment'      => array( '<!-- wp:a {x <!-- wp:b -->', array() ),
+			'Void opening inside the comment' => array( '<!-- wp:a {x <!-- wp:b /-->', array() ),
+			'Closer inside the comment'       => array( '<!-- wp:a {x <!-- /wp:b -->', array() ),
+
+			// A delimiter in a later comment is still found.
+			'Delimiter in the next comment'   => array( '<!-- wp:a {x --><!-- wp:b -->', array( 'core/b' ) ),
+			'Content after the JSON'          => array( '<!-- wp:a {"k":1} x --><!-- wp:b -->', array( 'core/b' ) ),
+			'Valid delimiter first'           => array( '<!-- wp:a {"k":1} --><!-- wp:b {y -->', array( 'core/a' ) ),
+		);
+	}
+
+	/**
 	 * Verifies that the appropriate block delimiter type is reported for a matched delimiter.
 	 *
 	 * @ticket 61401

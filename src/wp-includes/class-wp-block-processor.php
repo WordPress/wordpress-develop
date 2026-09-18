@@ -1036,7 +1036,7 @@ class WP_Block_Processor {
 						break 2;
 
 					default:
-						++$at;
+						$at = $this->find_html_comment_end( $comment_opening_at, $end );
 						continue 3;
 				}
 			}
