@@ -442,6 +442,17 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 			self::$commenter->ID
 		);
 
+		/*
+		 * Run the create path the fixture skipped, so the mentioned user is
+		 * subscribed to the thread as a real create would leave them. An edit
+		 * only notifies users the thread has never told about it, which is how
+		 * wp_notify_new_mentions_on_note_update() tells a mention added by an
+		 * edit from one that was already delivered.
+		 */
+		do_action( 'rest_insert_comment', $note, null, true );
+		$this->sent    = array();
+		$this->sent_to = array();
+
 		wp_set_current_user( self::$commenter->ID );
 
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note->comment_ID );
