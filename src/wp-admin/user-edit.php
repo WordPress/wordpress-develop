@@ -376,6 +376,17 @@ switch ( $action ) {
 						</td>
 					</tr>
 
+					<?php if ( user_can( $profile_user, 'upload_files' ) ) : ?>
+					<tr class="user-infinite-scrolling-wrap">
+						<th scope="row"><?php _e( 'Infinite Scrolling' ); ?></th>
+						<td>
+							<label for="infinite_scrolling"><input name="infinite_scrolling" type="checkbox" id="infinite_scrolling" value="false" <?php checked( 'false', $profile_user->infinite_scrolling ); ?> />
+								<?php _e( 'Disable infinite scrolling in the Media Library grid view' ); ?>
+							</label>
+						</td>
+					</tr>
+					<?php endif; ?>
+
 					<?php
 					$languages                = get_available_languages();
 					$can_install_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();
@@ -920,7 +931,7 @@ switch ( $action ) {
 					 *
 					 * @since 2.8.0
 					 *
-					 * @param bool    $enable      Whether to display the capabilities. Default true.
+					 * @param bool    $enable       Whether to display the capabilities. Default true.
 					 * @param WP_User $profile_user The current WP_User object.
 					 */
 					$display_additional_caps = apply_filters( 'additional_capabilities_display', true, $profile_user );

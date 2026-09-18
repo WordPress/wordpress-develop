@@ -152,6 +152,7 @@
 		<script src="wp-admin/js/customize-header.js"></script>
 		<script src="wp-admin/js/dashboard.js"></script>
 		<script src="wp-includes/js/shortcode.js"></script>
+		<script src="wp-includes/js/media/test-media-models.js"></script>
 		<script src="wp-includes/js/api-request.js"></script>
 		<script src="wp-includes/js/jquery.js"></script>
 		<script src="wp-includes/js/wp-api.js"></script>
@@ -166,6 +167,7 @@
 		<script src="wp-admin/js/widgets/test-media-image-widget.js"></script>
 		<script src="wp-admin/js/widgets/test-media-gallery-widget.js"></script>
 		<script src="wp-admin/js/widgets/test-media-video-widget.js"></script>
+		<script src="wp-includes/js/media/test-models.js"></script>
 
 		<!-- Customizer templates for sections -->
 		<script type="text/html" id="tmpl-customize-section-default">
@@ -252,12 +254,14 @@
 
 		<!-- Templates for Customizer Menus -->
 		<script type="text/html" id="tmpl-customize-control-nav_menu-content">
-					<button type="button" class="button add-new-menu-item" aria-label="Add or remove menu items" aria-expanded="false" aria-controls="available-menu-items">
-			Add Items		</button>
-		<button type="button" class="not-a-button reorder-toggle" aria-label="Reorder menu items" aria-describedby="reorder-items-desc-{{ data.menu_id }}">
-			<span class="reorder">Reorder</span>
-			<span class="reorder-done">Done</span>
-		</button>
+		<div class="customize-control-nav_menu-buttons">
+			<button type="button" class="button-link reorder-toggle" aria-label="Reorder menu items" aria-describedby="reorder-items-desc-242">
+				<span class="reorder">Reorder</span>
+				<span class="reorder-done">Done</span>
+			</button>
+			<button type="button" class="button add-new-menu-item" aria-label="Add or remove menu items" aria-expanded="false" aria-controls="available-menu-items">
+				Add Items			</button>
+		</div>
 		<p class="screen-reader-text" id="reorder-items-desc-{{ data.menu_id }}">When in reorder mode, additional controls to reorder menu items will be available in the items list above.</p>
 		<span class="add-menu-item-loading spinner"></span>
 		<span class="menu-delete-item">
