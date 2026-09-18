@@ -282,7 +282,9 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	 * @param string $file          Full path to the uploaded image file.
 	 * @param int    $attachment_id Attachment post ID.
 	 */
-	$threshold = (int) apply_filters( 'big_image_size_threshold', 2560, $imagesize, $file, $attachment_id );
+	$threshold = max( array_merge( array( 2560 ), wp_list_pluck( wp_get_registered_image_subsizes(), 'width' ) ) );
+
+	$threshold = (int) apply_filters( 'big_image_size_threshold', $threshold, $imagesize, $file, $attachment_id );
 
 	/*
 	 * If the original image's dimensions are over the threshold,
