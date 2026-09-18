@@ -549,7 +549,7 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  *                           Must be serializable if non-scalar. Default empty string.
  * @return bool True on success, false on failure.
  *
- * @phpstan-param non-negative-int $comment_id
+ * @phpstan-param positive-int $comment_id
  */
 function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'comment', $comment_id, $meta_key, $meta_value );

@@ -1448,7 +1448,7 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
  *
- * @phpstan-param non-negative-int $term_id
+ * @phpstan-param positive-int $term_id
  */
 function delete_term_meta( $term_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'term', $term_id, $meta_key, $meta_value );
