@@ -137,7 +137,6 @@ module.exports = function(grunt) {
 			'concat',
 			'copy',
 			'cssmin',
-			'imagemin',
 			'jshint',
 			'uglify',
 			'watch'
@@ -1757,6 +1756,8 @@ module.exports = function(grunt) {
 
 		grunt.task.run( '_' + this.nameArgs );
 	} );
+
+	grunt.registerMultiTask( 'imagemin', 'Losslessly optimizes PNG, JPEG and GIF images.', require( './tools/imagemin/task.js' )( grunt ) );
 
 	grunt.registerTask( 'precommit:image', [
 		'imagemin:core'
