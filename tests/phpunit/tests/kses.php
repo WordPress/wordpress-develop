@@ -1882,6 +1882,109 @@ EOF;
 				'css'      => 'clip-path: url(javascript:alert(1))',
 				'expected' => '',
 			),
+
+			// Trac #63568: a valid CSS font-family value keeps its font names.
+			array(
+				'css'      => 'font-family: "O\'Reilly Sans"',
+				'expected' => 'font-family: "O\'Reilly Sans"',
+			),
+			array(
+				'css'      => 'font-family: "ACME, Sans", sans-serif',
+				'expected' => 'font-family: "ACME, Sans", sans-serif',
+			),
+			array(
+				'css'      => 'font-family: "Tom & Jerry"',
+				'expected' => 'font-family: "Tom & Jerry"',
+			),
+			array(
+				'css'      => 'font-family: "Tom \\26  Jerry"',
+				'expected' => 'font-family: "Tom \\26  Jerry"',
+			),
+			array(
+				'css'      => 'font-family: "O\\22 Reilly Sans"',
+				'expected' => 'font-family: "O\\22 Reilly Sans"',
+			),
+			array(
+				'css'      => 'font-family: ACME\\,Sans, serif',
+				'expected' => 'font-family: ACME\\,Sans, serif',
+			),
+			array(
+				'css'      => 'font-family: "Font 50%AB"',
+				'expected' => 'font-family: "Font 50%AB"',
+			),
+			array(
+				'css'      => 'font-family: "A=B"',
+				'expected' => 'font-family: "A=B"',
+			),
+			array(
+				'css'      => 'font-family: "A{B}"',
+				'expected' => 'font-family: "A{B}"',
+			),
+			array(
+				'css'      => 'font-family: generic(kai)',
+				'expected' => 'font-family: generic(kai)',
+			),
+
+			// A semicolon inside a quoted font name does not end the declaration.
+			array(
+				'css'      => 'font-family:"A;B";color:red',
+				'expected' => 'font-family:"A;B";color:red',
+			),
+
+			/*
+			 * In a style attribute, a semicolon outside a string separates two
+			 * declarations. Both are permitted, so both survive. The REST
+			 * `fontFamily` field is a single value and rejects this input.
+			 */
+			array(
+				'css'      => 'font-family: "A"; color:red',
+				'expected' => 'font-family: "A";color:red',
+			),
+
+			// Unsafe functions are not font names.
+			array(
+				'css'      => 'font-family: url(javascript:alert(1))',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'font-family: expression(alert(1))',
+				'expected' => '',
+			),
+
+			// Invalid font-family syntax is rejected.
+			array(
+				'css'      => 'font-family: "unterminated Inter\\',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'font-family: Inter}body{color:red}',
+				'expected' => '',
+			),
+
+			// A quoted string does not let another property through.
+			array(
+				'css'      => 'color:"red";behavior:url(x.htc)',
+				'expected' => 'color:"red"',
+			),
+
+			/*
+			 * wp_kses_no_null() removes a backslash that zeros follow, so the
+			 * serializer writes a literal backslash as a hexadecimal escape.
+			 */
+			array(
+				'css'      => 'font-family: "A\\5c 0B"',
+				'expected' => 'font-family: "A\\5c 0B"',
+			),
+
+			// A value that the font family grammar rejects keeps the existing policy.
+			array(
+				'css'      => 'font-family: var(--wp--preset--font-family--inter)',
+				'expected' => 'font-family: var(--wp--preset--font-family--inter)',
+			),
+			array(
+				'css'      => 'font-family: var(--wp--preset--font-family--inter), sans-serif',
+				'expected' => 'font-family: var(--wp--preset--font-family--inter), sans-serif',
+			),
 		);
 	}
 

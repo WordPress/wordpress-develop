@@ -19,62 +19,44 @@
  */
 class WP_Font_Utils {
 	/**
-	 * Adds surrounding quotes to font family names that contain special characters.
-	 *
-	 * It follows the recommendations from the CSS Fonts Module Level 4.
-	 * @link https://www.w3.org/TR/css-fonts-4/#font-family-prop
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param string $item A font family name.
-	 * @return string The font family name with surrounding quotes, if necessary.
-	 */
-	private static function maybe_add_quotes( $item ) {
-		// Matches strings that are not exclusively alphabetic characters or hyphens, and do not exactly follow the pattern generic(alphabetic characters or hyphens).
-		$regex = '/^(?!generic\([a-zA-Z\-]+\)$)(?!^[a-zA-Z\-]+$).+/';
-		$item  = trim( $item );
-		if ( preg_match( $regex, $item ) ) {
-			$item = trim( $item, "\"'" );
-			return '"' . $item . '"';
-		}
-		return $item;
-	}
-
-	/**
 	 * Sanitizes and formats font family names.
 	 *
-	 * - Applies `sanitize_text_field`.
-	 * - Adds surrounding quotes to names containing any characters that are not alphabetic or dashes.
+	 * The method reads the value with the CSS `font-family` grammar and writes
+	 * it back in a canonical form. It writes each named family as a quoted CSS
+	 * string and keeps each generic family as a keyword. The decoded name does
+	 * not change, so a name can contain a comma, an apostrophe, a quotation
+	 * mark, or a CSS escape.
+	 *
+	 * For compatibility, the method also accepts a plain font name that is not
+	 * valid CSS, such as `O'Reilly Sans`. It rejects a value that contains CSS
+	 * syntax outside a quoted name, such as `"A"; color:red`.
 	 *
 	 * It follows the recommendations from the CSS Fonts Module Level 4.
 	 * @link https://www.w3.org/TR/css-fonts-4/#font-family-prop
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Uses {@see WP_CSS_Font_Family} to keep the font name. Names are
+	 *              always quoted, and an invalid value returns an empty string.
 	 * @access private
 	 *
-	 * @see sanitize_text_field()
+	 * @see WP_CSS_Font_Family::parse_list_with_plain_names()
 	 *
 	 * @param string $font_family Font family name(s), comma-separated.
-	 * @return string Sanitized and formatted font family name(s).
+	 * @return string Sanitized and formatted font family name(s), or an empty
+	 *                string if the value is invalid.
 	 */
 	public static function sanitize_font_family( $font_family ) {
-		if ( ! $font_family ) {
+		if ( ! is_string( $font_family ) || '' === $font_family ) {
 			return '';
 		}
 
-		$output          = sanitize_text_field( $font_family );
-		$formatted_items = array();
-		if ( str_contains( $output, ',' ) ) {
-			$items = explode( ',', $output );
-			foreach ( $items as $item ) {
-				$formatted_item = self::maybe_add_quotes( $item );
-				if ( ! empty( $formatted_item ) ) {
-					$formatted_items[] = $formatted_item;
-				}
-			}
-			return implode( ', ', $formatted_items );
+		$entries = WP_CSS_Font_Family::parse_list_with_plain_names( $font_family );
+
+		if ( null === $entries ) {
+			return '';
 		}
-		return self::maybe_add_quotes( $output );
+
+		return WP_CSS_Font_Family::serialize_list( $entries );
 	}
 
 	/**
@@ -85,7 +67,11 @@ class WP_Font_Utils {
 	 * matching for fontFamily and unicodeRange, so does not handle overlapping font-family lists or
 	 * unicode ranges.
 	 *
+	 * The font family part uses the decoded font names, so two values that
+	 * write the same name with different CSS escapes produce the same slug.
+	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Compares decoded font names instead of raw CSS text.
 	 * @access private
 	 *
 	 * @link https://drafts.csswg.org/css-fonts/#font-style-matching
@@ -102,18 +88,19 @@ class WP_Font_Utils {
 	 * @return string Font face slug.
 	 */
 	public static function get_font_face_slug( $settings ) {
-		$defaults = array(
+		$defaults    = array(
 			'fontFamily'   => '',
 			'fontStyle'    => 'normal',
 			'fontWeight'   => '400',
 			'fontStretch'  => '100%',
 			'unicodeRange' => 'U+0-10FFFF',
 		);
-		$settings = wp_parse_args( $settings, $defaults );
+		$settings    = wp_parse_args( $settings, $defaults );
+		$font_family = self::get_font_family_comparison_key( $settings['fontFamily'] );
 		if ( function_exists( 'mb_strtolower' ) ) {
-			$font_family = mb_strtolower( $settings['fontFamily'] );
+			$font_family = mb_strtolower( $font_family );
 		} else {
-			$font_family = strtolower( $settings['fontFamily'] );
+			$font_family = strtolower( $font_family );
 		}
 		$font_style    = strtolower( $settings['fontStyle'] );
 		$font_weight   = strtolower( $settings['fontWeight'] );
@@ -137,15 +124,14 @@ class WP_Font_Utils {
 		);
 		$font_stretch     = str_replace( array_keys( $font_stretch_map ), array_values( $font_stretch_map ), $font_stretch );
 
-		$slug_elements = array( $font_family, $font_style, $font_weight, $font_stretch, $unicode_range );
+		$slug_elements = array( $font_style, $font_weight, $font_stretch, $unicode_range );
 
 		$slug_elements = array_map(
 			function ( $elem ) {
-				// Remove quotes to normalize font-family names, and ';' to use as a separator.
+				// Remove quotes to normalize the values, and ';' to use as a separator.
 				$elem = trim( str_replace( array( '"', "'", ';' ), '', $elem ) );
 
-				// Normalize comma separated lists by removing whitespace in between items,
-				// but keep whitespace within items (e.g. "Open Sans" and "OpenSans" are different fonts).
+				// Normalize comma separated lists by removing whitespace in between items.
 				// CSS spec for whitespace includes: U+000A LINE FEED, U+0009 CHARACTER TABULATION, or U+0020 SPACE,
 				// which by default are all matched by \s in PHP.
 				return preg_replace( '/,\s+/', ',', $elem );
@@ -153,7 +139,54 @@ class WP_Font_Utils {
 			$slug_elements
 		);
 
-		return sanitize_text_field( implode( ';', $slug_elements ) );
+		// The font family part keeps its own characters, so add it after the map above.
+		array_unshift( $slug_elements, $font_family );
+
+		return implode( ';', $slug_elements );
+	}
+
+	/**
+	 * Builds the font family part of a font face slug.
+	 *
+	 * The method returns the decoded font names, separated by commas. Each
+	 * name replaces a small set of characters with a percent sequence:
+	 *
+	 * - `;` and `,` cannot change the field boundaries of the slug.
+	 * - `&`, `<`, and `>` cannot change when KSES filters the `post_title` of
+	 *   the font face post for a user without the `unfiltered_html` capability.
+	 * - `\` cannot disappear when {@see WP_Query} removes slashes from its
+	 *   `title` query parameter.
+	 * - `%` keeps the replacement reversible, so that two different names
+	 *   cannot produce one key.
+	 *
+	 * If the value is not a font family value that the parser accepts, the
+	 * method falls back to the text normalization of WordPress 6.5.0, so that
+	 * the slug of an existing record does not change.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $font_family Font family value.
+	 * @return string The font family comparison key.
+	 */
+	private static function get_font_family_comparison_key( $font_family ) {
+		$entries = WP_CSS_Font_Family::parse_list_with_plain_names( $font_family );
+
+		if ( null === $entries ) {
+			// Keep the WordPress 6.5.0 behavior for a value that the parser rejects.
+			$key = trim( str_replace( array( '"', "'", ';' ), '', (string) $font_family ) );
+			return preg_replace( '/,\s+/', ',', $key );
+		}
+
+		// Replace '%' first, so that the replacement stays reversible.
+		$search  = array( '%', '\\', ';', ',', '&', '<', '>' );
+		$replace = array( '%25', '%5c', '%3b', '%2c', '%26', '%3c', '%3e' );
+
+		$keys = array();
+		foreach ( $entries as $entry ) {
+			$keys[] = str_replace( $search, $replace, $entry['value'] );
+		}
+
+		return implode( ',', $keys );
 	}
 
 	/**

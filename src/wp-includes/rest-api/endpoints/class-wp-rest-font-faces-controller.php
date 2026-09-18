@@ -155,6 +155,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * Validates settings when creating a font face.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Rejects a `fontFamily` value that is not valid CSS or a plain font name.
 	 *
 	 * @param string          $value   Encoded JSON string of font face settings.
 	 * @param WP_REST_Request $request Request object.
@@ -200,6 +201,19 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 					array( 'status' => 400 )
 				);
 			}
+		}
+
+		/*
+		 * Check that the font family value names one font family. The value can
+		 * be valid CSS, or a plain font name.
+		 */
+		if ( null === WP_CSS_Font_Family::parse_descriptor_name( $settings['fontFamily'] ) ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				/* translators: %s: Name of the font face setting parameter: "font_face_settings[fontFamily]". */
+				sprintf( __( '%s must be a valid CSS font-family value.' ), 'font_face_settings[fontFamily]' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		$srcs  = is_array( $settings['src'] ) ? $settings['src'] : array( $settings['src'] );

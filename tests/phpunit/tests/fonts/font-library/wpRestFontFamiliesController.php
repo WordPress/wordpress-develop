@@ -514,7 +514,8 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 				'settings' => array(
 					'name'       => "   Opening   Sans</style><script>alert('XSS');</script>\n    ",
 					'slug'       => "   OPENing SanS </style><script>alert('XSS');</script>\n    ",
-					'fontFamily' => "   Opening   Sans</style><script>alert('XSS');</script>\n    ",
+					// A font family value with markup is invalid CSS. See ::test_create_item_invalid_font_family().
+					'fontFamily' => "   Opening   Sans\n    ",
 					'preview'    => "   https://example.com/</style><script>alert('XSS');</script>      ",
 				),
 				'expected' => array(

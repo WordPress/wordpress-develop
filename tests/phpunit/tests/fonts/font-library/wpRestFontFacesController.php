@@ -869,7 +869,8 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 		return array(
 			'settings with tags, extra whitespace, new lines' => array(
 				'settings' => array(
-					'fontFamily'            => "   Open   Sans</style><script>alert('XSS');</script>\n    ",
+					// A font family value with markup is invalid CSS. See ::test_create_item_invalid_font_family().
+					'fontFamily'            => "   Open   Sans\n    ",
 					'fontStyle'             => "   oblique 20deg 50deg</style><script>alert('XSS');</script>\n    ",
 					'fontWeight'            => "   200</style><script>alert('XSS');</script>\n    ",
 					'src'                   => "   https://example.com/</style><script>alert('XSS');</script>      ",
