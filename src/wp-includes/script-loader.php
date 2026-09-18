@@ -1262,6 +1262,9 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'language-chooser', "/wp-admin/js/language-chooser$suffix.js", array( 'jquery' ), false, 1 );
 
+	$scripts->add( 'wp-admin-unsaved-changes-confirmation', "/wp-admin/js/wp-options-unsaved-changes-confirmation$suffix.js", array( 'wp-i18n' ), false, 1 );
+	$scripts->set_translations( 'wp-admin-unsaved-changes-confirmation' );
+
 	$scripts->add( 'user-suggest', "/wp-admin/js/user-suggest$suffix.js", array( 'jquery-ui-autocomplete' ), false, 1 );
 
 	$scripts->add( 'admin-bar', "/wp-includes/js/admin-bar$suffix.js", array( 'hoverintent-js' ), false, 1 );
