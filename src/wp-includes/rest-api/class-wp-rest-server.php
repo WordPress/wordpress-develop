@@ -10,8 +10,6 @@
 /**
  * Core class used to implement the WordPress REST API server.
  *
- * @since 4.4.0
- *
  * The aliases below describe a route handler as {@see WP_REST_Server::get_routes()}
  * returns it, once the defaults have been filled in and the methods normalized.
  *
@@ -19,6 +17,8 @@
  * ones WordPress reads itself. The rest are schema keywords, left to the open end of
  * the shape and validated by {@see rest_validate_value_from_schema()}. See
  * {@see rest_get_allowed_schema_keywords()} for the vocabulary the REST API exposes.
+ *
+ * @since 4.4.0
  *
  * @phpstan-type Endpoint_Arg array{
  *     required?: bool,
@@ -30,7 +30,7 @@
  * }
  * @phpstan-type Route_Handler array{
  *     methods: array<uppercase-string, true>,
- *     callback: callable|null,
+ *     callback?: callable|null,
  *     permission_callback?: callable|null,
  *     args: array<non-empty-string, Endpoint_Arg>,
  *     accept_json: bool,
