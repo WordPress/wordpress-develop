@@ -4303,7 +4303,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayNotHasKey( 'original_image', $metadata, "Metadata 'original_image' should be untouched by the companion sideloads." );
 	}
 
-
 	/**
 	 * Tests the filter_wp_unique_filename method handles the -scaled suffix.
 	 *
