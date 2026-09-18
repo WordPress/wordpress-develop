@@ -2696,6 +2696,8 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * This only affects front end and not the block editor screens.
  *
  * @since 5.8.0
+ * @since 7.2.0 Uses wp_is_serving_feed_request() instead of is_feed(), so that feed
+ *              requests are correctly detected before the main query is parsed.
  * @see wp_should_load_block_assets_on_demand()
  * @see wp_enqueue_registered_block_scripts_and_styles()
  * @see register_block_style_handle()
@@ -2703,7 +2705,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * @return bool Whether separate core block assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
-	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
+	if ( is_admin() || wp_is_serving_feed_request() || wp_is_rest_endpoint() ) {
 		return false;
 	}
 
@@ -2733,12 +2735,14 @@ function wp_should_load_separate_core_block_assets() {
  * This only affects front end and not the block editor screens.
  *
  * @since 6.8.0
+ * @since 7.2.0 Uses wp_is_serving_feed_request() instead of is_feed(), so that feed
+ *              requests are correctly detected before the main query is parsed.
  * @see wp_should_load_separate_core_block_assets()
  *
  * @return bool Whether to load block assets only when they are rendered.
  */
 function wp_should_load_block_assets_on_demand() {
-	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
+	if ( is_admin() || wp_is_serving_feed_request() || wp_is_rest_endpoint() ) {
 		return false;
 	}
 
