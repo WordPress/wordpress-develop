@@ -1,13 +1,17 @@
 <?php
 
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use WP_UnitTestCase;
+
 /**
- * Tests the get_temp_dir() function.
+ * Tests for the `get_temp_dir()` function.
  *
  * @group functions
  *
  * @covers ::get_temp_dir
  */
-class Tests_Functions_GetTempDir extends WP_UnitTestCase {
+class GetTempDirTest extends WP_UnitTestCase {
 
 	/**
 	 * Tests that get_temp_dir() returns a path with a trailing slash.
