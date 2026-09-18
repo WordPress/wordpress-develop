@@ -1,0 +1,125 @@
+##
+# A reusable workflow that installs a version of WordPress and then checks that a list of plugins can be
+# activated against it without fataling.
+#
+# Each plugin in the `plugin-slugs` shard is tested on its own: it is installed, activated, exercised, and then
+# removed before the next one is installed. This keeps one broken plugin from masking (or breaking) the next.
+#
+# The exception is a plugin that declares a `Requires Plugins` dependency, which core will not activate until
+# that dependency is installed and active. Those dependencies are installed and activated alongside it, and the
+# site is checked with only the dependencies active first so that a dependency's own breakage is not reported
+# against the plugin under test.
+#
+# The checks themselves live in `tools/plugin-compatibility/test-plugins.sh` rather than in this file, so that
+# the same code can be run from a terminal to reproduce a result from a run here. See the comments at the top
+# of that script.
+##
+name: Plugin Compatibility Tests
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on.'
+        required: false
+        type: 'string'
+        default: 'ubuntu-24.04'
+      wp-version:
+        description: 'The version of WordPress to test against. Accepts a version number, "latest", or "nightly".'
+        required: false
+        type: 'string'
+        default: 'nightly'
+      php-version:
+        description: 'The version of PHP to use. Expected format: X.Y.'
+        required: false
+        type: 'string'
+        default: '8.3'
+      plugin-slugs:
+        description: 'A JSON array of WordPress.org plugin slugs to test in this shard.'
+        required: true
+        type: 'string'
+      db-type:
+        description: 'Database type. Valid types are mysql and mariadb.'
+        required: false
+        type: 'string'
+        default: 'mysql'
+      db-version:
+        description: 'Database version.'
+        required: false
+        type: 'string'
+        default: '8.4'
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Tests that each plugin in the shard can be activated against the given version of WordPress.
+  #
+  # Performs the following steps:
+  # - Checks out the repository, for the script that runs the checks.
+  # - Sets up PHP and WP-CLI.
+  # - Runs the checks against every plugin in the shard.
+  plugin-compatibility-tests:
+    name: PHP ${{ inputs.php-version }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}
+    permissions:
+      contents: read
+    runs-on: ${{ inputs.os }}
+    # Installing a plugin's dependencies before testing it adds a download and an activation for each
+    # one, and a dependency the size of WooCommerce is not quick to activate.
+    timeout-minutes: 45
+
+    services:
+      database:
+        # The database type and version are inputs so that this workflow can be pointed at any supported
+        # combination, which means the image cannot be pinned to a digest. This matches how the database
+        # service is declared in install-testing.yml and reusable-upgrade-testing.yml.
+        image: ${{ inputs.db-type }}:${{ inputs.db-version }} # zizmor: ignore[unpinned-images]
+        ports:
+          - 3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval="30s"
+          --health-timeout="10s"
+          --health-retries="5"
+          -e MYSQL_ROOT_PASSWORD="root"
+          -e MYSQL_DATABASE="test_db"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+          sparse-checkout: tools/plugin-compatibility
+          sparse-checkout-cone-mode: false
+
+      - name: Set up PHP ${{ inputs.php-version }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '${{ inputs.php-version }}'
+          coverage: none
+          tools: wp-cli
+
+      # The runner already provides PHP, WP-CLI and a database, so the checks run here rather than in the
+      # containers the script provisions when it is run from a terminal.
+      #
+      # WordPress is installed outside the workspace so that the checkout above is not part of the site under
+      # test.
+      - name: Test each plugin in isolation
+        env:
+          PLUGIN_SLUGS: ${{ inputs.plugin-slugs }}
+          WP_VERSION: ${{ inputs.wp-version }}
+          DB_PORT: ${{ job.services.database.ports['3306'] }}
+        run: |
+          set -uo pipefail
+
+          ./tools/plugin-compatibility/test-plugins.sh \
+            --no-docker \
+            --wp-version="${WP_VERSION}" \
+            --dir="${RUNNER_TEMP}/wordpress" \
+            --db-host="127.0.0.1:${DB_PORT}" \
+            --db-name=test_db \
+            --db-user=root \
+            --db-pass=root \
+            --plugins="$( printf '%s' "${PLUGIN_SLUGS}" | jq -r 'join( " " )' )"
