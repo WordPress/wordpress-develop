@@ -3411,7 +3411,24 @@ function retrieve_password( $user_login = '' ) {
 	 *
 	 * @see https://core.trac.wordpress.org/tickets/42957
 	 */
-	$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
+	$reset_url = network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' );
+
+	/**
+	 * Filters the URL used to reset a user's password.
+	 *
+	 * Returning a different URL allows the password reset link sent by email
+	 * to point at a custom reset page instead of wp-login.php.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string  $reset_url  The password reset URL.
+	 * @param string  $user_login The user's login name.
+	 * @param string  $key        The activation key used to reset the password.
+	 * @param WP_User $user_data  WP_User object.
+	 */
+	$reset_url = apply_filters( 'reset_password_url', $reset_url, $user_login, $key, $user_data );
+
+	$message .= $reset_url . '&wp_lang=' . $locale . "\r\n\r\n";
 
 	if ( ! is_user_logged_in() ) {
 		$requester_ip = $_SERVER['REMOTE_ADDR'];
