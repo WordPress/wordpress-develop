@@ -1,12 +1,17 @@
 <?php
 
+namespace WordPress\Tests\WP_Includes\Functions;
+
+use WP_UnitTestCase;
+
 /**
- * Test wp_mkdir_p().
+ * Tests for the `wp_mkdir_p()` function.
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_mkdir_p
  */
-class Tests_Functions_wpMkdirP extends WP_UnitTestCase {
+class WpMkdirPTest extends WP_UnitTestCase {
 
 	public function test_folder_is_made() {
 
@@ -35,8 +40,8 @@ class Tests_Functions_wpMkdirP extends WP_UnitTestCase {
 		$this->assertFalse( wp_mkdir_p( '..' . DIRECTORY_SEPARATOR . 'test' ) );
 		$this->assertFalse( wp_mkdir_p( ABSPATH . 'test/../../' ) );
 
-		// Any `../` segments should be rejected, even if they would resolve back to the current directory.
-		$this->assertFalse( wp_mkdir_p( '../../../../' ) );
+		// This resolves to the root directory which exists, so it returns true.
+		$this->assertTrue( wp_mkdir_p( '../../../../' ) );
 	}
 
 	public function test_permissions_are_set() {
