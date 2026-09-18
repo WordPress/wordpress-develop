@@ -1013,7 +1013,7 @@ class WP_REST_Server {
 					 * Array values may themselves be comma-separated, either written that way or
 					 * because they are a multi-method constant such as WP_REST_Server::EDITABLE.
 					 */
-					foreach ( $handler['methods'] as $method ) {
+					foreach ( array_filter( $handler['methods'], 'is_string' ) as $method ) {
 						$methods = array_merge( $methods, explode( ',', $method ) );
 					}
 				} else {
