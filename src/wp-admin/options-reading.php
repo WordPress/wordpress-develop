@@ -188,13 +188,13 @@ else :
 <?php $rss_use_excerpt_title = __( 'For each post in a feed, include' ); ?>
 <tr>
 <th scope="row"><?php echo $rss_use_excerpt_title; ?> </th>
-<td><fieldset>
+<td><fieldset aria-describedby="rss-use-excerpt-description">
 	<legend class="screen-reader-text"><span><?php echo $rss_use_excerpt_title; ?></span></legend>
 	<p>
 		<label><input name="rss_use_excerpt" type="radio" value="0" <?php checked( 0, get_option( 'rss_use_excerpt' ) ); ?>	/> <?php _e( 'Full text' ); ?></label><br />
 		<label><input name="rss_use_excerpt" type="radio" value="1" <?php checked( 1, get_option( 'rss_use_excerpt' ) ); ?> /> <?php _e( 'Excerpt' ); ?></label>
 	</p>
-	<p class="description">
+	<p class="description" id="rss-use-excerpt-description">
 		<?php
 		printf(
 			/* translators: %s: Documentation URL. */
