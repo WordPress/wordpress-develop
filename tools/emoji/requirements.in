@@ -1,0 +1,8 @@
+# Top-level build tools. requirements.lock pins these and everything they
+# pull in; the image installs from the lock file.
+nanoemoji==0.16.0
+picosvg==0.23.0
+fonttools==4.65.0
+brotli==1.2.0
+uharfbuzz==0.56.1
+ninja==1.13.2

@@ -1,0 +1,438 @@
+{
+	"font": "twemoji-colrv1.woff2",
+	"family": "Twemoji",
+	"color_format": "glyf_colr_1",
+	"twemoji": {
+		"version": "v17.0.3",
+		"repository": "https://github.com/jdecked/twemoji",
+		"commit": "b6b55fef1e8636b540a6d016a4729ca8cdf2e60b",
+		"commit_date": "2026-06-01T22:16:04Z",
+		"archive_url": "https://codeload.github.com/jdecked/twemoji/tar.gz/b6b55fef1e8636b540a6d016a4729ca8cdf2e60b",
+		"archive_sha256": "705d79de1460e5e775f362f0d0f01fbe3ef8d65bf4648c490e4649704584f747",
+		"svg_count": 4009,
+		"svg_tree_sha256": "acf4b1719e91b046d9fd543d7c177705e54188e38e5600f3b591631152e4761d",
+		"graphics_license": "CC-BY-4.0"
+	},
+	"source_normalization": [
+		{
+			"file": "1f349.svg",
+			"rule": "pad viewBox to a centered square",
+			"input_sha256": "33c1d59d27324b861d394eaac4cdb6eb5f4d8b12b9e442f4bbf3653a5946bea8",
+			"output_sha256": "400477de6a8fce3ee1f08f55fbf75deeb53a36db6c49ae9364580a168a85eb8f",
+			"unchanged": false
+		}
+	],
+	"aliases": {
+		"stage": "normalization added by this build; not part of the Twemoji input",
+		"rule": "Each fully-qualified sequence with FE0F gets an alias without any FE0F (in Chromium, GSUB mappings that include FE0F did not apply and those sequences rendered split), and each minimally-qualified or unqualified sequence in emoji-test.txt without its own SVG gets one; an alias is a copy of the fully-qualified SVG.",
+		"count": 1052,
+		"sha256": "687db880f7318d32406f5063792eef156722eb46f32ffaa0999539b7816c61e0"
+	},
+	"rgi": {
+		"url": "https://www.unicode.org/Public/17.0.0/emoji/emoji-test.txt",
+		"sha256": "1d8a944f88d7952f7ef7c5167fef3c67995bcae24543949710231b03a201acda"
+	},
+	"tools": {
+		"nanoemoji": "0.16.0",
+		"picosvg": "0.23.0",
+		"fonttools": "4.65.0",
+		"uharfbuzz": "0.56.1",
+		"brotli": "1.2.0",
+		"skia-pathops": "0.9.2"
+	},
+	"source_date_epoch": 1780352164,
+	"output": {
+		"woff2_bytes": 657364,
+		"woff2_sha256": "0e8645e0fcbb7c98b18eeaa099122633a9129823336f6a76a944a31be07a4700",
+		"ttf_bytes": 1494564,
+		"ttf_sha256": "d1240b1b22192396bb5461ce598ab41a35ca72ddceb2264e19a3eb49213bbab6"
+	},
+	"font_tables": {
+		"tables": [
+			"COLR",
+			"CPAL",
+			"GSUB",
+			"GlyphOrder",
+			"OS/2",
+			"cmap",
+			"glyf",
+			"head",
+			"hhea",
+			"hmtx",
+			"loca",
+			"maxp",
+			"name",
+			"post"
+		],
+		"colr_version": 1,
+		"glyphs": 13351,
+		"cmap_codepoints": 1453,
+		"units_per_em": 1024
+	},
+	"coverage": {
+		"by_status": {
+			"component": {
+				"total": 9,
+				"visible": 9,
+				"strict": 9
+			},
+			"fully-qualified": {
+				"total": 3944,
+				"visible": 3944,
+				"strict": 3724
+			},
+			"minimally-qualified": {
+				"total": 1029,
+				"visible": 1029,
+				"strict": 1029
+			},
+			"unqualified": {
+				"total": 243,
+				"visible": 243,
+				"strict": 243
+			}
+		},
+		"by_kind": {
+			"component/single": {
+				"total": 9,
+				"visible": 9,
+				"strict": 9
+			},
+			"fully-qualified/flag": {
+				"total": 259,
+				"visible": 259,
+				"strict": 259
+			},
+			"fully-qualified/keycap": {
+				"total": 12,
+				"visible": 12,
+				"strict": 0
+			},
+			"fully-qualified/modifier": {
+				"total": 665,
+				"visible": 665,
+				"strict": 665
+			},
+			"fully-qualified/single": {
+				"total": 1391,
+				"visible": 1391,
+				"strict": 1184
+			},
+			"fully-qualified/tag": {
+				"total": 3,
+				"visible": 3,
+				"strict": 3
+			},
+			"fully-qualified/zwj": {
+				"total": 1614,
+				"visible": 1614,
+				"strict": 1613
+			},
+			"minimally-qualified/zwj": {
+				"total": 1029,
+				"visible": 1029,
+				"strict": 1029
+			},
+			"unqualified/keycap": {
+				"total": 12,
+				"visible": 12,
+				"strict": 12
+			},
+			"unqualified/single": {
+				"total": 207,
+				"visible": 207,
+				"strict": 207
+			},
+			"unqualified/zwj": {
+				"total": 24,
+				"visible": 24,
+				"strict": 24
+			}
+		},
+		"not_visible": []
+	},
+	"subsets": {
+		"flags": {
+			"font": "twemoji-colrv1-flags.woff2",
+			"derived_from": "twemoji-colrv1.woff2",
+			"rule": "fontTools subset of the full WOFF2 to the requested code points, keeping every layout feature and the name table; a ligature stays when all of its components do.",
+			"profile": "Country flags (regional indicator pairs), subdivision flags (black flag, tag characters, cancel tag), and the rainbow, transgender and pirate flags, in every spelling in emoji-test.txt. This is the range the asset supports; which flags Core replaces is decided by its detection and renderer.",
+			"requested_codepoints": [
+				"1F1E6",
+				"1F1E7",
+				"1F1E8",
+				"1F1E9",
+				"1F1EA",
+				"1F1EB",
+				"1F1EC",
+				"1F1ED",
+				"1F1EE",
+				"1F1EF",
+				"1F1F0",
+				"1F1F1",
+				"1F1F2",
+				"1F1F3",
+				"1F1F4",
+				"1F1F5",
+				"1F1F6",
+				"1F1F7",
+				"1F1F8",
+				"1F1F9",
+				"1F1FA",
+				"1F1FB",
+				"1F1FC",
+				"1F1FD",
+				"1F1FE",
+				"1F1FF",
+				"1F3F3",
+				"1F3F4",
+				"E0020",
+				"E0021",
+				"E0022",
+				"E0023",
+				"E0024",
+				"E0025",
+				"E0026",
+				"E0027",
+				"E0028",
+				"E0029",
+				"E002A",
+				"E002B",
+				"E002C",
+				"E002D",
+				"E002E",
+				"E002F",
+				"E0030",
+				"E0031",
+				"E0032",
+				"E0033",
+				"E0034",
+				"E0035",
+				"E0036",
+				"E0037",
+				"E0038",
+				"E0039",
+				"E003A",
+				"E003B",
+				"E003C",
+				"E003D",
+				"E003E",
+				"E003F",
+				"E0040",
+				"E0041",
+				"E0042",
+				"E0043",
+				"E0044",
+				"E0045",
+				"E0046",
+				"E0047",
+				"E0048",
+				"E0049",
+				"E004A",
+				"E004B",
+				"E004C",
+				"E004D",
+				"E004E",
+				"E004F",
+				"E0050",
+				"E0051",
+				"E0052",
+				"E0053",
+				"E0054",
+				"E0055",
+				"E0056",
+				"E0057",
+				"E0058",
+				"E0059",
+				"E005A",
+				"E005B",
+				"E005C",
+				"E005D",
+				"E005E",
+				"E005F",
+				"E0060",
+				"E0061",
+				"E0062",
+				"E0063",
+				"E0064",
+				"E0065",
+				"E0066",
+				"E0067",
+				"E0068",
+				"E0069",
+				"E006A",
+				"E006B",
+				"E006C",
+				"E006D",
+				"E006E",
+				"E006F",
+				"E0070",
+				"E0071",
+				"E0072",
+				"E0073",
+				"E0074",
+				"E0075",
+				"E0076",
+				"E0077",
+				"E0078",
+				"E0079",
+				"E007A",
+				"E007B",
+				"E007C",
+				"E007D",
+				"E007E",
+				"E007F",
+				"200D",
+				"FE0F",
+				"1F308",
+				"26A7",
+				"2620"
+			],
+			"cmap_codepoints": [
+				"200D",
+				"2620",
+				"26A7",
+				"FE0F",
+				"1F1E6",
+				"1F1E7",
+				"1F1E8",
+				"1F1E9",
+				"1F1EA",
+				"1F1EB",
+				"1F1EC",
+				"1F1ED",
+				"1F1EE",
+				"1F1EF",
+				"1F1F0",
+				"1F1F1",
+				"1F1F2",
+				"1F1F3",
+				"1F1F4",
+				"1F1F5",
+				"1F1F6",
+				"1F1F7",
+				"1F1F8",
+				"1F1F9",
+				"1F1FA",
+				"1F1FB",
+				"1F1FC",
+				"1F1FD",
+				"1F1FE",
+				"1F1FF",
+				"1F308",
+				"1F3F3",
+				"1F3F4",
+				"E0062",
+				"E0063",
+				"E0065",
+				"E0067",
+				"E006C",
+				"E006E",
+				"E0073",
+				"E0074",
+				"E0077",
+				"E007F"
+			],
+			"woff2_bytes": 108888,
+			"woff2_sha256": "108cd5e892d9ca9cab788b573115d9662b4aa6fa24b48520cf4b792951fee649",
+			"font_tables": {
+				"tables": [
+					"COLR",
+					"CPAL",
+					"GSUB",
+					"GlyphOrder",
+					"OS/2",
+					"cmap",
+					"glyf",
+					"head",
+					"hhea",
+					"hmtx",
+					"loca",
+					"maxp",
+					"name",
+					"post"
+				],
+				"colr_version": 1,
+				"glyphs": 1620,
+				"cmap_codepoints": 43,
+				"units_per_em": 1024
+			},
+			"coverage": {
+				"by_status": {
+					"fully-qualified": {
+						"total": 265,
+						"visible": 265,
+						"strict": 265
+					},
+					"minimally-qualified": {
+						"total": 2,
+						"visible": 2,
+						"strict": 2
+					},
+					"unqualified": {
+						"total": 3,
+						"visible": 3,
+						"strict": 3
+					}
+				},
+				"by_kind": {
+					"fully-qualified/flag": {
+						"total": 259,
+						"visible": 259,
+						"strict": 259
+					},
+					"fully-qualified/tag": {
+						"total": 3,
+						"visible": 3,
+						"strict": 3
+					},
+					"fully-qualified/zwj": {
+						"total": 3,
+						"visible": 3,
+						"strict": 3
+					},
+					"minimally-qualified/zwj": {
+						"total": 2,
+						"visible": 2,
+						"strict": 2
+					},
+					"unqualified/zwj": {
+						"total": 3,
+						"visible": 3,
+						"strict": 3
+					}
+				},
+				"not_visible": []
+			}
+		}
+	},
+	"browser_vqa": [
+		{
+			"font": "twemoji-colrv1.woff2",
+			"woff2_sha256": "0e8645e0fcbb7c98b18eeaa099122633a9129823336f6a76a944a31be07a4700",
+			"browser": "Edge 153.0.4234.32",
+			"platform": "Windows",
+			"date": "2026-09-19",
+			"check": "vqa/index.html: every sequence in emoji-test.txt drawn in the font and in the system emoji font; passes when one glyph wide, not plain black ink, and different from the system font's drawing",
+			"results": {
+				"fully-qualified": "3944/3944",
+				"minimally-qualified": "1029/1029",
+				"unqualified": "243/243",
+				"component": "9/9"
+			}
+		},
+		{
+			"font": "twemoji-colrv1-flags.woff2",
+			"woff2_sha256": "108cd5e892d9ca9cab788b573115d9662b4aa6fa24b48520cf4b792951fee649",
+			"browser": "Edge 153.0.4234.32",
+			"platform": "Windows",
+			"date": "2026-09-20",
+			"check": "vqa/index.html?only=flags: the flag profile only, same criteria",
+			"results": {
+				"fully-qualified": "265/265",
+				"minimally-qualified": "2/2",
+				"unqualified": "3/3"
+			}
+		}
+	]
+}
