@@ -248,25 +248,52 @@ function upload_is_user_over_quota( $display_message = true ) {
 }
 
 /**
- * Displays the amount of disk space used by the current site. Not used in core.
+ * Displays the space usage details by the current site.
+ *
+ * This function echoes the space usage information retrieved from the
+ * `get_space_usage` function, wrapped in a `<strong>` HTML tag for emphasis.
+ *
+ * @return void This function does not return a value; it outputs the space usage directly.
+ *
+ * @see get_space_usage() for the function that retrieves the space usage information.
  *
  * @since MU (3.0.0)
  */
 function display_space_usage() {
-	$space_allowed = get_space_allowed();
-	$space_used    = get_space_used();
+	echo '<strong>' . get_space_usage() . '</strong>';
+}
 
-	$percent_used = ( $space_used / $space_allowed ) * 100;
+/**
+ * Displays a notice in the WordPress admin area showing the current storage space usage.
+ *
+ * This function outputs an HTML notice containing the storage space usage information.
+ * The notice is styled as a success message and is dismissible. It uses the `display_space_usage`
+ * function to retrieve and display the actual storage usage details.
+ *
+ * @see get_space_usage() for the function that retrieves the space usage information.
+ *
+ * @hook admin_notices
+ *
+ * @return void This function does not return a value; it directly outputs HTML.
+ */
+function display_space_usage_notice() {
+	echo '<div class="notice notice-success is-dismissible">';
+	echo '<p><strong>' . esc_html__( 'Storage Space' ) . ':</strong> ';
+	echo get_space_usage();
+	echo '</p></div>';
+}
 
-	$space = size_format( $space_allowed * MB_IN_BYTES );
-	?>
-	<strong>
-	<?php
-		/* translators: Storage space that's been used. 1: Percentage of used space, 2: Total space allowed in megabytes or gigabytes. */
-		printf( __( 'Used: %1$s%% of %2$s' ), number_format( $percent_used ), $space );
-	?>
-	</strong>
-	<?php
+/**
+ * Hooks into the `load-upload.php` action to add the
+ * `display_space_usage_notice` function to the `admin_notices` hook.
+ *
+ * @hook load-upload.php
+ *
+ * @return void This function does not return a value; it only adds an action to the `admin_notices` hook.
+ */
+function upload_page_notice_display_space_usage_notice() {
+	// Add the admin_notices action only for the upload.php page
+	add_action( 'admin_notices', 'display_space_usage_notice' );
 }
 
 /**
@@ -295,7 +322,6 @@ function fix_import_form_size( $size ) {
 function upload_space_setting( $id ) {
 	switch_to_blog( $id );
 	$quota = get_option( 'blog_upload_space' );
-	restore_current_blog();
 
 	if ( ! $quota ) {
 		$quota = '';
@@ -313,10 +339,14 @@ function upload_space_setting( $id ) {
 				/* translators: Hidden accessibility text. */
 				_e( 'Size in megabytes' );
 				?>
-			</span> <?php _e( 'MB (Leave blank for network default)' ); ?></span>
+			</span><?php printf( '(Leave blank for network default: %s MB)', get_space_allowed() ); ?></span>
+			<p class="description blog-upload-space-count">
+			<?php echo get_space_usage(); ?>
+			</p>
 		</td>
 	</tr>
 	<?php
+	restore_current_blog();
 }
 
 /**
