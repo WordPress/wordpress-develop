@@ -324,7 +324,7 @@ jobs:
             php ./vendor/bin/phpunit \
             --verbose \
             -c "${PHPUNIT_CONFIG}" \
-            ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
+            ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}" --fail-on-empty-test-suite' || '' }} \
             ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml"' || '' }}
         env:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
