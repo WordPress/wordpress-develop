@@ -117,6 +117,10 @@ function wp_create_categories( $categories, $post_id = 0 ) {
  * @param bool  $wp_error Optional. Default false.
  * @return int|WP_Error The ID number of the new or updated Category on success. Zero or a WP_Error on failure,
  *                      depending on param `$wp_error`.
+ *
+ * @phpstan-return (
+ *     $wp_error is false ? int : int|WP_Error
+ * )
  */
 function wp_insert_category( $catarr, $wp_error = false ) {
 	$cat_defaults = array(

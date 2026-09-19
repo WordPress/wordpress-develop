@@ -762,6 +762,10 @@ function sanitize_comment_cookies() {
  *                           Default false.
  * @return int|string|WP_Error Allowed comments return the approval status (0|1|'spam'|'trash').
  *                             If `$wp_error` is true, disallowed comments return a WP_Error.
+ *
+ * @phpstan-return (
+ *     $wp_error is false ? int|string : int|string|WP_Error
+ * )
  */
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
