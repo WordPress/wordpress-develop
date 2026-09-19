@@ -250,6 +250,13 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                  If `$callback` and `$priority` are both provided, a boolean is returned
 	 *                  for whether the specific function is registered at that priority.
 	 * @phpstan-param Maybe_Callable|false $callback
+	 * @phpstan-return (
+	 *     $callback is false
+	 *         ? bool
+	 *         : ( $priority is int
+	 *             ? bool
+	 *             : int|false )
+	 * )
 	 */
 	public function has_filter( $hook_name = '', $callback = false, $priority = false ) {
 		if ( false === $callback ) {
