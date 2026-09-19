@@ -729,7 +729,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\|string\|false\> given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\<min, \-1\>\|int\<1, max\>\|string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
@@ -849,7 +849,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: int\|string, post_date_gmt\: int\|string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
@@ -990,6 +990,11 @@ parameters:
 			path: ../../../src/wp-includes/general-template.php
 		-
 			message: '#^Parameter \#1 \$string of function substr expects string, int\<min, \-1\>\|int\<1, max\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/general-template.php
+		-
+			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int, string\|false given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/general-template.php

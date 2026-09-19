@@ -31,6 +31,8 @@ require ABSPATH . WPINC . '/option.php';
  * @param bool   $translate Whether the return date should be translated. Default true.
  * @return string|int|false Integer if `$format` is 'U' or 'G', string otherwise.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function mysql2date( $format, $date, $translate = true ) {
 	if ( empty( $date ) ) {
@@ -74,6 +76,8 @@ function mysql2date( $format, $date, $translate = true ) {
  *                     or PHP date format string (e.g. 'Y-m-d').
  * @param bool   $gmt  Optional. Whether to use GMT timezone. Default false.
  * @return int|string Integer if `$type` is 'timestamp' or 'U', string otherwise.
+ *
+ * @phpstan-return ( $type is 'timestamp'|'U' ? int : string )
  */
 function current_time( $type, $gmt = false ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.

@@ -3002,6 +3002,8 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
  * @param string           $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Date the current post was written. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3069,6 +3071,8 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
  * @param string           $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Date the current post was modified. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_modified_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3128,6 +3132,8 @@ function the_time( $format = '' ) {
  * @param int|WP_Post|null $post   Post ID or post object. Default is global `$post` object.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_time( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3165,6 +3171,8 @@ function get_the_time( $format = '', $post = null ) {
  * @param bool             $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
@@ -3315,6 +3323,8 @@ function the_modified_time( $format = '' ) {
  *                                 Defaults to the 'time_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Formatted date string or Unix timestamp. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_modified_time( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3354,6 +3364,8 @@ function get_the_modified_time( $format = '', $post = null ) {
  * @param bool             $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
