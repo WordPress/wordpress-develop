@@ -7302,7 +7302,11 @@ function wp_find_hierarchy_loop( $callback, $start, $start_parent, $callback_arg
  *                                to true if you already know the given $start is part of a loop (otherwise
  *                                the returned array might include branches). Default false.
  * @return mixed Scalar ID of some arbitrary member of the loop, or array of IDs of all members of loop if
- *               $_return_loop
+ *               $_return_loop. False if no loop was found.
+ *
+ * @phpstan-return (
+ *     $_return_loop is true ? array<array-key, true>|false : mixed
+ * )
  */
 function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = array(), $callback_args = array(), $_return_loop = false ) {
 	$tortoise        = $start;
