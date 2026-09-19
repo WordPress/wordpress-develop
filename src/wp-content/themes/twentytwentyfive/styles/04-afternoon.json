@@ -4,6 +4,16 @@
 	"title": "Afternoon",
 	"settings": {
 		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#516028",
+						"#EBF6D3"
+					],
+					"name": "Afternoon filter",
+					"slug": "afternoon-filter"
+				}
+			],
 			"palette": [
 				{
 					"color": "#DAE7BD",
