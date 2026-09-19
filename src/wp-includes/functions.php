@@ -3921,7 +3921,8 @@ function wp_die( $message = '', $title = '', $args = array() ) {
  *
  * @since 3.0.0
  * @since 7.2.0 The `$heading` argument was added. The `lang` attribute is now printed
- *              on pages rendered before `general-template.php` is loaded.
+ *              when an explicit `$text_direction` is passed, and on pages rendered
+ *              before `general-template.php` is loaded.
  * @access private
  *
  * @param string|WP_Error $message Error message or WP_Error object.
@@ -3975,9 +3976,27 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 
 		$text_direction = $parsed_args['text_direction'];
-		$dir_attr       = "dir='$text_direction'";
+		$html_attrs     = "dir='$text_direction'";
 
-		if ( ! function_exists( 'language_attributes' ) || ! function_exists( 'is_rtl' ) ) {
+		if ( function_exists( 'language_attributes' ) && function_exists( 'is_rtl' ) ) {
+			if ( empty( $args['text_direction'] ) ) {
+				/*
+				 * If `text_direction` was not explicitly passed,
+				 * use the site's language attributes, which include the text direction.
+				 */
+				$html_attrs = get_language_attributes();
+			} else {
+				/*
+				 * An explicit `text_direction` overrides the site's text direction,
+				 * but the language is still the site's.
+				 */
+				$lang = get_bloginfo( 'language' );
+
+				if ( $lang ) {
+					$html_attrs .= " lang='" . esc_attr( $lang ) . "'";
+				}
+			}
+		} else {
 			/*
 			 * Errors triggered early in the bootstrap process happen before
 			 * general-template.php is loaded, but wp_load_translations_early()
@@ -3987,21 +4006,15 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			$lang = $have_gettext ? __( 'html_lang_attribute' ) : '';
 
 			if ( '' !== $lang && 'html_lang_attribute' !== $lang && ! preg_match( '/[^a-zA-Z0-9-]/', $lang ) ) {
-				$dir_attr .= " lang='$lang'";
+				$html_attrs .= " lang='$lang'";
 			} elseif ( ! $have_gettext || ! is_textdomain_loaded( 'default' ) ) {
 				// No translations are loaded, so the page is rendered in English.
-				$dir_attr .= " lang='en-US'";
+				$html_attrs .= " lang='en-US'";
 			}
-		} elseif ( empty( $args['text_direction'] ) ) {
-			/*
-			 * If `text_direction` was not explicitly passed,
-			 * use the site's language attributes.
-			 */
-			$dir_attr = get_language_attributes();
 		}
 		?>
 <!DOCTYPE html>
-<html <?php echo $dir_attr; ?>>
+<html <?php echo $html_attrs; ?>>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">

@@ -16,7 +16,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 		'',
 		array(
 			'heading'  => __( 'You need a higher level of permission.' ),
-			'response' => 503,
+			'response' => 403,
 		)
 	);
 }
