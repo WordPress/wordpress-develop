@@ -4569,6 +4569,13 @@ function _filter_query_attachment_filenames( $clauses ) {
  *                                 respectively. Default OBJECT.
  * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? non-empty-array<string, mixed>|null : (
+ *         $output is 'ARRAY_N' ? non-empty-array<int, mixed>|null : WP_Post|null
+ *     )
+ * )
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
 	_deprecated_function( __FUNCTION__, '6.2.0', 'WP_Query' );
