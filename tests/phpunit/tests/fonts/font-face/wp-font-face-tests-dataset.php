@@ -17,6 +17,48 @@ trait WP_Font_Face_Tests_Datasets {
 	 */
 	public function data_should_print_given_fonts() {
 		return array(
+			'font URL with query string'     => array(
+				'fonts'    => array(
+					'Test' => array(
+						array(
+							'font-family' => 'Test',
+							'src'         => array( 'https://example.org/fonts/font.woff2?ver=abc123' ),
+						),
+					),
+				),
+				'expected' => <<<CSS
+@font-face{font-family:Test;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/font.woff2?ver=abc123') format('woff2');}
+CSS
+				,
+			),
+			'font URL with fragment'         => array(
+				'fonts'    => array(
+					'Test' => array(
+						array(
+							'font-family' => 'Test',
+							'src'         => array( 'https://example.org/fonts/font.woff2#font' ),
+						),
+					),
+				),
+				'expected' => <<<CSS
+@font-face{font-family:Test;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/font.woff2#font') format('woff2');}
+CSS
+				,
+			),
+			'font URL with query and hash'   => array(
+				'fonts'    => array(
+					'Test' => array(
+						array(
+							'font-family' => 'Test',
+							'src'         => array( 'https://example.org/fonts/font.woff2?ver=1.2#font' ),
+						),
+					),
+				),
+				'expected' => <<<CSS
+@font-face{font-family:Test;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/font.woff2?ver=1.2#font') format('woff2');}
+CSS
+				,
+			),
 			'single truetype format font'    => array(
 				'fonts'    => array(
 					'Inter' =>
