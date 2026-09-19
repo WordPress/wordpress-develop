@@ -1079,6 +1079,32 @@ table.form-table td .updated p {
 	max-width: 768px;
 }
 
+.auth-app-warning {
+	margin: 16px 0;
+	padding: 14px 16px;
+	border-left: 4px solid #dba617;
+	background: #fcf9e8;
+}
+
+.auth-app-warning p {
+	margin: 0;
+}
+
+.auth-app-warning .auth-app-host {
+	font-size: 18px;
+	font-family: monospace;
+	font-weight: bold;
+	color: #6e4e00;
+}
+
+.auth-app-warning .auth-app-caution {
+	margin-top: 8px;
+}
+
+.auth-app-card .auth-app-checkbox {
+	margin-top: 16px;
+}
+
 .authorize-application-php .form-wrap p {
 	display: block;
 }
