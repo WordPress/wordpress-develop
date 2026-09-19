@@ -916,6 +916,14 @@ final class WP_Theme implements ArrayAccess {
 	 * @param bool   $translate Optional. Whether to translate the header. Defaults to true.
 	 * @return string|array|false Processed header. An array for Tags if `$markup` is false, string otherwise.
 	 *                            False on failure.
+	 *
+	 * @phpstan-return (
+	 *     $markup is false
+	 *         ? ( $header is 'Tags'
+	 *             ? string[]|false
+	 *             : string|false )
+	 *         : string|false
+	 * )
 	 */
 	public function display( $header, $markup = true, $translate = true ) {
 		$value = $this->get( $header );
@@ -1056,6 +1064,9 @@ final class WP_Theme implements ArrayAccess {
 	 * @param string       $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
 	 * @param string|array $value  Value to translate. An array for Tags header, string otherwise.
 	 * @return string|array Translated value. An array for Tags header, string otherwise.
+	 *
+	 * @phpstan-param string|string[] $value
+	 * @phpstan-return string|string[]
 	 */
 	private function translate_header( $header, $value ) {
 		switch ( $header ) {
