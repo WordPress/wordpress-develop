@@ -1025,10 +1025,10 @@ ul.nav-menu .focus > ul,
 	width: 100%;
 }
 
-.sidebar .entry-header,
-.sidebar .entry-content,
-.sidebar .entry-summary,
-.sidebar .entry-meta {
+:where(.sidebar) .hentry > .entry-header,
+:where(.sidebar) .hentry > .entry-content,
+:where(.sidebar) .hentry > .entry-summary,
+:where(.sidebar) .hentry > .entry-meta {
 	max-width: 1040px;
 	padding: 0 376px 0 60px;
 }
