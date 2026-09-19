@@ -1,0 +1,7 @@
+Font: Twemoji (twemoji-colrv1.woff2)
+Source: https://github.com/jdecked/twemoji v17.0.3, commit b6b55fef1e8636b540a6d016a4729ca8cdf2e60b, assets/svg (4009 files)
+Upstream source normalization (not part of Twemoji): 1f349.svg: pad viewBox to a centered square (33c1d59d27324b861d394eaac4cdb6eb5f4d8b12b9e442f4bbf3653a5946bea8 -> 400477de6a8fce3ee1f08f55fbf75deeb53a36db6c49ae9364580a168a85eb8f)
+Aliases (not part of Twemoji): 1052, each a copy of a fully-qualified SVG under a spelling without FE0F: all FE0F removed (in Chromium, GSUB mappings that include FE0F did not apply), and the minimally-qualified and unqualified spellings in Unicode emoji-test.txt 17.0 (list SHA-256 687db880f7318d32406f5063792eef156722eb46f32ffaa0999539b7816c61e0)
+Build: nanoemoji 0.16.0, color format glyf_colr_1, then WOFF2 (fontTools 4.65.0)
+License: graphics CC-BY 4.0 (LICENSE-GRAPHICS); attribution: Twitter, Inc and other contributors, and jdecked and other contributors
+Purpose: emoji font fallback, built once by maintainers and served as a static file

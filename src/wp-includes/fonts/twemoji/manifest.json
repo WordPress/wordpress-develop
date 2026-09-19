@@ -1,0 +1,154 @@
+{
+	"font": "twemoji-colrv1.woff2",
+	"family": "Twemoji",
+	"color_format": "glyf_colr_1",
+	"twemoji": {
+		"version": "v17.0.3",
+		"repository": "https://github.com/jdecked/twemoji",
+		"commit": "b6b55fef1e8636b540a6d016a4729ca8cdf2e60b",
+		"commit_date": "2026-06-01T22:16:04Z",
+		"archive_url": "https://codeload.github.com/jdecked/twemoji/tar.gz/b6b55fef1e8636b540a6d016a4729ca8cdf2e60b",
+		"archive_sha256": "705d79de1460e5e775f362f0d0f01fbe3ef8d65bf4648c490e4649704584f747",
+		"svg_count": 4009,
+		"svg_tree_sha256": "acf4b1719e91b046d9fd543d7c177705e54188e38e5600f3b591631152e4761d",
+		"graphics_license": "CC-BY-4.0"
+	},
+	"source_normalization": [
+		{
+			"file": "1f349.svg",
+			"rule": "pad viewBox to a centered square",
+			"input_sha256": "33c1d59d27324b861d394eaac4cdb6eb5f4d8b12b9e442f4bbf3653a5946bea8",
+			"output_sha256": "400477de6a8fce3ee1f08f55fbf75deeb53a36db6c49ae9364580a168a85eb8f",
+			"unchanged": false
+		}
+	],
+	"aliases": {
+		"stage": "normalization added by this build; not part of the Twemoji input",
+		"rule": "Each fully-qualified sequence with FE0F gets an alias without any FE0F (in Chromium, GSUB mappings that include FE0F did not apply and those sequences rendered split), and each minimally-qualified or unqualified sequence in emoji-test.txt without its own SVG gets one; an alias is a copy of the fully-qualified SVG.",
+		"count": 1052,
+		"sha256": "687db880f7318d32406f5063792eef156722eb46f32ffaa0999539b7816c61e0"
+	},
+	"rgi": {
+		"url": "https://www.unicode.org/Public/17.0.0/emoji/emoji-test.txt",
+		"sha256": "1d8a944f88d7952f7ef7c5167fef3c67995bcae24543949710231b03a201acda"
+	},
+	"tools": {
+		"nanoemoji": "0.16.0",
+		"picosvg": "0.23.0",
+		"fonttools": "4.65.0",
+		"uharfbuzz": "0.56.1",
+		"brotli": "1.2.0",
+		"skia-pathops": "0.9.2"
+	},
+	"source_date_epoch": 1780352164,
+	"output": {
+		"woff2_bytes": 657364,
+		"woff2_sha256": "0e8645e0fcbb7c98b18eeaa099122633a9129823336f6a76a944a31be07a4700",
+		"ttf_bytes": 1494564,
+		"ttf_sha256": "d1240b1b22192396bb5461ce598ab41a35ca72ddceb2264e19a3eb49213bbab6"
+	},
+	"font_tables": {
+		"tables": [
+			"COLR",
+			"CPAL",
+			"GSUB",
+			"GlyphOrder",
+			"OS/2",
+			"cmap",
+			"glyf",
+			"head",
+			"hhea",
+			"hmtx",
+			"loca",
+			"maxp",
+			"name",
+			"post"
+		],
+		"colr_version": 1,
+		"glyphs": 13351,
+		"cmap_codepoints": 1453,
+		"units_per_em": 1024
+	},
+	"coverage": {
+		"by_status": {
+			"component": {
+				"total": 9,
+				"visible": 9,
+				"strict": 9
+			},
+			"fully-qualified": {
+				"total": 3944,
+				"visible": 3944,
+				"strict": 3724
+			},
+			"minimally-qualified": {
+				"total": 1029,
+				"visible": 1029,
+				"strict": 1029
+			},
+			"unqualified": {
+				"total": 243,
+				"visible": 243,
+				"strict": 243
+			}
+		},
+		"by_kind": {
+			"component/single": {
+				"total": 9,
+				"visible": 9,
+				"strict": 9
+			},
+			"fully-qualified/flag": {
+				"total": 259,
+				"visible": 259,
+				"strict": 259
+			},
+			"fully-qualified/keycap": {
+				"total": 12,
+				"visible": 12,
+				"strict": 0
+			},
+			"fully-qualified/modifier": {
+				"total": 665,
+				"visible": 665,
+				"strict": 665
+			},
+			"fully-qualified/single": {
+				"total": 1391,
+				"visible": 1391,
+				"strict": 1184
+			},
+			"fully-qualified/tag": {
+				"total": 3,
+				"visible": 3,
+				"strict": 3
+			},
+			"fully-qualified/zwj": {
+				"total": 1614,
+				"visible": 1614,
+				"strict": 1613
+			},
+			"minimally-qualified/zwj": {
+				"total": 1029,
+				"visible": 1029,
+				"strict": 1029
+			},
+			"unqualified/keycap": {
+				"total": 12,
+				"visible": 12,
+				"strict": 12
+			},
+			"unqualified/single": {
+				"total": 207,
+				"visible": 207,
+				"strict": 207
+			},
+			"unqualified/zwj": {
+				"total": 24,
+				"visible": 24,
+				"strict": 24
+			}
+		},
+		"not_visible": []
+	}
+}
