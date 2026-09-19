@@ -1508,6 +1508,7 @@ function wp_default_scripts( $scripts ) {
 
 		$scripts->add( 'dashboard', "/wp-admin/js/dashboard$suffix.js", array( 'common', 'jquery', 'admin-comments', 'postbox', 'wp-util', 'wp-a11y', 'wp-date' ), false, 1 );
 		$scripts->set_translations( 'dashboard' );
+		did_action( 'init' ) && $scripts->add_data( 'dashboard', 'strategy', 'defer' );
 
 		// Deprecated, no longer used in core, registered for backward compatibility.
 		$scripts->add( 'list-revisions', "/wp-includes/js/wp-list-revisions$suffix.js" );
