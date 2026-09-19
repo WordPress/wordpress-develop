@@ -149,9 +149,9 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			selectors = 'input, a, button';
 			elements = modal.querySelectorAll( selectors );
 			elements = Array.prototype.slice.call( elements );
-			tabKey = event.keyCode === 9;
+			tabKey = event.key === 'Tab';
 			shiftKey = event.shiftKey;
-			escKey = event.keyCode === 27;
+			escKey = event.key === 'Escape';
 			activeEl = document.activeElement; // eslint-disable-line @wordpress/no-global-active-element
 			lastEl = elements[ elements.length - 1 ];
 			firstEl = elements[0];
