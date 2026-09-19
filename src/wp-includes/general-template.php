@@ -4958,6 +4958,12 @@ function language_attributes( $doctype = 'html' ) {
  * }
  * @return string|string[]|null String of page links or array of page links, depending on 'type' argument.
  *                              Null if total number of pages is less than 2.
+ *
+ * @phpstan-return (
+ *     $args is array{ total: int<min, 1>, ... }
+ *         ? null
+ *         : ( $args is array{ type: 'array', ... } ? list<string> : string )
+ * )
  */
 function paginate_links( $args = '' ) {
 	global $wp_query, $wp_rewrite;

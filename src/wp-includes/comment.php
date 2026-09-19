@@ -2809,6 +2809,8 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
  * @param string         $comment_status New comment status, either 'hold', 'approve', 'spam', or 'trash'.
  * @param bool           $wp_error       Whether to return a WP_Error object if there is a failure. Default false.
  * @return bool|WP_Error True on success, false or WP_Error on failure.
+ *
+ * @phpstan-return ( $wp_error is false ? bool : true|WP_Error )
  */
 function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false ) {
 	global $wpdb;
@@ -2883,6 +2885,8 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
  * @param bool  $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return int|false|WP_Error The value 1 if the comment was updated, 0 if not updated.
  *                            False or a WP_Error object on failure.
+ *
+ * @phpstan-return ( $wp_error is false ? int|false : int|WP_Error )
  */
 function wp_update_comment( $commentarr, $wp_error = false ) {
 	global $wpdb;

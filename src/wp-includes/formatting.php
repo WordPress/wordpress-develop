@@ -2412,6 +2412,10 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
  *
  * @param string $orderby Order by clause to be validated.
  * @return string|false Returns $orderby if valid, false otherwise.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $orderby
+ * @phpstan-return ( T is non-falsy-string ? T|false : false )
  */
 function sanitize_sql_orderby( $orderby ) {
 	if ( preg_match( '/^\s*(([a-z0-9_]+|`[a-z0-9_]+`)(\s+(ASC|DESC))?\s*(,\s*(?=[a-z0-9_`])|$))+$/i', $orderby ) || preg_match( '/^\s*RAND\(\s*\)\s*$/i', $orderby ) ) {
@@ -2788,6 +2792,16 @@ function format_to_edit( $content, $rich_text = false ) {
  * @param int $number     Number to append zeros to if not greater than threshold.
  * @param int $threshold  Digit places number needs to be to not have zeros added.
  * @return string Adds leading zeros to number if needed.
+ *
+ * @phpstan-return (
+ *     $threshold is 0
+ *         ? lowercase-string&non-empty-string&numeric-string
+ *         : (
+ *             $number is int<0, max>
+ *                 ? lowercase-string&non-empty-string&numeric-string
+ *                 : lowercase-string&non-empty-string
+ *         )
+ * )
  */
 function zeroise( $number, $threshold ) {
 	return sprintf( '%0' . $threshold . 's', $number );

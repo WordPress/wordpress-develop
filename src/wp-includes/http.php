@@ -555,6 +555,10 @@ function send_origin_headers() {
  *
  * @param string $url Request URL.
  * @return string|false Returns false if the URL is not safe, or the original URL if it is safe.
+ *
+ * @phpstan-template TUrl of string
+ * @phpstan-param TUrl $url
+ * @phpstan-return ( TUrl is numeric|'' ? false : TUrl|false )
  */
 function wp_http_validate_url( $url ) {
 	if ( ! is_string( $url ) || '' === $url || is_numeric( $url ) ) {

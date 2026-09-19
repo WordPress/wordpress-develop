@@ -374,6 +374,8 @@ function get_taxonomy( $taxonomy ) {
  *
  * @param string $taxonomy Name of taxonomy object.
  * @return bool Whether the taxonomy exists.
+ *
+ * @phpstan-return ( $taxonomy is non-falsy-string ? bool : false )
  */
 function taxonomy_exists( $taxonomy ) {
 	global $wp_taxonomies;
@@ -1836,6 +1838,14 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
  *                         'attribute', or 'js'.
  * @return mixed Sanitized field.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     $field is 'parent'|'term_id'|'count'|'term_group'|'term_taxonomy_id'|'object_id'
+ *         ? int<0, max>
+ *         : ( $context is 'raw' ? T : ( $context is 'attribute'|'edit'|'js' ? string : mixed ) )
+ * )
  */
 function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 	$int_fields = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );

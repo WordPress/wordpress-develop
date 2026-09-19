@@ -22,6 +22,24 @@
  *     @type string $taxonomy Taxonomy to retrieve terms for. Default 'category'.
  * }
  * @return array List of category objects.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? list<numeric-string>
+ *         : (
+ *             $args is array{ fields: 'names'|'slugs', ... }
+ *                 ? list<string>
+ *                 : (
+ *                     $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>
+ *                         : (
+ *                             $args is array{ fields: 'id=>parent', ... }
+ *                                 ? array<int, int>
+ *                                 : ( $args is array{ fields: 'ids'|'tt_ids', ... } ? list<int> : array<int, WP_Term> )
+ *                         )
+ *                 )
+ *         )
+ * )
  */
 function get_categories( $args = '' ) {
 	$defaults = array( 'taxonomy' => 'category' );
@@ -307,6 +325,20 @@ function sanitize_category_field( $field, $value, $cat_id, $context ) {
  * }
  * @return WP_Term[]|int|WP_Error Array of 'post_tag' term objects, a count thereof,
  *                                or WP_Error if any of the taxonomies do not exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'names'|'slugs', ... }
+ *         ? list<string>
+ *         : (
+ *             $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                 ? array<int, string>
+ *                 : (
+ *                     $args is array{ fields: 'id=>parent', ... }
+ *                         ? array<int, int>
+ *                         : ( $args is array{ fields: 'ids'|'tt_ids', ... } ? list<int> : array<int, WP_Term> )
+ *                 )
+ *         )
+ * )|WP_Error
  */
 function get_tags( $args = '' ) {
 	$defaults = array( 'taxonomy' => 'post_tag' );

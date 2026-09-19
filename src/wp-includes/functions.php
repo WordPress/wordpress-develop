@@ -469,6 +469,8 @@ function number_format_i18n( $number, $decimals = 0 ) {
  * @return string|false Number string on success, false on failure.
  *
  * @phpstan-param int|float|numeric-string $bytes
+ *
+ * @phpstan-return ( $bytes is int<0, max> ? string : string|false )
  */
 function size_format( $bytes, $decimals = 0 ) {
 	if ( ! is_numeric( $bytes ) ) {
@@ -636,6 +638,10 @@ function get_weekstartend( $mysqlstring, $start_of_week = '' ) {
  *
  * @param string|array|object $data Data that might be serialized.
  * @return mixed A scalar data.
+ *
+ * @phpstan-template T of mixed
+ * @phpstan-param T $data
+ * @phpstan-return ( T is array|object|string ? string : T )
  */
 function maybe_serialize( $data ) {
 	if ( is_array( $data ) || is_object( $data ) ) {
@@ -844,6 +850,8 @@ function xmlrpc_removepostdata( $content ) {
  *
  * @param string $content Content to extract URLs from.
  * @return string[] Array of URLs found in passed string.
+ *
+ * @phpstan-return ( $content is empty ? array{ } : list<string> )
  */
 function wp_extract_urls( $content ) {
 	preg_match_all(
@@ -1604,6 +1612,8 @@ function get_num_queries() {
  *
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
  * @return bool True if 'y', false on anything else.
+ *
+ * @phpstan-return ( $yn is 'y' ? true : false )
  */
 function bool_from_yn( $yn ) {
 	return ( 'y' === strtolower( $yn ) );
@@ -2135,6 +2145,8 @@ function wp_mkdir_p( $target ) {
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
+ *
+ * @phpstan-return ( $path is non-falsy-string ? bool : false )
  */
 function path_is_absolute( $path ) {
 	/*
@@ -5420,6 +5432,8 @@ function _wp_to_kebab_case( $input_string ) {
  * @return bool Whether the variable is a list.
  *
  * @phpstan-assert-if-true array<int, mixed> $data
+ *
+ * @phpstan-return ( $data is array<int, mixed> ? true : false )
  */
 function wp_is_numeric_array( $data ): bool {
 	if ( ! is_array( $data ) ) {
@@ -6420,6 +6434,8 @@ function iis7_supports_permalinks() {
  * @param string   $file          File path.
  * @param string[] $allowed_files Optional. Array of allowed files. Default empty array.
  * @return int 0 means nothing is wrong, greater than 0 means something was wrong.
+ *
+ * @phpstan-return ( $file is '' ? 0 : ( $allowed_files is empty ? 0|1|2 : 0|1|2|3 ) )
  */
 function validate_file( $file, $allowed_files = array() ) {
 	if ( ! is_scalar( $file ) || '' === $file ) {
@@ -7434,6 +7450,8 @@ function wp_allowed_protocols() {
  *                             the raw array returned. Default true.
  * @return string|array Either a string containing a reversed comma separated trace or an array
  *                      of individual calls.
+ *
+ * @phpstan-return ( $pretty is true ? string : list<string> )
  */
 function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pretty = true ) {
 	static $truncate_paths;
@@ -7743,6 +7761,8 @@ function wp_auth_check( $response ) {
  *
  * @param string $tag An HTML tag name. Example: 'video'.
  * @return string Tag RegEx.
+ *
+ * @phpstan-return ( $tag is ''|'0' ? '' : non-falsy-string )
  */
 function get_tag_regex( $tag ) {
 	if ( empty( $tag ) ) {
@@ -8189,6 +8209,8 @@ function wp_generate_uuid4() {
  * @param int   $version Specify which version of UUID to check against. Default is none,
  *                       to accept any UUID version. Otherwise, only version allowed is `4`.
  * @return bool The string is a valid UUID or false on failure.
+ *
+ * @phpstan-return ( $version is 4|null ? bool : false )
  */
 function wp_is_uuid( $uuid, $version = null ) {
 
@@ -8240,6 +8262,12 @@ function wp_unique_id( $prefix = '' ) {
  *
  * @param string $prefix Optional. Prefix for the returned ID. Default empty string.
  * @return string Incremental ID per prefix.
+ *
+ * @phpstan-return (
+ *     ( $prefix is ''|numeric-string ? numeric-string : string )
+ *     & non-falsy-string
+ *     & ( $prefix is lowercase-string ? lowercase-string : string )
+ * )
  */
 function wp_unique_prefixed_id( $prefix = '' ) {
 	static $id_counters = array();
