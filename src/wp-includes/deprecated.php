@@ -2021,7 +2021,15 @@ function get_attachment_innerHTML($id = 0, $fullsize = false, $max_dims = false)
  *                            Default OBJECT.
  * @param string $filter      Optional. How to filter the link for output. Accepts 'raw', 'edit',
  *                            'attribute', 'js', 'db', or 'display'. Default 'raw'.
- * @return object|array Bookmark object or array, depending on the type specified by `$output`.
+ * @return object|array|null Bookmark object or array, depending on the type specified by `$output`.
+ *                            Null if the bookmark does not exist.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return null|(
+ *     $output is 'ARRAY_A' ? array<string, mixed> : (
+ *         $output is 'ARRAY_N' ? array<int, mixed> : stdClass
+ *     )
+ * )
  */
 function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmark()' );

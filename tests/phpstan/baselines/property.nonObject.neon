@@ -189,11 +189,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-control.php
 		-
-			message: '#^Cannot access property \$link_id on array\|object\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: ../../../src/wp-includes/link-template.php
-		-
 			message: '#^Cannot access property \$plugins on array\|object\.$#'
 			identifier: property.nonObject
 			count: 1
