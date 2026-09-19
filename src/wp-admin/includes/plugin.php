@@ -2132,6 +2132,56 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 }
 
 /**
+ * Determines whether the requested admin page is registered.
+ *
+ * This does not check whether the current user has the capability to access
+ * the page, only whether the page itself exists. Pages registered for a
+ * capability the current user lacks are recorded in the no-privilege
+ * registries rather than in $_registered_pages, and are still considered
+ * to exist so that the caller can report a permission error instead of a
+ * "page not found" error.
+ *
+ * @since 7.2.0
+ *
+ * @global string              $admin_page_parent  The parent slug of the current admin page.
+ * @global string              $plugin_page        The plugin page slug being loaded.
+ * @global array<string, true> $_registered_pages  Array of all registered admin page hooks.
+ * @global array               $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
+ * @global array               $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
+ *
+ * @return bool True if the admin page exists, false otherwise.
+ */
+function wp_admin_page_exists() {
+	global $admin_page_parent, $plugin_page, $_registered_pages,
+		$_wp_menu_nopriv, $_wp_submenu_nopriv;
+
+	$admin_page_parent ??= get_admin_page_parent();
+
+	if ( ! isset( $plugin_page ) ) {
+		return true;
+	}
+
+	$hookname = get_plugin_page_hookname( $plugin_page, $admin_page_parent );
+
+	if ( isset( $_registered_pages[ $hookname ] ) ) {
+		return true;
+	}
+
+	// The page may be registered for a capability the current user lacks.
+	if ( isset( $_wp_menu_nopriv[ $plugin_page ] ) ) {
+		return true;
+	}
+
+	foreach ( (array) $_wp_submenu_nopriv as $nopriv_submenus ) {
+		if ( isset( $nopriv_submenus[ $plugin_page ] ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Gets the hook name for the administrative page of a plugin.
  *
  * @since 1.5.0
@@ -2176,14 +2226,15 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  * @global array  $_wp_submenu_nopriv
  * @global string $plugin_page
  * @global array  $_registered_pages
+ * @global string $admin_page_parent
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
 function user_can_access_admin_page() {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
-		$plugin_page, $_registered_pages;
+		$plugin_page, $_registered_pages, $admin_page_parent;
 
-	$parent = get_admin_page_parent();
+	$parent = $admin_page_parent ?? get_admin_page_parent();
 
 	if ( ! isset( $plugin_page ) && isset( $_wp_submenu_nopriv[ $parent ][ $pagenow ] ) ) {
 		return false;
