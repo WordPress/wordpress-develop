@@ -179,7 +179,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return $value;
 		}
 
-		if ( empty( $value ) || false === $value || 'false' === $value ) {
+		if ( empty( $value ) || 'false' === $value ) {
 			return false;
 		}
 
