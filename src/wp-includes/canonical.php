@@ -446,10 +446,15 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			) {
 				// Strip off any existing paging.
 				$redirect['path'] = preg_replace( "#/$wp_rewrite->pagination_base/?[0-9]+?(/+)?$#", '/', $redirect['path'] );
-				// Strip off feed endings.
-				$redirect['path'] = preg_replace( '#/(comments/?)?(feed|rss2?|rdf|atom)(/+|$)#', '/', $redirect['path'] );
 				// Strip off any existing comment paging.
 				$redirect['path'] = preg_replace( "#/{$wp_rewrite->comments_pagination_base}-[0-9]+?(/+)?$#", '/', $redirect['path'] );
+				// Only strip comments/ from comment feed on site
+				if ( $redirect['path'] == preg_replace( '#(https?:)?//[^/]+#', '', get_feed_link( 'comments_rss2' ) ) ) {
+					$redirect['path'] = preg_replace( '#/(comments/)(feed|rss2?|rdf|atom)(/+|$)#', '/', $redirect['path'] );
+				} else {
+					// Strip off feed endings
+					$redirect['path'] = preg_replace( '#/(feed|rss2?|rdf|atom)(/+|$)#', '/', $redirect['path'] );
+				}
 			}
 
 			$addl_path    = '';
