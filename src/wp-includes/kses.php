@@ -965,7 +965,57 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 
 	$content = wp_kses_no_null( $content, array( 'slash_zero' => 'keep' ) );
 	$content = wp_kses_normalize_entities( $content );
-	$content = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
+
+	/*
+	 * Preserve the existing pre_kses hook contract before establishing
+	 * contextual ancestry.
+	 */
+	$hook_input = $content;
+	$content    = wp_kses_hook( $hook_input, $allowed_html, $allowed_protocols );
+
+	/*
+	 * If pre_kses changed the normalized input, structural identity is no
+	 * longer established. Preserve the hook mutation but do not broaden
+	 * contextual autofocus for this invocation.
+	 */
+	if ( 'post' === $allowed_html && $content !== $hook_input ) {
+		return wp_kses_split( $content, $allowed_html, $allowed_protocols );
+	}
+
+	if ( 'post' === $allowed_html && false !== stripos( $content, 'autofocus' ) ) {
+		$dialog_autofocus_content = _wp_kses_sanitize_dialog_autofocus( $content );
+
+		if ( null === $dialog_autofocus_content ) {
+			return wp_kses_split( $content, $allowed_html, $allowed_protocols );
+		}
+
+		if ( false === stripos( $dialog_autofocus_content, 'autofocus' ) ) {
+			return wp_kses_split( $dialog_autofocus_content, $allowed_html, $allowed_protocols );
+		}
+
+		/*
+		 * Resolve the broadened post policy before entering the regex KSES
+		 * tokenizer. Recursive comment sanitization therefore receives the
+		 * same resolved policy instead of mutating contextual state.
+		 */
+		$dialog_autofocus_allowed_html = wp_kses_allowed_html( '_wp_kses_post_with_dialog_autofocus' );
+		$filtered_content              = wp_kses_split(
+			$dialog_autofocus_content,
+			$dialog_autofocus_allowed_html,
+			$allowed_protocols
+		);
+		$dialog_autofocus_content      = _wp_kses_sanitize_dialog_autofocus( $filtered_content );
+
+		if ( null !== $dialog_autofocus_content ) {
+			return $dialog_autofocus_content;
+		}
+
+		/*
+		 * Fail closed using already-hooked content so pre_kses is not
+		 * executed a second time.
+		 */
+		return wp_kses_split( $content, $allowed_html, $allowed_protocols );
+	}
 
 	return wp_kses_split( $content, $allowed_html, $allowed_protocols );
 }
@@ -1063,6 +1113,11 @@ function wp_kses_one_attr( $attr, $element ) {
 function wp_kses_allowed_html( $context = '' ) {
 	global $allowedposttags, $allowedtags, $allowedentitynames;
 
+	$allow_dialog_autofocus = '_wp_kses_post_with_dialog_autofocus' === $context;
+	if ( $allow_dialog_autofocus ) {
+		$context = 'post';
+	}
+
 	if ( is_array( $context ) ) {
 		// When `$context` is an array it's actually an array of allowed HTML elements and attributes.
 		$html    = $context;
@@ -1086,7 +1141,11 @@ function wp_kses_allowed_html( $context = '' ) {
 	switch ( $context ) {
 		case 'post':
 			/** This filter is documented in wp-includes/kses.php */
-			$tags = apply_filters( 'wp_kses_allowed_html', $allowedposttags, $context );
+			$tags = $allowedposttags;
+			if ( $allow_dialog_autofocus ) {
+				$tags = _wp_kses_add_dialog_autofocus_to_allowed_html( $tags );
+			}
+			$tags = apply_filters( 'wp_kses_allowed_html', $tags, $context );
 
 			// 5.0.1 removed the `<form>` tag, allow it if a filter is allowing it's sub-elements `<input>` or `<select>`.
 			if ( ! CUSTOM_TAGS && ! isset( $tags['form'] ) && ( isset( $tags['input'] ) || isset( $tags['select'] ) ) ) {
@@ -1101,6 +1160,10 @@ function wp_kses_allowed_html( $context = '' ) {
 					'name'           => true,
 					'target'         => true,
 				);
+
+				if ( $allow_dialog_autofocus ) {
+					$tags = _wp_kses_add_dialog_autofocus_to_allowed_html( $tags );
+				}
 
 				/** This filter is documented in wp-includes/kses.php */
 				$tags = apply_filters( 'wp_kses_allowed_html', $tags, $context );
@@ -1130,6 +1193,79 @@ function wp_kses_allowed_html( $context = '' ) {
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $allowedtags, $context );
 	}
+}
+
+/**
+ * Reduces the post-context autofocus allowance to actual dialog scope.
+ *
+ * This parser-backed pass runs on unchanged pre_kses output before KSES and
+ * again after KSES. It does not replace KSES or allow any other tag or
+ * attribute. Returning null causes the caller to use the legacy post allowlist
+ * and therefore fail closed.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $content Content to inspect and update.
+ * @return string|null Updated content, or null when structural processing cannot complete.
+ */
+function _wp_kses_sanitize_dialog_autofocus( $content ): ?string {
+	if ( false === stripos( $content, 'autofocus' ) ) {
+		return $content;
+	}
+
+	$processor = WP_HTML_Processor::create_fragment( $content );
+
+	if ( false === $processor ) {
+		return null;
+	}
+
+	while ( $processor->next_tag() ) {
+		if ( null === $processor->get_attribute( 'autofocus' ) ) {
+			continue;
+		}
+
+		if ( in_array( 'DIALOG', $processor->get_breadcrumbs(), true ) ) {
+			continue;
+		}
+
+		$processor->remove_attribute( 'autofocus' );
+	}
+
+	if ( null !== $processor->get_last_error() ) {
+		return null;
+	}
+
+	return $processor->get_updated_html();
+}
+
+/**
+ * Adds autofocus to Core's post-context attributes before structural reduction.
+ *
+ * The public {@see 'wp_kses_allowed_html'} filter runs after this helper, so
+ * developers can still narrow or remove the permission. Explicit allowlist
+ * arrays do not use this internal post context and are never broadened.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param array<string, array<string, mixed>> $allowed Allowed post HTML.
+ * @return array<string, array<string, mixed>> Updated allowed post HTML.
+ */
+function _wp_kses_add_dialog_autofocus_to_allowed_html( $allowed ): array {
+	if ( ! is_array( $allowed ) ) {
+		$allowed = array();
+	}
+
+	foreach ( $allowed as $element => $attributes ) {
+		if ( ! is_array( $attributes ) ) {
+			continue;
+		}
+
+		$allowed[ $element ]['autofocus'] = true;
+	}
+
+	return $allowed;
 }
 
 /**
