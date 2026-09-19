@@ -957,7 +957,9 @@ final class WP_Theme implements ArrayAccess {
 	 *                       'ThemeURI', 'AuthorURI', 'Status', 'Tags', 'RequiresWP', 'RequiresPHP',
 	 *                       'UpdateURI'.
 	 * @param string $value  Value to sanitize.
-	 * @return string|array An array for Tags header, string otherwise.
+	 * @return string|string[] An array for Tags header, string otherwise.
+	 *
+	 * @phpstan-return ( $header is 'Tags' ? string[] : string )
 	 */
 	private function sanitize_header( $header, $value ) {
 		switch ( $header ) {
@@ -1061,12 +1063,11 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param string       $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
-	 * @param string|array $value  Value to translate. An array for Tags header, string otherwise.
-	 * @return string|array Translated value. An array for Tags header, string otherwise.
+	 * @param string          $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
+	 * @param string|string[] $value  Value to translate. An array for Tags header, string otherwise.
+	 * @return string|string[] Translated value. An array for Tags header, string otherwise.
 	 *
-	 * @phpstan-param string|string[] $value
-	 * @phpstan-return string|string[]
+	 * @phpstan-return ( $value is string ? string : string[] )
 	 */
 	private function translate_header( $header, $value ) {
 		switch ( $header ) {
