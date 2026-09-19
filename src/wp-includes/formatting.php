@@ -4050,6 +4050,19 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		 */
 		$filter_block_removed = remove_filter( 'the_content', 'do_blocks', 9 );
 
+		/*
+		 * Temporarily unhook apply_block_hooks_to_content_from_post_object().
+		 * The excerpt is generated from already-rendered content and
+		 * do_blocks() is unhooked above, so any hooked blocks inserted here
+		 * could never be rendered. The callback wraps delimiter-free content
+		 * in a temporary core/post-content wrapper block to anchor hooked
+		 * blocks, so the algorithm would still run and any markup added via
+		 * the 'hooked_block' filter would leak into the excerpt as text. It
+		 * would also resolve its context from the current loop post via
+		 * get_post() rather than the post being excerpted.
+		 */
+		$filter_block_hooks_removed = remove_filter( 'the_content', 'apply_block_hooks_to_content_from_post_object', 8 );
+
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
 		$text = str_replace( ']]>', ']]&gt;', $text );
@@ -4057,6 +4070,10 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		// Restore the original filter if removed.
 		if ( $filter_block_removed ) {
 			add_filter( 'the_content', 'do_blocks', 9 );
+		}
+
+		if ( $filter_block_hooks_removed ) {
+			add_filter( 'the_content', 'apply_block_hooks_to_content_from_post_object', 8 );
 		}
 
 		/*
