@@ -1599,6 +1599,27 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `WP_Upgrader::create_lock()` invalidates stale notoptions cache
+	 * so that expired locks can be detected and re-created.
+	 *
+	 * @ticket 64080
+	 *
+	 * @covers WP_Upgrader::create_lock
+	 */
+	public function test_create_lock_should_invalidate_stale_notoptions_cache() {
+		// Prime notoptions cache by requesting the non-existent lock option.
+		get_option( 'test.lock' );
+
+		$this->assertTrue( WP_Upgrader::create_lock( 'test' ), 'create_lock() should succeed despite stale notoptions cache.' );
+		$this->assertNotFalse( get_option( 'test.lock' ), 'get_option() should return the lock timestamp after create_lock().' );
+
+		update_option( 'test.lock', time() - 10 );
+		$this->assertTrue( WP_Upgrader::create_lock( 'test', 5 ), 'Expired lock should be released and re-created.' );
+
+		WP_Upgrader::release_lock( 'test' );
+	}
+
+	/**
 	 * Tests that `WP_Upgrader::download_package()` returns early when
 	 * the 'upgrader_pre_download' filter returns a non-false value.
 	 *
