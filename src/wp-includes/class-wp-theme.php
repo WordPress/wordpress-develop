@@ -5,6 +5,8 @@
  * @package WordPress
  * @subpackage Theme
  * @since 3.4.0
+ *
+ * @phpstan-type Theme_Key 'Name'|'Version'|'Status'|'Title'|'Author'|'Author Name'|'Author URI'|'Description'|'Template'|'Stylesheet'|'Template Files'|'Stylesheet Files'|'Template Dir'|'Stylesheet Dir'|'Screenshot'|'Tags'|'Theme Root'|'Theme Root URI'|'Parent Theme'
  */
 #[AllowDynamicProperties]
 final class WP_Theme implements ArrayAccess {
@@ -654,6 +656,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 * @return bool
+	 *
+	 * @phpstan-return ( $offset is Theme_Key ? true : false )
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetExists( $offset ) {
@@ -696,6 +700,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 * @return mixed
+	 *
+	 * @phpstan-return ( $offset is Theme_Key ? mixed : null )
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {

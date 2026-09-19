@@ -8243,6 +8243,12 @@ function wp_is_uuid( $uuid, $version = null ) {
  *
  * @param string $prefix Prefix for the returned ID.
  * @return string Unique ID.
+ *
+ * @phpstan-return (
+ *     ( $prefix is ''|numeric-string ? numeric-string : string )
+ *     & non-falsy-string
+ *     & ( $prefix is lowercase-string ? lowercase-string : string )
+ * )
  */
 function wp_unique_id( $prefix = '' ) {
 	static $id_counter = 0;
@@ -8301,6 +8307,8 @@ function wp_unique_prefixed_id( $prefix = '' ) {
  * @param array  $data   The input array to generate an ID from.
  * @param string $prefix Optional. A prefix to prepend to the generated ID. Default empty string.
  * @return string The generated unique ID for the array.
+ *
+ * @phpstan-return ( $prefix is lowercase-string ? lowercase-string&non-falsy-string : non-falsy-string )
  */
 function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
 	if ( empty( $data ) ) {

@@ -139,6 +139,8 @@ class WP_Translations {
 	 * @param string|null $singular Singular string.
 	 * @param string|null $context  Context.
 	 * @return string|null Translation if it exists, or the unchanged singular string
+	 *
+	 * @phpstan-return ( $singular is null ? null : string )
 	 */
 	public function translate( $singular, $context = '' ) {
 		if ( null === $singular ) {
