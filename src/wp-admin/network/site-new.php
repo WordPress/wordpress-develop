@@ -65,8 +65,13 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 
 	$title = $blog['title'];
 
+	$public = 1;
+	if ( isset( $_POST['blog']['options']['blog_public'] ) && '0' === $_POST['blog']['options']['blog_public'] ) {
+		$public = 0;
+	}
+
 	$meta = array(
-		'public' => 1,
+		'public' => $public,
 	);
 
 	// Handle translation installation for the new site.
@@ -286,6 +291,24 @@ if ( ! empty( $messages ) ) {
 		</tr>
 		<tr class="form-field">
 			<td colspan="2" class="td-full"><p id="site-admin-email"><?php _e( 'A new user will be created if the above email address is not in the database.' ); ?><br /><?php _e( 'The username and a link to set the password will be mailed to this email address.' ); ?></p></td>
+		</tr>
+		<tr class="form-field">
+			<th scope="row"><?php esc_html_e( 'Search engine visibility' ); ?></th>
+			<td>
+				<fieldset>
+					<legend class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						esc_html_e( 'Search engine visibility' );
+						?>
+					</legend>
+					<label for="blog_public">
+						<input name="blog[options][blog_public]" type="checkbox" id="blog_public" value="0" <?php checked( isset( $_POST['blog']['options']['blog_public'] ) && '0' === $_POST['blog']['options']['blog_public'] ); ?> />
+						<?php esc_html_e( 'Discourage search engines from indexing this site' ); ?>
+					</label>
+					<p class="description"><?php esc_html_e( 'It is up to search engines to honor this request.' ); ?></p>
+				</fieldset>
+			</td>
 		</tr>
 	</table>
 
