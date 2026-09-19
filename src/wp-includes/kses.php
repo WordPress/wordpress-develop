@@ -1262,6 +1262,16 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				$is_closer  = $this->is_tag_closer();
 				$here       = $this->get_span();
 
+				/*
+				 * Prevent allowing NOSCRIPT elements whose parsing rules change
+				 * based on whether the scripting flag is enabled in a browser.
+				 * Rely on trusted inputs for producing the appropriate NOSCRIPT
+				 * content, and prevent untrusted inputs from generating it.
+				 */
+				if ( 'NOSCRIPT' === $token_name && ! $is_closer ) {
+					break;
+				}
+
 				$is_in_mathml_text_integration_point = (
 					'math' === $this->get_namespace() &&
 					in_array(
