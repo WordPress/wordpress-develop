@@ -3801,6 +3801,7 @@ function wp_nonce_ays( $action ) {
  * @since 5.3.0 The `$charset` argument was added.
  * @since 5.5.0 The `$text_direction` argument has a priority over get_language_attributes()
  *              in the default handler.
+ * @since 7.2.0 The `$heading` argument was added.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -3832,6 +3833,8 @@ function wp_nonce_ays( $action ) {
  *     @type string   $code           Error code to use. Default is 'wp_die', or the main error code if $message
  *                                    is a WP_Error.
  *     @type bool     $exit           Whether to exit the process after completion. Default true.
+ *     @type string   $heading        A heading to display above the message in the default handler.
+ *                                    The value is not escaped. Default empty string.
  * }
  * @return void Never returns if `$args['exit']` is true (the default), otherwise returns void.
  * @phpstan-param string|WP_Error|int<-1, max> $message
@@ -3917,6 +3920,9 @@ function wp_die( $message = '', $title = '', $args = array() ) {
  * you can override this using the {@see 'wp_die_handler'} filter in wp_die().
  *
  * @since 3.0.0
+ * @since 7.2.0 The `$heading` argument was added. The `lang` attribute is now printed
+ *              when an explicit `$text_direction` is passed, and on pages rendered
+ *              before `general-template.php` is loaded.
  * @access private
  *
  * @param string|WP_Error $message Error message or WP_Error object.
@@ -3940,6 +3946,10 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			'<div class="wp-die-message">%s</div>',
 			$message
 		);
+	}
+
+	if ( ! empty( $parsed_args['heading'] ) ) {
+		$message = '<h1>' . $parsed_args['heading'] . '</h1>' . $message;
 	}
 
 	$have_gettext = function_exists( '__' );
@@ -3966,20 +3976,45 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 
 		$text_direction = $parsed_args['text_direction'];
-		$dir_attr       = "dir='$text_direction'";
+		$html_attrs     = "dir='$text_direction'";
 
-		/*
-		 * If `text_direction` was not explicitly passed,
-		 * use get_language_attributes() if available.
-		 */
-		if ( empty( $args['text_direction'] )
-			&& function_exists( 'language_attributes' ) && function_exists( 'is_rtl' )
-		) {
-			$dir_attr = get_language_attributes();
+		if ( function_exists( 'language_attributes' ) && function_exists( 'is_rtl' ) ) {
+			if ( empty( $args['text_direction'] ) ) {
+				/*
+				 * If `text_direction` was not explicitly passed,
+				 * use the site's language attributes, which include the text direction.
+				 */
+				$html_attrs = get_language_attributes();
+			} else {
+				/*
+				 * An explicit `text_direction` overrides the site's text direction,
+				 * but the language is still the site's.
+				 */
+				$lang = get_bloginfo( 'language' );
+
+				if ( $lang ) {
+					$html_attrs .= " lang='" . esc_attr( $lang ) . "'";
+				}
+			}
+		} else {
+			/*
+			 * Errors triggered early in the bootstrap process happen before
+			 * general-template.php is loaded, but wp_load_translations_early()
+			 * has already loaded the site's translations, so the language tag
+			 * can still be read from them.
+			 */
+			$lang = $have_gettext ? __( 'html_lang_attribute' ) : '';
+
+			if ( '' !== $lang && 'html_lang_attribute' !== $lang && ! preg_match( '/[^a-zA-Z0-9-]/', $lang ) ) {
+				$html_attrs .= " lang='$lang'";
+			} elseif ( ! $have_gettext || ! is_textdomain_loaded( 'default' ) ) {
+				// No translations are loaded, so the page is rendered in English.
+				$html_attrs .= " lang='en-US'";
+			}
 		}
 		?>
 <!DOCTYPE html>
-<html <?php echo $dir_attr; ?>>
+<html <?php echo $html_attrs; ?>>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -4382,6 +4417,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 		'text_direction'    => '',
 		'charset'           => 'utf-8',
 		'additional_errors' => array(),
+		'heading'           => '',
 	);
 
 	$args = wp_parse_args( $args, $defaults );
