@@ -155,6 +155,19 @@ h6 {
 	font-size: $font__size-xs;
 }
 
+/** === Site Title Block === */
+
+.wp-block-site-title a {
+	@include link-transition;
+	color: $color__link;
+	text-decoration: underline;
+	text-decoration-thickness: 2px;
+
+	&:focus {
+		text-decoration-thickness: 2px;
+	}
+}
+
 a {
 	@include link-transition;
 	color: $color__link;

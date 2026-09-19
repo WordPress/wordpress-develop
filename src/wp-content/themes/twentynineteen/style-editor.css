@@ -740,6 +740,18 @@ h6 {
   font-size: 0.71111em;
 }
 
+/** === Site Title Block === */
+.wp-block-site-title a {
+  transition: color 110ms ease-in-out;
+  color: #0073aa;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+.wp-block-site-title a:focus {
+  text-decoration-thickness: 2px;
+}
+
 a {
   transition: color 110ms ease-in-out;
   color: #0073aa;
