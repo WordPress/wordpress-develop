@@ -2786,6 +2786,10 @@ function get_calendar( $args = array() ) {
 	$newrow      = false;
 	$daysinmonth = (int) gmdate( 't', $unixmonth );
 
+	/* translators: Post calendar label. %s: Date. */
+	$posts_published_label = __( 'Posts published on %s' );
+	$archive_date_format   = _x( 'F j, Y', 'daily archives date format' );
+
 	for ( $day = 1; $day <= $daysinmonth; ++$day ) {
 		if ( $newrow ) {
 			$calendar_output .= "\n\t</tr>\n\t<tr>\n\t\t";
@@ -2804,9 +2808,8 @@ function get_calendar( $args = array() ) {
 
 		if ( in_array( $day, $daywithpost, true ) ) {
 			// Any posts today?
-			$date_format = gmdate( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
-			/* translators: Post calendar label. %s: Date. */
-			$label            = sprintf( __( 'Posts published on %s' ), $date_format );
+			$date_format      = gmdate( $archive_date_format, strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
+			$label            = sprintf( $posts_published_label, $date_format );
 			$calendar_output .= sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_day_link( $thisyear, $thismonth, $day ),
