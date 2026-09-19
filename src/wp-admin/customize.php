@@ -110,8 +110,10 @@ $registered             = $wp_scripts->registered;
 $wp_scripts             = new WP_Scripts();
 $wp_scripts->registered = $registered;
 
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'customize_controls_print_scripts', 'print_head_scripts', 20 );
 add_action( 'customize_controls_print_footer_scripts', '_wp_footer_scripts' );
+// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 add_action( 'customize_controls_print_styles', 'print_admin_styles', 20 );
 
 /**

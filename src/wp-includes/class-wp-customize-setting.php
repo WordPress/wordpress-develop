@@ -362,6 +362,7 @@ class WP_Customize_Setting {
 		// If the setting does not need previewing now, defer to when it has a value to preview.
 		if ( ! $needs_preview ) {
 			if ( ! has_action( "customize_post_value_set_{$this->id}", array( $this, 'preview' ) ) ) {
+				// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 				add_action( "customize_post_value_set_{$this->id}", array( $this, 'preview' ) );
 			}
 			return false;
