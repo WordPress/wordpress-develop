@@ -51,6 +51,49 @@ HERE = Path(__file__).resolve().parent
 SOURCES = HERE / "sources.json"
 FAMILY = "Twemoji"
 FONT_FILE = "twemoji-colrv1.woff2"
+FLAGS_FILE = "twemoji-colrv1-flags.woff2"
+
+# The flags subset is cut from the full font, never built separately, so it
+# shares its artwork, aliases and license. These are the code points it asks
+# for: regional indicators, the white and black flags, tag characters, and
+# the ZWJ, VS16, rainbow, transgender symbol and skull and crossbones that the
+# rainbow, transgender and pirate flags are made of. A ligature is kept when
+# all of its components are.
+FLAGS_CODEPOINTS = (
+    tuple(range(0x1F1E6, 0x1F200))
+    + (0x1F3F3, 0x1F3F4)
+    + tuple(range(0xE0020, 0xE0080))
+    + (0x200D, 0xFE0F, 0x1F308, 0x26A7, 0x2620)
+)
+ZWJ_FLAGS = ((0x1F3F3, 0x200D, 0x1F308), (0x1F3F3, 0x200D, 0x26A7), (0x1F3F4, 0x200D, 0x2620))
+
+
+def is_flag_profile(codepoints):
+    """The flag profile: country, subdivision, rainbow, transgender and pirate flags, in any spelling."""
+    if len(codepoints) == 2 and all(0x1F1E6 <= c <= 0x1F1FF for c in codepoints):
+        return True
+    if (
+        len(codepoints) > 2
+        and codepoints[0] == 0x1F3F4
+        and codepoints[-1] == 0xE007F
+        and all(0xE0020 <= c <= 0xE007E for c in codepoints[1:-1])
+    ):
+        return True
+    return tuple(c for c in codepoints if c != 0xFE0F) in ZWJ_FLAGS
+
+
+# Subsets cut from the full font. Each names its file, the code points it
+# asks the subsetter for (a function of the full font's cmap), and the
+# sequences it is meant to draw, which its coverage is measured on. Another
+# profile, such as everything but the flags, is another entry here.
+SUBSETS = {
+    "flags": {
+        "file": FLAGS_FILE,
+        "codepoints": lambda full_cmap: FLAGS_CODEPOINTS,
+        "profile": is_flag_profile,
+        "description": "Country flags (regional indicator pairs), subdivision flags (black flag, tag characters, cancel tag), and the rainbow, transgender and pirate flags, in every spelling in emoji-test.txt. This is the range the asset supports; which flags Core replaces is decided by its detection and renderer.",
+    },
+}
 TOOLS = ("nanoemoji", "picosvg", "fonttools", "uharfbuzz", "brotli", "skia-pathops")
 LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
 
@@ -279,12 +322,36 @@ def kind(codepoints):
     return "single"
 
 
-def measure(font_path, emoji_test):
+def cut_subset(full_woff2, codepoints, woff2_path, ttf_path):
+    """Cuts a subset out of the full WOFF2; returns its cmap code points."""
+    from fontTools import subset
+    from fontTools.ttLib import TTFont
+
+    options = subset.Options()
+    options.layout_features = ["*"]
+    options.name_IDs = ["*"]
+    options.name_languages = ["*"]
+    options.name_legacy = True
+    options.notdef_outline = True
+    options.glyph_names = False
+    font = TTFont(full_woff2)
+    subsetter = subset.Subsetter(options)
+    subsetter.populate(unicodes=codepoints)
+    subsetter.subset(font)
+    font.flavor = "woff2"
+    font.save(woff2_path)
+    font.flavor = None
+    font.save(ttf_path)
+    return sorted(TTFont(ttf_path).getBestCmap())
+
+
+def measure(font_path, emoji_test, only=None):
     """Counts the sequences the font draws as one glyph, by status and kind.
 
     `visible` hides default-ignorable characters such as FE0F, as browsers do:
     a sequence counts when one visible glyph is left. `strict` counts only
-    sequences shaped to exactly one glyph with nothing hidden.
+    sequences shaped to exactly one glyph with nothing hidden. `only` limits
+    the count to the sequences it accepts.
     """
     import uharfbuzz as hb
 
@@ -303,6 +370,8 @@ def measure(font_path, emoji_test):
 
     totals, visible, strict, missing = Counter(), Counter(), Counter(), []
     for codepoints, status in parse_emoji_test(emoji_test):
+        if only is not None and not only(codepoints):
+            continue
         key = f"{status}/{kind(codepoints)}"
         totals[key] += 1
         strict[key] += int(shape(codepoints, False))
@@ -324,6 +393,12 @@ def measure(font_path, emoji_test):
         "by_kind": {k: rollup([k]) for k in sorted(totals)},
         "not_visible": missing,
     }
+
+
+def font_cmap(ttf_path):
+    from fontTools.ttLib import TTFont
+
+    return TTFont(ttf_path).getBestCmap()
 
 
 def font_tables(ttf_path):
@@ -376,6 +451,26 @@ def build(version, cache, out, record):
         out.mkdir(parents=True, exist_ok=True)
         woff2 = out / FONT_FILE
         to_woff2(ttf, woff2)
+        full_cmap = sorted(font_cmap(ttf))
+        subsets = {}
+        for name, spec in SUBSETS.items():
+            requested = tuple(spec["codepoints"](full_cmap))
+            subset_woff2 = out / spec["file"]
+            subset_ttf = work / (Path(spec["file"]).stem + ".ttf")
+            cmap = cut_subset(woff2, requested, subset_woff2, subset_ttf)
+            subsets[name] = {
+                "font": spec["file"],
+                "derived_from": FONT_FILE,
+                "rule": "fontTools subset of the full WOFF2 to the requested code points, keeping every layout feature and the name table; a ligature stays when all of its components do.",
+                "profile": spec["description"],
+                "requested_codepoints": [f"{c:04X}" for c in requested],
+                "cmap_codepoints": [f"{c:04X}" for c in cmap],
+                "woff2_bytes": subset_woff2.stat().st_size,
+                "woff2_sha256": sha256_file(subset_woff2),
+                "font_tables": font_tables(subset_ttf),
+                "coverage": measure(subset_ttf, rgi.decode("utf-8"), only=spec["profile"]),
+            }
+        outputs = {sha256_file(woff2)} | {s["woff2_sha256"] for s in subsets.values()}
 
         manifest = {
             "font": FONT_FILE,
@@ -410,6 +505,10 @@ def build(version, cache, out, record):
             },
             "font_tables": font_tables(ttf),
             "coverage": measure(ttf, rgi.decode("utf-8")),
+            "subsets": subsets,
+            # Browser results are recorded in sources.json after a build, and
+            # are carried over only for outputs with the same SHA-256.
+            "browser_vqa": [r for r in entry.get("browser_vqa", []) if r.get("woff2_sha256") in outputs],
         }
         (out / "manifest.json").write_text(json.dumps(manifest, indent="\t", ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
         (out / "LICENSE-GRAPHICS").write_bytes(license_text)
@@ -423,7 +522,11 @@ def build(version, cache, out, record):
             + "\n"
             f"Aliases (not part of Twemoji): {len(aliases)}, each a copy of a fully-qualified SVG under a spelling without FE0F: all FE0F removed (in Chromium, GSUB mappings that include FE0F did not apply), and the minimally-qualified and unqualified spellings in Unicode emoji-test.txt 17.0 (list SHA-256 {manifest['aliases']['sha256']})\n"
             f"Build: nanoemoji {metadata.version('nanoemoji')}, color format glyf_colr_1, then WOFF2 (fontTools {metadata.version('fonttools')})\n"
-            "License: graphics CC-BY 4.0 (LICENSE-GRAPHICS); attribution: Twitter, Inc and other contributors, and jdecked and other contributors\n"
+            + "".join(
+                f"Subset {name}: {s['font']}, cut from {FONT_FILE} with the fontTools subsetter ({len(s['cmap_codepoints'])} code points)\n"
+                for name, s in subsets.items()
+            )
+            + "License: graphics CC-BY 4.0 (LICENSE-GRAPHICS); attribution: Twitter, Inc and other contributors, and jdecked and other contributors\n"
             "Purpose: emoji font fallback, built once by maintainers and served as a static file\n",
             encoding="utf-8",
             newline="\n",
@@ -452,13 +555,18 @@ def main():
         for status, counts in manifest["coverage"]["by_status"].items():
             print(f"{status}: visible {counts['visible']}/{counts['total']}, strict {counts['strict']}/{counts['total']}")
         print(f"{FONT_FILE}: {manifest['output']['woff2_bytes']} bytes, {manifest['aliases']['count']} aliases")
+        for name, s in manifest["subsets"].items():
+            for status, counts in s["coverage"]["by_status"].items():
+                print(f"{name} {status}: visible {counts['visible']}/{counts['total']}")
+            print(f"{s['font']}: {s['woff2_bytes']} bytes, {len(s['cmap_codepoints'])} code points")
+        print(f"{len(manifest['browser_vqa'])} browser results carried over")
         return
 
     with tempfile.TemporaryDirectory() as tmp:
         fresh = Path(tmp)
         build(args.version, args.cache, fresh, record=False)
         problems = [
-            name for name in (FONT_FILE, "manifest.json", "source.txt", "LICENSE-GRAPHICS", "aliases.txt")
+            name for name in (FONT_FILE, *(s["file"] for s in SUBSETS.values()), "manifest.json", "source.txt", "LICENSE-GRAPHICS", "aliases.txt")
             if not (args.out / name).exists() or (args.out / name).read_bytes() != (fresh / name).read_bytes()
         ]
     if problems:

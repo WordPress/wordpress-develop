@@ -1,10 +1,10 @@
 # Twemoji COLRv1 font
 
-`build-twemoji-colrv1.py` builds `src/wp-includes/fonts/twemoji/twemoji-colrv1.woff2`: Twemoji as one COLRv1 color font. See [#66144](https://core.trac.wordpress.org/ticket/66144).
+`build-twemoji-colrv1.py` builds `src/wp-includes/fonts/twemoji/twemoji-colrv1.woff2`, Twemoji as one COLRv1 color font, and `twemoji-colrv1-flags.woff2`, a subset of it with only the flags. See [#66144](https://core.trac.wordpress.org/ticket/66144).
 
-This is a maintainer tool, run when Twemoji is updated. Sites never run it: they serve the WOFF2 as a static file. The script and its pins record where the font came from, and let anyone build it again and get the same bytes.
+This is a maintainer tool, run when Twemoji is updated. Sites never run it: they serve the WOFF2 files as static files. The script and its pins record where the fonts came from, and let anyone build it again and get the same bytes.
 
-Nothing loads the font yet. Using it, for the emoji a browser cannot draw, is follow-up work in #66144.
+Nothing loads the fonts yet. Using them, for the emoji a browser cannot draw, is follow-up work in #66144.
 
 ## Build
 
@@ -31,8 +31,15 @@ docker run --rm -v "$PWD/tools/emoji:/work" -v "$PWD/src/wp-includes/fonts/twemo
 2. Normalizes the input, as recorded below.
 3. Builds the SVGs into a glyf + COLRv1 font with nanoemoji (`glyf_colr_1`, `clipbox_quantization = 32`), with `SOURCE_DATE_EPOCH` set to the Twemoji commit date.
 4. Writes the Twemoji attribution into the font's name table and compresses the font to WOFF2.
-5. Shapes every sequence in Unicode's `emoji-test.txt` with HarfBuzz and records the counts.
-6. Writes `manifest.json` (input, tools, output SHA-256, coverage), `source.txt`, `LICENSE-GRAPHICS` and `aliases.txt` next to the font.
+5. Cuts the flags subset out of that WOFF2.
+6. Shapes every sequence in Unicode's `emoji-test.txt` with HarfBuzz and records the counts, for the full font and, limited to the flag profile, for the subset.
+7. Writes `manifest.json` (input, tools, output SHA-256, coverage), `source.txt`, `LICENSE-GRAPHICS` and `aliases.txt` next to the font.
+
+## Flags subset
+
+`twemoji-colrv1-flags.woff2` is cut from the full font with the fontTools subsetter, never built separately, so it has the same artwork, aliases and license. It keeps the code points in `FLAGS_CODEPOINTS` (regional indicators, the white and black flags, tag characters, and ZWJ, VS16, rainbow, transgender symbol and skull and crossbones), and a ligature stays when all of its components do. For v17.0.3 it is 108,888 bytes, about a sixth of the full font. Subsets are declared in `SUBSETS` in the build script, each with its file, the code points it asks for and the sequences its coverage is measured on; another profile, such as every emoji except the flags, would be one more entry.
+
+It covers the flag profile: country flags, subdivision flags such as England, Scotland and Wales, and the rainbow, transgender and pirate flags, in every spelling in `emoji-test.txt`. That is the range the asset supports; which flags are replaced is decided by emoji detection and, later, the renderer. It is for browsers that draw other emoji but not flags, such as Chromium on Windows.
 
 ## Normalization
 
@@ -43,7 +50,9 @@ Neither step is part of Twemoji. `manifest.json` and `source.txt` record the rul
 
 ## Checking a font
 
-Whether a font renders correctly is checked in a browser, not with HarfBuzz alone: HarfBuzz shaped all 3,944 fully-qualified sequences to one glyph in the build without aliases. The check used for v17.0.3 drew each sequence in the font and in the system emoji font, and required one glyph width, the font's colors, and a result that differs from the system font's. In Edge 153 on Windows, all 3,944 fully-qualified, 1,029 minimally-qualified, 243 unqualified and 9 component sequences passed.
+Whether a font renders correctly is checked in a browser, not with HarfBuzz alone: HarfBuzz shaped all 3,944 fully-qualified sequences to one glyph in the build without aliases. The check used for v17.0.3 drew each sequence in the font and in the system emoji font, and required one glyph width, the font's colors, and a result that differs from the system font's. In Edge 153 on Windows, all 3,944 fully-qualified, 1,029 minimally-qualified, 243 unqualified and 9 component sequences passed with the full font, and every sequence in the flag profile passed with the flags subset (265 fully-qualified, 2 minimally-qualified, 3 unqualified).
+
+Browser results are recorded in `sources.json` after a build, for each output's SHA-256, and the build copies them into `manifest.json` only for outputs with the same SHA-256.
 
 ## License
 

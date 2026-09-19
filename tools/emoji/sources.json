@@ -6,7 +6,36 @@
 			"commit_date": "2026-06-01T22:16:04Z",
 			"archive_sha256": "705d79de1460e5e775f362f0d0f01fbe3ef8d65bf4648c490e4649704584f747",
 			"svg_tree_sha256": "acf4b1719e91b046d9fd543d7c177705e54188e38e5600f3b591631152e4761d",
-			"svg_count": 4009
+			"svg_count": 4009,
+			"browser_vqa": [
+				{
+					"font": "twemoji-colrv1.woff2",
+					"woff2_sha256": "0e8645e0fcbb7c98b18eeaa099122633a9129823336f6a76a944a31be07a4700",
+					"browser": "Edge 153.0.4234.32",
+					"platform": "Windows",
+					"date": "2026-09-19",
+					"check": "vqa/index.html: every sequence in emoji-test.txt drawn in the font and in the system emoji font; passes when one glyph wide, not plain black ink, and different from the system font's drawing",
+					"results": {
+						"fully-qualified": "3944/3944",
+						"minimally-qualified": "1029/1029",
+						"unqualified": "243/243",
+						"component": "9/9"
+					}
+				},
+				{
+					"font": "twemoji-colrv1-flags.woff2",
+					"woff2_sha256": "108cd5e892d9ca9cab788b573115d9662b4aa6fa24b48520cf4b792951fee649",
+					"browser": "Edge 153.0.4234.32",
+					"platform": "Windows",
+					"date": "2026-09-20",
+					"check": "vqa/index.html?only=flags: the flag profile only, same criteria",
+					"results": {
+						"fully-qualified": "265/265",
+						"minimally-qualified": "2/2",
+						"unqualified": "3/3"
+					}
+				}
+			]
 		},
 		"v17.0.2": {
 			"commit": "388f518b756404152f128a3539f5e7f9a6f1ebd6",
