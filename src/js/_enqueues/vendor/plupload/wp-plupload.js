@@ -484,8 +484,14 @@ window.wp = window.wp || {};
 			return pluploadL10n.file_exceeds_size_limit.replace( '%s', file.name );
 		},
 
-		'HTTP_ERROR': function( file ) {
-			if ( file.type && file.type.indexOf( 'image/' ) === 0 ) {
+		'HTTP_ERROR': function( file, error ) {
+			var status = error && error.status;
+
+			if (
+				file.type &&
+				file.type.indexOf( 'image/' ) === 0 &&
+				! ( status >= 400 && status < 500 )
+			) {
 				return pluploadL10n.http_error_image;
 			}
 
