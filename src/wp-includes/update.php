@@ -316,7 +316,16 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		$updates->translations = $body['translations'];
 	}
 
-	set_site_transient( 'update_core', $updates );
+	if ( false === set_site_transient( 'update_core', $updates )
+		&& _wp_maybe_reset_update_check_lock( 'update_core', $updates, $current )
+	) {
+		wp_trigger_error(
+			__FUNCTION__,
+			'The result of the WordPress version check could not be stored. ' .
+			'The check will run again on the next request.',
+			E_USER_WARNING
+		);
+	}
 
 	if ( ! empty( $body['ttl'] ) ) {
 		$ttl = (int) $body['ttl'];
@@ -606,7 +615,16 @@ function wp_update_plugins( $extra_stats = array() ) {
 	array_walk( $updates->response, $sanitize_plugin_update_payload );
 	array_walk( $updates->no_update, $sanitize_plugin_update_payload );
 
-	set_site_transient( 'update_plugins', $updates );
+	if ( false === set_site_transient( 'update_plugins', $updates )
+		&& _wp_maybe_reset_update_check_lock( 'update_plugins', $updates, $current )
+	) {
+		wp_trigger_error(
+			__FUNCTION__,
+			'The result of the plugin update check could not be stored. ' .
+			'The check will run again on the next request.',
+			E_USER_WARNING
+		);
+	}
 }
 
 /**
@@ -872,7 +890,57 @@ function wp_update_themes( $extra_stats = array() ) {
 		}
 	}
 
-	set_site_transient( 'update_themes', $new_update );
+	if ( false === set_site_transient( 'update_themes', $new_update )
+		&& _wp_maybe_reset_update_check_lock( 'update_themes', $new_update, $last_update )
+	) {
+		wp_trigger_error(
+			__FUNCTION__,
+			'The result of the theme update check could not be stored. ' .
+			'The check will run again on the next request.',
+			E_USER_WARNING
+		);
+	}
+}
+
+/**
+ * Rolls back an update check lock when the result of the check could not be stored.
+ *
+ * wp_version_check(), wp_update_plugins(), and wp_update_themes() record a `last_checked`
+ * timestamp before contacting the API, so that concurrent requests do not all issue the
+ * same remote request. When the write that stores the result then fails, for example
+ * because the response contains characters the `wp_options` column cannot hold, that
+ * timestamp is left behind on stale data. The next check sees a recent `last_checked`,
+ * returns early, and once the timeout expires it fails and re-arms the lock the same way,
+ * so the site never sees another update. Resetting `last_checked` lets the following
+ * request retry the check instead.
+ *
+ * A false return from set_site_transient() does not on its own mean the write failed:
+ * update_site_option() also returns false when the value it is asked to store is already
+ * the stored value. That happens routinely here, because the result of a check that found
+ * nothing new is identical to the object stored when the lock was taken, down to the
+ * timestamp, whenever the API responds within the same second. The two are therefore
+ * compared before anything is rolled back, so an unchanged value is not mistaken for a
+ * failure and does not send the site back out to the API on every request.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string   $transient Update transient name. Accepts 'update_core', 'update_plugins',
+ *                            or 'update_themes'.
+ * @param mixed    $value     The value that set_site_transient() was asked to store.
+ * @param stdClass $lock      The object that was stored when the lock was taken.
+ * @return bool True when the lock was rolled back and the reset was stored, so the next
+ *              request retries the check. False when there was nothing to roll back, or
+ *              when the reset itself could not be stored.
+ */
+function _wp_maybe_reset_update_check_lock( $transient, $value, $lock ) {
+	if ( maybe_serialize( $value ) === maybe_serialize( $lock ) ) {
+		return false;
+	}
+
+	$lock->last_checked = 0;
+
+	return set_site_transient( $transient, $lock );
 }
 
 /**
