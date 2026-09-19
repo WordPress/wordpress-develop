@@ -374,6 +374,52 @@ function wp_is_development_mode( $mode ) {
 }
 
 /**
+ * Retrieves the current API hostname.
+ *
+ * The API hostname is used in requests for core, plugin, theme, and translation information,
+ * installation and updates.
+ *
+ * @since 6.8.0
+ *
+ * @param bool $use_http Optional. Whether to use HTTP or HTTPS scheme for the default API endpoint. Default true.
+ * @return string The current API hostname.
+ */
+function wp_get_api_hostname( $use_http = false ) {
+	static $current_hostname = '';
+
+	if ( defined( 'WP_RUN_CORE_TESTS' ) || '' === $current_hostname ) {
+		/*
+		 * We only check the schema for the default API hostname, as anyone overriding it may
+		 * be doing so intentionally, for example an environment that relies on host aliases,
+		 * and are expected to know what they are doing.
+		 */
+		$current_hostname = ( $use_http ? 'http://' : 'https://' ) . 'api.wordpress.org';
+
+		// Check if the environment variable has been set, if `getenv` is available on the system.
+		if ( function_exists( 'getenv' ) ) {
+			$has_env = getenv( 'WP_API_HOSTNAME' );
+			if ( false !== $has_env ) {
+				$current_hostname = $has_env;
+			}
+		}
+
+		// Fetch the hostname from a constant, this overrides the global system variable.
+		if ( defined( 'WP_API_HOSTNAME' ) && WP_API_HOSTNAME ) {
+			$current_hostname = WP_API_HOSTNAME;
+		}
+	}
+
+	/**
+	 * Filters the API hostname.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $current_hostname The current hostname.
+	 */
+	return apply_filters( 'wp_api_hostname', $current_hostname );
+}
+
+/**
  * Ensures all of WordPress is not loaded when handling a favicon.ico request.
  *
  * Instead, send the headers for a zero-length favicon and bail.
