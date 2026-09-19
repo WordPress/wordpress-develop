@@ -76,6 +76,13 @@ class Tests_Functions_DefaultWpDieHandler extends WP_UnitTestCase {
 	 * @ticket 49060
 	 */
 	public function test_explicit_text_direction_should_take_priority() {
+		add_filter(
+			'language_attributes',
+			static function () {
+				return 'dir="ltr" lang="de-DE"';
+			}
+		);
+
 		$actual = get_echo(
 			'_default_wp_die_handler',
 			array(
@@ -88,6 +95,36 @@ class Tests_Functions_DefaultWpDieHandler extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( "<html dir='rtl'>", $actual );
+		$this->assertStringContainsString( "dir='rtl'", $actual );
+		$this->assertStringNotContainsString( 'dir="ltr"', $actual );
+	}
+
+	/**
+	 * Tests that the language attribute is printed even when an explicit
+	 * `text_direction` is passed.
+	 *
+	 * @ticket 65797
+	 */
+	public function test_explicit_text_direction_should_not_remove_the_language_attribute() {
+		add_filter(
+			'determine_locale',
+			static function () {
+				return 'de_DE';
+			}
+		);
+
+		$actual = get_echo(
+			'_default_wp_die_handler',
+			array(
+				'Something went wrong.',
+				'',
+				array(
+					'text_direction' => 'rtl',
+					'exit'           => false,
+				),
+			)
+		);
+
+		$this->assertStringContainsString( "<html dir='rtl' lang='de-DE'>", $actual );
 	}
 }
