@@ -1982,6 +1982,18 @@ p.auto-update-status {
 	line-height: 2.35;
 }
 
+.metabox-prefs > p {
+	margin: 0 0 8px;
+}
+
+.additional-settings-prefs {
+	margin-top: 14px;
+}
+
+.additional-settings-prefs legend {
+	padding-bottom: 2px;
+}
+
 #number-of-columns {
 	display: inline-block;
 	vertical-align: middle;
@@ -2277,6 +2289,11 @@ html.wp-toolbar {
 .postbox .handle-order-lower {
 	color: #646970;
 	width: 1.62rem;
+}
+
+.js.meta-box-reordering-disabled .postbox .handle-order-higher,
+.js.meta-box-reordering-disabled .postbox .handle-order-lower {
+	display: none;
 }
 
 /* Post box order buttons in the block editor meta boxes area. */
