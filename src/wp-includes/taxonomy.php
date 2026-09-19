@@ -979,6 +979,13 @@ function get_tax_sql( $tax_query, $primary_table, $primary_id_column ) {
  * @param string             $filter   Optional. How to sanitize term fields. Default 'raw'.
  * @return WP_Term|array|WP_Error|null WP_Term instance (or array) on success, depending on the `$output` value.
  *                                     WP_Error if `$taxonomy` does not exist. Null for miscellaneous failure.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|WP_Error|null : (
+ *         $output is 'ARRAY_N' ? list<mixed>|WP_Error|null : WP_Term|WP_Error|null
+ *     )
+ * )
  */
 function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	if ( empty( $term ) ) {
@@ -1101,6 +1108,13 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
  * @param string     $filter   Optional. How to sanitize term fields. Default 'raw'.
  * @return WP_Term|array|false WP_Term instance (or array) on success, depending on the `$output` value.
  *                             False if `$taxonomy` does not exist or `$term` was not found.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|false : (
+ *         $output is 'ARRAY_N' ? list<mixed>|false : WP_Term|false
+ *     )
+ * )
  */
 function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 

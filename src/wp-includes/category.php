@@ -88,6 +88,13 @@ function get_categories( $args = '' ) {
  * @return WP_Term|array|WP_Error|null Category data in type defined by $output parameter.
  *                                     Returns a WP_Term object with backwards compatible property aliases filled in.
  *                                     WP_Error if $category is empty, null if it does not exist.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|WP_Error|null : (
+ *         $output is 'ARRAY_N' ? list<mixed>|WP_Error|null : WP_Term|WP_Error|null
+ *     )
+ * )
  */
 function get_category( $category, $output = OBJECT, $filter = 'raw' ) {
 	$category = get_term( $category, 'category', $output, $filter );
@@ -121,6 +128,13 @@ function get_category( $category, $output = OBJECT, $filter = 'raw' ) {
  *                              correspond to a WP_Term object, an associative array, or a numeric array,
  *                              respectively. Default OBJECT.
  * @return WP_Term|array|WP_Error|null Type is based on $output value.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|WP_Error|null : (
+ *         $output is 'ARRAY_N' ? list<mixed>|WP_Error|null : WP_Term|WP_Error|null
+ *     )
+ * )
  */
 function get_category_by_path( $category_path, $full_match = true, $output = OBJECT ) {
 	$category_path  = rawurlencode( urldecode( $category_path ) );
@@ -339,6 +353,13 @@ function get_tags( $args = '' ) {
  * @param string             $filter Optional. How to sanitize tag fields. Default 'raw'.
  * @return WP_Term|array|WP_Error|null Tag data in type defined by $output parameter.
  *                                     WP_Error if $tag is empty, null if it does not exist.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|WP_Error|null : (
+ *         $output is 'ARRAY_N' ? list<mixed>|WP_Error|null : WP_Term|WP_Error|null
+ *     )
+ * )
  */
 function get_tag( $tag, $output = OBJECT, $filter = 'raw' ) {
 	return get_term( $tag, 'post_tag', $output, $filter );

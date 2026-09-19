@@ -294,6 +294,11 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/class-walker-nav-menu.php
 		-
+			message: '#^Access to an undefined property WP_Error\|WP_Term\:\:\$object_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: ../../../src/wp-includes/class-wp-term-query.php
+		-
 			message: '#^Access to an undefined property WP_Query\:\:\$comments_by_type\.$#'
 			identifier: property.notFound
 			count: 3
