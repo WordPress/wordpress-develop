@@ -2611,6 +2611,50 @@ function kses_init() {
 }
 
 /**
+ * Splits a string of CSS rules into declarations.
+ *
+ * The function splits at a semicolon that ends a declaration. It ignores a
+ * semicolon inside a quoted string or after a backslash escape. A font name,
+ * for example, can contain a semicolon.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $css A string of CSS rules.
+ * @return string[] The declarations.
+ */
+function _wp_kses_split_css_declarations( $css ) {
+	$declarations = array();
+	$start        = 0;
+	$length       = strlen( $css );
+	$quote        = '';
+
+	for ( $offset = 0; $offset < $length; $offset++ ) {
+		$character = $css[ $offset ];
+
+		if ( '\\' === $character && $offset + 1 < $length ) {
+			++$offset;
+			continue;
+		}
+
+		if ( '' !== $quote ) {
+			if ( $character === $quote ) {
+				$quote = '';
+			}
+		} elseif ( '"' === $character || "'" === $character ) {
+			$quote = $character;
+		} elseif ( ';' === $character ) {
+			$declarations[] = substr( $css, $start, $offset - $start );
+			$start          = $offset + 1;
+		}
+	}
+
+	$declarations[] = substr( $css, $start );
+
+	return $declarations;
+}
+
+/**
  * Filters an inline style attribute and removes disallowed rules.
  *
  * @since 2.8.1
@@ -2639,6 +2683,8 @@ function kses_init() {
  * @since 7.1.0 Extended gradient support to allow any single-level nested function.
  *              Added support for transform functions, `clip-path` basic shapes,
  *              and URLs in the SVG element reference properties.
+ * @since 7.2.0 Splits declarations with quote and escape awareness, and validates
+ *              `font-family` with the CSS font family grammar.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -2654,8 +2700,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	$allowed_protocols = wp_allowed_protocols();
 
-	/** @todo Parse enough CSS to split rules without breaking on things like quoted strings. */
-	$css_array = explode( ';', trim( $css ) );
+	$css_array = _wp_kses_split_css_declarations( trim( $css ) );
 
 	/**
 	 * Filters the list of allowed CSS attributes.
@@ -2961,6 +3006,18 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
+
+				/*
+				 * A font name is a CSS string. It can contain a semicolon, a
+				 * parenthesis, a backslash escape, and other punctuation that the
+				 * checks below reject. A value that the CSS font family grammar
+				 * accepts needs no further test, because the grammar rejects extra
+				 * tokens, an unsafe function such as `url()`, and any declaration
+				 * that follows.
+				 */
+				if ( 'font-family' === $css_selector && null !== WP_CSS_Font_Family::parse_list( trim( $parts[1] ) ) ) {
+					$css_test_string = '';
+				}
 			}
 
 			if ( $is_custom_var ) {
