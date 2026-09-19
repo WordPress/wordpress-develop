@@ -1,0 +1,11 @@
+/*
+Theme Name: Page Template Sorting Theme
+Theme URI: http://example.org/
+Description: An example theme for testing that page templates are sorted by name.
+Version: 0.1
+Author: Mr. WordPress
+Author URI: http://wordpress.org/
+
+This is just a stub to test that get_post_templates() sorts by the template name.
+
+*/
