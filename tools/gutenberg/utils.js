@@ -231,7 +231,11 @@ function downloadGutenberg() {
 		process.exit( downloadResult.status ?? 1 );
 	}
 
-	const buildResult = spawnSync( 'grunt', [ 'build:gutenberg' ], { stdio: 'inherit', shell: true } );
+	const buildResult = spawnSync( process.execPath, [ path.join( __dirname, '../grunt.js' ), 'build:gutenberg' ], { stdio: 'inherit' } );
+	if ( buildResult.error ) {
+		console.error( buildResult.error.message );
+		process.exit( 1 );
+	}
 	if ( buildResult.status !== 0 ) {
 		process.exit( buildResult.status ?? 1 );
 	}
