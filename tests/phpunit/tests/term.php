@@ -93,7 +93,6 @@ class Tests_Term extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
 
 		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
-		$this->assertIsInt( $term_id, 'The term was not created.' );
 
 		$count = wp_count_terms(
 			array(
@@ -336,7 +335,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		wp_delete_category( $cat_id1 );
 
-		$cat_id2 = self::factory()->category->create( array( 'parent' => $cat_id1 ) );
+		$cat_id2 = wp_insert_term( 'Child category', 'category', array( 'parent' => $cat_id1 ) );
 		$this->assertWPError( $cat_id2 );
 	}
 

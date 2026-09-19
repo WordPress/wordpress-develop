@@ -184,8 +184,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	 * @ticket 17689
 	 */
 	public function test_wp_insert_term_duplicate_name() {
+		// The factory throws an exception when a term cannot be created, so failures are
+		// asserted with wp_insert_term() directly.
 		$term = self::factory()->tag->create_and_get( array( 'name' => 'Bozo' ) );
-		$this->assertNotWPError( $term );
 
 		// Test existing term name with unique slug.
 		$term1 = self::factory()->tag->create(
@@ -194,10 +195,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 				'slug' => 'bozo1',
 			)
 		);
-		$this->assertNotWPError( $term1 );
 
 		// Test an existing term name.
-		$term2 = self::factory()->tag->create( array( 'name' => 'Bozo' ) );
+		$term2 = wp_insert_term( 'Bozo', 'post_tag' );
 		$this->assertWPError( $term2 );
 		$this->assertNotEmpty( $term2->errors );
 
@@ -206,7 +206,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term4 = self::factory()->tag->create( array( 'name' => 'T$$' ) );
 		$term5 = self::factory()->tag->create( array( 'name' => 'T$$$' ) );
 		$term6 = self::factory()->tag->create( array( 'name' => 'T$$$$' ) );
-		$term7 = self::factory()->tag->create( array( 'name' => 'T$$$$' ) );
+		$term7 = wp_insert_term( 'T$$$$', 'post_tag' );
 		$this->assertWPError( $term7 );
 		$this->assertNotEmpty( $term7->errors );
 		$this->assertSame( $term6, $term7->error_data['term_exists'] );
@@ -219,7 +219,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term9  = self::factory()->tag->create( array( 'name' => '$$' ) );
 		$term10 = self::factory()->tag->create( array( 'name' => '$$$' ) );
 		$term11 = self::factory()->tag->create( array( 'name' => '$$$$' ) );
-		$term12 = self::factory()->tag->create( array( 'name' => '$$$$' ) );
+		$term12 = wp_insert_term( '$$$$', 'post_tag' );
 		$this->assertWPError( $term12 );
 		$this->assertNotEmpty( $term12->errors );
 		$this->assertSame( $term11, $term12->error_data['term_exists'] );
@@ -228,8 +228,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertCount( 4, array_unique( wp_list_pluck( $terms, 'slug' ) ) );
 
 		$term13 = self::factory()->tag->create( array( 'name' => 'A' ) );
-		$this->assertNotWPError( $term13 );
-		$term14 = self::factory()->tag->create( array( 'name' => 'A' ) );
+		$term14 = wp_insert_term( 'A', 'post_tag' );
 		$this->assertWPError( $term14 );
 		$term15 = self::factory()->tag->create(
 			array(
@@ -237,22 +236,18 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 				'slug' => 'a',
 			)
 		);
-		$this->assertNotWPError( $term15 );
-		$term16 = self::factory()->tag->create( array( 'name' => 'A+' ) );
+		$term16 = wp_insert_term( 'A+', 'post_tag' );
 		$this->assertWPError( $term16 );
 		$term17 = self::factory()->tag->create( array( 'name' => 'A++' ) );
-		$this->assertNotWPError( $term17 );
 		$term18 = self::factory()->tag->create(
 			array(
 				'name' => 'A-',
 				'slug' => 'a',
 			)
 		);
-		$this->assertNotWPError( $term18 );
-		$term19 = self::factory()->tag->create( array( 'name' => 'A-' ) );
+		$term19 = wp_insert_term( 'A-', 'post_tag' );
 		$this->assertWPError( $term19 );
 		$term20 = self::factory()->tag->create( array( 'name' => 'A--' ) );
-		$this->assertNotWPError( $term20 );
 	}
 
 	/**
@@ -842,8 +837,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertIsInt( $t1 );
-		$this->assertIsInt( $t2 );
 		$this->assertNotEquals( $t1, $t2 );
 
 		$term_2 = get_term( $t2, 'wptests_tax' );

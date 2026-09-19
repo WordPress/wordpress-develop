@@ -1497,7 +1497,13 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_wp_insert_user_with_empty_data() {
 		add_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
 
-		$u = self::factory()->user->create();
+		$u = wp_insert_user(
+			array(
+				'user_login' => 'user_empty_data',
+				'user_pass'  => 'password',
+				'user_email' => 'user_empty_data@example.org',
+			)
+		);
 
 		remove_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
 

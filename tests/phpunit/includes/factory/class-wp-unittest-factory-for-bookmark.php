@@ -8,9 +8,9 @@
  *
  * @since 4.6.0
  *
- * @method int|WP_Error     create( $args = array(), $generation_definitions = null )
- * @method object|WP_Error  create_and_get( $args = array(), $generation_definitions = null )
- * @method (int|WP_Error)[] create_many( $count, $args = array(), $generation_definitions = null )
+ * @method int    create( $args = array(), $generation_definitions = null )
+ * @method object create_and_get( $args = array(), $generation_definitions = null )
+ * @method int[]  create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 

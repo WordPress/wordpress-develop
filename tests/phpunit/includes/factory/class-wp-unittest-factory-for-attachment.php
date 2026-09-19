@@ -6,9 +6,9 @@
  * Note: The below @method notations are defined solely for the benefit of IDEs,
  * as a way to indicate expected return values from the given factory methods.
  *
- * @method int|WP_Error     create( $args = array(), $generation_definitions = null )
- * @method WP_Post|WP_Error create_and_get( $args = array(), $generation_definitions = null )
- * @method (int|WP_Error)[] create_many( $count, $args = array(), $generation_definitions = null )
+ * @method int     create( $args = array(), $generation_definitions = null )
+ * @method WP_Post create_and_get( $args = array(), $generation_definitions = null )
+ * @method int[]   create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 
