@@ -290,7 +290,7 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *         ? bool
  *         : ( $priority is int
  *             ? bool
- *             : int|false )
+ *             : false|int )
  * )
  */
 function has_filter( $hook_name, $callback = false, $priority = false ) {
@@ -612,7 +612,7 @@ function do_action_ref_array( $hook_name, $args ) {
  *         ? bool
  *         : ( $priority is int
  *             ? bool
- *             : int|false )
+ *             : false|int )
  * )
  */
 function has_action( $hook_name, $callback = false, $priority = false ) {

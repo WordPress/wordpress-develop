@@ -121,32 +121,6 @@ parameters:
 			path: src/wp-includes/compat.php
 			reportUnmatched: false
 
-		# Level 4:
-		# has_filter() and has_action() declare a conditional return type: a bool when called without
-		# a callback, the callback's priority as an int otherwise, and false when it is not attached.
-		# The annotation is correct, and every call site resolves to the right one of those.
-		#
-		# Both functions are thin wrappers, has_action() over has_filter() and has_filter() over
-		# WP_Hook::has_filter(). When PHPStan combines the branches of a conditional return type for
-		# a call whose argument is not narrow enough to select one, it drops the int from the
-		# int|false branch, so the type these two receive back from their callee has already lost it.
-		# return.unusedType then reports that they never return an int. They do: the priority.
-		#
-		# The fault is PHPStan's, and it depends on the PHP version PHPStan itself runs on rather
-		# than on the analysed phpVersion. Correct on PHP 8.2, wrong on 8.3, 8.4 and 8.5, identically
-		# across PHPStan 2.2.13 through 2.3.x-dev. See https://github.com/phpstan/phpstan/issues/15268.
-		#
-		# This lives here rather than in a baseline because there is no work to do in WordPress: the
-		# annotation is right and the report is not. reportUnmatched: false because whether the error
-		# appears at all depends on the PHP version running PHPStan, so an entry that had to match
-		# would fail for anyone on 8.2. It also means this lapses quietly once the fix is released,
-		# at which point remove the entry and this comment.
-		-
-			message: '#^Function has_(filter|action)\(\) never returns int so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			path: src/wp-includes/plugin.php
-			reportUnmatched: false
-
 		# Level 5:
 		# substr_compare()'s $length has always accepted null, meaning "compare the full length". PHP 7.4 spelled
 		# that `int $length = null`, where the null default makes the parameter implicitly nullable, and PHP 8.0

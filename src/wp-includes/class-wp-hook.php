@@ -255,7 +255,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *         ? bool
 	 *         : ( $priority is int
 	 *             ? bool
-	 *             : int|false )
+	 *             : false|int )
 	 * )
 	 */
 	public function has_filter( $hook_name = '', $callback = false, $priority = false ) {
