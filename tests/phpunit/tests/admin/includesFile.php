@@ -463,4 +463,49 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 			'.tmp',
 		);
 	}
+
+	/**
+	 * @ticket 66129
+	 * @group multisite
+	 * @group ms-required
+	 */
+	public function test_wp_edit_theme_plugin_file_runs_loopback_check_for_network_active_plugin() {
+		$user_id = self::factory()->user->create();
+		grant_super_admin( $user_id );
+		wp_set_current_user( $user_id );
+
+		$plugin = 'hello.php';
+		activate_plugin( $plugin, '', true );
+
+		$loopback_requested = false;
+		add_filter(
+			'pre_http_request',
+			function ( $preempt, $parsed_args, $url ) use ( &$loopback_requested ) {
+				if ( str_contains( $url, 'wp_scrape_key' ) ) {
+					$loopback_requested = true;
+					return array(
+						'body'     => '',
+						'response' => array( 'code' => 200 ),
+					);
+				}
+				return $preempt;
+			},
+			10,
+			3
+		);
+
+		wp_edit_theme_plugin_file(
+			array(
+				'plugin'     => $plugin,
+				'file'       => $plugin,
+				'newcontent' => file_get_contents( WP_PLUGIN_DIR . '/' . $plugin ),
+				'nonce'      => wp_create_nonce( 'edit-plugin_' . $plugin ),
+			)
+		);
+
+		deactivate_plugins( $plugin );
+		revoke_super_admin( $user_id );
+
+		$this->assertTrue( $loopback_requested, 'Editing a network-active plugin file should trigger the fatal-error loopback check.' );
+	}
 }
