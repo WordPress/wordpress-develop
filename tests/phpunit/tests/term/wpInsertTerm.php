@@ -185,7 +185,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_term_duplicate_name() {
 		// The factory throws an exception when a term cannot be created, so failures are
-		// asserted with wp_insert_term() directly.
+		// asserted with wp_insert_term() directly for subsequent term insertions.
 		$term = self::factory()->tag->create_and_get( array( 'name' => 'Bozo' ) );
 
 		// Test existing term name with unique slug.
@@ -247,7 +247,8 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 		$term19 = wp_insert_term( 'A-', 'post_tag' );
 		$this->assertWPError( $term19 );
-		$term20 = self::factory()->tag->create( array( 'name' => 'A--' ) );
+		$term20 = self::factory()->tag->create_and_get( array( 'name' => 'A--' ) );
+		$this->assertSame( 'A--', $term20->name );
 	}
 
 	/**

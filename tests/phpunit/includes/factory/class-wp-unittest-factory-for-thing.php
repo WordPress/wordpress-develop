@@ -236,7 +236,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @return int The object ID.
 	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object or falsy.
 	 */
-	protected function get_object_id( $object_id, $message ) {
+	protected function get_object_id( $object_id, string $message ): int {
 		if ( is_wp_error( $object_id ) ) {
 			throw new WP_UnitTest_Factory_Exception(
 				sprintf( '%s: %s', $message, $object_id->get_error_message() )
