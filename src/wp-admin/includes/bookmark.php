@@ -123,7 +123,7 @@ function wp_delete_link( $link_id ) {
  * @param int $link_id Link ID to look up.
  * @return int[] The IDs of the requested link's categories.
  *
- * @phpstan-return ( $link_id is empty ? array{ } : array<int, int<1, max>> )
+ * @phpstan-return ( $link_id is empty ? array{} : array<int, int<1, max>> )
  */
 function wp_get_link_cats( $link_id = 0 ) {
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );

@@ -851,7 +851,7 @@ function xmlrpc_removepostdata( $content ) {
  * @param string $content Content to extract URLs from.
  * @return string[] Array of URLs found in passed string.
  *
- * @phpstan-return ( $content is empty ? array{ } : list<string> )
+ * @phpstan-return ( $content is empty ? array{} : list<string> )
  */
 function wp_extract_urls( $content ) {
 	preg_match_all(
