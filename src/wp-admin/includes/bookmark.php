@@ -121,12 +121,13 @@ function wp_delete_link( $link_id ) {
  * @since 2.1.0
  *
  * @param int $link_id Link ID to look up.
- * @return int[] The IDs of the requested link's categories.
- *
- * @phpstan-return ( $link_id is empty ? array{} : array<int, int<1, max>> )
+ * @return int[]|WP_Error The IDs of the requested link's categories, or else a WP_Error if the `link_category` taxonomy was unregistered.
  */
 function wp_get_link_cats( $link_id = 0 ) {
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );
+	if ( is_wp_error( $cats ) ) {
+		return $cats;
+	}
 	return array_unique( $cats );
 }
 
