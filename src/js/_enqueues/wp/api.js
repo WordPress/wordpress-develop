@@ -874,7 +874,9 @@
 			 * @return {*}.
 			 */
 			sync: function( method, model, options ) {
-				var Object;		options = options || {};
+				var beforeSend;
+
+				options = options || {};
 
 				// Remove date_gmt if null.
 				if ( _.isNull( model.get( 'date_gmt' ) ) ) {
