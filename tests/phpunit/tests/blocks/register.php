@@ -721,13 +721,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
 
 		// Normalize metadata similar to `register_block_type_from_metadata()`.
-		$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
-		if ( ! isset( $metadata['style'] ) ) {
-			$metadata['style'] = "wp-block-$block_name";
-		}
-		if ( ! isset( $metadata['editorStyle'] ) ) {
-			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
-		}
+		$metadata['file']          = wp_normalize_path( realpath( $metadata_file ) );
+		$metadata['style']       ??= "wp-block-$block_name";
+		$metadata['editorStyle'] ??= "wp-block-{$block_name}-editor";
 
 		// Ensure block assets are separately registered.
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
