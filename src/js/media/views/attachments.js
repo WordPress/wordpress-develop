@@ -25,13 +25,13 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 *
 	 * @augments wp.media.View
 	 *
-	 * @listens collection:add
-	 * @listens collection:remove
-	 * @listens collection:reset
-	 * @listens controller:library:selection:add
-	 * @listens scrollElement:scroll
-	 * @listens this:ready
-	 * @listens controller:open
+	 * @listens collection#add
+	 * @listens collection#remove
+	 * @listens collection#reset
+	 * @listens controller#library#selection#add
+	 * @listens scrollElement#scroll
+	 * @listens this#ready
+	 * @listens controller#open
 	 */
 	initialize: function() {
 		this.el.id = _.uniqueId('__attachments-view-');
@@ -123,7 +123,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 *
 	 * @since 4.0.0
 	 *
-	 * @listens window:resize
+	 * @listens window#resize
 	 *
 	 * @return {void}
 	 */
@@ -269,9 +269,9 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 * Fails gracefully if jQuery sortable doesn't exist or isn't passed
 	 * in the options.
 	 *
-	 * @since 3.5.0
+	 * Fires `collection:reset`.
 	 *
-	 * @fires collection:reset
+	 * @since 3.5.0
 	 *
 	 * @return {void}
 	 */
