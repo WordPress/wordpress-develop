@@ -1026,6 +1026,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 	$content                = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
 	$wp_kses_operating_mode = $previous_kses_mode;
 
+	$specified_allowed_html = $allowed_html;
+
 	$allowed_html = is_array( $allowed_html )
 		? $allowed_html
 		: wp_kses_allowed_html( $allowed_html );
@@ -1041,21 +1043,78 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 	 */
 	//$content = wp_kses_stripslashes( $content );
 
-	$processor = new class( $content, $allowed_html, $allowed_protocols, wp_kses_uri_attributes() ) extends WP_HTML_Tag_Processor {
+	$processor = new class( $content, $specified_allowed_html, $allowed_html, $allowed_protocols, wp_kses_uri_attributes() ) extends WP_HTML_Tag_Processor {
+		/**
+		 * An array of allowed HTML elements and attributes, or a context name such as 'post'.
+		 *
+		 * It’s important to store this alongside the resolved allowable HTML because some
+		 * filters in some plugins look for the string values, e.g. for “post” instead of
+		 * the resolved array, and apply logic based on that context.
+		 *
+		 * @see wp_kses_allowed_html() for the list of accepted context names.
+		 * @see self::$allowed_html for the resolved array of allowable HTML elements and attributes.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @var array[]|string
+		 */
+		private $specified_allowed_html;
+
+		/**
+		 * An array of allowed HTML elements and attributes.
+		 *
+		 * This array of allowable HTML elements and attributes is resolved from the value provided
+		 * to the sanitizer function. It’s resolved at the start to avoid repeatedly calling the
+		 * filter stack and array-merging computations. However, it’s still necessary to carry along
+		 * the provided context so that filters expecting the array-or-string version continue to
+		 * operate properly.
+		 *
+		 * @see self::$specified_allowed_html
+		 *
+		 * @since 7.2.0
+		 *
+		 * @var array[]
+		 */
 		private $allowed_html;
 
+		/**
+		 * Array of allowed URL protocols.
+		 *
+		 * @see \wp_allowed_protocols()
+		 *
+		 * @since 7.2.0
+		 *
+		 * @var string
+		 */
 		private $allowed_protocols;
 
+		/**
+		 * Tracks balanced tags when inside foreign content.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @var string[]
+		 */
 		private $foreign_content_stack = array();
 
+		/**
+		 * List of attributes whose values are expected to be considered URLs.
+		 *
+		 * @see \wp_kses_uri_attributes()
+		 *
+		 * @since 7.2.0
+		 *
+		 * @var array
+		 */
 		private $uri_attributes;
 
-		public function __construct( $html, $allowed_html, $allowed_protocols, $uri_attributes ) {
+		public function __construct( $html, $specified_allowed_html, $allowed_html, $allowed_protocols, $uri_attributes ) {
 			parent::__construct( $html );
 
-			$this->allowed_html      = $allowed_html;
-			$this->allowed_protocols = $allowed_protocols;
-			$this->uri_attributes    = $uri_attributes;
+			$this->specified_allowed_html = $specified_allowed_html;
+			$this->allowed_html           = $allowed_html;
+			$this->allowed_protocols     = $allowed_protocols;
+			$this->uri_attributes        = $uri_attributes;
 		}
 
 		private function get_span() {
@@ -1475,7 +1534,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 								$filtered_attributes = filter_block_kses_value(
 									$original_attributes,
-									$this->allowed_html,
+									$this->specified_allowed_html,
 									$this->allowed_protocols,
 									array( 'blockName' => $block_type )
 								);
@@ -1640,6 +1699,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 						$tag_maker = new self(
 							"<{$tag_name}{$self_closer}>{$closing_tag}",
+							$this->specified_allowed_html,
 							$this->allowed_html,
 							$this->allowed_protocols,
 							$this->uri_attributes
