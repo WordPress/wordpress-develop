@@ -1110,7 +1110,7 @@
 			 *
 			 * @param {Object} [options]           An object containing the page number to fetch. If not provided, the next page will be fetched.
 			 * @param {number} [options.data.page] The page number to fetch.
-			 * @return {*} The result of the fetch operation.
+			 * @return {JQuery.Promise} A promise that resolves when the fetch operation completes.
 			 */
 			more: function( options ) {
 				options = options || {};
