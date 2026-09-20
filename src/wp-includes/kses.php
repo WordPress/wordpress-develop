@@ -59,6 +59,9 @@ global $allowedposttags, $allowedtags, $allowedentitynames, $allowedxmlentitynam
 /**
  * Indicates which implementation of {@see \wp_kses()} is running.
  *
+ * Nominally `legacy` unless temporarily-switched for {@see \wp_sanitize_html_kses()}.
+ * It’s safe to latch this into `legacy`.
+ *
  * @global 'legacy'|'html-api' $wp_kses_operating_mode
  */
 global $wp_kses_operating_mode;
@@ -1017,24 +1020,33 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 	global $wp_kses_operating_mode;
 
-	// Preserve legacy behavior of stripping unwanted C0 control characters.
-	$content = preg_replace( '/[\x01-\x08\x0B\x0C\x0E-\x1F]/', '', $content );
-
-	// Call legacy pre-kses filters that might have been added by plugins.
-	$previous_kses_mode     = $wp_kses_operating_mode;
-	$wp_kses_operating_mode = 'html-api';
-	$content                = wp_kses_hook( $content, $allowed_html, $allowed_protocols );
-	$wp_kses_operating_mode = $previous_kses_mode;
-
 	$specified_allowed_html = $allowed_html;
-
-	$allowed_html = is_array( $allowed_html )
-		? $allowed_html
-		: wp_kses_allowed_html( $allowed_html );
 
 	$allowed_protocols = empty( $allowed_protocols )
 		? wp_allowed_protocols()
 		: $allowed_protocols;
+
+	// Preserve legacy behavior of stripping unwanted C0 control characters.
+	$content = preg_replace( '/[\x01-\x08\x0B\x0C\x0E-\x1F]/', '', $content );
+
+	/*
+	 * Call legacy pre-kses filters that might have been added by plugins.
+	 *
+	 * Also set the operating mode to bypass the pre-filters from the legacy
+	 * implementation of `wp_kses()`, as these filters are now run in-band
+	 * during the processing of the input document.
+	 *
+	 * The reset of the operating mode should always be `legacy`, but just
+	 * in case it isn’t, reset it to its previously-read value.
+	 */
+	$previous_kses_mode     = $wp_kses_operating_mode;
+	$wp_kses_operating_mode = 'html-api';
+	$content                = wp_kses_hook( $content, $specified_allowed_html, $allowed_protocols );
+	$wp_kses_operating_mode = $previous_kses_mode;
+
+	$allowed_html = is_array( $allowed_html )
+		? $allowed_html
+		: wp_kses_allowed_html( $allowed_html );
 
 	/*
 	 * The explanation for this call is that “the quoting from `preg_replace(//e)`
@@ -1113,8 +1125,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 			$this->specified_allowed_html = $specified_allowed_html;
 			$this->allowed_html           = $allowed_html;
-			$this->allowed_protocols     = $allowed_protocols;
-			$this->uri_attributes        = $uri_attributes;
+			$this->allowed_protocols      = $allowed_protocols;
+			$this->uri_attributes         = $uri_attributes;
 		}
 
 		private function get_span() {
@@ -1704,6 +1716,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							$this->allowed_protocols,
 							$this->uri_attributes
 						);
+						$tag_maker->change_parsing_namespace( $namespace );
 						$tag_maker->next_token();
 						if ( is_array( $attribute_names ) ) {
 							foreach ( $attribute_names as $name ) {
