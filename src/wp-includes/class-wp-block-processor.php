@@ -1573,8 +1573,8 @@ class WP_Block_Processor {
 	 *
 	 * @see self::is_block_type()
 	 *
-	 * @param string[] $block_type Optional. Is the matched block type one of these?
-	 *                             If none are provided, will not test block type.
+	 * @param string ...$block_type Optional. Is the matched block type one of these?
+	 *                              If none are provided, will not test block type.
 	 * @return bool Whether the matched block delimiter opens a block, and whether it
 	 *              opens a block of one of the given block types, if provided.
 	 */
@@ -1598,13 +1598,7 @@ class WP_Block_Processor {
 			return true;
 		}
 
-		foreach ( $block_type as $block ) {
-			if ( $this->is_block_type( $block ) ) {
-				return true;
-			}
-		}
-
-		return false;
+		return array_any( $block_type, fn( $block ) => $this->is_block_type( $block ) );
 	}
 
 	/**

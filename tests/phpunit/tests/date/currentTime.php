@@ -242,7 +242,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		 * Adjust for daylight saving time.
 		 *
 		 * DST adds an hour to the offset, the partial hour offset
-		 * is set the the standard time offset so this removes the
+		 * is set to the standard time offset, so this removes the
 		 * DST offset to avoid false negatives.
 		 */
 		$offset -= $dst_offset;

@@ -362,6 +362,128 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * The 'methods' arg should split comma-separated values given inside an array,
+	 * matching how the string form is handled.
+	 *
+	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
+	 */
+	public function test_route_method_array_with_comma_separated_values() {
+		global $wp_rest_server;
+
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( 'GET,POST', 'DELETE' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $wp_rest_server->get_routes();
+
+		$this->assertSame(
+			array(
+				'GET'    => true,
+				'POST'   => true,
+				'DELETE' => true,
+			),
+			$routes['/test-ns/test'][0]['methods']
+		);
+	}
+
+	/**
+	 * A multi-method constant inside an array should register each of its methods.
+	 *
+	 * WP_REST_Server::EDITABLE is 'POST, PUT, PATCH'. Before #65905 the array form did not
+	 * split it, registering the single unmatchable key 'POST, PUT, PATCH'.
+	 *
+	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
+	 */
+	public function test_route_method_array_with_multi_method_constant() {
+		global $wp_rest_server;
+
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::EDITABLE ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $wp_rest_server->get_routes();
+
+		$this->assertSame(
+			array(
+				'GET'   => true,
+				'POST'  => true,
+				'PUT'   => true,
+				'PATCH' => true,
+			),
+			$routes['/test-ns/test'][0]['methods']
+		);
+	}
+
+	/**
+	 * Each method of a multi-method constant given in an array should route.
+	 *
+	 * The registered keys are asserted above; this covers the behavior a plugin author
+	 * actually observes, which was a 404.
+	 *
+	 * @ticket 65905
+	 */
+	public function test_route_method_array_with_multi_method_constant_dispatches() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::EDITABLE ),
+				'callback'            => static function () {
+					return new WP_REST_Response( 'ok', 200 );
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		foreach ( array( 'GET', 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$response = rest_get_server()->dispatch( new WP_REST_Request( $method, '/test-ns/test' ) );
+
+			$this->assertSame( 200, $response->get_status(), "$method should route to the handler." );
+		}
+	}
+
+	/**
+	 * An empty 'methods' array should register no methods rather than an empty one.
+	 *
+	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
+	 */
+	public function test_route_method_empty_array() {
+		global $wp_rest_server;
+
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array(),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $wp_rest_server->get_routes();
+
+		$this->assertSame( array(), $routes['/test-ns/test'][0]['methods'] );
+	}
+
 	public function test_options_request() {
 		register_rest_route(
 			'test-ns',
@@ -2290,44 +2412,91 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests rest_is_integer().
+	 *
 	 * @ticket 51146
+	 * @ticket 65271
 	 *
 	 * @dataProvider data_rest_is_integer
 	 *
-	 * @param bool  $expected Expected result of the check.
-	 * @param mixed $value    The value to check.
+	 * @param bool     $expected_is_integer Expected result of the check.
+	 * @param mixed    $value               The value to check.
+	 * @param int|null $expected_sanitized  For integer-like values, the integer that
+	 *                                      {@see rest_sanitize_value_from_schema()} should return.
+	 *                                      A value of null means the value is integer-like but its
+	 *                                      sanitized result is not checked, because the value is too
+	 *                                      large to reason about: the `(int)` cast of an out-of-range
+	 *                                      float is undefined in PHP, so the result is unspecified.
+	 *
+	 * @covers ::rest_is_integer
+	 * @covers ::rest_sanitize_value_from_schema
 	 */
-	public function test_rest_is_integer( $expected, $value ) {
+	public function test_rest_is_integer( bool $expected_is_integer, $value, ?int $expected_sanitized = null ): void {
 		$is_integer = rest_is_integer( $value );
 
-		if ( $expected ) {
+		if ( $expected_is_integer ) {
 			$this->assertTrue( $is_integer );
+
+			/*
+			 * Validation and sanitization must agree: any value treated as integer-like
+			 * must also be sanitized to the expected integer by the 'integer' type,
+			 * without the value being munged by the (int) cast. This is skipped when
+			 * $expected_sanitized is null, since the sanitized result of an out-of-range
+			 * float is undefined and therefore not worth asserting.
+			 */
+			if ( null !== $expected_sanitized ) {
+				$sanitized = rest_sanitize_value_from_schema( $value, array( 'type' => 'integer' ) );
+				$this->assertSame(
+					$expected_sanitized,
+					$sanitized,
+					'Sanitization should return the expected integer without munging the value.'
+				);
+			}
 		} else {
 			$this->assertFalse( $is_integer );
 		}
 	}
 
-	public function data_rest_is_integer() {
+	/**
+	 * Data provider for {@see self::test_rest_is_integer()}.
+	 *
+	 * Integer-like rows include a third element: the integer that
+	 * rest_sanitize_value_from_schema() should produce for the value.
+	 *
+	 * @return list<array<int, mixed>>
+	 *
+	 * @phpstan-return list<array{
+	 *     0: bool,  // $expected_is_integer
+	 *     1: mixed, // $value
+	 *     2?: int,  // $expected_sanitized
+	 * }>
+	 */
+	public function data_rest_is_integer(): array {
 		return array(
 			array(
 				true,
+				1,
 				1,
 			),
 			array(
 				true,
 				'1',
+				1,
 			),
 			array(
 				true,
+				0,
 				0,
 			),
 			array(
 				true,
 				-1,
+				-1,
 			),
 			array(
 				true,
 				'05',
+				5,
 			),
 			array(
 				false,
@@ -2343,11 +2512,166 @@ class Tests_REST_API extends WP_UnitTestCase {
 			),
 			array(
 				false,
+				-5.5,
+			),
+			array(
+				false,
+				'-5.5',
+			),
+			array(
+				false,
 				array(),
 			),
 			array(
 				false,
 				true,
+			),
+			array(
+				true,
+				'15e0',
+				15,
+			),
+			array(
+				true,
+				'15e+0',
+				15,
+			),
+			array(
+				true,
+				'15e-0',
+				15,
+			),
+			array(
+				false,
+				'15e-1',
+			),
+
+			/*
+			 * Integer-valued floats and decimal strings are accepted for back-compatibility.
+			 * Each of these also round-trips cleanly through the (int) cast performed by
+			 * rest_sanitize_value_from_schema() for the 'integer' type.
+			 */
+			array(
+				true,
+				1.0,
+				1,
+			),
+			array(
+				true,
+				5.0,
+				5,
+			),
+			array(
+				true,
+				'1.0',
+				1,
+			),
+			array(
+				true,
+				'5.0',
+				5,
+			),
+			array(
+				true,
+				1.5e3,
+				1500,
+			),
+			array(
+				true,
+				'1.5e3',
+				1500,
+			),
+			array(
+				true,
+				'15e2',
+				1500,
+			),
+
+			// Signed canonical integer strings.
+			array(
+				true,
+				'+5',
+				5,
+			),
+			array(
+				true,
+				'-5',
+				-5,
+			),
+
+			// Non-numeric and non-string scalars are not integers.
+			array(
+				false,
+				false,
+			),
+			array(
+				false,
+				null,
+			),
+
+			// The following values test very large integers.
+			array(
+				true,
+				2 ** 52,
+				2 ** 52,
+			),
+			array(
+				true,
+				2 ** 52 + 2,
+				2 ** 52 + 2,
+			),
+			array(
+				true,
+				'4503599627370496', // 2 ** 52
+				4503599627370496,
+			),
+			array(
+				true,
+				'4503599627370498', // 2 ** 52 + 2
+				4503599627370498,
+			),
+			array(
+				true,
+				'-4503599627370498', // -( 2 ** 52 + 2 ), a large negative integer string.
+				-4503599627370498,
+			),
+			array(
+				true,
+				'4611686018427387904', // 2 ** 62, a large positive integer string below PHP_INT_MAX.
+				4611686018427387904,
+			),
+
+			/*
+			 * Out-of-range floats are reported as integer-like, but their sanitized value is
+			 * not asserted: integer arithmetic overflow promotes the result to a float, and the
+			 * subsequent (int) cast of an out-of-range float is undefined in PHP. The null
+			 * $expected_sanitized signals that the sanitized result should not be checked.
+			 */
+			array(
+				true,
+				PHP_INT_MAX + 1, // Integer overflow promotes to a float greater than PHP_INT_MAX.
+				null,
+			),
+			array(
+				true,
+				PHP_INT_MIN - 1, // Integer overflow promotes to a float less than PHP_INT_MIN.
+				null,
+			),
+
+			/*
+			 * Canonical integer strings beyond the native integer range are reported as
+			 * integer-like, and unlike floats their (int) cast is well-defined: it saturates
+			 * to PHP_INT_MAX or PHP_INT_MIN, so the sanitized value can be asserted.
+			 */
+			array(
+				true,
+				PHP_INT_MAX . '000', // A string three orders of magnitude above PHP_INT_MAX, whatever the word size.
+				PHP_INT_MAX,         // (int) cast of an out-of-range numeric string saturates.
+			),
+			array(
+				true,
+				PHP_INT_MIN . '000', // A string three orders of magnitude below PHP_INT_MIN, whatever the word size.
+				PHP_INT_MIN,         // (int) cast of an out-of-range numeric string saturates.
 			),
 		);
 	}

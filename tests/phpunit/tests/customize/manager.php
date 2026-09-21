@@ -3252,7 +3252,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_widgets( $components, $customize_manager ) {
@@ -3269,7 +3268,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_nav_menus( $components, $customize_manager ) {
@@ -3519,14 +3517,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		// The default devices list.
 		$default_devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 
@@ -3551,7 +3549,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private function filtered_device_list() {
 		return array(
 			'custom-device' => array(
-				'label'   => __( 'Enter custom-device preview mode' ),
+				'label'   => __( 'Custom device' ),
 				'default' => true,
 			),
 		);
@@ -3561,7 +3559,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Callback for the customize_previewable_devices filter.
 	 *
 	 * @param array $devices The list of devices.
-	 *
 	 * @return array
 	 */
 	public function filter_customize_previewable_devices( $devices ) {

@@ -559,6 +559,8 @@ function wp_set_option_autoload( $option, $autoload ) {
  * @since 2.2.0
  *
  * @param string $option Option name.
+ * @return void Never returns if `$option` is protected, as the function dies in that case.
+ * @phpstan-return ( $option is 'alloptions'|'notoptions' ? never : void )
  */
 function wp_protect_special_option( $option ) {
 	if ( 'alloptions' === $option || 'notoptions' === $option ) {
@@ -2737,6 +2739,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
  *
  * @since 4.7.0
  * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
+ * @since 7.2.0 The `wp_page_for_privacy_policy` option was registered, exposed as `page_for_privacy_policy`.
  */
 function register_initial_settings() {
 	register_setting(
@@ -2930,6 +2933,18 @@ function register_initial_settings() {
 	);
 
 	register_setting(
+		'reading',
+		'wp_page_for_privacy_policy',
+		array(
+			'show_in_rest' => array(
+				'name' => 'page_for_privacy_policy',
+			),
+			'type'         => 'integer',
+			'description'  => __( 'The ID of the page that should be displayed as the privacy policy page' ),
+		)
+	);
+
+	register_setting(
 		'discussion',
 		'default_ping_status',
 		array(
@@ -2976,19 +2991,21 @@ function register_initial_settings() {
  * @param string $option_group A settings group name. Should correspond to an allowed option key name.
  *                             Default allowed option key names include 'general', 'discussion', 'media',
  *                             'reading', 'writing', and 'options'.
- * @param string $option_name The name of an option to sanitize and save.
+ * @param string $option_name  The name of an option to sanitize and save.
  * @param array  $args {
  *     Data used to describe the setting when registered.
  *
- *     @type string     $type              The type of data associated with this setting.
- *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
- *     @type string     $label             A label of the data attached to this setting.
- *     @type string     $description       A description of the data attached to this setting.
- *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
- *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
- *                                         When registering complex settings, this argument may optionally be an
- *                                         array with a 'schema' key.
- *     @type mixed      $default           Default value when calling `get_option()`.
+ *     @type string        $type              The type of data associated with this setting.
+ *                                            Valid values are 'string', 'boolean', 'integer', 'number', 'array',
+ *                                            and 'object'.
+ *     @type string        $label             A label of the data attached to this setting.
+ *     @type string        $description       A description of the data attached to this setting.
+ *     @type callable|null $sanitize_callback A callback function that sanitizes the option's value.
+ *                                            Default null.
+ *     @type bool|array    $show_in_rest      Whether data associated with this setting should be included in the
+ *                                            REST API. When registering complex settings, this argument may
+ *                                            optionally be an array with a 'schema' key.
+ *     @type mixed         $default           Default value when calling `get_option()`.
  * }
  */
 function register_setting( $option_group, $option_name, $args = array() ) {
@@ -3199,15 +3216,18 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *     @type array ...$0 {
  *         Data used to describe the setting when registered.
  *
- *         @type string     $type              The type of data associated with this setting.
- *                                             Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
- *         @type string     $label             A label of the data attached to this setting.
- *         @type string     $description       A description of the data attached to this setting.
- *         @type callable   $sanitize_callback A callback function that sanitizes the option's value.
- *         @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
- *                                             When registering complex settings, this argument may optionally be an
- *                                             array with a 'schema' key.
- *         @type mixed      $default           Default value when calling `get_option()`.
+ *         @type string        $type              The type of data associated with this setting.
+ *                                                Valid values are 'string', 'boolean', 'integer', 'number', 'array',
+ *                                                and 'object'.
+ *         @type string        $group             The settings group name the setting was registered in.
+ *         @type string        $label             A label of the data attached to this setting.
+ *         @type string        $description       A description of the data attached to this setting.
+ *         @type callable|null $sanitize_callback A callback function that sanitizes the option's value.
+ *         @type bool|array    $show_in_rest      Whether data associated with this setting should be included in the
+ *                                                REST API. When registering complex settings, this argument may
+ *                                                optionally be an array with a 'schema' key.
+ *         @type mixed         $default           Default value when calling `get_option()`. Only present when the
+ *                                                setting was registered with a default.
  *     }
  * }
  */

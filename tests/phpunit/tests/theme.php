@@ -33,14 +33,22 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Theme features registered before the test ran.
+	 *
+	 * @var array
+	 */
+	private $orig_theme_features;
+
 	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
-		$this->orig_theme_dir = $wp_theme_directories;
-		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
+		$this->orig_theme_dir      = $wp_theme_directories;
+		$wp_theme_directories      = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
+		$this->orig_theme_features = $GLOBALS['_wp_theme_features'];
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -56,7 +64,12 @@ class Tests_Theme extends WP_UnitTestCase {
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
-		parent::tear_down();
+		try {
+			parent::tear_down();
+		} finally {
+			// Restore after the parent removes HTML5 theme support.
+			$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
+		}
 	}
 
 	public function test_wp_get_themes_default() {
@@ -94,8 +107,9 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		foreach ( array_keys( $themes ) as $name ) {
 			$theme = get_theme( $name );
-			// WP_Theme implements ArrayAccess. Even ArrayObject returns false for is_array().
-			$this->assertFalse( is_array( $theme ) );
+			// WP_Theme implements ArrayAccess, but that does not make it an array:
+			// is_array() returns false for ArrayObject.
+			$this->assertIsNotArray( $theme );
 			$this->assertInstanceOf( 'WP_Theme', $theme );
 			$this->assertSame( $theme, $themes[ $name ] );
 		}
@@ -457,7 +471,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $theme['Stylesheet'], get_stylesheet() );
 
 				$root_fs = $theme->get_theme_root();
-				$this->assertTrue( is_dir( $root_fs ) );
+				$this->assertDirectoryExists( $root_fs );
 
 				$root_uri = $theme->get_theme_root_uri();
 				$this->assertNotEmpty( $root_uri );
@@ -565,7 +579,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		do_action( 'customize_register', $wp_customize );
 
 		// The post_date for auto-drafts is bumped to match the changeset post_date whenever it is modified
-		// to keep them from from being garbage collected by wp_delete_auto_drafts().
+		// to keep them from being garbage collected by wp_delete_auto_drafts().
 		$wp_customize->save_changeset_post(
 			array(
 				'data' => $data,

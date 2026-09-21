@@ -39,6 +39,13 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 				'description' => 'Text operations.',
 			)
 		);
+		wp_register_ability_category(
+			'media',
+			array(
+				'label'       => 'Media',
+				'description' => 'Media operations.',
+			)
+		);
 	}
 
 	/**
@@ -53,6 +60,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 
 		wp_unregister_ability_category( 'math' );
 		wp_unregister_ability_category( 'text' );
+		wp_unregister_ability_category( 'media' );
 
 		parent::tear_down();
 	}
@@ -135,15 +143,19 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that passing an array of categories uses OR logic.
+	 * Tests that a non-string category is ignored rather than treated as a multi-value filter.
+	 *
+	 * The declarative filters accept a single slug. Anything other than a string is ignored,
+	 * matching how the `namespace` and `meta` args guard their own types.
 	 *
 	 * @ticket 64990
 	 */
-	public function test_filter_by_category_array_uses_or_logic(): void {
+	public function test_filter_by_non_string_category_is_ignored(): void {
 		$this->simulate_wp_abilities_init();
 
 		$this->register_test_ability( 'test/math-add', array( 'category' => 'math' ) );
 		$this->register_test_ability( 'test/text-upper', array( 'category' => 'text' ) );
+		$this->register_test_ability( 'test/media-crop', array( 'category' => 'media' ) );
 
 		$result = wp_get_abilities( array( 'category' => array( 'math', 'text' ) ) );
 		$names  = array_map(
@@ -155,6 +167,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 
 		$this->assertContains( 'test/math-add', $names );
 		$this->assertContains( 'test/text-upper', $names );
+		$this->assertContains( 'test/media-crop', $names );
 	}
 
 	/**

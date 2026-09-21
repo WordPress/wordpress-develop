@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that tests the WordPress Core build process.
+#
+# This workflow is used by `trunk` and branches >= 4.7.
 ##
 name: Test the WordPress Build Process
 
@@ -70,7 +72,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
@@ -112,11 +114,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Run CSS precommit tasks
+        if: ${{ inputs.directory == 'src' }}
+        run: npm run grunt precommit:css
+
       - name: Ensure certificates files are updated
         if: ${{ inputs.test-certificates }}
         run: npm run grunt copy:certificates && npm run grunt build:certificates
 
       - name: Build WordPress to run from ${{ inputs.directory }}
+        timeout-minutes: 5
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
 
       - name: Ensure version-controlled files are not modified or deleted during building
