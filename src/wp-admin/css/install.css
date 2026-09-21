@@ -388,7 +388,7 @@ body.language-chooser {
 
 .js .hide-if-js,
 .no-js .hide-if-no-js,
-.button.wp-hide-pw.user-new-password-toggle.hide-if-no-js {
+.no-js .button.wp-hide-pw.user-new-password-toggle.hide-if-no-js {
 	display: none;
 }
 
