@@ -1225,6 +1225,7 @@ EOF;
 	 * @ticket 65457
 	 * @ticket 64974
 	 * @ticket 65832
+	 * @ticket 65871
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1881,6 +1882,80 @@ EOF;
 			array(
 				'css'      => 'clip-path: url(javascript:alert(1))',
 				'expected' => '',
+			),
+			// Filter functions (ticket #65871).
+			array(
+				'css'      => 'filter: blur(5px)',
+				'expected' => 'filter: blur(5px)',
+			),
+			array(
+				'css'      => 'filter: brightness(0.4)',
+				'expected' => 'filter: brightness(0.4)',
+			),
+			array(
+				'css'      => 'filter: contrast(200%)',
+				'expected' => 'filter: contrast(200%)',
+			),
+			array(
+				'css'      => 'filter: drop-shadow(16px 16px 20px blue)',
+				'expected' => 'filter: drop-shadow(16px 16px 20px blue)',
+			),
+			array(
+				'css'      => 'filter: grayscale(50%)',
+				'expected' => 'filter: grayscale(50%)',
+			),
+			array(
+				'css'      => 'filter: hue-rotate(90deg)',
+				'expected' => 'filter: hue-rotate(90deg)',
+			),
+			array(
+				'css'      => 'filter: invert(75%)',
+				'expected' => 'filter: invert(75%)',
+			),
+			array(
+				'css'      => 'filter: opacity(25%)',
+				'expected' => 'filter: opacity(25%)',
+			),
+			array(
+				'css'      => 'filter: saturate(30%)',
+				'expected' => 'filter: saturate(30%)',
+			),
+			array(
+				'css'      => 'filter: sepia(60%)',
+				'expected' => 'filter: sepia(60%)',
+			),
+			// Multiple filter functions chained.
+			array(
+				'css'      => 'filter: blur(5px) brightness(0.4)',
+				'expected' => 'filter: blur(5px) brightness(0.4)',
+			),
+			// Nested functions within a filter function are allowed.
+			array(
+				'css'      => 'filter: blur(calc(2px + 3px))',
+				'expected' => 'filter: blur(calc(2px + 3px))',
+			),
+			array(
+				'css'      => 'filter: drop-shadow(0 0 var(--shadow-size) black)',
+				'expected' => 'filter: drop-shadow(0 0 var(--shadow-size) black)',
+			),
+			// filter: none and filter: url() are unchanged (regression control).
+			array(
+				'css'      => 'filter: none',
+				'expected' => 'filter: none',
+			),
+			array(
+				'css'      => 'filter: url(#svgBlur)',
+				'expected' => 'filter: url(#svgBlur)',
+			),
+			// Disallow javascript: URLs in filter url() references (security regression).
+			array(
+				'css'      => 'filter: url(javascript:alert(1))',
+				'expected' => '',
+			),
+			// The opacity property is unaffected by the opacity() filter function.
+			array(
+				'css'      => 'opacity: 0.5',
+				'expected' => 'opacity: 0.5',
 			),
 		);
 	}
