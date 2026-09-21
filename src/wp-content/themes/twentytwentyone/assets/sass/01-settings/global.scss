@@ -200,6 +200,12 @@ $baseline-unit: 10px;
 	--pullquote--color-foreground: var(--global--color-primary);
 	--pullquote--color-background: var(--global--color-background);
 
+	/* Block: Border */
+	--wp--custom--border--width: 1px;
+	--wp--custom--border--style: solid;
+	--wp--custom--border--color: var(--global--color-border);
+	--wp--custom--border--radius: 0;
+
 	--quote--font-family: var(--global--font-secondary);
 	--quote--font-size: var(--global--font-size-md);
 	--quote--font-size-large: var(--global--font-size-xl);

@@ -15,6 +15,9 @@
 		/* Block: Table */
 		--table--stripes-border-color: rgba(240, 240, 240, 0.15);
 		--table--stripes-background-color: rgba(240, 240, 240, 0.15);
+
+		/* Block Borders */
+		--wp--custom--border--color: var(--global--color-border);
 	}
 
 	.is-dark-theme img {
