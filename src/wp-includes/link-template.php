@@ -1673,11 +1673,14 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
  * Displays the edit bookmark link.
  *
  * @since 2.7.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param int|stdClass $link Optional. Bookmark ID. Default is the ID of the current bookmark.
  * @return string|null The edit bookmark link URL.
  */
 function get_edit_bookmark_link( $link = 0 ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$link = get_bookmark( $link );
 
 	if ( ! current_user_can( 'manage_links' ) ) {
@@ -1701,6 +1704,7 @@ function get_edit_bookmark_link( $link = 0 ) {
  * Displays the edit bookmark link anchor content.
  *
  * @since 2.7.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param string $link     Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
  * @param string $before   Optional. Display before edit link. Default empty.
@@ -1708,6 +1712,8 @@ function get_edit_bookmark_link( $link = 0 ) {
  * @param int    $bookmark Optional. Bookmark ID. Default is the current bookmark.
  */
 function edit_bookmark_link( $link = '', $before = '', $after = '', $bookmark = null ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$bookmark = get_bookmark( $bookmark );
 
 	if ( ! current_user_can( 'manage_links' ) ) {
