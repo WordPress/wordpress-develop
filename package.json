@@ -117,13 +117,13 @@
 		"zod": "3.25.1"
 	},
 	"scripts": {
-		"build": "grunt build",
-		"build:dev": "grunt build --dev",
-		"build:gutenberg": "grunt build:gutenberg",
-		"dev": "grunt watch --dev",
-		"test": "grunt test",
-		"watch": "grunt watch",
-		"grunt": "grunt",
+		"build": "node --no-maglev --no-concurrent-sparkplug node_modules/grunt/bin/grunt build",
+		"build:dev": "node --no-maglev --no-concurrent-sparkplug node_modules/grunt/bin/grunt build --dev",
+		"build:gutenberg": "node --no-maglev --no-concurrent-sparkplug node_modules/grunt/bin/grunt build:gutenberg",
+		"dev": "node --no-maglev --no-concurrent-sparkplug node_modules/grunt/bin/grunt watch --dev",
+		"test": "node --no-maglev --no-concurrent-sparkplug node_modules/grunt/bin/grunt test",
+		"watch": "node --no-maglev --no-concurrent-sparkplug node_modules/grunt/bin/grunt watch",
+		"grunt": "node --no-maglev --no-concurrent-sparkplug node_modules/grunt/bin/grunt",
 		"lint:jsdoc": "wp-scripts lint-js",
 		"lint:jsdoc:fix": "wp-scripts lint-js --fix",
 		"typecheck:js": "tsc --build",
@@ -146,6 +146,6 @@
 		"typecheck:php:baselines": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan:baselines --",
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
-		"gutenberg:download": "node tools/gutenberg/download.js && grunt build:gutenberg"
+		"gutenberg:download": "node tools/gutenberg/download.js && npm run build:gutenberg"
 	}
 }
