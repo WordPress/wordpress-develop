@@ -92,7 +92,7 @@ A hash on a class rather than on `array` or `object` produces an intersection, `
 
 One kind of hash is outside what the visitor covers today: **a `@var` hash on a property**. A property declaration is inherited by every subclass and has to accept its own default, so a shape there would say more than the hash does — that no subclass may widen the property, and that the declared default already has the shape.
 
-Hashes are also written on hook docblocks, where core documents `apply_filters()` and `do_action()`. Those are not attached to a function, so they are outside what this visitor sees, and the value a filter passes stays typed by [the hook extensions below](#hook-documentation).
+Hashes are also written on hook docblocks, where core documents `apply_filters()` and `do_action()`. Those are not attached to a function, but they are translated on the same terms, because [the hook extensions below](#hook-documentation) type a filtered value from the `@param` the hook documents. Without it a filter hands back a bare `array` — undoing, at the call, the shape the enclosing function's own hash established, as `wp_set_cookie()` does when it filters the `$options` its signature documents key by key. The same translation is applied where a docblock is inherited through a `/** This filter is documented in <file> */` comment, so a hook is typed alike wherever it is fired.
 
 ### Hook documentation
 
