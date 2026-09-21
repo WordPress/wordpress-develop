@@ -1079,11 +1079,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-site.php
 		-
-			message: '#^Parameter \#2 \$object_id of function delete_metadata expects int, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/ms-site.php
-		-
 			message: '#^Parameter \#3 \$year of function wp_checkdate expects int, \(string\|false\) given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1205,11 +1200,6 @@ parameters:
 			path: ../../../src/wp-includes/post.php
 		-
 			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Parameter \#2 \$object_id of function delete_metadata expects int, null given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/post.php
