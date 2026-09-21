@@ -44,6 +44,15 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		}
 	}
 
+	public function tear_down() {
+		foreach ( array( 'rest-visibility-public', 'rest-visibility-private' ) as $slug ) {
+			if ( WP_Icon_Collections_Registry::get_instance()->is_registered( $slug ) ) {
+				wp_unregister_icon_collection( $slug );
+			}
+		}
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 64847
 	 *
@@ -291,6 +300,67 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 404, $response->get_status() );
+	}
+
+	/**
+	 * Test that non-public collections are omitted from the collection list.
+	 *
+	 * @ticket 66087
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_omits_non_public_collections() {
+		$this->register_visibility_collections();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icon-collections' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$slugs = wp_list_pluck( $response->get_data(), 'slug' );
+		$this->assertContains( 'rest-visibility-public', $slugs );
+		$this->assertNotContains( 'rest-visibility-private', $slugs );
+	}
+
+	/**
+	 * Test that a non-public collection is reported as not found by slug.
+	 *
+	 * @ticket 66087
+	 *
+	 * @covers ::get_item
+	 * @covers ::get_icon_collection
+	 */
+	public function test_get_item_returns_404_for_non_public_collection() {
+		$this->register_visibility_collections();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icon-collections/rest-visibility-private' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_icon_collection_not_found', $response, 404 );
+	}
+
+	/**
+	 * Registers a public and a non-public collection.
+	 */
+	private function register_visibility_collections() {
+		$collections = array(
+			'rest-visibility-public'  => true,
+			'rest-visibility-private' => false,
+		);
+
+		foreach ( $collections as $slug => $is_public ) {
+			wp_register_icon_collection(
+				$slug,
+				array(
+					'label'  => 'REST Visibility',
+					'public' => $is_public,
+				)
+			);
+		}
 	}
 
 	/**
