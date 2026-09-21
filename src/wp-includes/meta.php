@@ -1242,6 +1242,15 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		}
 	}
 
+	/*
+	 * Remove unusable cached values so that the regenerated values can be added.
+	 * A delete followed by an add is used instead of wp_cache_set_multiple()
+	 * so that wp_suspend_cache_addition() is still respected.
+	 */
+	if ( ! empty( $invalid_ids ) ) {
+		wp_cache_delete_multiple( $invalid_ids, $cache_group );
+	}
+
 	if ( empty( $non_cached_ids ) ) {
 		return $cache;
 	}
@@ -1277,15 +1286,6 @@ function update_meta_cache( $meta_type, $object_ids ) {
 			$cache[ $id ] = array();
 		}
 		$data[ $id ] = $cache[ $id ];
-	}
-
-	/*
-	 * Remove unusable cached values so that the regenerated values can be added.
-	 * A delete followed by an add is used instead of wp_cache_set_multiple()
-	 * so that wp_suspend_cache_addition() is still respected.
-	 */
-	if ( ! empty( $invalid_ids ) ) {
-		wp_cache_delete_multiple( $invalid_ids, $cache_group );
 	}
 
 	wp_cache_add_multiple( $data, $cache_group );
