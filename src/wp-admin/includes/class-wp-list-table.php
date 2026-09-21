@@ -1826,7 +1826,13 @@ class WP_List_Table {
 			$attributes = "class='$classes' $data";
 
 			if ( 'cb' === $column_name ) {
-				echo '<td class="check-column">';
+				$cb_classes = 'check-column';
+
+				if ( in_array( $column_name, $hidden, true ) ) {
+					$cb_classes .= ' hidden';
+				}
+
+				echo '<td class="' . $cb_classes . '">';
 				echo $this->column_cb( $item );
 				echo '</td>';
 			} elseif ( method_exists( $this, '_column_' . $column_name ) ) {
