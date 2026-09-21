@@ -1,5 +1,21 @@
 /* jshint node:true */
 /* globals Set */
+
+/*
+ * Disable V8's Maglev and concurrent Sparkplug compilers.
+ *
+ * Grunt ends a successful run with `process.exit(0)`. On Node 24, where both
+ * compilers are enabled by default, Node's exit handler joins the V8 platform
+ * worker pool while a background compile job may still be parked waiting for a
+ * garbage collection the main thread will never run again, deadlocking the
+ * build after it prints "Done.". See https://github.com/nodejs/node/issues/64274.
+ *
+ * Node refuses V8 flags in NODE_OPTIONS, so they are set here instead. This
+ * only narrows the window: code compiled before this file is read is still
+ * subject to the deadlock.
+ */
+require( 'v8' ).setFlagsFromString( '--no-maglev --no-concurrent-sparkplug' );
+
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
 
