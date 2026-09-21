@@ -2143,11 +2143,11 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  *
  * @since 7.2.0
  *
- * @global string              $admin_page_parent  The parent slug of the current admin page.
- * @global string              $plugin_page        The plugin page slug being loaded.
- * @global array<string, true> $_registered_pages  Array of all registered admin page hooks.
- * @global array               $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
- * @global array               $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
+ * @global string                             $admin_page_parent  The parent slug of the current admin page.
+ * @global string                             $plugin_page        The plugin page slug being loaded.
+ * @global array<string, true>                $_registered_pages  Array of all registered admin page hooks.
+ * @global array<string, true>                $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
+ * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
  *
  * @return bool True if the admin page exists, false otherwise.
  */
@@ -2219,14 +2219,14 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  *
  * @since 1.5.0
  *
- * @global string $pagenow            The filename of the current screen.
- * @global array  $menu
- * @global array  $submenu
- * @global array  $_wp_menu_nopriv
- * @global array  $_wp_submenu_nopriv
- * @global string $plugin_page
- * @global array  $_registered_pages
- * @global string $admin_page_parent
+ * @global string                             $pagenow            The filename of the current screen.
+ * @global array                              $menu
+ * @global array                              $submenu
+ * @global array<string, true>                $_wp_menu_nopriv
+ * @global array<string, array<string, true>> $_wp_submenu_nopriv
+ * @global string                             $plugin_page
+ * @global array                              $_registered_pages
+ * @global string                             $admin_page_parent
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
