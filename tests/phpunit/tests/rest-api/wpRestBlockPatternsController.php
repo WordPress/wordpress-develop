@@ -127,11 +127,9 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		$this->assertArrayHasKey( static::REQUEST_ROUTE, $routes );
 	}
 
-	/**
-	 * @group external-http
-	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_pattern_directory_request' ), 10, 3 );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,content,source,template_types';
@@ -196,12 +194,12 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	 * @since 6.2.0
 	 *
 	 * @ticket 57532
-	 * @group external-http
 	 *
 	 * @covers WP_REST_Block_Patterns_Controller::get_items
 	 */
 	public function test_get_items_migrate_pattern_categories() {
 		wp_set_current_user( self::$admin_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_pattern_directory_request' ), 10, 3 );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,categories';
@@ -233,6 +231,22 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 			),
 			$data[2],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/three'
+		);
+	}
+
+	/**
+	 * Mocks requests to the wordpress.org pattern directory with an empty result set.
+	 */
+	public function mock_pattern_directory_request() {
+		return array(
+			'headers'  => array(),
+			'body'     => '[]',
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
 		);
 	}
 

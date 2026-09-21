@@ -19,21 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method WP_List_Table\:\:display_rows\(\) invoked with 2 parameters, 0 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
-			message: '#^Method WP_List_Table\:\:single_row\(\) invoked with 2 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 2
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
-			message: '#^Method WP_List_Table\:\:single_row\(\) invoked with 3 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
 			message: '#^Method WP_Upgrader_Skin\:\:before\(\) invoked with 1 parameter, 0 required\.$#'
 			identifier: arguments.count
 			count: 2
@@ -43,8 +28,3 @@ parameters:
 			identifier: arguments.count
 			count: 2
 			path: ../../../src/wp-admin/includes/class-theme-upgrader.php
-		-
-			message: '#^Method WP_List_Table\:\:display\(\) invoked with 1 parameter, 0 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: ../../../src/wp-admin/includes/meta-boxes.php

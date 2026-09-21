@@ -486,7 +486,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				foreach ( $test_case as $param_name => $param_value ) {
 					$key_parts[] = sprintf( '%s_%s', $param_name, json_encode( $param_value ) );
 				}
-				$data[ join( '_', $key_parts ) ] = $test_case;
+				$data[ implode( '_', $key_parts ) ] = $test_case;
 			}
 		}
 
@@ -1859,6 +1859,8 @@ HTML;
 	 * wp_default_script_modules() so the non-minified URL is never used;
 	 * otherwise the import map points to a non-existent file under
 	 * SCRIPT_DEBUG. The exceptions below must mirror that special case.
+	 *
+	 * @group assets
 	 *
 	 * @ticket 65664
 	 *
