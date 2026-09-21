@@ -62,6 +62,8 @@ module.exports = [
 				],
 			} ],
 			'jsdoc/check-types': 'error',
+			'jsdoc/no-blank-blocks': 'error',
+			'jsdoc/no-blank-block-descriptions': 'error',
 			'jsdoc/require-description': 'error',
 			'jsdoc/require-hyphen-before-param-description': [ 'error', 'never' ],
 			'jsdoc/require-jsdoc': 'error',
