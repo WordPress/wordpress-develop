@@ -102,7 +102,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 
 		$cap_key = wp_get_current_user()->cap_key;
 		switch_to_blog( $blog_id );
-		$this->assertNotEquals( $cap_key, wp_get_current_user()->cap_key );
+		$this->assertNotSame( $cap_key, wp_get_current_user()->cap_key );
 		$this->assertSame( array( $current_blog_id ), $_wp_switched_stack );
 		$this->assertTrue( ms_is_switched() );
 		$this->assertSame( $blog_id, $wpdb->blogid );
@@ -201,7 +201,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$new_details = get_site( $site_id );
 		wp_suspend_cache_invalidation( $suspend );
 
-		$this->assertNotEquals( $details->path, $new_details->path );
+		$this->assertNotSame( $details->path, $new_details->path );
 	}
 
 	public function test_site_caches_should_not_invalidate_when_invalidation_is_suspended() {
@@ -1058,7 +1058,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 
 		$site = get_site( $site_id );
 		foreach ( $expected_data as $key => $value ) {
-			$this->assertEquals( $value, $site->$key );
+			$this->assertSame( $value, $site->$key );
 		}
 	}
 
@@ -1072,12 +1072,12 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 					'domain'     => 'example.com',
 					'path'       => '/',
 					'network_id' => 1,
-					'public'     => 1,
-					'archived'   => 0,
-					'mature'     => 0,
-					'spam'       => 0,
-					'deleted'    => 0,
-					'lang_id'    => 0,
+					'public'     => '1',
+					'archived'   => '0',
+					'mature'     => '0',
+					'spam'       => '0',
+					'deleted'    => '0',
+					'lang_id'    => '0',
 				),
 			),
 			array(
@@ -1131,12 +1131,12 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 				array(
 					'domain'   => 'example.com',
 					'path'     => '/foobar/',
-					'public'   => 0,
-					'archived' => 1,
-					'mature'   => 1,
-					'spam'     => 1,
-					'deleted'  => 1,
-					'lang_id'  => 1,
+					'public'   => '0',
+					'archived' => '1',
+					'mature'   => '1',
+					'spam'     => '1',
+					'deleted'  => '1',
+					'lang_id'  => '1',
 				),
 			),
 			array(
@@ -1147,12 +1147,12 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 					'domain'     => 'example.com:8888',
 					'path'       => '/',
 					'network_id' => 1,
-					'public'     => 1,
-					'archived'   => 0,
-					'mature'     => 0,
-					'spam'       => 0,
-					'deleted'    => 0,
-					'lang_id'    => 0,
+					'public'     => '1',
+					'archived'   => '0',
+					'mature'     => '0',
+					'spam'       => '0',
+					'deleted'    => '0',
+					'lang_id'    => '0',
 				),
 			),
 		);
@@ -1210,7 +1210,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$new_site = get_site( $site_id );
 		foreach ( $new_site->to_array() as $key => $value ) {
 			if ( isset( $expected_data[ $key ] ) ) {
-				$this->assertEquals( $expected_data[ $key ], $value );
+				$this->assertSame( $expected_data[ $key ], $value );
 			} elseif ( 'last_updated' === $key ) {
 				$this->assertLessThanOrEqual( $value, $old_site->last_updated );
 			} else {
@@ -1228,7 +1228,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 				),
 				array(
 					'domain'  => 'example.com',
-					'site_id' => 2,
+					'site_id' => '2',
 				),
 			),
 			array(
@@ -1249,12 +1249,12 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 					'lang_id'  => 1,
 				),
 				array(
-					'public'   => 0,
-					'archived' => 1,
-					'mature'   => 1,
-					'spam'     => 1,
-					'deleted'  => 1,
-					'lang_id'  => 1,
+					'public'   => '0',
+					'archived' => '1',
+					'mature'   => '1',
+					'spam'     => '1',
+					'deleted'  => '1',
+					'lang_id'  => '1',
 				),
 			),
 			array(
@@ -1264,7 +1264,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 				),
 				array(
 					'domain'  => 'example.com:8888',
-					'site_id' => 2,
+					'site_id' => '2',
 				),
 			),
 		);
@@ -2228,12 +2228,12 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$new_site = self::factory()->blog->create_and_get();
 
 		// Double-check we got the ID of the new site correct.
-		$this->assertEquals( $new_site_id, $new_site->blog_id );
+		$this->assertSame( (string) $new_site_id, $new_site->blog_id );
 
 		// Verify that if we fetch the site now, it's no longer false.
 		$fetched_site = get_site( $new_site_id );
 		$this->assertInstanceOf( 'WP_Site', $fetched_site );
-		$this->assertEquals( $new_site_id, $fetched_site->blog_id );
+		$this->assertSame( (string) $new_site_id, $fetched_site->blog_id );
 	}
 
 	/**

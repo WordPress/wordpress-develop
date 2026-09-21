@@ -239,6 +239,51 @@ CSS
 CSS
 				,
 			),
+			'variation settings string'      => array(
+				'fonts'    => array(
+					'Inter' =>
+						array(
+							array(
+								'src'                     =>
+									array(
+										'https://example.org/assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf',
+									),
+								'font-family'             => 'Inter',
+								'font-style'              => 'normal',
+								'font-weight'             => '400',
+								'font-variation-settings' => '"slnt" 0, "wght" 400',
+							),
+						),
+				),
+				'expected' => <<<CSS
+@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf') format('truetype');font-variation-settings:"slnt" 0, "wght" 400;}
+CSS
+				,
+			),
+			'variation settings array'       => array(
+				'fonts'    => array(
+					'Inter' =>
+						array(
+							array(
+								'src'                     =>
+									array(
+										'https://example.org/assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf',
+									),
+								'font-family'             => 'Inter',
+								'font-style'              => 'normal',
+								'font-weight'             => '400',
+								'font-variation-settings' => array(
+									'slnt' => 0,
+									'wght' => 400,
+								),
+							),
+						),
+				),
+				'expected' => <<<CSS
+@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf') format('truetype');font-variation-settings:"slnt" 0, "wght" 400;}
+CSS
+				,
+			),
 		);
 	}
 
