@@ -144,11 +144,8 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 		}
 		this.activeModes.remove( this.activeModes.where( { id: mode } ) );
 		this.$el.removeClass( 'mode-' + mode );
-		/**
-		 * Frame mode deactivation event.
-		 *
-		 * @event wp.media.view.Frame#{mode}:deactivate
-		 */
+
+		// Fires a `#{mode}:deactivate` event on the frame.
 		this.trigger( mode + ':deactivate' );
 
 		return this;

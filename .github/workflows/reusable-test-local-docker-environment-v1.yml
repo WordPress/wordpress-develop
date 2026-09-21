@@ -121,6 +121,7 @@ jobs:
         run: npm ci
 
       - name: Build WordPress
+        timeout-minutes: 5
         run: npm run build:dev
 
       - name: General debug information
