@@ -99,6 +99,10 @@ final class WP_Translation_Controller {
 	public function load_file( string $translation_file, string $textdomain = 'default', ?string $locale = null ): bool {
 		$locale ??= $this->current_locale;
 
+		if ( empty( $translation_file ) ) {
+			return false;
+		}
+
 		$translation_file = realpath( $translation_file );
 
 		if ( false === $translation_file ) {
