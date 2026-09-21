@@ -2280,9 +2280,32 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			$is_valid = rest_validate_boolean_value_from_schema( $value, $param );
 			break;
 		case 'object':
+			/*
+			 * A JSON-encoded string (e.g. from a GET query parameter) should be
+			 * decoded before validation, mirroring what parse_json_params() does
+			 * for application/json request bodies.
+			 */
+			if ( is_string( $value ) ) {
+				$decoded = json_decode( $value, true );
+				if ( null !== $decoded && JSON_ERROR_NONE === json_last_error() ) {
+					$value = $decoded;
+				}
+			}
 			$is_valid = rest_validate_object_value_from_schema( $value, $args, $param );
 			break;
 		case 'array':
+			/*
+			 * A JSON-encoded string (e.g. ?ids=[1,2,3]) should be decoded before
+			 * validation. This takes priority over the comma-separated-value
+			 * fallback in rest_is_array() / wp_parse_list(), which cannot
+			 * preserve value types.
+			 */
+			if ( is_string( $value ) && str_starts_with( ltrim( $value ), '[' ) ) {
+				$decoded = json_decode( $value, true );
+				if ( is_array( $decoded ) && JSON_ERROR_NONE === json_last_error() ) {
+					$value = $decoded;
+				}
+			}
 			$is_valid = rest_validate_array_value_from_schema( $value, $args, $param );
 			break;
 		case 'number':
@@ -2870,6 +2893,19 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'array' === $args['type'] ) {
+		/*
+		 * A JSON-encoded string (e.g. ?ids=[1,2,3]) should be decoded before
+		 * sanitization. This takes priority over the comma-separated-value
+		 * fallback in rest_sanitize_array() / wp_parse_list(), which cannot
+		 * preserve value types.
+		 */
+		if ( is_string( $value ) && str_starts_with( ltrim( $value ), '[' ) ) {
+			$decoded = json_decode( $value, true );
+			if ( is_array( $decoded ) && JSON_ERROR_NONE === json_last_error() ) {
+				$value = $decoded;
+			}
+		}
+
 		$value = rest_sanitize_array( $value );
 
 		if ( ! empty( $args['items'] ) ) {
@@ -2887,6 +2923,18 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'object' === $args['type'] ) {
+		/*
+		 * A JSON-encoded string (e.g. from a GET query parameter) should be
+		 * decoded before sanitization, mirroring what parse_json_params() does
+		 * for application/json request bodies.
+		 */
+		if ( is_string( $value ) ) {
+			$decoded = json_decode( $value, true );
+			if ( null !== $decoded && JSON_ERROR_NONE === json_last_error() ) {
+				$value = $decoded;
+			}
+		}
+
 		$value = rest_sanitize_object( $value );
 
 		foreach ( $value as $property => $v ) {
