@@ -907,6 +907,39 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertSame( 'invalid_term_name', $term->get_error_code() );
 	}
 
+	/**
+	 * @ticket 36610
+	 */
+	public function test_wp_insert_term_name_too_long_should_return_wp_error() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$found = wp_insert_term( str_repeat( 'a', 201 ), 'wptests_tax' );
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'term_name_too_long', $found->get_error_code() );
+	}
+
+	/**
+	 * @ticket 36610
+	 */
+	public function test_wp_insert_term_name_at_max_length_should_succeed() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$found = wp_insert_term( str_repeat( 'a', 200 ), 'wptests_tax' );
+
+		$this->assertNotWPError( $found );
+	}
+
+	/**
+	 * @ticket 36610
+	 */
+	public function test_wp_insert_term_name_length_should_be_counted_in_characters_not_bytes() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		// 200 multibyte characters fit the column, even though their byte length is far greater than 200.
+		$found = wp_insert_term( str_repeat( 'é', 200 ), 'wptests_tax' );
+
+		$this->assertNotWPError( $found );
+	}
+
 	/** Helpers */
 
 	public function deleted_term_cb( $term, $tt_id, $taxonomy, $deleted_term, $object_ids ) {
