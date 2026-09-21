@@ -1083,15 +1083,18 @@ module.exports = function(grunt) {
 					'**/test/**',
 					'**/vendor/**'
 				],
-				/*
-				 * Limit JSHint's run to a single specified plugin directory:
+				/**
+				 * Limits JSHint's run to a single specified plugin directory:
 				 *
 				 * Usage example:
 				 * grunt jshint:plugins --dir=foldername
 				 *
-				 * Also, skips minified files that may not have a filename ending
-				 * with `.min.js` automatically. Assuming they have lines longer
-				 * than 500 characters.
+				 * This also automatically skips minified files that may not have
+				 * a filename ending with `.min.js`, specifically when they have
+				 * lines longer than 500 characters.
+				 *
+				 * @param {string} dirpath Directory path.
+				 * @return {boolean} Whether the path is skipped.
 				 */
 				filter: function( dirpath ) {
 					// Bypasses folder targets so fs.readFileSync doesn't throw errors.
@@ -1123,9 +1126,9 @@ module.exports = function(grunt) {
 					var lines = content.split( '\n' );
 
 					// Cap the maximum number of iterations at 5 lines.
-					for ( var i = 0; i < Math.min( lines.length, 5 ); i++ ) {
+					for ( const line of lines.slice( 0, 5 ) ) {
 						// Exclude files with lines longer than 500 characters.
-						if ( lines[i].length > 500 ) {
+						if ( line.length > 500 ) {
 							grunt.log.writeln( 'Skipping minified file: ' + dirpath );
 							return false;
 						}
