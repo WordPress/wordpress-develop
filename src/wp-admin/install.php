@@ -161,6 +161,11 @@ function display_setup_form( $error = null ) {
 			</th>
 			<td>
 				<input type="password" name="admin_password2" id="pass2" autocomplete="new-password" spellcheck="false" />
+				<p>
+					<span class="description important hide-if-js">
+					<?php _e( 'You can leave the password fields empty and a password will be auto-generated for you.' ); ?>
+					</span>
+				</p>
 			</td>
 		</tr>
 		<tr class="pw-weak">
