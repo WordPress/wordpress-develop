@@ -1071,7 +1071,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$result1 = $this->q->query( array_merge( $args, array( 'has_password' => true ) ) );
 		$this->assertEqualSets( array( $two, $three ), $result1 );
 		$result2 = $this->q->query( array_merge( $args, array( 'has_password' => false ) ) );
-		$this->assertEquals( array( $one ), $result2 );
+		$this->assertSame( array( (int) $one ), $result2 );
 
 		// This is equivalent to not passing it at all.
 		$result3 = $this->q->query( array_merge( $args, array( 'has_password' => null ) ) );
@@ -1087,7 +1087,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEquals( array( $one ), $result4 );
+		$this->assertSame( array( (int) $one ), $result4 );
 		$result5 = $this->q->query(
 			array_merge(
 				$args,
@@ -1097,7 +1097,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEquals( array( $one ), $result5 );
+		$this->assertSame( array( (int) $one ), $result5 );
 		$result6 = $this->q->query(
 			array_merge(
 				$args,
@@ -1107,7 +1107,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEquals( array( $one ), $result6 );
+		$this->assertSame( array( (int) $one ), $result6 );
 
 		$result7 = $this->q->query(
 			array_merge(
@@ -1141,7 +1141,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $two, $three ), $result9 );
 
 		$result10 = $this->q->query( array_merge( $args, array( 'post_password' => '' ) ) );
-		$this->assertEquals( array( $one ), $result10 );
+		$this->assertSame( array( (int) $one ), $result10 );
 		$result11 = $this->q->query( array_merge( $args, array( 'post_password' => 'burrito' ) ) );
 		$this->assertEqualSets( array( $two, $three ), $result11 );
 	}
@@ -1262,6 +1262,6 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertTrue( $this->q->have_comments() );
 
 		$feed_comment = $this->q->next_comment();
-		$this->assertEquals( $comment_id, $feed_comment->comment_ID );
+		$this->assertSame( (string) $comment_id, $feed_comment->comment_ID );
 	}
 }

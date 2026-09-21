@@ -13,8 +13,11 @@
  * concatenated script is in use.
  */
 interface WPEmojiSettingsSource {
+	/** The URL for the concatenated emoji script. */
 	concatemoji?: string;
+	/** The URL for the Twemoji script. */
 	twemoji?: string;
+	/** The URL for the WP Emoji script. */
 	wpemoji?: string;
 }
 
