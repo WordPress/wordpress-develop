@@ -44,10 +44,10 @@ function wp_unregister_icon_collection( $slug ) {
  * @since 7.2.0 Added the `public` property.
  *
  * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
- *                          (e.g. "my-plugin/arrow-left"). The "core" collection is
- *                          reserved for WordPress core icons; third-party code should
- *                          register icons under its own collection rather than the
- *                          "core" collection.
+ *                          (e.g. "my-plugin/arrow-left"). The "core" and "core-admin"
+ *                          collections are reserved for WordPress core icons; third-party
+ *                          code should register icons under its own collection rather than
+ *                          a reserved one.
  * @param array  $args      {
  *     List of properties for the icon.
  *
@@ -94,10 +94,20 @@ function _wp_register_default_icon_collections() {
 			'description' => __( 'Default icon collection.' ),
 		)
 	);
+	wp_register_icon_collection(
+		'core-admin',
+		array(
+			'label'       => __( 'WordPress Admin' ),
+			'description' => __( 'Icon collection used by the WordPress admin interface.' ),
+		)
+	);
 }
 
 /**
  * Registers the default core icons from the manifest.
+ *
+ * Icons flagged as `admin` in the manifest are also registered in the "core-admin"
+ * collection, always as non-public icons there.
  *
  * @since 7.1.0
  * @access private
@@ -114,9 +124,9 @@ function _wp_register_default_icons() {
 		return;
 	}
 
-	$collection = include $manifest_path;
+	$manifest = include $manifest_path;
 
-	if ( empty( $collection ) ) {
+	if ( empty( $manifest ) ) {
 		wp_trigger_error(
 			__FUNCTION__,
 			__( 'Core icon collection manifest is empty or invalid.' )
@@ -124,7 +134,7 @@ function _wp_register_default_icons() {
 		return;
 	}
 
-	foreach ( $collection as $icon_name => $icon_data ) {
+	foreach ( $manifest as $icon_name => $icon_data ) {
 		if (
 			empty( $icon_data['filePath'] )
 			|| ! is_string( $icon_data['filePath'] )
@@ -147,6 +157,11 @@ function _wp_register_default_icons() {
 		}
 
 		wp_register_icon( 'core/' . $icon_name, $icon_args );
+
+		if ( ! empty( $icon_data['admin'] ) ) {
+			$icon_args['public'] = false;
+			wp_register_icon( 'core-admin/' . $icon_name, $icon_args );
+		}
 	}
 }
 
