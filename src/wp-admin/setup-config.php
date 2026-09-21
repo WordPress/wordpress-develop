@@ -40,21 +40,6 @@ require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 nocache_headers();
 
-// Support wp-config-sample.php one level up, for the develop repo.
-if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
-	$config_file = file( ABSPATH . 'wp-config-sample.php' );
-} elseif ( file_exists( dirname( ABSPATH ) . '/wp-config-sample.php' ) ) {
-	$config_file = file( dirname( ABSPATH ) . '/wp-config-sample.php' );
-} else {
-	wp_die(
-		sprintf(
-			/* translators: %s: wp-config-sample.php */
-			__( 'Sorry, I need a %s file to work from. Please re-upload this file to your WordPress installation.' ),
-			'<code>wp-config-sample.php</code>'
-		)
-	);
-}
-
 // Check if wp-config.php has been created.
 if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 	wp_die(
@@ -78,6 +63,21 @@ if ( @file_exists( ABSPATH . '../wp-config.php' ) && ! @file_exists( ABSPATH . '
 			'install.php'
 		) . '</p>',
 		409
+	);
+}
+
+// Support wp-config-sample.php one level up, for the develop repo.
+if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
+	$config_file = file( ABSPATH . 'wp-config-sample.php' );
+} elseif ( file_exists( dirname( ABSPATH ) . '/wp-config-sample.php' ) ) {
+	$config_file = file( dirname( ABSPATH ) . '/wp-config-sample.php' );
+} else {
+	wp_die(
+		sprintf(
+			/* translators: %s: wp-config-sample.php */
+			__( 'Sorry, I need a %s file to work from. Please re-upload this file to your WordPress installation.' ),
+			'<code>wp-config-sample.php</code>'
+		)
 	);
 }
 
