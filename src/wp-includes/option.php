@@ -830,8 +830,8 @@ function wp_load_core_site_options( $network_id = null ) {
  * @param bool|null $autoload Optional. Whether to load the option when WordPress starts up.
  *                            Accepts a boolean, or `null` to stick with the initial value or, if no initial value is
  *                            set, to leave the decision up to default heuristics in WordPress.
- *                            For existing options, `$autoload` can only be updated using `update_option()` if `$value`
- *                            is also changed.
+ *                            For existing options, `$autoload` can only be updated using `update_option()`
+ *                            if `$value` is changed or `$autoload` is explicitly provided and changed.
  *                            For backward compatibility 'yes' and 'no' are also accepted, though using these values is
  *                            deprecated.
  *                            Autoloading too many options can lead to performance problems, especially if the
@@ -841,7 +841,7 @@ function wp_load_core_site_options( $network_id = null ) {
  *                            to not autoload them, by using false.
  *                            For non-existent options, the default is null, which means WordPress will determine
  *                            the autoload value.
- * @return bool True if the value was updated, false otherwise.
+ * @return bool True if the value or the autoload was updated, false otherwise.
  */
 function update_option( $option, $value, $autoload = null ) {
 	global $wpdb;
@@ -911,8 +911,19 @@ function update_option( $option, $value, $autoload = null ) {
 	 */
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
+	$raw_autoload = null;
+
+	if ( ! is_null( $autoload ) ) {
+		// Retrieve the current autoload value to reevaluate it in case it was set automatically.
+		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
+	}
+
+	$serialized_value = maybe_serialize( $value );
+
+	$requested_autoload = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
+
 	/*
-	 * If the new and old values are the same, no need to update.
+	 * If the values are the same, and autoload is either null or new and old autoload values are the same, no need to update.
 	 *
 	 * Unserialized values will be adequate in most cases. If the unserialized
 	 * data differs, the (maybe) serialized data is checked to avoid
@@ -920,7 +931,7 @@ function update_option( $option, $value, $autoload = null ) {
 	 *
 	 * See https://core.trac.wordpress.org/ticket/38903
 	 */
-	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
+	if ( ( $value === $old_value || maybe_serialize( $old_value ) === $serialized_value ) && ( is_null( $autoload ) || $raw_autoload === $requested_autoload ) ) {
 		return false;
 	}
 
@@ -928,8 +939,6 @@ function update_option( $option, $value, $autoload = null ) {
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
 		return add_option( $option, $value, '', $autoload );
 	}
-
-	$serialized_value = maybe_serialize( $value );
 
 	/**
 	 * Fires immediately before an option value is updated.
@@ -947,13 +956,14 @@ function update_option( $option, $value, $autoload = null ) {
 	);
 
 	if ( null !== $autoload ) {
-		$update_args['autoload'] = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
+		$update_args['autoload'] = $requested_autoload;
 	} else {
-		// Retrieve the current autoload value to reevaluate it in case it was set automatically.
-		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
+		$raw_autoload = is_null( $raw_autoload )
+			? $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) )
+			: $raw_autoload;
 		$allow_values = array( 'auto-on', 'auto-off', 'auto' );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
-			$autoload = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
+			$autoload = $requested_autoload;
 			if ( $autoload !== $raw_autoload ) {
 				$update_args['autoload'] = $autoload;
 			}

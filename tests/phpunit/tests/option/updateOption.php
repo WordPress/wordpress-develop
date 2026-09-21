@@ -145,9 +145,9 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	 * @covers ::wp_load_alloptions
 	 * @covers ::get_option
 	 */
-	public function test_autoload_should_not_be_updated_for_existing_option_when_value_is_unchanged() {
+	public function test_autoload_should_not_be_updated_for_existing_option_when_value_and_autoload_is_unchanged() {
 		add_option( 'foo', 'bar', '', true );
-		$updated = update_option( 'foo', 'bar', false );
+		$updated = update_option( 'foo', 'bar', true );
 		$this->assertFalse( $updated );
 
 		$this->flush_cache();
@@ -160,6 +160,30 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 
 		// 'foo' should still be autoload=yes, so we should see no additional querios.
 		$this->assertSame( $before, get_num_queries() );
+		$this->assertSame( $value, 'bar' );
+	}
+
+	/**
+	 * @ticket 48393
+	 *
+	 * @covers ::update_option
+	 * @covers ::wp_load_alloptions
+	 * @covers ::get_option
+	 */
+	public function test_autoload_should_be_updated_for_existing_option_when_value_is_unchanged_but_autoload_is_changed() {
+		add_option( 'foo', 'bar', '', true );
+		$updated = update_option( 'foo', 'bar', false );
+		$this->assertTrue( $updated );
+
+		$this->flush_cache();
+
+		// Populate the alloptions cache, which includes autoload=yes options.
+		wp_load_alloptions();
+
+		$before = get_num_queries();
+		$value  = get_option( 'foo' );
+
+		$this->assertSame( ++$before, get_num_queries() );
 		$this->assertSame( $value, 'bar' );
 	}
 

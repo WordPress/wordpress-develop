@@ -290,10 +290,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_cache_delete( 'alloptions', 'options' );
 		wp_load_alloptions();
 
-		// Make sure no DB write is done when publishing and a site is already non-fresh.
+		// A DB write is done when publishing and a site is already non-fresh because it checks & compares the autoload parameter.
 		$query_count = get_num_queries();
 		do_action( 'customize_save_after', $wp_customize );
-		$this->assertSame( $query_count, get_num_queries() );
+		$this->assertSame( ++$query_count, get_num_queries() );
 	}
 
 	/**
