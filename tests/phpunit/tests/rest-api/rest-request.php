@@ -63,7 +63,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 * @param string $expected Expected canonicalized version.
 	 */
 	public function test_header_canonicalization( $original, $expected ) {
-		$this->assertSame( $expected, $this->request->canonicalize_header_name( $original ) );
+		$this->assertSame( $expected, WP_REST_Request::canonicalize_header_name( $original ) );
 	}
 
 	public static function data_header_canonicalization() {
