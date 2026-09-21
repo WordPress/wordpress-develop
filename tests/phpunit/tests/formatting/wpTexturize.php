@@ -43,7 +43,10 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	public function test_disable_in_math() {
 		$math = '<math display="block"><semantics><mrow><mi>f</mi><mo>\'</mo><mtext>it\'s "x" - y...</mtext></mrow><annotation encoding="application/x-tex">f\'(x) - 1 \text{"q"} \dots 2x3</annotation></semantics></math>';
 
+		// Nothing inside the element changes.
 		$this->assertSame( $math, wptexturize( $math ) );
+
+		// The text before and after it is still texturized, so skipping ends at the closing tag.
 		$this->assertSame(
 			'<p>a &#8211; b ' . $math . ' c &#8211; d</p>',
 			wptexturize( '<p>a - b ' . $math . ' c - d</p>' )
