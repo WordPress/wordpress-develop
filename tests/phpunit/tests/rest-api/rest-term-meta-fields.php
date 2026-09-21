@@ -11,6 +11,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $category_id;
 	protected static $customtax_term_id;
+	protected static $editor_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_taxonomy(
@@ -24,12 +25,14 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'] ?? array();
 		self::$category_id        = $factory->category->create();
 		self::$customtax_term_id  = $factory->term->create( array( 'taxonomy' => 'customtax' ) );
+		self::$editor_id          = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
 		wp_delete_term( self::$category_id, 'category' );
 		wp_delete_term( self::$customtax_term_id, 'customtax' );
+		self::delete_user( self::$editor_id );
 
 		unregister_taxonomy( 'customtax' );
 	}
@@ -198,12 +201,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 	protected function grant_write_permission() {
 		// Ensure we have write permission.
-		$user = self::factory()->user->create(
-			array(
-				'role' => 'editor',
-			)
-		);
-		wp_set_current_user( $user );
+		wp_set_current_user( self::$editor_id );
 	}
 
 	public function test_get_value() {
