@@ -379,9 +379,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 								// Taxonomy accessible via ?taxonomy=...&term=... or any custom query var.
 								parse_str( $tax_url['query'], $query_vars );
 								$redirect['query'] = add_query_arg( $query_vars, $redirect['query'] );
-							} else {
+							} elseif ( isset( $tax_url['path'] ) ) {
 								// Taxonomy is accessible via a "pretty URL".
 								$redirect['path'] = $tax_url['path'];
+							} else {
+								$redirect['path'] = '';
 							}
 						} else {
 							// Some query vars are set via $_GET. Unset those from $_GET that exist via the rewrite.
