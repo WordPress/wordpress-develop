@@ -257,6 +257,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Context node if created as a fragment parser.
 	 *
+	 * @since 6.6.0
 	 * @var WP_HTML_Token|null
 	 */
 	private $context_node = null;
@@ -6653,6 +6654,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This unlock code is used to ensure that anyone calling the constructor is
 	 * doing so with a full understanding that it's intended to be a private API.
 	 *
+	 * @since 6.4.0
 	 * @access private
 	 */
 	const CONSTRUCTOR_UNLOCK_CODE = 'Use WP_HTML_Processor::create_fragment() instead of calling the class constructor directly.';

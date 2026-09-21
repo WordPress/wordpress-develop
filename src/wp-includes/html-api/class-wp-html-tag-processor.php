@@ -689,6 +689,7 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Whether the current tag is an opening tag, e.g. <div>, or a closing tag, e.g. </div>.
 	 *
+	 * @since 6.2.0
 	 * @var bool
 	 */
 	private $is_closing_tag;

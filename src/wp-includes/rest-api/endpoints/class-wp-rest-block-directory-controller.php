@@ -18,6 +18,8 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructs the controller.
+	 *
+	 * @since 5.5.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
