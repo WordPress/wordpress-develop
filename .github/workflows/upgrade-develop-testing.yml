@@ -44,7 +44,16 @@ jobs:
   build:
     name: Build
     uses: WordPress/wordpress-develop/.github/workflows/reusable-build-package.yml@trunk
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
+    if: |
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
     permissions:
       contents: read
 
@@ -87,7 +96,14 @@ jobs:
   upgrade-tests-develop-forks:
     name: Upgrade from ${{ matrix.wp }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
-    if: ${{ github.repository != 'WordPress/wordpress-develop' }}
+    # This job also runs for the push event, which has no draft state to check.
+    if: |
+      github.repository != 'WordPress/wordpress-develop' && (
+        github.event_name != 'pull_request' ||
+        ! github.event.repository.private ||
+        ! github.event.pull_request.draft ||
+        contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+      )
     needs: [ build ]
     permissions:
       contents: read
