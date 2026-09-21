@@ -719,51 +719,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-walker-category.php
 		-
-			message: '#^Variable \$comment_closing_at might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$comment_opening_at might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$has_closer might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$has_void_flag might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$json_at might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$json_length might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$name_at might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$name_length might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$namespace_at might not be defined\.$#'
-			identifier: variable.undefined
-			count: 5
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
 			message: '#^Variable \$section_id might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
