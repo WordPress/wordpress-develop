@@ -38,7 +38,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * MathML is notation, and its annotation can hold source code such as LaTeX,
 	 * so none of it should be texturized.
 	 *
-	 * @ticket 99999
+	 * @ticket 66153
 	 */
 	public function test_disable_in_math() {
 		$math = '<math display="block"><semantics><mrow><mi>f</mi><mo>\'</mo><mtext>it\'s "x" - y...</mtext></mrow><annotation encoding="application/x-tex">f\'(x) - 1 \text{"q"} \dots 2x3</annotation></semantics></math>';
