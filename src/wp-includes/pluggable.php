@@ -774,12 +774,18 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 	 *
 	 * @global int $login_grace_period
 	 *
-	 * @param string $cookie Optional. If used, will validate contents instead of cookie's.
-	 * @param string $scheme Optional. The cookie scheme to use: 'auth', 'secure_auth', or 'logged_in'.
+	 * @param int|string $cookie Optional. User ID if passed via 'determine_current_user' filter,
+	 *                           or cookie string to validate. Default empty string.
+	 * @param string     $scheme Optional. The cookie scheme to use: 'auth', 'secure_auth', or 'logged_in'.
 	 *                       Note: This does *not* default to 'auth' like other cookie functions.
-	 * @return int|false User ID if valid cookie, false if invalid.
+	 * @return int|false User ID if valid cookie, false if invalid. If a user ID from an earlier filter
+	 *                   callback is received, that value is returned.
 	 */
 	function wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
+		if ( $cookie && ( ! is_string( $cookie ) || is_numeric( $cookie ) ) ) {
+			return $cookie;
+		}
+
 		$cookie_elements = wp_parse_auth_cookie( $cookie, $scheme );
 		if ( ! $cookie_elements ) {
 			/**
