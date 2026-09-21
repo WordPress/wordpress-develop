@@ -2151,7 +2151,7 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  *
  * @return bool True if the admin page exists, false otherwise.
  */
-function wp_admin_page_exists() {
+function wp_admin_page_exists(): bool {
 	global $admin_page_parent, $plugin_page, $_registered_pages,
 		$_wp_menu_nopriv, $_wp_submenu_nopriv;
 
@@ -2230,7 +2230,7 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
-function user_can_access_admin_page() {
+function user_can_access_admin_page(): bool {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
 		$plugin_page, $_registered_pages, $admin_page_parent;
 
