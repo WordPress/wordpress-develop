@@ -2220,13 +2220,13 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  * @since 1.5.0
  *
  * @global string                             $pagenow            The filename of the current screen.
- * @global array                              $menu
- * @global array                              $submenu
- * @global array<string, true>                $_wp_menu_nopriv
- * @global array<string, array<string, true>> $_wp_submenu_nopriv
- * @global string                             $plugin_page
- * @global array                              $_registered_pages
- * @global string                             $admin_page_parent
+ * @global array                              $menu               The top-level admin menu items.
+ * @global array                              $submenu            The admin submenu items, keyed by parent slug.
+ * @global array<string, true>                $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
+ * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
+ * @global string                             $plugin_page        The plugin page slug being loaded.
+ * @global array                              $_registered_pages  Array of all registered admin page hooks.
+ * @global string                             $admin_page_parent  The parent slug of the current admin page.
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
