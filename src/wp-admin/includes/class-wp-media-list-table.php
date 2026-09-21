@@ -123,10 +123,20 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$this->is_trash = isset( $_REQUEST['attachment-filter'] ) && 'trash' === $_REQUEST['attachment-filter'];
 
+		$total_items = array_sum( (array) wp_count_attachments() );
+		// If there are some query filters, we need to adapt logic
+		if (
+				! empty( $wp_query->query['m'] )
+				|| ! empty( $wp_query->query['post_mime_type'] )
+				|| ! empty( $wp_query->query['cat'] )
+				|| ! empty( $wp_query->query['s'] )
+			) {
+				$total_items = $wp_query->found_posts;
+		}
+
 		$this->set_pagination_args(
 			array(
-				'total_items' => $wp_query->found_posts,
-				'total_pages' => $wp_query->max_num_pages,
+				'total_items' => $total_items,
 				'per_page'    => $wp_query->query_vars['posts_per_page'],
 			)
 		);
