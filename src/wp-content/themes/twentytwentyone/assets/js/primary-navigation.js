@@ -200,6 +200,19 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			}
 		} );
 
+		// Add unique ID to each .sub-menu and aria-controls to parent links
+			var subMenus = document.querySelectorAll( '.primary-menu-container .sub-menu' );
+			subMenus.forEach( function( subMenu, index ) {
+				var parentLi = subMenu.closest( 'li.menu-item-has-children' );
+				subMenu.id = 'sub-menu-' + (index + 1);
+				if ( parentLi ) {
+					var parentLink = parentLi.querySelector( 'button' );
+					if ( parentLink ) {
+						parentLink.setAttribute( 'aria-controls', subMenu.id );
+					}
+				}
+			} );
+
 		navMenuEl.querySelectorAll( '.menu-wrapper > .menu-item-has-children' ).forEach( function( li ) {
 			li.addEventListener( 'mouseenter', function() {
 				this.querySelector( '.sub-menu-toggle' ).setAttribute( 'aria-expanded', 'true' );
