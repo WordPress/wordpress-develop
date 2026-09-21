@@ -376,7 +376,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * @param string[]    $block_types Printable block type of every delimiter in the document, in order.
 	 * @param string|null $last_error  Expected error after scanning the entire document.
 	 */
-	public function test_reports_no_delimiter_for_partial_delimiter_at_end_of_document( $html, $block_types, $last_error ): void {
+	public function test_reports_no_delimiter_for_partial_delimiter_at_end_of_document( string $html, array $block_types, ?string $last_error ): void {
 		$processor = new WP_Block_Processor( $html );
 
 		$found = array();
