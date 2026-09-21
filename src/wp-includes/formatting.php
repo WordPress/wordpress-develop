@@ -2415,7 +2415,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
  *
  * @phpstan-template T of string
  * @phpstan-param T $orderby
- * @phpstan-return ( T is non-falsy-string ? T|false : false )
+ * @phpstan-return ( T is non-empty-string ? T|false : false )
  */
 function sanitize_sql_orderby( $orderby ) {
 	if ( preg_match( '/^\s*(([a-z0-9_]+|`[a-z0-9_]+`)(\s+(ASC|DESC))?\s*(,\s*(?=[a-z0-9_`])|$))+$/i', $orderby ) || preg_match( '/^\s*RAND\(\s*\)\s*$/i', $orderby ) ) {
