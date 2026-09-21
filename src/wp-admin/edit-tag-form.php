@@ -69,7 +69,26 @@ require_once ABSPATH . 'wp-admin/includes/edit-tag-messages.php';
 do_action( "{$taxonomy}_pre_edit_form", $tag, $taxonomy ); ?>
 
 <div class="wrap">
-<h1><?php echo $tax->labels->edit_item; ?></h1>
+<h1>
+	<?php echo $tax->labels->edit_item; ?>
+	<?php
+	if ( is_term_publicly_viewable( $tag ) ) {
+		$view_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"
+			focusable="false">
+			<path
+				d="M19.5 4.5h-7V6h4.44l-5.97 5.97 1.06 1.06L18 7.06v4.44h1.5v-7Zm-13 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3H17v3a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h3V5.5h-3Z">
+			</path>
+		</svg>';
+		printf(
+			'<a href="%s" target="_blank" aria-label="%s">%s</a>',
+			get_term_link( $tag ),
+			/* translators: %s: Taxonomy term name. */
+			esc_attr( sprintf( __( 'View &#8220;%s&#8221; archive' ), $tag->name ) ),
+			$view_svg
+		);
+	}
+	?>
+</h1>
 
 <?php
 $class = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'success';
