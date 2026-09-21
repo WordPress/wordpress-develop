@@ -8,6 +8,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	className: 'attachments',
 
 	attributes: {
+		role:     'group',
 		tabIndex: -1
 	},
 
@@ -365,7 +366,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment model for which to create a view.
 	 *
 	 * @return {wp.media.View} The created view.
 	 */

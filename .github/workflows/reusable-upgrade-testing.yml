@@ -56,12 +56,17 @@ jobs:
   # - Updates to the version of WordPress being tested.
   # - Updates the database.
   # - Checks the version of WordPress after the upgrade.
+  # - Serves the upgraded site and confirms it renders.
   upgrade-tests:
     name: PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
+
+    env:
+      WP_ADMIN_USER: admin
+      WP_ADMIN_PASSWORD: password
 
     services:
       database:
@@ -97,8 +102,8 @@ jobs:
       - name: Install WordPress
         run: |
           wp core ${{ inputs.multisite && 'multisite-install' || 'install' }} \
-          --url=http://localhost/ --title="Upgrade Test" --admin_user=admin \
-          --admin_password=password --admin_email=me@example.org --skip-email
+          --url=http://localhost/ --title="Upgrade Test" --admin_user="${WP_ADMIN_USER}" \
+          --admin_password="${WP_ADMIN_PASSWORD}" --admin_email=me@example.org --skip-email
 
       - name: Pre-upgrade version check
         run: wp core version
@@ -135,3 +140,11 @@ jobs:
 
       - name: Post-upgrade version check
         run: wp core version
+
+      - name: Post-upgrade smoke check
+        # A network's domain lives in wp-config.php and the database, not just an option.
+        if: ${{ ! inputs.multisite }}
+        uses: WordPress/wordpress-develop/.github/actions/smoke-check@trunk # zizmor: ignore[unpinned-uses]
+        with:
+          admin-user: ${{ env.WP_ADMIN_USER }}
+          admin-password: ${{ env.WP_ADMIN_PASSWORD }}
