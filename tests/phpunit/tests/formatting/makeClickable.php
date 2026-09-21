@@ -32,6 +32,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			array( 'Foo.Bar@a.b.c.d.example.com' ),
 			array( '0@example.com' ),
 			array( 'foo@example-example.com' ),
+			array( 'www.foo.com@gmail.com' ),
 		);
 	}
 
