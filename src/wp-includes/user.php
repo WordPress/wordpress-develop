@@ -4256,7 +4256,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 /**
  * Registers the personal data eraser for users.
  *
- * @since 7.1.0
+ * @since n.e.x.t
  *
  * @param array $erasers An array of personal data erasers.
  * @return array An array of personal data erasers.
@@ -4273,7 +4273,7 @@ function wp_register_user_personal_data_eraser( $erasers ) {
 /**
  * Erases core user profile data for a personal data erasure request.
  *
- * @since 7.1.0
+ * @since n.e.x.t
  *
  * @param string $email_address The user's email address.
  * @param int    $page          Unused. Part of the eraser signature.
@@ -4313,7 +4313,7 @@ function wp_user_personal_data_eraser( $email_address, $page = 1 ) {
 	/**
 	 * Filters the list of user meta keys removed during a personal data erasure request.
 	 *
-	 * @since 7.1.0
+	 * @since n.e.x.t
 	 *
 	 * @param string[] $meta_keys_to_erase User meta keys slated for deletion.
 	 * @param WP_User  $user               The user whose data is being erased.
@@ -4333,16 +4333,22 @@ function wp_user_personal_data_eraser( $email_address, $page = 1 ) {
 			continue;
 		}
 
+		$meta_value = get_user_meta( $user_id, $meta_key, true );
+
+		if ( '' === $meta_value ) {
+			continue;
+		}
+
 		$deleted = delete_user_meta( $user_id, $meta_key );
 
 		if ( $deleted ) {
 			$response['items_removed'] = true;
 		} else {
 			$response['items_retained'] = true;
-			$response['messages'][]     = sprintf(
+			$response['messages'][] = sprintf(
 				/* translators: %s: User meta key. */
 				__( 'User meta "%s" could not be erased.' ),
-				$meta_key
+				esc_html( $meta_key )
 			);
 		}
 	}
