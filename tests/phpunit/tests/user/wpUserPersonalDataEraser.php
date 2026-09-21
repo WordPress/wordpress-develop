@@ -35,7 +35,7 @@ class Tests_User_WpUserPersonalDataEraser extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id    = $factory->user->create(
 			array(
-				'user_email' => 'personal-data@example.com',
+				'user_email'  => 'personal-data@example.com',
 				'description' => 'User biography.',
 			)
 		);
@@ -104,7 +104,7 @@ class Tests_User_WpUserPersonalDataEraser extends WP_UnitTestCase {
 	public function test_only_requested_user_data_is_erased() {
 		$other_user_id = self::factory()->user->create(
 			array(
-				'user_email' => 'other-user@example.com',
+				'user_email'  => 'other-user@example.com',
 				'description' => "Other user's biography.",
 			)
 		);
