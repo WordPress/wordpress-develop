@@ -2415,7 +2415,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
  * @param int    $length Optional. Max length of the slug. Default 200 (characters).
  * @return string The truncated slug.
  */
-function _truncate_slug( $slug, $length = 200 ) {
+function wp_truncate_slug( $slug, $length = 200 ) {
 	if ( strlen( $slug ) > $length ) {
 		$decoded_slug = urldecode( $slug );
 		if ( $decoded_slug === $slug ) {

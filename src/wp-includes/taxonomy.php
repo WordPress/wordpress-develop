@@ -3277,7 +3277,7 @@ function wp_unique_term_slug( $slug, $term ) {
 	 */
 	if ( apply_filters( 'wp_unique_term_slug_is_bad_slug', $needs_suffix, $slug, $term ) ) {
 		if ( $parent_suffix ) {
-			$slug = _truncate_slug( $slug . $parent_suffix, 200 );
+			$slug = wp_truncate_slug( $slug . $parent_suffix, 200 );
 		}
 
 		if ( ! empty( $term->term_id ) ) {
@@ -3291,7 +3291,7 @@ function wp_unique_term_slug( $slug, $term ) {
 			do {
 				// Reserve room for the suffix so the result still fits the 200 character column.
 				$numeric_suffix = "-$num";
-				$alt_slug       = _truncate_slug( $slug, 200 - strlen( $numeric_suffix ) ) . $numeric_suffix;
+				$alt_slug       = wp_truncate_slug( $slug, 200 - strlen( $numeric_suffix ) ) . $numeric_suffix;
 				++$num;
 				$slug_check = $wpdb->get_var( $wpdb->prepare( "SELECT slug FROM $wpdb->terms WHERE slug = %s", $alt_slug ) );
 			} while ( $slug_check );
