@@ -39,7 +39,7 @@ get_header(); ?>
 										$metadata['width'],
 										$metadata['height'],
 										esc_url( get_permalink( $post->post_parent ) ),
-										esc_attr( strip_tags( get_the_title( $post->post_parent ) ) ),
+										esc_attr( wp_strip_all_tags( get_the_title( $post->post_parent ) ) ),
 										get_the_title( $post->post_parent )
 									);
 								?>
