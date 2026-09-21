@@ -1067,6 +1067,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$preload_paths = array(
 			'/wp/v2/types',
 			array( '/wp/v2/media', 'OPTIONS' ),
+			array( '/wp/v2/types', 'HEAD' ),
 		);
 
 		$preload_data = array_reduce(
@@ -1075,8 +1076,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array()
 		);
 
-		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS' ) );
+		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS', 'HEAD' ) );
 		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
+		$this->assertArrayHasKey( '/wp/v2/types', $preload_data['HEAD'] );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
 	}

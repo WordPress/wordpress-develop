@@ -2996,7 +2996,7 @@ function rest_preload_api_request( $memo, $path ) {
 		$method = end( $path );
 		$path   = reset( $path );
 
-		if ( ! in_array( $method, array( 'GET', 'OPTIONS' ), true ) ) {
+		if ( ! in_array( $method, array( 'GET', 'HEAD', 'OPTIONS' ), true ) ) {
 			$method = 'GET';
 		}
 	}
@@ -3034,7 +3034,7 @@ function rest_preload_api_request( $memo, $path ) {
 		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
 		$data     = (array) $server->response_to_data( $response, $embed );
 
-		if ( 'OPTIONS' === $method ) {
+		if ( in_array( $method, array( 'HEAD', 'OPTIONS' ), true ) ) {
 			$memo[ $method ][ $path ] = array(
 				'body'    => $data,
 				'headers' => $response->headers,
