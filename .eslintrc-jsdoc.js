@@ -52,6 +52,7 @@ module.exports = [
 				tags: [ 'param', 'property' ],
 			} ],
 			'jsdoc/check-param-names': 'error',
+			'jsdoc/check-property-names': 'error',
 			'jsdoc/check-syntax': 'error',
 			'jsdoc/check-tag-names': [ 'error', {
 				definedTags: [
@@ -73,6 +74,10 @@ module.exports = [
 			'jsdoc/require-param-description': 'error',
 			'jsdoc/require-param-name': 'error',
 			'jsdoc/require-param-type': 'error',
+			'jsdoc/require-property': 'error',
+			'jsdoc/require-property-name': 'error',
+			'jsdoc/require-property-description': 'error',
+			'jsdoc/require-property-type': 'error',
 			'jsdoc/require-returns': 'error',
 			'jsdoc/require-returns-check': 'error',
 			'jsdoc/require-returns-description': 'error',
