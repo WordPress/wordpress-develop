@@ -602,7 +602,7 @@ code {
 }
 
 .wrap {
-	margin: 10px 20px 0 2px;
+	margin: 10px 20px 0 0;
 }
 
 .wrap > h2:first-child, /* Back-compat for pre-4.4 */
