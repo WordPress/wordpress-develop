@@ -312,7 +312,6 @@ class Box {
         $this->type = 'skip'; // FreeSpaceBox. To be ignored by readers.
       }
     }
-    // print_r( $this ); // Uncomment to print all boxes.
     return FOUND;
   }
 }
