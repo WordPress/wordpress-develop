@@ -499,6 +499,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$columns['author']  = __( 'Author' );
 		$columns['comment'] = _x( 'Comment', 'column name' );
+		$columns['comment_approved'] = _x( 'Is approved', 'column name' );
 
 		if ( ! $post_id ) {
 			/* translators: Column name or table row header. */
@@ -1168,5 +1169,20 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 * @param string $comment_id  The comment ID as a numeric string.
 		 */
 		do_action( 'manage_comments_custom_column', $column_name, $comment->comment_ID );
+	}
+
+	/**
+	 * Outputs the Is pending column.
+	 *
+	 * @since 5.9.0 Renamed `$comment` to `$item` to match parent class for PHP 8 named parameter support.
+	 *
+	 * @param WP_Comment $item        The comment object.
+	 */
+	public function column_comment_approved($comment) {
+		if (!$comment->comment_approved) {
+			echo '<span class="comment-status pending">' . __( 'Pending' ) . '</span>';
+		} else {
+			echo '<span class="comment-status approved">' . __( 'Approved' ) . '</span>';;
+		}
 	}
 }
