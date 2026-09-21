@@ -601,4 +601,54 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( $expected_html, $actual );
 	}
+
+	/**
+	 * Tests that `WP_List_Table::_js_vars()` prints its data through
+	 * `wp_print_inline_script_tag()`, so attributes such as a per-request nonce
+	 * can be attached via the `wp_inline_script_attributes` filter.
+	 *
+	 * @ticket 59446
+	 *
+	 * @covers WP_List_Table::_js_vars
+	 */
+	public function test_js_vars_prints_inline_script_tag_with_filterable_attributes() {
+		$add_nonce = static function ( $attributes ) {
+			$attributes['nonce'] = 'test-list-table-nonce';
+			return $attributes;
+		};
+		add_filter( 'wp_inline_script_attributes', $add_nonce );
+
+		$actual = get_echo( array( $this->list_table, '_js_vars' ) );
+
+		remove_filter( 'wp_inline_script_attributes', $add_nonce );
+
+		$this->assertStringContainsString( 'nonce="test-list-table-nonce"', $actual, 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
+		$this->assertStringContainsString( 'list_args = ', $actual, 'The expected JavaScript variable was not printed.' );
+	}
+
+	/**
+	 * Tests that `WP_Themes_List_Table::_js_vars()` prints its data through
+	 * `wp_print_inline_script_tag()`, so attributes such as a per-request nonce
+	 * can be attached via the `wp_inline_script_attributes` filter.
+	 *
+	 * @ticket 59446
+	 *
+	 * @covers WP_Themes_List_Table::_js_vars
+	 */
+	public function test_themes_list_table_js_vars_prints_inline_script_tag_with_filterable_attributes() {
+		$themes_list_table = _get_list_table( 'WP_Themes_List_Table', array( 'screen' => 'themes' ) );
+
+		$add_nonce = static function ( $attributes ) {
+			$attributes['nonce'] = 'test-themes-list-table-nonce';
+			return $attributes;
+		};
+		add_filter( 'wp_inline_script_attributes', $add_nonce );
+
+		$actual = get_echo( array( $themes_list_table, '_js_vars' ) );
+
+		remove_filter( 'wp_inline_script_attributes', $add_nonce );
+
+		$this->assertStringContainsString( 'nonce="test-themes-list-table-nonce"', $actual, 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
+		$this->assertStringContainsString( 'theme_list_args = ', $actual, 'The expected JavaScript variable was not printed.' );
+	}
 }
