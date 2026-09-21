@@ -322,6 +322,7 @@ jobs:
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
 
+      # PHPUnit versions used below PHP 7.3 do not support --fail-on-empty-test-suite.
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: |
@@ -329,7 +330,8 @@ jobs:
             php ./vendor/bin/phpunit \
             --verbose \
             -c "${PHPUNIT_CONFIG}" \
-            ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}" --fail-on-empty-test-suite' || '' }} \
+            ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
+            ${{ inputs.phpunit-test-groups && inputs.php >= '7.3' && '--fail-on-empty-test-suite' || '' }} \
             ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml"' || '' }}
         env:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
