@@ -39,7 +39,9 @@
 		"last 2 Opera versions"
 	],
 	"devDependencies": {
+		"@343dev/gifsicle": "1.2.0",
 		"@lodder/grunt-postcss": "^3.1.1",
+		"@napi-rs/image": "1.14.0",
 		"@playwright/test": "1.61.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
 		"@types/codemirror": "5.60.17",
@@ -63,7 +65,6 @@
 		"grunt-contrib-concat": "2.1.0",
 		"grunt-contrib-copy": "~1.0.0",
 		"grunt-contrib-cssmin": "~5.0.0",
-		"grunt-contrib-imagemin": "~4.0.0",
 		"grunt-contrib-jshint": "3.2.0",
 		"grunt-contrib-uglify": "~5.2.2",
 		"grunt-contrib-watch": "~1.1.0",
