@@ -2033,7 +2033,6 @@ function remove_accents( $text, $locale = '' ) {
  * @return string The sanitized filename.
  */
 function sanitize_file_name( $filename ) {
-	$filename     = urldecode( $filename );
 	$filename_raw = $filename;
 	$filename     = remove_accents( $filename );
 
@@ -2069,6 +2068,7 @@ function sanitize_file_name( $filename ) {
 	 */
 	$special_chars = apply_filters( 'sanitize_file_name_chars', $special_chars, $filename_raw );
 
+	$filename = str_replace( '%22', '', $filename );
 	$filename = str_replace( $special_chars, '', $filename );
 	$filename = str_replace( array( '%20', '+' ), '-', $filename );
 	$filename = preg_replace( '/\.{2,}/', '.', $filename );
