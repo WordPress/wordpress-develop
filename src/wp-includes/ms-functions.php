@@ -1705,7 +1705,7 @@ We hope you enjoy your new site. Thanks!
 		);
 	}
 
-	$url = get_blogaddress_by_id( $blog_id );
+	$url = get_home_url( $blog_id, '/' );
 
 	$welcome_email = str_replace( 'SITE_NAME', $current_network->site_name, $welcome_email );
 	$welcome_email = str_replace( 'BLOG_TITLE', $title, $welcome_email );
