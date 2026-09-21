@@ -3586,7 +3586,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( $query2->comments );
 
 		/*
-		 * Keep assertEquals() because the different objects instances
+		 * Keep assertEquals() because the different object instances
 		 * in the array are compared by value.
 		 */
 		$this->assertEquals( $query2->comments, $query1->get_comments() );
