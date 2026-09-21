@@ -35,6 +35,22 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * MathML is notation, and its annotation can hold source code such as LaTeX,
+	 * so none of it should be texturized.
+	 *
+	 * @ticket 99999
+	 */
+	public function test_disable_in_math() {
+		$math = '<math display="block"><semantics><mrow><mi>f</mi><mo>\'</mo><mtext>it\'s "x" - y...</mtext></mrow><annotation encoding="application/x-tex">f\'(x) - 1 \text{"q"} \dots 2x3</annotation></semantics></math>';
+
+		$this->assertSame( $math, wptexturize( $math ) );
+		$this->assertSame(
+			'<p>a &#8211; b ' . $math . ' c &#8211; d</p>',
+			wptexturize( '<p>a - b ' . $math . ' c - d</p>' )
+		);
+	}
+
+	/**
 	 * @ticket 1418
 	 */
 	public function test_bracketed_quotes_1418() {
