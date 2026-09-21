@@ -301,6 +301,7 @@ function category_description( $category = 0 ) {
  * @since 4.2.0 Introduced the `value_field` argument.
  * @since 4.6.0 Introduced the `required` argument.
  * @since 6.1.0 Introduced the `aria_describedby` argument.
+ * @since 7.2.0 Introduced the `disabled` argument.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a categories drop-down element. See WP_Term_Query::__construct()
@@ -334,6 +335,8 @@ function category_description( $category = 0 ) {
  *                                           Default false (create select element even if no categories are found).
  *     @type bool         $required          Whether the `<select>` element should have the HTML5 'required' attribute.
  *                                           Default false.
+ *     @type bool         $disabled          Whether the `<select>` element should have the HTML5 'disabled' attribute.
+ *                                           Default false.
  *     @type Walker       $walker            Walker object to use to build the output. Default empty which results in a
  *                                           Walker_CategoryDropdown instance being used.
  *     @type string       $aria_describedby  The 'id' of an element that contains descriptive text for the select.
@@ -364,6 +367,7 @@ function wp_dropdown_categories( $args = '' ) {
 		'option_none_value' => -1,
 		'value_field'       => 'term_id',
 		'required'          => false,
+		'disabled'          => false,
 		'aria_describedby'  => '',
 	);
 
@@ -409,11 +413,12 @@ function wp_dropdown_categories( $args = '' ) {
 	$class    = esc_attr( $parsed_args['class'] );
 	$id       = $parsed_args['id'] ? esc_attr( $parsed_args['id'] ) : $name;
 	$required = $parsed_args['required'] ? 'required' : '';
+	$disabled = $parsed_args['disabled'] ? ' disabled' : '';
 
 	$aria_describedby_attribute = $parsed_args['aria_describedby'] ? ' aria-describedby="' . esc_attr( $parsed_args['aria_describedby'] ) . '"' : '';
 
 	if ( ! $parsed_args['hide_if_empty'] || ! empty( $categories ) ) {
-		$output = "<select $required name='$name' id='$id' class='$class'$tab_index_attribute$aria_describedby_attribute>\n";
+		$output = "<select $required$disabled name='$name' id='$id' class='$class'$tab_index_attribute$aria_describedby_attribute>\n";
 	} else {
 		$output = '';
 	}
