@@ -92,7 +92,7 @@ class Tests_Term extends WP_UnitTestCase {
 	public function test_wp_count_terms_should_return_integer_zero_for_a_parent_outside_the_hierarchy() {
 		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
 
-		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
 
 		$count = wp_count_terms(
 			array(
@@ -337,6 +337,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$cat_id2 = wp_insert_term( 'Child category', 'category', array( 'parent' => $cat_id1 ) );
 		$this->assertWPError( $cat_id2 );
+		$this->assertSame( 'missing_parent', $cat_id2->get_error_code() );
 	}
 
 	/**

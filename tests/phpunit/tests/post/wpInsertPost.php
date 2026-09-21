@@ -1158,15 +1158,18 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		// Empty post_date_gmt with floating status
 		$post_id = wp_insert_post(
 			array(
+				'post_title'  => 'Invalid date',
 				'post_date'   => $invalid_date,
 				'post_status' => 'draft',
 			),
 			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => '0000-00-00 00:00:00',
 				'post_status'   => 'draft',
@@ -1174,19 +1177,23 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Empty post_date_gmt without floating status
 		$post_id = wp_insert_post(
 			array(
+				'post_title'  => 'Invalid date',
 				'post_date'   => $invalid_date,
 				'post_status' => 'publish',
 			),
 			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => '0000-00-00 00:00:00',
 				'post_status'   => 'publish',
@@ -1194,26 +1201,31 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Valid post_date_gmt
 		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => $post_date_gmt,
 			),
 			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Invalid post_date_gmt
 		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => $invalid_date,
 			),
 			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 	}
 
 	/**

@@ -647,6 +647,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$revision = _wp_put_post_revision( PHP_INT_MAX );
 
 		$this->assertWPError( $revision );
+		$this->assertSame( 'invalid_post', $revision->get_error_code() );
 	}
 
 	/**

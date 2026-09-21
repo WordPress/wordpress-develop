@@ -189,12 +189,13 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term = self::factory()->tag->create_and_get( array( 'name' => 'Bozo' ) );
 
 		// Test existing term name with unique slug.
-		$term1 = self::factory()->tag->create(
+		$term1 = self::factory()->tag->create_and_get(
 			array(
 				'name' => 'Bozo',
 				'slug' => 'bozo1',
 			)
 		);
+		$this->assertSame( 'bozo1', $term1->slug );
 
 		// Test an existing term name.
 		$term2 = wp_insert_term( 'Bozo', 'post_tag' );
@@ -249,6 +250,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertWPError( $term19 );
 		$term20 = self::factory()->tag->create_and_get( array( 'name' => 'A--' ) );
 		$this->assertSame( 'A--', $term20->name );
+
+		$terms = array_map( 'get_tag', array( $term13, $term15, $term17, $term18, $term20->term_id ) );
+		$this->assertCount( 5, array_unique( wp_list_pluck( $terms, 'slug' ) ) );
 	}
 
 	/**

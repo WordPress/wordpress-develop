@@ -69,13 +69,13 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		$generated_args = $this->generate_args( $args, $generation_definitions, $callbacks );
 		$object_id      = $this->create_object( $generated_args );
 
-		$object_id = $this->get_object_id( $object_id, 'Unable to create the object' );
+		$this->assert_valid_object_id( $object_id, 'Unable to create the object' );
 
 		if ( $callbacks ) {
 			$updated_fields = $this->apply_callbacks( $callbacks, $object_id );
 			$save_result    = $this->update_object( $object_id, $updated_fields );
 
-			$this->get_object_id( $save_result, 'Unable to update the object after creation' );
+			$this->assert_valid_object_id( $save_result, 'Unable to update the object after creation' );
 		}
 
 		return $object_id;
@@ -92,7 +92,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @param null  $generation_definitions Optional. The default values for the object.
 	 *                                      Default null.
 	 *
-	 * @return mixed The created object. Can be anything.
+	 * @return object The created object. Can be anything.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created or retrieved.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
@@ -223,20 +223,21 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Validates the result of a create or update operation and returns the object ID.
+	 * Asserts that the result of a create or update operation is a valid object ID.
 	 *
 	 * A WP_Error or a falsy result means the object could not be created or updated,
 	 * which is a fixture failure the test cannot recover from, so an exception is thrown
-	 * instead of returning the value to the caller.
+	 * rather than letting the invalid value pass to the caller.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param int|WP_Error|false $object_id The value returned by create_object() or update_object().
 	 * @param string             $message   The message to use when the value is falsy.
-	 * @return int The object ID.
+	 * @return void
 	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object or falsy.
+	 * @phpstan-assert int $object_id
 	 */
-	protected function get_object_id( $object_id, string $message ): int {
+	protected function assert_valid_object_id( $object_id, string $message ): void {
 		if ( is_wp_error( $object_id ) ) {
 			throw new WP_UnitTest_Factory_Exception(
 				sprintf( '%s: %s', $message, $object_id->get_error_message() )
@@ -246,8 +247,6 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		if ( ! $object_id ) {
 			throw new WP_UnitTest_Factory_Exception( $message );
 		}
-
-		return $object_id;
 	}
 
 	/**
