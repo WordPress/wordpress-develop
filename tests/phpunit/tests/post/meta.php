@@ -127,6 +127,22 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertSame( array( 'new' ), get_post_meta( self::$post_id, 'unique_update', false ) );
 		$this->assertSame( 'new', get_post_meta( self::$post_id, 'nonunique_update', true ) );
 		$this->assertSame( array( 'new', 'another new' ), get_post_meta( self::$post_id, 'nonunique_update', false ) );
+
+		// Checks "1" == 1 == true
+		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_type_true', '1' ) );
+		// Checking asserting false to confirm that the post meta is not updating unnecessary as "1" and 1 is same in meta_value.
+		$this->assertFalse( update_post_meta( self::$post_id, 'unique_type_true', 1 ) );
+		$this->assertFalse( update_post_meta( self::$post_id, 'unique_type_true', true ) );
+
+		// Check "21" == 21
+		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_type_integer', '21' ) );
+		// Checking asserting false to confirm that the post meta is not updating unnecessary as "21" and 21 is same in meta_value.
+		$this->assertFalse( update_post_meta( self::$post_id, 'unique_type_integer', 21 ) );
+
+		// Check "0" == 0
+		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_type_false', '0' ) );
+		// Checking asserting false to confirm that the post meta is not updating unnecessary as "0" and 0 is same in meta_value.
+		$this->assertFalse( update_post_meta( self::$post_id, 'unique_type_false', 0 ) );
 	}
 
 	public function test_delete_post_meta() {
