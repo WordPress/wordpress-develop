@@ -68,6 +68,22 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 	/**
 	 *
 	 */
+	/**
+	 * Grants manage_nav_menus to users who can read.
+	 *
+	 * @param string[] $caps    Primitive capabilities required of the user.
+	 * @param string   $cap     Capability being checked.
+	 * @param int      $user_id User ID.
+	 * @return string[] Primitive capabilities required of the user.
+	 */
+	public function grant_manage_nav_menus_to_users_who_can_read( $caps, $cap, $user_id ) {
+		if ( 'manage_nav_menus' === $cap && user_can( $user_id, 'read' ) ) {
+			return array( 'read' );
+		}
+
+		return $caps;
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -169,6 +185,27 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->check_get_menu_items_response( $response );
+	}
+
+	/**
+	 * @ticket 29213
+	 * @covers ::get_items_permissions_check
+	 */
+	public function test_get_items_with_manage_nav_menus_permission() {
+		wp_set_current_user( self::$subscriber_id );
+		add_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10, 3 );
+
+		try {
+			$this->assertFalse( current_user_can( 'edit_theme_options' ) );
+			$this->assertTrue( current_user_can( 'manage_nav_menus' ) );
+
+			$request  = new WP_REST_Request( 'GET', '/wp/v2/menu-items' );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->check_get_menu_items_response( $response );
+		} finally {
+			remove_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10 );
+		}
 	}
 
 	/**
@@ -344,6 +381,34 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->check_create_menu_item_response( $response );
+	}
+
+	/**
+	 * @ticket 29213
+	 * @covers ::create_item
+	 */
+	public function test_create_item_with_manage_nav_menus_permission() {
+		wp_set_current_user( self::$subscriber_id );
+		add_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10, 3 );
+
+		try {
+			$this->assertFalse( current_user_can( 'edit_theme_options' ) );
+			$this->assertTrue( current_user_can( 'manage_nav_menus' ) );
+
+			$request = new WP_REST_Request( 'POST', '/wp/v2/menu-items' );
+			$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+			$params = $this->set_menu_item_data(
+				array(
+					'title' => 'Granular Cap Custom Link',
+				)
+			);
+			$request->set_body_params( $params );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->check_create_menu_item_response( $response );
+		} finally {
+			remove_filter( 'map_meta_cap', array( $this, 'grant_manage_nav_menus_to_users_who_can_read' ), 10 );
+		}
 	}
 
 	/**

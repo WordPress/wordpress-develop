@@ -204,7 +204,16 @@ unset( $post_type, $post_type_obj, $post_type_for_id, $post_type_menu_position, 
 
 $menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
 
-$appearance_capability = current_user_can( 'switch_themes' ) ? 'switch_themes' : 'edit_theme_options';
+$themes_capability     = current_user_can( 'switch_themes' ) ? 'switch_themes' : 'edit_theme_options';
+$appearance_capability = $themes_capability;
+
+if (
+	! current_user_can( $appearance_capability ) &&
+	current_user_can( 'manage_nav_menus' ) &&
+	( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) )
+) {
+	$appearance_capability = 'manage_nav_menus';
+}
 
 $menu[60] = array( __( 'Appearance' ), $appearance_capability, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-admin-appearance' );
 
@@ -222,7 +231,7 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 }
 
 	/* translators: %s: Number of available theme updates. */
-	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_capability, 'themes.php' );
+	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $themes_capability, 'themes.php' );
 
 if ( wp_is_block_theme() ) {
 	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
@@ -248,20 +257,20 @@ if ( ! wp_is_block_theme() || has_action( 'customize_register' ) ) {
 }
 
 if ( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) ) {
-	$submenu['themes.php'][10] = array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' );
+	$submenu['themes.php'][10] = array( __( 'Menus' ), 'manage_nav_menus', 'nav-menus.php' );
 }
 
 if ( current_theme_supports( 'custom-header' ) && current_user_can( 'customize' ) ) {
 	$customize_header_url      = add_query_arg( array( 'autofocus' => array( 'control' => 'header_image' ) ), $customize_url );
-	$submenu['themes.php'][15] = array( _x( 'Header', 'custom image header' ), $appearance_capability, esc_url( $customize_header_url ), '', 'hide-if-no-customize' );
+	$submenu['themes.php'][15] = array( _x( 'Header', 'custom image header' ), $themes_capability, esc_url( $customize_header_url ), '', 'hide-if-no-customize' );
 }
 
 if ( current_theme_supports( 'custom-background' ) && current_user_can( 'customize' ) ) {
 	$customize_background_url  = add_query_arg( array( 'autofocus' => array( 'control' => 'background_image' ) ), $customize_url );
-	$submenu['themes.php'][20] = array( _x( 'Background', 'custom background' ), $appearance_capability, esc_url( $customize_background_url ), '', 'hide-if-no-customize' );
+	$submenu['themes.php'][20] = array( _x( 'Background', 'custom background' ), $themes_capability, esc_url( $customize_background_url ), '', 'hide-if-no-customize' );
 }
 
-unset( $customize_url, $appearance_capability );
+unset( $customize_url, $appearance_capability, $themes_capability );
 
 // Add 'Theme File Editor' to the bottom of the Appearance (non-block themes) or Tools (block themes) menu.
 if ( ! is_multisite() ) {
