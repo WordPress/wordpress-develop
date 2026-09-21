@@ -1133,6 +1133,25 @@ function wp_save_image( $post_id ) {
 			);
 		}
 
+		/**
+		 * Add additional image sizes for the Site Icon during image editing.
+		 *
+		 * If the current attachment is the Site Icon, include the custom site icon sizes
+		 * defined by WP_Site_Icon to ensure proper resizing and metadata generation.
+		 */
+		if ( (int) get_option( 'site_icon' ) === (int) $post_id ) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
+
+			$wp_site_icon        = new WP_Site_Icon();
+			$_wp_site_icon_sizes = $wp_site_icon->additional_sizes();
+
+			if ( ! empty( $_wp_site_icon_sizes ) ) {
+				foreach ( $_wp_site_icon_sizes as $size => $size_data ) {
+					$_sizes[ $size ] = $size_data;
+				}
+			}
+		}
+
 		$meta['sizes'] = array_merge( $meta['sizes'], $img->multi_resize( $_sizes ) );
 	}
 
