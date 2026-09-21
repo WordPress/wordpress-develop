@@ -374,7 +374,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			'name'     => __( 'Name' ),
 			'email'    => __( 'Email' ),
 			'role'     => __( 'Role' ),
-			'posts'    => _x( 'Posts', 'post type general name' ),
+			'posts'    => _x( 'Content', 'users list table authored content column name' ),
 		);
 
 		if ( $this->is_site_users ) {
@@ -408,7 +408,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	public function display_rows() {
 		// Query the post counts for this page.
 		if ( ! $this->is_site_users ) {
-			$post_counts = count_many_users_posts( array_keys( $this->items ) );
+			$post_counts = count_many_users_posts( array_keys( $this->items ), $this->get_countable_post_types() );
 		}
 
 		foreach ( $this->items as $userid => $user_object ) {
@@ -606,12 +606,11 @@ class WP_Users_List_Table extends WP_List_Table {
 					case 'posts':
 						if ( $numposts > 0 ) {
 							$row .= sprintf(
-								'<a href="%s" class="edit"><span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
-								"edit.php?author={$user_object->ID}",
-								$numposts,
+								'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span>',
+								number_format_i18n( $numposts ),
 								sprintf(
-									/* translators: Hidden accessibility text. %s: Number of posts. */
-									_n( '%s post by this author', '%s posts by this author', $numposts ),
+									/* translators: Hidden accessibility text. %s: Number of content items. */
+									_n( '%s content item by this author', '%s content items by this author', $numposts ),
 									number_format_i18n( $numposts )
 								)
 							);
@@ -653,6 +652,33 @@ class WP_Users_List_Table extends WP_List_Table {
 	 */
 	protected function get_default_primary_column_name() {
 		return 'username';
+	}
+
+	/**
+	 * Returns the post types counted in the Users list table content column.
+	 *
+	 * Post types are limited to those with an admin UI that support authors, so the
+	 * count reflects user-managed content such as posts, pages, media, and custom
+	 * post types.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @return string[] Post type names.
+	 */
+	protected function get_countable_post_types() {
+		return array_values(
+			array_filter(
+				get_post_types(
+					array(
+						'show_ui' => true,
+					),
+					'names'
+				),
+				static function ( $post_type ) {
+					return post_type_supports( $post_type, 'author' );
+				}
+			)
+		);
 	}
 
 	/**
