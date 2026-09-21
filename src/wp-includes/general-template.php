@@ -2786,9 +2786,11 @@ function get_calendar( $args = array() ) {
 	$newrow      = false;
 	$daysinmonth = (int) gmdate( 't', $unixmonth );
 
+if ( $daywithpost ) {
 	/* translators: Post calendar label. %s: Date. */
 	$posts_published_label = __( 'Posts published on %s' );
 	$archive_date_format   = _x( 'F j, Y', 'daily archives date format' );
+}
 
 	for ( $day = 1; $day <= $daysinmonth; ++$day ) {
 		if ( $newrow ) {
