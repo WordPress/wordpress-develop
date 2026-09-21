@@ -713,6 +713,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['path'] = untrailingslashit( $redirect['path'] );
 	}
 
+	// Remove protocols like `http://` or `https://` that occur mid-path.
+	$redirect['path'] = preg_replace( '#/([a-zA-Z][a-zA-Z0-9+.-]*://)#', '/', $redirect['path'] );
+
 	// Strip multiple slashes out of the URL.
 	if ( str_contains( $redirect['path'], '//' ) ) {
 		$redirect['path'] = preg_replace( '|/+|', '/', $redirect['path'] );
