@@ -21,7 +21,7 @@ _deprecated_file(
 <link rel="profile" href="https://gmpg.org/xfn/11" />
 <meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
 
-<title><?php echo wp_get_document_title(); ?></title>
+<title><?php echo wp_html_title( wp_get_document_title() ); ?></title>
 
 <link rel="stylesheet" href="<?php bloginfo( 'stylesheet_url' ); ?>" media="screen" />
 <link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>" />

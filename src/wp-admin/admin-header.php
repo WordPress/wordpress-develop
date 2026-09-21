@@ -92,7 +92,7 @@ wp_user_settings();
 
 _wp_admin_html_begin();
 ?>
-<title><?php echo esc_html( $admin_title ); ?></title>
+<title><?php echo wp_html_title( $admin_title ); ?></title>
 <?php
 
 wp_enqueue_style( 'colors' );
