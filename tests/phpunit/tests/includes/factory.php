@@ -196,6 +196,91 @@ class TestFactoryFor extends WP_UnitTestCase {
 	/**
 	 * @ticket 66111
 	 */
+	public function test_get_object_by_id_should_return_the_object_type_of_the_factory() {
+		$factory = self::factory();
+
+		$this->assertInstanceOf( 'WP_Post', $factory->post->get_object_by_id( $factory->post->create() ) );
+		$this->assertInstanceOf( 'WP_Comment', $factory->comment->get_object_by_id( $factory->comment->create() ) );
+		$this->assertInstanceOf( 'WP_Term', $factory->term->get_object_by_id( $factory->term->create() ) );
+		$this->assertInstanceOf( 'WP_User', $factory->user->get_object_by_id( $factory->user->create() ) );
+		$this->assertInstanceOf( 'stdClass', $factory->bookmark->get_object_by_id( $factory->bookmark->create() ) );
+	}
+
+	/**
+	 * @ticket 66111
+	 */
+	public function test_post_factory_get_object_by_id_should_throw_an_exception_for_an_unknown_id() {
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( 'Unable to retrieve the object with ID 987654321.' );
+
+		self::factory()->post->get_object_by_id( 987654321 );
+	}
+
+	/**
+	 * @ticket 66111
+	 */
+	public function test_comment_factory_get_object_by_id_should_throw_an_exception_for_an_unknown_id() {
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( 'Unable to retrieve the object with ID 987654321.' );
+
+		self::factory()->comment->get_object_by_id( 987654321 );
+	}
+
+	/**
+	 * @ticket 66111
+	 */
+	public function test_bookmark_factory_get_object_by_id_should_throw_an_exception_for_an_unknown_id() {
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( 'Unable to retrieve the object with ID 987654321.' );
+
+		self::factory()->bookmark->get_object_by_id( 987654321 );
+	}
+
+	/**
+	 * get_term() reports an unregistered taxonomy as a WP_Error, which is the only route
+	 * a core factory has to the WP_Error branch of the retrieval guard.
+	 *
+	 * @ticket 66111
+	 */
+	public function test_term_factory_get_object_by_id_should_throw_an_exception_for_an_invalid_taxonomy() {
+		$term_id = $this->category_factory->create();
+		$factory = new WP_UnitTest_Factory_For_Term( self::factory(), 'wptests_unregistered_tax' );
+
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( 'Invalid taxonomy' );
+
+		$factory->get_object_by_id( $term_id );
+	}
+
+	/**
+	 * The user factory is the exception: WP_User is constructed unconditionally, so an
+	 * unknown ID yields an object that simply does not exist rather than a failure.
+	 *
+	 * @ticket 66111
+	 */
+	public function test_user_factory_get_object_by_id_should_not_throw_for_an_unknown_id() {
+		$user = self::factory()->user->get_object_by_id( 987654321 );
+
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertFalse( $user->exists() );
+	}
+
+	/**
+	 * The term factory looks the term up in the taxonomy given in the args, which is not
+	 * necessarily the one the factory was constructed with.
+	 *
+	 * @ticket 66111
+	 */
+	public function test_term_factory_create_and_get_should_honor_the_taxonomy_argument() {
+		$term = $this->category_factory->create_and_get( array( 'taxonomy' => 'post_tag' ) );
+
+		$this->assertInstanceOf( 'WP_Term', $term );
+		$this->assertSame( 'post_tag', $term->taxonomy );
+	}
+
+	/**
+	 * @ticket 66111
+	 */
 	public function test_create_many_should_return_an_array_of_ids() {
 		$ids = $this->category_factory->create_many( 2 );
 
