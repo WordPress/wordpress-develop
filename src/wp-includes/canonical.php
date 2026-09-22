@@ -959,6 +959,24 @@ function redirect_guess_404_permalink() {
 	}
 
 	if ( get_query_var( 'name' ) ) {
+		$non_public_statuses = array_diff(
+			get_post_stati(),
+			array_filter( get_post_stati(), 'is_post_status_viewable' )
+		);
+
+		if ( ! empty( $non_public_statuses ) ) {
+			$exact_match = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT ID FROM $wpdb->posts WHERE post_name = %s AND post_status IN (" . implode( ',', array_fill( 0, count( $non_public_statuses ), '%s' ) ) . ') LIMIT 1',
+					array_merge( array( get_query_var( 'name' ) ), array_values( $non_public_statuses ) )
+				)
+			);
+
+			if ( $exact_match ) {
+				return false;
+			}
+		}
+
 		$publicly_viewable_statuses   = array_filter( get_post_stati(), 'is_post_status_viewable' );
 		$publicly_viewable_post_types = array_filter( get_post_types( array( 'exclude_from_search' => false ) ), 'is_post_type_viewable' );
 
