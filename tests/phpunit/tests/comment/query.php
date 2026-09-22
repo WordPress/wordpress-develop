@@ -4542,7 +4542,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		// Remove the reply behind the back of the comment API, leaving 'last_changed' untouched.
 		$this->assertSame( 1, $wpdb->delete( $wpdb->comments, array( 'comment_ID' => $reply ) ) );
-		wp_cache_delete( $reply, 'comment' );
+		$this->assertTrue( wp_cache_delete( $reply, 'comment' ) );
 		unset( $GLOBALS['comment'] );
 
 		$q = new WP_Comment_Query( $query_args );
