@@ -269,14 +269,13 @@ class WP_Upgrader_Skin {
 				)
 			);
 		} else {
-			// language=JavaScript
-			$js_function = <<<'JAVASCRIPT'
+			$js_function = <<<'JS'
 				( wp, upgradeType ) => {
 					if ( wp && wp.updates && wp.updates.decrementCount ) {
 						wp.updates.decrementCount( upgradeType );
 					}
 				}
-				JAVASCRIPT;
+				JS;
 
 			wp_print_inline_script_tag(
 				sprintf(
