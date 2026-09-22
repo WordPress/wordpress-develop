@@ -229,6 +229,9 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a raw icon before it gets output in a REST API response.
 	 *
+	 * Adds `collection` and `keywords` fields to the base response while keeping
+	 * the namespaced icon name (e.g. `core/arrow-left`) as the `name` field.
+	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Added the `collection` field.
 	 *
@@ -243,6 +246,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 			'label'      => 'label',
 			'content'    => 'content',
 			'collection' => 'collection',
+			'keywords'   => 'keywords',
 		);
 		$data   = array();
 		foreach ( $keys as $item_key => $rest_key ) {
@@ -296,6 +300,15 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 				'collection' => array(
 					'description' => __( 'The slug of the collection this icon belongs to.' ),
 					'type'        => 'string',
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'keywords'   => array(
+					'description' => __( 'Additional search terms for the icon.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'string',
+					),
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
