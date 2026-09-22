@@ -184,45 +184,52 @@
 	/**
 	 * Plays the scene.
 	 *
-	 * @param {string} displayName The current user's display name.
+	 * @param {string} displayName  The current user's display name.
+	 * @param {Object} [i18n]       Translated interface strings.
+	 * @param {string} [i18n.label] Accessible name of the dialog.
+	 * @param {string} [i18n.exit]  Text of the Exit button.
 	 */
-	function run( displayName ) {
+	function run( displayName, i18n ) {
 		var aborted          = false,
 			timer            = null,
 			stopRain         = null,
 			previousFocus    = document.activeElement,
 			previousOverflow = document.documentElement.style.overflow;
 
+		i18n = i18n || {};
+
 		var style = document.createElement( 'style' );
 		style.textContent = STYLE;
 
 		/*
 		 * The scene is a modal dialog so that it is reachable and escapable rather than
-		 * something that happens silently over the top of an admin page. The dialogue
-		 * is English whatever the profile language, so it says so.
+		 * something that happens silently over the top of an admin page.
 		 */
 		var overlay = document.createElement( 'div' );
 		overlay.className = 'wp-teletype';
 		overlay.setAttribute( 'role', 'dialog' );
 		overlay.setAttribute( 'aria-modal', 'true' );
-		overlay.setAttribute( 'aria-label', 'A WordPress easter egg. Press Escape to leave.' );
-		overlay.setAttribute( 'lang', 'en' );
+		overlay.setAttribute( 'aria-label', i18n.label || 'A WordPress easter egg. Press Escape to leave.' );
 		overlay.setAttribute( 'tabindex', '-1' );
 
 		// Typed a character at a time, so it reaches the accessibility tree as whole
 		// lines through the live region below instead.
 		var line = document.createElement( 'p' );
 		line.setAttribute( 'aria-hidden', 'true' );
+		line.setAttribute( 'lang', 'en' );
 
+		// The dialogue is English whatever the profile language, so it says so. The
+		// dialog label and Exit button are translated and inherit the page language.
 		var narration = document.createElement( 'div' );
 		narration.className = 'narration';
+		narration.setAttribute( 'lang', 'en' );
 		narration.setAttribute( 'aria-live', 'polite' );
 		narration.setAttribute( 'aria-atomic', 'true' );
 
 		var exit = document.createElement( 'button' );
 		exit.type = 'button';
 		exit.className = 'exit';
-		exit.textContent = 'Exit';
+		exit.textContent = i18n.exit || 'Exit';
 
 		var cursor = document.createElement( 'span' );
 		cursor.className = 'cursor';

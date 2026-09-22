@@ -48,7 +48,7 @@
 		var script;
 
 		if ( wp.teletype ) {
-			wp.teletype.run( settings.name );
+			wp.teletype.run( settings.name, settings.i18n );
 			return;
 		}
 
@@ -57,7 +57,7 @@
 
 		script.onload = function () {
 			if ( wp.teletype ) {
-				wp.teletype.run( settings.name );
+				wp.teletype.run( settings.name, settings.i18n );
 			}
 		};
 

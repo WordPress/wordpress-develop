@@ -3637,6 +3637,10 @@ function wp_enqueue_command_palette_assets() {
 						admin_url( 'js/teletype' . wp_scripts_get_suffix() . '.js' )
 					),
 					'name' => wp_get_current_user()->display_name,
+					'i18n' => array(
+						'label' => __( 'A WordPress easter egg. Press Escape to leave.' ),
+						'exit'  => __( 'Exit' ),
+					),
 				),
 				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
 			)
