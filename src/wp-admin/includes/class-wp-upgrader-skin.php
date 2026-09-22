@@ -246,37 +246,43 @@ class WP_Upgrader_Skin {
 			return;
 		}
 
-		$upgrade_type = wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
-
 		if ( defined( 'IFRAME_REQUEST' ) ) {
+			// language=JavaScript
+			$js_function = <<<'JAVASCRIPT'
+				( upgradeType ) => {
+					window.parent.postMessage(
+						JSON.stringify( {
+							action: "decrementUpdateCount",
+							upgradeType
+						} ),
+						window.location.protocol + "//" + window.location.hostname
+							+ ( "" !== window.location.port ? ":" + window.location.port : "" )
+					);
+				}
+				JAVASCRIPT;
+
 			wp_print_inline_script_tag(
 				sprintf(
-					'
-					if ( window.postMessage && JSON ) {
-						window.parent.postMessage(
-							JSON.stringify( {
-								action: "decrementUpdateCount",
-								upgradeType: %s
-							} ),
-							window.location.protocol + "//" + window.location.hostname
-								+ ( "" !== window.location.port ? ":" + window.location.port : "" )
-						);
-					}
-					',
-					$upgrade_type
+					'( %s )( %s );',
+					$js_function,
+					wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 				)
 			);
 		} else {
+			// language=JavaScript
+			$js_function = <<<'JAVASCRIPT'
+				( wp, upgradeType ) => {
+					if ( wp && wp.updates && wp.updates.decrementCount ) {
+						wp.updates.decrementCount( upgradeType );
+					}
+				}
+				JAVASCRIPT;
+
 			wp_print_inline_script_tag(
 				sprintf(
-					'
-					(function( wp ) {
-						if ( wp && wp.updates && wp.updates.decrementCount ) {
-							wp.updates.decrementCount( %s );
-						}
-					})( window.wp );
-					',
-					$upgrade_type
+					'( %s )( window.wp, %s );',
+					$js_function,
+					wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 				)
 			);
 		}

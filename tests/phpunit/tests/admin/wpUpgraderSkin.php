@@ -58,9 +58,9 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ result: mixed }>
 	 */
-	public function data_results_that_should_print_nothing() {
+	public function data_results_that_should_print_nothing(): array {
 		return array(
 			'a false result'         => array( 'result' => false ),
 			'a WP_Error result'      => array( 'result' => new WP_Error( 'test_error' ) ),
@@ -95,7 +95,10 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 		$processor = new WP_HTML_Tag_Processor( $actual );
 		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
 		$this->assertSame( 'test-decrement-update-count-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
-		$this->assertStringContainsString( 'wp.updates.decrementCount( "plugin" )', $processor->get_modifiable_text(), 'The expected JavaScript call was not printed.' );
+
+		$script_text = $processor->get_modifiable_text();
+		$this->assertStringContainsString( 'wp.updates.decrementCount( upgradeType )', $script_text, 'The expected JavaScript call was not printed.' );
+		$this->assertStringContainsString( '"plugin"', $script_text, 'The expected upgrade type argument was not printed.' );
 	}
 
 	/**
@@ -129,7 +132,11 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 		$processor = new WP_HTML_Tag_Processor( $actual );
 		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
 		$this->assertSame( 'test-decrement-update-count-iframe-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
-		$this->assertStringContainsString( 'window.postMessage', $processor->get_modifiable_text(), 'The expected postMessage call was not printed.' );
-		$this->assertStringContainsString( 'upgradeType: "theme"', $processor->get_modifiable_text(), 'The expected upgrade type was not printed.' );
+
+		$script_text = $processor->get_modifiable_text();
+		$this->assertStringContainsString( 'window.parent.postMessage', $script_text, 'The expected postMessage call was not printed.' );
+		$this->assertStringContainsString( 'action: "decrementUpdateCount"', $script_text, 'The expected action was not printed.' );
+		$this->assertStringContainsString( '"theme"', $script_text, 'The expected upgrade type argument was not printed.' );
+		$this->assertStringNotContainsString( 'window.postMessage && JSON', $script_text, 'The obsolete feature-detection guard should have been removed.' );
 	}
 }
