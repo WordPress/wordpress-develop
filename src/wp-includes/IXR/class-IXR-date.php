@@ -86,6 +86,11 @@ class IXR_Date {
      */
     function getTimestamp()
     {
+        // A date that could not be parsed has empty or non-numeric components, which mktime() rejects.
+        if (!preg_match('/^\d{8}T\d{2}:\d{2}:\d{2}/', $this->getIso())) {
+            return false;
+        }
+
         return mktime($this->hour, $this->minute, $this->second, $this->month, $this->day, $this->year);
     }
 }

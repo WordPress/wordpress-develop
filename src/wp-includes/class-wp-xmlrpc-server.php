@@ -931,7 +931,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 7.2.0 A value that is not a string is treated as an empty date.
 	 *
-	 * @param string $date Date string to convert.
+	 * @param mixed $date Date string to convert. Any other type is treated as an empty date.
 	 * @return IXR_Date IXR_Date object.
 	 */
 	protected function _convert_date( $date ) {
@@ -944,8 +944,10 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Converts a WordPress GMT date string to an IXR_Date object.
 	 *
-	 * @param string $date_gmt WordPress GMT date string.
-	 * @param string $date     Date string.
+	 * @since 7.2.0 A local date that is not a string no longer substitutes for an empty GMT date.
+	 *
+	 * @param mixed $date_gmt WordPress GMT date string. Any other type is treated as an empty date.
+	 * @param mixed $date     Date string, used when the GMT date is empty.
 	 * @return IXR_Date IXR_Date object.
 	 */
 	protected function _convert_date_gmt( $date_gmt, $date ) {
@@ -1891,13 +1893,18 @@ class wp_xmlrpc_server extends IXR_Server {
 				return $if_not_modified_since;
 			}
 
+			$if_not_modified_since_timestamp = $if_not_modified_since->getTimestamp();
+			if ( false === $if_not_modified_since_timestamp ) {
+				return new IXR_Error( 400, __( 'Invalid date.' ) );
+			}
+
 			$post_modified_timestamp = false;
 			if ( is_string( $post['post_modified_gmt'] ) ) {
 				$post_modified_timestamp = mysql2date( 'U', $post['post_modified_gmt'] );
 			}
 
 			// If the post has been modified since the date provided, return an error.
-			if ( false !== $post_modified_timestamp && $post_modified_timestamp > $if_not_modified_since->getTimestamp() ) {
+			if ( false !== $post_modified_timestamp && $post_modified_timestamp > $if_not_modified_since_timestamp ) {
 				return new IXR_Error( 409, __( 'There is a revision of this post that is more recent.' ) );
 			}
 		}
