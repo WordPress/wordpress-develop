@@ -4552,7 +4552,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ 0: string }>
+	 * @return array<non-falsy-string, array{ 0: 'threaded'|'flat' }>
 	 */
 	public static function data_hierarchical_modes(): array {
 		return array(
