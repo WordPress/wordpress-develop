@@ -748,19 +748,19 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		 * Remove test filters.
 		 */
 		// In function.
-		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ) );
+		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ) );
+		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ) );
 
 		// In walker.
 		remove_filter( 'nav_menu_item_args', array( $this, 'confirm_nav_menu_item_args_object' ) );
 
-		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ) );
 
-		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
+		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ) );
 	}
 
 	/**

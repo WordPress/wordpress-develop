@@ -158,7 +158,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment for which to create display settings.
 	 * @return {Backbone.Model} A model representing the display settings for the attachment.
 	 */
 	display: function( attachment ) {
@@ -175,7 +175,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment for which to get the default display settings.
 	 * @return {Object} The default display settings for the attachment.
 	 */
 	defaultDisplaySettings: function( attachment ) {
@@ -196,7 +196,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 *
 	 * @since 4.4.1
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment to check.
 	 * @return {boolean} True if the attachment is an image, false otherwise.
 	 */
 	isImageAttachment: function( attachment ) {
@@ -213,7 +213,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment to check.
 	 * @return {boolean} True if the attachment can be embedded, false otherwise.
 	 */
 	canEmbed: function( attachment ) {
@@ -262,7 +262,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment that was uploaded.
 	 */
 	uploading: function( attachment ) {
 		var content = this.frame.content;
