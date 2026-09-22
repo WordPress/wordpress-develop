@@ -92,7 +92,7 @@ EOD;
         $method = $this->callbacks[$methodname];
 
         // Perform the callback and send the response
-        if (count($args) == 1) {
+        if (is_array($args) && count($args) == 1) {
             // If only one parameter just send that instead of the whole array
             $args = $args[0];
         }
@@ -197,10 +197,26 @@ EOD;
     function multiCall($methodcalls)
     {
         // See http://www.xmlrpc.com/discuss/msgReader$1208
+        if (!is_array($methodcalls)) {
+            return new IXR_Error(-32600, 'server error. invalid xml-rpc. system.multicall expects an array of method calls');
+        }
+
         $return = array();
         foreach ($methodcalls as $call) {
+            // Each call must be a struct naming the method to call.
+            if (!is_array($call) || !isset($call['methodName'])) {
+                $return[] = array(
+                    'faultCode' => -32600,
+                    'faultString' => 'server error. invalid xml-rpc. Each multicall entry must be a struct with a methodName'
+                );
+                continue;
+            }
+
             $method = $call['methodName'];
-            $params = $call['params'];
+            $params = array();
+            if (isset($call['params'])) {
+                $params = $call['params'];
+            }
             if ($method == 'system.multicall') {
                 $result = new IXR_Error(-32600, 'Recursive calls to system.multicall are forbidden');
             } else {
