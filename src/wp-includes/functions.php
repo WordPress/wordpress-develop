@@ -5674,10 +5674,11 @@ function dead_db() {
  * @since 5.4.0 The error type is now classified as E_USER_DEPRECATED (used to default to E_USER_NOTICE).
  *
  * @param string $function_name The function that was called.
- * @param string $version       The version of WordPress that deprecated the function.
+ * @param string $version       The version of $package that deprecated the function.
  * @param string $replacement   Optional. The function that should have been called. Default empty string.
+ * @param string $package       Optional. The package to which the function belongs. Default 'core'.
  */
-function _deprecated_function( $function_name, $version, $replacement = '' ) {
+function _deprecated_function( $function_name, $version, $replacement = '', $package = 'core' ) {
 
 	/**
 	 * Fires when a deprecated function is called.
@@ -5686,9 +5687,10 @@ function _deprecated_function( $function_name, $version, $replacement = '' ) {
 	 *
 	 * @param string $function_name The function that was called.
 	 * @param string $replacement   The function that should have been called.
-	 * @param string $version       The version of WordPress that deprecated the function.
+	 * @param string $version       The version of $package that deprecated the function.
+	 * @param string $package       The package to which the function belongs.
 	 */
-	do_action( 'deprecated_function_run', $function_name, $replacement, $version );
+	do_action( 'deprecated_function_run', $function_name, $replacement, $version, $package );
 
 	/**
 	 * Filters whether to trigger an error for deprecated functions.
@@ -5914,12 +5916,13 @@ function _deprecated_class( $class_name, $version, $replacement = '' ) {
  * @since 5.4.0 The error type is now classified as E_USER_DEPRECATED (used to default to E_USER_NOTICE).
  *
  * @param string $file        The file that was included.
- * @param string $version     The version of WordPress that deprecated the file.
+ * @param string $version     The version of $package that deprecated the file.
  * @param string $replacement Optional. The file that should have been included based on ABSPATH.
  *                            Default empty string.
  * @param string $message     Optional. A message regarding the change. Default empty string.
+ * @param string $package     Optional. The package to which the file belongs. Default 'core'.
  */
-function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
+function _deprecated_file( $file, $version, $replacement = '', $message = '', $package = 'core' ) {
 
 	/**
 	 * Fires when a deprecated file is called.
@@ -5928,10 +5931,11 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
 	 *
 	 * @param string $file        The file that was called.
 	 * @param string $replacement The file that should have been included based on ABSPATH.
-	 * @param string $version     The version of WordPress that deprecated the file.
+	 * @param string $version     The version of $package that deprecated the file.
 	 * @param string $message     A message regarding the change.
+	 * @param string $package     The package to which the file belongs.
 	 */
-	do_action( 'deprecated_file_included', $file, $replacement, $version, $message );
+	do_action( 'deprecated_file_included', $file, $replacement, $version, $message, $package );
 
 	/**
 	 * Filters whether to trigger an error for deprecated files.
@@ -5991,7 +5995,7 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
  * For example:
  *
  *     if ( ! empty( $deprecated ) ) {
- *         _deprecated_argument( __FUNCTION__, '3.0.0' );
+ *         _deprecated_argument( __FUNCTION__, '3.0.0', 'core' );
  *     }
  *
  * There is a {@see 'deprecated_argument_run'} hook that will be called that can be used
@@ -6004,10 +6008,11 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
  * @since 5.4.0 The error type is now classified as E_USER_DEPRECATED (used to default to E_USER_NOTICE).
  *
  * @param string $function_name The function that was called.
- * @param string $version       The version of WordPress that deprecated the argument used.
+ * @param string $version       The version of $package that deprecated the argument used.
  * @param string $message       Optional. A message regarding the change. Default empty string.
+ * @param string $package       Optional. The package to which the function belongs. Default 'core'.
  */
-function _deprecated_argument( $function_name, $version, $message = '' ) {
+function _deprecated_argument( $function_name, $version, $message = '', $package = 'core' ) {
 
 	/**
 	 * Fires when a deprecated argument is called.
@@ -6016,9 +6021,10 @@ function _deprecated_argument( $function_name, $version, $message = '' ) {
 	 *
 	 * @param string $function_name The function that was called.
 	 * @param string $message       A message regarding the change.
-	 * @param string $version       The version of WordPress that deprecated the argument used.
+	 * @param string $version       The version of $package that deprecated the argument used.
+	 * @param string $package       The package to which the function belongs.
 	 */
-	do_action( 'deprecated_argument_run', $function_name, $message, $version );
+	do_action( 'deprecated_argument_run', $function_name, $message, $version, $package );
 
 	/**
 	 * Filters whether to trigger an error for deprecated arguments.
