@@ -1086,7 +1086,7 @@ $( function() {
 	}
 	var $notices = $( 'div.updated, div.error, div.notice' ).not( '.inline, .below-h2' );
 	if ( $notices.length ) {
-		var $wpAdminNotices = $( '<aside id="wp-admin-notices" aria-label="' + esc_attr__( 'Admin Notices' ) + '"></aside>' ).insertAfter( $headerEnd );
+		var $wpAdminNotices = $( '<aside id="wp-admin-notices"></aside>' ).attr( 'aria-label', __( 'Admin Notices' ) ).insertAfter( $headerEnd );
 		$notices.appendTo( $wpAdminNotices );
 	}
 
