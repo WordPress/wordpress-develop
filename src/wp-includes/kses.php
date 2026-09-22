@@ -1099,7 +1099,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 *
 		 * @since 7.2.0
 		 *
-		 * @var string
+		 * @var string[]
 		 */
 		private $allowed_protocols;
 
@@ -1601,29 +1601,12 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 					/*
 					 * True CDATA sections only exist within embedded SVG and MathML content,
-					 * where they represent text data without any escaping, and where downstream
-					 * parsers are generally reliable enough. In fact, most downstream parsers
-					 * are more likely to properly detect true CDATA sections than the lookalikes
-					 * that exist for elements in the HTML namespace. Copy the token verbatim.
+					 * where they represent text data without any escaping. However, because
+					 * parsers tend to vary on how to parse these, for untrusted inputs,
+					 * rewrite all CDATA sections as normal escaped text.
 					 */
 					case '#cdata-section':
-						if ( $skip_token ) {
-							break;
-						}
-
-						if (
-							$is_in_text_integration_point ||
-							self::contains_a_block_delimiter( $text )
-						) {
-							/*
-							 * As of the writing of this code, Chrome 153.0.8010.48 and Safari 26.6.1
-							 * both incorrectly treat the CDATA section inside a MathML integration
-							 * point as an invalid HTML comment. To prevent the misparse in the browser,
-							 * convert the CDATA section into escaped plaintext nodes.
-							 *
-							 * Once the minimum-supported browsers all correctly implement the HTML
-							 * specification on this point, this conversion can be removed.
-							 */
+						if ( ! $skip_token ) {
 							$output .= strtr(
 								$text,
 								array(
@@ -1633,12 +1616,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 									'>'    => '&gt;',
 								)
 							);
-						} else {
-							$output .= strtr(
-								substr( $this->html, $here->start, $here->length ),
-								array( "\x00" => "\u{FFFD}" )
-							);
 						}
+
 						break;
 
 					case '#tag':
@@ -1819,23 +1798,29 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						if ( $is_special_atomic_element ) {
-							$rawtext_elements = array(
-								'IFRAME',
-								'NOEMBED',
-								'NOFRAMES',
-								'STYLE',
-								'XMP',
-							);
-
-							/**
-							 * Reject updates containing a block comment delimiter from RAWTEXT nodes,
-							 * since those do not escape their text. RCDATA elements escape syntax and
-							 * so are benign to pass through to {@see self::set_modifiable_text()}.
-							 */
-							if ( in_array( $token_name, $rawtext_elements, true ) && self::contains_a_block_delimiter( $text ) ) {
-								$tag_maker->set_modifiable_text( '' );
-							} else {
+							if ( 'TITLE' === $token_name || 'TEXTAREA' === $token_name ) {
+								/*
+								 * RCDATA nodes can be safely escaped, but this must be
+								 * done after enqueing the update to avoid double-escaping.
+								 */
 								$tag_maker->set_modifiable_text( $text );
+								$tag_maker->lexical_updates['modifiable text']->text = strtr(
+									$tag_maker->lexical_updates['modifiable text']->text,
+									array(
+										"\x00" => "\u{FFFD}",
+										"\r"   => '&#xD;',
+									)
+								);
+							} elseif ( ! self::contains_a_block_delimiter( $text ) ) {
+								// Other nodes not containing a block delimiter are safe.
+								$tag_maker->set_modifiable_text( $text );
+							} else {
+								/*
+								 * But RAWTEXT and SCRIPT cannot be generally escaped, so reject
+								 * updates which would include something that could be misparsed
+								 * as a block comment delimiter.
+								 */
+								$tag_maker->set_modifiable_text( '' );
 							}
 						}
 
