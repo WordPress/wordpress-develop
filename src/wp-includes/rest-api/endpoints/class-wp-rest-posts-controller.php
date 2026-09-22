@@ -2819,7 +2819,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Emit a _doing_it_wrong warning if user tries to add new properties using this filter.
 		$new_fields = array_diff( array_keys( $schema['properties'] ), $schema_fields );
-		if ( count( $new_fields ) > 0 ) {
+		if ( array() !== $new_fields ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
