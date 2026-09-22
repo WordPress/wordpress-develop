@@ -55,16 +55,15 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 *
-	 * @param int|object $term   The term to update.
+	 * @param int|WP_Term $term  The term to update.
 	 * @param array      $fields Array of arguments for updating a term.
 	 * @return int|WP_Error The term ID on success, WP_Error object on failure.
 	 */
 	public function update_object( $term, $fields ) {
 		$fields = array_merge( array( 'taxonomy' => $this->taxonomy ), $fields );
 
-		if ( is_object( $term ) ) {
-			$taxonomy = $term->taxonomy;
-		}
+		// create() passes an ID, in which case the taxonomy is the one merged in above.
+		$taxonomy = is_object( $term ) ? $term->taxonomy : $fields['taxonomy'];
 
 		$term_id_pair = wp_update_term( $term, $taxonomy, $fields );
 

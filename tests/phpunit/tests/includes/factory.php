@@ -279,6 +279,33 @@ class TestFactoryFor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * create() passes an object ID to update_object(), so the taxonomy has to come from the
+	 * fields rather than from a term object that is not there.
+	 *
+	 * @ticket 66111
+	 */
+	public function test_term_factory_should_apply_an_after_create_callback() {
+		$term_id = self::factory()->term->create(
+			array(
+				'name'     => 'Callback term',
+				'taxonomy' => 'post_tag',
+			),
+			array(
+				'description' => new WP_UnitTest_Factory_Callback_After_Create(
+					static function ( int $created_id ) {
+						return 'Description for ' . $created_id;
+					}
+				),
+			)
+		);
+
+		$term = get_term( $term_id, 'post_tag' );
+
+		$this->assertInstanceOf( WP_Term::class, $term );
+		$this->assertSame( 'Description for ' . $term_id, $term->description );
+	}
+
+	/**
 	 * @ticket 66111
 	 */
 	public function test_create_many_should_return_an_array_of_ids() {
