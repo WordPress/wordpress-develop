@@ -1077,6 +1077,7 @@ table.form-table td .updated p {
 
 .auth-app-card.card {
 	max-width: 768px;
+	word-wrap: break-word;
 }
 
 .authorize-application-php .form-wrap p {
