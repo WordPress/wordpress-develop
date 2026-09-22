@@ -1,3 +1,5 @@
+/* global validateForm */
+
 ( function( QUnit, $ ) {
 	QUnit.module( 'form validation' );
 
