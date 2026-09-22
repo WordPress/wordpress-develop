@@ -1039,10 +1039,13 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 	 * The reset of the operating mode should always be `legacy`, but just
 	 * in case it isn’t, reset it to its previously-read value.
 	 */
-	$previous_kses_mode     = $wp_kses_operating_mode;
-	$wp_kses_operating_mode = 'html-api';
-	$content                = wp_kses_hook( $content, $specified_allowed_html, $allowed_protocols );
-	$wp_kses_operating_mode = $previous_kses_mode;
+	try {
+		$previous_kses_mode     = $wp_kses_operating_mode;
+		$wp_kses_operating_mode = 'html-api';
+		$content                = wp_kses_hook( $content, $specified_allowed_html, $allowed_protocols );
+	} finally {
+		$wp_kses_operating_mode = $previous_kses_mode;
+	}
 
 	$allowed_html = is_array( $allowed_html )
 		? $allowed_html
