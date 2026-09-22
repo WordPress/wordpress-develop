@@ -5,7 +5,22 @@
  */
 abstract class WP_UnitTest_Factory_For_Thing {
 
+	/**
+	 * Defines what default values the properties of a created object have.
+	 *
+	 * @var array<string, mixed>
+	 */
 	public $default_generation_definitions;
+
+	/**
+	 * Global factory that can be used to create other objects on the system.
+	 *
+	 * Held for the benefit of factories that need to create related fixtures. No core
+	 * factory reads it, which is why every subclass defaults it to null: a factory
+	 * constructed that way is fully functional.
+	 *
+	 * @var object|null
+	 */
 	public $factory;
 
 	/**
@@ -13,15 +28,17 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since UT (3.7.0)
 	 *
-	 * @param object $factory                       Global factory that can be used to create other objects
-	 *                                              on the system.
-	 * @param array $default_generation_definitions Defines what default values should the properties
-	 *                                              of the object have. The default values can be generators --
-	 *                                              an object with the next() method.
-	 *                                              There are some default generators:
-	 *                                               - {@link WP_UnitTest_Generator_Sequence}
-	 *                                               - {@link WP_UnitTest_Generator_Locale_Name}
-	 *                                               - {@link WP_UnitTest_Factory_Callback_After_Create}
+	 * @param object|null          $factory                        Global factory that can be used to create
+	 *                                                             other objects on the system, or null when
+	 *                                                             there is none.
+	 * @param array<string, mixed> $default_generation_definitions Defines what default values should the
+	 *                                                             properties of the object have. The default
+	 *                                                             values can be generators -- an object with
+	 *                                                             the next() method. There are some default
+	 *                                                             generators:
+	 *                                                              - {@link WP_UnitTest_Generator_Sequence}
+	 *                                                              - {@link WP_UnitTest_Generator_Locale_Name}
+	 *                                                              - {@link WP_UnitTest_Factory_Callback_After_Create}
 	 */
 	public function __construct( $factory, $default_generation_definitions = array() ) {
 		$this->factory                        = $factory;
@@ -55,10 +72,10 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args                   Optional. The arguments for the object to create.
-	 *                                      Default empty array.
-	 * @param null  $generation_definitions Optional. The default values for the object.
-	 *                                      Default null.
+	 * @param array                     $args                   Optional. The arguments for the object to
+	 *                                                          create. Default empty array.
+	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object.
+	 *                                                          Default null.
 	 *
 	 * @return positive-int The object ID.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created.
@@ -87,10 +104,10 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args                   Optional. The arguments for the object to create.
-	 *                                      Default empty array.
-	 * @param null  $generation_definitions Optional. The default values for the object.
-	 *                                      Default null.
+	 * @param array                     $args                   Optional. The arguments for the object to
+	 *                                                          create. Default empty array.
+	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object.
+	 *                                                          Default null.
 	 *
 	 * @return object The created object. Can be anything.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created or retrieved.
@@ -127,11 +144,11 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since UT (3.7.0)
 	 *
-	 * @param int   $count                  Amount of objects to create.
-	 * @param array $args                   Optional. The arguments for the object to create.
-	 *                                      Default empty array.
-	 * @param null  $generation_definitions Optional. The default values for the object.
-	 *                                      Default null.
+	 * @param int                       $count                  Amount of objects to create.
+	 * @param array                     $args                   Optional. The arguments for the object to
+	 *                                                          create. Default empty array.
+	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object.
+	 *                                                          Default null.
 	 *
 	 * @return positive-int[] An array of object IDs.
 	 * @throws WP_UnitTest_Factory_Exception When one of the objects could not be created.
@@ -153,11 +170,11 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array       $args                   Optional. The arguments to combine with defaults.
-	 *                                            Default empty array.
-	 * @param array|null  $generation_definitions Optional. The defaults. Default null.
-	 * @param array|null  $callbacks              Optional. Array with callbacks to apply on the fields.
-	 *                                            Default null.
+	 * @param array                     $args                   Optional. The arguments to combine with
+	 *                                                          defaults. Default empty array.
+	 * @param array<string, mixed>|null $generation_definitions Optional. The defaults. Default null.
+	 * @param array|null                $callbacks              Optional. Array with callbacks to apply on
+	 *                                                          the fields. Default null.
 	 *
 	 * @return array The combined array.
 	 * @throws WP_UnitTest_Factory_Exception When a default value is neither a scalar nor a generator object.
