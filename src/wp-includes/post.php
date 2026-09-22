@@ -6356,15 +6356,23 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
 /**
  * Retrieves a page given its path.
  *
+ * When multiple pages match, publicly viewable statuses take precedence. A single
+ * requested post type still takes precedence over the attachment fallback.
+ *
  * @since 2.1.0
+ * @since 7.2.0 Added the `$post_status` parameter and preference for viewable statuses.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string       $page_path Page path.
- * @param string       $output    Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
- *                                correspond to a WP_Post object, an associative array, or a numeric array,
- *                                respectively. Default OBJECT.
- * @param string|array $post_type Optional. Post type or array of post types. Default 'page'.
+ * @param string          $page_path   Page path.
+ * @param string          $output      Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                    correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                    respectively. Default OBJECT.
+ * @param string|string[] $post_type   Optional. Post type or array of post types. Default 'page'.
+ * @param string|string[] $post_status Optional. Post status, comma-separated statuses, or an array of statuses.
+ *                                    Only the matching page is filtered, not its ancestors. Attachments can also
+ *                                    match their inherited status. Accepts 'any' for statuses not excluded from
+ *                                    search. Default empty string, which does not filter by status.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  *
  * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
@@ -6377,12 +6385,17 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
  *     )
  * )
  */
-function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
+function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page', $post_status = '' ) {
 	global $wpdb;
+
+	$post_status = wp_parse_list( $post_status );
+	if ( in_array( 'any', $post_status, true ) ) {
+		$post_status = array_merge( $post_status, get_post_stati( array( 'exclude_from_search' => false ) ) );
+	}
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
-	$hash      = md5( $page_path . serialize( $post_type ) );
+	$hash      = md5( $page_path . serialize( $post_type ) . serialize( $post_status ) );
 	$cache_key = "get_page_by_path:$hash";
 	$cached    = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $cached ) {
@@ -6412,20 +6425,31 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	$post_types          = esc_sql( $post_types );
 	$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
 	$sql                 = "
-		SELECT ID, post_name, post_parent, post_type
+		SELECT ID, post_name, post_parent, post_type, post_status
 		FROM $wpdb->posts
 		WHERE post_name IN ($in_string)
 		AND post_type IN ($post_type_in_string)
 	";
 
-	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string }> $pages */
+	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string, post_status: string }> $pages */
 	$pages = $wpdb->get_results( $sql, OBJECT_K ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The escaping has been applied above via esc_sql().
 
 	$revparts = array_reverse( $parts );
 
-	$found_id = 0;
+	$found_id          = 0;
+	$found_type_rank   = 0;
+	$found_status_rank = 0;
 	foreach ( (array) $pages as $page ) {
 		if ( $page->post_name === $revparts[0] ) {
+			// Keep all ancestors available even when only the leaf must have a requested status.
+			if ( $post_status && ! in_array( $page->post_status, $post_status, true ) ) {
+				if ( 'attachment' !== $page->post_type || 'inherit' !== $page->post_status
+					|| ! in_array( get_post_status( (int) $page->ID ), $post_status, true )
+				) {
+					continue;
+				}
+			}
+
 			$count = 0;
 			$p     = $page;
 
@@ -6446,9 +6470,19 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				&& count( $revparts ) === $count + 1
 				&& $p->post_name === $revparts[ $count ]
 			) {
-				$found_id = $page->ID;
-				if ( $page->post_type === $post_type ) {
-					break;
+				if ( is_array( $post_type ) ) {
+					$is_type_match = in_array( $page->post_type, $post_type, true );
+				} else {
+					$is_type_match = ( $page->post_type === $post_type );
+				}
+
+				$type_rank   = $is_type_match ? 2 : 1;
+				$status_rank = is_post_status_viewable( $page->post_status ) ? 2 : 1;
+
+				if ( $type_rank > $found_type_rank || ( $type_rank === $found_type_rank && $status_rank > $found_status_rank ) ) {
+					$found_id          = $page->ID;
+					$found_type_rank   = $type_rank;
+					$found_status_rank = $status_rank;
 				}
 			}
 		}

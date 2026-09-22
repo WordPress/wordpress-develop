@@ -1072,13 +1072,22 @@ class WP_Query {
 			}
 		}
 
+		if ( ! empty( $query_vars['post_status'] ) ) {
+			if ( is_array( $query_vars['post_status'] ) ) {
+				$query_vars['post_status'] = array_map( 'sanitize_key', array_unique( $query_vars['post_status'] ) );
+				sort( $query_vars['post_status'] );
+			} else {
+				$query_vars['post_status'] = preg_replace( '|[^a-z0-9_,-]|', '', $query_vars['post_status'] );
+			}
+		}
+
 		if ( '' !== $query_vars['pagename'] ) {
-			$this->queried_object = get_page_by_path( $query_vars['pagename'] );
+			$this->queried_object = get_page_by_path( $query_vars['pagename'], OBJECT, 'page', $query_vars['post_status'] ?? '' );
 
 			if ( $this->queried_object && 'attachment' === $this->queried_object->post_type ) {
 				if ( preg_match( '/^[^%]*%(?:postname)%/', get_option( 'permalink_structure' ) ) ) {
 					// See if we also have a post with the same slug.
-					$post = get_page_by_path( $query_vars['pagename'], OBJECT, 'post' );
+					$post = get_page_by_path( $query_vars['pagename'], OBJECT, 'post', $query_vars['post_status'] ?? '' );
 					if ( $post ) {
 						$this->queried_object = $post;
 						$this->is_page        = false;
@@ -1122,15 +1131,6 @@ class WP_Query {
 				sort( $query_vars['post_type'] );
 			} else {
 				$query_vars['post_type'] = sanitize_key( $query_vars['post_type'] );
-			}
-		}
-
-		if ( ! empty( $query_vars['post_status'] ) ) {
-			if ( is_array( $query_vars['post_status'] ) ) {
-				$query_vars['post_status'] = array_map( 'sanitize_key', array_unique( $query_vars['post_status'] ) );
-				sort( $query_vars['post_status'] );
-			} else {
-				$query_vars['post_status'] = preg_replace( '|[^a-z0-9_,-]|', '', $query_vars['post_status'] );
 			}
 		}
 
@@ -2160,33 +2160,52 @@ class WP_Query {
 			$query_vars['name'] = sanitize_title_for_query( $query_vars['name'] );
 			$where             .= " AND {$wpdb->posts}.post_name = '" . $query_vars['name'] . "'";
 		} elseif ( '' !== $query_vars['pagename'] ) {
+			// A hook may have changed the requested status after parse_query() resolved the path.
+			if ( $this->query_vars_changed && ! empty( $query_vars['post_status'] ) ) {
+				unset( $this->queried_object, $this->queried_object_id );
+			}
+
 			if ( isset( $this->queried_object_id ) ) {
 				$reqpage = $this->queried_object_id;
 			} else {
-				if ( 'page' !== $query_vars['post_type'] ) {
+				if ( ! in_array( $query_vars['post_type'], array( '', 'page', 'any' ), true ) ) {
 					foreach ( (array) $query_vars['post_type'] as $_post_type ) {
 						$ptype_obj = get_post_type_object( $_post_type );
 						if ( ! $ptype_obj || ! $ptype_obj->hierarchical ) {
 							continue;
 						}
 
-						$reqpage = get_page_by_path( $query_vars['pagename'], OBJECT, $_post_type );
+						$reqpage = get_page_by_path( $query_vars['pagename'], OBJECT, $_post_type, $query_vars['post_status'] ?? '' );
 						if ( $reqpage ) {
 							break;
 						}
 					}
 					unset( $ptype_obj );
 				} else {
-					$reqpage = get_page_by_path( $query_vars['pagename'] );
+					$reqpage = get_page_by_path( $query_vars['pagename'], OBJECT, 'page', $query_vars['post_status'] ?? '' );
 				}
 				if ( ! empty( $reqpage ) ) {
-					$reqpage = $reqpage->ID;
+					$this->queried_object    = $reqpage;
+					$this->queried_object_id = (int) $reqpage->ID;
+					$reqpage                 = $reqpage->ID;
 				} else {
 					$reqpage = 0;
 				}
 			}
 
 			$page_for_posts = get_option( 'page_for_posts' );
+			if ( $this->query_vars_changed && ! empty( $query_vars['post_status'] ) ) {
+				$this->is_privacy_policy = $reqpage && (int) get_option( 'wp_page_for_privacy_policy' ) === (int) $reqpage;
+				$is_posts_page           = $reqpage && 'page' === get_option( 'show_on_front' ) && (int) $page_for_posts === (int) $reqpage;
+				if ( $this->is_posts_page !== $is_posts_page ) {
+					$this->is_posts_page   = $is_posts_page;
+					$this->is_home         = $is_posts_page;
+					$this->is_page         = ! $is_posts_page;
+					$this->is_singular     = $this->is_single || $this->is_page || $this->is_attachment;
+					$this->is_comment_feed = $this->is_feed && ( ! empty( $query_vars['withcomments'] ) || ( empty( $query_vars['withoutcomments'] ) && $this->is_singular ) );
+				}
+			}
+
 			if ( ( 'page' !== get_option( 'show_on_front' ) ) || empty( $page_for_posts ) || ( $reqpage != $page_for_posts ) ) {
 				$query_vars['pagename'] = sanitize_title_for_query( wp_basename( $query_vars['pagename'] ) );
 				$query_vars['name']     = $query_vars['pagename'];
