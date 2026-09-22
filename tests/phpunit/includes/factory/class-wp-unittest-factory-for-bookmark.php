@@ -3,14 +3,7 @@
 /**
  * Factory for creating fixtures for the deprecated Links/Bookmarks API.
  *
- * Note: The below @method notations are defined solely for the benefit of IDEs,
- * as a way to indicate expected return values from the given factory methods.
- *
  * @since 4.6.0
- *
- * @method positive-int   create( $args = array(), $generation_definitions = null )
- * @method object         create_and_get( $args = array(), $generation_definitions = null )
- * @method positive-int[] create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 
