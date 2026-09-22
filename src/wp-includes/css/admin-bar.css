@@ -24,6 +24,11 @@ html {
 	-moz-osx-font-smoothing: auto; /* Prevent Firefox from inheriting from themes that use other values */
 }
 
+#wpadminbar svg * {
+	width: revert-layer;
+	height: revert-layer;
+}
+
 .rtl #wpadminbar * {
 	font-family: Tahoma, sans-serif;
 }
