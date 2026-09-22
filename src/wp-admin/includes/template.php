@@ -1996,10 +1996,23 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 	}
 
 	foreach ( $settings_errors as $key => $details ) {
-		$type = $details['type'];
+		// Backward compatibility for passed types that may wrongly contain `notice-`.
+		$type = str_replace( 'notice-', '', trim( $details['type'] ) );
 
 		if ( 'updated' === $type ) {
 			$type = 'success';
+		}
+
+		$additional_classes = array( 'settings-error' );
+
+		// Backward compatibility for types that are strings with spaces see Trac ticket #44941.
+		// For example, a string like `error my-own-css-class hello world`.
+		if ( str_contains( $type, ' ' ) ) {
+			// Use ths substrings as additional classes.
+			$additional_classes = explode( ' ', $type . ' settings-error' );
+			// Set the type to empty string.
+			$type = '';
+
 		}
 
 		/*
@@ -2021,7 +2034,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 				'id'                 => $css_id,
 				'paragraph_wrap'     => true,
 				'dismissible'        => true,
-				'additional_classes' => array( 'settings-error' ),
+				'additional_classes' => $additional_classes,
 			)
 		);
 	}

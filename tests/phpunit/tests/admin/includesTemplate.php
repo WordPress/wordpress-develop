@@ -442,7 +442,12 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 
 		$wp_settings_errors = null;
 
-		$expected = sprintf( 'notice %s settings-error is-dismissible', $expected );
+		if ( str_contains( $type, ' ' ) ) {
+			// Backward compatibility for types that are strings with spaces see Trac ticket #44941.
+			$expected = sprintf( 'notice is-dismissible %s settings-error', $expected );
+		} else {
+			$expected = sprintf( 'notice %s is-dismissible settings-error', $expected );
+		}
 
 		$this->assertStringContainsString( $expected, $output );
 		$this->assertStringNotContainsString( 'notice-notice-', $output );
