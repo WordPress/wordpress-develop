@@ -8,19 +8,19 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * The taxonomy this factory creates terms in, unless the args say otherwise.
 	 *
-	 * @var string
+	 * @var non-falsy-string
 	 */
-	private $taxonomy;
+	private string $taxonomy;
 
 	const DEFAULT_TAXONOMY = 'post_tag';
 
 	/**
-	 * @param object|null $factory  Optional. Global factory that can be used to create other
-	 *                              objects on the system. Default null.
-	 * @param string|null $taxonomy Optional. The taxonomy to create terms in.
-	 *                              Default self::DEFAULT_TAXONOMY.
+	 * @param object|null $factory            Optional. Global factory that can be used to create other
+	 *                                        objects on the system. Default null.
+	 * @param non-falsy-string|null $taxonomy Optional. The taxonomy to create terms in.
+	 *                                        Default self::DEFAULT_TAXONOMY.
 	 */
-	public function __construct( $factory = null, $taxonomy = null ) {
+	public function __construct( $factory = null, ?string $taxonomy = null ) {
 		parent::__construct( $factory );
 		$this->taxonomy                       = $taxonomy ? $taxonomy : self::DEFAULT_TAXONOMY;
 		$this->default_generation_definitions = array(
