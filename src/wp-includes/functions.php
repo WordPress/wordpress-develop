@@ -9389,35 +9389,6 @@ function wp_admin_notice( $message, $args = array() ) {
 }
 
 /**
- * Buffer all admin notices.
- *
- * @since 7.2.0
- */
-function wp_admin_notice_wrapper_start() {
-	ob_start();
-}
-
-/**
- * Outputs the buffered admin notices inside a wrapper.
- *
- * @since 7.2.0
- */
-function wp_admin_notice_wrapper() {
-	ob_start();
-	$all_notices = ob_get_clean();
-	if ( $all_notices ) {
-		$tags         = new WP_HTML_Tag_Processor( $all_notices );
-		$notice_count = 0;
-		while ( $tags->next_tag( '.notice' ) ) {
-			++$notice_count;
-		}
-		// translators: %d is the number of admin notices found.
-		echo '<aside id="wp-admin-notice-wrapper" aria-label="' . sprintf( _n( 'Notice (%d)', 'Notices (%d)', $notice_count ), $notice_count ) . '">' . $all_notices . '</aside>';
-		return;
-	}
-}
-
-/**
  * Checks if a mime type is for a HEIC/HEIF image.
  *
  * @since 6.7.0
