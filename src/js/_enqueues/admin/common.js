@@ -1084,7 +1084,11 @@ $( function() {
 	if ( ! $headerEnd.length ) {
 		$headerEnd = $( '.wrap h1, .wrap h2' ).first();
 	}
-	$( 'div.updated, div.error, div.notice' ).not( '.inline, .below-h2' ).insertAfter( $headerEnd );
+	var $notices = $( 'div.updated, div.error, div.notice' ).not( '.inline, .below-h2' );
+	if ( $notices.length ) {
+		var $wpAdminNotices = $( '<aside id="wp-admin-notices" aria-label="' + esc_attr__( 'Admin Notices' ) + '"></aside>' ).insertAfter( $headerEnd );
+		$notices.appendTo( $wpAdminNotices );
+	}
 
 	/**
 	 * Makes notices dismissible.
