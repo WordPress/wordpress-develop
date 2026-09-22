@@ -4511,7 +4511,9 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_hierarchical_modes
 	 *
-	 * @param string $hierarchical Value of the 'hierarchical' query var.
+	 * @param 'threaded'|'flat' $hierarchical Value of the 'hierarchical' query var.
+	 * 
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function test_fill_descendants_should_skip_cached_child_ids_that_no_longer_exist( string $hierarchical ): void {
 		global $wpdb;
