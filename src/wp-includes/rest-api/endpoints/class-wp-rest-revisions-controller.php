@@ -574,7 +574,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		// Map to proper WP_Query orderby param.
-		if ( isset( $query_args['orderby'] ) && isset( $request['orderby'] ) ) {
+		if ( isset( $query_args['orderby'], $request['orderby'] ) ) {
 			$orderby_mappings = array(
 				'id'            => 'ID',
 				'include'       => 'post__in',
