@@ -1009,8 +1009,9 @@ class WP_Debug_Data {
 		foreach ( $plugins as $plugin_path => $plugin ) {
 			$plugin_part = ( is_plugin_active( $plugin_path ) ) ? 'wp-plugins-active' : 'wp-plugins-inactive';
 
-			$plugin_version = $plugin['Version'];
-			$plugin_author  = $plugin['Author'];
+			$plugin_version      = $plugin['Version'];
+			$plugin_author       = $plugin['Author'];
+			$plugin_dependencies = $plugin['RequiresPlugins'];
 
 			$plugin_version_string       = __( 'No version or author information is available.' );
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
@@ -1076,6 +1077,12 @@ class WP_Debug_Data {
 					$auto_updates_string = __( 'Auto-updates disabled' );
 				}
 
+				if ( ! empty( $plugin_dependencies ) ) {
+					$plugin_dependencies_string = sprintf( __( 'Requires: %s' ), $plugin_dependencies );
+				} else {
+					$plugin_dependencies_string = __( 'No dependencies' );
+				}
+
 				/**
 				 * Filters the text string of the auto-updates setting for each plugin in the Site Health debug data.
 				 *
@@ -1088,8 +1095,8 @@ class WP_Debug_Data {
 				 */
 				$auto_updates_string = apply_filters( 'plugin_auto_update_debug_string', $auto_updates_string, $plugin_path, $plugin, $enabled );
 
-				$plugin_version_string       .= ' | ' . $auto_updates_string;
-				$plugin_version_string_debug .= ', ' . $auto_updates_string;
+				$plugin_version_string       .= ' | ' . $auto_updates_string . ' | ' . $plugin_dependencies_string;
+				$plugin_version_string_debug .= ', ' . $auto_updates_string . ', ' . $plugin_dependencies_string;
 			}
 
 			$fields[ $plugin_part ][ sanitize_text_field( $plugin['Name'] ) ] = array(
