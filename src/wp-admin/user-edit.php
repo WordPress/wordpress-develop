@@ -231,10 +231,11 @@ switch ( $action ) {
 					'id'                 => 'message',
 					'dismissible'        => true,
 					'additional_classes' => array( 'updated' ),
+					'attributes'         => array( 'role' => 'status' ),
 					'paragraph_wrap'     => false,
 				)
 			);
-		endif;
+	endif;
 
 		if ( isset( $_GET['error'] ) ) :
 			$message = '';
