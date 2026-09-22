@@ -31,7 +31,11 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * @return int|WP_Error The post ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
-		return wp_insert_post( $args, true );
+		$post_id = wp_insert_post( $args, true );
+
+		$this->assert_valid_object_id( $post_id, 'Unable to create the post' );
+
+		return $post_id;
 	}
 
 	/**
@@ -46,7 +50,12 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 */
 	public function update_object( $post_id, $fields ) {
 		$fields['ID'] = $post_id;
-		return wp_update_post( $fields, true );
+
+		$updated_id = wp_update_post( $fields, true );
+
+		$this->assert_valid_object_id( $updated_id, 'Unable to update the post' );
+
+		return $updated_id;
 	}
 
 	/**

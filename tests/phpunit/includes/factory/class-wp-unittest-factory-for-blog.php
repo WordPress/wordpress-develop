@@ -62,16 +62,30 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 		// Tell WP we're done installing.
 		wp_installing( false );
 
+		$this->assert_valid_object_id( $blog, 'Unable to create the site' );
+
 		return $blog;
 	}
 
 	/**
-	 * Updates a site object. Not implemented.
+	 * Updates a site object.
+	 *
+	 * Not implemented. This throws rather than doing nothing so that an after-create
+	 * callback, whose result create() feeds through here, cannot look as though it was
+	 * applied when nothing was written.
+	 *
+	 * @todo Implement via wp_update_site(), so that after-create callbacks work with this factory.
 	 *
 	 * @param int   $blog_id ID of the site to update.
-	 * @param array $fields  The fields to update.
+	 * @param array<mixed> $fields The fields to update.
+	 * @return never
+	 * @throws WP_UnitTest_Factory_Exception Always, since updating a site is not supported.
 	 */
-	public function update_object( $blog_id, $fields ) {}
+	public function update_object( $blog_id, $fields ) {
+		throw new WP_UnitTest_Factory_Exception(
+			'Updating a site is not implemented in ' . __CLASS__ . '.'
+		);
+	}
 
 	/**
 	 * Retrieves a site by a given ID.

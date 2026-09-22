@@ -49,9 +49,11 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * Creates an object and returns its ID.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args The arguments.
-	 * @return int|WP_Error The object ID on success, WP_Error object on failure.
+	 * @return positive-int The object ID.
+	 * @throws WP_UnitTest_Factory_Exception When the object could not be created.
 	 */
 	abstract public function create_object( $args );
 
@@ -59,10 +61,12 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * Updates an existing object.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int   $object_id The object ID.
 	 * @param array $fields    The values to update.
-	 * @return int|WP_Error The object ID on success, WP_Error object on failure.
+	 * @return positive-int The object ID.
+	 * @throws WP_UnitTest_Factory_Exception When the object could not be updated.
 	 */
 	abstract public function update_object( $object_id, $fields );
 
@@ -86,13 +90,10 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		$generated_args = $this->generate_args( $args, $generation_definitions, $callbacks );
 		$object_id      = $this->create_object( $generated_args );
 
-		$this->assert_valid_object_id( $object_id, 'Unable to create the object' );
-
 		if ( $callbacks ) {
 			$updated_fields = $this->apply_callbacks( $callbacks, $object_id );
-			$save_result    = $this->update_object( $object_id, $updated_fields );
 
-			$this->assert_valid_object_id( $save_result, 'Unable to update the object after creation' );
+			$this->update_object( $object_id, $updated_fields );
 		}
 
 		return $object_id;

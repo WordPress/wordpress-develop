@@ -61,7 +61,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 */
 	public function test_create_should_throw_an_exception_when_a_wp_error_is_returned() {
 		$this->expectException( WP_UnitTest_Factory_Exception::class );
-		$this->expectExceptionMessage( 'Unable to create the object: Invalid date.' );
+		$this->expectExceptionMessage( 'Unable to create the post: Invalid date.' );
 
 		self::factory()->post->create( array( 'post_date' => '2020-12-41 14:15:27' ) );
 	}
@@ -327,6 +327,56 @@ class TestFactoryFor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * wp_update_comment() reports the number of affected rows, which is zero when the callback
+	 * writes back a value the row already holds. That is a successful no-op, not a failure.
+	 *
+	 * @ticket 66111
+	 */
+	public function test_comment_factory_should_apply_an_after_create_callback_that_changes_nothing() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::factory()->post->create(),
+				'comment_author'  => 'Unchanged author',
+			),
+			array(
+				'comment_content' => new WP_UnitTest_Factory_Callback_After_Create(
+					static function ( int $created_id ) {
+						$comment = get_comment( $created_id );
+
+						return $comment instanceof WP_Comment ? $comment->comment_content : null;
+					}
+				),
+			)
+		);
+
+		$this->assertGreaterThan( 0, $comment_id );
+	}
+
+	/**
+	 * @ticket 66111
+	 *
+	 * @group ms-required
+	 */
+	public function test_blog_factory_update_object_should_throw_because_it_is_not_implemented() {
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( 'Updating a site is not implemented' );
+
+		self::factory()->blog->update_object( 1, array( 'domain' => 'example.org' ) );
+	}
+
+	/**
+	 * @ticket 66111
+	 *
+	 * @group ms-required
+	 */
+	public function test_network_factory_update_object_should_throw_because_it_is_not_implemented() {
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( 'Updating a network is not implemented' );
+
+		self::factory()->network->update_object( 1, array( 'domain' => 'example.org' ) );
+	}
+
+	/**
 	 * @ticket 66111
 	 */
 	public function test_create_many_should_return_an_array_of_ids() {
@@ -468,7 +518,11 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 	 * @return int|WP_Error The configured result.
 	 */
 	public function create_object( $args ) {
-		return $this->create_object_result;
+		$object_id = $this->create_object_result;
+
+		$this->assert_valid_object_id( $object_id, 'Unable to create the object' );
+
+		return $object_id;
 	}
 
 	/**
@@ -479,7 +533,11 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 	public function update_object( $object_id, $fields ) {
 		$this->updated_fields = $fields;
 
-		return $this->update_object_result;
+		$updated_id = $this->update_object_result;
+
+		$this->assert_valid_object_id( $updated_id, 'Unable to update the object after creation' );
+
+		return $updated_id;
 	}
 
 	/**

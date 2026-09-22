@@ -28,7 +28,11 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * @return int|WP_Error The user ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
-		return wp_insert_user( $args );
+		$user_id = wp_insert_user( $args );
+
+		$this->assert_valid_object_id( $user_id, 'Unable to create the user' );
+
+		return $user_id;
 	}
 
 	/**
@@ -42,7 +46,12 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 */
 	public function update_object( $user_id, $fields ) {
 		$fields['ID'] = $user_id;
-		return wp_update_user( $fields );
+
+		$updated_id = wp_update_user( $fields );
+
+		$this->assert_valid_object_id( $updated_id, 'Unable to update the user' );
+
+		return $updated_id;
 	}
 
 	/**

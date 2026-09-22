@@ -25,7 +25,11 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * @return int|WP_Error The link ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
-		return wp_insert_link( $args, true );
+		$link_id = wp_insert_link( $args, true );
+
+		$this->assert_valid_object_id( $link_id, 'Unable to create the link' );
+
+		return $link_id;
 	}
 
 	/**
@@ -43,9 +47,7 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 
 		$result = wp_update_link( $fields );
 
-		if ( 0 === $result ) {
-			return new WP_Error( 'link_update_error', __( 'Could not update link.' ) );
-		}
+		$this->assert_valid_object_id( $result, 'Unable to update the link' );
 
 		return $result;
 	}

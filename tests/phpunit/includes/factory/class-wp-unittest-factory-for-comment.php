@@ -37,12 +37,14 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 		$comment_id = wp_insert_comment( $this->addslashes_deep( $args ) );
 
 		if ( false === $comment_id ) {
-			return new WP_Error(
+			$comment_id = new WP_Error(
 				'db_insert_error',
 				__( 'Could not insert comment into the database.' ),
 				$wpdb->last_error
 			);
 		}
+
+		$this->assert_valid_object_id( $comment_id, 'Unable to create the comment' );
 
 		return $comment_id;
 	}
@@ -60,7 +62,16 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 */
 	public function update_object( $comment_id, $fields ) {
 		$fields['comment_ID'] = $comment_id;
-		return wp_update_comment( $this->addslashes_deep( $fields ), true );
+
+		$result = wp_update_comment( $this->addslashes_deep( $fields ), true );
+
+		// wp_update_comment() reports the number of affected rows, which is 0 when the values
+		// written match what the row already held. Only a WP_Error means the update failed.
+		$outcome = is_wp_error( $result ) ? $result : $comment_id;
+
+		$this->assert_valid_object_id( $outcome, 'Unable to update the comment' );
+
+		return $comment_id;
 	}
 
 	/**

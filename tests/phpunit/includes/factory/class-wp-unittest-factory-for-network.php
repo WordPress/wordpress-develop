@@ -48,22 +48,34 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 			$args['subdomain_install']
 		);
 
-		if ( is_wp_error( $result ) ) {
-			return $result;
-		}
+		$network_id = is_wp_error( $result ) ? $result : (int) $args['network_id'];
 
-		return (int) $args['network_id'];
+		$this->assert_valid_object_id( $network_id, 'Unable to create the network' );
+
+		return $network_id;
 	}
 
 	/**
-	 * Updates a network object. Not implemented.
+	 * Updates a network object.
+	 *
+	 * Not implemented. This throws rather than doing nothing so that an after-create
+	 * callback, whose result create() feeds through here, cannot look as though it was
+	 * applied when nothing was written.
+	 *
+	 * @todo Implement via a direct update of the site table, so that after-create callbacks work with this factory.
 	 *
 	 * @since 3.9.0
 	 *
 	 * @param int   $network_id ID of the network to update.
-	 * @param array $fields  The fields to update.
+	 * @param array<mixed> $fields The fields to update.
+	 * @return never
+	 * @throws WP_UnitTest_Factory_Exception Always, since updating a network is not supported.
 	 */
-	public function update_object( $network_id, $fields ) {}
+	public function update_object( $network_id, $fields ) {
+		throw new WP_UnitTest_Factory_Exception(
+			'Updating a network is not implemented in ' . __CLASS__ . '.'
+		);
+	}
 
 	/**
 	 * Retrieves a network by a given ID.

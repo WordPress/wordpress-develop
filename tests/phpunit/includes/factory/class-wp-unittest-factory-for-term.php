@@ -41,12 +41,11 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	public function create_object( $args ) {
 		$args         = array_merge( array( 'taxonomy' => $this->taxonomy ), $args );
 		$term_id_pair = wp_insert_term( $args['name'], $args['taxonomy'], $args );
+		$term_id      = is_wp_error( $term_id_pair ) ? $term_id_pair : $term_id_pair['term_id'];
 
-		if ( is_wp_error( $term_id_pair ) ) {
-			return $term_id_pair;
-		}
+		$this->assert_valid_object_id( $term_id, 'Unable to create the term' );
 
-		return $term_id_pair['term_id'];
+		return $term_id;
 	}
 
 	/**
@@ -66,12 +65,11 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 		$taxonomy = is_object( $term ) ? $term->taxonomy : $fields['taxonomy'];
 
 		$term_id_pair = wp_update_term( $term, $taxonomy, $fields );
+		$term_id      = is_wp_error( $term_id_pair ) ? $term_id_pair : $term_id_pair['term_id'];
 
-		if ( is_wp_error( $term_id_pair ) ) {
-			return $term_id_pair;
-		}
+		$this->assert_valid_object_id( $term_id, 'Unable to update the term' );
 
-		return $term_id_pair['term_id'];
+		return $term_id;
 	}
 
 	/**

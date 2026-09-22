@@ -38,7 +38,11 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 			$args
 		);
 
-		return wp_insert_attachment( $r, $r['file'], $r['post_parent'], true );
+		$attachment_id = wp_insert_attachment( $r, $r['file'], $r['post_parent'], true );
+
+		$this->assert_valid_object_id( $attachment_id, 'Unable to create the attachment' );
+
+		return $attachment_id;
 	}
 
 	/**
