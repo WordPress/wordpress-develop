@@ -6,9 +6,9 @@
  * Note: The below @method notations are defined solely for the benefit of IDEs,
  * as a way to indicate expected return values from the given factory methods.
  *
- * @method int          create( $args = array(), $generation_definitions = null )
- * @method WP_Term|null create_and_get( $args = array(), $generation_definitions = null )
- * @method int[]        create_many( $count, $args = array(), $generation_definitions = null )
+ * @method positive-int   create( $args = array(), $generation_definitions = null )
+ * @method WP_Term        create_and_get( $args = array(), $generation_definitions = null )
+ * @method positive-int[] create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 
@@ -98,10 +98,10 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param array $args                   Array or string of arguments for inserting a term.
 	 * @param null  $generation_definitions The default values.
-	 * @return WP_Term|null WP_Term on success. Null for miscellaneous failure.
+	 * @return WP_Term Term object.
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be created or retrieved.
 	 */
-	public function create_and_get( $args = array(), $generation_definitions = null ) {
+	public function create_and_get( $args = array(), $generation_definitions = null ): WP_Term {
 		$term_id = $this->create( $args, $generation_definitions );
 
 		$taxonomy = $args['taxonomy'] ?? $this->taxonomy;
@@ -110,7 +110,11 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 
 		if ( is_wp_error( $term ) ) {
 			throw new WP_UnitTest_Factory_Exception(
-				sprintf( 'Unable to retrieve the term with ID %d: %s', $term_id, $term->get_error_message() )
+				sprintf( 'Unable to retrieve the term with ID %d: %s. Args: %s', $term_id, $term->get_error_message(), wp_json_encode( $args ) )
+			);
+		} elseif ( ! ( $term instanceof WP_Term ) ) {
+			throw new WP_UnitTest_Factory_Exception(
+				sprintf( 'Unable to retrieve the term with ID %d. Args: %s', $term_id, wp_json_encode( $args ) )
 			);
 		}
 

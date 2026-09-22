@@ -60,7 +60,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @param null  $generation_definitions Optional. The default values for the object.
 	 *                                      Default null.
 	 *
-	 * @return int The object ID.
+	 * @return positive-int The object ID.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created.
 	 */
 	public function create( $args = array(), $generation_definitions = null ) {
@@ -101,7 +101,11 @@ abstract class WP_UnitTest_Factory_For_Thing {
 
 		if ( is_wp_error( $object ) ) {
 			throw new WP_UnitTest_Factory_Exception(
-				sprintf( 'Unable to retrieve the object with ID %d: %s', $object_id, $object->get_error_message() )
+				sprintf( 'Unable to retrieve the object with ID %d: %s. Args: %s', $object_id, $object->get_error_message(), wp_json_encode( $args ) )
+			);
+		} elseif ( ! is_object( $object ) ) {
+			throw new WP_UnitTest_Factory_Exception(
+				sprintf( 'Unable to retrieve the object with ID %d. Args: %s', $object_id, wp_json_encode( $args ) )
 			);
 		}
 
@@ -129,7 +133,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @param null  $generation_definitions Optional. The default values for the object.
 	 *                                      Default null.
 	 *
-	 * @return int[] An array of object IDs.
+	 * @return positive-int[] An array of object IDs.
 	 * @throws WP_UnitTest_Factory_Exception When one of the objects could not be created.
 	 */
 	public function create_many( $count, $args = array(), $generation_definitions = null ) {
@@ -231,11 +235,11 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param int|WP_Error|false $object_id The value returned by create_object() or update_object().
-	 * @param string             $message   The message to use when the value is falsy.
+	 * @param mixed  $object_id The value returned by create_object() or update_object().
+	 * @param string $message   The message to use when the value is not a valid ID.
 	 * @return void
-	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object or falsy.
-	 * @phpstan-assert int $object_id
+	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object or not a positive integer.
+	 * @phpstan-assert int<1, max> $object_id
 	 */
 	protected function assert_valid_object_id( $object_id, string $message ): void {
 		if ( is_wp_error( $object_id ) ) {
@@ -244,7 +248,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 			);
 		}
 
-		if ( ! $object_id ) {
+		if ( ! is_int( $object_id ) || $object_id <= 0 ) {
 			throw new WP_UnitTest_Factory_Exception( $message );
 		}
 	}
