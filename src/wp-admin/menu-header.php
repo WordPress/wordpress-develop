@@ -290,7 +290,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 	echo '<li id="collapse-menu" class="hide-if-no-js">' .
 		'<button type="button" id="collapse-button" aria-label="' . esc_attr__( 'Collapse Main Menu' ) . '" aria-expanded="true">' .
-		'<span class="collapse-button-icon" aria-hidden="true">' . wp_get_icon( 'core/chevron-left' ) . '</span>' .
+		'<span class="collapse-button-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/chevron-left' ) . '</span>' .
 		'<span class="collapse-button-label">' . __( 'Collapse Menu' ) . '</span>' .
 		'</button></li>';
 }
