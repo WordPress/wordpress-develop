@@ -1099,8 +1099,12 @@ figcaption,
   word-break: break-word;
 }
 
+.wp-block-pullquote blockquote p {
+  color: inherit;
+}
+
 .wp-block-pullquote:not(.is-style-solid-color) .wp-block-pullquote__citation {
-  color: #767676;
+  color: inherit;
 }
 
 .wp-block-pullquote.has-text-color .wp-block-pullquote__citation,
