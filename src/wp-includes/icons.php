@@ -99,6 +99,7 @@ function _wp_register_default_icon_collections() {
 		array(
 			'label'       => __( 'WordPress Admin' ),
 			'description' => __( 'Icon collection used by the WordPress admin interface.' ),
+			'public'      => false,
 		)
 	);
 }
@@ -107,7 +108,7 @@ function _wp_register_default_icon_collections() {
  * Registers the default core icons from the manifest.
  *
  * Icons flagged as `admin` in the manifest are also registered in the "core-admin"
- * collection, always as non-public icons there.
+ * collection, which is not public.
  *
  * @since 7.1.0
  * @access private
@@ -155,7 +156,6 @@ function _wp_register_default_icons() {
 		wp_register_icon( 'core/' . $icon_name, $icon_args );
 
 		if ( ! empty( $icon_data['admin'] ) ) {
-			$icon_args['public'] = false;
 			wp_register_icon( 'core-admin/' . $icon_name, $icon_args );
 		}
 	}
