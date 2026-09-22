@@ -967,3 +967,40 @@ function wp_count_sites( $network_id = null ) {
 
 	return $counts;
 }
+
+/**
+ * Calls a function in the context of a specific blog in a multisite installation.
+ *
+ * @since 6.8.0
+ *
+ * @param int      $blog_id  The ID of the blog to switch to.
+ * @param callable $callback The function to call in the context of the specified blog.
+ * @param mixed    ...$args  Optional arguments to pass to the callback function.
+ * @return mixed The return value of the callback function. False on failure.
+ */
+function call_for_blog( $blog_id, $callback, ...$args ) {
+	if ( ! is_callable( $callback ) ) {
+		return false;
+	}
+
+	if ( ! is_multisite() || ! $blog_id || get_current_blog_id() === $blog_id ) {
+		return $callback( ...$args );
+	}
+
+	if ( ! get_site( $blog_id ) ) {
+		return false;
+	}
+
+	try {
+		$switched = switch_to_blog( $blog_id );
+		if ( ! $switched ) {
+			return false;
+		}
+
+		return $callback( ...$args );
+	} finally {
+		if ( $switched ) {
+			restore_current_blog();
+		}
+	}
+}
