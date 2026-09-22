@@ -47,7 +47,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 
 		$this->assertSame( 'wp_navigation', $data->post_type, 'Fallback menu type should be `wp_navigation`' );
 
-		$this->assertSame( 'Navigation', $data->post_title, 'Fallback menu title should be the default fallback title' );
+		$this->assertSame( 'Main', $data->post_title, 'Fallback menu title should be the default fallback title' );
 
 		$this->assertSame( 'navigation', $data->post_name, 'Fallback menu slug (post_name) should be the default slug' );
 
@@ -113,7 +113,7 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Post', $data, 'Response should be of the correct type.' );
 
-		$this->assertSame( 'Navigation', $data->post_title, 'Fallback menu title should be the default title' );
+		$this->assertSame( 'Main', $data->post_title, 'Fallback menu title should be the default title' );
 
 		$navs_in_db = $this->get_navigations_in_database();
 
