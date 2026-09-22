@@ -64,21 +64,12 @@ class Tests_Multisite_UpdateBlogStatus extends WP_UnitTestCase {
 
 		update_blog_status( $spam_blog_id, 'spam', 1 );
 
-		add_filter(
-			'pre_http_request',
-			static function () {
-				return array(
-					'headers'  => array(),
-					'body'     => '',
-					'response' => array(
-						'code'    => 404,
-						'message' => 'Not Found',
-					),
-					'cookies'  => array(),
-					'filename' => null,
-				);
-			}
-		);
+		/*
+		 * The local oEmbed lookup returns nothing for a spam site, so WP_oEmbed::discover()
+		 * would fetch the permalink over HTTP. Switch discovery off to keep the test
+		 * off the network.
+		 */
+		add_filter( 'embed_oembed_discover', '__return_false' );
 
 		$post_id = self::factory()->post->create(
 			array(
