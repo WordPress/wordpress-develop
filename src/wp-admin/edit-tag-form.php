@@ -144,12 +144,14 @@ $tag_name_value = '';
 if ( isset( $tag->name ) ) {
 	$tag_name_value = esc_attr( $tag->name );
 }
+$name_error = wp_get_form_error( 'name' );
 ?>
 	<table class="form-table" role="presentation">
-		<tr class="form-field form-required term-name-wrap">
+		<tr class="form-field form-required term-name-wrap<?php echo $name_error ? ' form-invalid' : ''; ?>">
 			<th scope="row"><label for="name"><?php _ex( 'Name', 'term name' ); ?></label></th>
-			<td><input name="name" id="name" type="text" value="<?php echo $tag_name_value; ?>" size="40" aria-required="true" aria-describedby="name-description" />
-			<p class="description" id="name-description"><?php echo $tax->labels->name_field_description; ?></p></td>
+			<td><input name="name" id="name" type="text" value="<?php echo $tag_name_value; ?>" size="40" aria-required="true" aria-describedby="name-description<?php echo $name_error ? ' name-error' : ''; ?>"<?php echo $name_error ? ' aria-invalid="true"' : ''; ?> />
+			<p class="description" id="name-description"><?php echo $tax->labels->name_field_description; ?></p>
+			<?php wp_render_form_error( 'name' ); ?></td>
 		</tr>
 		<tr class="form-field term-slug-wrap">
 			<th scope="row"><label for="slug"><?php _e( 'Slug' ); ?></label></th>
