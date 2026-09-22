@@ -1305,6 +1305,24 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		}
 
 		/**
+		 * Indicates if a given string contains text that would parse as a block delimiter.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string $text Does a block comment delimiter exist in this string value?
+		 * @return bool Whether a block comment delimiter of any kind was found in the given string.
+		 */
+		private static function contains_a_block_delimiter( string $text ): bool {
+			if ( '' === $text ) {
+				return false;
+			}
+
+			$processor = new WP_Block_Processor( $text );
+
+			return $processor->next_delimiter();
+		}
+
+		/**
 		 * Returns a sanitized copy of the input HTML.
 		 *
 		 * @return string Sanitized copy of given input HTML.
@@ -1593,7 +1611,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
-						if ( $is_in_text_integration_point ) {
+						if (
+							$is_in_text_integration_point ||
+							self::contains_a_block_delimiter( $text )
+						) {
 							/*
 							 * As of the writing of this code, Chrome 153.0.8010.48 and Safari 26.6.1
 							 * both incorrectly treat the CDATA section inside a MathML integration
@@ -1798,7 +1819,24 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						if ( $is_special_atomic_element ) {
-							$tag_maker->set_modifiable_text( $text );
+							$rawtext_elements = array(
+								'IFRAME',
+								'NOEMBED',
+								'NOFRAMES',
+								'STYLE',
+								'XMP',
+							);
+
+							/**
+							 * Reject updates containing a block comment delimiter from RAWTEXT nodes,
+							 * since those do not escape their text. RCDATA elements escape syntax and
+							 * so are benign to pass through to {@see self::set_modifiable_text()}.
+							 */
+							if ( in_array( $token_name, $rawtext_elements, true ) && self::contains_a_block_delimiter( $text ) ) {
+								$tag_maker->set_modifiable_text( '' );
+							} else {
+								$tag_maker->set_modifiable_text( $text );
+							}
 						}
 
 						$output .= $tag_maker->get_updated_html();
