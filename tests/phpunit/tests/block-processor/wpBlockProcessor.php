@@ -372,9 +372,9 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @covers ::next_token()
 	 *
-	 * @param string      $html        Input document.
-	 * @param string[]    $block_types Printable block type of every delimiter in the document, in order.
-	 * @param string|null $last_error  Expected error after scanning the entire document.
+	 * @param non-falsy-string                          $html        Input document.
+	 * @param list<non-falsy-string>                    $block_types Printable block type of every delimiter in the document, in order.
+	 * @param WP_Block_Processor::INCOMPLETE_INPUT|null $last_error  Expected error after scanning the entire document.
 	 */
 	public function test_reports_no_delimiter_for_partial_delimiter_at_end_of_document( string $html, array $block_types, ?string $last_error ): void {
 		$processor = new WP_Block_Processor( $html );
@@ -400,7 +400,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: string[], 2: string|null}>
+	 * @return array<non-falsy-string, array{0: non-falsy-string, 1: list<non-falsy-string>, 2: WP_Block_Processor::INCOMPLETE_INPUT|null}>
 	 */
 	public static function data_documents_ending_in_a_partial_delimiter(): array {
 		return array(
