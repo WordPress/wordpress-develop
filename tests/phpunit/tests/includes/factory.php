@@ -14,18 +14,18 @@ class TestFactoryFor extends WP_UnitTestCase {
 
 	public function test_create_creates_a_category() {
 		$id = $this->category_factory->create();
-		$this->assertInstanceOf( 'WP_Term', get_term_by( 'id', $id, 'category' ) );
+		$this->assertInstanceOf( WP_Term::class, get_term_by( 'id', $id, 'category' ) );
 	}
 
 	public function test_get_object_by_id_gets_an_object() {
 		$id = $this->category_factory->create();
-		$this->assertInstanceOf( 'WP_Term', $this->category_factory->get_object_by_id( $id ) );
+		$this->assertInstanceOf( WP_Term::class, $this->category_factory->get_object_by_id( $id ) );
 	}
 
 	public function test_get_object_by_id_gets_an_object_with_the_same_name() {
 		$id     = $this->category_factory->create( array( 'name' => 'Boo' ) );
 		$object = $this->category_factory->get_object_by_id( $id );
-		$this->assertInstanceOf( 'WP_Term', $object );
+		$this->assertInstanceOf( WP_Term::class, $object );
 		$this->assertSame( 'Boo', $object->name );
 	}
 
@@ -33,7 +33,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 		$term_factory = new WP_UnitTest_Factory_For_Term( self::factory(), 'category' );
 		$id           = $term_factory->create( array( 'taxonomy' => 'post_tag' ) );
 		$term         = get_term( $id, 'post_tag' );
-		$this->assertInstanceOf( 'WP_Term', $term );
+		$this->assertInstanceOf( WP_Term::class, $term );
 		$this->assertSame( $id, $term->term_id );
 	}
 
@@ -199,11 +199,11 @@ class TestFactoryFor extends WP_UnitTestCase {
 	public function test_get_object_by_id_should_return_the_object_type_of_the_factory() {
 		$factory = self::factory();
 
-		$this->assertInstanceOf( 'WP_Post', $factory->post->get_object_by_id( $factory->post->create() ) );
-		$this->assertInstanceOf( 'WP_Comment', $factory->comment->get_object_by_id( $factory->comment->create() ) );
-		$this->assertInstanceOf( 'WP_Term', $factory->term->get_object_by_id( $factory->term->create() ) );
-		$this->assertInstanceOf( 'WP_User', $factory->user->get_object_by_id( $factory->user->create() ) );
-		$this->assertInstanceOf( 'stdClass', $factory->bookmark->get_object_by_id( $factory->bookmark->create() ) );
+		$this->assertInstanceOf( WP_Post::class, $factory->post->get_object_by_id( $factory->post->create() ) );
+		$this->assertInstanceOf( WP_Comment::class, $factory->comment->get_object_by_id( $factory->comment->create() ) );
+		$this->assertInstanceOf( WP_Term::class, $factory->term->get_object_by_id( $factory->term->create() ) );
+		$this->assertInstanceOf( WP_User::class, $factory->user->get_object_by_id( $factory->user->create() ) );
+		$this->assertInstanceOf( stdClass::class, $factory->bookmark->get_object_by_id( $factory->bookmark->create() ) );
 	}
 
 	/**
@@ -261,7 +261,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	public function test_user_factory_get_object_by_id_should_not_throw_for_an_unknown_id() {
 		$user = self::factory()->user->get_object_by_id( 987654321 );
 
-		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertInstanceOf( WP_User::class, $user );
 		$this->assertFalse( $user->exists() );
 	}
 
@@ -274,7 +274,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	public function test_term_factory_create_and_get_should_honor_the_taxonomy_argument() {
 		$term = $this->category_factory->create_and_get( array( 'taxonomy' => 'post_tag' ) );
 
-		$this->assertInstanceOf( 'WP_Term', $term );
+		$this->assertInstanceOf( WP_Term::class, $term );
 		$this->assertSame( 'post_tag', $term->taxonomy );
 	}
 
