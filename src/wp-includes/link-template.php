@@ -2015,9 +2015,12 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	$query        = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
 	$key          = md5( $query );
-	$last_changed = (array) wp_cache_get_last_changed( 'posts' );
+	$last_changed = (array) wp_cache_get_last_changed( 'post-queries' );
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
-		$last_changed[] = wp_cache_get_last_changed( 'terms' );
+		$last_changed[] = wp_cache_get_last_changed( 'term-queries' );
+	}
+	if ( str_contains( $query, $wpdb->postmeta ) ) {
+		$last_changed[] = wp_cache_get_last_changed( 'post-meta' );
 	}
 	$cache_key = "adjacent_post:$key";
 
