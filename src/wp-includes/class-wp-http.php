@@ -214,13 +214,11 @@ class WP_Http {
 	 *
 	 * @see WP_Http::request() For the accepted request arguments and the response format.
 	 *
-	 * @param array $requests {
-	 *     Requests to send, keyed by an identifier of the caller's choosing. Each request is
-	 *     either a URL string, for a GET request with the default arguments, or an array:
-	 *
-	 *     @type string       $url  The request URL.
-	 *     @type string|array $args Optional. Request arguments. See WP_Http::request().
-	 * }
+	 * @param array $requests Requests to send, keyed by an identifier of the caller's choosing.
+	 *                        Each request is either a URL string, for a GET request with the
+	 *                        default arguments, or an array with the request URL under 'url'
+	 *                        and, optionally, the request arguments under 'args'.
+	 *                        See WP_Http::request() for the accepted request arguments.
 	 * @param array $options {
 	 *     Optional. Options that apply to the batch of requests.
 	 *
@@ -288,11 +286,11 @@ class WP_Http {
 
 				try {
 					$results = WpOrg\Requests\Requests::request_multiple( $batch_requests );
-				} catch ( WpOrg\Requests\Exception $e ) {
+				} catch ( Exception $e ) {
 					/*
-					 * The batch could not be sent at all, for example because one of the URLs
-					 * is not an HTTP(S) URL. Send its requests one by one instead, so that each
-					 * of them gets its own response or error.
+					 * The batch could not be sent at all, for example because the Requests
+					 * library rejected one of the URLs while building it. Send its requests
+					 * one by one instead, so that each of them gets its own response or error.
 					 */
 					$results = array();
 
@@ -356,8 +354,9 @@ class WP_Http {
 	 *     @type string         $type     Request method.
 	 *     @type array          $options  Options for the Requests library.
 	 *     @type array          $args     The parsed request arguments, after the 'http_request_args' filter.
-	 *     @type array|WP_Error $response The response returned by the 'pre_http_request' filter, if any.
+	 *     @type array|WP_Error $response Optional. The response returned by the 'pre_http_request' filter.
 	 * }
+	 * @phpstan-return array{url: string, headers: array, data: mixed, type: string, options: array, args: array}|array{response: array|WP_Error}|WP_Error
 	 */
 	protected function prepare_request( $url, $args = array() ) {
 		$defaults = array(
