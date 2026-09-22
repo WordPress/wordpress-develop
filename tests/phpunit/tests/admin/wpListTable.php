@@ -612,18 +612,20 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 * @covers WP_List_Table::_js_vars
 	 */
 	public function test_js_vars_prints_inline_script_tag_with_filterable_attributes() {
-		$add_nonce = static function ( $attributes ) {
-			$attributes['nonce'] = 'test-list-table-nonce';
-			return $attributes;
-		};
-		add_filter( 'wp_inline_script_attributes', $add_nonce );
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'test-list-table-nonce';
+				return $attributes;
+			}
+		);
 
 		$actual = get_echo( array( $this->list_table, '_js_vars' ) );
 
-		remove_filter( 'wp_inline_script_attributes', $add_nonce );
-
-		$this->assertStringContainsString( 'nonce="test-list-table-nonce"', $actual, 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
-		$this->assertStringContainsString( 'list_args = ', $actual, 'The expected JavaScript variable was not printed.' );
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
+		$this->assertSame( 'test-list-table-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
+		$this->assertStringContainsString( 'list_args =', $processor->get_modifiable_text(), 'The expected JavaScript variable was not printed.' );
 	}
 
 	/**
@@ -636,19 +638,21 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 * @covers WP_Themes_List_Table::_js_vars
 	 */
 	public function test_themes_list_table_js_vars_prints_inline_script_tag_with_filterable_attributes() {
-		$themes_list_table = _get_list_table( 'WP_Themes_List_Table', array( 'screen' => 'themes' ) );
+		$themes_list_table = _get_list_table( WP_Themes_List_Table::class, array( 'screen' => 'themes' ) );
 
-		$add_nonce = static function ( $attributes ) {
-			$attributes['nonce'] = 'test-themes-list-table-nonce';
-			return $attributes;
-		};
-		add_filter( 'wp_inline_script_attributes', $add_nonce );
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'test-themes-list-table-nonce';
+				return $attributes;
+			}
+		);
 
 		$actual = get_echo( array( $themes_list_table, '_js_vars' ) );
 
-		remove_filter( 'wp_inline_script_attributes', $add_nonce );
-
-		$this->assertStringContainsString( 'nonce="test-themes-list-table-nonce"', $actual, 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
-		$this->assertStringContainsString( 'theme_list_args = ', $actual, 'The expected JavaScript variable was not printed.' );
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
+		$this->assertSame( 'test-themes-list-table-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
+		$this->assertStringContainsString( 'theme_list_args =', $processor->get_modifiable_text(), 'The expected JavaScript variable was not printed.' );
 	}
 }

@@ -1935,7 +1935,7 @@ class WP_List_Table {
 		);
 
 		wp_print_inline_script_tag(
-			sprintf( 'list_args = %s;', wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) )
+			sprintf( 'var list_args = %s;', wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) )
 		);
 	}
 }
