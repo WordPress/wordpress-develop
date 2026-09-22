@@ -12,6 +12,23 @@
  */
 class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+
+		/*
+		 * The manifest is synced from `gutenberg/packages/icons` by
+		 * `grunt copy:icon-library-manifest`, so the `collections` property arrives with the
+		 * next Gutenberg hash bump. Until then no core icon is registered. Remove this guard
+		 * once it has.
+		 */
+		$manifest = include ABSPATH . WPINC . '/assets/icon-library-manifest.php';
+		$first    = is_array( $manifest ) ? reset( $manifest ) : false;
+
+		if ( ! is_array( $first ) || empty( $first['collections'] ) ) {
+			$this->markTestSkipped( 'The bundled icon library manifest does not list icon collections yet.' );
+		}
+	}
+
 	/**
 	 * @ticket 64847
 	 */
