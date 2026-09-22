@@ -1309,6 +1309,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		public function sanitize() {
 			$template_depth            = 0;
 			$output                    = '';
+			$special_newline_at        = PHP_INT_MIN;
 			$foreign_content_starts_at = PHP_INT_MAX;
 
 			/**
@@ -1459,25 +1460,26 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
+						$needs_special_newline = (
+							strlen( $output ) === $special_newline_at &&
+							1 === strspn( $text, "\n\r", 0, 1 )
+						);
+
 						$text = strtr(
 							$text,
 							array(
-								'<' => '&lt;',
-								'&' => '&amp;',
-								'>' => '&gt;',
-								/*
-								 * Keep compatibility with legacy `wp_kses()`.
-								 * These don’t need to be escaped, but they may.
-								 * The value in escaping them is preventing errant
-								 * PCRE patterns from catching them. In fact, only
-								 * the `<` and `&` are required to be escaped.
-								 */
-								// "'" => '&apos;',
-								// '"' => '&quot;',
+								"\r" => '&#xD;',
+								'<'  => '&lt;',
+								'&'  => '&amp;',
+								'>'  => '&gt;',
 							)
 						);
 
-						$output .= $text;
+						if ( $needs_special_newline ) {
+							$output .= "\n{$text}";
+						} else {
+							$output .= $text;
+						}
 						break;
 
 					/*
@@ -1773,6 +1775,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							}
 						}
 
+						$needs_special_newline = 'html' === $namespace && ( 'PRE' === $token_name || 'LISTING' === $token_name );
+
 						if ( ! empty( $required_attributes ) ) {
 							if ( ! $expects_closer ) {
 								break;
@@ -1784,6 +1788,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							 * missing, but strip them of their attributes.
 							 */
 							$output .= "<{$tag_name}>";
+							if ( $needs_special_newline ) {
+								$special_newline_at = strlen( $output );
+							}
 							break;
 						}
 
@@ -1792,6 +1799,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						$output .= $tag_maker->get_updated_html();
+						if ( $needs_special_newline ) {
+							$special_newline_at = strlen( $output );
+						}
+
 						break;
 				}
 
