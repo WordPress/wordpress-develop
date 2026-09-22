@@ -69,11 +69,18 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves a network by a given ID.
 	 *
 	 * @since 3.9.0
+	 * @since 7.2.0 Throws an exception instead of returning null when the object
+	 *              cannot be retrieved.
 	 *
 	 * @param int $network_id ID of the network to retrieve.
-	 * @return WP_Network|null The network object on success, null on failure.
+	 * @return WP_Network The network object.
+	 * @throws WP_UnitTest_Factory_Exception When the network could not be retrieved.
 	 */
-	public function get_object_by_id( $network_id ) {
-		return get_network( $network_id );
+	public function get_object_by_id( $network_id ): WP_Network {
+		$network = get_network( $network_id );
+
+		$this->assert_valid_object( $network, $network_id, WP_Network::class );
+
+		return $network;
 	}
 }

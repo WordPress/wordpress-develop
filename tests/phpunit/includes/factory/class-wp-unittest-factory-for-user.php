@@ -53,7 +53,8 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * @param int $user_id ID of the user ID to retrieve.
 	 * @return WP_User The user object.
 	 */
-	public function get_object_by_id( $user_id ) {
+	public function get_object_by_id( $user_id ): WP_User {
+		// Unlike the other factories, this cannot fail: WP_User is returned even for an unknown ID.
 		return new WP_User( $user_id );
 	}
 }

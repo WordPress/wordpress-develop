@@ -113,29 +113,19 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created or retrieved.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
-		$object_id = $this->create( $args, $generation_definitions );
-		$object    = $this->get_object_by_id( $object_id );
-
-		if ( is_wp_error( $object ) ) {
-			throw new WP_UnitTest_Factory_Exception(
-				sprintf( 'Unable to retrieve the object with ID %d: %s. Args: %s', $object_id, $object->get_error_message(), wp_json_encode( $args ) )
-			);
-		} elseif ( ! is_object( $object ) ) {
-			throw new WP_UnitTest_Factory_Exception(
-				sprintf( 'Unable to retrieve the object with ID %d. Args: %s', $object_id, wp_json_encode( $args ) )
-			);
-		}
-
-		return $object;
+		return $this->get_object_by_id( $this->create( $args, $generation_definitions ) );
 	}
 
 	/**
 	 * Retrieves an object by ID.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object, null or false
+	 *              when the object cannot be retrieved.
 	 *
 	 * @param int $object_id The object ID.
-	 * @return mixed The object. Can be anything.
+	 * @return object The object. Implementations narrow this to their own object type.
+	 * @throws WP_UnitTest_Factory_Exception When the object could not be retrieved.
 	 */
 	abstract public function get_object_by_id( $object_id );
 
@@ -267,6 +257,42 @@ abstract class WP_UnitTest_Factory_For_Thing {
 
 		if ( ! is_int( $object_id ) || $object_id <= 0 ) {
 			throw new WP_UnitTest_Factory_Exception( $message );
+		}
+	}
+
+	/**
+	 * Asserts that the result of a retrieval operation is an object of the expected class.
+	 *
+	 * The WP_Error case is checked first, and separately. The class check below would reject
+	 * a WP_Error too, but only with the generic message, discarding the reason the retrieval
+	 * failed at the point where it is most useful.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed        $retrieved      The value returned by the retrieval function.
+	 * @param int          $object_id      The ID the object was retrieved by.
+	 * @param string       $expected_class The class the object is expected to be an instance of.
+	 * @param array<mixed> $args           Optional. The arguments the object was created with,
+	 *                                     reported in the message. Default empty array.
+	 * @return void
+	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object, or is not an object
+	 *                                       of the expected class.
+	 *
+	 * @template T of object
+	 * @phpstan-param class-string<T> $expected_class
+	 * @phpstan-assert T $retrieved
+	 */
+	protected function assert_valid_object( $retrieved, $object_id, string $expected_class, $args = array() ): void {
+		if ( is_wp_error( $retrieved ) ) {
+			throw new WP_UnitTest_Factory_Exception(
+				sprintf( 'Unable to retrieve the object with ID %d: %s. Args: %s', $object_id, $retrieved->get_error_message(), wp_json_encode( $args ) )
+			);
+		}
+
+		if ( ! $retrieved instanceof $expected_class ) {
+			throw new WP_UnitTest_Factory_Exception(
+				sprintf( 'Unable to retrieve the object with ID %d. Args: %s', $object_id, wp_json_encode( $args ) )
+			);
 		}
 	}
 

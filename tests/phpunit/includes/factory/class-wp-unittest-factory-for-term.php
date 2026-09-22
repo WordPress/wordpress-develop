@@ -5,9 +5,21 @@
  */
 class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 
+	/**
+	 * The taxonomy this factory creates terms in, unless the args say otherwise.
+	 *
+	 * @var string
+	 */
 	private $taxonomy;
+
 	const DEFAULT_TAXONOMY = 'post_tag';
 
+	/**
+	 * @param object|null $factory  Optional. Global factory that can be used to create other
+	 *                              objects on the system. Default null.
+	 * @param string|null $taxonomy Optional. The taxonomy to create terms in.
+	 *                              Default self::DEFAULT_TAXONOMY.
+	 */
 	public function __construct( $factory = null, $taxonomy = null ) {
 		parent::__construct( $factory );
 		$this->taxonomy                       = $taxonomy ? $taxonomy : self::DEFAULT_TAXONOMY;
@@ -97,19 +109,12 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	public function create_and_get( $args = array(), $generation_definitions = null ): WP_Term {
 		$term_id = $this->create( $args, $generation_definitions );
 
+		// The taxonomy given in the args wins over the one the factory was constructed with.
 		$taxonomy = $args['taxonomy'] ?? $this->taxonomy;
 
 		$term = get_term( $term_id, $taxonomy );
 
-		if ( is_wp_error( $term ) ) {
-			throw new WP_UnitTest_Factory_Exception(
-				sprintf( 'Unable to retrieve the term with ID %d: %s. Args: %s', $term_id, $term->get_error_message(), wp_json_encode( $args ) )
-			);
-		} elseif ( ! ( $term instanceof WP_Term ) ) {
-			throw new WP_UnitTest_Factory_Exception(
-				sprintf( 'Unable to retrieve the term with ID %d. Args: %s', $term_id, wp_json_encode( $args ) )
-			);
-		}
+		$this->assert_valid_object( $term, $term_id, WP_Term::class, $args );
 
 		return $term;
 	}
@@ -118,11 +123,18 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves the term by a given ID.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object or null when
+	 *              the term cannot be retrieved.
 	 *
 	 * @param int $term_id ID of the term to retrieve.
-	 * @return WP_Term|WP_Error|null WP_Term on success. WP_Error if taxonomy does not exist. Null for miscellaneous failure.
+	 * @return WP_Term The term object.
+	 * @throws WP_UnitTest_Factory_Exception When the term could not be retrieved.
 	 */
-	public function get_object_by_id( $term_id ) {
-		return get_term( $term_id, $this->taxonomy );
+	public function get_object_by_id( $term_id ): WP_Term {
+		$term = get_term( $term_id, $this->taxonomy );
+
+		$this->assert_valid_object( $term, $term_id, WP_Term::class );
+
+		return $term;
 	}
 }

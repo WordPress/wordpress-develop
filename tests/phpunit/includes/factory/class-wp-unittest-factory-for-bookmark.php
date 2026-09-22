@@ -54,11 +54,18 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves a link by a given ID.
 	 *
 	 * @since 4.6.0
+	 * @since 7.2.0 Throws an exception instead of returning null when the object
+	 *              cannot be retrieved.
 	 *
 	 * @param int $link_id ID of the link to retrieve.
-	 * @return object|null The link object on success, null on failure.
+	 * @return stdClass The link object.
+	 * @throws WP_UnitTest_Factory_Exception When the link could not be retrieved.
 	 */
-	public function get_object_by_id( $link_id ) {
-		return get_bookmark( $link_id );
+	public function get_object_by_id( $link_id ): stdClass {
+		$link = get_bookmark( $link_id );
+
+		$this->assert_valid_object( $link, $link_id, stdClass::class );
+
+		return $link;
 	}
 }

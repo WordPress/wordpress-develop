@@ -53,11 +53,18 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves a post by a given ID.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning null when the object
+	 *              cannot be retrieved.
 	 *
 	 * @param int $post_id ID of the post to retrieve.
-	 * @return WP_Post|null WP_Post object on success, null on failure.
+	 * @return WP_Post The post object.
+	 * @throws WP_UnitTest_Factory_Exception When the post could not be retrieved.
 	 */
-	public function get_object_by_id( $post_id ) {
-		return get_post( $post_id );
+	public function get_object_by_id( $post_id ): WP_Post {
+		$post = get_post( $post_id );
+
+		$this->assert_valid_object( $post, $post_id, WP_Post::class );
+
+		return $post;
 	}
 }

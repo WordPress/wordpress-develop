@@ -161,11 +161,9 @@ class TestFactoryFor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * No core factory routes a WP_Error from get_object_by_id() through the base
-	 * create_and_get() any more: WP_UnitTest_Factory_For_Term is the only one whose
-	 * get_object_by_id() can return a WP_Error, and it overrides create_and_get().
-	 * The check is still load bearing, because a WP_Error is itself an object, so
-	 * without it a WP_Error would be handed back as though it were the created fixture.
+	 * The WP_Error case is checked separately from the class check because a WP_Error is
+	 * itself an object: an `instanceof` test alone would reject it with the less useful
+	 * message, throwing away the error it carries.
 	 *
 	 * @ticket 66111
 	 */
@@ -352,10 +350,15 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
+	 * Validates through the shared helper, the way a real factory does.
+	 *
 	 * @param int $object_id The object ID.
-	 * @return mixed The configured result.
+	 * @return stdClass The configured result.
+	 * @throws WP_UnitTest_Factory_Exception When the configured result is not a stdClass.
 	 */
-	public function get_object_by_id( $object_id ) {
+	public function get_object_by_id( $object_id ): stdClass {
+		$this->assert_valid_object( $this->get_object_by_id_result, $object_id, stdClass::class );
+
 		return $this->get_object_by_id_result;
 	}
 }
