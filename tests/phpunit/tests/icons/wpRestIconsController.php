@@ -405,7 +405,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( array( 'core/at-symbol' ), array_column( $data, 'name' ) );
 	}
 
-		/**
+	/**
 	 * Test that GET /wp/v2/icons/?search=%s searches icon keywords too.
 	 */
 	public function test_get_items_search_includes_keywords() {

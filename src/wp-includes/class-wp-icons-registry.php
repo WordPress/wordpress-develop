@@ -46,23 +46,23 @@ class WP_Icons_Registry {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 The icon name must be namespaced in the form "collection/icon-name".
-	 * @since 7.2.0 Added the `public` property.
+	 * @since 7.2.0 Added the `public` and `keywords` properties.
 	 *
 	 * @param string $icon_name       Namespaced icon name in the form "collection/icon-name"
 	 *                                (e.g. "core/arrow-left").
 	 * @param array  $icon_properties {
 	 *     List of properties for the icon.
 	 *
-	 *     @type string $label      Required. A human-readable label for the icon.
-	 *     @type string $content    Optional. SVG markup for the icon.
-	 *                              If not provided, the content will be retrieved from the `file_path` if set.
-	 *                              If both `content` and `file_path` are not set, the icon will not be registered.
-	 *     @type string $file_path  Optional. The full path to the file containing the icon content.
-	 *     @type bool   $public     Optional. Whether the icon is exposed through the REST API, and
-	 *                              therefore selectable in the editor's icon picker. Non-public icons
-	 *                              stay available to server-side code via {@see wp_get_icon()}.
-	 *                              Default true.
-	 *     @type string[] $keywords Optional. Additional search terms for the icon, matched by
+	 *     @type string   $label     Required. A human-readable label for the icon.
+	 *     @type string   $content   Optional. SVG markup for the icon.
+	 *                               If not provided, the content will be retrieved from the `file_path` if set.
+	 *                               If both `content` and `file_path` are not set, the icon will not be registered.
+	 *     @type string   $file_path Optional. The full path to the file containing the icon content.
+	 *     @type bool     $public    Optional. Whether the icon is exposed through the REST API, and
+	 *                               therefore selectable in the editor's icon picker. Non-public icons
+	 *                               stay available to server-side code via {@see wp_get_icon()}.
+	 *                               Default true.
+	 *     @type string[] $keywords  Optional. Additional search terms for the icon, matched by
 	 *                               `get_registered_icons()` alongside the name and label.
 	 * }
 	 * @return bool True if the icon was registered with success and false otherwise.
@@ -159,7 +159,7 @@ class WP_Icons_Registry {
 			if ( ! is_array( $icon_properties['keywords'] ) ) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Icon keywords must be an array of strings.', 'gutenberg' ),
+					__( 'Icon keywords must be an array of strings.' ),
 					'7.2.0'
 				);
 				return false;
@@ -169,7 +169,7 @@ class WP_Icons_Registry {
 				if ( ! is_string( $keyword ) ) {
 					_doing_it_wrong(
 						__METHOD__,
-						__( 'Icon keywords must be an array of strings.', 'gutenberg' ),
+						__( 'Icon keywords must be an array of strings.' ),
 						'7.2.0'
 					);
 					return false;
@@ -427,12 +427,13 @@ class WP_Icons_Registry {
 		return $icon;
 	}
 
-
 	/**
 	 * Determines whether an icon matches a search term.
 	 *
 	 * The term is matched case-insensitively against the icon's name, its label,
 	 * and any of its keywords.
+	 *
+	 * @since 7.2.0
 	 *
 	 * @param array  $icon   Registered icon properties.
 	 * @param string $search Search term.
@@ -461,8 +462,11 @@ class WP_Icons_Registry {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Search also matches icon labels.
+	 * @since 7.2.0 Search also matches icon keywords.
 	 *
-	 * @param string $search Optional. Search term by which to filter the icons.
+	 * @param string $search Optional. Search term matched against each icon's name,
+	 *                       label, and keywords. Default empty string, which returns
+	 *                       every registered icon.
 	 * @return array[] Array of arrays containing the registered icon properties.
 	 */
 	public function get_registered_icons( $search = '' ) {

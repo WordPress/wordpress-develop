@@ -8,353 +8,441 @@ return array(
 	'arrow-down-left'     => array(
 		'label'    => _x( 'Arrow Down Left', 'icon label' ),
 		'filePath' => 'arrow-down-left.svg',
+		'keywords' => array( _x( 'southwest', 'icon keyword' ), _x( 'diagonal', 'icon keyword' ) ),
 	),
 	'arrow-down-right'    => array(
 		'label'    => _x( 'Arrow Down Right', 'icon label' ),
 		'filePath' => 'arrow-down-right.svg',
+		'keywords' => array( _x( 'southeast', 'icon keyword' ), _x( 'diagonal', 'icon keyword' ) ),
 	),
 	'arrow-down'          => array(
 		'label'    => _x( 'Arrow Down', 'icon label' ),
 		'filePath' => 'arrow-down.svg',
+		'keywords' => array( _x( 'south', 'icon keyword' ), _x( 'descend', 'icon keyword' ) ),
 	),
 	'arrow-left'          => array(
 		'label'    => _x( 'Arrow Left', 'icon label' ),
 		'filePath' => 'arrow-left.svg',
+		'keywords' => array( _x( 'west', 'icon keyword' ), _x( 'back', 'icon keyword' ) ),
 	),
 	'arrow-right'         => array(
 		'label'    => _x( 'Arrow Right', 'icon label' ),
 		'filePath' => 'arrow-right.svg',
+		'keywords' => array( _x( 'east', 'icon keyword' ), _x( 'forward', 'icon keyword' ) ),
 	),
 	'arrow-up-left'       => array(
 		'label'    => _x( 'Arrow Up Left', 'icon label' ),
 		'filePath' => 'arrow-up-left.svg',
+		'keywords' => array( _x( 'northwest', 'icon keyword' ), _x( 'diagonal', 'icon keyword' ) ),
 	),
 	'arrow-up-right'      => array(
 		'label'    => _x( 'Arrow Up Right', 'icon label' ),
 		'filePath' => 'arrow-up-right.svg',
+		'keywords' => array( _x( 'northeast', 'icon keyword' ), _x( 'diagonal', 'icon keyword' ) ),
 	),
 	'arrow-up'            => array(
 		'label'    => _x( 'Arrow Up', 'icon label' ),
 		'filePath' => 'arrow-up.svg',
+		'keywords' => array( _x( 'north', 'icon keyword' ), _x( 'ascend', 'icon keyword' ) ),
 	),
 	'at-symbol'           => array(
 		'label'    => _x( 'At Symbol (@)', 'icon label' ),
 		'filePath' => 'at-symbol.svg',
+		'keywords' => array( _x( 'email', 'icon keyword' ), _x( 'mention', 'icon keyword' ), _x( 'username', 'icon keyword' ) ),
 	),
 	'audio'               => array(
 		'label'    => _x( 'Audio', 'icon label' ),
 		'filePath' => 'audio.svg',
+		'keywords' => array( _x( 'sound', 'icon keyword' ), _x( 'music', 'icon keyword' ), _x( 'speaker', 'icon keyword' ) ),
 	),
 	'bell'                => array(
 		'label'    => _x( 'Bell', 'icon label' ),
 		'filePath' => 'bell.svg',
+		'keywords' => array( _x( 'notification', 'icon keyword' ), _x( 'alert', 'icon keyword' ), _x( 'reminder', 'icon keyword' ) ),
 	),
 	'block-default'       => array(
 		'label'    => _x( 'Block Default', 'icon label' ),
 		'filePath' => 'block-default.svg',
+		'keywords' => array( _x( 'placeholder', 'icon keyword' ), _x( 'generic', 'icon keyword' ) ),
 	),
 	'block-meta'          => array(
 		'label'    => _x( 'Block Meta', 'icon label' ),
 		'filePath' => 'block-meta.svg',
+		'keywords' => array( _x( 'metadata', 'icon keyword' ), _x( 'custom field', 'icon keyword' ) ),
 	),
 	'block-table'         => array(
 		'label'    => _x( 'Block Table', 'icon label' ),
 		'filePath' => 'block-table.svg',
+		'keywords' => array( _x( 'grid', 'icon keyword' ), _x( 'spreadsheet', 'icon keyword' ) ),
 	),
 	'calendar'            => array(
 		'label'    => _x( 'Calendar', 'icon label' ),
 		'filePath' => 'calendar.svg',
+		'keywords' => array( _x( 'date', 'icon keyword' ), _x( 'schedule', 'icon keyword' ), _x( 'event', 'icon keyword' ) ),
 	),
 	'capture-photo'       => array(
 		'label'    => _x( 'Capture Photo', 'icon label' ),
 		'filePath' => 'capture-photo.svg',
+		'keywords' => array( _x( 'camera', 'icon keyword' ), _x( 'snapshot', 'icon keyword' ) ),
 	),
 	'capture-video'       => array(
 		'label'    => _x( 'Capture Video', 'icon label' ),
 		'filePath' => 'capture-video.svg',
+		'keywords' => array( _x( 'camcorder', 'icon keyword' ), _x( 'record', 'icon keyword' ) ),
 	),
 	'cart'                => array(
 		'label'    => _x( 'Cart', 'icon label' ),
 		'filePath' => 'cart.svg',
+		'keywords' => array( _x( 'shopping', 'icon keyword' ), _x( 'basket', 'icon keyword' ), _x( 'checkout', 'icon keyword' ), _x( 'ecommerce', 'icon keyword' ) ),
 	),
 	'category'            => array(
 		'label'    => _x( 'Category', 'icon label' ),
 		'filePath' => 'category.svg',
+		'keywords' => array( _x( 'taxonomy', 'icon keyword' ), _x( 'archive', 'icon keyword' ) ),
 	),
 	'caution'             => array(
 		'label'    => _x( 'Caution', 'icon label' ),
 		'filePath' => 'caution.svg',
+		'keywords' => array( _x( 'warning', 'icon keyword' ), _x( 'alert', 'icon keyword' ), _x( 'danger', 'icon keyword' ) ),
 	),
 	'chart-bar'           => array(
 		'label'    => _x( 'Chart Bar', 'icon label' ),
 		'filePath' => 'chart-bar.svg',
+		'keywords' => array( _x( 'graph', 'icon keyword' ), _x( 'statistics', 'icon keyword' ), _x( 'analytics', 'icon keyword' ) ),
 	),
 	'check'               => array(
 		'label'    => _x( 'Check', 'icon label' ),
 		'filePath' => 'check.svg',
+		'keywords' => array( _x( 'tick', 'icon keyword' ), _x( 'done', 'icon keyword' ), _x( 'confirm', 'icon keyword' ), _x( 'success', 'icon keyword' ) ),
 	),
 	'chevron-down'        => array(
 		'label'    => _x( 'Chevron Down', 'icon label' ),
 		'filePath' => 'chevron-down.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'expand', 'icon keyword' ) ),
 	),
 	'chevron-down-small'  => array(
 		'label'    => _x( 'Chevron Down Small', 'icon label' ),
 		'filePath' => 'chevron-down-small.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'expand', 'icon keyword' ) ),
 	),
 	'chevron-left'        => array(
 		'label'    => _x( 'Chevron Left', 'icon label' ),
 		'filePath' => 'chevron-left.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'back', 'icon keyword' ) ),
 	),
 	'chevron-left-small'  => array(
 		'label'    => _x( 'Chevron Left Small', 'icon label' ),
 		'filePath' => 'chevron-left-small.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'back', 'icon keyword' ) ),
 	),
 	'chevron-right'       => array(
 		'label'    => _x( 'Chevron Right', 'icon label' ),
 		'filePath' => 'chevron-right.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'forward', 'icon keyword' ) ),
 	),
 	'chevron-right-small' => array(
 		'label'    => _x( 'Chevron Right Small', 'icon label' ),
 		'filePath' => 'chevron-right-small.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'forward', 'icon keyword' ) ),
 	),
 	'chevron-up'          => array(
 		'label'    => _x( 'Chevron Up', 'icon label' ),
 		'filePath' => 'chevron-up.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'collapse', 'icon keyword' ) ),
 	),
 	'chevron-up-down'     => array(
 		'label'    => _x( 'Chevron Up Down', 'icon label' ),
 		'filePath' => 'chevron-up-down.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'sort', 'icon keyword' ), _x( 'reorder', 'icon keyword' ) ),
 	),
 	'chevron-up-small'    => array(
 		'label'    => _x( 'Chevron Up Small', 'icon label' ),
 		'filePath' => 'chevron-up-small.svg',
+		'keywords' => array( _x( 'caret', 'icon keyword' ), _x( 'collapse', 'icon keyword' ) ),
 	),
 	'comment'             => array(
 		'label'    => _x( 'Comment', 'icon label' ),
 		'filePath' => 'comment.svg',
+		'keywords' => array( _x( 'reply', 'icon keyword' ), _x( 'discussion', 'icon keyword' ), _x( 'feedback', 'icon keyword' ) ),
 	),
 	'cover'               => array(
 		'label'    => _x( 'Cover', 'icon label' ),
 		'filePath' => 'cover.svg',
+		'keywords' => array( _x( 'banner', 'icon keyword' ), _x( 'hero', 'icon keyword' ), _x( 'background', 'icon keyword' ) ),
 	),
 	'create'              => array(
 		'label'    => _x( 'Create', 'icon label' ),
 		'filePath' => 'create.svg',
+		'keywords' => array( _x( 'new', 'icon keyword' ), _x( 'add', 'icon keyword' ), _x( 'compose', 'icon keyword' ), _x( 'plus', 'icon keyword' ) ),
 	),
 	'desktop'             => array(
 		'label'    => _x( 'Desktop', 'icon label' ),
 		'filePath' => 'desktop.svg',
+		'keywords' => array( _x( 'computer', 'icon keyword' ), _x( 'monitor', 'icon keyword' ), _x( 'screen', 'icon keyword' ) ),
 	),
 	'download'            => array(
 		'label'    => _x( 'Download', 'icon label' ),
 		'filePath' => 'download.svg',
+		'keywords' => array( _x( 'save', 'icon keyword' ), _x( 'export', 'icon keyword' ) ),
 	),
 	'drawer-left'         => array(
 		'label'    => _x( 'Drawer Left', 'icon label' ),
 		'filePath' => 'drawer-left.svg',
+		'keywords' => array( _x( 'sidebar', 'icon keyword' ), _x( 'panel', 'icon keyword' ) ),
 	),
 	'drawer-right'        => array(
 		'label'    => _x( 'Drawer Right', 'icon label' ),
 		'filePath' => 'drawer-right.svg',
+		'keywords' => array( _x( 'sidebar', 'icon keyword' ), _x( 'panel', 'icon keyword' ) ),
 	),
 	'envelope'            => array(
 		'label'    => _x( 'Envelope', 'icon label' ),
 		'filePath' => 'envelope.svg',
+		'keywords' => array( _x( 'email', 'icon keyword' ), _x( 'mail', 'icon keyword' ), _x( 'message', 'icon keyword' ) ),
 	),
 	'error'               => array(
 		'label'    => _x( 'Error', 'icon label' ),
 		'filePath' => 'error.svg',
+		'keywords' => array( _x( 'failure', 'icon keyword' ), _x( 'problem', 'icon keyword' ), _x( 'alert', 'icon keyword' ), _x( 'caution', 'icon keyword' ), _x( 'warning', 'icon keyword' ) ),
 	),
 	'external'            => array(
 		'label'    => _x( 'External', 'icon label' ),
 		'filePath' => 'external.svg',
+		'keywords' => array( _x( 'outbound', 'icon keyword' ), _x( 'new window', 'icon keyword' ) ),
 	),
 	'file'                => array(
 		'label'    => _x( 'File', 'icon label' ),
 		'filePath' => 'file.svg',
+		'keywords' => array( _x( 'attachment', 'icon keyword' ), _x( 'document', 'icon keyword' ), _x( 'folder', 'icon keyword' ) ),
 	),
 	'gallery'             => array(
 		'label'    => _x( 'Gallery', 'icon label' ),
 		'filePath' => 'gallery.svg',
+		'keywords' => array( _x( 'photos', 'icon keyword' ), _x( 'album', 'icon keyword' ), _x( 'images', 'icon keyword' ) ),
 	),
 	'group'               => array(
 		'label'    => _x( 'Group', 'icon label' ),
 		'filePath' => 'group.svg',
+		'keywords' => array( _x( 'container', 'icon keyword' ), _x( 'wrapper', 'icon keyword' ), _x( 'stack', 'icon keyword' ) ),
 	),
 	'heading'             => array(
 		'label'    => _x( 'Heading', 'icon label' ),
 		'filePath' => 'heading.svg',
+		'keywords' => array( _x( 'title', 'icon keyword' ), _x( 'headline', 'icon keyword' ) ),
 	),
 	'help'                => array(
 		'label'    => _x( 'Help', 'icon label' ),
 		'filePath' => 'help.svg',
+		'keywords' => array( _x( 'question', 'icon keyword' ), _x( 'support', 'icon keyword' ), _x( 'faq', 'icon keyword' ) ),
 	),
 	'home'                => array(
 		'label'    => _x( 'Home', 'icon label' ),
 		'filePath' => 'home.svg',
+		'keywords' => array( _x( 'house', 'icon keyword' ), _x( 'front page', 'icon keyword' ), _x( 'dashboard', 'icon keyword' ) ),
 	),
 	'image'               => array(
 		'label'    => _x( 'Image', 'icon label' ),
 		'filePath' => 'image.svg',
+		'keywords' => array( _x( 'photo', 'icon keyword' ), _x( 'picture', 'icon keyword' ), _x( 'media', 'icon keyword' ) ),
 	),
 	'info'                => array(
 		'label'    => _x( 'Info', 'icon label' ),
 		'filePath' => 'info.svg',
+		'keywords' => array( _x( 'information', 'icon keyword' ), _x( 'about', 'icon keyword' ), _x( 'details', 'icon keyword' ) ),
 	),
 	'key'                 => array(
 		'label'    => _x( 'Key', 'icon label' ),
 		'filePath' => 'key.svg',
+		'keywords' => array( _x( 'password', 'icon keyword' ), _x( 'license', 'icon keyword' ), _x( 'credential', 'icon keyword' ) ),
 	),
 	'language'            => array(
 		'label'    => _x( 'Language', 'icon label' ),
 		'filePath' => 'language.svg',
+		'keywords' => array( _x( 'translate', 'icon keyword' ), _x( 'locale', 'icon keyword' ), _x( 'globe', 'icon keyword' ) ),
 	),
 	'map-marker'          => array(
 		'label'    => _x( 'Map Marker', 'icon label' ),
 		'filePath' => 'map-marker.svg',
+		'keywords' => array( _x( 'location', 'icon keyword' ), _x( 'pin', 'icon keyword' ), _x( 'address', 'icon keyword' ) ),
 	),
 	'menu'                => array(
 		'label'    => _x( 'Menu', 'icon label' ),
 		'filePath' => 'menu.svg',
+		'keywords' => array( _x( 'hamburger', 'icon keyword' ), _x( 'navigation', 'icon keyword' ), _x( 'list', 'icon keyword' ) ),
 	),
 	'mobile'              => array(
 		'label'    => _x( 'Mobile', 'icon label' ),
 		'filePath' => 'mobile.svg',
+		'keywords' => array( _x( 'phone', 'icon keyword' ), _x( 'smartphone', 'icon keyword' ), _x( 'handset', 'icon keyword' ) ),
 	),
 	'more-horizontal'     => array(
 		'label'    => _x( 'More Horizontal', 'icon label' ),
 		'filePath' => 'more-horizontal.svg',
+		'keywords' => array( _x( 'ellipsis', 'icon keyword' ), _x( 'options', 'icon keyword' ), _x( 'overflow', 'icon keyword' ) ),
 	),
 	'more-vertical'       => array(
 		'label'    => _x( 'More Vertical', 'icon label' ),
 		'filePath' => 'more-vertical.svg',
+		'keywords' => array( _x( 'ellipsis', 'icon keyword' ), _x( 'options', 'icon keyword' ), _x( 'overflow', 'icon keyword' ) ),
 	),
 	'next'                => array(
 		'label'    => _x( 'Next', 'icon label' ),
 		'filePath' => 'next.svg',
+		'keywords' => array( _x( 'forward', 'icon keyword' ), _x( 'advance', 'icon keyword' ) ),
 	),
 	'paragraph'           => array(
 		'label'    => _x( 'Paragraph', 'icon label' ),
 		'filePath' => 'paragraph.svg',
+		'keywords' => array( _x( 'text', 'icon keyword' ), _x( 'body copy', 'icon keyword' ) ),
 	),
 	'payment'             => array(
 		'label'    => _x( 'Payment', 'icon label' ),
 		'filePath' => 'payment.svg',
+		'keywords' => array( _x( 'credit card', 'icon keyword' ), _x( 'billing', 'icon keyword' ), _x( 'checkout', 'icon keyword' ) ),
 	),
 	'pencil'              => array(
 		'label'    => _x( 'Pencil', 'icon label' ),
 		'filePath' => 'pencil.svg',
+		'keywords' => array( _x( 'edit', 'icon keyword' ), _x( 'write', 'icon keyword' ), _x( 'modify', 'icon keyword' ) ),
 	),
 	'people'              => array(
 		'label'    => _x( 'People', 'icon label' ),
 		'filePath' => 'people.svg',
+		'keywords' => array( _x( 'users', 'icon keyword' ), _x( 'team', 'icon keyword' ), _x( 'members', 'icon keyword' ) ),
 	),
 	'plus'                => array(
 		'label'    => _x( 'Plus', 'icon label' ),
 		'filePath' => 'plus.svg',
+		'keywords' => array( _x( 'add', 'icon keyword' ), _x( 'new', 'icon keyword' ), _x( 'create', 'icon keyword' ) ),
 	),
 	'plus-circle'         => array(
 		'label'    => _x( 'Plus Circle', 'icon label' ),
 		'filePath' => 'plus-circle.svg',
+		'keywords' => array( _x( 'add', 'icon keyword' ), _x( 'new', 'icon keyword' ), _x( 'create', 'icon keyword' ) ),
 	),
 	'previous'            => array(
 		'label'    => _x( 'Previous', 'icon label' ),
 		'filePath' => 'previous.svg',
+		'keywords' => array( _x( 'back', 'icon keyword' ), _x( 'prior', 'icon keyword' ) ),
 	),
 	'published'           => array(
 		'label'    => _x( 'Published', 'icon label' ),
 		'filePath' => 'published.svg',
+		'keywords' => array( _x( 'live', 'icon keyword' ), _x( 'visible', 'icon keyword' ), _x( 'public', 'icon keyword' ) ),
 	),
 	'quote'               => array(
 		'label'    => _x( 'Quote', 'icon label' ),
 		'filePath' => 'quote.svg',
+		'keywords' => array( _x( 'blockquote', 'icon keyword' ), _x( 'citation', 'icon keyword' ), _x( 'testimonial', 'icon keyword' ) ),
 	),
 	'receipt'             => array(
 		'label'    => _x( 'Receipt', 'icon label' ),
 		'filePath' => 'receipt.svg',
+		'keywords' => array( _x( 'invoice', 'icon keyword' ), _x( 'order', 'icon keyword' ), _x( 'bill', 'icon keyword' ) ),
 	),
 	'rss'                 => array(
 		'label'    => _x( 'RSS', 'icon label' ),
 		'filePath' => 'rss.svg',
+		'keywords' => array( _x( 'feed', 'icon keyword' ), _x( 'syndication', 'icon keyword' ), _x( 'subscribe', 'icon keyword' ) ),
 	),
 	'scheduled'           => array(
 		'label'    => _x( 'Scheduled', 'icon label' ),
 		'filePath' => 'scheduled.svg',
+		'keywords' => array( _x( 'pending', 'icon keyword' ), _x( 'upcoming', 'icon keyword' ), _x( 'clock', 'icon keyword' ) ),
 	),
 	'search'              => array(
 		'label'    => _x( 'Search', 'icon label' ),
 		'filePath' => 'search.svg',
+		'keywords' => array( _x( 'find', 'icon keyword' ), _x( 'magnifier', 'icon keyword' ), _x( 'lookup', 'icon keyword' ), _x( 'query', 'icon keyword' ) ),
 	),
 	'settings'            => array(
 		'label'    => _x( 'Settings', 'icon label' ),
 		'filePath' => 'settings.svg',
+		'keywords' => array( _x( 'preferences', 'icon keyword' ), _x( 'options', 'icon keyword' ), _x( 'configuration', 'icon keyword' ), _x( 'gear', 'icon keyword' ) ),
 	),
 	'shadow'              => array(
 		'label'    => _x( 'Shadow', 'icon label' ),
 		'filePath' => 'shadow.svg',
+		'keywords' => array( _x( 'depth', 'icon keyword' ), _x( 'elevation', 'icon keyword' ) ),
 	),
 	'share'               => array(
 		'label'    => _x( 'Share', 'icon label' ),
 		'filePath' => 'share.svg',
+		'keywords' => array( _x( 'social', 'icon keyword' ), _x( 'distribute', 'icon keyword' ), _x( 'send', 'icon keyword' ) ),
 	),
 	'shield'              => array(
 		'label'    => _x( 'Shield', 'icon label' ),
 		'filePath' => 'shield.svg',
+		'keywords' => array( _x( 'security', 'icon keyword' ), _x( 'protection', 'icon keyword' ), _x( 'privacy', 'icon keyword' ) ),
 	),
 	'shuffle'             => array(
 		'label'    => _x( 'Shuffle', 'icon label' ),
 		'filePath' => 'shuffle.svg',
+		'keywords' => array( _x( 'random', 'icon keyword' ), _x( 'mix', 'icon keyword' ), _x( 'randomize', 'icon keyword' ) ),
 	),
 	'star-empty'          => array(
 		'label'    => _x( 'Star Empty', 'icon label' ),
 		'filePath' => 'star-empty.svg',
+		'keywords' => array( _x( 'rating', 'icon keyword' ), _x( 'favorite', 'icon keyword' ), _x( 'bookmark', 'icon keyword' ) ),
 	),
 	'star-filled'         => array(
 		'label'    => _x( 'Star Filled', 'icon label' ),
 		'filePath' => 'star-filled.svg',
+		'keywords' => array( _x( 'rating', 'icon keyword' ), _x( 'favorite', 'icon keyword' ), _x( 'bookmark', 'icon keyword' ) ),
 	),
 	'star-half'           => array(
 		'label'    => _x( 'Star Half', 'icon label' ),
 		'filePath' => 'star-half.svg',
+		'keywords' => array( _x( 'rating', 'icon keyword' ), _x( 'partial', 'icon keyword' ) ),
 	),
 	'store'               => array(
 		'label'    => _x( 'Store', 'icon label' ),
 		'filePath' => 'store.svg',
+		'keywords' => array( _x( 'shop', 'icon keyword' ), _x( 'merchant', 'icon keyword' ), _x( 'storefront', 'icon keyword' ) ),
 	),
 	'styles'              => array(
 		'label'    => _x( 'Styles', 'icon label' ),
 		'filePath' => 'styles.svg',
+		'keywords' => array( _x( 'theme', 'icon keyword' ), _x( 'appearance', 'icon keyword' ), _x( 'design', 'icon keyword' ) ),
 	),
 	'symbol'              => array(
 		'label'    => _x( 'Symbol', 'icon label' ),
 		'filePath' => 'symbol.svg',
+		'keywords' => array( _x( 'pattern', 'icon keyword' ), _x( 'reusable', 'icon keyword' ), _x( 'synced', 'icon keyword' ) ),
 	),
 	'symbol-filled'       => array(
 		'label'    => _x( 'Symbol Filled', 'icon label' ),
 		'filePath' => 'symbol-filled.svg',
+		'keywords' => array( _x( 'pattern', 'icon keyword' ), _x( 'reusable', 'icon keyword' ), _x( 'synced', 'icon keyword' ) ),
 	),
 	'table'               => array(
 		'label'    => _x( 'Table', 'icon label' ),
 		'filePath' => 'table.svg',
+		'keywords' => array( _x( 'grid', 'icon keyword' ), _x( 'spreadsheet', 'icon keyword' ), _x( 'rows', 'icon keyword' ) ),
 	),
 	'tablet'              => array(
 		'label'    => _x( 'Tablet', 'icon label' ),
 		'filePath' => 'tablet.svg',
+		'keywords' => array( _x( 'device', 'icon keyword' ), _x( 'touchscreen', 'icon keyword' ) ),
 	),
 	'tag'                 => array(
 		'label'    => _x( 'Tag', 'icon label' ),
 		'filePath' => 'tag.svg',
+		'keywords' => array( _x( 'label', 'icon keyword' ), _x( 'keyword', 'icon keyword' ), _x( 'topic', 'icon keyword' ) ),
 	),
 	'tip'                 => array(
 		'label'    => _x( 'Tip', 'icon label' ),
 		'filePath' => 'tip.svg',
+		'keywords' => array( _x( 'hint', 'icon keyword' ), _x( 'lightbulb', 'icon keyword' ), _x( 'suggestion', 'icon keyword' ) ),
 	),
 	'upload'              => array(
 		'label'    => _x( 'Upload', 'icon label' ),
 		'filePath' => 'upload.svg',
+		'keywords' => array( _x( 'import', 'icon keyword' ), _x( 'add file', 'icon keyword' ) ),
 	),
 	'verse'               => array(
 		'label'    => _x( 'Verse', 'icon label' ),
 		'filePath' => 'verse.svg',
+		'keywords' => array( _x( 'poetry', 'icon keyword' ), _x( 'poem', 'icon keyword' ), _x( 'lyrics', 'icon keyword' ) ),
 	),
 );

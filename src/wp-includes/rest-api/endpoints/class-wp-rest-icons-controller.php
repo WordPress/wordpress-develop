@@ -234,6 +234,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Added the `collection` field.
+	 * @since 7.2.0 Added the `keywords` field.
 	 *
 	 * @param array           $item    Raw icon as registered, before any changes.
 	 * @param WP_REST_Request $request Request object.
@@ -246,13 +247,20 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 			'label'      => 'label',
 			'content'    => 'content',
 			'collection' => 'collection',
-			'keywords'   => 'keywords',
 		);
 		$data   = array();
 		foreach ( $keys as $item_key => $rest_key ) {
 			if ( isset( $item[ $item_key ] ) && rest_is_field_included( $rest_key, $fields ) ) {
 				$data[ $rest_key ] = $item[ $item_key ];
 			}
+		}
+
+		/*
+		 * Keywords are optional at registration time, but the field is always
+		 * present in the response so consumers do not have to handle its absence.
+		 */
+		if ( rest_is_field_included( 'keywords', $fields ) ) {
+			$data['keywords'] = isset( $item['keywords'] ) ? array_values( $item['keywords'] ) : array();
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -266,6 +274,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Added the `collection` property.
+	 * @since 7.2.0 Added the `keywords` property.
 	 *
 	 * @return array Item schema data.
 	 */
