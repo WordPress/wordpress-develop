@@ -61,11 +61,20 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	 * @ticket 61996
 	 * @covers ::get_page_by_path
 	 */
-	public function test_should_prefer_published_page_over_older_draft() {
+	public function test_should_prefer_published_page_then_other_statuses_then_draft() {
+		// Setting a pending page's slug requires publish permission.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
 		$draft     = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_status' => 'draft',
+			)
+		);
+		$pending   = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'pending',
 			)
 		);
 		$published = self::factory()->post->create(
@@ -76,16 +85,24 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 			)
 		);
 
-		// Draft slug updates can reuse a published page's slug.
-		wp_update_post(
-			array(
-				'ID'        => $draft,
-				'post_name' => 'privacy-policy',
-			)
-		);
+		// Draft and pending slug updates can reuse a published page's slug.
+		foreach ( array( $draft, $pending ) as $post_id ) {
+			wp_update_post(
+				array(
+					'ID'        => $post_id,
+					'post_name' => 'privacy-policy',
+				)
+			);
+			$this->assertSame( 'privacy-policy', get_post( $post_id )->post_name );
+		}
 
-		$this->assertSame( 'privacy-policy', get_post( $draft )->post_name );
 		$this->assertSame( $published, get_page_by_path( 'privacy-policy' )->ID );
+
+		wp_delete_post( $published, true );
+		$this->assertSame( $pending, get_page_by_path( 'privacy-policy' )->ID );
+
+		wp_delete_post( $pending, true );
+		$this->assertSame( $draft, get_page_by_path( 'privacy-policy' )->ID );
 	}
 
 	public function test_should_obey_post_type() {
