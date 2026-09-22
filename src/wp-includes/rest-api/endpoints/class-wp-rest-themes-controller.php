@@ -693,7 +693,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			),
 		);
 
-		foreach ( get_registered_theme_features() as $feature => $config ) {
+		foreach ( get_registered_theme_features() as $config ) {
 			if ( ! is_array( $config['show_in_rest'] ) ) {
 				continue;
 			}
