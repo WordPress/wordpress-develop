@@ -207,7 +207,7 @@ EOD;
             if (!is_array($call) || !isset($call['methodName']) || !is_string($call['methodName'])) {
                 $return[] = array(
                     'faultCode' => -32600,
-                    'faultString' => 'server error. invalid xml-rpc. Each multicall entry must be a struct with a methodName'
+                    'faultString' => 'server error. invalid xml-rpc. Each multicall entry must be a struct with a string methodName'
                 );
                 continue;
             }
