@@ -515,6 +515,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( '', $sanitized_for_js['title'] );
 		$this->assertTrue( $sanitized_for_js['is_widget_customizer_js_value'] );
 		$this->assertArrayHasKey( 'instance_hash_key', $sanitized_for_js );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( (object) $block_instance, $sanitized_for_js['raw_instance'] );
 
 		$unsanitized_from_js = $this->manager->widgets->sanitize_widget_instance( $sanitized_for_js );

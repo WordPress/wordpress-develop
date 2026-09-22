@@ -757,8 +757,8 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_render_layout_support_flag
 	 *
-	 * @param array $block_attrs     Dataset to test.
-	 * @param array $expected_class  Class generated for the passed dataset.
+	 * @param array $block_attrs    Dataset to test.
+	 * @param array $expected_class Class generated for the passed dataset.
 	 */
 	public function test_layout_support_flag_renders_consistent_container_hash( $block_attrs, $expected_class ) {
 		switch_theme( 'default' );
@@ -1231,6 +1231,67 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		);
 
 		$this->assertIsString( $layout_styles, 'Flex layout should not fatal when alignment values are not strings.' );
+	}
+
+	/**
+	 * Tests that a viewport override switching a vertical flex layout to horizontal
+	 * outputs an explicit `flex-direction: row`, so the base `flex-direction: column`
+	 * no longer applies on that viewport.
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_outputs_flex_direction_row_for_horizontal_viewport_override() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'flex',
+				'orientation'    => 'vertical',
+				'flexWrap'       => 'nowrap',
+				'justifyContent' => 'center',
+			),
+			false,
+			null,
+			false,
+			'0.5em',
+			null,
+			array(
+				'viewport_overrides' => array(
+					'orientation'    => 'horizontal',
+					'justifyContent' => 'left',
+				),
+			)
+		);
+
+		$this->assertSame( '.wp-layout{flex-direction:row;justify-content:flex-start;}', $layout_styles );
+	}
+
+	/**
+	 * Tests that a viewport override which does not change a horizontal orientation
+	 * keeps relying on the flex default and does not output `flex-direction`.
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_keeps_flex_direction_implicit_without_orientation_override() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'flex',
+				'orientation'    => 'horizontal',
+				'justifyContent' => 'left',
+			),
+			false,
+			null,
+			false,
+			'0.5em',
+			null,
+			array(
+				'viewport_overrides' => array(
+					'justifyContent' => 'right',
+				),
+			)
+		);
+
+		$this->assertSame( '.wp-layout{justify-content:flex-end;}', $layout_styles );
 	}
 
 	/**

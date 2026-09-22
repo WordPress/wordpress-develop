@@ -246,10 +246,9 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * This event can be used to make sure to move the focus correctly.
 	 *
-	 * @since 4.0.0
+	 * Fires `attachment:details:shift-tab` and `attachment:keydown:arrow` events on the controller.
 	 *
-	 * @fires wp.media.controller.MediaLibrary#attachment:details:shift-tab
-	 * @fires wp.media.controller.MediaLibrary#attachment:keydown:arrow
+	 * @since 4.0.0
 	 *
 	 * @param {KeyboardEvent} event A keyboard event.
 	 *

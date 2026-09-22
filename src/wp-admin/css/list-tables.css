@@ -778,7 +778,7 @@ th.sorted a span {
 }
 
 .view-switch a:before {
-	color: #c3c4c7;
+	color: #757575;
 	display: inline-block;
 	font: normal 20px/1 dashicons;
 	vertical-align: middle;
@@ -793,7 +793,7 @@ th.sorted a span {
 
 .view-switch a:hover:before,
 .view-switch a:focus:before {
-	color: #787c82;
+	color: #1e1e1e;
 }
 
 .view-switch a.current:before {

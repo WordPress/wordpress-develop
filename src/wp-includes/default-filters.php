@@ -345,6 +345,9 @@ add_action( 'application_password_did_authenticate', 'rest_application_password_
 add_filter( 'rest_authentication_errors', 'rest_application_password_check_errors', 90 );
 add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
 
+// Application password notifications.
+add_action( 'wp_create_application_password', 'wp_application_password_created_notification', 10, 2 );
+
 // Actions.
 add_action( 'wp_head', '_wp_render_title_tag', 1 );
 add_action( 'wp_head', 'wp_enqueue_scripts', 1 );
@@ -488,6 +491,9 @@ add_action( 'attachment_updated', 'wp_check_for_changed_slugs', 12, 3 );
 // Redirect old dates.
 add_action( 'post_updated', 'wp_check_for_changed_dates', 12, 3 );
 add_action( 'attachment_updated', 'wp_check_for_changed_dates', 12, 3 );
+
+// Redirect random content requests (disabled by default, see 'enable_random_content_redirect').
+add_action( 'template_redirect', 'wp_random_content_redirect' );
 
 // Nonce check for post previews.
 add_action( 'init', '_show_post_preview' );
@@ -834,5 +840,6 @@ foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $pos
 		5
 	);
 }
+add_filter( 'get_entity_view_config_root_site', '_wp_get_entity_view_config_root_site', 5 );
 
 unset( $filter, $action, $post_type );

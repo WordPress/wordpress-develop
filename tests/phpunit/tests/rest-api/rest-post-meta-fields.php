@@ -11,6 +11,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $post_id;
 	protected static $cpt_post_id;
+	protected static $editor_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_post_type(
@@ -24,12 +25,14 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'] ?? array();
 		self::$post_id            = $factory->post->create();
 		self::$cpt_post_id        = $factory->post->create( array( 'post_type' => 'cpt' ) );
+		self::$editor_id          = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
 		wp_delete_post( self::$post_id, true );
 		wp_delete_post( self::$cpt_post_id, true );
+		self::delete_user( self::$editor_id );
 
 		unregister_post_type( 'cpt' );
 	}
@@ -263,12 +266,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	protected function grant_write_permission() {
 		// Ensure we have write permission.
-		$user = self::factory()->user->create(
-			array(
-				'role' => 'editor',
-			)
-		);
-		wp_set_current_user( $user );
+		wp_set_current_user( self::$editor_id );
 	}
 
 	public function test_get_value() {

@@ -67,7 +67,7 @@ jQuery( function($) {
 	 * @type {string[]}
 	 *
 	 * @global
- 	 */
+	 */
 	window.ajaxWidgets = ['dashboard_primary'];
 
 	/**
@@ -85,7 +85,7 @@ jQuery( function($) {
 		/**
 		 * Fetch the latest representation of the widget via Ajax and show it.
 		 *
-		 * @param {number} i Number of half-seconds to use as the timeout.
+		 * @param {number} i  Number of half-seconds to use as the timeout.
 		 * @param {string} id ID of the element which is going to be checked for changes.
 		 *
 		 * @return {void}
@@ -163,7 +163,7 @@ jQuery( function($) {
 			 * Highlights the latest post for one second.
 			 *
 			 * @return {void}
- 			 */
+			 */
 			function highlightLatestPost () {
 				var latestPost = $( '.drafts ul li' ) .first(),
 					errorNotice = $( '#quick-press .notice-error' );
@@ -703,7 +703,7 @@ jQuery( function( $ ) {
 		 *
 		 * @since 5.5.2
 		 *
-		 * @param {number} startTimestamp
+		 * @param {number} startTimestamp The start timestamp of the event.
 		 *
 		 * @return {number} The offset from UTC in minutes, with the sign flipped to be more intuitive.
 		 */
@@ -716,7 +716,7 @@ jQuery( function( $ ) {
 		 *
 		 * @since 5.5.2
 		 *
-		 * @param {number} startTimestamp
+		 * @param {number} startTimestamp The start timestamp of the event.
 		 *
 		 * @return {string} A short time zone name, like `PST`, or a string like `GMT+5` if the abbreviation can't be determined.
 		 */
@@ -835,7 +835,7 @@ jQuery( function( $ ) {
  * @deprecated 5.6.0
  *
  * @type {Object}
-*/
+ */
 window.communityEventsData.l10n = window.communityEventsData.l10n || {
 	enter_closest_city: '',
 	error_occurred_please_try_again: '',
