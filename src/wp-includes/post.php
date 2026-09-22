@@ -6422,6 +6422,10 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page', $p
 		$post_types = array( $post_type, 'attachment' );
 	}
 
+	$requested_post_types = "'" . implode( "','", esc_sql( (array) $post_type ) ) . "'";
+	$viewable_statuses    = array_filter( get_post_stati(), 'is_post_status_viewable' );
+	$viewable_statuses    = $viewable_statuses ? "'" . implode( "','", esc_sql( $viewable_statuses ) ) . "'" : 'NULL';
+
 	$post_types          = esc_sql( $post_types );
 	$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
 	$sql                 = "
@@ -6429,6 +6433,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page', $p
 		FROM $wpdb->posts
 		WHERE post_name IN ($in_string)
 		AND post_type IN ($post_type_in_string)
+		ORDER BY post_type IN ($requested_post_types) DESC, post_status IN ($viewable_statuses) DESC
 	";
 
 	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string, post_status: string }> $pages */
@@ -6436,9 +6441,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page', $p
 
 	$revparts = array_reverse( $parts );
 
-	$found_id          = 0;
-	$found_type_rank   = 0;
-	$found_status_rank = 0;
+	$found_id = 0;
 	foreach ( (array) $pages as $page ) {
 		if ( $page->post_name === $revparts[0] ) {
 			// Keep all ancestors available even when only the leaf must have a requested status.
@@ -6470,20 +6473,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page', $p
 				&& count( $revparts ) === $count + 1
 				&& $p->post_name === $revparts[ $count ]
 			) {
-				if ( is_array( $post_type ) ) {
-					$is_type_match = in_array( $page->post_type, $post_type, true );
-				} else {
-					$is_type_match = ( $page->post_type === $post_type );
-				}
-
-				$type_rank   = $is_type_match ? 2 : 1;
-				$status_rank = is_post_status_viewable( $page->post_status ) ? 2 : 1;
-
-				if ( $type_rank > $found_type_rank || ( $type_rank === $found_type_rank && $status_rank > $found_status_rank ) ) {
-					$found_id          = $page->ID;
-					$found_type_rank   = $type_rank;
-					$found_status_rank = $status_rank;
-				}
+				$found_id = $page->ID;
+				break;
 			}
 		}
 	}

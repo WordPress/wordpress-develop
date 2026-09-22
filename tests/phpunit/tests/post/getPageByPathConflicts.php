@@ -58,6 +58,48 @@ class Tests_Post_GetPageByPathConflicts extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61996
+	 */
+	public function test_custom_viewable_status_is_preferred() {
+		register_post_status( 'wptests_public', array( 'public' => true ) );
+		$draft     = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+				'post_name'   => 'draft-policy',
+			)
+		);
+		$published = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'wptests_public',
+				'post_name'   => 'privacy-policy',
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'        => $draft,
+				'post_name' => 'privacy-policy',
+			)
+		);
+
+		$this->assertSame( $published, get_page_by_path( 'privacy-policy' )->ID );
+	}
+
+	/**
+	 * @ticket 61996
+	 */
+	public function test_lookup_works_without_viewable_statuses() {
+		$page = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		add_filter( 'is_post_status_viewable', '__return_false' );
+		try {
+			$this->assertSame( $page, get_page_by_path( get_post( $page )->post_name )->ID );
+		} finally {
+			remove_filter( 'is_post_status_viewable', '__return_false' );
+		}
+	}
+
+	/**
+	 * @ticket 61996
 	 * @group query
 	 * @dataProvider data_explicit_status_queries
 	 */
