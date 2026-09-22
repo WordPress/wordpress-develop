@@ -979,7 +979,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				} elseif ( $is_active ) {
 					if ( current_user_can( 'deactivate_plugin', $plugin_file ) ) {
 						if ( $has_active_dependents ) {
-							$actions['deactivate'] = __( 'Deactivate' ) .
+							$actions['deactivate'] = '<span class="disabled">' . __( 'Deactivate' ) . '</span>' .
 								'<span class="screen-reader-text">' .
 								__( 'You cannot deactivate this plugin as other plugins depend on it.' ) .
 								'</span>';
@@ -988,12 +988,20 @@ class WP_Plugins_List_Table extends WP_List_Table {
 								'&amp;plugin=' . urlencode( $plugin_file ) .
 								'&amp;plugin_status=' . $context .
 								'&amp;paged=' . $page .
-								'&amp;s=' . $s;
+								'&amp;s=' . esc_attr( $s );
+
+							$deactivate_class = '';
+
+							// Ensure button is disabled when searching.
+							if ( $has_dependents || $has_unmet_dependencies ) {
+								$deactivate_class = 'class="disabled" aria-disabled="true" tabindex="-1"';
+							}
 
 							$actions['deactivate'] = sprintf(
-								'<a href="%s" id="deactivate-%s" aria-label="%s">%s</a>',
+								'<a href="%s" id="deactivate-%s" %s aria-label="%s">%s</a>',
 								wp_nonce_url( $deactivate_url, 'deactivate-plugin_' . $plugin_file ),
 								esc_attr( $plugin_id_attr ),
+								$deactivate_class,
 								/* translators: %s: Plugin name. */
 								esc_attr( sprintf( _x( 'Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
 								__( 'Deactivate' )
@@ -1006,7 +1014,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							'&amp;plugin=' . urlencode( $plugin_file ) .
 							'&amp;plugin_status=' . $context .
 							'&amp;paged=' . $page .
-							'&amp;s=' . $s;
+							'&amp;s=' . esc_attr( $s );
 
 						$actions['resume'] = sprintf(
 							'<a href="%s" id="resume-%s" class="resume-link" aria-label="%s">%s</a>',
