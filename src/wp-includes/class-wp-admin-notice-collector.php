@@ -10,11 +10,11 @@
 /**
  * Capture admin notices generated in PHP during a request.
  *
- * Notices are captured via the {@see 'wp_admin_notice_markup'} filter.  
- * a title placeholder is inserted into the admin page's `<title>` tag, 
- * the admin page title is modified via the {@see 'admin_title'} 
- * filter, the admin page is wrapped in an output buffer, and an 
- * `ob_start()` callback replaces the placeholder with the final count once 
+ * Notices are captured via the {@see 'wp_admin_notice_markup'} filter.
+ * a title placeholder is inserted into the admin page's `<title>` tag,
+ * the admin page title is modified via the {@see 'admin_title'}
+ * filter, the admin page is wrapped in an output buffer, and an
+ * `ob_start()` callback replaces the placeholder with the final count once
  * the buffer is flushed.
  *
  * @since x.x.x
