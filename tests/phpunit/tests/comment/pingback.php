@@ -41,7 +41,7 @@ BODY;
 		);
 
 		$post = get_post( self::$post_id );
-		$this->assertEquals( array( 'http://example1.org/test' => false ), pingback( $post->post_content, self::$post_id ) );
+		$this->assertSame( array( 'http://example1.org/test' => false ), pingback( $post->post_content, self::$post_id ) );
 	}
 
 	public function test_pingback_no_ping_back() {
@@ -65,7 +65,7 @@ BODY;
 		);
 
 		$post = get_post( self::$post_id );
-		$this->assertEquals( array(), pingback( $post->post_content, self::$post_id ) );
+		$this->assertSame( array(), pingback( $post->post_content, self::$post_id ) );
 	}
 
 	public function test_pingback_error_response() {
@@ -82,7 +82,7 @@ HTML;
 		);
 
 		$post = get_post( self::$post_id );
-		$this->assertEquals( array(), pingback( $post->post_content, self::$post_id ) );
+		$this->assertSame( array(), pingback( $post->post_content, self::$post_id ) );
 	}
 
 	public function request_response() {
