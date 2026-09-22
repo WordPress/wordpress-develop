@@ -117,7 +117,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		 */
 		$args = apply_filters( 'revision_text_diff_options', $args, $field, $compare_from, $compare_to );
 
-		$diff = wp_text_diff( $content_from, $content_to, $args );
+		$diff = wp_text_diff( $content_from, $content_to, $args, true );
 
 		if ( ! $diff && 'post_title' === $field ) {
 			/*
@@ -143,11 +143,21 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		}
 
 		if ( $diff ) {
-			$return[] = array(
-				'id'   => $field,
-				'name' => $name,
-				'diff' => $diff,
-			);
+			if ( 'post_content' === $field ) {
+				$return[] = array(
+					'id'   => $field,
+					'name' => $name,
+					'diff' => $diff,
+					'from' => $compare_from,
+					'to'   => $compare_to,
+				);
+			} else {
+				$return[] = array(
+					'id'   => $field,
+					'name' => $name,
+					'diff' => $diff,
+				);
+			}
 		}
 	}
 

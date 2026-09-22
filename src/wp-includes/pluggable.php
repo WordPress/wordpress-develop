@@ -3388,7 +3388,7 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 	 * }
 	 * @return string Empty string if strings are equivalent or HTML with differences.
 	 */
-	function wp_text_diff( $left_string, $right_string, $args = null ) {
+	function wp_text_diff( $left_string, $right_string, $args = null, $enable_copy_button = false ) {
 		$defaults = array(
 			'title'           => '',
 			'title_left'      => '',
@@ -3432,9 +3432,16 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 			$th_or_td_right = empty( $args['title_right'] ) ? 'td' : 'th';
 
 			$r .= "<tr class='diff-sub-title'>\n";
-			$r .= "\t<$th_or_td_left>$args[title_left]</$th_or_td_left>\n";
-			if ( $is_split_view ) {
-				$r .= "\t<$th_or_td_right>$args[title_right]</$th_or_td_right>\n";
+			if ( $enable_copy_button ) {
+				$r .= "\t<$th_or_td_left>$args[title_left] <input class='button button-primary button-copy' data-side='left' type='button' value='" . __( 'Copy' ) . "' /></$th_or_td_left>\n";
+				if ( $is_split_view ) {
+					$r .= "\t<$th_or_td_right>$args[title_right] <input class='button button-primary button-copy' data-side='right' type='button' value='" . __( 'Copy' ) . "' /> </$th_or_td_right>\n";
+				}
+			} else {
+				$r .= "\t<$th_or_td_left>$args[title_left]</$th_or_td_left>\n";
+				if ( $is_split_view ) {
+					$r .= "\t<$th_or_td_right>$args[title_right]</$th_or_td_right>\n";
+				}
 			}
 			$r .= "</tr>\n";
 		}
