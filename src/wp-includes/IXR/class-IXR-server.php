@@ -204,7 +204,7 @@ EOD;
         $return = array();
         foreach ($methodcalls as $call) {
             // Each call must be a struct naming the method to call.
-            if (!is_array($call) || !isset($call['methodName'])) {
+            if (!is_array($call) || !isset($call['methodName']) || !is_string($call['methodName'])) {
                 $return[] = array(
                     'faultCode' => -32600,
                     'faultString' => 'server error. invalid xml-rpc. Each multicall entry must be a struct with a methodName'
