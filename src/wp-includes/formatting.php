@@ -3186,31 +3186,7 @@ function make_clickable( $text ) {
 			}
 		} else {
 			$ret = " $piece "; // Pad with whitespace to simplify the regexes.
-
-			$url_clickable = '~
-				([\\s(<.,;:!?])                                # 1: Leading whitespace, or punctuation.
-				(                                              # 2: URL.
-					[\\w]{1,20}+://                                # Scheme and hier-part prefix.
-					(?=\S{1,2000}\s)                               # Limit to URLs less than about 2000 characters long.
-					[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]*+         # Non-punctuation URL character.
-					(?:                                            # Unroll the Loop: Only allow punctuation URL character if followed by a non-punctuation URL character.
-						[\'.,;:!?)]                                    # Punctuation URL character.
-						[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]++         # Non-punctuation URL character.
-					)*
-				)
-				(\)?)                                          # 3: Trailing closing parenthesis (for parenthesis balancing post processing).
-				(\\.\\w{2,6})?                                 # 4: Allowing file extensions (e.g., .jpg, .png).
-			~xS';
-			/*
-			 * The regex is a non-anchored pattern and does not have a single fixed starting character.
-			 * Tell PCRE to spend more time optimizing since, when used on a page load, it will probably be used several times.
-			 */
-
-			$ret = preg_replace_callback( $url_clickable, '_make_url_clickable_cb', $ret );
-
-			$ret = preg_replace_callback( '#([\s>])((www|ftp)\.[\w\\x80-\\xff\#$%&~/.\-;:=,?@\[\]+]+)#is', '_make_web_ftp_clickable_cb', $ret );
-			$ret = preg_replace_callback( '#([\s>])([.0-9a-z_+-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})#i', '_make_email_clickable_cb', $ret );
-
+			$ret = apply_filters( 'make_clickable', $ret );
 			$ret = substr( $ret, 1, -1 ); // Remove our whitespace padding.
 			$r  .= $ret;
 		}
@@ -3218,6 +3194,69 @@ function make_clickable( $text ) {
 
 	// Cleanup of accidental links within links.
 	return preg_replace( '#(<a([ \r\n\t]+[^>]+?>|>))<a [^>]+?>([^>]+?)</a></a>#i', '$1$3</a>', $r );
+}
+
+/**
+ * Converts URLs in text into clickable links.
+ *
+ * @since 6.8.0
+ * @access private
+ *
+ * @param string $text The text to be processed.
+ * @return string Text with converted URLs.
+ */
+function make_url_clickable( $text ) {
+	$url_clickable = '~
+		([\\s(<.,;:!?])                                # 1: Leading whitespace, or punctuation
+		(                                              # 2: URL
+			[\\w]{1,20}+://                            # Scheme and hier-part prefix
+			(?=\S{1,2000}\s)                           # Limit to URLs less than about 2000 characters long
+			[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]*+     # Non-punctuation URL character
+			(?:                                        # Unroll the Loop: Only allow puctuation URL character if followed by a non-punctuation URL character
+				[\'.,;:!?)]                            # Punctuation URL character
+				[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]++ # Non-punctuation URL character
+			)*
+		)
+		(\)?)                                          # 3: Trailing closing parenthesis (for parethesis balancing post processing)
+	~xS';
+
+	// The regex is a non-anchored pattern and does not have a single fixed starting character.
+	// Tell PCRE to spend more time optimizing since, when used on a page load, it will probably be used several times.
+	return preg_replace_callback( $url_clickable, '_make_url_clickable_cb', $text );
+}
+
+/**
+ * Converts FTP and www addresses in text into clickable links.
+ *
+ * @since 6.8.0
+ * @access private
+ *
+ * @param string $text The text to be processed.
+ * @return string Text with converted FTP and www addresses.
+ */
+function make_ftp_clickable( $text ) {
+	return preg_replace_callback(
+		'#([\s>])((www|ftp)\.[\w\\x80-\\xff\#$%&~/.\-;:=,?@\[\]+]+)#is',
+		'_make_web_ftp_clickable_cb',
+		$text
+	);
+}
+
+/**
+ * Converts email addresses in text into clickable links.
+ *
+ * @since 6.8.0
+ * @access private
+ *
+ * @param string $text The text to be processed.
+ * @return string Text with converted email addresses.
+ */
+function make_email_clickable( $text ) {
+	return preg_replace_callback(
+		'#([\s>])([.0-9a-z_+-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})#i',
+		'_make_email_clickable_cb',
+		$text
+	);
 }
 
 /**
