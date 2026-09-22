@@ -160,6 +160,10 @@ add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'text_change_check
 // Show a "postbox" with the text suggestions for a privacy policy.
 add_action( 'admin_notices', array( 'WP_Privacy_Policy_Content', 'notice' ) );
 
+// Generate a wrapper for admin notices.
+add_action( 'admin_notices', 'wp_admin_notice_wrapper_start', 1 );
+add_action( 'admin_notices', 'wp_admin_notice_wrapper', 99999 );
+
 // Add the suggested policy text from WordPress.
 add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'add_suggested_content' ), 1 );
 
