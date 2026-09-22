@@ -101,9 +101,6 @@ fieldset {
 	text-align: left;
 	padding: 0;
 }
-.language-chooser.wp-core-ui .step .button.button-large {
-	font-size: 14px;
-}
 textarea {
 	border: 1px solid #dcdcde;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
@@ -350,8 +347,8 @@ body.language-chooser {
 	color: var(--wp-admin-theme-color-darker-20);
 }
 
-.language-chooser .step {
-	text-align: right;
+.step {
+	text-align: end;
 }
 
 .screen-reader-input,
