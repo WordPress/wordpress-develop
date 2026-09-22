@@ -46,6 +46,56 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a widget registered as an instance is keyed by a string.
+	 *
+	 * WP_Widget_Factory::$widgets is public, and its keys were strings in every release before the
+	 * object ID was introduced. PHP casts an array key from string to int whenever the string is the
+	 * canonical decimal representation of an integer, so a bare spl_object_id() value would change
+	 * the type of the keys that consumers of that property read back.
+	 *
+	 * @see register_widget()
+	 * @ticket 65919
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	public function test_register_widget_instance_is_keyed_by_string() {
+		global $wp_widget_factory;
+
+		register_widget( new WP_Widget_Search() );
+
+		$this->assertCount( 1, $wp_widget_factory->widgets );
+		$this->assertIsString( array_key_first( $wp_widget_factory->widgets ) );
+	}
+
+	/**
+	 * Tests that the key returned for a widget registered as an instance is a string.
+	 *
+	 * WP_Widget_Factory::get_widget_key() is documented as returning a string, and core passes what
+	 * it returns to the_widget(), which in turn passes it to the 'the_widget' action, both of which
+	 * document the value as a string.
+	 *
+	 * @see WP_Widget_Factory::get_widget_key()
+	 * @ticket 65919
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	public function test_get_widget_key_for_instance_returns_string() {
+		global $wp_widget_factory;
+
+		$widget                              = new WP_Widget_Search();
+		$widget->id_base                     = 'better_search';
+		$widget->name                        = 'Better Search';
+		$widget->option_name                 = 'widget_' . $widget->id_base;
+		$widget->widget_options['classname'] = 'widget_' . $widget->id_base;
+		$widget->control_options['id_base']  = $widget->id_base;
+
+		register_widget( $widget );
+
+		$this->assertIsString( $wp_widget_factory->get_widget_key( 'better_search' ) );
+		$this->assertSame( $widget, $wp_widget_factory->get_widget_object( 'better_search' ) );
+	}
+
+	/**
 	 * Test that registering a widget class and registering a widget instance work together.
 	 *
 	 * @see register_widget()

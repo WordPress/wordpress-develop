@@ -12,7 +12,10 @@ on:
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/smoke-check/**'
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   pull_request:
@@ -23,7 +26,9 @@ on:
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   workflow_dispatch:
@@ -81,7 +86,7 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
         # WordPress 5.3 is the oldest version that supports PHP 7.4.
-        wp: [ '5.3', '6.9', '7.0', '7.1-RC2' ]
+        wp: [ '5.3', '7.0', '7.1' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -114,7 +119,7 @@ jobs:
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        wp: [ '6.9', '7.0', '7.1-RC2' ]
+        wp: [ '7.0', '7.1' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}

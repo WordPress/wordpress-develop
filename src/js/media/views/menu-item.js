@@ -36,6 +36,9 @@ MenuItem = wp.media.View.extend(/** @lends wp.media.view.MenuItem.prototype */{
 		}
 	},
 
+	/**
+	 * Handles the click event.
+	 */
 	click: function() {
 		var state = this.options.state;
 
@@ -47,6 +50,8 @@ MenuItem = wp.media.View.extend(/** @lends wp.media.view.MenuItem.prototype */{
 	},
 
 	/**
+	 * Renders the menu item.
+	 *
 	 * @return {wp.media.view.MenuItem} returns itself to allow chaining.
 	 */
 	render: function() {

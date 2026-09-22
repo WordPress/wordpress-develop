@@ -201,8 +201,9 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is false,
 	 *                          true otherwise.
+	 * @phpstan-return ( $display is true ? true|null : string|null )
 	 */
 	public function print_scripts_l10n( $handle, $display = true ) {
 		_deprecated_function( __FUNCTION__, '3.3.0', 'WP_Scripts::print_extra_script()' );
@@ -217,8 +218,9 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is false,
 	 *                          true otherwise.
+	 * @phpstan-return ( $display is true ? true|null : string|null )
 	 */
 	public function print_extra_script( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'data' );
@@ -525,7 +527,8 @@ class WP_Scripts extends WP_Dependencies {
 			$position = 'before';
 		}
 
-		$script   = (array) $this->get_data( $handle, $position );
+		$script   = $this->get_data( $handle, $position );
+		$script   = false === $script ? array() : (array) $script;
 		$script[] = $data;
 
 		return $this->add_data( $handle, $position, $script );

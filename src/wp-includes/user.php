@@ -853,7 +853,6 @@ function delete_user_option( $user_id, $option_name, $is_global = false ) {
  * @since 6.7.0
  *
  * @param int $user_id User ID.
- *
  * @return WP_User|false WP_User object on success, false on failure.
  */
 function get_user( $user_id ) {
@@ -908,7 +907,12 @@ function get_users( $args = array() ) {
  *     @type string $exclude       An array, comma-, or space-separated list of user IDs to exclude. Default empty.
  *     @type string $include       An array, comma-, or space-separated list of user IDs to include. Default empty.
  * }
- * @return string|null The output if echo is false. Otherwise null.
+ * @return string|void The output if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_list_users( $args = array() ) {
 	$defaults = array(
@@ -1014,6 +1018,7 @@ function wp_list_users( $args = array() ) {
 	if ( ! $parsed_args['echo'] ) {
 		return $return;
 	}
+
 	echo $return;
 }
 
@@ -1265,6 +1270,8 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $user_id
  */
 function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'user', $user_id, $meta_key, $meta_value );
@@ -1293,6 +1300,18 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );
@@ -2593,7 +2612,7 @@ function wp_insert_user( $userdata ) {
 	 * @since 4.4.0
 	 * @since 5.8.0 The `$userdata` parameter was added.
 	 *
-	 * @param array $meta {
+	 * @param array   $meta {
 	 *     Default meta values and keys for the user.
 	 *
 	 *     @type string   $nickname             The user's nickname. Default is the user's username.
@@ -3456,7 +3475,7 @@ function retrieve_password( $user_login = '' ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array $defaults {
+	 * @param array   $defaults {
 	 *     The default notification email arguments. Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient - user email address.
