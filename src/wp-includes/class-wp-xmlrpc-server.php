@@ -838,7 +838,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @phpstan-assert-if-true array<string, mixed> $content_struct
 	 */
 	protected function _is_content_struct_array( $content_struct ): bool {
-		if ( ! is_array( $content_struct ) || wp_is_numeric_array( $content_struct ) ) {
+		// An empty struct is allowed, so the callers can report a more specific error for it.
+		if ( ! is_array( $content_struct ) || ( array() !== $content_struct && wp_is_numeric_array( $content_struct ) ) ) {
 			$this->error = new IXR_Error( 400, __( 'The content struct argument must be an associative array.' ) );
 			return false;
 		}
