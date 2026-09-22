@@ -1974,6 +1974,9 @@ function get_settings_errors( $setting = '', $sanitize = false ) {
  * @since 3.0.0
  * @since 5.3.0 Legacy `error` and `updated` CSS classes are mapped to
  *              `notice-error` and `notice-success`.
+ * @since 7.2.0 Uses `wp_admin_notice()` to echo the notices so that the CSS
+ *              classes are handled based on the notice type and the hook
+ *              `wp_admin_notice` is fired, for consistency with other notices.
  *
  * @param string $setting        Optional slug title of a specific setting whose errors you want.
  * @param bool   $sanitize       Whether to re-sanitize the setting value before returning errors.
@@ -1992,32 +1995,36 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 		return;
 	}
 
-	$output = '';
-
 	foreach ( $settings_errors as $key => $details ) {
-		if ( 'updated' === $details['type'] ) {
-			$details['type'] = 'success';
+		$type = $details['type'];
+
+		if ( 'updated' === $type ) {
+			$type = 'success';
 		}
 
-		if ( in_array( $details['type'], array( 'error', 'success', 'warning', 'info' ), true ) ) {
-			$details['type'] = 'notice-' . $details['type'];
-		}
-
-		$css_id    = sprintf(
+		/*
+		 * Note that the setting error code contains underscores, for example:
+		 * `settings_updated`. This will build a CSS ID selector that contains
+		 * underscores, which are currently not allowed by the WordPress CSS
+		 * Coding Standards. Kept for backwards compatibility.
+		 */
+		$css_id = sprintf(
 			'setting-error-%s',
-			esc_attr( $details['code'] )
-		);
-		$css_class = sprintf(
-			'notice %s settings-error is-dismissible',
-			esc_attr( $details['type'] )
+			esc_attr( $details['code'] ),
 		);
 
-		$output .= "<div id='$css_id' class='$css_class'> \n";
-		$output .= "<p><strong>{$details['message']}</strong></p>";
-		$output .= "</div> \n";
+		wp_admin_notice(
+			"<strong>{$details['message']}</strong>",
+			array(
+				'type'               => $type,
+				'code'               => $details['code'],
+				'id'                 => $css_id,
+				'paragraph_wrap'     => true,
+				'dismissible'        => true,
+				'additional_classes' => array( 'settings-error' ),
+			)
+		);
 	}
-
-	echo $output;
 }
 
 /**
