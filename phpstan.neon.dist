@@ -24,7 +24,6 @@ includes:
 	# phpstan:baselines start
 	- tests/phpstan/baselines/argument.type.neon
 	- tests/phpstan/baselines/argument.unresolvableType.neon
-	- tests/phpstan/baselines/arguments.count.neon
 	- tests/phpstan/baselines/arrayValues.list.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
