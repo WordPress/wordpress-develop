@@ -175,7 +175,7 @@ class WP_Http {
 		}
 
 		// The request was short-circuited by the 'pre_http_request' filter.
-		if ( isset( $prepared['response'] ) ) {
+		if ( array_key_exists( 'response', $prepared ) ) {
 			return $prepared['response'];
 		}
 
@@ -246,7 +246,7 @@ class WP_Http {
 
 			if ( is_wp_error( $prepared ) ) {
 				$responses[ $id ] = $prepared;
-			} elseif ( isset( $prepared['response'] ) ) {
+			} elseif ( array_key_exists( 'response', $prepared ) ) {
 				// The request was short-circuited by the 'pre_http_request' filter.
 				$responses[ $id ] = $prepared['response'];
 			} else {

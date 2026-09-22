@@ -132,6 +132,18 @@ class Tests_HTTP_wpRemoteRequestMultiple extends WP_UnitTestCase {
 	/**
 	 * @ticket 37459
 	 */
+	public function test_should_return_a_null_short_circuit_value_as_is() {
+		add_filter( 'pre_http_request', '__return_null' );
+
+		$responses = wp_remote_request_multiple( array( 'first' => 'https://example.org/first' ) );
+
+		$this->assertSame( array( 'first' => null ), $responses, 'A null short-circuit value should be returned like any other.' );
+		$this->assertNull( wp_remote_request( 'https://example.org/first' ), 'A single request should still return a null short-circuit value as is.' );
+	}
+
+	/**
+	 * @ticket 37459
+	 */
 	public function test_should_return_a_wp_error_for_a_request_that_cannot_be_prepared() {
 		$this->allow_requests_rejected_before_sending();
 		add_filter( 'pre_http_request', array( $this, 'short_circuit_example_org' ), 10, 3 );
