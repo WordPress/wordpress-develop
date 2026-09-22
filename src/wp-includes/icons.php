@@ -107,8 +107,8 @@ function _wp_register_default_icon_collections() {
 /**
  * Registers the default core icons from the manifest.
  *
- * Icons flagged as `admin` in the manifest are also registered in the "core-admin"
- * collection, which is not public.
+ * Each manifest entry lists the collections the icon belongs to, and the icon is
+ * registered once per collection.
  *
  * @since 7.1.0
  * @access private
@@ -148,15 +148,22 @@ function _wp_register_default_icons() {
 			return;
 		}
 
+		if ( empty( $icon_data['collections'] ) || ! is_array( $icon_data['collections'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'Core icon collection manifest must provide a non-empty "collections" array for each icon.' ),
+				'7.2.0'
+			);
+			return;
+		}
+
 		$icon_args = array(
 			'label'     => $icon_data['label'],
 			'file_path' => $icons_directory . $icon_data['filePath'],
 		);
 
-		wp_register_icon( 'core/' . $icon_name, $icon_args );
-
-		if ( ! empty( $icon_data['admin'] ) ) {
-			wp_register_icon( 'core-admin/' . $icon_name, $icon_args );
+		foreach ( $icon_data['collections'] as $collection_slug ) {
+			wp_register_icon( $collection_slug . '/' . $icon_name, $icon_args );
 		}
 	}
 }

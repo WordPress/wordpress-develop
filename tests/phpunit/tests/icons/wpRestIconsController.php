@@ -34,6 +34,10 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	public function set_up() {
 		parent::set_up();
 
+		if ( ! $this->manifest_provides_collections() ) {
+			$this->markTestSkipped( 'The bundled icon library manifest does not list icon collections yet.' );
+		}
+
 		/*
 		 * Other suites reset the `WP_Icons_Registry` singleton, wiping the core icons that
 		 * `init` only registers once. Re-register them when empty so order-dependent tests pass.
@@ -44,6 +48,24 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		if ( empty( WP_Icons_Registry::get_instance()->get_registered_icons() ) ) {
 			_wp_register_default_icons();
 		}
+	}
+
+	/**
+	 * Determines whether the bundled icon library manifest lists the collections
+	 * each icon belongs to.
+	 *
+	 * The manifest is synced from `gutenberg/packages/icons` by
+	 * `grunt copy:icon-library-manifest`, so the `collections` property arrives
+	 * with the next Gutenberg hash bump. Remove this method, and the calls to it,
+	 * once it has.
+	 *
+	 * @return bool True if the manifest provides the `collections` property.
+	 */
+	private function manifest_provides_collections() {
+		$manifest = include ABSPATH . WPINC . '/assets/icon-library-manifest.php';
+		$first    = is_array( $manifest ) ? reset( $manifest ) : false;
+
+		return is_array( $first ) && ! empty( $first['collections'] );
 	}
 
 	public function tear_down() {
