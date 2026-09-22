@@ -100,18 +100,18 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @since 4.3.0
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args                   Array or string of arguments for inserting a term.
-	 * @param null  $generation_definitions The default values.
+	 * @param array                     $args                   Array or string of arguments for
+	 *                                                          inserting a term.
+	 * @param array<string, mixed>|null $generation_definitions The default values.
 	 * @return WP_Term Term object.
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be created or retrieved.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ): WP_Term {
 		$term_id = $this->create( $args, $generation_definitions );
 
-		// The taxonomy given in the args wins over the one the factory was constructed with.
-		$taxonomy = $args['taxonomy'] ?? $this->taxonomy;
-
-		$term = get_term( $term_id, $taxonomy );
+		// The term may have been created in a taxonomy that came from either the args or the
+		// generation definitions, so look it up by ID alone rather than guessing which.
+		$term = get_term( $term_id );
 
 		$this->assert_valid_object( $term, $term_id, WP_Term::class, $args );
 

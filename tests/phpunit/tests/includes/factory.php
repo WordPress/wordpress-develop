@@ -306,6 +306,27 @@ class TestFactoryFor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The taxonomy can come from the generation definitions rather than the args, so the term
+	 * has to be looked up by ID rather than in the taxonomy the factory was constructed with.
+	 *
+	 * @ticket 66111
+	 */
+	public function test_term_factory_create_and_get_should_honor_a_generated_taxonomy() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term = $this->category_factory->create_and_get(
+			array(),
+			array(
+				'name'     => 'Generated taxonomy term',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$this->assertInstanceOf( WP_Term::class, $term );
+		$this->assertSame( 'wptests_tax', $term->taxonomy );
+	}
+
+	/**
 	 * @ticket 66111
 	 */
 	public function test_create_many_should_return_an_array_of_ids() {
