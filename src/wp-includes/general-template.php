@@ -2659,6 +2659,11 @@ function get_calendar( $args = array() ) {
 		}
 	}
 
+	$w = '';
+	if ( isset( $_GET['w'] ) ) {
+		$w = (int) $_GET['w'];
+	}
+
 	// week_begins = 0 stands for Sunday.
 	$week_begins = (int) get_option( 'start_of_week' );
 
@@ -2683,7 +2688,10 @@ function get_calendar( $args = array() ) {
 		if ( strlen( $m ) < 6 ) {
 			$thismonth = 1;
 		} else {
-			$thismonth = (int) substr( $m, 4, 2 );
+			$thismonth = zeroise( (int) substr( $m, 4, 2 ), 2 );
+			if ( ! in_array( (int) $thismonth, range( 1, 12 ) ) ) {
+				$thismonth = '01';
+			}
 		}
 	} else {
 		$thisyear  = (int) current_time( 'Y' );
@@ -2691,7 +2699,7 @@ function get_calendar( $args = array() ) {
 	}
 
 	$unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
-	$last_day  = gmdate( 't', $unixmonth );
+	$last_day  = date( 't', $unixmonth );
 
 	// Get the next and previous month and year with at least one post.
 	$previous = $wpdb->get_row(
