@@ -538,6 +538,7 @@ class WP_Block_Processor {
 	 * associated with token boundaries still point to the delimiters even
 	 * when processing HTML spans, so there’s no need to track them independently.
 	 *
+	 * @since 6.9.0
 	 * @var 'push'|'void'|'pop'|null
 	 */
 	private $next_stack_op = null;
