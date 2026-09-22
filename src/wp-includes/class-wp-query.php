@@ -1072,22 +1072,13 @@ class WP_Query {
 			}
 		}
 
-		if ( ! empty( $query_vars['post_status'] ) ) {
-			if ( is_array( $query_vars['post_status'] ) ) {
-				$query_vars['post_status'] = array_map( 'sanitize_key', array_unique( $query_vars['post_status'] ) );
-				sort( $query_vars['post_status'] );
-			} else {
-				$query_vars['post_status'] = preg_replace( '|[^a-z0-9_,-]|', '', $query_vars['post_status'] );
-			}
-		}
-
 		if ( '' !== $query_vars['pagename'] ) {
-			$this->queried_object = get_page_by_path( $query_vars['pagename'], OBJECT, 'page', $query_vars['post_status'] ?? '' );
+			$this->queried_object = get_page_by_path( $query_vars['pagename'] );
 
 			if ( $this->queried_object && 'attachment' === $this->queried_object->post_type ) {
 				if ( preg_match( '/^[^%]*%(?:postname)%/', get_option( 'permalink_structure' ) ) ) {
 					// See if we also have a post with the same slug.
-					$post = get_page_by_path( $query_vars['pagename'], OBJECT, 'post', $query_vars['post_status'] ?? '' );
+					$post = get_page_by_path( $query_vars['pagename'], OBJECT, 'post' );
 					if ( $post ) {
 						$this->queried_object = $post;
 						$this->is_page        = false;
@@ -1131,6 +1122,15 @@ class WP_Query {
 				sort( $query_vars['post_type'] );
 			} else {
 				$query_vars['post_type'] = sanitize_key( $query_vars['post_type'] );
+			}
+		}
+
+		if ( ! empty( $query_vars['post_status'] ) ) {
+			if ( is_array( $query_vars['post_status'] ) ) {
+				$query_vars['post_status'] = array_map( 'sanitize_key', array_unique( $query_vars['post_status'] ) );
+				sort( $query_vars['post_status'] );
+			} else {
+				$query_vars['post_status'] = preg_replace( '|[^a-z0-9_,-]|', '', $query_vars['post_status'] );
 			}
 		}
 
@@ -2170,14 +2170,14 @@ class WP_Query {
 							continue;
 						}
 
-						$reqpage = get_page_by_path( $query_vars['pagename'], OBJECT, $_post_type, $query_vars['post_status'] ?? '' );
+						$reqpage = get_page_by_path( $query_vars['pagename'], OBJECT, $_post_type );
 						if ( $reqpage ) {
 							break;
 						}
 					}
 					unset( $ptype_obj );
 				} else {
-					$reqpage = get_page_by_path( $query_vars['pagename'], OBJECT, 'page', $query_vars['post_status'] ?? '' );
+					$reqpage = get_page_by_path( $query_vars['pagename'] );
 				}
 				if ( ! empty( $reqpage ) ) {
 					$reqpage = $reqpage->ID;
