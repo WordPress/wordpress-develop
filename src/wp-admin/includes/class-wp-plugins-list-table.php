@@ -505,8 +505,37 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$columns['auto-updates'] = __( 'Automatic Updates' );
 		}
 
+		$columns['last-updated'] = __( 'Last Updated' );
+
 		return $columns;
 	}
+	protected function column_last_updated( $plugin_file ) {
+
+		$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin_file );
+
+		$plugin_uri = isset( $plugin_data['PluginURI'] ) ? $plugin_data['PluginURI'] : '';
+
+		$plugin_slug = basename( parse_url( $plugin_uri, PHP_URL_PATH ) );
+
+		$http_args = array(
+			'timeout'    => 10,
+			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),
+		);
+
+		// Fetch plugin info from WordPress API
+		$response = wp_remote_get( "https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request[slug]=$plugin_slug", $http_args );
+
+		if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
+			$plugin_info = json_decode( wp_remote_retrieve_body( $response ), true );
+
+			if ( isset( $plugin_info['last_updated'] ) ) {
+				return esc_html( gmdate( 'M j, Y', strtotime( $plugin_info['last_updated'] ) ) );
+			}
+		}
+
+		return __( 'Unknown', 'default' );
+	}
+
 
 	/**
 	 * Gets the list of sortable columns for this list table.
@@ -1467,6 +1496,24 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo '</td>';
 
 					break;
+				case 'last-updated':
+					echo "<td class='column-last-updated{$extra_classes}'>";
+
+					$html = array();
+
+					$last_updated = $this->column_last_updated( $plugin_file );
+
+					if ( ! empty( $last_updated ) ) {
+						$html[] = '<span class="last-updated">' . $last_updated . '</span>';
+					}
+
+					$html = implode( '', $html );
+
+					echo apply_filters( 'plugin_last_updated_setting_html', $html, $plugin_file, $plugin_data );
+
+					echo '</td>';
+
+					break;
 				default:
 					$classes = "$column_name column-$column_name $class";
 
@@ -1552,6 +1599,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			);
 
 			echo '</td></tr>';
+
 		}
 
 		/**
