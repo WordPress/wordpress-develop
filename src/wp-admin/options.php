@@ -267,16 +267,32 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 
 	if ( 'general' === $option_page ) {
 		// Handle custom date/time formats.
-		if ( ! empty( $_POST['date_format'] ) && isset( $_POST['date_format_custom'] )
-			&& '\c\u\s\t\o\m' === wp_unslash( $_POST['date_format'] )
-		) {
-			$_POST['date_format'] = $_POST['date_format_custom'];
+		if ( isset( $_POST['date_format'] ) ) {
+			$date_format = wp_get_submitted_date_time_format(
+				$_POST['date_format'],
+				isset( $_POST['date_format_custom'] ) ? $_POST['date_format_custom'] : null
+			);
+
+			if ( null === $date_format ) {
+				unset( $_POST['date_format'] );
+				$options = array_diff( $options, array( 'date_format' ) );
+			} else {
+				$_POST['date_format'] = $date_format;
+			}
 		}
 
-		if ( ! empty( $_POST['time_format'] ) && isset( $_POST['time_format_custom'] )
-			&& '\c\u\s\t\o\m' === wp_unslash( $_POST['time_format'] )
-		) {
-			$_POST['time_format'] = $_POST['time_format_custom'];
+		if ( isset( $_POST['time_format'] ) ) {
+			$time_format = wp_get_submitted_date_time_format(
+				$_POST['time_format'],
+				isset( $_POST['time_format_custom'] ) ? $_POST['time_format_custom'] : null
+			);
+
+			if ( null === $time_format ) {
+				unset( $_POST['time_format'] );
+				$options = array_diff( $options, array( 'time_format' ) );
+			} else {
+				$_POST['time_format'] = $time_format;
+			}
 		}
 
 		// Map UTC+- timezones to gmt_offsets and set timezone_string to empty.
