@@ -61,7 +61,7 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * @return stdClass The link object.
 	 * @throws WP_UnitTest_Factory_Exception When the link could not be retrieved.
 	 */
-	public function get_object_by_id( $link_id ): stdClass {
+	public function get_object_by_id( int $link_id ): stdClass {
 		$link = get_bookmark( $link_id );
 
 		$this->assert_valid_object( $link, $link_id, stdClass::class );

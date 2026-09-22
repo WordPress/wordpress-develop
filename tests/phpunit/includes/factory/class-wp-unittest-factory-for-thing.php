@@ -127,7 +127,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @return object The object. Implementations narrow this to their own object type.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be retrieved.
 	 */
-	abstract public function get_object_by_id( $object_id );
+	abstract public function get_object_by_id( int $object_id );
 
 	/**
 	 * Creates multiple objects.
@@ -282,7 +282,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @phpstan-param class-string<T> $expected_class
 	 * @phpstan-assert T $retrieved
 	 */
-	protected function assert_valid_object( $retrieved, $object_id, string $expected_class, $args = array() ): void {
+	protected function assert_valid_object( $retrieved, int $object_id, string $expected_class, $args = array() ): void {
 		if ( is_wp_error( $retrieved ) ) {
 			throw new WP_UnitTest_Factory_Exception(
 				sprintf( 'Unable to retrieve the object with ID %d: %s. Args: %s', $object_id, $retrieved->get_error_message(), wp_json_encode( $args ) )

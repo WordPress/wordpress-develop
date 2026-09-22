@@ -130,7 +130,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @return WP_Term The term object.
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be retrieved.
 	 */
-	public function get_object_by_id( $term_id ): WP_Term {
+	public function get_object_by_id( int $term_id ): WP_Term {
 		$term = get_term( $term_id, $this->taxonomy );
 
 		$this->assert_valid_object( $term, $term_id, WP_Term::class );
