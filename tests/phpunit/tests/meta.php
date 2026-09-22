@@ -136,7 +136,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{mixed}>
 	 */
-	public function data_non_array_cache_values(): array {
+	public static function data_non_array_cache_values(): array {
 		return array(
 			'object'  => array( new stdClass() ),
 			'string'  => array( 'meta_value' ),
