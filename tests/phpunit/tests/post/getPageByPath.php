@@ -57,6 +57,37 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$this->assertSame( $page, $found->ID );
 	}
 
+	/**
+	 * @ticket 61996
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_prefer_published_page_over_older_draft() {
+		$draft     = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+		$published = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_name'   => 'privacy-policy',
+			)
+		);
+
+		// Draft slug updates can reuse a published page's slug.
+		wp_update_post(
+			array(
+				'ID'        => $draft,
+				'post_name' => 'privacy-policy',
+			)
+		);
+
+		$this->assertSame( 'privacy-policy', get_post( $draft )->post_name );
+		$this->assertSame( $published, get_page_by_path( 'privacy-policy' )->ID );
+	}
+
 	public function test_should_obey_post_type() {
 		register_post_type( 'wptests_pt' );
 
