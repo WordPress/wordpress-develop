@@ -119,7 +119,19 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
 
-		return rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
+
+		/**
+		 * Filters the block pattern category data for a REST API response.
+		 * Allows modification of the block pattern category right before it is returned.
+		 *
+		 * @since 6.7.2
+		 *
+		 * @param WP_REST_Response $response The response object.
+		 * @param array            $item     The original pattern category array.
+		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_block_pattern_category', $response, $item, $request );
 	}
 
 	/**
