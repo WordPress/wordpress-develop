@@ -84,33 +84,30 @@ class Tests_Post_GetPageByPathConflicts extends WP_UnitTestCase {
 	 * @group query
 	 * @dataProvider data_page_options
 	 */
-	public function test_query_respects_draft_status_set_in_pre_get_posts( $option ) {
+	public function test_explicit_draft_query_uses_the_selected_pages_flags( $option ) {
 		list( $published, $path, $draft ) = $this->create_conflicting_pages( true, false );
 		if ( $option ) {
 			update_option( $option, $published );
 			update_option( 'show_on_front', 'page' );
 		}
-		$query      = new WP_Query();
-		$set_status = static function ( $current_query ) use ( $query ) {
-			if ( $current_query === $query ) {
-				$current_query->set( 'post_status', 'draft' );
-			}
-		};
-		add_action( 'pre_get_posts', $set_status );
-		$query->query(
+
+		$query = new WP_Query(
 			array(
-				'post_type' => 'page',
-				'pagename'  => $path,
+				'post_type'   => 'page',
+				'pagename'    => $path,
+				'post_status' => 'draft',
 			)
 		);
-		remove_action( 'pre_get_posts', $set_status );
 
 		$this->assertSame( array( $draft ), wp_list_pluck( $query->posts, 'ID' ) );
 		$this->assertSame( $draft, $query->get_queried_object_id() );
 		$this->assertTrue( $query->is_page() );
 		$this->assertFalse( $query->is_privacy_policy() );
+		$this->assertFalse( $query->is_privacy_policy );
 		$this->assertFalse( $query->is_posts_page );
 		$this->assertFalse( $query->is_home() );
+		$this->assertTrue( $query->is_singular() );
+		$this->assertFalse( $query->is_comment_feed() );
 	}
 
 	/**

@@ -2160,15 +2160,10 @@ class WP_Query {
 			$query_vars['name'] = sanitize_title_for_query( $query_vars['name'] );
 			$where             .= " AND {$wpdb->posts}.post_name = '" . $query_vars['name'] . "'";
 		} elseif ( '' !== $query_vars['pagename'] ) {
-			// A hook may have changed the requested status after parse_query() resolved the path.
-			if ( $this->query_vars_changed && ! empty( $query_vars['post_status'] ) ) {
-				unset( $this->queried_object, $this->queried_object_id );
-			}
-
 			if ( isset( $this->queried_object_id ) ) {
 				$reqpage = $this->queried_object_id;
 			} else {
-				if ( ! in_array( $query_vars['post_type'], array( '', 'page', 'any' ), true ) ) {
+				if ( 'page' !== $query_vars['post_type'] ) {
 					foreach ( (array) $query_vars['post_type'] as $_post_type ) {
 						$ptype_obj = get_post_type_object( $_post_type );
 						if ( ! $ptype_obj || ! $ptype_obj->hierarchical ) {
@@ -2185,27 +2180,13 @@ class WP_Query {
 					$reqpage = get_page_by_path( $query_vars['pagename'], OBJECT, 'page', $query_vars['post_status'] ?? '' );
 				}
 				if ( ! empty( $reqpage ) ) {
-					$this->queried_object    = $reqpage;
-					$this->queried_object_id = (int) $reqpage->ID;
-					$reqpage                 = $reqpage->ID;
+					$reqpage = $reqpage->ID;
 				} else {
 					$reqpage = 0;
 				}
 			}
 
 			$page_for_posts = get_option( 'page_for_posts' );
-			if ( $this->query_vars_changed && ! empty( $query_vars['post_status'] ) ) {
-				$this->is_privacy_policy = $reqpage && (int) get_option( 'wp_page_for_privacy_policy' ) === (int) $reqpage;
-				$is_posts_page           = $reqpage && 'page' === get_option( 'show_on_front' ) && (int) $page_for_posts === (int) $reqpage;
-				if ( $this->is_posts_page !== $is_posts_page ) {
-					$this->is_posts_page   = $is_posts_page;
-					$this->is_home         = $is_posts_page;
-					$this->is_page         = ! $is_posts_page;
-					$this->is_singular     = $this->is_single || $this->is_page || $this->is_attachment;
-					$this->is_comment_feed = $this->is_feed && ( ! empty( $query_vars['withcomments'] ) || ( empty( $query_vars['withoutcomments'] ) && $this->is_singular ) );
-				}
-			}
-
 			if ( ( 'page' !== get_option( 'show_on_front' ) ) || empty( $page_for_posts ) || ( $reqpage != $page_for_posts ) ) {
 				$query_vars['pagename'] = sanitize_title_for_query( wp_basename( $query_vars['pagename'] ) );
 				$query_vars['name']     = $query_vars['pagename'];
