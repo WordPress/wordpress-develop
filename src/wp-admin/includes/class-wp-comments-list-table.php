@@ -1174,15 +1174,13 @@ class WP_Comments_List_Table extends WP_List_Table {
 	/**
 	 * Outputs the Is pending column.
 	 *
-	 * @since 5.9.0 Renamed `$comment` to `$item` to match parent class for PHP 8 named parameter support.
-	 *
-	 * @param WP_Comment $item        The comment object.
+	 * @param WP_Comment $comment The comment object.
 	 */
-	public function column_comment_approved($comment) {
-		if (!$comment->comment_approved) {
+	public function column_comment_approved( $comment ) {
+		if ( ! $comment->comment_approved ) {
 			echo '<span class="comment-status pending">' . __( 'Pending' ) . '</span>';
 		} else {
-			echo '<span class="comment-status approved">' . __( 'Approved' ) . '</span>';;
+			echo '<span class="comment-status approved">' . __( 'Approved' ) . '</span>';
 		}
 	}
 }
