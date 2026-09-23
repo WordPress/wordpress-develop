@@ -37,7 +37,7 @@
  *        { name: 'default' },
  *        {
  *          name: 'with-filter',
- *          setup: async (page, requestUtils) => {
+ *          setup: async ( { admin, editor, page, requestUtils } ) => {
             // Create test data if needed.
             await requestUtils.createPost({ title: 'Test', status: 'draft' });
             // Apply UI state.
@@ -81,7 +81,7 @@ const pages = [
 		stateVariants: [
 			{
 				name: 'default',
-				setup: async ( page, requestUtils ) => {
+				setup: async ( { page, requestUtils } ) => {
 					// Create a published post.
 					await requestUtils.createPost( {
 						title: 'Test Published Post',
@@ -98,7 +98,7 @@ const pages = [
 			},
 			{
 				name: 'draft-filter',
-				setup: async ( page, requestUtils ) => {
+				setup: async ( { page, requestUtils } ) => {
 					// Create a draft post so there's something to filter.
 					await requestUtils.createPost( {
 						title: 'Test Draft Post',
@@ -142,7 +142,7 @@ const pages = [
 			},
 			{
 				name: 'image-modal-open',
-				setup: async ( page ) => {
+				setup: async ( { page } ) => {
 					// Click the image to open the attachment modal.
 					const imageLink = page.locator( '.attachment' ).first();
 					await imageLink.click();
@@ -166,7 +166,7 @@ const pages = [
 		stateVariants: [
 			{
 				name: 'default',
-				setup: async ( page, requestUtils ) => {
+				setup: async ( { page, requestUtils } ) => {
 					// Create a post to attach comments to.
 					const { id: postId } = await requestUtils.createPost( {
 						title: 'Post for comments',
@@ -215,7 +215,7 @@ const pages = [
 			},
 			{
 				name: 'fonts-upload-tab',
-				setup: async ( page ) => {
+				setup: async ( { page } ) => {
 					const uploadTab = page.getByRole( 'tab', { name: 'Upload' } );
 					await uploadTab.click();
 					await page.getByRole( 'tabpanel', { name: 'Upload' } ).isVisible();
@@ -223,7 +223,7 @@ const pages = [
 			},
 			{
 				name: 'fonts-install-fonts-tab',
-				setup: async ( page ) => {
+				setup: async ( { page } ) => {
 					const installFontsTab = page.getByRole( 'tab', { name: 'Install Fonts' } );
 					await installFontsTab.click();
 					await page.getByRole( 'tabpanel', { name: 'Install Fonts' } ).isVisible();
