@@ -500,7 +500,7 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Fields passed to the most recent update_object() call.
 	 *
-	 * @var array<mixed>|null
+	 * @var array<string, mixed>|null
 	 */
 	public $updated_fields;
 
@@ -538,7 +538,7 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * @param array<mixed> $args The arguments.
+	 * @param array<string, mixed> $args The arguments.
 	 * @return positive-int The configured result.
 	 * @throws WP_UnitTest_Factory_Exception When the configured result is not a positive integer.
 	 */
@@ -551,8 +551,8 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * @param int          $object_id The object ID.
-	 * @param array<mixed> $fields    The values to update.
+	 * @param int                  $object_id The object ID.
+	 * @param array<string, mixed> $fields    The values to update.
 	 * @return positive-int The configured result.
 	 * @throws WP_UnitTest_Factory_Exception When the configured result is not a positive integer.
 	 */

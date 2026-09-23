@@ -25,7 +25,7 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args The user data to insert.
+	 * @param array<string, mixed> $args The user data to insert.
 	 * @return positive-int The user ID.
 	 * @throws WP_UnitTest_Factory_Exception When the user could not be created.
 	 */
@@ -43,8 +43,8 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param int   $user_id ID of the user to update.
-	 * @param array $fields  The user data to update.
+	 * @param int                  $user_id ID of the user to update.
+	 * @param array<string, mixed> $fields  The user data to update.
 	 * @return positive-int The user ID.
 	 * @throws WP_UnitTest_Factory_Exception When the user could not be updated.
 	 */

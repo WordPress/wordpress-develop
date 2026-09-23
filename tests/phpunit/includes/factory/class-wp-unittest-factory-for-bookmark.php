@@ -21,7 +21,7 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * @since 4.6.0
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args Arguments for the link object.
+	 * @param array<string, mixed> $args Arguments for the link object.
 	 * @return positive-int The link ID.
 	 * @throws WP_UnitTest_Factory_Exception When the link could not be created.
 	 */
@@ -39,8 +39,8 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * @since 4.6.0
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param int   $link_id ID of the link to update.
-	 * @param array $fields  The fields to update.
+	 * @param int                  $link_id ID of the link to update.
+	 * @param array<string, mixed> $fields  The fields to update.
 	 * @return positive-int The link ID.
 	 * @throws WP_UnitTest_Factory_Exception When the link could not be updated.
 	 */
@@ -58,8 +58,7 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves a link by a given ID.
 	 *
 	 * @since 4.6.0
-	 * @since 7.2.0 Throws an exception instead of returning null when the object
-	 *              cannot be retrieved.
+	 * @since 7.2.0 Throws an exception instead of returning null when the object cannot be retrieved.
 	 *
 	 * @param int $link_id ID of the link to retrieve.
 	 * @return stdClass The link object.

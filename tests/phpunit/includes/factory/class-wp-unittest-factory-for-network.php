@@ -27,7 +27,7 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * @since 3.9.0
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args Arguments for the network object.
+	 * @param array<string, mixed> $args Arguments for the network object.
 	 * @return positive-int The network ID.
 	 * @throws WP_UnitTest_Factory_Exception When the network could not be created.
 	 */
@@ -67,8 +67,8 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param int   $network_id ID of the network to update.
-	 * @param array<mixed> $fields The fields to update.
+	 * @param int                  $network_id ID of the network to update.
+	 * @param array<string, mixed> $fields     The fields to update.
 	 * @return never
 	 * @throws WP_UnitTest_Factory_Exception Always, since updating a network is not supported.
 	 */
@@ -82,8 +82,7 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves a network by a given ID.
 	 *
 	 * @since 3.9.0
-	 * @since 7.2.0 Throws an exception instead of returning null when the object
-	 *              cannot be retrieved.
+	 * @since 7.2.0 Throws an exception instead of returning null when the object cannot be retrieved.
 	 *
 	 * @param int $network_id ID of the network to retrieve.
 	 * @return WP_Network The network object.

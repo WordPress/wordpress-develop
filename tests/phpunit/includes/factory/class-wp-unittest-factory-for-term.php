@@ -15,10 +15,8 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	const DEFAULT_TAXONOMY = 'post_tag';
 
 	/**
-	 * @param object|null $factory            Optional. Global factory that can be used to create other
-	 *                                        objects on the system. Default null.
-	 * @param non-falsy-string|null $taxonomy Optional. The taxonomy to create terms in.
-	 *                                        Default self::DEFAULT_TAXONOMY.
+	 * @param object|null           $factory  Optional. Global factory that can be used to create other objects on the system. Default null.
+	 * @param non-falsy-string|null $taxonomy Optional. The taxonomy to create terms in. Default self::DEFAULT_TAXONOMY.
 	 */
 	public function __construct( $factory = null, ?string $taxonomy = null ) {
 		parent::__construct( $factory );
@@ -36,7 +34,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args Array of arguments for inserting a term.
+	 * @param array<string, mixed> $args Array of arguments for inserting a term.
 	 * @return positive-int The term ID.
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be created.
 	 */
@@ -56,8 +54,8 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param int|WP_Term $term  The term to update.
-	 * @param array      $fields Array of arguments for updating a term.
+	 * @param int|WP_Term          $term   The term to update.
+	 * @param array<string, mixed> $fields Array of arguments for updating a term.
 	 * @return positive-int The term ID.
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be updated.
 	 */
@@ -109,8 +107,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @since 4.3.0
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array                     $args                   Array or string of arguments for
-	 *                                                          inserting a term.
+	 * @param array<string, mixed>      $args                   Array of arguments for inserting a term.
 	 * @param array<string, mixed>|null $generation_definitions The default values.
 	 * @return WP_Term Term object.
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be created or retrieved.
@@ -131,8 +128,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves the term by a given ID.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object or null when
-	 *              the term cannot be retrieved.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object or null when the term cannot be retrieved.
 	 *
 	 * @param int $term_id ID of the term to retrieve.
 	 * @return WP_Term The term object.

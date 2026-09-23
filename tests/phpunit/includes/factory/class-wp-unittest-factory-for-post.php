@@ -27,7 +27,7 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args Array with elements for the post.
+	 * @param array<string, mixed> $args Array with elements for the post.
 	 * @return positive-int The post ID.
 	 * @throws WP_UnitTest_Factory_Exception When the post could not be created.
 	 */
@@ -45,8 +45,8 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param int   $post_id ID of the post to update.
-	 * @param array $fields  Post data.
+	 * @param int                  $post_id ID of the post to update.
+	 * @param array<string, mixed> $fields  Post data.
 	 * @return positive-int The post ID.
 	 * @throws WP_UnitTest_Factory_Exception When the post could not be updated.
 	 */
@@ -64,8 +64,7 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves a post by a given ID.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 7.2.0 Throws an exception instead of returning null when the object
-	 *              cannot be retrieved.
+	 * @since 7.2.0 Throws an exception instead of returning null when the object cannot be retrieved.
 	 *
 	 * @param int $post_id ID of the post to retrieve.
 	 * @return WP_Post The post object.

@@ -24,7 +24,7 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Creates a site object.
 	 *
-	 * @param array $args Arguments for the site object.
+	 * @param array<string, mixed> $args Arguments for the site object.
 	 * @return positive-int The site ID.
 	 * @throws WP_UnitTest_Factory_Exception When the site could not be created.
 	 */
@@ -77,8 +77,8 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @todo Implement via wp_update_site(), so that after-create callbacks work with this factory.
 	 *
-	 * @param int   $blog_id ID of the site to update.
-	 * @param array<mixed> $fields The fields to update.
+	 * @param int                  $blog_id ID of the site to update.
+	 * @param array<string, mixed> $fields  The fields to update.
 	 * @return never
 	 * @throws WP_UnitTest_Factory_Exception Always, since updating a site is not supported.
 	 */
@@ -91,8 +91,7 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Retrieves a site by a given ID.
 	 *
-	 * @since 7.2.0 Throws an exception instead of returning null when the object
-	 *              cannot be retrieved.
+	 * @since 7.2.0 Throws an exception instead of returning null when the object cannot be retrieved.
 	 *
 	 * @param int $blog_id ID of the site to retrieve.
 	 * @return WP_Site The site object.

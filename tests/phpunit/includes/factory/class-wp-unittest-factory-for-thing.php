@@ -28,14 +28,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since UT (3.7.0)
 	 *
-	 * @param object|null          $factory                        Global factory that can be used to create
-	 *                                                             other objects on the system, or null when
-	 *                                                             there is none.
-	 * @param array<string, mixed> $default_generation_definitions Defines what default values should the
-	 *                                                             properties of the object have. The default
-	 *                                                             values can be generators -- an object with
-	 *                                                             the next() method. There are some default
-	 *                                                             generators:
+	 * @param object|null          $factory                        Global factory that can be used to create other objects on the system, or null when there is none.
+	 * @param array<string, mixed> $default_generation_definitions Defines what default values should the properties of the object have. The default values can be generators -- an object with the next() method. There are some default generators:
 	 *                                                              - {@link WP_UnitTest_Generator_Sequence}
 	 *                                                              - {@link WP_UnitTest_Generator_Locale_Name}
 	 *                                                              - {@link WP_UnitTest_Factory_Callback_After_Create}
@@ -51,7 +45,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args The arguments.
+	 * @param array<string, mixed> $args The arguments.
 	 * @return positive-int The object ID.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created.
 	 */
@@ -63,8 +57,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param int   $object_id The object ID.
-	 * @param array $fields    The values to update.
+	 * @param int                  $object_id The object ID.
+	 * @param array<string, mixed> $fields    The values to update.
 	 * @return positive-int The object ID.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be updated.
 	 */
@@ -76,10 +70,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array                     $args                   Optional. The arguments for the object to
-	 *                                                          create. Default empty array.
-	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object.
-	 *                                                          Default null.
+	 * @param array<string, mixed>      $args                   Optional. The arguments for the object to create. Default empty array.
+	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object. Default null.
 	 *
 	 * @return positive-int The object ID.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created.
@@ -105,10 +97,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array                     $args                   Optional. The arguments for the object to
-	 *                                                          create. Default empty array.
-	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object.
-	 *                                                          Default null.
+	 * @param array<string, mixed>      $args                   Optional. The arguments for the object to create. Default empty array.
+	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object. Default null.
 	 *
 	 * @return object The created object. Can be anything.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created or retrieved.
@@ -121,8 +111,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * Retrieves an object by ID.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object, null or false
-	 *              when the object cannot be retrieved.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object, null or false when the object cannot be retrieved.
 	 *
 	 * @param int $object_id The object ID.
 	 * @return object The object. Implementations narrow this to their own object type.
@@ -136,10 +125,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 *
 	 * @param int                       $count                  Amount of objects to create.
-	 * @param array                     $args                   Optional. The arguments for the object to
-	 *                                                          create. Default empty array.
-	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object.
-	 *                                                          Default null.
+	 * @param array<string, mixed>      $args                   Optional. The arguments for the object to create. Default empty array.
+	 * @param array<string, mixed>|null $generation_definitions Optional. The default values for the object. Default null.
 	 *
 	 * @return positive-int[] An array of object IDs.
 	 * @throws WP_UnitTest_Factory_Exception When one of the objects could not be created.
@@ -161,13 +148,11 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array                     $args                   Optional. The arguments to combine with
-	 *                                                          defaults. Default empty array.
+	 * @param array<string, mixed>      $args                   Optional. The arguments to combine with defaults. Default empty array.
 	 * @param array<string, mixed>|null $generation_definitions Optional. The defaults. Default null.
-	 * @param array|null                $callbacks              Optional. Array with callbacks to apply on
-	 *                                                          the fields. Default null.
+	 * @param array|null                $callbacks              Optional. Array with callbacks to apply on the fields. Default null.
 	 *
-	 * @return array The combined array.
+	 * @return array<string, mixed> The combined array.
 	 * @throws WP_UnitTest_Factory_Exception When a default value is neither a scalar nor a generator object.
 	 */
 	public function generate_args( $args = array(), $generation_definitions = null, &$callbacks = null ) {
@@ -208,9 +193,9 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since UT (3.7.0)
 	 *
-	 * @param WP_UnitTest_Factory_Callback_After_Create[] $callbacks Array with callback functions.
-	 * @param int                                         $object_id ID of the object to apply callbacks for.
-	 * @return array The altered fields.
+	 * @param array<string, WP_UnitTest_Factory_Callback_After_Create> $callbacks Array with callback functions, keyed by field name.
+	 * @param int                                                      $object_id ID of the object to apply callbacks for.
+	 * @return array<string, mixed> The altered fields.
 	 */
 	public function apply_callbacks( $callbacks, $object_id ) {
 		$updated_fields = array();
@@ -270,14 +255,12 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param mixed        $retrieved      The value returned by the retrieval function.
-	 * @param int          $object_id      The ID the object was retrieved by.
-	 * @param string       $expected_class The class the object is expected to be an instance of.
-	 * @param array<mixed> $args           Optional. The arguments the object was created with,
-	 *                                     reported in the message. Default empty array.
+	 * @param mixed                $retrieved      The value returned by the retrieval function.
+	 * @param int                  $object_id      The ID the object was retrieved by.
+	 * @param string               $expected_class The class the object is expected to be an instance of.
+	 * @param array<string, mixed> $args           Optional. The arguments the object was created with, reported in the message. Default empty array.
 	 * @return void
-	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object, or is not an object
-	 *                                       of the expected class.
+	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object, or is not an object of the expected class.
 	 *
 	 * @template T of object
 	 * @phpstan-param class-string<T> $expected_class

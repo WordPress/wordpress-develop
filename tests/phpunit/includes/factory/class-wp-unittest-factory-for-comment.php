@@ -28,7 +28,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array $args The comment details.
+	 * @param array<string, mixed> $args The comment details.
 	 * @return positive-int The comment ID.
 	 * @throws WP_UnitTest_Factory_Exception When the comment could not be created.
 	 */
@@ -56,8 +56,8 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * @since UT (3.7.0)
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param int   $comment_id The comment ID.
-	 * @param array $fields     The comment details.
+	 * @param int                  $comment_id The comment ID.
+	 * @param array<string, mixed> $fields     The comment details.
 	 * @return positive-int The comment ID.
 	 * @throws WP_UnitTest_Factory_Exception When the comment could not be updated.
 	 */
@@ -80,10 +80,10 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since UT (3.7.0)
 	 *
-	 * @param int   $post_id                ID of the post to create comments for.
-	 * @param int   $count                  Total amount of comments to create.
-	 * @param array $args                   The comment details.
-	 * @param null  $generation_definitions Default values.
+	 * @param int                       $post_id                ID of the post to create comments for.
+	 * @param int                       $count                  Total amount of comments to create.
+	 * @param array<string, mixed>      $args                   The comment details.
+	 * @param array<string, mixed>|null $generation_definitions Default values.
 	 * @return int[] Array with the comment IDs.
 	 */
 	public function create_post_comments( $post_id, $count = 1, $args = array(), $generation_definitions = null ) {
@@ -95,8 +95,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * Retrieves a comment by a given ID.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 7.2.0 Throws an exception instead of returning null when the object
-	 *              cannot be retrieved.
+	 * @since 7.2.0 Throws an exception instead of returning null when the object cannot be retrieved.
 	 *
 	 * @param int $comment_id ID of the comment to retrieve.
 	 * @return WP_Comment The comment object.
