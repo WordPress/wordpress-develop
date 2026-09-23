@@ -6,7 +6,7 @@
  * @group comment
  */
 class Tests_Comment_Query extends WP_UnitTestCase {
-	protected static $post_id;
+	protected static int $post_id;
 	protected $comment_id;
 
 	/**
@@ -4558,6 +4558,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$q = new WP_Comment_Query( $query_args );
 
+		$this->assertIsArray( $q->comments );
 		$this->assertContainsOnlyInstancesOf( WP_Comment::class, $q->comments, 'Only WP_Comment objects should be returned.' );
 		$this->assertSame( array( (string) $parent ), array_values( wp_list_pluck( $q->comments, 'comment_ID' ) ), 'The parent comment should still be returned.' );
 	}
