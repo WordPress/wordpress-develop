@@ -442,11 +442,13 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 
 		$wp_settings_errors = null;
 
-		if ( str_contains( $type, ' ' ) ) {
-			// Backward compatibility for types that are strings with spaces see Trac ticket #44941.
-			$expected = sprintf( 'notice is-dismissible %s settings-error', $expected );
-		} else {
+		if ( in_array( $type, array( 'error', 'success', 'updated', 'warning', 'info' ), true ) ) {
+			// Backward compatibility: Core admin notice types build the CSS classes in this order.
 			$expected = sprintf( 'notice %s is-dismissible settings-error', $expected );
+		} else {
+			// Anything else e.g. custom types or strings with spaces is now passed as additional_classes.
+			// As such, the classes are appended to the end of the string.
+			$expected = sprintf( 'notice is-dismissible settings-error %s', $expected );
 		}
 
 		$this->assertStringContainsString( $expected, $output );
@@ -461,7 +463,10 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			array( 'info', 'notice-info' ),
 			array( 'updated', 'notice-success' ),
 			array( 'notice-error', 'notice-error' ),
+			array( 'custom', 'custom' ),
+			array( 'notice-custom', 'notice-custom' ),
 			array( 'error my-own-css-class hello world', 'error my-own-css-class hello world' ),
+			array( 'error my-notice-is-awesome hello world', 'error my-notice-is-awesome hello world' ),
 		);
 	}
 

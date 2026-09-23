@@ -1996,8 +1996,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 	}
 
 	foreach ( $settings_errors as $key => $details ) {
-		// Backward compatibility for passed types that may wrongly contain `notice-`.
-		$type = str_replace( 'notice-', '', trim( $details['type'] ) );
+		$type = trim( $details['type'] );
 
 		if ( 'updated' === $type ) {
 			$type = 'success';
@@ -2005,14 +2004,16 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 
 		$additional_classes = array( 'settings-error' );
 
-		// Backward compatibility for types that are strings with spaces see Trac ticket #44941.
-		// For example, a string like `error my-own-css-class hello world`.
-		if ( str_contains( $type, ' ' ) ) {
-			// Use ths substrings as additional classes.
-			$additional_classes = explode( ' ', $type . ' settings-error' );
-			// Set the type to empty string.
-			$type = '';
-
+		/*
+		 * Backward compatibility: for Core admin notice types, the related CSS
+		 * classes are rendered in the default order determined by `wp_admin_notice()`.
+		 * This includes the old type `updated`. Instead, anything else e.g.
+		 * custom notice types or strings with spaces is now passed as
+		 * additional_classes and appended to the end of the string,
+		 */
+		if ( ! in_array( $type, array( 'error', 'success', 'warning', 'info' ), true ) ) {
+			$additional_classes = array_merge( $additional_classes, explode( ' ', $type ) );
+			$type               = '';
 		}
 
 		/*
