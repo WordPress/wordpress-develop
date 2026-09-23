@@ -25,3 +25,6 @@ src/js/_enqueues/vendor/**/*
 # Ignore RTL CSS files.
 **/*-rtl.css
 **/*-rtl.min.css
+
+# Ignore the generated Dashicons stylesheet.
+src/wp-includes/css/dashicons.css
