@@ -843,3 +843,6 @@ foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $pos
 add_filter( 'get_entity_view_config_root_site', '_wp_get_entity_view_config_root_site', 5 );
 
 unset( $filter, $action, $post_type );
+
+// Fix for #50863: [playlist] + trailing text produces a </p> with no matching <p>.
+add_filter( 'the_content', 'wp_unwrap_block_level_content_in_paragraphs', 12 );

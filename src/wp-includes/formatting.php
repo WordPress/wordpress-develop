@@ -6403,3 +6403,75 @@ function maybe_hash_hex_color( $color ) {
 
 	return $color;
 }
+
+/**
+ * Splits <p> tags that wrap block-level content into separate paragraphs.
+ *
+ * @since 7.2.0
+ *
+ * @param string $content Content that has already been through do_shortcode().
+ * @return string Content with block-level content unwrapped from <p> tags.
+ */
+function wp_unwrap_block_level_content_in_paragraphs( $content ) {
+	static $allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|math|style|p|h[1-6]|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary|script)';
+
+	if ( false === strpos( $content, '<p' ) ) {
+		return $content;
+	}
+
+	return preg_replace_callback(
+		'/<p\b[^>]*>(.*?)<\/p>/is',
+		static function ( $matches ) use ( $allblocks ) {
+			return _wp_split_paragraph_around_block_content( $matches[0], $matches[1], $allblocks );
+		},
+		$content
+	);
+}
+
+/**
+ *
+ * Walks a single paragraph's inner content, and for every top-level block-level
+ * element found, closes the paragraph before it, emits the block element as-is,
+ * and opens a fresh paragraph for whatever comes after.
+ *
+ * @since 7.2.0
+ *
+ * @param string $whole_p  The full <p>...</p> match, returned unchanged if there's nothing to split.
+ * @param string $inner    The paragraph's inner content.
+ * @param string $allblocks Regex fragment listing block-level tag names.
+ * @return string
+ */
+function _wp_split_paragraph_around_block_content( $whole_p, $inner, $allblocks ) {
+	if ( ! preg_match( '/<' . $allblocks . '\b/i', $inner ) ) {
+		return $whole_p;
+	}
+
+	$balanced = '/(?P<block><(?P<tag>' . $allblocks . ')\b[^>]*>(?:[^<]++|<(?!\/?(?P=tag)\b)|(?P>block))*<\/(?P=tag)>)/is';
+
+	$output      = '';
+	$cursor      = 0;
+	$found_block = false;
+
+	while ( preg_match( $balanced, $inner, $m, PREG_OFFSET_CAPTURE, $cursor ) ) {
+		$found_block = true;
+
+		$before = trim( substr( $inner, $cursor, $m['block'][1] - $cursor ) );
+		if ( '' !== $before ) {
+			$output .= '<p>' . $before . '</p>';
+		}
+
+		$output .= $m['block'][0];
+		$cursor  = $m['block'][1] + strlen( $m['block'][0] );
+	}
+
+	if ( ! $found_block ) {
+		return $whole_p;
+	}
+
+	$after = trim( substr( $inner, $cursor ) );
+	if ( '' !== $after ) {
+		$output .= '<p>' . $after . '</p>';
+	}
+
+	return $output;
+}
