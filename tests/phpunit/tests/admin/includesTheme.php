@@ -189,7 +189,14 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 * @ticket 28121
 	 */
 	public function test_get_theme_featured_list_api() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+
+		if ( is_multisite() ) {
+			// In multisite, only Super Admins can install themes, and the API is not queried without that capability.
+			grant_super_admin( $user_id );
+		}
+
+		wp_set_current_user( $user_id );
 
 		add_filter(
 			'pre_http_request',
