@@ -137,7 +137,6 @@ module.exports = function(grunt) {
 			'concat',
 			'copy',
 			'cssmin',
-			'imagemin',
 			'jshint',
 			'uglify',
 			'watch'
@@ -754,6 +753,42 @@ module.exports = function(grunt) {
 				} ],
 			},
 			'gutenberg-styles': {
+				options: {
+					process: function( content, srcpath ) {
+						if ( path.basename( srcpath ) !== 'registry.php' ) {
+							return content;
+						}
+
+						/*
+						 * Gutenberg's generated style registry does not currently
+						 * meet Core's PHP coding standards. Format its known keys
+						 * while copying it so build jobs do not require PHP tooling.
+						 *
+						 * @ticket 65278
+						 */
+						const longestKey = 'dependencies';
+
+						return content.replace(
+							/^(\t\t)'(handle|path|dependencies)'\s*=>\s*([^\r\n]*)$/gm,
+							function( match, indentation, key, value ) {
+								const padding = ' '.repeat( longestKey.length - key.length + 1 );
+
+								if ( key === 'dependencies' ) {
+									value = value.replace(
+										/^array\((.*)\),$/,
+										function( array, dependencies ) {
+											dependencies = dependencies.trim();
+
+											return dependencies ? 'array( ' + dependencies + ' ),' : 'array(),';
+										}
+									);
+								}
+
+								return indentation + '\'' + key + '\'' + padding + '=> ' + value;
+							}
+						);
+					}
+				},
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/build/styles',
@@ -929,6 +964,11 @@ module.exports = function(grunt) {
 							{
 								expr: /content/im,
 								action: function( prop, value ) {
+									// Alternative text, as in `content: "\f141" / '';`, is not part of the icon.
+									var altText = ( value.match( /\s*\/\s*(?:'[^']*'|"[^"]*")\s*$/ ) || [ '' ] )[ 0 ];
+
+									value = value.slice( 0, value.length - altText.length );
+
 									if ( value === '"\\f141"' ) { // dashicons-arrow-left
 										value = '"\\f139"';
 									} else if ( value === '"\\f340"' ) { // dashicons-arrow-left-alt
@@ -942,7 +982,7 @@ module.exports = function(grunt) {
 									} else if ( value === '"\\f345"' ) { // dashicons-arrow-right-alt2
 										value = '"\\f341"';
 									}
-									return { prop: prop, value: value };
+									return { prop: prop, value: value + altText };
 								}
 							}
 						]
@@ -1083,28 +1123,59 @@ module.exports = function(grunt) {
 					'**/test/**',
 					'**/vendor/**'
 				],
-				/*
-				 * Limit JSHint's run to a single specified plugin directory:
+				/**
+				 * Limits JSHint's run to a single specified plugin directory:
 				 *
-				 *    grunt jshint:plugins --dir=foldername
+				 * Usage example:
+				 * grunt jshint:plugins --dir=foldername
+				 *
+				 * This also automatically skips minified files that may not have
+				 * a filename ending with `.min.js`, specifically when they have
+				 * lines longer than 500 characters.
+				 *
+				 * @param {string} dirpath Directory path.
+				 * @return {boolean} Whether the path is skipped.
 				 */
 				filter: function( dirpath ) {
-					var index, dir = grunt.option( 'dir' );
-
-					// Don't filter when no target folder is specified.
-					if ( ! dir ) {
-						return true;
+					// Bypasses folder targets so fs.readFileSync doesn't throw errors.
+					if ( ! fs.lstatSync( dirpath ).isFile() ) {
+						return false;
 					}
 
-					dirpath = dirpath.replace( /\\/g, '/' );
-					index = dirpath.lastIndexOf( '/' + dir );
+					// If `--dir` is provided.
+					var dir = grunt.option( 'dir' );
+					if ( dir ) {
+						var normalizedPath = dirpath.replace( /\\/g, '/' );
+						var index = normalizedPath.lastIndexOf( '/' + dir );
 
-					// Match only the folder name passed from cli.
-					if ( -1 !== index ) {
-						return true;
+						// If a directory was requested but this file isn't in it, exclude it.
+						if ( -1 === index ) {
+							return false;
+						}
 					}
 
-					return false;
+					// Read the file and inspect line lengths to catch minified/bundled code.
+					var content;
+					try {
+						content = fs.readFileSync( dirpath, 'utf-8' );
+					} catch ( error ) {
+						grunt.log.writeln( 'Could not read file: ' + dirpath + ' (Error: ' + error.message + ')' );
+						return false;
+					}
+
+					var lines = content.split( '\n' );
+
+					// Cap the maximum number of iterations at 5 lines.
+					for ( const line of lines.slice( 0, 5 ) ) {
+						// Exclude files with lines longer than 500 characters.
+						if ( line.length > 500 ) {
+							grunt.log.writeln( 'Skipping minified file: ' + dirpath );
+							return false;
+						}
+					}
+
+					// File passed both independent checks: proceed with JSHint.
+    				return true;
 				}
 			}
 		},
@@ -1757,6 +1828,8 @@ module.exports = function(grunt) {
 
 		grunt.task.run( '_' + this.nameArgs );
 	} );
+
+	grunt.registerMultiTask( 'imagemin', 'Losslessly optimizes PNG, JPEG and GIF images.', require( './tools/imagemin/task.js' )( grunt ) );
 
 	grunt.registerTask( 'precommit:image', [
 		'imagemin:core'

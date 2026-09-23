@@ -274,11 +274,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/plugin.php
 		-
-			message: '#^Variable \$metakey might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-admin/includes/post.php
-		-
 			message: '#^Variable \$revision might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
@@ -878,11 +873,6 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: ../../../src/wp-includes/global-styles-and-settings.php
-		-
-			message: '#^Variable \$token_length might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-decoder.php
 		-
 			message: '#^Variable \$node might not be defined\.$#'
 			identifier: variable.undefined
