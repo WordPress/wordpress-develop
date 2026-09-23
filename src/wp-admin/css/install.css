@@ -32,7 +32,8 @@ a:focus {
 	outline: 2px solid transparent;
 }
 
-h1, h2 {
+h1,
+h2 {
 	border-bottom: 1px solid #dcdcde;
 	clear: both;
 	color: #646970;
@@ -45,23 +46,30 @@ h3 {
 	font-size: 16px;
 }
 
-p, li, dd, dt {
+p,
+li,
+dd,
+dt {
 	padding-bottom: 2px;
 	font-size: 14px;
 	line-height: 1.5;
 }
 
-code, .code {
+code,
+.code {
 	font-family: Consolas, Monaco, monospace;
 }
 
-ul, ol, dl {
+ul,
+ol,
+dl {
 	padding: 5px 5px 5px 22px;
 }
 
 a img {
-	border: 0
+	border: 0;
 }
+
 abbr {
 	border: 0;
 	font-variant: normal;
@@ -97,13 +105,17 @@ fieldset {
 .step {
 	margin: 20px 0 15px;
 }
-.step, th {
+
+.step,
+th {
 	text-align: left;
 	padding: 0;
 }
+
 .language-chooser.wp-core-ui .step .button.button-large {
 	font-size: 14px;
 }
+
 textarea {
 	border: 1px solid #dcdcde;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
@@ -121,7 +133,7 @@ textarea {
 	margin-bottom: 9px;
 	padding: 10px 20px 10px 0;
 	font-size: 14px;
-	vertical-align: top
+	vertical-align: top;
 }
 
 .form-table th {
@@ -171,10 +183,10 @@ submit {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-.form-table input[type=text],
-.form-table input[type=email],
-.form-table input[type=url],
-.form-table input[type=password],
+.form-table input[type="text"],
+.form-table input[type="email"],
+.form-table input[type="url"],
+.form-table input[type="password"],
 #pass-strength-result {
 	width: 100%;
 }
@@ -209,13 +221,14 @@ submit {
 	margin: 25px 0 20px;
 }
 
-#error-page code, .code {
+#error-page code,
+.code {
 	font-family: Consolas, Monaco, monospace;
 }
 
 .message {
 	border-left: 4px solid #d63638;
-	padding: .7em .6em;
+	padding: 0.7em 0.6em;
 	background-color: #fcf0f1;
 }
 
@@ -231,7 +244,6 @@ submit {
 #pass2 {
 	direction: ltr;
 }
-
 
 /* localization */
 body.rtl,
@@ -252,13 +264,13 @@ body.rtl,
 	body {
 		margin-top: 115px;
 	}
+
 	#logo a {
 		margin: -125px auto 30px;
 	}
 }
 
 @media screen and (max-width: 782px) {
-
 	.form-table {
 		margin-top: 0;
 	}
@@ -395,8 +407,7 @@ body.language-chooser {
  * HiDPI Displays
  */
 @media print,
-  (min-resolution: 120dpi) {
-
+	(min-resolution: 120dpi) {
 	.spinner {
 		background-image: url(../images/spinner-2x.gif);
 	}

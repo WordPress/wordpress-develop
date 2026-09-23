@@ -54,7 +54,7 @@ div#media-upload-header {
 	color: #000;
 }
 
-#media-upload:after { /* clearfix */
+#media-upload::after { /* clearfix */
 	content: "";
 	display: table;
 	clear: both;
@@ -85,7 +85,8 @@ th {
 	position: relative;
 }
 
-.media-upload-form label.form-help, td.help {
+.media-upload-form label.form-help,
+td.help {
 	font-family: sans-serif;
 	font-style: italic;
 	font-weight: 400;
@@ -308,7 +309,7 @@ h4.media-sub-title {
 #gallery-settings .title,
 h3.media-title,
 h4.media-sub-title {
-	font-family: Georgia,"Times New Roman",Times,serif;
+	font-family: Georgia, "Times New Roman", Times, serif;
 	font-weight: 400;
 	color: #50575e;
 }
@@ -319,7 +320,7 @@ h4.media-sub-title {
 }
 
 #gallery-settings .describe th.label {
-	padding-top: .5em;
+	padding-top: 0.5em;
 	text-align: left;
 }
 
@@ -404,8 +405,7 @@ table.not-image tr.image-only {
  * HiDPI Displays
  */
 @media print,
-  (min-resolution: 120dpi) {
-
+	(min-resolution: 120dpi) {
 	.image-align-none-label {
 		background-image: url(../images/align-none-2x.png?ver=20120916);
 		background-size: 21px 15px;
