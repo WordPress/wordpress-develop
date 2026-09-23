@@ -1334,6 +1334,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			$foreign_content_starts_at = PHP_INT_MAX;
 			$open_blocks               = array();
 			$open_blocks_at            = array();
+			$foreign_closed_blocks     = array();
 
 			/**
 			 * These are treated as void elements inside the HTML API
@@ -1588,8 +1589,12 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 									 * the names don’t match. Preserve this behavior here
 									 * to avoid differences in sanitization and parsing.
 									 */
-									array_pop( $open_blocks );
-									array_pop( $open_blocks_at );
+									$closed_block    = array_pop( $open_blocks );
+									$closed_block_at = array_pop( $open_blocks_at );
+
+									if ( 'html' !== $namespace && $closed_block_at < $foreign_content_starts_at ) {
+										$foreign_closed_blocks[] = $closed_block;
+									}
 							}
 
 							// Filter block attributes for opening delimiters.
@@ -1867,6 +1872,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					if ( empty( $this->foreign_content_stack ) ) {
 						$this->change_parsing_namespace( 'html' );
 						$foreign_content_starts_at = PHP_INT_MAX;
+						$foreign_closed_blocks     = array();
 					}
 				}
 
@@ -1887,6 +1893,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			$sanitized = substr( $output, 0, $foreign_content_starts_at );
 
 			// Close any remaining-open blocks ensure isolation of block content.
+			foreach ( $foreign_closed_blocks as $block_name ) {
+				$sanitized .= "<!-- /wp:{$block_name} -->";
+			}
+
 			for ( $i = count( $open_blocks ) - 1; $i >= 0; $i-- ) {
 				// Skip blocks that were opened when inside truncated foreign content.
 				if ( $open_blocks_at[ $i ] >= $foreign_content_starts_at ) {
