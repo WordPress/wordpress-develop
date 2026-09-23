@@ -32,6 +32,8 @@ function wp_register_position_support( $block_type ) {
 /**
  * Returns the CSS rules for a position style configuration.
  *
+ * @since 7.2.0
+ *
  * @param string $selector               CSS selector to scope the rules to.
  * @param mixed  $position               Position style configuration.
  * @param array  $allowed_position_types Position types the theme supports.

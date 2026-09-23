@@ -66,6 +66,7 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 	 * Tests that position block support works as expected.
 	 *
 	 * @ticket 57618
+	 * @ticket 66166
 	 *
 	 * @covers ::wp_render_position_support
 	 *
