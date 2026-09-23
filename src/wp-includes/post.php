@@ -6448,7 +6448,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				&& $p->post_name === $revparts[ $count ]
 			) {
 				$found_id = $page->ID;
-				if ( in_array( $page->post_type, (array) $post_type, true ) ) {
+				if ( is_array( $post_type ) || $page->post_type === $post_type ) {
 					break;
 				}
 			}
