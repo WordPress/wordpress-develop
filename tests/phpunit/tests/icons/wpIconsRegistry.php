@@ -545,6 +545,8 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should register an icon that provides a valid `keywords` array.
+	 *
+	 * @ticket 66158
 	 */
 	public function test_register_icon_with_keywords() {
 		$name = 'test-collection/with-keywords';
@@ -566,6 +568,8 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should register an icon that omits `keywords`, since the property is optional.
+	 *
+	 * @ticket 66158
 	 */
 	public function test_register_icon_without_keywords() {
 		$name = 'test-collection/without-keywords';
@@ -604,6 +608,8 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	/**
 	 * Should fail to register an icon whose `keywords` is not an array of strings.
 	 *
+	 * @ticket 66158
+	 *
 	 * @dataProvider data_invalid_keywords
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
 	 *
@@ -627,6 +633,8 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should match an icon by keyword when neither its name nor its label match.
+	 *
+	 * @ticket 66158
 	 */
 	public function test_get_registered_icons_matches_keywords() {
 		$this->registry->register(
@@ -669,6 +677,8 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should match keywords case-insensitively, as names and labels are.
+	 *
+	 * @ticket 66158
 	 */
 	public function test_get_registered_icons_matches_keywords_case_insensitively() {
 		$this->registry->register(

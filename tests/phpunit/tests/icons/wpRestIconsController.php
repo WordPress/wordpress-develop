@@ -407,6 +407,8 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test that GET /wp/v2/icons/?search=%s searches icon keywords too.
+	 *
+	 * @ticket 66158
 	 */
 	public function test_get_items_search_includes_keywords() {
 		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
@@ -453,6 +455,8 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Test that the response exposes an icon's keywords, so that clients which
 	 * filter icons locally can match against them.
+	 *
+	 * @ticket 66158
 	 */
 	public function test_get_items_response_includes_keywords() {
 		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
@@ -485,6 +489,8 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Test that icons registered without keywords still expose an empty array,
 	 * so consumers do not have to handle a missing field.
+	 *
+	 * @ticket 66158
 	 */
 	public function test_get_items_response_keywords_defaults_to_empty_array() {
 		wp_set_current_user( self::$editor_id );
