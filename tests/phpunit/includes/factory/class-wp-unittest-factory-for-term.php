@@ -34,9 +34,11 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * Creates a term object.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args Array of arguments for inserting a term.
-	 * @return int|WP_Error The term ID on success, WP_Error object on failure.
+	 * @return positive-int The term ID.
+	 * @throws WP_UnitTest_Factory_Exception When the term could not be created.
 	 */
 	public function create_object( $args ) {
 		$args         = array_merge( array( 'taxonomy' => $this->taxonomy ), $args );
@@ -52,11 +54,12 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * Updates the term.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int|WP_Term $term  The term to update.
 	 * @param array      $fields Array of arguments for updating a term.
-	 * @return int|WP_Error The term ID on success, WP_Error object on failure.
+	 * @return positive-int The term ID.
+	 * @throws WP_UnitTest_Factory_Exception When the term could not be updated.
 	 */
 	public function update_object( $term, $fields ) {
 		$fields = array_merge( array( 'taxonomy' => $this->taxonomy ), $fields );

@@ -25,7 +25,8 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 * Creates a site object.
 	 *
 	 * @param array $args Arguments for the site object.
-	 * @return int|WP_Error The site ID on success, WP_Error object on failure.
+	 * @return positive-int The site ID.
+	 * @throws WP_UnitTest_Factory_Exception When the site could not be created.
 	 */
 	public function create_object( $args ) {
 		global $wpdb;

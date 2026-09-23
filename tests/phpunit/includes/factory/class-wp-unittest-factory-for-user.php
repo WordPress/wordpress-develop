@@ -23,9 +23,11 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * Inserts an user.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args The user data to insert.
-	 * @return int|WP_Error The user ID on success, WP_Error object on failure.
+	 * @return positive-int The user ID.
+	 * @throws WP_UnitTest_Factory_Exception When the user could not be created.
 	 */
 	public function create_object( $args ) {
 		$user_id = wp_insert_user( $args );
@@ -39,10 +41,12 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * Updates the user data.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int   $user_id ID of the user to update.
 	 * @param array $fields  The user data to update.
-	 * @return int|WP_Error The user ID on success, WP_Error object on failure.
+	 * @return positive-int The user ID.
+	 * @throws WP_UnitTest_Factory_Exception When the user could not be updated.
 	 */
 	public function update_object( $user_id, $fields ) {
 		$fields['ID'] = $user_id;

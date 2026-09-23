@@ -19,10 +19,11 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * Creates a link object.
 	 *
 	 * @since 4.6.0
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args Arguments for the link object.
-	 * @return int|WP_Error The link ID on success, WP_Error object on failure.
+	 * @return positive-int The link ID.
+	 * @throws WP_UnitTest_Factory_Exception When the link could not be created.
 	 */
 	public function create_object( $args ) {
 		$link_id = wp_insert_link( $args, true );
@@ -36,11 +37,12 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 	 * Updates a link object.
 	 *
 	 * @since 4.6.0
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int   $link_id ID of the link to update.
 	 * @param array $fields  The fields to update.
-	 * @return int|WP_Error The link ID on success, WP_Error object on failure.
+	 * @return positive-int The link ID.
+	 * @throws WP_UnitTest_Factory_Exception When the link could not be updated.
 	 */
 	public function update_object( $link_id, $fields ) {
 		$fields['link_id'] = $link_id;

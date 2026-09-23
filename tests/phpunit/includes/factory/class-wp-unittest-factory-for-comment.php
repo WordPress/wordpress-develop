@@ -24,12 +24,13 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * Inserts a comment.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param array $args The comment details.
-	 * @return int|WP_Error The comment ID on success, WP_Error object on failure.
+	 * @return positive-int The comment ID.
+	 * @throws WP_UnitTest_Factory_Exception When the comment could not be created.
 	 */
 	public function create_object( $args ) {
 		global $wpdb;
@@ -53,12 +54,12 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * Updates a comment.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int   $comment_id The comment ID.
 	 * @param array $fields     The comment details.
-	 * @return int|WP_Error The value 1 if the comment was updated, 0 if not updated.
-	 *                      WP_Error object on failure.
+	 * @return positive-int The comment ID.
+	 * @throws WP_UnitTest_Factory_Exception When the comment could not be updated.
 	 */
 	public function update_object( $comment_id, $fields ) {
 		$fields['comment_ID'] = $comment_id;

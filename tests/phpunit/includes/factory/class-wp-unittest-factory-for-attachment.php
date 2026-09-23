@@ -9,7 +9,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 * Create an attachment fixture.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args {
 	 *     Array of arguments. Accepts all arguments that can be passed to
@@ -17,9 +17,10 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 *     @type int    $post_parent ID of the post to which the attachment belongs.
 	 *     @type string $file        Path of the attached file.
 	 * }
-	 * @param int   $legacy_parent Deprecated.
-	 * @param array $legacy_args   Deprecated.
-	 * @return int|WP_Error The attachment ID on success, WP_Error object on failure.
+	 * @param int          $legacy_parent Deprecated.
+	 * @param array        $legacy_args   Deprecated.
+	 * @return positive-int The attachment ID.
+	 * @throws WP_UnitTest_Factory_Exception When the attachment could not be created.
 	 */
 	public function create_object( $args, $legacy_parent = 0, $legacy_args = array() ) {
 		// Backward compatibility for legacy argument format.

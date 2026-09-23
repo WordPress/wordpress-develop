@@ -25,10 +25,11 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * Creates a network object.
 	 *
 	 * @since 3.9.0
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args Arguments for the network object.
-	 * @return int|WP_Error The network ID on success, WP_Error object on failure.
+	 * @return positive-int The network ID.
+	 * @throws WP_UnitTest_Factory_Exception When the network could not be created.
 	 */
 	public function create_object( $args ) {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';

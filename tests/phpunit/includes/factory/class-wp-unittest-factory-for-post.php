@@ -25,10 +25,11 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * Creates a post object.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args Array with elements for the post.
-	 * @return int|WP_Error The post ID on success, WP_Error object on failure.
+	 * @return positive-int The post ID.
+	 * @throws WP_UnitTest_Factory_Exception When the post could not be created.
 	 */
 	public function create_object( $args ) {
 		$post_id = wp_insert_post( $args, true );
@@ -42,11 +43,12 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * Updates an existing post object.
 	 *
 	 * @since UT (3.7.0)
-	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int   $post_id ID of the post to update.
 	 * @param array $fields  Post data.
-	 * @return int|WP_Error The post ID on success, WP_Error object on failure.
+	 * @return positive-int The post ID.
+	 * @throws WP_UnitTest_Factory_Exception When the post could not be updated.
 	 */
 	public function update_object( $post_id, $fields ) {
 		$fields['ID'] = $post_id;
