@@ -225,7 +225,7 @@ tr th,
 thead th {
 	border: none !important;
 	color: #888;
-	font-size: 12px;
+	font-size: inherit;
 	font-weight: bold;
 	line-height: 18px;
 	padding: 9px 24px;
@@ -234,6 +234,7 @@ tr td {
 	border: none !important;
 	border-top: 1px solid #e7e7e7 !important;
 	padding: 6px 24px;
+	font-size: inherit;
 }
 img {
 	margin: 0;
