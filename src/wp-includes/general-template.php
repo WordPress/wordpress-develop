@@ -2288,6 +2288,7 @@ function wp_get_archives( $args = '' ) {
 		'monthnum'        => get_query_var( 'monthnum' ),
 		'day'             => get_query_var( 'day' ),
 		'w'               => get_query_var( 'w' ),
+		'in_year'         => '',
 	);
 
 	/**
@@ -2327,7 +2328,12 @@ function wp_get_archives( $args = '' ) {
 	// This is what will separate dates on weekly archive links.
 	$archive_week_separator = '&#8211;';
 
-	$sql_where = $wpdb->prepare( "WHERE post_type = %s AND post_status = 'publish'", $parsed_args['post_type'] );
+	$where_query = "WHERE post_type = %s AND post_status = 'publish'";
+	if ( ! empty( $parsed_args['in_year'] ) ) {
+		$parsed_args['in_year'] = intval( $parsed_args['in_year'] );
+		$where_query .= ' AND YEAR(post_date) = %d';
+	}
+	$sql_where = $wpdb->prepare( $where_query, $parsed_args['post_type'], $parsed_args['in_year'] );
 
 	/**
 	 * Filters the SQL WHERE clause for retrieving archives.
