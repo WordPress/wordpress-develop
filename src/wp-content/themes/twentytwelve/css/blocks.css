@@ -406,6 +406,13 @@ pre.wp-block-code {
 	margin-bottom: 0;
 }
 
+/* Calendar */
+
+.wp-block-calendar:is([style*="font-size"], [class*="-font-size"]) *,
+.wp-block-calendar:is([style*="font-size"], [class*="-font-size"]) #wp-calendar {
+	font-size: 1em;
+}
+
 /*--------------------------------------------------------------
 6.0 Blocks - Colors
 --------------------------------------------------------------*/

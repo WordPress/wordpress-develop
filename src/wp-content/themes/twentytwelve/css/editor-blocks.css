@@ -460,6 +460,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding-right: 0;
 }
 
+/* Calendar */
+
+.wp-block-calendar:is([style*="font-size"], [class*="-font-size"]) * {
+	font-size: 1em;
+}
+
 /*--------------------------------------------------------------
 7.0 Blocks - Colors
 --------------------------------------------------------------*/
