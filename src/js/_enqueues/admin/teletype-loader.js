@@ -1,12 +1,5 @@
 /**
- * Hides the admin easter egg behind the command palette.
- *
- * No command is registered: a registered command would be listed as soon as its phrase
- * matched. This listens for Enter while the palette is open instead, so the palette shows
- * its ordinary "No results found." state throughout.
- *
- * The phrase is compared in its Dvorak/QWERTY-substituted form so that it is not a
- * readable string in the admin bundle.
+ * Listens to the command palette for the teletype.
  *
  * @output wp-admin/js/teletype-loader.js
  */
@@ -23,10 +16,10 @@
 		TO   = 'qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?-=';
 
 	/**
-	 * Applies the Dvorak/QWERTY substitution cipher.
+	 * Maps a string through the character tables.
 	 *
-	 * @param {string} value Text to substitute.
-	 * @return {string} Substituted text.
+	 * @param {string} value Text to map.
+	 * @return {string} Mapped text.
 	 */
 	function dvortr( value ) {
 		var map = {},
@@ -42,7 +35,7 @@
 	}
 
 	/**
-	 * Fetches the payload if it is not already loaded, then plays it.
+	 * Loads the teletype if needed, then runs it.
 	 */
 	function play() {
 		var script;
@@ -65,7 +58,7 @@
 	}
 
 	/**
-	 * Acts on the phrase when it is submitted from an open command palette.
+	 * Handles Enter in an open command palette.
 	 *
 	 * @param {KeyboardEvent} event The keydown event.
 	 */
@@ -84,12 +77,7 @@
 			return;
 		}
 
-		/*
-		 * The palette's search field is a combobox: while any command matches, one of
-		 * them is the active option and Enter belongs to it. Only an empty result list
-		 * is ours to take, otherwise a post that happens to be named for the phrase
-		 * would never open.
-		 */
+		// Leave Enter to the palette whenever one of its results is active.
 		if (
 			'combobox' !== input.getAttribute( 'role' ) ||
 			input.getAttribute( 'aria-activedescendant' )

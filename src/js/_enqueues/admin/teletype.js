@@ -1,12 +1,5 @@
 /**
- * The WordPress admin easter egg.
- *
- * Originally written by Matt Mullenweg for WordPress 2.6 and removed in 3.6 along with
- * the revisions UI that triggered it. Restored here behind the command palette, keeping
- * the timings and staging of the original. See #65907.
- *
- * The dialogue is stored in a Dvorak/QWERTY substitution cipher so that the payoff does
- * not turn up in a plain-text search of wp-admin/js. The decoder is dvortr(), below.
+ * The teletype. See #65907.
  *
  * @output wp-admin/js/teletype.js
  */
@@ -22,7 +15,7 @@
 		RAIN_SIZE   = 16,   // Glyph size of the falling rain, in pixels.
 		RAIN_SPEED  = 60;   // Milliseconds between rain rows.
 
-	// Half-width katakana and digits, as the films used.
+	// Half-width katakana and digits.
 	var GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
 
 	var ACT_ONE = [
@@ -44,10 +37,10 @@
 		TO   = 'qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?-=';
 
 	/**
-	 * Applies the Dvorak/QWERTY substitution cipher.
+	 * Maps a string through the character tables.
 	 *
-	 * @param {string} value Text to substitute.
-	 * @return {string} Substituted text.
+	 * @param {string} value Text to map.
+	 * @return {string} Mapped text.
 	 */
 	function dvortr( value ) {
 		var map = {},
@@ -319,7 +312,7 @@
 				stopRain = rain( overlay );
 			}
 
-			// The rain is the whole joke of this act, so describe it once.
+			// Describe the rain once for screen readers.
 			say( 'The screen goes black. Green code rains down it.' );
 
 			wait( ACT_PAUSE, function () {
