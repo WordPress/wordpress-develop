@@ -68,12 +68,7 @@ module.exports = {
 					'ID selector should use lowercase and separate words with hyphens',
 			},
 		],
-		'selector-no-qualifying-type': [
-			true,
-			{
-				severity: 'warning',
-			},
-		],
+		'selector-no-qualifying-type': true,
 		'value-keyword-case': [
 			'lower',
 			{

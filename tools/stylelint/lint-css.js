@@ -1,19 +1,12 @@
 /**
- * Runs Stylelint on core CSS and checks warning-level rule thresholds using a single
- * Stylelint run, so linting the codebase doesn't happen twice.
+ * Runs Stylelint on core CSS. Problems recorded in stylelint-suppressions.json are not reported.
  */
 
-const {
-	lintCss,
-	getWarningLevelRules,
-	countWarnings,
-	checkThresholds,
-} = require( './lib/warning-thresholds' );
-
 async function main() {
-	const warningLevelRules = getWarningLevelRules();
+	const { default: stylelint } = await import( 'stylelint' );
 
-	const { results, errored, report } = await lintCss( {
+	const { results, report } = await stylelint.lint( {
+		files: 'src/**/*.{css,scss}',
 		formatter: 'string',
 	} );
 
@@ -21,10 +14,13 @@ async function main() {
 		console.log( report );
 	}
 
-	const actualCounts = countWarnings( results, warningLevelRules );
-	const thresholdsOk = checkThresholds( actualCounts, warningLevelRules );
+	// Stylelint leaves `errored` set on results whose problems were all suppressed, so count what remains.
+	const hasErrors = results.some( ( result ) =>
+		result.parseErrors.length > 0 ||
+		result.warnings.some( ( warning ) => warning.severity === 'error' )
+	);
 
-	process.exitCode = errored || ! thresholdsOk ? 1 : 0;
+	process.exitCode = hasErrors ? 1 : 0;
 }
 
 main().catch( ( error ) => {
