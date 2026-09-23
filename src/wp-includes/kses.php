@@ -1113,6 +1113,16 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		private $foreign_content_stack = array();
 
 		/**
+		 * Tracks how deeply into a MathML ANNOTATION-XML element the current token is;
+		 * an optimization to avoid checking up the open-element stack on every token.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @var int
+		 */
+		private $math_annotation_xml_depth = 0;
+
+		/**
 		 * List of attributes whose values are expected to be considered URLs.
 		 *
 		 * @see \wp_kses_uri_attributes()
@@ -1293,10 +1303,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * with an HTML integration point. Conservatively reject any child
 				 * SVG element inside a MathML ANNOTATION-XML to prevent this.
 				 */
-				if (
-					'SVG' === $token_name &&
-					in_array( 'ANNOTATION-XML', $this->foreign_content_stack, true )
-				) {
+				if ( 'SVG' === $token_name && $this->math_annotation_xml_depth > 0 ) {
 					return true;
 				}
 			}
@@ -1336,6 +1343,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			$open_blocks_at            = array();
 			$foreign_closed_blocks     = array();
 
+			$is_in_mathml_text_integration_point = false;
+			$is_in_svg_html_integration_point    = false;
+
 			/**
 			 * These are treated as void elements inside the HTML API
 			 * due to the special handling of their inner text content.
@@ -1368,38 +1378,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					break;
 				}
 
-				$is_in_mathml_text_integration_point = (
-					'math' === $this->get_namespace() &&
-					in_array(
-						end( $this->foreign_content_stack ),
-						array(
-							'MI',
-							'MN',
-							'MO',
-							'MS',
-							'MTEXT',
-						),
-						true
-					)
-				);
-
-				$is_in_svg_html_integration_point = (
-					'svg' === $namespace &&
-					! $is_closer &&
-					in_array(
-						end( $this->foreign_content_stack ),
-						array(
-							'DESC',
-							'FOREIGNOBJECT',
-							'TITLE',
-						),
-						true
-					)
-				);
-
 				$is_in_text_integration_point = (
 					$is_in_mathml_text_integration_point ||
-					$is_in_svg_html_integration_point
+					( ! $is_closer && $is_in_svg_html_integration_point )
 				);
 
 				/*
@@ -1442,6 +1423,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
+						if ( 'math' === $namespace && 'ANNOTATION-XML' === $open_element ) {
+							--$this->math_annotation_xml_depth;
+						}
+
 						/*
 						 * Reset the foreign content tracker so it doesn’t truncate
 						 * unintentionally after foreign content has properly closed.
@@ -1460,6 +1445,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						$this->foreign_content_stack[] = $token_name;
+
+						if ( 'math' === $namespace && 'ANNOTATION-XML' === $token_name ) {
+							++$this->math_annotation_xml_depth;
+						}
 					}
 				}
 
@@ -1569,7 +1558,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							$implicit_block_type = str_starts_with( $block_type, 'core/' )
 								? substr( $block_type, /* 'core/' */ 5 )
 								: $block_type;
-
 
 							switch ( $block_processor->get_delimiter_type() ) {
 								// Track when blocks open and when they don’t self-close.
@@ -1867,12 +1855,34 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				if ( 'html' !== $namespace ) {
 					if ( $has_self_closing_flag ) {
 						array_pop( $this->foreign_content_stack );
+
+						if ( 'math' === $namespace && 'ANNOTATION-XML' === $token_name ) {
+							--$this->math_annotation_xml_depth;
+						}
 					}
 
 					if ( empty( $this->foreign_content_stack ) ) {
+						$is_in_mathml_text_integration_point = false;
+						$is_in_svg_html_integration_point    = false;
 						$this->change_parsing_namespace( 'html' );
 						$foreign_content_starts_at = PHP_INT_MAX;
 						$foreign_closed_blocks     = array();
+					} elseif ( '#tag' === $token_type && ! $has_self_closing_flag ) {
+						switch ( $token_name ) {
+							case 'MI':
+							case 'MN':
+							case 'MO':
+							case 'MS':
+							case 'MTEXT':
+								$is_in_mathml_text_integration_point = ! $is_closer && 'math' === $namespace;
+								break;
+
+							case 'DESC':
+							case 'FOREIGNOBJECT':
+							case 'TITLE':
+								$is_in_svg_html_integration_point = ! $is_closer && 'svg' === $namespace;
+								break;
+						}
 					}
 				}
 
