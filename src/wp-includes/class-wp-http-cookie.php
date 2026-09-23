@@ -53,7 +53,7 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string|null
+	 * @var string
 	 */
 	public $path;
 
@@ -194,8 +194,8 @@ class WP_Http_Cookie {
 		$url['path'] ??= '/';
 
 		// Values to use for comparison against the URL.
-		$path   = $this->path ?? '/';
-		$port   = $this->port ?? null;
+		$path   = $this->path;
+		$port   = $this->port;
 		$domain = isset( $this->domain ) ? strtolower( $this->domain ) : strtolower( $url['host'] );
 		if ( false === stripos( $domain, '.' ) ) {
 			$domain .= '.local';
