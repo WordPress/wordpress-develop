@@ -959,6 +959,18 @@ class wp_xmlrpc_server extends IXR_Server {
 	}
 
 	/**
+	 * Checks whether a client-supplied date is the empty MySQL date.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param IXR_Date $date Date converted by `_convert_client_date()`.
+	 * @return bool True if the date is `0000-00-00 00:00:00`, false otherwise.
+	 */
+	protected function _is_empty_date( IXR_Date $date ): bool {
+		return str_starts_with( $date->getIso(), '00000000T00:00:00' );
+	}
+
+	/**
 	 * Converts a client-supplied date value to an IXR_Date object.
 	 *
 	 * XML-RPC clients may send a date either as a dateTime.iso8601 value, which
@@ -1642,21 +1654,34 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		// Do some timestamp voodoo.
+		$date_created = '';
 		if ( ! empty( $post_data['post_date_gmt'] ) ) {
 			$post_date_gmt = $this->_convert_client_date( $post_data['post_date_gmt'] );
 			if ( $post_date_gmt instanceof IXR_Error ) {
 				return $post_date_gmt;
 			}
 
-			// We know this is supposed to be GMT, so we're going to slap that Z on there by force.
-			$date_created = rtrim( $post_date_gmt->getIso(), 'Z' ) . 'Z';
-		} elseif ( ! empty( $post_data['post_date'] ) ) {
+			if ( $this->_is_empty_date( $post_date_gmt ) ) {
+				// An empty GMT date means none was supplied, so the local date is used instead.
+				unset( $post_data['post_date_gmt'] );
+			} else {
+				// We know this is supposed to be GMT, so we're going to slap that Z on there by force.
+				$date_created = rtrim( $post_date_gmt->getIso(), 'Z' ) . 'Z';
+			}
+		}
+
+		if ( '' === $date_created && ! empty( $post_data['post_date'] ) ) {
 			$post_date = $this->_convert_client_date( $post_data['post_date'] );
 			if ( $post_date instanceof IXR_Error ) {
 				return $post_date;
 			}
 
-			$date_created = $post_date->getIso();
+			if ( $this->_is_empty_date( $post_date ) ) {
+				// An empty date means none was supplied, so the existing date is kept.
+				unset( $post_data['post_date'] );
+			} else {
+				$date_created = $post_date->getIso();
+			}
 		}
 
 		// Default to not flagging the post date to be edited unless it's intentional.

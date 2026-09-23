@@ -666,4 +666,32 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 400, $result->code );
 		$this->assertSame( $date_string, get_post( $post_id )->post_date );
 	}
+
+	/**
+	 * Ensure an empty `post_date_gmt` leaves the existing date unchanged, as it does for `wp.newPost`.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_empty_post_date_gmt_keeps_existing_date(): void {
+		$editor_id   = $this->make_user_by_role( 'editor' );
+		$date_string = '2020-05-05 05:05:05';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_author'   => $editor_id,
+				'post_status'   => 'publish',
+				'post_date'     => $date_string,
+				'post_date_gmt' => $date_string,
+			)
+		);
+
+		$struct = array(
+			'post_title'    => 'Updated',
+			'post_date_gmt' => '0000-00-00 00:00:00',
+		);
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
+
+		$this->assertTrue( $result );
+		$this->assertSame( 'Updated', get_post( $post_id )->post_title );
+		$this->assertSame( $date_string, get_post( $post_id )->post_date );
+	}
 }
