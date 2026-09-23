@@ -1,8 +1,5 @@
 name: File Type Check
 
-# This check was introduced in 7.2. The branches below are the supported ones
-# it can be backported to.
-
 on:
   push:
     branches:
@@ -39,24 +36,14 @@ on:
       - '.github/workflows/file-type-check.yml'
   workflow_dispatch:
 
-# Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
-  # or the commit hash for any other events.
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
-# Disable permissions for all available scopes by default.
-# Any needed permissions should be configured at the job level.
 permissions: {}
 
 jobs:
   # Verifies that CSS and JS files live in the directories intended for them.
-  #
-  # The checks read the list of tracked files from Git rather than walking the
-  # working directory. Most build output is gitignored, so it is excluded by
-  # construction and needs no allow-list. The exception is src/wp-includes/build/,
-  # which is tracked, and is excluded explicitly below.
   #
   # The JS sources in src/js/ are out of scope. The build system decides where
   # those are placed, so only its output is checked.
@@ -84,37 +71,34 @@ jobs:
 
       - name: Check for misplaced CSS and JS files
         run: |
-          # Read the file list in one bare assignment so that `set -e` sees a
-          # failure from Git. The `|| true` guards below, which keep a grep
-          # that matches nothing from ending the step, would otherwise mask it.
+          # A bare assignment, so `set -e` sees a failure from Git. The `|| true`
+          # guards below would otherwise mask it.
           #
-          # `core.quotePath` is disabled because it C-escapes and quotes any
-          # path holding non-ASCII characters, which breaks the patterns below.
+          # core.quotePath would C-escape and quote any path holding non-ASCII
+          # characters, which breaks the patterns below.
           tracked=$( git -c core.quotePath=false ls-files -- src/wp-includes src/wp-admin )
 
-          # Git exits 0 when a pathspec matches nothing, so an empty list means
-          # the directories moved, not that every file is in the right place.
+          # Git exits 0 when a pathspec matches nothing.
           if [ -z "$tracked" ]; then
             echo "::error::No tracked files found under src/wp-includes or src/wp-admin."
             exit 1
           fi
 
-          # The CSS directories hold only CSS, apart from the SCSS sources for
-          # the admin colour schemes.
+          # The SCSS sources for the admin color schemes are the only tracked
+          # non-CSS files in these directories.
           inward_css=$( printf '%s\n' "$tracked" \
             | grep -E '^src/(wp-includes|wp-admin)/css/' \
             | grep -vE '\.css$' \
             | grep -vE '^src/wp-admin/css/colors/.+\.scss$' || true )
 
-          # The JS directories hold only JS. Both are gitignored in full and
-          # hold nothing but build output, so this only catches a file
+          # Both directories are gitignored in full, so this only catches a file
           # committed with `git add -f`.
           inward_js=$( printf '%s\n' "$tracked" \
             | grep -E '^src/(wp-includes|wp-admin)/js/' \
             | grep -vE '\.js$' || true )
 
-          # No CSS or JS outside those directories, apart from the generated
-          # routes and pages build system in src/wp-includes/build/.
+          # src/wp-includes/build/ is tracked, not gitignored: it holds the
+          # generated routes and pages.
           outward=$( printf '%s\n' "$tracked" \
             | grep -E '\.(css|js)$' \
             | grep -vE '^src/(wp-includes|wp-admin)/(css|js)/' \
