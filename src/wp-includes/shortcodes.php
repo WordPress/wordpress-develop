@@ -243,6 +243,10 @@ function apply_shortcodes( $content, $ignore_html = false ) {
 function do_shortcode( $content, $ignore_html = false ) {
 	global $shortcode_tags;
 
+	if ( ! is_string( $content ) ) {
+		return $content;
+	}
+
 	if ( ! str_contains( $content, '[' ) ) {
 		return $content;
 	}
