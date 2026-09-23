@@ -4333,9 +4333,18 @@ function wp_user_personal_data_eraser( $email_address, $page = 1 ) {
 			continue;
 		}
 
-		$meta_value = get_user_meta( $user_id, $meta_key, true );
+		$meta_values = get_user_meta( $user_id, $meta_key );
 
-		if ( '' === $meta_value ) {
+		$has_value = false;
+
+		foreach ( $meta_values as $meta_value ) {
+			if ( '' !== $meta_value ) {
+				$has_value = true;
+				break;
+			}
+		}
+
+		if ( ! $has_value ) {
 			continue;
 		}
 
@@ -4345,7 +4354,7 @@ function wp_user_personal_data_eraser( $email_address, $page = 1 ) {
 			$response['items_removed'] = true;
 		} else {
 			$response['items_retained'] = true;
-			$response['messages'][] = sprintf(
+			$response['messages'][]     = sprintf(
 				/* translators: %s: User meta key. */
 				__( 'User meta "%s" could not be erased.' ),
 				esc_html( $meta_key )

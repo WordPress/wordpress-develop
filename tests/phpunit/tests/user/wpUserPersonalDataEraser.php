@@ -256,4 +256,23 @@ class Tests_User_WpUserPersonalDataEraser extends WP_UnitTestCase {
 		$this->assertSame( 'custom_eraser', $erasers['custom-eraser']['callback'] );
 		$this->assertArrayHasKey( 'wordpress-user', $erasers );
 	}
+
+	/**
+	 * Tests that all values for a meta key are erased.
+	 */
+	public function test_erases_all_values_for_a_meta_key() {
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'multiple-meta@example.com',
+			)
+		);
+
+		add_user_meta( $user_id, 'description', 'First biography value' );
+		add_user_meta( $user_id, 'description', 'Second biography value' );
+
+		$response = wp_user_personal_data_eraser( 'multiple-meta@example.com' );
+
+		$this->assertTrue( $response['items_removed'] );
+		$this->assertSame( array(), get_user_meta( $user_id, 'description' ) );
+	}
 }
