@@ -62,10 +62,18 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be updated.
 	 */
 	public function update_object( $term, $fields ) {
-		$fields = array_merge( array( 'taxonomy' => $this->taxonomy ), $fields );
-
-		// create() passes an ID, in which case the taxonomy is the one merged in above.
-		$taxonomy = is_object( $term ) ? $term->taxonomy : $fields['taxonomy'];
+		if ( is_object( $term ) ) {
+			$taxonomy = $term->taxonomy;
+		} else {
+			/*
+			 * create() passes an ID along with only the after-create callback results, so the
+			 * fields say nothing about the taxonomy. The term may live in one other than this
+			 * factory's default, having come from the args or the generation definitions, so
+			 * read it from the term itself.
+			 */
+			$existing = get_term( $term );
+			$taxonomy = $existing instanceof WP_Term ? $existing->taxonomy : $this->taxonomy;
+		}
 
 		$term_id_pair = wp_update_term( $term, $taxonomy, $fields );
 		$term_id      = is_wp_error( $term_id_pair ) ? $term_id_pair : $term_id_pair['term_id'];

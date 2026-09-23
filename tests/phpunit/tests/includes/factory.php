@@ -279,30 +279,54 @@ class TestFactoryFor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * create() passes an object ID to update_object(), so the taxonomy has to come from the
-	 * fields rather than from a term object that is not there.
+	 * create() passes update_object() an ID and only the after-create callback results, so the
+	 * taxonomy has to be read from the term rather than assumed to be the factory's default.
 	 *
 	 * @ticket 66111
+	 *
+	 * @dataProvider data_term_taxonomy_sources
+	 *
+	 * @param non-falsy-string $taxonomy       The taxonomy the term is created in.
+	 * @param bool             $in_definitions Whether the taxonomy is given in the generation definitions
+	 *                                         rather than in the args.
 	 */
-	public function test_term_factory_should_apply_an_after_create_callback() {
-		$term_id = self::factory()->term->create(
-			array(
-				'name'     => 'Callback term',
-				'taxonomy' => 'post_tag',
+	public function test_term_factory_should_apply_an_after_create_callback( string $taxonomy, bool $in_definitions ) {
+		$args        = array( 'name' => 'Callback term' );
+		$definitions = array(
+			'description' => new WP_UnitTest_Factory_Callback_After_Create(
+				static function ( int $created_id ) {
+					return 'Description for ' . $created_id;
+				}
 			),
-			array(
-				'description' => new WP_UnitTest_Factory_Callback_After_Create(
-					static function ( int $created_id ) {
-						return 'Description for ' . $created_id;
-					}
-				),
-			)
 		);
 
-		$term = get_term( $term_id, 'post_tag' );
+		if ( $in_definitions ) {
+			$definitions['taxonomy'] = $taxonomy;
+		} else {
+			$args['taxonomy'] = $taxonomy;
+		}
+
+		$term_id = self::factory()->term->create( $args, $definitions );
+		$term    = get_term( $term_id, $taxonomy );
 
 		$this->assertInstanceOf( WP_Term::class, $term );
 		$this->assertSame( 'Description for ' . $term_id, $term->description );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * The term factory's own taxonomy is post_tag, so category is the case the factory cannot
+	 * know about without looking at the term.
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string, bool }>
+	 */
+	public function data_term_taxonomy_sources(): array {
+		return array(
+			'factory taxonomy, in the args' => array( 'post_tag', false ),
+			'another taxonomy, in the args' => array( 'category', false ),
+			'another taxonomy, in the generation definitions' => array( 'category', true ),
+		);
 	}
 
 	/**
