@@ -646,6 +646,11 @@ hr.wp-block-separator.is-style-dots::before {
 	padding: 5px 20px 5px 0;
 }
 
+.editor-styles-wrapper blockquote.is-style-plain {
+	border-width: 0;
+	padding: 5px 0 5px 0;
+}
+
 .editor-styles-wrapper .wp-block-quote.has-text-align-center,
 .editor-styles-wrapper .wp-block-quote[style*="text-align:center"],
 .editor-styles-wrapper .wp-block-quote[style*="text-align: center"] {
