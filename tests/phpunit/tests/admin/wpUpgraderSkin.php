@@ -50,7 +50,7 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	 */
 	public function test_decrement_update_count_should_print_nothing_without_a_usable_result( $result ) {
 		$skin         = new WP_Upgrader_Skin();
-		$skin->result = $result;
+		$skin->result = $result; // @phpstan-ignore assign.propertyType (Invalid assignment on purpose to test.)
 
 		$this->assertSame( '', $this->decrement_update_count( $skin, 'plugin' ) );
 	}
