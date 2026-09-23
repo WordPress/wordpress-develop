@@ -66,6 +66,10 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 			array( '/blog-page/?page=2', '/blog-page/', 45337 ),
 			// The posts page supports regular pagination.
 			array( '/blog-page/?paged=2', '/blog-page/page/2/', 20385 ),
+			// The front page should be embeddable.
+			array( '/embed/', array( 'embed' => 'true' ) ),
+			array( '/front-page/embed/', '/embed/' ),
+			array( '/?embed=1', '/embed/' ),
 		);
 	}
 }
