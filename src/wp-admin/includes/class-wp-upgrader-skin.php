@@ -260,14 +260,6 @@ class WP_Upgrader_Skin {
 					);
 				}
 				JAVASCRIPT;
-
-			wp_print_inline_script_tag(
-				sprintf(
-					'( %s )( %s );',
-					$js_function,
-					wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
-				)
-			);
 		} else {
 			$js_function = <<<'JS'
 				( upgradeType ) => {
@@ -277,15 +269,15 @@ class WP_Upgrader_Skin {
 					}
 				}
 				JS;
-
-			wp_print_inline_script_tag(
-				sprintf(
-					'( %s )( %s );',
-					$js_function,
-					wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
-				)
-			);
 		}
+
+		wp_print_inline_script_tag(
+			sprintf(
+				'( %s )( %s );',
+				$js_function,
+				wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+			)
+		);
 	}
 
 	/**
