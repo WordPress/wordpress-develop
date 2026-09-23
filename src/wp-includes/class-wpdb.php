@@ -759,6 +759,10 @@ class wpdb {
 			$this->show_errors();
 		}
 
+		if ( ! is_multisite() ) {
+			$this->blogid = 1;
+		}
+
 		$this->dbuser     = $dbuser;
 		$this->dbpassword = $dbpassword;
 		$this->dbname     = $dbname;
