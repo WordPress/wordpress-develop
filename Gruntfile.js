@@ -1848,7 +1848,7 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'lint:css', 'Runs Stylelint on core CSS and checks warning-level rule thresholds.', function() {
+	grunt.registerTask( 'lint:css', 'Runs Stylelint on core CSS.', function() {
 		var done = this.async();
 
 		grunt.util.spawn( {
@@ -1959,7 +1959,7 @@ module.exports = function(grunt) {
 				}
 
 				if ( code === 0 ) {
-					if ( [ 'package.json', 'Gruntfile.js', 'composer.json' ].some( testPath ) ) {
+					if ( [ 'package.json', 'Gruntfile.js', 'composer.json', '.stylelintrc.js', '.stylelintignore' ].some( testPath ) ) {
 						grunt.log.writeln( 'Configuration files modified. Running `prerelease`.' );
 						taskList.push( 'prerelease' );
 					} else {
