@@ -3041,7 +3041,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$url                     = 'http://badreferer.example.com/';
 		$_SERVER['HTTP_REFERER'] = wp_slash( $url );
-		$this->assertNotEquals( $url, $this->manager->get_return_url() );
+		$this->assertNotSame( $url, $this->manager->get_return_url() );
 		$this->assertSame( $preview_url, $this->manager->get_return_url() );
 
 		$this->manager->set_return_url( admin_url( 'edit.php?trashed=1' ) );
@@ -3252,7 +3252,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_widgets( $components, $customize_manager ) {
@@ -3269,7 +3268,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_nav_menus( $components, $customize_manager ) {
@@ -3561,7 +3559,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Callback for the customize_previewable_devices filter.
 	 *
 	 * @param array $devices The list of devices.
-	 *
 	 * @return array
 	 */
 	public function filter_customize_previewable_devices( $devices ) {

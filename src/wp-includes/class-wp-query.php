@@ -618,9 +618,7 @@ class WP_Query {
 		);
 
 		foreach ( $keys as $key ) {
-			if ( ! isset( $query_vars[ $key ] ) ) {
-				$query_vars[ $key ] = '';
-			}
+			$query_vars[ $key ] ??= '';
 		}
 
 		$array_keys = array(
@@ -643,9 +641,7 @@ class WP_Query {
 		);
 
 		foreach ( $array_keys as $key ) {
-			if ( ! isset( $query_vars[ $key ] ) ) {
-				$query_vars[ $key ] = array();
-			}
+			$query_vars[ $key ] ??= array();
 		}
 
 		return $query_vars;
@@ -1279,10 +1275,8 @@ class WP_Query {
 		}
 
 		if ( ! empty( $query_vars['category__and'] ) && 1 === count( (array) $query_vars['category__and'] ) ) {
-			$query_vars['category__and'] = (array) $query_vars['category__and'];
-			if ( ! isset( $query_vars['category__in'] ) ) {
-				$query_vars['category__in'] = array();
-			}
+			$query_vars['category__and']  = (array) $query_vars['category__and'];
+			$query_vars['category__in'] ??= array();
 			$query_vars['category__in'][] = absint( reset( $query_vars['category__and'] ) );
 			unset( $query_vars['category__and'] );
 		}
@@ -1967,30 +1961,14 @@ class WP_Query {
 				)
 			);
 
-			if ( ! isset( $query_vars['ignore_sticky_posts'] ) ) {
-				$query_vars['ignore_sticky_posts'] = $query_vars['caller_get_posts'];
-			}
+			$query_vars['ignore_sticky_posts'] ??= $query_vars['caller_get_posts'];
 		}
 
-		if ( ! isset( $query_vars['ignore_sticky_posts'] ) ) {
-			$query_vars['ignore_sticky_posts'] = false;
-		}
-
-		if ( ! isset( $query_vars['suppress_filters'] ) ) {
-			$query_vars['suppress_filters'] = false;
-		}
-
-		if ( ! isset( $query_vars['cache_results'] ) ) {
-			$query_vars['cache_results'] = true;
-		}
-
-		if ( ! isset( $query_vars['update_post_term_cache'] ) ) {
-			$query_vars['update_post_term_cache'] = true;
-		}
-
-		if ( ! isset( $query_vars['update_menu_item_cache'] ) ) {
-			$query_vars['update_menu_item_cache'] = false;
-		}
+		$query_vars['ignore_sticky_posts']    ??= false;
+		$query_vars['suppress_filters']       ??= false;
+		$query_vars['cache_results']          ??= true;
+		$query_vars['update_post_term_cache'] ??= true;
+		$query_vars['update_menu_item_cache'] ??= false;
 
 		if ( ! isset( $query_vars['lazy_load_term_meta'] ) ) {
 			$query_vars['lazy_load_term_meta'] = $query_vars['update_post_term_cache'];
@@ -1998,9 +1976,7 @@ class WP_Query {
 			$query_vars['update_post_term_cache'] = true;
 		}
 
-		if ( ! isset( $query_vars['update_post_meta_cache'] ) ) {
-			$query_vars['update_post_meta_cache'] = true;
-		}
+		$query_vars['update_post_meta_cache'] ??= true;
 
 		if ( ! isset( $query_vars['post_type'] ) ) {
 			if ( $this->is_search ) {
@@ -2430,11 +2406,13 @@ class WP_Query {
 
 		if ( '' !== $query_vars['author_name'] ) {
 			if ( str_contains( $query_vars['author_name'], '/' ) ) {
-				$query_vars['author_name'] = explode( '/', $query_vars['author_name'] );
-				if ( $query_vars['author_name'][ count( $query_vars['author_name'] ) - 1 ] ) {
-					$query_vars['author_name'] = $query_vars['author_name'][ count( $query_vars['author_name'] ) - 1 ]; // No trailing slash.
+				$author_name_parts = explode( '/', $query_vars['author_name'] );
+				$last_part         = array_last( $author_name_parts );
+
+				if ( $last_part ) {
+					$query_vars['author_name'] = $last_part; // No trailing slash.
 				} else {
-					$query_vars['author_name'] = $query_vars['author_name'][ count( $query_vars['author_name'] ) - 2 ]; // There was a trailing slash.
+					$query_vars['author_name'] = $author_name_parts[ count( $author_name_parts ) - 2 ]; // There was a trailing slash.
 				}
 			}
 			$query_vars['author_name'] = sanitize_title_for_query( $query_vars['author_name'] );
@@ -3293,15 +3271,20 @@ class WP_Query {
 							$post_parent_cache_keys[] = 'post_parent:' . (string) $post_id;
 						}
 
-						/** @var int[] */
-						$post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
+						/** @var array<non-falsy-string, int|false> $cached_post_parents */
+						$cached_post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
 
-						foreach ( $post_parents as $cache_key => $post_parent ) {
+						$post_parents = array();
+						$this->posts  = array();
+
+						foreach ( $cached_post_parents as $cache_key => $post_parent ) {
 							$obj              = new stdClass();
 							$obj->ID          = (int) str_replace( 'post_parent:', '', $cache_key );
 							$obj->post_parent = (int) $post_parent;
 
 							$this->posts[] = $obj;
+
+							$post_parents[ $obj->ID ] = $obj->post_parent;
 						}
 
 						return $post_parents;
@@ -3315,9 +3298,7 @@ class WP_Query {
 		}
 
 		if ( 'ids' === $query_vars['fields'] ) {
-			if ( null === $this->posts ) {
-				$this->posts = $wpdb->get_col( $this->request );
-			}
+			$this->posts ??= $wpdb->get_col( $this->request );
 
 			/** @var int[] */
 			$this->posts      = array_map( 'intval', $this->posts );
@@ -3338,9 +3319,7 @@ class WP_Query {
 		}
 
 		if ( 'id=>parent' === $query_vars['fields'] ) {
-			if ( null === $this->posts ) {
-				$this->posts = $wpdb->get_results( $this->request );
-			}
+			$this->posts ??= $wpdb->get_results( $this->request );
 
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $query_vars, $limits );
@@ -3837,6 +3816,8 @@ class WP_Query {
 	 *
 	 * @since 1.5.0
 	 *
+	 * @phpstan-impure
+	 *
 	 * @return bool True if posts are available, false if end of the loop.
 	 */
 	public function have_posts() {
@@ -3927,6 +3908,8 @@ class WP_Query {
 	 *
 	 * @since 2.2.0
 	 *
+	 * @phpstan-impure
+	 *
 	 * @return bool True if comments are available, false if no more comments.
 	 */
 	public function have_comments() {
@@ -3962,7 +3945,11 @@ class WP_Query {
 	 * @return WP_Post[]|int[] Array of post objects or post IDs.
 	 *
 	 * @phpstan-return (
-	 *     $query is array{ fields: 'ids', ... } ? int[] : WP_Post[]
+	 *     $query is array{ fields: 'ids', ... }
+	 *         ? int[]
+	 *         : ( $query is array{ fields: 'id=>parent', ... }
+	 *             ? array<int, int>
+	 *             : WP_Post[] )
 	 * )
 	 */
 	public function query( $query ) {
@@ -4013,9 +4000,8 @@ class WP_Query {
 			} else {
 				// For other tax queries, grab the first term from the first clause.
 				if ( ! empty( $this->tax_query->queried_terms ) ) {
-					$queried_taxonomies = array_keys( $this->tax_query->queried_terms );
-					$matched_taxonomy   = reset( $queried_taxonomies );
-					$query              = $this->tax_query->queried_terms[ $matched_taxonomy ];
+					$matched_taxonomy = array_key_first( $this->tax_query->queried_terms );
+					$query            = $this->tax_query->queried_terms[ $matched_taxonomy ];
 
 					if ( ! empty( $query['terms'] ) ) {
 						if ( 'term_id' === $query['field'] ) {
@@ -5067,9 +5053,7 @@ class WP_Query {
 		}
 
 		// Add a default orderby value of date to ensure same cache key generation.
-		if ( ! isset( $args['orderby'] ) ) {
-			$args['orderby'] = 'date';
-		}
+		$args['orderby'] ??= 'date';
 
 		$placeholder = $wpdb->placeholder_escape();
 		array_walk_recursive(

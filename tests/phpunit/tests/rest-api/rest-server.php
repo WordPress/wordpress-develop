@@ -652,7 +652,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$stub->expects( $this->once() )
 			->method( 'set_status' )
-			->with( $this->equalTo( 400 ) );
+			->with( 400 );
 
 		$data     = array(
 			'code'    => 'wp-api-test-error',

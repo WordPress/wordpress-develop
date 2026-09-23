@@ -184,8 +184,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 * @ticket 52826
 	 * @ticket 52922
 	 *
-	 * @param string Stream's URI.
-	 * @param array  Expected metadata.
+	 * @param string $file     Stream's URI.
+	 * @param array  $expected Expected metadata.
 	 */
 	public function test_stream( $file, $expected ) {
 		$actual = wp_read_image_metadata( $file );

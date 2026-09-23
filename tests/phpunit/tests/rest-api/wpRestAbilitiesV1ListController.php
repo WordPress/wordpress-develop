@@ -386,8 +386,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 * Test getting a non-existent ability returns 404.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/non/existent' );
@@ -506,7 +504,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$total_abilities = count( wp_get_abilities() ) - 1; // Exclude the one that doesn't show in REST.
-		$this->assertEquals( $total_abilities, (int) $headers['X-WP-Total'] );
+		$this->assertSame( $total_abilities, (int) $headers['X-WP-Total'] );
 		$this->assertEquals( ceil( $total_abilities / 10 ), (int) $headers['X-WP-TotalPages'] );
 	}
 
@@ -768,8 +766,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 * Test extremely long ability names.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
+	 * @ticket 65644
 	 */
 	public function test_extremely_long_ability_names(): void {
 		// Create a very long but valid ability name
