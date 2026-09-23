@@ -1428,10 +1428,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		 * Ignore the existing GMT date if it is empty or a non-GMT date was supplied in $content_struct,
 		 * since _insert_post() will ignore the non-GMT date if the GMT date is set.
 		 */
-		if ( isset( $content_struct['post_date_gmt'] ) && is_string( $content_struct['post_date_gmt'] ) ) {
+		if ( isset( $content_struct['post_date_gmt'] ) && ! ( $content_struct['post_date_gmt'] instanceof IXR_Date ) ) {
 			if ( '0000-00-00 00:00:00' === $content_struct['post_date_gmt'] || isset( $content_struct['post_date'] ) ) {
 				unset( $content_struct['post_date_gmt'] );
-			} else {
+			} elseif ( is_string( $content_struct['post_date_gmt'] ) ) {
 				$content_struct['post_date_gmt'] = $this->_convert_date( $content_struct['post_date_gmt'] );
 			}
 		}

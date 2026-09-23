@@ -472,4 +472,24 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 		$this->assertSame( 400, $result->code );
 	}
+
+	/**
+	 * Ensure a `post_date_gmt` that is not a date is ignored when a `post_date` is supplied.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_non_date_post_date_gmt_is_ignored_when_post_date_is_supplied(): void {
+		$this->make_user_by_role( 'author' );
+
+		$date_string = '2020-05-05 05:05:05';
+		$post        = array(
+			'post_title'    => 'test',
+			'post_date'     => $date_string,
+			'post_date_gmt' => 1,
+		);
+		$result      = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( $date_string, get_post( $result )->post_date );
+	}
 }
