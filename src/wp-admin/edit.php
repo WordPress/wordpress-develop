@@ -468,17 +468,24 @@ foreach ( $bulk_counts as $message => $count ) {
 	}
 }
 
+// Determine if any posts are locked and set the appropriate admin notice type.
+$is_post_locked    = isset( $bulk_counts['locked'] ) && $bulk_counts['locked'] > 0;
+$admin_notice_type = $is_post_locked ? 'error' : 'success';
+
 if ( $messages ) {
 	wp_admin_notice(
 		implode( ' ', $messages ),
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message',
+			'dismissible' => true,
+			'type'        => $admin_notice_type,
 		)
 	);
 }
+
 unset( $messages );
+unset( $is_post_locked );
+unset( $admin_notice_type );
 
 $_SERVER['REQUEST_URI'] = remove_query_arg( array( 'locked', 'skipped', 'updated', 'deleted', 'trashed', 'untrashed' ), $_SERVER['REQUEST_URI'] );
 ?>
