@@ -842,7 +842,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEquals( $t1, $t2 );
+		$this->assertNotSame( $t1, $t2 );
 
 		$term_2 = get_term( $t2, 'wptests_tax' );
 		$this->assertSame( $t2, $term_2->term_id );
