@@ -1,0 +1,92 @@
+name: Test Gutenberg plugin installation and activation
+
+on:
+  push:
+    branches:
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    tags:
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+  pull_request:
+    branches:
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Tests the WordPress Core build process on multiple operating systems.
+  test-core-build-process:
+    name: Core running from ${{ matrix.directory }}
+    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        directory: [ 'build' ]
+    with:
+      os: ${{ matrix.os }}
+      directory: ${{ matrix.directory }}
+
+  test-gutenberg-plugin-install-and-activation:
+    name: Install and activate the Gutenberg plugin
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    needs: [ test-core-build-process ]
+    steps:
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+          composer --version
+          locale -a
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Install and activate Gutenberg plugin
+        run: npm run env:cli "wp plugin install gutenberg --activate"
+
+      - name: Deactivate and uninstall Gutenberg plugin
+        run: npm run env:cli "wp plugin uninstall gutenberg —deactivate"
+
