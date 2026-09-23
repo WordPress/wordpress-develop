@@ -1237,7 +1237,7 @@ th.action-links {
 	display: block;
 }
 
-.show-filters .filter-links a.current {
+.show-filters:not(.filters-applied) .filter-links a.current {
 	border-bottom: none;
 }
 
