@@ -63,7 +63,7 @@ class IXR_Date {
      * @return string ISO datetime.
      * @phpstan-return non-falsy-string
      */
-    function getIso(): string
+    function getIso()
     {
         return $this->year.$this->month.$this->day.'T'.$this->hour.':'.$this->minute.':'.$this->second.$this->timezone;
     }
@@ -74,7 +74,7 @@ class IXR_Date {
      * @return string A dateTime.iso8601 XML tag.
      * @phpstan-return non-falsy-string
      */
-    function getXml(): string
+    function getXml()
     {
         return '<dateTime.iso8601>'.$this->getIso().'</dateTime.iso8601>';
     }
