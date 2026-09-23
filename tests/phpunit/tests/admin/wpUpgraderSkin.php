@@ -22,18 +22,16 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	 * and returns whatever it printed.
 	 *
 	 * @param WP_Upgrader_Skin $skin The skin instance to call the method on.
-	 * @param string           $type The update type to pass to the method.
+	 * @param non-falsy-string $type The update type to pass to the method.
 	 * @return string The output of the method.
 	 */
-	private function decrement_update_count( WP_Upgrader_Skin $skin, $type ) {
+	private function decrement_update_count( WP_Upgrader_Skin $skin, string $type ): string {
 		$method = new ReflectionMethod( $skin, 'decrement_update_count' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$method->setAccessible( true );
 		}
 
-		ob_start();
-		$method->invoke( $skin, $type );
-		return ob_get_clean();
+		return get_echo( array( $method, 'invoke' ), array( $skin, $type ) );
 	}
 
 	/**
