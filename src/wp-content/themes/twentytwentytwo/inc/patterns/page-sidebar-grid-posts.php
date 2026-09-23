@@ -17,7 +17,7 @@ return array(
 
 					<!-- wp:site-tagline {"fontSize":"small"} /-->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -25,7 +25,7 @@ return array(
 					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide"/>
 					<!-- /wp:separator -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -33,7 +33,7 @@ return array(
 					<!-- wp:page-list /-->
 					<!-- /wp:navigation -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -41,15 +41,15 @@ return array(
 					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide"/>
 					<!-- /wp:separator -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
-					<!-- wp:site-logo {"width":60} /--></div>
+					<!-- wp:site-logo {"width":"60px"} /--></div>
 					<!-- /wp:column -->
 
 					<!-- wp:column {"width":"70%"} -->
