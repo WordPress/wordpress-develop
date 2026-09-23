@@ -16,7 +16,7 @@
  * @since 1.5.0
  * @since 6.3.0 Returns an empty string if the author's display name is unknown.
  *
- * @global WP_User $authordata The current author's data.
+ * @global WP_User|false|null $authordata The current author's data.
  *
  * @param string $deprecated Deprecated.
  * @return string The author's display name, empty string if unknown.
@@ -231,7 +231,7 @@ function the_author_meta( $field = '', $user_id = false ) {
  * @since 3.0.0
  * @since 7.0.0 Added `$use_title_attr` parameter.
  *
- * @global WP_User $authordata The current author's data.
+ * @global WP_User|false|null $authordata The current author's data.
  *
  * @param bool $use_title_attr Optional. Whether to add a title attribute.
  *                             Default true.
@@ -321,7 +321,7 @@ function the_author_posts() {
  * @since 4.4.0
  * @since 7.0.0 Removed title attribute.
  *
- * @global WP_User $authordata The current author's data.
+ * @global WP_User|false|null $authordata The current author's data.
  *
  * @return string An HTML link to the author page, or an empty string if $authordata is not set.
  */
