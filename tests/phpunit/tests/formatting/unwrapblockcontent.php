@@ -2,129 +2,126 @@
 
 /**
  * @group formatting
- * @covers ::wp_unwrap_block_level_content_in_paragraphs
+ * @covers ::wp_split_paragraphs_around_block_shortcodes
  */
-class Tests_Formatting_WpUnwrapBlockLevelContentInParagraphs extends WP_UnitTestCase {
+class Tests_Formatting_WpSplitParagraphsAroundBlockShortcodes extends WP_UnitTestCase {
 
-	/**
-	 * Reproduces #50863: [playlist ids="1,2,3"] Hey everyone, check out my new songs!
-	 *
-	 * This is the literal do_shortcode() output for a two-track video playlist,
-	 * still wrapped in the <p> that wpautop()/shortcode_unautop() left in place
-	 * because the shortcode wasn't alone in its paragraph.
-	 */
-	public function test_splits_playlist_output_from_trailing_text() {
-		$wrapped = '<p><div class="wp-playlist wp-video-playlist wp-playlist-dark">
-		<video controls="controls" preload="none" width="640"
-		 height="360"	></video>
-	<div class="wp-playlist-next"></div>
-	<div class="wp-playlist-prev"></div>
-	<noscript>
-	<ol>
-		<li><a href=\'http://localhost:8889/wp-content/uploads/2026/09/file_example_MP4_480_1_5MG.mp4\'>file_example_MP4_480_1_5MG</a></li><li><a href=\'http://localhost:8889/wp-content/uploads/2026/09/file_example_MP4_1280_10MG.mp4\'>file_example_MP4_1280_10MG</a></li>	</ol>
-	</noscript>
-	<script type="application/json" class="wp-playlist-script">{"type":"video","tracklist":true,"tracknumbers":true,"images":true,"artists":true,"tracks":[]}</script>
-</div>
-	 Hey everyone, check out my new songs!</p>
-';
-
-		$result = wp_unwrap_block_level_content_in_paragraphs( $wrapped );
-
-		// The div is no longer inside a <p>.
-		$this->assertStringNotContainsString( '<p><div', $result );
-
-		// The trailing text got its own real paragraph instead of being orphaned.
-		$this->assertStringContainsString( '<p>Hey everyone, check out my new songs!</p>', $result );
-
-		// No stray empty <p></p> either side of the block.
-		$this->assertStringNotContainsString( '<p></p>', $result );
-
-		// The div itself, including its nested divs, survived untouched.
-		$this->assertStringContainsString( '<div class="wp-playlist-next"></div>', $result );
-		$this->assertStringContainsString( '<div class="wp-playlist-prev"></div>', $result );
-	}
-
-	/**
-	 * Leading text before the block-level content should also get its own paragraph.
-	 */
-	public function test_splits_leading_text_from_block_content() {
-		$wrapped = '<p>Check this out: <div class="wp-playlist"><div class="inner"></div></div></p>';
-
-		$result = wp_unwrap_block_level_content_in_paragraphs( $wrapped );
-
-		$this->assertStringContainsString( '<p>Check this out:</p>', $result );
-		$this->assertStringContainsString( '<div class="wp-playlist"><div class="inner"></div></div>', $result );
-		$this->assertStringNotContainsString( '<p>Check this out: <div', $result );
-	}
-
-	/**
-	 * Multiple block-level elements in one paragraph should each be unwrapped,
-	 * with text between them landing in its own paragraph.
-	 */
-	public function test_splits_multiple_block_elements_with_text_between() {
-		$wrapped = '<p><div class="a"></div> middle text <div class="b"></div></p>';
-
-		$result = wp_unwrap_block_level_content_in_paragraphs( $wrapped );
-
-		$this->assertStringContainsString( '<div class="a"></div>', $result );
-		$this->assertStringContainsString( '<p>middle text</p>', $result );
-		$this->assertStringContainsString( '<div class="b"></div>', $result );
-		$this->assertStringNotContainsString( '<p></p>', $result );
-	}
-
-	/**
-	 * A paragraph with no block-level content at all must pass through unchanged.
-	 */
-	public function test_leaves_plain_paragraphs_untouched() {
-		$plain = '<p>Just some ordinary text with <strong>inline</strong> markup.</p>';
-
-		$this->assertSame( $plain, wp_unwrap_block_level_content_in_paragraphs( $plain ) );
-	}
-
-	/**
-	 * A <p> wrapping only block-level content (no surrounding text) should end
-	 * up as the bare block element with no leftover empty <p></p>.
-	 */
-	public function test_removes_wrapper_when_block_is_the_only_content() {
-		$wrapped = '<p><div class="wp-playlist"><div class="inner"></div></div></p>';
-
-		$result = wp_unwrap_block_level_content_in_paragraphs( $wrapped );
-
-		$this->assertSame( '<div class="wp-playlist"><div class="inner"></div></div>', $result );
-	}
-
-	/**
-	 * Content with no <p> tags at all should be returned as-is (fast path).
-	 */
-	public function test_returns_early_when_no_paragraphs_present() {
-		$content = '<div>no paragraphs here</div>';
-
-		$this->assertSame( $content, wp_unwrap_block_level_content_in_paragraphs( $content ) );
-	}
-
-	/**
-	 * Full pipeline integration: wpautop -> shortcode_unautop -> do_shortcode ->
-	 * our new filter, using a stub shortcode that mimics [playlist]'s nested-div
-	 * output, matching the reported #50863 scenario end to end.
-	 */
-	public function test_full_content_pipeline_produces_valid_paragraph_structure() {
+	public function set_up() {
+		parent::set_up();
 		add_shortcode(
-			'stub_playlist',
+			'playlist',
 			static function () {
-				return '<div class="wp-playlist"><div class="wp-playlist-next"></div><div class="wp-playlist-prev"></div></div>';
+				return '<div class="wp-playlist wp-video-playlist wp-playlist-dark">'
+					. '<div class="wp-playlist-next"></div>'
+					. '<div class="wp-playlist-prev"></div>'
+					. '<script type="application/json" class="wp-playlist-script">{"tracks":[]}</script>'
+					. '</div>';
 			}
 		);
+	}
 
-		$raw = '[stub_playlist ids="1,2,3"] Hey everyone, check out my new songs!';
+	public function tear_down() {
+		remove_shortcode( 'playlist' );
+		parent::tear_down();
+	}
+
+	/**
+	 * Reproduces #50863 end to end through the real content pipeline.
+	 */
+	public function test_playlist_with_trailing_text_produces_valid_nesting() {
+		$raw = '[playlist ids="1,2,3"] Hey everyone, check out my new songs!';
 
 		$content = wpautop( $raw );
 		$content = shortcode_unautop( $content );
+		$content = wp_split_paragraphs_around_block_shortcodes( $content );
 		$content = do_shortcode( $content );
-		$content = wp_unwrap_block_level_content_in_paragraphs( $content );
-
-		remove_shortcode( 'stub_playlist' );
 
 		$this->assertStringNotContainsString( '<p><div', $content );
+		$this->assertStringNotContainsString( '<p></p>', $content );
 		$this->assertStringContainsString( '<p>Hey everyone, check out my new songs!</p>', $content );
+		$this->assertStringContainsString( '<div class="wp-playlist-next"></div>', $content );
+	}
+
+	/**
+	 * Leading text before the shortcode should get its own paragraph too.
+	 */
+	public function test_playlist_with_leading_text_produces_valid_nesting() {
+		$raw = 'Check this out: [playlist ids="1,2,3"]';
+
+		$content = wpautop( $raw );
+		$content = shortcode_unautop( $content );
+		$content = wp_split_paragraphs_around_block_shortcodes( $content );
+		$content = do_shortcode( $content );
+
+		$this->assertStringContainsString( '<p>Check this out:</p>', $content );
+		$this->assertStringNotContainsString( '<p>Check this out: <div', $content );
+	}
+
+	/**
+	 * A shortcode alone in its paragraph is shortcode_unautop()'s job; the new
+	 * function must be a no-op there, not double-handle it.
+	 */
+	public function test_standalone_playlist_shortcode_is_left_to_shortcode_unautop() {
+		$raw = '[playlist ids="1,2,3"]';
+
+		$content       = wpautop( $raw );
+		$after_unautop = shortcode_unautop( $content );
+
+		// wpautop() emits each paragraph as "<p>...</p>\n"; shortcode_unautop() only
+		// replaces the matched <p>...</p> span, so that trailing newline is expected
+		// and irrelevant to what's being tested here.
+		$this->assertSame( '[playlist ids="1,2,3"]', trim( $after_unautop ) );
+		$this->assertSame( $after_unautop, wp_split_paragraphs_around_block_shortcodes( $after_unautop ) );
+	}
+
+	/**
+	 * A non-block-level shortcode (not in the registered tag list) must be left alone,
+	 * even with surrounding text, since it isn't known to expand into block markup.
+	 */
+	public function test_non_block_level_shortcode_is_untouched() {
+		$content = '<p>Some text with [caption]a normal caption[/caption] inline.</p>';
+
+		$this->assertSame( $content, wp_split_paragraphs_around_block_shortcodes( $content ) );
+	}
+
+	/**
+	 * Raw HTML a user typed directly into a paragraph, with no shortcode involved
+	 * at all, must never be touched by this filter.
+	 */
+	public function test_raw_user_html_with_no_shortcode_is_untouched() {
+		$content = '<p>Some text with a <div>raw div a user pasted</div> inside it.</p>';
+
+		$this->assertSame( $content, wp_split_paragraphs_around_block_shortcodes( $content ) );
+	}
+
+	/**
+	 * The wp_block_level_shortcode_tags filter lets other block-producing
+	 * shortcodes (core's own [gallery], or a plugin's) opt in.
+	 */
+	public function test_block_level_tag_list_is_filterable() {
+		add_shortcode(
+			'stub_gallery',
+			static function () {
+				return '<div class="gallery"><div class="gallery-item"></div></div>';
+			}
+		);
+
+		$add_gallery = static function ( $tags ) {
+			$tags[] = 'stub_gallery';
+			return $tags;
+		};
+		add_filter( 'wp_block_level_shortcode_tags', $add_gallery );
+
+		$raw     = '[stub_gallery] Look at these!';
+		$content = wpautop( $raw );
+		$content = shortcode_unautop( $content );
+		$content = wp_split_paragraphs_around_block_shortcodes( $content );
+		$content = do_shortcode( $content );
+
+		remove_filter( 'wp_block_level_shortcode_tags', $add_gallery );
+		remove_shortcode( 'stub_gallery' );
+
+		$this->assertStringNotContainsString( '<p><div', $content );
+		$this->assertStringContainsString( '<p>Look at these!</p>', $content );
 	}
 }

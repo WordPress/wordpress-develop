@@ -6405,67 +6405,83 @@ function maybe_hash_hex_color( $color ) {
 }
 
 /**
- * Splits <p> tags that wrap block-level content into separate paragraphs.
+ * Shortcode tags known to produce block-level markup when expanded.
  *
  * @since 7.2.0
  *
- * @param string $content Content that has already been through do_shortcode().
- * @return string Content with block-level content unwrapped from <p> tags.
+ * @return string[] Registered block-level shortcode tag names.
  */
-function wp_unwrap_block_level_content_in_paragraphs( $content ) {
-	static $allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|math|style|p|h[1-6]|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary|script)';
+function wp_get_block_level_shortcode_tags() {
+	/**
+	 * Filters the shortcode tags treated as producing block-level markup, so
+	 * their paragraphs get split instead of left wrapping the expanded output.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string[] $tags Shortcode tag names. Default array( 'playlist' ).
+	 */
+	return apply_filters( 'wp_block_level_shortcode_tags', array( 'playlist' ) );
+}
 
-	if ( false === strpos( $content, '<p' ) ) {
+/**
+ * Splits paragraphs around block-level shortcodes that aren't alone in them.
+ *
+ * @since 7.2.0
+ *
+ * @param string $content Content that has been through wpautop() and shortcode_unautop().
+ * @return string
+ */
+function wp_split_paragraphs_around_block_shortcodes( $content ) {
+	$tags = wp_get_block_level_shortcode_tags();
+
+	if ( empty( $tags ) || false === strpos( $content, '[' ) ) {
 		return $content;
 	}
 
+	$shortcode_regex = get_shortcode_regex( $tags );
+
 	return preg_replace_callback(
-		'/<p\b[^>]*>(.*?)<\/p>/is',
-		static function ( $matches ) use ( $allblocks ) {
-			return _wp_split_paragraph_around_block_content( $matches[0], $matches[1], $allblocks );
+		'/<p\b[^>]*>(.*?)<\/p>/s',
+		static function ( $matches ) use ( $shortcode_regex ) {
+			return _wp_split_paragraph_around_shortcode_matches( $matches[0], $matches[1], $shortcode_regex );
 		},
 		$content
 	);
 }
 
 /**
- *
- * Walks a single paragraph's inner content, and for every top-level block-level
- * element found, closes the paragraph before it, emits the block element as-is,
- * and opens a fresh paragraph for whatever comes after.
+ * Helper for wp_split_paragraphs_around_block_shortcodes().
  *
  * @since 7.2.0
  *
- * @param string $whole_p  The full <p>...</p> match, returned unchanged if there's nothing to split.
- * @param string $inner    The paragraph's inner content.
- * @param string $allblocks Regex fragment listing block-level tag names.
+ * @param string $whole_p         The full <p>...</p> match.
+ * @param string $inner           The paragraph's inner content.
+ * @param string $shortcode_regex Regex from get_shortcode_regex() for the block-level tags.
  * @return string
  */
-function _wp_split_paragraph_around_block_content( $whole_p, $inner, $allblocks ) {
-	if ( ! preg_match( '/<' . $allblocks . '\b/i', $inner ) ) {
+function _wp_split_paragraph_around_shortcode_matches( $whole_p, $inner, $shortcode_regex ) {
+	if ( ! preg_match_all( '/' . $shortcode_regex . '/s', $inner, $all, PREG_OFFSET_CAPTURE ) ) {
 		return $whole_p;
 	}
 
-	$balanced = '/(?P<block><(?P<tag>' . $allblocks . ')\b[^>]*>(?:[^<]++|<(?!\/?(?P=tag)\b)|(?P>block))*<\/(?P=tag)>)/is';
+	// A shortcode that's already the paragraph's sole content is shortcode_unautop()'s job.
+	if ( 1 === count( $all[0] ) && trim( $inner ) === trim( $all[0][0][0] ) ) {
+		return $whole_p;
+	}
 
-	$output      = '';
-	$cursor      = 0;
-	$found_block = false;
+	$output = '';
+	$cursor = 0;
 
-	while ( preg_match( $balanced, $inner, $m, PREG_OFFSET_CAPTURE, $cursor ) ) {
-		$found_block = true;
+	foreach ( $all[0] as $match ) {
+		list( $shortcode_text, $offset ) = $match;
 
-		$before = trim( substr( $inner, $cursor, $m['block'][1] - $cursor ) );
+		$before = trim( substr( $inner, $cursor, $offset - $cursor ) );
 		if ( '' !== $before ) {
 			$output .= '<p>' . $before . '</p>';
 		}
 
-		$output .= $m['block'][0];
-		$cursor  = $m['block'][1] + strlen( $m['block'][0] );
-	}
-
-	if ( ! $found_block ) {
-		return $whole_p;
+		$output .= $shortcode_text;
+		$cursor  = $offset + strlen( $shortcode_text );
 	}
 
 	$after = trim( substr( $inner, $cursor ) );
