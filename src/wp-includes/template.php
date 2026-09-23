@@ -1033,19 +1033,12 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 
 	$filtered_output = $output;
 
-	$did_just_catch = false;
-
 	$error_log = array();
 	set_error_handler(
-		static function ( int $level, string $message, ?string $file = null, ?int $line = null ) use ( &$error_log, &$did_just_catch ) {
+		static function ( int $level, string $message, ?string $file = null, ?int $line = null ) use ( &$error_log ) {
 			// Switch a user error to an exception so that it can be caught and the buffer can be returned.
 			if ( E_USER_ERROR === $level ) {
 				throw new Exception( __( 'User error triggered:' ) . ' ' . $message );
-			}
-
-			// Display a caught exception as an error since it prevents any of the output buffer filters from applying.
-			if ( $did_just_catch ) {
-				$level = E_USER_ERROR;
 			}
 
 			// Capture a reported error to be displayed by appending to the processed output buffer if display_errors is enabled.

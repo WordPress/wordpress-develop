@@ -402,9 +402,7 @@ function login_footer( $input_id = '' ) {
 					wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
 					?>
 
-					<?php if ( $interim_login ) { ?>
-						<input type="hidden" name="interim-login" value="1" />
-					<?php } ?>
+					<input type="hidden" name="interim-login" value="1" />
 
 					<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
 						<input type="hidden" name="redirect_to" value="<?php echo sanitize_url( $_GET['redirect_to'] ); ?>" />
