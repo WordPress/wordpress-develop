@@ -544,6 +544,16 @@ Paragraph two.';
 	}
 
 	/**
+	 * @ticket 37672
+	 */
+	public function test_that_div_content_is_correctly_peed() {
+		$content  = "<div>\nThis is a paragraph.\n\nThis is another paragraph.\n</div>";
+		$expected = "<div>\n<p>This is a paragraph.</p>\n<p>This is another paragraph.</p>\n</div>";
+
+		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+	}
+
+	/**
 	 * wpautop() should not convert line breaks after <br /> tags
 	 *
 	 * @ticket 33377

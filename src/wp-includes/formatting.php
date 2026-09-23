@@ -495,6 +495,10 @@ function wpautop( $text, $br = true ) {
 	// Add a double line break after hr tags, which are self closing.
 	$text = preg_replace( '!(<hr\s*?/?>)!', "$1\n\n", $text );
 
+	// Treat <div> as special and put a new line below opening tags and above closing tags
+	$text = preg_replace( '!(<div>)!', "$1\n", $text );
+	$text = preg_replace( '!(</div>)!', "\n$1", $text );
+
 	// Standardize newline characters to "\n".
 	$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
 
@@ -549,6 +553,10 @@ function wpautop( $text, $br = true ) {
 
 	// Under certain strange conditions it could create a P of entirely whitespace.
 	$text = preg_replace( '|<p>\s*</p>|', '', $text );
+
+	// Remove the space we added to the <div> tag
+	$text = preg_replace( "!(<div>)[/\n]+!", '$1', $text );
+	$text = preg_replace( "![/\n]+(</div>)!", '$1', $text );
 
 	// Add a closing <p> inside <div>, <address>, or <form> tag if missing.
 	$text = preg_replace( '!<p>([^<]+)</(div|address|form)>!', '<p>$1</p></$2>', $text );
