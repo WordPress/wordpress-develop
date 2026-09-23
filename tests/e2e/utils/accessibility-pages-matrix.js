@@ -64,6 +64,7 @@ const pages = [
 		id: 'posts-revisions',
 		path: '/post-new.php',
 		name: 'Posts Revisions',
+		waitInterval: true,
 		stateVariants: [
 			{
 				name: 'default',
