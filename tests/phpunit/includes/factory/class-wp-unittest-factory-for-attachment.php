@@ -9,6 +9,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 * Create an attachment fixture.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args {

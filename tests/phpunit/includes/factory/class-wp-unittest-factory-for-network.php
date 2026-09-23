@@ -25,6 +25,7 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * Creates a network object.
 	 *
 	 * @since 3.9.0
+	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array<string, mixed> $args Arguments for the network object.
@@ -66,6 +67,7 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * @todo Implement via a direct update of the site table, so that after-create callbacks work with this factory.
 	 *
 	 * @since 3.9.0
+	 * @since 7.2.0 Throws an exception instead of silently doing nothing.
 	 *
 	 * @param int                  $network_id ID of the network to update.
 	 * @param array<string, mixed> $fields     The fields to update.

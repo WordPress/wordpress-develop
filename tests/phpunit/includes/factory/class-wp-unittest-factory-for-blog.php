@@ -24,6 +24,8 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Creates a site object.
 	 *
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
+	 *
 	 * @param array<string, mixed> $args Arguments for the site object.
 	 * @return positive-int The site ID.
 	 * @throws WP_UnitTest_Factory_Exception When the site could not be created.
@@ -76,6 +78,8 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 * applied when nothing was written.
 	 *
 	 * @todo Implement via wp_update_site(), so that after-create callbacks work with this factory.
+	 *
+	 * @since 7.2.0 Throws an exception instead of silently doing nothing.
 	 *
 	 * @param int                  $blog_id ID of the site to update.
 	 * @param array<string, mixed> $fields  The fields to update.

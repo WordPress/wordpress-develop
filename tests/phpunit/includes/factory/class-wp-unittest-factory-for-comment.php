@@ -24,6 +24,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * Inserts a comment.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
@@ -54,6 +55,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * Updates a comment.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int                  $comment_id The comment ID.

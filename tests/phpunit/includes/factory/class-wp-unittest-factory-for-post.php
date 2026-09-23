@@ -25,6 +25,7 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * Creates a post object.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array<string, mixed> $args Array with elements for the post.
@@ -43,6 +44,7 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 * Updates an existing post object.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int                  $post_id ID of the post to update.

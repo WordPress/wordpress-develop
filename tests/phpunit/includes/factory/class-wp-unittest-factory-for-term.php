@@ -52,6 +52,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * Updates the term.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int|WP_Term          $term   The term to update.
