@@ -97,7 +97,7 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 * @return WP_Site The site object.
 	 * @throws WP_UnitTest_Factory_Exception When the site could not be retrieved.
 	 */
-	public function get_object_by_id( int $blog_id ): WP_Site {
+	public function get_object_by_id( int $blog_id ) {
 		$site = get_site( $blog_id );
 
 		$this->assert_valid_object( $site, $blog_id, WP_Site::class );

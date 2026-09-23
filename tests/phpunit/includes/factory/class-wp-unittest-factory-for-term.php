@@ -112,7 +112,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @return WP_Term Term object.
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be created or retrieved.
 	 */
-	public function create_and_get( $args = array(), $generation_definitions = null ): WP_Term {
+	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$term_id = $this->create( $args, $generation_definitions );
 
 		// The term may have been created in a taxonomy that came from either the args or the
@@ -134,7 +134,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @return WP_Term The term object.
 	 * @throws WP_UnitTest_Factory_Exception When the term could not be retrieved.
 	 */
-	public function get_object_by_id( int $term_id ): WP_Term {
+	public function get_object_by_id( int $term_id ) {
 		$term = get_term( $term_id, $this->taxonomy );
 
 		$this->assert_valid_object( $term, $term_id, WP_Term::class );

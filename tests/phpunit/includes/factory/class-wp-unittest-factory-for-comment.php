@@ -101,7 +101,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * @return WP_Comment The comment object.
 	 * @throws WP_UnitTest_Factory_Exception When the comment could not be retrieved.
 	 */
-	public function get_object_by_id( int $comment_id ): WP_Comment {
+	public function get_object_by_id( int $comment_id ) {
 		$comment = get_comment( $comment_id );
 
 		$this->assert_valid_object( $comment, $comment_id, WP_Comment::class );
