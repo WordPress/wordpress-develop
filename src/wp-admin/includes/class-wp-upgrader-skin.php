@@ -270,7 +270,8 @@ class WP_Upgrader_Skin {
 			);
 		} else {
 			$js_function = <<<'JS'
-				( wp, upgradeType ) => {
+				( upgradeType ) => {
+					const wp = window.wp;
 					if ( wp && wp.updates && wp.updates.decrementCount ) {
 						wp.updates.decrementCount( upgradeType );
 					}
@@ -279,7 +280,7 @@ class WP_Upgrader_Skin {
 
 			wp_print_inline_script_tag(
 				sprintf(
-					'( %s )( window.wp, %s );',
+					'( %s )( %s );',
 					$js_function,
 					wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 				)
