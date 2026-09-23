@@ -1897,6 +1897,9 @@ body.full-overlay-active {
 
 #customize-controls {
 	margin-top: 0;
+	overflow: hidden;
+	resize: horizontal;
+	max-width: 50%;
 }
 
 .theme-install-overlay {
