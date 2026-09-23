@@ -272,6 +272,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0;
 }
 
+.wp-block-quote em, .wp-block-quote i, .wp-block-quote cite {
+	font-style: normal;
+}
+
 .edit-post-visual-editor .editor-block-list__block .wp-block-quote p,
 .editor-styles-wrapper .wp-block-quote p {
 	font-family: Georgia, "Bitstream Charter", serif;
