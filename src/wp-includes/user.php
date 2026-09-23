@@ -4013,7 +4013,6 @@ All at ###SITENAME###
  * @global string $pagenow The filename of the current screen.
  */
 function new_user_email_admin_notice() {
-
 	global $pagenow;
 
 	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
