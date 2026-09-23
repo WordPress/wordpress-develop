@@ -96,11 +96,11 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a multicall entry with non-array params does not cause a fatal error.
+	 * Tests that a multicall entry with non-array params returns a fault without stopping the remaining calls.
 	 *
 	 * @ticket 66160
 	 *
-	 * @covers IXR_Server::call
+	 * @covers IXR_Server::multiCall
 	 */
 	public function test_multicall_with_non_array_params(): void {
 		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
@@ -111,10 +111,18 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 					'methodName' => 'demo.sayHello',
 					'params'     => 'x',
 				),
+				array(
+					'methodName' => 'demo.sayHello',
+					'params'     => array(),
+				),
 			)
 		);
 
-		$this->assertSame( array( array( 'Hello!' ) ), $result );
+		$this->assertIsArray( $result );
+		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'faultCode', $result[0] );
+		$this->assertSame( -32602, $result[0]['faultCode'] );
+		$this->assertSame( array( 'Hello!' ), $result[1] );
 	}
 
 	/**

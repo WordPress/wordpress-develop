@@ -227,7 +227,9 @@ EOD;
             if (isset($call['params'])) {
                 $params = $call['params'];
             }
-            if ($method == 'system.multicall') {
+            if (!is_array($params)) {
+                $result = new IXR_Error(-32602, 'server error. invalid method parameters. Each multicall entry params must be an array');
+            } else if ($method == 'system.multicall') {
                 $result = new IXR_Error(-32600, 'Recursive calls to system.multicall are forbidden');
             } else {
                 $result = $this->call($method, $params);
