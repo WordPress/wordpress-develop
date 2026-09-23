@@ -6,7 +6,7 @@
  * @group comment
  */
 class Tests_Comment_Query extends WP_UnitTestCase {
-	protected static $post_id;
+	protected static int $post_id;
 	protected $comment_id;
 
 	/**
@@ -4508,6 +4508,71 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 		$q2_ids = wp_list_pluck( $q2->comments, 'comment_ID' );
 		$this->assertSameSets( $q1_ids, $q2_ids );
+	}
+
+	/**
+	 * Tests that a cached descendant ID that no longer resolves to a comment is skipped.
+	 *
+	 * The reply is removed without clean_comment_cache() running, so the cached
+	 * `get_comment_child_ids` entry stays valid while get_comment() returns null.
+	 *
+	 * @ticket 66151
+	 *
+	 * @covers WP_Comment_Query::fill_descendants
+	 *
+	 * @dataProvider data_hierarchical_modes
+	 *
+	 * @param 'threaded'|'flat' $hierarchical Value of the 'hierarchical' query var.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_fill_descendants_should_skip_cached_child_ids_that_no_longer_exist( string $hierarchical ): void {
+		global $wpdb;
+
+		$parent = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+			)
+		);
+		$reply  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_parent'   => $parent,
+			)
+		);
+
+		$query_args = array(
+			'post_id'      => self::$post_id,
+			'hierarchical' => $hierarchical,
+		);
+
+		// Prime the parent-child relationship cache.
+		new WP_Comment_Query( $query_args );
+
+		// Remove the reply behind the back of the comment API, leaving 'last_changed' untouched.
+		$this->assertSame( 1, $wpdb->delete( $wpdb->comments, array( 'comment_ID' => $reply ) ) );
+		$this->assertTrue( wp_cache_delete( $reply, 'comment' ) );
+		unset( $GLOBALS['comment'] );
+
+		$q = new WP_Comment_Query( $query_args );
+
+		$this->assertIsArray( $q->comments );
+		$this->assertContainsOnlyInstancesOf( WP_Comment::class, $q->comments, 'Only WP_Comment objects should be returned.' );
+		$this->assertSame( array( (string) $parent ), array_values( wp_list_pluck( $q->comments, 'comment_ID' ) ), 'The parent comment should still be returned.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: 'threaded'|'flat' }>
+	 */
+	public static function data_hierarchical_modes(): array {
+		return array(
+			'threaded' => array( 'threaded' ),
+			'flat'     => array( 'flat' ),
+		);
 	}
 
 	/**
