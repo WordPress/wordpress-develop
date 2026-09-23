@@ -115,8 +115,10 @@ class WP_Network {
 		) {
 			$_network = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->site} WHERE id = %d LIMIT 1", $network_id ) );
 
-			if ( empty( $_network ) || is_wp_error( $_network ) ) {
+			if ( null === $_network ) {
 				$_network = -1;
+			} elseif ( empty( $_network ) || is_wp_error( $_network ) ) {
+				return false;
 			}
 
 			// Not wp_cache_add(), since an unusable cached value may still be present and must be replaced.
