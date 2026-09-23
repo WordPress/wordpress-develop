@@ -442,31 +442,25 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 
 		$wp_settings_errors = null;
 
-		if ( in_array( $type, array( 'error', 'success', 'updated', 'warning', 'info' ), true ) ) {
-			// Backward compatibility: Core admin notice types build the CSS classes in this order.
-			$expected = sprintf( 'notice %s is-dismissible settings-error', $expected );
-		} else {
-			// Anything else e.g. custom types or strings with spaces is now passed as additional_classes.
-			// As such, the classes are appended to the end of the string.
-			$expected = sprintf( 'notice is-dismissible settings-error %s', $expected );
-		}
-
 		$this->assertStringContainsString( $expected, $output );
 		$this->assertStringNotContainsString( 'notice-notice-', $output );
 	}
 
+	// Backward compatibility: Core admin notice types build the CSS classes in this order.
+	// Anything else e.g. custom types or strings with spaces is now passed as additional_classes.
+	// As such, the classes are appended to the end of the string.
 	public function data_settings_errors_css_classes() {
 		return array(
-			array( 'error', 'notice-error' ),
-			array( 'success', 'notice-success' ),
-			array( 'warning', 'notice-warning' ),
-			array( 'info', 'notice-info' ),
-			array( 'updated', 'notice-success' ),
-			array( 'notice-error', 'notice-error' ),
-			array( 'custom', 'custom' ),
-			array( 'notice-custom', 'notice-custom' ),
-			array( 'error my-own-css-class hello world', 'error my-own-css-class hello world' ),
-			array( 'error my-notice-is-awesome hello world', 'error my-notice-is-awesome hello world' ),
+			array( 'error', 'notice notice-error is-dismissible settings-error' ),
+			array( 'success', 'notice notice-success is-dismissible settings-error' ),
+			array( 'warning', 'notice notice-warning is-dismissible settings-error' ),
+			array( 'info', 'notice notice-info is-dismissible settings-error' ),
+			array( 'updated', 'notice notice-success is-dismissible settings-error' ),
+			array( 'notice-error', 'notice is-dismissible settings-error notice-error' ),
+			array( 'custom', 'is-dismissible settings-error custom' ),
+			array( 'notice-custom', 'is-dismissible settings-error notice-custom' ),
+			array( 'error my-own-css-class hello world', 'is-dismissible settings-error error my-own-css-class hello world' ),
+			array( 'error my-notice-is-awesome hello world', 'is-dismissible settings-error error my-notice-is-awesome hello world' ),
 		);
 	}
 
