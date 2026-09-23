@@ -309,6 +309,60 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that HTML comments which end a document but which are not block
+	 * delimiters are incorporated into the final HTML span.
+	 *
+	 * @ticket 61401
+	 *
+	 * @dataProvider data_terminal_non_delimiter_comments
+	 *
+	 * @param string $html Input ending in a non-delimiter HTML comment.
+	 */
+	public function test_preserves_terminal_non_delimiter_comments_as_html( $html ) {
+		$processor = new WP_Block_Processor( $html );
+
+		$this->assertTrue(
+			$processor->next_token(),
+			'Should have found a single HTML span but found nothing: check test setup.'
+		);
+
+		$this->assertTrue(
+			$processor->is_html(),
+			'Should have matched an HTML span.'
+		);
+
+		$this->assertSame(
+			$html,
+			$processor->get_html_content(),
+			'Should have preserved the complete terminal HTML span.'
+		);
+
+		$this->assertFalse(
+			$processor->next_token(),
+			'Should have only found one token, an HTML comment, but found more: check test setup.'
+		);
+
+		$this->assertNull(
+			$processor->get_last_error(),
+			'Should have finished without error.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_terminal_non_delimiter_comments(): array {
+		return array(
+			'Ordinary comment'           => array( 'content<!-- x -->' ),
+			'Abrupt empty comment'       => array( 'content<!-->' ),
+			'Rejected JSON attributes'   => array( 'content<!-- wp:a {x -->' ),
+			'Exclamation comment ending' => array( 'content<!-- wp:a --!>' ),
+		);
+	}
+
+	/**
 	 * Verifies that incomplete HTML comments which could not produce delimiters
 	 * are not considered incomplete input by the processor.
 	 *

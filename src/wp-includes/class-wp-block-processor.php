@@ -1077,6 +1077,19 @@ class WP_Block_Processor {
 
 		// The end of the document was reached without a match.
 		if ( self::MATCHED !== $this->state ) {
+			// Stop at top-level free-form HTML at the end of the document.
+			if ( $after_prev_delimiter < $end ) {
+				$this->state                    = self::HTML_SPAN;
+				$this->after_previous_delimiter = $after_prev_delimiter;
+				$this->matched_delimiter_at     = $end;
+				$this->matched_delimiter_length = 0;
+				$this->open_blocks_at[]         = $after_prev_delimiter;
+				$this->open_blocks_length[]     = 0;
+				$this->was_void                 = true;
+
+				return true;
+			}
+
 			$this->state = self::COMPLETE;
 			return false;
 		}
