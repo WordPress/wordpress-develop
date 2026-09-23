@@ -642,4 +642,28 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 400, $result->code );
 		$this->assertNotSame( 'Updated', get_post( $post_id )->post_title );
 	}
+
+	/**
+	 * Ensure a `post_date` string that cannot be parsed is rejected instead of resetting the date.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_unparseable_post_date_returns_error(): void {
+		$editor_id   = $this->make_user_by_role( 'editor' );
+		$date_string = '2020-05-05 05:05:05';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_author'   => $editor_id,
+				'post_status'   => 'publish',
+				'post_date'     => $date_string,
+				'post_date_gmt' => $date_string,
+			)
+		);
+
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, array( 'post_date' => 'not a date' ) ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+		$this->assertSame( $date_string, get_post( $post_id )->post_date );
+	}
 }

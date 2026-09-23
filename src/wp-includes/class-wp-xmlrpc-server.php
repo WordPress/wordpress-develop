@@ -963,7 +963,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * XML-RPC clients may send a date either as a dateTime.iso8601 value, which
 	 * arrives as an IXR_Date object, or as a plain string. Any other type cannot
-	 * be a date and results in an error.
+	 * be a date and results in an error, as does a string that cannot be parsed.
 	 *
 	 * @since 7.2.0
 	 *
@@ -978,7 +978,14 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( is_string( $date ) ) {
-			return $this->_convert_date( $date );
+			$date = $this->_convert_date( $date );
+
+			// A string that could not be parsed as a date produces an IXR_Date with empty components.
+			if ( ! preg_match( '/^\d{8}T\d{2}:\d{2}:\d{2}/', $date->getIso() ) ) {
+				return new IXR_Error( 400, __( 'Invalid date.' ) );
+			}
+
+			return $date;
 		}
 
 		return new IXR_Error( 400, __( 'Dates must be a dateTime.iso8601 value or a string.' ) );
