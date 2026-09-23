@@ -979,22 +979,31 @@ class WP_Block_Processor {
 			 * This also matches the behavior in the official block parser,
 			 * even though it allows for matching invalid JSON content.
 			 *
-			 * A delimiter is a single HTML comment, find the comment closer.
+			 * The delimiter must also be a single complete HTML comment.
 			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true} /-⃨-⃨>⃨
 			 */
-			$comment_ends_at = $this->find_html_comment_end( $comment_opening_at, $end );
-			if ( $comment_ends_at >= $end && ! str_ends_with( $text, '-->' ) && ! str_ends_with( $text, '--!>' ) ) {
+			$after_comment_end = $this->find_html_comment_end( $comment_opening_at, $end );
+
+			/*
+			 * The reported end of the comment could be after the end of the document if
+			 * no actual end was found, so differentiate a comment ending at the end of
+			 * the document from documents with missing comment ends.
+			 */
+			if ( $after_comment_end >= $end && ! str_ends_with( $text, '-->' ) && ! str_ends_with( $text, '--!>' ) ) {
 				goto incomplete;
 			}
 
-			// Only normative comment closers are recognized block delimiters.
-			if ( '!' === $text[ $comment_ends_at - 2 ] ) {
-				$at = $comment_ends_at;
+			/*
+			 * Only normative comment closers are recognized block delimiters,
+			 * so skip past any HTML comments ending in `--!>`.
+			 */
+			if ( '!' === $text[ $after_comment_end - 2 ] ) {
+				$at = $after_comment_end;
 				continue;
 			}
 
-			$comment_closing_at = $comment_ends_at - 3;
+			$comment_closing_at = $after_comment_end - 3;
 
 			// <!-- /wp:core/paragraph {"dropCap":true} /⃨-->
 			if ( '/' === $text[ $comment_closing_at - 1 ] ) {
@@ -1017,7 +1026,7 @@ class WP_Block_Processor {
 					break;
 				}
 
-				$at = $comment_ends_at;
+				$at = $after_comment_end;
 				continue;
 			}
 
@@ -1025,6 +1034,7 @@ class WP_Block_Processor {
 			 * There's JSON, so attempt to find its boundary.
 			 *
 			 * @todo It’s likely faster to scan forward instead of in reverse.
+			 * @todo Skip ahead with `strcspn()` and decide only on syntax characters.
 			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true}⃨ ⃨/-->
 			 */
@@ -1046,7 +1056,7 @@ class WP_Block_Processor {
 						break 2;
 
 					default:
-						$at = $comment_ends_at;
+						$at = $after_comment_end;
 						continue 3;
 				}
 			}
@@ -1056,7 +1066,7 @@ class WP_Block_Processor {
 			 * mandatory whitespace is missing.
 			 */
 			if ( 0 === $json_length || 0 === $after_json_whitespace_length ) {
-				$at = $comment_ends_at;
+				$at = $after_comment_end;
 				continue;
 			}
 
