@@ -33,4 +33,3 @@ parameters:
 			identifier: nullCoalesce.property
 			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-post-types-controller.php
-		
