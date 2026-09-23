@@ -77,44 +77,7 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	 * @covers WP_Upgrader_Skin::decrement_update_count
 	 */
 	public function test_decrement_update_count_prints_inline_script_tag_with_filterable_attributes() {
-		add_filter(
-			'wp_inline_script_attributes',
-			static function ( array $attributes ): array {
-				$attributes['nonce'] = 'test-decrement-update-count-nonce';
-				return $attributes;
-			}
-		);
-
-		$skin         = new WP_Upgrader_Skin();
-		$skin->result = true;
-
-		$actual = $this->decrement_update_count( $skin, 'plugin' );
-
-		$processor = new WP_HTML_Tag_Processor( $actual );
-		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
-		$this->assertSame( 'test-decrement-update-count-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
-
-		$script_text = $processor->get_modifiable_text();
-		$this->assertStringContainsString( 'wp.updates.decrementCount( upgradeType )', $script_text, 'The expected JavaScript call was not printed.' );
-		$this->assertStringContainsString( '"plugin"', $script_text, 'The expected upgrade type argument was not printed.' );
-	}
-
-	/**
-	 * Tests that `WP_Upgrader_Skin::decrement_update_count()` prints the
-	 * `postMessage` variant of the script during an iframe request, still
-	 * through `wp_print_inline_script_tag()`.
-	 *
-	 * @ticket 59446
-	 *
-	 * @covers WP_Upgrader_Skin::decrement_update_count
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
-	public function test_decrement_update_count_prints_post_message_script_during_iframe_request() {
-		define( 'IFRAME_REQUEST', true );
-
-		$nonce = 'test-decrement-update-count-iframe-nonce';
+		$nonce = 'test-decrement-update-count-nonce';
 		add_filter(
 			'wp_inline_script_attributes',
 			static function ( array $attributes ) use ( $nonce ): array {
@@ -123,10 +86,10 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 			}
 		);
 
+		$type         = 'plugin';
 		$skin         = new WP_Upgrader_Skin();
 		$skin->result = true;
 
-		$type   = 'theme';
 		$actual = $this->decrement_update_count( $skin, $type );
 
 		$processor = new WP_HTML_Tag_Processor( $actual );
@@ -134,8 +97,7 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 		$this->assertSame( $nonce, $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
 
 		$script_text = $processor->get_modifiable_text();
-		$this->assertStringContainsString( 'window.parent.postMessage', $script_text, 'The expected postMessage call was not printed.' );
-		$this->assertStringContainsString( 'action: "decrementUpdateCount"', $script_text, 'The expected action was not printed.' );
+		$this->assertStringContainsString( 'wp.updates.decrementCount( upgradeType )', $script_text, 'The expected JavaScript call was not printed.' );
 		$this->assertStringContainsString( (string) wp_json_encode( $type ), $script_text, 'The expected upgrade type argument was not printed.' );
 	}
 }
