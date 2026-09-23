@@ -438,6 +438,28 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 41712
+	 */
+	public function test_plus_encoded_query_value_does_not_trigger_redirect() {
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $p );
+
+		$this->go_to( get_permalink( $p ) );
+
+		// A literal '+' in a query value must not redirect to the '%20'-encoded form.
+		$redirect = redirect_canonical( home_url( '/?utm_source=foo+bar' ), false );
+
+		delete_option( 'page_on_front' );
+
+		$this->assertNull( $redirect );
+	}
+
+	/**
 	 * Ensure NOT EXISTS queries do not trigger not-countable or undefined array key errors.
 	 *
 	 * @ticket 55955

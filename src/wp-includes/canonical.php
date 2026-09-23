@@ -586,12 +586,27 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			}
 		}
 
-		$_parsed_query = array_combine(
-			rawurlencode_deep( array_keys( $_parsed_query ) ),
-			rawurlencode_deep( array_values( $_parsed_query ) )
-		);
+		/*
+		 * Only re-encode the query string if it differs from the original request.
+		 * Re-encoding a semantically identical query (e.g. '+' vs '%20') produces a
+		 * redirect that caches keying on the raw URL can replay as a loop.
+		 * See https://core.trac.wordpress.org/ticket/41712
+		 */
+		parse_str( $original['query'], $_parsed_original_query );
+		$_sorted_query = $_parsed_query;
+		ksort( $_sorted_query );
+		ksort( $_parsed_original_query );
 
-		$redirect_url = add_query_arg( $_parsed_query, $redirect_url );
+		if ( $_sorted_query === $_parsed_original_query && ! str_contains( $redirect_url, '?' ) ) {
+			$redirect_url .= '?' . $original['query'];
+		} else {
+			$_parsed_query = array_combine(
+				rawurlencode_deep( array_keys( $_parsed_query ) ),
+				rawurlencode_deep( array_values( $_parsed_query ) )
+			);
+
+			$redirect_url = add_query_arg( $_parsed_query, $redirect_url );
+		}
 	}
 
 	if ( $redirect_url ) {
