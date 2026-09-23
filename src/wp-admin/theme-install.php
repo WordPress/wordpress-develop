@@ -13,7 +13,7 @@ require ABSPATH . 'wp-admin/includes/theme-install.php';
 $tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : '';
 
 if ( ! current_user_can( 'install_themes' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
+	wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ), 403 );
 }
 
 if ( is_multisite() && ! is_network_admin() ) {
