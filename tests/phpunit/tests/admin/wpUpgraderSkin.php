@@ -70,13 +70,17 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	 * Tests that `WP_Upgrader_Skin::decrement_update_count()` prints its data
 	 * through `wp_print_inline_script_tag()`, so attributes such as a
 	 * per-request nonce can be attached via the `wp_inline_script_attributes`
-	 * filter.
+	 * filter, and that the update type is JSON-encoded.
 	 *
 	 * @ticket 59446
 	 *
+	 * @dataProvider data_update_types
+	 *
 	 * @covers WP_Upgrader_Skin::decrement_update_count
+	 *
+	 * @param non-falsy-string $type The update type to pass to the method.
 	 */
-	public function test_decrement_update_count_prints_inline_script_tag_with_filterable_attributes() {
+	public function test_decrement_update_count_prints_inline_script_tag_with_filterable_attributes( string $type ) {
 		$nonce = 'test-decrement-update-count-nonce';
 		add_filter(
 			'wp_inline_script_attributes',
@@ -86,7 +90,6 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 			}
 		);
 
-		$type         = 'plugin';
 		$skin         = new WP_Upgrader_Skin();
 		$skin->result = true;
 
@@ -98,6 +101,23 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 
 		$script_text = $processor->get_modifiable_text();
 		$this->assertStringContainsString( 'wp.updates.decrementCount( upgradeType )', $script_text, 'The expected JavaScript call was not printed.' );
-		$this->assertStringContainsString( (string) wp_json_encode( $type ), $script_text, 'The expected upgrade type argument was not printed.' );
+		$this->assertStringEndsWith(
+			')( ' . wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ' );',
+			trim( $script_text ),
+			'The upgrade type was not passed as the JSON-encoded argument.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ type: non-falsy-string }>
+	 */
+	public function data_update_types(): array {
+		return array(
+			'a plugin type'      => array( 'type' => 'plugin' ),
+			'a theme type'       => array( 'type' => 'theme' ),
+			'a translation type' => array( 'type' => 'translation' ),
+		);
 	}
 }
