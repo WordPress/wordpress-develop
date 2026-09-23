@@ -299,6 +299,12 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 			'Malformed block namespace'     => array( '<!-- wp:3more/block -->' ),
 			'Malformed block name'          => array( '<!-- wp:core/paragraph/variation -->' ),
 			'Invalid block name characters' => array( '<!-- wp:core/32-block -->' ),
+			'Dash run'                      => array( '<!--x-----y-->' ),
+			'Dash run then bang'            => array( '<!--x---!y-->' ),
+			'Bang then dashes'              => array( '<!--x--!-y-->' ),
+			'Dash run then bang closer'     => array( '<!--x---!>' ),
+			'Bang then dash then closer'    => array( '<!--x--!-->' ),
+			'Long dash run'                 => array( '<!--x' . str_repeat( '-', 50000 ) . 'y-->' ),
 		);
 	}
 
