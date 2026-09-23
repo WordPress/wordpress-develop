@@ -917,6 +917,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$taxonomy = 'wptests_tax';
 		register_taxonomy( $taxonomy, 'post', array( 'hierarchical' => true ) );
 
+		// This name percent-encodes to a 116 character slug.
 		$name = 'Категория на продукта';
 
 		$parent = wp_insert_term( $name, $taxonomy );
