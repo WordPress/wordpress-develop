@@ -973,8 +973,21 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @phpstan-return ( $date is IXR_Date|string ? IXR_Date : IXR_Error )
 	 */
 	protected function _convert_client_date( $date ) {
-		if ( is_string( $date ) ) {
+		if ( '0000-00-00 00:00:00' === $date ) {
 			$date = $this->_convert_date( $date );
+		} elseif ( is_string( $date ) ) {
+			$datetime = date_create( $date, wp_timezone() );
+			if ( false === $datetime ) {
+				return new IXR_Error( 400, __( 'Invalid date.' ) );
+			}
+
+			// Keep an explicit timezone, so it is interpreted the same way as in a dateTime.iso8601 value.
+			$format = 'Ymd\TH:i:s';
+			if ( preg_match( '/(Z|[+-]\d{2}:?\d{2})$/i', $date ) ) {
+				$format .= 'P';
+			}
+
+			$date = new IXR_Date( $datetime->format( $format ) );
 		}
 
 		if ( ! ( $date instanceof IXR_Date ) ) {
@@ -1424,20 +1437,13 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $this->error;
 		}
 
-		// Convert the date field back to IXR form.
-		if ( isset( $content_struct['post_date'] ) && is_string( $content_struct['post_date'] ) ) {
-			$content_struct['post_date'] = $this->_convert_date( $content_struct['post_date'] );
-		}
-
 		/*
-		 * Ignore the existing GMT date if it is empty or a non-GMT date was supplied in $content_struct,
+		 * Ignore the GMT date if it is empty or a non-GMT date was supplied in $content_struct,
 		 * since _insert_post() will ignore the non-GMT date if the GMT date is set.
 		 */
 		if ( isset( $content_struct['post_date_gmt'] ) && ! ( $content_struct['post_date_gmt'] instanceof IXR_Date ) ) {
 			if ( '0000-00-00 00:00:00' === $content_struct['post_date_gmt'] || isset( $content_struct['post_date'] ) ) {
 				unset( $content_struct['post_date_gmt'] );
-			} elseif ( is_string( $content_struct['post_date_gmt'] ) ) {
-				$content_struct['post_date_gmt'] = $this->_convert_date( $content_struct['post_date_gmt'] );
 			}
 		}
 

@@ -490,4 +490,22 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 		$this->assertSame( $date_string, get_post( $result )->post_date );
 	}
+
+	/**
+	 * Ensure a timezone offset in a string date is honored, as it is in a dateTime.iso8601 value.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_string_post_date_gmt_with_offset_is_converted_to_gmt(): void {
+		$this->make_user_by_role( 'author' );
+
+		$post   = array(
+			'post_title'    => 'test',
+			'post_date_gmt' => '2020-01-01T05:00:00+02:00',
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( '2020-01-01 03:00:00', get_post( $result )->post_date_gmt );
+	}
 }
