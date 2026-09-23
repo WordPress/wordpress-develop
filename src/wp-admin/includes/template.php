@@ -2024,7 +2024,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 		 */
 		$css_id = sprintf(
 			'setting-error-%s',
-			esc_attr( $details['code'] ),
+			$details['code'],
 		);
 
 		wp_admin_notice(
