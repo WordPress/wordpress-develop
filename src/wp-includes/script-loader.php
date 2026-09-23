@@ -3620,10 +3620,7 @@ function wp_enqueue_command_palette_assets() {
 		)
 	);
 
-	/*
-	 * The admin easter egg. The loader stays inert until its phrase is typed into the
-	 * palette, and only then fetches the payload it plays.
-	 */
+	// Someone has to keep an eye on the terminal.
 	wp_enqueue_script( 'wp-teletype-loader' );
 	wp_add_inline_script(
 		'wp-teletype-loader',
