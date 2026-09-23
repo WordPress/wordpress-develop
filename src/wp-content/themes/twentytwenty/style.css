@@ -2986,6 +2986,10 @@ ol.wp-block-latest-comments {
 	color: #6d6d6d;
 }
 
+.entry-content .wp-block-latest-posts.has-text-color li {
+	color: inherit;
+}
+
 .wp-block-archives a,
 .wp-block-categories a,
 .wp-block-latest-posts a,
@@ -3019,6 +3023,11 @@ ol.wp-block-latest-comments {
 	font-weight: 600;
 	letter-spacing: normal;
 	margin-top: 0.15em;
+}
+
+.wp-block-latest-comments.has-text-color .wp-block-latest-comments__comment-date,
+.wp-block-latest-posts.has-text-color .wp-block-latest-posts__post-date {
+	color: inherit;
 }
 
 
