@@ -19,21 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_User\:\:\$ID \(int\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: ../../../src/wp-includes/author-template.php
-		-
-			message: '#^Property WP_Http_Cookie\:\:\$path \(string\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-http-cookie.php
-		-
-			message: '#^Property WP_Http_Cookie\:\:\$port \(int\|string\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-http-cookie.php
-		-
 			message: '#^Property WP_Locale\:\:\$word_count_type \(string\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1
@@ -48,8 +33,3 @@ parameters:
 			identifier: nullCoalesce.property
 			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-post-types-controller.php
-		-
-			message: '#^Property WP_User\:\:\$ID \(int\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: ../../../src/wp-includes/user.php
