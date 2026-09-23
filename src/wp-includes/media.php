@@ -3588,8 +3588,13 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 			if ( ! empty( $atts[ $ext ] ) ) {
 				$type = wp_check_filetype( $atts[ $ext ], wp_get_mime_types() );
 
+				$ext_set_as_src = false;
 				if ( strtolower( $type['ext'] ) === $ext ) {
 					$primary = true;
+					if ( ! $ext_set_as_src ) {
+						$atts['src']    = $atts[ $ext ];
+						$ext_set_as_src = true;
+					}
 				}
 			}
 		}
@@ -3640,6 +3645,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	$html_atts = array(
 		'class'    => $atts['class'],
 		'id'       => sprintf( 'audio-%d-%d', $post_id, $instance ),
+		'src'      => $atts['src'],
 		'loop'     => wp_validate_boolean( $atts['loop'] ),
 		'autoplay' => wp_validate_boolean( $atts['autoplay'] ),
 		'muted'    => wp_validate_boolean( $atts['muted'] ),
