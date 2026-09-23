@@ -119,6 +119,17 @@ jobs:
           echo 'Testing another repository needs an explicit ref.' >&2
           exit 1
 
+      # Legacy docker.js reparses arguments as shell: allow only group names.
+      - name: Validate test groups
+        if: ${{ inputs.phpunit-test-groups != '' }}
+        env:
+          TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
+        run: |
+          if [[ ! "$TEST_GROUPS" =~ ^[A-Za-z0-9_-]+(,[A-Za-z0-9_-]+)*$ ]]; then
+            echo 'phpunit-test-groups must be a comma-separated list of group names.' >&2
+            exit 1
+          fi
+
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
