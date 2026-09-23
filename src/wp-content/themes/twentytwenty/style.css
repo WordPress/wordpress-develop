@@ -3076,6 +3076,14 @@ ol.wp-block-latest-comments {
 	font-size: inherit;
 }
 
+:root :where(.wp-block-calendar[style*="font-weight"]) caption, 
+:root :where(.wp-block-calendar *[style*="font-weight"]) ~ caption {
+    font-weight: inherit;
+}
+
+.wp-calendar-nav .wp-calendar-nav-prev {
+	font-family: "Inter var", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
+}
 /* Block: Columns ---------------------------- */
 
 .wp-block-columns.alignfull,
