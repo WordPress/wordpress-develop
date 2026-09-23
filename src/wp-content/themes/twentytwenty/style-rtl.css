@@ -3369,6 +3369,7 @@ hr.wp-block-separator {
 .wp-block-separator.is-style-dots::before {
 	background: none;
 	color: inherit;
+	content: "···";
 	font-size: 3.2rem;
 	font-weight: 700;
 	height: auto;
@@ -3383,6 +3384,9 @@ hr.wp-block-separator {
 	content: none;
 }
 
+.wp-block-separator.is-style-dots {
+	height: auto;
+}
 
 /* Block: Search ----------------------------- */
 
