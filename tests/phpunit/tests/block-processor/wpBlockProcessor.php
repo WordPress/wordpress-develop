@@ -538,6 +538,88 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that a delimiter does not span the end of the comment it started in.
+	 *
+	 * An HTML comment ends at its first `-->` or `--!>`. The scan looked only for
+	 * `-->`, so a comment ended by `--!>` was stepped over and a later `-->` was
+	 * taken as the end of the delimiter, producing a delimiter which spanned two
+	 * comments.
+	 *
+	 * @ticket 61401
+	 *
+	 * @dataProvider data_delimiters_and_comment_endings
+	 *
+	 * @param string   $html        Document to scan.
+	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
+	 */
+	public function test_delimiter_does_not_span_a_comment_ending( $html, $block_types ): void {
+		$processor = new WP_Block_Processor( $html );
+
+		$found = array();
+		while ( $processor->next_delimiter() ) {
+			$found[] = $processor->get_printable_block_type();
+		}
+
+		$this->assertSame(
+			$block_types,
+			$found,
+			'Should have found only the delimiters which are in the document.'
+		);
+	}
+
+	/**
+	 * Verifies that a comment ended by `--!>` at the end of the document is not
+	 * reported as incomplete input: the comment is closed, so no delimiter could
+	 * be completed by further input.
+	 *
+	 * @ticket 61401
+	 */
+	public function test_exclamation_ending_at_end_of_document_is_not_incomplete_input(): void {
+		$processor = new WP_Block_Processor( '<!-- wp:a {"k":"x --!>' );
+
+		$this->assertFalse(
+			$processor->next_delimiter(),
+			"Should have found no delimiter but found a '{$processor->get_block_type()}' instead."
+		);
+
+		$this->assertNull(
+			$processor->get_last_error(),
+			'Should have completed without reporting an error.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_delimiters_and_comment_endings(): array {
+		return array(
+			// The comment ended at `--!>`, so the later `-->` is not the delimiter's end.
+			'Spans an exclamation ending'      => array( '<!-- wp:a {"k":"x --!><!-- y"} -->', array() ),
+			'Spans two exclamation endings'    => array( '<!-- wp:a {"k":"x --!><!-- y --!><!-- z"} -->', array() ),
+			'Exclamation ending at the end'    => array( '<!-- wp:a {"k":"x --!>', array() ),
+			'Repeated exclamation endings'     => array( str_repeat( '<!-- wp:a {"k":" --!>', 100 ) . '"} -->', array() ),
+
+			// Rejected for other reasons, asserted so the comment ending is not what rescues them.
+			'Exclamation ending, no JSON'      => array( '<!-- wp:a --!><!-- "} -->', array() ),
+			'Opening inside a dashed comment'  => array( '<!---<!-- wp:a {"k":1} -->', array() ),
+
+			// Delimiters which stay inside one comment are unaffected.
+			'Plain delimiter'                  => array( '<!-- wp:a -->', array( 'core/a' ) ),
+			'Delimiter with attributes'        => array( '<!-- wp:a {"k":1} -->', array( 'core/a' ) ),
+			'Void delimiter'                   => array( '<!-- wp:a {"k":1} /-->', array( 'core/a' ) ),
+			'Hyphens inside the attributes'    => array( '<!-- wp:a {"k":"x--y"} -->', array( 'core/a' ) ),
+			'Dash run inside the attributes'   => array( '<!-- wp:a {"k":"x-----y"} -->', array( 'core/a' ) ),
+			'Dash run then bang'               => array( '<!-- wp:a {"k":"x---!y"} -->', array( 'core/a' ) ),
+			'Bang then dashes'                 => array( '<!-- wp:a {"k":"x--!-y"} -->', array( 'core/a' ) ),
+			'Dashes before the closer'         => array( '<!-- wp:a {"k":"x--"} -->', array( 'core/a' ) ),
+			'Dash run before a space closer'   => array( '<!-- wp:a {"k":"x"} --- -->', array() ),
+			'Delimiter after a closed comment' => array( '<!-- x --!><!-- wp:a {"k":1} -->', array( 'core/a' ) ),
+		);
+	}
+
+	/**
 	 * Verifies that a comment whose JSON attributes are rejected is skipped whole.
 	 *
 	 * A block delimiter is a single HTML comment. When the content after the JSON

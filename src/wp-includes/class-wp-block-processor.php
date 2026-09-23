@@ -979,12 +979,22 @@ class WP_Block_Processor {
 			 * This also matches the behavior in the official block parser,
 			 * even though it allows for matching invalid JSON content.
 			 *
+			 * A delimiter is a single HTML comment, find the comment closer.
+			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true} /-⃨-⃨>⃨
 			 */
-			$comment_closing_at = strpos( $text, '-->', $json_at );
-			if ( false === $comment_closing_at ) {
+			$comment_ends_at = $this->find_html_comment_end( $comment_opening_at, $end );
+			if ( $comment_ends_at >= $end && ! str_ends_with( $text, '-->' ) && ! str_ends_with( $text, '--!>' ) ) {
 				goto incomplete;
 			}
+
+			// Only normative comment closers are recognized block delimiters.
+			if ( '!' === $text[ $comment_ends_at - 2 ] ) {
+				$at = $comment_ends_at;
+				continue;
+			}
+
+			$comment_closing_at = $comment_ends_at - 3;
 
 			// <!-- /wp:core/paragraph {"dropCap":true} /⃨-->
 			if ( '/' === $text[ $comment_closing_at - 1 ] ) {
@@ -1007,7 +1017,7 @@ class WP_Block_Processor {
 					break;
 				}
 
-				$at = $this->find_html_comment_end( $comment_opening_at, $end );
+				$at = $comment_ends_at;
 				continue;
 			}
 
@@ -1036,7 +1046,7 @@ class WP_Block_Processor {
 						break 2;
 
 					default:
-						$at = $this->find_html_comment_end( $comment_opening_at, $end );
+						$at = $comment_ends_at;
 						continue 3;
 				}
 			}
@@ -1046,7 +1056,7 @@ class WP_Block_Processor {
 			 * mandatory whitespace is missing.
 			 */
 			if ( 0 === $json_length || 0 === $after_json_whitespace_length ) {
-				$at = $this->find_html_comment_end( $comment_opening_at, $end );
+				$at = $comment_ends_at;
 				continue;
 			}
 
