@@ -810,13 +810,14 @@ function wp_set_wpdb_vars() {
 function wp_using_ext_object_cache( $using = null ) {
 	global $_wp_using_ext_object_cache;
 
+	// Save the current state to return later.
 	$current_using = $_wp_using_ext_object_cache;
 
 	if ( null !== $using ) {
-		$_wp_using_ext_object_cache = $using;
+		$_wp_using_ext_object_cache = (bool) $using;
 	}
 
-	return $current_using;
+	return (bool) $current_using;
 }
 
 /**
