@@ -515,7 +515,8 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 
 	/**
 	 * @param array<mixed> $args The arguments.
-	 * @return int|WP_Error The configured result.
+	 * @return positive-int The configured result.
+	 * @throws WP_UnitTest_Factory_Exception When the configured result is not a positive integer.
 	 */
 	public function create_object( $args ) {
 		$object_id = $this->create_object_result;
@@ -528,7 +529,8 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * @param int          $object_id The object ID.
 	 * @param array<mixed> $fields    The values to update.
-	 * @return int|WP_Error The configured result.
+	 * @return positive-int The configured result.
+	 * @throws WP_UnitTest_Factory_Exception When the configured result is not a positive integer.
 	 */
 	public function update_object( $object_id, $fields ) {
 		$this->updated_fields = $fields;
