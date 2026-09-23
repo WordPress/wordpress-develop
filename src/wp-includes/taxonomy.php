@@ -1308,6 +1308,7 @@ function get_term_to_edit( $id, $taxonomy ) {
  * @since 4.5.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
  *              Introduced 'meta_key' and 'meta_value' parameters. Introduced the ability to order results by metadata.
  * @since 4.8.0 Introduced 'suppress_filter' parameter.
+ * @since 7.2.0 Introduced the 's' parameter as an alias of 'search'.
  *
  * @param array|string $args       Optional. Array or string of arguments. See {@see WP_Term_Query::__construct()}
  *                                 for information on accepted arguments. Default empty array.
