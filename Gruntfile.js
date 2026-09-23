@@ -753,6 +753,42 @@ module.exports = function(grunt) {
 				} ],
 			},
 			'gutenberg-styles': {
+				options: {
+					process: function( content, srcpath ) {
+						if ( path.basename( srcpath ) !== 'registry.php' ) {
+							return content;
+						}
+
+						/*
+						 * Gutenberg's generated style registry does not currently
+						 * meet Core's PHP coding standards. Format its known keys
+						 * while copying it so build jobs do not require PHP tooling.
+						 *
+						 * @ticket 65278
+						 */
+						const longestKey = 'dependencies';
+
+						return content.replace(
+							/^(\t\t)'(handle|path|dependencies)'\s*=>\s*([^\r\n]*)$/gm,
+							function( match, indentation, key, value ) {
+								const padding = ' '.repeat( longestKey.length - key.length + 1 );
+
+								if ( key === 'dependencies' ) {
+									value = value.replace(
+										/^array\((.*)\),$/,
+										function( array, dependencies ) {
+											dependencies = dependencies.trim();
+
+											return dependencies ? 'array( ' + dependencies + ' ),' : 'array(),';
+										}
+									);
+								}
+
+								return indentation + '\'' + key + '\'' + padding + '=> ' + value;
+							}
+						);
+					}
+				},
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/build/styles',
@@ -928,6 +964,11 @@ module.exports = function(grunt) {
 							{
 								expr: /content/im,
 								action: function( prop, value ) {
+									// Alternative text, as in `content: "\f141" / '';`, is not part of the icon.
+									var altText = ( value.match( /\s*\/\s*(?:'[^']*'|"[^"]*")\s*$/ ) || [ '' ] )[ 0 ];
+
+									value = value.slice( 0, value.length - altText.length );
+
 									if ( value === '"\\f141"' ) { // dashicons-arrow-left
 										value = '"\\f139"';
 									} else if ( value === '"\\f340"' ) { // dashicons-arrow-left-alt
@@ -941,7 +982,7 @@ module.exports = function(grunt) {
 									} else if ( value === '"\\f345"' ) { // dashicons-arrow-right-alt2
 										value = '"\\f341"';
 									}
-									return { prop: prop, value: value };
+									return { prop: prop, value: value + altText };
 								}
 							}
 						]
