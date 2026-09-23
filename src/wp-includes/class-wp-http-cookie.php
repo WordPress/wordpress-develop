@@ -53,7 +53,7 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $path;
 
@@ -71,7 +71,7 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var int|string
+	 * @var int|string|null
 	 */
 	public $port;
 

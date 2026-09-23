@@ -169,7 +169,7 @@ function get_the_author_meta( $field = '', $user_id = false ) {
 
 	if ( ! $user_id ) {
 		global $authordata;
-		$user_id = $authordata->ID ?? 0;
+		$user_id = $authordata->ID;
 	} else {
 		$authordata = get_userdata( $user_id );
 	}
