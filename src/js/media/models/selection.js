@@ -52,11 +52,9 @@ Selection = Attachments.extend(/** @lends wp.media.model.Selection.prototype */{
 	/**
 	 * Fired when toggling (clicking on) an attachment in the modal.
 	 *
+	 * Fires `selection:single` and `selection:unsingle` events on the model and collection.
+	 *
 	 * @param {undefined|boolean|wp.media.model.Attachment} model The model to set as the single selection, or a boolean to clear it.
-	 *
-	 * @fires wp.media.model.Selection#selection:single
-	 * @fires wp.media.model.Selection#selection:unsingle
-	 *
 	 * @return {Backbone.Model} The single model in the selection, or the last model as a fallback.
 	 */
 	single: function( model ) {
