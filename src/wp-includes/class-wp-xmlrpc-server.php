@@ -287,6 +287,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Logs user in.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Returns an error if the `$username` or `$password` argument is not a scalar.
 	 *
 	 * @param string $username User's username.
 	 * @param string $password User's password.
@@ -299,6 +300,16 @@ class wp_xmlrpc_server extends IXR_Server {
 	) {
 		if ( ! $this->is_enabled ) {
 			$this->error = new IXR_Error( 405, __( 'XML-RPC services are disabled on this site.' ) );
+			return false;
+		}
+
+		/*
+		 * Arrays and objects sent by the client would cause a fatal error in
+		 * wp_authenticate(). Other scalar types are tolerated because PHP
+		 * coerces them to strings, which preserves backward compatibility.
+		 */
+		if ( ! is_scalar( $username ) || ! is_scalar( $password ) ) {
+			$this->error = new IXR_Error( 400, __( 'The username and password arguments must be strings.' ) );
 			return false;
 		}
 
