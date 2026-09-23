@@ -6,7 +6,9 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const POST_TITLE = 'Test Title';
 
 test.describe( 'Empty Trash', () => {
-	test.beforeEach( async ( { requestUtils } ) => {
+	test.beforeEach( async ( { requestUtils, page } ) => {
+		await requestUtils.login();
+		await page.waitForLoadState( 'networkidle' );
 		await requestUtils.deleteAllPosts();
 	});
 
