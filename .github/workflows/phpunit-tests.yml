@@ -1,4 +1,5 @@
 name: PHPUnit Tests
+run-name: PHPUnit Tests${{ ( github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && ' (full matrix)' || '' }}
 
 on:
   push:
@@ -11,6 +12,7 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+    # Keep these paths in sync with phpunit-tests-full-matrix.yml.
     paths:
       # Any change to a PHP, CSS, JavaScript, JSON, HTML, or otherwise tested file should run checks.
       - '**.css'
@@ -33,8 +35,25 @@ on:
       - 'phpunit.xml.dist'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpunit-tests.yml'
+      - '.github/workflows/phpunit-tests-full-matrix.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      CODEVITALS_PROJECT_TOKEN:
+        required: false
+      CODECOV_TOKEN:
+        required: false
+      WPT_REPORT_API_KEY:
+        required: false
+      SLACK_GHA_SUCCESS_WEBHOOK:
+        required: false
+      SLACK_GHA_CANCELLED_WEBHOOK:
+        required: false
+      SLACK_GHA_FIXED_WEBHOOK:
+        required: false
+      SLACK_GHA_FAILURE_WEBHOOK:
+        required: false
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
     - cron: '0 0 * * 0'
@@ -78,13 +97,27 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Test highest and lowest supported version of each major.
-        php: [ '7.4', '8.0', '8.5' ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
+        # Dispatched runs and pull requests labeled 'Full PHPUnit Matrix' test every version above.
+        # Other runs retain boundary PHP versions and the routine database versions below.
+        full-matrix:
+          - ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
+
+        exclude:
+          # Outside the full matrix, test the highest and lowest PHP version of each major.
+          - full-matrix: false
+            php: '8.1'
+          - full-matrix: false
+            php: '8.2'
+          - full-matrix: false
+            php: '8.3'
+          - full-matrix: false
+            php: '8.4'
 
         include:
           # Include jobs that test with memcached.
@@ -159,12 +192,31 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Test highest and lowest supported version of each major.
-        php: [ '7.4', '8.0', '8.5' ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mariadb' ]
         db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
         multisite: [ false, true ]
         memcached: [ false ]
+        # Dispatched runs and pull requests labeled 'Full PHPUnit Matrix' test every version above.
+        # Other runs retain boundary PHP versions and the routine database versions below.
+        full-matrix:
+          - ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
+
+        exclude:
+          # Outside the full matrix, test the highest and lowest PHP version of each major.
+          - full-matrix: false
+            php: '8.1'
+          - full-matrix: false
+            php: '8.2'
+          - full-matrix: false
+            php: '8.3'
+          - full-matrix: false
+            php: '8.4'
+          # Keep these database versions in full runs only.
+          - full-matrix: false
+            db-version: '10.3'
+          - full-matrix: false
+            db-version: '10.5'
 
         include:
         # Include jobs that test with memcached.
@@ -215,15 +267,27 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Test highest and lowest supported version of each major.
-        php: [ '7.4', '8.0', '8.5' ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '9.6', '12.1' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
+        # Dispatched runs and pull requests labeled 'Full PHPUnit Matrix' test every version above.
+        # Other runs retain boundary PHP versions and the routine database versions below.
+        full-matrix:
+          - ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
 
         exclude:
+          # Outside the full matrix, test the highest and lowest PHP version of each major.
+          - full-matrix: false
+            php: '8.1'
+          - full-matrix: false
+            php: '8.2'
+          - full-matrix: false
+            php: '8.3'
+          - full-matrix: false
+            php: '8.4'
           # Exclude version combinations that don't exist.
           - db-type: 'mariadb'
             db-version: '9.6'
