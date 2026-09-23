@@ -1042,7 +1042,7 @@ function bloginfo( $show = '' ) {
  *
  * Deprecated arguments include:
  *
- * - 'siteurl' - Use 'url' instead
+ * - 'siteurl' - Use 'wpurl' instead
  * - 'home' - Use 'url' instead
  *
  * @since 0.71
