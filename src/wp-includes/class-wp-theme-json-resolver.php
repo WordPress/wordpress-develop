@@ -251,7 +251,7 @@ class WP_Theme_JSON_Resolver {
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
 			$wp_theme        = wp_get_theme();
 			$theme_json_file = $wp_theme->get_file_path( 'theme.json' );
-			if ( is_readable( $theme_json_file ) ) {
+			if ( is_file( $theme_json_file ) && is_readable( $theme_json_file ) ) {
 				$theme_json_data = static::read_json_file( $theme_json_file );
 				$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
 			} else {
