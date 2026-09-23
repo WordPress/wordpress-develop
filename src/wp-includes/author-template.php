@@ -158,7 +158,7 @@ function the_modified_author() {
  * @since 2.8.0
  * @since 6.9.0 Removed `aim`, `jabber`, and `yim` as valid values for the `$field` parameter.
  *
- * @global WP_User $authordata The current author's data.
+ * @global WP_User|false $authordata The current author's data.
  *
  * @param string    $field   Optional. The user field to retrieve. Default empty.
  * @param int|false $user_id Optional. User ID. Defaults to the current post author.
@@ -169,7 +169,7 @@ function get_the_author_meta( $field = '', $user_id = false ) {
 
 	if ( ! $user_id ) {
 		global $authordata;
-		$user_id = $authordata->ID;
+		$user_id = $authordata->ID ?? 0;
 	} else {
 		$authordata = get_userdata( $user_id );
 	}
