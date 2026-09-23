@@ -1962,20 +1962,28 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 }
 
 .media-modal .delete-attachment,
-.media-modal .trash-attachment,
-.media-modal .untrash-attachment {
+.media-modal .trash-attachment {
 	display: inline;
 	padding: 0;
 	color: #d63638;
 }
 
+.media-modal .untrash-attachment {
+	display: inline;
+	padding: 0;
+	color: #2271b1;
+}
+
 .media-modal .delete-attachment:hover,
 .media-modal .delete-attachment:focus,
 .media-modal .trash-attachment:hover,
-.media-modal .trash-attachment:focus,
+.media-modal .trash-attachment:focus {
+	color: #d63638;
+}
+
 .media-modal .untrash-attachment:hover,
 .media-modal .untrash-attachment:focus {
-	color: #d63638;
+	color: #135e96;
 }
 
 /**
