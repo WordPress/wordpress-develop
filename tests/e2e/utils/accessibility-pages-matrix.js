@@ -58,319 +58,129 @@
  * pages.forEach( (pageSpec) => { ... } );
  */
 
-const { filterByStatus } = require( './admin-interactions' );
-
 const pages = [
-	// Dashboard.
-	{
-		id: 'dashboard',
-		path: '/',
-		name: 'Dashboard',
-	},
-	{
-		id: 'updates',
-		path: '/update-core.php',
-		name: 'Updates',
-	},
-
 	// Posts & Pages.
 	{
-		id: 'posts-list',
-		path: '/edit.php?post_type=post',
-		name: 'Posts',
+		id: 'posts-revisions',
+		path: '/post-new.php',
+		name: 'Posts Revisions',
 		stateVariants: [
 			{
 				name: 'default',
-				setup: async ( page, requestUtils ) => {
-					// Create a published post.
-					await requestUtils.createPost( {
-						title: 'Test Published Post',
-						status: 'publish',
+				setup: async ( page, editor ) => {
+
+					await editor.setPreferences( 'core/edit-post', {
+						welcomeGuide: false,
+						fullscreenMode: true,
 					} );
-					// Create a pending review post so there's something to filter.
-					await requestUtils.createPost( {
-						title: 'Test Pending Review Post',
-						status: 'pending',
+
+					await editor.insertBlock( {
+						name: 'core/paragraph',
+						attributes: {
+							content:
+								'First paragraph',
+						},
 					} );
-					// Reload the page to show the draft.
-					await page.reload();
-				},
+
+					// Save draft to create first revision.
+					await editor.saveDraft();
+
+					await editor.insertBlock( {
+						name: 'core/spacer',
+						attributes: { height: '100px' },
+					} );
+
+					// Save draft again to create second revision.
+					await editor.saveDraft();
+
+					await editor.insertBlock( {
+						name: 'core/paragraph',
+						attributes: {
+							content: 'Second paragraph',
+						},
+					} );
+
+					// Save draft again to create third revision.
+					await editor.saveDraft();
+
+					// await page.goto( `/?p=${ postId }#target` );
+
+					// Open revisions.
+					await editor.openDocumentSettingsSidebar();
+					const settingsSidebar = page.getByRole( 'region', {
+						name: 'Editor settings',
+					} );
+					await settingsSidebar.getByRole( 'tab', { name: 'Post' } ).click();
+					await settingsSidebar
+						.getByRole( 'button', {
+							name: 'Open revisions screen: 3 revisions',
+						} )
+						.click();
+				}
 			},
 			{
-				name: 'draft-filter',
-				setup: async ( page, requestUtils ) => {
-					// Create a draft post so there's something to filter.
-					await requestUtils.createPost( {
-						title: 'Test Draft Post',
-						status: 'draft',
+				name: 'previous-revision',
+				setup: async ( page, editor ) => {
+					await editor.setPreferences( 'core/edit-post', {
+						welcomeGuide: false,
+						fullscreenMode: true,
 					} );
-					// Reload the page to show the draft.
-					await page.reload();
-					// Ensure table is visible before filtering.
-					const tableVisible = await page.locator( 'table.wp-list-table' ).isVisible();
-					if ( tableVisible ) {
-						await filterByStatus( page, 'draft' );
-					}
-				},
+
+					await editor.insertBlock( {
+						name: 'core/paragraph',
+						attributes: {
+							content:
+								'First paragraph',
+						},
+					} );
+
+					// Save draft to create first revision.
+					await editor.saveDraft();
+
+					await editor.insertBlock( {
+						name: 'core/spacer',
+						attributes: { height: '100px' },
+					} );
+
+					// Save draft again to create second revision.
+					await editor.saveDraft();
+
+					await editor.insertBlock( {
+						name: 'core/paragraph',
+						attributes: {
+							content: 'Second paragraph',
+						},
+					} );
+
+					// Save draft again to create third revision.
+					await editor.saveDraft();
+
+					// await page.goto( `/?p=${ postId }#target` );
+
+					// Open revisions.
+					await editor.openDocumentSettingsSidebar();
+					const settingsSidebar = page.getByRole( 'region', {
+						name: 'Editor settings',
+					} );
+					await settingsSidebar.getByRole( 'tab', { name: 'Post' } ).click();
+					await settingsSidebar
+						.getByRole( 'button', {
+							name: 'Open revisions screen: 3 revisions',
+						} )
+						.click();
+
+					const revisonSlider = page.getByRole( 'slider', {
+						name: 'Revision',
+					} );
+					// Focus the revison slider.
+					await revisonSlider.focus();
+					// Move to previous revision.
+					await page.keyboard.press( 'ArrowLeft' );
+					await page.waitForTimeout( 500 );
+				}
 			},
 		],
 	},
-	{
-		id: 'post-categories-list',
-		path: '/edit-tags.php?taxonomy=category',
-		name: 'Categories',
-	},
-	{
-		id: 'post-tags-list',
-		path: '/edit-tags.php?taxonomy=post_tag',
-		name: 'Tags',
-	},
-	{
-		id: 'pages-list',
-		path: '/edit.php?post_type=page',
-		name: 'Pages',
-	},
-
-	// Media.
-	{
-		id: 'media-library-grid',
-		path: '/upload.php?mode=grid',
-		name: 'Media Library (Grid View)',
-		stateVariants: [
-			{
-				name: 'default',
-			},
-			{
-				name: 'image-modal-open',
-				setup: async ( page ) => {
-					// Click the image to open the attachment modal.
-					const imageLink = page.locator( '.attachment' ).first();
-					await imageLink.click();
-					// Wait for modal to appear.
-					await page.waitForSelector( '.media-modal' );
-				},
-			},
-		],
-	},
-	{
-		id: 'media-library-list',
-		path: '/upload.php?mode=list',
-		name: 'Media Library (List View)',
-	},
-
-	// Comments.
-	{
-		id: 'comments',
-		path: '/edit-comments.php',
-		name: 'Comments',
-		stateVariants: [
-			{
-				name: 'default',
-				setup: async ( page, requestUtils ) => {
-					// Create a post to attach comments to.
-					const { id: postId } = await requestUtils.createPost( {
-						title: 'Post for comments',
-						status: 'publish',
-					} );
-
-					// Create an approved comment.
-					await requestUtils.createComment( {
-						content: 'Test Approved Comment',
-						status: 'approve',
-						post: postId,
-					} );
-					// Create a comment awaiting moderation.
-					await requestUtils.createComment( {
-						content: 'Test Comment Awaiting Moderation',
-						status: 'hold',
-						post: postId,
-					} );
-
-					// Reload the page to show the comments.
-					await page.reload();
-				},
-			},
-		],
-	},
-
-	// Appearance.
-	{
-		id: 'themes',
-		path: '/themes.php',
-		name: 'Themes',
-	},
-	{
-		id: 'add-themes',
-		path: '/theme-install.php?browse=popular',
-		name: 'Add Themes',
-	},
-	{
-		id: 'fonts-list',
-		path: '/font-library.php?p=%2Ffont-list',
-		name: 'Fonts',
-		waitInterval: true,
-		stateVariants: [
-			{
-				name: 'default',
-			},
-			{
-				name: 'fonts-upload-tab',
-				setup: async ( page ) => {
-					const uploadTab = page.getByRole( 'tab', { name: 'Upload' } );
-					await uploadTab.click();
-					await page.getByRole( 'tabpanel', { name: 'Upload' } ).isVisible();
-				},
-			},
-			{
-				name: 'fonts-install-fonts-tab',
-				setup: async ( page ) => {
-					const installFontsTab = page.getByRole( 'tab', { name: 'Install Fonts' } );
-					await installFontsTab.click();
-					await page.getByRole( 'tabpanel', { name: 'Install Fonts' } ).isVisible();
-				},
-			},
-		],
-	},
-
-	// Plugins.
-	{
-		id: 'installed-plugins',
-		path: '/plugins.php',
-		name: 'Plugins',
-	},
-	{
-		id: 'add-plugins',
-		path: '/plugin-install.php',
-		name: 'Add Plugins',
-	},
-
-	// Users.
-	{
-		id: 'users-list',
-		path: '/users.php',
-		name: 'Users',
-	},
-	{
-		id: 'add-user',
-		path: '/user-new.php',
-		name: 'Add User',
-	},
-
-	// Admin profile.
-	{
-		id: 'profile',
-		path: '/profile.php',
-		name: 'Profile',
-	},
-
-	// Tools.
-	{
-		id: 'tools',
-		path: '/tools.php',
-		name: 'Tools',
-	},
-	{
-		id: 'tools-import',
-		path: '/import.php',
-		name: 'Tools - Import',
-	},
-	{
-		id: 'tools-export',
-		path: '/export.php',
-		name: 'Tools - Export',
-	},
-	{
-		id: 'site-health',
-		path: '/site-health.php',
-		name: 'Tools - Site Health',
-	},
-	{
-		id: 'export-personal-data',
-		path: '/export-personal-data.php',
-		name: 'Tools - Export Personal Data',
-	},
-	{
-		id: 'erase-personal-data',
-		path: '/erase-personal-data.php',
-		name: 'Tools - Erase Personal Data',
-	},
-
-	// Settings.
-	{
-		id: 'settings-general',
-		path: '/options-general.php',
-		name: 'Settings - General',
-	},
-
-	{
-		id: 'settings-connectors',
-		path: '/options-connectors.php',
-		name: 'Settings - Connectors',
-		waitInterval: true,
-	},
-
-	{
-		id: 'settings-writing',
-		path: '/options-writing.php',
-		name: 'Settings - Writing',
-	},
-
-	{
-		id: 'settings-reading',
-		path: '/options-reading.php',
-		name: 'Settings - Reading',
-	},
-
-	{
-		id: 'settings-discussion',
-		path: '/options-discussion.php',
-		name: 'Settings - Discussion',
-	},
-
-	{
-		id: 'settings-media',
-		path: '/options-media.php',
-		name: 'Settings - Media',
-	},
-
-	{
-		id: 'settings-permalinks',
-		path: '/options-permalink.php',
-		name: 'Settings - Permalinks',
-	},
-
-	{
-		id: 'settings-privacy',
-		path: '/options-privacy.php',
-		name: 'Settings - Privacy',
-	},
-
-	// About.
-	{
-		id: 'about',
-		path: '/about.php',
-		name: 'About',
-	},
-	{
-		id: 'credits',
-		path: '/credits.php',
-		name: 'Credits',
-	},
-	{
-		id: 'freedoms',
-		path: '/freedoms.php',
-		name: 'Freedoms',
-	},
-	{
-		id: 'privacy',
-		path: '/privacy.php',
-		name: 'Privacy',
-	},
-	{
-		id: 'contribute',
-		path: '/contribute.php',
-		name: 'Get involved',
-	}
 ];
 
 module.exports = {
