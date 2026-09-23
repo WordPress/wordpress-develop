@@ -133,7 +133,7 @@ test.describe( 'Admin Pages Accessibility', () => {
 			const variantName = variant.name === 'default' ? '' : ` [${ variant.name }]`;
 			const testName = `${ pageSpec.name }${ variantName } should not have violations`;
 
-			test( testName, async ( { admin, page, requestUtils } ) => {
+			test( testName, async ( { admin, editor, page, requestUtils } ) => {
 				// Navigate to page.
 				await admin.visitAdminPage( pageSpec.path );
 
@@ -148,7 +148,7 @@ test.describe( 'Admin Pages Accessibility', () => {
 
 				// Run state setup if provided.
 				if ( variant.setup ) {
-					await variant.setup( page, requestUtils );
+					await variant.setup( { admin, editor, page, requestUtils } );
 				}
 
 				// Scan and assert.
