@@ -209,7 +209,7 @@
 		overlay.className = 'wp-teletype';
 		overlay.setAttribute( 'role', 'dialog' );
 		overlay.setAttribute( 'aria-modal', 'true' );
-		overlay.setAttribute( 'aria-label', i18n.label || 'A WordPress easter egg. Press Escape to leave.' );
+		overlay.setAttribute( 'aria-label', i18n.label || 'Press Escape to leave.' );
 		overlay.setAttribute( 'tabindex', '-1' );
 
 		// Typed a character at a time, so it reaches the accessibility tree as whole

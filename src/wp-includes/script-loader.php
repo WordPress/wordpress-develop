@@ -3635,7 +3635,7 @@ function wp_enqueue_command_palette_assets() {
 					),
 					'name' => wp_get_current_user()->display_name,
 					'i18n' => array(
-						'label' => __( 'A WordPress easter egg. Press Escape to leave.' ),
+						'label' => __( 'Press Escape to leave.' ),
 						'exit'  => __( 'Exit' ),
 					),
 				),
