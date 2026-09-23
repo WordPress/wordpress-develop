@@ -1332,6 +1332,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			$output                    = '';
 			$special_newline_at        = PHP_INT_MIN;
 			$foreign_content_starts_at = PHP_INT_MAX;
+			$open_blocks               = array();
+			$open_blocks_at            = array();
 
 			/**
 			 * These are treated as void elements inside the HTML API
@@ -1436,7 +1438,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					if ( $is_closer ) {
 						$open_element = array_pop( $this->foreign_content_stack );
 						if ( null === $open_element || $token_name !== $open_element ) {
-							return substr( $output, 0, $foreign_content_starts_at );
+							break;
 						}
 
 						/*
@@ -1561,28 +1563,52 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						$block_processor = new WP_Block_Processor( $comment );
-						if ( $block_processor->next_token() && $block_processor->opens_block() ) {
-							$original_attributes = $block_processor->allocate_and_return_parsed_attributes();
+						if ( $block_processor->next_token() && ! $block_processor->is_html() ) {
+							$block_type          = $block_processor->get_block_type();
+							$implicit_block_type = str_starts_with( $block_type, 'core/' )
+								? substr( $block_type, /* 'core/' */ 5 )
+								: $block_type;
 
-							if ( isset( $original_attributes ) ) {
-								$block_type = $block_processor->get_block_type();
 
-								$filtered_attributes = filter_block_kses_value(
-									$original_attributes,
-									$this->specified_allowed_html,
-									$this->allowed_protocols,
-									array( 'blockName' => $block_type )
-								);
+							switch ( $block_processor->get_delimiter_type() ) {
+								// Track when blocks open and when they don’t self-close.
+								case WP_Block_Processor::OPENER:
+									$open_blocks[]    = $implicit_block_type;
+									$open_blocks_at[] = strlen( $output );
+									break;
 
-								if ( $original_attributes !== $filtered_attributes ) {
-									// Strip the implicit `core/` prefix on serialization.
-									$block_type = str_starts_with( $block_type, 'core/' )
-										? substr( $block_type, /* 'core/' */ 5 )
-										: $block_type;
+								// Track when blocks close.
+								case WP_Block_Processor::CLOSER:
+									if ( empty( $open_blocks ) ) {
+										break 2;
+									}
 
-									$serialized_attributes = serialize_block_attributes( $filtered_attributes );
-									$voider                = WP_Block_Processor::VOID === $block_processor->get_delimiter_type() ? '/' : '';
-									$text                  = " wp:{$block_type} {$serialized_attributes} {$voider}";
+									/*
+									 * The default parser closes any open block, even when
+									 * the names don’t match. Preserve this behavior here
+									 * to avoid differences in sanitization and parsing.
+									 */
+									array_pop( $open_blocks );
+									array_pop( $open_blocks_at );
+							}
+
+							// Filter block attributes for opening delimiters.
+							if ( $block_processor->opens_block() ) {
+								$original_attributes = $block_processor->allocate_and_return_parsed_attributes();
+
+								if ( isset( $original_attributes ) ) {
+									$filtered_attributes = filter_block_kses_value(
+										$original_attributes,
+										$this->specified_allowed_html,
+										$this->allowed_protocols,
+										array( 'blockName' => $block_type )
+									);
+
+									if ( $original_attributes !== $filtered_attributes ) {
+										$serialized_attributes = serialize_block_attributes( $filtered_attributes );
+										$voider                = WP_Block_Processor::VOID === $block_processor->get_delimiter_type() ? '/' : '';
+										$text                  = " wp:{$implicit_block_type} {$serialized_attributes} {$voider}";
+									}
 								}
 							}
 						}
@@ -1641,7 +1667,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 								$is_in_svg_html_integration_point
 							)
 						) {
-							return substr( $output, 0, $foreign_content_starts_at );
+							break 2;
 						}
 
 						if ( $skip_token ) {
@@ -1858,7 +1884,20 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			 * of the page’s HTML structure.
 			 */
 
-			return substr( $output, 0, $foreign_content_starts_at );
+			$sanitized = substr( $output, 0, $foreign_content_starts_at );
+
+			// Close any remaining-open blocks ensure isolation of block content.
+			for ( $i = count( $open_blocks ) - 1; $i >= 0; $i-- ) {
+				// Skip blocks that were opened when inside truncated foreign content.
+				if ( $open_blocks_at[ $i ] >= $foreign_content_starts_at ) {
+					continue;
+				}
+
+				$block_name = $open_blocks[ $i ];
+				$sanitized .= "<!-- /wp:{$block_name} -->";
+			}
+
+			return $sanitized;
 		}
 	};
 
