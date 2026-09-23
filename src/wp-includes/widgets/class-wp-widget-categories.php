@@ -51,9 +51,9 @@ class WP_Widget_Categories extends WP_Widget {
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
-		$count        = ! empty( $instance['count'] ) ? '1' : '0';
-		$hierarchical = ! empty( $instance['hierarchical'] ) ? '1' : '0';
-		$dropdown     = ! empty( $instance['dropdown'] ) ? '1' : '0';
+		$count        = ! empty( $instance['count'] );
+		$hierarchical = ! empty( $instance['hierarchical'] );
+		$dropdown     = ! empty( $instance['dropdown'] );
 
 		echo $args['before_widget'];
 
@@ -85,7 +85,17 @@ class WP_Widget_Categories extends WP_Widget {
 			 *
 			 * @see wp_dropdown_categories()
 			 *
-			 * @param array $cat_args An array of Categories widget drop-down arguments.
+			 * @param array $cat_args {
+			 *     An array of Categories widget drop-down arguments. See {@see WP_Term_Query::__construct()} for
+			 *     information on additional accepted arguments.
+			 *
+			 *     @type string $orderby          Which column to use for ordering categories. See {@see get_terms()}
+			 *                                    for a list of accepted values. Default 'name'.
+			 *     @type bool   $show_count       Whether to include post counts.
+			 *     @type bool   $hierarchical     Whether to traverse the taxonomy hierarchy.
+			 *     @type string $show_option_none Text to display for showing no categories. Default 'Select Category'.
+			 *     @type string $id               Value for the 'id' attribute of the select element.
+			 * }
 			 * @param array $instance Array of settings for the current widget.
 			 */
 			wp_dropdown_categories( apply_filters( 'widget_categories_dropdown_args', $cat_args, $instance ) );
