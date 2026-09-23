@@ -92,7 +92,7 @@ EOD;
         $method = $this->callbacks[$methodname];
 
         // Perform the callback and send the response
-        if (is_array($args) && count($args) == 1) {
+        if (is_array($args) && count($args) == 1 && array_key_exists(0, $args)) {
             // If only one parameter just send that instead of the whole array
             $args = $args[0];
         }

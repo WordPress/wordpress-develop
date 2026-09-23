@@ -118,6 +118,40 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a multicall entry with a single-member struct as params passes the struct through intact.
+	 *
+	 * @ticket 66160
+	 *
+	 * @covers IXR_Server::call
+	 */
+	public function test_multicall_with_single_member_struct_params(): void {
+		$this->myxmlrpcserver->callbacks = array(
+			'test.echo' => array( $this, 'echo_args' ),
+		);
+
+		$result = $this->myxmlrpcserver->multiCall(
+			array(
+				array(
+					'methodName' => 'test.echo',
+					'params'     => array( 'foo' => 'bar' ),
+				),
+			)
+		);
+
+		$this->assertSame( array( array( array( 'foo' => 'bar' ) ) ), $result );
+	}
+
+	/**
+	 * Returns the args passed to an XML-RPC method callback.
+	 *
+	 * @param mixed $args Method args.
+	 * @return mixed The args.
+	 */
+	public function echo_args( $args ) {
+		return $args;
+	}
+
+	/**
 	 * Tests that a multicall entry with missing params does not cause a fatal error.
 	 *
 	 * @ticket 66160
