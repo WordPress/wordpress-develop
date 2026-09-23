@@ -1014,12 +1014,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$preview_path = $temp_dir . $metadata['sizes']['full']['file'];
 
 		// PDF preview didn't overwrite PDF.
-		$this->assertNotEquals( $pdf_path, $preview_path );
+		$this->assertNotSame( $pdf_path, $preview_path );
 		// PDF preview didn't overwrite JPG with same name.
-		$this->assertNotEquals( $jpg1_path, $preview_path );
+		$this->assertNotSame( $jpg1_path, $preview_path );
 		$this->assertSame( 'asdf', file_get_contents( $jpg1_path ) );
 		// PDF preview didn't overwrite PDF preview with same name.
-		$this->assertNotEquals( $jpg2_path, $preview_path );
+		$this->assertNotSame( $jpg2_path, $preview_path );
 		$this->assertSame( 'fdsa', file_get_contents( $jpg2_path ) );
 
 		// Cleanup.
