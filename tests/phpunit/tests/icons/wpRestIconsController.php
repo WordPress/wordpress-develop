@@ -409,17 +409,45 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * Test that GET /wp/v2/icons/?search=%s searches icon keywords too.
 	 */
 	public function test_get_items_search_includes_keywords() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'rest-test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+		wp_register_icon(
+			'rest-test-collection/anvil',
+			array(
+				'label'   => 'Anvil',
+				'content' => '<svg></svg>',
+			)
+		);
+
 		wp_set_current_user( self::$editor_id );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
 
-		// 'hamburger' is only found in the *keywords* for core/menu.
-		$request->set_param( 'search', 'hamburger' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
+			/*
+			 * The search term appears in no icon's name or label, so a match can
+			 * only come from the keywords.
+			 */
+			$request->set_param( 'search', 'peace' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertEquals( array( 'core/menu' ), array_column( $data, 'name' ) );
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertSame(
+				array( 'rest-test-collection/dove' ),
+				array_column( $data, 'name' ),
+				'Search results should contain only the icon matched by its keyword'
+			);
+		} finally {
+			wp_unregister_icon_collection( 'rest-test-collection' );
+		}
 	}
 
 	/**
@@ -427,17 +455,31 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 * filter icons locally can match against them.
 	 */
 	public function test_get_items_response_includes_keywords() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'rest-test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace', 'bird' ),
+			)
+		);
+
 		wp_set_current_user( self::$editor_id );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
-		$request->set_param( 'search', 'core/menu' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+			$request->set_param( 'search', 'rest-test-collection/dove' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( 1, $data );
-		$this->assertArrayHasKey( 'keywords', $data[0] );
-		$this->assertContains( 'hamburger', $data[0]['keywords'] );
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertCount( 1, $data );
+			$this->assertArrayHasKey( 'keywords', $data[0] );
+			$this->assertSame( array( 'peace', 'bird' ), $data[0]['keywords'] );
+		} finally {
+			wp_unregister_icon_collection( 'rest-test-collection' );
+		}
 	}
 
 	/**
