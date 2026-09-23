@@ -5223,6 +5223,10 @@ function sanitize_option( $option, $value ) {
  * @phpstan-return (T is array ? array<key-of<T>, mixed> : (T is object ? T : mixed))
  */
 function map_deep( $value, $callback ) {
+	if ( $value instanceof __PHP_Incomplete_Class ) {
+		return $value;
+	}
+
 	if ( is_array( $value ) ) {
 		foreach ( $value as $index => $item ) {
 			$value[ $index ] = map_deep( $item, $callback );
