@@ -60,8 +60,12 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	/**
 	 * @ticket 61996
 	 * @covers ::get_page_by_path
+	 *
+	 * @dataProvider data_page_post_types
+	 *
+	 * @param string|string[] $post_type Post type argument.
 	 */
-	public function test_should_prefer_published_page_then_other_statuses_then_draft() {
+	public function test_should_prefer_published_page_then_other_statuses_then_draft( $post_type ) {
 		// Setting a pending page's slug requires publish permission.
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
@@ -96,13 +100,26 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 			$this->assertSame( 'privacy-policy', get_post( $post_id )->post_name );
 		}
 
-		$this->assertSame( $published, get_page_by_path( 'privacy-policy' )->ID );
+		$this->assertSame( $published, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
 
 		wp_delete_post( $published, true );
-		$this->assertSame( $pending, get_page_by_path( 'privacy-policy' )->ID );
+		$this->assertSame( $pending, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
 
 		wp_delete_post( $pending, true );
-		$this->assertSame( $draft, get_page_by_path( 'privacy-policy' )->ID );
+		$this->assertSame( $draft, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array<string|string[]>> {
+	 */
+	public function data_page_post_types(): array {
+		return array(
+			'string'             => array( 'page' ),
+			'array of one type'  => array( array( 'page' ) ),
+			'array of two types' => array( array( 'page', 'post' ) ),
+		);
 	}
 
 	public function test_should_obey_post_type() {
