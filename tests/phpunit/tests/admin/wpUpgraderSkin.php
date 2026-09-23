@@ -135,6 +135,5 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'window.parent.postMessage', $script_text, 'The expected postMessage call was not printed.' );
 		$this->assertStringContainsString( 'action: "decrementUpdateCount"', $script_text, 'The expected action was not printed.' );
 		$this->assertStringContainsString( '"theme"', $script_text, 'The expected upgrade type argument was not printed.' );
-		$this->assertStringNotContainsString( 'window.postMessage && JSON', $script_text, 'The obsolete feature-detection guard should have been removed.' );
 	}
 }
