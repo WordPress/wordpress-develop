@@ -135,9 +135,21 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 64651
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icons/core/arrow-left' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -230,12 +242,21 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 64651
+	 * @ticket 40538
 	 *
 	 * @covers ::get_item_schema
-	 *
-	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertCount( 4, $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'label', $properties );
+		$this->assertArrayHasKey( 'content', $properties );
+		$this->assertArrayHasKey( 'collection', $properties );
 	}
 
 	/**
