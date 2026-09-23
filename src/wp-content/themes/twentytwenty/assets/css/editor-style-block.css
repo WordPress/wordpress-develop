@@ -501,6 +501,12 @@
 	margin-top: 0.15em;
 }
 
+/* Block: Calendar --------------------------- */
+
+.editor-styles-wrapper .wp-calendar-table caption {
+	padding: 0.5em;
+	font-weight: inherit;
+}
 
 /* Block: Table ------------------------------ */
 
