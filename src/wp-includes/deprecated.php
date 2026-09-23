@@ -6532,3 +6532,17 @@ function wp_sanitize_script_attributes( $attributes ) {
 	}
 	return $attributes_string;
 }
+
+/**
+ * Schedules a `WP_Cron` job to delete expired export files.
+ *
+ * This function is deprecated. Cleanup is now scheduled as a one-off event when
+ * a personal data export file is generated, via
+ * {@see wp_schedule_delete_personal_data_export_file()}.
+ *
+ * @since 4.9.6
+ * @deprecated 7.1.0
+ */
+function wp_schedule_delete_old_privacy_export_files() {
+	_deprecated_function( __FUNCTION__, '7.1.0', 'wp_schedule_delete_personal_data_export_file()' );
+}
