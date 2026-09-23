@@ -1217,7 +1217,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 		unlink( $tmpfname );
 
-		return new WP_Error( 'http_404', trim( wp_remote_retrieve_response_message( $response ) ), $data );
+		return new WP_Error( sprintf( 'http_%s', $response_code ), trim( wp_remote_retrieve_response_message( $response ) ), $data );
 	}
 
 	$content_disposition = wp_remote_retrieve_header( $response, 'Content-Disposition' );
