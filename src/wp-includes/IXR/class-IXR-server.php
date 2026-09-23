@@ -194,6 +194,16 @@ EOD;
         return array_reverse(array_keys($this->callbacks));
     }
 
+    /**
+     * Handles a system.multicall request.
+     *
+     * @param array[] $methodcalls List of method call structs, each with a methodName and optional params.
+     * @return IXR_Error|array[] Error if the method calls are not an array, otherwise a list of results,
+     *                           each either a fault struct or a single-element array wrapping the result.
+     *
+     * @phpstan-param list<array{ methodName: string, params?: array<mixed> }> $methodcalls
+     * @phpstan-return IXR_Error|list<array{ faultCode: int, faultString: string }|array{ mixed }>
+     */
     function multiCall($methodcalls)
     {
         // See http://www.xmlrpc.com/discuss/msgReader$1208

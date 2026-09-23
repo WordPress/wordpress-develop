@@ -106,7 +106,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
 
 		$result = $this->myxmlrpcserver->multiCall(
-			array(
+			array( // @phpstan-ignore argument.type (Intentionally passing non-array params.)
 				array(
 					'methodName' => 'demo.sayHello',
 					'params'     => 'x',
@@ -148,7 +148,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	public function test_multicall_with_non_array_argument(): void {
 		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
 
-		$result = $this->myxmlrpcserver->multiCall( 'x' );
+		$result = $this->myxmlrpcserver->multiCall( 'x' ); // @phpstan-ignore argument.type (Intentionally passing a non-array argument.)
 
 		$this->assertIXRError( $result );
 		$this->assertSame( -32600, $result->code );
@@ -165,7 +165,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
 
 		$result = $this->myxmlrpcserver->multiCall(
-			array(
+			array( // @phpstan-ignore argument.type (Intentionally passing a non-struct entry.)
 				'x',
 				array(
 					'methodName' => 'demo.sayHello',
@@ -174,7 +174,9 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
+		$this->assertIsArray( $result );
 		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'faultCode', $result[0] );
 		$this->assertSame( -32600, $result[0]['faultCode'] );
 		$this->assertSame( array( 'Hello!' ), $result[1] );
 	}
@@ -190,7 +192,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
 
 		$result = $this->myxmlrpcserver->multiCall(
-			array(
+			array( // @phpstan-ignore argument.type (Intentionally omitting methodName.)
 				array( 'params' => array() ),
 				array(
 					'methodName' => 'demo.sayHello',
@@ -199,7 +201,9 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
+		$this->assertIsArray( $result );
 		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'faultCode', $result[0] );
 		$this->assertSame( -32600, $result[0]['faultCode'] );
 		$this->assertSame( array( 'Hello!' ), $result[1] );
 	}
