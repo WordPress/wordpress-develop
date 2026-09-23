@@ -963,7 +963,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * XML-RPC clients may send a date either as a dateTime.iso8601 value, which
 	 * arrives as an IXR_Date object, or as a plain string. Any other type cannot
-	 * be a date and results in an error, as does a string that cannot be parsed.
+	 * be a date and results in an error, as does a value that cannot be parsed.
 	 *
 	 * @since 7.2.0
 	 *
@@ -973,22 +973,20 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @phpstan-return ( $date is IXR_Date|string ? IXR_Date : IXR_Error )
 	 */
 	protected function _convert_client_date( $date ) {
-		if ( $date instanceof IXR_Date ) {
-			return $date;
-		}
-
 		if ( is_string( $date ) ) {
 			$date = $this->_convert_date( $date );
-
-			// A string that could not be parsed as a date produces an IXR_Date with empty components.
-			if ( ! preg_match( '/^\d{8}T\d{2}:\d{2}:\d{2}/', $date->getIso() ) ) {
-				return new IXR_Error( 400, __( 'Invalid date.' ) );
-			}
-
-			return $date;
 		}
 
-		return new IXR_Error( 400, __( 'Dates must be a dateTime.iso8601 value or a string.' ) );
+		if ( ! ( $date instanceof IXR_Date ) ) {
+			return new IXR_Error( 400, __( 'Dates must be a dateTime.iso8601 value or a string.' ) );
+		}
+
+		// A value that could not be parsed as a date produces an IXR_Date with empty or malformed components.
+		if ( ! preg_match( '/^\d{8}T\d{2}:\d{2}:\d{2}/', $date->getIso() ) ) {
+			return new IXR_Error( 400, __( 'Invalid date.' ) );
+		}
+
+		return $date;
 	}
 
 	/**
@@ -1362,7 +1360,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Creates a new post for any registered post type.
 	 *
 	 * @since 3.4.0
-	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array or a date cannot be parsed.
 	 *
 	 * @link https://en.wikipedia.org/wiki/RSS_enclosure for information on RSS enclosures.
 	 *
@@ -1852,7 +1850,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * should be changed. All other fields will retain their existing values.
 	 *
 	 * @since 3.4.0
-	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array or a date cannot be parsed.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -1901,18 +1899,13 @@ class wp_xmlrpc_server extends IXR_Server {
 				return $if_not_modified_since;
 			}
 
-			$if_not_modified_since_timestamp = $if_not_modified_since->getTimestamp();
-			if ( false === $if_not_modified_since_timestamp ) {
-				return new IXR_Error( 400, __( 'Invalid date.' ) );
-			}
-
 			$post_modified_timestamp = false;
 			if ( is_string( $post['post_modified_gmt'] ) ) {
 				$post_modified_timestamp = mysql2date( 'U', $post['post_modified_gmt'] );
 			}
 
 			// If the post has been modified since the date provided, return an error.
-			if ( false !== $post_modified_timestamp && $post_modified_timestamp > $if_not_modified_since_timestamp ) {
+			if ( false !== $post_modified_timestamp && $post_modified_timestamp > $if_not_modified_since->getTimestamp() ) {
 				return new IXR_Error( 409, __( 'There is a revision of this post that is more recent.' ) );
 			}
 		}
@@ -3980,7 +3973,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *  - 'status'. Common statuses are 'approve', 'hold', 'spam'. See get_comment_statuses() for more details.
 	 *
 	 * @since 2.7.0
-	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array or a date cannot be parsed.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -5567,7 +5560,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *  - wp_post_thumbnail
 	 *
 	 * @since 1.5.0
-	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array or a date cannot be parsed.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
@@ -5977,7 +5970,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Edits a post.
 	 *
 	 * @since 1.5.0
-	 * @since 7.2.0 Returns an error if the content struct argument is not an array.
+	 * @since 7.2.0 Returns an error if the content struct argument is not an array or a date cannot be parsed.
 	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.

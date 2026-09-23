@@ -347,36 +347,34 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 28601
+	 * @ticket 66107
 	 */
-	public function test_invalid_post_date_does_not_fatal() {
+	public function test_invalid_post_date_returns_error(): void {
 		$this->make_user_by_role( 'author' );
-		$date_string  = 'invalid_date';
-		$post         = array(
+		$post   = array(
 			'post_title'   => 'test',
 			'post_content' => 'test',
-			'post_date'    => $date_string,
+			'post_date'    => 'invalid_date',
 		);
-		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
-		$fetched_post = get_post( $result );
-		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertSame( current_time( 'Y-m-d' ), substr( $fetched_post->post_date, 0, 10 ) );
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
 	}
 
 	/**
 	 * @ticket 28601
+	 * @ticket 66107
 	 */
-	public function test_invalid_post_date_gmt_does_not_fatal() {
+	public function test_invalid_post_date_gmt_returns_error(): void {
 		$this->make_user_by_role( 'author' );
-		$date_string  = 'invalid_date';
-		$post         = array(
+		$post   = array(
 			'post_title'    => 'test',
 			'post_content'  => 'test',
-			'post_date_gmt' => $date_string,
+			'post_date_gmt' => 'invalid_date',
 		);
-		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
-		$fetched_post = get_post( $result );
-		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertSame( '0000-00-00', substr( $fetched_post->post_date_gmt, 0, 10 ) );
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
 	}
 
 	/**
