@@ -273,19 +273,18 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		$profile_url = false;
 	}
 
-	/* translators: %s: Current user's display name. */
-	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . wp_get_current_user()->display_name . '</span>' );
+	$display_name = wp_get_current_user()->display_name;
 
 	$avatar = get_avatar( $user_id, 28 );
 	$wp_admin_bar->add_node(
 		array(
 			'id'     => 'my-account',
 			'parent' => 'top-secondary',
-			'title'  => $howdy . $avatar,
+			'title'  => '<span class="display-name">' . $display_name . '</span>' . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
 				'class'      => empty( $avatar ) ? '' : 'with-avatar',
-				'menu_title' => wp_strip_all_tags( $howdy ),
+				'menu_title' => wp_strip_all_tags( $display_name ),
 				'tabindex'   => ( false !== $profile_url ) ? '' : 0,
 			),
 		)
@@ -322,8 +321,11 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 		)
 	);
 
+	/* translators: %s: Current user's display name. */
+	$howdy = sprintf( __( 'Howdy, %s' ), "<span class='display-name'>{$current_user->display_name}</span>" );
+
 	$user_info  = get_avatar( $user_id, 64 );
-	$user_info .= "<span class='display-name'>{$current_user->display_name}</span>";
+	$user_info .= "<span class='howdy'>{$howdy}</span>";
 
 	if ( $current_user->display_name !== $current_user->user_login ) {
 		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
