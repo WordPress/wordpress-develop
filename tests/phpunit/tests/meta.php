@@ -151,10 +151,10 @@ class Tests_Meta extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_non_array_cache_values
 	 *
-	 * @param mixed $cached_value Value to place in the meta cache.
+	 * @param mixed $invalid_cached_value Unusable value to place in the meta cache.
 	 */
-	public function test_metadata_exists_treats_non_array_cache_value_as_miss( $cached_value ): void {
-		$this->assertTrue( wp_cache_set( self::$author->ID, $cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
+	public function test_metadata_exists_treats_non_array_cache_value_as_miss( $invalid_cached_value ): void {
+		$this->assertTrue( wp_cache_set( self::$author->ID, $invalid_cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		$this->assertTrue( metadata_exists( 'user', self::$author->ID, 'meta_key' ), 'An existing meta key should be reported as existing.' );
 		$this->assertFalse( metadata_exists( 'user', self::$author->ID, 'foobarbaz' ), 'A missing meta key should be reported as not existing.' );
@@ -166,10 +166,10 @@ class Tests_Meta extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_non_array_cache_values
 	 *
-	 * @param mixed $cached_value Value to place in the meta cache.
+	 * @param mixed $invalid_cached_value Unusable value to place in the meta cache.
 	 */
-	public function test_get_metadata_treats_non_array_cache_value_as_miss( $cached_value ): void {
-		$this->assertTrue( wp_cache_set( self::$author->ID, $cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
+	public function test_get_metadata_treats_non_array_cache_value_as_miss( $invalid_cached_value ): void {
+		$this->assertTrue( wp_cache_set( self::$author->ID, $invalid_cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		$this->assertSame( 'meta_value', get_metadata( 'user', self::$author->ID, 'meta_key', true ), 'The single meta value should be returned.' );
 		$this->assertSame( array( 'meta_value' ), get_metadata( 'user', self::$author->ID, 'meta_key' ), 'The array of meta values should be returned.' );
@@ -181,10 +181,10 @@ class Tests_Meta extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_non_array_cache_values
 	 *
-	 * @param mixed $cached_value Value to place in the meta cache.
+	 * @param mixed $invalid_cached_value Unusable value to place in the meta cache.
 	 */
-	public function test_get_metadata_with_empty_key_treats_non_array_cache_value_as_miss( $cached_value ): void {
-		$this->assertTrue( wp_cache_set( self::$author->ID, $cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
+	public function test_get_metadata_with_empty_key_treats_non_array_cache_value_as_miss( $invalid_cached_value ): void {
+		$this->assertTrue( wp_cache_set( self::$author->ID, $invalid_cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		$meta = get_metadata( 'user', self::$author->ID );
 
@@ -197,10 +197,10 @@ class Tests_Meta extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_non_array_cache_values
 	 *
-	 * @param mixed $cached_value Value to place in the meta cache.
+	 * @param mixed $invalid_cached_value Unusable value to place in the meta cache.
 	 */
-	public function test_update_meta_cache_replaces_non_array_cache_value( $cached_value ): void {
-		$this->assertTrue( wp_cache_set( self::$author->ID, $cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
+	public function test_update_meta_cache_replaces_non_array_cache_value( $invalid_cached_value ): void {
+		$this->assertTrue( wp_cache_set( self::$author->ID, $invalid_cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		$meta_cache = update_meta_cache( 'user', array( self::$author->ID ) );
 
