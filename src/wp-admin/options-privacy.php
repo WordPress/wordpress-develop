@@ -225,19 +225,23 @@ wp_admin_notice(
 			?>
 				<strong>
 				<?php
+				$new_tab_indicator = '<span class="screen-reader-text"> ' . /* translators: Hidden accessibility text. */ __( '(opens in a new tab)' ) . '</span><span aria-hidden="true" class="dashicons dashicons-external"></span>';
+
 				if ( 'publish' === get_post_status( $privacy_policy_page_id ) ) {
 					printf(
-						/* translators: 1: URL to edit Privacy Policy page, 2: URL to view Privacy Policy page. */
-						__( '<a href="%1$s">Edit</a> or <a href="%2$s">view</a> your Privacy Policy page content.' ),
+						/* translators: 1: URL to edit Privacy Policy page, 2: URL to view Privacy Policy page, 3: Accessibility text (do not translate). */
+						__( '<a href="%1$s">Edit</a> or <a href="%2$s" target="_blank" rel="noopener noreferrer">view%3$s</a> your Privacy Policy page content.' ),
 						esc_url( $edit_href ),
-						esc_url( $view_href )
+						esc_url( $view_href ),
+						$new_tab_indicator
 					);
 				} else {
 					printf(
-						/* translators: 1: URL to edit Privacy Policy page, 2: URL to preview Privacy Policy page. */
-						__( '<a href="%1$s">Edit</a> or <a href="%2$s">preview</a> your Privacy Policy page content.' ),
+						/* translators: 1: URL to edit Privacy Policy page, 2: URL to preview Privacy Policy page, 3: Accessibility text (do not translate). */
+						__( '<a href="%1$s">Edit</a> or <a href="%2$s" target="_blank" rel="noopener noreferrer">preview%3$s</a> your Privacy Policy page content.' ),
 						esc_url( $edit_href ),
-						esc_url( $view_href )
+						esc_url( $view_href ),
+						$new_tab_indicator
 					);
 				}
 				?>
