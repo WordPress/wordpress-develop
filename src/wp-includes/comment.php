@@ -2648,6 +2648,27 @@ function wp_get_note_mentioned_user_ids( string $content ): array {
 }
 
 /**
+ * Reduces the stored content of a note to plain text.
+ *
+ * Note content is stored as HTML: an @mention is a `<span class="wp-note-mention user-N">`
+ * chip around the name, a line break is a `<br>`, and the note form allows a few inline
+ * formats. Emails are plain text, so the line breaks become newlines, the other tags are
+ * dropped and the text they wrap is kept. The tags are stripped before the entities are
+ * decoded, so escaped text such as "&lt;code&gt;" survives as text rather than being read
+ * as a tag and dropped.
+ *
+ * @since 7.2.0
+ *
+ * @param string $content Note content, as stored.
+ * @return string The plain text of the note.
+ */
+function wp_get_note_plain_text( string $content ): string {
+	$content = (string) preg_replace( '#<br\s*/?>#i', "\n", $content );
+
+	return wp_specialchars_decode( wp_strip_all_tags( $content ) );
+}
+
+/**
  * Notifies mentioned users about a new note.
  *
  * Runs on {@see 'rest_insert_comment'} alongside the post author notification.
@@ -2732,6 +2753,7 @@ function wp_notify_note_mentions( ?WP_Comment $comment, $request = null, bool $c
  * same way the post author's note notification does.
  *
  * @since 7.1.0
+ * @since 7.2.0 Line breaks in the note are kept.
  *
  * @param WP_User      $user    The recipient.
  * @param WP_Comment   $comment The note that triggered the notification.
@@ -2743,14 +2765,14 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
 
 	/*
 	 * The site title and the post title are escaped on the way into the database,
-	 * and note content is stored as HTML. Both are reversed once here for the
-	 * plain text arena of emails. Decoding a second time would go too far and
-	 * resolve entities the author meant to be read literally.
+	 * and are reversed once here for the plain text arena of emails. Decoding a
+	 * second time would go too far and resolve entities the author meant to be
+	 * read literally.
 	 */
 	$blogname    = wp_specialchars_decode( get_bloginfo( 'name', 'display' ), ENT_QUOTES );
 	$post_title  = $post ? wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ) : '';
 	$author_name = $comment->comment_author ? $comment->comment_author : __( 'Someone' );
-	$content     = wp_specialchars_decode( wp_strip_all_tags( $comment->comment_content ) );
+	$content     = wp_get_note_plain_text( $comment->comment_content );
 
 	/*
 	 * The rest of the message is composed for the recipient, and so is the editor
