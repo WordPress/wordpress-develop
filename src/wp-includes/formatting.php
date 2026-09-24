@@ -5309,11 +5309,38 @@ function wp_parse_str( $input_string, &$result ) {
  *
  * @since 2.3.0
  *
- * @param string $content Text to be converted.
+ * @param string         $content           Text to be converted.
+ * @param array[]|string $allowed_html      Allowed HTML elements and attributes, or context name.
  * @return string Converted text.
  */
-function wp_pre_kses_less_than( $content ) {
-	return preg_replace_callback( '%<[^>]*?((?=<)|>|$)%', 'wp_pre_kses_less_than_callback', $content );
+function wp_pre_kses_less_than( $content, $allowed_html = array() ) {
+	if ( ! is_array( $allowed_html ) ) {
+		$allowed_html = wp_kses_allowed_html( $allowed_html );
+	}
+
+	$content = preg_replace_callback(
+		"~<([a-zA-Z][a-zA-Z0-9:-]*)\\s+(?:\"[^\"]*\"|'[^']*'|[^<>\"'])*(?:>|$)~",
+		static function ( $matches ) use ( $allowed_html ) {
+			if ( ! isset( $allowed_html[ strtolower( $matches[1] ) ] ) ) {
+				return $matches[0];
+			}
+
+			return preg_replace_callback(
+				"~(\"[^\"]*\"|'[^']*')~",
+				static function ( $attribute_value ) {
+					return str_replace( '<', '&lt;', $attribute_value[0] );
+				},
+				$matches[0]
+			);
+		},
+		$content
+	);
+
+	return preg_replace_callback(
+		'%<[^>]*?((?=<)|>|$)%',
+		'wp_pre_kses_less_than_callback',
+		$content
+	);
 }
 
 /**
