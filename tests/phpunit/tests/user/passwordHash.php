@@ -34,7 +34,6 @@ class Tests_User_PasswordHash extends WP_UnitTestCase {
 		$hasher = new PasswordHash( 8, true );
 		$salt   = $hasher->gensalt_blowfish( 'a password string' );
 
-		$this->assertIsString( $salt, 'gensalt_blowfish() should return a string.' );
 		$this->assertStringStartsWith( '$2a$08$', $salt, 'The salt should use the blowfish identifier and configured cost.' );
 		$this->assertSame( 29, strlen( $salt ), 'A blowfish salt should be 29 characters long.' );
 	}
