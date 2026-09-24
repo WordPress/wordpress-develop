@@ -1079,6 +1079,11 @@ table.form-table td .updated p {
 	max-width: 768px;
 }
 
+/* Allow a long application name with no spaces to wrap inside the card. */
+.auth-app-card p {
+	overflow-wrap: break-word;
+}
+
 .authorize-application-php .form-wrap p {
 	display: block;
 }
