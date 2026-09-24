@@ -71,38 +71,39 @@ jobs:
 
       - name: Check for misplaced CSS and JS files
         run: |
-          # A bare assignment, so `set -e` sees a failure from Git. The `|| true`
-          # guards below would otherwise mask it.
+          # Git does the filtering, so no path is ever matched as text. Shell
+          # patterns break on names holding a tab, a newline or a quote: Git
+          # C-quotes those, and core.quotePath=false does not stop it.
           #
-          # core.quotePath would C-escape and quote any path holding non-ASCII
-          # characters, which breaks the patterns below.
-          tracked=$( git -c core.quotePath=false ls-files -- src/wp-includes src/wp-admin )
+          # Each check is a bare assignment, so `set -e` sees a failure from Git.
 
           # Git exits 0 when a pathspec matches nothing.
-          if [ -z "$tracked" ]; then
+          if [ -z "$( git ls-files -- src/wp-includes src/wp-admin )" ]; then
             echo "::error::No tracked files found under src/wp-includes or src/wp-admin."
             exit 1
           fi
 
           # The SCSS sources for the admin color schemes are the only tracked
           # non-CSS files in these directories.
-          inward_css=$( printf '%s\n' "$tracked" \
-            | grep -E '^src/(wp-includes|wp-admin)/css/' \
-            | grep -vE '\.css$' \
-            | grep -vE '^src/wp-admin/css/colors/.+\.scss$' || true )
+          inward_css=$( git ls-files -- src/wp-includes/css src/wp-admin/css \
+            ':(exclude)*.css' \
+            ':(exclude)src/wp-admin/css/colors/**/*.scss' )
 
           # Both directories are gitignored in full, so this only catches a file
           # committed with `git add -f`.
-          inward_js=$( printf '%s\n' "$tracked" \
-            | grep -E '^src/(wp-includes|wp-admin)/js/' \
-            | grep -vE '\.js$' || true )
+          inward_js=$( git ls-files -- src/wp-includes/js src/wp-admin/js \
+            ':(exclude)*.js' )
 
           # src/wp-includes/build/ is tracked, not gitignored: it holds the
           # generated routes and pages.
-          outward=$( printf '%s\n' "$tracked" \
-            | grep -E '\.(css|js)$' \
-            | grep -vE '^src/(wp-includes|wp-admin)/(css|js)/' \
-            | grep -v '^src/wp-includes/build/' || true )
+          outward=$( git ls-files -- \
+            'src/wp-includes/*.css' 'src/wp-includes/*.js' \
+            'src/wp-admin/*.css' 'src/wp-admin/*.js' \
+            ':(exclude)src/wp-includes/css/*' \
+            ':(exclude)src/wp-includes/js/*' \
+            ':(exclude)src/wp-admin/css/*' \
+            ':(exclude)src/wp-admin/js/*' \
+            ':(exclude)src/wp-includes/build/*' )
 
           violations=$( printf '%s\n%s\n%s' "$inward_css" "$inward_js" "$outward" | grep -v '^$' || true )
 
