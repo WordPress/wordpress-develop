@@ -347,36 +347,34 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 28601
+	 * @ticket 66107
 	 */
-	public function test_invalid_post_date_does_not_fatal() {
+	public function test_invalid_post_date_returns_error(): void {
 		$this->make_user_by_role( 'author' );
-		$date_string  = 'invalid_date';
-		$post         = array(
+		$post   = array(
 			'post_title'   => 'test',
 			'post_content' => 'test',
-			'post_date'    => $date_string,
+			'post_date'    => 'invalid_date',
 		);
-		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
-		$fetched_post = get_post( $result );
-		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertSame( current_time( 'Y-m-d' ), substr( $fetched_post->post_date, 0, 10 ) );
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
 	}
 
 	/**
 	 * @ticket 28601
+	 * @ticket 66107
 	 */
-	public function test_invalid_post_date_gmt_does_not_fatal() {
+	public function test_invalid_post_date_gmt_returns_error(): void {
 		$this->make_user_by_role( 'author' );
-		$date_string  = 'invalid_date';
-		$post         = array(
+		$post   = array(
 			'post_title'    => 'test',
 			'post_content'  => 'test',
-			'post_date_gmt' => $date_string,
+			'post_date_gmt' => 'invalid_date',
 		);
-		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
-		$fetched_post = get_post( $result );
-		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertSame( '0000-00-00', substr( $fetched_post->post_date_gmt, 0, 10 ) );
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
 	}
 
 	/**
@@ -445,5 +443,69 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$fetched_post = get_post( $result );
 		$this->assertStringMatchesFormat( '%d', $result );
 		$this->assertSame( $date_string, $fetched_post->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_non_date_post_date_returns_error(): void {
+		$this->make_user_by_role( 'author' );
+
+		$post   = array(
+			'post_title' => 'test',
+			'post_date'  => array( '1984-01-11 05:00:00' ),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_non_array_content_struct_returns_error(): void {
+		$this->make_user_by_role( 'author' );
+
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', 'not a struct' ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
+
+	/**
+	 * Ensure a `post_date_gmt` that is not a date is ignored when a `post_date` is supplied.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_non_date_post_date_gmt_is_ignored_when_post_date_is_supplied(): void {
+		$this->make_user_by_role( 'author' );
+
+		$date_string = '2020-05-05 05:05:05';
+		$post        = array(
+			'post_title'    => 'test',
+			'post_date'     => $date_string,
+			'post_date_gmt' => 1,
+		);
+		$result      = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( $date_string, get_post( $result )->post_date );
+	}
+
+	/**
+	 * Ensure a timezone offset in a string date is honored, as it is in a dateTime.iso8601 value.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_string_post_date_gmt_with_offset_is_converted_to_gmt(): void {
+		$this->make_user_by_role( 'author' );
+
+		$post   = array(
+			'post_title'    => 'test',
+			'post_date_gmt' => '2020-01-01T05:00:00+02:00',
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( '2020-01-01 03:00:00', get_post( $result )->post_date_gmt );
 	}
 }

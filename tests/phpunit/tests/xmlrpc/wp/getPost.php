@@ -159,4 +159,26 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 		$this->assertSame( 400, $result->code );
 	}
+
+	/**
+	 * Ensure a stored date that is not a string is returned as an empty date instead of causing a fatal error.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_non_string_stored_date_returns_empty_date(): void {
+		/*
+		 * A non-string date with an empty GMT date reaches both _convert_date()
+		 * and the local date fallback in _convert_date_gmt().
+		 */
+		$cached_post                    = (object) get_object_vars( get_post( $this->post_id ) );
+		$cached_post->post_modified     = array( 'not a date' );
+		$cached_post->post_modified_gmt = '0000-00-00 00:00:00';
+		wp_cache_set( $this->post_id, $cached_post, 'posts' );
+
+		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, array( 'post' ) ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( '00000000T00:00:00Z', $result['post_modified']->getIso() );
+		$this->assertSame( '00000000T00:00:00Z', $result['post_modified_gmt']->getIso() );
+	}
 }
