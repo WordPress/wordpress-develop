@@ -7,7 +7,7 @@
 /** @namespace wp */
 window.wp = window.wp || {};
 
-(function ($) {
+(function ($, _) {
 	// Check for the utility settings.
 	var settings = typeof _wpUtilSettings === 'undefined' ? {} : _wpUtilSettings;
 
@@ -154,4 +154,4 @@ window.wp = window.wp || {};
 		}
 	};
 
-}(jQuery));
+}(jQuery, _));
