@@ -1278,7 +1278,7 @@ figcaption,
 }
 
 /** === Table === */
-.wp-block-table td, .wp-block-table th {
+body .wp-block-table td, body .wp-block-table th {
   border-color: #767676;
 }
 
