@@ -64,31 +64,158 @@ class AtomEntry {
  */
 class AtomParser {
 
+    /**
+     * Atom namespace URI.
+     *
+     * @var string
+     */
     var $NS = 'http://www.w3.org/2005/Atom';
+
+    /**
+     * Array of Atom elements that can contain content.
+     *
+     * @var array
+     */
     var $ATOM_CONTENT_ELEMENTS = array('content','summary','title','subtitle','rights');
+
+    /**
+     * Array of simple Atom elements.
+     *
+     * @var array
+     */
     var $ATOM_SIMPLE_ELEMENTS = array('id','updated','published','draft');
 
+    /**
+     * Debug mode flag.
+     *
+     * @var bool
+     */
     var $debug = false;
 
+    /**
+     * Current parsing depth.
+     *
+     * @var int
+     */
     var $depth = 0;
+
+    /**
+     * Indentation spaces for debug output.
+     *
+     * @var int
+     */
     var $indent = 2;
+
+    /**
+     * Array tracking content being parsed.
+     *
+     * @var array
+     */
     var $in_content;
+
+    /**
+     * Stack of namespace contexts.
+     *
+     * @var array
+     */
     var $ns_contexts = array();
+
+    /**
+     * Current namespace declarations.
+     *
+     * @var array
+     */
     var $ns_decls = array();
+
+    /**
+     * Content namespace declarations.
+     *
+     * @var array
+     */
     var $content_ns_decls = array();
+
+    /**
+     * Content namespace contexts.
+     *
+     * @var array
+     */
     var $content_ns_contexts = array();
+
+    /**
+     * Whether current content is XHTML.
+     *
+     * @var bool
+     */
     var $is_xhtml = false;
+
+    /**
+     * Whether current content is HTML.
+     *
+     * @var bool
+     */
     var $is_html = false;
+
+    /**
+     * Whether current content is text.
+     *
+     * @var bool
+     */
     var $is_text = true;
+
+    /**
+     * Whether a div element was skipped.
+     *
+     * @var bool
+     */
     var $skipped_div = false;
 
+    /**
+     * Input file for parsing.
+     *
+     * @var string
+     */
     var $FILE = "php://input";
 
+    /**
+     * The parsed Atom feed object.
+     *
+     * @var AtomFeed
+     */
     var $feed;
+
+    /**
+     * Current element being parsed.
+     *
+     * @var AtomEntry|AtomFeed|null
+     */
     var $current;
+
+    /**
+     * Function for mapping attributes.
+     *
+     * @var array
+     */
     var $map_attrs_func;
+
+    /**
+     * Function for mapping XML namespaces.
+     *
+     * @var array
+     */
     var $map_xmlns_func;
+
+    /**
+     * Last error message.
+     *
+     * @var string
+     */
     var $error;
+
+    /**
+     * Content being parsed (debug mode).
+     *
+     * @var string
+     */
     var $content;
 
 	/**
@@ -135,16 +262,48 @@ class AtomParser {
 		return "{$xd}=\"{$n[1]}\"";
 	}
 
+	/**
+	 * Debug printing function.
+	 *
+	 * Prints a debug message with indentation based on the current depth
+	 * if debug mode is enabled.
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param string $msg The debug message to print.
+	 */
     function _p($msg) {
         if($this->debug) {
             print str_repeat(" ", $this->depth * $this->indent) . $msg ."\n";
         }
     }
 
+    /**
+     * Error handler for XML parsing errors.
+     *
+     * Sets the error property when an error occurs during XML parsing.
+     *
+     * @since 2.3.0
+     *
+     * @param int    $log_level  The error level.
+     * @param string $log_text   The error message.
+     * @param string $error_file The file where the error occurred.
+     * @param int    $error_line The line number where the error occurred.
+     */
     function error_handler($log_level, $log_text, $error_file, $error_line) {
         $this->error = $log_text;
     }
 
+    /**
+     * Parse the Atom feed.
+     *
+     * Sets up XML parser and parses the Atom feed data from the configured
+     * input source. Returns true on success, false on failure.
+     *
+     * @since 2.3.0
+     *
+     * @return bool True on successful parsing, false on failure.
+     */
     function parse() {
 
         set_error_handler(array(&$this, 'error_handler'));
@@ -195,6 +354,18 @@ class AtomParser {
         return $ret;
     }
 
+    /**
+     * Handle XML start element during parsing.
+     *
+     * Processes the start of an XML element, handling Atom feed and entry elements,
+     * managing content parsing, and processing links and categories.
+     *
+     * @since 2.3.0
+     *
+     * @param resource $parser XML parser resource.
+     * @param string   $name   The name of the element.
+     * @param array    $attrs  Array of element attributes.
+     */
     function start_element($parser, $name, $attrs) {
 
         $name_parts = explode(":", $name);
@@ -275,6 +446,17 @@ class AtomParser {
         $this->ns_decls = array();
     }
 
+    /**
+     * Handle XML end element during parsing.
+     *
+     * Processes the end of an XML element, finalizing content and managing
+     * the parsing state for nested elements.
+     *
+     * @since 2.3.0
+     *
+     * @param resource $parser XML parser resource.
+     * @param string   $name   The name of the element being closed.
+     */
     function end_element($parser, $name) {
 
         $name_parts = explode(":", $name);
@@ -330,15 +512,47 @@ class AtomParser {
         $this->_p("end_element('$name')");
     }
 
+    /**
+     * Handle XML namespace start declaration.
+     *
+     * Called when a namespace declaration starts during XML parsing.
+     *
+     * @since 2.3.0
+     *
+     * @param resource $parser XML parser resource.
+     * @param string   $prefix The namespace prefix.
+     * @param string   $uri    The namespace URI.
+     */
     function start_ns($parser, $prefix, $uri) {
         $this->_p("starting: " . $prefix . ":" . $uri);
         array_push($this->ns_decls, array($prefix,$uri));
     }
 
+    /**
+     * Handle XML namespace end declaration.
+     *
+     * Called when a namespace declaration ends during XML parsing.
+     *
+     * @since 2.3.0
+     *
+     * @param resource $parser XML parser resource.
+     * @param string   $prefix The namespace prefix being closed.
+     */
     function end_ns($parser, $prefix) {
         $this->_p("ending: #" . $prefix . "#");
     }
 
+    /**
+     * Handle character data during XML parsing.
+     *
+     * Processes text content between XML elements and adds it to the
+     * current content being parsed.
+     *
+     * @since 2.3.0
+     *
+     * @param resource $parser XML parser resource.
+     * @param string   $data   The character data.
+     */
     function cdata($parser, $data) {
         $this->_p("data: #" . str_replace(array("\n"), array("\\n"), trim($data)) . "#");
         if(!empty($this->in_content)) {
@@ -346,11 +560,34 @@ class AtomParser {
         }
     }
 
+    /**
+     * Default handler for XML parsing.
+     *
+     * Called for any XML data that doesn't have a specific handler.
+     * Currently unused but required by XML parser.
+     *
+     * @since 2.3.0
+     *
+     * @param resource $parser XML parser resource.
+     * @param string   $data   The XML data.
+     */
     function _default($parser, $data) {
         # when does this gets called?
     }
 
 
+    /**
+     * Convert qualified name to namespace prefix.
+     *
+     * Converts a qualified XML name to its namespace prefix representation,
+     * resolving namespace URIs to their declared prefixes.
+     *
+     * @since 2.3.0
+     *
+     * @param string $qname The qualified name to convert.
+     * @param bool   $attr  Whether this is for an attribute. Default false.
+     * @return array|null Array containing namespace mapping and prefixed name, or null.
+     */
     function ns_to_prefix($qname, $attr=false) {
         # split 'http://www.w3.org/1999/xhtml:div' into ('http','//www.w3.org/1999/xhtml','div')
         $components = explode(":", $qname);
@@ -383,6 +620,17 @@ class AtomParser {
         }
     }
 
+    /**
+     * Check if a namespace mapping is declared in content context.
+     *
+     * Determines whether a given namespace mapping has already been
+     * declared in the current content parsing context.
+     *
+     * @since 2.3.0
+     *
+     * @param array $new_mapping The namespace mapping to check.
+     * @return bool True if the mapping is declared, false otherwise.
+     */
     function is_declared_content_ns($new_mapping) {
         foreach($this->content_ns_contexts as $context) {
             foreach($context as $mapping) {
@@ -394,6 +642,17 @@ class AtomParser {
         return false;
     }
 
+    /**
+     * Escape XML special characters.
+     *
+     * Escapes special XML characters in content to prevent XML parsing errors.
+     * Converts &, ", ', <, and > to their XML entity equivalents.
+     *
+     * @since 2.3.0
+     *
+     * @param string $content The content to escape.
+     * @return string The escaped content.
+     */
     function xml_escape($content)
     {
              return str_replace(array('&','"',"'",'<','>'),
