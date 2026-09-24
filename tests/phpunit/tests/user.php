@@ -2875,4 +2875,102 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $updated_password, $args[0][0], 'Invalid password in wp_set_password action.' );
 		$this->assertSame( $user_id, $args[0][1], 'Invalid user ID in wp_set_password action.' );
 	}
+
+	/**
+	 * Data provider for test_edit_user_sanitizes_email_address().
+	 * Passes entered email and expected after sanitizing
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $new_email       The arguments that will merged with the $_POST array.
+	 *         @type string $sanitized_email The expected result of whether an email was sent to the admin.
+	 *     }
+	 * }
+	 */
+	public function data_edit_user_sanitizes_email_address() {
+		return array(
+			array('eusp2@example.com', 'eusp2@example.com'),
+			array('eusp3%4@example.com', 'eusp3%4@example.com'),
+			array('eu\'sp5@example.com', 'eu\'sp5@example.com'),
+			array('eu&@example.com', 'eu&amp;@example.com'),
+			array('eu&amp@example.com', 'eu&amp;amp@example.com'),
+		);
+	}
+
+	/**
+	 * Checks that edit_user() correctly sanitizes the supplied email address.
+	 *
+	 * @dataProvider data_edit_user_sanitizes_email_address
+	 *
+	 * @ticket 45714
+	 */
+	public function test_edit_user_sanitizes_email_address($new_email, $sanitized_email) {
+		$_POST    = array();
+		$_GET     = array();
+		$_REQUEST = array();
+
+		$user = $this->factory()->user->create_and_get(
+			array(
+				'email' => 'eusp1@example.com',
+			)
+		);
+
+		$_POST['nickname']   = 'eusp1';
+		$_POST['user_login'] = $user->user_login;
+		$_POST['email']      = $new_email;
+		$user_id             = edit_user( $user->ID );
+
+		$this->assertIsInt( $user_id );
+		$user = get_user_by( 'ID', $user_id );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertEquals( $sanitized_email, $user->user_email );
+	}
+
+	/**
+	 * Data provider for test_edit_user_sanitizes_email_address_error().
+	 * Passes entered email and expected after sanitizing
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $new_email       The arguments that will merged with the $_POST array.
+	 *     }
+	 * }
+	 */
+	public function data_edit_user_sanitizes_email_address_error() {
+		return array(
+			array(''),
+			array(' eusp4%4@example.com'),
+			array('eusp4@example.com!'),
+			array('eusp6@example.com%aa'),
+			array('eusp5'),
+		);
+	}
+
+	/**
+	 * Checks that edit_user() correctly sanitizes the supplied email address.
+	 *
+	 * @dataProvider data_edit_user_sanitizes_email_address_error
+	 *
+	 * @ticket 45714
+	 */
+	public function test_edit_user_sanitizes_email_address_error($new_email) {
+		$_POST    = array();
+		$_GET     = array();
+		$_REQUEST = array();
+
+		$user = $this->factory()->user->create_and_get(
+			array(
+				'email' => 'eusp1@example.com',
+			)
+		);
+
+		$_POST['nickname']   = 'eusp1';
+		$_POST['user_login'] = $user->user_login;
+		$_POST['email']      = $new_email;
+		$user_id             = edit_user( $user->ID );
+
+		$this->assertInstanceOf( 'WP_Error', $user_id );
+		$this->assertEquals( 'invalid_email', $user_id->get_error_code() );
+	}
+
 }
