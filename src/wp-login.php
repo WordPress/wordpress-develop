@@ -548,7 +548,7 @@ if ( SITECOOKIEPATH !== COOKIEPATH ) {
 	);
 }
 
-if ( isset( $_GET['wp_lang'] ) ) {
+if ( isset( $_GET['wp_lang'] ) && is_string( $_GET['wp_lang'] ) ) {
 	wp_set_cookie(
 		'wp_lang',
 		sanitize_text_field( $_GET['wp_lang'] ),
