@@ -240,6 +240,7 @@ require ABSPATH . WPINC . '/class-wp-rewrite.php';
 require ABSPATH . WPINC . '/feed.php';
 require ABSPATH . WPINC . '/bookmark.php';
 require ABSPATH . WPINC . '/bookmark-template.php';
+require ABSPATH . WPINC . '/fonts/class-wp-css-font-family.php';
 require ABSPATH . WPINC . '/kses.php';
 require ABSPATH . WPINC . '/cron.php';
 require ABSPATH . WPINC . '/deprecated.php';
