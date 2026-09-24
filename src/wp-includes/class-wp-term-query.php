@@ -32,7 +32,7 @@ class WP_Term_Query {
 	 * @since 4.6.0
 	 * @var WP_Meta_Query A meta query instance.
 	 */
-	public $meta_query = false;
+	public $meta_query;
 
 	/**
 	 * Metadata query clauses.

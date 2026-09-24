@@ -129,7 +129,7 @@ class WP_Customize_Section {
 	 *               the section is active (such as it relates to the URL currently
 	 *               being previewed).
 	 */
-	public $active_callback = '';
+	public $active_callback;
 
 	/**
 	 * Show the description or hide it behind the help icon.

@@ -80,7 +80,7 @@ class WP_Customize_Panel {
 	 * @since 4.0.0
 	 * @var mixed[]
 	 */
-	public $theme_supports = '';
+	public $theme_supports = array();
 
 	/**
 	 * Title of the panel to show in UI.
@@ -134,7 +134,7 @@ class WP_Customize_Panel {
 	 *               the section is active (such as it relates to the URL currently
 	 *               being previewed).
 	 */
-	public $active_callback = '';
+	public $active_callback;
 
 	/**
 	 * Constructor.

@@ -166,7 +166,7 @@ class WP_Customize_Control {
 	 *               the control is active (such as it relates to the URL
 	 *               currently being previewed).
 	 */
-	public $active_callback = '';
+	public $active_callback;
 
 	/**
 	 * Constructor.

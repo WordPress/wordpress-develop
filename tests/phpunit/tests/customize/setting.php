@@ -56,8 +56,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->assertSame( '', $setting->theme_supports );
 		$this->assertSame( '', $setting->default );
 		$this->assertSame( 'refresh', $setting->transport );
-		$this->assertSame( '', $setting->sanitize_callback );
-		$this->assertSame( '', $setting->sanitize_js_callback );
+		$this->assertSame( null, $setting->sanitize_callback );
+		$this->assertSame( null, $setting->sanitize_js_callback );
 		$this->assertFalse( has_filter( "customize_validate_{$setting->id}" ) );
 		$this->assertFalse( has_filter( "customize_sanitize_{$setting->id}" ) );
 		$this->assertFalse( has_filter( "customize_sanitize_js_{$setting->id}" ) );

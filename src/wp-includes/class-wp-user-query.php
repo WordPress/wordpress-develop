@@ -47,7 +47,7 @@ class WP_User_Query {
 	 * @since 4.2.0
 	 * @var WP_Meta_Query
 	 */
-	public $meta_query = false;
+	public $meta_query;
 
 	/**
 	 * The SQL query used to fetch matching users.
