@@ -218,6 +218,47 @@ class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
 		return 1042;
 	}
 
+	/**
+	 * @ticket 56909
+	 */
+	public function test_pre_recurse_dirsize_cache_filter() {
+		delete_transient( 'dirsize_cache' );
+		add_filter( 'pre_recurse_dirsize_cache', array( $this, 'filter_pre_recurse_dirsize_cache' ), 10, 2 );
+
+		$directory = untrailingslashit( wp_upload_dir()['path'] );
+		$this->assertSame( 1042, recurse_dirsize( $directory ) );
+		$this->assertSame( 42, get_transient( 'dirsize_cache' )[ $directory . '/subdirectory' ] );
+
+		remove_filter( 'pre_recurse_dirsize_cache', array( $this, 'filter_pre_recurse_dirsize_cache' ) );
+		delete_transient( 'dirsize_cache' );
+	}
+
+	public function filter_pre_recurse_dirsize_cache( $directory_cache, $directory ) {
+		$directory_cache[ $directory ]                   = 1042;
+		$directory_cache[ $directory . '/subdirectory' ] = 42;
+
+		return $directory_cache;
+	}
+
+	/**
+	 * @ticket 56909
+	 */
+	public function test_pre_recurse_dirsize_cache_filter_with_invalid_value() {
+		$directory        = untrailingslashit( wp_upload_dir()['path'] );
+		$cached_directory = $directory . '/cached';
+		set_transient( 'dirsize_cache', array( $cached_directory => 42 ) );
+		add_filter( 'pre_recurse_dirsize_cache', '__return_false' );
+
+		$this->assertIsInt( recurse_dirsize( $directory ) );
+
+		$directory_cache = get_transient( 'dirsize_cache' );
+		$this->assertIsArray( $directory_cache );
+		$this->assertSame( 42, $directory_cache[ $cached_directory ] );
+
+		remove_filter( 'pre_recurse_dirsize_cache', '__return_false' );
+		delete_transient( 'dirsize_cache' );
+	}
+
 	private function get_mock_dirsize_cache_for_site( $site_id ) {
 		$prefix = wp_upload_dir()['basedir'];
 
