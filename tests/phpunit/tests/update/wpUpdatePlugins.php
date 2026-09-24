@@ -19,6 +19,9 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 
 		$this->request_count = 0;
 
+		// Clear any leftover database error so a prior test cannot leak into this one.
+		$GLOBALS['wpdb']->last_error = '';
+
 		// Start from a clean slate so the first write creates the option rather than updating it.
 		delete_site_transient( 'update_plugins' );
 
@@ -73,19 +76,21 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Rejects the write that stores the result of the check, leaving the stored value untouched.
+	 * Simulates a database that rejects the write storing the result of the check.
 	 *
-	 * This reproduces a database that cannot store the payload, for instance a `wp_options`
-	 * column using utf8mb3 and an update response containing a four byte character. Only the
-	 * result payload is rejected: it is the one carrying a `checked` property, while the object
-	 * written when the lock is taken, and the rolled back copy of it, are not.
+	 * This reproduces the failure the ticket is about, for instance a `wp_options` column
+	 * using utf8mb3 and an update response carrying a four byte character: the write does not
+	 * store the value and $wpdb->last_error is set. Only the result payload is rejected, since
+	 * it is the one carrying a `response` property; the object written when the lock is taken
+	 * is left alone.
 	 *
 	 * @param mixed $value     The new option value.
 	 * @param mixed $old_value The old option value.
 	 * @return mixed The value to store.
 	 */
 	public function reject_update_result( $value, $old_value ) {
-		if ( is_object( $value ) && isset( $value->checked ) ) {
+		if ( is_object( $value ) && ! empty( $value->response ) ) {
+			$GLOBALS['wpdb']->last_error = 'Simulated storage failure.';
 			return $old_value;
 		}
 
@@ -129,173 +134,138 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 	}
 
 	/**
-	 * When the result cannot be stored, the lock must not be left armed on stale data.
-	 *
-	 * Without this, `last_checked` stays at the time of a check whose result was never saved,
-	 * so the site reports itself up to date until the timeout expires.
+	 * A genuine storage failure is surfaced with a warning rather than failing silently.
 	 *
 	 * @ticket 64550
 	 *
 	 * @covers ::wp_update_plugins
 	 */
-	public function test_failed_write_resets_the_lock() {
+	public function test_failed_write_triggers_a_warning() {
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
 		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10, 2 );
 
-		// Note: $this->expectWarning() is deprecated and will be removed in PHPUnit 10.
-		$warnings = array();
-		set_error_handler(
-			static function ( int $errno, string $errstr ) use ( &$warnings ) {
-				$warnings[] = compact( 'errno', 'errstr' );
-				return true;
-			},
-			E_USER_WARNING
-		);
-
-		wp_update_plugins();
-
-		restore_error_handler();
+		$warnings = $this->collect_warnings_from( 'wp_update_plugins' );
 
 		remove_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10 );
 
 		$this->assertCount( 1, $warnings, 'A warning should be triggered when the result could not be stored.' );
+		$this->assertStringContainsString(
+			'could not be stored',
+			$warnings[0]['errstr'],
+			'The warning did not describe the storage failure.'
+		);
+	}
+
+	/**
+	 * A failed write must not reset the lock, so the check does not run on every request.
+	 *
+	 * Resetting `last_checked` to 0 here would make a persistent storage failure re-run the
+	 * check on every single request, so the lock is deliberately left in place; it expires on
+	 * its own timeout as it always has.
+	 *
+	 * @ticket 64550
+	 *
+	 * @covers ::wp_update_plugins
+	 */
+	public function test_failed_write_keeps_the_lock_and_does_not_busy_loop() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10, 2 );
+
+		$this->collect_warnings_from( 'wp_update_plugins' );
+		// A second request while the lock is still fresh must not send another API request.
+		wp_update_plugins();
+
+		remove_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10 );
+
+		$this->assertSame(
+			1,
+			$this->request_count,
+			'The failed write re-ran the check instead of leaving the lock in place.'
+		);
 
 		$transient = get_site_transient( 'update_plugins' );
-
-		$this->assertIsObject( $transient, 'The update transient was not stored.' );
-		$this->assertSame(
+		$this->assertIsObject( $transient, 'The lock transient was not stored.' );
+		$this->assertNotEquals(
 			0,
 			$transient->last_checked,
-			'last_checked was left armed after the result could not be stored.'
+			'last_checked was reset after a failed write, which busy-loops the check.'
 		);
 	}
 
 	/**
-	 * After a failed write the next request must actually run the check again.
+	 * A write that stores nothing new must not be mistaken for a failure.
+	 *
+	 * set_site_transient() returns false both when a write fails and when the value is already
+	 * the stored value, which happens whenever a check that found nothing new completes within
+	 * the same second the lock was taken. Keying the warning on $wpdb->last_error rather than on
+	 * that return value means an unchanged write, which runs no query and sets no error, stays
+	 * silent.
 	 *
 	 * @ticket 64550
 	 *
 	 * @covers ::wp_update_plugins
 	 */
-	public function test_failed_write_allows_the_next_check_to_run() {
+	public function test_unchanged_write_does_not_warn() {
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
-		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10, 2 );
+		// Reject the write without setting an error, standing in for update_option()
+		// returning false because the value it was asked to store was already stored.
+		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'keep_stored_value' ), 10, 2 );
+
+		$warnings = $this->collect_warnings_from( 'wp_update_plugins' );
+
+		remove_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'keep_stored_value' ), 10 );
+
+		$this->assertCount( 0, $warnings, 'An unchanged write was mistaken for a storage failure.' );
+	}
+
+	/**
+	 * Rejects the write while leaving $wpdb->last_error clear, standing in for an unchanged value.
+	 *
+	 * @param mixed $value     The new option value.
+	 * @param mixed $old_value The old option value.
+	 * @return mixed The value to store.
+	 */
+	public function keep_stored_value( $value, $old_value ) {
+		if ( is_object( $value ) && ! empty( $value->response ) ) {
+			return $old_value;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Runs a callable and returns the E_USER_WARNING errors it triggered.
+	 *
+	 * @param callable $callable The function to run.
+	 * @return array[] The collected warnings, each with `errno` and `errstr` keys.
+	 */
+	private function collect_warnings_from( $callable ) {
+		$warnings = array();
 
 		// Note: $this->expectWarning() is deprecated and will be removed in PHPUnit 10.
-		$warnings = array();
 		set_error_handler(
-			static function ( int $errno, string $errstr ) use ( &$warnings ) {
+			static function ( $errno, $errstr ) use ( &$warnings ) {
 				$warnings[] = compact( 'errno', 'errstr' );
 				return true;
 			},
 			E_USER_WARNING
 		);
 
-		wp_update_plugins();
-
-		restore_error_handler();
-
-		remove_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10 );
-
-		$this->assertCount( 1, $warnings, 'A warning should be triggered when the result could not be stored.' );
-
-		// The second check is the one that would never happen while the lock stayed armed.
-		wp_update_plugins();
-
-		$this->assertSame( 2, $this->request_count, 'The update check did not run again after a failed write.' );
-
-		$transient = get_site_transient( 'update_plugins' );
-
-		$this->assertArrayHasKey(
-			'hello.php',
-			$transient->response,
-			'The update response was not stored once the write succeeded again.'
-		);
-	}
-
-	/**
-	 * An unchanged value must not be mistaken for a failed write.
-	 *
-	 * update_site_option() also returns false when the value it is asked to store is already
-	 * the stored value, which happens whenever a check that found nothing new completes within
-	 * the same second the lock was taken. Rolling the lock back in that case would send the
-	 * site out to the API on every request.
-	 *
-	 * @ticket 64550
-	 *
-	 * @covers ::_wp_maybe_reset_update_check_lock
-	 */
-	public function test_unchanged_value_does_not_reset_the_lock() {
-		$lock  = (object) array( 'last_checked' => 1234567890 );
-		$value = (object) array( 'last_checked' => 1234567890 );
-
-		$this->assertFalse(
-			_wp_maybe_reset_update_check_lock( 'update_plugins', $value, $lock ),
-			'An unchanged value was treated as a failed write.'
-		);
-		$this->assertSame( 1234567890, $lock->last_checked, 'last_checked was reset for an unchanged value.' );
-	}
-
-	/**
-	 * A value that differs from the lock must roll the lock back.
-	 *
-	 * @ticket 64550
-	 *
-	 * @covers ::_wp_maybe_reset_update_check_lock
-	 */
-	public function test_changed_value_resets_the_lock() {
-		$lock  = (object) array( 'last_checked' => 1234567890 );
-		$value = (object) array(
-			'last_checked' => 1234567890,
-			'checked'      => array( 'hello.php' => '1.0' ),
-		);
-
-		$this->assertTrue(
-			_wp_maybe_reset_update_check_lock( 'update_plugins', $value, $lock ),
-			'A failed write did not roll the lock back.'
-		);
-		$this->assertSame( 0, $lock->last_checked, 'last_checked was not reset after a failed write.' );
-		$this->assertSame(
-			0,
-			get_site_transient( 'update_plugins' )->last_checked,
-			'The rolled back lock was not stored.'
-		);
-	}
-
-	/**
-	 * The reset reports whether it actually persisted.
-	 *
-	 * The write that rolls the lock back can itself fail. When it does, the caller must not
-	 * announce that the check will run again, because the armed lock is still in place. The
-	 * helper therefore returns the result of storing the reset rather than assuming it stuck.
-	 *
-	 * @ticket 64550
-	 *
-	 * @covers ::_wp_maybe_reset_update_check_lock
-	 */
-	public function test_reset_reports_whether_the_write_persisted() {
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		try {
+			call_user_func( $callable );
+		} finally {
+			restore_error_handler();
 		}
 
-		// Store the lock the reset will write, so re-storing it is a no-op that returns false.
-		$lock = (object) array( 'last_checked' => 0 );
-		set_site_transient( 'update_plugins', $lock );
-
-		$value = (object) array(
-			'last_checked' => 0,
-			'checked'      => array( 'hello.php' => '1.0' ),
-		);
-
-		$this->assertFalse(
-			_wp_maybe_reset_update_check_lock( 'update_plugins', $value, $lock ),
-			'A reset whose write did not persist was reported as done.'
-		);
+		return $warnings;
 	}
 }
