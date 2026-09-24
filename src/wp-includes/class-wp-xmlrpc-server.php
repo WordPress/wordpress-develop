@@ -392,8 +392,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 5.7.3
 	 *
-	 * @param IXR_Error|string $error   Error code or an error object.
-	 * @param false            $message Error message. Optional.
+	 * @param IXR_Error|int $error   Error code or an error object.
+	 * @param string|false  $message Error message. Optional. Default false.
 	 */
 	public function error( $error, $message = false ) {
 		// Accepts either an error object or an error code and message
@@ -6632,7 +6632,8 @@ class wp_xmlrpc_server extends IXR_Server {
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param bool $error Whether to pre-empt the media upload. Default false.
+		 * @param string|false $error Error message to return instead of uploading, or false to
+		 *                            allow the upload. Default false.
 		 */
 		$upload_err = apply_filters( 'pre_upload_error', false );
 		if ( $upload_err ) {
