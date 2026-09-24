@@ -1096,6 +1096,10 @@ function wp_is_auto_update_forced_for_item( $type, $update, $item ) {
  */
 function wp_get_auto_update_message() {
 	$next_update_time = wp_next_scheduled( 'wp_version_check' );
+	$next_auto_update = wp_next_scheduled( 'wp_maybe_auto_update' );
+	if ( false === $next_update_time || ( $next_auto_update && $next_auto_update < $next_update_time ) ) {
+		$next_update_time = $next_auto_update;
+	}
 
 	// Check if the event exists.
 	if ( false === $next_update_time ) {

@@ -607,6 +607,36 @@ function wp_update_plugins( $extra_stats = array() ) {
 	array_walk( $updates->no_update, $sanitize_plugin_update_payload );
 
 	set_site_transient( 'update_plugins', $updates );
+
+	// Trigger background updates if they're not scheduled to run soon.
+	if ( $updates->response && ! doing_action( 'wp_maybe_auto_update' ) ) {
+
+		$next_auto_update = array_filter(
+			array(
+				wp_next_scheduled( 'wp_version_check' ),
+				wp_next_scheduled( 'wp_maybe_auto_update' ),
+			)
+		);
+		if ( $next_auto_update ) {
+			$next_auto_update = min( $next_auto_update );
+		} else {
+			$next_auto_update = 0;
+		}
+
+		if ( $next_auto_update >= time() + HOUR_IN_SECONDS ) {
+			if ( $doing_cron ) {
+				/**
+				 * Fires during wp_cron, starting the auto-update process.
+				 *
+				 * @since 3.9.0
+				 */
+				do_action( 'wp_maybe_auto_update' );
+			} else {
+				// Perform it async.
+				wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'wp_maybe_auto_update' );
+			}
+		}
+	}
 }
 
 /**
