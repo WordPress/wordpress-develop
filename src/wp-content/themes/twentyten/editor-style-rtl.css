@@ -4,13 +4,13 @@ Theme Name: Twenty Ten
 /*
 Used to style the TinyMCE editor.
 */
-html .mceContentBody{
+html .mceContentBody {
 	direction: rtl;
 	unicode-bidi: embed;
 	float: right;
 	width: 640px;
 }
-* {
+body {
 	font-family: Arial, Tahoma, sans-serif;
 }
 /* Text elements */
