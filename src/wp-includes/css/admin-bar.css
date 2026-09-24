@@ -593,7 +593,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-site-name > .ab-item .site-icon {
 	width: 20px;
 	height: 20px;
-	background: #f0f0f1; /* matching my-account (user avatar) node's background */
 	border-radius: 2px;
 }
 
@@ -933,6 +932,14 @@ html:lang(he-il) .rtl #wpadminbar * {
 		text-align: center;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/*
+	 * Flex prevents `text-indent` from hiding the site title, and is unused here
+	 * since the icon is positioned absolutely below.
+	 */
+	#wpadminbar #wp-admin-bar-site-name.has-site-icon > .ab-item {
+		display: block;
 	}
 
 	#wpadminbar #wp-admin-bar-site-name > .ab-item .site-icon {

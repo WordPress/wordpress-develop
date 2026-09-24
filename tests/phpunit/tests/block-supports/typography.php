@@ -312,7 +312,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $size CSS font-size value, including units where applicable.
 	 * }
 	 * @param bool   $settings         Theme JSON settings array that overrides any global theme settings.
-	 * @param string $expected_output Expected output.
+	 * @param string $expected_output  Expected output.
 	 */
 	public function test_wp_get_typography_font_size_value( $font_size_preset, $settings, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size_preset, $settings );
@@ -820,7 +820,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures
 	 *
-	 * @param array  $font_size                     {
+	 * @param array  $font_size                   {
 	 *     Required. A font size as represented in the fontSizes preset format as seen in theme.json.
 	 *
 	 *     @type string $name Name of the font size preset.
@@ -828,7 +828,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $size CSS font-size value, including units where applicable.
 	 * }
 	 * @param bool   $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
-	 * @param string $expected_output Expected output of wp_get_typography_font_size_value().
+	 * @param string $expected_output             Expected output of wp_get_typography_font_size_value().
 	 */
 	public function test_wp_get_typography_font_size_value_should_use_fluid_typography_deprecated( $font_size, $should_use_fluid_typography, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size, $should_use_fluid_typography );
@@ -870,7 +870,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_generate_should_override_theme_settings_fixtures
 	 *
-	 * @param array  $font_size                     {
+	 * @param array  $font_size       {
 	 *     Required. A font size as represented in the fontSizes preset format as seen in theme.json.
 	 *
 	 *     @type string $name Name of the font size preset.
@@ -1339,7 +1339,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_get_computed_fluid_typography_value
 	 *
-	 * @param array  $args {
+	 * @param array  $args            {
 	 *      Optional. An associative array of values to calculate a fluid formula for font size. Default is empty array.
 	 *
 	 *     @type string $maximum_viewport_width Maximum size up to which type will have fluidity.
@@ -1348,7 +1348,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $minimum_font_size      Minimum font size for any clamp() calculation.
 	 *     @type int    $scale_factor           A scale factor to determine how fast a font scales within boundaries.
 	 * }
-	 * @param string $expected_output             Expected value of style property from wp_apply_typography_support().
+	 * @param string $expected_output Expected value of style property from wp_apply_typography_support().
 	 */
 	public function test_wp_get_computed_fluid_typography_value( $args, $expected_output ) {
 		$actual = wp_get_computed_fluid_typography_value( $args );

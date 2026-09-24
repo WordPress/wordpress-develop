@@ -301,7 +301,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			true
 		);
 
-		remove_filter( 'wp_update_comment_data', array( $this, 'wp_update_comment_data_filter' ), 10, 3 );
+		remove_filter( 'wp_update_comment_data', array( $this, 'wp_update_comment_data_filter' ) );
 
 		$this->assertWPError( $result );
 	}
@@ -367,7 +367,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		$found = get_approved_comments( self::$post_id );
 
 		// All comment types will be returned.
-		$this->assertEquals( array( $ca1, $ca2, $c2, $c3, $c4, $c5 ), wp_list_pluck( $found, 'comment_ID' ) );
+		$this->assertSame( array_map( 'strval', array( $ca1, $ca2, $c2, $c3, $c4, $c5 ) ), wp_list_pluck( $found, 'comment_ID' ) );
 	}
 
 	/**
