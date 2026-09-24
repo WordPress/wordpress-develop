@@ -802,4 +802,35 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $query->get_results() );
 	}
+
+	/**
+	 * Verifies that the cache key distinguishes a single-element 'fields' array
+	 * from the equivalent scalar string, since both generate identical SQL but
+	 * are expected to return differently shaped results (objects vs. scalars).
+	 *
+	 * @ticket 62003
+	 * @covers ::generate_cache_key
+	 */
+	public function test_query_cache_distinguishes_single_field_array_from_scalar() {
+		$user_id = self::factory()->user->create();
+
+		$query1   = new WP_User_Query(
+			array(
+				'include' => array( $user_id ),
+				'fields'  => array( 'ID' ),
+			)
+		);
+		$results1 = $query1->get_results();
+
+		$query2   = new WP_User_Query(
+			array(
+				'include' => array( $user_id ),
+				'fields'  => 'ID',
+			)
+		);
+		$results2 = $query2->get_results();
+
+		$this->assertIsObject( $results1[0], 'Fields as an array should return an array of objects.' );
+		$this->assertIsString( $results2[0], "Fields as a scalar string should return an array of scalar values, not cached objects from the array 'fields' request." );
+	}
 }
