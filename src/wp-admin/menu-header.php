@@ -124,8 +124,8 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		/*
 		 * If the string 'none' (previously 'div') is passed instead of a URL, don't output
 		 * the default menu image so an icon can be added to div.wp-menu-image as background
-		 * with CSS. Dashicons and base64-encoded data:image/svg_xml URIs are also handled
-		 * as special cases.
+		 * with CSS. Dashicons, base64-encoded data:image/svg_xml and utf8-encoded data:image/svg_xml
+		 * URIs are also handled as special cases.
 		 */
 		if ( ! empty( $item[6] ) ) {
 			$img = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
@@ -137,6 +137,146 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				// The value is base64-encoded data, so esc_attr() is used here instead of esc_url().
 				$img_style = ' style="background-image:url(\'' . esc_attr( $item[6] ) . '\')"';
 				$img_class = ' svg';
+			} elseif ( str_starts_with( $item[6], 'data:image/svg+xml;utf8,' ) ) {
+				$kses_defaults = wp_kses_allowed_html( 'post' );
+				$svg_args      = array(
+					'svg'            => array(
+						'class'               => true,
+						'aria-hidden'         => true,
+						'aria-labelledby'     => true,
+						'role'                => true,
+						'xmlns'               => true,
+						'width'               => true,
+						'height'              => true,
+						'viewbox'             => true,
+						'preserveAspectRatio' => true,
+					),
+					'g'              => array(
+						'fill'         => true,
+						'stroke'       => true,
+						'stroke-width' => true,
+						'opacity'      => true,
+					),
+					'title'          => array(
+						'title' => true,
+					),
+					'desc'           => array(
+						'desc' => true,
+					),
+					'path'           => array(
+						'd'            => true,
+						'fill'         => true,
+						'stroke'       => true,
+						'stroke-width' => true,
+					),
+					'circle'         => array(
+						'cx'           => true,
+						'cy'           => true,
+						'r'            => true,
+						'fill'         => true,
+						'stroke'       => true,
+						'stroke-width' => true,
+					),
+					'rect'           => array(
+						'x'            => true,
+						'y'            => true,
+						'width'        => true,
+						'height'       => true,
+						'fill'         => true,
+						'stroke'       => true,
+						'stroke-width' => true,
+					),
+					'line'           => array(
+						'x1'           => true,
+						'y1'           => true,
+						'x2'           => true,
+						'y2'           => true,
+						'stroke'       => true,
+						'stroke-width' => true,
+					),
+					'polygon'        => array(
+						'points'       => true,
+						'fill'         => true,
+						'stroke'       => true,
+						'stroke-width' => true,
+					),
+					'polyline'       => array(
+						'points'       => true,
+						'fill'         => true,
+						'stroke'       => true,
+						'stroke-width' => true,
+					),
+					'ellipse'        => array(
+						'cx'           => true,
+						'cy'           => true,
+						'rx'           => true,
+						'ry'           => true,
+						'fill'         => true,
+						'stroke'       => true,
+						'stroke-width' => true,
+					),
+					'text'           => array(
+						'x'           => true,
+						'y'           => true,
+						'dx'          => true,
+						'dy'          => true,
+						'text-anchor' => true,
+						'font-size'   => true,
+						'fill'        => true,
+					),
+					'tspan'          => array(
+						'x'           => true,
+						'y'           => true,
+						'dx'          => true,
+						'dy'          => true,
+						'text-anchor' => true,
+						'font-size'   => true,
+						'fill'        => true,
+					),
+					'defs'           => array(),
+					'clipPath'       => array(
+						'id' => true,
+					),
+					'mask'           => array(
+						'id' => true,
+					),
+					'linearGradient' => array(
+						'id'            => true,
+						'x1'            => true,
+						'y1'            => true,
+						'x2'            => true,
+						'y2'            => true,
+						'gradientUnits' => true,
+					),
+					'radialGradient' => array(
+						'id'            => true,
+						'cx'            => true,
+						'cy'            => true,
+						'r'             => true,
+						'fx'            => true,
+						'fy'            => true,
+						'gradientUnits' => true,
+					),
+					'stop'           => array(
+						'offset'       => true,
+						'stop-color'   => true,
+						'stop-opacity' => true,
+					),
+					'use'            => array(
+						'xlink:href' => true,
+						'href'       => true,
+					),
+					'symbol'         => array(
+						'id'                  => true,
+						'viewBox'             => true,
+						'preserveAspectRatio' => true,
+					),
+				);
+				$allowed_tags  = array_merge( $kses_defaults, $svg_args );
+
+				$svg_data  = substr( $item[6], strlen( 'data:image/svg+xml;utf8,' ) );
+				$img       = '<div class="inline-svg-container">' . wp_kses( $svg_data, $allowed_tags ) . '</div>';
+				$img_class = ' svg-inline';
 			} elseif ( str_starts_with( $item[6], 'dashicons-' ) ) {
 				$img       = '<br />';
 				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
