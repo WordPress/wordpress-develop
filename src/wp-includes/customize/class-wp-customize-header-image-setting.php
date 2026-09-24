@@ -105,7 +105,7 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 		 * The update() method unwraps the legacy `choice` format before handing the value off to
 		 * Custom_Image_Header::set_header_image(), so the nested value is what must be sanitized.
 		 */
-		if ( is_array( $value ) && isset( $value['choice'] ) ) {
+		if ( isset( $value['choice'] ) ) {
 			$choice = $this->sanitize_choice( $value['choice'] );
 			if ( is_null( $choice ) || is_wp_error( $choice ) ) {
 				return $choice;
