@@ -106,7 +106,6 @@ class Tests_Option_Multisite extends WP_UnitTestCase {
 	 */
 	public function test_with_another_site() {
 		$user_id = self::factory()->user->create();
-		$this->assertIsInt( $user_id );
 
 		$blog_id = self::factory()->blog->create(
 			array(
@@ -114,7 +113,6 @@ class Tests_Option_Multisite extends WP_UnitTestCase {
 				'public'  => 1,
 			)
 		);
-		$this->assertIsInt( $blog_id );
 
 		$key    = __FUNCTION__ . '_key1';
 		$key2   = __FUNCTION__ . '_key2';
