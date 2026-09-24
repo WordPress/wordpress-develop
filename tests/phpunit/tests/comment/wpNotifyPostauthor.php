@@ -117,8 +117,8 @@ class Tests_Comment_WpNotifyPostauthor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Note content is stored as HTML, and an @mention is a span around the name. The
-	 * email is plain text, so the post author should read the name, not the markup.
+	 * An @mention is stored as a span around the name. The email is plain text,
+	 * so the post author should read the name, not the markup.
 	 */
 	public function test_note_email_drops_the_markup_around_a_mention() {
 		$message = $this->notify_post_author( 'Hi <span class="wp-note-mention user-7">@Reviewer</span>, please check the intro.', 'note' );
@@ -127,25 +127,14 @@ class Tests_Comment_WpNotifyPostauthor extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '<span', $message );
 	}
 
-	public function test_note_email_keeps_the_line_breaks() {
-		$message = $this->notify_post_author( 'Fix the intro.<br>Then publish.', 'note' );
-
-		$this->assertStringContainsString( "Note: \r\nFix the intro.\nThen publish.", $message );
-	}
-
-	public function test_note_email_drops_the_inline_formatting_markup() {
-		$message = $this->notify_post_author( 'A <strong>bold</strong> <a href="https://example.com/">link</a> and <code>code</code>.', 'note' );
-
-		$this->assertStringContainsString( "Note: \r\nA bold link and code.", $message );
-	}
-
 	/**
-	 * Text the author typed as an escaped tag is text, and is not read as a tag and dropped.
+	 * Only the mention chips are unwrapped. The rest of the note, including the
+	 * formatting the author chose, is placed in the email as it is, like a comment.
 	 */
-	public function test_note_email_keeps_escaped_text() {
-		$message = $this->notify_post_author( 'Rename &lt;code&gt; to &lt;kbd&gt; here.', 'note' );
+	public function test_note_email_keeps_the_rest_of_the_content_as_is() {
+		$message = $this->notify_post_author( '<strong>Bold</strong> &lt;code&gt;<br><span class="wp-note-mention user-7">@Reviewer</span>', 'note' );
 
-		$this->assertStringContainsString( 'Rename <code> to <kbd> here.', $message );
+		$this->assertStringContainsString( "Note: \r\n<strong>Bold</strong> <code><br>@Reviewer", $message );
 	}
 
 	/**
