@@ -50,7 +50,6 @@ class Tests_Comment_WpNotifyPostauthor extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->sent = array();
 		// Short-circuit wp_mail() and record what would have been sent.
 		add_filter( 'pre_wp_mail', array( $this, 'capture_mail' ), 10, 2 );
 	}
@@ -98,8 +97,23 @@ class Tests_Comment_WpNotifyPostauthor extends WP_UnitTestCase {
 				'comment_author_email' => self::$commenter->user_email,
 			)
 		);
-		assert( is_int( $comment_id ) );
+		$this->assertIsInt( $comment_id );
 		return $comment_id;
+	}
+
+	/**
+	 * Notifies the post author about a comment and returns the message they receive.
+	 *
+	 * @param string $content Comment content, as stored.
+	 * @param string $type    Optional. Comment type. Default 'comment'.
+	 * @return string The email message.
+	 */
+	private function notify_post_author( string $content, string $type = 'comment' ): string {
+		$this->assertTrue( wp_notify_postauthor( $this->insert_comment( $content, $type ) ) );
+		$this->assertCount( 1, $this->sent );
+		$this->assertSame( array( self::$post_author->user_email ), $this->sent[0]['to'] );
+
+		return $this->sent[0]['message'];
 	}
 
 	/**
@@ -107,39 +121,48 @@ class Tests_Comment_WpNotifyPostauthor extends WP_UnitTestCase {
 	 * email is plain text, so the post author should read the name, not the markup.
 	 */
 	public function test_note_email_drops_the_markup_around_a_mention() {
-		$note_id = $this->insert_comment(
-			'Hi <span class="wp-note-mention user-7">@Reviewer</span>, please check the intro.',
-			'note'
-		);
+		$message = $this->notify_post_author( 'Hi <span class="wp-note-mention user-7">@Reviewer</span>, please check the intro.', 'note' );
 
-		$this->assertTrue( wp_notify_postauthor( $note_id ) );
-		$this->assertCount( 1, $this->sent );
-		$this->assertSame( array( self::$post_author->user_email ), $this->sent[0]['to'] );
-		$this->assertStringContainsString( "Note: \r\nHi @Reviewer, please check the intro.", $this->sent[0]['message'] );
-		$this->assertStringNotContainsString( '<span', $this->sent[0]['message'] );
+		$this->assertStringContainsString( "Note: \r\nHi @Reviewer, please check the intro.", $message );
+		$this->assertStringNotContainsString( '<span', $message );
+	}
+
+	public function test_note_email_keeps_the_line_breaks() {
+		$message = $this->notify_post_author( 'Fix the intro.<br>Then publish.', 'note' );
+
+		$this->assertStringContainsString( "Note: \r\nFix the intro.\nThen publish.", $message );
+	}
+
+	public function test_note_email_drops_the_inline_formatting_markup() {
+		$message = $this->notify_post_author( 'A <strong>bold</strong> <a href="https://example.com/">link</a> and <code>code</code>.', 'note' );
+
+		$this->assertStringContainsString( "Note: \r\nA bold link and code.", $message );
 	}
 
 	/**
 	 * Text the author typed as an escaped tag is text, and is not read as a tag and dropped.
 	 */
 	public function test_note_email_keeps_escaped_text() {
-		$note_id = $this->insert_comment( 'Rename &lt;code&gt; to &lt;kbd&gt; here.', 'note' );
+		$message = $this->notify_post_author( 'Rename &lt;code&gt; to &lt;kbd&gt; here.', 'note' );
 
-		wp_notify_postauthor( $note_id );
+		$this->assertStringContainsString( 'Rename <code> to <kbd> here.', $message );
+	}
 
-		$this->assertCount( 1, $this->sent );
-		$this->assertStringContainsString( 'Rename <code> to <kbd> here.', $this->sent[0]['message'] );
+	/**
+	 * A note without content marks a thread as resolved or reopened, which the email says.
+	 */
+	public function test_note_email_keeps_the_wording_for_an_empty_note() {
+		$message = $this->notify_post_author( '', 'note' );
+
+		$this->assertStringContainsString( "Note: \r\nresolved/reopened", $message );
 	}
 
 	/**
 	 * The content of a regular comment is placed in the email as it always was.
 	 */
 	public function test_comment_email_leaves_the_content_as_is() {
-		$comment_id = $this->insert_comment( 'A <strong>bold</strong> <a href="https://example.com/">claim</a>.' );
+		$message = $this->notify_post_author( 'A <strong>bold</strong> <a href="https://example.com/">claim</a>.' );
 
-		wp_notify_postauthor( $comment_id );
-
-		$this->assertCount( 1, $this->sent );
-		$this->assertStringContainsString( 'A <strong>bold</strong> <a href="https://example.com/">claim</a>.', $this->sent[0]['message'] );
+		$this->assertStringContainsString( 'A <strong>bold</strong> <a href="https://example.com/">claim</a>.', $message );
 	}
 }

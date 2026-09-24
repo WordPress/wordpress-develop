@@ -244,6 +244,21 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_send_note_notification
+	 */
+	public function test_email_keeps_the_note_line_breaks() {
+		$note = $this->insert_note(
+			'Fix the intro.<br>Then ping ' . $this->get_mention_markup( self::$mentioned->ID ),
+			self::$commenter->ID
+		);
+
+		wp_notify_note_mentions( $note );
+
+		$this->assertCount( 1, $this->sent );
+		$this->assertStringContainsString( "Fix the intro.\nThen ping @Mentioned", $this->sent[0]['message'] );
+	}
+
+	/**
 	 * @ticket 65639
 	 *
 	 * @covers ::wp_send_note_notification
