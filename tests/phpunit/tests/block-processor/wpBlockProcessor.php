@@ -319,7 +319,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @param string $html Input ending in a non-delimiter HTML comment.
 	 */
-	public function test_preserves_terminal_non_delimiter_comments_as_html( $html ) {
+	public function test_preserves_terminal_non_delimiter_comments_as_html( string $html ): void {
 		$processor = new WP_Block_Processor( $html );
 
 		$this->assertTrue(
@@ -607,7 +607,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * @param string   $html        Document to scan.
 	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
 	 */
-	public function test_delimiter_does_not_span_a_comment_ending( $html, $block_types ): void {
+	public function test_delimiter_does_not_span_a_comment_ending( string $html, array $block_types ): void {
 		$processor = new WP_Block_Processor( $html );
 
 		$found = array();
@@ -689,7 +689,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * @param string   $html        Document to scan.
 	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
 	 */
-	public function test_skips_the_whole_comment_when_the_json_attributes_are_rejected( $html, $block_types ): void {
+	public function test_skips_the_whole_comment_when_the_json_attributes_are_rejected( string $html, array $block_types ): void {
 		$processor = new WP_Block_Processor( $html );
 
 		$found = array();
