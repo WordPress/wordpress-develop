@@ -154,10 +154,10 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @param mixed $cached_value Value to place in the meta cache.
 	 */
 	public function test_metadata_exists_treats_non_array_cache_value_as_miss( $cached_value ): void {
-		wp_cache_set( self::$author->ID, $cached_value, 'user_meta' );
+		$this->assertTrue( wp_cache_set( self::$author->ID, $cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
-		$this->assertTrue( metadata_exists( 'user', self::$author->ID, 'meta_key' ) );
-		$this->assertFalse( metadata_exists( 'user', self::$author->ID, 'foobarbaz' ) );
+		$this->assertTrue( metadata_exists( 'user', self::$author->ID, 'meta_key' ), 'An existing meta key should be reported as existing.' );
+		$this->assertFalse( metadata_exists( 'user', self::$author->ID, 'foobarbaz' ), 'A missing meta key should be reported as not existing.' );
 		$this->assertIsArray( wp_cache_get( self::$author->ID, 'user_meta' ), 'The unusable cache value should have been replaced.' );
 	}
 
@@ -169,10 +169,10 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @param mixed $cached_value Value to place in the meta cache.
 	 */
 	public function test_get_metadata_treats_non_array_cache_value_as_miss( $cached_value ): void {
-		wp_cache_set( self::$author->ID, $cached_value, 'user_meta' );
+		$this->assertTrue( wp_cache_set( self::$author->ID, $cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
-		$this->assertSame( 'meta_value', get_metadata( 'user', self::$author->ID, 'meta_key', true ) );
-		$this->assertSame( array( 'meta_value' ), get_metadata( 'user', self::$author->ID, 'meta_key' ) );
+		$this->assertSame( 'meta_value', get_metadata( 'user', self::$author->ID, 'meta_key', true ), 'The single meta value should be returned.' );
+		$this->assertSame( array( 'meta_value' ), get_metadata( 'user', self::$author->ID, 'meta_key' ), 'The array of meta values should be returned.' );
 		$this->assertIsArray( wp_cache_get( self::$author->ID, 'user_meta' ), 'The unusable cache value should have been replaced.' );
 	}
 
@@ -184,12 +184,12 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @param mixed $cached_value Value to place in the meta cache.
 	 */
 	public function test_get_metadata_with_empty_key_treats_non_array_cache_value_as_miss( $cached_value ): void {
-		wp_cache_set( self::$author->ID, $cached_value, 'user_meta' );
+		$this->assertTrue( wp_cache_set( self::$author->ID, $cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		$meta = get_metadata( 'user', self::$author->ID );
 
-		$this->assertIsArray( $meta );
-		$this->assertSame( array( 'meta_value' ), $meta['meta_key'] );
+		$this->assertIsArray( $meta, 'All meta for the object should be returned as an array.' );
+		$this->assertSame( array( 'meta_value' ), $meta['meta_key'], 'The existing meta key should be included in the returned meta.' );
 	}
 
 	/**
@@ -200,16 +200,16 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @param mixed $cached_value Value to place in the meta cache.
 	 */
 	public function test_update_meta_cache_replaces_non_array_cache_value( $cached_value ): void {
-		wp_cache_set( self::$author->ID, $cached_value, 'user_meta' );
+		$this->assertTrue( wp_cache_set( self::$author->ID, $cached_value, 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		$meta_cache = update_meta_cache( 'user', array( self::$author->ID ) );
 
-		$this->assertIsArray( $meta_cache[ self::$author->ID ] );
-		$this->assertSame( array( 'meta_value' ), $meta_cache[ self::$author->ID ]['meta_key'] );
+		$this->assertIsArray( $meta_cache[ self::$author->ID ], 'The returned meta cache for the object should be an array.' );
+		$this->assertSame( array( 'meta_value' ), $meta_cache[ self::$author->ID ]['meta_key'], 'The returned meta cache should include the existing meta key.' );
 
 		$cached = wp_cache_get( self::$author->ID, 'user_meta' );
 		$this->assertIsArray( $cached, 'The unusable cache value should have been replaced.' );
-		$this->assertSame( array( 'meta_value' ), $cached['meta_key'] );
+		$this->assertSame( array( 'meta_value' ), $cached['meta_key'], 'The replaced cache value should include the existing meta key.' );
 	}
 
 	/**
@@ -218,25 +218,25 @@ class Tests_Meta extends WP_UnitTestCase {
 	public function test_update_meta_cache_replaces_non_array_cache_value_for_object_without_meta(): void {
 		$term_id = self::factory()->term->create();
 
-		wp_cache_set( $term_id, new stdClass(), 'term_meta' );
+		$this->assertTrue( wp_cache_set( $term_id, new stdClass(), 'term_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		$meta_cache = update_meta_cache( 'term', array( $term_id ) );
 
-		$this->assertSame( array(), $meta_cache[ $term_id ] );
-		$this->assertSame( array(), wp_cache_get( $term_id, 'term_meta' ) );
+		$this->assertSame( array(), $meta_cache[ $term_id ], 'The returned meta cache for an object without meta should be an empty array.' );
+		$this->assertSame( array(), wp_cache_get( $term_id, 'term_meta' ), 'The unusable cache value should have been replaced with an empty array.' );
 	}
 
 	/**
 	 * @ticket 66091
 	 */
 	public function test_update_meta_cache_removes_non_array_cache_value_while_cache_addition_is_suspended(): void {
-		wp_cache_set( self::$author->ID, new stdClass(), 'user_meta' );
+		$this->assertTrue( wp_cache_set( self::$author->ID, new stdClass(), 'user_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		wp_suspend_cache_addition( true );
 		$meta_cache = update_meta_cache( 'user', array( self::$author->ID ) );
 		wp_suspend_cache_addition( false );
 
-		$this->assertSame( array( 'meta_value' ), $meta_cache[ self::$author->ID ]['meta_key'] );
+		$this->assertSame( array( 'meta_value' ), $meta_cache[ self::$author->ID ]['meta_key'], 'The meta should still be returned while cache addition is suspended.' );
 		$this->assertFalse( wp_cache_get( self::$author->ID, 'user_meta' ), 'The unusable cache value should be removed but not replaced while cache addition is suspended.' );
 	}
 
