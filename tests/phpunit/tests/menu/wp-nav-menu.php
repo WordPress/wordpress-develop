@@ -274,12 +274,12 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 		);
 
 		$this->assertStringContainsString(
-			sprintf( 'id="menu-item-%d"', self::$lvl2_menu_item ),
+			'Lvl2 menu item',
 			$menu_html,
 			'The level two menu item should appear in the menu.'
 		);
 		$this->assertStringNotContainsString(
-			sprintf( 'id="menu-item-%d"', self::$lvl3_menu_item ),
+			'Lvl3 menu item',
 			$menu_html,
 			'The nulled level three menu item should not appear in the menu.'
 		);
