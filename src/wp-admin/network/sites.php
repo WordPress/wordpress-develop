@@ -85,7 +85,7 @@ if ( isset( $_GET['action'] ) ) {
 		$site_action = $_GET['action2'];
 
 		if ( ! array_key_exists( $site_action, $manage_actions ) ) {
-			wp_die( __( 'The requested action is not valid.' ) );
+			wp_die( __( 'The requested action is not valid.' ), 400 );
 		}
 
 		// The mature/unmature UI exists only as external code. Check the "confirm" nonce for backward compatibility.
@@ -101,7 +101,7 @@ if ( isset( $_GET['action'] ) ) {
 		}
 
 		if ( is_main_site( $id ) ) {
-			wp_die( __( 'Sorry, you are not allowed to change the current site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to change the current site.' ), 400 );
 		}
 
 		$site_details = get_site( $id );
@@ -249,7 +249,7 @@ if ( isset( $_GET['action'] ) ) {
 								break;
 						}
 					} else {
-						wp_die( __( 'Sorry, you are not allowed to change the current site.' ) );
+						wp_die( __( 'Sorry, you are not allowed to change the current site.' ), 403 );
 					}
 				}
 

@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 if ( ! current_user_can( 'create_sites' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to add sites to this network.' ) );
+	wp_die( __( 'Sorry, you are not allowed to add sites to this network.' ), 403 );
 }
 
 get_current_screen()->add_help_tab(
@@ -37,7 +37,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 	check_admin_referer( 'add-blog', '_wpnonce_add-blog' );
 
 	if ( ! is_array( $_POST['blog'] ) ) {
-		wp_die( __( 'Cannot create an empty site.' ) );
+		wp_die( __( 'Cannot create an empty site.' ), 400 );
 	}
 
 	$blog   = $_POST['blog'];
@@ -58,7 +58,8 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 					/* translators: %s: Reserved names list. */
 					__( 'The following words are reserved for use by WordPress functions and cannot be used as site names: %s' ),
 					'<code>' . implode( '</code>, <code>', $subdirectory_reserved_names ) . '</code>'
-				)
+				),
+				400
 			);
 		}
 	}
@@ -84,20 +85,20 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 	}
 
 	if ( empty( $title ) ) {
-		wp_die( __( 'Missing site title.' ) );
+		wp_die( __( 'Missing site title.' ), 400 );
 	}
 
 	if ( empty( $domain ) ) {
-		wp_die( __( 'Missing or invalid site address.' ) );
+		wp_die( __( 'Missing or invalid site address.' ), 400 );
 	}
 
 	if ( isset( $blog['email'] ) && '' === trim( $blog['email'] ) ) {
-		wp_die( __( 'Missing email address.' ) );
+		wp_die( __( 'Missing email address.' ), 400 );
 	}
 
 	$email = sanitize_email( $blog['email'] );
 	if ( ! is_email( $email ) ) {
-		wp_die( __( 'Invalid email address.' ) );
+		wp_die( __( 'Invalid email address.' ), 400 );
 	}
 
 	if ( is_subdomain_install() ) {
@@ -122,7 +123,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 
 		$user_id = username_exists( $domain );
 		if ( $user_id ) {
-			wp_die( __( 'The domain or path entered conflicts with an existing username.' ) );
+			wp_die( __( 'The domain or path entered conflicts with an existing username.' ), 409 );
 		}
 		$password = wp_generate_password( 12, false );
 		$user_id  = wpmu_create_user( $domain, $password, $email );
