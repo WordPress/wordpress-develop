@@ -50,7 +50,6 @@ table {/* tables still need 'cellspacing="0"' in the markup */
 	border-spacing: 0;
 }
 caption, th, td {
-	font-weight: normal;
 	text-align: left;
 }
 blockquote:before, blockquote:after,
