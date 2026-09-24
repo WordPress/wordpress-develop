@@ -126,21 +126,15 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 	}
 
 	if ( isset( $_POST['category_base'] ) ) {
-		$category_base = $_POST['category_base'];
-
-		if ( ! empty( $category_base ) ) {
-			$category_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $category_base ) );
-		}
+		$category_base = ltrim( $_POST['category_base'], '/' );
+		$category_base = empty( $category_base ) ? '' : $blog_prefix . '/' . implode( '/', array_map( 'sanitize_title_with_dashes', preg_split( '|/+|', $category_base ) ) );
 
 		$wp_rewrite->set_category_base( $category_base );
 	}
 
 	if ( isset( $_POST['tag_base'] ) ) {
-		$tag_base = $_POST['tag_base'];
-
-		if ( ! empty( $tag_base ) ) {
-			$tag_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $tag_base ) );
-		}
+		$tag_base = ltrim( $_POST['tag_base'], '/' );
+		$tag_base = empty( $tag_base ) ? '' : $blog_prefix . '/' . implode( '/', array_map( 'sanitize_title_with_dashes', preg_split( '|/+|', $tag_base ) ) );
 
 		$wp_rewrite->set_tag_base( $tag_base );
 	}
