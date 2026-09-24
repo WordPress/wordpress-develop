@@ -137,6 +137,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * Creates multiple objects.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of including a WP_Error object in the result.
 	 *
 	 * @param int                       $count                  Amount of objects to create.
 	 * @param array<string, mixed>      $args                   Optional. The arguments for the object to create. Default empty array.

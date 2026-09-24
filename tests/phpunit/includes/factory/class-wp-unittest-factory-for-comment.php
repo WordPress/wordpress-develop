@@ -81,12 +81,14 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * Creates multiple comments on a given post.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of including a WP_Error object in the result.
 	 *
 	 * @param int                       $post_id                ID of the post to create comments for.
 	 * @param int                       $count                  Total amount of comments to create.
 	 * @param array<string, mixed>      $args                   The comment details.
 	 * @param array<string, mixed>|null $generation_definitions Default values.
-	 * @return int[] Array with the comment IDs.
+	 * @return positive-int[] Array with the comment IDs.
+	 * @throws WP_UnitTest_Factory_Exception When one of the comments could not be created.
 	 */
 	public function create_post_comments( $post_id, $count = 1, $args = array(), $generation_definitions = null ) {
 		$args['comment_post_ID'] = $post_id;
