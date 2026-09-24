@@ -80,10 +80,13 @@ services:
       - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
       - mysql:/var/lib/mysql
 
+    # Ping over TCP: the client resolves the literal `localhost` to the Unix socket, which the
+    # temporary `--skip-networking` server used to initialise a cold volume answers long before
+    # the real server listens on port 3306.
     healthcheck:
       test: [
         'CMD-SHELL',
-        'if [ "$LOCAL_DB_TYPE" = "mariadb" ]; then case "$LOCAL_DB_VERSION" in 5.5|10.0|10.1|10.2|10.3) mysqladmin ping -h localhost || exit $$?;; *) mariadb-admin ping -h localhost || exit $$?;; esac; else mysqladmin ping -h localhost || exit $$?; fi'
+        'if [ "$LOCAL_DB_TYPE" = "mariadb" ]; then case "$LOCAL_DB_VERSION" in 5.5|10.0|10.1|10.2|10.3) mysqladmin ping -h 127.0.0.1 --protocol=tcp || exit $$?;; *) mariadb-admin ping -h 127.0.0.1 --protocol=tcp || exit $$?;; esac; else mysqladmin ping -h 127.0.0.1 --protocol=tcp || exit $$?; fi'
       ]
       timeout: 5s
       interval: 5s

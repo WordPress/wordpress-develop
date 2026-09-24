@@ -1069,13 +1069,13 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		);
 
 		$result1 = $this->q->query( array_merge( $args, array( 'has_password' => true ) ) );
-		$this->assertEqualSets( array( $two, $three ), $result1 );
+		$this->assertSameSets( array( (int) $two, (int) $three ), $result1 );
 		$result2 = $this->q->query( array_merge( $args, array( 'has_password' => false ) ) );
 		$this->assertSame( array( (int) $one ), $result2 );
 
 		// This is equivalent to not passing it at all.
 		$result3 = $this->q->query( array_merge( $args, array( 'has_password' => null ) ) );
-		$this->assertEqualSets( array( $one, $two, $three ), $result3 );
+		$this->assertSameSets( array( (int) $one, (int) $two, (int) $three ), $result3 );
 
 		// If both arguments are passed, only post_password is considered.
 		$result4 = $this->q->query(
@@ -1118,7 +1118,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEqualSets( array( $two, $three ), $result7 );
+		$this->assertSameSets( array( (int) $two, (int) $three ), $result7 );
 		$result8 = $this->q->query(
 			array_merge(
 				$args,
@@ -1128,7 +1128,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEqualSets( array( $two, $three ), $result8 );
+		$this->assertSameSets( array( (int) $two, (int) $three ), $result8 );
 		$result9 = $this->q->query(
 			array_merge(
 				$args,
@@ -1138,12 +1138,12 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEqualSets( array( $two, $three ), $result9 );
+		$this->assertSameSets( array( (int) $two, (int) $three ), $result9 );
 
 		$result10 = $this->q->query( array_merge( $args, array( 'post_password' => '' ) ) );
 		$this->assertSame( array( (int) $one ), $result10 );
 		$result11 = $this->q->query( array_merge( $args, array( 'post_password' => 'burrito' ) ) );
-		$this->assertEqualSets( array( $two, $three ), $result11 );
+		$this->assertSameSets( array( (int) $two, (int) $three ), $result11 );
 	}
 
 	/**
