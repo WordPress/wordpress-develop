@@ -30,7 +30,6 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 *
 	 * @param array $args Arguments for the network object.
-	 *
 	 * @return int|WP_Error The network ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
@@ -74,7 +73,6 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * @since 3.9.0
 	 *
 	 * @param int $network_id ID of the network to retrieve.
-	 *
 	 * @return WP_Network|null The network object on success, null on failure.
 	 */
 	public function get_object_by_id( $network_id ) {

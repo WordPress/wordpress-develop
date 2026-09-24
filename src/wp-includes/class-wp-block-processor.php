@@ -538,6 +538,7 @@ class WP_Block_Processor {
 	 * associated with token boundaries still point to the delimiters even
 	 * when processing HTML spans, so there’s no need to track them independently.
 	 *
+	 * @since 6.9.0
 	 * @var 'push'|'void'|'pop'|null
 	 */
 	private $next_stack_op = null;
@@ -831,6 +832,11 @@ class WP_Block_Processor {
 					$this->open_blocks_at[]         = $after_prev_delimiter;
 					$this->open_blocks_length[]     = 0;
 					$this->was_void                 = true;
+
+					if ( $backup > 0 ) {
+						$this->last_error = self::INCOMPLETE_INPUT;
+					}
+
 					return true;
 				}
 
@@ -1442,6 +1448,8 @@ class WP_Block_Processor {
 	 *     $is_core_paragraph = $processor->is_block_type( 'core/paragraph' );
 	 *     $is_formula        = $processor->is_block_type( 'math-block/formula' );
 	 *
+	 * @since 6.9.0
+	 *
 	 * @param string $block_type Block type name for the desired block.
 	 *                           E.g. "paragraph", "core/paragraph", "math-blocks/formula".
 	 * @return bool Whether this delimiter represents a block of the given type.
@@ -1573,8 +1581,8 @@ class WP_Block_Processor {
 	 *
 	 * @see self::is_block_type()
 	 *
-	 * @param string[] $block_type Optional. Is the matched block type one of these?
-	 *                             If none are provided, will not test block type.
+	 * @param string ...$block_type Optional. Is the matched block type one of these?
+	 *                              If none are provided, will not test block type.
 	 * @return bool Whether the matched block delimiter opens a block, and whether it
 	 *              opens a block of one of the given block types, if provided.
 	 */
