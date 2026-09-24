@@ -90,7 +90,7 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 * @return WP_Network The network object.
 	 * @throws WP_UnitTest_Factory_Exception When the network could not be retrieved.
 	 */
-	public function get_object_by_id( int $network_id ) {
+	public function get_object_by_id( $network_id ) {
 		$network = get_network( $network_id );
 
 		$this->assert_valid_object( $network, $network_id, WP_Network::class );

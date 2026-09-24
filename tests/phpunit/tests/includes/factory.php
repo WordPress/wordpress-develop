@@ -656,7 +656,7 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 	 * @return stdClass The configured result.
 	 * @throws WP_UnitTest_Factory_Exception When the configured result is not a stdClass.
 	 */
-	public function get_object_by_id( int $object_id ): stdClass {
+	public function get_object_by_id( $object_id ): stdClass {
 		$this->assert_valid_object( $this->get_object_by_id_result, $object_id, stdClass::class );
 
 		return $this->get_object_by_id_result;
@@ -720,7 +720,7 @@ class Tests_Includes_Factory_Legacy_Stub extends WP_UnitTest_Factory_For_Thing {
 	 * @param int $object_id The object ID.
 	 * @return object|WP_Error|null|false The configured result.
 	 */
-	public function get_object_by_id( int $object_id ) {
+	public function get_object_by_id( $object_id ) {
 		return $this->get_object_by_id_result;
 	}
 }

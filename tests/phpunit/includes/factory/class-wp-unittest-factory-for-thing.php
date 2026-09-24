@@ -142,7 +142,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @return object|WP_Error|null|false The object, or a WP_Error object, null or false on failure. Implementations narrow this to their own object type.
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be retrieved, if the implementation throws.
 	 */
-	abstract public function get_object_by_id( int $object_id );
+	abstract public function get_object_by_id( $object_id );
 
 	/**
 	 * Creates multiple objects.
