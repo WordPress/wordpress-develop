@@ -92,6 +92,13 @@ if ( ! function_exists( 'wp_install' ) ) :
 
 		$guessurl = wp_guess_url();
 
+		if (
+			! defined( 'WP_HOME' ) && ! defined( 'WP_SITEURL' )
+			&& ! is_ssl() && wp_is_https_supported() && wp_update_urls_to_https()
+		) {
+			$guessurl = set_url_scheme( $guessurl, 'https' );
+		}
+
 		update_option( 'siteurl', $guessurl );
 
 		// If not a public site, don't ping.
