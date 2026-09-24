@@ -440,6 +440,50 @@ class TestFactoryFor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A factory defined outside core may still report that an object could not be retrieved
+	 * the way the contract allowed before 7.2.0, by returning null, false or a WP_Error.
+	 * create_and_get() has to turn that into an exception rather than hand it back.
+	 *
+	 * @ticket 66111
+	 *
+	 * @dataProvider data_legacy_retrieval_failures
+	 *
+	 * @param WP_Error|null|false $retrieved The value the legacy get_object_by_id() returns.
+	 * @param string              $message   The expected exception message.
+	 */
+	public function test_create_and_get_should_throw_an_exception_when_a_legacy_factory_cannot_retrieve( $retrieved, string $message ) {
+		$factory = new Tests_Includes_Factory_Legacy_Stub( self::factory(), 5, 1, $retrieved );
+
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( $message );
+
+		$factory->create_and_get();
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{WP_Error|null|false, string}>
+	 */
+	public function data_legacy_retrieval_failures(): array {
+		return array(
+			'null'     => array( null, 'Unable to retrieve the object with ID 5. Args: []' ),
+			'false'    => array( false, 'Unable to retrieve the object with ID 5. Args: []' ),
+			'WP_Error' => array( new WP_Error( 'not_found', 'The object could not be found.' ), 'Unable to retrieve the object with ID 5: The object could not be found.' ),
+		);
+	}
+
+	/**
+	 * @ticket 66111
+	 */
+	public function test_create_and_get_should_return_the_object_from_a_legacy_factory() {
+		$object  = (object) array( 'ID' => 5 );
+		$factory = new Tests_Includes_Factory_Legacy_Stub( self::factory(), 5, 1, $object );
+
+		$this->assertSame( $object, $factory->create_and_get() );
+	}
+
+	/**
 	 * @ticket 66111
 	 */
 	public function test_create_many_should_return_an_array_of_ids() {
@@ -637,15 +681,22 @@ class Tests_Includes_Factory_Legacy_Stub extends WP_UnitTest_Factory_For_Thing {
 	private $update_object_result;
 
 	/**
-	 * @param object       $factory              Global factory that can be used to create other objects on the system.
-	 * @param int|WP_Error $create_object_result The value create_object() returns.
-	 * @param int|WP_Error $update_object_result Optional. The value update_object() returns. Default 1.
+	 * @var object|WP_Error|null|false
 	 */
-	public function __construct( $factory, $create_object_result, $update_object_result = 1 ) {
+	private $get_object_by_id_result;
+
+	/**
+	 * @param object                     $factory                 Global factory that can be used to create other objects on the system.
+	 * @param int|WP_Error               $create_object_result    The value create_object() returns.
+	 * @param int|WP_Error               $update_object_result    Optional. The value update_object() returns. Default 1.
+	 * @param object|WP_Error|null|false $get_object_by_id_result Optional. The value get_object_by_id() returns. Default null.
+	 */
+	public function __construct( $factory, $create_object_result, $update_object_result = 1, $get_object_by_id_result = null ) {
 		parent::__construct( $factory );
 
-		$this->create_object_result = $create_object_result;
-		$this->update_object_result = $update_object_result;
+		$this->create_object_result    = $create_object_result;
+		$this->update_object_result    = $update_object_result;
+		$this->get_object_by_id_result = $get_object_by_id_result;
 	}
 
 	/**
@@ -667,9 +718,9 @@ class Tests_Includes_Factory_Legacy_Stub extends WP_UnitTest_Factory_For_Thing {
 
 	/**
 	 * @param int $object_id The object ID.
-	 * @return stdClass An empty object.
+	 * @return object|WP_Error|null|false The configured result.
 	 */
 	public function get_object_by_id( int $object_id ) {
-		return new stdClass();
+		return $this->get_object_by_id_result;
 	}
 }

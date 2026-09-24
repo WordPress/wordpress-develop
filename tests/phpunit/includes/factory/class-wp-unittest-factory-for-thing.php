@@ -118,18 +118,29 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @throws WP_UnitTest_Factory_Exception When the object could not be created or retrieved.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
-		return $this->get_object_by_id( $this->create( $args, $generation_definitions ) );
+		$object_id = $this->create( $args, $generation_definitions );
+		$object    = $this->get_object_by_id( $object_id );
+
+		// The core factories throw for themselves, but a factory defined elsewhere may still
+		// return a WP_Error, null or false, as the contract allowed before 7.2.0.
+		$this->assert_valid_object( $object, $object_id, null, $args );
+
+		return $object;
 	}
 
 	/**
 	 * Retrieves an object by ID.
 	 *
+	 * An implementation may still report that the object could not be retrieved by returning a
+	 * WP_Error object, null or false, as factories outside core written before 7.2.0 do, or may
+	 * throw, as the core factories do. create_and_get() turns any of those into an exception.
+	 *
 	 * @since UT (3.7.0)
-	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object, null or false when the object cannot be retrieved.
+	 * @since 7.2.0 May throw an exception instead of returning a WP_Error object, null or false when the object cannot be retrieved.
 	 *
 	 * @param int $object_id The object ID.
-	 * @return object The object. Implementations narrow this to their own object type.
-	 * @throws WP_UnitTest_Factory_Exception When the object could not be retrieved.
+	 * @return object|WP_Error|null|false The object, or a WP_Error object, null or false on failure. Implementations narrow this to their own object type.
+	 * @throws WP_UnitTest_Factory_Exception When the object could not be retrieved, if the implementation throws.
 	 */
 	abstract public function get_object_by_id( int $object_id );
 
@@ -262,7 +273,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Asserts that the result of a retrieval operation is an object of the expected class.
+	 * Asserts that the result of a retrieval operation is an object, of the expected class if one is given.
 	 *
 	 * The WP_Error case is checked first, and separately. The class check below would reject
 	 * a WP_Error too, but only with the generic message, discarding the reason the retrieval
@@ -272,23 +283,25 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param mixed                $retrieved      The value returned by the retrieval function.
 	 * @param int                  $object_id      The ID the object was retrieved by.
-	 * @param string               $expected_class The class the object is expected to be an instance of.
+	 * @param string|null          $expected_class The class the object is expected to be an instance of, or null to accept any object.
 	 * @param array<string, mixed> $args           Optional. The arguments the object was created with, reported in the message. Default empty array.
 	 * @return void
-	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object, or is not an object of the expected class.
+	 * @throws WP_UnitTest_Factory_Exception When the value is a WP_Error object, is not an object, or is not of the expected class.
 	 *
 	 * @template T of object
-	 * @phpstan-param class-string<T> $expected_class
+	 * @phpstan-param class-string<T>|null $expected_class
 	 * @phpstan-assert T $retrieved
 	 */
-	protected function assert_valid_object( $retrieved, int $object_id, string $expected_class, $args = array() ): void {
+	protected function assert_valid_object( $retrieved, int $object_id, ?string $expected_class, $args = array() ): void {
 		if ( is_wp_error( $retrieved ) ) {
 			throw new WP_UnitTest_Factory_Exception(
 				sprintf( 'Unable to retrieve the object with ID %d: %s. Args: %s', $object_id, $retrieved->get_error_message(), wp_json_encode( $args ) )
 			);
 		}
 
-		if ( ! $retrieved instanceof $expected_class ) {
+		$is_valid = null === $expected_class ? is_object( $retrieved ) : $retrieved instanceof $expected_class;
+
+		if ( ! $is_valid ) {
 			throw new WP_UnitTest_Factory_Exception(
 				sprintf( 'Unable to retrieve the object with ID %d. Args: %s', $object_id, wp_json_encode( $args ) )
 			);
