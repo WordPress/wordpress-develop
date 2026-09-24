@@ -77,6 +77,15 @@ if ( isset( $_REQUEST['action'] ) && 'add-user' === $_REQUEST['action'] ) {
 	}
 }
 
+$username = '';
+$email    = '';
+if ( isset( $_REQUEST['action'] ) && 'add-user' === $_REQUEST['action'] && ! empty( $add_user_errors ) && is_wp_error( $add_user_errors ) ) {
+	if ( isset( $_POST['user'] ) && is_array( $_POST['user'] ) ) {
+		$username = isset( $_POST['user']['username'] ) ? wp_unslash( $_POST['user']['username'] ) : '';
+		$email    = isset( $_POST['user']['email'] ) ? wp_unslash( $_POST['user']['email'] ) : '';
+	}
+}
+
 $message = '';
 if ( isset( $_GET['update'] ) ) {
 	if ( 'added' === $_GET['update'] ) {
@@ -139,11 +148,11 @@ if ( isset( $add_user_errors ) && is_wp_error( $add_user_errors ) ) {
 		<table class="form-table" role="presentation">
 			<tr class="form-field form-required">
 				<th scope="row"><label for="username"><?php _e( 'Username' ); ?> <?php echo wp_required_field_indicator(); ?></label></th>
-				<td><input type="text" class="regular-text" name="user[username]" id="username" autocapitalize="none" autocorrect="off" maxlength="60" required="required" /></td>
+				<td><input type="text" class="regular-text" name="user[username]" id="username" autocapitalize="none" autocorrect="off" maxlength="60" required="required" value="<?php echo esc_attr( $username ); ?>" /></td>
 			</tr>
 			<tr class="form-field form-required">
 				<th scope="row"><label for="email"><?php _e( 'Email' ); ?> <?php echo wp_required_field_indicator(); ?></label></th>
-				<td><input type="email" class="regular-text" name="user[email]" id="email" required="required" /></td>
+				<td><input type="email" class="regular-text" name="user[email]" id="email" required="required" value="<?php echo esc_attr( $email ); ?>" /></td>
 			</tr>
 			<tr class="form-field">
 				<td colspan="2" class="td-full"><?php _e( 'A password reset link will be sent to the user via email.' ); ?></td>

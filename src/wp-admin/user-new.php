@@ -32,8 +32,15 @@ if ( is_multisite() ) {
 if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 	check_admin_referer( 'add-user', '_wpnonce_add-user' );
 
-	$user_details = null;
-	$user_email   = wp_unslash( $_REQUEST['email'] );
+	$user_details  = null;
+	$redirect_args = array();
+	foreach ( array( 'email', 'role', 'noconfirmation' ) as $redirect_arg ) {
+		if ( isset( $_REQUEST[ $redirect_arg ] ) ) {
+			$redirect_args[ $redirect_arg ] = $_REQUEST[ $redirect_arg ];
+		}
+	}
+
+	$user_email = wp_unslash( $_REQUEST['email'] );
 
 	if ( str_contains( $user_email, '@' ) ) {
 		$user_details = get_user_by( 'email', $user_email );
@@ -41,13 +48,15 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 		if ( current_user_can( 'manage_network_users' ) ) {
 			$user_details = get_user_by( 'login', $user_email );
 		} else {
-			wp_redirect( add_query_arg( array( 'update' => 'enter_email' ), 'user-new.php' ) );
+			$redirect_args['update'] = 'enter_email';
+			wp_redirect( add_query_arg( $redirect_args, 'user-new.php' ) );
 			die();
 		}
 	}
 
 	if ( ! $user_details ) {
-		wp_redirect( add_query_arg( array( 'update' => 'does_not_exist' ), 'user-new.php' ) );
+		$redirect_args['update'] = 'does_not_exist';
+		wp_redirect( add_query_arg( $redirect_args, 'user-new.php' ) );
 		die();
 	}
 
@@ -469,15 +478,26 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 <input name="action" type="hidden" value="adduser" />
 	<?php wp_nonce_field( 'add-user', '_wpnonce_add-user' ); ?>
 
+	<?php
+	$adduser_email          = isset( $_GET['email'] ) ? wp_unslash( $_GET['email'] ) : '';
+	$adduser_role           = isset( $_GET['role'] ) ? sanitize_text_field( wp_unslash( $_GET['role'] ) ) : '';
+	$adduser_noconfirmation = isset( $_GET['noconfirmation'] ) ? wp_unslash( $_GET['noconfirmation'] ) : '';
+	if ( $adduser_role && ! array_key_exists( $adduser_role, get_editable_roles() ) ) {
+		$adduser_role = '';
+	}
+	?>
 <table class="form-table" role="presentation">
 	<tr class="form-field form-required">
 		<th scope="row"><label for="adduser-email"><?php echo esc_html( $label ); ?></label></th>
-		<td><input name="email" type="<?php echo esc_attr( $type ); ?>" id="adduser-email" class="wp-suggest-user" value="" /></td>
+		<td><input name="email" type="<?php echo esc_attr( $type ); ?>" id="adduser-email" class="wp-suggest-user" value="<?php echo esc_attr( $adduser_email ); ?>" /></td>
 	</tr>
 	<tr class="form-field">
 		<th scope="row"><label for="adduser-role"><?php _e( 'Role' ); ?></label></th>
 		<td><select name="role" id="adduser-role">
-			<?php wp_dropdown_roles( get_option( 'default_role' ) ); ?>
+			<?php
+			$adduser_role_default = $adduser_role ? $adduser_role : get_option( 'default_role' );
+			wp_dropdown_roles( $adduser_role_default );
+			?>
 			</select>
 		</td>
 	</tr>
@@ -485,7 +505,7 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 	<tr>
 		<th scope="row"><?php _e( 'Skip Confirmation Email' ); ?></th>
 		<td>
-			<input type="checkbox" name="noconfirmation" id="adduser-noconfirmation" value="1" />
+			<input type="checkbox" name="noconfirmation" id="adduser-noconfirmation" value="1" <?php checked( $adduser_noconfirmation, '1' ); ?> />
 			<label for="adduser-noconfirmation"><?php _e( 'Add the user without sending an email that requires their confirmation' ); ?></label>
 		</td>
 	</tr>
