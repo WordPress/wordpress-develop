@@ -179,4 +179,32 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 	public function test_invalid_taxonomy_should_return_wp_error_object() {
 		$this->assertWPError( is_object_in_term( 12345, 'foo', 'bar' ) );
 	}
+
+	/**
+	 * @ticket 63618
+	 */
+	public function test_term_objects_should_not_be_added_to_cache_when_suspend_cache_addition() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'slug'     => 'foo',
+			)
+		);
+
+		$object_id = 12345;
+		wp_cache_delete( $object_id, 'wptests_tax_relationships' );
+
+		$suspend = wp_suspend_cache_addition();
+		wp_suspend_cache_addition( true );
+
+		is_object_in_term( $object_id, 'wptests_tax', $t );
+
+		wp_suspend_cache_addition( $suspend );
+
+		$this->assertFalse( wp_cache_get( $object_id, 'wptests_tax_relationships' ) );
+
+		_unregister_taxonomy( 'wptests_tax', 'post' );
+	}
 }
