@@ -14,7 +14,6 @@
  *
  * @property-read object $data Sanitized term data.
  */
-#[AllowDynamicProperties]
 final class WP_Term {
 
 	/**
@@ -88,6 +87,62 @@ final class WP_Term {
 	 * @var int
 	 */
 	public $count = 0;
+
+	/**
+	 * Object ID (for compatibility with the old taxonomy API).
+	 *
+	 * @var int|null
+	 */
+	public $object_id = null;
+
+	/**
+	 * Compatibility fields (for compatibility with the old taxonomy API).
+	 *
+	 * @var array
+	 */
+	public $compat_fields = array();
+
+	/**
+	 * Category ID (for compatibility with the old taxonomy API).
+	 *
+	 * @var int|null
+	 */
+	public $cat_ID = null;
+
+	/**
+	 * Category count (for compatibility with the old taxonomy API).
+	 *
+	 * @var int|null
+	 */
+	public $category_count = null;
+
+	/**
+	 * Category description (for compatibility with the old taxonomy API).
+	 *
+	 * @var string|null
+	 */
+	public $category_description = null;
+
+	/**
+	 * Category name (for compatibility with the old taxonomy API).
+	 *
+	 * @var string|null
+	 */
+	public $cat_name = null;
+
+	/**
+	 * Category slug (for compatibility with the old taxonomy API).
+	 *
+	 * @var string|null
+	 */
+	public $category_nicename = null;
+
+	/**
+	 * Category parent ID (for compatibility with the old taxonomy API).
+	 *
+	 * @var int|null
+	 */
+	public $category_parent = null;
 
 	/**
 	 * Stores the term object's sanitization level.
