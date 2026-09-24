@@ -1205,6 +1205,17 @@ function delete_option( $option ) {
 		$option = trim( $option );
 	}
 
+	/**
+	 * Filters the option name before the option gets deleted.
+	 *
+	 * Returning an empty string short circuits the function.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $option Option name.
+	 */
+	$option = trim( apply_filters( 'pre_delete_option', $option ) );
+
 	if ( empty( $option ) ) {
 		return false;
 	}
