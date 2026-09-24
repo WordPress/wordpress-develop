@@ -1487,41 +1487,15 @@ function register_post_status( $post_status, $args = array() ) {
 		$args->internal = true;
 	}
 
-	if ( null === $args->public ) {
-		$args->public = false;
-	}
-
-	if ( null === $args->private ) {
-		$args->private = false;
-	}
-
-	if ( null === $args->protected ) {
-		$args->protected = false;
-	}
-
-	if ( null === $args->internal ) {
-		$args->internal = false;
-	}
-
-	if ( null === $args->publicly_queryable ) {
-		$args->publicly_queryable = $args->public;
-	}
-
-	if ( null === $args->exclude_from_search ) {
-		$args->exclude_from_search = $args->internal;
-	}
-
-	if ( null === $args->show_in_admin_all_list ) {
-		$args->show_in_admin_all_list = ! $args->internal;
-	}
-
-	if ( null === $args->show_in_admin_status_list ) {
-		$args->show_in_admin_status_list = ! $args->internal;
-	}
-
-	if ( null === $args->date_floating ) {
-		$args->date_floating = false;
-	}
+	$args->public                    ??= false;
+	$args->private                   ??= false;
+	$args->protected                 ??= false;
+	$args->internal                  ??= false;
+	$args->publicly_queryable        ??= $args->public;
+	$args->exclude_from_search       ??= $args->internal;
+	$args->show_in_admin_all_list    ??= ! $args->internal;
+	$args->show_in_admin_status_list ??= ! $args->internal;
+	$args->date_floating             ??= false;
 
 	if ( false === $args->label ) {
 		$args->label = $post_status;
@@ -2764,6 +2738,8 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $post_id
  */
 function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
 	// Make sure meta is deleted from the post, not from a revision.
@@ -2796,6 +2772,18 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -2844,7 +2832,7 @@ function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) 
  * @return bool Whether the post meta key was deleted from the database.
  */
 function delete_post_meta_by_key( $post_meta_key ) {
-	return delete_metadata( 'post', null, $post_meta_key, '', true );
+	return delete_metadata( 'post', 0, $post_meta_key, '', true );
 }
 
 /**
@@ -2889,17 +2877,23 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array<string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
- *                                                 Post meta values will always be strings, even for values which would
- *                                                 otherwise be retrieved individually as arrays or objects via
- *                                                 {@see get_post_meta()}. An empty array is returned if the post has
- *                                                 no post meta.
+ * @return array<string|int, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
+ *                                                     Post meta values will always be strings, even for values which
+ *                                                     would otherwise be retrieved individually as arrays or objects
+ *                                                     via {@see get_post_meta()}. A meta key which is a numeric string
+ *                                                     is keyed by the equivalent integer, as PHP casts such array keys.
+ *                                                     An empty array is returned if the post has no post meta.
+ *
+ * @phpstan-return array<array-key, list<string>>|false
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
 
 	if ( ! $post_id ) {
 		$post_id = get_the_ID();
+		if ( false === $post_id ) {
+			return false;
+		}
 	}
 
 	return get_post_meta( $post_id );
@@ -2913,7 +2907,11 @@ function get_post_custom( $post_id = 0 ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|null Array of the keys, if retrieved.
+ * @return array<string|int>|null Array of the meta field keys, if retrieved. Null if the post has no
+ *                                post meta, or if the post meta could not be retrieved. A key which is
+ *                                a numeric string is returned as the equivalent integer.
+ *
+ * @phpstan-return non-empty-list<array-key>|null
  */
 function get_post_custom_keys( $post_id = 0 ) {
 	$custom = get_post_custom( $post_id );
@@ -2939,7 +2937,11 @@ function get_post_custom_keys( $post_id = 0 ) {
  *
  * @param string $key     Optional. Meta field key. Default empty.
  * @param int    $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|null Meta field values.
+ * @return string[]|null Meta field values. Null if `$key` is not specified, if the post has no
+ *                       meta for that key, or if the post meta could not be retrieved.
+ *                       Values are always strings, as described for {@see get_post_custom()}.
+ *
+ * @phpstan-return ( $key is ''|'0' ? null : list<string>|null )
  */
 function get_post_custom_values( $key = '', $post_id = 0 ) {
 	if ( ! $key ) {
@@ -4452,10 +4454,28 @@ function wp_untrash_post_comments( $post = null ) {
  *                       global $post. Default 0.
  * @param array $args    Optional. Category query parameters. Default empty array.
  *                       See WP_Term_Query::__construct() for supported arguments.
- * @return array|WP_Error List of categories. If the `$fields` argument passed via `$args` is 'all' or
- *                        'all_with_object_id', an array of WP_Term objects will be returned. If `$fields`
- *                        is 'ids', an array of category IDs. If `$fields` is 'names', an array of category names.
- *                        WP_Error object if 'category' taxonomy doesn't exist.
+ * @return int[]|WP_Term[]|string[]|string|WP_Error List of categories. An array of category IDs by
+ *                                                  default, and if the `$fields` argument passed via
+ *                                                  `$args` is 'ids'. If `$fields` is 'all' or
+ *                                                  'all_with_object_id', an array of WP_Term objects.
+ *                                                  If `$fields` is 'names', an array of category names.
+ *                                                  If `$fields` is 'count', a count thereof as a numeric
+ *                                                  string. WP_Error object if 'category' taxonomy
+ *                                                  doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'id=>parent', ... }
+ *             ? array<int, int>|WP_Error
+ *             : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                 ? string[]|WP_Error
+ *                 : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                     ? array<int, string>|WP_Error
+ *                     : ( $args is array{ fields: 'all'|'all_with_object_id', ... }
+ *                         ? WP_Term[]|WP_Error
+ *                         : int[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_categories( $post_id = 0, $args = array() ) {
 	$post_id = (int) $post_id;
@@ -4480,8 +4500,24 @@ function wp_get_post_categories( $post_id = 0, $args = array() ) {
  *                       global $post. Default 0.
  * @param array $args    Optional. Tag query parameters. Default empty array.
  *                       See WP_Term_Query::__construct() for supported arguments.
- * @return array|WP_Error Array of WP_Term objects on success or empty array if no tags were found.
- *                        WP_Error object if 'post_tag' taxonomy doesn't exist.
+ * @return WP_Term[]|int[]|string[]|string|WP_Error Array of WP_Term objects on success or empty array if no
+ *                                                  tags were found. A count thereof as a numeric string if
+ *                                                  the `$fields` argument passed via `$args` is 'count'.
+ *                                                  WP_Error object if 'post_tag' taxonomy doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : WP_Term[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_tags( $post_id = 0, $args = array() ) {
 	return wp_get_post_terms( $post_id, 'post_tag', $args );
@@ -4501,8 +4537,24 @@ function wp_get_post_tags( $post_id = 0, $args = array() ) {
  *
  *     @type string $fields Term fields to retrieve. Default 'all'.
  * }
- * @return array|WP_Error Array of WP_Term objects on success or empty array if no terms were found.
- *                        WP_Error object if `$taxonomy` doesn't exist.
+ * @return WP_Term[]|int[]|string[]|string|WP_Error Array of WP_Term objects on success or empty array if no
+ *                                                  terms were found. A count thereof as a numeric string if
+ *                                                  the `$fields` argument passed via `$args` is 'count'.
+ *                                                  WP_Error object if `$taxonomy` doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : WP_Term[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array() ) {
 	$post_id = (int) $post_id;
@@ -5669,7 +5721,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_id ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5706,7 +5758,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id, $post_parent ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5762,7 +5814,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5783,31 +5835,6 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 	 * @param string $original_slug The original post slug.
 	 */
 	return apply_filters( 'wp_unique_post_slug', $slug, $post_id, $post_status, $post_type, $post_parent, $original_slug );
-}
-
-/**
- * Truncates a post slug.
- *
- * @since 3.6.0
- * @access private
- *
- * @see utf8_uri_encode()
- *
- * @param string $slug   The slug to truncate.
- * @param int    $length Optional. Max length of the slug. Default 200 (characters).
- * @return string The truncated slug.
- */
-function _truncate_post_slug( $slug, $length = 200 ) {
-	if ( strlen( $slug ) > $length ) {
-		$decoded_slug = urldecode( $slug );
-		if ( $decoded_slug === $slug ) {
-			$slug = substr( $slug, 0, $length );
-		} else {
-			$slug = utf8_uri_encode( $decoded_slug, $length, true );
-		}
-	}
-
-	return rtrim( $slug, '-' );
 }
 
 /**
@@ -5962,7 +5989,7 @@ function wp_set_post_categories( $post_id = 0, $post_categories = array(), $appe
  *
  * @param string  $new_status Transition to this post status.
  * @param string  $old_status Previous post status.
- * @param WP_Post $post Post data.
+ * @param WP_Post $post       Post data.
  */
 function wp_transition_post_status( $new_status, $old_status, $post ) {
 	/**
@@ -6925,7 +6952,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	wp_delete_object_term_relationships( $post_id, get_object_taxonomies( $post->post_type ) );
 
 	// Delete all for any posts.
-	delete_metadata( 'post', null, '_thumbnail_id', $post_id, true );
+	delete_metadata( 'post', 0, '_thumbnail_id', $post_id, true );
 
 	wp_defer_comment_counting( true );
 
@@ -8674,7 +8701,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 		return $post->post_name;
 	}
 	add_post_meta( $post->ID, '_wp_desired_post_slug', $post->post_name );
-	$post_name = _truncate_post_slug( $post->post_name, 191 ) . '__trashed';
+	$post_name = wp_truncate_slug( $post->post_name, 191 ) . '__trashed';
 	$wpdb->update( $wpdb->posts, array( 'post_name' => $post_name ), array( 'ID' => $post->ID ) );
 	clean_post_cache( $post->ID );
 	return $post_name;
@@ -8732,7 +8759,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
  * @since 5.4.0 Added the `$unfiltered` parameter.
  *
  * @param int  $attachment_id Attachment ID.
- * @param bool $unfiltered Optional. Passed through to `get_attached_file()`. Default false.
+ * @param bool $unfiltered    Optional. Passed through to `get_attached_file()`. Default false.
  * @return string|false Path to the original image file or false if the attachment is not an image.
  */
 function wp_get_original_image_path( $attachment_id, $unfiltered = false ) {

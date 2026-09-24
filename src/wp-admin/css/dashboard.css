@@ -1066,7 +1066,7 @@ body #dashboard-widgets .postbox form .submit {
 	min-width: 0;
 }
 
-#dashboard-widgets li a,
+#dashboard-widgets li:not(.activity-block li):not(.comment) a,
 #dashboard-widgets .button-link,
 .community-events-footer a {
 	text-decoration: none;

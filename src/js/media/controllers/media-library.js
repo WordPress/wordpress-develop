@@ -22,6 +22,8 @@ MediaLibrary = Library.extend(/** @lends wp.media.controller.MediaLibrary.protot
 	}, Library.prototype.defaults ),
 
 	/**
+	 * Initializes the MediaLibrary controller.
+	 *
 	 * @since 3.9.0
 	 *
 	 * @param {Object} options Attributes.
@@ -35,6 +37,8 @@ MediaLibrary = Library.extend(/** @lends wp.media.controller.MediaLibrary.protot
 	},
 
 	/**
+	 * Activates the MediaLibrary controller.
+	 *
 	 * @since 3.9.0
 	 */
 	activate: function() {
