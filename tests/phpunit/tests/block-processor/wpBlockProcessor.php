@@ -313,7 +313,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * Verifies that HTML comments which end a document but which are not block
 	 * delimiters are incorporated into the final HTML span.
 	 *
-	 * @ticket 61401
+	 * @ticket 66138
 	 *
 	 * @dataProvider data_terminal_non_delimiter_comments
 	 *
@@ -600,7 +600,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * taken as the end of the delimiter, producing a delimiter which spanned two
 	 * comments.
 	 *
-	 * @ticket 61401
+	 * @ticket 66138
 	 *
 	 * @dataProvider data_delimiters_and_comment_endings
 	 *
@@ -627,7 +627,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * reported as incomplete input: the comment is closed, so no delimiter could
 	 * be completed by further input.
 	 *
-	 * @ticket 61401
+	 * @ticket 66138
 	 */
 	public function test_exclamation_ending_at_end_of_document_is_not_incomplete_input(): void {
 		$processor = new WP_Block_Processor( '<!-- wp:a {"k":"x --!>' );
@@ -682,7 +682,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * byte later, so a `<!--` inside the comment's text is not treated as the start
 	 * of another delimiter.
 	 *
-	 * @ticket 61401
+	 * @ticket 66138
 	 *
 	 * @dataProvider data_comments_with_rejected_json_attributes
 	 *
