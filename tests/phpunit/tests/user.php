@@ -2889,11 +2889,11 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function data_edit_user_sanitizes_email_address() {
 		return array(
-			array('eusp2@example.com', 'eusp2@example.com'),
-			array('eusp3%4@example.com', 'eusp3%4@example.com'),
-			array('eu\'sp5@example.com', 'eu\'sp5@example.com'),
-			array('eu&@example.com', 'eu&amp;@example.com'),
-			array('eu&amp@example.com', 'eu&amp;amp@example.com'),
+			array( 'eusp2@example.com', 'eusp2@example.com' ),
+			array( 'eusp3%4@example.com', 'eusp3%4@example.com' ),
+			array( 'eu\'sp5@example.com', 'eu\'sp5@example.com' ),
+			array( 'eu&@example.com', 'eu&amp;@example.com' ),
+			array( 'eu&amp@example.com', 'eu&amp;amp@example.com' ),
 		);
 	}
 
@@ -2904,7 +2904,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 45714
 	 */
-	public function test_edit_user_sanitizes_email_address($new_email, $sanitized_email) {
+	public function test_edit_user_sanitizes_email_address( $new_email, $sanitized_email ) {
 		$_POST    = array();
 		$_GET     = array();
 		$_REQUEST = array();
@@ -2938,11 +2938,11 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function data_edit_user_sanitizes_email_address_error() {
 		return array(
-			array(''),
-			array(' eusp4%4@example.com'),
-			array('eusp4@example.com!'),
-			array('eusp6@example.com%aa'),
-			array('eusp5'),
+			array( '' ),
+			array( ' eusp4%4@example.com' ),
+			array( 'eusp4@example.com!' ),
+			array( 'eusp6@example.com%aa' ),
+			array( 'eusp5' ),
 		);
 	}
 
@@ -2953,7 +2953,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 45714
 	 */
-	public function test_edit_user_sanitizes_email_address_error($new_email) {
+	public function test_edit_user_sanitizes_email_address_error( $new_email ) {
 		$_POST    = array();
 		$_GET     = array();
 		$_REQUEST = array();
@@ -2972,5 +2972,4 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $user_id );
 		$this->assertEquals( 'invalid_email', $user_id->get_error_code() );
 	}
-
 }
