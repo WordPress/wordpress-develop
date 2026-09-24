@@ -1224,19 +1224,19 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		return (bool) $check;
 	}
 
-	$cache_group    = $meta_type . '_meta';
-	$non_cached_ids = array();
-	$invalid_ids    = array();
-	$cache          = array();
-	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_group );
+	$cache_group       = $meta_type . '_meta';
+	$non_cached_ids    = array();
+	$invalid_cache_ids = array();
+	$cache             = array();
+	$cache_values      = wp_cache_get_multiple( $object_ids, $cache_group );
 
 	foreach ( $cache_values as $id => $cached_object ) {
 		if ( false === $cached_object ) {
 			$non_cached_ids[] = $id;
 		} elseif ( ! is_array( $cached_object ) ) {
 			// A cached value that is not an array is unusable, treat it as a cache miss.
-			$non_cached_ids[] = $id;
-			$invalid_ids[]    = $id;
+			$non_cached_ids[]    = $id;
+			$invalid_cache_ids[] = $id;
 		} else {
 			$cache[ $id ] = $cached_object;
 		}
@@ -1247,8 +1247,8 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	 * A delete followed by an add is used instead of wp_cache_set_multiple()
 	 * so that wp_suspend_cache_addition() is still respected.
 	 */
-	if ( ! empty( $invalid_ids ) ) {
-		wp_cache_delete_multiple( $invalid_ids, $cache_group );
+	if ( ! empty( $invalid_cache_ids ) ) {
+		wp_cache_delete_multiple( $invalid_cache_ids, $cache_group );
 	}
 
 	if ( empty( $non_cached_ids ) ) {
