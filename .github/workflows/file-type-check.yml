@@ -76,6 +76,11 @@ jobs:
           # C-quotes those, and core.quotePath=false does not stop it.
           #
           # Each check is a bare assignment, so `set -e` sees a failure from Git.
+          #
+          # Only tracked files are checked. The PHP that Gutenberg generates
+          # into css/dist and js/dist is untracked, so it never appears here.
+          # Whether it should be tracked, moved, or not copied at all is still
+          # open in #65278. If it becomes tracked, this check will flag it.
 
           # Git exits 0 when a pathspec matches nothing.
           if [ -z "$( git ls-files -- src/wp-includes src/wp-admin )" ]; then
