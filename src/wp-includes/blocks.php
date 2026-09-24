@@ -2225,6 +2225,9 @@ function filter_block_core_template_part_attributes( $attribute_value, $attribut
 	if ( empty( $attribute_value ) || 'tagName' !== $attribute_name ) {
 		return $attribute_value;
 	}
+	if ( ! is_string( $attribute_value ) ) {
+		return '';
+	}
 	if ( ! is_array( $allowed_html ) ) {
 		$allowed_html = wp_kses_allowed_html( $allowed_html );
 	}
