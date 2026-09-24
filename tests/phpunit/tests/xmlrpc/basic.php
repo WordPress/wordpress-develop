@@ -96,6 +96,161 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a multicall entry with non-array params returns a fault without stopping the remaining calls.
+	 *
+	 * @ticket 66160
+	 *
+	 * @covers IXR_Server::multiCall
+	 */
+	public function test_multicall_with_non_array_params(): void {
+		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
+
+		$result = $this->myxmlrpcserver->multiCall(
+			array( // @phpstan-ignore argument.type (Intentionally passing non-array params.)
+				array(
+					'methodName' => 'demo.sayHello',
+					'params'     => 'x',
+				),
+				array(
+					'methodName' => 'demo.sayHello',
+					'params'     => array(),
+				),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'faultCode', $result[0] );
+		$this->assertSame( -32602, $result[0]['faultCode'] );
+		$this->assertSame( array( 'Hello!' ), $result[1] );
+	}
+
+	/**
+	 * Tests that a multicall entry with a single-member struct as params passes the struct through intact.
+	 *
+	 * @ticket 66160
+	 *
+	 * @covers IXR_Server::call
+	 */
+	public function test_multicall_with_single_member_struct_params(): void {
+		$this->myxmlrpcserver->callbacks = array(
+			'test.echo' => array( $this, 'echo_args' ),
+		);
+
+		$result = $this->myxmlrpcserver->multiCall(
+			array(
+				array(
+					'methodName' => 'test.echo',
+					'params'     => array( 'foo' => 'bar' ),
+				),
+			)
+		);
+
+		$this->assertSame( array( array( array( 'foo' => 'bar' ) ) ), $result );
+	}
+
+	/**
+	 * Returns the args passed to an XML-RPC method callback.
+	 *
+	 * @param mixed $args Method args.
+	 * @return mixed The args.
+	 */
+	public function echo_args( $args ) {
+		return $args;
+	}
+
+	/**
+	 * Tests that a multicall entry with missing params does not cause a fatal error.
+	 *
+	 * @ticket 66160
+	 *
+	 * @covers IXR_Server::multiCall
+	 */
+	public function test_multicall_with_missing_params(): void {
+		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
+
+		$result = $this->myxmlrpcserver->multiCall(
+			array(
+				array(
+					'methodName' => 'demo.sayHello',
+				),
+			)
+		);
+
+		$this->assertSame( array( array( 'Hello!' ) ), $result );
+	}
+
+	/**
+	 * Tests that a system.multicall call with a non-array argument returns a fault.
+	 *
+	 * @ticket 66160
+	 *
+	 * @covers IXR_Server::multiCall
+	 */
+	public function test_multicall_with_non_array_argument(): void {
+		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
+
+		$result = $this->myxmlrpcserver->multiCall( 'x' ); // @phpstan-ignore argument.type (Intentionally passing a non-array argument.)
+
+		$this->assertIXRError( $result );
+		$this->assertSame( -32600, $result->code );
+	}
+
+	/**
+	 * Tests that a non-struct multicall entry returns a fault without stopping the remaining calls.
+	 *
+	 * @ticket 66160
+	 *
+	 * @covers IXR_Server::multiCall
+	 */
+	public function test_multicall_with_non_struct_entry(): void {
+		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
+
+		$result = $this->myxmlrpcserver->multiCall(
+			array( // @phpstan-ignore argument.type (Intentionally passing a non-struct entry.)
+				'x',
+				array(
+					'methodName' => 'demo.sayHello',
+					'params'     => array(),
+				),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'faultCode', $result[0] );
+		$this->assertSame( -32600, $result[0]['faultCode'] );
+		$this->assertSame( array( 'Hello!' ), $result[1] );
+	}
+
+	/**
+	 * Tests that a multicall entry with no methodName returns a fault without stopping the remaining calls.
+	 *
+	 * @ticket 66160
+	 *
+	 * @covers IXR_Server::multiCall
+	 */
+	public function test_multicall_with_missing_method_name(): void {
+		$this->myxmlrpcserver->callbacks = $this->myxmlrpcserver->methods;
+
+		$result = $this->myxmlrpcserver->multiCall(
+			array( // @phpstan-ignore argument.type (Intentionally omitting methodName.)
+				array( 'params' => array() ),
+				array(
+					'methodName' => 'demo.sayHello',
+					'params'     => array(),
+				),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'faultCode', $result[0] );
+		$this->assertSame( -32600, $result[0]['faultCode'] );
+		$this->assertSame( array( 'Hello!' ), $result[1] );
+	}
+
+	/**
 	 * @ticket 36586
 	 */
 	public function test_isStruct_on_non_numerically_indexed_array() {
