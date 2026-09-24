@@ -243,12 +243,12 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Runs a callable and returns the E_USER_WARNING errors it triggered.
+	 * Runs a callback and returns the E_USER_WARNING errors it triggered.
 	 *
-	 * @param callable $callable The function to run.
+	 * @param callable $callback The function to run.
 	 * @return array[] The collected warnings, each with `errno` and `errstr` keys.
 	 */
-	private function collect_warnings_from( $callable ) {
+	private function collect_warnings_from( $callback ) {
 		$warnings = array();
 
 		// Note: $this->expectWarning() is deprecated and will be removed in PHPUnit 10.
@@ -261,7 +261,7 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 		);
 
 		try {
-			call_user_func( $callable );
+			call_user_func( $callback );
 		} finally {
 			restore_error_handler();
 		}
