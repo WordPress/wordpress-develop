@@ -242,6 +242,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * Verifies that corrupted block delimiters are not matched as delimiters.
 	 *
 	 * @ticket 61401
+	 * @ticket 66138
 	 *
 	 * @dataProvider data_invalid_block_delimiters_as_html_comments
 	 *
