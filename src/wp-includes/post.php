@@ -3520,9 +3520,10 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		return new stdClass();
 	}
 
-	$cache_key = _count_posts_cache_key( $type, $perm );
+	$cache_key    = _count_posts_cache_key( $type, $perm );
+	$last_changed = wp_cache_get_last_changed( $type . '_count' );
 
-	$counts = wp_cache_get( $cache_key, 'counts' );
+	$counts = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $counts ) {
 		// We may have cached this before every status was registered.
 		foreach ( get_post_stati() as $status ) {
@@ -3576,7 +3577,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	}
 
 	$counts = (object) $counts;
-	wp_cache_set( $cache_key, $counts, 'counts' );
+	wp_cache_set_salted( $cache_key, $counts, 'post-queries', $last_changed );
 
 	/**
 	 * Filters the post counts by status for the current post type.
@@ -3611,12 +3612,13 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
-	$cache_key = sprintf(
+	$cache_key    = sprintf(
 		'attachments%s',
 		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
 	);
+	$last_changed = wp_cache_get_last_changed( 'attachment_count' );
 
-	$counts = wp_cache_get( $cache_key, 'counts' );
+	$counts = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
 	if ( false === $counts ) {
 		$and   = wp_post_mime_type_where( $mime_type );
@@ -3628,7 +3630,7 @@ function wp_count_attachments( $mime_type = '' ) {
 		}
 		$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
 
-		wp_cache_set( $cache_key, (object) $counts, 'counts' );
+		wp_cache_set_salted( $cache_key, (object) $counts, 'post-queries', $last_changed );
 	}
 
 	/**
@@ -4053,6 +4055,8 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	do_action( 'deleted_post', $post_id, $post );
 
 	clean_post_cache( $post );
+
+	wp_cache_set_last_changed( $post->post_type . '_count' );
 
 	if ( is_post_type_hierarchical( $post->post_type ) && $children ) {
 		foreach ( $children as $child ) {
@@ -6980,6 +6984,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file );
 
 	clean_post_cache( $post );
+	wp_cache_set_last_changed( $post->post_type . '_count' );
 
 	return $post;
 }
@@ -8263,8 +8268,7 @@ function _transition_post_status( $new_status, $old_status, $post ) {
 	}
 
 	if ( $new_status !== $old_status ) {
-		wp_cache_delete( _count_posts_cache_key( $post->post_type ), 'counts' );
-		wp_cache_delete( _count_posts_cache_key( $post->post_type, 'readable' ), 'counts' );
+		wp_cache_set_last_changed( $post->post_type . '_count' );
 	}
 
 	// Always clears the hook in case the post status bounced from future to draft.
