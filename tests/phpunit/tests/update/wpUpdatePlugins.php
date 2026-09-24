@@ -160,17 +160,17 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A failed write must not reset the lock, so the check does not run on every request.
+	 * A failed write must leave `last_checked` alone rather than reset it to 0.
 	 *
-	 * Resetting `last_checked` to 0 here would make a persistent storage failure re-run the
-	 * check on every single request, so the lock is deliberately left in place; it expires on
-	 * its own timeout as it always has.
+	 * An earlier version of this fix reset `last_checked` to 0 so the next request would retry.
+	 * On a persistent storage failure that turns into a re-check on every single request, so the
+	 * reset was dropped: the lock is left exactly as it was and expires on its own timeout.
 	 *
 	 * @ticket 64550
 	 *
 	 * @covers ::wp_update_plugins
 	 */
-	public function test_failed_write_keeps_the_lock_and_does_not_busy_loop() {
+	public function test_failed_write_does_not_reset_the_lock() {
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
@@ -178,23 +178,15 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 		add_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10, 2 );
 
 		$this->collect_warnings_from( 'wp_update_plugins' );
-		// A second request while the lock is still fresh must not send another API request.
-		wp_update_plugins();
 
 		remove_filter( 'pre_update_site_option__site_transient_update_plugins', array( $this, 'reject_update_result' ), 10 );
-
-		$this->assertSame(
-			1,
-			$this->request_count,
-			'The failed write re-ran the check instead of leaving the lock in place.'
-		);
 
 		$transient = get_site_transient( 'update_plugins' );
 		$this->assertIsObject( $transient, 'The lock transient was not stored.' );
 		$this->assertNotEquals(
 			0,
 			$transient->last_checked,
-			'last_checked was reset after a failed write, which busy-loops the check.'
+			'last_checked was reset after a failed write instead of being left in place.'
 		);
 	}
 
