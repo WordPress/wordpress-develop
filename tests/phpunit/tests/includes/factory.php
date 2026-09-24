@@ -401,6 +401,45 @@ class TestFactoryFor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A factory defined outside core may still report a failure the way the contract allowed
+	 * before 7.2.0, by returning a WP_Error. create() has to turn that into an exception, or
+	 * the WP_Error would be handed back as though it were an object ID.
+	 *
+	 * @ticket 66111
+	 */
+	public function test_create_should_throw_an_exception_when_a_legacy_factory_returns_a_wp_error() {
+		$factory = new Tests_Includes_Factory_Legacy_Stub(
+			self::factory(),
+			new WP_Error( 'insert_failed', 'The object could not be inserted.' )
+		);
+
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( 'Unable to create the object: The object could not be inserted.' );
+
+		$factory->create();
+	}
+
+	/**
+	 * @ticket 66111
+	 */
+	public function test_create_should_throw_an_exception_when_a_legacy_factory_update_returns_a_wp_error() {
+		$factory = new Tests_Includes_Factory_Legacy_Stub(
+			self::factory(),
+			5,
+			new WP_Error( 'update_failed', 'The object could not be updated.' )
+		);
+
+		$factory->default_generation_definitions = array(
+			'name' => new WP_UnitTest_Factory_Callback_After_Create( '__return_empty_string' ),
+		);
+
+		$this->expectException( WP_UnitTest_Factory_Exception::class );
+		$this->expectExceptionMessage( 'Unable to update the object after creation: The object could not be updated.' );
+
+		$factory->create();
+	}
+
+	/**
 	 * @ticket 66111
 	 */
 	public function test_create_many_should_return_an_array_of_ids() {
@@ -577,5 +616,60 @@ class Tests_Includes_Factory_Stub extends WP_UnitTest_Factory_For_Thing {
 		$this->assert_valid_object( $this->get_object_by_id_result, $object_id, stdClass::class );
 
 		return $this->get_object_by_id_result;
+	}
+}
+
+/**
+ * Factory written to the contract from before 7.2.0: create_object() and update_object()
+ * report a failure by returning a WP_Error rather than by throwing, as factories defined
+ * outside core may still do.
+ */
+class Tests_Includes_Factory_Legacy_Stub extends WP_UnitTest_Factory_For_Thing {
+
+	/**
+	 * @var int|WP_Error
+	 */
+	private $create_object_result;
+
+	/**
+	 * @var int|WP_Error
+	 */
+	private $update_object_result;
+
+	/**
+	 * @param object       $factory              Global factory that can be used to create other objects on the system.
+	 * @param int|WP_Error $create_object_result The value create_object() returns.
+	 * @param int|WP_Error $update_object_result Optional. The value update_object() returns. Default 1.
+	 */
+	public function __construct( $factory, $create_object_result, $update_object_result = 1 ) {
+		parent::__construct( $factory );
+
+		$this->create_object_result = $create_object_result;
+		$this->update_object_result = $update_object_result;
+	}
+
+	/**
+	 * @param array<string, mixed> $args The arguments.
+	 * @return int|WP_Error The configured result.
+	 */
+	public function create_object( $args ) {
+		return $this->create_object_result;
+	}
+
+	/**
+	 * @param int                  $object_id The object ID.
+	 * @param array<string, mixed> $fields    The values to update.
+	 * @return int|WP_Error The configured result.
+	 */
+	public function update_object( $object_id, $fields ) {
+		return $this->update_object_result;
+	}
+
+	/**
+	 * @param int $object_id The object ID.
+	 * @return stdClass An empty object.
+	 */
+	public function get_object_by_id( int $object_id ) {
+		return new stdClass();
 	}
 }

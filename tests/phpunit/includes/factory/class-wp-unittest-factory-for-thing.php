@@ -42,25 +42,32 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Creates an object and returns its ID.
 	 *
+	 * An implementation may still report a failure by returning a WP_Error object, as factories
+	 * outside core written before 7.2.0 do, or may throw, as the core factories do. create()
+	 * turns a WP_Error, or any value that is not a positive integer, into an exception either way.
+	 *
 	 * @since UT (3.7.0)
-	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
+	 * @since 7.2.0 May throw an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array<string, mixed> $args The arguments.
-	 * @return positive-int The object ID.
-	 * @throws WP_UnitTest_Factory_Exception When the object could not be created.
+	 * @return int|WP_Error The object ID on success, or a WP_Error object on failure.
+	 * @throws WP_UnitTest_Factory_Exception When the object could not be created, if the implementation throws.
 	 */
 	abstract public function create_object( $args );
 
 	/**
 	 * Updates an existing object.
 	 *
+	 * As with create_object(), an implementation may report a failure by returning a WP_Error
+	 * object or by throwing, and create() turns either into an exception.
+	 *
 	 * @since UT (3.7.0)
-	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
+	 * @since 7.2.0 May throw an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param int                  $object_id The object ID.
 	 * @param array<string, mixed> $fields    The values to update.
-	 * @return positive-int The object ID.
-	 * @throws WP_UnitTest_Factory_Exception When the object could not be updated.
+	 * @return int|WP_Error The object ID on success, or a WP_Error object on failure.
+	 * @throws WP_UnitTest_Factory_Exception When the object could not be updated, if the implementation throws.
 	 */
 	abstract public function update_object( $object_id, $fields );
 
@@ -82,10 +89,17 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		$generated_args = $this->generate_args( $args, $generation_definitions, $callbacks );
 		$object_id      = $this->create_object( $generated_args );
 
+		// The core factories throw for themselves, but a factory defined elsewhere may still
+		// return a WP_Error, as the contract allowed before 7.2.0.
+		$this->assert_valid_object_id( $object_id, 'Unable to create the object' );
+
 		if ( $callbacks ) {
 			$updated_fields = $this->apply_callbacks( $callbacks, $object_id );
 
-			$this->update_object( $object_id, $updated_fields );
+			$this->assert_valid_object_id(
+				$this->update_object( $object_id, $updated_fields ),
+				'Unable to update the object after creation'
+			);
 		}
 
 		return $object_id;
