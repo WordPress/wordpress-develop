@@ -65,7 +65,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	 *
 	 * @param string|string[] $post_type Post type argument.
 	 */
-	public function test_should_prefer_published_page_then_other_statuses_then_draft( $post_type ) {
+	public function test_should_prefer_published_page_then_lowest_id( $post_type ) {
 		// Setting a pending page's slug requires publish permission.
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
@@ -102,11 +102,12 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 
 		$this->assertSame( $published, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
 
+		// Draft and pending pages have the same priority, so the lowest ID wins.
 		wp_delete_post( $published, true );
-		$this->assertSame( $pending, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
-
-		wp_delete_post( $pending, true );
 		$this->assertSame( $draft, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
+
+		wp_delete_post( $draft, true );
+		$this->assertSame( $pending, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
 	}
 
 	/**

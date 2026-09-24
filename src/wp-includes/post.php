@@ -6416,7 +6416,9 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		FROM $wpdb->posts
 		WHERE post_name IN ($in_string)
 		AND post_type IN ($post_type_in_string)
-		ORDER BY (post_status = 'publish') DESC, (post_status = 'draft') ASC
+		ORDER BY
+			post_status = 'publish' DESC,
+			post_status IN ('draft', 'pending', 'auto-draft') ASC, ID ASC
 	";
 
 	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string }> $pages */
