@@ -1581,12 +1581,12 @@ function nocache_headers() {
  * @param array  $options {
  *     Optional. Options to pass to setcookie(). Default empty array.
  *
- *     @type int    $expires  The time the cookie expires, as a Unix timestamp.
- *     @type string $path     The path on the server in which the cookie will be available on.
- *     @type string $domain   The (sub)domain that the cookie is available to.
- *     @type bool   $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
- *     @type bool   $httponly When true the cookie will be made accessible only through the HTTP protocol.
- *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'. Default 'Lax'.
+ *     @type int                   $expires  The time the cookie expires, as a Unix timestamp.
+ *     @type string                $path     The path on the server in which the cookie will be available on.
+ *     @type string                $domain   The (sub)domain that the cookie is available to.
+ *     @type bool                  $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
+ *     @type bool                  $httponly When true the cookie will be made accessible only through the HTTP protocol.
+ *     @type 'Lax'|'Strict'|'None' $samesite Whether the cookie should be available for cross-site requests. Default 'Lax'.
  * }
  * @return bool Whether the cookie was sent successfully.
  */
@@ -1606,12 +1606,12 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
 	 * @param array  $options {
 	 *     The options to pass to setcookie().
 	 *
-	 *     @type int    $expires  The time the cookie expires, as a Unix timestamp.
-	 *     @type string $path     The path on the server in which the cookie will be available on.
-	 *     @type string $domain   The (sub)domain that the cookie is available to.
-	 *     @type bool   $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
-	 *     @type bool   $httponly When true the cookie will be made accessible only through the HTTP protocol.
-	 *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'. Default 'Lax'.
+	 *     @type int                   $expires  The time the cookie expires, as a Unix timestamp.
+	 *     @type string                $path     The path on the server in which the cookie will be available on.
+	 *     @type string                $domain   The (sub)domain that the cookie is available to.
+	 *     @type bool                  $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
+	 *     @type bool                  $httponly When true the cookie will be made accessible only through the HTTP protocol.
+	 *     @type 'Lax'|'Strict'|'None' $samesite Whether the cookie should be available for cross-site requests. Default 'Lax'.
 	 * }
 	 * @param string $name    The name of the cookie.
 	 * @param string $value   The value of the cookie.
@@ -1631,12 +1631,12 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
 	 * @param array  $options {
 	 *     The options to pass to setcookie().
 	 *
-	 *     @type int    $expires  The time the cookie expires, as a Unix timestamp.
-	 *     @type string $path     The path on the server in which the cookie will be available on.
-	 *     @type string $domain   The (sub)domain that the cookie is available to.
-	 *     @type bool   $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
-	 *     @type bool   $httponly When true the cookie will be made accessible only through the HTTP protocol.
-	 *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'. Default 'Lax'.
+	 *     @type int                   $expires  The time the cookie expires, as a Unix timestamp.
+	 *     @type string                $path     The path on the server in which the cookie will be available on.
+	 *     @type string                $domain   The (sub)domain that the cookie is available to.
+	 *     @type bool                  $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
+	 *     @type bool                  $httponly When true the cookie will be made accessible only through the HTTP protocol.
+	 *     @type 'Lax'|'Strict'|'None' $samesite Whether the cookie should be available for cross-site requests. Default 'Lax'.
 	 * }
 	 */
 	if ( ! apply_filters( 'send_cookie', true, $name, $value, $options ) ) {
@@ -1656,17 +1656,16 @@ function wp_set_cookie( string $name, string $value, array $options = array() ):
  * @since x.y.z
  *
  * @param string $name    The name of the cookie.
-	 * @param array  $options {
-	 *     The options to pass to setcookie(). Default empty array.
-	 *
-	 *     @type int    $expires  The time the cookie expires, as a Unix timestamp.
-	 *     @type string $path     The path on the server in which the cookie will be available on.
-	 *     @type string $domain   The (sub)domain that the cookie is available to.
-	 *     @type bool   $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
-	 *     @type bool   $httponly When true the cookie will be made accessible only through the HTTP protocol.
-	 *     @type string $samesite Whether the cookie should be available for cross-site requests. Accepts 'Lax', 'Strict', or 'None'. Default 'Lax'.
-	 * }
- * @return bool True if the cookie was removed successfully, false otherwise.
+ * @param array  $options {
+ *     The options to pass to setcookie(). Default empty array.
+ *
+ *     @type string                $path     The path on the server in which the cookie will be available on.
+ *     @type string                $domain   The (sub)domain that the cookie is available to.
+ *     @type bool                  $secure   Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
+ *     @type bool                  $httponly When true the cookie will be made accessible only through the HTTP protocol.
+ *     @type 'Lax'|'Strict'|'None' $samesite Whether the cookie should be available for cross-site requests. Default 'Lax'.
+ * }
+ * @return bool Whether the cookie was removed successfully.
  */
 function wp_remove_cookie( string $name, array $options = array() ): bool {
 	$options['expires'] = time() - YEAR_IN_SECONDS;
