@@ -574,7 +574,7 @@ class WP_Admin_Bar {
 			$menuclass = ' class="' . esc_attr( trim( $menuclass ) ) . '"';
 		}
 
-		echo "<li role='group' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
+		echo "<li role='none' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
 
 		if ( $has_link ) {
 			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir' );
