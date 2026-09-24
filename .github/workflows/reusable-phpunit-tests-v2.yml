@@ -127,7 +127,7 @@ jobs:
         env:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}
         run: |
-          if [[ ! "$TEST_GROUPS" =~ ^[A-Za-z0-9_-]+(,[A-Za-z0-9_-]+)*$ ]]; then
+          if [[ ! "$TEST_GROUPS" =~ ^[A-Za-z0-9_.-]+(,[A-Za-z0-9_.-]+)*$ ]]; then
             echo 'phpunit-test-groups must be a comma-separated list of group names.' >&2
             exit 1
           fi
