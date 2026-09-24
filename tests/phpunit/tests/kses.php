@@ -1293,11 +1293,6 @@ EOF;
 				'css'      => 'font: bold 15px arial, sans-serif',
 				'expected' => 'font: bold 15px arial, sans-serif',
 			),
-			// CSS anchor positioning properties are allowed.
-			array(
-				'css'      => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
-				'expected' => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
-			),
 			// Multiple attributes, with single values.
 			array(
 				'css'      => 'font-weight: bold;font-size: 15px',
@@ -1887,6 +1882,11 @@ EOF;
 			array(
 				'css'      => 'clip-path: url(javascript:alert(1))',
 				'expected' => '',
+			),
+			// CSS anchor positioning properties introduced in 7.2.
+			array(
+				'css'      => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
+				'expected' => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
 			),
 		);
 	}
