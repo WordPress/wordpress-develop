@@ -2654,10 +2654,13 @@ function wp_get_note_mentioned_user_ids( string $content ): array {
  * The chip is unwrapped, opener and closer, so the name stays and the markup
  * goes. Everything else in the content is left as it is.
  *
- * The low-level {@see WP_HTML_Tag_Processor} is used, as in
- * {@see wp_strip_inline_note_markers()}: note content is user-editable, so the
- * markup is not guaranteed to be well formed, and scanning tokens degrades
- * gracefully, leaving an unbalanced or stray tag exactly as it was.
+ * The `<span>` openers and closers are delimited the way {@see wp_strip_all_tags()}
+ * delimits a tag, and the {@see WP_HTML_Tag_Processor} reads the class names of each
+ * opener: it is the tag, not the string, that says whether a span is a chip, so
+ * `wp-note-mention` inside another class name or in the text does not count. A
+ * nesting stack pairs each chip opener with its own closer, and a closer without
+ * an opener is left as it is, since note content is user-editable and not
+ * guaranteed to be well formed.
  *
  * @since 7.2.0
  *
@@ -2670,47 +2673,36 @@ function wp_unwrap_note_mentions( string $content ): string {
 	}
 
 	/*
-	 * Anonymous subclass exposing token removal, which WP_HTML_Tag_Processor
-	 * does not provide publicly yet. Removing the current token via its bookmark
-	 * span unwraps the `<span>` (opener or closer) while keeping the text it
-	 * wraps.
+	 * Every `<span>` opener and closer, in document order, with its offset. The
+	 * Tag Processor can read a tag but neither remove one nor say where in the
+	 * string it sits, so the tags are located here and only their class names
+	 * are read through it.
 	 */
-	$processor = new class( $content ) extends WP_HTML_Tag_Processor {
-		/**
-		 * Removes the current token, keeping any text it wraps.
-		 */
-		public function remove_token(): void {
-			// Always called after next_tag() returned true, so the bookmark is set.
-			$this->set_bookmark( 'here' );
-			$span = $this->bookmarks['here'];
+	if ( ! preg_match_all( '#<(/?)span(?=[\s/>])[^>]*>#i', $content, $span_tags, PREG_SET_ORDER | PREG_OFFSET_CAPTURE ) ) {
+		return $content;
+	}
 
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
-		}
-	};
-
-	/*
-	 * Walk every `<span>`, tracking mention nesting on a stack so each chip
-	 * opener pairs with its own closer, and unwrap only the mention chips.
-	 */
 	$span_stack = array();
-	$query      = array(
-		'tag_name'    => 'SPAN',
-		'tag_closers' => 'visit',
-	);
-	while ( $processor->next_tag( $query ) ) {
-		if ( $processor->is_tag_closer() ) {
+	$unwrapped  = '';
+	$copied_to  = 0;
+	foreach ( $span_tags as $span_tag ) {
+		list( $tag, $at ) = $span_tag[0];
+
+		if ( '/' === $span_tag[1][0] ) {
 			$is_mention = array_pop( $span_stack );
 		} else {
-			$is_mention   = $processor->has_class( 'wp-note-mention' );
+			$opener       = new WP_HTML_Tag_Processor( $tag );
+			$is_mention   = $opener->next_tag() && $opener->has_class( 'wp-note-mention' );
 			$span_stack[] = $is_mention;
 		}
 
 		if ( true === $is_mention ) {
-			$processor->remove_token();
+			$unwrapped .= substr( $content, $copied_to, $at - $copied_to );
+			$copied_to  = $at + strlen( $tag );
 		}
 	}
 
-	return $processor->get_updated_html();
+	return $unwrapped . substr( $content, $copied_to );
 }
 
 /**
