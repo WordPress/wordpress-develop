@@ -1468,6 +1468,74 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 66167
+	 * @dataProvider data_get_item_directory_traversal
+	 *
+	 * @param string $stylesheet The stylesheet containing directory traversal.
+	 */
+	public function test_get_item_rejects_directory_traversal( $stylesheet ) {
+		wp_set_current_user( self::$admin_id );
+
+		$query_request = new WP_REST_Request( 'GET', self::$themes_route . '/rest-api' );
+		$query_request->set_query_params( array( 'stylesheet' => $stylesheet ) );
+		$route_request = new WP_REST_Request( 'GET', self::$themes_route . '/' . rawurlencode( urldecode( $stylesheet ) ) );
+
+		foreach ( array( $query_request, $route_request ) as $request ) {
+			$response = rest_do_request( $request );
+
+			$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+			$this->assertArrayHasKey( 'stylesheet', $response->get_data()['data']['params'] );
+		}
+	}
+
+	/**
+	 * Directory traversal values, including values decoded by the sanitizer.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_directory_traversal() {
+		return array(
+			'parent directory'                     => array( '..' ),
+			'multiple parents with trailing slash' => array( '../../' ),
+			'parent at beginning'                  => array( '../theme' ),
+			'parent in middle'                     => array( 'subdir/../theme' ),
+			'backslash separators'                 => array( '..\\..\\' ),
+			'encoded forward slashes'              => array( '..%2f..%2f' ),
+			'encoded dots'                         => array( '%2e%2e' ),
+		);
+	}
+
+	/**
+	 * @ticket 66167
+	 * @dataProvider data_sanitize_valid_stylesheet
+	 *
+	 * @param string $stylesheet The supplied stylesheet.
+	 * @param string $expected   The decoded stylesheet.
+	 */
+	public function test_sanitize_valid_stylesheet( $stylesheet, $expected ) {
+		$controller = new WP_REST_Themes_Controller();
+
+		$this->assertSame( $expected, $controller->_sanitize_stylesheet_callback( $stylesheet ) );
+	}
+
+	/**
+	 * Valid directory names must not be mistaken for parent directory segments.
+	 *
+	 * @return array
+	 */
+	public function data_sanitize_valid_stylesheet() {
+		return array(
+			'version dots'       => array( 'theme-1.0', 'theme-1.0' ),
+			'consecutive dots'   => array( 'theme..name', 'theme..name' ),
+			'trailing dots'      => array( 'theme..', 'theme..' ),
+			'dots before slash'  => array( 'theme../child', 'theme../child' ),
+			'accented character' => array( 'th%C3%A8me', 'thème' ),
+			'encoded space'      => array( 'theme%20name', 'theme name' ),
+			'encoded slash'      => array( 'subdir%2Ftheme', 'subdir/theme' ),
+		);
+	}
+
+	/**
 	 * @ticket 50152
 	 */
 	public function test_get_active_item_as_contributor() {
