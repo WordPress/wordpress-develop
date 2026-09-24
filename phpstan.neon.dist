@@ -118,6 +118,24 @@ parameters:
 			path: src/wp-includes/compat.php
 			reportUnmatched: false
 
+		# bleedingEdge:
+		# In core, @internal is advisory for extenders: it marks a symbol that plugins should not rely on. Core itself is
+		# one codebase and its own uses of these symbols are intended. PHPStan scopes @internal by root namespace, and
+		# since core symbols live in the global namespace, it reports every use outside the declaring class or file.
+		# Uses of @internal symbols from namespaced third-party libraries are still reported, as those messages end in
+		# "from outside its root namespace" and are excluded by the pattern.
+		-
+			message: '#^(?!.* from outside its root namespace \S+\.$).+$#'
+			identifiers:
+				- function.internal
+				- method.internal
+				- method.internalClass
+				- new.internalClass
+				- property.internalClass
+				- staticMethod.internal
+				- staticMethod.internalClass
+			reportUnmatched: false
+
 		# Level 5:
 		# substr_compare()'s $length has always accepted null, meaning "compare the full length". PHP 7.4 spelled
 		# that `int $length = null`, where the null default makes the parameter implicitly nullable, and PHP 8.0
