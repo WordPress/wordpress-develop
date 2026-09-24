@@ -314,7 +314,7 @@ function get_inline_data( $post ) {
 		return;
 	}
 
-	$title = esc_textarea( trim( $post->post_title ) );
+	$title = esc_textarea( trim( WP_HTML_Decoder::decode_text_node( $post->post_title ) ) );
 
 	/** This filter is documented in wp-admin/edit-tag-form.php */
 	$editable_slug = apply_filters( 'editable_slug', $post->post_name, $post );
