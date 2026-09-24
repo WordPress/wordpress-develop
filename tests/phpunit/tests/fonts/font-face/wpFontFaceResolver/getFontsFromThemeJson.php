@@ -311,44 +311,131 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 	}
 
 	/**
-	 * Ensures the generated font-family does not use the preset fontFamily value.
+	 * @dataProvider data_should_use_font_family_of_each_font_face
 	 *
 	 * @ticket 59911
+	 *
+	 * @param array    $fonts    Fonts to test.
+	 * @param string[] $expected Expected font-family of each generated font-face, in order.
 	 */
-	public function test_should_not_use_preset_font_family_in_font_face() {
+	public function test_should_use_font_family_of_each_font_face( $fonts, $expected ) {
 		switch_theme( static::FONTS_THEME );
 
-		$replace_fonts = static function ( $theme_json_data ) {
+		$replace_fonts = static function ( $theme_json_data ) use ( $fonts ) {
 			$data = $theme_json_data->get_data();
 
-			$data['settings']['typography']['fontFamilies']['theme'] = array(
-				array(
-					'fontFamily' => 'var(--font-primary)',
-					'name'       => 'Primary (Inter)',
-					'slug'       => 'primary',
-					'fontFace'   => array(
-						array(
-							'fontFamily' => 'Inter',
-							'fontStyle'  => 'normal',
-							'fontWeight' => '400',
-							'src'        => array(
-								'file:./assets/fonts/dm-sans/DMSans-Regular.woff2',
-							),
-						),
-					),
-				),
-			);
+			// Replace typography.fontFamilies.
+			$data['settings']['typography']['fontFamilies']['theme'] = $fonts;
 
 			return new WP_Theme_JSON_Data( $data );
 		};
-
 		add_filter( 'wp_theme_json_data_theme', $replace_fonts );
 		$fonts = WP_Font_Face_Resolver::get_fonts_from_theme_json();
 		remove_filter( 'wp_theme_json_data_theme', $replace_fonts );
 
+		// flatten the array to make it easier to test.
 		$fonts = array_merge( array(), ...array_map( 'array_values', $fonts ) );
 
-		$this->assertSame( 'Inter', $fonts[0]['font-family'] );
-		$this->assertNotSame( 'var(--font-primary)', $fonts[0]['font-family'] );
+		$this->assertSame( $expected, array_column( $fonts, 'font-family' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_should_use_font_family_of_each_font_face() {
+		return array(
+			'CSS variable in preset, real name in fontFace' => array(
+				'fonts'    => array(
+					array(
+						'fontFamily' => 'var(--font-primary)',
+						'slug'       => 'primary',
+						'fontFace'   => array(
+							array(
+								'fontFamily' => 'Inter',
+								'fontStyle'  => 'normal',
+								'src'        => array( 'file:./assets/fonts/inter/Inter.woff2' ),
+							),
+						),
+					),
+				),
+				'expected' => array( 'Inter' ),
+			),
+			'fontFace fontFamily omitted, preset used as fallback' => array(
+				'fonts'    => array(
+					array(
+						'fontFamily' => '"Inter", sans-serif',
+						'slug'       => 'inter',
+						'fontFace'   => array(
+							array(
+								'fontStyle' => 'normal',
+								'src'       => array( 'file:./assets/fonts/inter/Inter.woff2' ),
+							),
+							array(
+								'fontStyle' => 'italic',
+								'src'       => array( 'file:./assets/fonts/inter/Inter-Italic.woff2' ),
+							),
+						),
+					),
+				),
+				'expected' => array( 'Inter', 'Inter' ),
+			),
+			'different fontFamily in each fontFace'    => array(
+				'fonts'    => array(
+					array(
+						'fontFamily' => 'var(--font-text)',
+						'slug'       => 'text',
+						'fontFace'   => array(
+							array(
+								'fontFamily' => 'Inter',
+								'fontStyle'  => 'normal',
+								'src'        => array( 'file:./assets/fonts/inter/Inter.woff2' ),
+							),
+							array(
+								'fontFamily' => 'Inter Display',
+								'fontStyle'  => 'normal',
+								'src'        => array( 'file:./assets/fonts/inter/InterDisplay.woff2' ),
+							),
+						),
+					),
+				),
+				'expected' => array( 'Inter', 'Inter Display' ),
+			),
+			'fontFamily defined in some fontFace only' => array(
+				'fonts'    => array(
+					array(
+						'fontFamily' => 'Inter, sans-serif',
+						'slug'       => 'inter',
+						'fontFace'   => array(
+							array(
+								'fontFamily' => 'Inter Display',
+								'fontStyle'  => 'normal',
+								'src'        => array( 'file:./assets/fonts/inter/InterDisplay.woff2' ),
+							),
+							array(
+								'fontStyle' => 'italic',
+								'src'       => array( 'file:./assets/fonts/inter/Inter-Italic.woff2' ),
+							),
+						),
+					),
+				),
+				'expected' => array( 'Inter Display', 'Inter' ),
+			),
+			'fontFamily defined nowhere'               => array(
+				'fonts'    => array(
+					array(
+						'slug'     => 'inter',
+						'fontFace' => array(
+							array(
+								'fontStyle' => 'normal',
+								'src'       => array( 'file:./assets/fonts/inter/Inter.woff2' ),
+							),
+						),
+					),
+				),
+				'expected' => array(),
+			),
+		);
 	}
 }
