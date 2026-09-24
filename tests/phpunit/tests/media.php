@@ -2778,6 +2778,41 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_calculate_image_srcset handles float image dimensions without PHP deprecation notices.
+	 *
+	 * @ticket 64480
+	 */
+	public function test_wp_calculate_image_srcset_with_float_dimensions() {
+		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2026/09/test-image-44x22.png';
+		$image_meta = array(
+			'width'  => 300.5,
+			'height' => 150.25,
+			'file'   => '2026/09/test-image.png',
+			'sizes'  => array(
+				'thumbnail' => array(
+					'file'      => 'test-image-44x22.png',
+					'width'     => 44.168,
+					'height'    => 22.084,
+					'mime-type' => 'image/png',
+				),
+				'medium'    => array(
+					'file'      => 'test-image-88x44.png',
+					'width'     => 88.336,
+					'height'    => 44.168,
+					'mime-type' => 'image/png',
+				),
+			),
+		);
+
+		$uploads_url     = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2026/09/';
+		$expected_srcset = $uploads_url . 'test-image-44x22.png 44w, ' .
+			$uploads_url . 'test-image-88x44.png 88w, ' .
+			$uploads_url . 'test-image.png 301w';
+
+		$this->assertSame( $expected_srcset, wp_calculate_image_srcset( array( 44, 22 ), $image_src, $image_meta ) );
+	}
+
+	/**
 	 * @ticket 33641
 	 * @requires function imagejpeg
 	 */

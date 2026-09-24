@@ -1587,18 +1587,24 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 
 		// If the image dimensions are within 1px of the expected size, use it.
 		if ( wp_image_matches_ratio( $image_width, $image_height, $image['width'], $image['height'] ) ) {
+			$source_width = (int) round( $image['width'] );
+
+			if ( $source_width < 1 ) {
+				continue;
+			}
+
 			// Add the URL, descriptor, and value to the sources array to be returned.
 			$source = array(
 				'url'        => $image_baseurl . $image['file'],
 				'descriptor' => 'w',
-				'value'      => $image['width'],
+				'value'      => $source_width,
 			);
 
 			// The 'src' image has to be the first in the 'srcset', because of a bug in iOS8. See #35030.
 			if ( $is_src ) {
-				$sources = array( $image['width'] => $source ) + $sources;
+				$sources = array( $source_width => $source ) + $sources;
 			} else {
-				$sources[ $image['width'] ] = $source;
+				$sources[ $source_width ] = $source;
 			}
 		}
 	}
