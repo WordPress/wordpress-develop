@@ -1741,7 +1741,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 	 * Notifies an author (and/or others) of a comment/trackback/pingback on a post.
 	 *
 	 * @since 1.0.0
-	 * @since 7.2.0 Note content is now reduced to plain text before it is placed in the email.
+	 * @since 7.2.0 The mention chips in note content are now unwrapped before it is placed in the email.
 	 *
 	 * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
 	 * @param string         $deprecated Not used.
@@ -1836,9 +1836,9 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		$blogname        = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
-		// Note content is stored as HTML, and the email is plain text.
+		// An @mention in note content is a `<span class="wp-note-mention user-N">` chip; the email keeps the name and drops the markup.
 		if ( 'note' === $comment->comment_type ) {
-			$comment_content = wp_get_note_plain_text( $comment->comment_content );
+			$comment_content = wp_specialchars_decode( wp_unwrap_note_mentions( $comment->comment_content ) );
 		}
 
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );

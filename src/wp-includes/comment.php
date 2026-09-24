@@ -2648,24 +2648,69 @@ function wp_get_note_mentioned_user_ids( string $content ): array {
 }
 
 /**
- * Reduces the stored content of a note to plain text.
+ * Unwraps the mention chips in note content.
  *
- * Note content is stored as HTML: an @mention is a `<span class="wp-note-mention user-N">`
- * chip around the name, a line break is a `<br>`, and the note form allows a few inline
- * formats. Emails are plain text, so the line breaks become newlines, the other tags are
- * dropped and the text they wrap is kept. The tags are stripped before the entities are
- * decoded, so escaped text such as "&lt;code&gt;" survives as text rather than being read
- * as a tag and dropped.
+ * An @mention is stored as `<span class="wp-note-mention user-N">@Name</span>`.
+ * The chip is unwrapped, opener and closer, so the name stays and the markup
+ * goes. Everything else in the content is left as it is.
+ *
+ * The low-level {@see WP_HTML_Tag_Processor} is used, as in
+ * {@see wp_strip_inline_note_markers()}: note content is user-editable, so the
+ * markup is not guaranteed to be well formed, and scanning tokens degrades
+ * gracefully, leaving an unbalanced or stray tag exactly as it was.
  *
  * @since 7.2.0
  *
  * @param string $content Note content, as stored.
- * @return string The plain text of the note.
+ * @return string The content with the mention chips unwrapped.
  */
-function wp_get_note_plain_text( string $content ): string {
-	$content = (string) preg_replace( '#<br\s*/?>#i', "\n", $content );
+function wp_unwrap_note_mentions( string $content ): string {
+	if ( ! str_contains( $content, 'wp-note-mention' ) ) {
+		return $content;
+	}
 
-	return wp_specialchars_decode( wp_strip_all_tags( $content ) );
+	/*
+	 * Anonymous subclass exposing token removal, which WP_HTML_Tag_Processor
+	 * does not provide publicly yet. Removing the current token via its bookmark
+	 * span unwraps the `<span>` (opener or closer) while keeping the text it
+	 * wraps.
+	 */
+	$processor = new class( $content ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Removes the current token, keeping any text it wraps.
+		 */
+		public function remove_token(): void {
+			// Always called after next_tag() returned true, so the bookmark is set.
+			$this->set_bookmark( 'here' );
+			$span = $this->bookmarks['here'];
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
+		}
+	};
+
+	/*
+	 * Walk every `<span>`, tracking mention nesting on a stack so each chip
+	 * opener pairs with its own closer, and unwrap only the mention chips.
+	 */
+	$span_stack = array();
+	$query      = array(
+		'tag_name'    => 'SPAN',
+		'tag_closers' => 'visit',
+	);
+	while ( $processor->next_tag( $query ) ) {
+		if ( $processor->is_tag_closer() ) {
+			$is_mention = array_pop( $span_stack );
+		} else {
+			$is_mention   = $processor->has_class( 'wp-note-mention' );
+			$span_stack[] = $is_mention;
+		}
+
+		if ( true === $is_mention ) {
+			$processor->remove_token();
+		}
+	}
+
+	return $processor->get_updated_html();
 }
 
 /**
@@ -2753,7 +2798,6 @@ function wp_notify_note_mentions( ?WP_Comment $comment, $request = null, bool $c
  * same way the post author's note notification does.
  *
  * @since 7.1.0
- * @since 7.2.0 Line breaks in the note are kept.
  *
  * @param WP_User      $user    The recipient.
  * @param WP_Comment   $comment The note that triggered the notification.
@@ -2765,14 +2809,14 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
 
 	/*
 	 * The site title and the post title are escaped on the way into the database,
-	 * and are reversed once here for the plain text arena of emails. Decoding a
-	 * second time would go too far and resolve entities the author meant to be
-	 * read literally.
+	 * and note content is stored as HTML. Both are reversed once here for the
+	 * plain text arena of emails. Decoding a second time would go too far and
+	 * resolve entities the author meant to be read literally.
 	 */
 	$blogname    = wp_specialchars_decode( get_bloginfo( 'name', 'display' ), ENT_QUOTES );
 	$post_title  = $post ? wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ) : '';
 	$author_name = $comment->comment_author ? $comment->comment_author : __( 'Someone' );
-	$content     = wp_get_note_plain_text( $comment->comment_content );
+	$content     = wp_specialchars_decode( wp_strip_all_tags( $comment->comment_content ) );
 
 	/*
 	 * The rest of the message is composed for the recipient, and so is the editor
