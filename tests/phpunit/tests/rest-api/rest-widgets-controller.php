@@ -1461,6 +1461,61 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Tests that unchecked Links widget checkboxes stay unchecked when saved
+	 * with an encoded instance, as the block widget editor does.
+	 *
+	 * @ticket 66165
+	 */
+	public function test_update_item_links_widget_preserves_unchecked_checkboxes() {
+		add_filter( 'pre_option_link_manager_enabled', '__return_true' );
+		wp_widgets_init();
+
+		$this->setup_widget(
+			'links',
+			1,
+			array(
+				'images'      => 1,
+				'name'        => 1,
+				'description' => 1,
+				'rating'      => 1,
+				'orderby'     => 'name',
+				'category'    => 0,
+				'limit'       => -1,
+			)
+		);
+		$this->setup_sidebar( 'sidebar-1', array( 'name' => 'Test sidebar' ), array( 'links-1' ) );
+
+		$instance = array(
+			'images'      => 0,
+			'name'        => 1,
+			'description' => 0,
+			'rating'      => 0,
+			'orderby'     => 'name',
+			'category'    => 0,
+			'limit'       => -1,
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/widgets/links-1' );
+		$request->set_body_params(
+			array(
+				'id'       => 'links-1',
+				'id_base'  => 'links',
+				'sidebar'  => 'sidebar-1',
+				'instance' => array(
+					'encoded' => base64_encode( serialize( $instance ) ),
+					'hash'    => wp_hash( serialize( $instance ) ),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$settings = get_option( 'widget_links' );
+		$this->assertSame( $instance, $settings[1] );
+	}
+
+	/**
 	 * @ticket 41683
 	 */
 	public function test_delete_item() {
