@@ -69,7 +69,7 @@ window.wpCookies = {
 	 * @param {string}      [path]     Optional. The path on the server in which the cookie will be available on.
 	 * @param {string}      [domain]   Optional. The domain that the cookie is available to.
 	 * @param {boolean}     [secure]   Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.
-	 * @param {string}      [samesite] Optional. The SameSite attribute: 'Lax', 'Strict', or 'None'. Default 'Lax'.
+	 * @param {'Lax'|'Strict'|'None'} [samesite=Lax] Optional. The SameSite attribute.
 	 */
 	setHash: function( name, values_obj, expires, path, domain, secure, samesite = 'Lax' ) {
 		var str = '';
@@ -128,7 +128,7 @@ window.wpCookies = {
 	 * @param {string}      [path]     Optional. The path on the server in which the cookie will be available on.
 	 * @param {string}      [domain]   Optional. The domain that the cookie is available to.
 	 * @param {boolean}     [secure]   Optional. Whether the cookie should only be transmitted over a secure HTTPS connection.
-	 * @param {string}      [samesite] Optional. The SameSite attribute: 'Lax', 'Strict', or 'None'. Default 'Lax'.
+	 * @param {'Lax'|'Strict'|'None'} [samesite=Lax] Optional. The SameSite attribute.
 	 */
 	set: function( name, value, expires, path, domain, secure, samesite = 'Lax' ) {
 		var d = new Date();
