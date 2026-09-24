@@ -20,7 +20,7 @@ if ( is_multisite() && ! is_network_admin() ) {
 }
 
 if ( ! current_user_can( 'update_core' ) && ! current_user_can( 'update_themes' ) && ! current_user_can( 'update_plugins' ) && ! current_user_can( 'update_languages' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
+	wp_die( __( 'Sorry, you are not allowed to update this site.' ), 403 );
 }
 
 /**
@@ -1152,7 +1152,7 @@ if ( 'upgrade-core' === $action ) {
 } elseif ( 'do-core-upgrade' === $action || 'do-core-reinstall' === $action ) {
 
 	if ( ! current_user_can( 'update_core' ) ) {
-		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
+		wp_die( __( 'Sorry, you are not allowed to update this site.' ), 403 );
 	}
 
 	check_admin_referer( 'upgrade-core' );
@@ -1188,7 +1188,7 @@ if ( 'upgrade-core' === $action ) {
 } elseif ( 'do-plugin-upgrade' === $action ) {
 
 	if ( ! current_user_can( 'update_plugins' ) ) {
-		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
+		wp_die( __( 'Sorry, you are not allowed to update this site.' ), 403 );
 	}
 
 	check_admin_referer( 'upgrade-core' );
@@ -1229,7 +1229,7 @@ if ( 'upgrade-core' === $action ) {
 } elseif ( 'do-theme-upgrade' === $action ) {
 
 	if ( ! current_user_can( 'update_themes' ) ) {
-		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
+		wp_die( __( 'Sorry, you are not allowed to update this site.' ), 403 );
 	}
 
 	check_admin_referer( 'upgrade-core' );
@@ -1270,7 +1270,7 @@ if ( 'upgrade-core' === $action ) {
 } elseif ( 'do-translation-upgrade' === $action ) {
 
 	if ( ! current_user_can( 'update_languages' ) ) {
-		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
+		wp_die( __( 'Sorry, you are not allowed to update this site.' ), 403 );
 	}
 
 	check_admin_referer( 'upgrade-translations' );
@@ -1299,7 +1299,7 @@ if ( 'upgrade-core' === $action ) {
 } elseif ( 'core-major-auto-updates-settings' === $action ) {
 
 	if ( ! current_user_can( 'update_core' ) ) {
-		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
+		wp_die( __( 'Sorry, you are not allowed to update this site.' ), 403 );
 	}
 
 	$redirect_url = self_admin_url( 'update-core.php' );
