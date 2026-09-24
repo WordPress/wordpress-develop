@@ -2280,10 +2280,15 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:file-types', function() {
 		// Paths are relative to the build directory.
 		const allowed = [
-			/^wp-admin\/css\/colors\/.+\.scss$/,
+			/*
+			 * Provisional: generated PHP registries and manifests copied from Gutenberg.
+			 * Their placement is under discussion in #65278 and #65279.
+			 */
 			/^wp-includes\/css\/dist\/registry\.php$/,
 			/^wp-includes\/js\/dist\/.+\.asset\.php$/,
 			/^wp-includes\/js\/dist\/script-modules\/registry\.php$/,
+
+			/^wp-admin\/css\/colors\/.+\.scss$/,
 			/^wp-includes\/js\/tinymce\/wp-tinymce\.php$/,
 			/^wp-includes\/js\/tinymce\/license\.txt$/,
 			/^wp-includes\/js\/tinymce\/skins\/.+\.(css|png|gif|svg|ttf|woff|eot)$/,
