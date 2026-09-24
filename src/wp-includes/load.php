@@ -13,7 +13,7 @@
  * @return string The HTTP protocol. Default: HTTP/1.0.
  */
 function wp_get_server_protocol() {
-	$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
+	$protocol = $_SERVER['SERVER_PROTOCOL'] ?? '';
 
 	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {
 		$protocol = 'HTTP/1.0';
@@ -115,7 +115,7 @@ function wp_populate_basic_auth_from_authorization_header() {
 	}
 
 	// From our prior conditional, one of these must be set.
-	$header = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+	$header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
 
 	// Test to make sure the pattern matches expected.
 	if ( ! preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $header ) ) {
@@ -126,7 +126,12 @@ function wp_populate_basic_auth_from_authorization_header() {
 	$token    = substr( $header, 6 );
 	$userpass = base64_decode( $token );
 
-	list( $user, $pass ) = explode( ':', $userpass );
+	// There must be at least one colon in the string.
+	if ( ! str_contains( $userpass, ':' ) ) {
+		return;
+	}
+
+	list( $user, $pass ) = explode( ':', $userpass, 2 );
 
 	// Now shove them in the proper keys where we're expecting later on.
 	$_SERVER['PHP_AUTH_USER'] = $user;
@@ -134,19 +139,23 @@ function wp_populate_basic_auth_from_authorization_header() {
 }
 
 /**
- * Checks for the required PHP version, and the MySQL extension or
- * a database drop-in.
+ * Checks the server requirements.
+ *
+ *   - PHP version
+ *   - PHP extensions
+ *   - MySQL or MariaDB version (unless a database drop-in is present)
  *
  * Dies if requirements are not met.
  *
  * @since 3.0.0
  * @access private
  *
- * @global string $required_php_version The required PHP version string.
- * @global string $wp_version           The WordPress version string.
+ * @global string   $required_php_version    The minimum required PHP version string.
+ * @global string[] $required_php_extensions The names of required PHP extensions.
+ * @global string   $wp_version              The WordPress version string.
  */
 function wp_check_php_mysql_versions() {
-	global $required_php_version, $wp_version;
+	global $required_php_version, $required_php_extensions, $wp_version;
 
 	$php_version = PHP_VERSION;
 
@@ -163,10 +172,34 @@ function wp_check_php_mysql_versions() {
 		exit( 1 );
 	}
 
+	$missing_extensions = array();
+
+	if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+		foreach ( $required_php_extensions as $extension ) {
+			if ( extension_loaded( $extension ) ) {
+				continue;
+			}
+
+			$missing_extensions[] = sprintf(
+				'WordPress %1$s requires the <code>%2$s</code> PHP extension.',
+				$wp_version,
+				$extension
+			);
+		}
+	}
+
+	if ( count( $missing_extensions ) > 0 ) {
+		$protocol = wp_get_server_protocol();
+		header( sprintf( '%s 500 Internal Server Error', $protocol ), true, 500 );
+		header( 'Content-Type: text/html; charset=utf-8' );
+		echo implode( '<br>', $missing_extensions );
+		exit( 1 );
+	}
+
 	// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
 	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
-	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
+	if ( ! function_exists( 'mysqli_connect' )
 		&& ! file_exists( $wp_content_dir . '/db.php' )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
@@ -415,6 +448,16 @@ function wp_is_maintenance_mode() {
 		return false;
 	}
 
+	// Don't enable maintenance mode while scraping for fatal errors.
+	if ( is_int( $upgrading ) && isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
+		$key   = stripslashes( $_REQUEST['wp_scrape_key'] );
+		$nonce = stripslashes( $_REQUEST['wp_scrape_nonce'] );
+
+		if ( md5( $upgrading ) === $key && (int) $nonce === $upgrading ) {
+			return false;
+		}
+	}
+
 	/**
 	 * Filters whether to enable maintenance mode.
 	 *
@@ -438,8 +481,6 @@ function wp_is_maintenance_mode() {
 /**
  * Gets the time elapsed so far during this PHP script.
  *
- * Uses REQUEST_TIME_FLOAT that appeared in PHP 5.4.0.
- *
  * @since 5.8.0
  *
  * @return float Seconds since the PHP script started.
@@ -454,8 +495,9 @@ function timer_float() {
  * @since 0.71
  * @access private
  *
- * @global float $timestart Unix timestamp set at the beginning of the page load.
  * @see timer_stop()
+ *
+ * @global float $timestart Unix timestamp set at the beginning of the page load.
  *
  * @return bool Always returns true.
  */
@@ -593,6 +635,10 @@ function wp_debug_mode() {
 		error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 	}
 
+	/*
+	 * The 'REST_REQUEST' check here is optimistic as the constant is most
+	 * likely not set at this point even if it is in fact a REST request.
+	 */
 	if ( defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || defined( 'MS_FILES_REQUEST' )
 		|| ( defined( 'WP_INSTALLING' ) && WP_INSTALLING )
 		|| wp_doing_ajax() || wp_is_json_request()
@@ -859,6 +905,7 @@ function wp_start_object_cache() {
 				'blog-lookup',
 				'blog_meta',
 				'global-posts',
+				'image_editor',
 				'networks',
 				'network-queries',
 				'sites',
@@ -866,6 +913,8 @@ function wp_start_object_cache() {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
+				'translation_files',
 				'rss',
 				'users',
 				'user-queries',
@@ -1004,6 +1053,8 @@ function wp_get_active_and_valid_plugins() {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
+ *
  * @param string[] $plugins Array of absolute plugin main file paths.
  * @return string[] Filtered array of plugins, without any paused plugins.
  */
@@ -1036,12 +1087,14 @@ function wp_skip_paused_plugins( array $plugins ) {
  * @since 5.1.0
  * @access private
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $pagenow            The filename of the current screen.
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
  *
  * @return string[] Array of absolute paths to theme directories.
  */
 function wp_get_active_and_valid_themes() {
-	global $pagenow;
+	global $pagenow, $wp_stylesheet_path, $wp_template_path;
 
 	$themes = array();
 
@@ -1049,11 +1102,11 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	if ( TEMPLATEPATH !== STYLESHEETPATH ) {
-		$themes[] = STYLESHEETPATH;
+	if ( is_child_theme() ) {
+		$themes[] = $wp_stylesheet_path;
 	}
 
-	$themes[] = TEMPLATEPATH;
+	$themes[] = $wp_template_path;
 
 	/*
 	 * Remove themes from the list of active themes when we're on an endpoint
@@ -1075,6 +1128,8 @@ function wp_get_active_and_valid_themes() {
  * Filters a given list of themes, removing any paused themes from it.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  *
  * @param string[] $themes Array of absolute theme directory paths.
  * @return string[] Filtered array of absolute paths to themes, without any paused themes.
@@ -1178,6 +1233,7 @@ function is_protected_ajax_action() {
 		'search-install-plugins', // Searching for a plugin in the plugin install screen.
 		'update-plugin',          // Update an existing plugin.
 		'update-theme',           // Update an existing theme.
+		'activate-plugin',        // Activating an existing plugin.
 	);
 
 	/**
@@ -1402,6 +1458,50 @@ function is_multisite() {
 }
 
 /**
+ * Converts a value to non-negative integer.
+ *
+ * @since 2.5.0
+ * @since 7.2.0 The `int` return type was added. Finite values beyond the integer
+ *              range are now capped at `PHP_INT_MAX` rather than overflowing.
+ *              Non-finite values continue to return `0`, as `NAN` and `INF` have
+ *              always cast to `0`; note that this includes numeric strings beyond
+ *              the float range, such as `'1e309'`, which become `INF` when cast.
+ *
+ * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
+ * @return int A non-negative integer.
+ * @phpstan-return non-negative-int
+ */
+function absint( $maybeint ): int {
+	if ( is_float( $maybeint ) ) {
+		if ( ! is_finite( $maybeint ) ) {
+			// Casting `NAN` or `INF` to int has produced `0` since PHP 7.0.
+			return 0;
+		}
+
+		if ( $maybeint <= (float) PHP_INT_MIN || $maybeint >= (float) PHP_INT_MAX ) {
+			// Casting a float beyond the integer range is unreliable and warns as of PHP 8.5.
+			return PHP_INT_MAX;
+		}
+	}
+
+	/*
+	 * Casting from an unknown type is the entire contract of this function, so this conversion is
+	 * deliberate: arrays, objects, and resources are converted exactly as PHP has always converted
+	 * them here, and narrowing the type first would change long-standing behavior. PHPStan flags
+	 * such casts for good reason, but that reasoning does not apply here; if the rule level is
+	 * ever raised to 9, the resulting `cast.int` error will need to be ignored or baselined.
+	 */
+	$maybeint = (int) $maybeint;
+
+	if ( PHP_INT_MIN === $maybeint ) {
+		// `abs( PHP_INT_MIN )` overflows to a float, as `PHP_INT_MAX` is one less than `-PHP_INT_MIN`.
+		return PHP_INT_MAX;
+	}
+
+	return abs( $maybeint );
+}
+
+/**
  * Retrieves the current site ID.
  *
  * @since 3.1.0
@@ -1472,6 +1572,11 @@ function wp_load_translations_early() {
 
 	// Translation and localization.
 	require_once ABSPATH . WPINC . '/pomo/mo.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translations.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 	require_once ABSPATH . WPINC . '/l10n.php';
 	require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
@@ -1648,9 +1753,8 @@ function wp_is_ini_value_changeable( $setting ) {
 		}
 	}
 
-	// Bit operator to workaround https://bugs.php.net/bug.php?id=44936 which changes access level to 63 in PHP 5.2.6 - 5.2.17.
 	if ( isset( $ini_all[ $setting ]['access'] )
-		&& ( INI_ALL === ( $ini_all[ $setting ]['access'] & 7 ) || INI_USER === ( $ini_all[ $setting ]['access'] & 7 ) )
+		&& ( INI_ALL === $ini_all[ $setting ]['access'] || INI_USER === $ini_all[ $setting ]['access'] )
 	) {
 		return true;
 	}
@@ -1726,13 +1830,15 @@ function wp_doing_cron() {
  *
  * @param mixed $thing The variable to check.
  * @return bool Whether the variable is an instance of WP_Error.
+ *
+ * @phpstan-assert-if-true WP_Error $thing
  */
 function is_wp_error( $thing ) {
 	$is_wp_error = ( $thing instanceof WP_Error );
 
 	if ( $is_wp_error ) {
 		/**
-		 * Fires when `is_wp_error()` is called and its parameter is an instance of `WP_Error`.
+		 * Fires when `is_wp_error()` is called and its parameter is an instance of WP_Error.
 		 *
 		 * @since 5.6.0
 		 *
@@ -1776,8 +1882,20 @@ function wp_start_scraping_edited_file_errors() {
 
 	$key   = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
 	$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
+	if ( empty( $key ) || empty( $nonce ) ) {
+		return;
+	}
 
-	if ( get_transient( 'scrape_key_' . $key ) !== $nonce ) {
+	$transient = get_transient( 'scrape_key_' . $key );
+	if ( false === $transient ) {
+		return;
+	}
+
+	if ( $transient !== $nonce ) {
+		if ( ! headers_sent() ) {
+			header( 'X-Robots-Tag: noindex' );
+			nocache_headers();
+		}
 		echo "###### wp_scraping_result_start:$key ######";
 		echo wp_json_encode(
 			array(
@@ -1865,7 +1983,6 @@ function wp_is_jsonp_request() {
 	$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
 
 	return $jsonp_enabled;
-
 }
 
 /**
@@ -1957,8 +2074,8 @@ function wp_is_site_protected_by_basic_auth( $context = '' ) {
 	 *
 	 * @since 5.6.1
 	 *
-	 * @param bool $is_protected Whether the site is protected by Basic Auth.
-	 * @param string $context    The context to check for protection. One of 'login', 'admin', or 'front'.
+	 * @param bool   $is_protected Whether the site is protected by Basic Auth.
+	 * @param string $context      The context to check for protection. One of 'login', 'admin', or 'front'.
 	 */
 	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected, $context );
 }

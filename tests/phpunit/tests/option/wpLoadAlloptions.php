@@ -20,6 +20,32 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 42441
+	 *
+	 * @covers ::wp_load_alloptions
+	 */
+	public function test_default_and_yes() {
+		add_option( 'foo', 'bar' );
+		add_option( 'bar', 'foo', '', true );
+		$alloptions = wp_load_alloptions();
+		$this->assertArrayHasKey( 'foo', $alloptions );
+		$this->assertArrayHasKey( 'bar', $alloptions );
+	}
+
+	/**
+	 * @ticket 42441
+	 *
+	 * @covers ::wp_load_alloptions
+	 */
+	public function test_default_and_no() {
+		add_option( 'foo', 'bar' );
+		add_option( 'bar', 'foo', '', false );
+		$alloptions = wp_load_alloptions();
+		$this->assertArrayHasKey( 'foo', $alloptions );
+		$this->assertArrayNotHasKey( 'bar', $alloptions );
+	}
+
+	/**
 	 * @depends test_if_alloptions_is_cached
 	 *
 	 * @covers ::wp_cache_delete

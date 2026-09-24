@@ -87,7 +87,7 @@ if ( ! empty( $_GET['trashed'] ) && absint( $_GET['trashed'] ) ) {
 
 	$message .= sprintf(
 		' <a href="%1$s">%2$s</a>',
-		esc_url( wp_nonce_url( 'upload.php?doaction=undo&action=untrash&ids=' . ( isset( $_GET['ids'] ) ? $_GET['ids'] : '' ), 'bulk-media' ) ),
+		esc_url( wp_nonce_url( 'upload.php?doaction=undo&action=untrash&ids=' . ( $_GET['ids'] ?? '' ), 'bulk-media' ) ),
 		__( 'Undo' )
 	);
 
@@ -117,7 +117,7 @@ $messages[2] = __( 'Media file permanently deleted.' );
 $messages[3] = __( 'Error saving media file.' );
 $messages[4] = __( 'Media file moved to the Trash.' ) . sprintf(
 	' <a href="%1$s">%2$s</a>',
-	esc_url( wp_nonce_url( 'upload.php?doaction=undo&action=untrash&ids=' . ( isset( $_GET['ids'] ) ? $_GET['ids'] : '' ), 'bulk-media' ) ),
+	esc_url( wp_nonce_url( 'upload.php?doaction=undo&action=untrash&ids=' . ( $_GET['ids'] ?? '' ), 'bulk-media' ) ),
 	__( 'Undo' )
 );
 $messages[5] = __( 'Media file restored from the Trash.' );
@@ -128,12 +128,13 @@ if ( ! empty( $_GET['message'] ) && isset( $messages[ $_GET['message'] ] ) ) {
 	$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'message' ), $_SERVER['REQUEST_URI'] );
 }
 
-$mode  = get_user_option( 'media_library_mode', get_current_user_id() ) ? get_user_option( 'media_library_mode', get_current_user_id() ) : 'grid';
 $modes = array( 'grid', 'list' );
 
 if ( isset( $_GET['mode'] ) && in_array( $_GET['mode'], $modes, true ) ) {
 	$mode = $_GET['mode'];
 	update_user_option( get_current_user_id(), 'media_library_mode', $mode );
+} else {
+	$mode = get_user_option( 'media_library_mode', get_current_user_id() ) ? get_user_option( 'media_library_mode', get_current_user_id() ) : 'grid';
 }
 
 if ( 'grid' === $mode ) {
@@ -144,21 +145,22 @@ if ( 'grid' === $mode ) {
 	// Remove the error parameter added by deprecation of wp-admin/media.php.
 	add_filter(
 		'removable_query_args',
-		function() {
+		function () {
 			return array( 'error' );
 		},
 		10,
 		0
 	);
 
-	$q = $_GET;
+	$query_string = $_GET;
 	// Let JS handle this.
-	unset( $q['s'] );
-	$vars   = wp_edit_attachments_query_vars( $q );
-	$ignore = array( 'mode', 'post_type', 'post_status', 'posts_per_page' );
-	foreach ( $vars as $key => $value ) {
+	unset( $query_string['s'] );
+	$query_vars = wp_edit_attachments_query_vars( $query_string );
+	$ignore     = array( 'mode', 'post_type', 'post_status', 'posts_per_page' );
+
+	foreach ( $query_vars as $key => $value ) {
 		if ( ! $value || in_array( $key, $ignore, true ) ) {
-			unset( $vars[ $key ] );
+			unset( $query_vars[ $key ] );
 		}
 	}
 
@@ -167,7 +169,7 @@ if ( 'grid' === $mode ) {
 		'_wpMediaGridSettings',
 		array(
 			'adminUrl'  => parse_url( self_admin_url(), PHP_URL_PATH ),
-			'queryVars' => (object) $vars,
+			'queryVars' => (object) $query_vars,
 		)
 	);
 
@@ -178,7 +180,7 @@ if ( 'grid' === $mode ) {
 			'content' =>
 				'<p>' . __( 'All the files you&#8217;ve uploaded are listed in the Media Library, with the most recent uploads listed first.' ) . '</p>' .
 				'<p>' . __( 'You can view your media in a simple visual grid or a list with columns. Switch between these views using the icons to the left above the media.' ) . '</p>' .
-				'<p>' . __( 'To delete media items, click the Bulk Select button at the top of the screen. Select any items you wish to delete, then click the Delete Selected button. Clicking the Cancel Selection button takes you back to viewing your media.' ) . '</p>',
+				'<p>' . __( 'To delete media items, click the <strong>Bulk select</strong> button at the top of the screen. Select any items you wish to delete, then click the <strong>Delete permanently</strong> button. Clicking the <strong>Cancel</strong> button takes you back to viewing your media.' ) . '</p>',
 		)
 	);
 
@@ -188,7 +190,7 @@ if ( 'grid' === $mode ) {
 			'title'   => __( 'Attachment Details' ),
 			'content' =>
 				'<p>' . __( 'Clicking an item will display an Attachment Details dialog, which allows you to preview media and make quick edits. Any changes you make to the attachment details will be automatically saved.' ) . '</p>' .
-				'<p>' . __( 'Use the arrow buttons at the top of the dialog, or the left and right arrow keys on your keyboard, to navigate between media items quickly.' ) . '</p>' .
+				'<p>' . __( 'Use the buttons at the top of the dialog, or <code>alt</code>/<code>option</code> plus the left or right arrow keys on your keyboard, to navigate between media items quickly.' ) . '</p>' .
 				'<p>' . __( 'You can also delete individual items and access the extended edit screen from the details dialog.' ) . '</p>',
 		)
 	);
@@ -211,28 +213,37 @@ if ( 'grid' === $mode ) {
 		<?php
 		if ( current_user_can( 'upload_files' ) ) {
 			?>
-			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
+			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html__( 'Add Media File' ); ?></a>
 			<?php
 		}
 		?>
 
 		<hr class="wp-header-end">
 
-		<?php if ( ! empty( $message ) ) : ?>
-			<div id="message" class="updated notice is-dismissible"><p><?php echo $message; ?></p></div>
-		<?php endif; ?>
-
-		<div class="error hide-if-js">
-			<p>
-			<?php
-			printf(
-				/* translators: %s: List view URL. */
-				__( 'The grid view for the Media Library requires JavaScript. <a href="%s">Switch to the list view</a>.' ),
-				'upload.php?mode=list'
+		<?php
+		if ( ! empty( $message ) ) {
+			wp_admin_notice(
+				$message,
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+					'dismissible'        => true,
+				)
 			);
-			?>
-			</p>
-		</div>
+		}
+
+		$js_required_message = sprintf(
+			/* translators: %s: List view URL. */
+			__( 'The grid view for the Media Library requires JavaScript. <a href="%s">Switch to the list view</a>.' ),
+			'upload.php?mode=list'
+		);
+		wp_admin_notice(
+			$js_required_message,
+			array(
+				'additional_classes' => array( 'error', 'hide-if-js' ),
+			)
+		);
+		?>
 	</div>
 	<?php
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
@@ -409,7 +420,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 if ( current_user_can( 'upload_files' ) ) {
 	?>
-	<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
+	<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add Media File' ); ?></a>
 						<?php
 }
 
@@ -426,9 +437,18 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 
 <hr class="wp-header-end">
 
-<?php if ( ! empty( $message ) ) : ?>
-<div id="message" class="updated notice is-dismissible"><p><?php echo $message; ?></p></div>
-<?php endif; ?>
+<?php
+if ( ! empty( $message ) ) {
+	wp_admin_notice(
+		$message,
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
+}
+?>
 
 <form id="posts-filter" method="get">
 

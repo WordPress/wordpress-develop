@@ -11,7 +11,7 @@
  * Adds custom classes to the array of body classes.
  *
  * @param array $classes Classes for the body element.
- * @return array
+ * @return string[] Filtered body classes with theme-specific additions.
  */
 function twentyseventeen_body_classes( $classes ) {
 	// Add class of group-blog to blogs with more than 1 published author.
@@ -89,7 +89,7 @@ function twentyseventeen_panel_count() {
 	// Create a setting and control for each of the sections available in the theme.
 	for ( $i = 1; $i < ( 1 + $num_sections ); $i++ ) {
 		if ( get_theme_mod( 'panel_' . $i ) ) {
-			$panel_count++;
+			++$panel_count;
 		}
 	}
 

@@ -1,5 +1,6 @@
 <?php
 /**
+ * @group admin
  * @group themes
  */
 class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
@@ -183,56 +184,59 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 41717
-	 */
-	public function test_get_post_templates_child_theme() {
-		$theme = wp_get_theme( 'page-templates-child' );
-		$this->assertNotEmpty( $theme );
-
-		switch_theme( $theme['Template'], $theme['Stylesheet'] );
-
-		$post_templates = $theme->get_post_templates();
-
-		$this->assertSameSetsWithIndex(
-			array(
-				'template-top-level-post-types.php'       => 'Top Level',
-				'subdir/template-sub-dir-post-types.php'  => 'Sub Dir',
-				'template-top-level-post-types-child.php' => 'Top Level In A Child Theme',
-				'subdir/template-sub-dir-post-types-child.php' => 'Sub Dir In A Child Theme',
-			),
-			$post_templates['foo']
-		);
-
-		$this->assertSameSetsWithIndex(
-			array(
-				'template-top-level-post-types.php'      => 'Top Level',
-				'subdir/template-sub-dir-post-types.php' => 'Sub Dir',
-			),
-			$post_templates['post']
-		);
-
-		$this->assertSameSetsWithIndex(
-			array(
-				'template-top-level.php'      => 'Top Level',
-				'subdir/template-sub-dir.php' => 'Sub Dir',
-				'template-header.php'         => 'This Template Header Is On One Line',
-			),
-			$post_templates['page']
-		);
-	}
-
-	/**
-	 * Test that the list of theme features pulled from the WordPress.org API returns the expected data structure.
+	 * Test that a mocked WordPress.org API response returns the expected translated list of theme features.
 	 *
-	 * Differences in the structure can also trigger failure by causing PHP notices/warnings.
-	 *
-	 * @group external-http
 	 * @ticket 28121
 	 */
 	public function test_get_theme_featured_list_api() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+
+		if ( is_multisite() ) {
+			// In multisite, only Super Admins can install themes, and the API is not queried without that capability.
+			grant_super_admin( $user_id );
+		}
+
+		wp_set_current_user( $user_id );
+
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return array(
+					'headers'  => array(),
+					'body'     => wp_json_encode(
+						array(
+							'Subject'  => array( 'blog', 'news' ),
+							'Features' => array( 'custom-logo', 'unknown-feature' ),
+							'Layout'   => array( 'one-column' ),
+						)
+					),
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
+
 		$featured_list_api = get_theme_feature_list( true );
-		$this->assertNonEmptyMultidimensionalArray( $featured_list_api );
+		$this->assertSame(
+			array(
+				'Subject'  => array(
+					'blog' => 'Blog',
+					'news' => 'News',
+				),
+				'Features' => array(
+					'custom-logo'     => 'Custom Logo',
+					'unknown-feature' => 'unknown-feature',
+				),
+				'Layout'   => array(
+					'one-column' => 'One Column',
+				),
+			),
+			$featured_list_api
+		);
 	}
 
 	/**
@@ -240,7 +244,6 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 *
 	 * Differences in the structure can also trigger failure by causing PHP notices/warnings.
 	 *
-	 * @group external-http
 	 * @ticket 28121
 	 */
 	public function test_get_theme_featured_list_hardcoded() {

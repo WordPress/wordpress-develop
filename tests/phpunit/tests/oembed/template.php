@@ -19,6 +19,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$wp_scripts = null;
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_post() {
 		$user = self::factory()->user->create_and_get(
 			array(
@@ -51,6 +54,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Hello World', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_post_with_thumbnail() {
 		$post_id       = self::factory()->post->create(
 			array(
@@ -84,6 +90,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_404() {
 		$this->go_to( home_url( '/?p=123&embed=true' ) );
 		$GLOBALS['wp_query']->query_vars['embed'] = true;
@@ -99,6 +108,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_attachment() {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
@@ -128,6 +140,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_draft_post() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -151,6 +166,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_scheduled_post() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -175,6 +193,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_private_post() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -198,6 +219,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_oembed_output_private_post_with_permissions() {
 		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $user_id );
@@ -286,6 +310,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertFalse( get_post_embed_html( 200, 200 ) );
 	}
 
+	/**
+	 * @group assets
+	 */
 	public function test_get_post_embed_html() {
 		$post_id = self::factory()->post->create();
 		$title   = esc_attr(
@@ -321,7 +348,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
 
-		$post_embed     = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
+		$post_embed     = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
 		$non_post_embed = '<iframe title="Zoo Cares For 23 Tiny Pond Turtles" width="750" height="422" src="https://www.youtube.com/embed/6ZXHqUjL6f8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
 
 		wp_maybe_enqueue_oembed_host_js( $non_post_embed );
@@ -338,20 +365,65 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		remove_action( 'wp_head', 'wp_oembed_add_host_js' );
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
 
-		$post_embed = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
+		$post_embed = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
 
 		wp_maybe_enqueue_oembed_host_js( $post_embed );
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
 	}
 
 	/**
-	 * Confirms that no ampersands exist in src/wp-includes/js/wp-embed.js.
-	 *
-	 * See also the `verify:wp-embed` Grunt task for verifying the built file.
-	 *
-	 * @ticket 34698
+	 * @ticket 35567
 	 */
-	public function test_js_no_ampersands() {
-		$this->assertStringNotContainsString( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
+	public function test_is_embeddable_post_non_existent_post() {
+		$this->assertFalse( is_post_embeddable( 99999 ) );
+	}
+
+	/**
+	 * @ticket 35567
+	 */
+	public function test_is_embeddable_post_should_return_false_for_non_embeddable_post_type() {
+		register_post_type( 'not_embeddable', array( 'embeddable' => false ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type' => 'not_embeddable',
+			)
+		);
+
+		$this->assertFalse( is_post_embeddable( $post ) );
+	}
+
+	/**
+	 * @ticket 35567
+	 */
+	public function test_is_embeddable_post_should_return_true_for_embeddable_post_type() {
+		register_post_type( 'embeddable', array( 'embeddable' => true ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type' => 'embeddable',
+			)
+		);
+
+		$this->assertTrue( is_post_embeddable( $post ) );
+	}
+
+	/**
+	 * @ticket 35567
+	 */
+	public function test_is_embeddable_post_filtered() {
+		register_post_type( 'not_embeddable', array( 'embeddable' => false ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type' => 'not_embeddable',
+			)
+		);
+
+		add_filter( 'is_post_embeddable', '__return_true' );
+		$embeddable = is_post_embeddable( $post );
+		remove_filter( 'is_post_embeddable', '__return_true' );
+
+		$this->assertTrue( $embeddable );
 	}
 }

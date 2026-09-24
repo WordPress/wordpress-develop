@@ -5,7 +5,12 @@
  * This pattern is used only for translation
  * and to reference a dynamic image URL. It does
  * not appear in the inserter.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Two
+ * @since Twenty Twenty-Two 1.0
  */
+
 return array(
 	'title'    => __( 'Heading and bird image', 'twentytwentytwo' ),
 	'inserter' => false,
@@ -15,7 +20,7 @@ return array(
 					<!-- /wp:heading --></div>
 					<!-- /wp:group -->
 
-					<!-- wp:image {"align":"full","sizeSlug":"full","linkDestination":"none"} -->
-					<figure class="wp-block-image alignfull size-full"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-c.png" alt="' . esc_attr__( 'Illustration of a bird flying.', 'twentytwentytwo' ) . '"/></figure>
+					<!-- wp:image {"align":"full","width":2400,"height":1020,"sizeSlug":"full","linkDestination":"none"} -->
+					<figure class="wp-block-image alignfull size-full is-resized"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-c.png" alt="' . esc_attr__( 'Illustration of a bird flying.', 'twentytwentytwo' ) . '" width="2400" height="1020"/></figure>
 					<!-- /wp:image -->',
 );

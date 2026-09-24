@@ -3,8 +3,9 @@
 /**
  * Test dbDelta()
  *
- * @group upgrade
+ * @group wpdb
  * @group dbdelta
+ * @group upgrade
  *
  * @covers ::dbDelta
  */
@@ -68,7 +69,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			$wpdb->prepare(
 				"
 				CREATE TABLE {$wpdb->prefix}dbdelta_test (" .
-					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					'id bigint(20) NOT NULL AUTO_INCREMENT,
 					column_1 varchar(255) NOT NULL,
 					column_2 text,
@@ -141,7 +141,7 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that it does nothing for an existing table.
+	 * Test that no update is reported for an existing table.
 	 */
 	public function test_existing_table() {
 
@@ -156,7 +156,33 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1($this->max_index_length)),
 				KEY compound_key (id,column_1($this->max_index_length))
 			)
+			",
+			false
+		);
+
+		$this->assertSame( array(), $updates );
+	}
+
+	/**
+	 * Test that no update is reported for an existing table name in backticks.
+	 *
+	 * @ticket 63976
+	 */
+	public function test_existing_table_name_in_backticks() {
+
+		global $wpdb;
+
+		$updates = dbDelta(
 			"
+			CREATE TABLE `{$wpdb->prefix}dbdelta_test` (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				column_1 varchar(255) NOT NULL,
+				PRIMARY KEY  (id),
+				KEY key_1 (column_1($this->max_index_length)),
+				KEY compound_key (id,column_1($this->max_index_length))
+			)
+			",
+			false
 		);
 
 		$this->assertSame( array(), $updates );
@@ -311,7 +337,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 		);
 
 		$this->assertTableRowHasValue( 'column_1', 'wcphilly2015', $wpdb->prefix . 'dbdelta_test' );
-
 	}
 
 	/**
@@ -426,10 +451,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	 */
 	public function test_truncated_index() {
 		global $wpdb;
-
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support in MySQL.' );
-		}
 
 		// This table needs to be actually created.
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -740,7 +761,7 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	/**
 	 * @ticket 20263
 	 */
-	public function test_key_and_index_and_fulltext_key_and_fulltext_index_and_unique_key_and_unique_index_indicies() {
+	public function test_key_and_index_and_fulltext_key_and_fulltext_index_and_unique_key_and_unique_index_indices() {
 		global $wpdb;
 
 		$schema = "
@@ -1094,5 +1115,30 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			),
 			$updates
 		);
+	}
+
+	/**
+	 * @ticket 59481
+	 */
+	public function test_column_types_are_not_case_sensitive() {
+		global $wpdb;
+
+		$updates = dbDelta(
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_test (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				column_1 varCHAr(255) NOT NULL,
+				column_2 TEXT,
+				column_3 blOB,
+				PRIMARY KEY  (id),
+				KEY key_1 (column_1($this->max_index_length)),
+				KEY compound_key (id,column_1($this->max_index_length)),
+				FULLTEXT KEY fulltext_key (column_1)
+			) {$this->db_engine}
+			",
+			false
+		);
+
+		$this->assertEmpty( $updates );
 	}
 }

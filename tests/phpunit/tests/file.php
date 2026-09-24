@@ -15,80 +15,6 @@ class Tests_File extends WP_UnitTestCase {
 		$this->dir = untrailingslashit( get_temp_dir() );
 	}
 
-	/**
-	 * @group plugins
-	 * @group themes
-	 */
-	public function test_get_file_data() {
-		$theme_headers = array(
-			'Name'        => 'Theme Name',
-			'ThemeURI'    => 'Theme URI',
-			'Description' => 'Description',
-			'Version'     => 'Version',
-			'Author'      => 'Author',
-			'AuthorURI'   => 'Author URI',
-		);
-
-		$actual = get_file_data( DIR_TESTDATA . '/themedir1/default/style.css', $theme_headers );
-
-		$expected = array(
-			'Name'        => 'WordPress Default',
-			'ThemeURI'    => 'http://wordpress.org/',
-			'Description' => 'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
-			'Version'     => '1.6',
-			'Author'      => 'Michael Heilemann',
-			'AuthorURI'   => 'http://binarybonsai.com/',
-		);
-
-		foreach ( $actual as $header => $value ) {
-			$this->assertSame( $expected[ $header ], $value, $header );
-		}
-	}
-
-	/**
-	 * @ticket 19854
-	 * @group plugins
-	 * @group themes
-	 */
-	public function test_get_file_data_with_cr_line_endings() {
-		$headers = array(
-			'SomeHeader'  => 'Some Header',
-			'Description' => 'Description',
-			'Author'      => 'Author',
-		);
-
-		$actual   = get_file_data( DIR_TESTDATA . '/formatting/file-header-cr-line-endings.php', $headers );
-		$expected = array(
-			'SomeHeader'  => 'Some header value!',
-			'Description' => 'This file is using CR line endings for a testcase.',
-			'Author'      => 'A Very Old Mac',
-		);
-
-		foreach ( $actual as $header => $value ) {
-			$this->assertSame( $expected[ $header ], $value, $header );
-		}
-	}
-
-	/**
-	 * @ticket 47186
-	 * @group plugins
-	 * @group themes
-	 */
-	public function test_get_file_data_with_php_open_tag_prefix() {
-		$headers = array(
-			'TemplateName' => 'Template Name',
-		);
-
-		$actual   = get_file_data( DIR_TESTDATA . '/formatting/file-header-php-open-tag-prefix.php', $headers );
-		$expected = array(
-			'TemplateName' => 'Something',
-		);
-
-		foreach ( $actual as $header => $value ) {
-			$this->assertSame( $expected[ $header ], $value, $header );
-		}
-	}
-
 	private function is_unique_writable_file( $path, $filename ) {
 		$fullpath = $path . DIRECTORY_SEPARATOR . $filename;
 
@@ -251,7 +177,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Create a conflict by removing the randomness of the generated password.
 		add_filter(
 			'random_password',
-			static function() {
+			static function () {
 				return '123456';
 			},
 			10,
@@ -285,7 +211,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Force random passwords to 12 characters.
 		add_filter(
 			'random_password',
-			static function() {
+			static function () {
 				return '1a2b3c4d5e6f';
 			},
 			10,
@@ -321,7 +247,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Make the filter send the filename over the limit.
 		add_filter(
 			'wp_unique_filename',
-			static function( $filename ) use ( &$filenames_over_limit ) {
+			static function ( $filename ) use ( &$filenames_over_limit ) {
 				if ( strlen( $filename ) === 252 ) {
 					$filename .= '1';
 					++$filenames_over_limit;
@@ -357,7 +283,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Force random passwords to 12 characters.
 		add_filter(
 			'random_password',
-			static function() {
+			static function () {
 				return '1a2b3c4d5e6f';
 			},
 			10,
@@ -375,7 +301,7 @@ class Tests_File extends WP_UnitTestCase {
 		// Make the filter send the filename over the limit.
 		add_filter(
 			'wp_unique_filename',
-			static function( $filename ) use ( &$filenames_over_limit ) {
+			static function ( $filename ) use ( &$filenames_over_limit ) {
 				if ( strlen( $filename ) === 252 ) {
 					$filename .= '1';
 					++$filenames_over_limit;

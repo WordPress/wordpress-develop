@@ -32,7 +32,6 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 
 		$invalid_nest = '<pre></code>"baba"</pre>';
 		$this->assertSame( $invalid_nest, wptexturize( $invalid_nest ) );
-
 	}
 
 	/**
@@ -1572,7 +1571,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 
 		$result = wptexturize( $input, true );
 
-		remove_filter( 'gettext_with_context', array( $this, 'filter_translate' ), 10, 4 );
+		remove_filter( 'gettext_with_context', array( $this, 'filter_translate' ) );
 		wptexturize( 'reset', true );
 
 		$this->assertSame( $output, $result );
@@ -1789,7 +1788,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Extra sanity checks for _wptexturize_pushpop_element()
+	 * Extra confidence checks for _wptexturize_pushpop_element()
 	 *
 	 * @ticket 28483
 	 * @dataProvider data_element_stack
@@ -1850,7 +1849,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 
 		$output = $this->assertSame( $output, wptexturize( $input ) );
 
-		remove_filter( 'no_texturize_shortcodes', array( $this, 'filter_shortcodes' ), 10, 1 );
+		remove_filter( 'no_texturize_shortcodes', array( $this, 'filter_shortcodes' ) );
 		return $output;
 	}
 
@@ -1997,7 +1996,7 @@ String with a number followed by a single quote &#8216;Expendables 3&#8217; vest
 
 		$result = wptexturize( $input, true );
 
-		remove_filter( 'gettext_with_context', array( $this, 'filter_translate2' ), 10, 4 );
+		remove_filter( 'gettext_with_context', array( $this, 'filter_translate2' ) );
 		wptexturize( 'reset', true );
 
 		$this->assertSame( $output, $result );

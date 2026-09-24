@@ -2,7 +2,7 @@
 
 /**
  * @group taxonomy
- * @group category.php
+ * @group category
  *
  * @covers ::get_categories
  */

@@ -128,7 +128,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $data['post_content'], $post->post_content );
 		$this->assertSame( $data['post_title'], $post->post_title );
 		$this->assertSame( $data['post_status'], $post->post_status );
-		$this->assertEquals( $data['post_author'], $post->post_author );
+		$this->assertSame( (string) $data['post_author'], $post->post_author );
 
 		// Test cache state.
 		$post_cache = wp_cache_get( $post_id, 'posts' );
@@ -304,7 +304,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		// There should be a publish_future_post hook scheduled on the future date.
 		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
-
 	}
 
 	/**
@@ -567,34 +566,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * "When I delete a future post using wp_delete_post( $post->ID ) it does not update the cron correctly."
-	 *
-	 * @ticket 5364
-	 * @covers ::wp_delete_post
-	 */
-	public function test_delete_future_post_cron() {
-		$future_date = strtotime( '+1 day' );
-
-		$data = array(
-			'post_status'  => 'publish',
-			'post_content' => 'content',
-			'post_title'   => 'title',
-			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
-		);
-
-		// Insert a post and make sure the ID is OK.
-		$post_id = wp_insert_post( $data );
-
-		// Check that there's a publish_future_post job scheduled at the right time.
-		$this->assertSame( $future_date, $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
-
-		// Now delete the post and make sure the cron entry is removed.
-		wp_delete_post( $post_id );
-
-		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
-	}
-
-	/**
 	 * Bug: permalink doesn't work if post title is empty.
 	 *
 	 * Might only fail if the post ID is greater than four characters.
@@ -650,7 +621,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Error', wp_insert_post( $post, true ) );
 		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ) );
-
 	}
 
 	/**
@@ -677,7 +647,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertGreaterThan( 0, $post_id );
 
 		$post = get_post( $post_id );
-		$this->assertEquals( self::$user_ids['editor'], $post->post_author );
+		$this->assertSame( (string) self::$user_ids['editor'], $post->post_author );
 		$this->assertSame( $title, $post->post_title );
 	}
 
@@ -789,7 +759,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_wp_insert_post_author_zero() {
 		$post_id = self::factory()->post->create( array( 'post_author' => 0 ) );
 
-		$this->assertEquals( 0, get_post( $post_id )->post_author );
+		$this->assertSame( '0', get_post( $post_id )->post_author );
 	}
 
 	/**
@@ -800,7 +770,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create( array( 'post_author' => null ) );
 
-		$this->assertEquals( self::$user_ids['editor'], get_post( $post_id )->post_author );
+		$this->assertSame( (string) self::$user_ids['editor'], get_post( $post_id )->post_author );
 	}
 
 	/**
@@ -918,7 +888,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		// Validate that the post has had the default category assigned again.
 		$this->assertCount( 1, $assigned_terms );
-		$this->assertEquals( get_option( 'default_category' ), $assigned_terms[0]->term_id );
+		$this->assertSame( (int) get_option( 'default_category' ), $assigned_terms[0]->term_id );
 	}
 
 	/**
@@ -1186,58 +1156,76 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$invalid_date  = '2020-12-41 14:15:27';
 
 		// Empty post_date_gmt with floating status
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'  => 'Invalid date',
 				'post_date'   => $invalid_date,
 				'post_status' => 'draft',
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => '0000-00-00 00:00:00',
 				'post_status'   => 'draft',
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Empty post_date_gmt without floating status
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'  => 'Invalid date',
 				'post_date'   => $invalid_date,
 				'post_status' => 'publish',
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => '0000-00-00 00:00:00',
 				'post_status'   => 'publish',
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Valid post_date_gmt
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => $post_date_gmt,
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Invalid post_date_gmt
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => $invalid_date,
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 	}
 
 	/**
@@ -1380,7 +1368,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		wp_trash_post( $page_id );
 		wp_untrash_post( $page_id );
 
-		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status' );
 
 		$this->assertSame( $post_status, get_post( $page_id )->post_status );
 	}

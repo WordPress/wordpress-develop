@@ -7,6 +7,8 @@
 
 /**
  * @namespace wp.textWidgets
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 wp.textWidgets = ( function( $ ) {
 	'use strict';
@@ -32,9 +34,9 @@ wp.textWidgets = ( function( $ ) {
 		 * @augments   Backbone.View
 		 * @abstract
 		 *
-		 * @param {Object} options - Options.
-		 * @param {jQuery} options.el - Control field container element.
-		 * @param {jQuery} options.syncContainer - Container element where fields are synced for the server.
+		 * @param {Object} options               Options.
+		 * @param {jQuery} options.el            Control field container element.
+		 * @param {jQuery} options.syncContainer Container element where fields are synced for the server.
 		 *
 		 * @return {void}
 		 */
@@ -291,7 +293,7 @@ wp.textWidgets = ( function( $ ) {
 				onInit = function() {
 
 					// When a widget is moved in the DOM the dynamically-created TinyMCE iframe will be destroyed and has to be re-built.
-					$( editor.getWin() ).on( 'unload', function() {
+					$( editor.getWin() ).on( 'pagehide', function() {
 						_.defer( buildEditor );
 					});
 
@@ -374,8 +376,8 @@ wp.textWidgets = ( function( $ ) {
 	 *
 	 * @memberOf wp.textWidgets
 	 *
-	 * @param {jQuery.Event} event - Event.
-	 * @param {jQuery}       widgetContainer - Widget container element.
+	 * @param {jQuery.Event} event           Event.
+	 * @param {jQuery}       widgetContainer Widget container element.
 	 *
 	 * @return {void}
 	 */
@@ -482,8 +484,8 @@ wp.textWidgets = ( function( $ ) {
 	 *
 	 * @memberOf wp.textWidgets
 	 *
-	 * @param {jQuery.Event} event - Event.
-	 * @param {jQuery}       widgetContainer - Widget container element.
+	 * @param {jQuery.Event} event           Event.
+	 * @param {jQuery}       widgetContainer Widget container element.
 	 * @return {void}
 	 */
 	component.handleWidgetUpdated = function handleWidgetUpdated( event, widgetContainer ) {

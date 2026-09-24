@@ -46,7 +46,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			array(
 				'singular' => 'user',
 				'plural'   => 'users',
-				'screen'   => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen'   => $args['screen'] ?? null,
 			)
 		);
 
@@ -85,7 +85,7 @@ class WP_Users_List_Table extends WP_List_Table {
 
 		$usersearch = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
 
-		$role = isset( $_REQUEST['role'] ) ? $_REQUEST['role'] : '';
+		$role = $_REQUEST['role'] ?? '';
 
 		$per_page       = ( $this->is_site_users ) ? 'site_users_network_per_page' : 'users_per_page';
 		$users_per_page = $this->get_items_per_page( $per_page );
@@ -163,7 +163,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * with this table.
 	 *
 	 * Provides a list of roles and user count for that role for easy
-	 * Filtersing of the user table.
+	 * filtering of the user table.
 	 *
 	 * @since 3.1.0
 	 *
@@ -524,12 +524,12 @@ class WP_Users_List_Table extends WP_List_Table {
 
 			// Set up the checkbox (because the user is editable, otherwise it's empty).
 			$checkbox = sprintf(
-				'<label class="label-covers-full-cell" for="user_%1$s"><span class="screen-reader-text">%2$s</span></label>' .
-				'<input type="checkbox" name="users[]" id="user_%1$s" class="%3$s" value="%1$s" />',
+				'<input type="checkbox" name="users[]" id="user_%1$s" class="%2$s" value="%1$s" />' .
+				'<label for="user_%1$s"><span class="screen-reader-text">%3$s</span></label>',
 				$user_object->ID,
+				$role_classes,
 				/* translators: Hidden accessibility text. %s: User login. */
-				sprintf( __( 'Select %s' ), $user_object->user_login ),
-				$role_classes
+				sprintf( __( 'Select %s' ), $user_object->user_login )
 			);
 
 		} else {
@@ -563,9 +563,16 @@ class WP_Users_List_Table extends WP_List_Table {
 			$attributes = "class='$classes' $data";
 
 			if ( 'cb' === $column_name ) {
-				$row .= "<th scope='row' class='check-column'>$checkbox</th>";
+				$row .= "<td class='check-column'>$checkbox</td>";
 			} else {
-				$row .= "<td $attributes>";
+				$is_primary = ( $primary === $column_name );
+				$tag        = $is_primary ? 'th' : 'td';
+				$scope      = $is_primary ? ' scope="row"' : '';
+				$aria_label = '';
+				if ( $is_primary ) {
+					$aria_label = ' aria-label="' . esc_attr( $user_object->user_login ) . '"';
+				}
+				$row .= "<$tag $attributes$scope$aria_label>";
 				switch ( $column_name ) {
 					case 'username':
 						$row .= "$avatar $edit";
@@ -628,7 +635,8 @@ class WP_Users_List_Table extends WP_List_Table {
 				if ( $primary === $column_name ) {
 					$row .= $this->row_actions( $actions );
 				}
-				$row .= '</td>';
+				$tag  = ( $primary === $column_name ) ? 'th' : 'td';
+				$row .= "</$tag>";
 			}
 		}
 		$row .= '</tr>';
@@ -680,5 +688,4 @@ class WP_Users_List_Table extends WP_List_Table {
 		 */
 		return apply_filters( 'get_role_list', $role_list, $user_object );
 	}
-
 }

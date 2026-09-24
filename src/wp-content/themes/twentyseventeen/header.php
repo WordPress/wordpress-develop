@@ -16,7 +16,7 @@
 <html <?php language_attributes(); ?> class="no-js no-svg">
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="profile" href="https://gmpg.org/xfn/11">
 
 <?php wp_head(); ?>
@@ -47,12 +47,7 @@
 	</header><!-- #masthead -->
 
 	<?php
-
-	/*
-	 * If a regular post or page, and not the front page, show the featured image.
-	 * Using get_queried_object_id() here since the $post global may not be set before a call to the_post().
-	 */
-	if ( ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() ) ) :
+	if ( twentyseventeen_should_show_featured_image() ) :
 		echo '<div class="single-featured-image-header">';
 		echo get_the_post_thumbnail( get_queried_object_id(), 'twentyseventeen-featured-image' );
 		echo '</div><!-- .single-featured-image-header -->';

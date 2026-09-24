@@ -12,7 +12,7 @@ services:
       WORDPRESS_DB_PASSWORD: examplepass
       WORDPRESS_DB_NAME: exampledb
     volumes:
-      - ../..:/workspaces:cached
+      - ..:/workspace:cached
 
   db:
     image: mariadb

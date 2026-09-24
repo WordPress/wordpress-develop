@@ -43,6 +43,7 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_getting_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_Text_Diff_Renderer_Table::__get(): ' .
 			'The property `undeclared_property` is not declared. Getting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -72,6 +73,7 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_setting_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_Text_Diff_Renderer_Table::__set(): ' .
 			'The property `undeclared_property` is not declared. Setting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -104,6 +106,7 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_isset_of_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_Text_Diff_Renderer_Table::__isset(): ' .
 			'The property `undeclared_property` is not declared. Checking `isset()` on a dynamic property ' .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -131,6 +134,7 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_unset_of_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_Text_Diff_Renderer_Table::__unset(): ' .
 			'A property `undeclared_property` is not declared. Unsetting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);

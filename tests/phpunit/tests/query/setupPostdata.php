@@ -121,6 +121,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -221,6 +224,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'post__in' => array( $post2 ),
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -281,6 +287,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -367,6 +376,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -398,7 +410,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		setup_postdata( $a_post );
 		$content = get_echo( 'the_content' );
 		$this->assertSame( $post_id, $GLOBALS['post']->ID );
-		$this->assertNotEquals( '<p>global post</p>', strip_ws( $content ) );
+		$this->assertNotSame( '<p>global post</p>', strip_ws( $content ) );
 		wp_reset_postdata();
 	}
 

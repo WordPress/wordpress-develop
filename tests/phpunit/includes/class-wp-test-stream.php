@@ -57,12 +57,10 @@ class WP_Test_Stream {
 		$this->file   = $components['path'] ? $components['path'] : '/';
 
 		if ( empty( $this->bucket ) ) {
-			trigger_error( 'Cannot use an empty bucket name', E_USER_ERROR );
+			throw new Exception( 'Cannot use an empty bucket name' );
 		}
 
-		if ( ! isset( WP_Test_Stream::$data[ $this->bucket ] ) ) {
-			WP_Test_Stream::$data[ $this->bucket ] = array();
-		}
+		WP_Test_Stream::$data[ $this->bucket ] ??= array();
 
 		$this->data_ref =& WP_Test_Stream::$data[ $this->bucket ][ $this->file ];
 
@@ -101,9 +99,7 @@ class WP_Test_Stream {
 	 * @see streamWrapper::stream_write
 	 */
 	public function stream_write( $data ) {
-		if ( ! isset( $this->data_ref ) ) {
-			$this->data_ref = '';
-		}
+		$this->data_ref ??= '';
 
 		$left  = substr( $this->data_ref, 0, $this->position );
 		$right = substr( $this->data_ref, $this->position + strlen( $data ) );
@@ -186,9 +182,7 @@ class WP_Test_Stream {
 	public function stream_metadata( $path, $option, $value ) {
 		$this->open( $path );
 		if ( STREAM_META_TOUCH === $option ) {
-			if ( ! isset( $this->data_ref ) ) {
-				$this->data_ref = '';
-			}
+			$this->data_ref ??= '';
 			return true;
 		}
 		return false;
@@ -198,16 +192,27 @@ class WP_Test_Stream {
 	 * Creates a directory.
 	 *
 	 * @see streamWrapper::mkdir
+	 *
+	 * @param string $path    Directory which should be created.
+	 * @param int    $mode    The value passed to mkdir().
+	 * @param int    $options A bitwise mask of values, such as STREAM_MKDIR_RECURSIVE.
+	 * @return bool True on success, false on failure.
 	 */
 	public function mkdir( $path, $mode, $options ) {
 		$this->open( $path );
+
 		$plainfile = rtrim( $this->file, '/' );
 
-		if ( isset( WP_Test_Stream::$data[ $this->bucket ][ $file ] ) ) {
+		// Check if a file or directory with the same name already exists.
+		if ( isset( WP_Test_Stream::$data[ $this->bucket ][ $plainfile ] )
+			|| isset( WP_Test_Stream::$data[ $this->bucket ][ $plainfile . '/' ] )
+		) {
 			return false;
 		}
+
 		$dir_ref = & $this->get_directory_ref();
 		$dir_ref = 'DIRECTORY';
+
 		return true;
 	}
 

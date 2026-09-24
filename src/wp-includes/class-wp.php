@@ -167,7 +167,7 @@ class WP {
 			$error               = '404';
 			$this->did_permalink = true;
 
-			$pathinfo         = isset( $_SERVER['PATH_INFO'] ) ? $_SERVER['PATH_INFO'] : '';
+			$pathinfo         = $_SERVER['PATH_INFO'] ?? '';
 			list( $pathinfo ) = explode( '?', $pathinfo );
 			$pathinfo         = str_replace( '%', '%25', $pathinfo );
 
@@ -505,8 +505,8 @@ class WP {
 			}
 
 			$wp_last_modified .= ' GMT';
+			$wp_etag           = '"' . md5( $wp_last_modified ) . '"';
 
-			$wp_etag                  = '"' . md5( $wp_last_modified ) . '"';
 			$headers['Last-Modified'] = $wp_last_modified;
 			$headers['ETag']          = $wp_etag;
 
@@ -514,19 +514,24 @@ class WP {
 			if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) {
 				$client_etag = wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] );
 			} else {
-				$client_etag = false;
+				$client_etag = '';
 			}
 
-			$client_last_modified = empty( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ? '' : trim( $_SERVER['HTTP_IF_MODIFIED_SINCE'] );
+			if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
+				$client_last_modified = trim( $_SERVER['HTTP_IF_MODIFIED_SINCE'] );
+			} else {
+				$client_last_modified = '';
+			}
+
 			// If string is empty, return 0. If not, attempt to parse into a timestamp.
 			$client_modified_timestamp = $client_last_modified ? strtotime( $client_last_modified ) : 0;
 
-			// Make a timestamp for our most recent modification..
+			// Make a timestamp for our most recent modification.
 			$wp_modified_timestamp = strtotime( $wp_last_modified );
 
-			if ( ( $client_last_modified && $client_etag ) ?
-					( ( $client_modified_timestamp >= $wp_modified_timestamp ) && ( $client_etag === $wp_etag ) ) :
-					( ( $client_modified_timestamp >= $wp_modified_timestamp ) || ( $client_etag === $wp_etag ) )
+			if ( ( $client_last_modified && $client_etag )
+				? ( ( $client_modified_timestamp >= $wp_modified_timestamp ) && ( $client_etag === $wp_etag ) )
+				: ( ( $client_modified_timestamp >= $wp_modified_timestamp ) || ( $client_etag === $wp_etag ) )
 			) {
 				$status        = 304;
 				$exit_required = true;
@@ -534,11 +539,16 @@ class WP {
 		}
 
 		if ( is_singular() ) {
-			$post = isset( $wp_query->post ) ? $wp_query->post : null;
+			$post = $wp_query->post ?? null;
 
 			// Only set X-Pingback for single posts that allow pings.
 			if ( $post && pings_open( $post ) ) {
 				$headers['X-Pingback'] = get_bloginfo( 'pingback_url', 'display' );
+			}
+
+			// Send nocache headers for password protected posts to avoid unwanted caching.
+			if ( ! empty( $post->post_password ) ) {
+				$headers = array_merge( $headers, wp_get_nocache_headers() );
 			}
 		}
 
@@ -577,6 +587,9 @@ class WP {
 
 		/**
 		 * Fires once the requested HTTP headers for caching, content type, etc. have been sent.
+		 *
+		 * The {@see 'wp_finalized_template_enhancement_output_buffer'} action may be used to send
+		 * headers after rendering the template into an output buffer.
 		 *
 		 * @since 2.1.0
 		 *
@@ -637,14 +650,14 @@ class WP {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @global WP_Query     $wp_query     WordPress Query object.
-	 * @global string       $query_string Query string for the loop.
-	 * @global array        $posts        The found posts.
-	 * @global WP_Post|null $post         The current post, if available.
-	 * @global string       $request      The SQL statement for the request.
-	 * @global int          $more         Only set, if single page or post.
-	 * @global int          $single       If single page or post. Only set, if single page or post.
-	 * @global WP_User      $authordata   Only set, if author archive.
+	 * @global WP_Query           $wp_query     WordPress Query object.
+	 * @global string             $query_string Query string for the loop.
+	 * @global array              $posts        The found posts.
+	 * @global WP_Post|null       $post         The current post, if available.
+	 * @global string             $request      The SQL statement for the request.
+	 * @global int                $more         Only set, if single page or post.
+	 * @global int                $single       If single page or post. Only set, if single page or post.
+	 * @global WP_User|false|null $authordata   Only set, if author archive.
 	 */
 	public function register_globals() {
 		global $wp_query;
@@ -656,7 +669,7 @@ class WP {
 
 		$GLOBALS['query_string'] = $this->query_string;
 		$GLOBALS['posts']        = & $wp_query->posts;
-		$GLOBALS['post']         = isset( $wp_query->post ) ? $wp_query->post : null;
+		$GLOBALS['post']         = $wp_query->post ?? null;
 		$GLOBALS['request']      = $wp_query->request;
 
 		if ( $wp_query->is_single() || $wp_query->is_page() ) {
@@ -733,8 +746,9 @@ class WP {
 
 		$set_404 = true;
 
-		// Never 404 for the admin, robots, or favicon.
-		if ( is_admin() || is_robots() || is_favicon() ) {
+		// Never 404 here for the admin, robots, favicon, or sitemaps.
+		// Sitemap routes send their own status in WP_Sitemaps::render_sitemaps().
+		if ( is_admin() || is_robots() || is_favicon() || is_sitemap() || get_query_var( 'sitemap-stylesheet' ) ) {
 			$set_404 = false;
 
 			// If posts were found, check for paged content.
@@ -742,7 +756,7 @@ class WP {
 			$content_found = true;
 
 			if ( is_singular() ) {
-				$post = isset( $wp_query->post ) ? $wp_query->post : null;
+				$post = $wp_query->post ?? null;
 				$next = '<!--nextpage-->';
 
 				// Check for paged content that exceeds the max number of pages.

@@ -302,6 +302,18 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-size: 16px;
 }
 
+.wp-block-quote[style*="font-weight"] blockquote,
+.wp-block-quote[style*="font-weight"] p,
+.wp-block-quote[style*="font-weight"] cite {
+	font-weight: inherit;
+}
+
+.wp-block-quote[style*="font-style"] blockquote,
+.wp-block-quote[style*="font-style"] p,
+.wp-block-quote[style*="font-style"] cite {
+	font-style: inherit;
+}
+
 /* Cover */
 
 .edit-post-visual-editor .editor-block-list__block .wp-block-cover-image p.wp-block-cover-image-text,
@@ -321,9 +333,9 @@ p.has-drop-cap:not(:focus)::first-letter {
 	border: none;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
-	-webkit-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	-moz-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 	color: #eee;
 	cursor: pointer;
 	font-size: 15px;
@@ -358,6 +370,18 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-size: 20px;
 }
 
+.wp-block-pullquote[style*="font-weight"] blockquote,
+.wp-block-pullquote[style*="font-weight"] p,
+.wp-block-pullquote[style*="font-weight"] cite {
+	font-weight: inherit;
+}
+
+.wp-block-pullquote[style*="font-style"] blockquote,
+.wp-block-pullquote[style*="font-style"] p,
+.wp-block-pullquote[style*="font-style"] cite {
+	font-style: inherit;
+}
+
 /* Table */
 
 .editor-styles-wrapper .wp-block-table th,
@@ -385,12 +409,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-align: right;
 }
 
-/* Verse */
-
-.editor-styles-wrapper .wp-block-verse {
-	font-family: inherit;
-}
-
 
 /*--------------------------------------------------------------
 5.0 Blocks - Layout Elements
@@ -399,9 +417,9 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Buttons */
 
 .wp-block-button .wp-block-button__link {
-	-webkit-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	-moz-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 	cursor: pointer;
 	font-size: 15px;
 	line-height: 24px;
@@ -429,8 +447,17 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Media & Text */
 
+.wp-block-media-text *:first-child {
+	margin-top: 0;
+}
+
 .wp-block-media-text *:last-child {
 	margin-bottom: 0;
+}
+
+.wp-block-media-text .wp-block-media-text__content {
+	padding-top: 1.5em;
+	padding-bottom: 1.5em;
 }
 
 /*--------------------------------------------------------------

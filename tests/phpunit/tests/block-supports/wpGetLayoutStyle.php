@@ -13,11 +13,13 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 		'should_skip_gap_serialization' => false,
 		'fallback_gap_value'            => '0.5em',
 		'block_spacing'                 => null,
+		'options'                       => array(),
 	);
 
 	/**
 	 * @dataProvider data_wp_get_layout_style
 	 * @ticket       56467
+	 * @ticket       61165
 	 *
 	 * @param array  $args            Dataset to test.
 	 * @param string $expected_output The expected output.
@@ -31,7 +33,8 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 			$args['gap_value'],
 			$args['should_skip_gap_serialization'],
 			$args['fallback_gap_value'],
-			$args['block_spacing']
+			$args['block_spacing'],
+			$args['options']
 		);
 
 		$this->assertSame( $expected_output, $layout_styles );
@@ -72,7 +75,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 					'has_block_gap_support' => true,
 					'gap_value'             => '1em',
 				),
-				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:1em;margin-block-end:0;}',
+				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout > * + *{margin-block-start:1em;margin-block-end:0;}',
 			),
 			'skip serialization should return empty value' => array(
 				'args'            => array(
@@ -89,7 +92,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 					'has_block_gap_support' => true,
 					'gap_value'             => array( 'top' => '1em' ),
 				),
-				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:1em;margin-block-end:0;}',
+				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout > * + *{margin-block-start:1em;margin-block-end:0;}',
 			),
 			'constrained layout with sizes'                => array(
 				'args'            => array(
@@ -119,6 +122,21 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width:800px;margin-left:auto !important;margin-right:auto !important;}.wp-layout > .alignwide{max-width:1200px;}.wp-layout .alignfull{max-width:none;}.wp-layout > .alignfull{margin-right:calc(10px * -1);margin-left:calc(20px * -1);}',
 			),
+			'constrained layout with content size unset in viewport' => array(
+				'args'            => array(
+					'selector' => '.wp-layout',
+					'layout'   => array(
+						'type'        => 'constrained',
+						'contentSize' => '800px',
+					),
+					'options'  => array(
+						'viewport_overrides' => array(
+							'contentSize' => null,
+						),
+					),
+				),
+				'expected_output' => '.wp-layout > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width:var(--wp--style--global--content-size, none);}.wp-layout > .alignwide{max-width:var(--wp--style--global--wide-size, none);}.wp-layout .alignfull{max-width:none;}',
+			),
 			'constrained layout with block gap support'    => array(
 				'args'            => array(
 					'selector'              => '.wp-layout',
@@ -128,7 +146,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 					'has_block_gap_support' => true,
 					'gap_value'             => '2.5rem',
 				),
-				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:2.5rem;margin-block-end:0;}',
+				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout > * + *{margin-block-start:2.5rem;margin-block-end:0;}',
 			),
 			'constrained layout with axial block gap support' => array(
 				'args'            => array(
@@ -139,7 +157,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 					'has_block_gap_support' => true,
 					'gap_value'             => array( 'top' => '2.5rem' ),
 				),
-				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:2.5rem;margin-block-end:0;}',
+				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout > * + *{margin-block-start:2.5rem;margin-block-end:0;}',
 			),
 			'constrained layout with block gap support and spacing preset' => array(
 				'args'            => array(
@@ -150,7 +168,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 					'has_block_gap_support' => true,
 					'gap_value'             => 'var:preset|spacing|50',
 				),
-				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:var(--wp--preset--spacing--50);margin-block-end:0;}',
+				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout > * + *{margin-block-start:var(--wp--preset--spacing--50);margin-block-end:0;}',
 			),
 			'flex layout with no args should return empty value' => array(
 				'args'            => array(
@@ -248,6 +266,25 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout{flex-wrap:nowrap;flex-direction:column;align-items:flex-start;justify-content:flex-end;}',
 			),
+			'default grid layout'                          => array(
+				'args'            => array(
+					'selector' => '.wp-layout',
+					'layout'   => array(
+						'type' => 'grid',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(min(12rem, 100%), 1fr));container-type:inline-size;}',
+			),
+			'grid layout with columnCount'                 => array(
+				'args'            => array(
+					'selector' => '.wp-layout',
+					'layout'   => array(
+						'type'        => 'grid',
+						'columnCount' => 3,
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(3, minmax(0, 1fr));}',
+			),
 			'default layout with blockGap to verify converting gap value into valid CSS' => array(
 				'args'            => array(
 					'selector'              => '.wp-block-group.wp-container-6',
@@ -260,7 +297,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 						'blockGap' => 'var(--wp--preset--spacing--70)',
 					),
 				),
-				'expected_output' => '.wp-block-group.wp-container-6 > *{margin-block-start:0;margin-block-end:0;}.wp-block-group.wp-container-6.wp-block-group.wp-container-6 > * + *{margin-block-start:var(--wp--preset--spacing--70);margin-block-end:0;}',
+				'expected_output' => '.wp-block-group.wp-container-6 > *{margin-block-start:0;margin-block-end:0;}.wp-block-group.wp-container-6 > * + *{margin-block-start:var(--wp--preset--spacing--70);margin-block-end:0;}',
 			),
 		);
 	}

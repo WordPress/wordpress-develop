@@ -17,7 +17,7 @@ if ( ! apply_filters( 'enable_post_by_email_configuration', true ) ) {
 
 $mailserver_url = get_option( 'mailserver_url' );
 
-if ( 'mail.example.com' === $mailserver_url || empty( $mailserver_url ) ) {
+if ( empty( $mailserver_url ) || 'mail.example.com' === $mailserver_url ) {
 	wp_die( __( 'This action has been disabled by the administrator.' ), 403 );
 }
 
@@ -39,12 +39,20 @@ if ( ! defined( 'WP_MAIL_INTERVAL' ) ) {
 $last_checked = get_transient( 'mailserver_last_checked' );
 
 if ( $last_checked ) {
-	wp_die( __( 'Slow down cowboy, no need to check for new mails so often!' ) );
+	wp_die(
+		sprintf(
+			// translators: %s human readable rate limit.
+			__( 'Email checks are rate limited to once every %s.' ),
+			human_time_diff( time() - WP_MAIL_INTERVAL, time() )
+		),
+		__( 'Slow down, no need to check for new mails so often!' ),
+		429
+	);
 }
 
 set_transient( 'mailserver_last_checked', true, WP_MAIL_INTERVAL );
 
-$time_difference = get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+$time_difference = (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 
 $phone_delim = '::';
 
@@ -67,6 +75,8 @@ if ( 0 === $count ) {
 
 // Always run as an unauthenticated user.
 wp_set_current_user( 0 );
+
+$blog_charset = get_option( 'blog_charset' );
 
 for ( $i = 1; $i <= $count; $i++ ) {
 
@@ -107,7 +117,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				$content_transfer_encoding = explode( ';', $content_transfer_encoding );
 				$content_transfer_encoding = $content_transfer_encoding[0];
 			}
-			if ( ( 'multipart/alternative' === $content_type ) && ( str_contains( $line, 'boundary="' ) ) && ( '' === $boundary ) ) {
+			if ( 'multipart/alternative' === $content_type && str_contains( $line, 'boundary="' ) && '' === $boundary ) {
 				$boundary = trim( $line );
 				$boundary = explode( '"', $boundary );
 				$boundary = $boundary[1];
@@ -117,7 +127,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				$subject = substr( $subject, 9, strlen( $subject ) - 9 );
 				// Captures any text in the subject before $phone_delim as the subject.
 				if ( function_exists( 'iconv_mime_decode' ) ) {
-					$subject = iconv_mime_decode( $subject, 2, get_option( 'blog_charset' ) );
+					$subject = iconv_mime_decode( $subject, 2, $blog_charset );
 				} else {
 					$subject = wp_iso_descrambler( $subject );
 				}
@@ -197,7 +207,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	}
 
 	if ( function_exists( 'iconv' ) && ! empty( $charset ) ) {
-		$content = iconv( $charset, get_option( 'blog_charset' ), $content );
+		$content = iconv( $charset, $blog_charset, $content );
 	}
 
 	// Captures any text in the body after $phone_delim as the body.

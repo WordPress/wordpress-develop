@@ -52,7 +52,7 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	public function test_retrieve_password_should_return_wp_error_on_failed_email() {
 		add_filter(
 			'retrieve_password_notification_email',
-			static function() {
+			static function () {
 				return array( 'message' => '' );
 			}
 		);
@@ -73,5 +73,37 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 
 		$this->assertTrue( retrieve_password( 'foo@example.com' ), 'Fetching user by login failed.' );
 		$this->assertTrue( retrieve_password( 'bar@example.com' ), 'Fetching user by email failed.' );
+	}
+
+	/**
+	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notice
+	 * is not thrown when the `$user_login` parameter is empty.
+	 *
+	 * The notice that we should not see:
+	 * `Deprecated: trim(): Passing null to parameter #1 ($string) of type string is deprecated`.
+	 *
+	 * @ticket 62298
+	 */
+	public function test_retrieve_password_does_not_throw_deprecation_notice_with_default_parameters() {
+		$this->assertWPError( retrieve_password() );
+	}
+
+	/**
+	 * Tests that a fatal error is not thrown when the login passed via `$_POST`
+	 * is an array instead of a string.
+	 *
+	 * The message that we should not see:
+	 * `TypeError: trim(): Argument #1 ($string) must be of type string, array given`.
+	 *
+	 * @ticket 62794
+	 */
+	public function test_retrieve_password_does_not_throw_fatal_error_with_array_parameters() {
+		$_POST['user_login'] = array( 'example' );
+
+		$error = retrieve_password();
+		$this->assertWPError( $error, 'The result should be an instance of WP_Error.' );
+
+		$error_codes = $error->get_error_codes();
+		$this->assertContains( 'empty_username', $error_codes, 'The "empty_username" error code should be present.' );
 	}
 }

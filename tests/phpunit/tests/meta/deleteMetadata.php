@@ -53,7 +53,7 @@ class Tests_Meta_DeleteMetadata extends WP_UnitTestCase {
 	/**
 	 * @ticket 32224
 	 *
-	 * This is a backwards compatiblity quirk.
+	 * This is a backwards compatibility quirk.
 	 */
 	public function test_meta_value_should_be_ignored_when_empty_string() {
 		$vals = array( '0', '1', '2', '' );

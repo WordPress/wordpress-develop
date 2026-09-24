@@ -60,7 +60,8 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 	 */
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$taxonomy        = $object_subtype;
+		$taxonomy = $object_subtype;
+
 		$supported_types = $this->get_object_subtypes();
 
 		// Bail early if the queried taxonomy is not supported.
@@ -170,7 +171,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 
 		$term_count = wp_count_terms( $this->get_taxonomies_query_args( $taxonomy ) );
 
-		return (int) ceil( $term_count / wp_sitemaps_get_max_urls( $this->object_type ) );
+		return (int) ceil( (int) $term_count / wp_sitemaps_get_max_urls( $this->object_type ) );
 	}
 
 	/**

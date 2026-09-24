@@ -31,6 +31,7 @@ class Tests_User_WpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'type'              => 'object',
+				'label'             => '',
 				'description'       => '',
 				'single'            => true,
 				'sanitize_callback' => null,
@@ -52,10 +53,10 @@ class Tests_User_WpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 						'additionalProperties' => true,
 					),
 				),
+				'revisions_enabled' => false,
 			),
 			$wp_meta_keys['user'][''][ $meta_key ],
 			'The registered metadata did not have the expected structure'
 		);
 	}
-
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Test WP_User Query, in wp-includes/user.php
+ * Test WP_User_Query, in wp-includes/class-wp-user-query.php.
  *
  * @group user
  */
@@ -138,9 +138,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		// +1 for the default user created during installation.
 		$this->assertCount( 13, $users );
-		foreach ( $users as $user ) {
-			$this->assertInstanceOf( 'WP_User', $user );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_User', $users );
 
 		$users = new WP_User_Query(
 			array(
@@ -150,9 +148,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 		$users = $users->get_results();
 		$this->assertCount( 13, $users );
-		foreach ( $users as $user ) {
-			$this->assertInstanceOf( 'WP_User', $user );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_User', $users );
 	}
 
 	/**
@@ -222,9 +218,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[3], self::$author_ids[1], self::$author_ids[0], self::$author_ids[2] );
+		$expected = array( (string) self::$author_ids[3], (string) self::$author_ids[1], (string) self::$author_ids[0], (string) self::$author_ids[2] );
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSame( $expected, $q->get_results() );
 	}
 
 	/**
@@ -244,9 +240,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] );
+		$expected = array( (string) self::$author_ids[1], (string) self::$author_ids[2], (string) self::$author_ids[0] );
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSame( $expected, $q->get_results() );
 	}
 
 	/**
@@ -266,9 +262,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] );
+		$expected = array( (string) self::$author_ids[1], (string) self::$author_ids[2], (string) self::$author_ids[0] );
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSame( $expected, $q->get_results() );
 	}
 
 	/**
@@ -293,7 +289,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] ), $q->results );
+		$this->assertSame( array( (string) self::$author_ids[1], (string) self::$author_ids[2], (string) self::$author_ids[0] ), $q->results );
 	}
 
 	/**
@@ -336,7 +332,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $u3, $u1, $u2 ), $q->results );
+		$this->assertSame( array( (string) $u3, (string) $u1, (string) $u2 ), $q->results );
 	}
 
 	/**
@@ -370,7 +366,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[2], self::$author_ids[0], self::$author_ids[1] ), $q->results );
+		$this->assertSame( array( (string) self::$author_ids[2], (string) self::$author_ids[0], (string) self::$author_ids[1] ), $q->results );
 	}
 
 	/**
@@ -403,8 +399,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected_orderby = 'ORDER BY FIELD( ' . $wpdb->users . '.ID, ' . self::$author_ids[1] . ',' . self::$author_ids[0] . ',' . self::$author_ids[3] . ' )';
 		$this->assertStringContainsString( $expected_orderby, $q->query_orderby );
 
-		// assertEquals() respects order but ignores type (get_results() returns numeric strings).
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[0], self::$author_ids[3] ), $q->get_results() );
+		$this->assertSame( array( (string) self::$author_ids[1], (string) self::$author_ids[0], (string) self::$author_ids[3] ), $q->get_results() );
 	}
 
 	/**
@@ -424,8 +419,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected_orderby = 'ORDER BY FIELD( ' . $wpdb->users . '.ID, ' . self::$author_ids[1] . ',' . self::$author_ids[0] . ',' . self::$author_ids[3] . ' )';
 		$this->assertStringContainsString( $expected_orderby, $q->query_orderby );
 
-		// assertEquals() respects order but ignores type (get_results() returns numeric strings).
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[0], self::$author_ids[3] ), $q->get_results() );
+		$this->assertSame( array( (string) self::$author_ids[1], (string) self::$author_ids[0], (string) self::$author_ids[3] ), $q->get_results() );
 	}
 
 	/**
@@ -572,7 +566,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( $query->query_orderby );
 		$this->assertNotEmpty( $query->query_where );
 		$this->assertNotEmpty( $query->query_vars );
-		$this->assertNotEquals( $_query_vars, $query->query_vars );
+		$this->assertNotSame( $_query_vars, $query->query_vars );
 
 		// All values get reset.
 		$query->prepare_query( array( 'number' => 8 ) );
@@ -589,7 +583,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertSame( $_query_vars, $query->query_vars );
 
 		$query->prepare_query( array( 'number' => -1 ) );
-		$this->assertNotEquals( 'LIMIT -1', $query->query_limit );
+		$this->assertNotSame( 'LIMIT -1', $query->query_limit );
 		$this->assertEmpty( $query->query_limit );
 	}
 
@@ -643,7 +637,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[0], self::$author_ids[1] ), $query->get_results() );
+		$this->assertSame( array( (string) self::$author_ids[0], (string) self::$author_ids[1] ), $query->get_results() );
 	}
 
 	public function test_roles_and_caps_should_be_populated_for_default_value_of_blog_id() {
@@ -1305,7 +1299,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$contrib_id, self::$editor_ids[2] ), $q->results );
+		$this->assertSame( array( (string) self::$contrib_id, (string) self::$editor_ids[2] ), $q->results );
 	}
 
 	/**
@@ -1321,7 +1315,6 @@ class Tests_User_Query extends WP_UnitTestCase {
 		foreach ( $query_vars as $query_var ) {
 			$this->assertArrayHasKey( $query_var, $q->query_vars, "$query_var does not exist." );
 		}
-
 	}
 
 	public function filter_pre_get_users_args( $q ) {
@@ -1417,9 +1410,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->assertCount( 2, $users );
 
-		foreach ( $users as $user ) {
-			$this->assertInstanceOf( 'WP_User', $user );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_User', $users );
 	}
 
 	/**
@@ -1431,9 +1422,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		// +1 for the default user created during installation.
 		$this->assertCount( 8, $users );
-		foreach ( $users as $user ) {
-			$this->assertInstanceOf( 'WP_User', $user );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_User', $users );
 	}
 
 	/**
@@ -1665,20 +1654,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_search_by_display_name_only() {
 
-		$new_user1          = self::factory()->user->create(
+		$new_user1  = self::factory()->user->create(
 			array(
 				'user_login'   => 'name1',
 				'display_name' => 'Sophia Andresen',
 			)
 		);
-		self::$author_ids[] = $new_user1;
+		$author_ids = array_merge( self::$author_ids, array( $new_user1 ) );
 
 		$q = new WP_User_Query(
 			array(
 				'search'         => '*Sophia*',
 				'fields'         => '',
 				'search_columns' => array( 'display_name' ),
-				'include'        => self::$author_ids,
+				'include'        => $author_ids,
 			)
 		);
 
@@ -1693,20 +1682,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_search_by_display_name_only_ignore_others() {
 
-		$new_user1          = self::factory()->user->create(
+		$new_user1  = self::factory()->user->create(
 			array(
 				'user_login'   => 'Sophia Andresen',
 				'display_name' => 'name1',
 			)
 		);
-		self::$author_ids[] = $new_user1;
+		$author_ids = array_merge( self::$author_ids, array( $new_user1 ) );
 
 		$q = new WP_User_Query(
 			array(
 				'search'         => '*Sophia*',
 				'fields'         => '',
 				'search_columns' => array( 'display_name' ),
-				'include'        => self::$author_ids,
+				'include'        => $author_ids,
 			)
 		);
 
@@ -1729,7 +1718,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
+		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ) );
 
 		// Make sure no queries were executed.
 		$this->assertSame( $num_queries, get_num_queries() );
@@ -1739,6 +1728,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		// Make sure manually setting total_users doesn't get overwritten.
 		$this->assertSame( 1, $q->total_users );
+	}
+
+	/**
+	 * @ticket 47719
+	 */
+	public function test_include_should_return_no_users_when_0() {
+		$query = new WP_User_Query(
+			array(
+				'role'    => '',
+				'include' => array( 0 ),
+			)
+		);
+
+		$this->assertSame( array(), $query->get_results() );
 	}
 
 	public static function filter_users_pre_query( $posts, $query ) {
@@ -2253,6 +2256,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__get(): ' .
 			'The property `undefined_property` is not declared. Getting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2285,6 +2289,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__set(): ' .
 			'The property `undefined_property` is not declared. Setting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2321,6 +2326,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__isset(): ' .
 			'The property `undefined_property` is not declared. Checking `isset()` on a dynamic property ' .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2352,6 +2358,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__unset(): ' .
 			'A property `undefined_property` is not declared. Unsetting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2374,5 +2381,18 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'expected'      => 0,
 			),
 		);
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		$q = new WP_User_Query(
+			array(
+				'number' => 2,
+			)
+		);
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
 }

@@ -848,7 +848,50 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
-	 * Checks the password response matches the exepcted format.
+	 * @ticket 53692
+	 */
+	public function test_create_item_with_empty_app_id() {
+		wp_set_current_user( self::$admin );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
+		$request->set_body_params(
+			array(
+				'name'   => 'Test',
+				'app_id' => '',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( '', $data['app_id'] );
+	}
+
+	/**
+	 * @ticket 53692
+	 */
+	public function test_create_item_with_uuid_app_id() {
+		wp_set_current_user( self::$admin );
+
+		$uuid    = wp_generate_uuid4();
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
+		$request->set_body_params(
+			array(
+				'name'   => 'Test',
+				'app_id' => $uuid,
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( $uuid, $data['app_id'] );
+	}
+
+	/**
+	 * Checks the password response matches the expected format.
 	 *
 	 * @since 5.6.0
 	 *
@@ -961,7 +1004,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->setup_app_password_authenticated_request();
 		add_action(
 			'application_password_did_authenticate',
-			static function() {
+			static function () {
 				$GLOBALS['wp_rest_application_password_uuid'] = 'invalid_uuid';
 			}
 		);

@@ -52,7 +52,7 @@ class WP_Rewrite {
 	 * Permalink structure for author archives.
 	 *
 	 * @since 1.5.0
-	 * @var string
+	 * @var ?string
 	 */
 	public $author_structure;
 
@@ -60,7 +60,7 @@ class WP_Rewrite {
 	 * Permalink structure for date archives.
 	 *
 	 * @since 1.5.0
-	 * @var string
+	 * @var ?string
 	 */
 	public $date_structure;
 
@@ -68,7 +68,7 @@ class WP_Rewrite {
 	 * Permalink structure for pages.
 	 *
 	 * @since 1.5.0
-	 * @var string
+	 * @var ?string
 	 */
 	public $page_structure;
 
@@ -84,7 +84,7 @@ class WP_Rewrite {
 	 * Permalink structure for searches.
 	 *
 	 * @since 1.5.0
-	 * @var string
+	 * @var ?string
 	 */
 	public $search_structure;
 
@@ -124,7 +124,7 @@ class WP_Rewrite {
 	 * Comments feed permalink structure.
 	 *
 	 * @since 1.5.0
-	 * @var string
+	 * @var ?string
 	 */
 	public $comment_feed_structure;
 
@@ -132,7 +132,7 @@ class WP_Rewrite {
 	 * Feed request permalink structure.
 	 *
 	 * @since 1.5.0
-	 * @var string
+	 * @var ?string
 	 */
 	public $feed_structure;
 
@@ -531,7 +531,7 @@ class WP_Rewrite {
 				$front = $front . 'date/';
 				break;
 			}
-			$tok_index++;
+			++$tok_index;
 		}
 
 		$this->date_structure = $front . $date_endian;
@@ -799,7 +799,7 @@ class WP_Rewrite {
 	 */
 	public function add_rewrite_tag( $tag, $regex, $query ) {
 		$position = array_search( $tag, $this->rewritecode, true );
-		if ( false !== $position && null !== $position ) {
+		if ( false !== $position ) {
 			$this->rewritereplace[ $position ] = $regex;
 			$this->queryreplace[ $position ]   = $query;
 		} else {
@@ -823,7 +823,7 @@ class WP_Rewrite {
 	 */
 	public function remove_rewrite_tag( $tag ) {
 		$position = array_search( $tag, $this->rewritecode, true );
-		if ( false !== $position && null !== $position ) {
+		if ( false !== $position ) {
 			unset( $this->rewritecode[ $position ] );
 			unset( $this->rewritereplace[ $position ] );
 			unset( $this->queryreplace[ $position ] );
@@ -951,6 +951,9 @@ class WP_Rewrite {
 		// Strip slashes from the front of $front.
 		$front = preg_replace( '|^/+|', '', $front );
 
+		// Read the front page ID.
+		$page_on_front = get_option( 'page_on_front' );
+
 		// The main workhorse loop.
 		$post_rewrite = array();
 		$struct       = $front;
@@ -991,10 +994,10 @@ class WP_Rewrite {
 			$commentmatch = $match . $commentregex;
 			$commentquery = $index . '?' . $query . '&cpage=' . $this->preg_index( $num_toks + 1 );
 
-			if ( get_option( 'page_on_front' ) ) {
+			if ( $page_on_front ) {
 				// Create query for Root /comment-page-xx.
 				$rootcommentmatch = $match . $commentregex;
-				$rootcommentquery = $index . '?' . $query . '&page_id=' . get_option( 'page_on_front' ) . '&cpage=' . $this->preg_index( $num_toks + 1 );
+				$rootcommentquery = $index . '?' . $query . '&page_id=' . $page_on_front . '&cpage=' . $this->preg_index( $num_toks + 1 );
 			}
 
 			// Create query for /feed/(feed|atom|rss|rss2|rdf).
@@ -1035,7 +1038,7 @@ class WP_Rewrite {
 			// Only on pages with comments add ../comment-page-xx/.
 			if ( EP_PAGES & $ep_mask || EP_PERMALINK & $ep_mask ) {
 				$rewrite = array_merge( $rewrite, array( $commentmatch => $commentquery ) );
-			} elseif ( EP_ROOT & $ep_mask && get_option( 'page_on_front' ) ) {
+			} elseif ( EP_ROOT & $ep_mask && $page_on_front ) {
 				$rewrite = array_merge( $rewrite, array( $rootcommentmatch => $rootcommentquery ) );
 			}
 
@@ -1287,6 +1290,9 @@ class WP_Rewrite {
 		// favicon.ico -- only if installed at the root.
 		$favicon_rewrite = ( empty( $home_path['path'] ) || '/' === $home_path['path'] ) ? array( 'favicon\.ico$' => $this->index . '?favicon=1' ) : array();
 
+		// sitemap.xml -- only if installed at the root.
+		$sitemap_rewrite = ( empty( $home_path['path'] ) || '/' === $home_path['path'] ) ? array( 'sitemap\.xml' => $this->index . '?sitemap=index' ) : array();
+
 		// Old feed and service files.
 		$deprecated_files = array(
 			'.*wp-(atom|rdf|rss|rss2|feed|commentsrss2)\.php$' => $this->index . '?feed=old',
@@ -1449,9 +1455,9 @@ class WP_Rewrite {
 
 		// Put them together.
 		if ( $this->use_verbose_page_rules ) {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
 		} else {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
 		}
 
 		/**
@@ -1490,16 +1496,34 @@ class WP_Rewrite {
 	public function wp_rewrite_rules() {
 		$this->rules = get_option( 'rewrite_rules' );
 		if ( empty( $this->rules ) ) {
-			$this->matches = 'matches';
-			$this->rewrite_rules();
-			if ( ! did_action( 'wp_loaded' ) ) {
-				add_action( 'wp_loaded', array( $this, 'flush_rules' ) );
-				return $this->rules;
-			}
-			update_option( 'rewrite_rules', $this->rules );
+			$this->refresh_rewrite_rules();
 		}
 
 		return $this->rules;
+	}
+
+	/**
+	 * Refreshes the rewrite rules, saving the fresh value to the database.
+	 *
+	 * If the {@see 'wp_loaded'} action has not occurred yet, will postpone saving to the database.
+	 *
+	 * @since 6.4.0
+	 */
+	private function refresh_rewrite_rules() {
+		$this->rules   = '';
+		$this->matches = 'matches';
+
+		$this->rewrite_rules();
+
+		if ( ! did_action( 'wp_loaded' ) ) {
+			/*
+			 * It is not safe to save the results right now, as the rules may be partial.
+			 * Need to give all rules the chance to register.
+			 */
+			add_action( 'wp_loaded', array( $this, 'flush_rules' ) );
+		} else {
+			update_option( 'rewrite_rules', $this->rules );
+		}
 	}
 
 	/**
@@ -1864,8 +1888,7 @@ class WP_Rewrite {
 			unset( $do_hard_later );
 		}
 
-		update_option( 'rewrite_rules', '' );
-		$this->wp_rewrite_rules();
+		$this->refresh_rewrite_rules();
 
 		/**
 		 * Filters whether a "hard" rewrite rule flush should be performed when requested.

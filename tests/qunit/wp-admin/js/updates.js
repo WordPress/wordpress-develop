@@ -15,9 +15,9 @@ jQuery( function( $ ) {
 		var menuItemCount  = $( '#menu-plugins' ).find( '.plugin-count' ).eq( 0 ).text();
 		var screenReaderItemCount = $( '#wp-admin-bar-updates' ).find( '.screen-reader-text' ).text();
 		var adminItemCount = $( '#wp-admin-bar-updates' ).find( '.ab-label' ).text();
-		assert.equal( menuItemCount, 2, 'Intial value is correct' );
-		assert.equal( screenReaderItemCount, '2 Plugin Updates', 'Intial value is correct' );
-		assert.equal( adminItemCount, 2, 'Intial value is correct' );
+		assert.equal( menuItemCount, 2, 'Initial value is correct' );
+		assert.equal( screenReaderItemCount, '2 Plugin Updates', 'Initial value is correct' );
+		assert.equal( adminItemCount, 2, 'Initial value is correct' );
 
 		wp.updates.decrementCount( 'plugin' );
 

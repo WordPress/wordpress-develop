@@ -5,7 +5,7 @@
  */
 
 /**
- * Toggle an attribute's value
+ * Toggles an attribute's value
  *
  * @since Twenty Twenty-One 1.0
  *
@@ -66,7 +66,7 @@ function twentytwentyoneSubmenuPosition( li ) {
 }
 
 /**
- * Handle clicks on submenu toggles.
+ * Handles clicks on submenu toggles.
  *
  * @since Twenty Twenty-One 1.0
  *
@@ -120,8 +120,21 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			};
 		}
 
+		// Add aria-controls attributes to primary sub-menu.
+		var subMenus = document.querySelectorAll( '.primary-menu-container .sub-menu' );
+		subMenus.forEach( function( subMenu, index ) {
+			var parentLi = subMenu.closest( 'li.menu-item-has-children' );
+			subMenu.id = 'sub-menu-' + ( index + 1 );
+			if ( parentLi ) {
+				var parentLink = parentLi.querySelector( 'button' );
+				if ( parentLink ) {
+					parentLink.setAttribute( 'aria-controls', subMenu.id );
+				}
+			}
+		} );
+
 		/**
-		 * Trap keyboard navigation in the menu modal.
+		 * Traps keyboard navigation in the menu modal.
 		 * Adapted from Twenty Twenty.
 		 *
 		 * @since Twenty Twenty-One 1.0
@@ -167,7 +180,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 		} );
 
 		/**
-		 * Close menu and scroll to anchor when an anchor link is clicked.
+		 * Closes menu and scrolls to anchor when an anchor link is clicked.
 		 * Adapted from Twenty Twenty.
 		 *
 		 * @since Twenty Twenty-One 1.1
@@ -198,7 +211,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 		} );
 	};
 
-	window.addEventListener( 'load', function() {
+	document.addEventListener( 'DOMContentLoaded', function() {
 		new navMenu( 'primary' );
 	} );
 }() );

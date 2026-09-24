@@ -5,6 +5,7 @@
  * @group media
  * @group upload
  * @group resize
+ * @group wp-image-editor-gd
  *
  * @requires function imagejpeg
  */
@@ -38,5 +39,4 @@ class Test_Image_Resize_GD extends WP_Tests_Image_Resize_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $image );
 		$this->assertSame( 'invalid_image', $image->get_error_code() );
 	}
-
 }

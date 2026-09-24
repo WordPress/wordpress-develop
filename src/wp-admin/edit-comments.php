@@ -84,31 +84,31 @@ if ( $doaction ) {
 		switch ( $doaction ) {
 			case 'approve':
 				wp_set_comment_status( $comment_id, 'approve' );
-				$approved++;
+				++$approved;
 				break;
 			case 'unapprove':
 				wp_set_comment_status( $comment_id, 'hold' );
-				$unapproved++;
+				++$unapproved;
 				break;
 			case 'spam':
 				wp_spam_comment( $comment_id );
-				$spammed++;
+				++$spammed;
 				break;
 			case 'unspam':
 				wp_unspam_comment( $comment_id );
-				$unspammed++;
+				++$unspammed;
 				break;
 			case 'trash':
 				wp_trash_comment( $comment_id );
-				$trashed++;
+				++$trashed;
 				break;
 			case 'untrash':
 				wp_untrash_comment( $comment_id );
-				$untrashed++;
+				++$untrashed;
 				break;
 			case 'delete':
 				wp_delete_comment( $comment_id );
-				$deleted++;
+				++$deleted;
 				break;
 		}
 	}
@@ -301,7 +301,13 @@ if ( isset( $_REQUEST['error'] ) ) {
 			break;
 	}
 	if ( $error_msg ) {
-		echo '<div id="moderated" class="error"><p>' . $error_msg . '</p></div>';
+		wp_admin_notice(
+			$error_msg,
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 }
 
@@ -313,13 +319,13 @@ if ( isset( $_REQUEST['approved'] )
 	|| isset( $_REQUEST['unspammed'] )
 	|| isset( $_REQUEST['same'] )
 ) {
-	$approved  = isset( $_REQUEST['approved'] ) ? (int) $_REQUEST['approved'] : 0;
-	$deleted   = isset( $_REQUEST['deleted'] ) ? (int) $_REQUEST['deleted'] : 0;
-	$trashed   = isset( $_REQUEST['trashed'] ) ? (int) $_REQUEST['trashed'] : 0;
-	$untrashed = isset( $_REQUEST['untrashed'] ) ? (int) $_REQUEST['untrashed'] : 0;
-	$spammed   = isset( $_REQUEST['spammed'] ) ? (int) $_REQUEST['spammed'] : 0;
-	$unspammed = isset( $_REQUEST['unspammed'] ) ? (int) $_REQUEST['unspammed'] : 0;
-	$same      = isset( $_REQUEST['same'] ) ? (int) $_REQUEST['same'] : 0;
+	$approved  = (int) ( $_REQUEST['approved'] ?? 0 );
+	$deleted   = (int) ( $_REQUEST['deleted'] ?? 0 );
+	$trashed   = (int) ( $_REQUEST['trashed'] ?? 0 );
+	$untrashed = (int) ( $_REQUEST['untrashed'] ?? 0 );
+	$spammed   = (int) ( $_REQUEST['spammed'] ?? 0 );
+	$unspammed = (int) ( $_REQUEST['unspammed'] ?? 0 );
+	$same      = (int) ( $_REQUEST['same'] ?? 0 );
 
 	if ( $approved > 0 || $deleted > 0 || $trashed > 0 || $untrashed > 0 || $spammed > 0 || $unspammed > 0 || $same > 0 ) {
 		if ( $approved > 0 ) {
@@ -331,7 +337,7 @@ if ( isset( $_REQUEST['approved'] )
 		}
 
 		if ( $spammed > 0 ) {
-			$ids = isset( $_REQUEST['ids'] ) ? $_REQUEST['ids'] : 0;
+			$ids = $_REQUEST['ids'] ?? 0;
 
 			$messages[] = sprintf(
 				/* translators: %s: Number of comments. */
@@ -353,7 +359,7 @@ if ( isset( $_REQUEST['approved'] )
 		}
 
 		if ( $trashed > 0 ) {
-			$ids = isset( $_REQUEST['ids'] ) ? $_REQUEST['ids'] : 0;
+			$ids = $_REQUEST['ids'] ?? 0;
 
 			$messages[] = sprintf(
 				/* translators: %s: Number of comments. */
@@ -411,9 +417,13 @@ if ( isset( $_REQUEST['approved'] )
 			}
 		}
 
-		printf(
-			'<div id="moderated" class="updated notice is-dismissible"><p>%s</p></div>',
-			implode( "<br />\n", $messages )
+		wp_admin_notice(
+			implode( "<br />\n", $messages ),
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'updated' ),
+				'dismissible'        => true,
+			)
 		);
 	}
 }
@@ -429,7 +439,7 @@ if ( isset( $_REQUEST['approved'] )
 <input type="hidden" name="p" value="<?php echo esc_attr( (int) $post_id ); ?>" />
 <?php endif; ?>
 <input type="hidden" name="comment_status" value="<?php echo esc_attr( $comment_status ); ?>" />
-<input type="hidden" name="pagegen_timestamp" value="<?php echo esc_attr( current_time( 'mysql', 1 ) ); ?>" />
+<input type="hidden" name="pagegen_timestamp" value="<?php echo esc_attr( current_time( 'mysql', true ) ); ?>" />
 
 <input type="hidden" name="_total" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'total_items' ) ); ?>" />
 <input type="hidden" name="_per_page" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'per_page' ) ); ?>" />

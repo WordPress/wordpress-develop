@@ -64,7 +64,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Assign a tagline option.
 		update_option( 'blogdescription', 'Just another WordPress site' );
-
 	}
 
 	/**
@@ -91,6 +90,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 	/**
 	 * This is a bit of a hack used to buffer feed content.
+	 *
+	 * @return non-falsy-string
 	 */
 	private function do_rss2() {
 		ob_start();
@@ -129,6 +130,41 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// RSS should have exactly one child element (channel).
 		$this->assertCount( 1, $rss[0]['child'] );
+	}
+
+	/**
+	 * Two plugins adding the same namespace via the `wp_feed_namespaces`
+	 * filter must not produce a duplicate attribute, which would be an XML
+	 * well-formedness error. The same goes for a plugin adding one of the
+	 * default namespaces of the feed.
+	 *
+	 * @ticket 65785
+	 */
+	public function test_wp_feed_namespaces_should_prevent_duplicate_namespaces() {
+		$add_source_ns = static function ( array $namespaces ): array {
+			$namespaces['source'] = 'http://source.scripting.com/';
+			$namespaces['atom']   = 'http://www.w3.org/2005/Atom';
+			return $namespaces;
+		};
+		add_filter( 'wp_feed_namespaces', $add_source_ns, 10 );
+		add_filter( 'wp_feed_namespaces', $add_source_ns, 11 );
+
+		$this->go_to( '/?feed=rss2' );
+		$feed = $this->do_rss2();
+
+		$this->assertSame( 1, substr_count( $feed, 'xmlns:source=' ) );
+		$this->assertSame( 1, substr_count( $feed, 'xmlns:atom=' ) );
+
+		// The feed must still parse: xml_to_array() returns an empty array on a parse error.
+		$xml = xml_to_array( $feed );
+		$rss = xml_find( $xml, 'rss' );
+
+		$this->assertCount( 1, $rss );
+		$this->assertIsArray( $rss[0] );
+		$this->assertArrayHasKey( 'attributes', $rss[0] );
+		$this->assertIsArray( $rss[0]['attributes'] );
+		$this->assertArrayHasKey( 'xmlns:source', $rss[0]['attributes'] );
+		$this->assertSame( 'http://source.scripting.com/', $rss[0]['attributes']['xmlns:source'] );
 	}
 
 	/**
@@ -247,7 +283,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			}
 			$cats = array_filter( $cats );
 			// Should be the same number of categories.
-			$this->assertSame( count( $cats ), count( $categories ) );
+			$this->assertCount( count( $cats ), $categories );
 
 			// ..with the same names.
 			foreach ( $cats as $id => $cat ) {
@@ -289,6 +325,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
+
+		$this->assertNotEmpty( $items );
 
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
@@ -506,7 +544,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),
 		);
-
 	}
 
 	/**
@@ -535,7 +572,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// The Last-Modified header should have the post's date when "withcomments" is not passed.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $last_week ) {
+			function ( $headers ) use ( $last_week ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $last_week ),
@@ -574,7 +611,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// The Last-Modified header should have the comment's date when "withcomments=1" is passed.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $yesterday ) {
+			function ( $headers ) use ( $yesterday ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $yesterday ),
@@ -617,7 +654,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// The Last-Modified header should have the date from today's post when it is the latest update.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $today ) {
+			function ( $headers ) use ( $today ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $today ),

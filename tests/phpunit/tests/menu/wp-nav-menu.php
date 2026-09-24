@@ -243,6 +243,5 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 			$menu_html,
 			'The level zero menu item should appear in the menu.'
 		);
-
 	}
 }

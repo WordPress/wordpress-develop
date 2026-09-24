@@ -3,7 +3,7 @@
 /**
  * Test WP_List_Util class.
  *
- * @group functions.php
+ * @group functions
  */
 class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 
@@ -147,7 +147,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	/**
 	 * Data provider that provides invalid input arrays.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_wp_list_pluck_should_throw_doing_it_wrong_with_invalid_input() {
 		return array(
@@ -1161,5 +1161,4 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

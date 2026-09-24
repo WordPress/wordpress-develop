@@ -10,7 +10,7 @@
  */
 
 /**
- * Function to return the array of starter content for the theme.
+ * Returns the array of starter content for the theme.
  *
  * Passes it through the `twentytwenty_starter_content` filter before returning.
  *
@@ -214,5 +214,4 @@ function twentytwenty_get_starter_content() {
 	 * @param array $starter_content Array of starter content.
 	 */
 	return apply_filters( 'twentytwenty_starter_content', $starter_content );
-
 }

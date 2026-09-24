@@ -44,7 +44,7 @@ class WP_Tax_Query {
 	 * Standard response when the query should not return any rows.
 	 *
 	 * @since 3.2.0
-	 * @var string
+	 * @var array<string, array<string>>
 	 */
 	private static $no_results = array(
 		'join'  => array( '' ),
@@ -161,9 +161,8 @@ class WP_Tax_Query {
 				 */
 				if ( ! empty( $cleaned_clause['taxonomy'] ) && 'NOT IN' !== $cleaned_clause['operator'] ) {
 					$taxonomy = $cleaned_clause['taxonomy'];
-					if ( ! isset( $this->queried_terms[ $taxonomy ] ) ) {
-						$this->queried_terms[ $taxonomy ] = array();
-					}
+
+					$this->queried_terms[ $taxonomy ] ??= array();
 
 					/*
 					 * Backward compatibility: Only store the first
@@ -184,9 +183,7 @@ class WP_Tax_Query {
 
 				if ( ! empty( $cleaned_subquery ) ) {
 					// All queries with children must have a relation.
-					if ( ! isset( $cleaned_subquery['relation'] ) ) {
-						$cleaned_subquery['relation'] = 'AND';
-					}
+					$cleaned_subquery['relation'] ??= 'AND';
 
 					$cleaned_query[] = $cleaned_subquery;
 				}
@@ -202,7 +199,7 @@ class WP_Tax_Query {
 	 * @since 4.1.0
 	 *
 	 * @param string $relation Raw relation key from the query argument.
-	 * @return string Sanitized relation ('AND' or 'OR').
+	 * @return string Sanitized relation. Either 'AND' or 'OR'.
 	 */
 	public function sanitize_relation( $relation ) {
 		if ( 'OR' === strtoupper( $relation ) ) {
@@ -505,7 +502,7 @@ class WP_Tax_Query {
 	protected function find_compatible_table_alias( $clause, $parent_query ) {
 		$alias = false;
 
-		// Sanity check. Only IN queries use the JOIN syntax.
+		// Confidence check. Only IN queries use the JOIN syntax.
 		if ( ! isset( $clause['operator'] ) || 'IN' !== $clause['operator'] ) {
 			return $alias;
 		}

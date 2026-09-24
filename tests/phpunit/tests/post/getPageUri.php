@@ -11,7 +11,7 @@ class Tests_Post_GetPageUri extends WP_UnitTestCase {
 	public function test_get_page_uri_with_stdclass_post_object() {
 		$post_id = self::factory()->post->create( array( 'post_name' => 'get-page-uri-post-name' ) );
 
-		// Mimick an old stdClass post object, missing the ancestors field.
+		// Mimic an old stdClass post object, missing the ancestors field.
 		$post_array = (object) get_post( $post_id, ARRAY_A );
 		unset( $post_array->ancestors );
 

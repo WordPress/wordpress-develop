@@ -1,7 +1,7 @@
 <?php
 /**
  * @group taxonomy
- * @group category.php
+ * @group category
  *
  * @covers ::get_all_category_ids
  */

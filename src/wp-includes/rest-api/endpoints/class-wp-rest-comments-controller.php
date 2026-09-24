@@ -123,6 +123,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
+		$is_note          = 'note' === $request['type'];
+		$is_edit_context  = 'edit' === $request['context'];
+		$protected_params = array( 'author', 'author_exclude', 'author_email', 'type', 'status' );
+		$forbidden_params = array();
 
 		if ( ! empty( $request['post'] ) ) {
 			foreach ( (array) $request['post'] as $post_id ) {
@@ -141,10 +145,51 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						array( 'status' => rest_authorization_required_code() )
 					);
 				}
+
+				if ( $post && $is_note && ! $this->check_post_type_supports_notes( $post->post_type ) ) {
+					if ( current_user_can( 'edit_post', $post->ID ) ) {
+						return new WP_Error(
+							'rest_comment_not_supported_post_type',
+							__( 'Sorry, this post type does not support notes.' ),
+							array( 'status' => 403 )
+						);
+					}
+
+					foreach ( $protected_params as $param ) {
+						if ( 'status' === $param ) {
+							if ( 'approve' !== $request[ $param ] ) {
+								$forbidden_params[] = $param;
+							}
+						} elseif ( 'type' === $param ) {
+							if ( 'comment' !== $request[ $param ] ) {
+								$forbidden_params[] = $param;
+							}
+						} elseif ( ! empty( $request[ $param ] ) ) {
+							$forbidden_params[] = $param;
+						}
+					}
+					return new WP_Error(
+						'rest_forbidden_param',
+						/* translators: %s: List of forbidden parameters. */
+						sprintf( __( 'Query parameter not permitted: %s' ), implode( ', ', $forbidden_params ) ),
+						array( 'status' => rest_authorization_required_code() )
+					);
+				}
 			}
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+		// Re-map edit context capabilities when requesting `note` for a post.
+		if ( $is_edit_context && $is_note && ! empty( $request['post'] ) ) {
+			foreach ( (array) $request['post'] as $post_id ) {
+				if ( ! current_user_can( 'edit_post', $post_id ) ) {
+					return new WP_Error(
+						'rest_forbidden_context',
+						__( 'Sorry, you are not allowed to edit comments.' ),
+						array( 'status' => rest_authorization_required_code() )
+					);
+				}
+			}
+		} elseif ( $is_edit_context && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit comments.' ),
@@ -153,9 +198,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			$protected_params = array( 'author', 'author_exclude', 'author_email', 'type', 'status' );
-			$forbidden_params = array();
-
 			foreach ( $protected_params as $param ) {
 				if ( 'status' === $param ) {
 					if ( 'approve' !== $request[ $param ] ) {
@@ -262,6 +304,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
 		}
 
+		$is_head_request = $request->is_method( 'HEAD' );
+		if ( $is_head_request ) {
+			// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
+			$prepared_args['fields'] = 'ids';
+			// Disable priming comment meta for HEAD requests to improve performance.
+			$prepared_args['update_comment_meta_cache'] = false;
+		}
+
 		/**
 		 * Filters WP_Comment_Query arguments when querying comments via the REST API.
 		 *
@@ -277,34 +327,38 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query        = new WP_Comment_Query();
 		$query_result = $query->query( $prepared_args );
 
-		$comments = array();
+		if ( ! $is_head_request ) {
+			$comments = array();
 
-		foreach ( $query_result as $comment ) {
-			if ( ! $this->check_read_permission( $comment, $request ) ) {
-				continue;
+			foreach ( $query_result as $comment ) {
+				if ( ! $this->check_read_permission( $comment, $request ) ) {
+					continue;
+				}
+
+				$data       = $this->prepare_item_for_response( $comment, $request );
+				$comments[] = $this->prepare_response_for_collection( $data );
 			}
-
-			$data       = $this->prepare_item_for_response( $comment, $request );
-			$comments[] = $this->prepare_response_for_collection( $data );
 		}
 
 		$total_comments = (int) $query->found_comments;
 		$max_pages      = (int) $query->max_num_pages;
 
 		if ( $total_comments < 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count.
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $prepared_args['number'], $prepared_args['offset'] );
 
-			$query                  = new WP_Comment_Query();
-			$prepared_args['count'] = true;
+			$query                                      = new WP_Comment_Query();
+			$prepared_args['count']                     = true;
+			$prepared_args['orderby']                   = 'none';
+			$prepared_args['update_comment_meta_cache'] = false;
 
 			$total_comments = $query->query( $prepared_args );
-			$max_pages      = ceil( $total_comments / $request['per_page'] );
+			$max_pages      = (int) ceil( $total_comments / $request['per_page'] );
 		}
 
-		$response = rest_ensure_response( $comments );
-		$response->header( 'X-WP-Total', $total_comments );
-		$response->header( 'X-WP-TotalPages', $max_pages );
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $comments );
+		$response->header( 'X-WP-Total', (string) $total_comments );
+		$response->header( 'X-WP-TotalPages', (string) $max_pages );
 
 		$base = add_query_arg( urlencode_deep( $request->get_query_params() ), rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
 
@@ -383,7 +437,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+		// Re-map edit context capabilities when requesting `note` type.
+		$edit_cap = 'note' === $comment->comment_type ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( ...$edit_cap ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit comments.' ),
@@ -441,6 +497,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
+		$is_note = ! empty( $request['type'] ) && 'note' === $request['type'];
+
+		if ( ! is_user_logged_in() && $is_note ) {
+			return new WP_Error(
+				'rest_comment_login_required',
+				__( 'Sorry, you must be logged in to comment.' ),
+				array( 'status' => 401 )
+			);
+		}
+
 		if ( ! is_user_logged_in() ) {
 			if ( get_option( 'comment_registration' ) ) {
 				return new WP_Error(
@@ -457,10 +523,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			 *
 			 * @since 4.7.0
 			 *
-			 * @param bool $allow_anonymous Whether to allow anonymous comments to
-			 *                              be created. Default `false`.
-			 * @param WP_REST_Request $request Request used to generate the
-			 *                                 response.
+			 * @param bool            $allow_anonymous Whether to allow anonymous comments to
+			 *                                         be created. Default `false`.
+			 * @param WP_REST_Request $request         Request used to generate the
+			 *                                         response.
 			 */
 			$allow_anonymous = apply_filters( 'rest_allow_anonymous_comments', false, $request );
 
@@ -494,13 +560,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( isset( $request['status'] ) && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error(
-				'rest_comment_invalid_status',
-				/* translators: %s: Request parameter. */
-				sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'status' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
+		if ( $is_note && ! empty( $request['post'] ) ) {
+			$target_check = $this->check_target_post_permission( (int) $request['post'], $request, true );
+
+			if ( is_wp_error( $target_check ) ) {
+				return $target_check;
+			}
 		}
 
 		if ( empty( $request['post'] ) ) {
@@ -509,6 +574,26 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				__( 'Sorry, you are not allowed to create this comment without a post.' ),
 				array( 'status' => 403 )
 			);
+		}
+
+		$edit_cap = $is_note ? array( 'edit_post', (int) $request['post'] ) : array( 'moderate_comments' );
+		if ( isset( $request['status'] ) && ! current_user_can( ...$edit_cap ) ) {
+			return new WP_Error(
+				'rest_comment_invalid_status',
+				/* translators: %s: Request parameter. */
+				sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'status' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		/*
+		 * A note's target post was fully checked by check_target_post_permission()
+		 * above. Everything below applies to other comments only: a note is allowed
+		 * on a draft and on a post whose discussion is closed, and the rest would
+		 * repeat what that check already did.
+		 */
+		if ( $is_note ) {
+			return true;
 		}
 
 		$post = get_post( (int) $request['post'] );
@@ -573,8 +658,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Do not allow comments to be created with a non-default type.
-		if ( ! empty( $request['type'] ) && 'comment' !== $request['type'] ) {
+		// Do not allow comments to be created with a non-core type.
+		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array( 'comment', 'note' ), true ) ) {
 			return new WP_Error(
 				'rest_invalid_comment_type',
 				__( 'Cannot create a comment with that type.' ),
@@ -587,10 +672,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $prepared_comment;
 		}
 
-		$prepared_comment['comment_type'] = 'comment';
+		$prepared_comment['comment_type'] = $request['type'];
 
 		if ( ! isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = '';
+		}
+
+		// Include note metadata into check_is_comment_content_allowed.
+		if ( isset( $request['meta']['_wp_note_status'] ) ) {
+			$prepared_comment['meta']['_wp_note_status'] = $request['meta']['_wp_note_status'];
 		}
 
 		if ( ! $this->check_is_comment_content_allowed( $prepared_comment ) ) {
@@ -655,7 +745,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment, true );
+		// Don't check for duplicates or flooding for notes.
+		$prepared_comment['comment_approved'] =
+			'note' === $prepared_comment['comment_type'] ?
+			'1' :
+			wp_allow_comment( $prepared_comment, true );
 
 		if ( is_wp_error( $prepared_comment['comment_approved'] ) ) {
 			$error_code    = $prepared_comment['comment_approved']->get_error_code();
@@ -770,6 +864,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Checks if a given REST request has access to update a comment.
 	 *
 	 * @since 4.7.0
+	 * @since 7.1.1 Target post permissions are checked when a comment's parent post is changed.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, error object otherwise.
@@ -786,6 +881,26 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				__( 'Sorry, you are not allowed to edit this comment.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
+		}
+
+		/*
+		 * check_edit_permission() above only establishes that the comment may be
+		 * edited where it currently sits, because 'edit_comment' maps to 'edit_post'
+		 * on the comment's current parent. When the parent is being changed, the new
+		 * parent has to be authorized as well. Without this, a user holding
+		 * edit_comment on their own comment or note could reparent it onto any post,
+		 * including posts they can neither read nor edit.
+		 */
+		if ( isset( $request['post'] ) && (int) $request['post'] !== (int) $comment->comment_post_ID ) {
+			$target_check = $this->check_target_post_permission(
+				(int) $request['post'],
+				$request,
+				'note' === $comment->comment_type
+			);
+
+			if ( is_wp_error( $target_check ) ) {
+				return $target_check;
+			}
 		}
 
 		return true;
@@ -848,8 +963,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $prepared_args ) ) {
 				return $prepared_args;
 			}
-
-			if ( isset( $prepared_args['comment_content'] ) && empty( $prepared_args['comment_content'] ) ) {
+			if ( ! $this->check_is_comment_content_allowed( $prepared_args ) ) {
 				return new WP_Error(
 					'rest_comment_content_invalid',
 					__( 'Invalid comment content.' ),
@@ -1039,8 +1153,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$comment = $item;
-		$fields  = $this->get_fields_for_response( $request );
-		$data    = array();
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php */
+			return apply_filters( 'rest_prepare_comment', new WP_REST_Response( array() ), $comment, $request );
+		}
+
+		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = (int) $comment->comment_ID;
@@ -1089,7 +1210,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( in_array( 'content', $fields, true ) ) {
 			$data['content'] = array(
 				/** This filter is documented in wp-includes/comment-template.php */
-				'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ),
+				'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment, array() ),
 				'raw'      => $comment->comment_content,
 			);
 		}
@@ -1187,14 +1308,31 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// Only grab one comment to verify the comment has children.
 		$comment_children = $comment->get_children(
 			array(
-				'number' => 1,
-				'count'  => true,
+				'count'   => true,
+				'orderby' => 'none',
+				'type'    => 'all',
 			)
 		);
 
 		if ( ! empty( $comment_children ) ) {
 			$args = array(
 				'parent' => $comment->comment_ID,
+			);
+
+			$rest_url = add_query_arg( $args, rest_url( $this->namespace . '/' . $this->rest_base ) );
+
+			$links['children'] = array(
+				'href'       => $rest_url,
+				'embeddable' => true,
+			);
+		}
+
+		// Embedding children for notes requires `type` and `status` inheritance.
+		if ( isset( $links['children'] ) && 'note' === $comment->comment_type ) {
+			$args = array(
+				'parent' => $comment->comment_ID,
+				'type'   => $comment->comment_type,
+				'status' => 'all',
 			);
 
 			$rest_url = add_query_arg( $args, rest_url( $this->namespace . '/' . $this->rest_base ) );
@@ -1245,7 +1383,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string|int $comment_approved comment status.
+	 * @param string $comment_approved Comment status.
 	 * @return string Comment status.
 	 */
 	protected function prepare_status_response( $comment_approved ) {
@@ -1502,6 +1640,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
+					'default'     => 'comment',
 				),
 			),
 		);
@@ -1803,7 +1942,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool Whether the comment can be read.
 	 */
 	protected function check_read_permission( $comment, $request ) {
-		if ( ! empty( $comment->comment_post_ID ) ) {
+		if ( 'note' !== $comment->comment_type && ! empty( $comment->comment_post_ID ) ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( $post ) {
 				if ( $this->check_read_post_permission( $post, $request ) && 1 === (int) $comment->comment_approved ) {
@@ -1885,6 +2024,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool True if the content is allowed, false otherwise.
 	 */
 	protected function check_is_comment_content_allowed( $prepared_comment ) {
+		if ( ! isset( $prepared_comment['comment_content'] ) ) {
+			return true;
+		}
+
 		$check = wp_parse_args(
 			$prepared_comment,
 			array(
@@ -1904,10 +2047,142 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return true;
 		}
 
+		// Allow empty notes only when resolution metadata is valid.
+		if (
+			isset( $check['comment_type'] ) &&
+			'note' === $check['comment_type'] &&
+			isset( $check['meta']['_wp_note_status'] ) &&
+			in_array( $check['meta']['_wp_note_status'], array( 'resolved', 'reopen' ), true )
+		) {
+			return true;
+		}
+
 		/*
 		 * Do not allow a comment to be created with missing or empty
 		 * comment_content. See wp_handle_comment_submission().
 		 */
 		return '' !== $check['comment_content'];
+	}
+
+	/**
+	 * Checks that a post can receive a comment or a note from the current user.
+	 *
+	 * Used when creating a note and when changing the parent post of an existing
+	 * comment or note, so that attaching content to a post is authorized the same
+	 * way whichever path it arrives by.
+	 *
+	 * @since 7.1.1
+	 *
+	 * @param int             $post_id Target post ID.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @param bool            $is_note Optional. Whether the comment is a note. Default false.
+	 * @return true|WP_Error True if the post can receive the comment, error object otherwise.
+	 */
+	protected function check_target_post_permission( int $post_id, WP_REST_Request $request, bool $is_note = false ) {
+		if ( ! $post_id ) {
+			return new WP_Error(
+				'rest_comment_invalid_post_id',
+				__( 'Sorry, you are not allowed to create this comment without a post.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		/*
+		 * Notes are editorial content, so they may only be attached to a post the
+		 * user can edit. Any other comment needs either comment moderation rights
+		 * or edit access to the post, which is what check_edit_permission() grants
+		 * on the post a comment is moving away from. Requiring the same at the
+		 * destination means both ends of a move are authorized alike.
+		 */
+		if ( $is_note ) {
+			$can_target_post = current_user_can( 'edit_post', $post_id );
+		} else {
+			$can_target_post = current_user_can( 'moderate_comments' ) || current_user_can( 'edit_post', $post_id );
+		}
+
+		if ( ! $can_target_post ) {
+			if ( $is_note ) {
+				return new WP_Error(
+					'rest_cannot_create_note',
+					__( 'Sorry, you are not allowed to create notes for this post.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
+
+			return new WP_Error(
+				'rest_cannot_edit',
+				__( 'Sorry, you are not allowed to edit this comment.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$post = get_post( $post_id );
+
+		if ( ! $post ) {
+			return new WP_Error(
+				'rest_comment_invalid_post_id',
+				__( 'Sorry, you are not allowed to create this comment without a post.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		/*
+		 * The remaining rules mirror the create-time checks for notes only. They are
+		 * deliberately not applied to other comments, because moderators move comments
+		 * onto posts whose discussion has closed and onto drafts today. Enforcing the
+		 * create-time rules there would break that without blocking anything the
+		 * capability check above already permits.
+		 */
+		if ( ! $is_note ) {
+			return true;
+		}
+
+		if ( ! $this->check_post_type_supports_notes( $post->post_type ) ) {
+			return new WP_Error(
+				'rest_comment_not_supported_post_type',
+				__( 'Sorry, this post type does not support notes.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( 'trash' === $post->post_status ) {
+			return new WP_Error(
+				'rest_comment_trash_post',
+				__( 'Sorry, you are not allowed to create a comment on this post.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( ! $this->check_read_post_permission( $post, $request ) ) {
+			return new WP_Error(
+				'rest_cannot_read_post',
+				__( 'Sorry, you are not allowed to read the post for this comment.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if post type supports notes.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $post_type Post type name.
+	 * @return bool True if post type supports notes, false otherwise.
+	 */
+	private function check_post_type_supports_notes( $post_type ) {
+		$supports = get_all_post_type_supports( $post_type );
+
+		if ( ! isset( $supports['editor'] ) ) {
+			return false;
+		}
+
+		if ( ! is_array( $supports['editor'] ) ) {
+			return false;
+		}
+
+		return array_any( $supports['editor'], fn( $item ) => ! empty( $item['notes'] ) );
 	}
 }

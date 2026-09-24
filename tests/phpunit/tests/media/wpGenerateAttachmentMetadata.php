@@ -73,7 +73,7 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 			// PSD mime type is not allowed by default on multisite.
 			add_filter(
 				'upload_mimes',
-				static function( $mimes ) {
+				static function ( $mimes ) {
 					$mimes['psd'] = 'application/octet-stream';
 					return $mimes;
 				}
@@ -85,5 +85,20 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 		$metadata = wp_get_attachment_metadata( $attachment );
 
 		$this->assertSame( wp_filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
+	}
+
+	/**
+	 * Checks that large PNG uploads generate PNG `-scaled` thumbnails.
+	 *
+	 * @ticket 62900
+	 */
+	public function test_wp_generate_attachment_metadata_png_thumbnail_smaller_than_original() {
+		// Use the test-image-large.png test file.
+		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/png-tests/test-image-large.png' );
+
+		$metadata = wp_get_attachment_metadata( $attachment );
+
+		// Check that the full sized image with `-scaled` is created for the PNG.
+		$this->assertStringContainsString( '-scaled.png', basename( $metadata['file'] ) );
 	}
 }

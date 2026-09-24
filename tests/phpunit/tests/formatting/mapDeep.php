@@ -171,5 +171,4 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	public function append_baba( $value ) {
 		return $value . 'baba';
 	}
-
 }

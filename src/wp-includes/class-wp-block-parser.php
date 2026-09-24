@@ -36,7 +36,7 @@ class WP_Block_Parser {
 	 * List of parsed blocks
 	 *
 	 * @since 5.0.0
-	 * @var WP_Block_Parser_Block[]
+	 * @var array[]
 	 */
 	public $output;
 
@@ -47,14 +47,6 @@ class WP_Block_Parser {
 	 * @var WP_Block_Parser_Frame[]
 	 */
 	public $stack;
-
-	/**
-	 * Empty associative array, here due to PHP quirks
-	 *
-	 * @since 4.4.0
-	 * @var array empty associative array
-	 */
-	public $empty_attrs;
 
 	/**
 	 * Parses a document and returns a list of block structures
@@ -69,11 +61,10 @@ class WP_Block_Parser {
 	 * @return array[]
 	 */
 	public function parse( $document ) {
-		$this->document    = $document;
-		$this->offset      = 0;
-		$this->output      = array();
-		$this->stack       = array();
-		$this->empty_attrs = json_decode( '{}', true );
+		$this->document = $document;
+		$this->offset   = 0;
+		$this->output   = array();
+		$this->stack    = array();
 
 		while ( $this->proceed() ) {
 			continue;
@@ -94,6 +85,7 @@ class WP_Block_Parser {
 	 *
 	 * @internal
 	 * @since 5.0.0
+	 *
 	 * @return bool
 	 */
 	public function proceed() {
@@ -240,6 +232,7 @@ class WP_Block_Parser {
 	 * @internal
 	 * @since 5.0.0
 	 * @since 4.6.1 fixed a bug in attribute parsing which caused catastrophic backtracking on invalid block comments
+	 *
 	 * @return array
 	 */
 	public function next_token() {
@@ -277,7 +270,7 @@ class WP_Block_Parser {
 		$is_closer = isset( $matches['closer'] ) && -1 !== $matches['closer'][1];
 		$is_void   = isset( $matches['void'] ) && -1 !== $matches['void'][1];
 		$namespace = $matches['namespace'];
-		$namespace = ( isset( $namespace ) && -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
+		$namespace = ( -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
 		$name      = $namespace . $matches['name'][0];
 		$has_attrs = isset( $matches['attrs'] ) && -1 !== $matches['attrs'][1];
 
@@ -287,7 +280,7 @@ class WP_Block_Parser {
 		 */
 		$attrs = $has_attrs
 			? json_decode( $matches['attrs'][0], /* as-associative */ true )
-			: $this->empty_attrs;
+			: array();
 
 		/*
 		 * This state isn't allowed
@@ -312,13 +305,13 @@ class WP_Block_Parser {
 	 * Returns a new block object for freeform HTML
 	 *
 	 * @internal
-	 * @since 3.9.0
+	 * @since 5.0.0
 	 *
 	 * @param string $inner_html HTML content of block.
 	 * @return WP_Block_Parser_Block freeform block object.
 	 */
 	public function freeform( $inner_html ) {
-		return new WP_Block_Parser_Block( null, $this->empty_attrs, array(), $inner_html, array( $inner_html ) );
+		return new WP_Block_Parser_Block( null, array(), array(), $inner_html, array( $inner_html ) );
 	}
 
 	/**
@@ -327,10 +320,11 @@ class WP_Block_Parser {
 	 *
 	 * @internal
 	 * @since 5.0.0
-	 * @param null $length how many bytes of document text to output.
+	 *
+	 * @param null|int $length How many bytes of document text to output.
 	 */
 	public function add_freeform( $length = null ) {
-		$length = $length ? $length : strlen( $this->document ) - $this->offset;
+		$length = $length ?? strlen( $this->document ) - $this->offset;
 
 		if ( 0 === $length ) {
 			return;
@@ -345,13 +339,21 @@ class WP_Block_Parser {
 	 *
 	 * @internal
 	 * @since 5.0.0
+	 *
 	 * @param WP_Block_Parser_Block $block        The block to add to the output.
 	 * @param int                   $token_start  Byte offset into the document where the first token for the block starts.
 	 * @param int                   $token_length Byte length of entire block from start of opening token to end of closing token.
 	 * @param int|null              $last_offset  Last byte offset into document if continuing form earlier output.
 	 */
 	public function add_inner_block( WP_Block_Parser_Block $block, $token_start, $token_length, $last_offset = null ) {
-		$parent                       = $this->stack[ count( $this->stack ) - 1 ];
+		/*
+		 * Note: `array_last()` is intentionally not used here. It returns `null` for an
+		 * empty array, which makes static analysis flag the property accesses below.
+		 * Guarding against that is not possible without changing behavior: both callers
+		 * already ensure the stack is not empty, so the guard would be unreachable, and
+		 * this is a public method on a class that can be replaced via `block_parser_class`.
+		 */
+		$parent                       = $this->stack[ array_key_last( $this->stack ) ];
 		$parent->block->innerBlocks[] = (array) $block;
 		$html                         = substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
 
@@ -361,7 +363,7 @@ class WP_Block_Parser {
 		}
 
 		$parent->block->innerContent[] = null;
-		$parent->prev_offset           = $last_offset ? $last_offset : $token_start + $token_length;
+		$parent->prev_offset           = $last_offset ?? $token_start + $token_length;
 	}
 
 	/**
@@ -369,6 +371,7 @@ class WP_Block_Parser {
 	 *
 	 * @internal
 	 * @since 5.0.0
+	 *
 	 * @param int|null $end_offset byte offset into document for where we should stop sending text output as HTML.
 	 */
 	public function add_block_from_stack( $end_offset = null ) {

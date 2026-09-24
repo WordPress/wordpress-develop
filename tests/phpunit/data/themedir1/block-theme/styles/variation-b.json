@@ -1,5 +1,5 @@
 {
-	"version": 2,
+	"version": 3,
 	"settings": {
 		"blocks": {
 			"core/post-title": {
@@ -12,6 +12,13 @@
 						}
 					]
 				}
+			}
+		}
+	},
+	"styles": {
+		"background": {
+			"backgroundImage": {
+				"url": "file:./assets/sugarloaf-mountain.jpg"
 			}
 		}
 	}

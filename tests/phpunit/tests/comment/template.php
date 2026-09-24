@@ -69,7 +69,6 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		$comments_number_text = ob_get_clean();
 
 		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 6 ), '6' ), $comments_number_text );
-
 	}
 
 	/**
@@ -93,7 +92,6 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		$this->go_to( $permalink );
 
 		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ), get_comments_number_text() );
-
 	}
 
 	/**
@@ -113,7 +111,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 
 		$this->assertSame( $output, get_comments_number_text( false, false, $input ) );
 
-		remove_filter( 'gettext_with_context', array( $this, 'enable_comment_number_declension' ), 10, 4 );
+		remove_filter( 'gettext_with_context', array( $this, 'enable_comment_number_declension' ) );
 	}
 
 	public function enable_comment_number_declension( $translation, $text, $context, $domain ) {
@@ -199,5 +197,4 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

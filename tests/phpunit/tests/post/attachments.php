@@ -471,7 +471,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertFalse( wp_attachment_is( 'video', $attachment_id ) );
 
 		if ( is_multisite() ) {
-			remove_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ), 10, 2 );
+			remove_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ) );
 		}
 	}
 
@@ -518,5 +518,16 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$icon = wp_mime_type_icon( 'video/mp4' );
 
 		$this->assertStringContainsString( 'images/media/video.png', $icon );
+	}
+
+	/**
+	 * @ticket 60610
+	 */
+	public function test_wp_mime_type_icon_video_with_preferred_ext() {
+		$icon1 = wp_mime_type_icon( 'video/mp4', '.png' ); // Added `$preferred_ext` parameter.
+		$icon2 = wp_mime_type_icon( 'video/mp4', 'png' ); // Added `$preferred_ext` parameter without period.
+
+		$this->assertStringContainsString( 'images/media/video.png', $icon1, 'Mime type icon should be correctly returned with ".png" argument.' );
+		$this->assertStringContainsString( 'images/media/video.png', $icon2, 'Mime type icon should be correctly returned with "png" argument.' );
 	}
 }

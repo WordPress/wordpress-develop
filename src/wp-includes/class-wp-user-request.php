@@ -20,9 +20,10 @@ final class WP_User_Request {
 	 * User ID.
 	 *
 	 * @since 4.9.6
-	 * @var int
+	 * @var string
+	 * @phpstan-var numeric-string
 	 */
-	public $user_id = 0;
+	public $user_id = '0';
 
 	/**
 	 * User email.
@@ -92,6 +93,8 @@ final class WP_User_Request {
 	 * Key used to confirm this request.
 	 *
 	 * @since 4.9.6
+	 * @since 6.8.0 The key is now hashed using wp_fast_hash() instead of phpass.
+	 *
 	 * @var string
 	 */
 	public $confirm_key = '';

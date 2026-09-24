@@ -57,6 +57,8 @@ function get_postdata($postid) {
  *
  * @since 1.0.1
  * @deprecated 1.5.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  */
 function start_wp() {
 	global $wp_query;
@@ -148,6 +150,7 @@ function previous_post($format='%', $previous='previous post: ', $title='yes', $
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$previous;
 	if ( 'yes' == $title )
+		/** This filter is documented in wp-includes/post-template.php */
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -183,6 +186,7 @@ function next_post($format='%', $next='next post: ', $title='yes', $in_same_cat=
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$next;
 	if ( 'yes' == $title )
+		/** This filter is documented in wp-includes/post-template.php */
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -703,7 +707,7 @@ function dropdown_cats($optionall = 1, $all = 'All', $orderby = 'ID', $order = '
 
 	$show_option_none = '';
 	if ( $optionnone )
-		$show_option_none = __('None');
+		$show_option_none = _x( 'None', 'Categories dropdown (show_option_none parameter)' );
 
 	$vars = compact('show_option_all', 'show_option_none', 'orderby', 'order',
 					'show_last_update', 'show_count', 'hide_empty', 'selected', 'exclude');
@@ -994,11 +998,11 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target. '>';
 
-		if ( $row->link_image != null && $show_images ) {
+		if ( '' != $row->link_image && $show_images ) {
 			if ( str_contains( $row->link_image, 'http' ) )
-				$output .= "<img src=\"$row->link_image\" $alt $title />";
+				$output .= '<img src="' . $row->link_image . '"' . $alt . $title . ' />';
 			else // If it's a relative path.
-				$output .= "<img src=\"" . get_option('siteurl') . "$row->link_image\" $alt $title />";
+				$output .= '<img src="' . get_option('siteurl') . $row->link_image . '"' . $alt . $title . ' />';
 		} else {
 			$output .= $name;
 		}
@@ -1058,6 +1062,7 @@ function get_links_list($order = 'name') {
 			// Handle each category.
 
 			// Display the category name.
+			/** This filter is documented in wp-includes/bookmark-template.php */
 			echo '  <li id="linkcat-' . $cat->term_id . '" class="linkcat"><h2>' . apply_filters('link_category', $cat->name ) . "</h2>\n\t<ul>\n";
 			// Call get_links() with all the appropriate params.
 			get_links($cat->term_id, '<li>', "</li>", "\n", true, 'name', false);
@@ -1818,7 +1823,7 @@ function _nc( $single, $plural, $number, $domain = 'default' ) {
  * @deprecated 2.8.0 Use _n()
  * @see _n()
  */
-function __ngettext( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __ngettext( ...$args ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', '_n()' );
 	return _n( ...$args );
 }
@@ -1830,7 +1835,7 @@ function __ngettext( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameR
  * @deprecated 2.8.0 Use _n_noop()
  * @see _n_noop()
  */
-function __ngettext_noop( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __ngettext_noop( ...$args ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', '_n_noop()' );
 	return _n_noop( ...$args );
 
@@ -1908,7 +1913,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 
 		$src = wp_get_attachment_url( $post->ID );
 		$src_file = & $file;
-	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
+	} elseif ( $src = wp_mime_type_icon( $post->ID, '.svg' ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
 		/** This filter is documented in wp-includes/post.php */
@@ -2217,6 +2222,8 @@ function unregister_widget_control($id) {
  * @deprecated 3.0.0 Use delete_user_meta()
  * @see delete_user_meta()
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int $user_id User ID.
  * @param string $meta_key Metadata key.
  * @param mixed $meta_value Optional. Metadata value. Default empty.
@@ -2263,6 +2270,8 @@ function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
  * @since 2.0.0
  * @deprecated 3.0.0 Use get_user_meta()
  * @see get_user_meta()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID
  * @param string $meta_key Optional. Metadata key. Default empty.
@@ -2315,6 +2324,8 @@ function get_usermeta( $user_id, $meta_key = '' ) {
  * @since 2.0.0
  * @deprecated 3.0.0 Use update_user_meta()
  * @see update_user_meta()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID
  * @param string $meta_key Metadata key.
@@ -2626,7 +2637,7 @@ function get_user_metavalues($ids) {
 /**
  * Sanitize every user field.
  *
- * If the context is 'raw', then the user object or array will get minimal santization of the int fields.
+ * If the context is 'raw', then the user object or array will get minimal sanitization of the int fields.
  *
  * @since 2.3.0
  * @deprecated 3.3.0
@@ -2694,6 +2705,7 @@ function get_boundary_post_rel_link($title = '%title', $in_same_cat = false, $ex
 
 	$title = str_replace('%title', $post->post_title, $title);
 	$title = str_replace('%date', $date, $title);
+	/** This filter is documented in wp-includes/post-template.php */
 	$title = apply_filters('the_title', $title, $post->ID);
 
 	$link = $start ? "<link rel='start' title='" : "<link rel='end' title='";
@@ -2753,6 +2765,8 @@ function index_rel_link() {
  * @since 2.8.0
  * @deprecated 3.3.0
  *
+ * @global WP_Post $post Global post object.
+ *
  * @param string $title Optional. Link title format. Default '%title'.
  * @return string
  */
@@ -2769,6 +2783,7 @@ function get_parent_post_rel_link( $title = '%title' ) {
 
 	$title = str_replace('%title', $post->post_title, $title);
 	$title = str_replace('%date', $date, $title);
+	/** This filter is documented in wp-includes/post-template.php */
 	$title = apply_filters('the_title', $title, $post->ID);
 
 	$link = "<link rel='up' title='";
@@ -3326,7 +3341,9 @@ function gd_edit_image_support($mime_type) {
 				return (imagetypes() & IMG_GIF) != 0;
 			case 'image/webp':
 				return (imagetypes() & IMG_WEBP) != 0;
-		}
+			case 'image/avif':
+				return (imagetypes() & IMG_AVIF) != 0;
+			}
 	} else {
 		switch( $mime_type ) {
 			case 'image/jpeg':
@@ -3337,6 +3354,8 @@ function gd_edit_image_support($mime_type) {
 				return function_exists('imagecreatefromgif');
 			case 'image/webp':
 				return function_exists('imagecreatefromwebp');
+			case 'image/avif':
+				return function_exists('imagecreatefromavif');
 		}
 	}
 	return false;
@@ -3357,7 +3376,7 @@ function wp_convert_bytes_to_hr( $bytes ) {
 
 	$units = array( 0 => 'B', 1 => 'KB', 2 => 'MB', 3 => 'GB', 4 => 'TB' );
 	$log   = log( $bytes, KB_IN_BYTES );
-	$power = (int) $log;
+	$power = ! is_nan( $log ) && ! is_infinite( $log ) ? (int) $log : 0;
 	$size  = KB_IN_BYTES ** ( $log - $power );
 
 	if ( ! is_nan( $size ) && array_key_exists( $power, $units ) ) {
@@ -3659,6 +3678,7 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
+	// Add 60 seconds to the script timeout to ensure the remote request has enough time.
 	if ( function_exists( 'set_time_limit' ) ) {
 		@set_time_limit( 60 );
 	}
@@ -4008,7 +4028,7 @@ function wp_make_content_images_responsive( $content ) {
  * @access private
  * @deprecated 5.5.0
  */
-function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+function wp_unregister_GLOBALS() {
 	// register_globals was deprecated in PHP 5.3 and removed entirely in PHP 5.4.
 	_deprecated_function( __FUNCTION__, '5.5.0' );
 }
@@ -4062,8 +4082,6 @@ function _wp_register_meta_args_whitelist( $args, $default_args ) {
  * @deprecated 5.5.0 Use add_allowed_options() instead.
  *                   Please consider writing more inclusive code.
  *
- * @global array $allowed_options
- *
  * @param array        $new_options
  * @param string|array $options
  * @return array
@@ -4080,8 +4098,6 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @since 2.7.0
  * @deprecated 5.5.0 Use remove_allowed_options() instead.
  *                   Please consider writing more inclusive code.
- *
- * @global array $allowed_options
  *
  * @param array        $del_options
  * @param string|array $options
@@ -4253,7 +4269,7 @@ function wp_render_duotone_filter_preset( $preset ) {
 function wp_skip_border_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$border_support = _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), false );
+	$border_support = $block_type->supports['__experimentalBorder'] ?? false;
 
 	return is_array( $border_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
@@ -4275,7 +4291,7 @@ function wp_skip_border_serialization( $block_type ) {
 function wp_skip_dimensions_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$dimensions_support = _wp_array_get( $block_type->supports, array( '__experimentalDimensions' ), false );
+	$dimensions_support = $block_type->supports['__experimentalDimensions'] ?? false;
 
 	return is_array( $dimensions_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
@@ -4297,7 +4313,7 @@ function wp_skip_dimensions_serialization( $block_type ) {
 function wp_skip_spacing_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$spacing_support = _wp_array_get( $block_type->supports, array( 'spacing' ), false );
+	$spacing_support = $block_type->supports['spacing'] ?? false;
 
 	return is_array( $spacing_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
@@ -4779,7 +4795,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		return $image;
 	}
 
-	/** This filter is documented in wp-admin/includes/media.php */
+	/** This filter is documented in wp-includes/media.php */
 	$value = apply_filters( 'wp_img_tag_add_loading_attr', $value, $image, $context );
 
 	if ( $value ) {
@@ -5173,7 +5189,7 @@ function wp_get_duotone_filter_property( $preset ) {
  * Returns the duotone filter SVG string for the preset.
  *
  * @since 5.9.1
- * @deprecated 6.3.0
+ * @deprecated 6.3.0 Use WP_Duotone::get_filter_svg_from_preset() instead.
  *
  * @access private
  *
@@ -5181,7 +5197,7 @@ function wp_get_duotone_filter_property( $preset ) {
  * @return string Duotone SVG filter.
  */
 function wp_get_duotone_filter_svg( $preset ) {
-	_deprecated_function( __FUNCTION__, '6.3.0' );
+	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::get_filter_svg_from_preset()' );
 	return WP_Duotone::get_filter_svg_from_preset( $preset );
 }
 
@@ -5366,4 +5382,1170 @@ function block_core_navigation_submenu_build_css_colors( $context, $attributes, 
 	}
 
 	return $colors;
+}
+
+/**
+ * Runs the theme.json webfonts handler.
+ *
+ * Using `WP_Theme_JSON_Resolver`, it gets the fonts defined
+ * in the `theme.json` for the current selection and style
+ * variations, validates the font-face properties, generates
+ * the '@font-face' style declarations, and then enqueues the
+ * styles for both the editor and front-end.
+ *
+ * Design Notes:
+ * This is not a public API, but rather an internal handler.
+ * A future public Webfonts API will replace this stopgap code.
+ *
+ * This code design is intentional.
+ *    a. It hides the inner-workings.
+ *    b. It does not expose API ins or outs for consumption.
+ *    c. It only works with a theme's `theme.json`.
+ *
+ * Why?
+ *    a. To avoid backwards-compatibility issues when
+ *       the Webfonts API is introduced in Core.
+ *    b. To make `fontFace` declarations in `theme.json` work.
+ *
+ * @link  https://github.com/WordPress/gutenberg/issues/40472
+ *
+ * @since 6.0.0
+ * @deprecated 6.4.0 Use wp_print_font_faces() instead.
+ * @access private
+ */
+function _wp_theme_json_webfonts_handler() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_print_font_faces' );
+
+	// Block themes are unavailable during installation.
+	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! wp_theme_has_theme_json() ) {
+		return;
+	}
+
+	// Webfonts to be processed.
+	$registered_webfonts = array();
+
+	/**
+	 * Gets the webfonts from theme.json.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @return array Array of defined webfonts.
+	 */
+	$fn_get_webfonts_from_theme_json = static function() {
+		// Get settings from theme.json.
+		$settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
+
+		// If in the editor, add webfonts defined in variations.
+		if ( is_admin() || wp_is_rest_endpoint() ) {
+			$variations = WP_Theme_JSON_Resolver::get_style_variations();
+			foreach ( $variations as $variation ) {
+				// Skip if fontFamilies are not defined in the variation.
+				if ( empty( $variation['settings']['typography']['fontFamilies'] ) ) {
+					continue;
+				}
+
+				// Initialize the array structure.
+				if ( empty( $settings['typography'] ) ) {
+					$settings['typography'] = array();
+				}
+				if ( empty( $settings['typography']['fontFamilies'] ) ) {
+					$settings['typography']['fontFamilies'] = array();
+				}
+				if ( empty( $settings['typography']['fontFamilies']['theme'] ) ) {
+					$settings['typography']['fontFamilies']['theme'] = array();
+				}
+
+				// Combine variations with settings. Remove duplicates.
+				$settings['typography']['fontFamilies']['theme'] = array_merge( $settings['typography']['fontFamilies']['theme'], $variation['settings']['typography']['fontFamilies']['theme'] );
+				$settings['typography']['fontFamilies']          = array_unique( $settings['typography']['fontFamilies'] );
+			}
+		}
+
+		// Bail out early if there are no settings for webfonts.
+		if ( empty( $settings['typography']['fontFamilies'] ) ) {
+			return array();
+		}
+
+		$webfonts = array();
+
+		// Look for fontFamilies.
+		foreach ( $settings['typography']['fontFamilies'] as $font_families ) {
+			foreach ( $font_families as $font_family ) {
+
+				// Skip if fontFace is not defined.
+				if ( empty( $font_family['fontFace'] ) ) {
+					continue;
+				}
+
+				// Skip if fontFace is not an array of webfonts.
+				if ( ! is_array( $font_family['fontFace'] ) ) {
+					continue;
+				}
+
+				$webfonts = array_merge( $webfonts, $font_family['fontFace'] );
+			}
+		}
+
+		return $webfonts;
+	};
+
+	/**
+	 * Transforms each 'src' into an URI by replacing 'file:./'
+	 * placeholder from theme.json.
+	 *
+	 * The absolute path to the webfont file(s) cannot be defined in
+	 * theme.json. `file:./` is the placeholder which is replaced by
+	 * the theme's URL path to the theme's root.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array $src Webfont file(s) `src`.
+	 * @return array Webfont's `src` in URI.
+	 */
+	$fn_transform_src_into_uri = static function( array $src ) {
+		foreach ( $src as $key => $url ) {
+			// Tweak the URL to be relative to the theme root.
+			if ( ! str_starts_with( $url, 'file:./' ) ) {
+				continue;
+			}
+
+			$src[ $key ] = get_theme_file_uri( str_replace( 'file:./', '', $url ) );
+		}
+
+		return $src;
+	};
+
+	/**
+	 * Converts the font-face properties (i.e. keys) into kebab-case.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array $font_face Font face to convert.
+	 * @return array Font faces with each property in kebab-case format.
+	 */
+	$fn_convert_keys_to_kebab_case = static function( array $font_face ) {
+		foreach ( $font_face as $property => $value ) {
+			$kebab_case               = _wp_to_kebab_case( $property );
+			$font_face[ $kebab_case ] = $value;
+			if ( $kebab_case !== $property ) {
+				unset( $font_face[ $property ] );
+			}
+		}
+
+		return $font_face;
+	};
+
+	/**
+	 * Validates a webfont.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array $webfont The webfont arguments.
+	 * @return array|false The validated webfont arguments, or false if the webfont is invalid.
+	 */
+	$fn_validate_webfont = static function( $webfont ) {
+		$webfont = wp_parse_args(
+				$webfont,
+				array(
+						'font-family'  => '',
+						'font-style'   => 'normal',
+						'font-weight'  => '400',
+						'font-display' => 'fallback',
+						'src'          => array(),
+				)
+		);
+
+		// Check the font-family.
+		if ( empty( $webfont['font-family'] ) || ! is_string( $webfont['font-family'] ) ) {
+			trigger_error( __( 'Webfont font family must be a non-empty string.' ) );
+
+			return false;
+		}
+
+		// Check that the `src` property is defined and a valid type.
+		if ( empty( $webfont['src'] ) || ( ! is_string( $webfont['src'] ) && ! is_array( $webfont['src'] ) ) ) {
+			trigger_error( __( 'Webfont src must be a non-empty string or an array of strings.' ) );
+
+			return false;
+		}
+
+		// Validate the `src` property.
+		foreach ( (array) $webfont['src'] as $src ) {
+			if ( ! is_string( $src ) || '' === trim( $src ) ) {
+				trigger_error( __( 'Each webfont src must be a non-empty string.' ) );
+
+				return false;
+			}
+		}
+
+		// Check the font-weight.
+		if ( ! is_string( $webfont['font-weight'] ) && ! is_int( $webfont['font-weight'] ) ) {
+			trigger_error( __( 'Webfont font weight must be a properly formatted string or integer.' ) );
+
+			return false;
+		}
+
+		// Check the font-display.
+		if ( ! in_array( $webfont['font-display'], array( 'auto', 'block', 'fallback', 'optional', 'swap' ), true ) ) {
+			$webfont['font-display'] = 'fallback';
+		}
+
+		$valid_props = array(
+				'ascend-override',
+				'descend-override',
+				'font-display',
+				'font-family',
+				'font-stretch',
+				'font-style',
+				'font-weight',
+				'font-variant',
+				'font-feature-settings',
+				'font-variation-settings',
+				'line-gap-override',
+				'size-adjust',
+				'src',
+				'unicode-range',
+		);
+
+		foreach ( $webfont as $prop => $value ) {
+			if ( ! in_array( $prop, $valid_props, true ) ) {
+				unset( $webfont[ $prop ] );
+			}
+		}
+
+		return $webfont;
+	};
+
+	/**
+	 * Registers webfonts declared in theme.json.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @uses $registered_webfonts To access and update the registered webfonts registry (passed by reference).
+	 * @uses $fn_get_webfonts_from_theme_json To run the function that gets the webfonts from theme.json.
+	 * @uses $fn_convert_keys_to_kebab_case To run the function that converts keys into kebab-case.
+	 * @uses $fn_validate_webfont To run the function that validates each font-face (webfont) from theme.json.
+	 */
+	$fn_register_webfonts = static function() use ( &$registered_webfonts, $fn_get_webfonts_from_theme_json, $fn_convert_keys_to_kebab_case, $fn_validate_webfont, $fn_transform_src_into_uri ) {
+		$registered_webfonts = array();
+
+		foreach ( $fn_get_webfonts_from_theme_json() as $webfont ) {
+			if ( ! is_array( $webfont ) ) {
+				continue;
+			}
+
+			$webfont = $fn_convert_keys_to_kebab_case( $webfont );
+
+			$webfont = $fn_validate_webfont( $webfont );
+
+			$webfont['src'] = $fn_transform_src_into_uri( (array) $webfont['src'] );
+
+			// Skip if not valid.
+			if ( empty( $webfont ) ) {
+				continue;
+			}
+
+			$registered_webfonts[] = $webfont;
+		}
+	};
+
+	/**
+	 * Orders 'src' items to optimize for browser support.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array $webfont Webfont to process.
+	 * @return array Ordered `src` items.
+	 */
+	$fn_order_src = static function( array $webfont ) {
+		$src         = array();
+		$src_ordered = array();
+
+		foreach ( $webfont['src'] as $url ) {
+			// Add data URIs first.
+			if ( str_starts_with( trim( $url ), 'data:' ) ) {
+				$src_ordered[] = array(
+						'url'    => $url,
+						'format' => 'data',
+				);
+				continue;
+			}
+			$format         = pathinfo( $url, PATHINFO_EXTENSION );
+			$src[ $format ] = $url;
+		}
+
+		// Add woff2.
+		if ( ! empty( $src['woff2'] ) ) {
+			$src_ordered[] = array(
+					'url'    => sanitize_url( $src['woff2'] ),
+					'format' => 'woff2',
+			);
+		}
+
+		// Add woff.
+		if ( ! empty( $src['woff'] ) ) {
+			$src_ordered[] = array(
+					'url'    => sanitize_url( $src['woff'] ),
+					'format' => 'woff',
+			);
+		}
+
+		// Add ttf.
+		if ( ! empty( $src['ttf'] ) ) {
+			$src_ordered[] = array(
+					'url'    => sanitize_url( $src['ttf'] ),
+					'format' => 'truetype',
+			);
+		}
+
+		// Add eot.
+		if ( ! empty( $src['eot'] ) ) {
+			$src_ordered[] = array(
+					'url'    => sanitize_url( $src['eot'] ),
+					'format' => 'embedded-opentype',
+			);
+		}
+
+		// Add otf.
+		if ( ! empty( $src['otf'] ) ) {
+			$src_ordered[] = array(
+					'url'    => sanitize_url( $src['otf'] ),
+					'format' => 'opentype',
+			);
+		}
+		$webfont['src'] = $src_ordered;
+
+		return $webfont;
+	};
+
+	/**
+	 * Compiles the 'src' into valid CSS.
+	 *
+	 * @since 6.0.0
+	 * @since 6.2.0 Removed local() CSS.
+	 *
+	 * @param string $font_family Font family.
+	 * @param array  $value       Value to process.
+	 * @return string The CSS.
+	 */
+	$fn_compile_src = static function( $font_family, array $value ) {
+		$src = '';
+
+		foreach ( $value as $item ) {
+			$src .= ( 'data' === $item['format'] )
+					? ", url({$item['url']})"
+					: ", url('{$item['url']}') format('{$item['format']}')";
+		}
+
+		$src = ltrim( $src, ', ' );
+
+		return $src;
+	};
+
+	/**
+	 * Compiles the font variation settings.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param array $font_variation_settings Array of font variation settings.
+	 * @return string The CSS.
+	 */
+	$fn_compile_variations = static function( array $font_variation_settings ) {
+		$variations = '';
+
+		foreach ( $font_variation_settings as $key => $value ) {
+			$variations .= "$key $value";
+		}
+
+		return $variations;
+	};
+
+	/**
+	 * Builds the font-family's CSS.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @uses $fn_compile_src To run the function that compiles the src.
+	 * @uses $fn_compile_variations To run the function that compiles the variations.
+	 *
+	 * @param array $webfont Webfont to process.
+	 * @return string This font-family's CSS.
+	 */
+	$fn_build_font_face_css = static function( array $webfont ) use ( $fn_compile_src, $fn_compile_variations ) {
+		$css = '';
+
+		// Wrap font-family in quotes if it contains spaces.
+		if (
+				str_contains( $webfont['font-family'], ' ' ) &&
+				! str_contains( $webfont['font-family'], '"' ) &&
+				! str_contains( $webfont['font-family'], "'" )
+		) {
+			$webfont['font-family'] = '"' . $webfont['font-family'] . '"';
+		}
+
+		foreach ( $webfont as $key => $value ) {
+			/*
+			 * Skip "provider", since it's for internal API use,
+			 * and not a valid CSS property.
+			 */
+			if ( 'provider' === $key ) {
+				continue;
+			}
+
+			// Compile the "src" parameter.
+			if ( 'src' === $key ) {
+				$value = $fn_compile_src( $webfont['font-family'], $value );
+			}
+
+			// If font-variation-settings is an array, convert it to a string.
+			if ( 'font-variation-settings' === $key && is_array( $value ) ) {
+				$value = $fn_compile_variations( $value );
+			}
+
+			if ( ! empty( $value ) ) {
+				$css .= "$key:$value;";
+			}
+		}
+
+		return $css;
+	};
+
+	/**
+	 * Gets the '@font-face' CSS styles for locally-hosted font files.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @uses $registered_webfonts To access and update the registered webfonts registry (passed by reference).
+	 * @uses $fn_order_src To run the function that orders the src.
+	 * @uses $fn_build_font_face_css To run the function that builds the font-face CSS.
+	 *
+	 * @return string The `@font-face` CSS.
+	 */
+	$fn_get_css = static function() use ( &$registered_webfonts, $fn_order_src, $fn_build_font_face_css ) {
+		$css = '';
+
+		foreach ( $registered_webfonts as $webfont ) {
+			// Order the webfont's `src` items to optimize for browser support.
+			$webfont = $fn_order_src( $webfont );
+
+			// Build the @font-face CSS for this webfont.
+			$css .= '@font-face{' . $fn_build_font_face_css( $webfont ) . '}';
+		}
+
+		return $css;
+	};
+
+	/**
+	 * Generates and enqueues webfonts styles.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @uses $fn_get_css To run the function that gets the CSS.
+	 */
+	$fn_generate_and_enqueue_styles = static function() use ( $fn_get_css ) {
+		// Generate the styles.
+		$styles = $fn_get_css();
+
+		// Bail out if there are no styles to enqueue.
+		if ( '' === $styles ) {
+			return;
+		}
+
+		// Enqueue the stylesheet.
+		wp_register_style( 'wp-webfonts', '' );
+		wp_enqueue_style( 'wp-webfonts' );
+
+		// Add the styles to the stylesheet.
+		wp_add_inline_style( 'wp-webfonts', $styles );
+	};
+
+	/**
+	 * Generates and enqueues editor styles.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @uses $fn_get_css To run the function that gets the CSS.
+	 */
+	$fn_generate_and_enqueue_editor_styles = static function() use ( $fn_get_css ) {
+		// Generate the styles.
+		$styles = $fn_get_css();
+
+		// Bail out if there are no styles to enqueue.
+		if ( '' === $styles ) {
+			return;
+		}
+
+		wp_add_inline_style( 'wp-block-library', $styles );
+	};
+
+	add_action( 'wp_loaded', $fn_register_webfonts );
+	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
+	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
+}
+
+/**
+ * Prints the CSS in the embed iframe header.
+ *
+ * @since 4.4.0
+ * @deprecated 6.4.0 Use wp_enqueue_embed_styles() instead.
+ */
+function print_embed_styles() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
+
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	?>
+	<style>
+		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
+	</style>
+	<?php
+}
+
+/**
+ * Prints the important emoji-related styles.
+ *
+ * @since 4.2.0
+ * @deprecated 6.4.0 Use wp_enqueue_emoji_styles() instead.
+ */
+function print_emoji_styles() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_emoji_styles' );
+	static $printed = false;
+
+	if ( $printed ) {
+		return;
+	}
+
+	$printed = true;
+
+	?>
+	<style>
+	img.wp-smiley,
+	img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+	</style>
+	<?php
+}
+
+/**
+ * Prints style and scripts for the admin bar.
+ *
+ * @since 3.1.0
+ * @deprecated 6.4.0 Use wp_enqueue_admin_bar_header_styles() instead.
+ */
+function wp_admin_bar_header() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
+	?>
+	<style media="print">#wpadminbar { display:none; }</style>
+	<?php
+}
+
+/**
+ * Prints default admin bar callback.
+ *
+ * @since 3.1.0
+ * @deprecated 6.4.0 Use wp_enqueue_admin_bar_bump_styles() instead.
+ */
+function _admin_bar_bump_cb() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
+	?>
+	<style media="screen">
+	html { margin-top: 32px !important; }
+	@media screen and ( max-width: 782px ) {
+	  html { margin-top: 46px !important; }
+	}
+	</style>
+	<?php
+}
+
+/**
+ * Runs a remote HTTPS request to detect whether HTTPS supported, and stores potential errors.
+ *
+ * This internal function is called by a regular Cron hook to ensure HTTPS support is detected and maintained.
+ *
+ * @since 5.7.0
+ * @deprecated 6.4.0 The `wp_update_https_detection_errors()` function is no longer used and has been replaced by
+ *                   `wp_get_https_detection_errors()`. Previously the function was called by a regular Cron hook to
+ *                    update the `https_detection_errors` option, but this is no longer necessary as the errors are
+ *                    retrieved directly in Site Health and no longer used outside of Site Health.
+ * @access private
+ */
+function wp_update_https_detection_errors() {
+	_deprecated_function( __FUNCTION__, '6.4.0' );
+
+	/**
+	 * Short-circuits the process of detecting errors related to HTTPS support.
+	 *
+	 * Returning a `WP_Error` from the filter will effectively short-circuit the default logic of trying a remote
+	 * request to the site over HTTPS, storing the errors array from the returned `WP_Error` instead.
+	 *
+	 * @since 5.7.0
+	 * @deprecated 6.4.0 The `wp_update_https_detection_errors` filter is no longer used and has been replaced by `pre_wp_get_https_detection_errors`.
+	 *
+	 * @param null|WP_Error $pre Error object to short-circuit detection,
+	 *                           or null to continue with the default behavior.
+	 */
+	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
+	if ( is_wp_error( $support_errors ) ) {
+		update_option( 'https_detection_errors', $support_errors->errors, false );
+		return;
+	}
+
+	$support_errors = wp_get_https_detection_errors();
+
+	update_option( 'https_detection_errors', $support_errors );
+}
+
+/**
+ * Adds `decoding` attribute to an `img` HTML tag.
+ *
+ * The `decoding` attribute allows developers to indicate whether the
+ * browser can decode the image off the main thread (`async`), on the
+ * main thread (`sync`) or as determined by the browser (`auto`).
+ *
+ * By default WordPress adds `decoding="async"` to images but developers
+ * can use the {@see 'wp_img_tag_add_decoding_attr'} filter to modify this
+ * to remove the attribute or set it to another accepted value.
+ *
+ * @since 6.1.0
+ * @deprecated 6.4.0 Use wp_img_tag_add_loading_optimization_attrs() instead.
+ * @see wp_img_tag_add_loading_optimization_attrs()
+ *
+ * @param string $image   The HTML `img` tag where the attribute should be added.
+ * @param string $context Additional context to pass to the filters.
+ * @return string Converted `img` tag with `decoding` attribute added.
+ */
+function wp_img_tag_add_decoding_attr( $image, $context ) {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_img_tag_add_loading_optimization_attrs()' );
+
+	/*
+	 * Only apply the decoding attribute to images that have a src attribute that
+	 * starts with a double quote, ensuring escaped JSON is also excluded.
+	 */
+	if ( ! str_contains( $image, ' src="' ) ) {
+		return $image;
+	}
+
+	/** This action is documented in wp-includes/media.php */
+	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+
+	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
+		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
+	}
+
+	return $image;
+}
+
+/**
+ * Parses wp_template content and injects the active theme's
+ * stylesheet as a theme attribute into each wp_template_part
+ *
+ * @since 5.9.0
+ * @deprecated 6.4.0 Use traverse_and_serialize_blocks( parse_blocks( $template_content ), '_inject_theme_attribute_in_template_part_block' ) instead.
+ * @access private
+ *
+ * @param string $template_content serialized wp_template content.
+ * @return string Updated 'wp_template' content.
+ */
+function _inject_theme_attribute_in_block_template_content( $template_content ) {
+	_deprecated_function(
+		__FUNCTION__,
+		'6.4.0',
+		'traverse_and_serialize_blocks( parse_blocks( $template_content ), "_inject_theme_attribute_in_template_part_block" )'
+	);
+
+	$has_updated_content = false;
+	$new_content         = '';
+	$template_blocks     = parse_blocks( $template_content );
+
+	$blocks = _flatten_blocks( $template_blocks );
+	foreach ( $blocks as &$block ) {
+		if (
+			'core/template-part' === $block['blockName'] &&
+			! isset( $block['attrs']['theme'] )
+		) {
+			$block['attrs']['theme'] = get_stylesheet();
+			$has_updated_content     = true;
+		}
+	}
+
+	if ( $has_updated_content ) {
+		foreach ( $template_blocks as &$block ) {
+			$new_content .= serialize_block( $block );
+		}
+
+		return $new_content;
+	}
+
+	return $template_content;
+}
+
+/**
+ * Parses a block template and removes the theme attribute from each template part.
+ *
+ * @since 5.9.0
+ * @deprecated 6.4.0 Use traverse_and_serialize_blocks( parse_blocks( $template_content ), '_remove_theme_attribute_from_template_part_block' ) instead.
+ * @access private
+ *
+ * @param string $template_content Serialized block template content.
+ * @return string Updated block template content.
+ */
+function _remove_theme_attribute_in_block_template_content( $template_content ) {
+	_deprecated_function(
+		__FUNCTION__,
+		'6.4.0',
+		'traverse_and_serialize_blocks( parse_blocks( $template_content ), "_remove_theme_attribute_from_template_part_block" )'
+	);
+
+	$has_updated_content = false;
+	$new_content         = '';
+	$template_blocks     = parse_blocks( $template_content );
+
+	$blocks = _flatten_blocks( $template_blocks );
+	foreach ( $blocks as $key => $block ) {
+		if ( 'core/template-part' === $block['blockName'] && isset( $block['attrs']['theme'] ) ) {
+			unset( $blocks[ $key ]['attrs']['theme'] );
+			$has_updated_content = true;
+		}
+	}
+
+	if ( ! $has_updated_content ) {
+		return $template_content;
+	}
+
+	foreach ( $template_blocks as $block ) {
+		$new_content .= serialize_block( $block );
+	}
+
+	return $new_content;
+}
+
+/**
+ * Prints the skip-link script & styles.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.4.0 Use wp_enqueue_block_template_skip_link() instead.
+ *
+ * @global string $_wp_current_template_content
+ */
+function the_block_template_skip_link() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_block_template_skip_link()' );
+
+	global $_wp_current_template_content;
+
+	// Early exit if not a block theme.
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return;
+	}
+
+	// Early exit if not a block template.
+	if ( ! $_wp_current_template_content ) {
+		return;
+	}
+	?>
+
+	<?php
+	/**
+	 * Print the skip-link styles.
+	 */
+	?>
+	<style id="skip-link-styles">
+		.skip-link.screen-reader-text {
+			border: 0;
+			clip-path: inset(50%);
+			height: 1px;
+			margin: -1px;
+			overflow: hidden;
+			padding: 0;
+			position: absolute !important;
+			width: 1px;
+			/* Many screen reader and browser combinations announce broken words as they would appear visually. */
+			word-wrap: normal !important;
+			word-break: normal !important;
+		}
+
+		.skip-link.screen-reader-text:focus {
+			background-color: #eee;
+			clip-path: none;
+			color: #444;
+			display: block;
+			font-size: 1em;
+			height: auto;
+			left: 5px;
+			line-height: normal;
+			padding: 15px 23px 14px;
+			text-decoration: none;
+			top: 5px;
+			width: auto;
+			z-index: 100000;
+		}
+	</style>
+	<?php
+	/**
+	 * Print the skip-link script.
+	 */
+	?>
+	<script>
+	( function() {
+		var skipLinkTarget = document.querySelector( 'main' ),
+			sibling,
+			skipLinkTargetID,
+			skipLink;
+
+		// Early exit if a skip-link target can't be located.
+		if ( ! skipLinkTarget ) {
+			return;
+		}
+
+		/*
+		 * Get the site wrapper.
+		 * The skip-link will be injected in the beginning of it.
+		 */
+		sibling = document.querySelector( '.wp-site-blocks' );
+
+		// Early exit if the root element was not found.
+		if ( ! sibling ) {
+			return;
+		}
+
+		// Get the skip-link target's ID, and generate one if it doesn't exist.
+		skipLinkTargetID = skipLinkTarget.id;
+		if ( ! skipLinkTargetID ) {
+			skipLinkTargetID = 'wp--skip-link--target';
+			skipLinkTarget.id = skipLinkTargetID;
+		}
+
+		// Create the skip link.
+		skipLink = document.createElement( 'a' );
+		skipLink.classList.add( 'skip-link', 'screen-reader-text' );
+		skipLink.href = '#' + skipLinkTargetID;
+		skipLink.innerHTML = '<?php /* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ?>';
+
+		// Inject the skip link.
+		sibling.parentElement.insertBefore( skipLink, sibling );
+	}() );
+	</script>
+	<?php
+}
+
+/**
+ * Ensure that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_query_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Ensure that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_file_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Ensures that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_image_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Updates the block content with elements class names.
+ *
+ * @deprecated 6.6.0 Generation of element class name is handled via `render_block_data` filter.
+ *
+ * @since 5.8.0
+ * @since 6.4.0 Added support for button and heading element styling.
+ * @access private
+ *
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
+ * @return string Filtered block content.
+ */
+function wp_render_elements_support( $block_content, $block ) {
+	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_class_name' );
+	return $block_content;
+}
+
+/**
+ * Processes the directives on the rendered HTML of the interactive blocks.
+ *
+ * This processes only one root interactive block at a time because the
+ * rendered HTML of that block contains the rendered HTML of all its inner
+ * blocks, including any interactive block. It does so by ignoring all the
+ * interactive inner blocks until the root interactive block is processed.
+ *
+ * @since 6.5.0
+ * @deprecated 6.6.0
+ *
+ * @param array $parsed_block The parsed block.
+ * @return array The same parsed block.
+ */
+function wp_interactivity_process_directives_of_interactive_blocks( array $parsed_block ): array {
+	_deprecated_function( __FUNCTION__, '6.6.0' );
+	return $parsed_block;
+}
+
+/**
+ * Gets the global styles custom CSS from theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead for top-level custom CSS, or {@see 'WP_Theme_JSON::get_styles_for_block'} for block-level custom CSS.
+ *
+ * @return string The global styles custom CSS.
+ */
+function wp_get_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_get_global_stylesheet' );
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
+	/*
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
+	 * developer's workflow.
+	 */
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * @see `wp_cache_add_non_persistent_groups()`.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_key   = 'wp_get_global_styles_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
+ * Enqueues the global styles custom css defined via theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_enqueue_global_styles'} instead.
+ */
+function wp_enqueue_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	// Don't enqueue Customizer's custom CSS separately.
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+	$custom_css  = wp_get_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
+
+	if ( ! empty( $custom_css ) ) {
+		wp_add_inline_style( 'global-styles', $custom_css );
+	}
+}
+
+/**
+ * Generate block style variation instance name.
+ *
+ * @since 6.6.0
+ * @deprecated 6.7.0 Use `wp_unique_id( $variation . '--' )` instead.
+ *
+ * @access private
+ *
+ * @param array  $block     Block object.
+ * @param string $variation Slug for the block style variation.
+ * @return string The unique variation name.
+ */
+function wp_create_block_style_variation_instance_name( $block, $variation ) {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
+	return $variation . '--' . md5( serialize( $block ) );
+}
+
+/**
+ * Returns whether the current user has the specified capability for a given site.
+ *
+ * @since 3.0.0
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
+ * @since 5.8.0 Wraps current_user_can() after switching to blog.
+ * @deprecated 6.7.0 Use current_user_can_for_site() instead.
+ *
+ * @param int    $blog_id    Site ID.
+ * @param string $capability Capability name.
+ * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
+ * @return bool Whether the user has the given capability.
+ */
+function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
+	return current_user_can_for_site( $blog_id, $capability, ...$args );
+}
+
+/**
+ * Loads classic theme styles on classic themes in the editor.
+ *
+ * This is used for backwards compatibility for Button and File blocks specifically.
+ *
+ * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
+ * @deprecated 6.8.0 Styles are enqueued, not printed in the body element.
+ *
+ * @param array $editor_settings The array of editor settings.
+ * @return array A filtered array of editor settings.
+ */
+function wp_add_editor_classic_theme_styles( $editor_settings ) {
+	_deprecated_function( __FUNCTION__, '6.8.0', 'wp_enqueue_classic_theme_styles' );
+
+	if ( wp_theme_has_theme_json() ) {
+		return $editor_settings;
+	}
+
+	$suffix               = wp_scripts_get_suffix();
+	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
+
+	/*
+	 * This follows the pattern of get_block_editor_theme_styles,
+	 * but we can't use get_block_editor_theme_styles directly as it
+	 * only handles external files or theme files.
+	 */
+	$classic_theme_styles_settings = array(
+		'css'            => file_get_contents( $classic_theme_styles ),
+		'__unstableType' => 'core',
+		'isGlobalStyles' => false,
+	);
+
+	// Add these settings to the start of the array so that themes can override them.
+	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
+
+	return $editor_settings;
+}
+
+/**
+ * Prints a CSS rule to fix potential visual issues with images using `sizes=auto`.
+ *
+ * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
+ * `width: auto` or `width: fit-content` to appear smaller.
+ *
+ * @since 6.7.1
+ * @deprecated 6.9.0 Use wp_enqueue_img_auto_sizes_contain_css_fix() instead.
+ * @see wp_enqueue_img_auto_sizes_contain_css_fix()
+ *
+ * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
+ * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62731
+ */
+function wp_print_auto_sizes_contain_css_fix() {
+	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_enqueue_img_auto_sizes_contain_css_fix' );
+
+	/** This filter is documented in wp-includes/media.php */
+	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
+	if ( ! $add_auto_sizes ) {
+		return;
+	}
+
+	?>
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	<?php
+}
+
+/**
+ * Adds slashes to a string or recursively adds slashes to strings within an array.
+ *
+ * This function is just a wrapper for `wp_slash()`. It was originally related to
+ * magic quotes functionality which was deprecated in PHP 5.3.0 and removed in PHP 5.4.0.
+ *
+ * @since 0.71
+ * @deprecated 7.0.0 Use wp_slash() instead.
+ * @see wp_slash()
+ *
+ * @param string|array $gpc String or array of data to slash.
+ * @return string|array Slashed `$gpc`.
+ */
+function addslashes_gpc( $gpc ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_slash()' );
+	return wp_slash( $gpc );
+}
+
+/**
+ * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
+ *
+ * This function is deprecated, use {@see wp_get_script_tag()} or {@see wp_get_inline_script_tag()} instead.
+ *
+ * @since 5.7.0
+ * @deprecated 7.0.0 Use wp_get_script_tag() or wp_get_inline_script_tag().
+ * @see wp_get_script_tag()
+ * @see wp_get_inline_script_tag()
+ *
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string String made of sanitized `<script>` tag attributes.
+ */
+function wp_sanitize_script_attributes( $attributes ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_get_script_tag() or wp_get_inline_script_tag()' );
+
+	$attributes_string = '';
+	foreach ( $attributes as $attribute_name => $attribute_value ) {
+		if ( is_bool( $attribute_value ) ) {
+			if ( $attribute_value ) {
+				$attributes_string .= ' ' . esc_attr( $attribute_name );
+			}
+		} else {
+			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
+	}
+	return $attributes_string;
+}
+
+/**
+ * Truncates a post slug.
+ *
+ * @since 3.6.0
+ * @deprecated 7.2.0 Use wp_truncate_slug() instead.
+ * @see wp_truncate_slug()
+ *
+ * @param string $slug   The slug to truncate.
+ * @param int    $length Optional. Max length of the slug. Default 200 (characters).
+ * @return string The truncated slug.
+ */
+function _truncate_post_slug( $slug, $length = 200 ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'wp_truncate_slug()' );
+
+	return wp_truncate_slug( $slug, $length );
 }
