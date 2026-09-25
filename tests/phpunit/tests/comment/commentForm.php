@@ -295,4 +295,78 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'name="url"', $form );
 		$this->assertStringContainsString( 'name="custom_field"', $form );
 	}
+
+	/**
+	 * The `comment_notes_before` value is part of the comment form defaults and is
+	 * rendered outside of the fields loop, so it is not an entry in the array passed
+	 * to the `comment_form_fields` filter.
+	 *
+	 * @ticket 60281
+	 */
+	public function test_comment_notes_before_is_not_a_comment_form_field() {
+		$captured_keys = array();
+
+		add_filter(
+			'comment_form_fields',
+			static function ( $fields ) use ( &$captured_keys ) {
+				$captured_keys = array_keys( $fields );
+				return $fields;
+			}
+		);
+
+		get_echo( 'comment_form', array( array(), self::$post_id ) );
+
+		$this->assertContains( 'comment', $captured_keys, 'The comment textarea field should be present in the comment form fields.' );
+		$this->assertContains( 'author', $captured_keys, 'The author field should be present in the comment form fields.' );
+		$this->assertNotContains( 'comment_notes_before', $captured_keys, 'comment_notes_before should not be a comment form field; it is part of the form defaults.' );
+	}
+
+	/**
+	 * Because `comment_notes_before` is rendered from the form defaults rather than
+	 * from the fields array, unsetting it via the `comment_form_fields` filter has no
+	 * effect on the output.
+	 *
+	 * @ticket 60281
+	 */
+	public function test_comment_notes_before_is_not_removed_via_comment_form_fields_filter() {
+		add_filter(
+			'comment_form_fields',
+			static function ( $fields ) {
+				unset( $fields['comment_notes_before'] );
+				return $fields;
+			}
+		);
+
+		$form = get_echo( 'comment_form', array( array(), self::$post_id ) );
+
+		$this->assertStringContainsString(
+			'class="comment-notes"',
+			$form,
+			'comment_notes_before is rendered from the form defaults, so unsetting it via the comment_form_fields filter should have no effect.'
+		);
+	}
+
+	/**
+	 * The supported way to remove `comment_notes_before` is to empty it via the
+	 * `comment_form_defaults` filter.
+	 *
+	 * @ticket 60281
+	 */
+	public function test_comment_notes_before_can_be_removed_via_comment_form_defaults_filter() {
+		add_filter(
+			'comment_form_defaults',
+			static function ( $defaults ) {
+				$defaults['comment_notes_before'] = '';
+				return $defaults;
+			}
+		);
+
+		$form = get_echo( 'comment_form', array( array(), self::$post_id ) );
+
+		$this->assertStringNotContainsString(
+			'class="comment-notes"',
+			$form,
+			'comment_notes_before should be removable via the comment_form_defaults filter.'
+		);
+	}
 }
