@@ -766,7 +766,15 @@ final class WP_Interactivity_API {
 		}
 
 		// Returns the opposite if it contains a negation operator (!).
-		return $should_negate_value ? ! $current : $current;
+		// Uses JavaScript-compatible truthiness rules to ensure server and client
+		// rendering agree. PHP and JavaScript differ on two values:
+		// - [] (empty array): falsy in PHP, truthy in JavaScript.
+		// - '0' (string zero): falsy in PHP, truthy in JavaScript.
+		if ( $should_negate_value ) {
+			$is_truthy = is_array( $current ) || '0' === $current ? true : (bool) $current;
+			return ! $is_truthy;
+		}
+		return $current;
 	}
 
 	/**
