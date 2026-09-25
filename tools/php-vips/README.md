@@ -18,14 +18,19 @@ The installer fetches the package, scopes its PSR-3 dependency (`Psr\Log\*`) und
 Run from the WordPress development repository root:
 
 ```bash
-# Install a specific release version
+# Install the latest release
+bash tools/php-vips/installer.sh
+
+# Install a specific release
 bash tools/php-vips/installer.sh --version=v2.6.1
 
 # Install from a branch
 bash tools/php-vips/installer.sh --branch=master
 ```
 
-You must specify either `--version` or `--branch` (not both). A bare version number is also accepted and gets the `v` prefix the repository uses for release tags.
+With no arguments the newest release tag is resolved from the remote and installed. Prefer that over a branch, because it pins the bundled code to a released version.
+
+`--version` and `--branch` are mutually exclusive. A bare version number is also accepted and gets the `v` prefix the repository uses for release tags.
 
 ## What It Does
 

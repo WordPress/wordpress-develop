@@ -7,8 +7,11 @@
 # src/wp-includes/php-vips/.
 #
 # Usage:
-#   bash tools/php-vips/installer.sh --version=2.6.1
+#   bash tools/php-vips/installer.sh
+#   bash tools/php-vips/installer.sh --version=v2.6.1
 #   bash tools/php-vips/installer.sh --branch=master
+#
+# Without --version or --branch, the latest release is installed.
 #
 
 set -euo pipefail
@@ -49,8 +52,8 @@ for arg in "$@"; do
 			echo "Options:"
 			echo "  --version=X.Y.Z   Fetch a specific release version"
 			echo "  --branch=BRANCH   Fetch from a branch"
-			echo ""
-			echo "Must be run from the WordPress development repository root."
+			echo ""			 echo "With neither option, the latest release is installed."
+			 echo ""			echo "Must be run from the WordPress development repository root."
 			exit 0
 			;;
 		*)
@@ -66,11 +69,6 @@ if [ -n "$VERSION" ] && [ -n "$BRANCH" ]; then
 	exit 1
 fi
 
-if [ -z "$VERSION" ] && [ -z "$BRANCH" ]; then
-	echo "Error: Must specify either --version=X.Y.Z or --branch=BRANCH."
-	exit 1
-fi
-
 # -----------------------------------------------------------------------------
 # Prerequisites
 # -----------------------------------------------------------------------------
@@ -80,6 +78,16 @@ check_command() {
 		echo "Error: '$1' is required but not found in PATH."
 		exit 1
 	fi
+}
+
+# Resolves the newest release tag on the remote, e.g. "v2.6.1".
+latest_release_tag() {
+	git ls-remote --tags --refs "$GITHUB_REPO" 2>/dev/null \
+		| awk -F/ '{ print $NF }' \
+		| grep -E '^v?[0-9]+(\.[0-9]+)*$' \
+		| sort -V \
+		| tail -n 1 \
+		|| true
 }
 
 check_command php
@@ -107,6 +115,20 @@ echo "==> Using temp directory: $TEMP_DIR"
 # -----------------------------------------------------------------------------
 # Fetch package
 # -----------------------------------------------------------------------------
+
+# Nothing was requested, so fall back to the latest release.
+if [ -z "$BRANCH" ] && [ -z "$VERSION" ]; then
+	echo "==> No version requested, resolving the latest release..."
+	VERSION="$(latest_release_tag)"
+
+	if [ -z "$VERSION" ]; then
+		echo "Error: Could not resolve the latest release from $GITHUB_REPO."
+		echo "Specify one explicitly with --version=X.Y.Z or --branch=BRANCH."
+		exit 1
+	fi
+
+	echo "==> Latest release is $VERSION."
+fi
 
 if [ -n "$BRANCH" ]; then
 	REF="$BRANCH"
