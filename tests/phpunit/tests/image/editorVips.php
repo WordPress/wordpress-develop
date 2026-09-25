@@ -111,6 +111,76 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that make_subsize() creates a size and leaves the editor as it was.
+	 *
+	 * `_wp_make_subsizes()` prefers `make_subsize()` over `multi_resize()`, so each
+	 * sub-size has to be derived from the loaded image and the editor has to keep
+	 * its original dimensions for the next call.
+	 */
+	public function test_make_subsize() {
+		$file = DIR_TESTDATA . '/images/waffles.jpg';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$original_size = $vips_image_editor->get_size();
+
+		$scaled = $vips_image_editor->make_subsize(
+			array(
+				'width'  => (int) round( $original_size['width'] / 2 ),
+				'height' => (int) round( $original_size['height'] / 2 ),
+			)
+		);
+		$this->assertNotWPError( $scaled );
+
+		$cropped = $vips_image_editor->make_subsize(
+			array(
+				'width'  => 100,
+				'height' => 100,
+				'crop'   => true,
+			)
+		);
+		$this->assertNotWPError( $cropped );
+
+		// Matches multi_resize(): no path, and the metadata describes the real file.
+		$this->assertArrayNotHasKey( 'path', $scaled );
+		$this->assertArrayNotHasKey( 'path', $cropped );
+
+		$this->assertImageDimensions(
+			DIR_TESTDATA . '/images/' . $scaled['file'],
+			$scaled['width'],
+			$scaled['height']
+		);
+		$this->assertImageDimensions(
+			DIR_TESTDATA . '/images/' . $cropped['file'],
+			$cropped['width'],
+			$cropped['height']
+		);
+
+		// A cropped sub-size is exactly the requested dimensions.
+		$this->assertSame( 100, $cropped['width'] );
+		$this->assertSame( 100, $cropped['height'] );
+
+		// The second sub-size came from the loaded image, not from the first one.
+		$this->assertSame( $original_size, $vips_image_editor->get_size() );
+	}
+
+	/**
+	 * Tests that make_subsize() refuses a size that the image already has.
+	 */
+	public function test_make_subsize_does_not_duplicate_the_original_size() {
+		$file = DIR_TESTDATA . '/images/waffles.jpg';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$result = $vips_image_editor->make_subsize( $vips_image_editor->get_size() );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'image_subsize_create_error', $result->get_error_code() );
+	}
+
+	/**
 	 * Tests that multi_resize() does not create an image when dimensions are missing.
 	 *
 	 * @ticket 26823
