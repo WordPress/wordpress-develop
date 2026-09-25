@@ -2361,4 +2361,54 @@ class Tests_Functions extends WP_UnitTestCase {
 		);
 		$this->assertSameSetsWithIndex( $theme_json, $expected_theme_json );
 	}
+
+	/**
+	 * Tests that _default_wp_die_handler() only queries the database for language
+	 * attributes when WordPress is not installing.
+	 *
+	 * @ticket 50228
+	 * @covers ::_default_wp_die_handler
+	 * @dataProvider data_default_wp_die_handler_language_attributes
+	 *
+	 * @param bool   $installing      Whether WordPress is installing.
+	 * @param string $expected_attr   Substring the output is expected to contain.
+	 * @param string $unexpected_attr Substring the output is expected not to contain.
+	 */
+	public function test_default_wp_die_handler_language_attributes( $installing, $expected_attr, $unexpected_attr ) {
+		$was_installing = wp_installing();
+		wp_installing( $installing );
+
+		ob_start();
+		_default_wp_die_handler( 'Error message', 'Error title', array( 'exit' => false ) );
+		$output = ob_get_clean();
+
+		wp_installing( $was_installing );
+
+		$this->assertStringContainsString( $expected_attr, $output );
+		$this->assertStringNotContainsString( $unexpected_attr, $output );
+	}
+
+	/**
+	 * Data provider for test_default_wp_die_handler_language_attributes().
+	 *
+	 * @return array[] {
+	 *     @type bool   $installing      Whether WordPress is installing.
+	 *     @type string $expected_attr   Substring the output is expected to contain.
+	 *     @type string $unexpected_attr Substring the output is expected not to contain.
+	 * }
+	 */
+	public function data_default_wp_die_handler_language_attributes() {
+		return array(
+			'installing: falls back to the dir attribute' => array(
+				'installing'      => true,
+				'expected_attr'   => "<html dir='",
+				'unexpected_attr' => 'lang=',
+			),
+			'not installing: uses get_language_attributes()' => array(
+				'installing'      => false,
+				'expected_attr'   => 'lang="',
+				'unexpected_attr' => "dir='",
+			),
+		);
+	}
 }
