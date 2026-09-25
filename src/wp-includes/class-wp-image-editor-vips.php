@@ -149,42 +149,18 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		try {
 			$test_image = Jcupitt\Vips\Image::black( 1, 1 );
 
-			// libvips selects the encoder from the file suffix, so the probe is written
-			// to a suffixed file. tempnam() creates the unsuffixed file itself, and both
-			// are removed once the probe has run.
-			$temp_file = tempnam( sys_get_temp_dir(), 'vips_test_' );
+			// libvips picks the encoder from the suffix, so the buffer is given one.
+			// Nothing is written to disk, so there is no temp file to clean up.
+			$buffer = $test_image->writeToBuffer( '.' . $target_extension );
 
-			if ( false === $temp_file ) {
-				self::$mime_support_cache[ $mime_type ] = false;
-
-				return false;
-			}
-
-			$probe_file = $temp_file . '.' . $target_extension;
-
-			try {
-				$test_image->writeToFile( $probe_file );
-				$supported = file_exists( $probe_file ) && filesize( $probe_file ) > 0;
-			} catch ( Exception $write_error ) {
-				$supported = false;
-			} finally {
-				if ( file_exists( $temp_file ) ) {
-					unlink( $temp_file );
-				}
-
-				if ( file_exists( $probe_file ) ) {
-					unlink( $probe_file );
-				}
-			}
-
-			self::$mime_support_cache[ $mime_type ] = $supported;
-
-			return $supported;
+			$supported = ! empty( $buffer );
 		} catch ( Exception $e ) {
-			self::$mime_support_cache[ $mime_type ] = false;
-
-			return false;
+			$supported = false;
 		}
+
+		self::$mime_support_cache[ $mime_type ] = $supported;
+
+		return $supported;
 	}
 
 	/**
