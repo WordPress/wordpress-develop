@@ -14,6 +14,10 @@ if ( ! class_exists( 'Jcupitt\Vips\Image' ) ) {
 /**
  * WordPress Image Editor Class for Image Manipulation through VIPS
  *
+ * Requires the FFI extension with `ffi.enable` turned on, and the libvips shared
+ * library. Without them, test() reports the editor as unsupported and image editing
+ * falls back to Imagick or GD.
+ *
  * @since 7.2.0
  *
  * @see WP_Image_Editor

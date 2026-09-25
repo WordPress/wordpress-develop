@@ -21,7 +21,7 @@
 		"ext-curl": "*",
 		"ext-dom": "*",
 		"ext-exif": "*",
-		"ext-ffi": "Required to use the optional WP_Image_Editor_Vips backend",
+		"ext-ffi": "*",
 		"ext-fileinfo": "*",
 		"ext-filter": "*",
 		"ext-ftp": "*",
