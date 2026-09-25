@@ -1999,6 +1999,10 @@ function wp_localize_jquery_ui_datepicker() {
 		return;
 	}
 
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		return;
+	}
+
 	// Convert the PHP date format into jQuery UI's format.
 	$datepicker_date_format = str_replace(
 		array(
