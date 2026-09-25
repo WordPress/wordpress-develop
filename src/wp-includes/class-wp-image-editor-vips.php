@@ -38,17 +38,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 */
 	protected static $mime_support_cache = array();
 
-	public function __destruct() {
-		if ( $this->image ) {
-			// VIPS uses reference counting and automatic memory management.
-			$this->image = null;
-		}
-
-		if ( $this->original_image ) {
-			$this->original_image = null;
-		}
-	}
-
 	/**
 	 * Checks to see if current environment supports VIPS.
 	 *
