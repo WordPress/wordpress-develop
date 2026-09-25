@@ -2005,11 +2005,10 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 		$additional_classes = array( 'settings-error' );
 
 		/*
-		 * Backward compatibility: for Core admin notice types, the related CSS
-		 * classes are rendered in the default order determined by `wp_admin_notice()`.
-		 * This includes the old type `updated`. Instead, anything else e.g.
-		 * custom notice types or strings with spaces is now passed as
-		 * additional_classes and appended to the end of the string,
+		 * Backward compatibility: `wp_admin_notice()` generates the admin notice
+		 * CSS classes based on the passed message type. For example, 'error',
+		 * 'success', 'warning', 'info'. Custom types will be treated as
+		 * additional classes and appended to the end of the CSS classes.
 		 */
 		if ( ! in_array( $type, array( 'error', 'success', 'warning', 'info' ), true ) ) {
 			$additional_classes = array_merge( $additional_classes, explode( ' ', $type ) );
