@@ -1032,14 +1032,12 @@ class WP_Site_Health {
 				'required'     => false,
 				'fallback_for' => 'zip',
 			),
+			'vips'      => array(
+				'extension'    => 'ffi',
+				'required'     => false,
+				'fallback_for' => 'imagick',
+			),
 		);
-
-		if ( class_exists( 'Jcupitt\\Vips\\Image' ) ) {
-			$modules['vips'] = array(
-				'class'    => 'Jcupitt\\Vips\\Image',
-				'required' => false,
-			);
-		}
 
 		/**
 		 * Filters the array representing all the modules we wish to test for.
