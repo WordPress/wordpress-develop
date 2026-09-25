@@ -10,7 +10,6 @@
 require_once __DIR__ . '/base.php';
 
 class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
-
 	public $editor_engine = 'WP_Image_Editor_GD';
 
 	public function set_up() {
@@ -49,6 +48,33 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
 		$expected        = (bool) ( imagetypes() & IMG_GIF );
 		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/gif' ) );
+	}
+
+	/**
+	 * Tests that images expected to exceed the memory limit are rejected.
+	 *
+	 * @ticket 23127
+	 */
+	public function test_load_rejects_images_larger_than_available_memory() {
+		if ( -1 === wp_convert_hr_to_bytes( ini_get( 'memory_limit' ) ) ) {
+			$this->markTestSkipped( 'The PHP memory limit is disabled.' );
+		}
+
+		$file      = tempnam( get_temp_dir(), 'large-image-' );
+		$ihdr_data = pack( 'NNCCCCC', 100000, 100000, 8, 2, 0, 0, 0 );
+		$png       = "\x89PNG\r\n\x1a\n"
+			. pack( 'N', 13 ) . 'IHDR' . $ihdr_data . pack( 'N', crc32( 'IHDR' . $ihdr_data ) )
+			. pack( 'N', 0 ) . 'IEND' . pack( 'N', crc32( 'IEND' ) );
+
+		file_put_contents( $file, $png );
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$loaded          = $gd_image_editor->load();
+
+		unlink( $file );
+
+		$this->assertWPError( $loaded );
+		$this->assertSame( 'image_memory_exceeded', $loaded->get_error_code() );
 	}
 
 	/**
