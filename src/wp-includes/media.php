@@ -1259,6 +1259,8 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		// Adds 'auto' to the sizes attribute if applicable.
 		if (
 			$add_auto_sizes &&
+			! empty( $attr['width'] ) &&
+			! empty( $attr['height'] ) &&
 			isset( $attr['loading'] ) &&
 			'lazy' === $attr['loading'] &&
 			isset( $attr['sizes'] ) &&
@@ -2107,7 +2109,8 @@ function wp_filter_content_tags( $content, $context = null ) {
 }
 
 /**
- * Adds 'auto' to the sizes attribute to the image, if the image is lazy loaded and does not already include it.
+ * Adds 'auto' to the sizes attribute if the image is lazy loaded, has width and height attributes,
+ * and does not already include it.
  *
  * @since 6.7.0
  *
@@ -2140,13 +2143,14 @@ function wp_img_tag_add_auto_sizes( string $image ): string {
 	}
 
 	/*
-	 * Bail early if the image doesn't have a width attribute.
-	 * Per WordPress Core itself, lazy-loaded images should always have a width attribute.
+	 * Bail early if the image doesn't have width and height attributes.
+	 * Per WordPress Core itself, lazy-loaded images should always have width and height attributes.
 	 * However, it is possible that lazy-loading could be added by a plugin, where we don't have that guarantee.
-	 * As such, it still makes sense to ensure presence of a width attribute here in order to use `sizes=auto`.
+	 * As such, it still makes sense to ensure presence of both attributes here in order to use `sizes=auto`.
 	 */
-	$width = $processor->get_attribute( 'width' );
-	if ( ! is_string( $width ) || '' === $width ) {
+	$width  = $processor->get_attribute( 'width' );
+	$height = $processor->get_attribute( 'height' );
+	if ( ! is_string( $width ) || '' === $width || ! is_string( $height ) || '' === $height ) {
 		return $image;
 	}
 
@@ -2185,12 +2189,14 @@ function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ): bool {
  * Enqueues a CSS rule to fix potential visual issues with images using `sizes=auto`.
  *
  * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
- * `width: auto` or `width: fit-content` to appear smaller.
+ * `width: auto` or `width: fit-content` to appear smaller. It only applies to images with dimensions, since
+ * otherwise the enlarged intrinsic height can cause the image to appear stretched.
  *
  * @since 6.9.0
  *
  * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
  * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62515
  * @see https://core.trac.wordpress.org/ticket/62731
  */
 function wp_enqueue_img_auto_sizes_contain_css_fix(): void {
@@ -2209,7 +2215,7 @@ function wp_enqueue_img_auto_sizes_contain_css_fix(): void {
 
 	$handle = 'wp-img-auto-sizes-contain';
 	wp_register_style( $handle, false );
-	wp_add_inline_style( $handle, 'img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}' );
+	wp_add_inline_style( $handle, 'img:where([width][height]):is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}' );
 
 	// Make sure inline style is printed first since it was previously printed at wp_head priority 1 and this preserves the CSS cascade.
 	array_unshift( wp_styles()->queue, $handle );
