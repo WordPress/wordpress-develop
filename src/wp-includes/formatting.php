@@ -230,6 +230,8 @@ function wptexturize( $text, $reset = false ) {
 	$no_texturize_tags_stack       = array();
 	$no_texturize_shortcodes_stack = array();
 
+	$prev_text_ends_in_word_char = false;
+
 	// Look for shortcodes and HTML elements.
 
 	preg_match_all( '@\[/?([^<>&/\[\]\x00-\x20=]++)@', $text, $matches );
@@ -246,6 +248,7 @@ function wptexturize( $text, $reset = false ) {
 		if ( '<' === $first ) {
 			if ( str_starts_with( $curl, '<!--' ) ) {
 				// This is an HTML comment delimiter.
+				$prev_text_ends_in_word_char = false;
 				continue;
 			} else {
 				// This is an HTML element delimiter.
@@ -253,14 +256,18 @@ function wptexturize( $text, $reset = false ) {
 				// Replace each & with &#038; unless it already looks like an entity.
 				$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
 
+				$prev_text_ends_in_word_char = $prev_text_ends_in_word_char && _wptexturize_is_inline_opening_tag( $curl );
+
 				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 			}
 		} elseif ( '' === trim( $curl ) ) {
 			// This is a newline between delimiters. Performance improves when we check this.
+			$prev_text_ends_in_word_char = false;
 			continue;
 
 		} elseif ( '[' === $first && $found_shortcodes && 1 === preg_match( '/^' . $shortcode_regex . '$/', $curl ) ) {
 			// This is a shortcode delimiter.
+			$prev_text_ends_in_word_char = false;
 
 			if ( ! str_starts_with( $curl, '[[' ) && ! str_ends_with( $curl, ']]' ) ) {
 				// Looks like a normal shortcode.
@@ -271,6 +278,12 @@ function wptexturize( $text, $reset = false ) {
 			}
 		} elseif ( empty( $no_texturize_shortcodes_stack ) && empty( $no_texturize_tags_stack ) ) {
 			// This is neither a delimiter, nor is this content inside of no_texturize pairs. Do texturize.
+
+			// Continues the word split by the inline tag's opening boundary (ticket #43810).
+			if ( $prev_text_ends_in_word_char && "'" === $curl[0] ) {
+				$curl = $closing_single_quote . substr( $curl, 1 );
+			}
+			$prev_text_ends_in_word_char = false;
 
 			$curl = str_replace( $static_characters, $static_replacements, $curl );
 
@@ -297,6 +310,8 @@ function wptexturize( $text, $reset = false ) {
 
 			// Replace each & with &#038; unless it already looks like an entity.
 			$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
+
+			$prev_text_ends_in_word_char = 1 === preg_match( '/[a-zA-Z0-9]$/', $curl );
 		}
 	}
 
@@ -426,6 +441,62 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 			array_pop( $stack );
 		}
 	}
+}
+
+/**
+ * Determines whether a delimiter is the opening tag of an inline HTML element.
+ *
+ * Used by wptexturize() to tell whether a leading quote character in the text that
+ * follows continues the word immediately preceding the tag (e.g. a contraction split
+ * by `<strong>` in `I<strong>'ve been</strong>`) rather than opening a new quoted
+ * phrase. Block-level tags are excluded, since their boundary already reads as a
+ * break between sentences.
+ *
+ * Assumes first char of `$text` is tag opening and last char is tag closing.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param string $text Text to check. Must be a tag like `<strong>`.
+ * @return bool True if `$text` is the opening tag of one of the recognized inline elements.
+ */
+function _wptexturize_is_inline_opening_tag( $text ) {
+	static $inline_elements = array(
+		'a',
+		'abbr',
+		'b',
+		'cite',
+		'del',
+		'em',
+		'i',
+		'ins',
+		'mark',
+		'q',
+		's',
+		'small',
+		'span',
+		'strong',
+		'sub',
+		'sup',
+		'time',
+		'u',
+	);
+
+	// Closing tags and self-closing tags have no interior content to continue.
+	if ( ! isset( $text[1] ) || '/' === $text[1] || str_ends_with( $text, '/>' ) ) {
+		return false;
+	}
+
+	// Parse out the tag name, the same way _wptexturize_pushpop_element() does for opening tags.
+	$space = strpos( $text, ' ' );
+	if ( false === $space ) {
+		$space = -1;
+	} else {
+		--$space;
+	}
+	$tag = substr( $text, 1, $space );
+
+	return in_array( $tag, $inline_elements, true );
 }
 
 /**
