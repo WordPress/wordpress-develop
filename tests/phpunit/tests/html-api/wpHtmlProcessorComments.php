@@ -32,17 +32,20 @@ class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0:string, 1:string, 2:string, 3?:string}>
 	 */
-	public static function data_comments() {
+	public static function data_comments(): array {
 		return array(
-			'Normative comment'              => array( '<!-- A comment. -->', WP_HTML_Processor::COMMENT_AS_HTML_COMMENT, ' A comment. ' ),
-			'Abruptly closed comment'        => array( '<!-->', WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT, '' ),
-			'Invalid HTML comment !'         => array( '<! Bang opener >', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, ' Bang opener ' ),
-			'Invalid HTML comment ?'         => array( '<? Question opener >', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, ' Question opener ' ),
-			'CDATA comment'                  => array( '<![CDATA[ cdata body ]]>', WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE, ' cdata body ' ),
-			'Processing instriction comment' => array( '<?pi-target Instruction body. ?>', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' Instruction body. ', 'pi-target' ),
-			'Processing instriction php'     => array( '<?php const HTML_COMMENT = true; ?>', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' const HTML_COMMENT = true; ', 'php' ),
+			'Normative comment'                       => array( '<!-- A comment. -->', WP_HTML_Processor::COMMENT_AS_HTML_COMMENT, ' A comment. ' ),
+			'Abruptly closed comment'                 => array( '<!-->', WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT, '' ),
+			'Invalid HTML comment !'                  => array( '<! Bang opener >', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, ' Bang opener ' ),
+			'Invalid HTML comment ?'                  => array( '<? Question opener >', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, ' Question opener ' ),
+			'CDATA comment'                           => array( '<![CDATA[ cdata body ]]>', WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE, ' cdata body ' ),
+			'Processing instruction xml'              => array( '<?xml version="1.0" ?>', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' version="1.0" ', 'xml' ),
+			'Processing instruction xml-stylesheet'   => array( '<?xml-stylesheet href="a.css" ?>', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' href="a.css" ', 'xml-stylesheet' ),
+			'Processing instruction XML-valid target' => array( '<?wp.bit const HTML_COMMENT = true; ?>', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' const HTML_COMMENT = true; ', 'wp.bit' ),
+			'Processing instruction bad target'       => array( '<?$var Not a target. ?>', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, '$var Not a target. ?' ),
+			'PHP short echo tag'                      => array( '<?= "Hello" ?>', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, '= "Hello" ?' ),
 		);
 	}
 

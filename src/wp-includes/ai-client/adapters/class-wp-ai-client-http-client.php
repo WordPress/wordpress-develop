@@ -104,8 +104,9 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 
 		if ( is_wp_error( $response ) ) {
 			$message = sprintf(
-				/* translators: 1: Request URL. 2: Error message. */
-				__( 'Network error occurred while sending request to %1$s: %2$s' ),
+				/* translators: 1: HTTP method (e.g. GET, POST). 2: Request URL. 3: Error message. */
+				__( 'Network error occurred while sending %1$s request to %2$s: %3$s' ),
+				$request->getMethod(),
 				$url,
 				$response->get_error_message()
 			);
@@ -210,7 +211,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 			$headers = $headers->get_headers();
 		}
 
-		if ( is_array( $headers ) || $headers instanceof Traversable ) {
+		if ( is_iterable( $headers ) ) {
 			foreach ( $headers as $name => $value ) {
 				$response = $response->withHeader( $name, $value );
 			}

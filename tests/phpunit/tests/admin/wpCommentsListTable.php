@@ -260,8 +260,8 @@ OPTIONS;
 		$this->table->prepare_items();
 		$items = $this->table->items;
 		$this->assertCount( 2, $items );
-		$this->assertEquals( $pingback_comment_id, $items[0]->comment_ID );
-		$this->assertEquals( $regular_comment_id, $items[1]->comment_ID );
+		$this->assertSame( (string) $pingback_comment_id, $items[0]->comment_ID );
+		$this->assertSame( (string) $regular_comment_id, $items[1]->comment_ID );
 	}
 
 	/**

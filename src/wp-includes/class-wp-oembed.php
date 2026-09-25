@@ -23,7 +23,10 @@ class WP_oEmbed {
 	 * A list of oEmbed providers.
 	 *
 	 * @since 2.9.0
-	 * @var array
+	 * @var array<string, array{ 0: string, 1: bool }> An associative array mapping URL patterns to provider data.
+	 *                                                 Each entry's value is an array with the provider endpoint URL
+	 *                                                 string at index 0 and a boolean at index 1 indicating whether
+	 *                                                 the URL pattern (array key) is a regular expression.
 	 */
 	public $providers = array();
 
@@ -85,7 +88,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?kickstarter\.com/projects/.*#i' => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://kck\.st/.*#i'                       => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://cloudup\.com/.*#i'                  => array( 'https://cloudup.com/oembed', true ),
-			'#https?://(www\.)?reverbnation\.com/.*#i'     => array( 'https://www.reverbnation.com/oembed', true ),
+			'#https?://((legacy|www)\.)?reverbnation\.com/.*#i' => array( 'https://legacy.reverbnation.com/oembed', true ),
 			'#https?://videopress\.com/v/.*#'              => array( 'https://public-api.wordpress.com/oembed/?for=' . $host, true ),
 			'#https?://(www\.)?reddit\.com/r/[^/]+/comments/.*#i' => array( 'https://www.reddit.com/oembed', true ),
 			'#https?://(www\.)?speakerdeck\.com/.*#i'      => array( 'https://speakerdeck.com/oembed.{format}', true ),
@@ -99,9 +102,6 @@ class WP_oEmbed {
 			'#https?://(www\.)?amzn\.in/.*#i'              => array( 'https://read.amazon.in/kp/api/oembed', true ),
 			'#https?://(www\.)?amzn\.asia/.*#i'            => array( 'https://read.amazon.com.au/kp/api/oembed', true ),
 			'#https?://(www\.)?z\.cn/.*#i'                 => array( 'https://read.amazon.cn/kp/api/oembed', true ),
-			'#https?://www\.someecards\.com/.+-cards/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
-			'#https?://www\.someecards\.com/usercards/viewcard/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
-			'#https?://some\.ly\/.+#i'                     => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://(www\.)?tiktok\.com/@.*#i'          => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
@@ -172,7 +172,6 @@ class WP_oEmbed {
 		 * | Twitter      | twitter.com/user                          | 4.7.0   |
 		 * | Twitter      | twitter.com/likes                         | 4.7.0   |
 		 * | Twitter      | twitter.com/lists                         | 4.7.0   |
-		 * | Screencast   | screencast.com                            | 4.8.0   |
 		 * | Amazon       | amazon.com (com.mx, com.br, ca)           | 4.9.0   |
 		 * | Amazon       | amazon.de (fr, it, es, in, nl, ru, co.uk) | 4.9.0   |
 		 * | Amazon       | amazon.co.jp (com.au)                     | 4.9.0   |
@@ -180,8 +179,6 @@ class WP_oEmbed {
 		 * | Amazon       | a.co                                      | 4.9.0   |
 		 * | Amazon       | amzn.to (eu, in, asia)                    | 4.9.0   |
 		 * | Amazon       | z.cn                                      | 4.9.0   |
-		 * | Someecards   | someecards.com                            | 4.9.0   |
-		 * | Someecards   | some.ly                                   | 4.9.0   |
 		 * | Crowdsignal  | survey.fm                                 | 5.1.0   |
 		 * | TikTok       | tiktok.com                                | 5.4.0   |
 		 * | Pinterest    | pinterest.com                             | 5.9.0   |
@@ -216,14 +213,36 @@ class WP_oEmbed {
 		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
 		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
 		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
+		 * | Someecards   | someecards.com       | 4.9.0     | 7.1.3     |
+		 * | Someecards   | some.ly              | 4.9.0     | 7.1.3     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param array[] $providers An array of arrays containing data about popular oEmbed providers.
+		 * @param array<string, array{ 0: string, 1?: bool }> $providers An associative array mapping URL patterns to
+		 *                                                               provider data. Each value must be an array
+		 *                                                               with a provider endpoint URL string at index 0
+		 *                                                               and an optional boolean regex flag at index 1.
 		 */
-		$this->providers = apply_filters( 'oembed_providers', $providers );
+		$providers = (array) apply_filters( 'oembed_providers', $providers );
+		foreach ( $providers as $match_mask => $data ) {
+			$provider = $this->sanitize_provider( $match_mask, $data );
+			if ( null === $provider ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: oembed_providers, 2: The oEmbed provider URL pattern. */
+						__( 'The oEmbed provider data returned by the %1$s filter at key %2$s is malformed. The providers array must be a mapping of provider URL patterns to a tuple array consisting of a provider endpoint URL string at index 0 and an optional boolean regex flag at index 1.' ),
+						'<code>oembed_providers</code>',
+						'<code>' . esc_html( (string) $match_mask ) . '</code>'
+					),
+					'7.1.0'
+				);
+			} else {
+				$this->providers[ $provider['match_mask'] ] = array( $provider['endpoint'], $provider['is_regex'] );
+			}
+		}
 
 		// Fix any embeds that contain new lines in the middle of the HTML which breaks wpautop().
 		add_filter( 'oembed_dataparse', array( $this, '_strip_newlines' ), 10, 3 );
@@ -244,6 +263,37 @@ class WP_oEmbed {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Sanitizes and normalizes a single oEmbed provider entry.
+	 *
+	 * Validates that the match mask is a non-empty string and that the provider data
+	 * is an array with a non-empty string endpoint URL at index 0. Normalizes the
+	 * optional regex flag at index 1 to a boolean.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array-key $match_mask The URL pattern used to match against URLs.
+	 * @param mixed     $data       The raw provider data to sanitize.
+	 * @return array{ match_mask: non-empty-string, endpoint: non-empty-string, is_regex: bool }|null Normalized provider array, or null if malformed.
+	 */
+	private function sanitize_provider( $match_mask, $data ): ?array {
+		if (
+			is_string( $match_mask ) &&
+			'' !== $match_mask &&
+			is_array( $data ) &&
+			isset( $data[0] ) &&
+			is_string( $data[0] ) &&
+			'' !== $data[0]
+		) {
+			return array(
+				'match_mask' => $match_mask,
+				'endpoint'   => $data[0],
+				'is_regex'   => (bool) ( $data[1] ?? false ),
+			);
+		}
+		return null;
 	}
 
 	/**
@@ -272,17 +322,21 @@ class WP_oEmbed {
 			$args['discover'] = true;
 		}
 
-		foreach ( $this->providers as $matchmask => $data ) {
-			list( $providerurl, $regex ) = $data;
+		foreach ( $this->providers as $match_mask => $data ) {
+			$provider_data = $this->sanitize_provider( $match_mask, $data );
+			if ( null === $provider_data ) {
+				continue;
+			}
+			$match_mask = $provider_data['match_mask'];
 
 			// Turn the asterisk-type provider URLs into regex.
-			if ( ! $regex ) {
-				$matchmask = '#' . str_replace( '___wildcard___', '(.+)', preg_quote( str_replace( '*', '___wildcard___', $matchmask ), '#' ) ) . '#i';
-				$matchmask = preg_replace( '|^#http\\\://|', '#https?\://', $matchmask );
+			if ( ! $provider_data['is_regex'] ) {
+				$match_mask = '#' . str_replace( '___wildcard___', '(.+)', preg_quote( str_replace( '*', '___wildcard___', $match_mask ), '#' ) ) . '#i';
+				$match_mask = (string) preg_replace( '|^#http\\\://|', '#https?\://', $match_mask );
 			}
 
-			if ( preg_match( $matchmask, $url ) ) {
-				$provider = str_replace( '{format}', 'json', $providerurl ); // JSON is easier to deal with than XML.
+			if ( preg_match( $match_mask, $url ) ) {
+				$provider = str_replace( '{format}', 'json', $provider_data['endpoint'] ); // JSON is easier to deal with than XML.
 				break;
 			}
 		}
@@ -616,6 +670,7 @@ class WP_oEmbed {
 			return false;
 		}
 
+		$loader = null;
 		if ( PHP_VERSION_ID < 80000 ) {
 			/*
 			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
@@ -630,7 +685,7 @@ class WP_oEmbed {
 
 		libxml_use_internal_errors( $errors );
 
-		if ( PHP_VERSION_ID < 80000 && isset( $loader ) ) {
+		if ( PHP_VERSION_ID < 80000 ) {
 			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
 			libxml_disable_entity_loader( $loader );
 		}
@@ -748,7 +803,7 @@ class WP_oEmbed {
 	 *
 	 * @param string|false $html Existing HTML.
 	 * @param object       $data Data object from WP_oEmbed::data2html()
-	 * @param string       $url The original URL passed to oEmbed.
+	 * @param string       $url  The original URL passed to oEmbed.
 	 * @return string|false Possibly modified $html.
 	 */
 	public function _strip_newlines( $html, $data, $url ) {

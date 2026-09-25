@@ -959,7 +959,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		remove_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
+		remove_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ) );
 
 		// Make sure no queries were executed.
 		$this->assertSame( $num_queries, get_num_queries() );
@@ -1206,5 +1206,50 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
+
+	/**
+	 * Verifies what WP_Term_Query::query() returns for the `id=>parent` fields value.
+	 *
+	 * Unlike WP_Query, both the uncached and the cached path run the results through
+	 * WP_Term_Query::format_terms(), so the parent IDs are keyed by term ID either way.
+	 *
+	 * The assertion is repeated for a second query so that the cached path is covered
+	 * both when an external object cache is in use and when it is not.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Term_Query::query
+	 */
+	public function test_id_and_parent_fields_should_return_parent_ids_keyed_by_term_id() {
+		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
+
+		$parent_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
+
+		$child_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'parent'   => $parent_id,
+			)
+		);
+
+		$query_args = array(
+			'taxonomy'   => 'wptests_tax_hierarchical',
+			'fields'     => 'id=>parent',
+			'hide_empty' => false,
+			'orderby'    => 'term_id',
+			'order'      => 'ASC',
+		);
+
+		$expected = array(
+			$parent_id => 0,
+			$child_id  => $parent_id,
+		);
+
+		$q1 = new WP_Term_Query();
+		$this->assertSame( $expected, $q1->query( $query_args ), 'First query is not of the expected form.' );
+
+		$q2 = new WP_Term_Query();
+		$this->assertSame( $expected, $q2->query( $query_args ), 'Second query is not of the expected form.' );
 	}
 }

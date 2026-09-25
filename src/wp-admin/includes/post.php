@@ -24,6 +24,20 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		$post_data = &$_POST;
 	}
 
+	/*
+	 * A raw `ID` on the create path (no `post_ID`) is an attempt to overwrite an
+	 * existing post while bypassing the per-post capability checks below, which only
+	 * run on the update path. Reject it outright: legitimate post creation never
+	 * carries an `ID`.
+	 */
+	if ( ! $update && ! empty( $post_data['ID'] ) ) {
+		if ( 'page' === $post_data['post_type'] ) {
+			return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to edit pages as this user.' ) );
+		} else {
+			return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
+		}
+	}
+
 	if ( $update ) {
 		$post_data['ID'] = (int) $post_data['post_ID'];
 	}
@@ -1393,10 +1407,10 @@ function wp_edit_attachments_query_vars( $q = false ) {
  * @param array|false $q Optional. Array of query variables to use to build the query.
  *                       Defaults to the `$_GET` superglobal.
  * @return array {
- *     Array containing the post mime types and available post mime types.
+ *     Array containing the post mime types and the available post mime types, in that order.
  *
- *     @type array[]  $post_mime_types       Post mime types.
- *     @type string[] $avail_post_mime_types Available post mime types.
+ *     @type array<string, array{0: string, 1: string, 2: array}> $0 Post mime types. See get_post_mime_types().
+ *     @type string[]                                             $1 Available post mime types.
  * }
  */
 function wp_edit_attachments_query( $q = false ) {
@@ -1900,7 +1914,7 @@ function _admin_notice_post_locked() {
 		<p>
 		<a class="button" href="<?php echo esc_url( $sendback ); ?>"><?php echo $sendback_text; ?></a>
 		<?php if ( $preview_link ) { ?>
-		<a class="button<?php echo $tab_last; ?>" href="<?php echo esc_url( $preview_link ); ?>"><?php _e( 'Preview' ); ?></a>
+		<a class="button<?php echo $tab_last; ?>" href="<?php echo esc_url( $preview_link ); ?>"><?php echo esc_html_x( 'Preview', 'verb' ); ?></a>
 			<?php
 		}
 
@@ -1980,13 +1994,8 @@ function wp_create_post_autosave( $post_data ) {
 		$post = get_post( $post_id );
 
 		// If the new autosave has the same content as the post, delete the autosave.
-		$autosave_is_different = false;
-		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-				$autosave_is_different = true;
-				break;
-			}
-		}
+		$fields                = array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) );
+		$autosave_is_different = array_any( $fields, fn( $field ) => normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) );
 
 		if ( ! $autosave_is_different ) {
 			wp_delete_post_revision( $old_autosave->ID );
@@ -2188,6 +2197,7 @@ function wp_autosave( $post_data ) {
  * @since 2.7.0
  *
  * @param int $post_id Optional. Post ID.
+ * @return never
  */
 function redirect_post( $post_id = 0 ) {
 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
@@ -2611,7 +2621,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
  * @since 5.9.0
  * @access private
  *
- * @param bool   $value Whether the CPT supports block editor or not.
+ * @param bool   $value     Whether the CPT supports block editor or not.
  * @param string $post_type Post type.
  * @return bool Whether the block editor should be disabled or not.
  */
