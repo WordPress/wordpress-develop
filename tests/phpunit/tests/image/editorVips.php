@@ -733,6 +733,34 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that saving creates the destination directory when it is missing.
+	 *
+	 * libvips does not create directories for the file it writes, so the editor has to
+	 * do that itself before writing.
+	 */
+	public function test_directory_creation() {
+		$file      = realpath( DIR_TESTDATA ) . '/images/a2-small.jpg';
+		$directory = realpath( DIR_TESTDATA ) . '/images/nonexistent-directory';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+
+		$this->assertFileDoesNotExist( $directory );
+
+		$loaded = $vips_image_editor->load();
+		$this->assertNotWPError( $loaded );
+
+		$resized = $vips_image_editor->resize( 100, 100, true );
+		$this->assertNotWPError( $resized );
+
+		$saved = $vips_image_editor->save( $directory . '/a2-small-cropped.jpg' );
+
+		unlink( $directory . '/a2-small-cropped.jpg' );
+		rmdir( $directory );
+
+		$this->assertNotWPError( $saved );
+	}
+
+	/**
 	 * Tests that images can be loaded and written over streams.
 	 */
 	public function test_streams() {
