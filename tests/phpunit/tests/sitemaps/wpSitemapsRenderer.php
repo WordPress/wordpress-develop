@@ -153,8 +153,8 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		$xpath   = new DOMXPath( $xml_dom );
 		$xpath->registerNamespace( 'sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9' );
 
-		$this->assertEquals(
-			0,
+		$this->assertSame(
+			0.0,
 			$xpath->evaluate( "count( /sitemap:sitemapindex/sitemap:sitemap/*[  namespace-uri() != 'http://www.sitemaps.org/schemas/sitemap/0.9' or not( local-name() = 'loc' or local-name() = 'lastmod' ) ] )" ),
 			'Invalid child of "sitemap:sitemap" in rendered index XML.'
 		);
@@ -275,8 +275,8 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		$xpath   = new DOMXPath( $xml_dom );
 		$xpath->registerNamespace( 'sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9' );
 
-		$this->assertEquals(
-			0,
+		$this->assertSame(
+			0.0,
 			$xpath->evaluate( "count( /sitemap:urlset/sitemap:url/*[  namespace-uri() != 'http://www.sitemaps.org/schemas/sitemap/0.9' or not( local-name() = 'loc' or local-name() = 'lastmod' or local-name() = 'changefreq' or local-name() = 'priority' ) ] )" ),
 			'Invalid child of "sitemap:url" in rendered XML.'
 		);

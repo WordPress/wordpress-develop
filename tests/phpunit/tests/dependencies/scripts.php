@@ -3103,7 +3103,7 @@ HTML;
 		ob_start();
 		$output = $wp_scripts->print_inline_script( $handle, $position, true );
 		$this->assertEqualHTML( $expected_tag, ob_get_clean() );
-		$this->assertEquals( $expected_data, $output );
+		$this->assertSame( $expected_data, $output );
 	}
 
 	/**
@@ -3891,7 +3891,7 @@ HTML;
 		$this->assertEqualHTML( $expected_header, $header, '<body>', 'Expected header script markup to match.' );
 		$this->assertEqualHTML( $expected_footer, $footer, '<body>', 'Expected footer script markup to match.' );
 		$this->assertEqualSets( $expected_in_footer, wp_scripts()->in_footer, 'Expected to have the same handles for in_footer.' );
-		$this->assertEquals( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
+		$this->assertSame( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
 	}
 
 	/**
