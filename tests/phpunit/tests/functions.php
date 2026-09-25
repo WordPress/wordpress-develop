@@ -2121,6 +2121,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Test stream URL validation.
 	 *
+	 * @ticket 65870
+	 *
 	 * @dataProvider data_wp_is_stream
 	 *
 	 * @param string $path     The resource path or URL.
@@ -2147,17 +2149,82 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
-			array( 'http://example.com', true ),
-			array( 'https://example.com', true ),
-			array( 'ftp://example.com', true ),
-			array( 'file:///path/to/some/file', true ),
-			array( 'php://some/php/file.php', true ),
+			'HTTP URL'                   => array( 'http://example.com', true ),
+			'HTTPS URL'                  => array( 'https://example.com', true ),
+			'FTP URL'                    => array( 'ftp://example.com', true ),
+			'file URL'                   => array( 'file:///path/to/some/file', true ),
+			'uppercase file scheme'      => array( 'FILE:///path/to/some/file', true ),
+			'PHP stream URL'             => array( 'php://some/php/file.php', true ),
 
 			// Non-stream examples.
-			array( 'fakestream://foo/bar/baz', false ),
-			array( '../../some/relative/path', false ),
-			array( 'some/other/relative/path', false ),
-			array( '/leading/relative/path', false ),
+			'unregistered stream scheme' => array( 'fakestream://foo/bar/baz', false ),
+			'parent-relative path'       => array( '../../some/relative/path', false ),
+			'relative path'              => array( 'some/other/relative/path', false ),
+			'absolute path'              => array( '/leading/relative/path', false ),
+		);
+	}
+
+	/**
+	 * Tests scheme case matching against PHP's wrapper selection.
+	 *
+	 * @ticket 65870
+	 *
+	 * @dataProvider data_wp_is_stream_matches_php_case_matching
+	 *
+	 * @param string $scheme   The registered scheme.
+	 * @param string $path     The path to open.
+	 * @param bool   $expected Whether PHP should select the registered wrapper.
+	 */
+	public function test_wp_is_stream_matches_php_case_matching( $scheme, $path, $expected ) {
+		$wrapper = new class() {
+			public $context;
+			public static $invoked = false;
+
+			public function stream_open( $path, $mode, $options, &$opened_path ) {
+				self::$invoked = true;
+				return false;
+			}
+		};
+
+		$wrapper::$invoked = false;
+		$registered        = false;
+		$handle            = false;
+
+		try {
+			$registered = stream_wrapper_register( $scheme, get_class( $wrapper ) );
+			$this->assertTrue( $registered );
+
+			// Record selection without requiring the wrapper to parse or open the URL.
+			$handle = @fopen( $path, 'r' );
+
+			$this->assertSame( $expected, $wrapper::$invoked, 'PHP did not select the expected wrapper.' );
+			$this->assertSame( $wrapper::$invoked, wp_is_stream( $path ), 'WordPress and PHP disagree on scheme case matching.' );
+		} finally {
+			if ( is_resource( $handle ) ) {
+				fclose( $handle );
+			}
+			if ( $registered ) {
+				stream_wrapper_unregister( $scheme );
+			}
+		}
+	}
+
+	/**
+	 * Data provider for scheme case matching against PHP.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_is_stream_matches_php_case_matching() {
+		return array(
+			'lowercase scheme'                  => array( 'wpteststream', 'wpteststream://bucket/file', true ),
+			'lowercase registration mixed case' => array( 'wpteststream', 'wpTestStream://bucket/file', true ),
+			'lowercase registration uppercase'  => array( 'wpteststream', 'WPTESTSTREAM://bucket/file', true ),
+			'mixed case exact match'            => array( 'wpTestStream', 'wpTestStream://bucket/file', true ),
+			'mixed case lowercased'             => array( 'wpTestStream', 'wpteststream://bucket/file', false ),
+			'mixed case uppercased'             => array( 'wpTestStream', 'WPTESTSTREAM://bucket/file', false ),
+			'mixed case with different casing'  => array( 'wpTestStream', 'wptestSTREAM://bucket/file', false ),
+			'uppercase exact match'             => array( 'WPTESTSTREAM', 'WPTESTSTREAM://bucket/file', true ),
+			'uppercase lowercased'              => array( 'WPTESTSTREAM', 'wpteststream://bucket/file', false ),
 		);
 	}
 
