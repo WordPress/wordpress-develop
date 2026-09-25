@@ -97,12 +97,12 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 			 *
 			 * @since 6.9.0
 			 *
-			 * @param array $args {
+			 * @param array $query_args {
 			 *     Menu quick search arguments.
 			 *
-			 *     @type boolean      $no_found_rows          Whether to return found rows data. Default true.
-			 *     @type boolean      $update_post_meta_cache Whether to update post meta cache. Default false.
-			 *     @type boolean      $update_post_term_cache Whether to update post term cache. Default false.
+			 *     @type bool      $no_found_rows          Whether to return found rows data. Default true.
+			 *     @type bool      $update_post_meta_cache Whether to update post meta cache. Default false.
+			 *     @type bool      $update_post_term_cache Whether to update post term cache. Default false.
 			 *     @type int          $posts_per_page         Number of posts to return. Default 10.
 			 *     @type string       $post_type              Type of post to return.
 			 *     @type string       $s                      Search query.
