@@ -568,6 +568,10 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				$this->image = $this->image->rotate( $angle );
 			}
 
+			// The pixels no longer match the EXIF orientation tag, and a stale tag
+			// orients the saved file a second time when it is loaded again.
+			$this->reset_exif_orientation();
+
 			// Update size since rotation may change dimensions.
 			$result = $this->update_size();
 			if ( is_wp_error( $result ) ) {
@@ -652,10 +656,32 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				$this->image = $this->image->flipver();
 			}
 
+			// Flipping leaves the tag describing the unflipped pixels.
+			$this->reset_exif_orientation();
+
 			return true;
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_flip_error', $e->getMessage() );
 		}
+	}
+
+	/**
+	 * Resets the EXIF orientation tag after the pixels have been transformed.
+	 *
+	 * The tag describes the original pixels, so leaving it in place orients the saved
+	 * file a second time when it is loaded again. This is the equivalent of the Imagick
+	 * editor resetting the tag with `setImageOrientation()`.
+	 *
+	 * libvips writes JPEG EXIF from the EXIF block rather than from the orientation
+	 * field, so setting the field on its own never reaches the file. `autorot()` is the
+	 * operation that rewrites the block. Declaring the image upright first means it has
+	 * nothing to apply, which leaves the pixels alone and only corrects the tag.
+	 *
+	 * @since 7.2.0
+	 */
+	protected function reset_exif_orientation() {
+		$this->image->set( 'orientation', 1 );
+		$this->image = $this->image->autorot();
 	}
 
 	/**
