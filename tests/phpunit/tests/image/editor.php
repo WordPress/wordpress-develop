@@ -52,6 +52,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Test that editor selection skips an implementation that reports itself as
 	 * unavailable and uses the next one instead.
+	 *
+	 * The editor list puts the unavailable mock first, so WP_Image_Editor_Mock can only
+	 * be returned by skipping past it.
 	 */
 	public function test_get_editor_skips_unavailable_implementations() {
 		remove_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10 );
@@ -68,8 +71,12 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test that editor selection uses the first implementation that reports itself
-	 * as available, so the fallback above is not skipping the first entry blindly.
+	 * Test that editor selection uses the first available implementation, rather than
+	 * skipping ahead to a later one.
+	 *
+	 * The list is the reverse of the test above. Both tests expect WP_Image_Editor_Mock,
+	 * so it is only the ordering that makes them meaningful: together they show the
+	 * chooser inspects every entry, rather than taking the first or the last.
 	 */
 	public function test_get_editor_uses_the_first_available_implementation() {
 		remove_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10 );
