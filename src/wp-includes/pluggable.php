@@ -1287,13 +1287,8 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 
 		// If https is required and request is http, redirect.
 		if ( $secure && ! is_ssl() && str_contains( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
-			if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
-				wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
-				exit;
-			} else {
-				wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-				exit;
-			}
+			wp_safe_redirect( set_url_scheme( wp_get_current_request_url(), 'https' ) );
+			exit;
 		}
 
 		/**
@@ -1318,13 +1313,8 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 
 			// If the user wants ssl but the session is not ssl, redirect.
 			if ( ! $secure && get_user_option( 'use_ssl', $user_id ) && str_contains( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
-				if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
-					wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
-					exit;
-				} else {
-					wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-					exit;
-				}
+				wp_safe_redirect( set_url_scheme( wp_get_current_request_url(), 'https' ) );
+				exit;
 			}
 
 			return; // The cookie is good, so we're done.
@@ -1332,16 +1322,15 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 
 		// The cookie is no good, so force login.
 		nocache_headers();
-
 		if ( str_contains( $_SERVER['REQUEST_URI'], '/options.php' ) && wp_get_referer() ) {
 			$redirect = wp_get_referer();
 		} else {
-			$redirect = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+			$redirect = wp_get_current_request_url();
 		}
 
 		$login_url = wp_login_url( $redirect, true );
 
-		wp_redirect( $login_url );
+		wp_safe_redirect( $login_url );
 		exit;
 	}
 endif;
