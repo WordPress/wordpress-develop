@@ -55,16 +55,27 @@ class Walker_Comment extends Walker {
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
 		$GLOBALS['comment_depth'] = $depth + 1;
 
-		switch ( $args['style'] ) {
-			case 'div':
-				break;
-			case 'ol':
-				$output .= '<ol class="children">' . "\n";
-				break;
-			case 'ul':
-			default:
-				$output .= '<ul class="children">' . "\n";
-				break;
+		$style = $args['style'];
+
+		if ( 'div' !== $style ) {
+			// Default class.
+			$classes = array( 'children' );
+
+			/**
+			 * Filters the CSS classes applied to the nested comments list element.
+			 *
+			 * @since 7.1.0
+			 *
+			 * @param string[] $classes Array of CSS classes applied to the nested comments list element.
+			 * @param array    $args    An array of `wp_list_comments()` arguments.
+			 * @param int      $depth   Depth of the current comment.
+			 */
+			$classes          = apply_filters( 'comment_list_sublist_class', $classes, $args, $depth );
+			$class_names      = implode( ' ', (array) $classes );
+			$class_attribute  = $class_names ? ' class="' . esc_attr( $class_names ) . '"' : '';
+			$comment_list_tag = 'ol' === $style ? 'ol' : 'ul';
+
+			$output .= '<' . $comment_list_tag . $class_attribute . '>' . "\n";
 		}
 	}
 
