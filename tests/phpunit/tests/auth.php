@@ -974,6 +974,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21022
+	 * @ticket 50141
 	 */
 	public function test_user_request_key_handling() {
 		$request_id = wp_create_user_request( 'test@example.com', 'remove_personal_data' );
@@ -993,6 +994,17 @@ class Tests_Auth extends WP_UnitTestCase {
 		$check = wp_validate_user_request_key( $request_id, '' );
 		$this->assertWPError( $check );
 		$this->assertSame( 'missing_key', $check->get_error_code() );
+
+		// A key for an already confirmed request should be reported as such.
+		_wp_privacy_account_request_confirmed( $request_id );
+		$check = wp_validate_user_request_key( $request_id, $key );
+		$this->assertWPError( $check );
+		$this->assertSame( 'confirmed_request', $check->get_error_code() );
+
+		// An invalid key should not disclose that the request was already confirmed.
+		$check = wp_validate_user_request_key( $request_id, 'invalid' );
+		$this->assertWPError( $check );
+		$this->assertSame( 'invalid_key', $check->get_error_code() );
 	}
 
 	/**
