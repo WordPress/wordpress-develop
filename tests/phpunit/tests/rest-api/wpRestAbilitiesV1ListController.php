@@ -1267,4 +1267,141 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertSame( array( 'id' ), $data['output_schema']['required'] );
 		$this->assertArrayNotHasKey( 'required', $data['output_schema']['properties']['id'] );
 	}
+
+	/**
+	 * Helper to register an ability whose eligibility depends on the context post type.
+	 *
+	 * @param callable|null $eligibility_callback Optional. Eligibility callback override.
+	 */
+	private function register_product_only_ability( ?callable $eligibility_callback = null ): void {
+		$this->register_test_ability(
+			'test/product-only',
+			array(
+				'label'                => 'Product Only',
+				'description'          => 'Only relevant when a product is being edited.',
+				'category'             => 'general',
+				'execute_callback'     => '__return_true',
+				'permission_callback'  => '__return_true',
+				'eligibility_callback' => $eligibility_callback ?? static function ( array $context ): bool {
+					return ! isset( $context['post_type'] ) || 'product' === $context['post_type'];
+				},
+				'meta'                 => array( 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * Test that the eligibility_context parameter narrows the collection.
+	 */
+	public function test_filter_by_eligibility_context(): void {
+		$this->register_product_only_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'eligibility_context', array( 'post_type' => 'page' ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertNotContains( 'test/product-only', $names, 'An ineligible ability should be excluded.' );
+		$this->assertContains( 'test/calculator', $names, 'An ability without an eligibility callback should stay included.' );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'eligibility_context', array( 'post_type' => 'product' ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/product-only', $names );
+	}
+
+	/**
+	 * Test that requests without an eligibility_context keep ineligible abilities.
+	 *
+	 * The result without a context is the upper bound, so clients that pass no
+	 * context, such as an MCP tools/list call, always see the full collection.
+	 */
+	public function test_no_eligibility_context_includes_ineligible_abilities(): void {
+		$this->register_product_only_ability( '__return_false' );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/product-only', $names );
+	}
+
+	/**
+	 * Test that bracket syntax parses into a context array.
+	 *
+	 * Core declares no keys for the parameter, so values reach the callback
+	 * exactly as the query string provides them, as strings.
+	 */
+	public function test_eligibility_context_bracket_syntax_parses(): void {
+		$received = null;
+		$this->register_product_only_ability(
+			static function ( array $context ) use ( &$received ): bool {
+				$received = $context;
+				return true;
+			}
+		);
+
+		parse_str( 'eligibility_context[post_type]=product&eligibility_context[post_id]=5', $query_params );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_query_params( $query_params );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			array(
+				'post_type' => 'product',
+				'post_id'   => '5',
+			),
+			$received
+		);
+	}
+
+	/**
+	 * Test that a non object eligibility_context is rejected.
+	 *
+	 * Core declares no keys, so any object shaped value is accepted, but the
+	 * parameter itself must be an object.
+	 */
+	public function test_eligibility_context_rejects_non_object_value(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_query_params( array( 'eligibility_context' => 'product' ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
+	}
+
+	/**
+	 * Test that the single ability route never consults eligibility.
+	 */
+	public function test_get_item_ignores_eligibility(): void {
+		$calls = 0;
+		$this->register_product_only_ability(
+			static function () use ( &$calls ): bool {
+				++$calls;
+				return false;
+			}
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/product-only' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'test/product-only', $response->get_data()['name'] );
+		$this->assertSame( 0, $calls, 'The eligibility callback must not run on the single ability route.' );
+	}
 }
