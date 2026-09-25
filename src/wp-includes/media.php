@@ -322,13 +322,31 @@ function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
 /**
  * Checks if an image size exists.
  *
- * @since 3.9.0
+ * By default, `has_image_size()` will return false for core image sizes. For
+ * this function to return true for core image sizes, pass true as the second
+ * parameter.
  *
- * @param string $name The image size to check.
+ * @since 3.9.0
+ * @since 7.1.0 Added the `$include_default_sizes` parameter.
+ *
+ * @param string $name                  The image size to check.
+ * @param bool   $include_default_sizes Optional. Whether to include default
+ *                                      core image sizes. Default false.
  * @return bool True if the image size exists, false if not.
  */
-function has_image_size( $name ) {
+function has_image_size( $name, $include_default_sizes = false ) {
 	$sizes = wp_get_additional_image_sizes();
+
+	if ( $include_default_sizes ) {
+		$default_sizes = array(
+			'thumbnail'    => true,
+			'medium'       => true,
+			'medium_large' => true,
+			'large'        => true,
+		);
+		$sizes = array_merge( $default_sizes, $sizes );
+	}
+
 	return isset( $sizes[ $name ] );
 }
 
