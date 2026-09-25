@@ -122,6 +122,19 @@ class Admin_Includes_User_WpIsAuthorizeApplicationRedirectUrlValid_Test extends 
 				'env'                 => $environment_type,
 			);
 
+			// PHP treats everything before the "@" as userinfo, browsers treat the backslash as the end of the host.
+			$datasets[ $environment_type . ' and a URL with a backslash before the "@"' ] = array(
+				'url'                 => 'http://collector.example.test\\@127.0.0.1/callback',
+				'expected_error_code' => 'invalid_redirect_url_format',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "https" URL with a backslash before the "@"' ] = array(
+				'url'                 => 'https://collector.example.test\\@example.org/callback',
+				'expected_error_code' => 'invalid_redirect_url_format',
+				'env'                 => $environment_type,
+			);
+
 			// HTTP + loopback IP addresses should be valid in all environments.
 			$datasets[ $environment_type . ' and a "http" scheme URL with 127.0.0.1' ] = array(
 				'url'                 => 'http://127.0.0.1/callback',
