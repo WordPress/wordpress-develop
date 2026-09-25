@@ -350,15 +350,15 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 <hr class="wp-header-end">
 
 <?php
-$class = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'updated';
+$type = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'success';
 
 if ( $message ) {
 	wp_admin_notice(
 		$message,
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( $class ),
-			'dismissible'        => true,
+			'type'        => $type,
+			'id'          => 'message',
+			'dismissible' => true,
 		)
 	);
 

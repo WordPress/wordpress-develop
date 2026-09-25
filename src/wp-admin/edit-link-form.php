@@ -96,9 +96,9 @@ if ( isset( $_GET['added'] ) ) {
 	wp_admin_notice(
 		__( 'Link added.' ),
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 }

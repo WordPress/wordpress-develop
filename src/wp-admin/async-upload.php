@@ -134,7 +134,8 @@ if ( is_wp_error( $id ) ) {
 		$message,
 		array(
 			'id'                 => $error_description_id,
-			'additional_classes' => array( 'error-div', 'error' ),
+			'type'               => 'error',
+			'additional_classes' => array( 'error-div' ),
 			'paragraph_wrap'     => false,
 		)
 	);

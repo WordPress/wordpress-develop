@@ -196,7 +196,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 			wp_admin_notice(
 				$after_error_message,
 				array(
-					'additional_classes' => array( 'error' ),
+					'type' => 'error',
 				)
 			);
 
