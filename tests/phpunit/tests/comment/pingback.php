@@ -105,8 +105,9 @@ HTML;
 		);
 
 		$post = get_post( self::$post_id );
-		$this->assertSame( array( 'http://example1.org/test' => false ), pingback( $post->post_content, self::$post_id ) );
-		$this->assertContains( 'http://example1.org/test', get_pung( self::$post_id ), 'The already registered pingback should be recorded on the post.' );
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$this->assertSame( array( 'http://example1.org/test' => false ), pingback( $post->post_content, $post->ID ) );
+		$this->assertContains( 'http://example1.org/test', (array) get_pung( $post->ID ), 'The already registered pingback should be recorded on the post.' );
 	}
 
 	public function request_response() {
