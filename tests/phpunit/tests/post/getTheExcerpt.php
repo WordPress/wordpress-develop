@@ -24,6 +24,42 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55523
+	 * @expectedDeprecated get_the_excerpt
+	 *
+	 * @dataProvider data_the_excerpt_deprecated_arguments
+	 */
+	public function test_the_excerpt_deprecated_for_invalid_arguments( $post ) {
+		$this->assertSame( '', get_the_excerpt( $post ) );
+	}
+
+	/**
+	 * Data provider for test_the_excerpt_deprecated_for_invalid_arguments().
+	 *
+	 * @return array[]
+	 */
+	public function data_the_excerpt_deprecated_arguments() {
+		return array(
+			array( 'invalid' ),
+			array( array() ),
+			array( new stdClass() ),
+		);
+	}
+
+	/**
+	 * @ticket 55523
+	 */
+	public function test_the_excerpt_should_not_be_deprecated_for_valid_arguments() {
+		$post            = self::factory()->post->create_and_get( array( 'post_excerpt' => 'Post excerpt' ) );
+		$GLOBALS['post'] = $post;
+
+		$this->assertSame( 'Post excerpt', get_the_excerpt() );
+		$this->assertSame( 'Post excerpt', get_the_excerpt( 0 ) );
+		$this->assertSame( 'Post excerpt', get_the_excerpt( (string) $post->ID ) );
+		$this->assertSame( 'Post excerpt', get_the_excerpt( $post ) );
+	}
+
+	/**
 	 * @ticket 27246
 	 */
 	public function test_the_excerpt() {
