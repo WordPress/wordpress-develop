@@ -7,9 +7,29 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
+	/**
+	 * Original HTTPS value.
+	 *
+	 * @var string|null
+	 */
+	private $original_https;
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->original_https = $_SERVER['HTTPS'] ?? null;
+	}
+
 	public function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
+
+		if ( null === $this->original_https ) {
+			unset( $_SERVER['HTTPS'] );
+		} else {
+			$_SERVER['HTTPS'] = $this->original_https;
+		}
+
 		parent::tear_down();
 	}
 
@@ -121,20 +141,21 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->assertEmpty( $upload['error'] );
 
-		$id      = $this->_make_attachment( $upload );
-		$uploads = wp_upload_dir();
+		$id            = $this->_make_attachment( $upload );
+		$uploads       = wp_upload_dir();
+		$filename_base = wp_basename( $upload['file'], '.jpg' );
 
 		// Intermediate copies should exist: thumbnail and medium.
 		$thumb = image_get_intermediate_size( $id, 'thumbnail' );
-		$this->assertSame( '2007-06-17DSC_4173-150x150.jpg', $thumb['file'] );
+		$this->assertSame( $filename_base . '-150x150.jpg', $thumb['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $thumb['path'] ) );
 
 		$medium = image_get_intermediate_size( $id, 'medium' );
-		$this->assertSame( '2007-06-17DSC_4173-400x602.jpg', $medium['file'] );
+		$this->assertSame( $filename_base . '-400x602.jpg', $medium['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium['path'] ) );
 
 		$medium_large = image_get_intermediate_size( $id, 'medium_large' );
-		$this->assertSame( '2007-06-17DSC_4173-600x904.jpg', $medium_large['file'] );
+		$this->assertSame( $filename_base . '-600x904.jpg', $medium_large['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium_large['path'] ) );
 
 		// The thumb url should point to the thumbnail intermediate.
@@ -142,22 +163,22 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		// image_downsize() should return the correct images and sizes.
 		$downsize = image_downsize( $id, 'thumbnail' );
-		$this->assertSame( '2007-06-17DSC_4173-150x150.jpg', wp_basename( $downsize[0] ) );
+		$this->assertSame( $filename_base . '-150x150.jpg', wp_basename( $downsize[0] ) );
 		$this->assertSame( 150, $downsize[1] );
 		$this->assertSame( 150, $downsize[2] );
 
 		$downsize = image_downsize( $id, 'medium' );
-		$this->assertSame( '2007-06-17DSC_4173-400x602.jpg', wp_basename( $downsize[0] ) );
+		$this->assertSame( $filename_base . '-400x602.jpg', wp_basename( $downsize[0] ) );
 		$this->assertSame( 400, $downsize[1] );
 		$this->assertSame( 602, $downsize[2] );
 
 		$downsize = image_downsize( $id, 'medium_large' );
-		$this->assertSame( '2007-06-17DSC_4173-600x904.jpg', wp_basename( $downsize[0] ) );
+		$this->assertSame( $filename_base . '-600x904.jpg', wp_basename( $downsize[0] ) );
 		$this->assertSame( 600, $downsize[1] );
 		$this->assertSame( 904, $downsize[2] );
 
 		$downsize = image_downsize( $id, 'full' );
-		$this->assertSame( '2007-06-17DSC_4173.jpg', wp_basename( $downsize[0] ) );
+		$this->assertSame( $filename_base . '.jpg', wp_basename( $downsize[0] ) );
 		$this->assertSame( 680, $downsize[1] );
 		$this->assertSame( 1024, $downsize[2] );
 	}
@@ -178,20 +199,21 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->assertEmpty( $upload['error'] );
 
-		$id      = $this->_make_attachment( $upload );
-		$uploads = wp_upload_dir();
+		$id            = $this->_make_attachment( $upload );
+		$uploads       = wp_upload_dir();
+		$filename_base = wp_basename( $upload['file'], '.jpg' );
 
 		// Check that the file and intermediates exist.
 		$thumb = image_get_intermediate_size( $id, 'thumbnail' );
-		$this->assertSame( '2007-06-17DSC_4173-150x150.jpg', $thumb['file'] );
+		$this->assertSame( $filename_base . '-150x150.jpg', $thumb['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $thumb['path'] ) );
 
 		$medium = image_get_intermediate_size( $id, 'medium' );
-		$this->assertSame( '2007-06-17DSC_4173-400x602.jpg', $medium['file'] );
+		$this->assertSame( $filename_base . '-400x602.jpg', $medium['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium['path'] ) );
 
 		$medium_large = image_get_intermediate_size( $id, 'medium_large' );
-		$this->assertSame( '2007-06-17DSC_4173-600x904.jpg', $medium_large['file'] );
+		$this->assertSame( $filename_base . '-600x904.jpg', $medium_large['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium_large['path'] ) );
 
 		$meta     = wp_get_attachment_metadata( $id );
