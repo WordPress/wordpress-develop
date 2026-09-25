@@ -109,10 +109,9 @@ if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
 wp_enqueue_script( 'auth-app' );
 
 // Determine how to display the success URL target to the user.
-$success_scheme       = $success_url ? mb_strtolower( wp_parse_url( $success_url, PHP_URL_SCHEME ) ) : '';
-$success_host         = $success_url ? mb_strtolower( wp_parse_url( $success_url, PHP_URL_HOST ) ) : '';
+$success_scheme       = $success_url ? strtolower( (string) wp_parse_url( $success_url, PHP_URL_SCHEME ) ) : '';
 $is_custom_scheme     = $success_scheme && ! in_array( $success_scheme, array( 'http', 'https' ), true );
-$success_host_display = $is_custom_scheme ? $success_scheme . '://' . $success_host : $success_host;
+$success_host_display = wp_get_authorize_application_redirect_url_display( $success_url );
 
 wp_localize_script(
 	'auth-app',
@@ -121,7 +120,7 @@ wp_localize_script(
 		'site_url'    => site_url(),
 		'user_login'  => $user->user_login,
 		'success'     => $success_url,
-		'successHost' => $success_host,
+		'successHost' => $success_host_display,
 	)
 );
 

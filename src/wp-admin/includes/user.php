@@ -747,3 +747,33 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 
 	return true;
 }
+
+/**
+ * Returns a human-readable representation of the destination of an application password redirect URL.
+ *
+ * For `http` and `https` URLs this is the host name. For any other scheme the scheme is
+ * included so the user can see that they will be sent to an app rather than a website.
+ *
+ * @since x.y.z
+ *
+ * @param string $url The redirect URL.
+ * @return string The destination to display, or an empty string if the URL has no host.
+ */
+function wp_get_authorize_application_redirect_url_display( string $url ) : string {
+	if ( empty( $url ) ) {
+		return '';
+	}
+
+	$scheme = strtolower( (string) wp_parse_url( $url, PHP_URL_SCHEME ) );
+	$host   = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+
+	if ( '' === $host ) {
+		return '';
+	}
+
+	if ( in_array( $scheme, array( 'http', 'https' ), true ) ) {
+		return $host;
+	}
+
+	return $scheme . '://' . $host;
+}
