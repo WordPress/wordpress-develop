@@ -5076,6 +5076,9 @@ function is_object_in_term( $object_id, $taxonomy, $terms = null ) {
 		$strs =& $terms;
 	}
 
+	// Only check numeric strings against term_id, to avoid false matches due to type juggling.
+	$numeric_strs = array_map( 'intval', array_filter( $strs, 'is_numeric' ) );
+
 	foreach ( $object_terms as $object_term ) {
 		// If term is an int, check against term_ids only.
 		if ( $ints && in_array( $object_term->term_id, $ints, true ) ) {
@@ -5083,8 +5086,6 @@ function is_object_in_term( $object_id, $taxonomy, $terms = null ) {
 		}
 
 		if ( $strs ) {
-			// Only check numeric strings against term_id, to avoid false matches due to type juggling.
-			$numeric_strs = array_map( 'intval', array_filter( $strs, 'is_numeric' ) );
 			if ( in_array( $object_term->term_id, $numeric_strs, true ) ) {
 				return true;
 			}
