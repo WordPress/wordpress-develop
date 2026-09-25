@@ -50,6 +50,42 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Test that editor selection skips an implementation that reports itself as
+	 * unavailable and uses the next one instead.
+	 */
+	public function test_get_editor_skips_unavailable_implementations() {
+		remove_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10 );
+		add_filter(
+			'wp_image_editors',
+			static function () {
+				return array( 'WP_Image_Editor_Unavailable_Mock', 'WP_Image_Editor_Mock' );
+			}
+		);
+
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$this->assertSame( 'WP_Image_Editor_Mock', get_class( $editor ) );
+	}
+
+	/**
+	 * Test that editor selection uses the first implementation that reports itself
+	 * as available, so the fallback above is not skipping the first entry blindly.
+	 */
+	public function test_get_editor_uses_the_first_available_implementation() {
+		remove_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10 );
+		add_filter(
+			'wp_image_editors',
+			static function () {
+				return array( 'WP_Image_Editor_Mock', 'WP_Image_Editor_Unavailable_Mock' );
+			}
+		);
+
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$this->assertSame( 'WP_Image_Editor_Mock', get_class( $editor ) );
+	}
+
+	/**
 	 * Return integer of 95 for testing.
 	 */
 	public function return_integer_95() {
