@@ -4205,8 +4205,33 @@ function _pad_term_counts( &$terms, $taxonomy ) {
 
 	// Get the object and term IDs and stick them in a lookup table.
 	$tax_obj      = get_taxonomy( $taxonomy );
-	$object_types = esc_sql( $tax_obj->object_type );
-	$results      = $wpdb->get_results( "SELECT object_id, term_taxonomy_id FROM $wpdb->term_relationships INNER JOIN $wpdb->posts ON object_id = ID WHERE term_taxonomy_id IN (" . implode( ',', array_keys( $term_ids ) ) . ") AND post_type IN ('" . implode( "', '", $object_types ) . "') AND post_status = 'publish'" );
+	$object_types = (array) $tax_obj->object_type;
+
+	// Filter invalid post types for consistency with _update_post_term_count().
+	$object_types = array_filter( $object_types, 'post_type_exists' );
+	if ( empty( $object_types ) ) {
+		return;
+	}
+
+	$term_id_placeholders   = implode( ',', array_fill( 0, count( $term_ids ), '%d' ) );
+	$post_type_placeholders = implode( ',', array_fill( 0, count( $object_types ), '%s' ) );
+
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	$results = $wpdb->get_results(
+		$wpdb->prepare(
+			"
+				SELECT object_id, term_taxonomy_id
+				FROM $wpdb->term_relationships
+				INNER JOIN $wpdb->posts
+				ON object_id = ID
+				WHERE term_taxonomy_id IN ( $term_id_placeholders )
+				AND post_type IN ( $post_type_placeholders )
+				AND post_status = 'publish'
+			",
+			array_merge( array_keys( $term_ids ), $object_types )
+		)
+	);
+	// phpcs:enable
 
 	foreach ( $results as $row ) {
 		$id = $term_ids[ $row->term_taxonomy_id ];
