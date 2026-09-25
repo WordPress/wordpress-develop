@@ -225,7 +225,7 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_capability, 'themes.php' );
 
 if ( wp_is_block_theme() ) {
-	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
+	$submenu['themes.php'][6] = array( _x( 'Edit Site', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
 } else {
 	$supports_stylebook = ( current_theme_supports( 'editor-styles' ) || wp_theme_has_theme_json() );
 
