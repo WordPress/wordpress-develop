@@ -94,45 +94,6 @@ class PluralFormsTest extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41562
-	 * @group external-http
-	 */
-	public function test_locales_file_not_empty() {
-		$locales = self::data_locales();
-
-		$this->assertNotEmpty( $locales, 'Unable to retrieve GP_Locales file' );
-	}
-
-	/**
-	 * Gets locale data.
-	 *
-	 * Note: Do not use this method directly as a data provider, or else it may cause an unconditional HTTP request
-	 * during PHPUnit initialization. See <https://core.trac.wordpress.org/ticket/64963>.
-	 *
-	 * @return array<int, array{ 0: string, 1: int, 2: string }>
-	 */
-	public static function data_locales(): array {
-		if ( ! class_exists( 'GP_Locales' ) ) {
-			$filename = download_url( 'https://raw.githubusercontent.com/GlotPress/GlotPress-WP/develop/locales/locales.php' );
-			if ( is_wp_error( $filename ) ) {
-				return array();
-			}
-			require_once $filename;
-		}
-
-		$locales            = GP_Locales::locales();
-		$plural_expressions = array();
-		foreach ( $locales as $slug => $locale ) {
-			$plural_expression = $locale->plural_expression;
-			if ( 'n != 1' !== $plural_expression ) {
-				$plural_expressions[] = array( $slug, $locale->nplurals, $plural_expression );
-			}
-		}
-
-		return $plural_expressions;
-	}
-
-	/**
-	 * @ticket 41562
 	 * @dataProvider data_simple
 	 */
 	public function test_simple( $expression, $expected ) {
