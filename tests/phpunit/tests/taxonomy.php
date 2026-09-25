@@ -1126,64 +1126,107 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that no query runs when a taxonomy has no registered post types.
+	 *
 	 * @ticket 65055
-	 * Filter invalid post types before SQL query
+	 *
+	 * @covers ::_pad_term_counts
 	 */
-	public function test_pad_term_counts_with_invalid_post_types() {
-		register_taxonomy( 'invalid_tax', array( 'non_existent_type' ), array( 'hierarchical' => true ) );
+	public function test_pad_term_counts_should_not_query_when_taxonomy_has_no_registered_post_types() {
+		register_taxonomy( 'wptests_tax', array( 'wptests_nonexistent_type' ), array( 'hierarchical' => true ) );
 
-		$parent = self::factory()->term->create( array( 'taxonomy' => 'invalid_tax' ) );
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		self::factory()->term->create(
 			array(
-				'taxonomy' => 'invalid_tax',
+				'taxonomy' => 'wptests_tax',
 				'parent'   => $parent,
 			)
 		);
 
-		_get_term_hierarchy( 'invalid_tax' );
-
 		$terms = get_terms(
 			array(
-				'taxonomy'   => 'invalid_tax',
+				'taxonomy'   => 'wptests_tax',
 				'hide_empty' => false,
 			)
 		);
 
-		_pad_term_counts( $terms, 'invalid_tax' );
+		$num_queries = get_num_queries();
 
-		$this->assertEquals( 0, $terms[0]->count );
+		_pad_term_counts( $terms, 'wptests_tax' );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'No query should run when the taxonomy has no registered post types.' );
 	}
 
 	/**
+	 * Tests that parent term counts include posts assigned to child terms.
+	 *
 	 * @ticket 65055
+	 *
+	 * @covers ::_pad_term_counts
 	 */
-	public function test_pad_term_counts_with_standard_post_types() {
-		register_post_type( 'book' );
-		register_taxonomy( 'genre', array( 'book' ), array( 'hierarchical' => true ) );
+	public function test_pad_term_counts_with_registered_post_type() {
+		register_post_type( 'wptests_cpt' );
+		register_taxonomy( 'wptests_tax', array( 'wptests_cpt' ), array( 'hierarchical' => true ) );
 
-		$parent = self::factory()->term->create( array( 'taxonomy' => 'genre' ) );
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$child  = self::factory()->term->create(
 			array(
-				'taxonomy' => 'genre',
+				'taxonomy' => 'wptests_tax',
 				'parent'   => $parent,
 			)
 		);
 
-		_get_term_hierarchy( 'genre' );
-
-		$post_id = self::factory()->post->create( array( 'post_type' => 'book' ) );
-		wp_set_object_terms( $post_id, $child, 'genre' );
+		$post_id = self::factory()->post->create( array( 'post_type' => 'wptests_cpt' ) );
+		wp_set_object_terms( $post_id, $child, 'wptests_tax' );
 
 		$terms = get_terms(
 			array(
-				'taxonomy'   => 'genre',
+				'taxonomy'   => 'wptests_tax',
 				'hide_empty' => false,
 			)
 		);
 
-		_pad_term_counts( $terms, 'genre' );
+		_pad_term_counts( $terms, 'wptests_tax' );
 
-		$parent_term = wp_list_filter( $terms, array( 'term_id' => $parent ) );
-		$this->assertEquals( 1, current( $parent_term )->count, 'Parent terms should include post counts from their child terms' );
+		$counts = wp_list_pluck( $terms, 'count', 'term_id' );
+
+		$this->assertSame( 1, $counts[ $parent ], 'Parent terms should include post counts from their child terms.' );
+		$this->assertSame( 1, $counts[ $child ] );
+	}
+
+	/**
+	 * Tests that unregistered post types are ignored without dropping registered ones.
+	 *
+	 * @ticket 65055
+	 *
+	 * @covers ::_pad_term_counts
+	 */
+	public function test_pad_term_counts_should_ignore_unregistered_post_types() {
+		register_post_type( 'wptests_cpt' );
+		register_taxonomy( 'wptests_tax', array( 'wptests_cpt', 'wptests_nonexistent_type' ), array( 'hierarchical' => true ) );
+
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$child  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $parent,
+			)
+		);
+
+		$post_id = self::factory()->post->create( array( 'post_type' => 'wptests_cpt' ) );
+		wp_set_object_terms( $post_id, $child, 'wptests_tax' );
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'pad_counts' => true,
+			)
+		);
+
+		$counts = wp_list_pluck( $terms, 'count', 'term_id' );
+
+		$this->assertSame( 1, $counts[ $parent ] );
+		$this->assertSame( 1, $counts[ $child ] );
 	}
 }

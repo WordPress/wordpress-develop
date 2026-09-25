@@ -4207,7 +4207,7 @@ function _pad_term_counts( &$terms, $taxonomy ) {
 	$tax_obj      = get_taxonomy( $taxonomy );
 	$object_types = (array) $tax_obj->object_type;
 
-	//Filter invalid post types for consistency with _update_post_term_count().
+	// Filter invalid post types for consistency with _update_post_term_count().
 	$object_types = array_filter( $object_types, 'post_type_exists' );
 	if ( empty( $object_types ) ) {
 		return;
