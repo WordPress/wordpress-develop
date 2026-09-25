@@ -544,10 +544,13 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			// Prepare save options based on mime type.
 			$save_options = array();
 
+			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+			$strip_meta = apply_filters( 'image_strip_meta', true );
+
 			switch ( $mime_type ) {
 				case 'image/jpeg':
 					$save_options['Q']     = $this->get_quality();
-					$save_options['strip'] = true;
+					$save_options['strip'] = $strip_meta;
 					break;
 
 				case 'image/png':
@@ -556,21 +559,21 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 					$quality                     = $this->get_quality();
 					$compression                 = 9 - round( ( $quality / 100 ) * 9 );
 					$save_options['compression'] = max( 0, min( 9, $compression ) );
-					$save_options['strip']       = true;
+					$save_options['strip']       = $strip_meta;
 					break;
 
 				case 'image/webp':
 					$save_options['Q']     = $this->get_quality();
-					$save_options['strip'] = true;
+					$save_options['strip'] = $strip_meta;
 					break;
 
 				case 'image/gif':
-					$save_options['strip'] = true;
+					$save_options['strip'] = $strip_meta;
 					break;
 
 				case 'image/avif':
 					$save_options['Q']     = $this->get_quality();
-					$save_options['strip'] = true;
+					$save_options['strip'] = $strip_meta;
 					break;
 			}
 

@@ -635,8 +635,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		/**
 		 * Filters whether to strip metadata from images when they're resized.
 		 *
-		 * This filter only applies when resizing using the Imagick editor since GD
-		 * always strips profiles by default.
+		 * This filter only applies when resizing using the Imagick or VIPS editors,
+		 * since GD always strips profiles by default.
 		 *
 		 * @since 4.5.0
 		 *

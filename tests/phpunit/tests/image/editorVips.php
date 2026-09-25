@@ -726,4 +726,45 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 
 		unlink( $save_to_file );
 	}
+
+	/**
+	 * Tests that the image_strip_meta filter controls whether metadata is stripped.
+	 *
+	 * @requires extension exif
+	 */
+	public function test_image_strip_meta_filter() {
+		$file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
+
+		$strip_meta = static function () {
+			return false;
+		};
+
+		// Metadata is stripped by default.
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$stripped_file = tempnam( get_temp_dir(), 'vips_meta_' ) . '.jpg';
+		$vips_image_editor->save( $stripped_file );
+
+		$stripped = wp_read_image_metadata( $stripped_file );
+		unlink( $stripped_file );
+
+		$this->assertEmpty( $stripped['caption'], 'Metadata should be stripped by default.' );
+
+		// The filter can prevent stripping.
+		add_filter( 'image_strip_meta', $strip_meta );
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$preserved_file = tempnam( get_temp_dir(), 'vips_meta_' ) . '.jpg';
+		$vips_image_editor->save( $preserved_file );
+
+		remove_filter( 'image_strip_meta', $strip_meta );
+
+		$preserved = wp_read_image_metadata( $preserved_file );
+		unlink( $preserved_file );
+
+		$this->assertNotEmpty( $preserved['caption'], 'Metadata should be preserved when the filter returns false.' );
+	}
 }
