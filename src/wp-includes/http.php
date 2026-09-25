@@ -62,13 +62,15 @@ function wp_safe_remote_request( $url, $args = array() ) {
  * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
  * to avoid Server Side Request Forgery attacks (SSRF).
  *
- * The only supported protocols are `http` and `https`.
+ * The only supported protocols are `http` and `https`. Calendar `webcal` and `webcals`
+ * URLs are normalized to `https` before the request is sent.
  *
  * @since 3.6.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
  * @see wp_http_validate_url() For more information about how the URL is validated.
+ * @see wp_http_normalize_url() For calendar URL normalization.
  *
  * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
@@ -173,10 +175,13 @@ function wp_remote_request( $url, $args = array() ) {
  *
  * Important: If the URL is user-controlled, use `wp_safe_remote_get()` instead.
  *
+ * Calendar `webcal` and `webcals` URLs are normalized to `https` before the request is sent.
+ *
  * @since 2.7.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
+ * @see wp_http_normalize_url() For calendar URL normalization.
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
@@ -533,9 +538,45 @@ function send_origin_headers() {
 }
 
 /**
+ * Normalizes a URL for use with the HTTP API transport layer.
+ *
+ * Calendar subscription schemes `webcal` and `webcals` are rewritten to `https`
+ * because HTTP transports only support `http` and `https`.
+ *
+ * @since 6.9.0
+ *
+ * @param string $url Request URL.
+ * @return string Normalized URL.
+ */
+function wp_http_normalize_url( $url ) {
+	if ( ! is_string( $url ) || '' === $url ) {
+		return $url;
+	}
+
+	$original_url = $url;
+
+	if ( preg_match( '#^webcal:#i', $url ) ) {
+		$url = preg_replace( '#^webcal:#i', 'https:', $url );
+	} elseif ( preg_match( '#^webcals:#i', $url ) ) {
+		$url = preg_replace( '#^webcals:#i', 'https:', $url );
+	}
+
+	/**
+	 * Filters the normalized HTTP request URL.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $url          Normalized URL.
+	 * @param string $original_url Original URL before normalization.
+	 */
+	return apply_filters( 'http_normalize_url', $url, $original_url );
+}
+
+/**
  * Validates a URL as safe for use in the HTTP API.
  *
- * The only supported protocols are `http` and `https`.
+ * The only supported protocols are `http` and `https`. The `webcal` and `webcals`
+ * schemes are accepted and validated after normalization to `https`.
  *
  * Examples of URLs that are considered unsafe:
  *
@@ -561,13 +602,32 @@ function wp_http_validate_url( $url ) {
 		return false;
 	}
 
-	$original_url = $url;
-	$url          = wp_kses_bad_protocol( $url, array( 'http', 'https' ) );
-	if ( ! $url || strtolower( $url ) !== strtolower( $original_url ) ) {
+	$original_url   = $url;
+	$validation_url = wp_http_normalize_url( $url );
+
+	/**
+	 * Controls the list of URL protocols allowed in HTTP API validation.
+	 *
+	 * Warning: Only `http` and `https` are supported by HTTP transports. Allowing
+	 * other protocols increases SSRF risk unless handled via the {@see 'pre_http_request'}
+	 * filter or custom transport logic.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string[] $protocols Array of allowed URL protocols.
+	 * @param string   $url       Requested URL.
+	 */
+	$allowed_protocols = apply_filters( 'http_allowed_protocols', array( 'http', 'https' ), $original_url );
+	if ( ! is_array( $allowed_protocols ) ) {
+		$allowed_protocols = array( 'http', 'https' );
+	}
+
+	$url = wp_kses_bad_protocol( $validation_url, $allowed_protocols );
+	if ( ! $url || strtolower( $url ) !== strtolower( $validation_url ) ) {
 		return false;
 	}
 
-	$parsed_url = parse_url( $url );
+	$parsed_url = parse_url( $validation_url );
 	if ( ! $parsed_url || empty( $parsed_url['host'] ) ) {
 		return false;
 	}
@@ -632,7 +692,7 @@ function wp_http_validate_url( $url ) {
 				 * @param string $host     Host name of the requested URL.
 				 * @param string $url      Requested URL.
 				 */
-				if ( ! apply_filters( 'http_request_host_is_external', false, $host, $url ) ) {
+				if ( ! apply_filters( 'http_request_host_is_external', false, $host, $validation_url ) ) {
 					return false;
 				}
 			}
@@ -640,7 +700,7 @@ function wp_http_validate_url( $url ) {
 	}
 
 	if ( empty( $parsed_url['port'] ) ) {
-		return $url;
+		return $original_url;
 	}
 
 	$port = $parsed_url['port'];
@@ -657,13 +717,13 @@ function wp_http_validate_url( $url ) {
 	 * @param string $host          Host name of the requested URL.
 	 * @param string $url           Requested URL.
 	 */
-	$allowed_ports = apply_filters( 'http_allowed_safe_ports', array( 80, 443, 8080 ), $host, $url );
+	$allowed_ports = apply_filters( 'http_allowed_safe_ports', array( 80, 443, 8080 ), $host, $validation_url );
 	if ( is_array( $allowed_ports ) && in_array( $port, $allowed_ports, true ) ) {
-		return $url;
+		return $original_url;
 	}
 
 	if ( $parsed_home && $same_host && isset( $parsed_home['port'] ) && $parsed_home['port'] === $port ) {
-		return $url;
+		return $original_url;
 	}
 
 	return false;
