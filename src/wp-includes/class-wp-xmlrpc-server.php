@@ -309,7 +309,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		 * coerces them to strings, which preserves backward compatibility.
 		 */
 		if ( ! is_scalar( $username ) || ! is_scalar( $password ) ) {
-			$this->error = new IXR_Error( 400, __( 'The username and password arguments must be strings.' ) );
+			$this->error = new IXR_Error( 400, __( 'The username and password arguments should be strings.' ) );
 			return false;
 		}
 
