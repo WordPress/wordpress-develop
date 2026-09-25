@@ -94,7 +94,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	<html <?php language_attributes(); ?>>
 	<head>
 	<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
-	<title><?php echo $login_title; ?></title>
+	<title><?php echo esc_html( $login_title ); ?></title>
 	<?php
 
 	wp_enqueue_style( 'login' );
@@ -214,12 +214,12 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	<?php
 	if ( 'confirm_admin_email' !== $action && ! empty( $title ) ) :
 		?>
-		<h1 class="screen-reader-text"><?php echo $title; ?></h1>
+		<h1 class="screen-reader-text"><?php echo esc_html( $title ); ?></h1>
 		<?php
 	endif;
 	?>
 	<div id="login">
-		<h1 role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<h1 role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo esc_html( $login_header_text ); ?></a></h1>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
@@ -231,7 +231,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	$message = apply_filters( 'login_message', $message );
 
 	if ( ! empty( $message ) ) {
-		echo $message . "\n";
+		echo wp_kses_post( $message ) . "\n";
 	}
 
 	// In case a plugin uses $error rather than the $wp_errors object.
@@ -344,9 +344,9 @@ function login_footer( $input_id = '' ) {
 			 *
 			 * @since 5.7.0
 			 *
-			 * @param string $link HTML link to the home URL of the current site.
+			 * @param string $html_link HTML link to the home URL of the current site.
 			 */
-			echo apply_filters( 'login_site_html_link', $html_link );
+			echo wp_kses_post( apply_filters( 'login_site_html_link', $html_link ) );
 			?>
 		</p>
 		<?php
@@ -407,7 +407,7 @@ function login_footer( $input_id = '' ) {
 					<?php } ?>
 
 					<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
-						<input type="hidden" name="redirect_to" value="<?php echo sanitize_url( $_GET['redirect_to'] ); ?>" />
+						<input type="hidden" name="redirect_to" value="<?php echo esc_url( $_GET['redirect_to'] ); ?>" />
 					<?php } ?>
 
 					<?php if ( isset( $_GET['action'] ) && '' !== $_GET['action'] ) { ?>
@@ -427,7 +427,7 @@ function login_footer( $input_id = '' ) {
 		ob_start();
 		?>
 		<script>
-		try{document.getElementById('<?php echo $input_id; ?>').focus();}catch(e){}
+		try{document.getElementById('<?php echo esc_attr( $input_id ); ?>').focus();}catch(e){}
 		if(typeof wpOnload==='function')wpOnload();
 		</script>
 		<?php
@@ -746,7 +746,7 @@ switch ( $action ) {
 						);
 
 						?>
-						<a href="<?php echo esc_url( $remind_me_link ); ?>"><?php _e( 'Remind me later' ); ?></a>
+						<a href="<?php echo esc_url( $remind_me_link ); ?>"><?php esc_html_e( 'Remind me later' ); ?></a>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -890,7 +890,7 @@ switch ( $action ) {
 
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
 			<p>
-				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
+				<label for="user_login"><?php esc_html_e( 'Username or Email Address' ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<?php
@@ -910,16 +910,16 @@ switch ( $action ) {
 		</form>
 
 		<p id="nav">
-			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php esc_html_e( 'Log in' ); ?></a>
 			<?php
 
 			if ( get_option( 'users_can_register' ) ) {
-				$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+				$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), esc_html__( 'Register' ) );
 
 				echo esc_html( $login_link_separator );
 
 				/** This filter is documented in wp-includes/general-template.php */
-				echo apply_filters( 'register', $registration_url );
+				echo wp_kses_post( apply_filters( 'register', $registration_url ) );
 			}
 
 			?>
@@ -1029,7 +1029,7 @@ switch ( $action ) {
 
 			<div class="user-pass1-wrap">
 				<p>
-					<label for="pass1"><?php _e( 'New password' ); ?></label>
+					<label for="pass1"><?php esc_html_e( 'New password' ); ?></label>
 				</p>
 
 				<div class="wp-pwd">
@@ -1038,20 +1038,20 @@ switch ( $action ) {
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 					</button>
-					<div id="pass-strength-result" class="hide-if-no-js" aria-live="polite"><?php _e( 'Strength indicator' ); ?></div>
+					<div id="pass-strength-result" class="hide-if-no-js" aria-live="polite"><?php esc_html_e( 'Strength indicator' ); ?></div>
 				</div>
 				<div class="pw-weak">
 					<input type="checkbox" name="pw_weak" id="pw-weak" class="pw-checkbox" />
-					<label for="pw-weak"><?php _e( 'Confirm use of weak password' ); ?></label>
+					<label for="pw-weak"><?php esc_html_e( 'Confirm use of weak password' ); ?></label>
 				</div>
 			</div>
 
 			<p class="user-pass2-wrap">
-				<label for="pass2"><?php _e( 'Confirm new password' ); ?></label>
+				<label for="pass2"><?php esc_html_e( 'Confirm new password' ); ?></label>
 				<input type="password" name="pass2" id="pass2" class="input" size="20" value="" autocomplete="new-password" spellcheck="false" />
 			</p>
 
-			<p class="description indicator-hint"><?php echo wp_get_password_hint(); ?></p>
+			<p class="description indicator-hint"><?php echo wp_kses_post( wp_get_password_hint() ); ?></p>
 
 			<?php
 
@@ -1067,22 +1067,22 @@ switch ( $action ) {
 			?>
 			<input type="hidden" name="rp_key" value="<?php echo esc_attr( $rp_key ); ?>" />
 			<p class="submit reset-pass-submit">
-				<button type="button" class="button wp-generate-pw hide-if-no-js skip-aria-expanded"><?php _e( 'Generate Password' ); ?></button>
+				<button type="button" class="button wp-generate-pw hide-if-no-js skip-aria-expanded"><?php esc_html_e( 'Generate Password' ); ?></button>
 				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Save Password' ); ?>" />
 			</p>
 		</form>
 
 		<p id="nav">
-			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php esc_html_e( 'Log in' ); ?></a>
 			<?php
 
 			if ( get_option( 'users_can_register' ) ) {
-				$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+				$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), esc_html__( 'Register' ) );
 
 				echo esc_html( $login_link_separator );
 
 				/** This filter is documented in wp-includes/general-template.php */
-				echo apply_filters( 'register', $registration_url );
+				echo wp_kses_post( apply_filters( 'register', $registration_url ) );
 			}
 
 			?>
@@ -1160,11 +1160,11 @@ switch ( $action ) {
 		?>
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
 			<p>
-				<label for="user_login"><?php _e( 'Username' ); ?></label>
+				<label for="user_login"><?php esc_html_e( 'Username' ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<p>
-				<label for="user_email"><?php _e( 'Email' ); ?></label>
+				<label for="user_email"><?php esc_html_e( 'Email' ); ?></label>
 				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( $user_email ); ?>" size="25" autocomplete="email" required="required" />
 			</p>
 			<?php
@@ -1178,7 +1178,7 @@ switch ( $action ) {
 
 			?>
 			<p id="reg_passmail">
-				<?php _e( 'Registration confirmation will be emailed to you.' ); ?>
+				<?php esc_html_e( 'Registration confirmation will be emailed to you.' ); ?>
 			</p>
 			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
 			<p class="submit">
@@ -1187,15 +1187,15 @@ switch ( $action ) {
 		</form>
 
 		<p id="nav">
-			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a class="wp-login-log-in" href="<?php echo esc_url( wp_login_url() ); ?>"><?php esc_html_e( 'Log in' ); ?></a>
 			<?php
 
 			echo esc_html( $login_link_separator );
 
-			$html_link = sprintf( '<a class="wp-login-lost-password" href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+			$html_link = sprintf( '<a class="wp-login-lost-password" href="%s">%s</a>', esc_url( wp_lostpassword_url() ), esc_html__( 'Lost your password?' ) );
 
 			/** This filter is documented in wp-login.php */
-			echo apply_filters( 'lost_password_html_link', $html_link );
+			echo wp_kses_post( apply_filters( 'lost_password_html_link', $html_link ) );
 
 			?>
 		</p>
@@ -1368,7 +1368,7 @@ switch ( $action ) {
 				if ( $customize_login ) {
 					ob_start();
 					?>
-					<script>setTimeout( function(){ new wp.customize.Messenger({ url: '<?php echo wp_customize_url(); ?>', channel: 'login' }).send('login') }, 1000 );</script>
+					<script>setTimeout( function(){ new wp.customize.Messenger({ url: '<?php echo esc_url( wp_customize_url() ); ?>', channel: 'login' }).send('login') }, 1000 );</script>
 					<?php
 					wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 				}
@@ -1513,14 +1513,14 @@ switch ( $action ) {
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
 			<p>
-				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+				<label for="user_login"><?php esc_html_e( 'Username or Email Address' ); ?></label>
+				<input type="text" name="log" id="user_login"<?php echo wp_kses_post( $aria_describedby ); ?> class="input ltr" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 
 			<div class="user-pass-wrap">
-				<label for="user_pass"><?php _e( 'Password' ); ?></label>
+				<label for="user_pass"><?php esc_html_e( 'Password' ); ?></label>
 				<div class="wp-pwd">
-					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input ltr" value="" size="20" autocomplete="current-password" spellcheck="false" required="required" />
+					<input type="password" name="pwd" id="user_pass"<?php echo wp_kses_post( $aria_describedby ); ?> class="input password-input ltr" value="" size="20" autocomplete="current-password" spellcheck="false" required="required" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>
@@ -1597,15 +1597,15 @@ switch ( $action ) {
 				<?php
 
 				if ( get_option( 'users_can_register' ) ) {
-					$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+					$registration_url = sprintf( '<a class="wp-login-register" href="%s">%s</a>', esc_url( wp_registration_url() ), esc_html__( 'Register' ) );
 
 					/** This filter is documented in wp-includes/general-template.php */
-					echo apply_filters( 'register', $registration_url );
+					echo wp_kses_post( apply_filters( 'register', $registration_url ) );
 
 					echo esc_html( $login_link_separator );
 				}
 
-				$html_link = sprintf( '<a class="wp-login-lost-password" href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+				$html_link = sprintf( '<a class="wp-login-lost-password" href="%s">%s</a>', esc_url( wp_lostpassword_url() ), esc_html__( 'Lost your password?' ) );
 
 				/**
 				 * Filters the link that allows the user to reset the lost password.
@@ -1614,7 +1614,7 @@ switch ( $action ) {
 				 *
 				 * @param string $html_link HTML link to the lost password form.
 				 */
-				echo apply_filters( 'lost_password_html_link', $html_link );
+				echo wp_kses_post( apply_filters( 'lost_password_html_link', $html_link ) );
 
 				?>
 			</p>
