@@ -228,7 +228,7 @@ class WP_Http_Curl {
 		 * plugins to handle cookies themselves.
 		 *
 		 * @since 2.8.0
-		 * @since 7.2.0 Also fires for each request sent by WP_Http::request_multiple().
+		 * @since 7.2.0 Also fires for each request sent by {@see WP_Http::request_multiple()}.
 		 *
 		 * @param resource $handle      The cURL handle returned by curl_init() (passed by reference).
 		 * @param array    $parsed_args The HTTP request arguments.
