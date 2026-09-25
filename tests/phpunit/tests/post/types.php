@@ -89,9 +89,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'public'              Default is false
 		 * 'exclude_from_search' Default is null (opposite 'public')
 		 */
-		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => false ) );
 
-		$this->assertNotEquals( $public, $args->exclude_from_search );
+		$this->assertTrue( $args->exclude_from_search );
 	}
 
 	/**

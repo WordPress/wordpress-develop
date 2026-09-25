@@ -846,7 +846,6 @@ HTML
 
 		global $post;
 		$post = self::factory()->post->create_and_get();
-		$this->assertInstanceOf( WP_Post::class, $post );
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
 		$parsed_block  = $parsed_blocks[0];

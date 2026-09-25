@@ -3633,7 +3633,7 @@ function pingback( $content, $post ) {
 			$status = $client->query( 'pingback.ping', $pagelinkedfrom, $pagelinkedto );
 
 			if ( $status // Ping registered.
-				|| ( isset( $client->error->code ) && 48 === $client->error->code ) // Already registered.
+				|| ( $client->error instanceof IXR_Error && 48 === $client->error->code ) // Already registered.
 			) {
 				add_ping( $post, $pagelinkedto );
 			}

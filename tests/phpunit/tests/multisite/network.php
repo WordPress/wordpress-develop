@@ -356,7 +356,6 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user_id ) );
-		$this->assertIsInt( $blog_id );
 
 		// Set the dashboard blog to another one.
 		update_site_option( 'dashboard_blog', $blog_id );

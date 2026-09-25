@@ -90,6 +90,12 @@ use PHPStan\PhpDocParser\ParserConfig;
  * is reported rather than silently typed as `mixed` — unless the hash itself
  * says otherwise, by listing a `...$N` entry beside its named keys.
  *
+ * The docblock of a hook is translated on the same terms as the docblock of a
+ * function. It documents the arguments passed to the hook, and for a filter the
+ * first of them is also the value the call returns, so a hash left untranslated
+ * there widens that value back to a bare `array` — undoing, at the call, the
+ * shape the enclosing function's own hash established.
+ *
  * @link https://developer.wordpress.org/coding-standards/inline-documentation-standards/php/#1-1-parameters-that-are-arrays Hash notation in the documentation standards.
  * @link https://github.com/php-stubs/wordpress-stubs/blob/master/src/Visitor.php The equivalent translation php-stubs/wordpress-stubs performs when generating stubs, MIT license.
  *
@@ -163,14 +169,17 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	/**
 	 * Translates the hashes in a node's docblock into `@phpstan-*` shapes.
 	 *
+	 * Every node carrying a docblock is considered, not only a declaration. A hook's
+	 * docblock is written above the statement that calls it rather than above a
+	 * function, and HookDocBlock resolves the hook's types out of that text, so a
+	 * hash left untranslated there types the filtered value as a bare `array` at
+	 * every call site — including the one the hash was written for, where the value
+	 * goes back into the very function whose parameter the hash describes.
+	 *
 	 * @param Node $node The node being entered.
 	 * @return null
 	 */
 	public function enterNode( Node $node ): ?Node {
-		if ( ! $node instanceof Node\FunctionLike ) {
-			return null;
-		}
-
 		$doc = $node->getDocComment();
 		if ( null === $doc ) {
 			return null;
@@ -181,7 +190,14 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return null;
 		}
 
-		$additions = $this->build_additions( $text, $this->by_reference_parameters( $node ) );
+		/*
+		 * Only a declaration has parameters to take by reference. The `@param` tags of
+		 * a hook docblock name the arguments passed to the hook, which are values, so
+		 * nothing there is excluded on that ground.
+		 */
+		$by_reference = $node instanceof Node\FunctionLike ? $this->by_reference_parameters( $node ) : array();
+
+		$additions = $this->build_additions( $text, $by_reference );
 		if ( array() === $additions ) {
 			return null;
 		}

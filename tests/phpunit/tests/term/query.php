@@ -1225,7 +1225,6 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
 
 		$parent_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
-		$this->assertIsInt( $parent_id, 'The parent term was not created.' );
 
 		$child_id = self::factory()->term->create(
 			array(
@@ -1233,7 +1232,6 @@ class Tests_Term_Query extends WP_UnitTestCase {
 				'parent'   => $parent_id,
 			)
 		);
-		$this->assertIsInt( $child_id, 'The child term was not created.' );
 
 		$query_args = array(
 			'taxonomy'   => 'wptests_tax_hierarchical',

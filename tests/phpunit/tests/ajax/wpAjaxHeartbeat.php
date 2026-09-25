@@ -93,7 +93,7 @@ class Tests_Ajax_wpAjaxHeartbeat extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		// Ensure post is locked.
-		$this->assertEquals( self::$editor_id, wp_check_post_lock( self::$post_id ) );
+		$this->assertSame( self::$editor_id, wp_check_post_lock( self::$post_id ) );
 
 		// Set up the $_POST request.
 		$md5   = md5( uniqid() );

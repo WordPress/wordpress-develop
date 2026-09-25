@@ -42,6 +42,7 @@ on:
       - 'tools/vendors/**'
       - 'tools/webpack/**'
       - 'phpunit.xml.dist'
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/phpunit-tests.yml'
       - '.github/workflows/phpunit-tests-full-matrix.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'

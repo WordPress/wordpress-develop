@@ -449,7 +449,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			$big5      = mb_convert_encoding( $utf8, 'BIG-5', 'UTF-8' );
 			$conv_utf8 = mb_convert_encoding( $big5, 'UTF-8', 'BIG-5' );
 			// Make sure PHP's multibyte conversions are working correctly.
-			$this->assertNotEquals( $utf8, $big5 );
+			$this->assertNotSame( $utf8, $big5 );
 			$this->assertSame( $utf8, $conv_utf8 );
 
 			$fields['big5'] = array(

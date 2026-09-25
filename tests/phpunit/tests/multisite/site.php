@@ -140,7 +140,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create();
 
-		$this->assertIsInt( $blog_id );
 		$prefix = $wpdb->get_blog_prefix( $blog_id );
 
 		// $get_all = false, only retrieve details from the blogs table.

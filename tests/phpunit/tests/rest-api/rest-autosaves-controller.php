@@ -561,7 +561,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( $current_post->post_excerpt, $new_data['excerpt']['raw'] );
 
 		// Updated post_content.
-		$this->assertNotEquals( $current_post->post_content, $new_data['content']['raw'] );
+		$this->assertNotSame( $current_post->post_content, $new_data['content']['raw'] );
 
 		$autosave_post = wp_get_post_autosave( self::$post_id );
 		$this->assertSame( $autosave_data['title'], $autosave_post->post_title );
@@ -705,7 +705,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			$links = $response['_links'];
 		}
 
-		$this->assertEquals( $autosave->post_author, $response['author'] );
+		$this->assertSame( (int) $autosave->post_author, $response['author'] );
 
 		$rendered_content = apply_filters( 'the_content', $autosave->post_content );
 		$this->assertSame( $rendered_content, $response['content']['rendered'] );
@@ -809,7 +809,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$request->set_body_params( $params );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertNotEquals( 'garbage', get_post( self::$draft_page_id )->comment_status );
+		$this->assertNotSame( 'garbage', get_post( self::$draft_page_id )->comment_status );
 	}
 
 	/**
