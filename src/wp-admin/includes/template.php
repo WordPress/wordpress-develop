@@ -833,6 +833,12 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	$cur_hh = current_time( 'H' );
 	$cur_mn = current_time( 'i' );
 
+	$timezone = wp_timezone_string();
+	if ( preg_match( '/^([+-])(\d{2}):(\d{2})$/', $timezone, $timezone_matches ) ) {
+		$timezone  = 'UTC' . $timezone_matches[1] . (int) $timezone_matches[2];
+		$timezone .= ( '00' === $timezone_matches[3] ) ? '' : ':' . $timezone_matches[3];
+	}
+
 	$month = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Month' ) .
@@ -867,7 +873,29 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
 	printf( __( '%1$s %2$s, %3$s at %4$s:%5$s' ), $month, $day, $year, $hour, $minute );
 
-	echo '</div><input type="hidden" id="ss" name="ss" value="' . $ss . '" />';
+	echo '</div>';
+
+	if ( $for_post && ! $multi ) {
+		?>
+<div class="timestamp-native-wrap hide-if-no-js" hidden>
+	<label for="publish-date-native" class="screen-reader-text"><?php _e( 'Date' ); ?></label>
+	<input type="date" id="publish-date-native" class="form-required" value="<?php echo esc_attr( $aa . '-' . $mm . '-' . $jj ); ?>" />
+	<label for="publish-time-native" class="screen-reader-text"><?php _e( 'Time' ); ?></label>
+	<input type="time" id="publish-time-native" class="form-required" value="<?php echo esc_attr( $hh . ':' . $mn ); ?>" />
+	<p class="timestamp-site-time">
+		<?php
+		printf(
+			/* translators: %s: The site's timezone. */
+			__( 'Site time: %s' ),
+			'<span>' . esc_html( $timezone ) . '</span>'
+		);
+		?>
+	</p>
+</div>
+		<?php
+	}
+
+	echo '<input type="hidden" id="ss" name="ss" value="' . $ss . '" />';
 
 	if ( $multi ) {
 		return;
@@ -892,7 +920,7 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	}
 	?>
 
-<p>
+<p class="timestamp-actions">
 <a href="#edit_timestamp" class="save-timestamp hide-if-no-js button"><?php _e( 'OK' ); ?></a>
 <a href="#edit_timestamp" class="cancel-timestamp hide-if-no-js button-cancel"><?php _e( 'Cancel' ); ?></a>
 </p>
