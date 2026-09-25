@@ -1645,6 +1645,10 @@ p.customize-section-description {
 	margin-right: 8px;
 }
 
+#customize-control-site_icon .remove-button {
+	margin-right: 8px;
+}
+
 /* Background position control */
 .customize-control-background_position .background-position-control .button-group {
 	display: block;
