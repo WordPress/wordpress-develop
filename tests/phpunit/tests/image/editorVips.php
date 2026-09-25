@@ -996,10 +996,15 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 
 		$color_type = $this->get_png_color_type( $saved['path'] );
 
+		// Colour types 4 and 6 have an alpha channel of their own. Colour type 3 keeps its
+		// alpha in a tRNS chunk.
+		$chunks    = file_get_contents( $saved['path'], false, null, 8 );
+		$has_alpha = in_array( $color_type, array( 4, 6 ), true ) || false !== strpos( $chunks, 'tRNS' );
+
 		unlink( $temp_tmp );
 		unlink( $saved['path'] );
 
-		$this->assertContains( $color_type, array( 4, 6 ), "Alpha transparency should be preserved after resize for {$file_path}." );
+		$this->assertTrue( $has_alpha, "Alpha transparency should be preserved after resize for {$file_path}." );
 	}
 
 	/**
