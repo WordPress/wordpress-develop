@@ -1288,13 +1288,17 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 				// Then see if any of the old locations...
 				foreach ( $old_nav_menu_locations as $location => $menu_id ) {
 
-					// ...and any slug in the same group...
-					foreach ( $slug_group as $slug ) {
+					/*
+					 * ...and any slug in the same group. This uses its own variable
+					 * because the outer loop's $slug is still needed for the
+					 * remaining new locations once this one is done.
+					 */
+					foreach ( $slug_group as $old_slug ) {
 
 						// ... have a match as well.
-						if ( is_string( $location ) && false === stripos( $location, $slug ) && false === stripos( $slug, $location ) ) {
+						if ( is_string( $location ) && false === stripos( $location, $old_slug ) && false === stripos( $old_slug, $location ) ) {
 							continue;
-						} elseif ( is_numeric( $location ) && $location !== $slug ) {
+						} elseif ( is_numeric( $location ) && $location !== $old_slug ) {
 							continue;
 						}
 
@@ -1310,7 +1314,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 							// Go back and check the next new menu location.
 							continue 3;
 						}
-					} // End foreach ( $slug_group as $slug ).
+					} // End foreach ( $slug_group as $old_slug ).
 				} // End foreach ( $old_nav_menu_locations as $location => $menu_id ).
 			} // End foreach foreach ( $registered_nav_menus as $new_location => $name ).
 		} // End foreach ( $slug_group as $slug ).
