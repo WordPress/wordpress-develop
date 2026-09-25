@@ -123,6 +123,24 @@ jQuery( function( $ ) {
 		assert.equal( jQuery.ajax.getCall( 0 ).args[0].data.slug, 'jetpack' );
 	} );
 
+	/**
+	 * @ticket 55368
+	 */
+	QUnit.test( 'A failed plugin deletion should restore the delete link', function( assert ) {
+		var $pluginRow = $(
+				'<table><tbody><tr class="inactive" data-plugin="jetpack/jetpack.php" data-slug="jetpack">' +
+					'<td><div class="row-actions"><a class="delete">Delete</a></div></td>' +
+				'</tr></tbody></table>'
+			).appendTo( '#qunit-fixture' ).find( 'tr' );
+
+		sinon.stub( wp.ajax, 'send' ).returns( jQuery.Deferred().promise() );
+
+		wp.updates.deletePlugin( { slug: 'jetpack', plugin: 'jetpack/jetpack.php' } );
+		wp.ajax.send.firstCall.args[ 0 ].error( 'Briefly unavailable for scheduled maintenance.' );
+
+		assert.strictEqual( $pluginRow.find( 'a.delete' ).text(), 'Delete', 'The delete link text is restored.' );
+	} );
+
 	// QUnit.test( 'A successful update changes the message?', function( assert ) {} );
 	// QUnit.test( 'A failed update changes the message?', function( assert ) {} );
 
@@ -174,6 +192,81 @@ jQuery( function( $ ) {
 		assert.equal( jQuery.ajax.getCall( 0 ).args[0].data.slug, 'twentyeleven' );
 	} );
 
+	/**
+	 * @ticket 55368
+	 */
+	QUnit.test( 'A failed theme deletion should restore the delete button', function( assert ) {
+		var $button = $( '<div class="theme-actions"><button class="delete-theme">Delete</button></div>' )
+				.appendTo( '#qunit-fixture' )
+				.find( '.delete-theme' );
+
+		var sendStub = sinon.stub( wp.ajax, 'send' ).returns( jQuery.Deferred().promise() );
+
+		wp.updates.deleteTheme( { slug: 'twentyeleven' } );
+		wp.ajax.send.firstCall.args[ 0 ].error( 'Briefly unavailable for scheduled maintenance.' );
+
+		assert.strictEqual( $button.text(), 'Delete', 'The delete button text is restored.' );
+
+		sendStub.restore();
+	} );
+
 	// QUnit.test( 'A successful update changes the message?', function( assert ) {} );
 	// QUnit.test( 'A failed update changes the message?', function( assert ) {} );
+
+	QUnit.module( 'wp.updates.autoUpdates', {
+		beforeEach: function() {
+			this.oldPagenow = window.pagenow;
+			window.pagenow = 'plugins';
+			this.request = jQuery.Deferred();
+			sinon.stub( jQuery, 'post' ).returns( this.request.promise() );
+			this.$column = $(
+				'<div class="column-auto-updates">' +
+					'<div class="notice notice-error hidden"><p></p></div>' +
+					'<button class="toggle-auto-update" data-wp-action="enable">' +
+						'<span class="dashicons-update hidden"></span>' +
+						'<span class="label">Enable auto-updates</span>' +
+					'</button>' +
+				'</div>'
+			).appendTo( '#qunit-fixture' );
+		},
+		afterEach: function() {
+			window.pagenow = this.oldPagenow;
+		}
+	} );
+
+	/**
+	 * @ticket 55368
+	 */
+	QUnit.test( 'A failed auto-update request should restore the toggle label', function( assert ) {
+		var $toggler = this.$column.find( '.toggle-auto-update' );
+
+		$toggler.trigger( 'click' );
+		assert.strictEqual( $toggler.find( '.label' ).text(), 'Enabling...', 'The pending label is shown.' );
+
+		this.request.reject();
+
+		assert.strictEqual( $toggler.find( '.label' ).text(), 'Enable auto-updates', 'The toggle label is restored.' );
+		assert.strictEqual(
+			this.$column.find( '.notice-error p' ).text(),
+			'The request could not be completed. Please try again.',
+			'The error message suggests retrying the request.'
+		);
+	} );
+
+	/**
+	 * @ticket 55368
+	 */
+	QUnit.test( 'An invalid auto-update response should restore the toggle label', function( assert ) {
+		var $toggler = this.$column.find( '.toggle-auto-update' );
+
+		$toggler.trigger( 'click' );
+		this.request.resolve( 'Briefly unavailable for scheduled maintenance.' );
+
+		assert.strictEqual( $toggler.find( '.label' ).text(), 'Enable auto-updates', 'The toggle label is restored.' );
+		assert.strictEqual(
+			this.$column.find( '.notice-error p' ).text(),
+			'The request could not be completed. Please try again.',
+			'The error message suggests retrying the request.'
+		);
+	} );
 });
