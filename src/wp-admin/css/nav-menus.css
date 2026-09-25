@@ -850,6 +850,7 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	padding: 10px 0;
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 }
 
 .nav-menus-php .major-publishing-actions > * {
