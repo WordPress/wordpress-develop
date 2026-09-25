@@ -7,6 +7,8 @@
  * @since 5.5.0
  *
  * @group blocks
+ *
+ * @covers WP_Block_List
  */
 class Tests_Blocks_wpBlockList extends WP_UnitTestCase {
 
