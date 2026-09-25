@@ -297,29 +297,56 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			return true;
 		}
 
+		$image = $this->_resize( $max_w, $max_h, $crop );
+
+		if ( is_wp_error( $image ) ) {
+			return $image;
+		}
+
+		$this->image = $image;
+
+		return true;
+	}
+
+	/**
+	 * Resizes the image and returns it, leaving `$this->image` alone.
+	 *
+	 * `$this->size` is updated to the destination dimensions because the save
+	 * methods report the image size from there. Callers that need the previous
+	 * dimensions back are expected to restore them.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int|null   $max_w Image width.
+	 * @param int|null   $max_h Image height.
+	 * @param bool|array $crop  Optional. Image cropping behavior. Default false.
+	 * @return Jcupitt\Vips\Image|WP_Error Resized image, or WP_Error on failure.
+	 */
+	protected function _resize( $max_w, $max_h, $crop = false ) {
 		$dims = image_resize_dimensions( $this->size['width'], $this->size['height'], $max_w, $max_h, $crop );
 		if ( ! $dims ) {
-			return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ) );
+			return new WP_Error( 'error_getting_dimensions', __( 'Could not calculate resized image dimensions' ), $this->file );
 		}
 
 		list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 
-		if ( $crop ) {
-			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
-		}
-
 		try {
-			// Use resize instead of thumbnail_image for more control.
-			// Calculate scale factor.
-			$h_scale = $dst_w / $this->size['width'];
-			$v_scale = $dst_h / $this->size['height'];
+			$image = $this->image;
 
-			$this->image = $this->image->resize( $h_scale, array( 'vscale' => $v_scale ) );
+			// Crop to the source region first, when it is smaller than the whole image.
+			if ( (int) $src_w !== $this->size['width'] || (int) $src_h !== $this->size['height'] ) {
+				$image = $image->crop( (int) $src_x, (int) $src_y, (int) $src_w, (int) $src_h );
+			}
+
+			// Then scale that region to the destination dimensions.
+			if ( (int) $src_w !== $dst_w || (int) $src_h !== $dst_h ) {
+				$image = $image->resize( $dst_w / (int) $src_w, array( 'vscale' => $dst_h / (int) $src_h ) );
+			}
 
 			$this->update_size( $dst_w, $dst_h );
 			$this->resized = true;
 
-			return true;
+			return $image;
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_resize_error', $e->getMessage() );
 		}
@@ -400,6 +427,60 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		}
 
 		return $metadata;
+	}
+
+	/**
+	 * Creates an image sub-size and returns the image meta data value for it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $size_data {
+	 *     Array of size data.
+	 *
+	 *     @type int        $width  The maximum width in pixels.
+	 *     @type int        $height The maximum height in pixels.
+	 *     @type bool|array $crop   Whether to crop the image to exact dimensions.
+	 * }
+	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
+	 *                        WP_Error object on error.
+	 */
+	public function make_subsize( $size_data ) {
+		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
+			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
+		}
+
+		$orig_size  = $this->size;
+		$orig_image = $this->image;
+
+		$size_data['width']  = isset( $size_data['width'] ) ? $size_data['width'] : null;
+		$size_data['height'] = isset( $size_data['height'] ) ? $size_data['height'] : null;
+		$size_data['crop']   = isset( $size_data['crop'] ) ? $size_data['crop'] : false;
+
+		if ( ( $orig_size['width'] === $size_data['width'] ) && ( $orig_size['height'] === $size_data['height'] ) ) {
+			return new WP_Error( 'image_subsize_create_error', __( 'The image already has the requested size.' ) );
+		}
+
+		$resized = $this->_resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
+
+		if ( is_wp_error( $resized ) ) {
+			$this->image = $orig_image;
+			$this->size  = $orig_size;
+
+			return $resized;
+		}
+
+		$saved = $this->_save( $resized );
+
+		// The editor keeps the image it was loaded with, so further sub-sizes are all
+		// derived from the same original rather than from the previous sub-size.
+		$this->image = $orig_image;
+		$this->size  = $orig_size;
+
+		if ( ! is_wp_error( $saved ) ) {
+			unset( $saved['path'] );
+		}
+
+		return $saved;
 	}
 
 	/**
