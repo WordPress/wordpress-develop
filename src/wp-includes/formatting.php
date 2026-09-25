@@ -3883,6 +3883,7 @@ function sanitize_email( $email ) {
 
 	// Split out the local and domain parts.
 	list( $local, $domain ) = explode( '@', $email, 2 );
+	$local = html_entity_decode( $local, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 
 	/*
 	 * LOCAL PART
