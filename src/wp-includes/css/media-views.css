@@ -1295,6 +1295,17 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	max-width: calc( 33% - 20px );
 }
 
+/*
+ * Keep the search field visible in the media modal when plugins add extra
+ * filters that make the toolbar scroll. Pinning the search field to the top
+ * of the scrollable toolbar leaves the filters scrollable while the search
+ * field stays in view. See #64321.
+ */
+.media-modal .attachments-browser .media-toolbar-primary {
+	position: sticky;
+	top: 0;
+}
+
 .mode-grid .attachments-browser .media-toolbar-primary {
 	display: flex;
 	align-items: center;
