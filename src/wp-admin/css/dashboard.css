@@ -898,14 +898,8 @@ body #dashboard-widgets .postbox form .submit {
 /* Dashboard activity widget */
 
 #dashboard_activity .comment-meta span.approve:before {
-	content: "\f227";
-	content: "\f227" / '';
-	font: 20px/.5 dashicons;
-	margin-left: 5px;
-	vertical-align: middle;
-	position: relative;
-	top: -1px;
-	margin-right: 2px;
+	content: "\f534";
+	content: "\f534" / '';
 }
 
 #dashboard_activity .inside {
@@ -1261,6 +1255,30 @@ a.rsswidget {
 .bigger-bolder-text {
 	font-weight: 600;
 	font-size: 14px;
+}
+
+.unapproved span.pending:before {
+	content: "\f153";
+	content: "\f153" / '';
+	font: 20px/.5 dashicons;
+	margin-left: 5px;
+	vertical-align: middle;
+	position: relative;
+	top: -1px;
+	margin-right: 2px;
+	color: #d63638;
+}
+
+span.approved:before {
+	content: "\f147";
+	content: "\f147" / '';
+	font: 20px/.5 dashicons;
+	margin-left: 5px;
+	vertical-align: middle;
+	position: relative;
+	top: -1px;
+	margin-right: 2px;
+	color: #248334;
 }
 
 /* =Media Queries

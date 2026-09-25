@@ -873,14 +873,14 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 						__( 'From %1$s on %2$s %3$s' ),
 						'<cite class="comment-author">' . get_comment_author_link( $comment ) . '</cite>',
 						$comment_post_link,
-						'<span class="approve">' . __( '[Pending]' ) . '</span>'
+						'<span class="approve pending">' . __( '[Pending]' ) . '</span>'
 					);
 				} else {
 					printf(
 						/* translators: 1: Comment author, 2: Notification if the comment is pending. */
 						__( 'From %1$s %2$s' ),
 						'<cite class="comment-author">' . get_comment_author_link( $comment ) . '</cite>',
-						'<span class="approve">' . __( '[Pending]' ) . '</span>'
+						'<span class="approve pending">' . __( '[Pending]' ) . '</span>'
 					);
 				}
 				?>
@@ -910,14 +910,14 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 						_x( '%1$s on %2$s %3$s', 'dashboard' ),
 						"<strong>$type</strong>",
 						$comment_post_link,
-						'<span class="approve">' . __( '[Pending]' ) . '</span>'
+						'<span class="approve pending">' . __( '[Pending]' ) . '</span>'
 					);
 				} else {
 					printf(
 						/* translators: 1: Type of comment, 2: Notification if the comment is pending. */
 						_x( '%1$s %2$s', 'dashboard' ),
 						"<strong>$type</strong>",
-						'<span class="approve">' . __( '[Pending]' ) . '</span>'
+						'<span class="approve pending">' . __( '[Pending]' ) . '</span>'
 					);
 				}
 				?>
@@ -1126,7 +1126,7 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 
 	if ( $comments ) {
 		echo '<div id="latest-comments" class="activity-block table-view-list">';
-		echo '<h3>' . __( 'Recent Comments' ) . '</h3>';
+		echo '<h3>' . __( 'Recent Comments' ) . '2</h3>';
 
 		echo '<ul id="the-comment-list" data-wp-lists="list:comment">';
 		foreach ( $comments as $comment ) {
