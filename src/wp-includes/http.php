@@ -152,10 +152,16 @@ function wp_safe_remote_head( $url, $args = array() ) {
  *
  * @see wp_remote_request_multiple() For information on the request and response format.
  *
- * @param array $requests Requests to send. See wp_remote_request_multiple().
- * @param array $options  Optional. Options that apply to the batch of requests. Default empty array.
- *                        See WP_Http::request_multiple().
+ * @param array $requests Requests to send. See {@see wp_remote_request_multiple()}.
+ * @param array $options  {
+ *     Optional. Options that apply to the batch of requests. See {@see WP_Http::request_multiple()}.
+ *     Default empty array.
+ *
+ *     @type int $concurrency Maximum number of requests to send at once. Default 6.
+ * }
  * @return array Responses keyed like $requests. Each is a response array, or a WP_Error on failure.
+ * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
+ * @phpstan-return array<array-key, array<string, mixed>|WP_Error>
  */
 function wp_safe_remote_request_multiple( $requests, $options = array() ) {
 	foreach ( $requests as $id => $request ) {
@@ -163,9 +169,14 @@ function wp_safe_remote_request_multiple( $requests, $options = array() ) {
 			$request = array( 'url' => $request );
 		}
 
-		$request['args'] = isset( $request['args'] ) ? wp_parse_args( $request['args'] ) : array();
+		$args = isset( $request['args'] ) ? $request['args'] : array();
 
-		$request['args']['reject_unsafe_urls'] = true;
+		if ( ! is_array( $args ) ) {
+			$args = wp_parse_args( $args );
+		}
+
+		$args['reject_unsafe_urls'] = true;
+		$request['args']            = $args;
 
 		$requests[ $id ] = $request;
 	}
@@ -281,9 +292,15 @@ function wp_remote_head( $url, $args = array() ) {
  *                        Each request is either a URL string, for a GET request with the
  *                        default arguments, or an array with a 'url' key and an optional
  *                        'args' key holding the request arguments.
- * @param array $options  Optional. Options that apply to the batch of requests, such as
- *                        'concurrency'. Default empty array. See WP_Http::request_multiple().
+ * @param array $options  {
+ *     Optional. Options that apply to the batch of requests. See {@see WP_Http::request_multiple()}.
+ *     Default empty array.
+ *
+ *     @type int $concurrency Maximum number of requests to send at once. Default 6.
+ * }
  * @return array Responses keyed like $requests. Each is a response array, or a WP_Error on failure.
+ * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
+ * @phpstan-return array<array-key, array<string, mixed>|WP_Error>
  */
 function wp_remote_request_multiple( $requests, $options = array() ) {
 	$http = _wp_http_get_object();
