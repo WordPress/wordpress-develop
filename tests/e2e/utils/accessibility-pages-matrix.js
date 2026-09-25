@@ -1,0 +1,384 @@
+/**
+ * Accessibility test pages matrix.
+ *
+ * Defines WordPress admin pages to scan for accessibility violations.
+ * Each page spec can have multiple state variants for testing different UI states.
+ *
+ * OVERVIEW:
+ * - `id`: Unique identifier for the page (used for logging and filtering)
+ * - `path`: WordPress admin path relative to /wp-admin/ (e.g., '/upload.php?mode=grid')
+ * - `name`: Human-readable name (shown in test output)
+ * - `rules`: (optional) Per-page axe rules override. Merged with global rules.
+ * - `waitInterval`: (optional) Boolean indicating if the test should wait for a
+ *                   short interval before scanning. This is particularly important
+ *                   for pages rendered via React components like the Settings > Connectors
+ *                   page or the Fonts page. Without this wait, the scan may run before all
+ *                   content is fully rendered.
+ * - `stateVariants`: (optional) Array of UI states to test. Each variant has:
+ *   - `name`: State identifier (shown in test name)
+ *   - `setup`: (optional) Async function to set up the state. Receives (page, requestUtils) objects.
+ *   - `rules`: (optional) State-specific rule override. Merged with page and global rules.
+ *
+ * HOW TO ADD A PAGE:
+ *
+ * 1. Simple page (single state):
+ *    {
+ *      id: 'my-page',
+ *      path: '/my-page.php',
+ *      name: 'My Page Name',
+ *    }
+ *
+ * 2. Page with multiple states:
+ *    {
+ *      id: 'my-page-multi',
+ *      path: '/my-page.php',
+ *      name: 'My Page with Multiple States',
+ *      stateVariants: [
+ *        { name: 'default' },
+ *        {
+ *          name: 'with-filter',
+ *          setup: async ( { admin, editor, page, requestUtils } ) => {
+            // Create test data if needed.
+            await requestUtils.createPost({ title: 'Test', status: 'draft' });
+            // Apply UI state.
+ *            await page.getByRole('link', { name: 'Draft' }).click();
+ *            await page.waitForLoadState('networkidle');
+ *          }
+ *        },
+ *      ]
+ *    }
+ *
+ * HOW TO MODIFY:
+ * - To disable a page from scanning, remove or comment out its entry.
+ * - To add a new state variant, add another object to stateVariants.
+ * - To change rule config per-page, modify the `rules` property.
+ *
+ * IMPORT IN TESTS:
+ * const { pages } = require( './accessibility-pages-matrix' );
+ * pages.forEach( (pageSpec) => { ... } );
+ */
+
+const { filterByStatus } = require( './admin-interactions' );
+
+const pages = [
+	// Dashboard.
+	{
+		id: 'dashboard',
+		path: '/',
+		name: 'Dashboard',
+	},
+	{
+		id: 'updates',
+		path: '/update-core.php',
+		name: 'Updates',
+	},
+
+	// Posts & Pages.
+	{
+		id: 'posts-list',
+		path: '/edit.php?post_type=post',
+		name: 'Posts',
+		stateVariants: [
+			{
+				name: 'default',
+				setup: async ( { page, requestUtils } ) => {
+					// Create a published post.
+					await requestUtils.createPost( {
+						title: 'Test Published Post',
+						status: 'publish',
+					} );
+					// Create a pending review post so there's something to filter.
+					await requestUtils.createPost( {
+						title: 'Test Pending Review Post',
+						status: 'pending',
+					} );
+					// Reload the page to show the draft.
+					await page.reload();
+				},
+			},
+			{
+				name: 'draft-filter',
+				setup: async ( { page, requestUtils, expect } ) => {
+					// Create a draft post so there's something to filter.
+					await requestUtils.createPost( {
+						title: 'Test Draft Post',
+						status: 'draft',
+					} );
+					// Reload the page to show the draft.
+					await page.reload();
+					// Ensure table is visible before filtering.
+					const draftPostsTable = page.locator( 'table.wp-list-table' );
+					await expect( draftPostsTable ).toBeVisible();
+					await filterByStatus( page, 'draft' );
+				},
+			},
+		],
+	},
+	{
+		id: 'post-categories-list',
+		path: '/edit-tags.php?taxonomy=category',
+		name: 'Categories',
+	},
+	{
+		id: 'post-tags-list',
+		path: '/edit-tags.php?taxonomy=post_tag',
+		name: 'Tags',
+	},
+	{
+		id: 'pages-list',
+		path: '/edit.php?post_type=page',
+		name: 'Pages',
+	},
+
+	// Media.
+	{
+		id: 'media-library-grid',
+		path: '/upload.php?mode=grid',
+		name: 'Media Library (Grid View)',
+		stateVariants: [
+			{
+				name: 'default',
+			},
+			{
+				name: 'image-modal-open',
+				setup: async ( { page } ) => {
+					// Click the image to open the attachment modal.
+					const imageLink = page.locator( '.attachment' ).first();
+					await imageLink.click();
+					// Wait for modal to appear.
+					await page.waitForSelector( '.media-modal' );
+				},
+			},
+		],
+	},
+	{
+		id: 'media-library-list',
+		path: '/upload.php?mode=list',
+		name: 'Media Library (List View)',
+	},
+
+	// Comments.
+	{
+		id: 'comments',
+		path: '/edit-comments.php',
+		name: 'Comments',
+		stateVariants: [
+			{
+				name: 'default',
+				setup: async ( { page, requestUtils } ) => {
+					// Create a post to attach comments to.
+					const { id: postId } = await requestUtils.createPost( {
+						title: 'Post for comments',
+						status: 'publish',
+					} );
+
+					// Create an approved comment.
+					await requestUtils.createComment( {
+						content: 'Test Approved Comment',
+						status: 'approve',
+						post: postId,
+					} );
+					// Create a comment awaiting moderation.
+					await requestUtils.createComment( {
+						content: 'Test Comment Awaiting Moderation',
+						status: 'hold',
+						post: postId,
+					} );
+
+					// Reload the page to show the comments.
+					await page.reload();
+				},
+			},
+		],
+	},
+
+	// Appearance.
+	{
+		id: 'themes',
+		path: '/themes.php',
+		name: 'Themes',
+	},
+	{
+		id: 'add-themes',
+		path: '/theme-install.php?browse=popular',
+		name: 'Add Themes',
+	},
+	{
+		id: 'fonts-list',
+		path: '/font-library.php?p=%2Ffont-list',
+		name: 'Fonts',
+		waitInterval: true,
+		stateVariants: [
+			{
+				name: 'default',
+			},
+			{
+				name: 'fonts-upload-tab',
+				setup: async ( { page, expect } ) => {
+					const uploadTab = page.getByRole( 'tab', { name: 'Upload' } );
+					await uploadTab.click();
+					const uploadTabPanel = page.getByRole( 'tabpanel', { name: 'Upload' } );
+					await expect( uploadTabPanel ).toBeVisible();
+				},
+			},
+			{
+				name: 'fonts-install-fonts-tab',
+				setup: async ( { page, expect } ) => {
+					const installFontsTab = page.getByRole( 'tab', { name: 'Install Fonts' } );
+					await installFontsTab.click();
+					const installFontsTabPanel = page.getByRole( 'tabpanel', { name: 'Install Fonts' } );
+					await expect( installFontsTabPanel ).toBeVisible();
+				},
+			},
+		],
+	},
+
+	// Plugins.
+	{
+		id: 'installed-plugins',
+		path: '/plugins.php',
+		name: 'Plugins',
+	},
+	{
+		id: 'add-plugins',
+		path: '/plugin-install.php',
+		name: 'Add Plugins',
+	},
+
+	// Users.
+	{
+		id: 'users-list',
+		path: '/users.php',
+		name: 'Users',
+	},
+	{
+		id: 'add-user',
+		path: '/user-new.php',
+		name: 'Add User',
+	},
+
+	// Admin profile.
+	{
+		id: 'profile',
+		path: '/profile.php',
+		name: 'Profile',
+	},
+
+	// Tools.
+	{
+		id: 'tools',
+		path: '/tools.php',
+		name: 'Tools',
+	},
+	{
+		id: 'tools-import',
+		path: '/import.php',
+		name: 'Tools - Import',
+	},
+	{
+		id: 'tools-export',
+		path: '/export.php',
+		name: 'Tools - Export',
+	},
+	{
+		id: 'site-health-status',
+		path: '/site-health.php',
+		name: 'Tools - Site Health Status',
+	},
+	{
+		id: 'site-health-info-wp-section',
+		path: '/site-health.php?tab=debug#health-check-section-wp-core',
+		name: 'Tools - Site Health Info WP section open',
+	},
+	{
+		id: 'export-personal-data',
+		path: '/export-personal-data.php',
+		name: 'Tools - Export Personal Data',
+	},
+	{
+		id: 'erase-personal-data',
+		path: '/erase-personal-data.php',
+		name: 'Tools - Erase Personal Data',
+	},
+
+	// Settings.
+	{
+		id: 'settings-general',
+		path: '/options-general.php',
+		name: 'Settings - General',
+	},
+
+	{
+		id: 'settings-connectors',
+		path: '/options-connectors.php',
+		name: 'Settings - Connectors',
+		waitInterval: true,
+	},
+
+	{
+		id: 'settings-writing',
+		path: '/options-writing.php',
+		name: 'Settings - Writing',
+	},
+
+	{
+		id: 'settings-reading',
+		path: '/options-reading.php',
+		name: 'Settings - Reading',
+	},
+
+	{
+		id: 'settings-discussion',
+		path: '/options-discussion.php',
+		name: 'Settings - Discussion',
+	},
+
+	{
+		id: 'settings-media',
+		path: '/options-media.php',
+		name: 'Settings - Media',
+	},
+
+	{
+		id: 'settings-permalinks',
+		path: '/options-permalink.php',
+		name: 'Settings - Permalinks',
+	},
+
+	{
+		id: 'settings-privacy',
+		path: '/options-privacy.php',
+		name: 'Settings - Privacy',
+	},
+
+	// About.
+	{
+		id: 'about',
+		path: '/about.php',
+		name: 'About',
+	},
+	{
+		id: 'credits',
+		path: '/credits.php',
+		name: 'Credits',
+	},
+	{
+		id: 'freedoms',
+		path: '/freedoms.php',
+		name: 'Freedoms',
+	},
+	{
+		id: 'privacy',
+		path: '/privacy.php',
+		name: 'Privacy',
+	},
+	{
+		id: 'contribute',
+		path: '/contribute.php',
+		name: 'Get involved',
+	}
+];
+
+module.exports = {
+	pages,
+};

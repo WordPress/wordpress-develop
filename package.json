@@ -40,6 +40,7 @@
 	],
 	"devDependencies": {
 		"@343dev/gifsicle": "1.2.0",
+		"@axe-core/playwright": "4.13.0",
 		"@lodder/grunt-postcss": "^3.1.1",
 		"@napi-rs/image": "1.14.0",
 		"@playwright/test": "1.61.1",
@@ -153,6 +154,7 @@
 		"test:php": "node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit",
 		"test:coverage": "npm run test:php -- --coverage-html ./coverage/html/ --coverage-php ./coverage/php/report.php --coverage-text=./coverage/text/report.txt",
 		"test:e2e": "wp-scripts test-playwright --config tests/e2e/playwright.config.js",
+		"test:e2e:a11y": "npm run test:e2e -- tests/e2e/specs/accessibility.spec.js",
 		"test:visual": "wp-scripts test-playwright --config tests/visual-regression/playwright.config.js",
 		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan --",
 		"typecheck:php:baselines": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan:baselines --",
