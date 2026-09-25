@@ -13,8 +13,7 @@
 	"require": {
 		"ext-hash": "*",
 		"ext-json": "*",
-		"php": ">=7.4",
-		"jcupitt/vips": "*"
+		"php": ">=7.4"
 	},
 	"suggest": {
 		"ext-apcu": "*",
