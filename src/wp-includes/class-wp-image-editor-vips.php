@@ -34,6 +34,16 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	protected $original_image;
 
 	/**
+	 * Whether the image has been resized or cropped since it was loaded.
+	 *
+	 * Metadata is only stripped on such saves, matching the Imagick editor, so saving
+	 * an image that was merely loaded keeps its metadata.
+	 *
+	 * @var bool
+	 */
+	protected $resized = false;
+
+	/**
 	 * Cache of mime type support checks.
 	 *
 	 * Dynamic writeToBuffer probe is used because VIPS support depends on runtime configuration
@@ -292,6 +302,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			$this->image = $this->image->resize( $h_scale, array( 'vscale' => $v_scale ) );
 
 			$this->update_size( $dst_w, $dst_h );
+			$this->resized = true;
 
 			return true;
 		} catch ( Exception $e ) {
@@ -429,6 +440,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			$this->image = $cropped;
 			$this->update_size( $dst_w, $dst_h );
+			$this->resized = true;
 
 			return true;
 		} catch ( Exception $e ) {
@@ -551,6 +563,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
 			$strip_meta = apply_filters( 'image_strip_meta', true );
+
+			// Only strip when the image was resized or cropped. This matches the Imagick
+			// editor, which strips during thumbnail generation rather than on every save,
+			// so saving an image that was merely loaded keeps its metadata.
+			$strip_meta = $strip_meta && $this->resized;
 
 			switch ( $mime_type ) {
 				case 'image/jpeg':
