@@ -1886,6 +1886,8 @@ Name: %3$s'
  * Filter {@see 'update_welcome_user_email'} and {@see 'update_welcome_user_subject'} to
  * modify the content and subject line of the notification email.
  *
+ * Filter {@see 'update_welcome_user_headers'} to modify the notification email's headers.
+ *
  * @since MU (3.0.0)
  *
  * @param int    $user_id  User ID.
@@ -1946,9 +1948,27 @@ function wpmu_welcome_user_notification(
 		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
 
-	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
-	$message_headers = "From: \"{$from_name}\" <{$admin_email}>\n" . 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n";
-	$message         = $welcome_email;
+	$from_name = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
+
+	$message_headers = array(
+		"From: \"{$from_name}\" <{$admin_email}>\n",
+		'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n",
+	);
+
+	/**
+	 * Filters the headers of the welcome email after user activation.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string[] $message_headers Array of headers to send with the email, formatted for
+	 *                                  transmission via wp_mail().
+	 * @param int      $user_id         User ID.
+	 * @param string   $password        User password.
+	 * @param array    $meta            Signup meta data. Default empty array.
+	 */
+	$message_headers = apply_filters( 'update_welcome_user_headers', $message_headers, $user_id, $password, $meta );
+
+	$message = $welcome_email;
 
 	if ( empty( $current_network->site_name ) ) {
 		$current_network->site_name = 'WordPress';
