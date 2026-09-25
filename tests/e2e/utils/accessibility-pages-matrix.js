@@ -98,7 +98,7 @@ const pages = [
 			},
 			{
 				name: 'draft-filter',
-				setup: async ( { page, requestUtils } ) => {
+				setup: async ( { page, requestUtils, expect } ) => {
 					// Create a draft post so there's something to filter.
 					await requestUtils.createPost( {
 						title: 'Test Draft Post',
@@ -107,10 +107,9 @@ const pages = [
 					// Reload the page to show the draft.
 					await page.reload();
 					// Ensure table is visible before filtering.
-					const tableVisible = await page.locator( 'table.wp-list-table' ).isVisible();
-					if ( tableVisible ) {
-						await filterByStatus( page, 'draft' );
-					}
+					const draftPostsTable = page.locator( 'table.wp-list-table' );
+					await expect( draftPostsTable ).toBeVisible();
+					await filterByStatus( page, 'draft' );
 				},
 			},
 		],
@@ -215,18 +214,20 @@ const pages = [
 			},
 			{
 				name: 'fonts-upload-tab',
-				setup: async ( { page } ) => {
+				setup: async ( { page, expect } ) => {
 					const uploadTab = page.getByRole( 'tab', { name: 'Upload' } );
 					await uploadTab.click();
-					await page.getByRole( 'tabpanel', { name: 'Upload' } ).isVisible();
+					const uploadTabPanel = page.getByRole( 'tabpanel', { name: 'Upload' } );
+					await expect( uploadTabPanel ).toBeVisible();
 				},
 			},
 			{
 				name: 'fonts-install-fonts-tab',
-				setup: async ( { page } ) => {
+				setup: async ( { page, expect } ) => {
 					const installFontsTab = page.getByRole( 'tab', { name: 'Install Fonts' } );
 					await installFontsTab.click();
-					await page.getByRole( 'tabpanel', { name: 'Install Fonts' } ).isVisible();
+					const installFontsTabPanel = page.getByRole( 'tabpanel', { name: 'Install Fonts' } );
+					await expect( installFontsTabPanel ).toBeVisible();
 				},
 			},
 		],
