@@ -81,7 +81,7 @@ class WP_Admin_Notice_Collector {
 	 */
 	public static function capture_notice( $markup, $message, $args ) {
 		if ( '' !== trim( wp_strip_all_tags( $message ) ) ) {
-			self::$notices[] = array(
+			self::$notices[ $args['notice_id'] ] = array(
 				'markup'  => $markup,
 				'message' => $message,
 				'args'    => $args,
