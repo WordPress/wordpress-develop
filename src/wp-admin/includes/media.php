@@ -304,7 +304,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 		}
 	}
 
-	$file = wp_handle_upload( $_FILES[ $file_id ], $overrides, $time );
+	$file = wp_handle_upload( $_FILES[ $file_id ], $overrides, $time, $post );
 
 	if ( isset( $file['error'] ) ) {
 		return new WP_Error( 'upload_error', $file['error'] );
@@ -465,8 +465,14 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_data = array() ) {
 	$overrides = array( 'test_form' => false );
 
+	$post = null;
+
 	if ( isset( $post_data['post_date'] ) && substr( $post_data['post_date'], 0, 4 ) > 0 ) {
 		$time = $post_data['post_date'];
+
+		if ( $post_id ) {
+			$post = get_post( $post_id );
+		}
 	} else {
 		$post = get_post( $post_id );
 		if ( $post && substr( $post->post_date, 0, 4 ) > 0 ) {
@@ -476,7 +482,7 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 		}
 	}
 
-	$file = wp_handle_sideload( $file_array, $overrides, $time );
+	$file = wp_handle_sideload( $file_array, $overrides, $time, $post );
 
 	if ( isset( $file['error'] ) ) {
 		return new WP_Error( 'upload_error', $file['error'] );

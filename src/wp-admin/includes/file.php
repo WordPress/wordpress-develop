@@ -766,6 +766,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *
  * @access private
  * @since 4.0.0
+ * @since 7.1.0 Added the `$post` parameter.
  *
  * @see wp_handle_upload_error
  *
@@ -792,8 +793,10 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     @type bool     $test_type                Whether to test that the mime type of the file is as expected.
  *     @type string[] $mimes                    Array of allowed mime types keyed by their file extension regex.
  * }
- * @param string      $time      Time formatted in 'yyyy/mm'.
- * @param string      $action    Expected value for `$_POST['action']`.
+ * @param string|null  $time     Time to use for the upload directory. Accepts a 'yyyy/mm'
+ *                                formatted string or a MySQL datetime.
+ * @param string       $action   Expected value for `$_POST['action']`.
+ * @param WP_Post|null $post     Optional. Post object the upload is associated with. Default null.
  * @return array {
  *     On success, returns an associative array of file attributes.
  *     On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
@@ -807,7 +810,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
  *                |array{ error: non-empty-string }
  */
-function _wp_handle_upload( &$file, $overrides, $time, $action ) {
+function _wp_handle_upload( &$file, $overrides, $time, $action, $post = null ) {
 	// The default error handler.
 	if ( ! function_exists( 'wp_handle_upload_error' ) ) {
 		function wp_handle_upload_error( &$file, $message ) {
@@ -980,6 +983,23 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		$type = '';
 	}
 
+	/**
+	 * Filters the time value used to determine the directory where the file is stored.
+	 *
+	 * The filtered value is passed to wp_upload_dir(), where it is used to determine
+	 * the year/month subdirectory when year/month folders are enabled.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string|null  $time      Time to use for the upload directory. Accepts a 'yyyy/mm'
+	 *                                formatted string or a MySQL datetime.
+	 * @param WP_Post|null $post      Post object the upload is associated with, or null.
+	 * @param array        $file      Reference to a single element from `$_FILES`.
+	 * @param array|false  $overrides An array of override parameters for this file, or boolean false.
+	 * @param string       $action    Expected value for `$_POST['action']`.
+	 */
+	$time = apply_filters( 'wp_handle_upload_time', $time, $post, $file, $overrides, $action );
+
 	/*
 	 * A writable uploads dir will pass this test. Again, there's no point
 	 * overriding this one.
@@ -1088,6 +1108,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
  * Passes the {@see 'wp_handle_upload'} action.
  *
  * @since 2.0.0
+ * @since 7.1.0 Added the `$post` parameter.
  *
  * @see _wp_handle_upload()
  *
@@ -1097,19 +1118,21 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
  * @param array|false $overrides Optional. An associative array of names => values
  *                               to override default variables. Default false.
  *                               See _wp_handle_upload() for accepted values.
- * @param string|null $time      Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null  $time     Optional. Time to use for the upload directory. Accepts a 'yyyy/mm'
+ *                               formatted string or a MySQL datetime. Default null.
+ * @param WP_Post|null $post     Optional. Post object the upload is associated with. Default null.
  * @return array See _wp_handle_upload() for return value.
  *
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
  *                |array{ error: non-empty-string }
  */
-function wp_handle_upload( &$file, $overrides = false, $time = null ) {
+function wp_handle_upload( &$file, $overrides = false, $time = null, $post = null ) {
 	/*
 	 *  $_POST['action'] must be set and its value must equal $overrides['action']
 	 *  or this:
 	 */
 	$action = $overrides['action'] ?? 'wp_handle_upload';
-	return _wp_handle_upload( $file, $overrides, $time, $action );
+	return _wp_handle_upload( $file, $overrides, $time, $action, $post );
 }
 
 /**
@@ -1118,6 +1141,7 @@ function wp_handle_upload( &$file, $overrides = false, $time = null ) {
  * Passes the {@see 'wp_handle_sideload'} action.
  *
  * @since 2.6.0
+ * @since 7.1.0 Added the `$post` parameter.
  *
  * @see _wp_handle_upload()
  *
@@ -1127,19 +1151,21 @@ function wp_handle_upload( &$file, $overrides = false, $time = null ) {
  * @param array|false $overrides Optional. An associative array of names => values
  *                               to override default variables. Default false.
  *                               See _wp_handle_upload() for accepted values.
- * @param string|null $time      Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null  $time     Optional. Time to use for the upload directory. Accepts a 'yyyy/mm'
+ *                               formatted string or a MySQL datetime. Default null.
+ * @param WP_Post|null $post     Optional. Post object the upload is associated with. Default null.
  * @return array See _wp_handle_upload() for return value.
  *
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
  *                |array{ error: non-empty-string }
  */
-function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
+function wp_handle_sideload( &$file, $overrides = false, $time = null, $post = null ) {
 	/*
 	 *  $_POST['action'] must be set and its value must equal $overrides['action']
 	 *  or this:
 	 */
 	$action = $overrides['action'] ?? 'wp_handle_sideload';
-	return _wp_handle_upload( $file, $overrides, $time, $action );
+	return _wp_handle_upload( $file, $overrides, $time, $action, $post );
 }
 
 /**
