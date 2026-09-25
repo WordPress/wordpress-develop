@@ -345,13 +345,53 @@ require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
  * how you call phpunit has no effect.
  */
 class WP_PHPUnit_Util_Getopt {
+	/**
+	 * Groups that are skipped by default for the current test run.
+	 *
+	 * @var array<string, bool>
+	 */
+	protected static $skipped_groups = array();
+
+	/**
+	 * Groups that were explicitly requested via the command line.
+	 *
+	 * @var array<string, bool>
+	 */
+	protected static $requested_groups = array();
+
+	/**
+	 * Initializes the default skipped groups for the current test mode.
+	 *
+	 * @return array<string, bool> The groups skipped by default.
+	 */
+	protected static function get_default_skipped_groups() {
+		$skipped_groups = array(
+			'ajax'                    => true,
+			'ms-files'                => true,
+			'external-http'           => true,
+			'html-api-html5lib-tests' => true,
+		);
+
+		if ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE ) {
+			$skipped_groups['ms-excluded']    = true;
+			$skipped_groups['oembed-headers'] = true;
+		} else {
+			$skipped_groups['ms-required'] = true;
+		}
+
+		return $skipped_groups;
+	}
+
+	/**
+	 * Resets the parsed command line state.
+	 */
+	public static function reset() {
+		self::$skipped_groups   = self::get_default_skipped_groups();
+		self::$requested_groups = array();
+	}
 
 	public function __construct( $argv ) {
-		$skipped_groups = array(
-			'ajax'          => true,
-			'ms-files'      => true,
-			'external-http' => true,
-		);
+		self::reset();
 
 		while ( current( $argv ) ) {
 			$option = current( $argv );
@@ -359,28 +399,29 @@ class WP_PHPUnit_Util_Getopt {
 
 			switch ( $option ) {
 				case '--exclude-group':
-					foreach ( $skipped_groups as $group_name => $skipped ) {
-						$skipped_groups[ $group_name ] = false;
-					}
+					// PHPUnit replaces XML exclusions when this option is provided.
+					// Keep our default skipped groups active unless they are requested explicitly.
 					continue 2;
 				case '--group':
 					$groups = explode( ',', $value );
 					foreach ( $groups as $group ) {
+						self::$requested_groups[ $group ] = true;
+
 						if ( is_numeric( $group ) || preg_match( '/^(UT|Plugin)\d+$/', $group ) ) {
 							WP_UnitTestCase::forceTicket( $group );
 						}
 					}
 
-					foreach ( $skipped_groups as $group_name => $skipped ) {
+					foreach ( self::$skipped_groups as $group_name => $skipped ) {
 						if ( in_array( $group_name, $groups, true ) ) {
-							$skipped_groups[ $group_name ] = false;
+							self::$skipped_groups[ $group_name ] = false;
 						}
 					}
 					continue 2;
 			}
 		}
 
-		$skipped_groups = array_filter( $skipped_groups );
+		$skipped_groups = array_filter( self::$skipped_groups );
 		foreach ( $skipped_groups as $group_name => $skipped ) {
 			echo sprintf( 'Not running %1$s tests. To execute these, use --group %1$s.', $group_name ) . PHP_EOL;
 		}
@@ -391,6 +432,25 @@ class WP_PHPUnit_Util_Getopt {
 			echo 'If this changeset includes changes to HTTP, make sure there are no timeouts.' . PHP_EOL;
 			echo PHP_EOL;
 		}
+	}
+
+	/**
+	 * Returns the groups that are still skipped by default for this run.
+	 *
+	 * @return string[]
+	 */
+	public static function get_skipped_groups() {
+		return array_keys( array_filter( self::$skipped_groups ) );
+	}
+
+	/**
+	 * Determines whether a group was explicitly requested via the command line.
+	 *
+	 * @param string $group Group name.
+	 * @return bool Whether the group was explicitly requested.
+	 */
+	public static function is_group_requested( $group ) {
+		return isset( self::$requested_groups[ $group ] );
 	}
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );
