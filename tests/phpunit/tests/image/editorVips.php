@@ -572,34 +572,48 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests horizontal flip behavior.
+	 * Tests that flipping along the horizontal axis mirrors the image vertically.
 	 */
 	public function test_flip() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
 
+		// Save a lossless copy of the unmodified image to sample the source pixels from.
+		$original_editor = new WP_Image_Editor_Vips( $file );
+		$original_editor->load();
+
+		$size          = $original_editor->get_size();
+		$original_tmp  = tempnam( get_temp_dir(), 'vips_flip_' );
+		$original_file = $original_tmp . '.png';
+		$original_editor->save( $original_file );
+
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
 		$vips_image_editor->load();
 
-		$property = new ReflectionProperty( $vips_image_editor, 'image' );
+		$flipped = $vips_image_editor->flip( true, false );
+		$this->assertTrue( $flipped );
 
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
+		$flipped_tmp  = tempnam( get_temp_dir(), 'vips_flip_' );
+		$flipped_file = $flipped_tmp . '.png';
+		$vips_image_editor->save( $flipped_file );
 
-		$image = $property->getValue( $vips_image_editor );
-		if ( ! is_callable( array( $image, 'getpoint' ) ) ) {
-			$this->markTestSkipped( 'The image editor does not support getpoint().' );
-		}
+		$original_image = imagecreatefrompng( $original_file );
+		$flipped_image  = imagecreatefrompng( $flipped_file );
 
-		// Get color at top-left before flipping
-		$color_top_left = $image->getpoint( 0, 0 );
+		// Flipping along the horizontal axis moves the bottom-left pixel to the top-left.
+		$expected = imagecolorsforindex( $original_image, imagecolorat( $original_image, 0, $size['height'] - 1 ) );
+		$actual   = imagecolorsforindex( $flipped_image, imagecolorat( $flipped_image, 0, 0 ) );
 
-		$vips_image_editor->flip( true, false );
+		imagedestroy( $original_image );
+		imagedestroy( $flipped_image );
 
-		// After vertical flip, top-left should now be at bottom-left (0, 99)
-		$color_bottom_left = $property->getValue( $vips_image_editor )->getpoint( 0, 99 );
+		unlink( $original_tmp );
+		unlink( $original_file );
+		unlink( $flipped_tmp );
+		unlink( $flipped_file );
 
-		$this->assertSame( $color_top_left, $color_bottom_left );
+		$this->assertSame( $expected['red'], $actual['red'] );
+		$this->assertSame( $expected['green'], $actual['green'] );
+		$this->assertSame( $expected['blue'], $actual['blue'] );
 	}
 
 	/**
