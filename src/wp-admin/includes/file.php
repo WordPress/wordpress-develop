@@ -1880,6 +1880,20 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	global $wp_filesystem;
 
+	/**
+	 * Filters whether the zlib PHP extension is available for PclZip to extract archives.
+	 *
+	 * PclZip requires `gzopen()`, provided by the zlib extension. Without it, extraction
+	 * cannot proceed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $zlib_available Whether the zlib extension is available. Default is the result of `function_exists( 'gzopen' )`.
+	 */
+	if ( ! apply_filters( 'unzip_file_pclzip_zlib_available', function_exists( 'gzopen' ) ) ) {
+		return new WP_Error( 'unzip_file_missing_zlib', __( 'PHP does not have the zlib extension enabled, which is required to extract this archive.' ) );
+	}
+
 	mbstring_binary_safe_encoding();
 
 	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
