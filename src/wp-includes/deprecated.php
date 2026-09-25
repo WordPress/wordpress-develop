@@ -6394,7 +6394,6 @@ function wp_enqueue_global_styles_custom_css() {
  *
  * @param array  $block     Block object.
  * @param string $variation Slug for the block style variation.
- *
  * @return string The unique variation name.
  */
 function wp_create_block_style_variation_instance_name( $block, $variation ) {
@@ -6532,4 +6531,21 @@ function wp_sanitize_script_attributes( $attributes ) {
 		}
 	}
 	return $attributes_string;
+}
+
+/**
+ * Truncates a post slug.
+ *
+ * @since 3.6.0
+ * @deprecated 7.2.0 Use wp_truncate_slug() instead.
+ * @see wp_truncate_slug()
+ *
+ * @param string $slug   The slug to truncate.
+ * @param int    $length Optional. Max length of the slug. Default 200 (characters).
+ * @return string The truncated slug.
+ */
+function _truncate_post_slug( $slug, $length = 200 ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'wp_truncate_slug()' );
+
+	return wp_truncate_slug( $slug, $length );
 }

@@ -61,7 +61,7 @@ class Tests_Term extends WP_UnitTestCase {
 		// Clean up.
 		$deleted = wp_delete_term( $t['term_id'], $this->taxonomy );
 
-		$this->assertEquals( $t['term_id'], $exists );
+		$this->assertSame( (string) $t['term_id'], $exists );
 		$this->assertTrue( $deleted );
 	}
 
@@ -77,6 +77,38 @@ class Tests_Term extends WP_UnitTestCase {
 		);
 		// There are 5 posts, all Uncategorized.
 		$this->assertSame( '1', $count );
+	}
+
+	/**
+	 * Ensures a queried parent term outside the taxonomy hierarchy counts as the integer 0.
+	 *
+	 * Every other outcome is a numeric string, so this is the one case where the return
+	 * type is not a string at all.
+	 *
+	 * @ticket 61936
+	 *
+	 * @covers ::wp_count_terms
+	 */
+	public function test_wp_count_terms_should_return_integer_zero_for_a_parent_outside_the_hierarchy() {
+		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
+
+		self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
+
+		$count = wp_count_terms(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'parent'   => 99999,
+			)
+		);
+		$this->assertSame( 0, $count, 'Incorrect count for a parent outside the hierarchy.' );
+
+		$count = wp_count_terms(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'child_of' => 99999,
+			)
+		);
+		$this->assertSame( 0, $count, 'Incorrect count for a child_of outside the hierarchy.' );
 	}
 
 	/**
@@ -179,7 +211,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$this->assertIsArray( $post->post_category );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		$term1 = wp_insert_term( 'Foo', 'category' );
 		$term2 = wp_insert_term( 'Bar', 'category' );
@@ -202,11 +234,11 @@ class Tests_Term extends WP_UnitTestCase {
 
 		wp_set_post_categories( $post_id, array(), true );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		wp_set_post_categories( $post_id, array() );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 	}
 
 	/**
@@ -220,7 +252,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'cpt' ) );
 		$post    = get_post( $post_id );
 
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		$term = wp_insert_term( 'Foo', 'category' );
 
@@ -228,7 +260,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertSame( $term['term_id'], $post->post_category[0] );
 
 		wp_set_post_categories( $post_id, array() );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		remove_filter( 'default_category_post_types', array( $this, 'filter_default_category_post_types' ) );
 	}
@@ -260,7 +292,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$post_id  = self::$post_ids[0];
 		$expected = wp_set_object_terms( $post_id, $name, 'category', false );
 		$actual   = wp_set_object_terms( $post_id, $name, 'category', false );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( array_map( 'strval', $expected ), $actual );
 	}
 
 	/**
@@ -303,8 +335,9 @@ class Tests_Term extends WP_UnitTestCase {
 
 		wp_delete_category( $cat_id1 );
 
-		$cat_id2 = self::factory()->category->create( array( 'parent' => $cat_id1 ) );
+		$cat_id2 = wp_insert_term( 'Child category', 'category', array( 'parent' => $cat_id1 ) );
 		$this->assertWPError( $cat_id2 );
+		$this->assertSame( 'missing_parent', $cat_id2->get_error_code() );
 	}
 
 	/**

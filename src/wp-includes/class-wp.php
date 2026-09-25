@@ -650,14 +650,14 @@ class WP {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @global WP_Query     $wp_query     WordPress Query object.
-	 * @global string       $query_string Query string for the loop.
-	 * @global array        $posts        The found posts.
-	 * @global WP_Post|null $post         The current post, if available.
-	 * @global string       $request      The SQL statement for the request.
-	 * @global int          $more         Only set, if single page or post.
-	 * @global int          $single       If single page or post. Only set, if single page or post.
-	 * @global WP_User      $authordata   Only set, if author archive.
+	 * @global WP_Query           $wp_query     WordPress Query object.
+	 * @global string             $query_string Query string for the loop.
+	 * @global array              $posts        The found posts.
+	 * @global WP_Post|null       $post         The current post, if available.
+	 * @global string             $request      The SQL statement for the request.
+	 * @global int                $more         Only set, if single page or post.
+	 * @global int                $single       If single page or post. Only set, if single page or post.
+	 * @global WP_User|false|null $authordata   Only set, if author archive.
 	 */
 	public function register_globals() {
 		global $wp_query;
@@ -746,8 +746,9 @@ class WP {
 
 		$set_404 = true;
 
-		// Never 404 for the admin, robots, or favicon.
-		if ( is_admin() || is_robots() || is_favicon() ) {
+		// Never 404 here for the admin, robots, favicon, or sitemaps.
+		// Sitemap routes send their own status in WP_Sitemaps::render_sitemaps().
+		if ( is_admin() || is_robots() || is_favicon() || is_sitemap() || get_query_var( 'sitemap-stylesheet' ) ) {
 			$set_404 = false;
 
 			// If posts were found, check for paged content.
