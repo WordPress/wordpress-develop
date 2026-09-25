@@ -133,14 +133,14 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		// Use Image::black() to test write support (encoding) rather than findLoad() which only tests read support (decoding).
 		try {
 			$test_image = Jcupitt\Vips\Image::black( 1, 1 );
-			
+
 			// Some formats (like GIF) have issues with writeToBuffer in ImageMagick, so test with writeToFile
 			$temp_file = tempnam( sys_get_temp_dir(), 'vips_test_' ) . '.' . $target_extension;
-			
+
 			try {
 				$test_image->writeToFile( $temp_file );
 				$supported = file_exists( $temp_file ) && filesize( $temp_file ) > 0;
-				
+
 				if ( file_exists( $temp_file ) ) {
 					unlink( $temp_file );
 				}
@@ -315,7 +315,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @return array An array of resized images metadata by size.
 	 */
 	public function multi_resize( $sizes ) {
-		$metadata = array();
+		$metadata  = array();
 		$orig_size = $this->size;
 
 		if ( ! $this->original_image ) {
@@ -352,7 +352,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			}
 
 			$resize_result = $this->resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
-			$duplicate = ( ( $orig_size['width'] === $size_data['width'] ) && ( $orig_size['height'] === $size_data['height'] ) );
+			$duplicate     = ( ( $orig_size['width'] === $size_data['width'] ) && ( $orig_size['height'] === $size_data['height'] ) );
 
 			if ( ! is_wp_error( $resize_result ) && ! $duplicate ) {
 				$resized = $this->_save( $this->image );
@@ -362,13 +362,12 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 					$metadata[ $size ] = $resized;
 				}
 			}
-
 		}
 
 		// Restore original image and dimensions.
 		try {
 			$this->image = $this->original_image->copy();
-			$this->size = $orig_size;
+			$this->size  = $orig_size;
 		} catch ( Exception $e ) {
 			$this->size = $orig_size;
 		}
@@ -551,21 +550,21 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			switch ( $mime_type ) {
 				case 'image/jpeg':
-					$save_options['Q'] = $this->get_quality();
+					$save_options['Q']     = $this->get_quality();
 					$save_options['strip'] = true;
 					break;
 
 				case 'image/png':
 					// PNG quality in VIPS is compression level (0-9).
 					// Convert WP quality (0-100) to VIPS compression (9-0).
-					$quality = $this->get_quality();
-					$compression = 9 - round( ( $quality / 100 ) * 9 );
+					$quality                     = $this->get_quality();
+					$compression                 = 9 - round( ( $quality / 100 ) * 9 );
 					$save_options['compression'] = max( 0, min( 9, $compression ) );
-					$save_options['strip'] = true;
+					$save_options['strip']       = true;
 					break;
 
 				case 'image/webp':
-					$save_options['Q'] = $this->get_quality();
+					$save_options['Q']     = $this->get_quality();
 					$save_options['strip'] = true;
 					break;
 
@@ -574,7 +573,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 					break;
 
 				case 'image/avif':
-					$save_options['Q'] = $this->get_quality();
+					$save_options['Q']     = $this->get_quality();
 					$save_options['strip'] = true;
 					break;
 			}
@@ -643,8 +642,8 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			switch ( $mime_type ) {
 				case 'image/png':
-					$quality = $this->get_quality();
-					$compression = 9 - round( ( $quality / 100 ) * 9 );
+					$quality                     = $this->get_quality();
+					$compression                 = 9 - round( ( $quality / 100 ) * 9 );
 					$save_options['compression'] = max( 0, min( 9, $compression ) );
 					break;
 
