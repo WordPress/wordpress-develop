@@ -2453,6 +2453,15 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'exclude_changeset' => true,
 			)
 		);
+		$this->assertEmpty( $values );
+
+		$manager->add_setting( 'background_color' );
+		$values = $manager->unsanitized_post_values(
+			array(
+				'exclude_post_data' => true,
+				'exclude_changeset' => true,
+			)
+		);
 		$this->assertNotEmpty( $values );
 		$this->assertArrayHasKey( 'background_color', $values );
 		$this->assertSame( '#000000', $values['background_color'] );
