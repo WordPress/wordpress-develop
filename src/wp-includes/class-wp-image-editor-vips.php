@@ -55,6 +55,16 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	protected $lossless = false;
 
 	/**
+	 * Whether the loaded image is a paletted PNG.
+	 *
+	 * libvips expands the palette on load, so the original colour type has to be read
+	 * from the file in order to ask for a palette back when saving.
+	 *
+	 * @var bool
+	 */
+	protected $paletted = false;
+
+	/**
 	 * Cache of mime type support checks.
 	 *
 	 * Dynamic writeToBuffer probe is used because VIPS support depends on runtime configuration
@@ -210,6 +220,14 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			if ( ! $this->mime_type ) {
 				$this->mime_type = $this->default_mime_type;
+			}
+
+			// PNG colour type 3 is an indexed palette. See the property for why it is read
+			// from the file rather than from the loaded image.
+			if ( 'image/png' === $this->mime_type ) {
+				$ihdr = @file_get_contents( $this->file, false, null, 25, 1 );
+
+				$this->paletted = ( false !== $ihdr && 3 === ord( $ihdr ) );
 			}
 
 			$this->update_size( $width, $height );
@@ -755,6 +773,13 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 					$compression                 = 9 - round( ( $quality / 100 ) * 9 );
 					$save_options['compression'] = max( 0, min( 9, $compression ) );
 					$save_options['strip']       = $strip_meta;
+
+					// Asking for a palette back keeps an indexed PNG indexed. Without it the
+					// resized image is written as true colour, which is much larger than the
+					// file it came from. The option requires libvips 8.13.
+					if ( $this->paletted && version_compare( Jcupitt\Vips\Config::version(), '8.13', '>=' ) ) {
+						$save_options['palette'] = true;
+					}
 					break;
 
 				case 'image/webp':
