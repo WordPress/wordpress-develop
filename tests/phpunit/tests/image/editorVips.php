@@ -642,6 +642,39 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests resetting Exif orientation data on rotate.
+	 *
+	 * @ticket 37140
+	 * @requires function exif_read_data
+	 */
+	public function test_remove_orientation_data_on_rotate() {
+		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
+		$data = wp_read_image_metadata( $file );
+
+		// The orientation value 3 is equivalent to rotated upside down (180 degrees).
+		$this->assertSame( 3, (int) $data['orientation'], 'Orientation value read from does not match image file Exif data: ' . $file );
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		// Test a value that would not lead back to 1, as WP is resetting the value to 1 manually.
+		$vips_image_editor->rotate( 90 );
+
+		$temp_tmp  = tempnam( get_temp_dir(), 'vips_rotate_' );
+		$temp_file = $temp_tmp . '.jpg';
+		$saved     = $vips_image_editor->save( $temp_file, 'image/jpeg' );
+		$this->assertNotWPError( $saved );
+
+		$data = wp_read_image_metadata( $saved['path'] );
+
+		unlink( $temp_tmp );
+		unlink( $saved['path'] );
+
+		// Make sure the image is no longer in The Upside Down Exif orientation.
+		$this->assertSame( 1, (int) $data['orientation'], 'Orientation Exif data was not updated after rotating image: ' . $file );
+	}
+
+	/**
 	 * Tests that flipping along the horizontal axis mirrors the image vertically.
 	 */
 	public function test_flip() {
