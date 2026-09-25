@@ -12,7 +12,7 @@ class Tests_Formatting_wpTrimWords extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @var string $long_text
+	 * @var string
 	 */
 	private $long_text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce varius lacinia vehicula. Etiam sapien risus, ultricies ac posuere eu, convallis sit amet augue. Pellentesque urna massa, lacinia vel iaculis eget, bibendum in mauris. Aenean eleifend pulvinar ligula, a convallis eros gravida non. Suspendisse potenti. Pellentesque et odio tortor. In vulputate pellentesque libero, sed dapibus velit mollis viverra. Pellentesque id urna euismod dolor cursus sagittis.';
 
@@ -86,5 +86,20 @@ class Tests_Formatting_wpTrimWords extends WP_UnitTestCase {
 		$this->assertSame( '', wp_trim_words( $this->long_text, 'abc', '' ) );
 		$this->assertSame( '', wp_trim_words( $this->long_text, null, '' ) );
 		$this->assertSame( 'Lorem ipsum dolor', wp_trim_words( $this->long_text, '3', '' ) );
+	}
+
+	/**
+	 * Additional edge cases.
+	 */
+	public function test_returns_empty_string_when_text_is_empty() {
+		$this->assertSame( '', wp_trim_words( '' ) );
+	}
+
+	public function test_trims_simple_sentence_correctly() {
+		$text = 'This is a simple test sentence';
+		$this->assertSame(
+			'This is a simple&hellip;',
+			wp_trim_words( $text, 4 )
+		);
 	}
 }
