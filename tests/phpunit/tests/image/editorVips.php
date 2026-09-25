@@ -960,4 +960,132 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		unlink( $first_file );
 		unlink( $second_file );
 	}
+
+	/**
+	 * Reads the PNG colour type out of the IHDR chunk.
+	 *
+	 * @param string $file Path to a PNG file.
+	 * @return int The colour type: 0 grayscale, 2 RGB, 3 palette, 4 grayscale with alpha, 6 RGBA.
+	 */
+	private function get_png_color_type( $file ) {
+		// The colour type is the 10th byte of the IHDR chunk, at offset 25 of the file.
+		return ord( file_get_contents( $file, false, null, 25, 1 ) );
+	}
+
+	/**
+	 * Tests that alpha transparency survives a resize.
+	 *
+	 * @ticket 63448
+	 *
+	 * @dataProvider data_alpha_transparency_is_preserved_after_resize
+	 *
+	 * @param string $file_path Path to the image file.
+	 */
+	public function test_alpha_transparency_is_preserved_after_resize( $file_path ) {
+		$temp_tmp  = tempnam( get_temp_dir(), 'vips_alpha_' );
+		$temp_file = $temp_tmp . '.png';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file_path );
+		$vips_image_editor->load();
+
+		$size = $vips_image_editor->get_size();
+		$this->assertNotWPError( $vips_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 ) );
+
+		$saved = $vips_image_editor->save( $temp_file );
+		$this->assertNotWPError( $saved );
+
+		$color_type = $this->get_png_color_type( $saved['path'] );
+
+		unlink( $temp_tmp );
+		unlink( $saved['path'] );
+
+		$this->assertContains( $color_type, array( 4, 6 ), "Alpha transparency should be preserved after resize for {$file_path}." );
+	}
+
+	/**
+	 * Data provider for test_alpha_transparency_is_preserved_after_resize.
+	 *
+	 * @return array[]
+	 */
+	public static function data_alpha_transparency_is_preserved_after_resize() {
+		return array(
+			'oval-or8'                   => array(
+				DIR_TESTDATA . '/images/png-tests/oval-or8.png',
+			),
+			'oval-or8-grayscale-indexed' => array(
+				DIR_TESTDATA . '/images/png-tests/oval-or8-grayscale-indexed.png',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the PNG colour type is preserved after resizing.
+	 *
+	 * The colour type is read straight from the IHDR chunk, which is the same thing the
+	 * Imagick editor exposes as the `png:IHDR.color-type-orig` property. An indexed PNG
+	 * that comes back as true colour takes far more space than the original.
+	 *
+	 * @ticket 63448
+	 *
+	 * @dataProvider data_png_color_type_after_resize
+	 *
+	 * @param string $file_path           Path to the image file.
+	 * @param int    $expected_color_type The expected original colour type.
+	 */
+	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
+		$temp_tmp  = tempnam( get_temp_dir(), 'vips_colortype_' );
+		$temp_file = $temp_tmp . '.png';
+
+		$this->assertSame(
+			$expected_color_type,
+			$this->get_png_color_type( $file_path ),
+			"The fixture itself is not colour type {$expected_color_type}: {$file_path}."
+		);
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file_path );
+		$vips_image_editor->load();
+
+		$size = $vips_image_editor->get_size();
+		$this->assertNotWPError( $vips_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 ) );
+
+		$saved = $vips_image_editor->save( $temp_file );
+		$this->assertNotWPError( $saved );
+
+		$color_type = $this->get_png_color_type( $saved['path'] );
+
+		unlink( $temp_tmp );
+		unlink( $saved['path'] );
+
+		$this->assertSame(
+			$expected_color_type,
+			$color_type,
+			"The PNG colour type should be preserved after resize for {$file_path}."
+		);
+	}
+
+	/**
+	 * Data provider for test_png_color_type_is_preserved_after_resize.
+	 *
+	 * @return array[]
+	 */
+	public static function data_png_color_type_after_resize() {
+		return array(
+			'vivid-green-bird_color_type_6'         => array(
+				DIR_TESTDATA . '/images/png-tests/vivid-green-bird.png',
+				6, // RGBA.
+			),
+			'grayscale-test-image_color_type_4'     => array(
+				DIR_TESTDATA . '/images/png-tests/grayscale-test-image.png',
+				4, // Grayscale with Alpha.
+			),
+			'rabbit-time-paletted-or8_color_type_3' => array(
+				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
+				3, // Paletted.
+			),
+			'test8_color_type_3'                    => array(
+				DIR_TESTDATA . '/images/png-tests/test8.png',
+				3, // Paletted.
+			),
+		);
+	}
 }
