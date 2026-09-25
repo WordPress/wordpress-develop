@@ -14,6 +14,14 @@ require_once __DIR__ . '/../includes/class-jsonserializable-object.php';
  * @group restapi
  */
 class Tests_REST_API extends WP_UnitTestCase {
+	private $rest_debug_log_file;
+
+	private $rest_debug_log_original_error_log;
+
+	private $rest_debug_log_original_error_reporting;
+
+	private $rest_debug_log_fixture;
+
 	public function set_up() {
 		parent::set_up();
 
@@ -24,7 +32,155 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function tear_down() {
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
+
+		if ( null !== $this->rest_debug_log_original_error_log ) {
+			ini_set( 'error_log', $this->rest_debug_log_original_error_log );
+		}
+
+		if ( null !== $this->rest_debug_log_original_error_reporting ) {
+			error_reporting( $this->rest_debug_log_original_error_reporting );
+		}
+
+		if ( $this->rest_debug_log_fixture && file_exists( $this->rest_debug_log_fixture ) ) {
+			unlink( $this->rest_debug_log_fixture );
+		}
+
+		unset( $GLOBALS['wp_test_rest_debug_log_closure'] );
+
 		parent::tear_down();
+	}
+
+	private function start_rest_debug_log_capture() {
+		$this->rest_debug_log_file                     = $this->temp_filename();
+		$this->rest_debug_log_original_error_log       = ini_get( 'error_log' );
+		$this->rest_debug_log_original_error_reporting = error_reporting();
+
+		ini_set( 'error_log', $this->rest_debug_log_file );
+		error_reporting( E_ALL );
+	}
+
+	private function get_rest_debug_log() {
+		if ( ! file_exists( $this->rest_debug_log_file ) ) {
+			return '';
+		}
+
+		return preg_replace( '/^\[.+?\] /m', '', file_get_contents( $this->rest_debug_log_file ) );
+	}
+
+	/**
+	 * @ticket 64260
+	 *
+	 * @covers ::_rest_log_debug_message
+	 *
+	 * @dataProvider data_rest_debug_log_messages
+	 */
+	public function test_rest_debug_log_message( $error_level, $expected_prefix ) {
+		$this->start_rest_debug_log_capture();
+
+		_rest_log_debug_message( 'Message with <code>markup</code>.', $error_level, true );
+
+		$this->assertSame( $expected_prefix . 'Message with markup.' . PHP_EOL, $this->get_rest_debug_log() );
+	}
+
+	public function data_rest_debug_log_messages() {
+		return array(
+			'doing it wrong notice' => array( E_USER_NOTICE, 'PHP Notice: ' ),
+			'deprecation'           => array( E_USER_DEPRECATED, 'PHP Deprecated: ' ),
+		);
+	}
+
+	/**
+	 * @ticket 64260
+	 *
+	 * @covers ::_rest_log_debug_message
+	 */
+	public function test_rest_debug_log_message_is_not_logged_when_disabled() {
+		$this->start_rest_debug_log_capture();
+
+		_rest_log_debug_message( 'Disabled message.', E_USER_NOTICE, false );
+
+		$this->assertSame( '', $this->get_rest_debug_log() );
+	}
+
+	/**
+	 * @ticket 64260
+	 *
+	 * @covers ::_rest_log_debug_message
+	 */
+	public function test_rest_debug_log_message_respects_error_reporting() {
+		$this->start_rest_debug_log_capture();
+		error_reporting( E_ALL & ~E_USER_DEPRECATED );
+
+		_rest_log_debug_message( 'Masked deprecation.', E_USER_DEPRECATED, true );
+
+		$this->assertSame( '', $this->get_rest_debug_log() );
+	}
+
+	/**
+	 * @ticket 64260
+	 *
+	 * @covers ::_rest_get_debug_backtrace_caller
+	 */
+	public function test_rest_debug_log_includes_content_caller() {
+		$this->start_rest_debug_log_capture();
+		$this->rest_debug_log_fixture = WP_CONTENT_DIR . '/plugins/rest-api-debug-log-test.php';
+
+		file_put_contents(
+			$this->rest_debug_log_fixture,
+			"<?php\nfunction wp_test_rest_debug_log_caller() {\n\t_rest_log_debug_message( 'Caller message.', E_USER_NOTICE, true );\n}\n"
+		);
+		require $this->rest_debug_log_fixture;
+
+		wp_test_rest_debug_log_caller();
+
+		$this->assertMatchesRegularExpression(
+			'#^PHP Notice: Caller message\. called from wp_test_rest_debug_log_caller\(\) in .+/wp-content/plugins/rest-api-debug-log-test\.php on line 3' . preg_quote( PHP_EOL, '#' ) . '$#',
+			$this->get_rest_debug_log()
+		);
+	}
+
+	/**
+	 * @ticket 64260
+	 *
+	 * @covers ::_rest_get_debug_backtrace_caller
+	 */
+	public function test_rest_debug_log_identifies_anonymous_function_caller() {
+		$this->start_rest_debug_log_capture();
+		$this->rest_debug_log_fixture = WP_CONTENT_DIR . '/plugins/rest-api-debug-log-test.php';
+
+		file_put_contents(
+			$this->rest_debug_log_fixture,
+			"<?php\n\$GLOBALS['wp_test_rest_debug_log_closure'] = static function () {\n\t_rest_log_debug_message( 'Closure message.', E_USER_NOTICE, true );\n};\n"
+		);
+		require $this->rest_debug_log_fixture;
+
+		$GLOBALS['wp_test_rest_debug_log_closure']();
+
+		$this->assertMatchesRegularExpression(
+			'#^PHP Notice: Closure message\. called from \(anonymous function\) in .+/wp-content/plugins/rest-api-debug-log-test\.php on line 3' . preg_quote( PHP_EOL, '#' ) . '$#',
+			$this->get_rest_debug_log()
+		);
+	}
+
+	/**
+	 * @ticket 64260
+	 *
+	 * @covers ::_rest_get_debug_backtrace_caller
+	 */
+	public function test_rest_debug_log_omits_include_pseudo_function_for_global_scope_caller() {
+		$this->start_rest_debug_log_capture();
+		$this->rest_debug_log_fixture = WP_CONTENT_DIR . '/plugins/rest-api-debug-log-test.php';
+
+		file_put_contents(
+			$this->rest_debug_log_fixture,
+			"<?php\n_rest_log_debug_message( 'Global scope message.', E_USER_NOTICE, true );\n"
+		);
+		require $this->rest_debug_log_fixture;
+
+		$this->assertMatchesRegularExpression(
+			'#^PHP Notice: Global scope message\. in .+/wp-content/plugins/rest-api-debug-log-test\.php on line 2' . preg_quote( PHP_EOL, '#' ) . '$#',
+			$this->get_rest_debug_log()
+		);
 	}
 
 	public function filter_wp_rest_server_class( $class_name ) {
