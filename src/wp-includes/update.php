@@ -190,7 +190,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 					'webp' => WP_Image_Editor_Vips::supports_mime_type( 'image/webp' ),
 					'avif' => WP_Image_Editor_Vips::supports_mime_type( 'image/avif' ),
 					'heic' => WP_Image_Editor_Vips::supports_mime_type( 'image/heic' ),
-					'jxl'  => false,
+					'jxl'  => WP_Image_Editor_Vips::supports_mime_type( 'image/jxl' ),
 				)
 			)
 		);
