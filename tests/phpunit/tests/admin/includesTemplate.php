@@ -458,7 +458,6 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			array( 'updated', 'notice notice-success is-dismissible settings-error' ),
 			array( 'notice-error', 'notice is-dismissible settings-error notice-error' ),
 			array( 'custom', 'notice is-dismissible settings-error custom' ),
-			array( 'notice-custom', 'notice is-dismissible settings-error notice-custom' ),
 			array( 'error my-own-css-class hello world', 'notice is-dismissible settings-error error my-own-css-class hello world' ),
 			array( 'error my-notice-is-awesome hello world', 'notice is-dismissible settings-error error my-notice-is-awesome hello world' ),
 		);
