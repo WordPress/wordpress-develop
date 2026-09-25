@@ -126,7 +126,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 			</span>
 
 			<?php
-			if ( 'publish' === $post->post_status || 'private' === $post->post_status || $can_publish ) {
+			if ( 'publish' === $post->post_status || 'private' === $post->post_status || $can_publish || current_user_can( 'edit_post', $post_id ) ) {
 				$private_style = '';
 				if ( 'private' === $post->post_status ) {
 					$private_style = 'style="display:none"';
