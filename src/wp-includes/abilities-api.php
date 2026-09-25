@@ -239,11 +239,11 @@ declare( strict_types = 1 );
  * @see wp_register_ability_category()
  * @see wp_unregister_ability()
  *
- * @param string               $name The name of the ability. Must be a namespaced string containing
- *                                   a prefix, e.g., `my-plugin/my-ability`. Can only contain lowercase
- *                                   alphanumeric characters, dashes, and forward slashes.
- * @param array<string, mixed> $args {
- *     An associative array of arguments for configuring the ability.
+ * @param string $name The name of the ability. Must be a namespaced string containing
+ *                     a prefix, e.g., `my-plugin/my-ability`. Can only contain lowercase
+ *                     alphanumeric characters, dashes, and forward slashes.
+ * @param array  $args {
+ *      An associative array of arguments for configuring the ability.
  *
  *     @type string               $label               Required. The human-readable label for the ability.
  *     @type string               $description         Required. A detailed description of what the ability does
@@ -642,10 +642,10 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  * @see wp_register_ability()
  * @see wp_unregister_ability_category()
  *
- * @param string               $slug The unique slug for the ability category. Must contain only lowercase
- *                                   alphanumeric characters and dashes (e.g., 'data-export').
- * @param array<string, mixed> $args {
- *     An associative array of arguments for the ability category.
+ * @param string $slug The unique slug for the ability category. Must contain only lowercase
+ *                     alphanumeric characters and dashes (e.g., 'data-export').
+ * @param array  $args {
+ *      An associative array of arguments for the ability category.
  *
  *     @type string               $label       Required. The human-readable label for the ability category.
  *     @type string               $description Required. A description of what abilities in this category do.
