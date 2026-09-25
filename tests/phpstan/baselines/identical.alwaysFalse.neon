@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Strict comparison using \=\=\= between ''update\-selected'' and mixed~\(''activate''\|''activate\-selected''\|''deactivate''\|''deactivate\-selected''\|''delete\-selected''\|''disable\-auto\-update''\|''disable\-auto\-update\-selected''\|''enable\-auto\-update''\|''enable\-auto\-update\-selected''\|''error_scrape''\|''resume''\|''update\-selected''\) will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: ../../../src/wp-admin/plugins.php
-		-
 			message: '#^Strict comparison using \=\=\= between ''exceeded\-max…'' and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
