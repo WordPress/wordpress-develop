@@ -180,20 +180,23 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		);
 	}
 
-	if ( extension_loaded( 'ffi' ) && class_exists( 'Jcupitt\\Vips\\Config' ) && class_exists( 'Jcupitt\\Vips\\Image' ) ) {
+	if ( extension_loaded( 'ffi' ) ) {
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-vips.php';
 
-		// Add data for libvips WebP, AVIF, HEIC and JPEG XL support.
-		$query['image_support']['vips'] = array_keys(
-			array_filter(
-				array(
-					'webp' => WP_Image_Editor_Vips::supports_mime_type( 'image/webp' ),
-					'avif' => WP_Image_Editor_Vips::supports_mime_type( 'image/avif' ),
-					'heic' => WP_Image_Editor_Vips::supports_mime_type( 'image/heic' ),
-					'jxl'  => WP_Image_Editor_Vips::supports_mime_type( 'image/jxl' ),
+		if ( WP_Image_Editor_Vips::test() ) {
+			// Add data for libvips WebP, AVIF, HEIC and JPEG XL support.
+			$query['image_support']['vips'] = array_keys(
+				array_filter(
+					array(
+						'webp' => WP_Image_Editor_Vips::supports_mime_type( 'image/webp' ),
+						'avif' => WP_Image_Editor_Vips::supports_mime_type( 'image/avif' ),
+						'heic' => WP_Image_Editor_Vips::supports_mime_type( 'image/heic' ),
+						'jxl'  => WP_Image_Editor_Vips::supports_mime_type( 'image/jxl' ),
+					)
 				)
-			)
-		);
+			);
+		}
 	}
 
 	/**
