@@ -111,7 +111,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 
 		$this->assertSame( $output, get_comments_number_text( false, false, $input ) );
 
-		remove_filter( 'gettext_with_context', array( $this, 'enable_comment_number_declension' ), 10, 4 );
+		remove_filter( 'gettext_with_context', array( $this, 'enable_comment_number_declension' ) );
 	}
 
 	public function enable_comment_number_declension( $translation, $text, $context, $domain ) {

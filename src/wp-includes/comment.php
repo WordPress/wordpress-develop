@@ -548,6 +548,8 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty string.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $comment_id
  */
 function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'comment', $comment_id, $meta_key, $meta_value );
@@ -576,7 +578,19 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
  * @phpstan-param int|numeric-string $comment_id
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
@@ -1247,7 +1261,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 	 *     @type int    $per_page  Number of comments per page.
 	 *     @type int    $max_depth Maximum comment threading depth allowed.
 	 * }
-	 * @param int $comment_id ID of the comment.
+	 * @param int   $comment_id    ID of the comment.
 	 */
 	return apply_filters( 'get_page_of_comment', (int) $page, $args, $original_args, $comment_id );
 }
@@ -3445,8 +3459,8 @@ function wp_should_disable_pings_for_environment() {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param bool   $should_disable  Whether pings should be disabled. Default true
-	 *                                for non-production environments, false for production.
+	 * @param bool   $should_disable   Whether pings should be disabled. Default true
+	 *                                 for non-production environments, false for production.
 	 * @param string $environment_type The current environment type as returned by
 	 *                                 wp_get_environment_type().
 	 */
@@ -3611,7 +3625,7 @@ function pingback( $content, $post ) {
 			$status = $client->query( 'pingback.ping', $pagelinkedfrom, $pagelinkedto );
 
 			if ( $status // Ping registered.
-				|| ( isset( $client->error->code ) && 48 === $client->error->code ) // Already registered.
+				|| ( $client->error instanceof IXR_Error && 48 === $client->error->code ) // Already registered.
 			) {
 				add_ping( $post, $pagelinkedto );
 			}
@@ -3685,7 +3699,7 @@ function trackback( $trackback_url, $title, $excerpt, $post_id ) {
  * @since 1.2.0
  *
  * @param string $server Host of blog to connect to.
- * @param string $path Path to send the ping.
+ * @param string $path   Path to send the ping.
  */
 function weblog_ping( $server = '', $path = '' ) {
 	require_once ABSPATH . WPINC . '/class-IXR.php';

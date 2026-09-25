@@ -10,6 +10,7 @@ on:
       # Changing the preferred version of Node.js could affect themes with build processes.
       - '.npmrc'
       - '.nvmrc'
+      - '.github/actions/setup-npm/**'
       # Changes to any themes with a build script should be confirmed.
       - 'src/wp-content/themes/twentynineteen/**'
       - 'src/wp-content/themes/twentytwenty/**'
@@ -27,6 +28,7 @@ on:
       # Changing the preferred version of Node.js could affect themes with build processes.
       - '.npmrc'
       - '.nvmrc'
+      - '.github/actions/setup-npm/**'
       # Changes to any themes with a build script should be confirmed.
       - 'src/wp-content/themes/twentynineteen/**'
       - 'src/wp-content/themes/twentytwenty/**'
@@ -160,9 +162,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version-file: '.nvmrc'
-          cache: npm
-          cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
+          node-version-file: 'src/wp-content/themes/${{ matrix.theme }}/.nvmrc'
+          package-manager-cache: false
+
+      - name: Set up npm
+        # A workflow_dispatch run can check out a release branch, which lacks the action.
+        if: ${{ hashFiles('.github/actions/setup-npm/action.yml') != '' }}
+        uses: ./.github/actions/setup-npm
+        with:
+          working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Install npm dependencies
         run: npm ci
@@ -245,9 +253,15 @@ jobs:
         if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version-file: '.nvmrc'
-          cache: npm
-          cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
+          node-version-file: 'src/wp-content/themes/${{ matrix.theme }}/.nvmrc'
+          package-manager-cache: false
+
+      - name: Set up npm
+        # A workflow_dispatch run can check out a release branch, which lacks the action.
+        if: ${{ ( matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive' ) && hashFiles('.github/actions/setup-npm/action.yml') != '' }}
+        uses: ./.github/actions/setup-npm
+        with:
+          working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Install npm dependencies
         if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
@@ -284,7 +298,6 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
-      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
