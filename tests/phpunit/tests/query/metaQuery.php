@@ -1514,6 +1514,78 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	/**
+	 * @ticket 52559
+	 */
+	public function test_meta_query_nested_or_with_not_exists_matches_expected_posts() {
+		$posts = self::factory()->post->create_many( 6 );
+
+		foreach ( $posts as $post_id ) {
+			add_post_meta( $post_id, 'unrelated_one', 'value' );
+			add_post_meta( $post_id, 'unrelated_two', 'value' );
+		}
+
+		add_post_meta( $posts[0], 'events_date_till', '20210218' );
+		add_post_meta( $posts[0], 'events_time_frame_end', '10:00:00' );
+
+		add_post_meta( $posts[1], 'events_date_till', '20210217' );
+		add_post_meta( $posts[1], 'events_time_frame_end', '15:00:00' );
+
+		add_post_meta( $posts[2], 'events_date_till', '20210217' );
+
+		add_post_meta( $posts[3], 'events_date_till', '20210217' );
+		add_post_meta( $posts[3], 'events_time_frame_end', '14:00:00' );
+
+		add_post_meta( $posts[4], 'events_date_till', '20210216' );
+
+		add_post_meta( $posts[5], 'events_date_till', '20210217' );
+		add_post_meta( $posts[5], 'events_time_frame_end', '14:59:19' );
+
+		$query = new WP_Query(
+			array(
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'meta_query'             => array(
+					'relation' => 'AND',
+					array(
+						'key'     => 'events_date_till',
+						'value'   => '20210217',
+						'compare' => '>=',
+					),
+					array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'events_date_till',
+							'value'   => '20210217',
+							'compare' => '>',
+						),
+						array(
+							'relation' => 'AND',
+							array(
+								'key'     => 'events_date_till',
+								'value'   => '20210217',
+								'compare' => '=',
+							),
+							array(
+								'key'     => 'events_time_frame_end',
+								'value'   => '14:59:19',
+								'compare' => '>=',
+							),
+						),
+						array(
+							'key'     => 'events_time_frame_end',
+							'compare' => 'NOT EXISTS',
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $posts[0], $posts[1], $posts[2], $posts[5] ), $query->posts );
+	}
+
 	public function test_meta_between_not_between() {
 		$post_id = self::factory()->post->create();
 		add_post_meta( $post_id, 'time', 500 );
