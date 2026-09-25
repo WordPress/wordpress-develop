@@ -162,6 +162,75 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_option() returns the default value when stored data is corrupted/unserializable.
+	 *
+	 * @ticket 59588
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_returns_default_when_unserialize_fails() {
+		global $wpdb;
+
+		// Insert a corrupted serialized value directly into the DB.
+		$option_name = 'test_corrupted_option_59588';
+		$wpdb->insert(
+			$wpdb->options,
+			array(
+				'option_name'  => $option_name,
+				'option_value' => 'a:2:{i:0;s:3:"foo";', // Truncated/corrupted serialized array.
+				'autoload'     => 'yes',
+			)
+		);
+		// Clear alloptions cache so get_option() reads from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( $option_name, 'options' );
+
+		$default = array( 'default_key' => 'default_value' );
+		$result  = get_option( $option_name, $default );
+
+		// Cleanup.
+		$wpdb->delete( $wpdb->options, array( 'option_name' => $option_name ) );
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( $option_name, 'options' );
+
+		$this->assertSame( $default, $result, 'get_option() should return the default value when stored data cannot be unserialized.' );
+	}
+
+	/**
+	 * Tests that get_option() correctly returns false when the stored value is a serialized boolean false.
+	 *
+	 * @ticket 59588
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_returns_false_for_serialized_false_value() {
+		global $wpdb;
+
+		// Insert the serialization of boolean false (`b:0;`) directly into the DB.
+		$option_name = 'test_serialized_false_59588';
+		$wpdb->insert(
+			$wpdb->options,
+			array(
+				'option_name'  => $option_name,
+				'option_value' => 'b:0;',
+				'autoload'     => 'yes',
+			)
+		);
+		// Clear alloptions cache so get_option() reads from DB.
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( $option_name, 'options' );
+
+		$result = get_option( $option_name, 'should-not-be-returned' );
+
+		// Cleanup.
+		$wpdb->delete( $wpdb->options, array( 'option_name' => $option_name ) );
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( $option_name, 'options' );
+
+		$this->assertFalse( $result, 'get_option() should return false when the stored value is a serialized boolean false.' );
+	}
+
+	/**
 	 * @ticket 23289
 	 *
 	 * @dataProvider data_bad_option_names

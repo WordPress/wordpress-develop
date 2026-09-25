@@ -240,6 +240,22 @@ function get_option( $option, $default_value = false ) {
 		$value = untrailingslashit( $value );
 	}
 
+	$raw_value = $value;
+	$value     = maybe_unserialize( $value );
+
+	/*
+	 * If the stored value was serialized but could not be unserialized, `maybe_unserialize()`
+	 * returns `false`. In that case, return the default value to avoid incorrectly returning
+	 * `false` instead of the caller's expected default.
+	 *
+	 * Note: `b:0;` is the valid serialization of boolean `false`. When properly unserialized
+	 * it returns `false`, which is correct and should not be treated as a failure.
+	 */
+	if ( false === $value && is_serialized( $raw_value ) && 'b:0;' !== trim( $raw_value ) ) {
+		/** This filter is documented in wp-includes/option.php */
+		return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
+	}
+
 	/**
 	 * Filters the value of an existing option.
 	 *
@@ -253,7 +269,7 @@ function get_option( $option, $default_value = false ) {
 	 *                       unserialized prior to being returned.
 	 * @param string $option Option name.
 	 */
-	return apply_filters( "option_{$option}", maybe_unserialize( $value ), $option );
+	return apply_filters( "option_{$option}", $value, $option );
 }
 
 /**
