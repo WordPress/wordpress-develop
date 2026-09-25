@@ -38,8 +38,3 @@ parameters:
 			identifier: if.alwaysFalse
 			count: 1
 			path: ../../../src/wp-includes/template.php
-		-
-			message: '#^If condition is always false\.$#'
-			identifier: if.alwaysFalse
-			count: 1
-			path: ../../../src/wp-login.php
