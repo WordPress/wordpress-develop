@@ -23,6 +23,21 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		parent::set_up();
 	}
 
+	public function tear_down() {
+		WP_Image_Editor_Mock::$load_return                      = true;
+		WP_Image_Editor_Mock::$test_return                      = true;
+		WP_Image_Editor_Mock::$save_return                      = array();
+		WP_Image_Editor_Mock::$spy                              = array();
+		WP_Image_Editor_Mock::$edit_return                      = array();
+		WP_Image_Editor_Mock::$size_return                      = null;
+		WP_Image_Editor_Mock::$supports_mime_type_return        = true;
+		WP_Image_Editor_Mock::$supports_output_mime_type_return = true;
+
+		wp_cache_delete( 'wp_image_editor_choose', 'image_editor' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Test wp_get_image_editor() where load returns true
 	 *
@@ -47,6 +62,75 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $editor );
 
 		WP_Image_Editor_Mock::$load_return = true;
+	}
+
+	/**
+	 * @ticket 63932
+	 */
+	public function test_get_editor_requires_output_support_for_source_mime_type() {
+		WP_Image_Editor_Mock::$supports_mime_type_return        = array(
+			'image/avif' => true,
+		);
+		WP_Image_Editor_Mock::$supports_output_mime_type_return = array(
+			'image/avif' => false,
+		);
+
+		wp_cache_delete( 'wp_image_editor_choose', 'image_editor' );
+
+		$this->assertFalse( wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) );
+	}
+
+	/**
+	 * @ticket 63932
+	 */
+	public function test_get_editor_allows_mapped_output_mime_type() {
+		WP_Image_Editor_Mock::$supports_mime_type_return        = array(
+			'image/heic' => true,
+		);
+		WP_Image_Editor_Mock::$supports_output_mime_type_return = array(
+			'image/heic' => false,
+			'image/jpeg' => true,
+		);
+
+		wp_cache_delete( 'wp_image_editor_choose', 'image_editor' );
+
+		$this->assertTrue( wp_image_editor_supports( array( 'mime_type' => 'image/heic' ) ) );
+	}
+
+	/**
+	 * @ticket 63932
+	 */
+	public function test_get_output_format_ignores_unsupported_output_mime_type() {
+		WP_Image_Editor_Mock::$supports_mime_type_return        = array(
+			'image/jpeg' => true,
+		);
+		WP_Image_Editor_Mock::$supports_output_mime_type_return = array(
+			'image/jpeg' => true,
+			'image/avif' => false,
+		);
+
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+
+		try {
+			$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+			$this->assertInstanceOf( 'WP_Image_Editor_Mock', $editor );
+
+			$method = new ReflectionMethod( $editor, 'get_output_format' );
+			if ( PHP_VERSION_ID < 80100 ) {
+				$method->setAccessible( true );
+			}
+
+			$this->assertSame(
+				array(
+					DIR_TESTDATA . '/images/canola.jpg',
+					'jpg',
+					'image/jpeg',
+				),
+				$method->invoke( $editor, DIR_TESTDATA . '/images/canola.jpg', 'image/jpeg' )
+			);
+		} finally {
+			remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+		}
 	}
 
 	/**
@@ -177,6 +261,17 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	public function image_editor_output_formats( $formats ) {
 		$formats['image/png']  = 'image/webp';
 		$formats['image/jpeg'] = 'image/webp';
+		return $formats;
+	}
+
+	/**
+	 * Changes the output format for JPEG images to AVIF.
+	 *
+	 * @param array $formats
+	 * @return array
+	 */
+	public function image_editor_output_avif( $formats ) {
+		$formats['image/jpeg'] = 'image/avif';
 		return $formats;
 	}
 

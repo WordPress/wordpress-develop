@@ -141,6 +141,89 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
+	 * Checks to see if editor supports saving to the mime-type specified.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $mime_type
+	 * @return bool
+	 */
+	public static function supports_output_mime_type( $mime_type ) {
+		if ( ! self::supports_mime_type( $mime_type ) ) {
+			return false;
+		}
+
+		if ( 0 !== strpos( $mime_type, 'image/' ) ) {
+			return true;
+		}
+
+		if ( 'image/avif' !== $mime_type ) {
+			return true;
+		}
+
+		return self::supports_encoding_mime_type( $mime_type );
+	}
+
+	/**
+	 * Checks whether Imagick can encode a mime type.
+	 *
+	 * Some ImageMagick builds can decode image formats, but cannot encode them.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $mime_type Image mime type.
+	 * @return bool Whether encoding is supported.
+	 */
+	private static function supports_encoding_mime_type( $mime_type ) {
+		static $supports_encoding = array();
+
+		if ( isset( $supports_encoding[ $mime_type ] ) ) {
+			return $supports_encoding[ $mime_type ];
+		}
+
+		$extension = strtoupper( self::get_extension( $mime_type ) );
+
+		if ( ! $extension ) {
+			$supports_encoding[ $mime_type ] = false;
+			return false;
+		}
+
+		$supports_encoding[ $mime_type ] = false;
+		$image                          = null;
+		$temp_file                      = tempnam( get_temp_dir(), 'wp-image-editor-' );
+
+		if ( ! $temp_file ) {
+			return false;
+		}
+
+		$test_file = $temp_file . '.' . strtolower( $extension );
+
+		try {
+			$image = new Imagick();
+			$image->newImage( 1, 1, new ImagickPixel( 'white' ) );
+			$image->setImageFormat( $extension );
+			$supports_encoding[ $mime_type ] = $image->writeImage( $test_file );
+		} catch ( Exception $e ) {
+			$supports_encoding[ $mime_type ] = false;
+		}
+
+		if ( $image instanceof Imagick ) {
+			$image->clear();
+			$image->destroy();
+		}
+
+		if ( file_exists( $temp_file ) ) {
+			unlink( $temp_file );
+		}
+
+		if ( file_exists( $test_file ) ) {
+			unlink( $test_file );
+		}
+
+		return $supports_encoding[ $mime_type ];
+	}
+
+	/**
 	 * Loads image from $this->file into new Imagick Object.
 	 *
 	 * @since 3.5.0

@@ -4,12 +4,14 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 
 	class WP_Image_Editor_Mock extends WP_Image_Editor {
 
-		public static $load_return = true;
-		public static $test_return = true;
-		public static $save_return = array();
-		public static $spy         = array();
-		public static $edit_return = array();
-		public static $size_return = null;
+		public static $load_return                      = true;
+		public static $test_return                      = true;
+		public static $save_return                      = array();
+		public static $spy                              = array();
+		public static $edit_return                      = array();
+		public static $size_return                      = null;
+		public static $supports_mime_type_return        = true;
+		public static $supports_output_mime_type_return = true;
 
 		// Allow testing of jpeg_quality filter.
 		public function set_mime_type( $mime_type = null ) {
@@ -23,7 +25,18 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 			return self::$test_return;
 		}
 		public static function supports_mime_type( $mime_type ) {
-			return true;
+			if ( is_array( self::$supports_mime_type_return ) ) {
+				return ! empty( self::$supports_mime_type_return[ $mime_type ] );
+			}
+
+			return self::$supports_mime_type_return;
+		}
+		public static function supports_output_mime_type( $mime_type ) {
+			if ( is_array( self::$supports_output_mime_type_return ) ) {
+				return ! empty( self::$supports_output_mime_type_return[ $mime_type ] );
+			}
+
+			return self::$supports_output_mime_type_return;
 		}
 		public function resize( $max_w, $max_h, $crop = false ) {
 			self::$spy[ __FUNCTION__ ][] = func_get_args();
