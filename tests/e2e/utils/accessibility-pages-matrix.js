@@ -281,9 +281,14 @@ const pages = [
 		name: 'Tools - Export',
 	},
 	{
-		id: 'site-health',
+		id: 'site-health-status',
 		path: '/site-health.php',
-		name: 'Tools - Site Health',
+		name: 'Tools - Site Health Status',
+	},
+	{
+		id: 'site-health-info-wp-section',
+		path: '/site-health.php?tab=debug#health-check-section-wp-core',
+		name: 'Tools - Site Health Info WP section open',
 	},
 	{
 		id: 'export-personal-data',
