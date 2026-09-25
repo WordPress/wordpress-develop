@@ -9,6 +9,13 @@
 class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 
 	/**
+	 * Theme directory URI used by tests that filter the active theme directory URI.
+	 *
+	 * @var string|null
+	 */
+	private $theme_directory_uri;
+
+	/**
 	 * @ticket 45528
 	 * @ticket 46336
 	 * @ticket 46387
@@ -144,6 +151,67 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				'internationalized-theme',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 53677
+	 */
+	public function test_resolve_relative_path_for_theme_in_subdirectory() {
+		$this->assertThemeScriptTranslationsLoaded(
+			content_url( 'themes/subdir/internationalized-theme' ),
+			'theme-in-subdirectory'
+		);
+	}
+
+	/**
+	 * @ticket 53677
+	 */
+	public function test_resolve_relative_path_for_theme_in_custom_theme_root() {
+		$this->assertThemeScriptTranslationsLoaded(
+			content_url( 'custom-theme-root/internationalized-theme' ),
+			'theme-in-custom-theme-root'
+		);
+	}
+
+	/**
+	 * Asserts that theme script translations load after resolving the script
+	 * path relative to the active theme directory URI.
+	 *
+	 * @param string $theme_directory_uri Theme directory URI.
+	 * @param string $handle              Script handle.
+	 */
+	private function assertThemeScriptTranslationsLoaded( $theme_directory_uri, $handle ) {
+		$this->theme_directory_uri = $theme_directory_uri;
+
+		add_filter( 'stylesheet_directory_uri', array( $this, 'filter_theme_directory_uri' ) );
+		add_filter( 'template_directory_uri', array( $this, 'filter_theme_directory_uri' ) );
+
+		try {
+			wp_enqueue_script( $handle, $theme_directory_uri . '/js/script.min.js', array(), null );
+
+			$expected = file_get_contents(
+				DIR_TESTDATA . '/languages/themes/internationalized-theme-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json'
+			);
+
+			$this->assertSame(
+				$expected,
+				load_script_textdomain( $handle, 'internationalized-theme', DIR_TESTDATA . '/languages' )
+			);
+		} finally {
+			remove_filter( 'stylesheet_directory_uri', array( $this, 'filter_theme_directory_uri' ) );
+			remove_filter( 'template_directory_uri', array( $this, 'filter_theme_directory_uri' ) );
+
+			$this->theme_directory_uri = null;
+		}
+	}
+
+	/**
+	 * Filters the active theme directory URI.
+	 *
+	 * @return string Active theme directory URI.
+	 */
+	public function filter_theme_directory_uri() {
+		return $this->theme_directory_uri;
 	}
 
 	public static function relative_path_from_cdn( $relative, $src ) {
