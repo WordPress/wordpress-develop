@@ -182,7 +182,13 @@ Description: Used to style blocks in the editor.
 }
 
 .wp-block {
-	max-width: 630px; /* 600px + 30px to account for padding. */
+	max-width: 600px;
+}
+
+.editor-post-title__block,
+.editor-default-block-appender,
+.editor-block-list__block {
+	max-width: 630px; /* Account for padding in older WordPress versions. */
 }
 
 /* Link styles */
