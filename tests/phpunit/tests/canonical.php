@@ -263,6 +263,11 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2008%20', '/2008' ),
 			array( '//2008////', '/2008/' ),
 
+			// Query string space encoding variants should not redirect (Ticket #64376).
+			array( '/?test=one+two', '/?test=one+two', 64376 ),     // Plus sign should stay as plus.
+			array( '/?test=one%20two', '/?test=one%20two', 64376 ), // %20 should stay as %20.
+			array( '/?utm_content=Hello+World&utm_source=test', '/?utm_content=Hello+World&utm_source=test', 64376 ), // Multiple params with plus.
+
 			// @todo Endpoints (feeds, trackbacks, etc). More fuzzed mixed query variables, comment paging, Home page (static).
 		);
 	}
@@ -463,6 +468,57 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$GLOBALS['wp_query'] = $global_query;
 
 		$this->assertNull( $redirect );
+	}
+
+	/**
+	 * Test that query string space encoding variants do not trigger redirects.
+	 *
+	 * Ensures that URLs differing only in space encoding ('+' vs '%20')
+	 * do not cause unnecessary 301 redirects between the two forms.
+	 *
+	 * @ticket 64376
+	 */
+	public function test_query_string_encoding_variants_no_redirect() {
+		// Create a static front page to match the original bug report scenario.
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_id );
+
+		// Plus signs in UTM parameters should not redirect to %20.
+		$url_with_plus = home_url( '/?utm_content=Hello+World' );
+
+		$this->go_to( $url_with_plus );
+		$redirect_from_plus = redirect_canonical( $url_with_plus, false );
+		$this->assertNull( $redirect_from_plus, 'URL with + should not redirect to %20' );
+
+		// %20 encoding should not redirect to plus.
+		$url_with_percent = home_url( '/?utm_content=Hello%20World' );
+
+		$this->go_to( $url_with_percent );
+		$redirect_from_percent = redirect_canonical( $url_with_percent, false );
+		$this->assertNull( $redirect_from_percent, 'URL with %20 should not redirect to +' );
+
+		// Multiple query parameters with mixed space encoding.
+		$url_mixed = home_url( '/?name=John+Doe&city=New+York&zip=12345' );
+
+		$this->go_to( $url_mixed );
+		$redirect = redirect_canonical( $url_mixed, false );
+		$this->assertNull( $redirect, 'URL with multiple plus-encoded parameters should not redirect' );
+
+		// Mixed encoding with both + and %20 in different parameters.
+		$url_mixed_encoding = home_url( '/?name=John+Doe&city=New%20York' );
+
+		$this->go_to( $url_mixed_encoding );
+		$redirect = redirect_canonical( $url_mixed_encoding, false );
+		$this->assertNull( $redirect, 'URL with mixed + and %20 encoding should not redirect' );
+
+		// Clean up.
+		delete_option( 'page_on_front' );
+		delete_option( 'show_on_front' );
 	}
 
 	/**
