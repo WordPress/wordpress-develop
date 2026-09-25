@@ -1201,6 +1201,46 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the wp_ability_permission_error_message filter can replace the permission error message.
+	 *
+	 * @ticket 64989
+	 */
+	public function test_permission_error_message_filter_can_replace_permission_error_message() {
+		$this->setExpectedIncorrectUsage( 'WP_Ability::execute' );
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'execute_callback'    => static function (): int {
+					return 1;
+				},
+				'permission_callback' => static function (): WP_Error {
+					return new WP_Error( 'callback_denied', 'Denied by callback.' );
+				},
+			)
+		);
+
+		$filter = static function ( $message, $permission_result, $ability_name ) {
+			if ( is_wp_error( $permission_result ) && self::$test_ability_name === $ability_name ) {
+				return 'Custom permission denied.';
+			}
+
+			return $message;
+		};
+
+		add_filter( 'wp_ability_permission_error_message', $filter, 10, 5 );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_permission_error_message', $filter, 10 );
+
+		$this->assertInstanceOf( WP_Error::class, $result, 'Denied permission should produce a WP_Error.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+		$this->assertSame( 'Custom permission denied.', $result->get_error_message() );
+	}
+
+	/**
 	 * Tests that the wp_ability_permission_result filter can convert a WP_Error denial from the
 	 * callback into a grant, proving the filter receives the WP_Error verbatim.
 	 *
