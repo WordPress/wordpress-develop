@@ -1613,7 +1613,7 @@ function get_num_queries() {
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
  * @return bool True if 'y', false on anything else.
  *
- * @phpstan-return ( $yn is 'y' ? true : false )
+ * @phpstan-return ( $yn is 'y'|'Y' ? true : false )
  */
 function bool_from_yn( $yn ) {
 	return ( 'y' === strtolower( $yn ) );
