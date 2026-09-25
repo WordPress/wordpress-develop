@@ -17,7 +17,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * VIPS Image object.
 	 *
-	 * @var Jcupitt\Vips\Image
+	 * @var Jcupitt\Vips\Image|null
 	 */
 	protected $image;
 
@@ -192,10 +192,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				$this->image = Jcupitt\Vips\Image::newFromFile( $this->file );
 			}
 
-			if ( ! $this->image ) {
-				return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
-			}
-
 			// Get image size.
 			$width  = $this->image->width;
 			$height = $this->image->height;
@@ -230,11 +226,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 *
 	 * @since 6.8.0
 	 *
-	 * @param int $width
-	 * @param int $height
+	 * @param int|null $width  Image width.
+	 * @param int|null $height Image height.
 	 * @return true
 	 */
-	protected function update_size( $width = false, $height = false ) {
+	protected function update_size( $width = null, $height = null ) {
 		if ( ! $width ) {
 			$width = $this->image->width;
 		}
@@ -615,6 +611,13 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			return array(
 				'path'      => $filename,
+				/**
+				 * Filters the name of the saved image file.
+				 *
+				 * @since 2.6.0
+				 *
+				 * @param string $filename Name of the file.
+				 */
 				'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
 				'width'     => $this->size['width'],
 				'height'    => $this->size['height'],
