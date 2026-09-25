@@ -477,7 +477,7 @@ class WP_Dependencies {
 	 *     $handle is not non-empty-string
 	 *         ? false
 	 *         : (
-	 *             $status is not 'registered'|'scripts'|'enqueued'|'queued'|'to_do'|'to_print'|'done'|'printed'
+	 *             $status is not 'registered'|'scripts'|'enqueued'|'queue'|'to_do'|'to_print'|'done'|'printed'
 	 *                 ? false
 	 *                 : ( $status is 'registered'|'scripts' ? _WP_Dependency|false : bool )
 	 *         )
