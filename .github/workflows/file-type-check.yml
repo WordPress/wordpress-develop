@@ -77,6 +77,11 @@ jobs:
           #
           # Each check is a bare assignment, so `set -e` sees a failure from Git.
           #
+          # Every exclude starts with src/, the directory the positive pathspecs share.
+          # git ls-files strips that shared directory from every pathspec, excludes
+          # included, without checking that it is there. An exclude such as *.js is
+          # then cut down to a pattern that can match every file.
+          #
           # Only tracked files are checked. The PHP that Gutenberg generates
           # into css/dist and js/dist is untracked, so it never appears here.
           # Whether it should be tracked, moved, or not copied at all is still
@@ -91,24 +96,26 @@ jobs:
           # The SCSS sources for the admin color schemes are the only tracked
           # non-CSS files in these directories.
           inward_css=$( git ls-files -- src/wp-includes/css src/wp-admin/css \
-            ':(exclude)*.css' \
-            ':(exclude)src/wp-admin/css/colors/**/*.scss' )
+            ':(exclude,glob)src/wp-includes/css/**/*.css' \
+            ':(exclude,glob)src/wp-admin/css/**/*.css' \
+            ':(exclude,glob)src/wp-admin/css/colors/**/*.scss' )
 
           # Both directories are gitignored in full, so this only catches a file
           # committed with `git add -f`.
           inward_js=$( git ls-files -- src/wp-includes/js src/wp-admin/js \
-            ':(exclude)*.js' )
+            ':(exclude,glob)src/wp-includes/js/**/*.js' \
+            ':(exclude,glob)src/wp-admin/js/**/*.js' )
 
           # src/wp-includes/build/ is tracked, not gitignored: it holds the
           # generated routes and pages.
           outward=$( git ls-files -- \
-            'src/wp-includes/*.css' 'src/wp-includes/*.js' \
-            'src/wp-admin/*.css' 'src/wp-admin/*.js' \
-            ':(exclude)src/wp-includes/css/*' \
-            ':(exclude)src/wp-includes/js/*' \
-            ':(exclude)src/wp-admin/css/*' \
-            ':(exclude)src/wp-admin/js/*' \
-            ':(exclude)src/wp-includes/build/*' )
+            ':(glob)src/wp-includes/**/*.css' ':(glob)src/wp-includes/**/*.js' \
+            ':(glob)src/wp-admin/**/*.css' ':(glob)src/wp-admin/**/*.js' \
+            ':(exclude,glob)src/wp-includes/css/**' \
+            ':(exclude,glob)src/wp-includes/js/**' \
+            ':(exclude,glob)src/wp-admin/css/**' \
+            ':(exclude,glob)src/wp-admin/js/**' \
+            ':(exclude,glob)src/wp-includes/build/**' )
 
           violations=$( printf '%s\n%s\n%s' "$inward_css" "$inward_js" "$outward" | grep -v '^$' || true )
 
