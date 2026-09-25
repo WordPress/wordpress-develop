@@ -220,12 +220,10 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			}
 
 			// Set the mime type.
-			$size = wp_getimagesize( $this->file );
-			if ( $size ) {
-				$this->mime_type = $size['mime'];
-			} else {
-				$this->mime_type = wp_get_image_mime( $this->file );
-			}
+			//
+			// This must not use wp_getimagesize(): for HEIC and AVIF files it falls back
+			// to the editors, which would recurse straight back into load().
+			$this->mime_type = wp_get_image_mime( $this->file );
 
 			if ( ! $this->mime_type ) {
 				$this->mime_type = $this->default_mime_type;
