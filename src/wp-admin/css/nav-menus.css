@@ -144,7 +144,7 @@ ul.add-menu-item-tabs li {
 	border: 1px solid #dcdcde;
 	margin: 0;
 	cursor: pointer;
-	border-radius: 3px;
+	border-radius: 2px;
 	white-space: nowrap;
 	box-sizing: border-box;
 }

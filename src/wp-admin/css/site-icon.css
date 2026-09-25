@@ -96,7 +96,7 @@
 
 .site-icon-preview .app-icon-preview {
 	aspect-ratio: 1/1;
-	border-radius: 10px;
+	border-radius: 8px;
 	box-shadow: 0 1px 5px 0 var(--site-icon-shadow-3);
 	flex-shrink: 0;
 	width: 100%;
