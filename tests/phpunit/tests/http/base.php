@@ -269,7 +269,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( '', $res['body'] ); // The body should be empty.
-		$this->assertEquals( $size, $res['headers']['Content-Length'] );   // Check the headers are returned (and the size is the same).
+		$this->assertSame( (string) $size, $res['headers']['Content-Length'] );   // Check the headers are returned (and the size is the same).
 		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
 		$this->assertStringStartsWith( get_temp_dir(), $res['filename'] ); // Check it's saving within the temp directory.
 	}

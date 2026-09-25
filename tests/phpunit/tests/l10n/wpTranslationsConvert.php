@@ -511,7 +511,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$source_headers      = $source->headers();
 		$destination_headers = $destination_read->headers();
 
-		$this->assertEquals( $source_headers, $destination_headers );
+		$this->assertSame( $source_headers, $destination_headers );
 
 		foreach ( $source->entries() as $original => $translation ) {
 			// Verify the translation is in the destination file
