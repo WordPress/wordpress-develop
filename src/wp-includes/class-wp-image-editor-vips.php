@@ -9,7 +9,7 @@
 /**
  * WordPress Image Editor Class for Image Manipulation through VIPS
  *
- * @since 6.8.0
+ * @since 7.2.0
  *
  * @see WP_Image_Editor
  */
@@ -41,7 +41,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Checks to see if current environment supports VIPS.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param array $args
 	 * @return bool
@@ -78,7 +78,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Checks to see if editor supports the mime-type specified.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param string $mime_type
 	 * @return bool
@@ -164,7 +164,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Loads image from $this->file into new VIPS Image object.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @return true|WP_Error True if loaded successfully; WP_Error on failure.
 	 */
@@ -224,7 +224,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Sets or updates current image size.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param int|null $width  Image width.
 	 * @param int|null $height Image height.
@@ -248,7 +248,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * At minimum, either a height or width must be provided. If one of the two is set
 	 * to null, the resize will maintain aspect ratio according to the provided dimension.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param int|null   $max_w Image width.
 	 * @param int|null   $max_h Image height.
@@ -297,7 +297,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Resize multiple images from a single source.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param array $sizes {
 	 *     An array of image size arrays. Default sizes are 'small', 'medium', 'large'.
@@ -374,7 +374,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Crops Image.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param int      $src_x   The start x position to crop from.
 	 * @param int      $src_y   The start y position to crop from.
@@ -434,7 +434,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Rotates current image counter-clockwise by $angle.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param float $angle
 	 * @return true|WP_Error
@@ -470,7 +470,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Flips current image.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param bool $horz Flip along Horizontal Axis
 	 * @param bool $vert Flip along Vertical Axis
@@ -497,7 +497,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Saves current image to file.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param string $destfilename Optional. Destination filename. Default null.
 	 * @param string $mime_type    Optional. The mime-type. Default null.
@@ -526,7 +526,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Internal save method.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param Jcupitt\Vips\Image $image
 	 * @param string             $filename
@@ -632,7 +632,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Streams current image to browser.
 	 *
-	 * @since 6.8.0
+	 * @since 7.2.0
 	 *
 	 * @param string $mime_type Optional. The mime type of the image. Default is the original mime type.
 	 * @return true|WP_Error True on success, WP_Error object on failure.
