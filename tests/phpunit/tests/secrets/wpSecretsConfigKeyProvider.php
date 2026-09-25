@@ -15,7 +15,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 	private function invoke_private( $instance, $method, array $args = array() ) {
 		$reflection = new ReflectionMethod( $instance, $method );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		return $reflection->invokeArgs( $instance, $args );
 	}

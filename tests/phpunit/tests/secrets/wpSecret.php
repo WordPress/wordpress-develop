@@ -178,7 +178,9 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	public function test_serialization_magic_methods_throw_directly( $method, $args ) {
 		$secret     = $this->make_secret();
 		$reflection = new ReflectionMethod( $secret, $method );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$this->expectException( LogicException::class );
 
@@ -199,7 +201,9 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$id     = spl_object_id( $secret );
 
 		$vault_property = new ReflectionProperty( WP_Secret::class, 'vault' );
-		$vault_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$vault_property->setAccessible( true );
+		}
 
 		$this->assertArrayHasKey( $id, $vault_property->getValue() );
 
