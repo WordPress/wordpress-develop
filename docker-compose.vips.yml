@@ -5,3 +5,7 @@ services:
       dockerfile: tools/local-env/php-vips/Dockerfile
       args:
         LOCAL_PHP: ${LOCAL_PHP-latest}
+
+    # `up` only builds when the image is missing, and the base image is always present,
+    # so without this the VIPS image would never be built and the VIPS tests would skip.
+    pull_policy: build
