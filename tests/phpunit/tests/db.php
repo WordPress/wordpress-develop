@@ -316,16 +316,18 @@ class Tests_DB extends WP_UnitTestCase {
 	 * Test that incompatible SQL modes are blocked
 	 *
 	 * @ticket 26847
+	 * @ticket 66185
 	 */
 	public function test_set_incompatible_sql_mode() {
 		global $wpdb;
 
 		$current_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 
-		$new_modes = array( 'IGNORE_SPACE', 'NO_ZERO_DATE', 'NO_AUTO_VALUE_ON_ZERO' );
+		$new_modes = array( 'IGNORE_SPACE', 'NO_ZERO_DATE', 'NO_BACKSLASH_ESCAPES', 'NO_AUTO_VALUE_ON_ZERO' );
 		$wpdb->set_sql_mode( $new_modes );
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 		$this->assertNotContains( 'NO_ZERO_DATE', explode( ',', $check_new_modes ) );
+		$this->assertNotContains( 'NO_BACKSLASH_ESCAPES', explode( ',', $check_new_modes ) );
 
 		$wpdb->set_sql_mode( explode( ',', $current_modes ) );
 	}
