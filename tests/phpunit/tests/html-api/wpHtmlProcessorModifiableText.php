@@ -77,6 +77,8 @@ class Tests_HtmlApi_WpHtmlProcessorModifiableText extends WP_UnitTestCase {
 	 *
 	 * @ticket 64751
 	 * @dataProvider data_set_modifiable_fails_non_atomic_tags
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
 	 */
 	public function test_set_modifiable_fails_non_atomic_tags(
 		string $html,

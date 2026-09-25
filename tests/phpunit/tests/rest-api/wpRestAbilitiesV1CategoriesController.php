@@ -219,8 +219,6 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * Test getting a non-existent ability category returns 404.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/non-existent' );
@@ -277,7 +275,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$total_categories = count( wp_get_ability_categories() );
-		$this->assertEquals( $total_categories, (int) $headers['X-WP-Total'] );
+		$this->assertSame( $total_categories, (int) $headers['X-WP-Total'] );
 		$this->assertEquals( ceil( $total_categories / 10 ), (int) $headers['X-WP-TotalPages'] );
 	}
 
