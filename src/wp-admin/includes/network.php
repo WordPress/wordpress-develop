@@ -415,9 +415,12 @@ function network_step2( $errors = false ) {
 	$hostname          = get_clean_basedomain();
 	$slashed_home      = trailingslashit( get_option( 'home' ) );
 	$base              = parse_url( $slashed_home, PHP_URL_PATH );
-	$document_root_fix = str_replace( '\\', '/', realpath( $_SERVER['DOCUMENT_ROOT'] ) );
+	$document_root     = isset( $_SERVER['DOCUMENT_ROOT'] ) ? realpath( $_SERVER['DOCUMENT_ROOT'] ) : false;
+	$document_root_fix = $document_root ? str_replace( '\\', '/', $document_root ) : '';
 	$abspath_fix       = str_replace( '\\', '/', ABSPATH );
-	$home_path         = str_starts_with( $abspath_fix, $document_root_fix ) ? $document_root_fix . $base : get_home_path();
+	$home_path         = ( '' !== $document_root_fix && str_starts_with( $abspath_fix, $document_root_fix ) )
+		? $document_root_fix . $base
+		: get_home_path();
 	$wp_siteurl_subdir = preg_replace( '#^' . preg_quote( $home_path, '#' ) . '#', '', $abspath_fix );
 	$rewrite_base      = ! empty( $wp_siteurl_subdir ) ? ltrim( trailingslashit( $wp_siteurl_subdir ), '/' ) : '';
 
