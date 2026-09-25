@@ -19,6 +19,59 @@ require_once ABSPATH . 'wp-admin/includes/admin.php';
 /** WordPress Schema API */
 require_once ABSPATH . 'wp-admin/includes/schema.php';
 
+/**
+ * Validates that the required database tables exist after installation schema creation.
+ *
+ * @since 6.9.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $tables Optional. Which set of tables to validate. Default 'all'.
+ * @return true|WP_Error True when the required tables exist, WP_Error otherwise.
+ */
+function wp_install_validate_schema( $tables = 'all' ) {
+	global $wpdb;
+
+	$database_error = $wpdb->last_error;
+	$missing_tables = array();
+	$suppress       = $wpdb->suppress_errors();
+
+	foreach ( $wpdb->tables( $tables, true ) as $table ) {
+		$found_table = $wpdb->get_var(
+			$wpdb->prepare(
+				'SHOW TABLES LIKE %s',
+				$wpdb->esc_like( $table )
+			)
+		);
+
+		if ( $found_table !== $table ) {
+			$missing_tables[] = $table;
+		}
+	}
+
+	$wpdb->suppress_errors( $suppress );
+
+	if ( empty( $missing_tables ) ) {
+		return true;
+	}
+
+	$message = __( 'WordPress could not create the database tables required for installation. Please verify that the database user has permission to create tables.' );
+
+	if ( ! empty( $database_error ) ) {
+		/* translators: 1: Generic database table creation failure message, 2: Database error message. */
+		$message = sprintf( __( '%1$s Database error: %2$s' ), $message, $database_error );
+	}
+
+	return new WP_Error(
+		'db_install_missing_tables',
+		$message,
+		array(
+			'db_error'       => $database_error,
+			'missing_tables' => $missing_tables,
+		)
+	);
+}
+
 if ( ! function_exists( 'wp_install' ) ) :
 	/**
 	 * Installs the site.
@@ -35,14 +88,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 * @param string $deprecated    Optional. Not used.
 	 * @param string $user_password Optional. User's chosen password. Default empty (random password).
 	 * @param string $language      Optional. Language chosen. Default empty.
-	 * @return array {
-	 *     Data for the newly installed site.
-	 *
-	 *     @type string $url              The URL of the site.
-	 *     @type int    $user_id          The ID of the site owner.
-	 *     @type string $password         The password of the site owner, if their user account didn't already exist.
-	 *     @type string $password_message The explanatory message regarding the password.
-	 * }
+	 * @return array|WP_Error Data for the newly installed site, or WP_Error on failure.
 	 */
 	function wp_install(
 		$blog_title,
@@ -61,6 +107,11 @@ if ( ! function_exists( 'wp_install' ) ) :
 		wp_check_mysql_version();
 		wp_cache_flush();
 		make_db_current_silent();
+
+		$schema_result = wp_install_validate_schema();
+		if ( is_wp_error( $schema_result ) ) {
+			return $schema_result;
+		}
 
 		/*
 		 * Ensure update checks are delayed after installation.
@@ -122,6 +173,10 @@ if ( ! function_exists( 'wp_install' ) ) :
 			$user_created = true;
 		} else {
 			$message = __( 'User already exists. Password inherited.' );
+		}
+
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
 		}
 
 		$user = new WP_User( $user_id );
