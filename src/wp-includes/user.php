@@ -728,7 +728,7 @@ function get_current_user_id() {
 		return 0;
 	}
 	$user = wp_get_current_user();
-	return (int) ( $user->ID ?? 0 );
+	return (int) $user->ID;
 }
 
 /**
@@ -1270,6 +1270,8 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $user_id
  */
 function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'user', $user_id, $meta_key, $meta_value );

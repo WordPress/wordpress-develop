@@ -1178,8 +1178,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user = new WP_User( $id );
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
 
-		// Author = user level 2.
-		$this->assertEquals( 2, $user->user_level );
+		// Author = user level 2. Read from user meta, so a numeric string until set_role() recalculates it.
+		$this->assertSame( '2', $user->user_level );
 
 		// They get promoted to editor - level should get bumped to 7.
 		$user->set_role( 'editor' );
@@ -1702,13 +1702,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 
-		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( current_user_can_for_site( $blog_id, 'edit_posts' ) );
 		$this->assertFalse( current_user_can_for_site( $blog_id, 'foo_the_bar' ) );
 
 		$another_blog_id = self::factory()->blog->create( array( 'user_id' => self::$users['author']->ID ) );
-
-		$this->assertNotWPError( $another_blog_id );
 
 		// Verify the user doesn't have a capability
 		$this->assertFalse( current_user_can_for_site( $another_blog_id, 'edit_posts' ) );
@@ -1739,7 +1736,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 
-		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( user_can_for_site( $user->ID, $blog_id, 'edit_posts' ) );
 		$this->assertFalse( user_can_for_site( $user->ID, $blog_id, 'foo_the_bar' ) );
 

@@ -548,6 +548,8 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty string.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $comment_id
  */
 function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'comment', $comment_id, $meta_key, $meta_value );
@@ -3623,7 +3625,7 @@ function pingback( $content, $post ) {
 			$status = $client->query( 'pingback.ping', $pagelinkedfrom, $pagelinkedto );
 
 			if ( $status // Ping registered.
-				|| ( isset( $client->error->code ) && 48 === $client->error->code ) // Already registered.
+				|| ( $client->error instanceof IXR_Error && 48 === $client->error->code ) // Already registered.
 			) {
 				add_ping( $post, $pagelinkedto );
 			}

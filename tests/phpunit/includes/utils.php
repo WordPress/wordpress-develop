@@ -110,10 +110,8 @@ class MockAction {
 		if ( is_callable( 'current_filter' ) ) {
 			$current_filter = current_filter();
 		} else {
-			$current_filter = array_key_last( $wp_actions );
-			if ( null === $current_filter ) {
-				$current_filter = false;
-			}
+			$current_filter   = array_key_last( $wp_actions );
+			$current_filter ??= false;
 		}
 
 		return $current_filter;
@@ -393,10 +391,8 @@ class TestXMLParser {
 	public function data_handler( $parser, $data ) {
 		$index = count( $this->data ) - 1;
 
-		if ( ! isset( $this->data[ $index ]['content'] ) ) {
-			$this->data[ $index ]['content'] = '';
-		}
-		$this->data[ $index ]['content'] .= $data;
+		$this->data[ $index ]['content'] ??= '';
+		$this->data[ $index ]['content']  .= $data;
 	}
 
 	public function end_handler( $parser, $name ) {

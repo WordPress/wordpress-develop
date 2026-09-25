@@ -275,10 +275,6 @@ themes.Collection = Backbone.Collection.extend({
 	 * which triggers events of `query:success` or `query:fail`.
 	 */
 	query: function( request ) {
-		/**
-		 * @static
-		 * @type Array
-		 */
 		var queries = this.queries,
 			self = this,
 			query, isPaginated, count;
@@ -2082,9 +2078,9 @@ themes.RunInstaller = {
 				self.view.collection.query( request );
 				self.view.collection.trigger( 'update' );
 
-				// Open the theme preview.
+				// Open the theme preview. The slug comes from the URL, so escape it.
 				self.view.collection.once( 'query:success', function() {
-					$( 'div[data-slug="' + slug + '"]' ).trigger( 'click' );
+					$( 'div.theme[data-slug="' + $.escapeSelector( slug ) + '"]' ).trigger( 'click' );
 				});
 
 			}

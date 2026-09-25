@@ -560,7 +560,7 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( '|<p>(<li.+?)</p>|', '$1', $text );
 
 	// If a <blockquote> is wrapped with a <p>, move it inside the <blockquote>.
-	$text = preg_replace( '|<p><blockquote([^>]*)>|i', '<blockquote$1><p>', $text );
+	$text = preg_replace( '!<p><blockquote((?:[^>"\']|"[^"]*"|\'[^\']*\')*)>!i', '<blockquote$1><p>', $text );
 	$text = str_replace( '</blockquote></p>', '</p></blockquote>', $text );
 
 	// If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
@@ -2398,6 +2398,34 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = trim( $title, '-' );
 
 	return $title;
+}
+
+/**
+ * Truncates a slug to a given length.
+ *
+ * Non-ASCII slugs are stored percent-encoded, so the slug is truncated on a
+ * character boundary to avoid cutting a percent-encoded sequence in half.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @see utf8_uri_encode()
+ *
+ * @param string $slug   The slug to truncate.
+ * @param int    $length Optional. Max length of the slug. Default 200 (characters).
+ * @return string The truncated slug.
+ */
+function wp_truncate_slug( $slug, $length = 200 ) {
+	if ( strlen( $slug ) > $length ) {
+		$decoded_slug = urldecode( $slug );
+		if ( $decoded_slug === $slug ) {
+			$slug = substr( $slug, 0, $length );
+		} else {
+			$slug = utf8_uri_encode( $decoded_slug, $length, true );
+		}
+	}
+
+	return rtrim( $slug, '-' );
 }
 
 /**
