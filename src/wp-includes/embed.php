@@ -514,7 +514,7 @@ function get_post_embed_html( $width, $height, $post = null ) {
 		esc_attr(
 			sprintf(
 				/* translators: 1: Post title, 2: Site title. */
-				__( '&#8220;%1$s&#8221; &#8212; %2$s' ),
+				__( '&#8220;%1$s&#8221; &mdash; %2$s' ),
 				get_the_title( $post ),
 				get_bloginfo( 'name' )
 			)
