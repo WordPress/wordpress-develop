@@ -465,7 +465,8 @@ function wp_get_post_content_block_attributes() {
 	$current_template = get_block_templates( array( 'slug__in' => array( $template_slug ) ) );
 
 	if ( ! empty( $current_template ) ) {
-		$template_blocks    = parse_blocks( $current_template[0]->content );
+		$first_key          = array_key_first( $current_template );
+		$template_blocks    = parse_blocks( $current_template[ $first_key ]->content );
 		$post_content_block = wp_get_first_block( $template_blocks, 'core/post-content' );
 
 		if ( isset( $post_content_block['attrs'] ) ) {
