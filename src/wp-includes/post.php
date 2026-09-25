@@ -897,7 +897,7 @@ function update_attached_file( $attachment_id, $file ) {
 	 */
 	$file = apply_filters( 'update_attached_file', $file, $attachment_id );
 
-	$file = _wp_relative_upload_path( $file );
+	$file = wp_normalize_path( _wp_relative_upload_path( $file ) );
 	if ( $file ) {
 		return update_post_meta( $attachment_id, '_wp_attached_file', $file );
 	} else {
