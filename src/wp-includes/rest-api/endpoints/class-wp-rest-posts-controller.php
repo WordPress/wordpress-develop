@@ -1886,12 +1886,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
+		$previous_post   = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
 
 		// Don't prepare the response body for HEAD requests.
 		if ( $request->is_method( 'HEAD' ) ) {
+			$GLOBALS['post'] = $previous_post;
+			wp_reset_postdata();
+
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 			return apply_filters( "rest_prepare_{$this->post_type}", new WP_REST_Response( array() ), $post, $request );
 		}
@@ -2196,6 +2200,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_Post          $post     Post object.
 		 * @param WP_REST_Request  $request  Request object.
 		 */
+		$GLOBALS['post'] = $previous_post;
+		wp_reset_postdata();
+
 		return apply_filters( "rest_prepare_{$this->post_type}", $response, $post, $request );
 	}
 
