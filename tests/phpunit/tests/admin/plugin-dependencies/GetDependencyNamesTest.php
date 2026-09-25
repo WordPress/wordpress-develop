@@ -5,18 +5,24 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Error;
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::get_dependency_names
- * @covers WP_Plugin_Dependencies::get_dependency_api_data
- * @covers WP_Plugin_Dependencies::get_dependencies
- * @covers WP_Plugin_Dependencies::get_dependency_filepaths
+ * @covers \WP_Plugin_Dependencies::get_dependency_names
+ * @covers \WP_Plugin_Dependencies::get_dependency_api_data
+ * @covers \WP_Plugin_Dependencies::get_dependencies
+ * @covers \WP_Plugin_Dependencies::get_dependency_filepaths
  */
-class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDependencies_UnitTestCase {
+class GetDependencyNamesTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Mocks an API response.

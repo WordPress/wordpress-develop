@@ -5,17 +5,22 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::get_dependency_filepath
- * @covers WP_Plugin_Dependencies::get_dependency_filepaths
- * @covers WP_Plugin_Dependencies::get_plugin_dirnames
+ * @covers \WP_Plugin_Dependencies::get_dependency_filepath
+ * @covers \WP_Plugin_Dependencies::get_dependency_filepaths
+ * @covers \WP_Plugin_Dependencies::get_plugin_dirnames
  */
-class Tests_Admin_WPPluginDependencies_GetDependencyFilepath extends WP_PluginDependencies_UnitTestCase {
+class GetDependencyFilepathTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that false is returned if Plugin Dependencies has not been initialized.
@@ -50,7 +55,7 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepath extends WP_PluginDe
 	 *
 	 * @param string[]     $dependency_slug The dependency slug.
 	 * @param string[]     $plugins         An array of plugin paths.
-	 * @param string|false $expected       The expected result.
+	 * @param string|false $expected        The expected result.
 	 */
 	public function test_should_return_filepaths_for_installed_dependencies( $dependency_slug, $plugins, $expected ) {
 		$this->set_property_value( 'plugins', $plugins );
@@ -85,28 +90,28 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepath extends WP_PluginDe
 				'expected'        => false,
 			),
 			'a plugin that ends with slug/'   => array(
-				'dependency_slugs' => 'dependency',
-				'plugins'          => array(
+				'dependency_slug' => 'dependency',
+				'plugins'         => array(
 					'addon-for-dependency/dependency.php' => array( 'RequiresPlugins' => '' ),
 					'dependent/dependent.php'             => array( 'RequiresPlugins' => 'dependency' ),
 				),
-				'expected'         => false,
+				'expected'        => false,
 			),
 			'a plugin that does not exist'    => array(
-				'dependency_slugs' => 'dependency2',
-				'plugins'          => array(
+				'dependency_slug' => 'dependency2',
+				'plugins'         => array(
 					'dependency/dependency.php' => array( 'RequiresPlugins' => '' ),
 					'dependent/dependent.php'   => array( 'RequiresPlugins' => 'dependency2' ),
 				),
-				'expected'         => false,
+				'expected'        => false,
 			),
 			'a plugin that exists'            => array(
-				'dependency_slugs' => 'dependency',
-				'plugins'          => array(
+				'dependency_slug' => 'dependency',
+				'plugins'         => array(
 					'dependency/dependency.php' => array( 'RequiresPlugins' => '' ),
 					'dependent/dependent.php'   => array( 'RequiresPlugins' => 'dependency' ),
 				),
-				'expected'         => 'dependency/dependency.php',
+				'expected'        => 'dependency/dependency.php',
 			),
 		);
 	}
