@@ -5063,12 +5063,9 @@ function wp_enqueue_media( $args = array() ) {
 		);
 	}
 
-	$infinite_scrolling = true;
-
 	// A user can opt out of infinite scrolling via their profile's personal options.
-	if ( 'false' === get_user_option( 'infinite_scrolling' ) ) {
-		$infinite_scrolling = false;
-	}
+	$user_infinite_scrolling = 'false' !== get_user_option( 'infinite_scrolling' );
+	$infinite_scrolling      = $user_infinite_scrolling;
 
 	/**
 	 * Filters whether the Media Library grid has infinite scrolling. Default `true`.
@@ -5081,7 +5078,7 @@ function wp_enqueue_media( $args = array() ) {
 	 *
 	 * @param bool $infinite_scrolling Whether the Media Library grid has infinite scrolling.
 	 */
-	$infinite_scrolling = apply_filters( 'media_library_infinite_scrolling', $infinite_scrolling );
+	$infinite_scrolling = (bool) apply_filters( 'media_library_infinite_scrolling', $infinite_scrolling );
 
 	$settings = array(
 		'tabs'              => $tabs,
@@ -5109,6 +5106,14 @@ function wp_enqueue_media( $args = array() ) {
 		'mediaTrash'        => MEDIA_TRASH ? 1 : 0,
 		'infiniteScrolling' => ( $infinite_scrolling ) ? 1 : 0,
 	);
+
+	if ( current_user_can( 'upload_files' ) ) {
+		$settings['librarySettings'] = array(
+			'nonce'             => wp_create_nonce( 'media-library-settings' ),
+			'infiniteScrolling' => ( $user_infinite_scrolling ) ? 1 : 0,
+			'isFiltered'        => has_filter( 'media_library_infinite_scrolling' ) ? 1 : 0,
+		);
+	}
 
 	$post = null;
 	if ( isset( $args['post'] ) ) {
