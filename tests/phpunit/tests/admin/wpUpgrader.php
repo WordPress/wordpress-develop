@@ -1465,6 +1465,62 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `WP_Upgrader::run()` removes the working directory after an
+	 * installation failure.
+	 *
+	 * @ticket 44710
+	 *
+	 * @covers WP_Upgrader::run
+	 */
+	public function test_run_should_clear_working_directory_after_installation_failure() {
+		$working_directory = '/wp-content/upgrade/test-package';
+		$expected          = new WP_Error( 'incompatible_archive' );
+
+		self::$wp_filesystem_mock
+				->expects( $this->once() )
+				->method( 'exists' )
+				->with( $working_directory )
+				->willReturn( true );
+
+		self::$wp_filesystem_mock
+				->expects( $this->once() )
+				->method( 'delete' )
+				->with( $working_directory, true );
+		// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
+		$instance = $this->getMockBuilder( 'WP_Upgrader' )
+				->setConstructorArgs( array( self::$upgrader_skin_mock ) )
+				->setMethods( array( 'fs_connect', 'download_package', 'unpack_package', 'install_package' ) )
+				->getMock();
+
+		$instance
+				->method( 'fs_connect' )
+				->willReturn( true );
+
+		$instance
+				->method( 'download_package' )
+				->willReturn( '/tmp/test-package.zip' );
+
+		$instance
+				->method( 'unpack_package' )
+				->willReturn( $working_directory );
+
+		$instance
+				->method( 'install_package' )
+				->willReturn( $expected );
+
+		$actual = $instance->run(
+			array(
+				'package'       => '/tmp/test-package.zip',
+				'destination'   => WP_PLUGIN_DIR,
+				'clear_working' => true,
+				'is_multi'      => true,
+			)
+		);
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
 	 * Tests that `WP_Upgrader::maintenance_mode()` removes the `.maintenance` file.
 	 *
 	 * @ticket 54245
