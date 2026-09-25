@@ -1209,7 +1209,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$p->next_tag();
 		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
 		$this->assertCount( 6, $results );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				array( null, null ),
 				array( null, 'a' ),

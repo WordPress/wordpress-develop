@@ -10,10 +10,12 @@
 class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 
 	/**
-	 * Restores the current locale after each test runs.
+	 * Restores the current locale and the timezone translations after each test runs.
 	 */
 	public function tear_down(): void {
 		restore_current_locale();
+		wp_timezone_choice( '', get_locale() );
+
 		parent::tear_down();
 	}
 

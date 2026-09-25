@@ -151,6 +151,11 @@ class Tests_Template extends WP_UnitTestCase {
 			$registry->unregister( 'third-party/test' );
 		}
 
+		if ( isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+			remove_all_filters( 'theme_file_path' );
+			wp_theme_has_theme_json();
+		}
+
 		unset( $GLOBALS['_wp_tests_development_mode'] );
 		parent::tear_down();
 	}
@@ -747,7 +752,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
 		$this->assertIsString( $processed_output );
-		$this->assertNotEquals( $original_output, $processed_output );
+		$this->assertNotSame( $original_output, $processed_output );
 
 		$this->assertStringContainsString( '<!DOCTYPE html>', $processed_output, 'Expected processed output to contain string.' );
 		$this->assertStringContainsString( '<html lang="es">', $processed_output, 'Expected processed output to contain string.' );
@@ -1949,6 +1954,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
+	 *
+	 * @group assets
 	 *
 	 * @ticket 64099
 	 * @ticket 64354

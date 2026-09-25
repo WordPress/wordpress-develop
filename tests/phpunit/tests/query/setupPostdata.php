@@ -410,7 +410,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		setup_postdata( $a_post );
 		$content = get_echo( 'the_content' );
 		$this->assertSame( $post_id, $GLOBALS['post']->ID );
-		$this->assertNotEquals( '<p>global post</p>', strip_ws( $content ) );
+		$this->assertNotSame( '<p>global post</p>', strip_ws( $content ) );
 		wp_reset_postdata();
 	}
 
