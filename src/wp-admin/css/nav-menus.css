@@ -941,8 +941,8 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 		width: 100%;
 	}
 
-	.nav-menus-php #nav-menu-header .major-publishing-actions .publishing-action {
-		padding-top: 1em;
+	#save_menu_header {
+		margin-bottom: 0;
 	}
 
 	.nav-menus-php .delete-action {
