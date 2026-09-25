@@ -249,7 +249,7 @@ function rest_api_default_filters() {
 	}
 
 	// Default serving.
-	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
+	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_send_allow_header', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
@@ -798,11 +798,19 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * Sends Cross-Origin Resource Sharing headers with API requests.
  *
  * @since 4.4.0
+ * @since 7.2.0 Added the `$result` and `$request` parameters, and the `rest_allowed_cors_methods`
+ *              filter. An `Access-Control-Allow-Methods` header already set on the response is
+ *              no longer discarded outright -- it seeds the filter instead of the default list,
+ *              so it is passed through unless a callback changes it. Under `?_envelope=1`, a
+ *              response header is relocated into the response body before this runs, so it is
+ *              not seen here and the filtered default is sent instead.
  *
- * @param mixed $value Response data.
+ * @param mixed                 $value   Response data.
+ * @param WP_HTTP_Response|null $result  Optional. Result to send to the client. Default null.
+ * @param WP_REST_Request|null  $request Optional. The request in context. Default null.
  * @return mixed Response data.
  */
-function rest_send_cors_headers( $value ) {
+function rest_send_cors_headers( $value, $result = null, $request = null ) {
 	$origin = get_http_origin();
 
 	if ( $origin ) {
@@ -811,7 +819,42 @@ function rest_send_cors_headers( $value ) {
 			$origin = sanitize_url( $origin );
 		}
 		header( 'Access-Control-Allow-Origin: ' . $origin );
-		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
+
+		/*
+		 * This runs on 'rest_pre_serve_request', after the response's own headers have
+		 * been sent, and header() replaces by default -- so sending the default list
+		 * unconditionally would discard a value set on the response. Seed the filter with
+		 * that value instead of the default list, so the response is passed through
+		 * unless `rest_allowed_cors_methods` changes it -- otherwise the filter could
+		 * only add methods and could never narrow or replace a value the response set.
+		 * Header names are case-insensitive.
+		 */
+		$response_headers = ( $result instanceof WP_HTTP_Response ) ? $result->get_headers() : array();
+		$response_headers = array_change_key_case( $response_headers );
+
+		$allow_methods = isset( $response_headers['access-control-allow-methods'] )
+			? array_map( 'trim', explode( ',', $response_headers['access-control-allow-methods'] ) )
+			: array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
+
+		/**
+		 * Filters the list of HTTP methods advertised to REST API CORS requests.
+		 *
+		 * The allowed methods are passed to the browser to specify which methods
+		 * may be used in a cross-origin request to the REST API. The list is a
+		 * fixed default and is not derived from the registered routes, so a site
+		 * serving routes that accept other methods can advertise them here.
+		 *
+		 * If the response already set its own `Access-Control-Allow-Methods` header,
+		 * `$allow_methods` is that value, split on commas, instead of the default list.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string[]             $allow_methods The list of HTTP methods to allow.
+		 * @param WP_REST_Request|null $request       The request in context, if available.
+		 */
+		$allow_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request );
+
+		header( 'Access-Control-Allow-Methods: ' . implode( ', ', $allow_methods ) );
 		header( 'Access-Control-Allow-Credentials: true' );
 		header( 'Vary: Origin', false );
 	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
