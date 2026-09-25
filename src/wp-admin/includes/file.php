@@ -2706,6 +2706,38 @@ function wp_print_request_filesystem_credentials_modal() {
 }
 
 /**
+ * Determines whether the Zend OPcache extension is enabled.
+ *
+ * Uses opcache_get_status() when the host allows OPcache API calls. When
+ * opcache_get_status() is unavailable (for example, when opcache.restrict_api
+ * blocks the current script), falls back to the opcache.enable INI setting.
+ *
+ * @since 7.1.0
+ *
+ * @link https://www.php.net/manual/en/function.opcache-get-status.php
+ * @link https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.restrict-api
+ *
+ * @return bool True if OPcache is enabled, false otherwise.
+ */
+function wp_opcache_is_enabled() {
+	if ( ! function_exists( 'opcache_get_status' ) ) {
+		return false;
+	}
+
+	$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted when the API is restricted.
+
+	if ( is_array( $status ) && array_key_exists( 'opcache_enabled', $status ) ) {
+		return (bool) $status['opcache_enabled'];
+	}
+
+	/*
+	 * opcache_get_status() returns false when OPcache is disabled or when the
+	 * opcache.restrict_api INI directive blocks API access for this script.
+	 */
+	return wp_validate_boolean( ini_get( 'opcache.enable' ) );
+}
+
+/**
  * Attempts to clear the opcode cache for an individual PHP file.
  *
  * This function can be called safely without having to check the file extension
