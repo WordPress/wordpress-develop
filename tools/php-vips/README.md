@@ -61,3 +61,4 @@ src/wp-includes/php-vips/
 
 - The installer assumes `psr/log` is the only Composer dependency, because the scoped output is copied to a fixed `third-party/Psr/Log` path. It fails loudly if upstream adds another dependency, so the mapping can be updated deliberately.
 - `src/wp-includes/php-vips/` is excluded from PHPCS and PHPStan, matching the other bundled libraries.
+- The generated `autoload.php` records the repository, ref and commit the bundle was built from.
