@@ -169,7 +169,15 @@ function _post_format_request( $qvs ) {
 	}
 	$slugs = get_post_format_slugs();
 	if ( isset( $slugs[ $qvs['post_format'] ] ) ) {
-		$qvs['post_format'] = 'post-format-' . $slugs[ $qvs['post_format'] ];
+		if ( 'standard' === $qvs['post_format'] ) {
+			unset( $qvs['post_format'] );
+			$qvs['tax_query'][] = array(
+				'taxonomy' => 'post_format',
+				'operator' => 'NOT EXISTS',
+			);
+		} else {
+			$qvs['post_format'] = 'post-format-' . $slugs[ $qvs['post_format'] ];
+		}
 	}
 	$tax = get_taxonomy( 'post_format' );
 	if ( ! is_admin() ) {
