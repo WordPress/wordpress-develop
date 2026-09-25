@@ -2121,6 +2121,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Test stream URL validation.
 	 *
+	 * @ticket 65870
+	 *
 	 * @dataProvider data_wp_is_stream
 	 *
 	 * @param string $path     The resource path or URL.
@@ -2151,6 +2153,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'https://example.com', true ),
 			array( 'ftp://example.com', true ),
 			array( 'file:///path/to/some/file', true ),
+			array( 'FILE:///path/to/some/file', true ),
 			array( 'php://some/php/file.php', true ),
 
 			// Non-stream examples.
@@ -2159,6 +2162,93 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'some/other/relative/path', false ),
 			array( '/leading/relative/path', false ),
 		);
+	}
+
+	/**
+	 * Tests that wp_is_stream() agrees with PHP about which schemes reach a
+	 * registered wrapper.
+	 *
+	 * The expected result is read back from PHP rather than hard coded: a scheme
+	 * PHP resolves to the wrapper stats the file behind it, while one it cannot
+	 * resolve reports that the wrapper could not be found.
+	 *
+	 * @ticket 65870
+	 *
+	 * @dataProvider data_wp_is_stream_matches_php_wrapper_matching
+	 *
+	 * @param string $registered The scheme the wrapper is registered under.
+	 * @param string $scheme     The scheme the wrapper is looked up with.
+	 */
+	public function test_wp_is_stream_matches_php_wrapper_matching( $registered, $scheme ) {
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+
+		stream_wrapper_register( $registered, 'WP_Test_Stream' );
+		WP_Test_Stream::$data['Tests_Functions'] = array(
+			'/wp-is-stream.txt' => 'contents',
+		);
+
+		$url = $scheme . '://Tests_Functions/wp-is-stream.txt';
+
+		try {
+			$expected = $this->php_resolves_stream_scheme( $url );
+			$actual   = wp_is_stream( $url );
+		} finally {
+			stream_wrapper_unregister( $registered );
+			unset( WP_Test_Stream::$data['Tests_Functions'] );
+		}
+
+		$this->assertSame(
+			$expected,
+			$actual,
+			"wp_is_stream() disagreed with PHP about the scheme '$scheme' for a wrapper registered as '$registered'."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * PHP looks a scheme up as given, then retries once with it lowercased, so a
+	 * wrapper registered under a lowercase scheme is reachable in any case, while
+	 * one registered under a mixed case scheme is reachable only as registered.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_is_stream_matches_php_wrapper_matching() {
+		return array(
+			'lowercase wrapper, scheme as registered'  => array( 'wpteststream', 'wpteststream' ),
+			'lowercase wrapper, uppercase scheme'      => array( 'wpteststream', 'WPTESTSTREAM' ),
+			'lowercase wrapper, mixed case scheme'     => array( 'wpteststream', 'wpTestStream' ),
+			'mixed case wrapper, scheme as registered' => array( 'wpTestMixedCase', 'wpTestMixedCase' ),
+			'mixed case wrapper, lowercase scheme'     => array( 'wpTestMixedCase', 'wptestmixedcase' ),
+			'mixed case wrapper, uppercase scheme'     => array( 'wpTestMixedCase', 'WPTESTMIXEDCASE' ),
+			'mixed case wrapper, other mixed case'     => array( 'wpTestMixedCase', 'wptestMIXEDcase' ),
+		);
+	}
+
+	/**
+	 * Reports whether PHP resolves the scheme of a stream URL to a registered wrapper.
+	 *
+	 * PHP raises a warning when it cannot, which the test suite turns into an
+	 * exception, so the stat runs behind a handler that swallows warnings.
+	 *
+	 * @param string $url A stream URL whose target exists behind its wrapper.
+	 * @return bool Whether PHP reached the wrapper through the URL's scheme.
+	 */
+	private function php_resolves_stream_scheme( $url ) {
+		clearstatcache();
+
+		set_error_handler(
+			static function ( $errno ) {
+				// An unresolvable scheme is reported as a warning; let anything else through.
+				return E_WARNING === $errno;
+			}
+		);
+
+		try {
+			return file_exists( $url );
+		} finally {
+			restore_error_handler();
+		}
 	}
 
 	/**
