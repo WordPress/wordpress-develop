@@ -156,6 +156,7 @@ final class WP_Font_Collection {
 	 *                        else an instance of WP_Error on failure.
 	 */
 	private function load_from_file( $file ) {
+
 		$data = wp_json_file_decode( $file, array( 'associative' => true ) );
 		if ( empty( $data ) ) {
 			return new WP_Error( 'font_collection_decode_error', __( 'Error decoding the font collection JSON file contents.' ) );
