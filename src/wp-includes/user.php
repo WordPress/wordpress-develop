@@ -874,7 +874,7 @@ function get_user( $user_id ) {
  *
  * @phpstan-return (
  *     $args is array{ fields: 'all'|'all_with_meta', ... } ? array<int, WP_User> : (
- *         $args is array{ fields: 'ID'|'id', ... } ? array<int, non-negative-int> : (
+ *         $args is array{ fields: 'ID'|'id', ... } ? list<numeric-string> : (
  *             $args is array{ fields: non-empty-string|non-empty-array<array-key, string>, ... } ? array<int, mixed> : array<int, WP_User>
  *         )
  *     )
