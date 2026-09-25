@@ -767,4 +767,34 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 
 		$this->assertNotEmpty( $preserved['caption'], 'Metadata should be preserved when the filter returns false.' );
 	}
+
+	/**
+	 * Tests that a single loaded image can be read more than once.
+	 *
+	 * The source must not be opened with sequential access, which permits only one pass
+	 * and fails the second read with a "VipsJpeg: out of order read" error.
+	 */
+	public function test_repeated_reads_from_one_instance() {
+		$file = DIR_TESTDATA . '/images/waffles.jpg';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$size = $vips_image_editor->get_size();
+
+		$first_file  = tempnam( get_temp_dir(), 'vips_reads_' ) . '.jpg';
+		$second_file = tempnam( get_temp_dir(), 'vips_reads_' ) . '.jpg';
+
+		$first  = $vips_image_editor->save( $first_file );
+		$second = $vips_image_editor->save( $second_file );
+
+		$this->assertNotWPError( $first );
+		$this->assertNotWPError( $second );
+
+		$this->assertImageDimensions( $first_file, $size['width'], $size['height'] );
+		$this->assertImageDimensions( $second_file, $size['width'], $size['height'] );
+
+		unlink( $first_file );
+		unlink( $second_file );
+	}
 }
