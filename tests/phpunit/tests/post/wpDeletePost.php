@@ -127,7 +127,13 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 			);
 		}
 
-		$post_id      = self::factory()->post->create();
+		remove_post_type_support( 'post', 'revisions' );
+		try {
+			$post_id = self::factory()->post->create();
+		} finally {
+			add_post_type_support( 'post', 'revisions' );
+		}
+
 		$deleted_post = wp_delete_post( (string) $post_id, true );
 		$this->assertInstanceOf( WP_Post::class, $deleted_post );
 
