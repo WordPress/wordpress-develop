@@ -84,6 +84,10 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 */
 	public function set_up() {
 		parent::set_up();
+
+		unset( $GLOBALS['locale'] );
+		get_locale();
+
 		reset_phpmailer_instance();
 	}
 
@@ -96,6 +100,8 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		reset_phpmailer_instance();
 		restore_previous_locale();
 		parent::tear_down();
+
+		unset( $GLOBALS['locale'] );
 	}
 
 	/**
