@@ -4,6 +4,32 @@
 	"title": "Twilight",
 	"settings": {
 		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#4B52FF",
+						"#FF7A5C"
+					],
+					"name": "Twilight Vibrant",
+					"slug": "twilight-vibrant"
+				},
+				{
+					"colors": [
+						"#131313",
+						"#4B52FF"
+					],
+					"name": "Twilight Blue",
+					"slug": "twilight-blue"
+				},
+				{
+					"colors": [
+						"#131313",
+						"#FFFFFF"
+					],
+					"name": "Twilight Grayscale",
+					"slug": "twilight-grayscale"
+				}
+			],
 			"palette": [
 				{
 					"color": "#131313",
