@@ -516,6 +516,64 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertNotNull( $values );
 	}
 
+	/**
+	 * @ticket 65754
+	 */
+	public function test_update_item_with_multiple_value_meta() {
+		wp_set_current_user( self::$editor_id );
+
+		register_post_meta(
+			'post',
+			'foo_multi',
+			array(
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+				'single'            => false,
+				'type'              => 'string',
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => 'Original content.',
+				'post_author'  => self::$editor_id,
+			)
+		);
+
+		add_post_meta( $post_id, 'foo_multi', 'bar' );
+		add_post_meta( $post_id, 'foo_multi', 'baz' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params(
+			$this->set_post_data(
+				array(
+					'id'      => $post_id,
+					'content' => 'Autosaved content.',
+					'meta'    => array(
+						'foo_multi' => array( 'bar', 'qux' ),
+					),
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_create_autosave_response( $response );
+
+		$data = $response->get_data();
+
+		$this->assertSame(
+			array( 'bar', 'qux' ),
+			get_post_meta( $data['id'], 'foo_multi' ),
+			'The autosave revision should store each meta value in its own row.'
+		);
+		$this->assertSame(
+			array( 'bar', 'qux' ),
+			$data['meta']['foo_multi'],
+			'The response should return the autosaved meta values.'
+		);
+	}
+
 	public function test_update_item_nopriv() {
 		wp_set_current_user( self::$contributor_id );
 
