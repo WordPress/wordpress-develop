@@ -1279,10 +1279,21 @@ function wp_set_internal_encoding() {
  * Also forces `$_REQUEST` to be `$_GET + $_POST`. If `$_SERVER`,
  * `$_COOKIE`, or `$_ENV` are needed, use those superglobals directly.
  *
+ * Initializes the global WP_Superglobals instances that provide unslashed
+ * access to the superglobal values.
+ *
  * @since 3.0.0
  * @access private
+ *
+ * @global WP_Superglobals $wp_get     Unslashed access to $_GET.
+ * @global WP_Superglobals $wp_post    Unslashed access to $_POST.
+ * @global WP_Superglobals $wp_request Unslashed access to $_REQUEST.
+ * @global WP_Superglobals $wp_cookie  Unslashed access to $_COOKIE.
+ * @global WP_Superglobals $wp_server  Unslashed access to $_SERVER.
  */
 function wp_magic_quotes() {
+	global $wp_get, $wp_post, $wp_request, $wp_cookie, $wp_server;
+
 	// Escape with wpdb.
 	$_GET    = add_magic_quotes( $_GET );
 	$_POST   = add_magic_quotes( $_POST );
@@ -1291,6 +1302,150 @@ function wp_magic_quotes() {
 
 	// Force REQUEST to be GET + POST.
 	$_REQUEST = array_merge( $_GET, $_POST );
+
+	/*
+	 * Initialize global WP_Superglobals instances.
+	 *
+	 * These wrap the live superglobals by reference and transparently
+	 * strip slashes on read, so callers never need to call wp_unslash()
+	 * manually. Initialized after add_magic_quotes() so the wrappers
+	 * always reference the slashed superglobals (and unslash on access).
+	 */
+	$wp_get     = new WP_Superglobals( $_GET, '$_GET' );
+	$wp_post    = new WP_Superglobals( $_POST, '$_POST' );
+	$wp_request = new WP_Superglobals( $_REQUEST, '$_REQUEST' );
+	$wp_cookie  = new WP_Superglobals( $_COOKIE, '$_COOKIE' );
+	$wp_server  = new WP_Superglobals( $_SERVER, '$_SERVER' );
+}
+
+/**
+ * Retrieves an unslashed value from the $_GET superglobal.
+ *
+ * Returns the value without the slashes added by wp_magic_quotes(),
+ * removing the need for manual wp_unslash() calls.
+ *
+ * This is analogous to PHP's filter_input( INPUT_GET, ... ) but returns
+ * the raw unslashed value rather than a filtered one.
+ *
+ * @since x.x.x
+ *
+ * @param string $key           The key to retrieve from $_GET.
+ * @param mixed  $default_value Optional. Default value to return if the key does not exist.
+ *                              Default null.
+ * @return mixed The unslashed value, or `$default_value` if the key is not set.
+ */
+function wp_input_get( $key, $default_value = null ) {
+	global $wp_get;
+
+	if ( ! $wp_get instanceof WP_Superglobals ) {
+		return isset( $_GET[ $key ] ) ? wp_unslash( $_GET[ $key ] ) : $default_value;
+	}
+
+	return $wp_get->get( $key, $default_value );
+}
+
+/**
+ * Retrieves an unslashed value from the $_POST superglobal.
+ *
+ * Returns the value without the slashes added by wp_magic_quotes(),
+ * removing the need for manual wp_unslash() calls.
+ *
+ * This is analogous to PHP's filter_input( INPUT_POST, ... ) but returns
+ * the raw unslashed value rather than a filtered one.
+ *
+ * @since x.x.x
+ *
+ * @param string $key           The key to retrieve from $_POST.
+ * @param mixed  $default_value Optional. Default value to return if the key does not exist.
+ *                              Default null.
+ * @return mixed The unslashed value, or `$default_value` if the key is not set.
+ */
+function wp_input_post( $key, $default_value = null ) {
+	global $wp_post;
+
+	if ( ! $wp_post instanceof WP_Superglobals ) {
+		return isset( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : $default_value;
+	}
+
+	return $wp_post->get( $key, $default_value );
+}
+
+/**
+ * Retrieves an unslashed value from the $_REQUEST superglobal.
+ *
+ * Returns the value without the slashes added by wp_magic_quotes(),
+ * removing the need for manual wp_unslash() calls.
+ *
+ * This is analogous to PHP's filter_input( INPUT_REQUEST, ... ) but returns
+ * the raw unslashed value rather than a filtered one.
+ *
+ * @since x.x.x
+ *
+ * @param string $key           The key to retrieve from $_REQUEST.
+ * @param mixed  $default_value Optional. Default value to return if the key does not exist.
+ *                              Default null.
+ * @return mixed The unslashed value, or `$default_value` if the key is not set.
+ */
+function wp_input_request( $key, $default_value = null ) {
+	global $wp_request;
+
+	if ( ! $wp_request instanceof WP_Superglobals ) {
+		return isset( $_REQUEST[ $key ] ) ? wp_unslash( $_REQUEST[ $key ] ) : $default_value;
+	}
+
+	return $wp_request->get( $key, $default_value );
+}
+
+/**
+ * Retrieves an unslashed value from the $_COOKIE superglobal.
+ *
+ * Returns the value without the slashes added by wp_magic_quotes(),
+ * removing the need for manual wp_unslash() calls.
+ *
+ * This is analogous to PHP's filter_input( INPUT_COOKIE, ... ) but returns
+ * the raw unslashed value rather than a filtered one.
+ *
+ * @since x.x.x
+ *
+ * @param string $key           The key to retrieve from $_COOKIE.
+ * @param mixed  $default_value Optional. Default value to return if the key does not exist.
+ *                              Default null.
+ * @return mixed The unslashed value, or `$default_value` if the key is not set.
+ */
+function wp_input_cookie( $key, $default_value = null ) {
+	global $wp_cookie;
+
+	if ( ! $wp_cookie instanceof WP_Superglobals ) {
+		return isset( $_COOKIE[ $key ] ) ? wp_unslash( $_COOKIE[ $key ] ) : $default_value;
+	}
+
+	return $wp_cookie->get( $key, $default_value );
+}
+
+/**
+ * Retrieves an unslashed value from the $_SERVER superglobal.
+ *
+ * Returns the value without the slashes added by wp_magic_quotes(),
+ * removing the need for manual wp_unslash() calls.
+ *
+ * This is analogous to PHP's filter_input( INPUT_SERVER, ... ) but returns
+ * the raw unslashed value rather than a filtered one.
+ *
+ * @since x.x.x
+ *
+ * @param string $key           The key to retrieve from $_SERVER.
+ * @param mixed  $default_value Optional. Default value to return if the key does not exist.
+ *                              Default null.
+ * @return mixed The unslashed value, or `$default_value` if the key is not set.
+ */
+function wp_input_server( $key, $default_value = null ) {
+	global $wp_server;
+
+	if ( ! $wp_server instanceof WP_Superglobals ) {
+		return isset( $_SERVER[ $key ] ) ? wp_unslash( $_SERVER[ $key ] ) : $default_value;
+	}
+
+	return $wp_server->get( $key, $default_value );
 }
 
 /**
