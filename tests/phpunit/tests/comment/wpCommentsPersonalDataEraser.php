@@ -18,6 +18,7 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 	 * The `wp_comments_personal_data_eraser()` function should erase user's comments.
 	 *
 	 * @ticket 43442
+	 * @ticket 43880
 	 */
 	public function test_wp_comments_personal_data_eraser() {
 
@@ -55,7 +56,7 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 
 		$expected = array(
 			'comment_ID'           => (string) $comment_id,
-			'user_id'              => '0', // Anonymized.
+			'user_id'              => (string) get_site_option( 'wp_privacy_anonymous_user_id' ), // Anonymized.
 			'comment_author'       => 'Anonymous', // Anonymized.
 			'comment_author_email' => '', // Anonymized.
 			'comment_author_url'   => '', // Anonymized.
@@ -67,6 +68,7 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $actual );
+		$this->assertInstanceOf( 'WP_User', get_userdata( (int) $comment->user_id ) );
 	}
 
 	/**
