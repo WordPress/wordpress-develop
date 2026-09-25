@@ -904,13 +904,23 @@ class WP_Rewrite {
 			}
 		}
 
-		// Get everything up to the first rewrite tag.
-		$front = substr( $permalink_structure, 0, strpos( $permalink_structure, '%' ) );
+		// Match only registered rewrite tags present in this structure, not percent-encoded characters.
+		$tag_regex = array();
+		foreach ( $this->rewritecode as $tag ) {
+			if ( str_contains( $permalink_structure, $tag ) ) {
+				$tag_regex[] = preg_quote( $tag, '#' );
+			}
+		}
+
+		$tag_pattern = $tag_regex ? '#(?:' . implode( '|', $tag_regex ) . ')#' : '#(?!)#';
 
 		// Build an array of the tags (note that said array ends up being in $tokens[0]).
-		preg_match_all( '/%.+?%/', $permalink_structure, $tokens );
+		preg_match_all( $tag_pattern, $permalink_structure, $tokens );
 
 		$num_tokens = count( $tokens[0] );
+
+		// Get everything up to the first rewrite tag.
+		$front = $num_tokens ? substr( $permalink_structure, 0, strpos( $permalink_structure, $tokens[0][0] ) ) : '';
 
 		$index          = $this->index; // Probably 'index.php'.
 		$feedindex      = $index;
@@ -936,7 +946,7 @@ class WP_Rewrite {
 		// Get the structure, minus any cruft (stuff that isn't tags) at the front.
 		$structure = $permalink_structure;
 		if ( '/' !== $front ) {
-			$structure = str_replace( $front, '', $structure );
+			$structure = substr( $structure, strlen( $front ) );
 		}
 
 		/*
@@ -966,7 +976,7 @@ class WP_Rewrite {
 			$match = str_replace( $this->rewritecode, $this->rewritereplace, $struct );
 
 			// Make a list of tags, and store how many there are in $num_toks.
-			$num_toks = preg_match_all( '/%.+?%/', $struct, $toks );
+			$num_toks = preg_match_all( $tag_pattern, $struct, $toks );
 
 			// Get the 'tagname=$matches[i]'.
 			$query = ( ! empty( $num_toks ) && isset( $queries[ $num_toks - 1 ] ) ) ? $queries[ $num_toks - 1 ] : '';
