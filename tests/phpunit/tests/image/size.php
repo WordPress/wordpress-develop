@@ -208,4 +208,62 @@ class Tests_Image_Size extends WP_UnitTestCase {
 
 		$content_width = $_content_width;
 	}
+
+	/**
+	 * Tests that an additional image size registered via add_image_size() is used
+	 * to constrain the dimensions.
+	 *
+	 * @ticket 65842
+	 */
+	public function test_constrain_size_for_editor_additional_image_size() {
+		add_image_size( 'test-size', 300, 200 );
+
+		$out = image_constrain_size_for_editor( 600, 400, 'test-size' );
+
+		remove_image_size( 'test-size' );
+
+		$this->assertSame( array( 300, 200 ), $out );
+	}
+
+	/**
+	 * Tests that a size which is not a valid array key does not cause a PHP error.
+	 *
+	 * A size that does not match a registered image size should fall through to
+	 * the unconstrained branch, without being used as an array offset.
+	 *
+	 * On PHP 8.5, using null as an array offset emits a deprecation notice, and
+	 * using an object or a float emits a TypeError or a deprecation notice
+	 * respectively. The test suite converts these into test failures.
+	 *
+	 * @ticket 65842
+	 *
+	 * @dataProvider data_constrain_size_for_editor_invalid_size
+	 *
+	 * @param mixed $size Requested image size.
+	 */
+	public function test_constrain_size_for_editor_invalid_size( $size ) {
+		add_image_size( 'test-size', 300, 200 );
+
+		$out = image_constrain_size_for_editor( 600, 400, $size );
+
+		remove_image_size( 'test-size' );
+
+		$this->assertSame( array( 600, 400 ), $out );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_constrain_size_for_editor_invalid_size() {
+		return array(
+			'null'         => array( null ),
+			'false'        => array( false ),
+			'empty string' => array( '' ),
+			'integer zero' => array( 0 ),
+			'a float'      => array( 1.5 ),
+			'an object'    => array( new stdClass() ),
+		);
+	}
 }
