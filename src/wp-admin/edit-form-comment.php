@@ -112,17 +112,18 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 <div class="misc-pub-section misc-pub-comment-status" id="comment-status">
 <?php _e( 'Status:' ); ?> <span id="comment-status-display">
 <?php
-switch ( $comment->comment_approved ) {
-	case '1':
-		_e( 'Approved' );
-		break;
-	case '0':
-		_e( 'Pending' );
-		break;
-	case 'spam':
-		_e( 'Spam' );
-		break;
-}
+$comment_statuses = _wp_get_custom_comment_statuses();
+$status_labels    = array_merge(
+	$comment_statuses,
+	array(
+		'0'     => _x( 'Pending', 'comment status' ),
+		'1'     => _x( 'Approved', 'comment status' ),
+		'spam'  => _x( 'Spam', 'comment status' ),
+		'trash' => _x( 'Trash', 'comment status' ),
+	)
+);
+
+echo esc_html( $status_labels[ $comment->comment_approved ] ?? $comment->comment_approved );
 ?>
 </span>
 
@@ -133,9 +134,43 @@ switch ( $comment->comment_approved ) {
 	_e( 'Comment status' );
 	?>
 </legend>
-<label><input type="radio"<?php checked( $comment->comment_approved, '1' ); ?> name="comment_status" value="1" /><?php _ex( 'Approved', 'comment status' ); ?></label><br />
-<label><input type="radio"<?php checked( $comment->comment_approved, '0' ); ?> name="comment_status" value="0" /><?php _ex( 'Pending', 'comment status' ); ?></label><br />
-<label><input type="radio"<?php checked( $comment->comment_approved, 'spam' ); ?> name="comment_status" value="spam" /><?php _ex( 'Spam', 'comment status' ); ?></label>
+<?php
+$comment_status_radio = array(
+	'1'    => _x( 'Approved', 'comment status' ),
+	'0'    => _x( 'Pending', 'comment status' ),
+	'spam' => _x( 'Spam', 'comment status' ),
+);
+
+foreach ( _wp_get_custom_comment_statuses() as $status => $label ) {
+	$comment_status_radio[ $status ] = $label;
+}
+
+/**
+ * Filters the editable comment statuses displayed on the edit comment screen.
+ *
+ * @since 7.1.0
+ *
+ * @param string[]   $comment_status_radio List of editable comment status labels keyed by status.
+ * @param WP_Comment $comment              Current comment object.
+ */
+$comment_status_radio = apply_filters( 'editable_comment_statuses', $comment_status_radio, $comment );
+
+$valid_comment_status_radio = array_merge(
+	array(
+		'1'    => true,
+		'0'    => true,
+		'spam' => true,
+	),
+	array_fill_keys( array_keys( _wp_get_custom_comment_statuses() ), true )
+);
+$comment_status_radio       = array_intersect_key( $comment_status_radio, $valid_comment_status_radio );
+
+foreach ( $comment_status_radio as $status => $label ) :
+	?>
+	<label><input type="radio"<?php checked( $comment->comment_approved, $status ); ?> name="comment_status" value="<?php echo esc_attr( $status ); ?>" /><?php echo esc_html( $label ); ?></label><br />
+	<?php
+endforeach;
+?>
 </fieldset>
 </div><!-- .misc-pub-section -->
 

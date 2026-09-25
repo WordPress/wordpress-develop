@@ -579,7 +579,9 @@ class WP_Comment_Query {
 
 					case 'all':
 					case '':
-						$status_clauses[] = "( comment_approved = '0' OR comment_approved = '1' )";
+						$all_statuses = array_merge( array( '0', '1' ), array_keys( _wp_get_custom_comment_statuses() ) );
+						$placeholders = implode( ', ', array_fill( 0, count( $all_statuses ), '%s' ) );
+						$status_clauses[] = $wpdb->prepare( "comment_approved IN ($placeholders)", $all_statuses );
 						break;
 
 					default:
