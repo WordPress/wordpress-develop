@@ -134,20 +134,31 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		try {
 			$test_image = Jcupitt\Vips\Image::black( 1, 1 );
 
-			// Some formats (like GIF) have issues with writeToBuffer in ImageMagick, so test with writeToFile
-			$temp_file = tempnam( sys_get_temp_dir(), 'vips_test_' ) . '.' . $target_extension;
+			// libvips selects the encoder from the file suffix, so the probe is written
+			// to a suffixed file. tempnam() creates the unsuffixed file itself, and both
+			// are removed once the probe has run.
+			$temp_file = tempnam( sys_get_temp_dir(), 'vips_test_' );
+
+			if ( false === $temp_file ) {
+				self::$mime_support_cache[ $mime_type ] = false;
+
+				return false;
+			}
+
+			$probe_file = $temp_file . '.' . $target_extension;
 
 			try {
-				$test_image->writeToFile( $temp_file );
-				$supported = file_exists( $temp_file ) && filesize( $temp_file ) > 0;
-
+				$test_image->writeToFile( $probe_file );
+				$supported = file_exists( $probe_file ) && filesize( $probe_file ) > 0;
+			} catch ( Exception $write_error ) {
+				$supported = false;
+			} finally {
 				if ( file_exists( $temp_file ) ) {
 					unlink( $temp_file );
 				}
-			} catch ( Exception $write_error ) {
-				$supported = false;
-				if ( file_exists( $temp_file ) ) {
-					unlink( $temp_file );
+
+				if ( file_exists( $probe_file ) ) {
+					unlink( $probe_file );
 				}
 			}
 
