@@ -113,6 +113,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$tabs['recommended'] = _x( 'Recommended', 'Plugin Installer' );
 		$tabs['favorites']   = _x( 'Favorites', 'Plugin Installer' );
 
+		if ( is_multisite() ) {
+			$tabs['multisite'] = _x( 'Multisite', 'Plugin Installer' );
+		}
+
 		if ( current_user_can( 'upload_plugins' ) ) {
 			/*
 			 * No longer a real tab. Here for filter compatibility.
@@ -129,7 +133,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		 * @since 2.7.0
 		 *
 		 * @param string[] $tabs The tabs shown on the Add Plugins screen. Defaults include
-		 *                       'featured', 'popular', 'recommended', 'favorites', and 'upload'.
+		 *                       'featured', 'popular', 'recommended', 'favorites', and 'upload' and 'multisite' (network only).
 		 */
 		$tabs = apply_filters( 'install_plugins_tabs', $tabs );
 
@@ -208,6 +212,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				add_action( 'install_plugins_favorites', 'install_plugins_favorites_form', 9, 0 );
 				break;
 
+			case 'multisite':
+				$args['tag'] = 'multisite';
+				break;
+
 			default:
 				$args = false;
 				break;
@@ -227,8 +235,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		 *  - `install_plugins_table_api_args_upload`
 		 *  - `install_plugins_table_api_args_search`
 		 *  - `install_plugins_table_api_args_beta`
+		 *  - `install_plugins_table_api_args_multisite`
 		 *
 		 * @since 3.7.0
+		 * @since 7.1.0 Added multisite filter
 		 *
 		 * @param array|false $args Plugin install API arguments.
 		 */
