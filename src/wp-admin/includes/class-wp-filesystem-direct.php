@@ -334,6 +334,13 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			return false;
 		}
 
+		if ( $source === $destination ) {
+			return false;
+		}
+
+		if ( $overwrite && $this->exists( $destination ) && ! $this->delete( $destination ) ) {
+			return false;
+		}
 		$rtval = copy( $source, $destination );
 
 		if ( $mode ) {
@@ -444,7 +451,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @return bool Whether $path exists or not.
 	 */
 	public function exists( $path ) {
-		return @file_exists( $path );
+		return @file_exists( $path ) || @is_link( $path );
 	}
 
 	/**
@@ -456,7 +463,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @return bool Whether $file is a file.
 	 */
 	public function is_file( $file ) {
-		return @is_file( $file );
+		return @is_file( $file ) || @is_link( $file );
 	}
 
 	/**
