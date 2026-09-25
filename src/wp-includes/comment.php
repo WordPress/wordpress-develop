@@ -761,11 +761,8 @@ function sanitize_comment_cookies() {
  *                           returning a WP_Error object, rather than executing wp_die().
  *                           Default false.
  * @return int|string|WP_Error Allowed comments return the approval status (0|1|'spam'|'trash').
- *                             If `$wp_error` is true, disallowed comments return a WP_Error.
- *
- * @phpstan-return (
- *     $wp_error is false ? int|string : int|string|WP_Error
- * )
+ *                             WP_Error if the comment is a duplicate or a flood and `$wp_error`
+ *                             is true, or if the {@see 'pre_comment_approved'} filter returns one.
  */
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
