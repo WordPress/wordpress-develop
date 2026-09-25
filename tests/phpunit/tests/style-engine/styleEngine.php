@@ -25,6 +25,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 63799
 	 * @ticket 64974
 	 * @ticket 65037
+	 * @ticket 66094
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -666,6 +667,49 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'background-attachment' => 'fixed',
 					),
 				),
+			),
+
+			'inline_background_clip_border_box'            => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'border-box',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-clip:border-box;-webkit-text-fill-color:unset;',
+					'declarations' => array(
+						'background-clip'         => 'border-box',
+						'-webkit-text-fill-color' => 'unset',
+					),
+				),
+			),
+
+			'inline_background_clip_text_with_vendor_prefixes' => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'text',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;',
+					'declarations' => array(
+						'background-clip'         => 'text',
+						'-webkit-background-clip' => 'text',
+						'-webkit-text-fill-color' => 'transparent',
+					),
+				),
+			),
+
+			'inline_background_clip_invalid_value'         => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'invalid-value',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(),
 			),
 		);
 	}
