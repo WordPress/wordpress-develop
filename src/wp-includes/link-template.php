@@ -3490,7 +3490,7 @@ function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
 	}
 
 	if ( ! in_array( $scheme, array( 'http', 'https', 'relative' ), true ) ) {
-		if ( is_ssl() ) {
+		if ( is_ssl() || force_ssl() ) {
 			$scheme = 'https';
 		} else {
 			$scheme = parse_url( $url, PHP_URL_SCHEME );
@@ -3811,7 +3811,7 @@ function network_home_url( $path = '', $scheme = null ) {
 	$orig_scheme     = $scheme;
 
 	if ( ! in_array( $scheme, array( 'http', 'https', 'relative' ), true ) ) {
-		$scheme = is_ssl() ? 'https' : 'http';
+		$scheme = is_ssl() || force_ssl() ? 'https' : 'http';
 	}
 
 	if ( 'relative' === $scheme ) {
@@ -3952,11 +3952,11 @@ function set_url_scheme( $url, $scheme = null ) {
 	$orig_scheme = $scheme;
 
 	if ( ! $scheme ) {
-		$scheme = is_ssl() ? 'https' : 'http';
+		$scheme = is_ssl() || force_ssl() ? 'https' : 'http';
 	} elseif ( 'admin' === $scheme || 'login' === $scheme || 'login_post' === $scheme || 'rpc' === $scheme ) {
-		$scheme = is_ssl() || force_ssl_admin() ? 'https' : 'http';
+		$scheme = is_ssl() || force_ssl() || force_ssl_admin() ? 'https' : 'http';
 	} elseif ( 'http' !== $scheme && 'https' !== $scheme && 'relative' !== $scheme ) {
-		$scheme = is_ssl() ? 'https' : 'http';
+		$scheme = is_ssl() || force_ssl() ? 'https' : 'http';
 	}
 
 	$url = trim( $url );
@@ -3984,6 +3984,37 @@ function set_url_scheme( $url, $scheme = null ) {
 	 *                                 'login_post', 'admin', 'relative', 'rest', 'rpc', or null.
 	 */
 	return apply_filters( 'set_url_scheme', $url, $scheme, $orig_scheme );
+}
+
+/**
+ * Converts a local URL to HTTPS when SSL is forced.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @param string $url URL to check.
+ * @return string HTTPS URL when local SSL is forced, otherwise the original URL.
+ */
+function _wp_force_ssl_url( $url ) {
+	if ( ! force_ssl() || ! is_string( $url ) || ! preg_match( '#^(https?:)?//#i', $url ) ) {
+		return $url;
+	}
+
+	$host = wp_parse_url( $url, PHP_URL_HOST );
+	if ( ! $host ) {
+		return $url;
+	}
+
+	$host       = strtolower( $host );
+	$site_hosts = array_filter(
+		array(
+			wp_parse_url( home_url( '', 'http' ), PHP_URL_HOST ),
+			wp_parse_url( site_url( '', 'http' ), PHP_URL_HOST ),
+		)
+	);
+	$site_hosts = array_map( 'strtolower', $site_hosts );
+
+	return in_array( $host, $site_hosts, true ) ? set_url_scheme( $url, 'https' ) : $url;
 }
 
 /**

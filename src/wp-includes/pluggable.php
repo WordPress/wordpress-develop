@@ -1093,11 +1093,11 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		}
 
 		if ( '' === $secure ) {
-			$secure = is_ssl();
+			$secure = is_ssl() || force_ssl();
 		}
 
 		// Front-end cookie is secure when the auth cookie is secure and the site's home URL uses HTTPS.
-		$secure_logged_in_cookie = $secure && 'https' === parse_url( get_option( 'home' ), PHP_URL_SCHEME );
+		$secure_logged_in_cookie = $secure && ( force_ssl() || 'https' === parse_url( get_option( 'home' ), PHP_URL_SCHEME ) );
 
 		/**
 		 * Filters whether the auth cookie should only be sent over HTTPS.
@@ -1278,7 +1278,7 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 	 * @since 1.5.0
 	 */
 	function auth_redirect() {
-		$secure = ( is_ssl() || force_ssl_admin() );
+		$secure = ( is_ssl() || force_ssl() || force_ssl_admin() );
 
 		/**
 		 * Filters whether to use a secure authentication redirect.

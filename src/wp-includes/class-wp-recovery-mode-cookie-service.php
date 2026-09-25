@@ -47,10 +47,12 @@ final class WP_Recovery_Mode_Cookie_Service {
 
 		$expire = time() + $length;
 
-		setcookie( RECOVERY_MODE_COOKIE, $value, $expire, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
+		$secure = is_ssl() || force_ssl();
+
+		setcookie( RECOVERY_MODE_COOKIE, $value, $expire, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
 
 		if ( COOKIEPATH !== SITECOOKIEPATH ) {
-			setcookie( RECOVERY_MODE_COOKIE, $value, $expire, SITECOOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
+			setcookie( RECOVERY_MODE_COOKIE, $value, $expire, SITECOOKIEPATH, COOKIE_DOMAIN, $secure, true );
 		}
 	}
 
