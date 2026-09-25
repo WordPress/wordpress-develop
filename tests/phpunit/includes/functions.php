@@ -105,10 +105,18 @@ function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
 }
 
 /**
- * Deletes all data from the database.
+ * Deletes all data from the database, except:
+ * - The default category.
+ * - The default user.
  */
 function _delete_all_data() {
 	global $wpdb;
+
+	// Retrieve all attachment posts, and delete them along with the attached media.
+	$attachments = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment'" );
+	foreach ( $attachments as $attachment ) {
+		wp_delete_attachment( $attachment, true );
+	}
 
 	foreach ( array(
 		$wpdb->posts,
@@ -374,6 +382,18 @@ function _unhook_font_registration() {
 	remove_action( 'init', '_wp_register_default_font_collections' );
 }
 tests_add_filter( 'init', '_unhook_font_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register icon collections and icons
+ * can cause errors. To avoid this, unhook the icon registration functions.
+ *
+ * @since 7.1.0
+ */
+function _unhook_icon_registration() {
+	remove_action( 'init', '_wp_register_default_icon_collections', 0 );
+	remove_action( 'init', '_wp_register_default_icons' );
+}
+tests_add_filter( 'init', '_unhook_icon_registration', 1000 );
 
 /**
  * After the init action has been run once, trying to re-register connector settings can cause

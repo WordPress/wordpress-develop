@@ -3,6 +3,8 @@
 /**
  * @group ms-required
  * @group multisite
+ *
+ * @covers ::is_email_address_unsafe
  */
 class Tests_Multisite_IsEmailAddressUnsafe extends WP_UnitTestCase {
 

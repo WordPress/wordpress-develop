@@ -172,6 +172,7 @@ trait WP_AI_Client_Mock_Provider_Trait {
 					'authentication' => array(
 						'method'          => 'api_key',
 						'credentials_url' => null,
+						'setting_name'    => 'connectors_ai_mock_connectors_test_api_key',
 					),
 				)
 			);

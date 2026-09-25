@@ -236,7 +236,13 @@ function get_template_part( $slug, $name = null, $args = array() ) {
  *                              multiple search forms on the same page and improve
  *                              accessibility. Default empty.
  * }
- * @return void|string Void if 'echo' argument is true, search form HTML if 'echo' is false.
+ * @return string|void Search form HTML if 'echo' is false, nothing otherwise.
+ * @phpstan-param array<string, mixed>|bool $args
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is false|0|''|'0' ? string : void )
+ * )
  */
 function get_search_form( $args = array() ) {
 	/**
@@ -369,6 +375,236 @@ function get_search_form( $args = array() ) {
 	}
 }
 
+
+/**
+ * Retrieves the markup for an accessible tooltip.
+ *
+ * Returns a button with an accessible name popover hint.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $button      Existing `button` or `a` markup. Used instead of generated button.
+ *                               Default empty string.
+ *     @type string $label       Not used for tooltips.
+ *     @type string $close_label Not used for tooltips.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ * }
+ * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_tooltip( $content, $args = array() ) {
+	$args['type'] = 'tooltip';
+	return wp_get_tooltip_helper( $content, $args );
+}
+
+/**
+ * Retrieves the markup for an accessible toggle tip.
+ *
+ * Returns a button and an action triggered toggle tip with `$content`.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $button      Existing `button` markup. Used instead of generated button.
+ *                               Default empty string.
+ *     @type string $label       Accessible label for the toggle button.
+ *                               Default 'Help', matching the default icon.
+ *                               Ignored for tooltips.
+ *     @type string $close_label Accessible label for the close button. Default 'Close'.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ * }
+ * @return string Toggletip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_toggletip( $content, $args = array() ) {
+	$args['type'] = 'toggletip';
+	return wp_get_tooltip_helper( $content, $args );
+}
+
+/**
+ * Retrieves the markup for an accessible tooltip or toggletip.
+ *
+ * Returns a button and either a hover/focus triggered tooltip popover or an action
+ * triggered toggle tip. Enqueue the `wp-tooltip` style and script where it is used.
+ * Tooltips are used to show the accessible name of a control.
+ * Toggletips are used for longer supporting text explaining context.
+ *
+ * @since 7.1.0
+ *
+ * @param string $content Plain-text tooltip content. An empty value returns an empty string.
+ * @param array  $args {
+ *     Optional. Arguments for building the tooltip.
+ *
+ *     @type string $id          Unique ID for the popover element. Default is a
+ *                               generated unique ID.
+ *     @type string $button      Existing `button` or `a` markup. Used instead of generated button.
+ *                               Default empty string.
+ *     @type string $label       Accessible label for the toggle button.
+ *                               Default 'Help', matching the default icon.
+ *                               Ignored for tooltips.
+ *     @type string $close_label Accessible label for the close button. Default 'Close'.
+ *     @type string $icon        Dashicons icon class for the toggle button.
+ *                               Default 'dashicons-editor-help'. Should match the control's
+ *                               visible label.
+ *     @type string $class       Additional class(es) for the wrapping element.
+ *                               Default empty.
+ *     @type string $type        Type of tooltip: either `tooltip` or `toggletip`.
+ *                               Default 'tooltip'.
+ * }
+ * @return string Tooltip HTML markup, or an empty string when no content is provided.
+ */
+function wp_get_tooltip_helper( $content, $args = array() ) {
+	$content = trim( (string) $content );
+
+	if ( '' === $content ) {
+		return '';
+	}
+
+	$defaults = array(
+		'id'          => wp_unique_id( 'wp-tooltip-' ),
+		'button'      => '',
+		'label'       => __( 'Help' ),
+		'close_label' => __( 'Close' ),
+		'icon'        => 'dashicons-editor-help',
+		'class'       => '',
+		'type'        => 'tooltip',
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	$classes = ( 'tooltip' === $args['type'] ) ? 'wp-tooltip wp-is-tooltip' : 'wp-tooltip wp-is-toggletip';
+	if ( '' !== $args['class'] ) {
+		$classes .= ' ' . $args['class'];
+	}
+
+	$icon = ( $args['icon'] ) ? trim( $args['icon'] ) : $defaults['icon'];
+	$id   = ( $args['id'] ) ? $args['id'] : $defaults['id'];
+
+	// Tooltips use the content as the accessible name; toggletips use the label.
+	$label = ( 'tooltip' === $args['type'] ) ? wp_strip_all_tags( $content, true ) : $args['label'];
+
+	/*
+	 * The generated button is a plain skeleton. Every dynamic attribute is
+	 * added through the tag processor below, so caller-supplied markup is
+	 * never scanned or substituted and a percent sign in custom markup,
+	 * such as a percent-encoded URL, is never treated as a conversion
+	 * specification.
+	 */
+	$default_button = '<button type="button"><span></span></button>';
+
+	$is_default = ! $args['button'];
+	$button     = ( $args['button'] ) ? $args['button'] : $default_button;
+
+	// The accepted root element is a `button`, or an `a` for tooltips.
+	$tag       = false;
+	$processor = new WP_HTML_Tag_Processor( $button );
+	if ( true === $processor->next_tag( 'button' ) ) {
+		$tag = 'button';
+	} else {
+		$processor = new WP_HTML_Tag_Processor( $button );
+		if ( 'tooltip' === $args['type'] && true === $processor->next_tag( 'a' ) ) {
+			$tag = 'a';
+		}
+	}
+
+	if ( false === $tag ) {
+		// Button HTML passed was not valid. Reset to default.
+		$is_default = true;
+		$button     = $default_button;
+		$processor  = new WP_HTML_Tag_Processor( $button );
+		$processor->next_tag( 'button' );
+		$tag = 'button';
+	}
+
+	/*
+	 * Attributes that apply to every accepted button are added in one pass.
+	 * Attributes that name the control are only added when the caller's
+	 * markup did not already provide them.
+	 */
+	if ( null === $processor->get_attribute( 'aria-label' ) ) {
+		$processor->set_attribute( 'aria-label', $label );
+	}
+	$processor->add_class( 'wp-tooltip__toggle' );
+	if ( 'button' === $tag && 'tooltip' !== $args['type'] ) {
+		$processor->set_attribute( 'popovertarget', $id );
+		$processor->set_attribute( 'aria-haspopup', 'dialog' );
+	}
+
+	// The generated button also carries the dashicon on its inner span.
+	if ( $is_default && true === $processor->next_tag( 'span' ) ) {
+		$processor->set_attribute( 'class', 'dashicons ' . $icon );
+		$processor->set_attribute( 'aria-hidden', 'true' );
+	}
+
+	$button = $processor->get_updated_html();
+
+	/*
+	 * The markup only uses phrasing content so it is valid when nested
+	 * in a phrasing context. Sectioning content (e.g. `div`, `dialog`) will
+	 * cause the parser to close an open `p`, creating an empty and breaking
+	 * the layout. See #65660.
+	 */
+	if ( 'tooltip' === $args['type'] ) {
+		$markup = sprintf(
+			'<span class="%1$s">
+				%6$s
+				<span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
+					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
+				'</span>' .
+			'</span>',
+			esc_attr( $classes ),
+			esc_attr( $id ),
+			esc_attr( $label ),
+			esc_attr( $icon ),
+			esc_html( $content ),
+			$button,
+		);
+	} else {
+		/*
+		 * A `span` with `role="dialog"` is used instead of a `dialog` element to keep the
+		 * markup as phrasing content. The `aria-label`, `tabindex`, and `autofocus`
+		 * attributes reproduce the accessible name and focus handling of the native element.
+		 */
+		$markup = sprintf(
+			'<span class="%1$s">
+				%7$s
+				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
+					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
+					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
+						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
+					'</button>' .
+				'</span>' .
+			'</span>',
+			esc_attr( $classes ),
+			esc_attr( $id ),
+			esc_attr( $label ),
+			esc_attr( $icon ),
+			esc_html( $content ),
+			esc_attr( $args['close_label'] ),
+			$button,
+		);
+	}
+
+	return $markup;
+}
+
 /**
  * Displays the Log In/Out link.
  *
@@ -379,7 +615,8 @@ function get_search_form( $args = array() ) {
  *
  * @param string $redirect Optional path to redirect to on login/logout.
  * @param bool   $display  Default to echo and not return the link.
- * @return void|string Void if `$display` argument is true, log in/out link if `$display` is false.
+ * @return string|void Log in/out link if `$display` is false, nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_loginout( $redirect = '', $display = true ) {
 	if ( ! is_user_logged_in() ) {
@@ -519,7 +756,8 @@ function wp_registration_url() {
  *                                     Default false.
  *
  * }
- * @return void|string Void if 'echo' argument is true, login form HTML if 'echo' is false.
+ * @return string|void Login form HTML if 'echo' is false, nothing otherwise.
+ * @phpstan-return ( $args is array{ echo: false|0|''|'0', ... } ? string : void )
  */
 function wp_login_form( $args = array() ) {
 	$defaults = array(
@@ -699,8 +937,10 @@ function wp_lostpassword_url( $redirect = '' ) {
  * @param string $before  Text to output before the link. Default `<li>`.
  * @param string $after   Text to output after the link. Default `</li>`.
  * @param bool   $display Default to echo and not return the link.
- * @return void|string Void if `$display` argument is true, registration or admin link
- *                     if `$display` is false.
+ * @return string|void The registration or admin link when `$display` is false, or an empty
+ *                     string when registration is disabled or the logged-in user cannot
+ *                     access the dashboard. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_register( $before = '<li>', $after = '</li>', $display = true ) {
 	if ( ! is_user_logged_in() ) {
@@ -978,7 +1218,10 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		} else {
 			$size_data = array( $size, $size );
 		}
-		$url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		$attachment_url = wp_get_attachment_image_url( $site_icon_id, $size_data );
+		if ( $attachment_url ) {
+			$url = is_ssl() ? set_url_scheme( $attachment_url, 'https' ) : $attachment_url;
+		}
 	}
 
 	if ( $switched_blog ) {
@@ -1338,7 +1581,8 @@ function _wp_render_title_tag() {
  *                            Default '&raquo;'.
  * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
  * @param string $seplocation Optional. Location of the separator (either 'left' or 'right').
- * @return string|null String when `$display` is false, null otherwise.
+ * @return string|void String when `$display` is false, nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	global $wp_locale;
@@ -1468,11 +1712,11 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	$title = apply_filters( 'wp_title', $title, $sep, $seplocation );
 
 	// Send it out.
-	if ( $display ) {
-		echo $title;
-	} else {
+	if ( ! $display ) {
 		return $title;
 	}
+
+	echo $title;
 }
 
 /**
@@ -1489,7 +1733,9 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_post_title( $prefix = '', $display = true ) {
 	$_post = get_queried_object();
@@ -1507,11 +1753,12 @@ function single_post_title( $prefix = '', $display = true ) {
 	 * @param WP_Post $_post       The current post.
 	 */
 	$title = apply_filters( 'single_post_title', $_post->post_title, $_post );
-	if ( $display ) {
-		echo $prefix . $title;
-	} else {
+
+	if ( ! $display ) {
 		return $prefix . $title;
 	}
+
+	echo $prefix . $title;
 }
 
 /**
@@ -1524,7 +1771,9 @@ function single_post_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving, null when displaying or on failure.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function post_type_archive_title( $prefix = '', $display = true ) {
 	if ( ! is_post_type_archive() ) {
@@ -1548,11 +1797,11 @@ function post_type_archive_title( $prefix = '', $display = true ) {
 	 */
 	$title = apply_filters( 'post_type_archive_title', $post_type_obj->labels->name, $post_type );
 
-	if ( $display ) {
-		echo $prefix . $title;
-	} else {
+	if ( ! $display ) {
 		return $prefix . $title;
 	}
+
+	echo $prefix . $title;
 }
 
 /**
@@ -1566,10 +1815,16 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_cat_title( $prefix = '', $display = true ) {
-	return single_term_title( $prefix, $display );
+	if ( ! $display ) {
+		return single_term_title( $prefix, false );
+	}
+
+	single_term_title( $prefix, true );
 }
 
 /**
@@ -1583,10 +1838,16 @@ function single_cat_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_tag_title( $prefix = '', $display = true ) {
-	return single_term_title( $prefix, $display );
+	if ( ! $display ) {
+		return single_term_title( $prefix, false );
+	}
+
+	single_term_title( $prefix, true );
 }
 
 /**
@@ -1600,7 +1861,9 @@ function single_tag_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_term_title( $prefix = '', $display = true ) {
 	$term = get_queried_object();
@@ -1644,11 +1907,11 @@ function single_term_title( $prefix = '', $display = true ) {
 		return null;
 	}
 
-	if ( $display ) {
-		echo $prefix . $term_name;
-	} else {
+	if ( ! $display ) {
 		return $prefix . $term_name;
 	}
+
+	echo $prefix . $term_name;
 }
 
 /**
@@ -1691,7 +1954,10 @@ function single_month_title( $prefix = '', $display = true ) {
 	if ( ! $display ) {
 		return $result;
 	}
+
 	echo $result;
+
+	return null;
 }
 
 /**
@@ -1997,7 +2263,13 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *     @type string     $day             Day. Default current day.
  *     @type string     $w               Week. Default current week.
  * }
- * @return void|string Void if 'echo' argument is true, archive links if 'echo' is false.
+ * @return string|null|void Archive links when 'echo' is false, null when the post type is
+ *                          not viewable. Nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string|null
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_get_archives( $args = '' ) {
 	global $wpdb, $wp_locale;
@@ -2033,7 +2305,7 @@ function wp_get_archives( $args = '' ) {
 
 	$post_type_object = get_post_type_object( $parsed_args['post_type'] );
 	if ( ! is_post_type_viewable( $post_type_object ) ) {
-		return;
+		return null;
 	}
 
 	$parsed_args['post_type'] = $post_type_object->name;
@@ -2142,14 +2414,15 @@ function wp_get_archives( $args = '' ) {
 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
-			$after = $parsed_args['after'];
+			$after       = $parsed_args['after'];
+			$date_format = get_option( 'date_format' );
 			foreach ( (array) $results as $result ) {
 				$url = get_day_link( $result->year, $result->month, $result->dayofmonth );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
 				$date = sprintf( '%1$d-%2$02d-%3$02d 00:00:00', $result->year, $result->month, $result->dayofmonth );
-				$text = mysql2date( get_option( 'date_format' ), $date );
+				$text = mysql2date( $date_format, $date );
 				if ( $parsed_args['show_post_count'] ) {
 					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
@@ -2169,14 +2442,16 @@ function wp_get_archives( $args = '' ) {
 		}
 		$arc_w_last = '';
 		if ( $results ) {
-			$after = $parsed_args['after'];
+			$after         = $parsed_args['after'];
+			$start_of_week = get_option( 'start_of_week' );
+			$date_format   = get_option( 'date_format' );
 			foreach ( (array) $results as $result ) {
 				if ( $result->week !== $arc_w_last ) {
 					$arc_year       = $result->yr;
 					$arc_w_last     = $result->week;
-					$arc_week       = get_weekstartend( $result->yyyymmdd, get_option( 'start_of_week' ) );
-					$arc_week_start = date_i18n( get_option( 'date_format' ), $arc_week['start'] );
-					$arc_week_end   = date_i18n( get_option( 'date_format' ), $arc_week['end'] );
+					$arc_week       = get_weekstartend( $result->yyyymmdd, $start_of_week );
+					$arc_week_start = date_i18n( $date_format, $arc_week['start'] );
+					$arc_week_end   = date_i18n( $date_format, $arc_week['end'] );
 					$url            = add_query_arg(
 						array(
 							'm' => $arc_year,
@@ -2267,7 +2542,9 @@ function calendar_week_mod( $num ) {
  *     @type bool   $display   Whether to display the calendar output. Default true.
  *     @type string $post_type Optional. Post type. Default 'post'.
  * }
- * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
+ * @return string|null|void Calendar HTML when `$display` is false, null when the site has
+ *                          no posts. Nothing otherwise.
+ * @phpstan-return ( $args is array{ display: false|0|''|'0', ... } ? string|null : void )
  */
 function get_calendar( $args = array() ) {
 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
@@ -2378,12 +2655,15 @@ function get_calendar( $args = array() ) {
 		if ( ! $gotsome ) {
 			$cache[ $key ] = '';
 			wp_cache_set( 'get_calendar', $cache, 'calendar' );
-			return;
+			return null;
 		}
 	}
 
 	// week_begins = 0 stands for Sunday.
 	$week_begins = (int) get_option( 'start_of_week' );
+
+	// Read the current date.
+	list( $current_year, $current_month, $current_day ) = array_map( 'intval', explode( '-', current_time( 'Y-m-j' ) ) );
 
 	// Let's figure out when we are.
 	if ( ! empty( $monthnum ) && ! empty( $year ) ) {
@@ -2409,8 +2689,8 @@ function get_calendar( $args = array() ) {
 			$thismonth = (int) substr( $m, 4, 2 );
 		}
 	} else {
-		$thisyear  = (int) current_time( 'Y' );
-		$thismonth = (int) current_time( 'm' );
+		$thisyear  = $current_year;
+		$thismonth = $current_month;
 	}
 
 	$unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
@@ -2516,9 +2796,9 @@ function get_calendar( $args = array() ) {
 
 		$newrow = false;
 
-		if ( (int) current_time( 'j' ) === $day
-			&& (int) current_time( 'm' ) === $thismonth
-			&& (int) current_time( 'Y' ) === $thisyear
+		if ( $current_day === $day
+			&& $current_month === $thismonth
+			&& $current_year === $thisyear
 		) {
 			$calendar_output .= '<td id="today">';
 		} else {
@@ -2681,7 +2961,9 @@ function the_date_xml() {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|null String if retrieving.
+ * @return string|void The date when `$display` is false, or an empty string when the post's
+ *                     date matches the previously output one. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	global $currentday, $previousday;
@@ -2705,11 +2987,11 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	 */
 	$the_date = apply_filters( 'the_date', $the_date, $format, $before, $after );
 
-	if ( $display ) {
-		echo $the_date;
-	} else {
+	if ( ! $display ) {
 		return $the_date;
 	}
+
+	echo $the_date;
 }
 
 /**
@@ -2756,7 +3038,8 @@ function get_the_date( $format = '', $post = null ) {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|null String if retrieving.
+ * @return string|void The modified date when `$display` is false, nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function the_modified_date( $format = '', $before = '', $after = '', $display = true ) {
 	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
@@ -2773,11 +3056,11 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
 	 */
 	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $format, $before, $after );
 
-	if ( $display ) {
-		echo $the_modified_date;
-	} else {
+	if ( ! $display ) {
 		return $the_modified_date;
 	}
+
+	echo $the_modified_date;
 }
 
 /**
@@ -4155,27 +4438,31 @@ function wp_get_code_editor_settings( $args ) {
 			'outline-none'              => true,
 		),
 		'jshint'     => array(
-			'esversion' => 11,
-			'module'    => str_ends_with( $args['file'] ?? '', '.mjs' ),
+			'esversion'       => 11,
+			'module'          => str_ends_with( $args['file'] ?? '', '.mjs' ),
+
+			// This script module URL is intentionally referenced here instead of registering an espree script module
+			// in wp_default_script_modules(). This is a first stab at a core-only private module.
+			'espreeModuleUrl' => add_query_arg( 'ver', '9.6.1', includes_url( 'js/codemirror/espree.min.js' ) ),
 
 			// The following JSHint *linting rule* options are copied from
 			// <https://github.com/WordPress/wordpress-develop/blob/6.9.0/.jshintrc>.
 			// Parsing-related options such as `esversion` (and, in other contexts, `es5`, `es3`, `module`, `strict`)
 			// are honored by the Espree-based integration, but these linting-rule options are not interpreted by Espree
 			// and are kept only for compatibility/documentation with the original JSHint configuration.
-			'boss'      => true,
-			'curly'     => true,
-			'eqeqeq'    => true,
-			'eqnull'    => true,
-			'expr'      => true,
-			'immed'     => true,
-			'noarg'     => true,
-			'nonbsp'    => true,
-			'quotmark'  => 'single',
-			'undef'     => true,
-			'unused'    => true,
-			'browser'   => true,
-			'globals'   => array(
+			'boss'            => true,
+			'curly'           => true,
+			'eqeqeq'          => true,
+			'eqnull'          => true,
+			'expr'            => true,
+			'immed'           => true,
+			'noarg'           => true,
+			'nonbsp'          => true,
+			'quotmark'        => 'single',
+			'undef'           => true,
+			'unused'          => true,
+			'browser'         => true,
+			'globals'         => array(
 				'_'                 => false,
 				'Backbone'          => false,
 				'jQuery'            => false,
@@ -4539,13 +4826,16 @@ function get_language_attributes( $doctype = 'html' ) {
 		$attributes[] = 'dir="rtl"';
 	}
 
-	$lang = get_bloginfo( 'language' );
+	$lang      = get_bloginfo( 'language' );
+	$html_type = get_option( 'html_type' );
+
 	if ( $lang ) {
-		if ( 'text/html' === get_option( 'html_type' ) || 'html' === $doctype ) {
+		if ( 'text/html' === $html_type || 'html' === $doctype ) {
 			$attributes[] = 'lang="' . esc_attr( $lang ) . '"';
 		}
 
-		if ( 'text/html' !== get_option( 'html_type' ) || 'xhtml' === $doctype ) {
+		// The $html_type option may be false on a new install on the setup-config.php page.
+		if ( ( $html_type && 'text/html' !== $html_type ) || 'xhtml' === $doctype ) {
 			$attributes[] = 'xml:lang="' . esc_attr( $lang ) . '"';
 		}
 	}
@@ -4558,7 +4848,7 @@ function get_language_attributes( $doctype = 'html' ) {
 	 * @since 2.5.0
 	 * @since 4.3.0 Added the `$doctype` parameter.
 	 *
-	 * @param string $output A space-separated list of language attributes.
+	 * @param string $output  A space-separated list of language attributes.
 	 * @param string $doctype The type of HTML document (xhtml|html).
 	 */
 	return apply_filters( 'language_attributes', $output, $doctype );
@@ -4937,7 +5227,7 @@ function register_admin_color_schemes() {
 		'light',
 		_x( 'Light', 'admin color scheme' ),
 		admin_url( "css/colors/light/colors$suffix.css" ),
-		array( '#e5e5e5', '#999', '#d64e07', '#04a4cc' ),
+		array( '#e5e5e5', '#6a6a6a', '#c64606', '#007cba' ),
 		array(
 			'base'    => '#999',
 			'focus'   => '#ccc',
@@ -4949,7 +5239,7 @@ function register_admin_color_schemes() {
 		'blue',
 		_x( 'Blue', 'admin color scheme' ),
 		admin_url( "css/colors/blue/colors$suffix.css" ),
-		array( '#096484', '#4796b3', '#52accc', '#74B6CE' ),
+		array( '#183751', '#245278', '#437aa8', '#e1a948' ),
 		array(
 			'base'    => '#e5f8ff',
 			'focus'   => '#fff',
@@ -4961,7 +5251,7 @@ function register_admin_color_schemes() {
 		'midnight',
 		_x( 'Midnight', 'admin color scheme' ),
 		admin_url( "css/colors/midnight/colors$suffix.css" ),
-		array( '#25282b', '#363b3f', '#69a8bb', '#e14d43' ),
+		array( '#232a2e', '#333c42', '#69a8bb', '#cf4339' ),
 		array(
 			'base'    => '#f1f2f3',
 			'focus'   => '#fff',
@@ -4973,7 +5263,7 @@ function register_admin_color_schemes() {
 		'sunrise',
 		_x( 'Sunrise', 'admin color scheme' ),
 		admin_url( "css/colors/sunrise/colors$suffix.css" ),
-		array( '#b43c38', '#cf4944', '#dd823b', '#ccaf0b' ),
+		array( '#6f2724', '#8a312d', '#ad631e', '#ccaf0b' ),
 		array(
 			'base'    => '#f3f1f1',
 			'focus'   => '#fff',
@@ -4985,7 +5275,7 @@ function register_admin_color_schemes() {
 		'ectoplasm',
 		_x( 'Ectoplasm', 'admin color scheme' ),
 		admin_url( "css/colors/ectoplasm/colors$suffix.css" ),
-		array( '#413256', '#523f6d', '#a3b745', '#d46f15' ),
+		array( '#392751', '#4a3369', '#646c3e', '#d46f15' ),
 		array(
 			'base'    => '#ece6f6',
 			'focus'   => '#fff',
@@ -4997,7 +5287,7 @@ function register_admin_color_schemes() {
 		'ocean',
 		_x( 'Ocean', 'admin color scheme' ),
 		admin_url( "css/colors/ocean/colors$suffix.css" ),
-		array( '#627c83', '#738e96', '#9ebaa0', '#aa9d88' ),
+		array( '#2b3f44', '#39535a', '#567958', '#aa9d88' ),
 		array(
 			'base'    => '#f2fcff',
 			'focus'   => '#fff',
@@ -5009,7 +5299,7 @@ function register_admin_color_schemes() {
 		'coffee',
 		_x( 'Coffee', 'admin color scheme' ),
 		admin_url( "css/colors/coffee/colors$suffix.css" ),
-		array( '#46403c', '#59524c', '#c7a589', '#9ea476' ),
+		array( '#382e27', '#5c4c40', '#916745', '#9ea476' ),
 		array(
 			'base'    => '#f3f2f1',
 			'focus'   => '#fff',

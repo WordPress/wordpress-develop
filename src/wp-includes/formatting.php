@@ -560,7 +560,7 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( '|<p>(<li.+?)</p>|', '$1', $text );
 
 	// If a <blockquote> is wrapped with a <p>, move it inside the <blockquote>.
-	$text = preg_replace( '|<p><blockquote([^>]*)>|i', '<blockquote$1><p>', $text );
+	$text = preg_replace( '!<p><blockquote((?:[^>"\']|"[^"]*"|\'[^\']*\')*)>!i', '<blockquote$1><p>', $text );
 	$text = str_replace( '</blockquote></p>', '</p></blockquote>', $text );
 
 	// If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
@@ -2186,6 +2186,7 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @param string $key String key.
  * @return string Sanitized key.
+ * @phpstan-return lowercase-string
  */
 function sanitize_key( $key ) {
 	$sanitized_key = '';
@@ -2397,6 +2398,34 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = trim( $title, '-' );
 
 	return $title;
+}
+
+/**
+ * Truncates a slug to a given length.
+ *
+ * Non-ASCII slugs are stored percent-encoded, so the slug is truncated on a
+ * character boundary to avoid cutting a percent-encoded sequence in half.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @see utf8_uri_encode()
+ *
+ * @param string $slug   The slug to truncate.
+ * @param int    $length Optional. Max length of the slug. Default 200 (characters).
+ * @return string The truncated slug.
+ */
+function wp_truncate_slug( $slug, $length = 200 ) {
+	if ( strlen( $slug ) > $length ) {
+		$decoded_slug = urldecode( $slug );
+		if ( $decoded_slug === $slug ) {
+			$slug = substr( $slug, 0, $length );
+		} else {
+			$slug = utf8_uri_encode( $decoded_slug, $length, true );
+		}
+	}
+
+	return rtrim( $slug, '-' );
 }
 
 /**
@@ -2847,6 +2876,14 @@ function untrailingslashit( $value ) {
  *
  * @param mixed $value The value to be stripped.
  * @return mixed Stripped value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function stripslashes_deep( $value ) {
 	return map_deep( $value, 'stripslashes_from_strings_only' );
@@ -2859,6 +2896,10 @@ function stripslashes_deep( $value ) {
  *
  * @param mixed $value The array or string to be stripped.
  * @return mixed The stripped value.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (T is string ? string : T)
  */
 function stripslashes_from_strings_only( $value ) {
 	return is_string( $value ) ? stripslashes( $value ) : $value;
@@ -2901,30 +2942,88 @@ function urldecode_deep( $value ) {
 }
 
 /**
- * Converts email addresses characters to HTML entities to block spam bots.
+ * Obscures email addresses in HTML to prevent spam bots from harvesting them.
+ *
+ * Typically this will randomly replace characters from the email address with
+ * HTML character references; however, when the hex encoding parameter is set,
+ * some characters will also be represented in their percent-encoded form.
+ *
+ * Because this function is randomized, the outputs for any given input may
+ * differ between calls. This helps diversify the ways the email addresses
+ * are obscured.
+ *
+ * When non-UTF-8 inputs are provided, any spans of invalid UTF-8 bytes will
+ * be passed through without any obfuscation.
+ *
+ * Example:
+ *
+ *     $email      = 'noreply@example.com';
+ *     $obscured   = antispambot( $email );
+ *     $obscured === 'nore&#112;&#108;y&#64;e&#120;ample.com';
+ *
+ *     // Hex-encoding also obscures characters with percent-encoding.
+ *     $obscured   = antispambot( $email, 1 );
+ *     $obscured === '%6e&#111;&#114;e%70l%79&#64;%65x%61mp&#108;&#101;%2e%63%6f&#109;';
+ *
+ *     // Non-UTF-8 characters are not obfuscated. "\xFC" is Latin1 "ü".
+ *     $obscured   = antispambot( "b\xFCcher@library.de" );
+ *     $obscured === 'b�cher&#64;li&#98;r&#97;r&#121;.&#100;&#101;';
+ *     $obscured === "b\xFCcher&#64;li&#98;r&#97;r&#121;.&#100;&#101;"
  *
  * @since 0.71
+ * @since 7.1.0 Masquerades multibyte characters.
  *
  * @param string $email_address Email address.
  * @param int    $hex_encoding  Optional. Set to 1 to enable hex encoding.
  * @return string Converted email address.
  */
 function antispambot( $email_address, $hex_encoding = 0 ) {
-	$email_no_spam_address = '';
+	$obfuscated     = '';
+	$at             = 0;
+	$end            = strlen( $email_address );
+	$invalid_length = 0;
 
-	for ( $i = 0, $len = strlen( $email_address ); $i < $len; $i++ ) {
-		$j = rand( 0, 1 + $hex_encoding );
-
-		if ( 0 === $j ) {
-			$email_no_spam_address .= '&#' . ord( $email_address[ $i ] ) . ';';
-		} elseif ( 1 === $j ) {
-			$email_no_spam_address .= $email_address[ $i ];
-		} elseif ( 2 === $j ) {
-			$email_no_spam_address .= '%' . zeroise( dechex( ord( $email_address[ $i ] ) ), 2 );
+	while ( $at < $end ) {
+		$was_at = $at;
+		if (
+			0 === _wp_scan_utf8( $email_address, $at, $invalid_length, null, 1 ) &&
+			0 === $invalid_length
+		) {
+			break;
 		}
+
+		$character_length = $at - $was_at;
+
+		if ( $character_length > 0 ) {
+			$character = substr( $email_address, $was_at, $character_length );
+
+			switch ( rand( 0, 1 + $hex_encoding ) ) {
+				case 0:
+					$code_point  = mb_ord( $character );
+					$obfuscated .= "&#{$code_point};";
+					break;
+
+				case 1:
+					$obfuscated .= $character;
+					break;
+
+				case 2:
+					for ( $i = 0; $i < $character_length; $i++ ) {
+						$hex_value   = bin2hex( $character[ $i ] );
+						$obfuscated .= "%{$hex_value}";
+					}
+					break;
+			}
+		}
+
+		if ( 0 !== $invalid_length ) {
+			$obfuscated .= substr( $email_address, $at, $invalid_length );
+		}
+
+		$at += $invalid_length;
 	}
 
-	return str_replace( '@', '&#64;', $email_no_spam_address );
+	return str_replace( '@', '&#64;', $obfuscated );
 }
 
 /**
@@ -3769,9 +3868,9 @@ function sanitize_email( $email ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $sanitized_email The sanitized email address.
-		 * @param string $email           The email address, as provided to sanitize_email().
-		 * @param string|null $message    A message to pass to the user. null if email is sanitized.
+		 * @param string      $sanitized_email The sanitized email address.
+		 * @param string      $email           The email address, as provided to sanitize_email().
+		 * @param string|null $message         A message to pass to the user. null if email is sanitized.
 		 */
 		return apply_filters( 'sanitize_email', '', $email, 'email_too_short' );
 	}
@@ -4450,8 +4549,12 @@ function _deep_replace( $search, $subject ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $data Unescaped data.
- * @return string|array Escaped data, in the same type as supplied.
+ * @param string|string[] $data Unescaped data.
+ * @return string|string[] Escaped data, in the same type as supplied.
+ *
+ * @phpstan-template TKey of array-key
+ * @phpstan-param string|array<TKey, string> $data
+ * @phpstan-return ( $data is string ? string : array<TKey, string> )
  */
 function esc_sql( $data ) {
 	global $wpdb;
@@ -4645,11 +4748,13 @@ function htmlentities2( $text ) {
  * be in single quotes. The {@see 'js_escape'} filter is also applied here.
  *
  * @since 2.8.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text The text to be escaped.
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_js( $text ) {
+	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 	$safe_text = _wp_specialchars( $safe_text, ENT_COMPAT );
 	$safe_text = preg_replace( '/&#(x)?0*(?(1)27|39);?/i', "'", stripslashes( $safe_text ) );
@@ -4673,11 +4778,13 @@ function esc_js( $text ) {
  * Escaping for HTML blocks.
  *
  * @since 2.8.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_html( $text ) {
+	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 	$safe_text = _wp_specialchars( $safe_text, ENT_QUOTES );
 	/**
@@ -4698,11 +4805,13 @@ function esc_html( $text ) {
  * Escaping for HTML attributes.
  *
  * @since 2.8.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_attr( $text ) {
+	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 	$safe_text = _wp_specialchars( $safe_text, ENT_QUOTES );
 	/**
@@ -4723,11 +4832,13 @@ function esc_attr( $text ) {
  * Escaping for textarea values.
  *
  * @since 3.1.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_textarea( $text ) {
+	$text      = (string) $text;
 	$safe_text = htmlspecialchars( $text, ENT_QUOTES, get_option( 'blog_charset' ) );
 	/**
 	 * Filters a string cleaned and escaped for output in a textarea element.
@@ -4744,11 +4855,13 @@ function esc_textarea( $text ) {
  * Escaping for XML blocks.
  *
  * @since 5.5.0
+ * @since 7.2.0 Non-string scalars are cast to string before escaping.
  *
- * @param string $text Text to escape.
+ * @param string|int|float $text The text to be escaped.
  * @return string Escaped text.
  */
 function esc_xml( $text ) {
+	$text      = (string) $text;
 	$safe_text = wp_check_invalid_utf8( $text );
 
 	$cdata_regex = '\<\!\[CDATA\[.*?\]\]\>';
@@ -4767,10 +4880,6 @@ EOF;
 	$safe_text = (string) preg_replace_callback(
 		$regex,
 		static function ( $matches ) {
-			if ( ! isset( $matches[0] ) ) {
-				return '';
-			}
-
 			if ( isset( $matches['non_cdata'] ) ) {
 				// escape HTML entities in the non-CDATA Section.
 				return _wp_specialchars( $matches['non_cdata'], ENT_XML1 );
@@ -5136,6 +5245,10 @@ function sanitize_option( $option, $value ) {
  * @param mixed    $value    The array, object, or scalar.
  * @param callable $callback The function to map onto $value.
  * @return mixed The value with the callback applied to all non-arrays and non-objects inside it.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (T is array ? array<key-of<T>, mixed> : (T is object ? T : mixed))
  */
 function map_deep( $value, $callback ) {
 	if ( is_array( $value ) ) {
@@ -5777,6 +5890,14 @@ function sanitize_trackback_urls( $to_ping ) {
  *
  * @param string|array $value String or array of data to slash.
  * @return string|array Slashed `$value`, in the same type as supplied.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
@@ -5800,6 +5921,14 @@ function wp_slash( $value ) {
  *
  * @param string|array $value String or array of data to unslash.
  * @return string|array Unslashed `$value`, in the same type as supplied.
+ *
+ * @phpstan-template T
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     T is string ? string : (
+ *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
+ *     )
+ * )
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
@@ -5898,7 +6027,7 @@ function wp_enqueue_emoji_styles() {
  *
  * @since 4.2.0
  */
-function print_emoji_detection_script() {
+function print_emoji_detection_script(): void {
 	static $printed = false;
 
 	if ( $printed ) {
@@ -5907,10 +6036,18 @@ function print_emoji_detection_script() {
 
 	$printed = true;
 
-	if ( did_action( 'wp_print_footer_scripts' ) ) {
-		_print_emoji_detection_script();
+	if ( is_admin() ) {
+		if ( did_action( 'admin_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'admin_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	} else {
-		add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		if ( did_action( 'wp_print_footer_scripts' ) ) {
+			_print_emoji_detection_script();
+		} else {
+			add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+		}
 	}
 }
 
@@ -6235,7 +6372,7 @@ function url_shorten( $url, $length = 35 ) {
  * @since 3.4.0
  *
  * @param string $color
- * @return string|void
+ * @return string|null The sanitized hex color, or null if invalid.
  */
 function sanitize_hex_color( $color ) {
 	if ( '' === $color ) {
@@ -6246,6 +6383,7 @@ function sanitize_hex_color( $color ) {
 	if ( preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ) {
 		return $color;
 	}
+	return null;
 }
 
 /**

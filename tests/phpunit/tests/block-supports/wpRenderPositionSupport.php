@@ -66,6 +66,7 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 	 * Tests that position block support works as expected.
 	 *
 	 * @ticket 57618
+	 * @ticket 66166
 	 *
 	 * @covers ::wp_render_position_support
 	 *
@@ -74,11 +75,11 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 	 * @param string $theme_name        The theme to switch to.
 	 * @param string $block_name        The test block name to register.
 	 * @param mixed  $position_settings The position block support settings.
-	 * @param mixed  $position_style    The position styles within the block attributes.
+	 * @param mixed  $style_attribute   The style attribute of the block.
 	 * @param string $expected_wrapper  Expected markup for the block wrapper.
 	 * @param string $expected_styles   Expected styles enqueued by the style engine.
 	 */
-	public function test_position_block_support( $theme_name, $block_name, $position_settings, $position_style, $expected_wrapper, $expected_styles ) {
+	public function test_position_block_support( $theme_name, $block_name, $position_settings, $style_attribute, $expected_wrapper, $expected_styles ) {
 		switch_theme( $theme_name );
 		$this->test_block_name = $block_name;
 
@@ -100,9 +101,7 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 		$block = array(
 			'blockName' => 'test/position-rules-are-output',
 			'attrs'     => array(
-				'style' => array(
-					'position' => $position_style,
-				),
+				'style' => $style_attribute,
 			),
 		);
 
@@ -139,9 +138,11 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 				'theme_name'        => 'block-theme-child-with-fluid-typography',
 				'block_name'        => 'test/position-rules-are-output',
 				'position_settings' => true,
-				'position_style'    => array(
-					'type' => 'sticky',
-					'top'  => '0px',
+				'style_attribute'   => array(
+					'position' => array(
+						'type' => 'sticky',
+						'top'  => '0px',
+					),
 				),
 				'expected_wrapper'  => '/^<div class="wp-container-\d+ is-position-sticky">Content<\/div>$/',
 				'expected_styles'   => '/^.wp-container-\d+' . preg_quote( '{top:calc(0px + var(--wp-admin--admin-bar--position-offset, 0px));position:sticky;z-index:10;}' ) . '$/',
@@ -150,9 +151,11 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 				'theme_name'        => 'default',
 				'block_name'        => 'test/position-rules-without-theme-support',
 				'position_settings' => true,
-				'position_style'    => array(
-					'type' => 'sticky',
-					'top'  => '0px',
+				'style_attribute'   => array(
+					'position' => array(
+						'type' => 'sticky',
+						'top'  => '0px',
+					),
 				),
 				'expected_wrapper'  => '/^<div>Content<\/div>$/',
 				'expected_styles'   => '/^$/',
@@ -161,9 +164,11 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 				'theme_name'        => 'block-theme-child-with-fluid-typography',
 				'block_name'        => 'test/position-rules-without-block-support',
 				'position_settings' => false,
-				'position_style'    => array(
-					'type' => 'sticky',
-					'top'  => '0px',
+				'style_attribute'   => array(
+					'position' => array(
+						'type' => 'sticky',
+						'top'  => '0px',
+					),
 				),
 				'expected_wrapper'  => '/^<div>Content<\/div>$/',
 				'expected_styles'   => '/^$/',
@@ -172,12 +177,80 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 				'theme_name'        => 'block-theme-child-with-fluid-typography',
 				'block_name'        => 'test/position-rules-with-valid-type',
 				'position_settings' => true,
-				'position_style'    => array(
-					'type' => 'illegal-type',
-					'top'  => '0px',
+				'style_attribute'   => array(
+					'position' => array(
+						'type' => 'illegal-type',
+						'top'  => '0px',
+					),
 				),
 				'expected_wrapper'  => '/^<div>Content<\/div>$/',
 				'expected_styles'   => '/^$/',
+			),
+			'viewport position style is applied within a media query' => array(
+				'theme_name'        => 'block-theme-child-with-fluid-typography',
+				'block_name'        => 'test/position-rules-are-output',
+				'position_settings' => true,
+				'style_attribute'   => array(
+					'@mobile' => array(
+						'position' => array(
+							'type' => 'sticky',
+							'top'  => '0px',
+						),
+					),
+				),
+				'expected_wrapper'  => '/^<div class="wp-container-\d+ is-position-sticky">Content<\/div>$/',
+				'expected_styles'   => '/^' . preg_quote( '@media (width <= 480px){.wp-container-' ) . '\d+' . preg_quote( '{top:calc(0px + var(--wp-admin--admin-bar--position-offset, 0px));position:sticky;z-index:10;}}' ) . '$/',
+			),
+			'viewport position style inherits the default state position type' => array(
+				'theme_name'        => 'block-theme-child-with-fluid-typography',
+				'block_name'        => 'test/position-rules-are-output',
+				'position_settings' => true,
+				'style_attribute'   => array(
+					'position' => array(
+						'type' => 'sticky',
+						'top'  => '0px',
+					),
+					'@tablet'  => array(
+						'position' => array(
+							'top' => '2rem',
+						),
+					),
+				),
+				'expected_wrapper'  => '/^<div class="wp-container-\d+ is-position-sticky">Content<\/div>$/',
+				'expected_styles'   => '/^' . preg_quote( '.wp-container-' ) . '\d+' . preg_quote( '{top:calc(0px + var(--wp-admin--admin-bar--position-offset, 0px));position:sticky;z-index:10;}' ) . preg_quote( '@media (480px < width <= 782px){.wp-container-' ) . '\d+' . preg_quote( '{top:calc(2rem + var(--wp-admin--admin-bar--position-offset, 0px));position:sticky;z-index:10;}}' ) . '$/',
+			),
+			'viewport position style is not applied if theme does not support it' => array(
+				'theme_name'        => 'default',
+				'block_name'        => 'test/position-rules-are-output',
+				'position_settings' => true,
+				'style_attribute'   => array(
+					'@mobile' => array(
+						'position' => array(
+							'type' => 'sticky',
+							'top'  => '0px',
+						),
+					),
+				),
+				'expected_wrapper'  => '/^<div>Content<\/div>$/',
+				'expected_styles'   => '/^$/',
+			),
+			'viewport position style resets an inherited default state position' => array(
+				'theme_name'        => 'block-theme-child-with-fluid-typography',
+				'block_name'        => 'test/position-rules-are-output',
+				'position_settings' => true,
+				'style_attribute'   => array(
+					'position' => array(
+						'type' => 'sticky',
+						'top'  => '0px',
+					),
+					'@mobile'  => array(
+						'position' => array(
+							'type' => '',
+						),
+					),
+				),
+				'expected_wrapper'  => '/^<div class="wp-container-\d+ is-position-sticky">Content<\/div>$/',
+				'expected_styles'   => '/^' . preg_quote( '.wp-container-' ) . '\d+' . preg_quote( '{top:calc(0px + var(--wp-admin--admin-bar--position-offset, 0px));position:sticky;z-index:10;}' ) . preg_quote( '@media (width <= 480px){.wp-container-' ) . '\d+' . preg_quote( '{position:static;}}' ) . '$/',
 			),
 		);
 	}

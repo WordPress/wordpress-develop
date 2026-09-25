@@ -69,7 +69,6 @@ input[type="url"],
 input[type="week"] {
 	padding: 0 12px;
 	/* inherits font size 14px */
-	line-height: 2.71428571; /* 38px for 40px min-height */
 	min-height: 40px;
 }
 
@@ -523,9 +522,6 @@ input[type="number"].tiny-text {
 #doaction2,
 #post-query-submit {
 	margin: 0 8px 0 0;
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
 }
 
 /* @since 5.7.0 secondary bulk action controls require JS. */
@@ -582,6 +578,12 @@ input[type="number"].tiny-text {
 	font-size: 20px;
 	line-height: 1;
 	vertical-align: middle;
+}
+
+.button.wp-hide-pw.user-new-password-toggle {
+	display: inline-flex;
+	align-items: center;
+	column-gap: 4px;
 }
 
 .wp-cancel-pw .dashicons-no {
@@ -656,7 +658,7 @@ fieldset label,
 	background: transparent;
 	border-color: var(--wp-admin-theme-color);
 	border-radius: 2px;
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -734,7 +736,8 @@ fieldset label,
 
 #pass1:focus,
 #pass1-text:focus {
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -816,7 +819,6 @@ p.search-box {
 p.search-box input[type="search"],
 p.search-box input[type="text"] {
 	min-height: 32px;
-	line-height: 2.14285714; /* 30px for 32px height with 14px font */
 	padding: 0 8px;
 }
 
@@ -1186,7 +1188,7 @@ table.form-table td .updated p {
 }
 
 .pressthis-bookmarklet span:before {
-	color: #787c82;
+	color: #50575e;
 	font: normal 20px/1 dashicons;
 	content: "\f157";
 	content: "\f157" / '';
@@ -1237,8 +1239,7 @@ table.form-table td .updated p {
 .options-general-php input.small-text {
 	width: 56px;
 	margin: -2px 0;
-	min-height: 24px;
-	line-height: 1.71428571; /* 24px for 14px font size */
+	min-height: 32px;
 }
 
 .options-general-php .spinner {
@@ -1489,38 +1490,47 @@ table.form-table td .updated p {
 
 .privacy_requests thead td:first-child,
 .privacy_requests tfoot td:first-child {
-	border-left: 4px solid #fff;
+	border-left: 4px solid transparent;
 }
 
-.privacy_requests tbody th {
-	border-left: 4px solid #fff;
-	background: #fff;
-	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-}
-
-.privacy_requests .row-actions {
-	color: #787c82;
+.privacy_requests tbody td.check-column {
+	border-left: 4px solid transparent;
 }
 
 .privacy_requests .row-actions.processing {
 	position: static;
 }
 
-.privacy_requests tbody .has-request-results th {
-	box-shadow: none;
-}
-
 .privacy_requests tbody .request-results th .notice {
 	margin: 0 0 5px;
 }
 
-.privacy_requests tbody td {
-	background: #fff;
-	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+/*
+ * The results row is injected after its request row, so it lands on the opposite
+ * stripe. Invert it to match.
+ */
+.privacy_requests tbody tr.request-results:nth-child(even) {
+	background-color: #f6f7f7;
 }
 
-.privacy_requests tbody .has-request-results td {
-	box-shadow: none;
+.privacy_requests tbody tr.request-results:nth-child(odd) {
+	background-color: transparent;
+}
+
+/*
+ * Where supported, skip the injected rows in the stripe count instead, so they
+ * no longer shift the rows below. The rules above are the fallback.
+ */
+@supports selector(:nth-child(1 of :not(.request-results))) {
+	.privacy_requests tbody > tr:nth-child(odd),
+	.privacy_requests tbody > tr.request-results:nth-child(even) {
+		background-color: transparent;
+	}
+
+	.privacy_requests tbody > tr:nth-child(odd of :not(.request-results)),
+	.privacy_requests tbody > tr:nth-child(odd of :not(.request-results)) + tr.request-results {
+		background-color: #f6f7f7;
+	}
 }
 
 .privacy_requests .next_steps .button {
@@ -1528,16 +1538,12 @@ table.form-table td .updated p {
 	white-space: normal;
 }
 
-.privacy_requests .status-request-confirmed th,
-.privacy_requests .status-request-confirmed td {
-	background-color: #fff;
-	border-left-color: #72aee6;
+.privacy_requests tr.status-request-confirmed td.check-column {
+	border-left-color: #3858e9;
 }
 
-.privacy_requests .status-request-failed th,
-.privacy_requests .status-request-failed td {
-	background-color: #f6f7f7;
-	border-left-color: #d63638;
+.privacy_requests tr.status-request-failed td.check-column {
+	border-left-color: #cc1818;
 }
 
 .privacy_requests .export_personal_data_failed a {
@@ -1572,7 +1578,7 @@ table.form-table td .updated p {
 	margin: 1.5em 0;
 }
 
-.wp-privacy-request-form input {
+.wp-privacy-request-form input[type="text"] {
 	margin: 0;
 }
 
@@ -1601,7 +1607,6 @@ table.form-table td .updated p {
 		-webkit-appearance: none;
 		padding: 0 12px;
 		min-height: 40px;
-		line-height: 2.5; /* 40px for 16px font */
 	}
 
 	::-webkit-datetime-edit {
@@ -1755,6 +1760,29 @@ table.form-table td .updated p {
 		display: block;
 	}
 
+	.wp-core-ui .tablenav input[type="text"],
+	.wp-core-ui .tablenav input[type="password"],
+	.wp-core-ui .tablenav input[type="date"],
+	.wp-core-ui .tablenav input[type="datetime"],
+	.wp-core-ui .tablenav input[type="datetime-local"],
+	.wp-core-ui .tablenav input[type="email"],
+	.wp-core-ui .tablenav input[type="month"],
+	.wp-core-ui .tablenav input[type="number"],
+	.wp-core-ui .tablenav input[type="search"],
+	.wp-core-ui .tablenav input[type="tel"],
+	.wp-core-ui .tablenav input[type="time"],
+	.wp-core-ui .tablenav input[type="url"],
+	.wp-core-ui .tablenav input[type="week"],
+	.wp-core-ui .tablenav select {
+		min-height: 40px;
+	}
+
+	.wp-core-ui .tablenav .button {
+		min-height: 40px;
+		line-height: 2.71428571;
+		padding: 0 14px;
+	}
+
 	p.search-box {
 		float: none;
 		width: 100%;
@@ -1773,7 +1801,13 @@ table.form-table td .updated p {
 		margin-bottom: 0;
 	}
 
-	p.search-box input[type="submit"] {
+	p.search-box input[type="search"],
+	p.search-box input[type="text"] {
+		min-height: 40px;
+		padding: 0 12px;
+	}
+
+	p.search-box input[type="submit"].button {
 		margin-bottom: 10px;
 	}
 
@@ -1917,6 +1951,7 @@ table.form-table td .updated p {
 	.options-general-php input[type="text"].small-text {
 		max-width: 6.25em;
 		margin: 0;
+		min-height: 40px;
 	}
 
 	/* Privacy Policy settings screen */
@@ -1938,13 +1973,9 @@ table.form-table td .updated p {
 		margin-left: 0;
 	}
 
-	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) td.column-primary:not(.check-column) {
+	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) td.column-primary:not(.check-column),
+	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) th.column-primary:not(.check-column) {
 		display: table-cell;
-	}
-
-	.wp-list-table.privacy_requests.widefat th input,
-	.wp-list-table.privacy_requests.widefat thead td input {
-		margin-left: 5px;
 	}
 
 	.wp-privacy-request-form-field input[type="text"] {

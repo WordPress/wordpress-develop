@@ -164,7 +164,7 @@ class Walker {
 			unset( $children_elements[ $id ] );
 		}
 
-		if ( isset( $newlevel ) && $newlevel ) {
+		if ( isset( $newlevel ) ) {
 			// End the child delimiter.
 			$this->end_lvl( $output, $depth, ...array_values( $args ) );
 		}
@@ -234,8 +234,7 @@ class Walker {
 		 */
 		if ( empty( $top_level_elements ) ) {
 
-			$first = array_slice( $elements, 0, 1 );
-			$root  = $first[0];
+			$root = array_first( $elements );
 
 			$top_level_elements = array();
 			$children_elements  = array();
