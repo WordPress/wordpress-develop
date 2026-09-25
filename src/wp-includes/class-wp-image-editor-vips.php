@@ -500,6 +500,57 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	}
 
 	/**
+	 * Checks if the image has an EXIF Orientation tag and rotates it if needed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool|WP_Error True if the image was rotated. False if not rotated.
+	 *                       WP_Error if error while rotating.
+	 */
+	public function maybe_exif_rotate() {
+		$orientation = null;
+
+		if ( 'image/jpeg' === $this->mime_type ) {
+			$exif_data = @exif_read_data( $this->file );
+
+			if ( ! empty( $exif_data['Orientation'] ) ) {
+				$orientation = (int) $exif_data['Orientation'];
+			}
+		}
+
+		/** This filter is documented in wp-includes/class-wp-image-editor.php */
+		$orientation = apply_filters( 'wp_image_maybe_exif_rotate', $orientation, $this->file );
+
+		if ( ! $orientation || 1 === $orientation ) {
+			return false;
+		}
+
+		/*
+		 * libvips applies all eight EXIF orientations itself, and clears the orientation
+		 * field as it goes. Rotating or flipping per the parent's switch would leave that
+		 * field in place, so the saved image would be oriented a second time when it is
+		 * loaded again. This is the "EXIF Orientation can be reset afterwards" requirement
+		 * the parent documents.
+		 */
+		if ( ! is_callable( array( $this->image, 'autorot' ) ) ) {
+			return new WP_Error( 'write_exif_error', __( 'The image cannot be rotated because the embedded meta data cannot be updated.' ) );
+		}
+
+		try {
+			$this->image = $this->image->autorot();
+		} catch ( Exception $e ) {
+			return new WP_Error( 'image_rotate_error', $e->getMessage() );
+		}
+
+		$result = $this->update_size();
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Flips current image.
 	 *
 	 * @since 7.2.0
