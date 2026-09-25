@@ -119,6 +119,11 @@
 			// Grab the selected attachment.
 			var attachment = frame.state().get( 'selection' ).first();
 
+			if ( 'image' !== attachment.attributes.type ) {
+				window.alert( wp.i18n.__( 'The uploaded file is not a valid image. Please select a valid file format.' ) );
+				return;
+			}
+
 			if (
 				attachment.attributes.height === $el.data( 'size' ) &&
 				$el.data( 'size' ) === attachment.attributes.width
