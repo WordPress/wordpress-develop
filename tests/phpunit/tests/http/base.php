@@ -377,7 +377,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_ip_url_with_host_header() {
-		$ip   = gethostbyname( 'api.wordpress.org' );
+		$ip   = get_host_by_name( 'api.wordpress.org' );
 		$url  = 'http://' . $ip . '/core/tests/1.0/redirection.php?print-pass=1';
 		$args = array(
 			'headers'     => array(
