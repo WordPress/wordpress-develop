@@ -8,6 +8,17 @@
 #[AllowDynamicProperties]
 class WP {
 	/**
+	 * Core public query variables.
+	 *
+	 * Long list of public query variables before plugins and themes can extend
+	 * them.
+	 *
+	 * @since x.x.x
+	 * @var string[]
+	 */
+	const CORE_PUBLIC_QUERY_VARS = array( 'm', 'p', 'posts', 'w', 'cat', 'withcomments', 'withoutcomments', 's', 'search', 'exact', 'sentence', 'calendar', 'page', 'paged', 'more', 'tb', 'pb', 'author', 'order', 'orderby', 'year', 'monthnum', 'day', 'hour', 'minute', 'second', 'name', 'category_name', 'tag', 'feed', 'author_name', 'pagename', 'page_id', 'error', 'attachment', 'attachment_id', 'subpost', 'subpost_id', 'preview', 'robots', 'favicon', 'taxonomy', 'term', 'cpage', 'post_type', 'embed' );
+
+	/**
 	 * Public query variables.
 	 *
 	 * Long list of public query variables.
@@ -15,7 +26,7 @@ class WP {
 	 * @since 2.0.0
 	 * @var string[]
 	 */
-	public $public_query_vars = array( 'm', 'p', 'posts', 'w', 'cat', 'withcomments', 'withoutcomments', 's', 'search', 'exact', 'sentence', 'calendar', 'page', 'paged', 'more', 'tb', 'pb', 'author', 'order', 'orderby', 'year', 'monthnum', 'day', 'hour', 'minute', 'second', 'name', 'category_name', 'tag', 'feed', 'author_name', 'pagename', 'page_id', 'error', 'attachment', 'attachment_id', 'subpost', 'subpost_id', 'preview', 'robots', 'favicon', 'taxonomy', 'term', 'cpage', 'post_type', 'embed' );
+	public $public_query_vars = self::CORE_PUBLIC_QUERY_VARS;
 
 	/**
 	 * Private query variables.
