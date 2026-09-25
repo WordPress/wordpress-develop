@@ -394,6 +394,13 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 	$front_page_id          = (int) get_option( 'page_on_front' );
 	$privacy_policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
 
+	$public_custom_post_types = get_post_types(
+		array(
+			'public'   => true,
+			'_builtin' => false,
+		)
+	);
+
 	foreach ( (array) $menu_items as $key => $menu_item ) {
 
 		$menu_items[ $key ]->current = false;
@@ -523,6 +530,15 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 
 			if ( untrailingslashit( $item_url ) === home_url() ) {
 				$classes[] = 'menu-item-home';
+			}
+		}
+
+		// If a public custom post type single is being viewed, the archive menu item is a logical parent (#38836).
+		if ( is_singular( $public_custom_post_types ) ) {
+			$post_type = get_post_type();
+
+			if ( $post_type === $menu_item->object && 'post_type_archive' === $menu_item->type ) {
+				$classes[] = 'current_page_parent';
 			}
 		}
 
