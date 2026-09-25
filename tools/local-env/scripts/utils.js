@@ -92,7 +92,7 @@ const local_env_utils = {
 		const composeFiles = [ 'docker-compose.yml' ];
 		const shouldUseVips = process.env.LOCAL_PHP_VIPS === 'true';
 
-		if ( shouldUseVips && existsSync( 'docker-compose.vips.yml' ) ) {
+		if ( shouldUseVips && existsSync( join( repo_root, 'docker-compose.vips.yml' ) ) ) {
 			composeFiles.push( 'docker-compose.vips.yml' );
 		}
 
