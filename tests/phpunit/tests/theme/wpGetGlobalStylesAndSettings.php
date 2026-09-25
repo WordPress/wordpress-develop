@@ -168,6 +168,17 @@ class Tests_Theme_WpGetGlobalStylesAndSettings extends WP_Theme_UnitTestCase {
 	public function test_image_lightbox_falls_back_to_top_level_setting() {
 		switch_theme( 'block-theme' );
 
+		// Remove the block-level lightbox setting defined in core's theme.json.
+		add_filter(
+			'wp_theme_json_data_default',
+			static function ( $theme_json ) {
+				$data = $theme_json->get_data();
+				unset( $data['settings']['blocks']['core/image']['lightbox'] );
+
+				return new WP_Theme_JSON_Data( $data, 'default' );
+			}
+		);
+
 		add_filter(
 			'wp_theme_json_data_theme',
 			static function ( $theme_json ) {
@@ -176,8 +187,8 @@ class Tests_Theme_WpGetGlobalStylesAndSettings extends WP_Theme_UnitTestCase {
 						'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 						'settings' => array(
 							'lightbox' => array(
-								'enabled'   => true,
-								'allowEdit' => false,
+								'enabled'      => true,
+								'allowEditing' => false,
 							),
 						),
 					)
@@ -188,8 +199,8 @@ class Tests_Theme_WpGetGlobalStylesAndSettings extends WP_Theme_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'enabled'   => true,
-				'allowEdit' => false,
+				'enabled'      => true,
+				'allowEditing' => false,
 			),
 			block_core_image_get_lightbox_settings( array() )
 		);
