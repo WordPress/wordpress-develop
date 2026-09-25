@@ -728,7 +728,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the image_strip_meta filter controls whether metadata is stripped.
+	 * Tests that the image_strip_meta filter controls whether metadata is stripped
+	 * when the image is resized.
 	 *
 	 * @requires extension exif
 	 */
@@ -742,6 +743,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		// Metadata is stripped by default.
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
 		$vips_image_editor->load();
+
+		$this->assertNotWPError( $vips_image_editor->resize( 25, 25 ) );
 
 		$stripped_file = tempnam( get_temp_dir(), 'vips_meta_' ) . '.jpg';
 		$vips_image_editor->save( $stripped_file );
@@ -757,6 +760,8 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
 		$vips_image_editor->load();
 
+		$this->assertNotWPError( $vips_image_editor->resize( 25, 25 ) );
+
 		$preserved_file = tempnam( get_temp_dir(), 'vips_meta_' ) . '.jpg';
 		$vips_image_editor->save( $preserved_file );
 
@@ -766,6 +771,33 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		unlink( $preserved_file );
 
 		$this->assertNotEmpty( $preserved['caption'], 'Metadata should be preserved when the filter returns false.' );
+	}
+
+	/**
+	 * Tests that metadata survives a save that does not resize the image.
+	 *
+	 * Metadata is only stripped when the image is resized or cropped, matching the
+	 * Imagick editor, so the filter returning true is not enough on its own.
+	 *
+	 * @requires extension exif
+	 */
+	public function test_metadata_is_preserved_when_saving_without_resizing() {
+		$file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
+
+		add_filter( 'image_strip_meta', '__return_true' );
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_meta_' ) . '.jpg';
+		$vips_image_editor->save( $saved_file );
+
+		remove_filter( 'image_strip_meta', '__return_true' );
+
+		$saved = wp_read_image_metadata( $saved_file );
+		unlink( $saved_file );
+
+		$this->assertNotEmpty( $saved['caption'], 'Metadata should be preserved when the image is not resized.' );
 	}
 
 	/**
