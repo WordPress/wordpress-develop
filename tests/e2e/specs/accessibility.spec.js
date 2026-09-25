@@ -148,7 +148,7 @@ test.describe( 'Admin Pages Accessibility', () => {
 
 				// Run state setup if provided.
 				if ( variant.setup ) {
-					await variant.setup( { admin, editor, page, requestUtils } );
+					await variant.setup( { admin, editor, page, requestUtils, expect } );
 				}
 
 				// Scan and assert.
