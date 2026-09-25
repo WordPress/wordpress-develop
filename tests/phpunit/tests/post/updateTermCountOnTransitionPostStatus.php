@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Tests for the _update_term_count_on_transition_post_status function.
+ * Tests for the `_update_term_count_on_transition_post_status()` function.
  *
- * See Tests_Term_WpSetObjectTerms for tests that cover changing terms on a post when saving it.
+ * See `Tests_Term_WpSetObjectTerms` for tests that cover changing terms on a post when saving it.
  *
  * @group taxonomy
  *
@@ -139,9 +139,13 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 42522
 	 */
 	public function test_term_count_is_not_recalculated_when_status_does_not_change() {
-		// Create a mock action for `edited_term_taxonomy` to prevent flaky test.
-		$action = new MockAction();
-		add_action( 'edited_term_taxonomy', array( $action, 'action' ) );
+		// Create a mock action for checking the `edited_term_taxonomy` hook call count.
+		$edited_term_taxonomy_action = new MockAction();
+		add_action( 'edited_term_taxonomy', array( $edited_term_taxonomy_action, 'action' ) );
+
+		// Create a mock action for checking the `update_term_count` hook call count.
+		$update_term_count_action = new MockAction();
+		add_action( 'update_term_count', array( $update_term_count_action, 'action' ) );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -155,7 +159,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 			self::$term_id,
 			self::$taxonomy
 		);
-		$edited_term_taxonomy_count = $action->get_call_count();
+		$edited_term_taxonomy_count     = $edited_term_taxonomy_action->get_call_count();
+		$update_term_count_action_count = $update_term_count_action->get_call_count();
 
 		// Change something about the post but not its status.
 		wp_update_post(
@@ -165,7 +170,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 			)
 		);
 
-		$this->assertSame( 0, $action->get_call_count() - $edited_term_taxonomy_count, 'Term taxonomy count should not be recalculated when post status does not change.' );
+		$this->assertSame( 0, $edited_term_taxonomy_action->get_call_count() - $edited_term_taxonomy_count, 'Term taxonomy count should not be recalculated when post status does not change.' );
+		$this->assertSame( 0, $update_term_count_action->get_call_count() - $update_term_count_action_count, 'The `update_term_count` action should not run when term taxonomy count is not recalculated.' );
 		$this->assertTermCount( 2, self::$term_id );
 	}
 
@@ -177,9 +183,13 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 63562
 	 */
 	public function test_term_count_is_not_recalculated_when_both_status_are_counted() {
-		// Create a mock action for `edited_term_taxonomy` to prevent flaky test.
-		$action = new MockAction();
-		add_action( 'edited_term_taxonomy', array( $action, 'action' ) );
+		// Create a mock action for checking the `edited_term_taxonomy` hook call count.
+		$edited_term_taxonomy_action = new MockAction();
+		add_action( 'edited_term_taxonomy', array( $edited_term_taxonomy_action, 'action' ) );
+
+		// Create a mock action for checking the `update_term_count` hook call count.
+		$update_term_count_action = new MockAction();
+		add_action( 'update_term_count', array( $update_term_count_action, 'action' ) );
 
 		// Register a custom status that is included in term counts.
 		register_post_status(
@@ -206,7 +216,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 			)
 		);
 
-		$this->assertSame( 0, $action->get_call_count(), 'Term taxonomy count should not be recalculated both statuses are included in term counts.' );
+		$this->assertSame( 0, $edited_term_taxonomy_action->get_call_count(), 'Term taxonomy count should not be recalculated when both statuses are included in term counts.' );
+		$this->assertSame( 0, $update_term_count_action->get_call_count(), 'The `update_term_count` action should not run when term taxonomy count is not recalculated.' );
 		$this->assertTermCount( 1, self::$term_id, 'Term count should remain unchanged when transitioning between post statuses that are counted.' );
 	}
 
@@ -218,9 +229,13 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 63562
 	 */
 	public function test_term_count_is_not_recalculated_when_neither_status_is_counted() {
-		// Create a mock action for `edited_term_taxonomy` to prevent flaky test.
-		$action = new MockAction();
-		add_action( 'edited_term_taxonomy', array( $action, 'action' ) );
+		// Create a mock action for checking the `edited_term_taxonomy` hook call count.
+		$edited_term_taxonomy_action = new MockAction();
+		add_action( 'edited_term_taxonomy', array( $edited_term_taxonomy_action, 'action' ) );
+
+		// Create a mock action for checking the `update_term_count` hook call count.
+		$update_term_count_action = new MockAction();
+		add_action( 'update_term_count', array( $update_term_count_action, 'action' ) );
 
 		// Change post status to draft.
 		wp_update_post(
@@ -230,7 +245,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 			)
 		);
 
-		$edited_term_taxonomy_count = $action->get_call_count();
+		$edited_term_taxonomy_count     = $edited_term_taxonomy_action->get_call_count();
+		$update_term_count_action_count = $update_term_count_action->get_call_count();
 
 		// Change the post to another status that is not included in term counts.
 		wp_update_post(
@@ -240,7 +256,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 			)
 		);
 
-		$this->assertSame( 0, $action->get_call_count() - $edited_term_taxonomy_count, 'Term taxonomy count should not be recalculated when neither new nor old post status is included in term counts.' );
+		$this->assertSame( 0, $edited_term_taxonomy_action->get_call_count() - $edited_term_taxonomy_count, 'Term taxonomy count should not be recalculated when neither new nor old post status is included in term counts.' );
+		$this->assertSame( 0, $update_term_count_action->get_call_count() - $update_term_count_action_count, 'The `update_term_count` action should not run when term taxonomy count is not recalculated.' );
 		$this->assertTermCount( 0, self::$term_id, 'Term count should remain unchanged when transitioning between post statuses that are not counted.' );
 	}
 
@@ -250,9 +267,13 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 63562
 	 */
 	public function test_update_post_term_count_statuses_filter_is_respected() {
-		// Create a mock action for `edited_term_taxonomy` to prevent flaky test.
-		$action = new MockAction();
-		add_action( 'edited_term_taxonomy', array( $action, 'action' ) );
+		// Create a mock action for checking the `edited_term_taxonomy` hook call count.
+		$edited_term_taxonomy_action = new MockAction();
+		add_action( 'edited_term_taxonomy', array( $edited_term_taxonomy_action, 'action' ) );
+
+		// Create a mock action for checking the `update_term_count` hook call count.
+		$update_term_count_action = new MockAction();
+		add_action( 'update_term_count', array( $update_term_count_action, 'action' ) );
 
 		$custom_taxonomy = 'category_with_pending';
 
@@ -293,7 +314,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 			$custom_taxonomy
 		);
 
-		$edited_term_taxonomy_count = $action->get_call_count();
+		$edited_term_taxonomy_count     = $edited_term_taxonomy_action->get_call_count();
+		$update_term_count_action_count = $update_term_count_action->get_call_count();
 
 		// Change the post to another status that is included in term counts for one of its two taxonomies.
 		wp_update_post(
@@ -303,7 +325,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 			)
 		);
 
-		$this->assertSame( 1, $action->get_call_count() - $edited_term_taxonomy_count, 'Term taxonomy count should respect the statuses returned by the update_post_term_count_statuses filter.' );
+		$this->assertSame( 1, $edited_term_taxonomy_action->get_call_count() - $edited_term_taxonomy_count, 'Term taxonomy count should respect the statuses returned by the update_post_term_count_statuses filter.' );
+		$this->assertSame( 1, $update_term_count_action->get_call_count() - $update_term_count_action_count, 'The `update_term_count` action should run when term taxonomy count is recalculated.' );
 		$this->assertTermCount( 0, self::$term_id, 'Term count for the default taxonomy should remain zero since "pending" is not included in its countable statuses.' );
 		$this->assertTermCount( 1, $custom_term_id, 'Term count for the custom taxonomy should be updated to 1 because the "pending" status is included via the update_post_term_count_statuses filter.' );
 	}

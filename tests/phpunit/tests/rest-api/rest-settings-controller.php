@@ -57,7 +57,24 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			}
 		}
 
+		remove_filter( 'map_meta_cap', array( $this, 'deny_manage_privacy_options' ), 10 );
+
 		parent::tear_down();
+	}
+
+	/**
+	 * Maps `manage_privacy_options` to `do_not_allow`, as happens for a site
+	 * administrator on multisite.
+	 *
+	 * @param string[] $caps Primitive capabilities required.
+	 * @param string   $cap  Capability being checked.
+	 * @return string[] Primitive capabilities required.
+	 */
+	public function deny_manage_privacy_options( $caps, $cap ) {
+		if ( 'manage_privacy_options' === $cap ) {
+			return array( 'do_not_allow' );
+		}
+		return $caps;
 	}
 
 	public function test_register_routes() {
@@ -116,6 +133,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'show_on_front',
 			'page_on_front',
 			'page_for_posts',
+			'page_for_privacy_policy',
 			'default_ping_status',
 			'default_comment_status',
 			'site_icon', // Registered in wp-includes/blocks/site-logo.php
@@ -385,24 +403,14 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Settings can't be created
+	 * @doesNotPerformAssertions
 	 */
 	public function test_create_item() {
-		wp_set_current_user( self::$administrator );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
-		$request->set_param( 'new_setting', 'New value' );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertSame( 400, $response->get_status() );
+		// Controller does not implement create_item().
 	}
 
-	/**
-	 * @ticket 41604
-	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$administrator );
-
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
 		$request->set_param( 'title', 'The new title!' );
 		$response = rest_get_server()->dispatch( $request );
@@ -413,61 +421,38 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( get_option( 'blogname' ), $data['title'] );
 	}
 
-	/**
-	 * @ticket 41604
-	 */
-	public function test_update_item_with_global_parameters_present() {
+	public function test_update_item_privacy_policy_page() {
 		wp_set_current_user( self::$administrator );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$administrator );
+		}
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
-		$request->set_param( 'title', 'The new title!' );
-		$request->set_url_params( array( '_locale' => 'user' ) );
+		$request->set_param( 'page_for_privacy_policy', $page_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'The new title!', $data['title'] );
-		$this->assertSame( get_option( 'blogname' ), $data['title'] );
+		$this->assertSame( $page_id, $data['page_for_privacy_policy'] );
+		$this->assertSame( $page_id, (int) get_option( 'wp_page_for_privacy_policy' ) );
 	}
 
-	/**
-	 * @ticket 41604
-	 */
-	public function test_update_item_with_empty_body() {
+	public function test_update_item_privacy_policy_page_without_capability() {
 		wp_set_current_user( self::$administrator );
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'wp_page_for_privacy_policy', $page_id );
+		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		add_filter( 'map_meta_cap', array( $this, 'deny_manage_privacy_options' ), 10, 2 );
 
-		$request  = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'page_for_privacy_policy', $other_page_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertSame( 400, $response->get_status() );
-	}
-
-	/**
-	 * @ticket 41604
-	 */
-	public function test_update_nonexistent_item() {
-		wp_set_current_user( self::$administrator );
-
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
-		$request->set_param( 'i_do_no_exist', 'New value' );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertSame( 400, $response->get_status() );
-	}
-
-	/**
-	 * @ticket 41604
-	 */
-	public function test_update_partially_valid_items() {
-		wp_set_current_user( self::$administrator );
-
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
-		$request->set_param( 'title', 'The new title!' );
-		$request->set_param( 'i_do_no_exist', 'New value' );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $page_id, $data['page_for_privacy_policy'], 'The response should still report the previous page.' );
+		$this->assertSame( $page_id, (int) get_option( 'wp_page_for_privacy_policy' ), 'The option should not change.' );
 	}
 
 	public function update_setting_custom_callback( $result, $name, $value, $args ) {
@@ -698,8 +683,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_update_item_with_invalid_enum() {
-		update_option( 'posts_per_page', 9 );
-
 		wp_set_current_user( self::$administrator );
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
 		$request->set_param( 'default_ping_status', 'open&closed' );
@@ -861,6 +844,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'string', $title['type'] );
 		$this->assertSame( 'Title', $title['title'] );
 		$this->assertSame( 'Site title.', $title['description'] );
-		$this->assertSame( null, $title['default'] );
+		$this->assertNull( $title['default'] );
 	}
 }

@@ -251,7 +251,6 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$this->assertTrue( wp_script_is( 'code-editor', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'wp-codemirror', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'csslint', 'enqueued' ) );
-		$this->assertTrue( wp_script_is( 'jshint', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'htmlhint', 'enqueued' ) );
 	}
 

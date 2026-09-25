@@ -435,7 +435,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @since 4.9.6
 	 *
 	 * @param WP_User_Request $item Item being shown.
-	 * @return string|void Status column markup. Returns a string if no status is found,
+	 * @return string|null Status column markup. Returns a string if no status is found,
 	 *                     otherwise it displays the markup.
 	 */
 	public function column_status( $item ) {
@@ -461,10 +461,11 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		echo esc_html( $status_object->label );
 
 		if ( $timestamp ) {
-			echo ' (' . $this->get_timestamp_as_date( $timestamp ) . ')';
+			echo '<span class="status-date">' . $this->get_timestamp_as_date( $timestamp ) . '</span>';
 		}
 
 		echo '</span>';
+		return null;
 	}
 
 	/**
@@ -487,7 +488,14 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return sprintf( __( '%s ago' ), human_time_diff( $timestamp ) );
 		}
 
-		return date_i18n( get_option( 'date_format' ), $timestamp );
+		return sprintf(
+			/* translators: 1: privacy request date format, 2: privacy request time format. */
+			__( '%1$s at %2$s' ),
+			/* translators: privacy request date format. See https://www.php.net/manual/en/datetime.format.php */
+			date_i18n( __( 'Y/m/d' ), $timestamp ),
+			/* translators: privacy request time format. See https://www.php.net/manual/en/datetime.format.php */
+			date_i18n( __( 'g:i a' ), $timestamp )
+		);
 	}
 
 	/**

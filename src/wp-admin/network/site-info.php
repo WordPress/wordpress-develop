@@ -175,7 +175,7 @@ if ( ! empty( $messages ) ) {
 			?>
 		<tr class="form-field">
 			<th scope="row"><?php _e( 'Site Address (URL)' ); ?></th>
-			<td><?php echo esc_url( $parsed_scheme . '://' . $details->domain . $details->path ); ?></td>
+			<td><code><?php echo esc_url( $parsed_scheme . '://' . $details->domain . $details->path ); ?></code></td>
 		</tr>
 			<?php
 			// For any other site, the scheme, domain, and path can all be changed.
@@ -183,7 +183,7 @@ if ( ! empty( $messages ) ) {
 			?>
 		<tr class="form-field form-required">
 			<th scope="row"><label for="url"><?php _e( 'Site Address (URL)' ); ?></label></th>
-			<td><input name="blog[url]" type="text" id="url" value="<?php echo $parsed_scheme . '://' . esc_attr( $details->domain ) . esc_attr( $details->path ); ?>" /></td>
+			<td><input name="blog[url]" type="url" id="url" value="<?php echo $parsed_scheme . '://' . esc_attr( $details->domain ) . esc_attr( $details->path ); ?>" /></td>
 		</tr>
 		<?php endif; ?>
 
@@ -196,6 +196,8 @@ if ( ! empty( $messages ) ) {
 			<td><input name="blog[last_updated]" type="text" id="blog_last_updated" value="<?php echo esc_attr( $details->last_updated ); ?>" /></td>
 		</tr>
 		<?php
+		$site_attributes_title = __( 'Attributes' );
+
 		$attribute_fields = array( 'public' => _x( 'Public', 'site' ) );
 		if ( ! $is_main_site ) {
 			$attribute_fields['archived'] = __( 'Archived' );
@@ -205,15 +207,10 @@ if ( ! empty( $messages ) ) {
 		$attribute_fields['mature'] = __( 'Mature' );
 		?>
 		<tr>
-			<th scope="row"><?php _e( 'Attributes' ); ?></th>
+			<th scope="row"><?php echo $site_attributes_title; ?></th>
 			<td>
 			<fieldset>
-			<legend class="screen-reader-text">
-				<?php
-				/* translators: Hidden accessibility text. */
-				_e( 'Set site attributes' );
-				?>
-			</legend>
+			<legend class="screen-reader-text"><?php echo $site_attributes_title; ?></legend>
 			<?php foreach ( $attribute_fields as $field_key => $field_label ) : ?>
 				<label><input type="checkbox" name="blog[<?php echo $field_key; ?>]" value="1" <?php checked( (bool) $details->$field_key, true ); ?> <?php disabled( ! in_array( (int) $details->$field_key, array( 0, 1 ), true ) ); ?> />
 				<?php echo $field_label; ?></label><br />

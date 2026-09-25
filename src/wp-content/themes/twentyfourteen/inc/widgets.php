@@ -26,7 +26,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
-	 * @return Twenty_Fourteen_Ephemera_Widget
+	 * @return Twenty_Fourteen_Ephemera_Widget Widget instance.
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -65,6 +65,9 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 * Outputs the HTML for this widget.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 *
+	 * @global int $content_width Content width.
+	 * @global int $more
 	 *
 	 * @param array $args     An array of standard parameters for widgets in this theme.
 	 * @param array $instance An array of settings for this widget instance.
@@ -110,7 +113,8 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 
 		$number = ! empty( $instance['number'] ) ? absint( $instance['number'] ) : 2;
 		$title  = ! empty( $instance['title'] ) ? $instance['title'] : $format_string;
-		$title  = apply_filters( 'widget_title', $title, $instance, $this->id_base );
+		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
+		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
 		$ephemera = new WP_Query(
 			array(
@@ -133,6 +137,8 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 		if ( $ephemera->have_posts() ) :
 			$tmp_content_width        = $GLOBALS['content_width'];
 			$GLOBALS['content_width'] = 306;
+			// The global is unset until a loop has run, so this may be reached before it exists.
+			$tmp_more = $GLOBALS['more'] ?? null;
 
 			echo $args['before_widget'];
 			?>
@@ -144,7 +150,6 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 				<?php
 				while ( $ephemera->have_posts() ) :
 					$ephemera->the_post();
-					$tmp_more        = $GLOBALS['more'];
 					$GLOBALS['more'] = 0;
 					?>
 				<li>

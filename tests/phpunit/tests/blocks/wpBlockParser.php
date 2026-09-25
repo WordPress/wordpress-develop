@@ -7,6 +7,8 @@
  * @since 5.0.0
  *
  * @group blocks
+ *
+ * @coversDefaultClass WP_Block_Parser
  */
 class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	/**
@@ -16,6 +18,35 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 * @var string
 	 */
 	protected static $fixtures_dir;
+
+	/**
+	 * @dataProvider data_parsing_test_filenames
+	 * @ticket 45109
+	 *
+	 * @covers ::parse
+	 */
+	public function test_default_parser_output( $html_filename, $parsed_json_filename ) {
+		$html_path        = self::$fixtures_dir . '/' . $html_filename;
+		$parsed_json_path = self::$fixtures_dir . '/' . $parsed_json_filename;
+
+		foreach ( array( $html_path, $parsed_json_path ) as $filename ) {
+			if ( ! file_exists( $filename ) ) {
+				throw new Exception( "Missing fixture file: '$filename'" );
+			}
+		}
+
+		$html            = self::strip_r( file_get_contents( $html_path ) );
+		$expected_parsed = json_decode( self::strip_r( file_get_contents( $parsed_json_path ) ), true );
+
+		$parser = new WP_Block_Parser();
+		$result = json_decode( json_encode( $parser->parse( $html ) ), true );
+
+		$this->assertSame(
+			$expected_parsed,
+			$result,
+			"File '$parsed_json_filename' does not match expected value"
+		);
+	}
 
 	/**
 	 * @ticket 45109
@@ -40,33 +71,6 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 		return array_map(
 			array( $this, 'pass_parser_fixture_filenames' ),
 			$fixture_filenames
-		);
-	}
-
-	/**
-	 * @dataProvider data_parsing_test_filenames
-	 * @ticket 45109
-	 */
-	public function test_default_parser_output( $html_filename, $parsed_json_filename ) {
-		$html_path        = self::$fixtures_dir . '/' . $html_filename;
-		$parsed_json_path = self::$fixtures_dir . '/' . $parsed_json_filename;
-
-		foreach ( array( $html_path, $parsed_json_path ) as $filename ) {
-			if ( ! file_exists( $filename ) ) {
-				throw new Exception( "Missing fixture file: '$filename'" );
-			}
-		}
-
-		$html            = self::strip_r( file_get_contents( $html_path ) );
-		$expected_parsed = json_decode( self::strip_r( file_get_contents( $parsed_json_path ) ), true );
-
-		$parser = new WP_Block_Parser();
-		$result = json_decode( json_encode( $parser->parse( $html ) ), true );
-
-		$this->assertSame(
-			$expected_parsed,
-			$result,
-			"File '$parsed_json_filename' does not match expected value"
 		);
 	}
 
