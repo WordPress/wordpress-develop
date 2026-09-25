@@ -406,6 +406,92 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that when the adoption agency algorithm finds no matching
+	 * active formatting element, it acts like "any other end tag".
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @ticket 65383
+	 *
+	 * @dataProvider data_in_body_adoption_agency_fallback_end_tags
+	 *
+	 * @param string $formatting_tag_name Formatting tag name with no active formatting element.
+	 */
+	public function test_in_body_adoption_agency_fallback_ignores_unexpected_formatting_end_tag( string $formatting_tag_name ) {
+		$processor = WP_HTML_Processor::create_fragment( "<div><span></{$formatting_tag_name}><code target></code></span></div>" );
+
+		$this->assertTrue( $processor->next_tag( 'SPAN' ), 'Failed to find the SPAN opener before an unexpected formatting end tag.' );
+		$this->assertSame( 'SPAN', $processor->get_tag(), "Expected to start test on SPAN element but found {$processor->get_tag()} instead." );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'SPAN' ), $processor->get_breadcrumbs(), 'Failed to produce expected DOM nesting before unexpected formatting closer.' );
+
+		$this->assertTrue( $processor->next_tag( 'CODE' ), "Failed to ignore unexpected {$formatting_tag_name} closer and advance to CODE opener." );
+		$this->assertSame( 'CODE', $processor->get_tag(), "Expected to find CODE element, but found {$processor->get_tag()} instead." );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'SPAN', 'CODE' ), $processor->get_breadcrumbs(), 'Failed to keep SPAN open after unexpected formatting closer.' );
+	}
+
+	/**
+	 * Verifies that the adoption agency fallback preserves the "any other end tag"
+	 * step result when the ignored token is followed by EOF.
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @ticket 65383
+	 *
+	 * @dataProvider data_in_body_adoption_agency_fallback_end_tags
+	 *
+	 * @param string $tag_name Formatting tag name with no active formatting element.
+	 */
+	public function test_in_body_adoption_agency_fallback_preserves_ignored_end_tag_step_result( string $tag_name ): void {
+		$processor = WP_HTML_Processor::create_fragment( "</{$tag_name}>" );
+		$this->assertFalse( $processor->step(), "Expected unexpected {$tag_name} end tag followed by EOF to return false." );
+	}
+
+	/**
+	 * Verifies that when the adoption agency algorithm returns after removing
+	 * a formatting element from the active formatting elements list, it does
+	 * not report the current token as EOF.
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @ticket 65383
+	 *
+	 * @dataProvider data_in_body_adoption_agency_fallback_end_tags
+	 *
+	 * @param string $tag_name Formatting tag name with no open element.
+	 */
+	public function test_in_body_adoption_agency_removes_inactive_formatting_element_and_continues( string $tag_name ): void {
+		$processor = WP_HTML_Processor::create_fragment( "<p><{$tag_name}></p></{$tag_name}><span target></span>" );
+
+		$this->assertTrue( $processor->next_tag( $tag_name ), "Failed to find the {$tag_name} opener before it is popped by the P closer." );
+		$this->assertTrue( $processor->next_tag( 'SPAN' ), "Failed to advance past the inactive {$tag_name} closer to the following SPAN opener." );
+		$this->assertSame( array( 'HTML', 'BODY', 'SPAN' ), $processor->get_breadcrumbs(), "Expected SPAN to be a BODY child after the inactive {$tag_name} closer." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_in_body_adoption_agency_fallback_end_tags(): array {
+		return array(
+			'A tag'      => array( 'a' ),
+			'B tag'      => array( 'b' ),
+			'BIG tag'    => array( 'big' ),
+			'CODE tag'   => array( 'code' ),
+			'EM tag'     => array( 'em' ),
+			'FONT tag'   => array( 'font' ),
+			'I tag'      => array( 'i' ),
+			'NOBR tag'   => array( 'nobr' ),
+			'S tag'      => array( 's' ),
+			'SMALL tag'  => array( 'small' ),
+			'STRIKE tag' => array( 'strike' ),
+			'STRONG tag' => array( 'strong' ),
+			'TT tag'     => array( 'tt' ),
+			'U tag'      => array( 'u' ),
+		);
+	}
+
+	/**
 	 * Ensures that closing `</br>` tags are appropriately treated as opening tags with no attributes.
 	 *
 	 * > An end tag whose tag name is "br"
