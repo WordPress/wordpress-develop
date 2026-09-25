@@ -6213,6 +6213,55 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		return $query;
 	}
 
+	/**
+	 * @ticket 50255
+	 */
+	public function test_create_item_sets_edit_last_meta() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_post_data();
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data    = $response->get_data();
+		$post_id = $data['id'];
+
+		$this->assertEquals( self::$editor_id, get_post_meta( $post_id, '_edit_last', true ) );
+
+		$user = get_userdata( self::$editor_id );
+		$this->assertSame( $user->display_name, get_the_modified_author( $post_id ) );
+	}
+
+	/**
+	 * @ticket 50255
+	 */
+	public function test_update_item_sets_edit_last_meta() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_post_data();
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$post_id  = $response->get_data()['id'];
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params( array( 'title' => 'Updated Title' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEquals( self::$superadmin_id, get_post_meta( $post_id, '_edit_last', true ) );
+
+		$user = get_userdata( self::$superadmin_id );
+		$this->assertSame( $user->display_name, get_the_modified_author( $post_id ) );
+	}
+
 	public function filter_theme_post_templates( $post_templates ) {
 		return array(
 			'post-my-test-template.php' => 'My Test Template',
