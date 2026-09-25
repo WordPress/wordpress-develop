@@ -823,7 +823,12 @@ class WP_Debug_Data {
 			);
 		}
 
-		if ( class_exists( 'WP_Image_Editor_Vips' ) ) {
+		if ( extension_loaded( 'ffi' ) && ! class_exists( 'WP_Image_Editor_Vips' ) ) {
+			require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+			require_once ABSPATH . WPINC . '/class-wp-image-editor-vips.php';
+		}
+
+		if ( class_exists( 'WP_Image_Editor_Vips' ) && WP_Image_Editor_Vips::test() ) {
 			$vips_image_formats = array();
 			$vips_formats       = array(
 				'JPEG' => 'image/jpeg',
