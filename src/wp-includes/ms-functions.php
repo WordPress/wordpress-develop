@@ -152,6 +152,7 @@ function get_blog_post( $blog_id, $post_id ) {
  * Use the {@see 'add_user_to_blog'} action to fire an event when users are added to a blog.
  *
  * @since MU (3.0.0)
+ * @since 7.0.0 The {@see 'added_user_to_blog'} action hook was added.
  *
  * @param int    $blog_id ID of the blog the user is being added to.
  * @param int    $user_id ID of the user being added.
@@ -214,6 +215,17 @@ function add_user_to_blog( $blog_id, $user_id, $role ) {
 	clean_user_cache( $user_id );
 	wp_cache_delete( $blog_id . '_user_count', 'blog-details' );
 
+	/**
+	 * Fires immediately after a user is added to a site, and after the user cache has been cleaned.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $role    User role.
+	 * @param int    $blog_id Blog ID.
+	 */
+	do_action( 'added_user_to_blog', $user_id, $role, $blog_id );
+
 	restore_current_blog();
 
 	return true;
@@ -229,6 +241,7 @@ function add_user_to_blog( $blog_id, $user_id, $role ) {
  * reassign the user's blog posts to another user upon removal.
  *
  * @since MU (3.0.0)
+ * @since 7.0.0 The {@see 'removed_user_from_blog'} action hook was added.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -310,6 +323,17 @@ function remove_user_from_blog( $user_id, $blog_id = 0, $reassign = 0 ) {
 	}
 
 	clean_user_cache( $user_id );
+
+	/**
+	 * Fires after a user is removed from a site.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param int $user_id  ID of the user being removed.
+	 * @param int $blog_id  ID of the blog the user was removed from.
+	 */
+	do_action( 'removed_user_from_blog', $user_id, $blog_id );
+
 	restore_current_blog();
 
 	return true;
@@ -2318,6 +2342,7 @@ function add_existing_user_to_blog( $details = false ) {
  * is specifically hooked into the {@see 'wpmu_activate_user'} action.
  *
  * @since MU (3.0.0)
+ * @since 7.0.0 The {@see 'added_new_user'} action hook was added.
  *
  * @see add_user_to_blog()
  *
@@ -2340,6 +2365,16 @@ function add_new_user_to_blog(
 
 		if ( ! is_wp_error( $result ) ) {
 			update_user_meta( $user_id, 'primary_blog', $blog_id );
+
+			/**
+			 * Fires immediately after a new user is added to a site.
+			 *
+			 * @since 7.0.0
+			 *
+			 * @param int $user_id User ID.
+			 * @param int $blog_id Blog ID.
+			 */
+			do_action( 'added_new_user', $user_id, $blog_id );
 		}
 	}
 }
