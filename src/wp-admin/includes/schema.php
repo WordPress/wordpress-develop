@@ -472,7 +472,7 @@ function populate_options( array $options = array() ) {
 
 		// 2.1.0
 		'blog_public'                     => '1',
-		'default_link_category'           => 2,
+		'default_link_category'           => 0,
 		'show_on_front'                   => 'posts',
 
 		// 2.2.0
