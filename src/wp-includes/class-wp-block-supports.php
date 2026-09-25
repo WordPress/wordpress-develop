@@ -197,8 +197,6 @@ class WP_Block_Supports {
  *
  * @param string[] $extra_attributes Optional. Array of extra attributes to render on the block wrapper.
  * @return string String of HTML attributes.
- *
- * @phpstan-return ( $extra_attributes is empty ? string : non-falsy-string )
  */
 function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	$new_attributes = WP_Block_Supports::get_instance()->apply_block_supports();
