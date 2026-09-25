@@ -189,7 +189,11 @@ switch ( $action ) {
 
 		// Intentional fall-through to display $errors.
 	default:
-		$profile_user = get_user_to_edit( $user_id );
+		if ( isset( $errors ) && is_wp_error( $errors ) ) {
+			$profile_user = _get_user_to_edit_from_post( $user_id, $errors );
+		} else {
+			$profile_user = get_user_to_edit( $user_id );
+		}
 
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
@@ -336,6 +340,16 @@ switch ( $action ) {
 						<th scope="row"><?php _e( 'Administration Color Scheme' ); ?></th>
 						<td>
 							<?php
+							if ( isset( $errors ) && is_wp_error( $errors ) && isset( $profile_user->admin_color ) ) {
+								$_wp_user_edit_posted_options = array(
+									'user_id' => $profile_user->ID,
+									'options' => array(
+										'admin_color' => $profile_user->admin_color,
+									),
+								);
+								add_filter( 'get_user_option_admin_color', '_get_user_edit_form_posted_option', 10, 3 );
+							}
+
 							/**
 							 * Fires in the 'Administration Color Scheme' section of the user editing screen.
 							 *
@@ -348,6 +362,11 @@ switch ( $action ) {
 							 * @param int $user_id The user ID.
 							 */
 							do_action( 'admin_color_scheme_picker', $user_id );
+
+							if ( isset( $_wp_user_edit_posted_options ) ) {
+								remove_filter( 'get_user_option_admin_color', '_get_user_edit_form_posted_option', 10 );
+								unset( $_wp_user_edit_posted_options );
+							}
 							?>
 						</td>
 					</tr>
@@ -369,8 +388,13 @@ switch ( $action ) {
 					<tr class="show-admin-bar user-admin-bar-front-wrap">
 						<th scope="row"><?php _e( 'Toolbar' ); ?></th>
 						<td>
+							<?php
+							$show_admin_bar_front = isset( $errors ) && is_wp_error( $errors )
+								? 'true' === $profile_user->show_admin_bar_front
+								: _get_admin_bar_pref( 'front', $profile_user->ID );
+							?>
 							<label for="admin_bar_front">
-								<input name="admin_bar_front" type="checkbox" id="admin_bar_front" value="1"<?php checked( _get_admin_bar_pref( 'front', $profile_user->ID ) ); ?> />
+								<input name="admin_bar_front" type="checkbox" id="admin_bar_front" value="1"<?php checked( $show_admin_bar_front ); ?> />
 								<?php _e( 'Show Toolbar when viewing site' ); ?>
 							</label><br />
 						</td>
