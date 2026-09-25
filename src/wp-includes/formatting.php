@@ -4151,6 +4151,7 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 	}
 
 	$original_text = $text;
+	$text          = preg_replace( '/<br\b[^>]*\/?>/i', ' ', $text );
 	$text          = wp_strip_all_tags( $text );
 	$num_words     = (int) $num_words;
 
