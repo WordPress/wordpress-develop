@@ -1049,11 +1049,18 @@ function wp_setup_nav_menu_item( $menu_item ) {
  *                            Default 'post_type'.
  * @param string $taxonomy    Optional. If $object_type is 'taxonomy', $taxonomy is the name
  *                            of the tax that $object_id belongs to. Default empty.
+ * @param int    $menu_id     Optional. The ID of the menu. Default 0.
  * @return int[] The array of menu item IDs; empty array if none.
  */
-function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_type', $taxonomy = '' ) {
+function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_type', $taxonomy = '', $menu_id = 0 ) {
 	$object_id     = (int) $object_id;
+	$menu_id       = (int) $menu_id;
 	$menu_item_ids = array();
+
+	// Bail out if the menu ID does not exist.
+	if ( 0 !== $menu_id && ! term_exists( $menu_id, 'nav_menu' ) ) {
+		return $menu_item_ids;
+	}
 
 	$query      = new WP_Query();
 	$menu_items = $query->query(
@@ -1067,6 +1074,14 @@ function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_
 	);
 	foreach ( (array) $menu_items as $menu_item ) {
 		if ( isset( $menu_item->ID ) && is_nav_menu_item( $menu_item->ID ) ) {
+			// If a menu ID is given, only consider menu items that belong to that menu.
+			if ( 0 !== $menu_id ) {
+				$menu_item_terms = wp_get_post_terms( $menu_item->ID, 'nav_menu' );
+				if ( ! in_array( $menu_id, wp_list_pluck( $menu_item_terms, 'term_id' ), true ) ) {
+					continue;
+				}
+			}
+
 			$menu_item_type = get_post_meta( $menu_item->ID, '_menu_item_type', true );
 			if (
 				'post_type' === $object_type &&
