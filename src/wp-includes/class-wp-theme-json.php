@@ -816,7 +816,8 @@ class WP_Theme_JSON {
 	 * the default breakpoints when no valid custom breakpoint is provided. When
 	 * only one breakpoint is valid, it remains keyed by its configured state and
 	 * uses a single max-width media query. When `tablet` is not larger than
-	 * `mobile`, it is removed.
+	 * `mobile`, or does not share an absolute or relative unit type with it, it
+	 * is removed.
 	 *
 	 * @since 7.1.0
 	 *
@@ -852,7 +853,17 @@ class WP_Theme_JSON {
 		$sanitized = array( 'mobile' => $breakpoints['mobile']['value'] );
 
 		if ( isset( $breakpoints['tablet'] ) && $breakpoints['mobile']['px'] < $breakpoints['tablet']['px'] ) {
-			$sanitized['tablet'] = $breakpoints['tablet']['value'];
+			/*
+			 * A media query resolves `em` and `rem` against the browser's default
+			 * font size, so the order of a pair that mixes a relative unit with
+			 * `px` only holds at the 16px base assumed above.
+			 */
+			$mobile_is_absolute = str_ends_with( $breakpoints['mobile']['value'], 'px' );
+			$tablet_is_absolute = str_ends_with( $breakpoints['tablet']['value'], 'px' );
+
+			if ( $mobile_is_absolute === $tablet_is_absolute ) {
+				$sanitized['tablet'] = $breakpoints['tablet']['value'];
+			}
 		}
 
 		return $sanitized;
