@@ -602,6 +602,7 @@ border color while dragging a file over the uploader drop area */
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
+	padding: 0 !important; /* Override potential padding added by plugins. */
 }
 
 .media-frame.mode-grid.mode-edit .media-toolbar-secondary > .select-mode-toggle-button {
@@ -619,7 +620,7 @@ border color while dragging a file over the uploader drop area */
 }
 
 .media-frame-content .media-search-input-label {
-	vertical-align: baseline;
+	margin-bottom: 4px;
 }
 
 .attachments-browser .media-toolbar-secondary > .media-button {
