@@ -2486,4 +2486,32 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$this->assertTrue( $wpdb->check_connection( false ) );
 	}
+
+	/**
+	 * Tests that wpdb::set_prefix() handles null prefix without throwing a PHP deprecation notice.
+	 *
+	 * @ticket 63751
+	 */
+	public function test_set_prefix_with_null() {
+		$test_db = new WpdbExposedMethodsForTesting();
+
+		$result = $test_db->set_prefix( null, false );
+
+		$this->assertNotWPError( $result );
+		$this->assertNull( $test_db->base_prefix );
+	}
+
+	/**
+	 * Tests that wpdb::set_prefix() returns a WP_Error for invalid prefix characters.
+	 *
+	 * @ticket 63751
+	 */
+	public function test_set_prefix_with_invalid_characters() {
+		$test_db = new WpdbExposedMethodsForTesting();
+
+		$result = $test_db->set_prefix( 'invalid-prefix!', false );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'invalid_db_prefix', $result->get_error_code() );
+	}
 }
