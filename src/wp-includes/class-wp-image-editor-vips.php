@@ -6,6 +6,11 @@
  * @subpackage Image_Editor
  */
 
+// The php-vips library is vendored in wp-includes/php-vips.
+if ( ! class_exists( 'Jcupitt\Vips\Image' ) ) {
+	require_once ABSPATH . WPINC . '/php-vips/autoload.php';
+}
+
 /**
  * WordPress Image Editor Class for Image Manipulation through VIPS
  *

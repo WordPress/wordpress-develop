@@ -46,8 +46,7 @@
 		"ext-xml": "*",
 		"ext-xmlreader": "*",
 		"ext-zip": "*",
-		"ext-zlib": "*",
-		"jcupitt/vips": "Required to use the optional WP_Image_Editor_Vips backend"
+		"ext-zlib": "*"
 	},
 	"require-dev": {
 		"composer/ca-bundle": "1.5.13",
