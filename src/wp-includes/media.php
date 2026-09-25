@@ -3699,11 +3699,12 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param string $html    Audio shortcode HTML output.
-	 * @param array  $atts    Array of audio shortcode attributes.
-	 * @param string $audio   Audio file.
-	 * @param int    $post_id Post ID.
-	 * @param string $library Media library used for the audio shortcode.
+	 * @param string       $html    Audio shortcode HTML output.
+	 * @param array        $atts    Array of audio shortcode attributes.
+	 * @param WP_Post|null $audio   Audio attachment post when the shortcode has no source and
+	 *                              an attached audio file is used, null otherwise.
+	 * @param int          $post_id Post ID.
+	 * @param string       $library Media library used for the audio shortcode.
 	 */
 	return apply_filters( 'wp_audio_shortcode', $html, $atts, $audio, $post_id, $library );
 }
@@ -3994,11 +3995,12 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param string $output  Video shortcode HTML output.
-	 * @param array  $atts    Array of video shortcode attributes.
-	 * @param string $video   Video file.
-	 * @param int    $post_id Post ID.
-	 * @param string $library Media library used for the video shortcode.
+	 * @param string       $output  Video shortcode HTML output.
+	 * @param array        $atts    Array of video shortcode attributes.
+	 * @param WP_Post|null $video   Video attachment post when the shortcode has no source and
+	 *                              an attached video file is used, null otherwise.
+	 * @param int          $post_id Post ID.
+	 * @param string       $library Media library used for the video shortcode.
 	 */
 	return apply_filters( 'wp_video_shortcode', $output, $atts, $video, $post_id, $library );
 }
@@ -4072,7 +4074,7 @@ function next_image_link( $size = 'thumbnail', $text = false ) {
  * @param bool         $prev Optional. Whether to display the next (false) or previous (true) link. Default true.
  * @param string|int[] $size Optional. Image size. Accepts any registered image size name, or an array
  *                           of width and height values in pixels (in that order). Default 'thumbnail'.
- * @param bool         $text Optional. Link text. Default false.
+ * @param string|false $text Optional. Link text. Default false.
  * @return string Markup for image link.
  */
 function get_adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false ) {
@@ -4128,7 +4130,7 @@ function get_adjacent_image_link( $prev = true, $size = 'thumbnail', $text = fal
 	 * @param int          $attachment_id Attachment ID
 	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 	 *                                    an array of width and height values in pixels (in that order).
-	 * @param string       $text          Link text.
+	 * @param string|false $text          Link text, or false for the image itself.
 	 */
 	return apply_filters( "{$adjacent}_image_link", $output, $attachment_id, $size, $text );
 }
@@ -4143,7 +4145,7 @@ function get_adjacent_image_link( $prev = true, $size = 'thumbnail', $text = fal
  * @param bool         $prev Optional. Whether to display the next (false) or previous (true) link. Default true.
  * @param string|int[] $size Optional. Image size. Accepts any registered image size name, or an array
  *                           of width and height values in pixels (in that order). Default 'thumbnail'.
- * @param bool         $text Optional. Link text. Default false.
+ * @param string|false $text Optional. Link text. Default false.
  */
 function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false ) {
 	echo get_adjacent_image_link( $prev, $size, $text );

@@ -1856,7 +1856,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							 * @param array $users_opt An array of arguments passed to wp_dropdown_users().
 							 * @param bool  $bulk      A flag to denote if it's a bulk action.
 							 */
-							$users_opt = apply_filters( 'quick_edit_dropdown_authors_args', $users_opt, $bulk );
+							$users_opt = apply_filters( 'quick_edit_dropdown_authors_args', $users_opt, (bool) $bulk );
 
 							$authors = wp_dropdown_users( $users_opt );
 
@@ -1961,7 +1961,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							 * @param array $dropdown_args An array of arguments passed to wp_dropdown_pages().
 							 * @param bool  $bulk          A flag to denote if it's a bulk action.
 							 */
-							$dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args, $bulk );
+							$dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args, (bool) $bulk );
 
 							wp_dropdown_pages( $dropdown_args );
 							?>
@@ -2108,12 +2108,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 								 *
 								 * @since 6.9.0
 								 *
-								 * @param array<string,string> $inline_edit_statuses An array of statuses available in the Quick Edit UI.
-								 * @param string               $post_type            The post type slug.
-								 * @param bool                 $bulk                 A flag to denote if it's a bulk action.
-								 * @param bool                 $can_publish          A flag to denote if the user can publish posts.
+								 * @param string[] $inline_edit_statuses An array of statuses available in the Quick Edit UI.
+								 * @param string   $post_type            The post type slug.
+								 * @param bool     $bulk                 A flag to denote if it's a bulk action.
+								 * @param bool     $can_publish          A flag to denote if the user can publish posts.
 								 */
-								$inline_edit_statuses = apply_filters( 'quick_edit_statuses', $inline_edit_statuses, $screen->post_type, $bulk, $can_publish );
+								$inline_edit_statuses = apply_filters( 'quick_edit_statuses', $inline_edit_statuses, $screen->post_type, (bool) $bulk, $can_publish );
 
 								foreach ( $inline_edit_statuses as $inline_status_value => $inline_status_text ) :
 									?>
