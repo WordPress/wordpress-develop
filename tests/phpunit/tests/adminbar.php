@@ -932,4 +932,45 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
 		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
 	}
+
+	/**
+	 * Verifies toggling show_admin_bar() off then on removes and re-registers hooks.
+	 *
+	 * @ticket 28569
+	 * @covers ::show_admin_bar
+	 */
+	public function test_show_admin_bar_toggles_hooks() {
+		wp_set_current_user( self::$admin_id );
+
+		// Ensure $show_admin_bar is true before init, in case a previous test left it as false.
+		show_admin_bar( true );
+
+		// Ensure default-filters enqueue callbacks are registered.
+		add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles' );
+		add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' );
+		add_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' );
+
+		// Initialize the admin bar as would happen on template_redirect.
+		_wp_admin_bar_init();
+
+		// Disable: hooks should be removed.
+		show_admin_bar( false );
+
+		$this->assertFalse( has_action( 'wp_head', 'wp_admin_bar_header' ) );
+		$this->assertFalse( has_action( 'wp_head', '_admin_bar_bump_cb' ) );
+		$this->assertFalse( has_action( 'admin_head', 'wp_admin_bar_header' ) );
+		$this->assertFalse( has_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles' ) );
+		$this->assertFalse( has_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' ) );
+		$this->assertFalse( has_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' ) );
+
+		// Re-enable: hooks should be restored.
+		show_admin_bar( true );
+
+		$this->assertSame( 10, has_action( 'wp_head', 'wp_admin_bar_header' ) );
+		$this->assertSame( 10, has_action( 'wp_head', '_admin_bar_bump_cb' ) );
+		$this->assertSame( 10, has_action( 'admin_head', 'wp_admin_bar_header' ) );
+		$this->assertSame( 10, has_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles' ) );
+		$this->assertSame( 10, has_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' ) );
+		$this->assertSame( 10, has_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' ) );
+	}
 }
