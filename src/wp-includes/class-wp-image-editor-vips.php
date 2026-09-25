@@ -48,6 +48,13 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	protected $resized = false;
 
 	/**
+	 * Whether the image is a lossless WebP that must be re-saved losslessly.
+	 *
+	 * @var bool
+	 */
+	protected $lossless = false;
+
+	/**
 	 * Cache of mime type support checks.
 	 *
 	 * Dynamic writeToBuffer probe is used because VIPS support depends on runtime configuration
@@ -236,6 +243,36 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		} catch ( Exception $e ) {
 			return new WP_Error( 'invalid_image', $e->getMessage(), $this->file );
 		}
+	}
+
+	/**
+	 * Sets Image Compression quality on a 1-100% scale.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int   $quality Compression Quality. Range: [1,100].
+	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
+	 * @return true|WP_Error True if set successfully; WP_Error on failure.
+	 */
+	public function set_quality( $quality = null, $dims = array() ) {
+		$quality_result = parent::set_quality( $quality, $dims );
+
+		if ( is_wp_error( $quality_result ) ) {
+			return $quality_result;
+		}
+
+		// A lossless WebP has no quality to preserve, so it is re-saved losslessly at 100,
+		// matching the GD and Imagick editors.
+		if ( 'image/webp' === $this->mime_type ) {
+			$webp_info = wp_get_webp_info( $this->file );
+
+			if ( 'lossless' === $webp_info['type'] ) {
+				$this->lossless = true;
+				parent::set_quality( 100 );
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -589,6 +626,10 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				case 'image/webp':
 					$save_options['Q']     = $this->get_quality();
 					$save_options['strip'] = $strip_meta;
+
+					if ( $this->lossless ) {
+						$save_options['lossless'] = true;
+					}
 					break;
 
 				case 'image/gif':
