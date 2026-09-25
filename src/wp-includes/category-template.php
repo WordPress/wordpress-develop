@@ -410,6 +410,11 @@ function wp_dropdown_categories( $args = '' ) {
 	$id       = $parsed_args['id'] ? esc_attr( $parsed_args['id'] ) : $name;
 	$required = $parsed_args['required'] ? 'required' : '';
 
+	// Add custom class for hierarchical dropdowns.
+	if ( ! empty( $parsed_args['hierarchical'] ) ) {
+		$class .= ' category-parent-hierarchical-select';
+	}
+
 	$aria_describedby_attribute = $parsed_args['aria_describedby'] ? ' aria-describedby="' . esc_attr( $parsed_args['aria_describedby'] ) . '"' : '';
 
 	if ( ! $parsed_args['hide_if_empty'] || ! empty( $categories ) ) {
