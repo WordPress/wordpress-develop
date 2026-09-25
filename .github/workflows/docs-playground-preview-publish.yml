@@ -1,0 +1,116 @@
+name: Code Reference Playground Preview Publish
+
+on: # zizmor: ignore[dangerous-triggers] Only default-branch code validates and publishes the untrusted handoff.
+    workflow_run:
+        workflows:
+            - 'Code Reference Playground Preview Build'
+        types:
+            - completed
+
+# A fork head branch identifies one trunk pull request even when GitHub omits the
+# pull_requests array. Runs queue instead of interrupting a publication halfway.
+concurrency:
+    group: docs-preview-publish-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+    queue: max
+
+permissions: {}
+
+jobs:
+    publish:
+        name: Publish Code Reference snapshot
+        # Every push to an unlabeled pull request completes a build run whose
+        # jobs all skipped. Failed builds still publish their report, so only
+        # the skipped conclusion is filtered out here.
+        if: >-
+            github.event.workflow_run.event == 'pull_request' &&
+            github.event.workflow_run.conclusion != 'skipped' &&
+            ( github.repository == 'WordPress/wordpress-develop' ||
+              ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) )
+        runs-on: ubuntu-24.04
+        timeout-minutes: 30
+        permissions:
+            actions: read
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Check out trusted default-branch publisher code
+              uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+              with:
+                  ref: ${{ github.event.repository.default_branch }}
+                  persist-credentials: false
+                  show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+            - name: Set up the pinned Node version
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              with:
+                  node-version: '20.20.2'
+
+            - name: Download the exact untrusted handoff
+              id: download
+              continue-on-error: true
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+              with:
+                  name: docs-preview-handoff-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+                  path: handoff
+                  github-token: ${{ github.token }}
+                  run-id: ${{ github.event.workflow_run.id }}
+                  digest-mismatch: error
+
+            - name: Validate and publish the handoff
+              # Fork pull_request jobs cannot read the base repository's Actions
+              # variables. The trusted publisher therefore applies enforcement
+              # after reporting the invalid candidate and preserving the live link.
+              # Administrator: enable enforcement in Settings > Secrets and variables >
+              # Actions > Variables by creating or updating DOCS_PREVIEW_ENFORCE to true.
+              env:
+                  DOCS_PREVIEW_ENFORCE: ${{ vars.DOCS_PREVIEW_ENFORCE }}
+                  DOCS_PREVIEW_STAGING: ${{ vars.DOCS_PREVIEW_STAGING }}
+                  GITHUB_TOKEN: ${{ github.token }}
+                  HANDOFF_DOWNLOAD_RESULT: ${{ steps.download.outcome }}
+              run: node .github/scripts/docs-playground-preview/publish.mjs handoff
+
+    publish-trunk:
+        name: Publish trunk Code Reference snapshot
+        if: >-
+            github.event.workflow_run.event == 'push' &&
+            github.event.workflow_run.head_branch == 'trunk' &&
+            ( github.repository == 'WordPress/wordpress-develop' ||
+              ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) )
+        runs-on: ubuntu-24.04
+        timeout-minutes: 30
+        permissions:
+            actions: read
+            contents: write
+        steps:
+            - name: Check out trusted default-branch publisher code
+              uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+              with:
+                  ref: ${{ github.event.repository.default_branch }}
+                  persist-credentials: false
+                  show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+            - name: Set up the pinned Node version
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              with:
+                  node-version: '20.20.2'
+
+            - name: Download the exact trunk handoff
+              id: download
+              continue-on-error: true
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+              with:
+                  name: docs-preview-trunk-handoff-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+                  path: handoff
+                  github-token: ${{ github.token }}
+                  run-id: ${{ github.event.workflow_run.id }}
+                  digest-mismatch: error
+
+            - name: Validate and publish the trunk handoff
+              # Administrator: enable enforcement in Settings > Secrets and variables >
+              # Actions > Variables by creating or updating DOCS_PREVIEW_ENFORCE to true.
+              env:
+                  DOCS_PREVIEW_ENFORCE: ${{ vars.DOCS_PREVIEW_ENFORCE }}
+                  DOCS_PREVIEW_STAGING: ${{ vars.DOCS_PREVIEW_STAGING }}
+                  GITHUB_TOKEN: ${{ github.token }}
+                  HANDOFF_DOWNLOAD_RESULT: ${{ steps.download.outcome }}
+              run: node .github/scripts/docs-playground-preview/publish-trunk.mjs handoff
