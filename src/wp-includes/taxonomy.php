@@ -1843,7 +1843,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  * @phpstan-param T $value
  * @phpstan-return (
  *     $field is 'parent'|'term_id'|'count'|'term_group'|'term_taxonomy_id'|'object_id'
- *         ? int<0, max>
+ *         ? ( $context is 'raw' ? int<0, max> : int )
  *         : ( $context is 'raw' ? T : ( $context is 'attribute'|'edit'|'js' ? string : mixed ) )
  * )
  */
