@@ -6,9 +6,7 @@
  * @subpackage Administration
  */
 
-// Confidence check.
-if ( false ) {
-	?>
+?>
 <!DOCTYPE html>
 <html lang="en-US">
 <head>
@@ -20,8 +18,7 @@ if ( false ) {
 	<p>WordPress requires that your web server is running PHP. Your server does not have PHP installed, or PHP is turned off.</p>
 </body>
 </html>
-	<?php
-}
+<?php
 
 /**
  * We are installing WordPress.

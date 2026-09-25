@@ -1033,18 +1033,19 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 
 	$filtered_output = $output;
 
-	$did_just_catch = false;
+	$handler_state = (object) array(
+		'did_just_catch' => false,
+	);
 
 	$error_log = array();
 	set_error_handler(
-		static function ( int $level, string $message, ?string $file = null, ?int $line = null ) use ( &$error_log, &$did_just_catch ) {
+		static function ( int $level, string $message, ?string $file = null, ?int $line = null ) use ( &$error_log, &$handler_state ) {
 			// Switch a user error to an exception so that it can be caught and the buffer can be returned.
 			if ( E_USER_ERROR === $level ) {
 				throw new Exception( __( 'User error triggered:' ) . ' ' . $message );
 			}
 
-			// Display a caught exception as an error since it prevents any of the output buffer filters from applying.
-			if ( $did_just_catch ) {
+			if ( $handler_state->did_just_catch ) {
 				$level = E_USER_ERROR;
 			}
 
@@ -1087,7 +1088,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
 	} catch ( Throwable $throwable ) {
 		// Emit to the error log as a warning not as an error to prevent halting execution.
-		$did_just_catch = true;
+		$handler_state->did_just_catch  = true;
 		trigger_error(
 			sprintf(
 				/* translators: %s is the throwable class name */
@@ -1096,7 +1097,8 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			) . ' ' . $throwable->getMessage(),
 			E_USER_WARNING
 		);
-		$did_just_catch = false;
+		$handler_state->did_just_catch  = false;
+
 	}
 
 	try {
@@ -1126,7 +1128,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		do_action( 'wp_finalized_template_enhancement_output_buffer', $filtered_output );
 	} catch ( Throwable $throwable ) {
 		// Emit to the error log as a warning not as an error to prevent halting execution.
-		$did_just_catch = true;
+		$handler_state->did_just_catch = true;
 		trigger_error(
 			sprintf(
 				/* translators: %s is the class name */
@@ -1135,7 +1137,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			) . ' ' . $throwable->getMessage(),
 			E_USER_WARNING
 		);
-		$did_just_catch = false;
+		$handler_state->did_just_catch = false;
 	}
 
 	// Append any errors to be displayed before returning flushing the buffer.
