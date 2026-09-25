@@ -964,7 +964,7 @@ function wp_not_installed() {
  *
  * The default directory is wp-content/mu-plugins. To change the default
  * directory manually, define `WPMU_PLUGIN_DIR` and `WPMU_PLUGIN_URL`
- * in wp-config.php.
+ * in wp-config.php. Files beginning with a dot are ignored.
  *
  * @since 3.0.0
  * @access private
@@ -984,7 +984,7 @@ function wp_get_mu_plugins() {
 	}
 
 	while ( ( $plugin = readdir( $dh ) ) !== false ) {
-		if ( str_ends_with( $plugin, '.php' ) ) {
+		if ( ! str_starts_with( $plugin, '.' ) && str_ends_with( $plugin, '.php' ) ) {
 			$mu_plugins[] = WPMU_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
