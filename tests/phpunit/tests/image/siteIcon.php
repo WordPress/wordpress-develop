@@ -136,8 +136,9 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 
 	public function test_insert_cropped_attachment() {
 		$attachment_id = $this->insert_attachment();
-		$parent_url    = get_post( $attachment_id )->guid;
-		$cropped       = str_replace( wp_basename( $parent_url ), 'cropped-test-image.jpg', $parent_url );
+		$parent_file   = get_attached_file( $attachment_id );
+		$cropped       = str_replace( wp_basename( $parent_file ), 'cropped-test-image.jpg', $parent_file );
+		$this->assertTrue( copy( $parent_file, $cropped ), 'Failed to copy the image for the cropped attachment.' );
 
 		$object     = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'site-icon' );
 		$cropped_id = $this->wp_site_icon->insert_attachment( $object, $cropped );

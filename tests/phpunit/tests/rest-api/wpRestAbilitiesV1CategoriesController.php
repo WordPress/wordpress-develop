@@ -275,7 +275,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$total_categories = count( wp_get_ability_categories() );
-		$this->assertEquals( $total_categories, (int) $headers['X-WP-Total'] );
+		$this->assertSame( $total_categories, (int) $headers['X-WP-Total'] );
 		$this->assertEquals( ceil( $total_categories / 10 ), (int) $headers['X-WP-TotalPages'] );
 	}
 
