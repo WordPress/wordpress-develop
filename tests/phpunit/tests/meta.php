@@ -204,6 +204,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 		$meta_cache = update_meta_cache( 'user', array( self::$author->ID ) );
 
+		$this->assertIsArray( $meta_cache );
+		$this->assertArrayHasKey( self::$author->ID, $meta_cache );
 		$this->assertIsArray( $meta_cache[ self::$author->ID ], 'The returned meta cache for the object should be an array.' );
 		$this->assertSame( array( 'meta_value' ), $meta_cache[ self::$author->ID ]['meta_key'], 'The returned meta cache should include the existing meta key.' );
 
@@ -221,6 +223,8 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertTrue( wp_cache_set( $term_id, new stdClass(), 'term_meta' ), 'The unusable value should be placed in the cache, check test setup.' );
 
 		$meta_cache = update_meta_cache( 'term', array( $term_id ) );
+		$this->assertIsArray( $meta_cache );
+		$this->assertArrayHasKey( $term_id, $meta_cache );
 
 		$this->assertSame( array(), $meta_cache[ $term_id ], 'The returned meta cache for an object without meta should be an empty array.' );
 		$this->assertSame( array(), wp_cache_get( $term_id, 'term_meta' ), 'The unusable cache value should have been replaced with an empty array.' );
@@ -235,6 +239,8 @@ class Tests_Meta extends WP_UnitTestCase {
 		wp_suspend_cache_addition( true );
 		$meta_cache = update_meta_cache( 'user', array( self::$author->ID ) );
 		wp_suspend_cache_addition( false );
+		$this->assertIsArray( $meta_cache );
+		$this->assertIsArray( $meta_cache[ self::$author->ID ] );
 
 		$this->assertSame( array( 'meta_value' ), $meta_cache[ self::$author->ID ]['meta_key'], 'The meta should still be returned while cache addition is suspended.' );
 		$this->assertFalse( wp_cache_get( self::$author->ID, 'user_meta' ), 'The unusable cache value should be removed but not replaced while cache addition is suspended.' );
