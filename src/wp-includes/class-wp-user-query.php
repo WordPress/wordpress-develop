@@ -1071,6 +1071,10 @@ class WP_User_Query {
 	protected function get_cache_last_changed( array $args ) {
 		$last_changed = (array) wp_cache_get_last_changed( 'users' );
 
+		if ( ! empty( $this->meta_query->queries ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'users-meta' );
+		}
+
 		if ( empty( $args['orderby'] ) ) {
 			// Default order is by 'user_login'.
 			$ordersby = array( 'user_login' => '' );
