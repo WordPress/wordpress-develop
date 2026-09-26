@@ -1704,6 +1704,10 @@ class wp_xmlrpc_server extends IXR_Server {
 
 					$term_names = $post_data['terms_names'][ $taxonomy ];
 					foreach ( $term_names as $term_name ) {
+						if ( ! is_string( $term_name ) ) {
+							return new IXR_Error( 403, __( 'Invalid term name.' ) );
+						}
+
 						if ( in_array( $term_name, $ambiguous_terms, true ) ) {
 							return new IXR_Error( 401, __( 'Ambiguous term name used in a hierarchical taxonomy. Please use term ID instead.' ) );
 						}

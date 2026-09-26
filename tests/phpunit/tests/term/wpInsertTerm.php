@@ -79,6 +79,62 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertSame( 'empty_term_name', $found->get_error_code() );
 	}
 
+	/**
+	 * Tests that a non-scalar term name returns a WP_Error instead of causing a fatal error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_wp_insert_term_non_scalar_term_name
+	 *
+	 * @param mixed $term The term name to insert.
+	 */
+	public function test_wp_insert_term_non_scalar_term_name( $term ): void {
+		$found = wp_insert_term( $term, 'post_tag' );
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'empty_term_name', $found->get_error_code() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{mixed}>
+	 */
+	public function data_wp_insert_term_non_scalar_term_name(): array {
+		return array(
+			'array'  => array( array( 'foo', 'bar' ) ),
+			'object' => array( new stdClass() ),
+		);
+	}
+
+	/**
+	 * Tests that a numeric term name is inserted and stored as its string form.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_wp_insert_term_numeric_term_name
+	 *
+	 * @param int|float $term The term name to insert.
+	 */
+	public function test_wp_insert_term_numeric_term_name( $term ): void {
+		$found = wp_insert_term( $term, 'post_tag' );
+
+		$this->assertNotWPError( $found );
+		$this->assertSame( (string) $term, get_term( $found['term_id'], 'post_tag' )->name );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{int|float}>
+	 */
+	public function data_wp_insert_term_numeric_term_name(): array {
+		return array(
+			'integer' => array( 2024 ),
+			'float'   => array( 1.5 ),
+		);
+	}
+
 	public function test_wp_insert_term_parent_does_not_exist() {
 		$found = wp_insert_term(
 			'foo',
