@@ -1899,6 +1899,8 @@ function wp_unspam_comment( $comment_id ) {
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object
  * @return string|false Status might be 'trash', 'approved', 'unapproved', 'spam'. False on failure.
+ *
+ * @phpstan-return 'approved'|'spam'|'trash'|'unapproved'|false
  */
 function wp_get_comment_status( $comment_id ) {
 	$comment = get_comment( $comment_id );
@@ -3204,6 +3206,8 @@ function wp_update_comment_count_now( $post_id ) {
  * @param string $url        URL to ping.
  * @param string $deprecated Not Used.
  * @return string|false String containing URI on success, false on failure.
+ *
+ * @phpstan-param '' $deprecated
  */
 function discover_pingback_server_uri( $url, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {

@@ -319,11 +319,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/upgrade.php
 		-
-			message: '#^Parameter \#3 \$deprecated of function add_option expects string, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/upgrade.php
-		-
 			message: '#^Parameter \#1 \$bookmark_id of function clean_bookmark_cache expects int, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -844,7 +839,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-user.php
 		-
-			message: '#^Parameter \#1 \$number of method WP_Widget\:\:_set\(\) expects int, string given\.$#'
+			message: '#^Parameter \#1 \$number of method WP_Widget\<T of array \= array\<string, mixed\>\>\:\:_set\(\) expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php

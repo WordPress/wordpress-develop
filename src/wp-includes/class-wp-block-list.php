@@ -10,6 +10,8 @@
  * Class representing a list of block instances.
  *
  * @since 5.5.0
+ *
+ * @phpstan-implements ArrayAccess<int, WP_Block>
  */
 #[AllowDynamicProperties]
 class WP_Block_List implements Iterator, ArrayAccess, Countable {
@@ -69,6 +71,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @param int $offset Offset of block to check for.
 	 * @return bool Whether block exists.
+	 *
+	 * @phpstan-param int $offset
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetExists( $offset ) {
@@ -84,6 +88,9 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @param int $offset Offset of block value to retrieve.
 	 * @return WP_Block|null Block value if exists, or null.
+	 *
+	 * @phpstan-param int $offset
+	 * @phpstan-return WP_Block|null
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
@@ -107,6 +114,9 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @param int            $offset Offset of block value to set.
 	 * @param array|WP_Block $value  Block value.
+	 *
+	 * @phpstan-param int|null $offset
+	 * @phpstan-return void
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
@@ -125,6 +135,9 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetunset.php
 	 *
 	 * @param int $offset Offset of block value to unset.
+	 *
+	 * @phpstan-param int $offset
+	 * @phpstan-return void
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
