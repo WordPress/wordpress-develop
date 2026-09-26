@@ -653,11 +653,11 @@ function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
 				<p class="wp-signup-radio-buttons">
 					<span class="wp-signup-radio-button">
 						<input id="signupblog" type="radio" name="signup_for" value="blog" <?php checked( $signup_for, 'blog' ); ?> />
-						<label class="checkbox" for="signupblog"><?php _e( 'Gimme a site!' ); ?></label>
+						<label class="checkbox" for="signupblog"><?php _ex( 'Give me a site!', 'Multisite signup' ); ?></label>
 					</span>
 					<span class="wp-signup-radio-button">
 						<input id="signupuser" type="radio" name="signup_for" value="user" <?php checked( $signup_for, 'user' ); ?> />
-						<label class="checkbox" for="signupuser"><?php _e( 'Just a username, please.' ); ?></label>
+						<label class="checkbox" for="signupuser"><?php _ex( 'Just a username, please.', 'Multisite signup' ); ?></label>
 					</span>
 				</p>
 			</fieldset>
