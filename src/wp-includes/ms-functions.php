@@ -2321,9 +2321,9 @@ function add_existing_user_to_blog( $details = false ) {
  *
  * @see add_user_to_blog()
  *
- * @param int    $user_id  User ID.
- * @param string $password User password. Ignored.
- * @param array  $meta     Signup meta data.
+ * @param int   $user_id
+ * @param mixed $password Accessible via 'added_new_user_to_blog' hook.
+ * @param array $meta
  */
 function add_new_user_to_blog(
 	$user_id,
@@ -2340,6 +2340,18 @@ function add_new_user_to_blog(
 
 		if ( ! is_wp_error( $result ) ) {
 			update_user_meta( $user_id, 'primary_blog', $blog_id );
+
+			/**
+			 * Fires when a new user is added to a network site without an error from $result.
+			 *
+			 * @since 4.9.0
+			 *
+			 * @param int    $user_id  New user's ID.
+			 * @param mixed  $password New user's password.
+			 * @param array  $meta     Array of meta data from the new registration.
+			 * @param int    $blog_id  Blog ID.
+			 */
+			do_action( 'added_new_user_to_blog', $user_id, $password, $meta, $blog_id );
 		}
 	}
 }
