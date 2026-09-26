@@ -68,6 +68,16 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	protected static $mime_support_cache = array();
 
 	/**
+	 * Extensions libvips can save images to, including the leading dot.
+	 *
+	 * Null until it has been queried. An empty array means the query was unavailable or
+	 * failed, in which case every format falls back to being probed by encoding.
+	 *
+	 * @var string[]|null
+	 */
+	protected static $save_suffixes;
+
+	/**
 	 * Checks to see if current environment supports VIPS.
 	 *
 	 * @since 7.2.0
@@ -165,13 +175,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @return string[] Extensions including the leading dot.
 	 */
 	protected static function get_save_suffixes() {
-		static $suffixes = null;
-
-		if ( null !== $suffixes ) {
-			return $suffixes;
+		if ( null !== self::$save_suffixes ) {
+			return self::$save_suffixes;
 		}
 
-		$suffixes = array();
+		self::$save_suffixes = array();
 
 		try {
 			if ( version_compare( Jcupitt\Vips\Config::version(), '8.8', '>=' ) ) {
@@ -180,19 +188,19 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				$all = Jcupitt\Vips\FFI::vips()->vips_foreign_get_suffixes();
 
 				for ( $i = 0; null !== $all[ $i ]; $i++ ) {
-					$suffixes[] = strtolower( \FFI::string( $all[ $i ] ) );
+					self::$save_suffixes[] = strtolower( \FFI::string( $all[ $i ] ) );
 				}
 
 				// @phpstan-ignore method.notFound (Declared in the glib FFI cdef.)
 				Jcupitt\Vips\FFI::glib()->g_strfreev( $all );
 
-				$suffixes = array_values( array_unique( $suffixes ) );
+				self::$save_suffixes = array_values( array_unique( self::$save_suffixes ) );
 			}
 		} catch ( Exception $e ) {
-			$suffixes = array();
+			self::$save_suffixes = array();
 		}
 
-		return $suffixes;
+		return self::$save_suffixes;
 	}
 
 	/**
