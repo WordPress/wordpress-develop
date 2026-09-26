@@ -147,6 +147,10 @@
 								node = node.parentNode;
 							}
 
+							if ( isExcludedFromParsing( node ) ) {
+								continue;
+							}
+
 							if ( test( node.textContent ) ) {
 								parse( node );
 							}
@@ -159,6 +163,39 @@
 			}
 
 			parse( document.body );
+		}
+
+		/**
+		 * Checks whether a node, or one of its ancestors, is excluded from
+		 * emoji parsing.
+		 *
+		 * The doNotParse() callback passed to Twemoji only excludes descendants
+		 * of the node it's asked to parse, so a node that is itself excluded
+		 * (or nested inside an excluded ancestor) has to be checked here,
+		 * before it's ever handed to parse().
+		 *
+		 * @since 7.2.0
+		 * @private
+		 *
+		 * @param {Node} node The node to check.
+		 *
+		 * @return {boolean} Whether the node or an ancestor has the
+		 *                    wp-exclude-emoji class.
+		 */
+		function isExcludedFromParsing( node ) {
+			while ( node ) {
+				if (
+					node.className &&
+					typeof node.className === 'string' &&
+					node.className.indexOf( 'wp-exclude-emoji' ) !== -1
+				) {
+					return true;
+				}
+
+				node = node.parentNode;
+			}
+
+			return false;
 		}
 
 		/**
