@@ -495,7 +495,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 					array( 'status' => 400 )
 				);
 			}
-			$instance = unserialize( $serialized_instance );
+			$instance = maybe_unserialize( $serialized_instance );
 		} else {
 			$instance = array();
 		}
