@@ -996,6 +996,43 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that generating sub-sizes leaves the editor holding an unresized image.
+	 *
+	 * make_subsize() puts the image and the size back, so the editor is left holding the
+	 * image it was loaded with. A save after that is a save of an unresized image, and
+	 * should keep its metadata for the same reason a plain load-and-save does.
+	 *
+	 * @requires extension exif
+	 */
+	public function test_multi_resize_does_not_strip_metadata_on_a_later_save() {
+		$file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$subsizes = $vips_image_editor->multi_resize(
+			array(
+				array(
+					'width'  => 25,
+					'height' => 25,
+				),
+			)
+		);
+		$this->assertNotEmpty( $subsizes );
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_meta_' ) . '.jpg';
+		$vips_image_editor->save( $saved_file );
+
+		$saved = wp_read_image_metadata( $saved_file );
+		unlink( $saved_file );
+
+		$this->assertNotEmpty(
+			$saved['caption'],
+			'Metadata should be preserved when the editor was only asked for sub-sizes.'
+		);
+	}
+
+	/**
 	 * Tests that a single loaded image can be read more than once.
 	 *
 	 * The source must not be opened with sequential access, which permits only one pass
