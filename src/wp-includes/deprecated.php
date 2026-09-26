@@ -6524,6 +6524,7 @@ function wp_print_auto_sizes_contain_css_fix() {
  * @param string|array $gpc String or array of data to slash.
  * @return string|array Slashed `$gpc`.
  *
+ * @phpstan-pure
  * @phpstan-return ( $gpc is string ? string : array )
  */
 function addslashes_gpc( $gpc ) {
