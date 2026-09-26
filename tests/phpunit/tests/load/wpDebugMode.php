@@ -54,4 +54,58 @@ class Test_WP_Debug_Mode extends WP_UnitTestCase {
 		$this->assertSame( '1', ini_get( 'log_errors' ) );
 		$this->assertStringContainsString( 'debug.log', ini_get( 'error_log' ) );
 	}
+
+	/**
+	 * Test the is_valid_error_level() function.
+	 *
+	 * @dataProvider data_is_valid_error_level
+	 */
+	public function test_is_valid_error_level( $level, $expected ) {
+		$this->assertSame( $expected, wp_is_valid_error_level( $level ) );
+	}
+
+	/**
+	 * Data provider for test_is_valid_error_level().
+	 *
+	 * @return array
+	 */
+	public function data_is_valid_error_level() {
+		return array(
+			'E_ALL is valid'                               => array( E_ALL, true ),
+			'E_ERROR is valid'                             => array( E_ERROR, true ),
+			'E_WARNING is valid'                           => array( E_WARNING, true ),
+			'E_PARSE is valid'                             => array( E_PARSE, true ),
+			'E_NOTICE is valid'                            => array( E_NOTICE, true ),
+			'E_CORE_ERROR is valid'                        => array( E_CORE_ERROR, true ),
+			'E_CORE_WARNING is valid'                      => array( E_CORE_WARNING, true ),
+			'E_COMPILE_ERROR is valid'                     => array( E_COMPILE_ERROR, true ),
+			'E_COMPILE_WARNING is valid'                   => array( E_COMPILE_WARNING, true ),
+			'E_USER_ERROR is valid'                        => array( E_USER_ERROR, true ),
+			'E_USER_WARNING is valid'                      => array( E_USER_WARNING, true ),
+			'E_USER_NOTICE is valid'                       => array( E_USER_NOTICE, true ),
+			'E_STRICT is valid'                            => array( E_STRICT, true ),
+			'E_RECOVERABLE_ERROR is valid'                 => array( E_RECOVERABLE_ERROR, true ),
+			'E_DEPRECATED is valid'                        => array( E_DEPRECATED, true ),
+			'E_USER_DEPRECATED is valid'                   => array( E_USER_DEPRECATED, true ),
+			'E_ALL & ~E_NOTICE is valid'                   => array( E_ALL & ~E_NOTICE, true ),
+			'E_ALL & ~(E_NOTICE | E_USER_NOTICE) is valid' => array(
+				E_ALL & ~( E_NOTICE | E_USER_NOTICE ),
+				true,
+			),
+			'E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED is valid' => array(
+				E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED,
+				true,
+			),
+			'E_ALL & ~E_NOTICE & ( ~E_STRICT or ~E_DEPRECATED ) is valid' => array(
+				E_ALL & ~E_NOTICE & ( ~E_STRICT or ~E_DEPRECATED ),
+				true,
+			),
+			'Error level as number is valid'               => array( 32767, true ),
+			'Error level 10 is valid'                      => array( 10, true ),
+			'Invalid level (random number) is not valid'   => array( 123456789, false ),
+			'Invalid level (negative number) is not valid' => array( - 1, false ),
+			'Invalid level (float) is not valid'           => array( 1.5, false ),
+			'Invalid level (string) is not valid'          => array( 'E_ALL', false ),
+		);
+	}
 }
