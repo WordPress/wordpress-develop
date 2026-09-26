@@ -4965,7 +4965,11 @@ function language_attributes( $doctype = 'html' ) {
  * @phpstan-return (
  *     $args is array{ total: int<min, 1>, ... }
  *         ? null
- *         : ( $args is array{ type: 'array', ... } ? list<string> : string )
+ *         : (
+ *             $args is array{ total: int<2, max>, ... }
+ *                 ? ( $args is array{ type: 'array', ... } ? list<string> : string )
+ *                 : ( $args is array{ type: 'array', ... } ? list<string> : string )|null
+ *         )
  * )
  */
 function paginate_links( $args = '' ) {
