@@ -2653,9 +2653,9 @@ function _wp_expand_dependency_handles( WP_Dependencies $dependencies, array $ha
  *
  * - The login screen, which is followed by an admin screen. With concatenation disabled that
  *   screen downloads each core script and stylesheet separately, which is what makes an uncached
- *   admin load slower than a concatenated one. Requesting them while the login form is on screen
- *   puts them in the HTTP cache during the time the user spends typing credentials, so the
- *   redirect that follows finds them already there.
+ *   admin load slower than a concatenated one. Requesting the ones that block its first paint
+ *   while the login form is on screen puts them in the HTTP cache during the time the user spends
+ *   typing credentials, so the redirect that follows finds them already there.
  * - The Dashboard and the post list tables, from which the editor is the usual next stop. Only the
  *   editor's stylesheets are prefetched, not its scripts: the scripts run to well over a megabyte
  *   compressed, which is far too much to spend on a screen the user may never open, whereas the
@@ -2779,19 +2779,25 @@ function wp_prefetch_admin_assets(): void {
 
 	if ( $on_login ) {
 		/*
-		 * The handles that load-scripts.php and load-styles.php concatenate on an admin screen.
-		 * Every handle listed here loads on all admin screens, not just the one the login happens
-		 * to land on, so the list does not depend on the destination. Screen-specific handles are
-		 * deliberately left out: `site-health` is concatenated on the Dashboard but nowhere else.
+		 * The handles that block rendering on every admin screen: the stylesheets, and the scripts
+		 * printed in the head. These are what stand between the redirect and the first paint, so
+		 * they are what is worth having in the cache already. Every handle listed here loads on all
+		 * admin screens, not just the one the login happens to land on, so the list does not depend
+		 * on the destination. Screen-specific handles are deliberately left out: `site-health`
+		 * blocks rendering on the Dashboard but loads nowhere else.
+		 *
+		 * Scripts printed in the footer are left out even though they block DOMContentLoaded, since
+		 * they do not hold back the first paint. They are also where the bulk of the admin's bytes
+		 * are, largely the command palette's dependencies, and a prefetch of them still in flight
+		 * when the login form is submitted competes with the admin screen's own render-blocking
+		 * stylesheets and delays its first paint on a slow connection.
+		 *
 		 * Handles registered without a source of their own, or not registered at all, are skipped.
 		 */
 		$script_handles = array(
 			'jquery-core',
 			'jquery-migrate',
 			'utils',
-			'hoverIntent',
-			'wp-dom-ready',
-			'wp-hooks',
 		);
 
 		$style_handles = array(
