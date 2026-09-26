@@ -284,20 +284,49 @@ function wp_ajax_oembed_cache() {
 /**
  * Handles user autocomplete via AJAX.
  *
+ * Serves three request types, selected with the `autocomplete_type` parameter:
+ *
+ * - `add` (multisite only): search the whole network for a user to add to a
+ *   site. Requires network-level permissions.
+ * - `search` (multisite only): search the members of a site. Requires
+ *   network-level permissions.
+ * - `site_search`: search the users of the current site for the autocomplete
+ *   input rendered by wp_dropdown_users(). Works on single-site and multisite
+ *   and requires the `list_users` capability.
+ *
  * @since 3.4.0
  * @since 7.1.0 The search term is now sanitized, and a missing, non-string,
  *              or empty term results in a `0` response instead of an empty array.
+ * @since 7.2.0 Added the `site_search` type, the `user_id` value field, and the
+ *              `autocomplete_label` template parameter.
  *
  * @return never
  */
 function wp_ajax_autocomplete_user() {
-	if ( ! is_multisite() || ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) ) {
-		wp_die( -1 );
+	/*
+	 * Check the type of request.
+	 * Allowed values are `add`, `search` (both multisite only), and `site_search`.
+	 */
+	if ( isset( $_REQUEST['autocomplete_type'] ) && in_array( $_REQUEST['autocomplete_type'], array( 'search', 'site_search' ), true ) ) {
+		$type = $_REQUEST['autocomplete_type'];
+	} else {
+		$type = 'add';
 	}
 
-	/** This filter is documented in wp-admin/user-new.php */
-	if ( ! current_user_can( 'manage_network_users' ) && ! apply_filters( 'autocomplete_users_for_site_admins', false ) ) {
-		wp_die( -1 );
+	if ( 'site_search' === $type ) {
+		// Searching the current site's users is limited to those who can list them.
+		if ( ! current_user_can( 'list_users' ) ) {
+			wp_die( -1 );
+		}
+	} else {
+		if ( ! is_multisite() || ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) ) {
+			wp_die( -1 );
+		}
+
+		/** This filter is documented in wp-admin/user-new.php */
+		if ( ! current_user_can( 'manage_network_users' ) && ! apply_filters( 'autocomplete_users_for_site_admins', false ) ) {
+			wp_die( -1 );
+		}
 	}
 
 	$return = array();
@@ -316,14 +345,74 @@ function wp_ajax_autocomplete_user() {
 		wp_die( 0 );
 	}
 
-	/*
-	 * Check the type of request.
-	 * Current allowed values are `add` and `search`.
-	 */
-	if ( isset( $_REQUEST['autocomplete_type'] ) && 'search' === $_REQUEST['autocomplete_type'] ) {
-		$type = $_REQUEST['autocomplete_type'];
-	} else {
-		$type = 'add';
+	if ( 'site_search' === $type ) {
+		// Email may only be searched, returned, or shown to users who can edit others.
+		$can_edit_users = current_user_can( 'edit_users' );
+
+		/*
+		 * Determine the user field to return as the suggestion value.
+		 * Allowed values are `user_login`, `user_email`, and `user_id`.
+		 */
+		$requested_field = isset( $_REQUEST['autocomplete_field'] ) ? $_REQUEST['autocomplete_field'] : '';
+		if ( 'user_email' === $requested_field && $can_edit_users ) {
+			$field = 'user_email';
+		} elseif ( 'user_id' === $requested_field ) {
+			$field = 'ID';
+		} else {
+			$field = 'user_login';
+		}
+
+		$search_columns = array( 'user_login', 'user_nicename', 'display_name' );
+		if ( $can_edit_users ) {
+			$search_columns[] = 'user_email';
+		}
+
+		/*
+		 * Restrict to members of the current site. WP_User_Query applies the
+		 * blog_id restriction with a capabilities meta query, so there is no need
+		 * to prefetch every member ID — which would not scale on a large site.
+		 */
+		$users = get_users(
+			array(
+				'blog_id'        => get_current_blog_id(),
+				'search'         => '*' . $term . '*',
+				'search_columns' => $search_columns,
+				'number'         => 20,
+			)
+		);
+
+		// Resolve the optional label template.
+		$label_template = ( isset( $_REQUEST['autocomplete_label'] ) && '' !== $_REQUEST['autocomplete_label'] )
+			? sanitize_text_field( wp_unslash( $_REQUEST['autocomplete_label'] ) )
+			: '';
+
+		// Email tokens must not reach users who cannot edit others.
+		if ( ! $can_edit_users ) {
+			$label_template = str_replace( '{{user_email}}', '', $label_template );
+		}
+
+		foreach ( $users as $user ) {
+			if ( '' !== $label_template ) {
+				$label = $label_template;
+				foreach ( array( 'user_login', 'user_email', 'display_name' ) as $token ) {
+					$label = str_replace( '{{' . $token . '}}', $user->$token, $label );
+				}
+				$label = trim( str_replace( '{{user_id}}', $user->ID, $label ) );
+			} else {
+				$label = $user->display_name;
+			}
+
+			if ( '' === $label ) {
+				$label = $user->user_login;
+			}
+
+			$return[] = array(
+				'label' => $label,
+				'value' => $user->$field,
+			);
+		}
+
+		wp_die( wp_json_encode( $return ) );
 	}
 
 	/*
