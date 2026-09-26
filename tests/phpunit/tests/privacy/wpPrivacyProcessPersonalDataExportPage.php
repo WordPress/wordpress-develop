@@ -195,6 +195,14 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	public function set_up() {
 		parent::set_up();
 
+		// Ensure the request is confirmed so that email sending succeeds.
+		wp_update_post(
+			array(
+				'ID'          => self::$request_id,
+				'post_status' => 'request-confirmed',
+			)
+		);
+
 		// Avoid writing export files to disk. Using `WP_Filesystem_MockFS` is blocked by #44204.
 		remove_action( 'wp_privacy_personal_data_export_file', 'wp_privacy_generate_personal_data_export_file', 10 );
 
@@ -645,20 +653,20 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				true,
 				'last',
 			),
-			// Leave the request as pending for the last exporter on the last page, without email.
+			// Leave the request as confirmed for the last exporter on the last page, without email.
 			// This check was updated to account for admin vs user export.
 			// Don't mark the request as completed when it's an admin download.
 			array(
-				'request-pending',
+				'request-confirmed',
 				'last',
 				'last',
 				'last',
 				false,
 				'last',
 			),
-			// Leave the request as pending when not the last exporter and not on the last page.
+			// Leave the request as confirmed when not the last exporter and not on the last page.
 			array(
-				'request-pending',
+				'request-confirmed',
 				'first',
 				'first',
 				'first',
@@ -666,16 +674,16 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				'first',
 			),
 			array(
-				'request-pending',
+				'request-confirmed',
 				'first',
 				'first',
 				'first',
 				false,
 				'first',
 			),
-			// Leave the request as pending when last exporter and not on the last page.
+			// Leave the request as confirmed when last exporter and not on the last page.
 			array(
-				'request-pending',
+				'request-confirmed',
 				'first',
 				'last',
 				'first',
@@ -683,16 +691,16 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				'last',
 			),
 			array(
-				'request-pending',
+				'request-confirmed',
 				'first',
 				'last',
 				'first',
 				false,
 				'last',
 			),
-			// Leave the request as pending when not last exporter on the last page.
+			// Leave the request as confirmed when not last exporter on the last page.
 			array(
-				'request-pending',
+				'request-confirmed',
 				'last',
 				'first',
 				'last',
@@ -700,7 +708,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				'last',
 			),
 			array(
-				'request-pending',
+				'request-confirmed',
 				'last',
 				'first',
 				'last',
