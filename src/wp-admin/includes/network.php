@@ -150,7 +150,8 @@ function network_step1( $errors = false ) {
 	}
 
 	// Strip standard port from hostname.
-	$hostname = preg_replace( '/(?::80|:443)$/', '', get_clean_basedomain() );
+	$port_pattern = '/(?:' . implode( '|', array_map( 'preg_quote', ms_default_port_suffixes() ) ) . ')$/';
+	$hostname     = preg_replace( $port_pattern, '', get_clean_basedomain() );
 
 	echo '<form method="post">';
 
