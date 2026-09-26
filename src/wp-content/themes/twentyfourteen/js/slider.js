@@ -73,12 +73,12 @@
 				// KEYBOARD
 				if ( $( slider.containerSelector ).length === 1 ) {
 					$( document ).bind( 'keyup', function( event ) {
-						var keycode = event.keyCode,
+						var keycode = event.key,
 							target = false;
-						if ( ! slider.animating && ( keycode === 39 || keycode === 37 ) ) {
-							if ( keycode === 39 ) {
+						if ( ! slider.animating && ( keycode === 'ArrowRight' || keycode === 'ArrowLeft' ) ) {
+							if ( keycode === 'ArrowRight' ) {
 								target = slider.getTarget( 'next' );
-							} else if ( keycode === 37 ) {
+							} else if ( keycode === 'ArrowLeft' ) {
 								target = slider.getTarget( 'prev' );
 							}
 
