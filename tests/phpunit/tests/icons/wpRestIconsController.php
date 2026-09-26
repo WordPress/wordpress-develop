@@ -433,6 +433,118 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Test that GET /wp/v2/icons/?search=%s searches icon keywords too.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_items_search_includes_keywords() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'rest-test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+		wp_register_icon(
+			'rest-test-collection/anvil',
+			array(
+				'label'   => 'Anvil',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+
+			/*
+			 * The search term appears in no icon's name or label, so a match can
+			 * only come from the keywords.
+			 */
+			$request->set_param( 'search', 'peace' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertSame(
+				array( 'rest-test-collection/dove' ),
+				array_column( $data, 'name' ),
+				'Search results should contain only the icon matched by its keyword'
+			);
+		} finally {
+			wp_unregister_icon_collection( 'rest-test-collection' );
+		}
+	}
+
+	/**
+	 * Test that the response exposes an icon's keywords, so that clients which
+	 * filter icons locally can match against them.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_items_response_includes_keywords() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'rest-test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace', 'bird' ),
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+			$request->set_param( 'search', 'rest-test-collection/dove' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertCount( 1, $data );
+			$this->assertArrayHasKey( 'keywords', $data[0] );
+			$this->assertSame( array( 'peace', 'bird' ), $data[0]['keywords'] );
+		} finally {
+			wp_unregister_icon_collection( 'rest-test-collection' );
+		}
+	}
+
+	/**
+	 * Test that icons registered without keywords still expose an empty array,
+	 * so consumers do not have to handle a missing field.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_items_response_keywords_defaults_to_empty_array() {
+		wp_set_current_user( self::$editor_id );
+
+		wp_register_icon(
+			'core/no-keywords',
+			array(
+				'label'   => 'No Keywords',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+			$request->set_param( 'search', 'core/no-keywords' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertCount( 1, $data );
+			$this->assertSame( array(), $data[0]['keywords'] );
+		} finally {
+			wp_unregister_icon( 'core/no-keywords' );
+		}
+	}
+
+	/**
 	 * Test that search is case-insensitive.
 	 *
 	 * @ticket 64651
