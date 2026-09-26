@@ -619,8 +619,8 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( 0, wp_insert_post( $post ) );
 		$this->assertSame( 0, wp_update_post( $post ) );
 
-		$this->assertInstanceOf( 'WP_Error', wp_insert_post( $post, true ) );
-		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ) );
+		$this->assertWPError( wp_insert_post( $post, true ) );
+		$this->assertWPError( wp_update_post( $post, true ) );
 	}
 
 	/**
