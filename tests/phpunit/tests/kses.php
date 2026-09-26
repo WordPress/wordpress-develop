@@ -2329,6 +2329,17 @@ EOF;
 	}
 
 	/**
+	 * Tests that a literal less-than sign in a quoted attribute value is preserved.
+	 *
+	 * @ticket 62024
+	 */
+	public function test_wp_kses_preserves_literal_less_than_in_quoted_attribute_value() {
+		$html = '<button data-glide-dir="<">&lt;</button>';
+
+		$this->assertSame( '<button data-glide-dir="&lt;">&lt;</button>', wp_kses_post( $html ) );
+	}
+
+	/**
 	 * Test that object tags are allowed under limited circumstances.
 	 *
 	 * @ticket 54261
