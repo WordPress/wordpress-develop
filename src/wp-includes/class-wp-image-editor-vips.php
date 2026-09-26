@@ -31,13 +31,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	protected $image;
 
 	/**
-	 * Original image object used for multi_resize operations.
-	 *
-	 * @var Jcupitt\Vips\Image|null
-	 */
-	protected $original_image;
-
-	/**
 	 * Whether the image has been resized or cropped since it was loaded.
 	 *
 	 * Metadata is only stripped on such saves, matching the Imagick editor, so saving
@@ -231,7 +224,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			}
 
 			$this->update_size( $width, $height );
-			$this->original_image = $this->image->copy();
 
 			return $this->set_quality();
 		} catch ( Exception $e ) {
@@ -387,61 +379,14 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @return array An array of resized images metadata by size.
 	 */
 	public function multi_resize( $sizes ) {
-		$metadata  = array();
-		$orig_size = $this->size;
-
-		if ( ! $this->original_image ) {
-			try {
-				$this->original_image = $this->image->copy();
-			} catch ( Exception $e ) {
-				return $metadata;
-			}
-		}
+		$metadata = array();
 
 		foreach ( $sizes as $size => $size_data ) {
-			try {
-				$this->image = $this->original_image->copy();
-			} catch ( Exception $e ) {
-				continue;
+			$meta = $this->make_subsize( $size_data );
+
+			if ( ! is_wp_error( $meta ) ) {
+				$metadata[ $size ] = $meta;
 			}
-
-			$this->size = $orig_size;
-
-			if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
-				continue;
-			}
-
-			if ( ! isset( $size_data['width'] ) ) {
-				$size_data['width'] = null;
-			}
-
-			if ( ! isset( $size_data['height'] ) ) {
-				$size_data['height'] = null;
-			}
-
-			if ( ! isset( $size_data['crop'] ) ) {
-				$size_data['crop'] = false;
-			}
-
-			$resize_result = $this->resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
-			$duplicate     = ( ( $orig_size['width'] === $size_data['width'] ) && ( $orig_size['height'] === $size_data['height'] ) );
-
-			if ( ! is_wp_error( $resize_result ) && ! $duplicate ) {
-				$resized = $this->_save( $this->image );
-
-				if ( ! is_wp_error( $resized ) && $resized ) {
-					unset( $resized['path'] );
-					$metadata[ $size ] = $resized;
-				}
-			}
-		}
-
-		// Restore original image and dimensions.
-		try {
-			$this->image = $this->original_image->copy();
-			$this->size  = $orig_size;
-		} catch ( Exception $e ) {
-			$this->size = $orig_size;
 		}
 
 		return $metadata;
