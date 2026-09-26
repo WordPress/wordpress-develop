@@ -375,6 +375,7 @@ function get_taxonomy( $taxonomy ) {
  * @param string $taxonomy Name of taxonomy object.
  * @return bool Whether the taxonomy exists.
  *
+ * @phpstan-assert-if-true =non-falsy-string $taxonomy
  * @phpstan-return ( $taxonomy is non-falsy-string ? bool : false )
  */
 function taxonomy_exists( $taxonomy ) {
@@ -1267,7 +1268,7 @@ function get_term_field( $field, $term, $taxonomy = '', $context = 'display' ) {
  *
  * @param int|object $id       Term ID or object.
  * @param string     $taxonomy Taxonomy name.
- * @return string|int|null|WP_Error Will return empty string if $term is not an object.
+ * @return WP_Term|string|WP_Error Sanitized term, an empty string if `$id` is not a term, or WP_Error on failure.
  */
 function get_term_to_edit( $id, $taxonomy ) {
 	$term = get_term( $id, $taxonomy );
@@ -1786,6 +1787,10 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
  *                               Accepts 'raw', 'edit', 'db', 'display', 'rss',
  *                               'attribute', or 'js'. Default 'display'.
  * @return array|object Term with all fields sanitized.
+ *
+ * @phpstan-template T of array|object
+ * @phpstan-param T $term
+ * @phpstan-return T
  */
 function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 	$fields = array( 'term_id', 'name', 'description', 'slug', 'count', 'parent', 'term_group', 'term_taxonomy_id', 'object_id' );
@@ -2025,6 +2030,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  *                             the integer 0 when the queried parent term is not in the taxonomy
  *                             hierarchy, or WP_Error if the taxonomy does not exist.
  * @phpstan-return numeric-string|0|WP_Error
+ * @phpstan-param '' $deprecated
  */
 function wp_count_terms( $args = array(), $deprecated = '' ) {
 	$use_legacy_args = false;

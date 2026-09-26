@@ -291,6 +291,10 @@ function cat_is_ancestor_of( $cat1, $cat2 ) {
  * @param object|array $category Category data.
  * @param string       $context  Optional. Default 'display'.
  * @return object|array Same type as $category with sanitized data for safe use.
+ *
+ * @phpstan-template T of array|object
+ * @phpstan-param T $category
+ * @phpstan-return T
  */
 function sanitize_category( $category, $context = 'display' ) {
 	return sanitize_term( $category, 'category', $context );
