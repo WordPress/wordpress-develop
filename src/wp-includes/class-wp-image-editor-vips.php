@@ -688,143 +688,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	}
 
 	/**
-	 * Returns the bit depth that a libvips band format stores.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $format A libvips band format, such as `uchar` or `ushort`.
-	 * @return int The bit depth of that format.
-	 */
-	protected static function get_format_bit_depth( $format ) {
-		switch ( $format ) {
-			case 'ushort':
-			case 'short':
-				return 16;
-			case 'uint':
-			case 'int':
-			case 'float':
-				return 32;
-			case 'double':
-			case 'complex':
-				return 64;
-			case 'dpcomplex':
-				return 128;
-			default:
-				return 8;
-		}
-	}
-
-	/**
-	 * Returns the bit depth to save an image at, honouring `image_max_bit_depth`.
-	 *
-	 * libvips stores samples in a fixed set of band formats rather than at an arbitrary
-	 * bit depth, and only some encoders accept a bit depth at all. This picks the nearest
-	 * depth the encoder offers and returns null for everything else, which leaves the
-	 * image at its own depth.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param Jcupitt\Vips\Image $image     The image being saved.
-	 * @param string             $mime_type The mime type it is being saved as.
-	 * @return int|null The bit depth to save at, or null to leave it unchanged.
-	 */
-	protected function get_save_bit_depth( $image, $mime_type ) {
-		$image_depth = self::get_format_bit_depth( $image->format );
-
-		/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
-		$max_depth = apply_filters( 'image_max_bit_depth', $image_depth, $image_depth );
-
-		if ( $max_depth >= $image_depth ) {
-			return null;
-		}
-
-		switch ( $mime_type ) {
-			case 'image/png':
-				// pngsave writes 8 or 16 bits per sample.
-				return $max_depth <= 8 ? 8 : null;
-
-			case 'image/avif':
-			case 'image/heic':
-			case 'image/heif':
-				// heifsave accepts 8, 10 or 12 bits per sample.
-				if ( $max_depth <= 8 ) {
-					return 8;
-				}
-
-				return $max_depth <= 10 ? 10 : 12;
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the libvips save options for a mime type.
-	 *
-	 * Saving and streaming share these because the options describe how to encode this
-	 * image in this format, which does not depend on where the bytes are going. Only
-	 * stripping metadata is save-specific, since it is what a resized image is expected
-	 * to lose when it is written to the media library.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param Jcupitt\Vips\Image $image      The image being written.
-	 * @param string             $mime_type  The mime type it is being written as.
-	 * @param bool               $strip_meta Optional. Whether to strip metadata, for the
-	 *                                       encoders that accept the option. Default false.
-	 * @return array Options passed to `writeToBuffer()` or `writeToFile()`.
-	 */
-	protected function get_save_options( $image, $mime_type, $strip_meta = false ) {
-		$options = array();
-
-		switch ( $mime_type ) {
-			case 'image/jpeg':
-			case 'image/avif':
-				$options['Q']     = $this->get_quality();
-				$options['strip'] = $strip_meta;
-				break;
-
-			case 'image/webp':
-				$options['Q']     = $this->get_quality();
-				$options['strip'] = $strip_meta;
-
-				// A lossless WebP has no quality to trade away, so it is re-saved losslessly.
-				if ( $this->lossless ) {
-					$options['lossless'] = true;
-				}
-				break;
-
-			case 'image/png':
-				// PNG is lossless, so there is no quality to trade away, and the Imagick
-				// editor saves at maximum deflate compression. Deriving a level from the
-				// quality instead wrote files far larger than the source they came from.
-				$options['compression'] = 9;
-				$options['strip']       = $strip_meta;
-
-				// Asking for a palette back keeps an indexed PNG indexed. Without it the
-				// resized image is written as true colour, which is much larger than the
-				// file it came from. The option requires libvips 8.13.
-				if ( $this->paletted && version_compare( Jcupitt\Vips\Config::version(), '8.13', '>=' ) ) {
-					$options['palette'] = true;
-				}
-				break;
-
-			case 'image/gif':
-				$options['strip'] = $strip_meta;
-				break;
-		}
-
-		// Of the formats handled above, only PNG and the HEIF family can be asked to
-		// store fewer bits per sample.
-		$bit_depth = $this->get_save_bit_depth( $image, $mime_type );
-
-		if ( null !== $bit_depth ) {
-			$options['bitdepth'] = $bit_depth;
-		}
-
-		return $options;
-	}
-
-	/**
 	 * Saves current image to file.
 	 *
 	 * @since 7.2.0
@@ -960,6 +823,143 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			return true;
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_stream_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Returns the libvips save options for a mime type.
+	 *
+	 * Saving and streaming share these because the options describe how to encode this
+	 * image in this format, which does not depend on where the bytes are going. Only
+	 * stripping metadata is save-specific, since it is what a resized image is expected
+	 * to lose when it is written to the media library.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param Jcupitt\Vips\Image $image      The image being written.
+	 * @param string             $mime_type  The mime type it is being written as.
+	 * @param bool               $strip_meta Optional. Whether to strip metadata, for the
+	 *                                       encoders that accept the option. Default false.
+	 * @return array Options passed to `writeToBuffer()` or `writeToFile()`.
+	 */
+	protected function get_save_options( $image, $mime_type, $strip_meta = false ) {
+		$options = array();
+
+		switch ( $mime_type ) {
+			case 'image/jpeg':
+			case 'image/avif':
+				$options['Q']     = $this->get_quality();
+				$options['strip'] = $strip_meta;
+				break;
+
+			case 'image/webp':
+				$options['Q']     = $this->get_quality();
+				$options['strip'] = $strip_meta;
+
+				// A lossless WebP has no quality to trade away, so it is re-saved losslessly.
+				if ( $this->lossless ) {
+					$options['lossless'] = true;
+				}
+				break;
+
+			case 'image/png':
+				// PNG is lossless, so there is no quality to trade away, and the Imagick
+				// editor saves at maximum deflate compression. Deriving a level from the
+				// quality instead wrote files far larger than the source they came from.
+				$options['compression'] = 9;
+				$options['strip']       = $strip_meta;
+
+				// Asking for a palette back keeps an indexed PNG indexed. Without it the
+				// resized image is written as true colour, which is much larger than the
+				// file it came from. The option requires libvips 8.13.
+				if ( $this->paletted && version_compare( Jcupitt\Vips\Config::version(), '8.13', '>=' ) ) {
+					$options['palette'] = true;
+				}
+				break;
+
+			case 'image/gif':
+				$options['strip'] = $strip_meta;
+				break;
+		}
+
+		// Of the formats handled above, only PNG and the HEIF family can be asked to
+		// store fewer bits per sample.
+		$bit_depth = $this->get_save_bit_depth( $image, $mime_type );
+
+		if ( null !== $bit_depth ) {
+			$options['bitdepth'] = $bit_depth;
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Returns the bit depth to save an image at, honouring `image_max_bit_depth`.
+	 *
+	 * libvips stores samples in a fixed set of band formats rather than at an arbitrary
+	 * bit depth, and only some encoders accept a bit depth at all. This picks the nearest
+	 * depth the encoder offers and returns null for everything else, which leaves the
+	 * image at its own depth.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param Jcupitt\Vips\Image $image     The image being saved.
+	 * @param string             $mime_type The mime type it is being saved as.
+	 * @return int|null The bit depth to save at, or null to leave it unchanged.
+	 */
+	protected function get_save_bit_depth( $image, $mime_type ) {
+		$image_depth = self::get_format_bit_depth( $image->format );
+
+		/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+		$max_depth = apply_filters( 'image_max_bit_depth', $image_depth, $image_depth );
+
+		if ( $max_depth >= $image_depth ) {
+			return null;
+		}
+
+		switch ( $mime_type ) {
+			case 'image/png':
+				// pngsave writes 8 or 16 bits per sample.
+				return $max_depth <= 8 ? 8 : null;
+
+			case 'image/avif':
+			case 'image/heic':
+			case 'image/heif':
+				// heifsave accepts 8, 10 or 12 bits per sample.
+				if ( $max_depth <= 8 ) {
+					return 8;
+				}
+
+				return $max_depth <= 10 ? 10 : 12;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the bit depth that a libvips band format stores.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $format A libvips band format, such as `uchar` or `ushort`.
+	 * @return int The bit depth of that format.
+	 */
+	protected static function get_format_bit_depth( $format ) {
+		switch ( $format ) {
+			case 'ushort':
+			case 'short':
+				return 16;
+			case 'uint':
+			case 'int':
+			case 'float':
+				return 32;
+			case 'double':
+			case 'complex':
+				return 64;
+			case 'dpcomplex':
+				return 128;
+			default:
+				return 8;
 		}
 	}
 }
