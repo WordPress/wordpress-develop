@@ -1032,10 +1032,14 @@ class WP_Site_Health {
 				'required'     => false,
 				'fallback_for' => 'zip',
 			),
+			/*
+			 * VIPS is the preferred image editor when it is available, so its result is
+			 * always reported rather than only being checked when another editor has
+			 * already failed. It has no fallback itself because it is the first choice.
+			 */
 			'vips'      => array(
-				'extension'    => 'ffi',
-				'required'     => false,
-				'fallback_for' => 'imagick',
+				'extension' => 'ffi',
+				'required'  => false,
 			),
 		);
 
