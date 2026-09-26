@@ -233,6 +233,7 @@ require ABSPATH . WPINC . '/category-template.php';
 require ABSPATH . WPINC . '/comment.php';
 require ABSPATH . WPINC . '/class-wp-comment.php';
 require ABSPATH . WPINC . '/class-wp-comment-query.php';
+require ABSPATH . WPINC . '/class-wp-comment-type.php';
 require ABSPATH . WPINC . '/class-walker-comment.php';
 require ABSPATH . WPINC . '/comment-template.php';
 require ABSPATH . WPINC . '/rewrite.php';
@@ -574,10 +575,11 @@ wp_ssl_constants();
 // Create common globals.
 require ABSPATH . WPINC . '/vars.php';
 
-// Make taxonomies and posts available to plugins and themes.
+// Make taxonomies, posts, and comment types available to plugins and themes.
 // @plugin authors: warning: these get registered again on the init hook.
 create_initial_taxonomies();
 create_initial_post_types();
+create_initial_comment_types();
 
 wp_start_scraping_edited_file_errors();
 
