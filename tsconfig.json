@@ -11,6 +11,7 @@
 		"erasableSyntaxOnly": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
+		"allowUnreachableCode": false,
 		"skipLibCheck": true,
 		"isolatedModules": true,
 		"allowSyntheticDefaultImports": true,
@@ -21,6 +22,8 @@
 		"types": [
 			"node",
 			"wp-globals",
+			"browser-globals",
+			"wp-emoji",
 			"codemirror/addon/lint/lint",
 			"codemirror/addon/hint/show-hint"
 		]
@@ -29,7 +32,9 @@
 	"files": [
 		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js",
 		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
+		"src/js/_enqueues/lib/emoji-loader.js",
 		"src/js/_enqueues/wp/code-editor.js",
+		"src/js/_enqueues/wp/emoji.js",
 		"src/js/_enqueues/wp/wp-tooltip.js",
 		"tools/gutenberg/copy.js",
 		"tools/gutenberg/download.js",
