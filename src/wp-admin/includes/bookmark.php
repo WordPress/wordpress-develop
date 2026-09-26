@@ -174,7 +174,7 @@ function get_link_to_edit( $link ) {
  * @param bool  $wp_error Optional. Whether to return a WP_Error object on failure. Default false.
  * @return int|WP_Error The link ID on success. The value 0 or WP_Error on failure.
  *
- * @phpstan-return ( $wp_error is false ? int<0, max> : int<0, max>|WP_Error )
+ * @phpstan-return ( $wp_error is false ? int : int|WP_Error )
  */
 function wp_insert_link( $linkdata, $wp_error = false ) {
 	global $wpdb;
