@@ -164,6 +164,11 @@
 		}
 	}
 
+	//! Navigation
+	.wp-block-navigation .wp-block-navigation-item__content.wp-block-navigation-item__content {
+		background: inherit;
+	}
+
 	//! Buttons
 	.wp-block-buttons {
 		line-height: $font__line-height-heading;

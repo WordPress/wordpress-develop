@@ -5469,6 +5469,10 @@ body.page .main-navigation {
   width: 100%;
 }
 
+.entry .entry-content .wp-block-navigation .wp-block-navigation-item__content.wp-block-navigation-item__content {
+  background: inherit;
+}
+
 .entry .entry-content .wp-block-buttons {
   line-height: 1.2;
 }
