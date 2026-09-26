@@ -712,11 +712,10 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 					break;
 
 				case 'image/png':
-					// PNG quality in VIPS is compression level (0-9).
-					// Convert WP quality (0-100) to VIPS compression (9-0).
-					$quality                     = $this->get_quality();
-					$compression                 = 9 - round( ( $quality / 100 ) * 9 );
-					$save_options['compression'] = max( 0, min( 9, $compression ) );
+					// PNG is lossless, so there is no quality to trade away, and the Imagick
+					// editor saves at maximum deflate compression. Deriving a level from the
+					// quality instead wrote files far larger than the source they came from.
+					$save_options['compression'] = 9;
 					$save_options['strip']       = $strip_meta;
 
 					// Asking for a palette back keeps an indexed PNG indexed. Without it the
@@ -817,9 +816,8 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			switch ( $mime_type ) {
 				case 'image/png':
-					$quality                     = $this->get_quality();
-					$compression                 = 9 - round( ( $quality / 100 ) * 9 );
-					$save_options['compression'] = max( 0, min( 9, $compression ) );
+					// PNG is lossless; see the note in _save().
+					$save_options['compression'] = 9;
 					break;
 
 				case 'image/webp':
