@@ -1093,4 +1093,64 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Reads the PNG bit depth out of the IHDR chunk.
+	 *
+	 * @param string $file Path to a PNG file.
+	 * @return int The bit depth per sample.
+	 */
+	private function get_png_bit_depth( $file ) {
+		// The bit depth is the 9th byte of the IHDR chunk, at offset 24 of the file.
+		return ord( file_get_contents( $file, false, null, 24, 1 ) );
+	}
+
+	/**
+	 * Tests that the image_max_bit_depth filter limits the saved bit depth.
+	 *
+	 * The source is a 10 bit AVIF that libvips holds in 16 bit samples. It is saved as
+	 * a PNG because that is one of the two encoders here that can be asked to store
+	 * fewer bits per sample.
+	 *
+	 * @ticket 62285
+	 */
+	public function test_image_max_bit_depth() {
+		$file = DIR_TESTDATA . '/images/colors_hdr_p3.avif';
+
+		if ( ! WP_Image_Editor_Vips::supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'The image editor does not support the AVIF mime type.' );
+		}
+
+		$temp_tmp  = tempnam( get_temp_dir(), 'vips_depth_' );
+		$temp_file = $temp_tmp . '.png';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$size = $vips_image_editor->get_size();
+		$this->assertNotWPError( $vips_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 ) );
+
+		// Without the filter the image is saved at its own bit depth.
+		$saved = $vips_image_editor->save( $temp_file, 'image/png' );
+		$this->assertNotWPError( $saved );
+		$this->assertSame( 16, $this->get_png_bit_depth( $saved['path'] ), 'The bit depth should be kept when the filter does not limit it.' );
+
+		add_filter(
+			'image_max_bit_depth',
+			static function () {
+				return 8;
+			}
+		);
+
+		$limited_editor = new WP_Image_Editor_Vips( $file );
+		$limited_editor->load();
+		$this->assertNotWPError( $limited_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 ) );
+
+		$limited = $limited_editor->save( $temp_file, 'image/png' );
+		$this->assertNotWPError( $limited );
+		$this->assertSame( 8, $this->get_png_bit_depth( $limited['path'] ), 'The filter should limit the saved bit depth.' );
+
+		unlink( $temp_tmp );
+		unlink( $saved['path'] );
+	}
 }
