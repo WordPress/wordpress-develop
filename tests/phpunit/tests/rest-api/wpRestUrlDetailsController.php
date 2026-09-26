@@ -747,7 +747,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$method = $this->get_reflective_method( 'get_description' );
 		$actual = $method->invoke( $controller, $meta_elements );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**

@@ -309,7 +309,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 * @param non-falsy-string $expected The expected sanitized output.
 	 */
 	public function test_sanitize_icon_content( $input, $expected ) {
-		$this->assertSame( $expected, $this->sanitize_icon_content( $input ) );
+		$this->assertEqualHTML( $expected, $this->sanitize_icon_content( $input ) );
 	}
 
 	/**
