@@ -143,6 +143,49 @@ function wp_safe_remote_head( $url, $args = array() ) {
 }
 
 /**
+ * Performs multiple HTTP requests concurrently using the safe variant of the HTTP API.
+ *
+ * Like wp_remote_request_multiple(), but every URL is validated to avoid redirection
+ * and request forgery attacks. See wp_safe_remote_request().
+ *
+ * @since 7.2.0
+ *
+ * @see wp_remote_request_multiple() For information on the request and response format.
+ *
+ * @param array $requests Requests to send. See {@see wp_remote_request_multiple()}.
+ * @param array $options  {
+ *     Optional. Options that apply to the batch of requests. See {@see WP_Http::request_multiple()}.
+ *     Default empty array.
+ *
+ *     @type int $concurrency Maximum number of requests to send at once. Default 6.
+ * }
+ * @return array Responses keyed like $requests. Each is a response array, or a WP_Error on failure.
+ * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
+ * @phpstan-return array<array-key, array<string, mixed>|WP_Error>
+ */
+function wp_safe_remote_request_multiple( $requests, $options = array() ) {
+	foreach ( $requests as $id => $request ) {
+		if ( ! is_array( $request ) ) {
+			$request = array( 'url' => $request );
+		}
+
+		$args = isset( $request['args'] ) ? $request['args'] : array();
+
+		if ( ! is_array( $args ) ) {
+			$args = wp_parse_args( $args );
+		}
+
+		$args['reject_unsafe_urls'] = true;
+		$request['args']            = $args;
+
+		$requests[ $id ] = $request;
+	}
+
+	$http = _wp_http_get_object();
+	return $http->request_multiple( $requests, $options );
+}
+
+/**
  * Performs an HTTP request and returns its response.
  *
  * There are other API functions available which abstract away the HTTP method:
@@ -229,6 +272,39 @@ function wp_remote_post( $url, $args = array() ) {
 function wp_remote_head( $url, $args = array() ) {
 	$http = _wp_http_get_object();
 	return $http->head( $url, $args );
+}
+
+/**
+ * Performs multiple HTTP requests concurrently and returns their responses.
+ *
+ * The requests are sent side by side rather than one after the other, so a batch of
+ * requests takes about as long as its slowest request instead of the sum of all of them.
+ *
+ * Each request is filtered, and its response processed, individually and exactly as
+ * if it had been sent with wp_remote_request().
+ *
+ * @since 7.2.0
+ *
+ * @see WP_Http::request_multiple() For information on the request format and the batch options.
+ * @see WP_Http::request() For information on accepted request arguments and the response format.
+ *
+ * @param array $requests Requests to send, keyed by an identifier of the caller's choosing.
+ *                        Each request is either a URL string, for a GET request with the
+ *                        default arguments, or an array with a 'url' key and an optional
+ *                        'args' key holding the request arguments.
+ * @param array $options  {
+ *     Optional. Options that apply to the batch of requests. See {@see WP_Http::request_multiple()}.
+ *     Default empty array.
+ *
+ *     @type int $concurrency Maximum number of requests to send at once. Default 6.
+ * }
+ * @return array Responses keyed like $requests. Each is a response array, or a WP_Error on failure.
+ * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
+ * @phpstan-return array<array-key, array<string, mixed>|WP_Error>
+ */
+function wp_remote_request_multiple( $requests, $options = array() ) {
+	$http = _wp_http_get_object();
+	return $http->request_multiple( $requests, $options );
 }
 
 /**
