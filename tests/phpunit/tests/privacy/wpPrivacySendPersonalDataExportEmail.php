@@ -438,7 +438,7 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$request_id = wp_create_user_request( 'export-user-not-registered@example.com', 'export_personal_data' );
 
-		_wp_privacy_account_request_confirmed( self::$request_id );
+		_wp_privacy_account_request_confirmed( $request_id );
 		wp_privacy_send_personal_data_export_email( $request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -463,7 +463,7 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$request_id = wp_create_user_request( 'export-user-not-registered@example.com', 'export_personal_data' );
 
-		_wp_privacy_account_request_confirmed( self::$request_id );
+		_wp_privacy_account_request_confirmed( $request_id );
 		wp_privacy_send_personal_data_export_email( $request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
