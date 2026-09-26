@@ -853,7 +853,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 				),
 				'failed'     => array(),
 			),
-			'two successful plugins use count' => array(
+			'two successful plugins use count'           => array(
 				'expected'   => '[My 100% Site] 2 plugins were automatically updated',
 				'type'       => 'success',
 				'successful' => array(
@@ -861,7 +861,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 				),
 				'failed'     => array(),
 			),
-			'successful plugin and theme use clauses' => array(
+			'successful plugin and theme use clauses'    => array(
 				'expected'   => '[My 100% Site] 1 plugin was automatically updated; 1 theme was automatically updated',
 				'type'       => 'success',
 				'successful' => array(
@@ -870,7 +870,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 				),
 				'failed'     => array(),
 			),
-			'independent successful plural clauses' => array(
+			'independent successful plural clauses'      => array(
 				'expected'   => '[My 100% Site] 3 plugins were automatically updated; 2 themes were automatically updated',
 				'type'       => 'success',
 				'successful' => array(
@@ -879,7 +879,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 				),
 				'failed'     => array(),
 			),
-			'single failed theme uses name' => array(
+			'single failed theme uses name'              => array(
 				'expected'   => '[My 100% Site] Theme One failed to update',
 				'type'       => 'fail',
 				'successful' => array(),
@@ -887,7 +887,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 					'theme' => array( $theme_a ),
 				),
 			),
-			'two failed themes use count' => array(
+			'two failed themes use count'                => array(
 				'expected'   => '[My 100% Site] 2 themes failed to update',
 				'type'       => 'fail',
 				'successful' => array(),
@@ -895,7 +895,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 					'theme' => array( $theme_a, $theme_b ),
 				),
 			),
-			'independent failed plural clauses' => array(
+			'independent failed plural clauses'          => array(
 				'expected'   => '[My 100% Site] 3 plugins failed to update; 2 themes failed to update',
 				'type'       => 'fail',
 				'successful' => array(),
@@ -904,7 +904,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 					'theme'  => array( $theme_a, $theme_b ),
 				),
 			),
-			'mixed email describes failed items only' => array(
+			'mixed email describes failed items only'    => array(
 				'expected'   => '[My 100% Site] Plugin & One failed to update',
 				'type'       => 'mixed',
 				'successful' => array(
@@ -960,23 +960,23 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 				'expected' => str_repeat( 'a', 40 ),
 				'name'     => str_repeat( 'a', 40 ),
 			),
-			'41 ASCII code points are shortened' => array(
+			'41 ASCII code points are shortened'    => array(
 				'expected' => str_repeat( 'a', 39 ) . "\u{2026}",
 				'name'     => str_repeat( 'a', 41 ),
 			),
-			'four-byte code points are counted' => array(
+			'four-byte code points are counted'     => array(
 				'expected' => str_repeat( "\u{1F642}", 39 ) . "\u{2026}",
 				'name'     => str_repeat( "\u{1F642}", 41 ),
 			),
-			'entities are decoded before counting' => array(
+			'entities are decoded before counting'  => array(
 				'expected' => str_repeat( 'a', 38 ) . '&b',
 				'name'     => str_repeat( 'a', 38 ) . '&amp;b',
 			),
-			'invalid UTF-8 is scrubbed' => array(
+			'invalid UTF-8 is scrubbed'             => array(
 				'expected' => "Plugin \u{FFFD} Name",
 				'name'     => "Plugin \xC0 Name",
 			),
-			'nested entities decode one layer' => array(
+			'nested entities decode one layer'      => array(
 				'expected' => 'Plugin &amp; Name',
 				'name'     => 'Plugin &amp;amp; Name',
 			),
