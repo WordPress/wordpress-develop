@@ -235,9 +235,18 @@
 							return false;
 					}
 
+					/*
+					 * When only the flag test failed, replace flags and nothing else. The list covers
+					 * every kind of flag that test checks (country, subdivision and ZWJ flags), so a
+					 * failing flag is never left to a font that cannot draw it.
+					 */
 					if ( settings.supports.everythingExceptFlag &&
-						! /^1f1(?:e[6-9a-f]|f[0-9a-f])-1f1(?:e[6-9a-f]|f[0-9a-f])$/.test( icon ) && // Country flags.
-						! /^(1f3f3-fe0f-200d-1f308|1f3f4-200d-2620-fe0f)$/.test( icon )             // Rainbow and pirate flags.
+						// Country flags.
+						! /^1f1(?:e[6-9a-f]|f[0-9a-f])-1f1(?:e[6-9a-f]|f[0-9a-f])$/.test( icon ) &&
+						// Subdivision flags, such as England: a black flag, tag characters, and a cancel tag.
+						! /^1f3f4(?:-e00[2-7][0-9a-f])+-e007f$/.test( icon ) &&
+						// Rainbow, transgender and pirate flags.
+						! /^(1f3f3-fe0f-200d-1f308|1f3f3-fe0f-200d-26a7-fe0f|1f3f4-200d-2620-fe0f)$/.test( icon )
 					) {
 						return false;
 					}
