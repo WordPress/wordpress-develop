@@ -291,6 +291,11 @@ textarea[readonly] {
 	vertical-align: middle;
 }
 
+.form-error {
+	color: #d63638;
+	margin: 5px 0 0;
+}
+
 .form-input-tip {
 	color: #646970;
 }
