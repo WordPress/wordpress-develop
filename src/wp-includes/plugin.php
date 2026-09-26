@@ -106,6 +106,7 @@ if ( ! isset( $wp_current_filter ) ) {
  * everything is as quick as possible.
  *
  * @since 0.71
+ * @since 7.2.0 Added the `$blog_id` parameter.
  *
  * @global WP_Hook[] $wp_filter A multidimensional array of all hooks and the callbacks hooked to them.
  *
@@ -117,16 +118,22 @@ if ( ! isset( $wp_current_filter ) ) {
  *                                and functions with the same priority are executed
  *                                in the order in which they were added to the filter. Default 10.
  * @param int      $accepted_args Optional. The number of arguments the function accepts. Default 1.
- * @return true Always returns true.
+ * @param int|null $blog_id       Optional. The site ID to scope the callback to. Default null,
+ *                                which registers the callback globally.
+ * @return bool True on success, false if `$blog_id` is invalid.
  */
-function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
+function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1, $blog_id = null ) {
 	global $wp_filter;
+
+	if ( ! _wp_hook_is_valid_blog_id( $blog_id ) ) {
+		return false;
+	}
 
 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
 		$wp_filter[ $hook_name ] = new WP_Hook();
 	}
 
-	$wp_filter[ $hook_name ]->add_filter( $hook_name, $callback, $priority, $accepted_args );
+	$wp_filter[ $hook_name ]->add_filter( $hook_name, $callback, $priority, $accepted_args, $blog_id );
 
 	return true;
 }
@@ -270,6 +277,7 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *
  * @since 2.5.0
  * @since 6.9.0 Added the `$priority` parameter.
+ * @since 7.2.0 Added the `$blog_id` parameter.
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
@@ -279,6 +287,9 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *                                               a callback that may or may not exist. Default false.
  * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
  *                                               Default false.
+ * @param int|false|null              $blog_id   Optional. The site scope to check. A site ID checks only that
+ *                                               explicit site scope, null checks only the global scope, and false
+ *                                               checks all scopes. Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
@@ -293,14 +304,18 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *             : false|int )
  * )
  */
-function has_filter( $hook_name, $callback = false, $priority = false ) {
+function has_filter( $hook_name, $callback = false, $priority = false, $blog_id = false ) {
 	global $wp_filter;
+
+	if ( ! _wp_hook_is_valid_blog_id( $blog_id, true ) ) {
+		return false;
+	}
 
 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
 		return false;
 	}
 
-	return $wp_filter[ $hook_name ]->has_filter( $hook_name, $callback, $priority );
+	return $wp_filter[ $hook_name ]->has_filter( $hook_name, $callback, $priority, $blog_id );
 }
 
 /**
@@ -314,6 +329,7 @@ function has_filter( $hook_name, $callback = false, $priority = false ) {
  * will be given on removal failure.
  *
  * @since 1.2.0
+ * @since 7.2.0 Added the `$blog_id` parameter.
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
@@ -323,16 +339,23 @@ function has_filter( $hook_name, $callback = false, $priority = false ) {
  *                                         a callback that may or may not exist.
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         filter callback. Default 10.
+ * @param int|false|null        $blog_id   Optional. The site scope to remove. A site ID removes only that
+ *                                         explicit site scope, null removes only the global scope, and false
+ *                                         removes all scopes. Default false.
  * @return bool Whether the function existed before it was removed.
  * @phpstan-param Maybe_Callable $callback
  */
-function remove_filter( $hook_name, $callback, $priority = 10 ) {
+function remove_filter( $hook_name, $callback, $priority = 10, $blog_id = false ) {
 	global $wp_filter;
 
 	$r = false;
 
+	if ( ! _wp_hook_is_valid_blog_id( $blog_id, true ) ) {
+		return false;
+	}
+
 	if ( isset( $wp_filter[ $hook_name ] ) ) {
-		$r = $wp_filter[ $hook_name ]->remove_filter( $hook_name, $callback, $priority );
+		$r = $wp_filter[ $hook_name ]->remove_filter( $hook_name, $callback, $priority, $blog_id );
 
 		if ( ! $wp_filter[ $hook_name ]->callbacks ) {
 			unset( $wp_filter[ $hook_name ] );
@@ -443,6 +466,7 @@ function did_filter( $hook_name ) {
  * Action API.
  *
  * @since 1.2.0
+ * @since 7.2.0 Added the `$blog_id` parameter.
  *
  * @param string   $hook_name       The name of the action to add the callback to.
  * @param callable $callback        The callback to be run when the action is called.
@@ -452,10 +476,12 @@ function did_filter( $hook_name ) {
  *                                  and functions with the same priority are executed
  *                                  in the order in which they were added to the action. Default 10.
  * @param int      $accepted_args   Optional. The number of arguments the function accepts. Default 1.
- * @return true Always returns true.
+ * @param int|null $blog_id         Optional. The site ID to scope the callback to. Default null,
+ *                                  which registers the callback globally.
+ * @return bool True on success, false if `$blog_id` is invalid.
  */
-function add_action( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
-	return add_filter( $hook_name, $callback, $priority, $accepted_args );
+function add_action( $hook_name, $callback, $priority = 10, $accepted_args = 1, $blog_id = null ) {
+	return add_filter( $hook_name, $callback, $priority, $accepted_args, $blog_id );
 }
 
 /**
@@ -592,6 +618,7 @@ function do_action_ref_array( $hook_name, $args ) {
  *
  * @since 2.5.0
  * @since 6.9.0 Added the `$priority` parameter.
+ * @since 7.2.0 Added the `$blog_id` parameter.
  *
  * @see has_filter() This function is an alias of has_filter().
  *
@@ -601,6 +628,9 @@ function do_action_ref_array( $hook_name, $args ) {
  *                                               a callback that may or may not exist. Default false.
  * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
  *                                               Default false.
+ * @param int|false|null              $blog_id   Optional. The site scope to check. A site ID checks only that
+ *                                               explicit site scope, null checks only the global scope, and false
+ *                                               checks all scopes. Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
@@ -615,8 +645,8 @@ function do_action_ref_array( $hook_name, $args ) {
  *             : false|int )
  * )
  */
-function has_action( $hook_name, $callback = false, $priority = false ) {
-	return has_filter( $hook_name, $callback, $priority );
+function has_action( $hook_name, $callback = false, $priority = false, $blog_id = false ) {
+	return has_filter( $hook_name, $callback, $priority, $blog_id );
 }
 
 /**
@@ -630,6 +660,7 @@ function has_action( $hook_name, $callback = false, $priority = false ) {
  * will be given on removal failure.
  *
  * @since 1.2.0
+ * @since 7.2.0 Added the `$blog_id` parameter.
  *
  * @param string                $hook_name The action hook to which the function to be removed is hooked.
  * @param callable|string|array $callback  The name of the function which should be removed.
@@ -637,11 +668,14 @@ function has_action( $hook_name, $callback = false, $priority = false ) {
  *                                         a callback that may or may not exist.
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         action callback. Default 10.
+ * @param int|false|null        $blog_id   Optional. The site scope to remove. A site ID removes only that
+ *                                         explicit site scope, null removes only the global scope, and false
+ *                                         removes all scopes. Default false.
  * @return bool Whether the function is removed.
  * @phpstan-param Maybe_Callable $callback
  */
-function remove_action( $hook_name, $callback, $priority = 10 ) {
-	return remove_filter( $hook_name, $callback, $priority );
+function remove_action( $hook_name, $callback, $priority = 10, $blog_id = false ) {
+	return remove_filter( $hook_name, $callback, $priority, $blog_id );
 }
 
 /**
@@ -993,6 +1027,23 @@ function _wp_call_all_hook( $args ) {
 	global $wp_filter;
 
 	$wp_filter['all']->do_all_hook( $args );
+}
+
+/**
+ * Validates a site ID used to scope a hook registration or select registrations.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param mixed $blog_id   The site ID or selector to validate.
+ * @param bool  $allow_all Optional. Whether false is accepted as the all-scopes selector.
+ *                         Default false.
+ * @return bool Whether the value is valid.
+ */
+function _wp_hook_is_valid_blog_id( $blog_id, $allow_all = false ) {
+	return null === $blog_id
+		|| ( is_int( $blog_id ) && $blog_id > 0 )
+		|| ( $allow_all && false === $blog_id );
 }
 
 /**

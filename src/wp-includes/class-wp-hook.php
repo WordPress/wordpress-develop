@@ -18,6 +18,7 @@
  * @phpstan-type Hook_Callback array{
  *   function: callable,
  *   accepted_args: int,
+ *   blog_id?: positive-int,
  * }
  *
  * @phpstan-implements Iterator<int, array<non-decimal-int-string, Hook_Callback>>
@@ -76,9 +77,21 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	private $doing_action = false;
 
 	/**
+	 * Whether this hook contains any site-scoped callbacks.
+	 *
+	 * This allows hooks containing only global callbacks to retain the original
+	 * dispatch path without a per-callback scope check.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $has_site_scoped_callbacks = false;
+
+	/**
 	 * Adds a callback function to a filter hook.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Added the `$blog_id` parameter.
 	 *
 	 * @param string   $hook_name     The name of the filter to add the callback to.
 	 * @param callable $callback      The callback to be run when the filter is applied.
@@ -87,23 +100,37 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                                and functions with the same priority are executed in the order
 	 *                                in which they were added to the filter.
 	 * @param int      $accepted_args The number of arguments the function accepts.
+	 * @param int|null $blog_id       Optional. The site ID to scope the callback to. Default null,
+	 *                                which registers the callback globally.
+	 * @return bool True on success, false if `$blog_id` is invalid.
 	 */
-	public function add_filter( $hook_name, $callback, $priority, $accepted_args ) {
+	public function add_filter( $hook_name, $callback, $priority, $accepted_args, $blog_id = null ) {
+		if ( ! _wp_hook_is_valid_blog_id( $blog_id ) ) {
+			return false;
+		}
+
 		if ( null === $priority ) {
 			$priority = 0;
 		}
 
 		$idx = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 		if ( null === $idx ) {
-			return;
+			return true;
 		}
+
+		$callback_id = $this->build_unique_id( $idx, $blog_id );
 
 		$priority_existed = isset( $this->callbacks[ $priority ] );
 
-		$this->callbacks[ $priority ][ $idx ] = array(
+		$this->callbacks[ $priority ][ $callback_id ] = array(
 			'function'      => $callback,
 			'accepted_args' => (int) $accepted_args,
 		);
+
+		if ( null !== $blog_id ) {
+			$this->callbacks[ $priority ][ $callback_id ]['blog_id'] = $blog_id;
+			$this->has_site_scoped_callbacks                         = true;
+		}
 
 		// If we're adding a new priority to the list, put them back in sorted order.
 		if ( ! $priority_existed && count( $this->callbacks ) > 1 ) {
@@ -114,6 +141,58 @@ final class WP_Hook implements Iterator, ArrayAccess {
 
 		if ( $this->nesting_level > 0 ) {
 			$this->resort_active_iterations( $priority, $priority_existed );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Builds a unique ID for a callback registration, including its site scope.
+	 *
+	 * Global registrations retain the existing callback ID. Scoped IDs are length-prefixed
+	 * so callback IDs containing separators remain unambiguous.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string   $function_key The callback's existing unique ID.
+	 * @param int|null $blog_id      The site scope, or null for a global registration.
+	 * @return string The registration ID.
+	 */
+	private function build_unique_id( $function_key, $blog_id ) {
+		if ( null === $blog_id ) {
+			return $function_key;
+		}
+
+		return $this->build_scoped_id_prefix( $function_key ) . $blog_id;
+	}
+
+	/**
+	 * Builds the shared prefix for scoped callback IDs.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $function_key The callback's existing unique ID.
+	 * @return string The scoped registration ID prefix.
+	 */
+	private function build_scoped_id_prefix( $function_key ) {
+		return "\0site:" . strlen( $function_key ) . ':' . $function_key . ':';
+	}
+
+	/**
+	 * Refreshes whether this hook contains site-scoped callbacks.
+	 *
+	 * @since 7.2.0
+	 */
+	private function refresh_site_scoped_callbacks_flag() {
+		$this->has_site_scoped_callbacks = false;
+
+		foreach ( $this->callbacks as $callbacks ) {
+			foreach ( $callbacks as $callback ) {
+				if ( isset( $callback['blog_id'] ) ) {
+					$this->has_site_scoped_callbacks = true;
+					return;
+				}
+			}
 		}
 	}
 
@@ -194,27 +273,68 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * Removes a callback function from a filter hook.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Added the `$blog_id` parameter.
 	 *
 	 * @param string                $hook_name The filter hook to which the function to be removed is hooked.
 	 * @param callable|string|array $callback  The callback to be removed from running when the filter is applied.
 	 *                                         This method can be called unconditionally to speculatively remove
 	 *                                         a callback that may or may not exist.
 	 * @param int                   $priority  The exact priority used when adding the original filter callback.
+	 * @param int|false|null        $blog_id   Optional. The site scope to remove. A site ID removes only that
+	 *                                         explicit site scope, null removes only the global scope, and false
+	 *                                         removes all scopes. Default false.
 	 * @return bool Whether the callback existed before it was removed.
 	 * @phpstan-param Maybe_Callable $callback
 	 */
-	public function remove_filter( $hook_name, $callback, $priority ) {
+	public function remove_filter( $hook_name, $callback, $priority, $blog_id = false ) {
+		if ( ! _wp_hook_is_valid_blog_id( $blog_id, true ) ) {
+			return false;
+		}
+
 		if ( null === $priority ) {
 			$priority = 0;
 		}
 
 		$function_key = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 
-		$exists = isset( $function_key, $this->callbacks[ $priority ][ $function_key ] );
+		if ( null === $function_key || ! isset( $this->callbacks[ $priority ] ) ) {
+			return false;
+		}
+
+		$exists = false;
+
+		if ( false === $blog_id ) {
+			if ( isset( $this->callbacks[ $priority ][ $function_key ] )
+				&& ! isset( $this->callbacks[ $priority ][ $function_key ]['blog_id'] )
+			) {
+				unset( $this->callbacks[ $priority ][ $function_key ] );
+				$exists = true;
+			}
+
+			foreach ( $this->callbacks[ $priority ] as $callback_id => $registered_callback ) {
+				if ( isset( $registered_callback['blog_id'] )
+					&& is_int( $registered_callback['blog_id'] )
+					&& $registered_callback['blog_id'] > 0
+					&& $callback_id === $this->build_unique_id( $function_key, $registered_callback['blog_id'] )
+				) {
+					unset( $this->callbacks[ $priority ][ $callback_id ] );
+					$exists = true;
+				}
+			}
+		} else {
+			$callback_id = $this->build_unique_id( $function_key, $blog_id );
+			$exists      = isset( $this->callbacks[ $priority ][ $callback_id ] )
+				&& ( ( null === $blog_id && ! isset( $this->callbacks[ $priority ][ $callback_id ]['blog_id'] ) )
+					|| ( isset( $this->callbacks[ $priority ][ $callback_id ]['blog_id'] )
+						&& $blog_id === $this->callbacks[ $priority ][ $callback_id ]['blog_id'] )
+				);
+
+			if ( $exists ) {
+				unset( $this->callbacks[ $priority ][ $callback_id ] );
+			}
+		}
 
 		if ( $exists ) {
-			unset( $this->callbacks[ $priority ][ $function_key ] );
-
 			if ( ! $this->callbacks[ $priority ] ) {
 				unset( $this->callbacks[ $priority ] );
 
@@ -224,6 +344,8 @@ final class WP_Hook implements Iterator, ArrayAccess {
 					$this->resort_active_iterations();
 				}
 			}
+
+			$this->refresh_site_scoped_callbacks_flag();
 		}
 
 		return $exists;
@@ -237,6 +359,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 * @since 6.9.0 Added the `$priority` parameter.
+	 * @since 7.2.0 Added the `$blog_id` parameter.
 	 *
 	 * @param string                      $hook_name Optional. The name of the filter hook. Default empty.
 	 * @param callable|string|array|false $callback  Optional. The callback to check for.
@@ -244,6 +367,9 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                                               a callback that may or may not exist. Default false.
 	 * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
 	 *                                               Default false.
+	 * @param int|false|null              $blog_id   Optional. The site scope to check. A site ID checks only that
+	 *                                               explicit site scope, null checks only the global scope, and false
+	 *                                               checks all scopes. Default false.
 	 * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
 	 *                  anything registered. When checking a specific function, the priority
 	 *                  of that hook is returned, or false if the function is not attached.
@@ -258,9 +384,13 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *             : false|int )
 	 * )
 	 */
-	public function has_filter( $hook_name = '', $callback = false, $priority = false ) {
+	public function has_filter( $hook_name = '', $callback = false, $priority = false, $blog_id = false ) {
+		if ( ! _wp_hook_is_valid_blog_id( $blog_id, true ) ) {
+			return false;
+		}
+
 		if ( false === $callback ) {
-			return $this->has_filters();
+			return $this->has_filters( $blog_id );
 		}
 
 		$function_key = _wp_filter_build_unique_id( $hook_name, $callback, is_int( $priority ) ? $priority : 10 );
@@ -270,12 +400,56 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		}
 
 		if ( is_int( $priority ) ) {
-			return isset( $this->callbacks[ $priority ][ $function_key ] );
+			return $this->has_callback( $priority, $function_key, $blog_id );
 		}
 
 		foreach ( $this->callbacks as $callback_priority => $callbacks ) {
-			if ( isset( $callbacks[ $function_key ] ) ) {
+			if ( $this->has_callback( $callback_priority, $function_key, $blog_id ) ) {
 				return $callback_priority;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks for a callback at a priority after applying a site selector.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int            $priority     The callback priority.
+	 * @param string         $function_key The callback's existing unique ID.
+	 * @param int|false|null $blog_id      The site selector.
+	 * @return bool Whether a matching callback is registered.
+	 */
+	private function has_callback( $priority, $function_key, $blog_id ) {
+		if ( ! isset( $this->callbacks[ $priority ] ) ) {
+			return false;
+		}
+
+		if ( false !== $blog_id ) {
+			$callback_id = $this->build_unique_id( $function_key, $blog_id );
+
+			return isset( $this->callbacks[ $priority ][ $callback_id ] )
+				&& ( ( null === $blog_id && ! isset( $this->callbacks[ $priority ][ $callback_id ]['blog_id'] ) )
+					|| ( isset( $this->callbacks[ $priority ][ $callback_id ]['blog_id'] )
+						&& $blog_id === $this->callbacks[ $priority ][ $callback_id ]['blog_id'] )
+				);
+		}
+
+		if ( isset( $this->callbacks[ $priority ][ $function_key ] )
+			&& ! isset( $this->callbacks[ $priority ][ $function_key ]['blog_id'] )
+		) {
+			return true;
+		}
+
+		foreach ( $this->callbacks[ $priority ] as $callback_id => $callback ) {
+			if ( isset( $callback['blog_id'] )
+				&& is_int( $callback['blog_id'] )
+				&& $callback['blog_id'] > 0
+				&& $callback_id === $this->build_unique_id( $function_key, $callback['blog_id'] )
+			) {
+				return true;
 			}
 		}
 
@@ -286,13 +460,26 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * Checks if any callbacks have been registered for this hook.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Added the `$blog_id` parameter.
 	 *
+	 * @param int|false|null $blog_id Optional. The site scope to check. A site ID checks only that
+	 *                                explicit site scope, null checks only the global scope, and false
+	 *                                checks all scopes. Default false.
 	 * @return bool True if callbacks have been registered for the current hook, otherwise false.
 	 */
-	public function has_filters() {
+	public function has_filters( $blog_id = false ) {
+		if ( ! _wp_hook_is_valid_blog_id( $blog_id, true ) ) {
+			return false;
+		}
+
 		foreach ( $this->callbacks as $callbacks ) {
-			if ( $callbacks ) {
-				return true;
+			foreach ( $callbacks as $callback ) {
+				if ( false === $blog_id
+					|| ( null === $blog_id && ! isset( $callback['blog_id'] ) )
+					|| ( is_int( $blog_id ) && isset( $callback['blog_id'] ) && $blog_id === $callback['blog_id'] )
+				) {
+					return true;
+				}
 			}
 		}
 
@@ -318,6 +505,8 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			unset( $this->callbacks[ $priority ] );
 			$this->priorities = array_keys( $this->callbacks );
 		}
+
+		$this->refresh_site_scoped_callbacks_flag();
 
 		if ( $this->nesting_level > 0 ) {
 			$this->resort_active_iterations();
@@ -357,18 +546,45 @@ final class WP_Hook implements Iterator, ArrayAccess {
 
 			$this->current_priority[ $nesting_level ] = $priority;
 
-			foreach ( $this->callbacks[ $priority ] as $the_ ) {
-				if ( ! $this->doing_action ) {
-					$args[0] = $value;
+			if ( $this->has_site_scoped_callbacks ) {
+				if ( ! isset( $has_current_blog_id ) ) {
+					$has_current_blog_id = function_exists( 'get_current_blog_id' );
 				}
 
-				// Avoid the array_slice() if possible.
-				if ( 0 === $the_['accepted_args'] ) {
-					$value = call_user_func( $the_['function'] );
-				} elseif ( $the_['accepted_args'] >= $num_args ) {
-					$value = call_user_func_array( $the_['function'], $args );
-				} else {
-					$value = call_user_func_array( $the_['function'], array_slice( $args, 0, $the_['accepted_args'] ) );
+				foreach ( $this->callbacks[ $priority ] as $the_ ) {
+					if ( isset( $the_['blog_id'] )
+						&& ( ! $has_current_blog_id || get_current_blog_id() !== $the_['blog_id'] )
+					) {
+						continue;
+					}
+
+					if ( ! $this->doing_action ) {
+						$args[0] = $value;
+					}
+
+					// Avoid the array_slice() if possible.
+					if ( 0 === $the_['accepted_args'] ) {
+						$value = call_user_func( $the_['function'] );
+					} elseif ( $the_['accepted_args'] >= $num_args ) {
+						$value = call_user_func_array( $the_['function'], $args );
+					} else {
+						$value = call_user_func_array( $the_['function'], array_slice( $args, 0, $the_['accepted_args'] ) );
+					}
+				}
+			} else {
+				foreach ( $this->callbacks[ $priority ] as $the_ ) {
+					if ( ! $this->doing_action ) {
+						$args[0] = $value;
+					}
+
+					// Avoid the array_slice() if possible.
+					if ( 0 === $the_['accepted_args'] ) {
+						$value = call_user_func( $the_['function'] );
+					} elseif ( $the_['accepted_args'] >= $num_args ) {
+						$value = call_user_func_array( $the_['function'], $args );
+					} else {
+						$value = call_user_func_array( $the_['function'], array_slice( $args, 0, $the_['accepted_args'] ) );
+					}
 				}
 			}
 		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
@@ -412,8 +628,24 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		do {
 			$priority = current( $this->iterations[ $nesting_level ] );
 
-			foreach ( $this->callbacks[ $priority ] as $the_ ) {
-				call_user_func_array( $the_['function'], $args );
+			if ( $this->has_site_scoped_callbacks ) {
+				if ( ! isset( $has_current_blog_id ) ) {
+					$has_current_blog_id = function_exists( 'get_current_blog_id' );
+				}
+
+				foreach ( $this->callbacks[ $priority ] as $the_ ) {
+					if ( isset( $the_['blog_id'] )
+						&& ( ! $has_current_blog_id || get_current_blog_id() !== $the_['blog_id'] )
+					) {
+						continue;
+					}
+
+					call_user_func_array( $the_['function'], $args );
+				}
+			} else {
+				foreach ( $this->callbacks[ $priority ] as $the_ ) {
+					call_user_func_array( $the_['function'], $args );
+				}
 			}
 		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
 
@@ -545,6 +777,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		}
 
 		$this->priorities = array_keys( $this->callbacks );
+		$this->refresh_site_scoped_callbacks_flag();
 	}
 
 	/**
@@ -560,6 +793,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	public function offsetUnset( $offset ) {
 		unset( $this->callbacks[ $offset ] );
 		$this->priorities = array_keys( $this->callbacks );
+		$this->refresh_site_scoped_callbacks_flag();
 	}
 
 	/**
