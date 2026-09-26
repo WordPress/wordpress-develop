@@ -1252,4 +1252,162 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$q2 = new WP_Term_Query();
 		$this->assertSame( $expected, $q2->query( $query_args ), 'Second query is not of the expected form.' );
 	}
+
+	/**
+	 * @ticket 51811
+	 *
+	 * @covers WP_Term_Query::parse_query
+	 */
+	public function test_s_param_is_alias_for_search() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Unique Findable Term',
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				's'          => 'Unique Findable',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertContains( $term, $q->terms, 'The s parameter should work as an alias for search.' );
+	}
+
+	/**
+	 * @ticket 51811
+	 *
+	 * @covers WP_Term_Query::parse_query
+	 */
+	public function test_search_takes_precedence_over_s() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Precedence Test Term',
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'search'     => 'Precedence Test',
+				's'          => 'nonexistent',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertContains( $term, $q->terms, 'The search parameter should take precedence over s.' );
+	}
+
+	/**
+	 * @ticket 51811
+	 *
+	 * @covers WP_Term_Query::parse_query
+	 */
+	public function test_s_param_returns_empty_when_no_match() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Existing Non Matching Term',
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				's'          => 'absolutelynonexistentterm',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEmpty( $q->terms, 'The s parameter should return empty for non-matching terms.' );
+	}
+
+	/**
+	 * @ticket 51811
+	 *
+	 * @covers WP_Term_Query::get_terms
+	 */
+	public function test_s_param_can_be_set_in_pre_get_terms() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Apple Term',
+			)
+		);
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Banana Term',
+			)
+		);
+
+		$callback = static function ( $query ) {
+			$query->query_vars['s'] = 'Apple';
+		};
+
+		add_action( 'pre_get_terms', $callback );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		remove_action( 'pre_get_terms', $callback );
+
+		$this->assertSame( array( $term1 ), $q->terms, "Setting 's' in pre_get_terms should filter terms." );
+	}
+
+	/**
+	 * @ticket 51811
+	 *
+	 * @covers WP_Term_Query::generate_cache_key
+	 */
+	public function test_s_and_search_produce_identical_cache_key() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$q1             = new WP_Term_Query();
+		$q1->query_vars = array(
+			'taxonomy'      => 'wptests_tax',
+			'search'        => 'Match',
+			'cache_results' => true,
+		);
+		$q1->parse_query( $q1->query_vars );
+
+		$reflection = new ReflectionMethod( $q1, 'generate_cache_key' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
+
+		$key1 = $reflection->invoke( $q1, $q1->query_vars, 'SELECT * FROM wp_terms' );
+
+		$q2             = new WP_Term_Query();
+		$q2->query_vars = array(
+			'taxonomy'      => 'wptests_tax',
+			's'             => 'Match',
+			'cache_results' => true,
+		);
+		$q2->parse_query( $q2->query_vars );
+
+		$key2 = $reflection->invoke( $q2, $q2->query_vars, 'SELECT * FROM wp_terms' );
+
+		$this->assertSame( $key1, $key2, 'Queries using search and s should produce identical cache keys.' );
+	}
 }
