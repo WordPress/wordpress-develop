@@ -1190,6 +1190,46 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests additional flex justification values.
+	 *
+	 * @dataProvider data_wp_get_layout_style_with_additional_flex_justification
+	 *
+	 * @covers ::wp_get_layout_style
+	 *
+	 * @param array  $layout          Flex layout values.
+	 * @param string $expected_output The expected output.
+	 */
+	public function test_wp_get_layout_style_with_additional_flex_justification( $layout, $expected_output ) {
+		$this->assertSame( $expected_output, wp_get_layout_style( '.wp-layout', $layout ) );
+	}
+
+	/**
+	 * Data provider for test_wp_get_layout_style_with_additional_flex_justification().
+	 *
+	 * @return array
+	 */
+	public function data_wp_get_layout_style_with_additional_flex_justification() {
+		return array(
+			'horizontal flex layout with space-around justification' => array(
+				'layout'          => array(
+					'type'           => 'flex',
+					'orientation'    => 'horizontal',
+					'justifyContent' => 'space-around',
+				),
+				'expected_output' => '.wp-layout{justify-content:space-around;}',
+			),
+			'horizontal flex layout with space-evenly justification' => array(
+				'layout'          => array(
+					'type'           => 'flex',
+					'orientation'    => 'horizontal',
+					'justifyContent' => 'space-evenly',
+				),
+				'expected_output' => '.wp-layout{justify-content:space-evenly;}',
+			),
+		);
+	}
+
+	/**
 	 * Tests that a constrained layout with non-string contentSize/wideSize/justifyContent
 	 * values (e.g. from hand-edited, imported, or AI-generated content) does not cause a
 	 * fatal error in the explode() calls.
