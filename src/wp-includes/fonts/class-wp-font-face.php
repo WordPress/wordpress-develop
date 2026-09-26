@@ -248,7 +248,7 @@ class WP_Font_Face {
 				);
 				continue;
 			}
-			$format         = pathinfo( $url, PATHINFO_EXTENSION );
+			$format         = pathinfo( (string) wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION );
 			$src[ $format ] = $url;
 		}
 
