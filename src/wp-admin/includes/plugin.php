@@ -2051,6 +2051,10 @@ function get_admin_page_title() {
 		return $title;
 	}
 
+	if ( ! is_string( $plugin_page ) ) {
+		$plugin_page = '';
+	}
+
 	$hook = get_plugin_page_hook( $plugin_page, $pagenow );
 
 	$parent  = get_admin_page_parent();
