@@ -4168,7 +4168,7 @@ function wp_trash_post( $post_id = 0 ) {
 	$check = apply_filters( 'pre_trash_post', null, $post, $previous_status );
 
 	if ( null !== $check ) {
-		return $check;
+		return false;
 	}
 
 	/**
@@ -4249,7 +4249,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	 */
 	$check = apply_filters( 'pre_untrash_post', null, $post, $previous_status );
 	if ( null !== $check ) {
-		return $check;
+		return false;
 	}
 
 	/**
@@ -5964,7 +5964,7 @@ function wp_set_post_categories( $post_id = 0, $post_categories = array(), $appe
 			$post_categories = array();
 		}
 	} elseif ( 1 === count( $post_categories ) && '' === reset( $post_categories ) ) {
-		return true;
+		return array();
 	}
 
 	return wp_set_post_terms( $post_id, $post_categories, 'category', $append );
