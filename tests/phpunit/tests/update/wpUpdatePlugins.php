@@ -7,6 +7,8 @@
  */
 class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 
+
+
 	/**
 	 * Number of update checks sent to the API.
 	 *
@@ -188,6 +190,80 @@ class Tests_Update_WpUpdatePlugins extends WP_UnitTestCase {
 			$transient->last_checked,
 			'last_checked was reset after a failed write instead of being left in place.'
 		);
+	}
+
+	/**
+	 * The warning fires on the real storage path, not just a simulated one.
+	 *
+	 * This drives the exact failure from the ticket: a four byte character in the update
+	 * payload and a storage column that can't hold it. `pre_get_col_charset` makes wpdb treat
+	 * the column as utf8mb3, so `wpdb::update()` strips the character in `process_fields()`,
+	 * sets `$wpdb->last_error`, and returns false before running a query. No schema change is
+	 * needed, and the assertion on wpdb's own error message confirms the warning is reacting
+	 * to a genuine rejection rather than a value set by the test.
+	 *
+	 * @ticket 64550
+	 *
+	 * @covers ::wp_update_plugins
+	 */
+	public function test_real_charset_rejection_triggers_a_warning() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		// Make wpdb treat the storage column as utf8mb3, so it strips four byte characters
+		// exactly as it would on a real utf8 (non-utf8mb4) column.
+		add_filter( 'pre_get_col_charset', array( $this, 'force_utf8mb3_storage' ), 10, 3 );
+
+		// Carry a four byte character into the stored payload, as an update response can.
+		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'add_four_byte_char' ) );
+
+		$warnings = $this->collect_warnings_from( 'wp_update_plugins' );
+
+		remove_filter( 'pre_set_site_transient_update_plugins', array( $this, 'add_four_byte_char' ) );
+		remove_filter( 'pre_get_col_charset', array( $this, 'force_utf8mb3_storage' ), 10 );
+
+		$this->assertCount( 1, $warnings, 'A real charset rejection should surface a storage warning.' );
+		$this->assertStringContainsString(
+			'could not be stored',
+			$warnings[0]['errstr'],
+			'The warning did not describe the storage failure.'
+		);
+		$this->assertStringContainsString(
+			'Processing the value',
+			$warnings[0]['errstr'],
+			"The warning should carry wpdb's own error, confirming it reacts to a real rejection."
+		);
+	}
+
+	/**
+	 * Reports the options/sitemeta storage column as utf8mb3 regardless of its real charset.
+	 *
+	 * @param string|null|false|WP_Error $charset The character set to use. Default null.
+	 * @param string                     $table   The name of the table being checked.
+	 * @param string                     $column  The name of the column being checked.
+	 * @return string|null|false|WP_Error utf8mb3 for the value column, otherwise the given charset.
+	 */
+	public function force_utf8mb3_storage( $charset, $table, $column ) {
+		if ( in_array( $column, array( 'option_value', 'meta_value' ), true ) ) {
+			return 'utf8mb3';
+		}
+
+		return $charset;
+	}
+
+	/**
+	 * Adds a four byte character to the stored update payload.
+	 *
+	 * @param mixed $value The site transient value about to be stored.
+	 * @return mixed The value with a four byte character attached.
+	 */
+	public function add_four_byte_char( $value ) {
+		if ( is_object( $value ) ) {
+			$value->four_byte_probe = "Update available \xF0\x9F\x8E\x89";
+		}
+
+		return $value;
 	}
 
 	/**
