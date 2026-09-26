@@ -839,7 +839,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-user.php
 		-
-			message: '#^Parameter \#1 \$number of method WP_Widget\:\:_set\(\) expects int, string given\.$#'
+			message: '#^Parameter \#1 \$number of method WP_Widget\<T of array \= array\<string, mixed\>\>\:\:_set\(\) expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php
