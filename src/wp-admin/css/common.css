@@ -943,6 +943,10 @@ a#remove-post-thumbnail:hover,
     margin-left: 0.5rem;
 }
 
+.application-password-display strong {
+	overflow-wrap: break-word;
+}
+
 /*------------------------------------------------------------------------------
   3.0 - Actions
 ------------------------------------------------------------------------------*/
