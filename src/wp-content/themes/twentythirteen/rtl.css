@@ -149,10 +149,10 @@ div.nav-menu > ul {
  * ----------------------------------------------------------------------------
  */
 
-.sidebar .entry-header,
-.sidebar .entry-content,
-.sidebar .entry-summary,
-.sidebar .entry-meta {
+:where(.sidebar) .hentry > .entry-header,
+:where(.sidebar) .hentry > .entry-content,
+:where(.sidebar) .hentry > .entry-summary,
+:where(.sidebar) .hentry > .entry-meta {
 	padding-left: 376px;
 	padding-right: 60px;
 }
