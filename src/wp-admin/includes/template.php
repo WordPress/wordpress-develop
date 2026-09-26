@@ -1975,8 +1975,7 @@ function get_settings_errors( $setting = '', $sanitize = false ) {
  * @since 5.3.0 Legacy `error` and `updated` CSS classes are mapped to
  *              `notice-error` and `notice-success`.
  * @since 7.2.0 Uses `wp_admin_notice()` to echo the notices so that the CSS
- *              classes are handled based on the notice type and the hook
- *              `wp_admin_notice` is fired, for consistency with other notices.
+ *              classes, filters, and hooks are handled consistently.
  *
  * @param string $setting        Optional slug title of a specific setting whose errors you want.
  * @param bool   $sanitize       Whether to re-sanitize the setting value before returning errors.
