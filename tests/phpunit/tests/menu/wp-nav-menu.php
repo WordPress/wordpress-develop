@@ -244,4 +244,44 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 			'The level zero menu item should appear in the menu.'
 		);
 	}
+
+	/**
+	 * Tests that a non-object menu item, such as one nulled by a `wp_get_nav_menu_items` filter,
+	 * is skipped instead of causing a fatal error.
+	 *
+	 * @ticket 66177
+	 *
+	 * @covers ::_wp_menu_item_classes_by_context
+	 */
+	public function test_wp_nav_menu_should_skip_non_object_menu_items(): void {
+		add_filter(
+			'wp_get_nav_menu_items',
+			static function ( array $items ): array {
+				foreach ( $items as $key => $item ) {
+					if ( self::$lvl3_menu_item === $item->ID ) {
+						$items[ $key ] = null;
+					}
+				}
+				return $items;
+			}
+		);
+
+		$menu_html = wp_nav_menu(
+			array(
+				'menu' => self::$menu_id,
+				'echo' => false,
+			)
+		);
+
+		$this->assertStringContainsString(
+			'Lvl2 menu item',
+			$menu_html,
+			'The level two menu item should appear in the menu.'
+		);
+		$this->assertStringNotContainsString(
+			'Lvl3 menu item',
+			$menu_html,
+			'The nulled level three menu item should not appear in the menu.'
+		);
+	}
 }
