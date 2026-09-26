@@ -183,9 +183,15 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	public function before( $title = '' ) {
 		$this->in_loop = true;
 		printf( '<h2>' . $this->upgrader->strings['skin_before_update_header'] . ' <span class="spinner waiting-' . $this->upgrader->update_current . '"></span></h2>', $title, $this->upgrader->update_current, $this->upgrader->update_count );
+		$js_function = <<<'JS'
+			( selector ) => {
+				jQuery( selector ).css( 'display', 'inline-block' );
+			}
+			JS;
 		wp_print_inline_script_tag(
 			sprintf(
-				'jQuery( %s ).css( "display", "inline-block" );',
+				'( %s )( %s );',
+				$js_function,
 				wp_json_encode( '.waiting-' . $this->upgrader->update_current, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
@@ -216,9 +222,15 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 				)
 			);
 
+			$js_function = <<<'JS'
+				( selector ) => {
+					jQuery( selector ).show();
+				}
+				JS;
 			wp_print_inline_script_tag(
 				sprintf(
-					'jQuery( %s ).show();',
+					'( %s )( %s );',
+					$js_function,
 					wp_json_encode( '#progress-' . $this->upgrader->update_current, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 				)
 			);
@@ -231,9 +243,15 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 					'</p></div>';
 			}
 
+			$js_function = <<<'JS'
+				( selector ) => {
+					jQuery( selector ).hide();
+				}
+				JS;
 			wp_print_inline_script_tag(
 				sprintf(
-					'jQuery( %s ).hide();',
+					'( %s )( %s );',
+					$js_function,
 					wp_json_encode( '.waiting-' . $this->upgrader->update_current, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 				)
 			);
