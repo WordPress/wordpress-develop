@@ -30,6 +30,9 @@ define( 'REST_API_VERSION', '2.0' );
  * @param bool   $override        Optional. If the route already exists, should we override it? True overrides,
  *                                false merges (with newer overriding if duplicate keys exist). Default false.
  * @return bool True on success, false on error.
+ *
+ * @phpstan-param non-falsy-string $route_namespace
+ * @phpstan-param non-falsy-string $route
  */
 function register_rest_route( $route_namespace, $route, $args = array(), $override = false ) {
 	if ( empty( $route_namespace ) ) {
@@ -1436,6 +1439,8 @@ function rest_get_date_with_gmt( $date, $is_utc = false ) {
  * @since 4.7.0
  *
  * @return int 401 if the user is not logged in, 403 if the user is logged in.
+ *
+ * @phpstan-return 401|403
  */
 function rest_authorization_required_code() {
 	return is_user_logged_in() ? 403 : 401;
@@ -1534,6 +1539,9 @@ function rest_is_ip_address( $ip ) {
  * @param bool|string|int $value The value being evaluated.
  * @return bool Returns the proper associated boolean value.
  *
+ * @phpstan-template T of bool|string|int
+ * @phpstan-param T $value
+ * @phpstan-pure
  * @phpstan-return (
  *     $value is false|''|'0'|0|'false'|'False'|'FALSE'
  *         ? false
