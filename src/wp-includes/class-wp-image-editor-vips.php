@@ -78,6 +78,16 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	protected static $save_suffixes;
 
 	/**
+	 * Whether the environment can run libvips.
+	 *
+	 * Null until it has been checked. The answer cannot change during a request, and
+	 * test() is reached once for every mime type that is asked about.
+	 *
+	 * @var bool|null
+	 */
+	protected static $environment_supported;
+
+	/**
 	 * Checks to see if current environment supports VIPS.
 	 *
 	 * @since 7.2.0
@@ -86,6 +96,12 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @return bool
 	 */
 	public static function test( $args = array() ) {
+		if ( null !== self::$environment_supported ) {
+			return self::$environment_supported;
+		}
+
+		self::$environment_supported = false;
+
 		// Check if FFI extension is available.
 		if ( ! extension_loaded( 'ffi' ) ) {
 			return false;
@@ -110,6 +126,8 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		} catch ( Exception $e ) {
 			return false;
 		}
+
+		self::$environment_supported = true;
 
 		return true;
 	}
