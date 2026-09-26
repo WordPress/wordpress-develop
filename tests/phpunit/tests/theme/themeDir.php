@@ -192,6 +192,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme with Hooked Blocks',
 			'Empty `fontFace` in theme.json - no webfonts defined',
 			'A theme with the Update URI header',
+			'JSON Metadata Theme',
+			'JSON Only Theme',
 		);
 
 		$this->assertSameSets( $expected, $theme_names );

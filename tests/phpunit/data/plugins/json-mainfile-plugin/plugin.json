@@ -1,0 +1,5 @@
+{
+	"name": "Main File Plugin",
+	"version": "1.0.0",
+	"mainFile": "bootstrap.php"
+}
