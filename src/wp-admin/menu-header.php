@@ -292,6 +292,9 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 <div id="adminmenumain" role="navigation" aria-label="<?php esc_attr_e( 'Main menu' ); ?>">
 <a href="#wpbody-content" class="screen-reader-shortcut"><?php _e( 'Skip to main content' ); ?></a>
+<?php if ( wp_has_admin_notices() ) : ?>
+<a href="#wp-admin-notices" class="screen-reader-shortcut"><?php esc_html_e( 'Skip to notices' ); ?></a>
+<?php endif; ?>
 <a href="#wp-toolbar" class="screen-reader-shortcut"><?php _e( 'Skip to toolbar' ); ?></a>
 <div id="adminmenuback"></div>
 <div id="adminmenuwrap">
