@@ -141,9 +141,15 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 			}
 			$this->error = implode( ', ', $messages );
 		}
+		$js_function = <<<'JS'
+			( selector ) => {
+				jQuery( selector ).hide();
+			}
+			JS;
 		wp_print_inline_script_tag(
 			sprintf(
-				'jQuery( %s ).hide();',
+				'( %s )( %s );',
+				$js_function,
 				wp_json_encode( '.waiting-' . $this->upgrader->update_current, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
