@@ -9,6 +9,7 @@
  * Gets the settings resulting of merging core, theme, and user data.
  *
  * @since 5.9.0
+ * @since 7.2.0 Returns null when the requested path does not exist.
  *
  * @param array $path    Path to the specific setting to retrieve. Optional.
  *                       If empty, will return all settings.
@@ -21,7 +22,8 @@
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
  * }
- * @return mixed The settings array or individual setting value to retrieve.
+ * @return mixed The settings array or individual setting value to retrieve,
+ *               or null if the requested path does not exist.
  */
 function wp_get_global_settings( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
@@ -80,7 +82,11 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 		}
 	}
 
-	return _wp_array_get( $settings, $path, $settings );
+	if ( empty( $path ) ) {
+		return $settings;
+	}
+
+	return _wp_array_get( $settings, $path );
 }
 
 /**
@@ -113,6 +119,7 @@ function wp_get_viewport_media_queries( $viewport_settings = null, $options = ar
  *              to "var(--wp--preset--font-size--small)" so consumers don't have to.
  * @since 6.3.0 `transforms` is now usable in the `context` parameter. In case [`transforms`]['resolve_variables']
  *              is defined, variables are resolved to their value in the styles.
+ * @since 7.2.0 Returns null when the requested path does not exist.
  *
  * @param array $path    Path to the specific style to retrieve. Optional.
  *                       If empty, will return all styles.
@@ -128,7 +135,8 @@ function wp_get_viewport_media_queries( $viewport_settings = null, $options = ar
  *                              Valid value is array( 'resolve-variables' ).
  *                              If defined, variables are resolved to their value in the styles.
  * }
- * @return mixed The styles array or individual style value to retrieve.
+ * @return mixed The styles array or individual style value to retrieve,
+ *               or null if the requested path does not exist.
  */
 function wp_get_global_styles( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
@@ -149,7 +157,11 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 		$merged_data = WP_Theme_JSON::resolve_variables( $merged_data );
 	}
 	$styles = $merged_data->get_raw_data()['styles'];
-	return _wp_array_get( $styles, $path, $styles );
+	if ( empty( $path ) ) {
+		return $styles;
+	}
+
+	return _wp_array_get( $styles, $path );
 }
 
 
