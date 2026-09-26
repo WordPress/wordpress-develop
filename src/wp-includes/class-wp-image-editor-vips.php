@@ -135,6 +135,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			return false;
 		}
 
+		/*
+		 * WordPress registers no `image/jxl` mime type, so there is no entry for it here.
+		 * The GD and Imagick editors report no support for it for the same reason, and
+		 * `get_extension()` returns false before this map is consulted anyway.
+		 */
 		$extension_map = array(
 			'JPEG' => 'jpg',
 			'JPG'  => 'jpg',
@@ -146,7 +151,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			'HEIC' => 'heic',
 			'HEIF' => 'heif',
 			'AVIF' => 'avif',
-			'JXL'  => 'jxl',
 		);
 
 		$extension = isset( $extension_map[ $vips_extension ] ) ? $extension_map[ $vips_extension ] : strtolower( $vips_extension );
