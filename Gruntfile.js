@@ -2127,6 +2127,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:build', [
 		'verify:old-files',
 		'verify:source-maps',
+		'verify:file-types',
 	] );
 
 	/**
@@ -2227,6 +2228,72 @@ module.exports = function(grunt) {
 					`The ${ file } file must not contain a sourceMappingURL.`
 				);
 			} );
+	} );
+
+	/**
+	 * Ensure that CSS directories in the build contain only CSS files, JS
+	 * directories contain only JS files, and CSS and JS files are not placed
+	 * elsewhere in wp-admin or wp-includes.
+	 *
+	 * Tracked files are checked by the file-type-check.yml workflow. This
+	 * task covers files copied in by the build, such as from npm packages
+	 * and Gutenberg.
+	 *
+	 * @ticket 65279
+	 */
+	grunt.registerTask( 'verify:file-types', function() {
+		// Paths are relative to the build directory.
+		const allowed = [
+			/*
+			 * Provisional: generated PHP registries and manifests copied from Gutenberg.
+			 * Their placement is under discussion in #65278 and #65279.
+			 */
+			/^wp-includes\/css\/dist\/registry\.php$/,
+			/^wp-includes\/js\/dist\/.+\.asset\.php$/,
+			/^wp-includes\/js\/dist\/script-modules\/registry\.php$/,
+
+			/^wp-admin\/css\/colors\/.+\.scss$/,
+			/^wp-includes\/js\/tinymce\/wp-tinymce\.php$/,
+			/^wp-includes\/js\/tinymce\/license\.txt$/,
+			/^wp-includes\/js\/tinymce\/skins\/.+\.(css|png|gif|svg|ttf|woff|eot)$/,
+			/^wp-includes\/js\/tinymce\/plugins\/compat3x\/css\/.+\.css$/,
+			/^wp-includes\/js\/(mediaelement|thickbox|imgareaselect|crop|jcrop)\/.+\.(css|png|gif|svg)$/,
+			/^wp-includes\/js\/codemirror\/codemirror\.min\.css$/,
+			/^wp-includes\/js\/(swfupload|plupload)\/license\.txt$/,
+			// Block and route assets are built next to their PHP files.
+			/^wp-includes\/(blocks|build)\//,
+		];
+
+		const files = glob.sync( '{wp-admin,wp-includes}/**', {
+			cwd: BUILD_DIR,
+			dot: true,
+			nodir: true,
+		} );
+
+		assert(
+			files.length > 0,
+			'No files found in the build directory.'
+		);
+
+		const misplaced = files.filter( function( file ) {
+			const dir = file.match( /^wp-(?:admin|includes)\/(css|js)\// );
+			const ext = file.match( /\.(css|js)$/ );
+
+			const isMisplaced = dir ? ! ext || ext[1] !== dir[1] : !! ext;
+
+			return isMisplaced && ! allowed.some( function( pattern ) {
+				return pattern.test( file );
+			} );
+		} );
+
+		assert(
+			misplaced.length === 0,
+			'Misplaced files found in the build directory:\n\n' +
+			misplaced.join( '\n' ) +
+			'\n\nCSS directories should contain only .css files and JS directories only .js files.' +
+			'\n.css and .js files belong in those directories, not elsewhere in wp-admin/ or wp-includes/.' +
+			'\nIf a file is a legitimate exception, update the verify:file-types task in Gruntfile.js.'
+		);
 	} );
 
 	grunt.registerTask( 'routes:setup', 'Reads the routes registry and configures the copy:routes task.', function() {
