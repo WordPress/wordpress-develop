@@ -99,7 +99,15 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		unset( $_REQUEST['orderby'] );
 		unset( $_REQUEST['s'] );
 
-		$this->assertStringContainsString( "ORDER BY {$wpdb->posts}.{$expected}", $this->sql );
+		$expected_query = explode( ', ', $expected );
+		$expected_query = array_map(
+			function ( $item ) use ( $wpdb ) {
+				return "{$wpdb->posts}.{$item}";
+			},
+			$expected_query
+		);
+
+		$this->assertStringContainsString( 'ORDER BY ' . implode( ', ', $expected_query ), $this->sql );
 	}
 
 	/**
@@ -136,42 +144,42 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 				'order'    => null,
 				'orderby'  => null,
 				's'        => null,
-				'expected' => 'post_date DESC',
+				'expected' => 'post_date DESC, ID DESC',
 			),
 			// Default order (ID) DESC.
 			array(
 				'order'    => '',
 				'orderby'  => '',
 				's'        => '',
-				'expected' => 'post_date DESC',
+				'expected' => 'post_date DESC, ID DESC',
 			),
 			// Order by requester (post_title) ASC.
 			array(
 				'order'    => 'ASC',
 				'orderby'  => 'requester',
 				's'        => '',
-				'expected' => 'post_title ASC',
+				'expected' => 'post_title ASC, ID ASC',
 			),
 			// Order by requester (post_title) DESC.
 			array(
 				'order'    => 'DESC',
 				'orderby'  => 'requester',
 				's'        => null,
-				'expected' => 'post_title DESC',
+				'expected' => 'post_title DESC, ID DESC',
 			),
 			// Order by requested (post_date) ASC.
 			array(
 				'order'    => 'ASC',
 				'orderby'  => 'requested',
 				's'        => null,
-				'expected' => 'post_date ASC',
+				'expected' => 'post_date ASC, ID ASC',
 			),
 			// Order by requested (post_date) DESC.
 			array(
 				'order'    => 'DESC',
 				'orderby'  => 'requested',
 				's'        => null,
-				'expected' => 'post_date DESC',
+				'expected' => 'post_date DESC, ID DESC',
 			),
 			// Search and order by relevance.
 			array(
@@ -185,14 +193,14 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 				'order'    => 'ASC',
 				'orderby'  => 'requester',
 				's'        => 'foo',
-				'expected' => 'post_title ASC',
+				'expected' => 'post_title ASC, ID ASC',
 			),
 			// Search and order by requested (post_date) ASC.
 			array(
 				'order'    => 'ASC',
 				'orderby'  => 'requested',
 				's'        => 'foo',
-				'expected' => 'post_date ASC',
+				'expected' => 'post_date ASC, ID ASC',
 			),
 		);
 	}
