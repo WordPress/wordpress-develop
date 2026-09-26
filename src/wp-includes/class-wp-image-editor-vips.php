@@ -68,16 +68,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	protected static $mime_support_cache = array();
 
 	/**
-	 * Extensions libvips can save images to, including the leading dot.
-	 *
-	 * Null until it has been queried. An empty array means the query is unavailable on
-	 * the loaded libvips, in which case callers fall back to probing an encoder.
-	 *
-	 * @var string[]|null
-	 */
-	protected static $save_suffixes;
-
-	/**
 	 * Checks to see if current environment supports VIPS.
 	 *
 	 * @since 7.2.0
@@ -127,43 +117,20 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			return self::$mime_support_cache[ $mime_type ];
 		}
 
-		$vips_extension = strtoupper( self::get_extension( $mime_type ) );
+		$extension = strtolower( self::get_extension( $mime_type ) );
 
-		if ( ! $vips_extension || ! self::test() ) {
+		if ( ! $extension || ! self::test() ) {
 			self::$mime_support_cache[ $mime_type ] = false;
 
 			return false;
 		}
 
 		/*
-		 * WordPress registers no `image/jxl` mime type, so there is no entry for it here.
-		 * The GD and Imagick editors report no support for it for the same reason, and
-		 * `get_extension()` returns false before this map is consulted anyway.
-		 */
-		$extension_map = array(
-			'JPEG' => 'jpg',
-			'JPG'  => 'jpg',
-			'PNG'  => 'png',
-			'WEBP' => 'webp',
-			'GIF'  => 'gif',
-			'TIFF' => 'tif',
-			'TIF'  => 'tif',
-			'HEIC' => 'heic',
-			'HEIF' => 'heif',
-			'AVIF' => 'avif',
-		);
-
-		$extension = isset( $extension_map[ $vips_extension ] ) ? $extension_map[ $vips_extension ] : strtolower( $vips_extension );
-
-		/*
-		 * The list of save suffixes is one query covering every format libvips was built
-		 * with, and is the closest equivalent of `Imagick::queryFormats()`. It is asked
-		 * first because it is around a hundred times cheaper than encoding.
-		 *
-		 * It cannot be trusted on its own. libheif loads its encoders as plugins at
-		 * runtime, so a build that lists HEIF support can still fail to encode when no
-		 * encoder plugin is installed. Formats whose encoder resolves that way, and
-		 * anything the list does not mention at all, are verified by encoding instead.
+		 * The suffix list covers every format libvips was built with and is far cheaper
+		 * than encoding, but it cannot be trusted alone: libheif loads its encoders as
+		 * plugins at runtime, so a build that lists HEIF can still fail to encode when no
+		 * encoder plugin is installed. Those formats, and anything the list omits, are
+		 * verified by encoding instead.
 		 */
 		$runtime_encoder_formats = array( 'heic', 'heif', 'avif' );
 
@@ -171,13 +138,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			&& in_array( '.' . $extension, self::get_save_suffixes(), true );
 
 		if ( ! $supported ) {
-			/*
-			 * Probe encoder support directly.
-			 *
-			 * `Image::black()` tests writing (encoding), where `findLoad()` would only
-			 * test reading (decoding). libvips picks the encoder from the suffix, and
-			 * nothing reaches disk, so there is no temp file to clean up.
-			 */
+			// Encode a 1x1 image to test writing, where findLoad() tests only reading.
 			try {
 				$test_image = Jcupitt\Vips\Image::black( 1, 1 );
 
@@ -195,29 +156,26 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Returns the extensions libvips can save images to.
 	 *
-	 * This is a property of the loaded libvips build rather than of any particular image,
-	 * so it is queried once and cached.
-	 *
-	 * `vips_foreign_get_suffixes()` is only declared to FFI when libvips 8.8 or later is
-	 * loaded, so an older build reports an empty list and callers probe instead.
+	 * This describes the loaded build rather than any particular image, so it is queried
+	 * once. `vips_foreign_get_suffixes()` is only declared to FFI by libvips 8.8 and
+	 * later, and an older build reports an empty list.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return string[] Extensions including the leading dot, or an empty array when the
-	 *                  list cannot be determined.
+	 * @return string[] Extensions including the leading dot.
 	 */
 	protected static function get_save_suffixes() {
-		if ( isset( self::$save_suffixes ) ) {
-			return self::$save_suffixes;
+		static $suffixes = null;
+
+		if ( null !== $suffixes ) {
+			return $suffixes;
 		}
 
 		$suffixes = array();
 
 		try {
 			if ( version_compare( Jcupitt\Vips\Config::version(), '8.8', '>=' ) ) {
-				// The returned list is NULL-terminated and owned by the caller. These two
-				// functions are declared to libvips rather than to PHP, so PHPStan cannot
-				// see them.
+				// The returned list is NULL-terminated and owned by the caller.
 				// @phpstan-ignore method.notFound (Declared in the libvips FFI cdef.)
 				$all = Jcupitt\Vips\FFI::vips()->vips_foreign_get_suffixes();
 
@@ -233,8 +191,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		} catch ( Exception $e ) {
 			$suffixes = array();
 		}
-
-		self::$save_suffixes = $suffixes;
 
 		return $suffixes;
 	}
