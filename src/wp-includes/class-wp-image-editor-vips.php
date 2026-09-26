@@ -901,7 +901,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 		// Of the formats handled above, only PNG and the HEIF family can be asked to
 		// store fewer bits per sample.
-		$bit_depth = $this->get_save_bit_depth( $image, $mime_type );
+		$bit_depth = self::get_save_bit_depth( $image, $mime_type );
 
 		if ( null !== $bit_depth ) {
 			$options['bitdepth'] = $bit_depth;
@@ -924,7 +924,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @param string             $mime_type The mime type it is being saved as.
 	 * @return int|null The bit depth to save at, or null to leave it unchanged.
 	 */
-	protected function get_save_bit_depth( $image, $mime_type ) {
+	protected static function get_save_bit_depth( $image, $mime_type ) {
 		$image_depth = self::get_format_bit_depth( $image->format );
 
 		/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
