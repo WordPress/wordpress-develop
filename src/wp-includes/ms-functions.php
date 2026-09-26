@@ -2711,6 +2711,41 @@ function upload_size_limit_filter( $size ) {
 }
 
 /**
+ * Retrieves the space usage details for the site.
+ *
+ * This function calculates and returns the space used for uploads in the site.
+ * If the upload space check is disabled, it returns a simple message showing the
+ * space used. Otherwise, it provides more detailed information including the
+ * percentage of space used and the total space allowed.
+ *
+ * @return string Formatted string indicating space usage. The format depends on
+ *                whether the upload space check is enabled or not.
+ */
+function get_space_usage() {
+	$space_used = get_space_used();
+
+	if ( '1' === get_site_option( 'upload_space_check_disabled' ) ) {
+		return sprintf(
+			/* translators: 1: Number of megabytes */
+			__( '%s MB Space Used' ),
+			number_format_i18n( $space_used, 2 )
+		);
+	} else {
+		$space_allowed = get_space_allowed();
+		$percent_used = ( $space_used / $space_allowed ) * 100;
+		$space = size_format( $space_allowed * MB_IN_BYTES );
+
+		/* translators: Storage space that's been used. 1: Used space in MB 2: Percentage of used space, 3: Total space allowed in megabytes or gigabytes. */
+		return sprintf(
+			__( 'Used: %1$s (%2$s%%) of %3$s' ),
+			number_format_i18n( $space_used, 2 ),
+			number_format( $percent_used ),
+			$space
+		);
+	}
+}
+
+/**
  * Determines whether or not we have a large network.
  *
  * The default criteria for a large network is either more than 10,000 users or more than 10,000 sites.
