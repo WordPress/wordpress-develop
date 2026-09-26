@@ -318,6 +318,15 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	set_site_transient( 'update_core', $updates );
 
+	if ( ! empty( $GLOBALS['wpdb']->last_error ) ) {
+		wp_trigger_error(
+			__FUNCTION__,
+			'The result of the WordPress version check could not be stored: ' .
+			$GLOBALS['wpdb']->last_error,
+			E_USER_WARNING
+		);
+	}
+
 	if ( ! empty( $body['ttl'] ) ) {
 		$ttl = (int) $body['ttl'];
 
@@ -607,6 +616,15 @@ function wp_update_plugins( $extra_stats = array() ) {
 	array_walk( $updates->no_update, $sanitize_plugin_update_payload );
 
 	set_site_transient( 'update_plugins', $updates );
+
+	if ( ! empty( $GLOBALS['wpdb']->last_error ) ) {
+		wp_trigger_error(
+			__FUNCTION__,
+			'The result of the plugin update check could not be stored: ' .
+			$GLOBALS['wpdb']->last_error,
+			E_USER_WARNING
+		);
+	}
 }
 
 /**
@@ -873,6 +891,15 @@ function wp_update_themes( $extra_stats = array() ) {
 	}
 
 	set_site_transient( 'update_themes', $new_update );
+
+	if ( ! empty( $GLOBALS['wpdb']->last_error ) ) {
+		wp_trigger_error(
+			__FUNCTION__,
+			'The result of the theme update check could not be stored: ' .
+			$GLOBALS['wpdb']->last_error,
+			E_USER_WARNING
+		);
+	}
 }
 
 /**
