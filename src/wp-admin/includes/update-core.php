@@ -1419,13 +1419,13 @@ function update_core( $from, $to ) {
 	 */
 	$versions_file = trailingslashit( $wp_filesystem->wp_content_dir() ) . 'upgrade/version-current.php';
 
-	if ( ! $wp_filesystem->copy( $from . $distro . 'wp-includes/version.php', $versions_file ) ) {
+	if ( ! $wp_filesystem->copy( $from . $distro . 'wp-includes/version.php', $versions_file, true ) ) {
 		$wp_filesystem->delete( $from, true );
 
 		return new WP_Error(
 			'copy_failed_for_version_file',
-			__( 'The update cannot be installed because some files could not be copied. This is usually due to inconsistent file permissions.' ),
-			'wp-includes/version.php'
+			__( 'The update cannot be installed because this file cannot be overwritten' ),
+			$versions_file
 		);
 	}
 
