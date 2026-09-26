@@ -648,6 +648,76 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	}
 
 	/**
+	 * Returns the bit depth that a libvips band format stores.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $format A libvips band format, such as `uchar` or `ushort`.
+	 * @return int The bit depth of that format.
+	 */
+	protected static function get_format_bit_depth( $format ) {
+		switch ( $format ) {
+			case 'ushort':
+			case 'short':
+				return 16;
+			case 'uint':
+			case 'int':
+			case 'float':
+				return 32;
+			case 'double':
+			case 'complex':
+				return 64;
+			case 'dpcomplex':
+				return 128;
+			default:
+				return 8;
+		}
+	}
+
+	/**
+	 * Returns the bit depth to save an image at, honouring `image_max_bit_depth`.
+	 *
+	 * libvips stores samples in a fixed set of band formats rather than at an arbitrary
+	 * bit depth, and only some encoders accept a bit depth at all. This picks the nearest
+	 * depth the encoder offers and returns null for everything else, which leaves the
+	 * image at its own depth.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param Jcupitt\Vips\Image $image     The image being saved.
+	 * @param string             $mime_type The mime type it is being saved as.
+	 * @return int|null The bit depth to save at, or null to leave it unchanged.
+	 */
+	protected function get_save_bit_depth( $image, $mime_type ) {
+		$image_depth = self::get_format_bit_depth( $image->format );
+
+		/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+		$max_depth = apply_filters( 'image_max_bit_depth', $image_depth, $image_depth );
+
+		if ( $max_depth >= $image_depth ) {
+			return null;
+		}
+
+		switch ( $mime_type ) {
+			case 'image/png':
+				// pngsave writes 8 or 16 bits per sample.
+				return $max_depth <= 8 ? 8 : null;
+
+			case 'image/avif':
+			case 'image/heic':
+			case 'image/heif':
+				// heifsave accepts 8, 10 or 12 bits per sample.
+				if ( $max_depth <= 8 ) {
+					return 8;
+				}
+
+				return $max_depth <= 10 ? 10 : 12;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Saves current image to file.
 	 *
 	 * @since 7.2.0
@@ -743,6 +813,14 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 					$save_options['Q']     = $this->get_quality();
 					$save_options['strip'] = $strip_meta;
 					break;
+			}
+
+			// Of the formats above, only PNG and the HEIF family can be asked to store
+			// fewer bits per sample.
+			$bit_depth = $this->get_save_bit_depth( $image, $mime_type );
+
+			if ( null !== $bit_depth ) {
+				$save_options['bitdepth'] = $bit_depth;
 			}
 
 			if ( wp_is_stream( $filename ) ) {
