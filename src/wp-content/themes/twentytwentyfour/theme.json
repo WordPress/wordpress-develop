@@ -520,7 +520,7 @@
 				}
 			},
 			"core/loginout": {
-				"css": "& input{border-radius:.33rem;padding:calc(0.667em + 2px);border:1px solid #949494;}"
+				"css": "& input{border-radius:.33rem;padding:calc(0.667em + 2px);border:1px solid #757575;}"
 			},
 			"core/navigation": {
 				"elements": {
