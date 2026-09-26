@@ -604,6 +604,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	 * @see wp_maybe_load_embeds()
 	 */
 	public function test_proxy_with_classic_embed_provider() {
+		wp_scripts()->registered['wp-embed'];
 		wp_set_current_user( self::$editor );
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$request->set_param( 'url', 'https://www.youtube.com/embed/' . self::YOUTUBE_VIDEO_ID );
