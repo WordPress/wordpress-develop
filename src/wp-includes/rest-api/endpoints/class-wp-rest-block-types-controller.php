@@ -330,9 +330,21 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'styles', $fields ) ) {
-			$styles         = $this->style_registry->get_registered_styles_for_block( $block_type->name );
-			$styles         = array_values( $styles );
-			$data['styles'] = wp_parse_args( $styles, $data['styles'] );
+			$styles = $this->style_registry->get_registered_styles_for_block( $block_type->name );
+			$styles = array_values( $styles );
+
+			/*
+			 * The loop above assigns this key from rest_sanitize_value_from_schema(), whose
+			 * return is documented as `mixed|WP_Error`, so what the styles came back as has
+			 * to be restated here. A WP_Error is why the value is checked rather than cast.
+			 */
+			/**
+			 * @var array<string, mixed>[] $block_styles
+			 * @phpstan-var list<Block_Style_Properties> $block_styles
+			 */
+			$block_styles = isset( $data['styles'] ) && is_array( $data['styles'] ) ? $data['styles'] : array();
+
+			$data['styles'] = array_merge( $block_styles, $styles );
 			$data['styles'] = array_filter( $data['styles'] );
 		}
 

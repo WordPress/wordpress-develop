@@ -425,7 +425,7 @@ class Tests_Ajax_wpCustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertArrayHasKey( 'next_changeset_uuid', $this->_last_response_parsed['data'] );
 		$this->assertTrue( wp_is_uuid( $this->_last_response_parsed['data']['next_changeset_uuid'], 4 ) );
 		$changeset_post_publish = get_post( $post_id );
-		$this->assertNotEquals( $future_date, $changeset_post_publish->post_date );
+		$this->assertNotSame( $future_date, $changeset_post_publish->post_date );
 
 		// Check response when trying to update an already-published post.
 		$this->assertSame( 'trash', get_post_status( $post_id ) );

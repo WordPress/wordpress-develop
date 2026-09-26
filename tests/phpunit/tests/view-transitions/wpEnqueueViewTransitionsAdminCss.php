@@ -40,6 +40,8 @@ class Tests_View_Transitions_wpEnqueueViewTransitionsAdminCss extends WP_UnitTes
 	/**
 	 * Tests that the admin view transitions style handle includes the inline CSS.
 	 *
+	 * @group assets
+	 *
 	 * @ticket 64470
 	 *
 	 * @covers ::wp_get_view_transitions_admin_css
@@ -54,6 +56,8 @@ class Tests_View_Transitions_wpEnqueueViewTransitionsAdminCss extends WP_UnitTes
 
 	/**
 	 * Tests enqueuing admin view transitions CSS.
+	 *
+	 * @group assets
 	 *
 	 * @ticket 64470
 	 */

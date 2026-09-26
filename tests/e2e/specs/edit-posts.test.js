@@ -36,7 +36,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( posts ).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		expect( posts.first() ).toHaveText( title );
+		await expect( posts.first() ).toHaveText( title );
 	} );
 
 	test( 'allows an existing post to be edited using the Edit button', async ( {
@@ -104,7 +104,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( posts ).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		expect( posts.first() ).toHaveText( `${ title } Edited` );
+		await expect( posts.first() ).toHaveText( `${ title } Edited` );
 	} );
 
 	test( 'allows an existing post to be deleted using the Trash button', async ( {

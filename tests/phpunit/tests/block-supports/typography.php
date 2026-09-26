@@ -58,6 +58,9 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 
+		// Resets script modules enqueued while rendering fit text.
+		$GLOBALS['wp_script_modules'] = null;
+
 		parent::tear_down();
 	}
 
@@ -309,7 +312,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $size CSS font-size value, including units where applicable.
 	 * }
 	 * @param bool   $settings         Theme JSON settings array that overrides any global theme settings.
-	 * @param string $expected_output Expected output.
+	 * @param string $expected_output  Expected output.
 	 */
 	public function test_wp_get_typography_font_size_value( $font_size_preset, $settings, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size_preset, $settings );
@@ -817,7 +820,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures
 	 *
-	 * @param array  $font_size                     {
+	 * @param array  $font_size                   {
 	 *     Required. A font size as represented in the fontSizes preset format as seen in theme.json.
 	 *
 	 *     @type string $name Name of the font size preset.
@@ -825,7 +828,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $size CSS font-size value, including units where applicable.
 	 * }
 	 * @param bool   $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
-	 * @param string $expected_output Expected output of wp_get_typography_font_size_value().
+	 * @param string $expected_output             Expected output of wp_get_typography_font_size_value().
 	 */
 	public function test_wp_get_typography_font_size_value_should_use_fluid_typography_deprecated( $font_size, $should_use_fluid_typography, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size, $should_use_fluid_typography );
@@ -867,7 +870,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_generate_should_override_theme_settings_fixtures
 	 *
-	 * @param array  $font_size                     {
+	 * @param array  $font_size       {
 	 *     Required. A font size as represented in the fontSizes preset format as seen in theme.json.
 	 *
 	 *     @type string $name Name of the font size preset.
@@ -1136,6 +1139,80 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `has-fit-text` class name is added to the block wrapper when the
+	 * `fitText` attribute is set.
+	 *
+	 * @ticket 65973
+	 *
+	 * @covers ::wp_render_typography_support
+	 *
+	 * @dataProvider data_should_add_fit_text_class_name
+	 *
+	 * @param non-falsy-string $block_content  HTML block content.
+	 * @param non-falsy-string $expected_class Expected value of the class attribute on the block wrapper.
+	 */
+	public function test_should_add_fit_text_class_name( string $block_content, string $expected_class ) {
+		$block = array(
+			'blockName' => 'core/site-title',
+			'attrs'     => array(
+				'fitText' => true,
+			),
+		);
+
+		$actual = wp_render_typography_support( $block_content, $block );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$processor->next_tag();
+
+		$this->assertSame( $expected_class, $processor->get_attribute( 'class' ), 'The block wrapper does not have the expected class names.' );
+		$this->assertSame( 1, substr_count( $actual, 'has-fit-text' ), 'The class name should be added exactly once, to the outermost tag only.' );
+	}
+
+	/**
+	 * Data provider for test_should_add_fit_text_class_name().
+	 *
+	 * @return array<non-falsy-string, array{ block_content: non-falsy-string, expected_class: non-falsy-string }>
+	 */
+	public function data_should_add_fit_text_class_name(): array {
+		return array(
+			'wrapper without a class attribute' => array(
+				'block_content'  => '<h1>Site Title</h1>',
+				'expected_class' => 'has-fit-text',
+			),
+			'wrapper with existing class names' => array(
+				'block_content'  => '<h1 class="wp-block-site-title"><a href="https://example.com">Site Title</a></h1>',
+				'expected_class' => 'wp-block-site-title has-fit-text',
+			),
+			'wrapper with an already serialized class name' => array(
+				'block_content'  => '<p class="has-fit-text">A paragraph</p>',
+				'expected_class' => 'has-fit-text',
+			),
+			'wrapper with inner blocks'         => array(
+				'block_content'  => '<div class="wp-block-group"><p>A paragraph inside a group</p></div>',
+				'expected_class' => 'wp-block-group has-fit-text',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the `has-fit-text` class name is not added when the block does not
+	 * opt in to the fit text support.
+	 *
+	 * @ticket 65973
+	 *
+	 * @covers ::wp_render_typography_support
+	 */
+	public function test_should_not_add_fit_text_class_name_without_fit_text_attribute() {
+		$block_content = '<h1 class="wp-block-site-title">Site Title</h1>';
+		$block         = array(
+			'blockName' => 'core/site-title',
+			'attrs'     => array(),
+		);
+
+		$this->assertSame( $block_content, wp_render_typography_support( $block_content, $block ) );
+	}
+
+	/**
 	 * Tests that valid font size values are parsed.
 	 *
 	 * @ticket 56467
@@ -1262,7 +1339,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_get_computed_fluid_typography_value
 	 *
-	 * @param array  $args {
+	 * @param array  $args            {
 	 *      Optional. An associative array of values to calculate a fluid formula for font size. Default is empty array.
 	 *
 	 *     @type string $maximum_viewport_width Maximum size up to which type will have fluidity.
@@ -1271,7 +1348,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $minimum_font_size      Minimum font size for any clamp() calculation.
 	 *     @type int    $scale_factor           A scale factor to determine how fast a font scales within boundaries.
 	 * }
-	 * @param string $expected_output             Expected value of style property from wp_apply_typography_support().
+	 * @param string $expected_output Expected value of style property from wp_apply_typography_support().
 	 */
 	public function test_wp_get_computed_fluid_typography_value( $args, $expected_output ) {
 		$actual = wp_get_computed_fluid_typography_value( $args );

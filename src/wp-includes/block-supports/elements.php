@@ -24,8 +24,8 @@ function wp_get_elements_class_name(): string {
  * @since 6.6.0
  * @access private
  *
- * @param  array $block   Block object.
- * @param  array $options Per element type options e.g. whether to skip serialization.
+ * @param array $block   Block object.
+ * @param array $options Per element type options e.g. whether to skip serialization.
  * @return bool Whether the block needs an elements class name.
  */
 function wp_should_add_elements_class_name( $block, $options ) {
@@ -264,7 +264,7 @@ function wp_render_elements_support_styles( $parsed_block ) {
  *
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
- * @return string               Filtered block content.
+ * @return string Filtered block content.
  *
  * @phpstan-param array{
  *     attrs: array{

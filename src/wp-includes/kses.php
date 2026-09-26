@@ -1390,7 +1390,6 @@ function _wp_kses_split_callback( $matches ) {
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
- *
  * @return string Fixed HTML element
  */
 function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
@@ -2640,6 +2639,7 @@ function kses_init() {
  * @since 7.1.0 Extended gradient support to allow any single-level nested function.
  *              Added support for transform functions, `clip-path` basic shapes,
  *              and URLs in the SVG element reference properties.
+ * @since 7.2.0 Added support for CSS anchor positioning properties.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -2885,6 +2885,15 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 			'pointer-events',
 			'visibility',
+
+			'anchor-name',
+			'anchor-scope',
+			'position-anchor',
+			'position-area',
+			'position-try',
+			'position-try-fallbacks',
+			'position-try-order',
+			'position-visibility',
 
 			// Custom CSS properties.
 			'--*',

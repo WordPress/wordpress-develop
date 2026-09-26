@@ -61,14 +61,28 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Resets all static properties to a default value before each test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		$this->reset_static_properties();
+	}
+
+	/**
 	 * Resets all static properties to a default value after each test.
 	 */
 	public function tear_down() {
+		$this->reset_static_properties();
+		parent::tear_down();
+	}
+
+	/**
+	 * Resets all static properties to their default values.
+	 */
+	private function reset_static_properties() {
 		foreach ( self::$static_properties as $name => $default_value ) {
 			$this->set_property_value( $name, $default_value );
 		}
-
-		parent::tear_down();
 	}
 
 	/**
@@ -78,9 +92,7 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * @param mixed  $value The new value.
 	 */
 	public function set_property_value( $property, $value ) {
-		if ( ! isset( self::$reflected_members[ $property ] ) ) {
-			self::$reflected_members[ $property ] = new ReflectionProperty( self::$instance, $property );
-		}
+		self::$reflected_members[ $property ] ??= new ReflectionProperty( self::$instance, $property );
 
 		if ( PHP_VERSION_ID < 80100 ) {
 			self::$reflected_members[ $property ]->setAccessible( true );
@@ -98,9 +110,7 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * @return mixed The value of the property.
 	 */
 	public function get_property_value( $property ) {
-		if ( ! isset( self::$reflected_members[ $property ] ) ) {
-			self::$reflected_members[ $property ] = new ReflectionProperty( self::$instance, $property );
-		}
+		self::$reflected_members[ $property ] ??= new ReflectionProperty( self::$instance, $property );
 
 		if ( PHP_VERSION_ID < 80100 ) {
 			self::$reflected_members[ $property ]->setAccessible( true );
@@ -122,9 +132,7 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * @return mixed The result of the method call.
 	 */
 	protected function call_method( $method, ...$args ) {
-		if ( ! isset( self::$reflected_members[ $method ] ) ) {
-			self::$reflected_members[ $method ] = new ReflectionMethod( self::$instance, $method );
-		}
+		self::$reflected_members[ $method ] ??= new ReflectionMethod( self::$instance, $method );
 
 		if ( PHP_VERSION_ID < 80100 ) {
 			self::$reflected_members[ $method ]->setAccessible( true );

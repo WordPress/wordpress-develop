@@ -183,6 +183,54 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$this->assertSame( 'theme_child_invalid', $errors->get_error_code() );
 	}
 
+	/**
+	 * Tests that a theme declaring itself as its own parent still has a template.
+	 *
+	 * The `theme_child_invalid` error must not leave `WP_Theme::$template` unset, as
+	 * that makes `get_template()` return `null` and makes the template directory and
+	 * its URI resolve to the theme root instead of the theme's own directory.
+	 *
+	 * @ticket 64582
+	 *
+	 * @covers WP_Theme::get_template
+	 * @covers WP_Theme::get_template_directory
+	 * @covers WP_Theme::get_template_directory_uri
+	 */
+	public function test_child_theme_with_itself_as_parent_should_have_template_set() {
+		$theme = new WP_Theme( 'child-parent-itself', $this->theme_root );
+
+		$this->assertSame( 'child-parent-itself', $theme->get_template(), 'The template was not set to the stylesheet.' );
+		$this->assertSame(
+			$this->theme_root . '/child-parent-itself',
+			$theme->get_template_directory(),
+			'The template directory did not resolve to the theme directory.'
+		);
+		$this->assertSame(
+			$theme->get_theme_root_uri() . '/child-parent-itself',
+			$theme->get_template_directory_uri(),
+			'The template directory URI did not resolve to the theme directory.'
+		);
+	}
+
+	/**
+	 * Tests that the template of a theme declaring itself as its own parent is cached.
+	 *
+	 * @ticket 64582
+	 *
+	 * @covers WP_Theme::__construct
+	 * @covers WP_Theme::get_template
+	 */
+	public function test_child_theme_with_itself_as_parent_should_have_template_set_when_read_from_cache() {
+		// Prime the theme cache.
+		new WP_Theme( 'child-parent-itself', $this->theme_root );
+
+		$theme = new WP_Theme( 'child-parent-itself', $this->theme_root );
+
+		$errors = $theme->errors();
+		$this->assertInstanceOf( WP_Error::class, $errors, 'The theme was not read back from the cache in an error state.' );
+		$this->assertSame( 'theme_child_invalid', $errors->get_error_code(), 'The theme was not read back from the cache with the expected error.' );
+		$this->assertSame( 'child-parent-itself', $theme->get_template(), 'The template was not restored from the cache.' );
+	}
 
 	/**
 	 * Enable a single theme on a network.

@@ -44,6 +44,7 @@ wp.media.mixin = {
 	 *
 	 * @since 4.2.0
 	 *
+	 * @param {Object} t The MediaElement player object.
 	 * @return {void}
 	 */
 	removePlayer: function(t) {
@@ -196,8 +197,8 @@ wp.media.audio = {
 /**
  * Shortcode modeling for video.
  *
- *  `edit()` prepares the shortcode for the media modal.
- *  `shortcode()` builds the new shortcode after update.
+ * `edit()` prepares the shortcode for the media modal.
+ * `shortcode()` builds the new shortcode after update.
  *
  * @since 4.2.0
  *

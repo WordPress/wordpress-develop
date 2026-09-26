@@ -593,8 +593,7 @@ function install_plugin_information() {
 	// Default to the Description tab, Do not translate, API returns English.
 	$section = isset( $_REQUEST['section'] ) ? wp_unslash( $_REQUEST['section'] ) : 'description';
 	if ( empty( $section ) || ! isset( $api->sections[ $section ] ) ) {
-		$section_titles = array_keys( (array) $api->sections );
-		$section        = reset( $section_titles );
+		$section = array_key_first( (array) $api->sections );
 	}
 
 	iframe_header( __( 'Plugin Installation' ) );
@@ -895,15 +894,15 @@ function install_plugin_information() {
  * @since 6.5.0
  *
  * @param string       $name           Plugin name.
- * @param array|object $data           {
+ * @param array|object $data {
  *     An array or object of plugin data. Can be retrieved from the API.
  *
  *     @type string   $slug             The plugin slug.
  *     @type string[] $requires_plugins An array of plugin dependency slugs.
  *     @type string   $version          The plugin's version string. Used when getting the install status.
  * }
- * @param bool         $compatible_php   The result of a PHP compatibility check.
- * @param bool         $compatible_wp    The result of a WP compatibility check.
+ * @param bool         $compatible_php The result of a PHP compatibility check.
+ * @param bool         $compatible_wp  The result of a WP compatibility check.
  * @return string The markup for the dependency row button. An empty string if the user does not have capabilities.
  */
 function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp ) {

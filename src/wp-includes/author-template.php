@@ -16,7 +16,7 @@
  * @since 1.5.0
  * @since 6.3.0 Returns an empty string if the author's display name is unknown.
  *
- * @global WP_User $authordata The current author's data.
+ * @global WP_User|false|null $authordata The current author's data.
  *
  * @param string $deprecated Deprecated.
  * @return string The author's display name, empty string if unknown.
@@ -158,7 +158,7 @@ function the_modified_author() {
  * @since 2.8.0
  * @since 6.9.0 Removed `aim`, `jabber`, and `yim` as valid values for the `$field` parameter.
  *
- * @global WP_User $authordata The current author's data.
+ * @global WP_User|false|null $authordata The current author's data.
  *
  * @param string    $field   Optional. The user field to retrieve. Default empty.
  * @param int|false $user_id Optional. User ID. Defaults to the current post author.
@@ -231,7 +231,7 @@ function the_author_meta( $field = '', $user_id = false ) {
  * @since 3.0.0
  * @since 7.0.0 Added `$use_title_attr` parameter.
  *
- * @global WP_User $authordata The current author's data.
+ * @global WP_User|false|null $authordata The current author's data.
  *
  * @param bool $use_title_attr Optional. Whether to add a title attribute.
  *                             Default true.
@@ -321,7 +321,7 @@ function the_author_posts() {
  * @since 4.4.0
  * @since 7.0.0 Removed title attribute.
  *
- * @global WP_User $authordata The current author's data.
+ * @global WP_User|false|null $authordata The current author's data.
  *
  * @return string An HTML link to the author page, or an empty string if $authordata is not set.
  */
@@ -449,7 +449,12 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
  *     @type int[]|string $exclude       Array or comma/space-separated list of author IDs to exclude. Default empty.
  *     @type int[]|string $include       Array or comma/space-separated list of author IDs to include. Default empty.
  * }
- * @return void|string Void if 'echo' argument is true, list of authors if 'echo' is false.
+ * @return string|void List of authors if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_list_authors( $args = '' ) {
 	global $wpdb;

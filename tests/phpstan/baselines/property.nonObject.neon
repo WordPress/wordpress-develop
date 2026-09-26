@@ -24,16 +24,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
-			message: '#^Cannot access property \$id on int\|string\|WP_Term\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
-			message: '#^Cannot access property \$link on int\|string\|WP_Term\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
 			message: '#^Cannot access property \$name on array\|object\.$#'
 			identifier: property.nonObject
 			count: 1
@@ -179,16 +169,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/update.php
 		-
-			message: '#^Cannot access property \$comment_shortcuts on WP_User\|false\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-admin/user-edit.php
-		-
-			message: '#^Cannot access property \$infinite_scrolling on WP_User\|false\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-admin/user-edit.php
-		-
 			message: '#^Cannot access property \$id on int\|string\|WP_Term\.$#'
 			identifier: property.nonObject
 			count: 1
@@ -204,20 +184,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Cannot access property \$object_id on array\|WP_Error\|WP_Term\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-includes/class-wp-term-query.php
-		-
 			message: '#^Cannot access property \$term_id on string\|WP_Customize_Setting\.$#'
 			identifier: property.nonObject
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-control.php
-		-
-			message: '#^Cannot access property \$link_id on array\|object\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: ../../../src/wp-includes/link-template.php
 		-
 			message: '#^Cannot access property \$plugins on array\|object\.$#'
 			identifier: property.nonObject
@@ -239,17 +209,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-plugins-controller.php
 		-
-			message: '#^Cannot access property \$parent on array\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-includes/taxonomy.php
-		-
 			message: '#^Cannot access property \$template_name on array\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: ../../../src/wp-includes/taxonomy.php
-		-
-			message: '#^Cannot access property \$term_id on array\|object\.$#'
-			identifier: property.nonObject
-			count: 4
 			path: ../../../src/wp-includes/taxonomy.php

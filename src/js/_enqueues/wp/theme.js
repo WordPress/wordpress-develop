@@ -208,7 +208,7 @@ themes.Collection = Backbone.Collection.extend({
 	/**
 	 * Performs a search within the collection.
 	 *
-	 * @uses RegExp
+	 * @param {string} term The search term.
 	 */
 	search: function( term ) {
 		var match, results, haystack, name, description, author;
@@ -275,10 +275,6 @@ themes.Collection = Backbone.Collection.extend({
 	 * which triggers events of `query:success` or `query:fail`.
 	 */
 	query: function( request ) {
-		/**
-		 * @static
-		 * @type Array
-		 */
 		var queries = this.queries,
 			self = this,
 			query, isPaginated, count;
@@ -1485,8 +1481,8 @@ themes.view.Search = wp.Backbone.View.extend({
  *
  * @since 4.9.0
  *
- * @param {string} url - URL to navigate to.
- * @param {Object} state - State.
+ * @param {string} url   URL to navigate to.
+ * @param {Object} state State.
  * @return {void}
  */
 function navigateRouter( url, state ) {
@@ -1969,7 +1965,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 	/**
 	 * Clears all the checked filters.
 	 *
-	 * @uses filtersChecked()
+	 * @param {Event} event The click event.
 	 */
 	clearFilters: function( event ) {
 		var items = $( '.filter-group' ).find( ':checkbox' ),
@@ -2082,9 +2078,9 @@ themes.RunInstaller = {
 				self.view.collection.query( request );
 				self.view.collection.trigger( 'update' );
 
-				// Open the theme preview.
+				// Open the theme preview. The slug comes from the URL, so escape it.
 				self.view.collection.once( 'query:success', function() {
-					$( 'div[data-slug="' + slug + '"]' ).trigger( 'click' );
+					$( 'div.theme[data-slug="' + $.escapeSelector( slug ) + '"]' ).trigger( 'click' );
 				});
 
 			}

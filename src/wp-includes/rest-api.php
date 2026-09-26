@@ -694,6 +694,8 @@ function rest_ensure_request( $request ) {
  * @return WP_REST_Response|WP_Error If response generated an error, WP_Error, if response
  *                                   is already an instance, WP_REST_Response, otherwise
  *                                   returns a new WP_REST_Response instance.
+ *
+ * @phpstan-return ( $response is WP_Error ? WP_Error : WP_REST_Response )
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -973,8 +975,8 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
-			$ref[ $next ] = $ref[ $next ] ?? array();
-			$ref          = &$ref[ $next ];
+			$ref[ $next ] ??= array();
+			$ref            = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
 		$ref[ $last ] = true;
@@ -1531,6 +1533,12 @@ function rest_is_ip_address( $ip ) {
  *
  * @param bool|string|int $value The value being evaluated.
  * @return bool Returns the proper associated boolean value.
+ *
+ * @phpstan-return (
+ *     $value is false|''|'0'|0|'false'|'False'|'FALSE'
+ *         ? false
+ *         : ( $value is true|int|lowercase-string ? true : bool )
+ * )
  */
 function rest_sanitize_boolean( $value ) {
 	// String values are translated to `true`; make sure 'false' is false.
@@ -1885,7 +1893,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
  * @since 5.6.0
  *
  * @param string $param The parameter name.
- * @param array $error  The error details.
+ * @param array  $error The error details.
  * @return WP_Error
  */
 function rest_format_combining_operation_error( $param, $error ) {
@@ -3447,6 +3455,27 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	return $endpoint_args;
 }
 
+/**
+ * Prevents users without the `manage_privacy_options` capability from
+ * changing the privacy policy page through the REST API.
+ *
+ * The settings endpoint only checks `manage_options`. On multisite the
+ * `manage_privacy_options` capability maps to `manage_network`, so a site
+ * administrator can read the setting but must not change it, matching the
+ * Settings > Privacy screen.
+ *
+ * @since 7.2.0
+ *
+ * @param bool   $updated Whether the setting update has already been handled.
+ * @param string $name    Setting name (as shown in REST API responses).
+ * @return bool Whether to short-circuit the update.
+ */
+function rest_restrict_privacy_policy_page_setting_update( $updated, $name ) {
+	if ( 'page_for_privacy_policy' === $name && ! current_user_can( 'manage_privacy_options' ) ) {
+		return true;
+	}
+	return $updated;
+}
 
 /**
  * Converts an error to a response object.
@@ -3458,7 +3487,6 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * @since 5.7.0
  *
  * @param WP_Error $error WP_Error instance.
- *
  * @return WP_REST_Response List of associative arrays with code and message keys.
  */
 function rest_convert_error_to_response( $error ) {

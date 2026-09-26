@@ -486,7 +486,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				foreach ( $test_case as $param_name => $param_value ) {
 					$key_parts[] = sprintf( '%s_%s', $param_name, json_encode( $param_value ) );
 				}
-				$data[ join( '_', $key_parts ) ] = $test_case;
+				$data[ implode( '_', $key_parts ) ] = $test_case;
 			}
 		}
 
@@ -1860,6 +1860,8 @@ HTML;
 	 * otherwise the import map points to a non-existent file under
 	 * SCRIPT_DEBUG. The exceptions below must mirror that special case.
 	 *
+	 * @group assets
+	 *
 	 * @ticket 65664
 	 *
 	 * @covers ::wp_default_script_modules
@@ -2583,7 +2585,7 @@ HTML;
 		$preload_links  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$script_modules = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'static1'  => '/static1.js',
 				'dynamic1' => '/dynamic1.js',

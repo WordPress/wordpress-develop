@@ -601,8 +601,8 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertArrayHasKey( 'schema', $data );
 		$this->assertSame( 'rendered-block', $data['schema']['title'] );
 		$this->assertSame( 'object', $data['schema']['type'] );
-		$this->arrayHasKey( 'rendered', $data['schema']['properties'] );
-		$this->arrayHasKey( 'string', $data['schema']['properties']['rendered']['type'] );
+		$this->assertArrayHasKey( 'rendered', $data['schema']['properties'] );
+		$this->assertSame( 'string', $data['schema']['properties']['rendered']['type'] );
 		$this->assertSame( array( 'edit' ), $data['schema']['properties']['rendered']['context'] );
 	}
 

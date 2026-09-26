@@ -19,16 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^PHPDoc type array of property WP_Customize_Nav_Menu_Item_Setting\:\:\$default is not covariant with PHPDoc type string of overridden property WP_Customize_Setting\:\:\$default\.$#'
-			identifier: property.phpDocType
-			count: 1
-			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php
-		-
-			message: '#^PHPDoc type array of property WP_Customize_Nav_Menu_Setting\:\:\$default is not covariant with PHPDoc type string of overridden property WP_Customize_Setting\:\:\$default\.$#'
-			identifier: property.phpDocType
-			count: 1
-			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php
-		-
 			message: '#^PHPDoc type false of property WP_REST_Attachments_Controller\:\:\$allow_batch is not covariant with PHPDoc type array of overridden property WP_REST_Posts_Controller\:\:\$allow_batch\.$#'
 			identifier: property.phpDocType
 			count: 1

@@ -121,7 +121,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 				'user_id'         => $user_id,
 			)
 		);
-		assert( $comment instanceof WP_Comment );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
 		return $comment;
 	}
 
@@ -348,7 +348,6 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 	 */
 	public function test_mentioned_user_without_note_access_is_not_emailed() {
 		$subscriber = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
-		$this->assertInstanceOf( WP_User::class, $subscriber );
 
 		$note = $this->insert_note(
 			'Ping ' . $this->get_mention_markup( $subscriber->ID, '@Subscriber' ),

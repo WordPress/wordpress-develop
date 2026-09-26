@@ -365,7 +365,12 @@ class WP_Comment_Query {
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
 	 * @return WP_Comment[]|int[]|int List of comments, or number of comments when 'count' is passed as a query var.
-	 * @phpstan-return array<int, WP_Comment>|non-negative-int[]|non-negative-int
+	 *
+	 * @phpstan-return (
+	 *     $query is array{ count: true, ... } ? non-negative-int : (
+	 *         $query is array{ fields: 'ids', ... } ? non-negative-int[] : array<int, WP_Comment>
+	 *     )
+	 * )
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -1119,7 +1124,10 @@ class WP_Comment_Query {
 		// Assemble a flat array of all comments + descendants.
 		$all_comments = $comments;
 		foreach ( $descendant_ids as $descendant_id ) {
-			$all_comments[] = get_comment( $descendant_id );
+			$descendant = get_comment( $descendant_id );
+			if ( $descendant instanceof WP_Comment ) {
+				$all_comments[] = $descendant;
+			}
 		}
 
 		// If a threaded representation was requested, build the tree.

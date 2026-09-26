@@ -46,8 +46,8 @@ function wp_register_shadow_support( $block_type ) {
  * @since 6.6.0 Return early if __experimentalSkipSerialization is true.
  * @access private
  *
- * @param  WP_Block_Type $block_type       Block type.
- * @param  array         $block_attributes Block attributes.
+ * @param WP_Block_Type $block_type       Block type.
+ * @param array         $block_attributes Block attributes.
  * @return array Shadow CSS classes and inline styles.
  */
 function wp_apply_shadow_support( $block_type, $block_attributes ) {

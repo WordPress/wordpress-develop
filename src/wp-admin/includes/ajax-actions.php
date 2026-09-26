@@ -12,7 +12,7 @@
 //
 
 /**
- * Handles the Heartbeat API in the no-privilege context via AJAX .
+ * Handles the Heartbeat API in the no-privilege context via AJAX.
  *
  * Runs when the user is not logged in.
  *
@@ -2059,6 +2059,13 @@ function wp_ajax_menu_quick_search() {
 function wp_ajax_get_permalink() {
 	check_ajax_referer( 'getpermalink', 'getpermalinknonce' );
 	$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
+	if ( ! $post_id ) {
+		// Bypass call to get_preview_post_link() for unspecified post ID.
+		wp_die( '' );
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( -1 );
+	}
 	wp_die( get_preview_post_link( $post_id ) );
 }
 
@@ -2070,8 +2077,15 @@ function wp_ajax_get_permalink() {
 function wp_ajax_sample_permalink() {
 	check_ajax_referer( 'samplepermalink', 'samplepermalinknonce' );
 	$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
-	$title   = $_POST['new_title'] ?? '';
-	$slug    = $_POST['new_slug'] ?? null;
+	if ( ! $post_id ) {
+		// Bypass call to get_sample_permalink_html() for unspecified post ID.
+		wp_die( '' );
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( -1 );
+	}
+	$title = $_POST['new_title'] ?? '';
+	$slug  = $_POST['new_slug'] ?? null;
 	wp_die( get_sample_permalink_html( $post_id, $title, $slug ) );
 }
 
@@ -4612,6 +4626,12 @@ function wp_ajax_activate_plugin() {
 
 	if ( ! current_user_can( 'activate_plugin', $status['plugin'] ) ) {
 		$status['errorMessage'] = __( 'Sorry, you are not allowed to activate plugins on this site.' );
+		wp_send_json_error( $status );
+	}
+
+	// A network-only plugin is activated for the entire network.
+	if ( is_multisite() && is_network_only_plugin( $status['plugin'] ) && ! current_user_can( 'manage_network_plugins' ) ) {
+		$status['errorMessage'] = __( 'Sorry, you are not allowed to activate this plugin.' );
 		wp_send_json_error( $status );
 	}
 

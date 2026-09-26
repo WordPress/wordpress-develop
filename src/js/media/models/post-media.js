@@ -2,7 +2,7 @@
  * wp.media.model.PostMedia
  *
  * Shared model class for audio and video. Updates the model after
- *   "Add Audio|Video Source" and "Replace Audio|Video" states return
+ * "Add Audio|Video Source" and "Replace Audio|Video" states return
  *
  * @memberOf wp.media.model
  *

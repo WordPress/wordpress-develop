@@ -636,7 +636,6 @@ function _register_widget_update_callback( $id_base, $update_callback, $options 
  *                                  Default empty array.
  * @param mixed      ...$params     Optional additional parameters to pass to the callback function when it's called.
  */
-
 function _register_widget_form_callback( $id, $name, $form_callback, $options = array(), ...$params ) {
 	global $wp_registered_widget_controls;
 
@@ -791,7 +790,9 @@ function dynamic_sidebar( $index = 1 ) {
 		 * @see register_sidebar()
 		 *
 		 * @param array $params {
-		 *     @type array $args  {
+		 *     The arguments the display callback is called with, in order.
+		 *
+		 *     @type array $0 {
 		 *         An array of widget display arguments.
 		 *
 		 *         @type string $name          Name of the sidebar the widget is assigned to.
@@ -805,8 +806,8 @@ function dynamic_sidebar( $index = 1 ) {
 		 *         @type string $widget_id     ID of the widget.
 		 *         @type string $widget_name   Name of the widget.
 		 *     }
-		 *     @type array $widget_args {
-		 *         An array of multi-widget arguments.
+		 *     @type array ...$1 {
+		 *         The parameters the widget was registered with, such as the multi-widget arguments.
 		 *
 		 *         @type int $number Number increment used for multiples of the same widget.
 		 *     }
@@ -1638,6 +1639,9 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 		return;
 	}
 
+	$blog_charset = get_option( 'blog_charset' );
+	$date_format  = $show_date ? get_option( 'date_format' ) : '';
+
 	echo '<ul>';
 	foreach ( $rss->get_items( 0, $items ) as $item ) {
 		$link = $item->get_link();
@@ -1651,7 +1655,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$title = __( 'Untitled' );
 		}
 
-		$desc = html_entity_decode( $item->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) );
+		$desc = html_entity_decode( $item->get_description(), ENT_QUOTES, $blog_charset );
 		$desc = esc_attr( wp_trim_words( $desc, 55, ' [&hellip;]' ) );
 
 		$summary = '';
@@ -1671,7 +1675,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$date = $item->get_date( 'U' );
 
 			if ( $date ) {
-				$date = ' <span class="rss-date">' . date_i18n( get_option( 'date_format' ), $date ) . '</span>';
+				$date = ' <span class="rss-date">' . date_i18n( $date_format, $date ) . '</span>';
 			}
 		}
 
@@ -1720,9 +1724,9 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	);
 	$inputs         = wp_parse_args( $inputs, $default_inputs );
 
-	$args['title'] = $args['title'] ?? '';
-	$args['url']   = $args['url'] ?? '';
-	$args['items'] = (int) ( $args['items'] ?? 0 );
+	$args['title'] ??= '';
+	$args['url']   ??= '';
+	$args['items']   = (int) ( $args['items'] ?? 0 );
 
 	if ( $args['items'] < 1 || 20 < $args['items'] ) {
 		$args['items'] = 10;
@@ -1999,7 +2003,7 @@ function wp_assign_widget_to_sidebar( $widget_id, $sidebar_id ) {
  * @global array $wp_registered_widgets  The registered widgets.
  * @global array $wp_registered_sidebars The registered sidebars.
  *
- * @param string $widget_id Widget ID.
+ * @param string $widget_id  Widget ID.
  * @param string $sidebar_id Sidebar ID.
  * @return string
  */

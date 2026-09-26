@@ -337,22 +337,6 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 20488
-	 */
-	public function test_file_edit_caps_not_reliant_on_unfiltered_html_constant() {
-		$this->assertFalse( defined( 'DISALLOW_FILE_MODS' ) );
-		$this->assertFalse( defined( 'DISALLOW_FILE_EDIT' ) );
-
-		if ( ! defined( 'DISALLOW_UNFILTERED_HTML' ) ) {
-			define( 'DISALLOW_UNFILTERED_HTML', true );
-		}
-
-		$this->assertTrue( DISALLOW_UNFILTERED_HTML );
-		$this->assertSame( array( 'update_core' ), map_meta_cap( 'update_core', self::$user_id ) );
-		$this->assertSame( array( 'edit_plugins' ), map_meta_cap( 'edit_plugins', self::$user_id ) );
-	}
-
-	/**
 	 * Test a post without an author.
 	 *
 	 * @ticket 27020

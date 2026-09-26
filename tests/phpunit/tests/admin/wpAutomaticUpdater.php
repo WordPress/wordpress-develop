@@ -41,6 +41,31 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Builds an open_basedir value that allows PHPUnit to load Composer dependencies.
+	 *
+	 * Composer dependencies may live outside a secondary worktree, and PHPUnit can
+	 * load assertion-related classes after the restriction is set.
+	 *
+	 * @param string $abspath_grandparent Directory containing the repository.
+	 * @return string The open_basedir value.
+	 */
+	private function get_open_basedir_for_tests( $abspath_grandparent ) {
+		$composer_vendor_dir = dirname(
+			( new ReflectionClass( Composer\Autoload\ClassLoader::class ) )->getFileName(),
+			2
+		);
+
+		return implode(
+			PATH_SEPARATOR,
+			array(
+				sys_get_temp_dir(),
+				wp_normalize_path( $abspath_grandparent ),
+				wp_normalize_path( $composer_vendor_dir ),
+			)
+		);
+	}
+
+	/**
 	 * Tests that `WP_Automatic_Updater::send_plugin_theme_email()` appends
 	 * plugin URLs.
 	 *
@@ -612,8 +637,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		$abspath_grandparent = trailingslashit( dirname( $abspath_parent ) );
 
 		$open_basedir_backup = ini_get( 'open_basedir' );
-		// Allow access to the directory one level above the repository.
-		ini_set( 'open_basedir', sys_get_temp_dir() . PATH_SEPARATOR . wp_normalize_path( $abspath_grandparent ) );
+		ini_set( 'open_basedir', $this->get_open_basedir_for_tests( $abspath_grandparent ) );
 
 		// Checking an allowed directory should succeed.
 		$actual = self::$updater->is_allowed_dir( wp_normalize_path( ABSPATH ) );
@@ -647,8 +671,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		$abspath_grandparent = trailingslashit( dirname( $abspath_parent ) );
 
 		$open_basedir_backup = ini_get( 'open_basedir' );
-		// Allow access to the directory one level above the repository.
-		ini_set( 'open_basedir', sys_get_temp_dir() . PATH_SEPARATOR . wp_normalize_path( $abspath_grandparent ) );
+		ini_set( 'open_basedir', $this->get_open_basedir_for_tests( $abspath_grandparent ) );
 
 		// Checking a directory not within the allowed path should trigger an `open_basedir` warning.
 		$actual = self::$updater->is_allowed_dir( '/.git' );

@@ -2021,7 +2021,15 @@ function get_attachment_innerHTML($id = 0, $fullsize = false, $max_dims = false)
  *                            Default OBJECT.
  * @param string $filter      Optional. How to filter the link for output. Accepts 'raw', 'edit',
  *                            'attribute', 'js', 'db', or 'display'. Default 'raw'.
- * @return object|array Bookmark object or array, depending on the type specified by `$output`.
+ * @return object|array|null Bookmark object or array, depending on the type specified by `$output`.
+ *                            Null if the bookmark does not exist.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return null|(
+ *     $output is 'ARRAY_A' ? array<string, mixed> : (
+ *         $output is 'ARRAY_N' ? array<int, mixed> : stdClass
+ *     )
+ * )
  */
 function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmark()' );
@@ -2518,6 +2526,16 @@ function is_taxonomy( $taxonomy ) {
  * @param string $taxonomy The taxonomy name to use
  * @param int $parent ID of parent term under which to confine the exists search.
  * @return mixed Get the term ID or term object, if exists.
+ *
+ * @phpstan-return (
+ *     $term is 0
+ *         ? 0
+ *         : (
+ *             $term is ''
+ *                 ? null
+ *                 : ( $taxonomy is '' ? string|null : array{ term_id: string, term_taxonomy_id: string }|null )
+ *         )
+ * )
  */
 function is_term( $term, $taxonomy = '', $parent = 0 ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'term_exists()' );
@@ -4569,6 +4587,13 @@ function _filter_query_attachment_filenames( $clauses ) {
  *                                 respectively. Default OBJECT.
  * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? non-empty-array<string, mixed>|null : (
+ *         $output is 'ARRAY_N' ? non-empty-array<int, mixed>|null : WP_Post|null
+ *     )
+ * )
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
 	_deprecated_function( __FUNCTION__, '6.2.0', 'WP_Query' );
@@ -6394,7 +6419,6 @@ function wp_enqueue_global_styles_custom_css() {
  *
  * @param array  $block     Block object.
  * @param string $variation Slug for the block style variation.
- *
  * @return string The unique variation name.
  */
 function wp_create_block_style_variation_instance_name( $block, $variation ) {
@@ -6499,6 +6523,8 @@ function wp_print_auto_sizes_contain_css_fix() {
  *
  * @param string|array $gpc String or array of data to slash.
  * @return string|array Slashed `$gpc`.
+ *
+ * @phpstan-return ( $gpc is string ? string : array )
  */
 function addslashes_gpc( $gpc ) {
 	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_slash()' );
@@ -6532,4 +6558,21 @@ function wp_sanitize_script_attributes( $attributes ) {
 		}
 	}
 	return $attributes_string;
+}
+
+/**
+ * Truncates a post slug.
+ *
+ * @since 3.6.0
+ * @deprecated 7.2.0 Use wp_truncate_slug() instead.
+ * @see wp_truncate_slug()
+ *
+ * @param string $slug   The slug to truncate.
+ * @param int    $length Optional. Max length of the slug. Default 200 (characters).
+ * @return string The truncated slug.
+ */
+function _truncate_post_slug( $slug, $length = 200 ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'wp_truncate_slug()' );
+
+	return wp_truncate_slug( $slug, $length );
 }

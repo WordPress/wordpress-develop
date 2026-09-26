@@ -20,8 +20,8 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 
 		$post = get_post( $post_id );
 
-		$this->assertNotEquals( $user1->ID, $post->post_author );
-		$this->assertEquals( $user2->ID, $post->post_author );
+		$this->assertNotSame( (string) $user1->ID, $post->post_author );
+		$this->assertSame( (string) $user2->ID, $post->post_author );
 	}
 
 	/**
@@ -80,9 +80,9 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 		$this->assertSame( $blog_ids, $blog_ids_of_user );
 
 		// Check if sites are flagged as expected.
-		$this->assertEquals( 1, $blogs_of_user[ $blog_ids[0] ]->spam );
-		$this->assertEquals( 1, $blogs_of_user[ $blog_ids[1] ]->archived );
-		$this->assertEquals( 1, $blogs_of_user[ $blog_ids[2] ]->deleted );
+		$this->assertSame( '1', $blogs_of_user[ $blog_ids[0] ]->spam );
+		$this->assertSame( '1', $blogs_of_user[ $blog_ids[1] ]->archived );
+		$this->assertSame( '1', $blogs_of_user[ $blog_ids[2] ]->deleted );
 
 		unset( $blog_ids[0] );
 		unset( $blog_ids[1] );
@@ -110,7 +110,6 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => get_current_user_id() ) );
 
-		$this->assertIsInt( $blog_id );
 		$this->assertTrue( is_blog_user( $blog_id ) );
 		$this->assertTrue( remove_user_from_blog( $user1_id, $blog_id ) );
 		$this->assertFalse( is_blog_user( $blog_id ) );
@@ -141,8 +140,6 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 		$this->assertTrue( is_user_member_of_blog( $user1_id, $site_id ) );
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => get_current_user_id() ) );
-
-		$this->assertIsInt( $blog_id );
 
 		// Current user gets added to new blogs.
 		$this->assertTrue( is_user_member_of_blog( $user1_id, $blog_id ) );

@@ -988,7 +988,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'map_meta_cap', array( $this, 'grant_edit_term' ), 10, 2 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'user_has_cap', array( $this, 'grant_edit_term' ), 10, 2 );
+		remove_filter( 'user_has_cap', array( $this, 'grant_edit_term' ) );
 
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -1015,7 +1015,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_edit_term' ), 10, 2 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'user_has_cap', array( $this, 'revoke_edit_term' ), 10, 2 );
+		remove_filter( 'user_has_cap', array( $this, 'revoke_edit_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_update', $response, 403 );
 	}
@@ -1213,7 +1213,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'map_meta_cap', array( $this, 'grant_delete_term' ), 10, 2 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'grant_delete_term' ), 10, 2 );
+		remove_filter( 'map_meta_cap', array( $this, 'grant_delete_term' ) );
 
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -1241,7 +1241,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_delete_term' ), 10, 2 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'revoke_delete_term' ), 10, 2 );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_delete_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
 	}

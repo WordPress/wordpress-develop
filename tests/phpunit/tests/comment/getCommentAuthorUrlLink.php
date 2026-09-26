@@ -9,6 +9,12 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 
 	protected static $comments = array();
 
+	public function tear_down() {
+		unset( $GLOBALS['comment'] );
+
+		parent::tear_down();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		unset( $GLOBALS['comment'] );
 

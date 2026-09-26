@@ -13,11 +13,11 @@ var $ = jQuery,
  * @augments wp.Backbone.View
  * @augments Backbone.View
  *
- * @param {object} [options]                   Options hash passed to the view.
- * @param {object} [options.uploader]          Uploader properties.
+ * @param {Object} [options]                   Options hash passed to the view.
+ * @param {Object} [options.uploader]          Uploader properties.
  * @param {jQuery} [options.uploader.browser]
  * @param {jQuery} [options.uploader.dropzone] jQuery collection of the dropzone.
- * @param {object} [options.uploader.params]
+ * @param {Object} [options.uploader.params]
  */
 UploaderWindow = wp.media.View.extend(/** @lends wp.media.view.UploaderWindow.prototype */{
 	tagName:   'div',

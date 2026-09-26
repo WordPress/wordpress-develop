@@ -201,7 +201,7 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 			'test-value',
 			$result->get_value( array(), null, '' )
 		);
-		$this->assertEquals( array( 'sourceContext' ), $result->uses_context );
+		$this->assertSame( array( 'sourceContext' ), $result->uses_context );
 	}
 
 	/**

@@ -185,6 +185,12 @@ do_action( 'customize_controls_print_scripts' );
  * @since 5.5.0
  */
 do_action( 'customize_controls_head' );
+
+/** This filter is documented in wp-admin/admin-header.php */
+$additional_body_class = apply_filters( 'admin_body_class', '' );
+if ( is_string( $additional_body_class ) && '' !== $additional_body_class ) {
+	$body_class .= ' ' . $additional_body_class;
+}
 ?>
 </head>
 <body class="<?php echo esc_attr( $body_class ); ?>">
@@ -288,7 +294,7 @@ do_action( 'customize_controls_head' );
 							$class .= ' active';
 						}
 						?>
-						<button type="button" class="<?php echo esc_attr( $class ); ?>" aria-pressed="<?php echo esc_attr( $active ); ?>" data-device="<?php echo esc_attr( $device ); ?>">
+						<button type="button" class="<?php echo esc_attr( $class ); ?>" aria-pressed="<?php echo $active ? 'true' : 'false'; ?>" data-device="<?php echo esc_attr( $device ); ?>">
 							<span class="devices__preview-label"><?php echo esc_html( $settings['label'] ); ?></span>
 						</button>
 					<?php endforeach; ?>

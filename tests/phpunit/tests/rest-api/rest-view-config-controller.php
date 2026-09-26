@@ -303,6 +303,35 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * The `root`/`site` entity provides the form of the site identity screen.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_root_site_form() {
+		// Admin: reading root config requires `manage_options`.
+		wp_set_current_user( self::$admin_id );
+
+		$response = $this->dispatch_request( 'root', 'site' );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = json_decode( wp_json_encode( $response->get_data() ), true );
+
+		$this->assertSame(
+			array(
+				'type'          => 'regular',
+				'labelPosition' => 'top',
+			),
+			$data['form']['layout']
+		);
+		$this->assertSame(
+			array( 'title', 'description', 'site_logo', 'site_icon' ),
+			$data['form']['fields']
+		);
+	}
+
+	/**
 	 * Empty object-typed config values serialize as JSON objects ({}), not arrays ([]).
 	 *
 	 * @covers ::get_items
