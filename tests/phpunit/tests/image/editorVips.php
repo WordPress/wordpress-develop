@@ -793,6 +793,68 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a paletted PNG stays paletted when it is streamed.
+	 */
+	public function test_stream_preserves_png_palette() {
+		$file = DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png';
+
+		$this->assertSame(
+			3,
+			$this->get_png_color_type( $file ),
+			'The fixture itself is not colour type 3.'
+		);
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		/*
+		 * stream() sends a Content-Type header, which PHPUnit turns into a warning
+		 * because the test suite has already produced output.
+		 */
+		ob_start();
+		$result = @$vips_image_editor->stream( 'image/png' );
+		$buffer = ob_get_clean();
+
+		$this->assertTrue( $result );
+
+		$streamed_file = tempnam( get_temp_dir(), 'vips_stream_palette_' ) . '.png';
+		file_put_contents( $streamed_file, $buffer );
+		$color_type = $this->get_png_color_type( $streamed_file );
+		unlink( $streamed_file );
+
+		$this->assertSame(
+			3,
+			$color_type,
+			'The streamed PNG should keep the palette its source had.'
+		);
+	}
+
+	/**
+	 * Tests that a lossless WebP is not streamed as a lossy one.
+	 */
+	public function test_stream_preserves_lossless_webp() {
+		$file = DIR_TESTDATA . '/images/webp-lossless.webp';
+
+		$this->assertTrue(
+			$this->is_lossless_webp( file_get_contents( $file ) ),
+			'The fixture itself is not a lossless WebP.'
+		);
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		ob_start();
+		$result = @$vips_image_editor->stream( 'image/webp' );
+		$buffer = ob_get_clean();
+
+		$this->assertTrue( $result );
+		$this->assertTrue(
+			$this->is_lossless_webp( $buffer ),
+			'A lossless WebP should not be streamed as a lossy one.'
+		);
+	}
+
+	/**
 	 * Tests that an image created with WP_Image_Editor_Vips preserves alpha.
 	 */
 	public function test_image_preserves_alpha() {
@@ -970,6 +1032,18 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	private function get_png_color_type( $file ) {
 		// The colour type is the 10th byte of the IHDR chunk, at offset 25 of the file.
 		return ord( file_get_contents( $file, false, null, 25, 1 ) );
+	}
+
+	/**
+	 * Whether a WebP image is encoded losslessly.
+	 *
+	 * A lossless WebP carries its bitstream in a VP8L chunk, where a lossy one uses VP8.
+	 *
+	 * @param string $contents The contents of a WebP file.
+	 * @return bool Whether the image is lossless.
+	 */
+	private function is_lossless_webp( $contents ) {
+		return false !== strpos( $contents, 'VP8L' );
 	}
 
 	/**
