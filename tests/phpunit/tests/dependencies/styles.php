@@ -591,6 +591,22 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that common depends on wp-theme so design tokens load with admin CSS.
+	 *
+	 * @ticket 65646
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_common_depends_on_wp_theme() {
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertContains(
+			'wp-theme',
+			$GLOBALS['wp_styles']->registered['common']->deps
+		);
+	}
+
+	/**
 	 * Tests that wp-edit-blocks loads design tokens before other editor styles.
 	 *
 	 * @ticket 65646
