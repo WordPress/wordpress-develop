@@ -724,7 +724,7 @@
 				}
 			},
 			"core/search": {
-				"css": "& .wp-block-search__input{border-radius:.33rem}",
+				"css": "& .wp-block-search__input{border-radius:.33rem;border-color:#757575;}",
 				"typography": {
 					"fontSize": "var(--wp--preset--font-size--small)"
 				},
