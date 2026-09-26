@@ -261,23 +261,41 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$class_html   = '';
 		$aria_current = '';
 
-		if ( ! empty( $css_class ) ) {
+		$edit_filter_link_vars = compact( 'url', 'link_text', 'css_class' );
+
+		/**
+		 * Filters the links created for filtering the posts list table.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param array $edit_filter_link_vars {
+		 *      The edit filter link variables.
+		 *
+		 *      @type string $url       The formatted link string.
+		 *      @type string $link_text The link text.
+		 *      @type string $css_class The class HTML.
+		 * }
+		 * @param array $args URL parameters for the link.
+		 */
+		$edit_filter_link_vars = apply_filters( 'edit_filter_links', $edit_filter_link_vars, $args );
+
+		if ( ! empty( $edit_filter_link_vars['css_class'] ) ) {
 			$class_html = sprintf(
 				' class="%s"',
-				esc_attr( $css_class )
+				esc_attr( $edit_filter_link_vars['css_class'] )
 			);
 
-			if ( 'current' === $css_class ) {
+			if ( 'current' === $edit_filter_link_vars['css_class'] ) {
 				$aria_current = ' aria-current="page"';
 			}
 		}
 
 		return sprintf(
 			'<a href="%s"%s%s>%s</a>',
-			esc_url( $url ),
+			esc_url( $edit_filter_link_vars['url'] ),
 			$class_html,
 			$aria_current,
-			$link_text
+			$edit_filter_link_vars['link_text']
 		);
 	}
 
