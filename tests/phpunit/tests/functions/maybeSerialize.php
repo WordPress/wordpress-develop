@@ -246,4 +246,67 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that maybe_unserialize() allows all classes by default for backwards compatibility.
+	 *
+	 * @ticket 62970
+	 */
+	public function test_maybe_unserialize_allows_all_classes_by_default() {
+		$obj        = new stdClass();
+		$obj->foo   = 'bar';
+		$serialized = serialize( $obj );
+
+		$result = maybe_unserialize( $serialized );
+		$this->assertInstanceOf( 'stdClass', $result );
+		$this->assertEquals( 'bar', $result->foo );
+	}
+
+	/**
+	 * Tests that maybe_unserialize() blocks classes when filtered.
+	 *
+	 * @ticket 62970
+	 */
+	public function test_maybe_unserialize_blocks_filtered_classes() {
+		$obj        = new stdClass();
+		$obj->foo   = 'bar';
+		$serialized = serialize( $obj );
+
+		add_filter( 'maybe_unserialize_allowed_classes', '__return_false' );
+
+		$result = maybe_unserialize( $serialized );
+		$this->assertInstanceOf( '__PHP_Incomplete_Class', $result );
+		$this->assertNotInstanceOf( 'stdClass', $result );
+
+		remove_filter( 'maybe_unserialize_allowed_classes', '__return_false' );
+	}
+
+	/**
+	 * Tests that maybe_unserialize() allows specific classes when filtered.
+	 *
+	 * @ticket 62970
+	 */
+	public function test_maybe_unserialize_allows_filtered_classes() {
+		$obj        = new stdClass();
+		$obj->foo   = 'bar';
+		$serialized = serialize( $obj );
+
+		add_filter(
+			'maybe_unserialize_allowed_classes',
+			function () {
+				return array( 'stdClass' );
+			}
+		);
+
+		$result = maybe_unserialize( $serialized );
+		$this->assertInstanceOf( 'stdClass', $result );
+		$this->assertEquals( 'bar', $result->foo );
+
+		remove_filter(
+			'maybe_unserialize_allowed_classes',
+			function () {
+				return array( 'stdClass' );
+			}
+		);
+	}
 }
