@@ -2798,10 +2798,21 @@ class WP_Site_Health {
 	 */
 	public function get_test_opcode_cache(): array {
 		$opcode_cache_enabled = false;
-		if ( function_exists( 'opcache_get_status' ) ) {
-			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
-			if ( $status && true === $status['opcache_enabled'] ) {
-				$opcode_cache_enabled = true;
+		if ( extension_loaded( 'Zend OPcache' ) && ini_get( 'opcache.enable' ) ) {
+			/*
+			 * OPcache is enabled. When it operates in file cache only mode
+			 * (opcache.file_cache_only=1), opcache_get_status() returns false
+			 * even though opcode caching is active, so treat the extension being
+			 * enabled as sufficient and only defer to opcache_get_status() when
+			 * it returns usable data.
+			 */
+			$opcode_cache_enabled = true;
+
+			if ( function_exists( 'opcache_get_status' ) ) {
+				$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
+				if ( is_array( $status ) && isset( $status['opcache_enabled'] ) ) {
+					$opcode_cache_enabled = (bool) $status['opcache_enabled'];
+				}
 			}
 		}
 
