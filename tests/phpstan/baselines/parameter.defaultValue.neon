@@ -33,8 +33,3 @@ parameters:
 			identifier: parameter.defaultValue
 			count: 1
 			path: ../../../src/wp-admin/includes/class-custom-image-header.php
-		-
-			message: '#^Default value of the parameter \#3 \$deprecated \(''''\) of function unregister_setting\(\) is incompatible with type callable\(\)\: mixed\.$#'
-			identifier: parameter.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/option.php
