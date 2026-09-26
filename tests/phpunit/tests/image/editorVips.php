@@ -808,10 +808,11 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		$vips_image_editor->load();
 
 		/*
-		 * stream() sends a Content-Type header, which PHPUnit turns into a warning
-		 * because the test suite has already produced output.
+		 * stream() sends a Content-Type header, which cannot be set once PHPUnit has
+		 * produced output, so the warning it raises is unavoidable here.
 		 */
 		ob_start();
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning is unavoidable.
 		$result = @$vips_image_editor->stream( 'image/png' );
 		$buffer = ob_get_clean();
 
@@ -844,6 +845,7 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		$vips_image_editor->load();
 
 		ob_start();
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning is unavoidable.
 		$result = @$vips_image_editor->stream( 'image/webp' );
 		$buffer = ob_get_clean();
 

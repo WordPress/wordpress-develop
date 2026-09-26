@@ -758,6 +758,73 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	}
 
 	/**
+	 * Returns the libvips save options for a mime type.
+	 *
+	 * Saving and streaming share these because the options describe how to encode this
+	 * image in this format, which does not depend on where the bytes are going. Only
+	 * stripping metadata is save-specific, since it is what a resized image is expected
+	 * to lose when it is written to the media library.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param Jcupitt\Vips\Image $image      The image being written.
+	 * @param string             $mime_type  The mime type it is being written as.
+	 * @param bool               $strip_meta Optional. Whether to strip metadata, for the
+	 *                                       encoders that accept the option. Default false.
+	 * @return array Options passed to `writeToBuffer()` or `writeToFile()`.
+	 */
+	protected function get_save_options( $image, $mime_type, $strip_meta = false ) {
+		$options = array();
+
+		switch ( $mime_type ) {
+			case 'image/jpeg':
+			case 'image/avif':
+				$options['Q']     = $this->get_quality();
+				$options['strip'] = $strip_meta;
+				break;
+
+			case 'image/webp':
+				$options['Q']     = $this->get_quality();
+				$options['strip'] = $strip_meta;
+
+				// A lossless WebP has no quality to trade away, so it is re-saved losslessly.
+				if ( $this->lossless ) {
+					$options['lossless'] = true;
+				}
+				break;
+
+			case 'image/png':
+				// PNG is lossless, so there is no quality to trade away, and the Imagick
+				// editor saves at maximum deflate compression. Deriving a level from the
+				// quality instead wrote files far larger than the source they came from.
+				$options['compression'] = 9;
+				$options['strip']       = $strip_meta;
+
+				// Asking for a palette back keeps an indexed PNG indexed. Without it the
+				// resized image is written as true colour, which is much larger than the
+				// file it came from. The option requires libvips 8.13.
+				if ( $this->paletted && version_compare( Jcupitt\Vips\Config::version(), '8.13', '>=' ) ) {
+					$options['palette'] = true;
+				}
+				break;
+
+			case 'image/gif':
+				$options['strip'] = $strip_meta;
+				break;
+		}
+
+		// Of the formats handled above, only PNG and the HEIF family can be asked to
+		// store fewer bits per sample.
+		$bit_depth = $this->get_save_bit_depth( $image, $mime_type );
+
+		if ( null !== $bit_depth ) {
+			$options['bitdepth'] = $bit_depth;
+		}
+
+		return $options;
+	}
+
+	/**
 	 * Saves current image to file.
 	 *
 	 * @since 7.2.0
@@ -804,9 +871,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		}
 
 		try {
-			// Prepare save options based on mime type.
-			$save_options = array();
-
 			/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
 			$strip_meta = apply_filters( 'image_strip_meta', true );
 
@@ -815,53 +879,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			// so saving an image that was merely loaded keeps its metadata.
 			$strip_meta = $strip_meta && $this->resized;
 
-			switch ( $mime_type ) {
-				case 'image/jpeg':
-					$save_options['Q']     = $this->get_quality();
-					$save_options['strip'] = $strip_meta;
-					break;
-
-				case 'image/png':
-					// PNG is lossless, so there is no quality to trade away, and the Imagick
-					// editor saves at maximum deflate compression. Deriving a level from the
-					// quality instead wrote files far larger than the source they came from.
-					$save_options['compression'] = 9;
-					$save_options['strip']       = $strip_meta;
-
-					// Asking for a palette back keeps an indexed PNG indexed. Without it the
-					// resized image is written as true colour, which is much larger than the
-					// file it came from. The option requires libvips 8.13.
-					if ( $this->paletted && version_compare( Jcupitt\Vips\Config::version(), '8.13', '>=' ) ) {
-						$save_options['palette'] = true;
-					}
-					break;
-
-				case 'image/webp':
-					$save_options['Q']     = $this->get_quality();
-					$save_options['strip'] = $strip_meta;
-
-					if ( $this->lossless ) {
-						$save_options['lossless'] = true;
-					}
-					break;
-
-				case 'image/gif':
-					$save_options['strip'] = $strip_meta;
-					break;
-
-				case 'image/avif':
-					$save_options['Q']     = $this->get_quality();
-					$save_options['strip'] = $strip_meta;
-					break;
-			}
-
-			// Of the formats above, only PNG and the HEIF family can be asked to store
-			// fewer bits per sample.
-			$bit_depth = $this->get_save_bit_depth( $image, $mime_type );
-
-			if ( null !== $bit_depth ) {
-				$save_options['bitdepth'] = $bit_depth;
-			}
+			$save_options = $this->get_save_options( $image, $mime_type, $strip_meta );
 
 			if ( wp_is_stream( $filename ) ) {
 				$buffer = $image->writeToBuffer( '.' . $extension, $save_options );
@@ -930,20 +948,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( null, $mime_type );
 
 		try {
-			$save_options = array();
-
-			switch ( $mime_type ) {
-				case 'image/png':
-					// PNG is lossless; see the note in _save().
-					$save_options['compression'] = 9;
-					break;
-
-				case 'image/webp':
-				case 'image/jpeg':
-				case 'image/avif':
-					$save_options['Q'] = $this->get_quality();
-					break;
-			}
+			$save_options = $this->get_save_options( $this->image, $mime_type );
 
 			// Get the image buffer.
 			$buffer = $this->image->writeToBuffer( '.' . $extension, $save_options );
