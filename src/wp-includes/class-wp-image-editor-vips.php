@@ -129,13 +129,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 		$vips_extension = strtoupper( self::get_extension( $mime_type ) );
 
-		if ( ! $vips_extension ) {
-			self::$mime_support_cache[ $mime_type ] = false;
-
-			return false;
-		}
-
-		if ( ! self::test() ) {
+		if ( ! $vips_extension || ! self::test() ) {
 			self::$mime_support_cache[ $mime_type ] = false;
 
 			return false;
@@ -155,9 +149,39 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			'JXL'  => 'jxl',
 		);
 
-		$target_extension = isset( $extension_map[ $vips_extension ] ) ? $extension_map[ $vips_extension ] : strtolower( $vips_extension );
+		$extension = isset( $extension_map[ $vips_extension ] ) ? $extension_map[ $vips_extension ] : strtolower( $vips_extension );
 
-		$supported = self::can_save_extension( $target_extension );
+		/*
+		 * The list of save suffixes is one query covering every format libvips was built
+		 * with, and is the closest equivalent of `Imagick::queryFormats()`. It is asked
+		 * first because it is around a hundred times cheaper than encoding.
+		 *
+		 * It cannot be trusted on its own. libheif loads its encoders as plugins at
+		 * runtime, so a build that lists HEIF support can still fail to encode when no
+		 * encoder plugin is installed. Formats whose encoder resolves that way, and
+		 * anything the list does not mention at all, are verified by encoding instead.
+		 */
+		$runtime_encoder_formats = array( 'heic', 'heif', 'avif' );
+
+		$supported = ! in_array( $extension, $runtime_encoder_formats, true )
+			&& in_array( '.' . $extension, self::get_save_suffixes(), true );
+
+		if ( ! $supported ) {
+			/*
+			 * Probe encoder support directly.
+			 *
+			 * `Image::black()` tests writing (encoding), where `findLoad()` would only
+			 * test reading (decoding). libvips picks the encoder from the suffix, and
+			 * nothing reaches disk, so there is no temp file to clean up.
+			 */
+			try {
+				$test_image = Jcupitt\Vips\Image::black( 1, 1 );
+
+				$supported = ! empty( $test_image->writeToBuffer( '.' . $extension ) );
+			} catch ( Exception $e ) {
+				$supported = false;
+			}
+		}
 
 		self::$mime_support_cache[ $mime_type ] = $supported;
 
@@ -165,102 +189,50 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	}
 
 	/**
-	 * Checks whether libvips can save images with the given extension.
-	 *
-	 * The list of save suffixes is one query covering every format the build supports,
-	 * which is the closest equivalent of `Imagick::queryFormats()`. It is asked first
-	 * because it is around a hundred times cheaper than encoding.
-	 *
-	 * That list describes what libvips was built with, so it is not sufficient on its
-	 * own. libheif loads its encoders as plugins at runtime, which means a build that
-	 * lists HEIF support can still fail to encode when no encoder plugin is installed.
-	 * The formats that resolve their encoder that way are always verified by encoding,
-	 * as is anything the list does not mention at all.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $extension A libvips suffix without the leading dot, for example `jpg`.
-	 * @return bool Whether the extension can be saved.
-	 */
-	protected static function can_save_extension( $extension ) {
-		// Encoders that libvips reaches through a runtime plugin loader rather than by
-		// linking them directly. Their presence in the suffix list says nothing about
-		// whether the plugin needed to encode is installed.
-		$runtime_encoder_formats = array( 'heic', 'heif', 'avif' );
-
-		if ( ! in_array( $extension, $runtime_encoder_formats, true )
-			&& in_array( '.' . $extension, self::get_save_suffixes(), true )
-		) {
-			return true;
-		}
-
-		// Probe encoder support directly.
-		// Use Image::black() to test write support (encoding) rather than findLoad() which only tests read support (decoding).
-		try {
-			$test_image = Jcupitt\Vips\Image::black( 1, 1 );
-
-			// libvips picks the encoder from the suffix, so the buffer is given one.
-			// Nothing is written to disk, so there is no temp file to clean up.
-			$buffer = $test_image->writeToBuffer( '.' . $extension );
-
-			return ! empty( $buffer );
-		} catch ( Exception $e ) {
-			return false;
-		}
-	}
-
-	/**
 	 * Returns the extensions libvips can save images to.
 	 *
-	 * The result is cached because it is a property of the loaded libvips build rather
-	 * than of any particular image.
+	 * This is a property of the loaded libvips build rather than of any particular image,
+	 * so it is queried once and cached.
+	 *
+	 * `vips_foreign_get_suffixes()` is only declared to FFI when libvips 8.8 or later is
+	 * loaded, so an older build reports an empty list and callers probe instead.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @return string[] Extensions including the leading dot, or an empty array when the
-	 *                  list cannot be determined and callers should probe instead.
+	 *                  list cannot be determined.
 	 */
 	protected static function get_save_suffixes() {
-		if ( ! isset( self::$save_suffixes ) ) {
-			self::$save_suffixes = self::query_save_suffixes();
+		if ( isset( self::$save_suffixes ) ) {
+			return self::$save_suffixes;
 		}
 
-		return self::$save_suffixes;
-	}
+		$suffixes = array();
 
-	/**
-	 * Asks libvips which save suffixes it supports.
-	 *
-	 * `vips_foreign_get_suffixes()` arrived in libvips 8.8 and is not declared to FFI by
-	 * earlier bindings, so it is only called when the loaded version provides it.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return string[] Extensions including the leading dot, or an empty array.
-	 */
-	protected static function query_save_suffixes() {
 		try {
-			if ( version_compare( Jcupitt\Vips\Config::version(), '8.8', '<' ) ) {
-				return array();
+			if ( version_compare( Jcupitt\Vips\Config::version(), '8.8', '>=' ) ) {
+				// The returned list is NULL-terminated and owned by the caller. These two
+				// functions are declared to libvips rather than to PHP, so PHPStan cannot
+				// see them.
+				// @phpstan-ignore method.notFound (Declared in the libvips FFI cdef.)
+				$all = Jcupitt\Vips\FFI::vips()->vips_foreign_get_suffixes();
+
+				for ( $i = 0; null !== $all[ $i ]; $i++ ) {
+					$suffixes[] = strtolower( \FFI::string( $all[ $i ] ) );
+				}
+
+				// @phpstan-ignore method.notFound (Declared in the glib FFI cdef.)
+				Jcupitt\Vips\FFI::glib()->g_strfreev( $all );
+
+				$suffixes = array_values( array_unique( $suffixes ) );
 			}
-
-			// The returned list is NULL-terminated and owned by the caller. These two
-			// functions are declared to libvips, not to PHP, so PHPStan cannot see them.
-			// @phpstan-ignore method.notFound (Declared in the libvips FFI cdef.)
-			$all      = Jcupitt\Vips\FFI::vips()->vips_foreign_get_suffixes();
-			$suffixes = array();
-
-			for ( $i = 0; null !== $all[ $i ]; $i++ ) {
-				$suffixes[] = strtolower( \FFI::string( $all[ $i ] ) );
-			}
-
-			// @phpstan-ignore method.notFound (Declared in the glib FFI cdef.)
-			Jcupitt\Vips\FFI::glib()->g_strfreev( $all );
-
-			return array_values( array_unique( $suffixes ) );
 		} catch ( Exception $e ) {
-			return array();
+			$suffixes = array();
 		}
+
+		self::$save_suffixes = $suffixes;
+
+		return $suffixes;
 	}
 
 	/**
