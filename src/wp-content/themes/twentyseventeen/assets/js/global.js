@@ -244,6 +244,17 @@
 		setTimeout( adjustHeaderHeight, 1000 );
 	});
 
+	// Recheck blockquote position when the Blog Sidebar changes in the Customizer.
+	$( function() {
+		if ( 'undefined' !== typeof wp && wp.customize && wp.customize.selectiveRefresh ) {
+			wp.customize.selectiveRefresh.bind( 'sidebar-updated', function( sidebarPartial ) {
+				if ( 'sidebar-1' === sidebarPartial.sidebarId ) {
+					belowEntryMetaClass( 'blockquote.alignleft, blockquote.alignright' );
+				}
+			});
+		}
+	});
+
 	// Add header video class after the video is loaded.
 	$( document ).on( 'wp-custom-header-video-loaded', function() {
 		$body.addClass( 'has-header-video' );
