@@ -32,6 +32,34 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Performs cleanup tasks after every test.
+	 */
+	public function tear_down() {
+		delete_option( 'email_delivery_last_tested' );
+		wp_set_current_user( 0 );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Creates and sets the current user for an email delivery test.
+	 *
+	 * @param string $email User email address.
+	 * @return WP_User The current user.
+	 */
+	private function set_email_delivery_test_user( $email = 'site-health@example.org' ) {
+		$user = self::factory()->user->create_and_get(
+			array(
+				'role'       => 'administrator',
+				'user_email' => $email,
+			)
+		);
+		wp_set_current_user( $user->ID );
+
+		return $user;
+	}
+
+	/**
 	 * @ticket 55791
 	 * @covers ::__construct()
 	 */
@@ -647,6 +675,243 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
 		add_option( 'test_set_autoloaded_option', $heavy_option_string, '', true );
+	}
+
+	/**
+	 * Tests the email delivery Site Health status.
+	 *
+	 * @ticket 65891
+	 * @dataProvider data_email_delivery_status
+	 * @covers ::get_email_delivery_last_tested()
+	 * @covers ::get_test_email_delivery()
+	 *
+	 * @param string $state           The stored timestamp state.
+	 * @param string $expected_status The expected Site Health status.
+	 */
+	public function test_email_delivery_status( $state, $expected_status ) {
+		$user      = $this->set_email_delivery_test_user();
+		$test_data = array(
+			'timestamp' => time() - DAY_IN_SECONDS,
+			'user_id'   => $user->ID,
+			'email'     => $user->user_email,
+		);
+
+		switch ( $state ) {
+			case 'malformed':
+				update_option( 'email_delivery_last_tested', 'not-a-timestamp', false );
+				break;
+			case 'future':
+				$test_data['timestamp'] = time() + HOUR_IN_SECONDS;
+				update_option( 'email_delivery_last_tested', $test_data, false );
+				break;
+			case 'expired':
+				$test_data['timestamp'] = time() - ( 3 * MONTH_IN_SECONDS );
+				update_option( 'email_delivery_last_tested', $test_data, false );
+				break;
+			case 'recent':
+				update_option( 'email_delivery_last_tested', $test_data, false );
+				break;
+		}
+
+		$result = $this->instance->get_test_email_delivery();
+
+		$this->assertSame( $expected_status, $result['status'] );
+		$this->assertSame( 'email_delivery', $result['test'] );
+		$this->assertSame(
+			array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			$result['badge']
+		);
+
+		$this->assertStringContainsString( 'site-health.php', $result['actions'] );
+		$this->assertStringNotContainsString( 'options-general.php', $result['actions'] );
+	}
+
+	/**
+	 * Data provider for test_email_delivery_status().
+	 *
+	 * @return array[] Test parameters.
+	 */
+	public function data_email_delivery_status() {
+		return array(
+			'missing timestamp'   => array( 'missing', 'recommended' ),
+			'malformed timestamp' => array( 'malformed', 'recommended' ),
+			'future timestamp'    => array( 'future', 'recommended' ),
+			'expired timestamp'   => array( 'expired', 'recommended' ),
+			'recent timestamp'    => array( 'recent', 'good' ),
+		);
+	}
+
+	/**
+	 * Tests a successful email delivery test.
+	 *
+	 * @ticket 65891
+	 * @covers ::send_email_delivery_test()
+	 */
+	public function test_send_email_delivery_test_success() {
+		global $wpdb;
+
+		$user      = $this->set_email_delivery_test_user();
+		$mail_data = null;
+		$callback  = static function ( $short_circuit, $atts ) use ( &$mail_data ) {
+			$mail_data = $atts;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $callback, 10, 2 );
+
+		$result = $this->instance->send_email_delivery_test();
+
+		remove_filter( 'pre_wp_mail', $callback );
+
+		$this->assertTrue( $result );
+		$this->assertSame( $user->user_email, $mail_data['to'] );
+		$this->assertStringContainsString( get_option( 'blogname' ), $mail_data['subject'] );
+		$this->assertStringContainsString( home_url( '/' ), $mail_data['message'] );
+
+		$test_data = get_option( 'email_delivery_last_tested' );
+		$this->assertGreaterThan( 0, $test_data['timestamp'] );
+		$this->assertSame( $user->ID, $test_data['user_id'] );
+		$this->assertSame( $user->user_email, $test_data['email'] );
+		$this->assertSame( 'good', $this->instance->get_test_email_delivery()['status'] );
+		$this->assertSame(
+			'off',
+			$wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT autoload FROM $wpdb->options WHERE option_name = %s",
+					'email_delivery_last_tested'
+				)
+			)
+		);
+	}
+
+	/**
+	 * Tests an immediate email sending failure.
+	 *
+	 * @ticket 65891
+	 * @covers ::send_email_delivery_test()
+	 */
+	public function test_send_email_delivery_test_failure() {
+		$this->set_email_delivery_test_user();
+		add_filter( 'pre_wp_mail', '__return_false' );
+
+		$result = $this->instance->send_email_delivery_test();
+
+		remove_filter( 'pre_wp_mail', '__return_false' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'send-failed', $result->get_error_code() );
+		$this->assertFalse( get_option( 'email_delivery_last_tested', false ) );
+	}
+
+	/**
+	 * Tests a current user without a valid email address.
+	 *
+	 * @ticket 65891
+	 * @covers ::send_email_delivery_test()
+	 */
+	public function test_send_email_delivery_test_invalid_address() {
+		$result = $this->instance->send_email_delivery_test();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'invalid-address', $result->get_error_code() );
+		$this->assertFalse( get_option( 'email_delivery_last_tested', false ) );
+	}
+
+	/**
+	 * Tests that changing the tested user's email invalidates the result.
+	 *
+	 * @ticket 65891
+	 * @covers ::get_email_delivery_last_tested()
+	 * @covers ::get_test_email_delivery()
+	 */
+	public function test_email_delivery_status_is_invalid_after_user_email_changes() {
+		$user = $this->set_email_delivery_test_user( 'before-change@example.org' );
+		update_option(
+			'email_delivery_last_tested',
+			array(
+				'timestamp' => time() - DAY_IN_SECONDS,
+				'user_id'   => $user->ID,
+				'email'     => $user->user_email,
+			),
+			false
+		);
+
+		wp_update_user(
+			array(
+				'ID'         => $user->ID,
+				'user_email' => 'after-change@example.org',
+			)
+		);
+
+		$this->assertSame( 'recommended', $this->instance->get_test_email_delivery()['status'] );
+	}
+
+	/**
+	 * Tests that deleting the tested user invalidates the result.
+	 *
+	 * @ticket 65891
+	 * @covers ::get_email_delivery_last_tested()
+	 * @covers ::get_test_email_delivery()
+	 */
+	public function test_email_delivery_status_is_invalid_after_user_is_deleted() {
+		$user = $this->set_email_delivery_test_user();
+		update_option(
+			'email_delivery_last_tested',
+			array(
+				'timestamp' => time() - DAY_IN_SECONDS,
+				'user_id'   => $user->ID,
+				'email'     => $user->user_email,
+			),
+			false
+		);
+
+		if ( is_multisite() ) {
+			wpmu_delete_user( $user->ID );
+		} else {
+			wp_delete_user( $user->ID );
+		}
+		wp_set_current_user( 0 );
+
+		$this->assertSame( 'recommended', $this->instance->get_test_email_delivery()['status'] );
+	}
+
+	/**
+	 * Tests that a recent email delivery result applies site-wide.
+	 *
+	 * @ticket 65891
+	 * @covers ::get_email_delivery_last_tested()
+	 * @covers ::get_test_email_delivery()
+	 */
+	public function test_email_delivery_status_applies_to_other_administrators() {
+		$user = $this->set_email_delivery_test_user();
+		update_option(
+			'email_delivery_last_tested',
+			array(
+				'timestamp' => time() - DAY_IN_SECONDS,
+				'user_id'   => $user->ID,
+				'email'     => $user->user_email,
+			),
+			false
+		);
+
+		$this->set_email_delivery_test_user( 'another-admin@example.org' );
+
+		$this->assertSame( 'good', $this->instance->get_test_email_delivery()['status'] );
+	}
+
+	/**
+	 * Tests that the email delivery check is registered as a direct test.
+	 *
+	 * @ticket 65891
+	 * @covers ::get_tests()
+	 */
+	public function test_email_delivery_test_is_registered() {
+		$tests = WP_Site_Health::get_tests();
+
+		$this->assertArrayHasKey( 'email_delivery', $tests['direct'] );
+		$this->assertSame( 'email_delivery', $tests['direct']['email_delivery']['test'] );
 	}
 
 	/**
