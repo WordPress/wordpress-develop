@@ -1150,6 +1150,9 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
  * @since 2.5.0
  * @since 5.2.0 Signature Verification with SoftFail was added.
  * @since 5.9.0 Support for Content-Disposition filename was added.
+ * @since 7.2.0 The error code for a non-200 response now reflects the actual
+ *              HTTP status code (`http_403`, `http_500`, ...) instead of always
+ *              being `http_404`.
  *
  * @param string $url                    The URL of the file to download.
  * @param int    $timeout                The timeout for the request to download the file.
@@ -1217,7 +1220,13 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 		unlink( $tmpfname );
 
-		return new WP_Error( 'http_404', trim( wp_remote_retrieve_response_message( $response ) ), $data );
+		/*
+		 * Name the error after the actual status code, e.g. `http_403` or `http_500`.
+		 * A response without a status code keeps the historical `http_404`.
+		 */
+		$error_code = $response_code ? 'http_' . $response_code : 'http_404';
+
+		return new WP_Error( $error_code, trim( wp_remote_retrieve_response_message( $response ) ), $data );
 	}
 
 	$content_disposition = wp_remote_retrieve_header( $response, 'Content-Disposition' );
