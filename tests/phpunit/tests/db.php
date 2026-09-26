@@ -1914,20 +1914,20 @@ class Tests_DB extends WP_UnitTestCase {
 			array(
 				'WHERE %i` = %d;',
 				array( 'evil_value -- ', 321 ),
-				false,
-				'WHERE `evil_value -- `` = 321;', // Won't run (SQL parse error: "Unclosed quote").
+				'The given identifier name is not allowed by MySQL:',
+				null,
 			),
 			array(
 				'WHERE `%i`` = %d;',
 				array( ' AND true -- ', 321 ),
-				false,
-				'WHERE `` AND true -- ``` = 321;', // Won't run (Unknown column '').
+				'The given identifier name is not allowed by MySQL:',
+				null,
 			),
 			array(
 				'WHERE ``%i` = %d;',
 				array( ' AND true -- ', 321 ),
-				false,
-				'WHERE ``` AND true -- `` = 321;', // Won't run (SQL parse error: "Unclosed quote").
+				'The given identifier name is not allowed by MySQL:',
+				null,
 			),
 			array(
 				'WHERE %2$i = %1$d;',
@@ -1950,8 +1950,8 @@ class Tests_DB extends WP_UnitTestCase {
 			array(
 				'WHERE %i LIKE %s LIMIT 1',
 				array( "field' -- ", "field' -- " ),
-				false,
-				"WHERE `field' -- ` LIKE 'field\' -- ' LIMIT 1", // In contrast to the above, Identifier vs String escaping is used.
+				'The given identifier name is not allowed by MySQL:',
+				null,
 			),
 			array(
 				'WHERE %2$i IN ( %s , %s ) LIMIT 1',
