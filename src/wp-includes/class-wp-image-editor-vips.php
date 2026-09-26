@@ -467,8 +467,9 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
 		}
 
-		$orig_size  = $this->size;
-		$orig_image = $this->image;
+		$orig_size    = $this->size;
+		$orig_image   = $this->image;
+		$orig_resized = $this->resized;
 
 		$size_data['width']  = isset( $size_data['width'] ) ? $size_data['width'] : null;
 		$size_data['height'] = isset( $size_data['height'] ) ? $size_data['height'] : null;
@@ -481,8 +482,9 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		$resized = $this->_resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
 
 		if ( is_wp_error( $resized ) ) {
-			$this->image = $orig_image;
-			$this->size  = $orig_size;
+			$this->image   = $orig_image;
+			$this->size    = $orig_size;
+			$this->resized = $orig_resized;
 
 			return $resized;
 		}
@@ -490,9 +492,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		$saved = $this->_save( $resized );
 
 		// The editor keeps the image it was loaded with, so further sub-sizes are all
-		// derived from the same original rather than from the previous sub-size.
-		$this->image = $orig_image;
-		$this->size  = $orig_size;
+		// derived from the same original rather than from the previous sub-size, and a
+		// save afterwards is still a save of an unresized image.
+		$this->image   = $orig_image;
+		$this->size    = $orig_size;
+		$this->resized = $orig_resized;
 
 		if ( ! is_wp_error( $saved ) ) {
 			unset( $saved['path'] );
