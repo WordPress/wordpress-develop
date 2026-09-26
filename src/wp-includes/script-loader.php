@@ -2666,10 +2666,15 @@ function _wp_expand_dependency_handles( WP_Dependencies $dependencies, array $ha
  *
  * These are resources for the *next* navigation rather than for the screen printing them, which is
  * what `rel="prefetch"` describes. `rel="preload"` would fetch them at the current document's
- * priority and make cross-navigation reuse depend entirely on the static files' HTTP cache headers,
- * which core does not control; browsers also warn about preloaded resources the document never uses.
- * A prefetch is already dispatched at the browser's lowest priority, so it stays out of the way of
- * that screen's own render-blocking assets without needing `fetchpriority`.
+ * priority, and browsers warn about preloaded resources the document never uses. A prefetch is
+ * already dispatched at the browser's lowest priority, so it stays out of the way of that screen's
+ * own render-blocking assets without needing `fetchpriority`.
+ *
+ * A prefetched response is reused only for as long as the HTTP cache considers it fresh, the same as
+ * any other cached response. Core does not send caching headers for its static files, so how long
+ * that is depends on the server: an explicit `max-age` or `Expires`, or else a heuristic lifetime
+ * derived from `Last-Modified`. Once the response is stale the next screen still revalidates it,
+ * which saves the download but not the round trip.
  *
  * The `as` attribute is still worth setting: it gives the request the same destination the admin
  * screen will later ask for, which is what lets the prefetched response be reused.
