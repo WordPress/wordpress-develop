@@ -93,6 +93,36 @@ class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test exte
 				'expected_error_code' => '',
 				'env'                 => $environment_type,
 			);
+
+			$datasets[ $environment_type . ' and a "query" success_format' ] = array(
+				'request'             => array( 'success_format' => 'query' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "form_post" success_format with an "https" scheme "success_url"' ] = array(
+				'request'             => array(
+					'success_url'    => 'https://example.org',
+					'success_format' => 'form_post',
+				),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and an invalid success_format' ] = array(
+				'request'             => array( 'success_format' => 'invalid' ),
+				'expected_error_code' => 'invalid_success_format',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "form_post" success_format with an app scheme "success_url"' ] = array(
+				'request'             => array(
+					'success_url'    => 'wordpress://example',
+					'success_format' => 'form_post',
+				),
+				'expected_error_code' => 'invalid_success_format',
+				'env'                 => $environment_type,
+			);
 		}
 
 		return $datasets;
