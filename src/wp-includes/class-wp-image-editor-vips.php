@@ -558,7 +558,10 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	public function maybe_exif_rotate() {
 		$orientation = null;
 
-		if ( 'image/jpeg' === $this->mime_type ) {
+		// The exif extension is optional, so this is checked even though PHPStan reports
+		// it as always true in the environment it analyses.
+		// @phpstan-ignore function.alreadyNarrowedType (The exif extension is optional.)
+		if ( is_callable( 'exif_read_data' ) && 'image/jpeg' === $this->mime_type ) {
 			$exif_data = @exif_read_data( $this->file );
 
 			if ( ! empty( $exif_data['Orientation'] ) ) {
