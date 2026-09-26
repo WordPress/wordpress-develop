@@ -54,6 +54,18 @@ if ( isset( $_POST['action'] ) && 'deleteblog' === $_POST['action'] && isset( $_
 
 	$switched_locale = switch_to_locale( get_locale() );
 
+	/* translators: Delete My Site email subject. %s: Site name */
+	$subject = sprintf( __( '[%s] Delete My Site' ), get_network()->site_name );
+
+	/**
+	 * Filters the subject of the email sent to the site admin when a request to delete a site in a Multisite network is submitted.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $subject Subject of the email.
+	 */
+	$subject = apply_filters( 'delete_site_email_subject', $subject );
+
 	/* translators: Do not translate USERNAME, URL_DELETE, SITENAME, SITEURL: those are placeholders. */
 	$content = __(
 		"Howdy ###USERNAME###,
@@ -93,15 +105,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITENAME###', get_network()->site_name, $content );
 	$content = str_replace( '###SITEURL###', network_home_url(), $content );
 
-	wp_mail(
-		get_option( 'admin_email' ),
-		sprintf(
-			/* translators: %s: Site title. */
-			__( '[%s] Delete My Site' ),
-			wp_specialchars_decode( get_option( 'blogname' ) )
-		),
-		$content
-	);
+	wp_mail( get_option( 'admin_email' ), $subject, $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
