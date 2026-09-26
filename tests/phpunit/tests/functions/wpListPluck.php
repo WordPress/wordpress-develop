@@ -106,6 +106,54 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57136
+	 */
+	public function test_wp_list_pluck_index_key_of_zero() {
+		$list = wp_list_pluck(
+			array(
+				array( 'key1', 'val1' ),
+				array( 'key2', 'val2' ),
+			),
+			1,
+			0
+		);
+		$this->assertSame(
+			array(
+				'key1' => 'val1',
+				'key2' => 'val2',
+			),
+			$list
+		);
+	}
+
+	/**
+	 * @ticket 57136
+	 */
+	public function test_wp_list_pluck_object_index_key_of_zero() {
+		$list = wp_list_pluck(
+			array(
+				(object) array(
+					0 => 'key1',
+					1 => 'val1',
+				),
+				(object) array(
+					0 => 'key2',
+					1 => 'val2',
+				),
+			),
+			1,
+			0
+		);
+		$this->assertSame(
+			array(
+				'key1' => 'val1',
+				'key2' => 'val2',
+			),
+			$list
+		);
+	}
+
+	/**
 	 * @ticket 28666
 	 */
 	public function test_wp_list_pluck_missing_index_key() {
