@@ -1099,11 +1099,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/nav-menu.php
 		-
-			message: '#^Parameter \#2 \$value of function setcookie expects string, int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/option.php
-		-
 			message: '#^Parameter \#1 \$engine of class Text_Diff constructor expects string, list\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
