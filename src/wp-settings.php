@@ -255,6 +255,7 @@ require ABSPATH . WPINC . '/class-wp-taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-term.php';
 require ABSPATH . WPINC . '/class-wp-term-query.php';
 require ABSPATH . WPINC . '/class-wp-tax-query.php';
+require ABSPATH . WPINC . '/knowledge.php';
 require ABSPATH . WPINC . '/update.php';
 require ABSPATH . WPINC . '/canonical.php';
 require ABSPATH . WPINC . '/shortcodes.php';
@@ -360,6 +361,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-navigation-fallback
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-families-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-faces-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-knowledge-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icons-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icon-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-view-config-controller.php';
