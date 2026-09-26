@@ -1551,7 +1551,7 @@ function wp_get_document_title() {
  * @access private
  */
 function _wp_render_title_tag() {
-	if ( ! current_theme_supports( 'title-tag' ) ) {
+	if ( current_theme_supports( 'title-tag' ) ) {
 		return;
 	}
 
