@@ -343,16 +343,16 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @param string $html HTML input to process.
 	 */
-	public function test_deprecated_attribute_injector_returns_html_unchanged( $html ) {
+	public function test_deprecated_attribute_injector_returns_html_unchanged( string $html ) {
 		$this->assertSame( $html, wp_add_crossorigin_attributes( $html ) );
 	}
 
 	/**
 	 * Data provider of cross-origin elements that used to receive crossorigin="anonymous".
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_cross_origin_elements() {
+	public function data_cross_origin_elements(): array {
 		return array(
 			'cross-origin script'              => array(
 				'<script src="https://external.example.com/script.js"></script>',
