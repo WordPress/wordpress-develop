@@ -18,19 +18,11 @@
 
 ignore_user_abort( true );
 
-if ( ! headers_sent() ) {
-	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
-	header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
-}
-
-// Don't run cron until the request finishes, if possible.
-if ( function_exists( 'fastcgi_finish_request' ) ) {
-	fastcgi_finish_request();
-} elseif ( function_exists( 'litespeed_finish_request' ) ) {
-	litespeed_finish_request();
-}
-
 if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
+	if ( ! headers_sent() ) {
+		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
+		header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+	}
 	die();
 }
 
@@ -44,6 +36,27 @@ define( 'DOING_CRON', true );
 if ( ! defined( 'ABSPATH' ) ) {
 	/** Set up WordPress environment */
 	require_once __DIR__ . '/wp-load.php';
+}
+
+/** This filter is documented in wp-includes/default-constants.php */
+if ( ! apply_filters( 'wp_cron_endpoint_enabled', true ) ) {
+	if ( ! headers_sent() ) {
+		header( 'X-WP-Cron: Bypass' );
+	}
+	die();
+}
+
+if ( ! headers_sent() ) {
+	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
+	header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+	header( 'X-WP-Cron: Spawned' );
+}
+
+// Don't run cron until the request finishes, if possible.
+if ( function_exists( 'fastcgi_finish_request' ) ) {
+	fastcgi_finish_request();
+} elseif ( function_exists( 'litespeed_finish_request' ) ) {
+	litespeed_finish_request();
 }
 
 // Attempt to raise the PHP memory limit for cron event processing.
