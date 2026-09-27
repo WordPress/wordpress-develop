@@ -161,19 +161,21 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	 * Creates the title view.
 	 *
 	 * @param {Object} title The title object for creating the title view.
-	 * @this wp.media.controller.Region
+	 * @this {wp.media.controller.Region}
 	 */
 	createTitle: function( title ) {
+		// A modal's dialog element points `aria-labelledby` at its frame heading.
 		title.view = new wp.media.View({
 			controller: this,
-			tagName: 'h1'
+			tagName: 'h1',
+			attributes: this.modal ? { id: this.modal.titleId } : {}
 		});
 	},
 	/**
 	 * Creates the menu view.
 	 *
 	 * @param {Object} menu The menu object for creating the menu view.
-	 * @this wp.media.controller.Region
+	 * @this {wp.media.controller.Region}
 	 */
 	createMenu: function( menu ) {
 		menu.view = new wp.media.view.Menu({
@@ -204,7 +206,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	 * Creates the toolbar view.
 	 *
 	 * @param {Object} toolbar The toolbar object for creating the toolbar view.
-	 * @this wp.media.controller.Region
+	 * @this {wp.media.controller.Region}
 	 */
 	createToolbar: function( toolbar ) {
 		toolbar.view = new wp.media.view.Toolbar({
@@ -215,7 +217,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	 * Creates the router view.
 	 *
 	 * @param {Object} router The router object for creating the router view.
-	 * @this wp.media.controller.Region
+	 * @this {wp.media.controller.Region}
 	 */
 	createRouter: function( router ) {
 		router.view = new wp.media.view.Router({
@@ -272,7 +274,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	 * Creates the iframe content view.
 	 *
 	 * @param {Object} content The content object for creating the iframe content view.
-	 * @this wp.media.controller.Region
+	 * @this {wp.media.controller.Region}
 	 */
 	iframeContent: function( content ) {
 		this.$el.addClass('hide-toolbar');
