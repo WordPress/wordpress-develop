@@ -318,7 +318,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	set_site_transient( 'update_core', $updates );
 
-	if ( ! empty( $GLOBALS['wpdb']->last_error ) ) {
+	if ( ! wp_using_ext_object_cache() && ! empty( $GLOBALS['wpdb']->last_error ) ) {
 		wp_trigger_error(
 			__FUNCTION__,
 			'The result of the WordPress version check could not be stored: ' .
@@ -617,7 +617,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	set_site_transient( 'update_plugins', $updates );
 
-	if ( ! empty( $GLOBALS['wpdb']->last_error ) ) {
+	if ( ! wp_using_ext_object_cache() && ! empty( $GLOBALS['wpdb']->last_error ) ) {
 		wp_trigger_error(
 			__FUNCTION__,
 			'The result of the plugin update check could not be stored: ' .
@@ -892,7 +892,7 @@ function wp_update_themes( $extra_stats = array() ) {
 
 	set_site_transient( 'update_themes', $new_update );
 
-	if ( ! empty( $GLOBALS['wpdb']->last_error ) ) {
+	if ( ! wp_using_ext_object_cache() && ! empty( $GLOBALS['wpdb']->last_error ) ) {
 		wp_trigger_error(
 			__FUNCTION__,
 			'The result of the theme update check could not be stored: ' .
