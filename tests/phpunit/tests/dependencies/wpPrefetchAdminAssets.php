@@ -228,6 +228,58 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that nothing is prefetched when the login lands in the admin of another allowed host,
+	 * such as another site on a multisite network, which would request its assets from its own host.
+	 *
+	 * @ticket 57548
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_login_prints_nothing_for_admin_on_another_allowed_host(): void {
+		define( 'CONCATENATE_SCRIPTS', false );
+
+		add_filter(
+			'allowed_redirect_hosts',
+			static function ( array $hosts ): array {
+				$hosts[] = 'other.example.org';
+				return $hosts;
+			}
+		);
+
+		$this->assertSame(
+			array(),
+			$this->get_prefetched_on_login( array( 'redirect_to' => 'http://other.example.org/wp-admin/post-new.php' ) )
+		);
+	}
+
+	/**
+	 * Tests that nothing is prefetched when the login lands in an admin on this host but another port,
+	 * which wp_validate_redirect() allows since it compares only the host.
+	 *
+	 * @ticket 57548
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_login_prints_nothing_for_admin_on_another_port(): void {
+		define( 'CONCATENATE_SCRIPTS', false );
+
+		$scheme = (string) wp_parse_url( admin_url(), PHP_URL_SCHEME );
+		$host   = (string) wp_parse_url( admin_url(), PHP_URL_HOST );
+		$port   = (int) wp_parse_url( admin_url(), PHP_URL_PORT );
+		$path   = (string) wp_parse_url( admin_url(), PHP_URL_PATH );
+
+		// Any port other than the admin's own, which is the scheme's default when none is given.
+		$other_port = ( $port ? $port : ( 'https' === $scheme ? 443 : 80 ) ) + 1;
+
+		$this->assertSame(
+			array(),
+			$this->get_prefetched_on_login( array( 'redirect_to' => "{$scheme}://{$host}:{$other_port}{$path}" ) )
+		);
+	}
+
+	/**
 	 * Tests that the Dashboard and the post list tables prefetch only the editor's stylesheets.
 	 *
 	 * @ticket 57548

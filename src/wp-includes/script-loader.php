@@ -2535,7 +2535,8 @@ function script_concat_settings() {
  * The admin-wide handles cover every admin screen rather than only the Dashboard, so that part of
  * the list does not vary with where the login lands. Nothing is printed at all when the login is
  * not going to lead to an admin screen: on the password reset, registration, logout and
- * check-your-email flows, on an interim login, or when `redirect_to` points outside the admin.
+ * check-your-email flows, on an interim login, or when `redirect_to` points outside this site's
+ * admin.
  *
  * Nothing is printed when concatenation is enabled, since `load-scripts.php` and
  * `load-styles.php` already collapse these handles into a handful of requests.
@@ -2602,6 +2603,24 @@ function wp_prefetch_admin_assets(): void {
 		$admin_path = (string) wp_parse_url( admin_url(), PHP_URL_PATH );
 
 		if ( '' === $admin_path || ! str_starts_with( (string) wp_parse_url( $next_screen, PHP_URL_PATH ), $admin_path ) ) {
+			return;
+		}
+
+		/*
+		 * Nor are they when it lands in the admin of another host. wp_validate_redirect() accepts any
+		 * host in 'allowed_redirect_hosts', such as another site on a multisite network, and that
+		 * admin would request its assets from its own host rather than from this one. A relative
+		 * `redirect_to` stays on this host.
+		 */
+		$next_screen_host = wp_parse_url( $next_screen, PHP_URL_HOST );
+
+		if (
+			is_string( $next_screen_host ) &&
+			(
+				strtolower( $next_screen_host ) !== strtolower( (string) wp_parse_url( admin_url(), PHP_URL_HOST ) ) ||
+				wp_parse_url( $next_screen, PHP_URL_PORT ) !== wp_parse_url( admin_url(), PHP_URL_PORT )
+			)
+		) {
 			return;
 		}
 	} else {
