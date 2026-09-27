@@ -2686,17 +2686,16 @@ function wp_prefetch_admin_assets(): void {
 	if ( $next_screen_is_block_editor ) {
 		/*
 		 * Roots as well, expanded along with any from the login screen. `wp-edit-post` alone accounts
-		 * for most of the editor chrome; the rest cover the media modal, the block directory, the
-		 * format library and the editor's own reset.
+		 * for most of the editor chrome, including the block editor's content and reset styles by way
+		 * of `wp-edit-blocks`; the rest cover the block directory, the format library, the classic
+		 * editor's buttons and the media modal.
 		 */
 		$style_roots = array_merge(
 			$style_roots,
 			array(
 				'wp-edit-post',
-				'wp-block-editor-content',
 				'wp-block-directory',
 				'wp-format-library',
-				'wp-reset-editor-styles',
 				'editor-buttons',
 				'media-views',
 				'imgareaselect',
