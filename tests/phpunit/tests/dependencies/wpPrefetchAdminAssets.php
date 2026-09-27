@@ -339,7 +339,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_admin_screen_prefetches_editor_assets()}.
 	 *
-	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
+	 * @return array<non-falsy-string, array{ 0: string, 1: string }>
 	 */
 	public function data_admin_screens_leading_to_editor(): array {
 		return array(
@@ -350,18 +350,35 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that admin screens other than the Dashboard and the post list tables prefetch nothing.
+	 * Tests that admin screens other than the site's Dashboard and post list tables prefetch nothing.
 	 *
 	 * @ticket 57548
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
+	 *
+	 * @dataProvider data_other_admin_screens
+	 *
+	 * @param string $screen Screen ID.
 	 */
-	public function test_other_admin_screen_prints_nothing(): void {
+	public function test_other_admin_screen_prints_nothing( string $screen ): void {
 		define( 'CONCATENATE_SCRIPTS', false );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'plugins' ) );
+		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( $screen ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_other_admin_screen_prints_nothing()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string }>
+	 */
+	public function data_other_admin_screens(): array {
+		return array(
+			'Plugins'                 => array( 'plugins' ),
+			'Network Admin Dashboard' => array( 'dashboard-network' ),
+			'User Admin Dashboard'    => array( 'dashboard-user' ),
+		);
 	}
 
 	/**
