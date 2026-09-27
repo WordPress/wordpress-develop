@@ -186,7 +186,7 @@ parameters:
 		-
 			message: '#^Property WP_Term\:\:\$term_id \(int\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
-			count: 1
+			count: 2
 			path: ../../../src/wp-includes/nav-menu.php
 		-
 			message: '#^Property WP_Post\:\:\$post_name \(string\) in isset\(\) is not nullable\.$#'
