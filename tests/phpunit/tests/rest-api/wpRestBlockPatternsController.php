@@ -293,9 +293,28 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertCount( 12, $properties, 'The schema should contain 12 properties.' );
+		$this->assertArrayHasKey( 'name', $properties, 'The schema should contain a name property.' );
+		$this->assertArrayHasKey( 'title', $properties, 'The schema should contain a title property.' );
+		$this->assertArrayHasKey( 'content', $properties, 'The schema should contain a content property.' );
+		$this->assertArrayHasKey( 'description', $properties, 'The schema should contain a description property.' );
+		$this->assertArrayHasKey( 'viewport_width', $properties, 'The schema should contain a viewport_width property.' );
+		$this->assertArrayHasKey( 'inserter', $properties, 'The schema should contain an inserter property.' );
+		$this->assertArrayHasKey( 'categories', $properties, 'The schema should contain a categories property.' );
+		$this->assertArrayHasKey( 'keywords', $properties, 'The schema should contain a keywords property.' );
+		$this->assertArrayHasKey( 'block_types', $properties, 'The schema should contain a block_types property.' );
+		$this->assertArrayHasKey( 'post_types', $properties, 'The schema should contain a post_types property.' );
+		$this->assertArrayHasKey( 'template_types', $properties, 'The schema should contain a template_types property.' );
+		$this->assertArrayHasKey( 'source', $properties, 'The schema should contain a source property.' );
 	}
 }
