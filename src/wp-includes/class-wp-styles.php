@@ -224,14 +224,9 @@ class WP_Styles extends WP_Dependencies {
 		 */
 		$tag = apply_filters( 'style_loader_tag', $tag, $handle, $href, $media );
 
-		if ( 'rtl' === $this->text_direction && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
-			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
-				$suffix   = $obj->extra['suffix'] ?? '';
-				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $src, $ver, "$handle-rtl" ) );
-			} else {
-				$rtl_href = $this->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
-			}
+		$rtl_href = $this->get_rtl_href( $handle );
 
+		if ( null !== $rtl_href ) {
 			$rtl_tag = sprintf(
 				"<link rel='%s' id='%s-rtl-css'%s href='%s' media='%s' />\n",
 				$rel,
@@ -262,6 +257,54 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Gets the URL of the right-to-left stylesheet for a registered style.
+	 *
+	 * On a right-to-left locale, a style registered with `rtl` data is served by a separate
+	 * stylesheet, which either replaces its left-to-right one (when the data is `'replace'`)
+	 * or loads alongside it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $handle The style's registered handle.
+	 * @return string|null URL of the right-to-left stylesheet, after the {@see 'style_loader_src'}
+	 *                     filter. Null when the text direction is not right-to-left, or the style is
+	 *                     not registered, has no source of its own, or has no right-to-left variant.
+	 */
+	public function get_rtl_href( string $handle ): ?string {
+		if ( 'rtl' !== $this->text_direction || ! isset( $this->registered[ $handle ] ) ) {
+			return null;
+		}
+
+		$obj = $this->registered[ $handle ];
+
+		if ( ! $obj->src || ! isset( $obj->extra['rtl'] ) || ! $obj->extra['rtl'] ) {
+			return null;
+		}
+
+		if ( null === $obj->ver ) {
+			$ver = '';
+		} else {
+			$ver = $obj->ver ? $obj->ver : $this->default_version;
+		}
+
+		if ( isset( $this->args[ $handle ] ) ) {
+			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
+		}
+
+		if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
+			$suffix = isset( $obj->extra['suffix'] ) && is_string( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
+			return str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $obj->src, $ver, "$handle-rtl" ) );
+		}
+
+		// Any other value is the URL of the right-to-left stylesheet itself.
+		if ( ! is_string( $obj->extra['rtl'] ) ) {
+			return null;
+		}
+
+		return $this->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
 	}
 
 	/**

@@ -2499,113 +2499,6 @@ function script_concat_settings() {
 }
 
 /**
- * Resolves a registered script or style handle to the URL it would be loaded from.
- *
- * Mirrors how {@see WP_Scripts::do_item()} and {@see WP_Styles::do_item()} build the
- * URL they print, including the version query argument and the {@see 'script_loader_src'}
- * and {@see 'style_loader_src'} filters, without printing anything or disturbing the queue.
- *
- * The registry is deliberately not typed as WP_Dependencies, whose subclasses need not declare the
- * `base_url`, `content_url`, `default_version`, `text_direction` and `_css_href()` members the URL
- * is built from. Static analysis does not object to the wider type, having no reason to expect a
- * subclass beyond the two named here.
- *
- * @since 7.2.0
- * @access private
- *
- * @param WP_Scripts|WP_Styles $dependencies Registry to look the handle up in.
- * @param string               $handle       Handle to resolve.
- * @return string[] URLs the handle resolves to. Empty when the handle is not registered,
- *                  aliases other handles without a source of its own, or is filtered away.
- *
- * @phpstan-param non-empty-string $handle
- * @phpstan-return list<non-empty-string>
- */
-function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
-	if ( ! isset( $dependencies->registered[ $handle ] ) ) {
-		return array();
-	}
-
-	$obj = $dependencies->registered[ $handle ];
-
-	// A handle may alias a set of other handles by having dependencies but no source.
-	if ( empty( $obj->src ) || ! is_string( $obj->src ) ) {
-		return array();
-	}
-
-	if ( $dependencies instanceof WP_Styles ) {
-		$href = $dependencies->_css_href( $obj->src, $obj->ver, $handle );
-
-		if ( ! is_string( $href ) || '' === $href ) {
-			return array();
-		}
-
-		$urls = array( $href );
-
-		/*
-		 * On RTL locales a handle may be served by a separate stylesheet, either replacing
-		 * the LTR one or loading alongside it. Follow the same rules WP_Styles::do_item() uses.
-		 */
-		if ( 'rtl' === $dependencies->text_direction && ! empty( $obj->extra['rtl'] ) ) {
-			if ( null === $obj->ver ) {
-				$ver = '';
-			} else {
-				$ver = $obj->ver ? $obj->ver : $dependencies->default_version;
-			}
-
-			if ( isset( $dependencies->args[ $handle ] ) ) {
-				$ver = $ver ? $ver . '&amp;' . $dependencies->args[ $handle ] : $dependencies->args[ $handle ];
-			}
-
-			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
-				$suffix   = isset( $obj->extra['suffix'] ) && is_string( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
-				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $dependencies->_css_href( $obj->src, $ver, "$handle-rtl" ) );
-			} elseif ( is_string( $obj->extra['rtl'] ) ) {
-				$rtl_href = $dependencies->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
-			} else {
-				$rtl_href = '';
-			}
-
-			if ( is_string( $rtl_href ) && '' !== $rtl_href ) {
-				if ( 'replace' === $obj->extra['rtl'] ) {
-					$urls = array( $rtl_href );
-				} else {
-					$urls[] = $rtl_href;
-				}
-			}
-		}
-
-		return $urls;
-	}
-
-	$src = $obj->src;
-
-	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $dependencies->content_url && str_starts_with( $src, $dependencies->content_url ) ) ) {
-		$src = $dependencies->base_url . $src;
-	}
-
-	$ver_to_add = '';
-	if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $dependencies->default_version ) ) {
-		$ver_to_add = $dependencies->default_version;
-	} elseif ( is_scalar( $obj->ver ) ) {
-		$ver_to_add = (string) $obj->ver;
-	}
-
-	if ( '' !== $ver_to_add ) {
-		$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
-	}
-
-	/** This filter is documented in wp-includes/class-wp-scripts.php */
-	$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
-
-	if ( ! is_string( $src ) || '' === $src ) {
-		return array();
-	}
-
-	return array( $src );
-}
-
-/**
  * Prints prefetch links for the assets of the screen the user is most likely to open next.
  *
  * Runs wherever the next screen can be predicted with confidence, and prefetches only what that
@@ -2848,7 +2741,33 @@ function wp_prefetch_admin_assets(): void {
 				continue;
 			}
 
-			foreach ( _wp_resolve_dependency_urls( $dependencies, $handle ) as $url ) {
+			/*
+			 * The URLs come from the same methods WP_Scripts::do_item() and WP_Styles::do_item()
+			 * use for the tags they print, so they match what the next screen will request.
+			 */
+			if ( $dependencies instanceof WP_Styles ) {
+				$src  = $dependencies->registered[ $handle ]->src;
+				$urls = array();
+
+				// A handle that only aliases other handles has no stylesheet of its own.
+				if ( is_string( $src ) && '' !== $src ) {
+					$urls[] = $dependencies->_css_href( $src, $dependencies->registered[ $handle ]->ver, $handle );
+				}
+
+				$rtl_href = $dependencies->get_rtl_href( $handle );
+
+				if ( null !== $rtl_href ) {
+					if ( 'replace' === $dependencies->get_data( $handle, 'rtl' ) ) {
+						$urls = array( $rtl_href );
+					} else {
+						$urls[] = $rtl_href;
+					}
+				}
+			} else {
+				$urls = array( $dependencies->get_src( $handle ) );
+			}
+
+			foreach ( array_filter( $urls ) as $url ) {
 				$resources[] = array(
 					'href' => $url,
 					'as'   => $as,
