@@ -293,9 +293,33 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertSameSets(
+			array(
+				'name',
+				'title',
+				'content',
+				'description',
+				'viewport_width',
+				'inserter',
+				'categories',
+				'keywords',
+				'block_types',
+				'post_types',
+				'template_types',
+				'source',
+			),
+			array_keys( $properties )
+		);
 	}
 }
