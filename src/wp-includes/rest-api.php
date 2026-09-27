@@ -418,12 +418,14 @@ function create_initial_rest_routes() {
 	$font_collections_controller->register_routes();
 
 	// Abilities.
-	$abilities_categories_controller = new WP_REST_Abilities_V1_Categories_Controller();
-	$abilities_categories_controller->register_routes();
-	$abilities_run_controller = new WP_REST_Abilities_V1_Run_Controller();
-	$abilities_run_controller->register_routes();
-	$abilities_list_controller = new WP_REST_Abilities_V1_List_Controller();
-	$abilities_list_controller->register_routes();
+	if ( wp_supports_ai() ) {
+		$abilities_categories_controller = new WP_REST_Abilities_V1_Categories_Controller();
+		$abilities_categories_controller->register_routes();
+		$abilities_run_controller = new WP_REST_Abilities_V1_Run_Controller();
+		$abilities_run_controller->register_routes();
+		$abilities_list_controller = new WP_REST_Abilities_V1_List_Controller();
+		$abilities_list_controller->register_routes();
+	}
 
 	// Icons.
 	$icons_controller = new WP_REST_Icons_Controller();
