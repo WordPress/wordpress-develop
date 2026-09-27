@@ -2534,8 +2534,8 @@ function script_concat_settings() {
  *
  * The admin-wide handles cover every admin screen rather than only the Dashboard, so that part of
  * the list does not vary with where the login lands. Nothing is printed at all when the login is
- * not going to lead to an admin screen: on the password reset, registration and logout flows, on
- * an interim login, or when `redirect_to` points outside the admin.
+ * not going to lead to an admin screen: on the password reset, registration, logout and
+ * check-your-email flows, on an interim login, or when `redirect_to` points outside the admin.
  *
  * Nothing is printed when concatenation is enabled, since `load-scripts.php` and
  * `load-styles.php` already collapse these handles into a handful of requests.
@@ -2543,6 +2543,10 @@ function script_concat_settings() {
  * @since 7.2.0
  *
  * @see wp_preload_resources()
+ *
+ * @global string      $action        The action that brought the visitor to the login page.
+ * @global bool|string $interim_login Whether interim login modal is being displayed. String 'success'
+ *                                    upon successful login.
  */
 function wp_prefetch_admin_assets(): void {
 	/*
@@ -2569,12 +2573,14 @@ function wp_prefetch_admin_assets(): void {
 		 * logout confirmation and check-your-email flows all render through 'login_head' too, and
 		 * none of them leads anywhere these assets are wanted. An interim login re-authenticates
 		 * inside a modal on a page that has already loaded them, so it does not need them either.
+		 *
+		 * The action is the one wp-login.php has already resolved rather than the request parameter,
+		 * which it overrides: a `key` switches to the password reset form and `checkemail` to the
+		 * check-your-email message, while an action it does not recognize falls back to the login form.
 		 */
-		$login_action = isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] )
-			? sanitize_key( wp_unslash( $_REQUEST['action'] ) )
-			: 'login';
+		global $action, $interim_login;
 
-		if ( 'login' !== $login_action || isset( $_REQUEST['interim-login'] ) ) {
+		if ( 'login' !== $action || $interim_login ) {
 			return;
 		}
 

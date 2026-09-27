@@ -149,29 +149,61 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_login_requests_not_leading_to_admin
 	 *
-	 * @param array<string, string> $request Request parameters of the login screen.
+	 * @param array<string, string> $request       Request parameters of the login screen.
+	 * @param string|null           $action        Action as resolved by wp-login.php.
+	 * @param bool                  $interim_login Whether the interim login modal is displayed.
 	 */
-	public function test_login_prints_nothing_when_not_leading_to_admin( array $request ): void {
+	public function test_login_prints_nothing_when_not_leading_to_admin( array $request, ?string $action, bool $interim_login ): void {
 		define( 'CONCATENATE_SCRIPTS', false );
 
-		$this->assertSame( array(), $this->get_prefetched_on_login( $request ) );
+		$this->assertSame( array(), $this->get_prefetched_on_login( $request, $action, $interim_login ) );
 	}
 
 	/**
 	 * Data provider for {@see self::test_login_prints_nothing_when_not_leading_to_admin()}.
 	 *
-	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
+	 * The action is the one wp-login.php resolves for the request.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<string, string>, 1: string|null, 2: bool }>
 	 */
 	public function data_login_requests_not_leading_to_admin(): array {
 		return array(
-			'lost password'        => array( array( 'action' => 'lostpassword' ) ),
-			'registration'         => array( array( 'action' => 'register' ) ),
-			'logout'               => array( array( 'action' => 'logout' ) ),
-			'interim login'        => array( array( 'interim-login' => '1' ) ),
-			'front end redirect'   => array( array( 'redirect_to' => '/hello-world/' ) ),
-			'absolute front end'   => array( array( 'redirect_to' => 'http://example.org/hello-world/' ) ),
-			'lookalike admin path' => array( array( 'redirect_to' => '/wp-admin-lookalike/' ) ),
+			'lost password'              => array( array( 'action' => 'lostpassword' ), 'lostpassword', false ),
+			'registration'               => array( array( 'action' => 'register' ), 'register', false ),
+			'logout'                     => array( array( 'action' => 'logout' ), 'logout', false ),
+			'password reset key'         => array(
+				array(
+					'key'   => 'abc',
+					'login' => 'admin',
+				),
+				'resetpass',
+				false,
+			),
+			'check email'                => array( array( 'checkemail' => 'confirm' ), 'checkemail', false ),
+			'check email after register' => array( array( 'checkemail' => 'registered' ), 'checkemail', false ),
+			'interim login'              => array( array( 'interim-login' => '1' ), 'login', true ),
+			'login_head fired by plugin' => array( array(), null, false ),
+			'front end redirect'         => array( array( 'redirect_to' => '/hello-world/' ), 'login', false ),
+			'absolute front end'         => array( array( 'redirect_to' => 'http://example.org/hello-world/' ), 'login', false ),
+			'lookalike admin path'       => array( array( 'redirect_to' => '/wp-admin-lookalike/' ), 'login', false ),
 		);
+	}
+
+	/**
+	 * Tests that the action wp-login.php resolved is used rather than the request parameter, so an
+	 * action wp-login.php does not recognize, which it treats as the login form, still prefetches.
+	 *
+	 * @ticket 57548
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_login_uses_action_resolved_by_wp_login(): void {
+		define( 'CONCATENATE_SCRIPTS', false );
+
+		$links = $this->get_prefetched_on_login( array( 'action' => 'unrecognized' ), 'login' );
+
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
 	}
 
 	/**
@@ -413,11 +445,18 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	/**
 	 * Runs the login screen's prefetching and returns the links it printed.
 	 *
-	 * @param array<string, string> $request Request parameters of the login screen.
+	 * @param array<string, string> $request       Request parameters of the login screen.
+	 * @param string|null           $action        Action as resolved by wp-login.php, or null for
+	 *                                             `login_head` fired by a plugin outside of it.
+	 * @param bool                  $interim_login Whether wp-login.php is displaying the interim
+	 *                                             login modal.
 	 * @return list<array{ href: string, as: string }> Prefetch links in the order printed.
 	 */
-	private function get_prefetched_on_login( array $request = array() ): array {
+	private function get_prefetched_on_login( array $request = array(), ?string $action = 'login', bool $interim_login = false ): array {
 		$_REQUEST = $request;
+
+		$GLOBALS['action']        = $action;
+		$GLOBALS['interim_login'] = $interim_login;
 
 		remove_all_actions( 'login_head' );
 		add_action( 'login_head', 'wp_prefetch_admin_assets' );
