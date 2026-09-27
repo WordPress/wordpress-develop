@@ -129,14 +129,31 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 */
 	public function data_editor_destinations(): array {
 		return array(
-			'Dashboard'           => array( '/wp-admin/', false ),
-			'new post'            => array( '/wp-admin/post-new.php', true ),
-			'new page'            => array( '/wp-admin/post-new.php?post_type=page', true ),
-			'editing a post'      => array( '/wp-admin/post.php?post=1&action=edit', true ),
-			'trashing a post'     => array( '/wp-admin/post.php?post=1&action=trash', false ),
-			'post list'           => array( '/wp-admin/edit.php', false ),
-			'absolute editor URL' => array( 'http://example.org/wp-admin/post-new.php', true ),
+			'Dashboard'       => array( '/wp-admin/', false ),
+			'new post'        => array( '/wp-admin/post-new.php', true ),
+			'new page'        => array( '/wp-admin/post-new.php?post_type=page', true ),
+			'editing a post'  => array( '/wp-admin/post.php?post=1&action=edit', true ),
+			'trashing a post' => array( '/wp-admin/post.php?post=1&action=trash', false ),
+			'post list'       => array( '/wp-admin/edit.php', false ),
 		);
+	}
+
+	/**
+	 * Tests that an absolute `redirect_to` pointing at this site's editor also prefetches the
+	 * editor's stylesheets.
+	 *
+	 * @ticket 57548
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_login_prefetches_editor_assets_for_absolute_editor_url(): void {
+		define( 'CONCATENATE_SCRIPTS', false );
+
+		$links = $this->get_prefetched_on_login( array( 'redirect_to' => admin_url( 'post-new.php' ) ) );
+
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/dist/edit-post/style(\.min)?\.css#' );
 	}
 
 	/**
@@ -184,9 +201,22 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 			'interim login'              => array( array( 'interim-login' => '1' ), 'login', true ),
 			'login_head fired by plugin' => array( array(), null, false ),
 			'front end redirect'         => array( array( 'redirect_to' => '/hello-world/' ), 'login', false ),
-			'absolute front end'         => array( array( 'redirect_to' => 'http://example.org/hello-world/' ), 'login', false ),
 			'lookalike admin path'       => array( array( 'redirect_to' => '/wp-admin-lookalike/' ), 'login', false ),
 		);
+	}
+
+	/**
+	 * Tests that nothing is prefetched when an absolute `redirect_to` points at this site's front end.
+	 *
+	 * @ticket 57548
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_login_prints_nothing_for_absolute_front_end_redirect(): void {
+		define( 'CONCATENATE_SCRIPTS', false );
+
+		$this->assertSame( array(), $this->get_prefetched_on_login( array( 'redirect_to' => home_url( '/hello-world/' ) ) ) );
 	}
 
 	/**
@@ -220,7 +250,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'prefetch_admin_assets', array( $filter, 'filter' ), 10, 2 );
 
-		$links = $this->get_prefetched_on_login( array( 'redirect_to' => 'https://attacker.example.com/wp-admin/post-new.php' ) );
+		$links = $this->get_prefetched_on_login( array( 'redirect_to' => 'https://elsewhere.example.com/wp-admin/post-new.php' ) );
 
 		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
 		$this->assertNotPrefetched( $links, '#/wp-includes/css/dist/edit-post/#' );
@@ -242,14 +272,14 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		add_filter(
 			'allowed_redirect_hosts',
 			static function ( array $hosts ): array {
-				$hosts[] = 'other.example.org';
+				$hosts[] = 'another.example.net';
 				return $hosts;
 			}
 		);
 
 		$this->assertSame(
 			array(),
-			$this->get_prefetched_on_login( array( 'redirect_to' => 'http://other.example.org/wp-admin/post-new.php' ) )
+			$this->get_prefetched_on_login( array( 'redirect_to' => 'http://another.example.net/wp-admin/post-new.php' ) )
 		);
 	}
 
@@ -289,10 +319,10 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_admin_screens_leading_to_editor
 	 *
-	 * @param string $screen      Screen ID.
-	 * @param string $next_screen Expected URL of the editor being prefetched for.
+	 * @param string $screen    Screen ID.
+	 * @param string $post_type Post type of the editor expected to be prefetched for.
 	 */
-	public function test_admin_screen_prefetches_editor_assets( string $screen, string $next_screen ): void {
+	public function test_admin_screen_prefetches_editor_assets( string $screen, string $post_type ): void {
 		define( 'CONCATENATE_SCRIPTS', false );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
@@ -303,7 +333,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 
 		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/dist/edit-post/style(\.min)?\.css#' );
 		$this->assertSame( array(), $this->get_hrefs( $links, 'script' ), 'No scripts should be prefetched for the editor.' );
-		$this->assertSame( $next_screen, $filter->get_args()[0][1] );
+		$this->assertSame( add_query_arg( 'post_type', $post_type, admin_url( 'post-new.php' ) ), $filter->get_args()[0][1] );
 	}
 
 	/**
@@ -313,9 +343,9 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 */
 	public function data_admin_screens_leading_to_editor(): array {
 		return array(
-			'Dashboard'  => array( 'dashboard', 'http://example.org/wp-admin/post-new.php?post_type=post' ),
-			'Posts list' => array( 'edit', 'http://example.org/wp-admin/post-new.php?post_type=post' ),
-			'Pages list' => array( 'edit-page', 'http://example.org/wp-admin/post-new.php?post_type=page' ),
+			'Dashboard'  => array( 'dashboard', 'post' ),
+			'Posts list' => array( 'edit', 'post' ),
+			'Pages list' => array( 'edit-page', 'page' ),
 		);
 	}
 
