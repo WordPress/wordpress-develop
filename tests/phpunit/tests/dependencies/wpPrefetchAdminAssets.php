@@ -452,6 +452,60 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that stylesheet URLs reach the filter unescaped, like script URLs, so that a callback
+	 * appending the plain form of one is collapsed with it.
+	 *
+	 * @ticket 57548
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_filter_receives_unescaped_stylesheet_urls(): void {
+		define( 'CONCATENATE_SCRIPTS', false );
+
+		// Give a stylesheet a query string of its own, so its URL has an `&` before the version.
+		wp_styles()->registered['common']->src = '/wp-admin/css/common.css?color=blue';
+
+		$common_href = null;
+		add_filter(
+			'prefetch_admin_assets',
+			static function ( array $resources ) use ( &$common_href ): array {
+				foreach ( $resources as $resource ) {
+					if (
+						is_array( $resource ) &&
+						isset( $resource['href'] ) &&
+						is_string( $resource['href'] ) &&
+						str_contains( $resource['href'], '/wp-admin/css/common.css' )
+					) {
+						$common_href = $resource['href'];
+
+						// Append the plain form of the same URL, as a callback building it itself would.
+						$resources[] = array(
+							'href' => str_replace( '&#038;', '&', $resource['href'] ),
+							'as'   => 'style',
+						);
+					}
+				}
+				return $resources;
+			}
+		);
+
+		$links = $this->get_prefetched_on_login();
+
+		$this->assertIsString( $common_href );
+		$this->assertStringContainsString( '/wp-admin/css/common.css?color=blue&ver=', $common_href );
+		$this->assertStringNotContainsString( '&#038;', $common_href );
+
+		$common_links = array_filter(
+			$links,
+			static function ( array $link ): bool {
+				return str_contains( $link['href'], '/wp-admin/css/common.css' );
+			}
+		);
+		$this->assertCount( 1, $common_links, 'The plain form of the URL should be collapsed with it.' );
+	}
+
+	/**
 	 * Tests that the filter can add, replace and remove resources, and that its result is sanitized.
 	 *
 	 * @ticket 57548

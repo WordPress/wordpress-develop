@@ -2798,6 +2798,14 @@ function wp_prefetch_admin_assets(): void {
 						$urls[] = $rtl_href;
 					}
 				}
+
+				/*
+				 * Unlike a script's URL, a stylesheet's comes back escaped for an HTML attribute, with
+				 * `&` as `&#038;`. Decode it so the filter sees plain URLs throughout, and so a
+				 * callback appending the plain form of one is collapsed with it. The URLs are escaped
+				 * again when printed.
+				 */
+				$urls = array_map( array( 'WP_HTML_Decoder', 'decode_attribute' ), $urls );
 			} else {
 				$urls = array( $dependencies->get_src( $handle ) );
 			}
