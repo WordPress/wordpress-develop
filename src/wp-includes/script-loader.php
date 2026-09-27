@@ -2655,9 +2655,8 @@ function wp_prefetch_admin_assets(): void {
 		 *
 		 * Each root mirrors an enqueue elsewhere, which carries a note pointing back here: `common`
 		 * (for `jquery`) in wp-admin/admin.php, `colors` (for `wp-admin` and `buttons`) and `utils` in
-		 * wp-admin/admin-header.php, `admin-bar` in WP_Admin_Bar::initialize(), `wp-pointer` in
-		 * WP_Internal_Pointers::enqueue_scripts(), `wp-auth-check` in wp_auth_check_load(), and
-		 * `wp-commands` in wp_enqueue_command_palette_assets().
+		 * wp-admin/admin-header.php, `admin-bar` in WP_Admin_Bar::initialize(), `wp-auth-check` in
+		 * wp_auth_check_load(), and `wp-commands` in wp_enqueue_command_palette_assets().
 		 */
 		$script_roots = array(
 			'jquery',
@@ -2668,7 +2667,6 @@ function wp_prefetch_admin_assets(): void {
 			'wp-admin',
 			'buttons',
 			'admin-bar',
-			'wp-pointer',
 			'wp-auth-check',
 			'wp-commands',
 		);
