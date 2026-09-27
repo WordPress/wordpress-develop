@@ -302,6 +302,74 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_font_stretch_style'              => array(
+				'block_styles'    => array(
+					'typography' => array(
+						'fontStretch' => 'condensed',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'font-stretch:condensed;',
+					'declarations' => array(
+						'font-stretch' => 'condensed',
+					),
+				),
+			),
+
+			'inline_valid_font_stretch_percentage_style'   => array(
+				'block_styles'    => array(
+					'typography' => array(
+						'fontStretch' => '75%',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'font-stretch:75%;',
+					'declarations' => array(
+						'font-stretch' => '75%',
+					),
+				),
+			),
+
+			'font_variation_settings_object'               => array(
+				'block_styles'    => array(
+					'typography' => array(
+						'fontVariationSettings' => array(
+							'GRAD' => 50,
+							'opsz' => 24,
+							'YOPQ' => '24',
+							'YTLC' => false,
+							'YTUC' => array(),
+							'wght' => 700,
+							'ital' => 1,
+							'XT;A' => 1,
+							'XTRA' => 'wide',
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'font-variation-settings:"GRAD" 50, "opsz" 24;',
+					'declarations' => array(
+						'font-variation-settings' => '"GRAD" 50, "opsz" 24',
+					),
+				),
+			),
+
+			'font_variation_settings_only_property_owned_axes' => array(
+				'block_styles'    => array(
+					'typography' => array(
+						'fontVariationSettings' => array(
+							'wght' => 700,
+							'wdth' => 90,
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(),
+			),
+
 			'style_block_with_selector'                    => array(
 				'block_styles'    => array(
 					'spacing' => array(
