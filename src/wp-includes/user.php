@@ -186,7 +186,7 @@ function wp_authenticate_username_password(
 			sprintf(
 				/* translators: %s: User name. */
 				__( '<strong>Error:</strong> The username <strong>%s</strong> is not registered on this site. If you are unsure of your username, try your email address instead.' ),
-				$username
+				esc_html( $username )
 			)
 		);
 	}
@@ -213,7 +213,7 @@ function wp_authenticate_username_password(
 			sprintf(
 				/* translators: %s: User name. */
 				__( '<strong>Error:</strong> The password you entered for the username %s is incorrect.' ),
-				'<strong>' . $username . '</strong>'
+				'<strong>' . esc_html( $username ) . '</strong>'
 			) .
 			' <a href="' . wp_lostpassword_url() . '">' .
 			__( 'Lost your password?' ) .
@@ -296,7 +296,7 @@ function wp_authenticate_email_password(
 			sprintf(
 				/* translators: %s: Email address. */
 				__( '<strong>Error:</strong> The password you entered for the email address %s is incorrect.' ),
-				'<strong>' . $email . '</strong>'
+				'<strong>' . esc_html( $email ) . '</strong>'
 			) .
 			' <a href="' . wp_lostpassword_url() . '">' .
 			__( 'Lost your password?' ) .
@@ -728,7 +728,7 @@ function get_current_user_id() {
 		return 0;
 	}
 	$user = wp_get_current_user();
-	return (int) ( $user->ID ?? 0 );
+	return (int) $user->ID;
 }
 
 /**
@@ -853,8 +853,9 @@ function delete_user_option( $user_id, $option_name, $is_global = false ) {
  * @since 6.7.0
  *
  * @param int $user_id User ID.
- *
  * @return WP_User|false WP_User object on success, false on failure.
+ *
+ * @phpstan-return ( $user_id is int<min, 0> ? false : WP_User|false )
  */
 function get_user( $user_id ) {
 	return get_user_by( 'id', $user_id );
@@ -870,6 +871,14 @@ function get_user( $user_id ) {
  * @param array $args Optional. Arguments to retrieve users. See WP_User_Query::prepare_query()
  *                    for more information on accepted arguments.
  * @return array List of users.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'all'|'all_with_meta', ... } ? array<int, WP_User> : (
+ *         $args is array{ fields: 'ID'|'id', ... } ? list<numeric-string> : (
+ *             $args is array{ fields: non-empty-string|non-empty-array<array-key, string>, ... } ? array<int, mixed> : array<int, WP_User>
+ *         )
+ *     )
+ * )
  */
 function get_users( $args = array() ) {
 
@@ -908,7 +917,12 @@ function get_users( $args = array() ) {
  *     @type string $exclude       An array, comma-, or space-separated list of user IDs to exclude. Default empty.
  *     @type string $include       An array, comma-, or space-separated list of user IDs to include. Default empty.
  * }
- * @return string|null The output if echo is false. Otherwise null.
+ * @return string|void The output if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_list_users( $args = array() ) {
 	$defaults = array(
@@ -1014,6 +1028,7 @@ function wp_list_users( $args = array() ) {
 	if ( ! $parsed_args['echo'] ) {
 		return $return;
 	}
+
 	echo $return;
 }
 
@@ -1265,6 +1280,8 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $user_id
  */
 function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'user', $user_id, $meta_key, $meta_value );
@@ -1293,6 +1310,18 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );
@@ -2593,7 +2622,7 @@ function wp_insert_user( $userdata ) {
 	 * @since 4.4.0
 	 * @since 5.8.0 The `$userdata` parameter was added.
 	 *
-	 * @param array $meta {
+	 * @param array   $meta {
 	 *     Default meta values and keys for the user.
 	 *
 	 *     @type string   $nickname             The user's nickname. Default is the user's username.
@@ -3456,7 +3485,7 @@ function retrieve_password( $user_login = '' ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array $defaults {
+	 * @param array   $defaults {
 	 *     The default notification email arguments. Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient - user email address.
@@ -3587,7 +3616,7 @@ function register_new_user( $user_login, $user_email ) {
 			sprintf(
 				/* translators: %s: Link to the login page. */
 				__( '<strong>Error:</strong> This email address is already registered. <a href="%s">Log in</a> with this address or choose another one.' ),
-				wp_login_url()
+				esc_url( wp_login_url() )
 			)
 		);
 	}
@@ -3635,7 +3664,7 @@ function register_new_user( $user_login, $user_email ) {
 			sprintf(
 				/* translators: %s: Admin email address. */
 				__( '<strong>Error:</strong> Could not register you&hellip; please contact the <a href="mailto:%s">site admin</a>!' ),
-				get_option( 'admin_email' )
+				esc_attr( get_option( 'admin_email' ) )
 			)
 		);
 		return $errors;
@@ -3858,18 +3887,26 @@ function _wp_get_current_user() {
  *
  * @since 3.0.0
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
+ * @since 7.0.3 Added the `$user_id` parameter, which is sent with the `personal_options_update` action.
  *
  * @global WP_Error $errors WP_Error object.
+ *
+ * @param int $user_id Optional. The ID of the user whose email is being changed. Defaults to `$_POST['user_id']` if set, otherwise 0.
  */
-function send_confirmation_on_profile_email() {
+function send_confirmation_on_profile_email( $user_id = 0 ) {
 	global $errors;
+
+	// Maintain backward compatibility for those relying on a check based on $_POST['user_id'].
+	if ( ! $user_id && isset( $_POST['user_id'] ) ) {
+		$user_id = absint( $_POST['user_id'] );
+	}
 
 	$current_user = wp_get_current_user();
 	if ( ! is_object( $errors ) ) {
 		$errors = new WP_Error();
 	}
 
-	if ( $current_user->ID !== (int) $_POST['user_id'] ) {
+	if ( 0 === $current_user->ID || $current_user->ID !== (int) $user_id ) {
 		return false;
 	}
 
@@ -3883,6 +3920,7 @@ function send_confirmation_on_profile_email() {
 				)
 			);
 
+			$_POST['email'] = addslashes( $current_user->user_email );
 			return;
 		}
 
@@ -3896,6 +3934,7 @@ function send_confirmation_on_profile_email() {
 			);
 			delete_user_meta( $current_user->ID, '_new_email' );
 
+			$_POST['email'] = addslashes( $current_user->user_email );
 			return;
 		}
 

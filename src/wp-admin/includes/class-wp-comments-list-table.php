@@ -1119,24 +1119,11 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$this->pending_count[ $post->ID ] = $pending_comments;
 		}
 
-		$post_title = wp_kses(
-			get_the_title( $post->ID ),
-			array(
-				'strong' => array(),
-				'em'     => array(),
-				'b'      => array(),
-				'i'      => array(),
-				'span'   => array(
-					'class' => true,
-				),
-			)
-		);
-
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
 			$post_link  = "<a href='" . get_edit_post_link( $post->ID ) . "' class='comments-edit-item-link'>";
-			$post_link .= $post_title . '</a>';
+			$post_link .= esc_html( get_the_title( $post->ID ) ) . '</a>';
 		} else {
-			$post_link = $post_title;
+			$post_link = esc_html( get_the_title( $post->ID ) );
 		}
 
 		echo '<div class="response-links">';

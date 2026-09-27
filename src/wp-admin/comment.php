@@ -202,25 +202,12 @@ switch ( $action ) {
 	<th scope="row"><?php /* translators: Column name or table row header. */ _e( 'In response to' ); ?></th>
 	<td>
 		<?php
-		$post_id    = $comment->comment_post_ID;
-		$post_title = wp_kses(
-			get_the_title( $post_id ),
-			array(
-				'strong' => array(),
-				'em'     => array(),
-				'b'      => array(),
-				'i'      => array(),
-				'span'   => array(
-					'class' => true,
-				),
-
-			)
-		);
+		$post_id = $comment->comment_post_ID;
 		if ( current_user_can( 'edit_post', $post_id ) ) {
 			$post_link  = "<a href='" . esc_url( get_edit_post_link( $post_id ) ) . "'>";
-			$post_link .= $post_title . '</a>';
+			$post_link .= esc_html( get_the_title( $post_id ) ) . '</a>';
 		} else {
-			$post_link = $post_title;
+			$post_link = esc_html( get_the_title( $post_id ) );
 		}
 		echo $post_link;
 
@@ -235,7 +222,6 @@ switch ( $action ) {
 			);
 		}
 		?>
-	</td>
 	</td>
 </tr>
 <tr>
@@ -386,8 +372,8 @@ switch ( $action ) {
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param string $location The URI the user will be redirected to.
-		 * @param int $comment_id The ID of the comment being edited.
+		 * @param string $location   The URI the user will be redirected to.
+		 * @param int    $comment_id The ID of the comment being edited.
 		 */
 		$location = apply_filters( 'comment_edit_redirect', $location, $comment_id );
 

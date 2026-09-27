@@ -501,7 +501,7 @@ code {
 	border-bottom-width: 0;
 }
 
-.widefat th,
+.widefat tbody th,
 .widefat td {
 	vertical-align: top;
 }
@@ -520,6 +520,12 @@ code {
 .widefat tfoot td {
 	text-align: left;
 	line-height: 1.3em;
+}
+
+.widefat th:not(tbody th),
+.widefat tbody td.check-column,
+.widefat thead td,
+.widefat tfoot td {
 	font-size: 14px;
 }
 
@@ -2547,7 +2553,7 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
 	position: absolute;
 	right: 10px;
 	left: auto;
-	color: #787c82;
+	color: #50575e;
 	border-radius: 50px;
 	top: 50%;
 	transform: translateY(-50%);
@@ -3366,7 +3372,7 @@ img {
 .bulk-action-notice .toggle-indicator::before {
 	line-height: 16px;
 	vertical-align: top;
-	color: #787c82;
+	color: #50575e;
 }
 
 .postbox .handle-order-higher:focus,
@@ -4249,9 +4255,6 @@ img {
 		margin-bottom: 0;
 	}
 
-	#wpfooter {
-		display: none;
-	}
 
 	#comments-form .checkforspam {
 		display: none;
