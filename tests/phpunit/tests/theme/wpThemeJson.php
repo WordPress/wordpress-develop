@@ -3497,7 +3497,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $block_nodes );
+		$this->assertSame( $expected, $block_nodes );
 	}
 
 	/**
@@ -3578,7 +3578,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $block_nodes );
+		$this->assertSame( $expected, $block_nodes );
 	}
 
 	/**
