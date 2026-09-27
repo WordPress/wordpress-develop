@@ -2793,11 +2793,11 @@ function wp_prefetch_admin_assets(): void {
 	 * distinguishes the contexts: the login screen passes the URL it is about to redirect to, and
 	 * the Dashboard and post list tables pass the editor they expect the user to open.
 	 *
- *     Only the `href` and `as` attributes below are printed; any other key is ignored. Resources
- *     sharing an `href` are collapsed to the first of them, so a callback may append without
- *     checking what is already there. This filter also runs on the login screen in a logged-out,
- *     non-admin request, while the `script_loader_src` and `style_loader_src` filters build URLs.
- *     Returning an empty array turns the prefetching off.
+	 *     Only the `href` and `as` attributes below are printed; any other key is ignored. Resources
+	 *     sharing an `href` are collapsed to the first of them, so a callback may append without
+	 *     checking what is already there. This filter also runs on the login screen in a logged-out,
+	 *     non-admin request, while the `script_loader_src` and `style_loader_src` filters build URLs.
+	 *     Returning an empty array turns the prefetching off.
 	 *
 	 * @since 7.2.0
 	 *
