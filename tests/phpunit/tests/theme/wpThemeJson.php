@@ -3585,7 +3585,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Tests that variation settings are serialized from an object, and that an axis
 	 * with a CSS property of its own is left to that property.
 	 *
-	 * @ticket TRAC_TICKET
+	 * @ticket 66198
 	 *
 	 * @covers ::get_stylesheet
 	 */
@@ -3621,7 +3621,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Tests that a face's axes and a chosen axis value survive, and that an axis a
 	 * property owns, a non-numeric value and an invalid tag do not.
 	 *
-	 * @ticket TRAC_TICKET
+	 * @ticket 66198
 	 *
 	 * @covers ::get_settings
 	 * @covers ::get_raw_data

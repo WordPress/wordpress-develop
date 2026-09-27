@@ -295,7 +295,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests that a width is serialized when the block supports it, whether it
 	 * names a keyword or a percentage.
 	 *
-	 * @ticket TRAC_TICKET
+	 * @ticket 66198
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
@@ -342,7 +342,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	/**
 	 * Tests that a width is left alone when the block does not support it.
 	 *
-	 * @ticket TRAC_TICKET
+	 * @ticket 66198
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
@@ -380,7 +380,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests that font variation settings are serialized from an object, and that
 	 * an axis with a CSS property of its own is left to that property.
 	 *
-	 * @ticket TRAC_TICKET
+	 * @ticket 66198
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
@@ -425,7 +425,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	/**
 	 * Tests skipping serialization of font variation settings.
 	 *
-	 * @ticket TRAC_TICKET
+	 * @ticket 66198
 	 *
 	 * @covers ::wp_apply_typography_support
 	 */
