@@ -6,6 +6,8 @@
 window.wp = window.wp || {};
 
 /**
+ * The WordPress Customizer API.
+ *
  * @param {Object}       wp The WordPress global object.
  * @param {JQueryStatic} $  The jQuery object.
  */
@@ -227,6 +229,8 @@ window.wp = window.wp || {};
 	 */
 	api.Value = api.Class.extend(/** @lends wp.customize.Value.prototype */{
 		/**
+		 * Initializes the Value instance and configures callbacks and options.
+		 *
 		 * @param {*}      initial   The initial value.
 		 * @param {Object} [options] Options to extend the instance with.
 		 */
@@ -564,7 +568,7 @@ window.wp = window.wp || {};
 		 * when( ids*, [callback] );
 		 *
 		 * For example:
-		 *     when( id1, id2, id3, function( value1, value2, value3 ) {} );
+		 * when( id1, id2, id3, function( value1, value2, value3 ) {} );
 		 *
 		 * @param {...(string|Function)} ids Zero or more IDs of items to wait for, optionally followed by
 		 *                                   a callback function to invoke once they are all available.
