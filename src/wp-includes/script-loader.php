@@ -2606,46 +2606,6 @@ function _wp_resolve_dependency_urls( $dependencies, string $handle ): array {
 }
 
 /**
- * Expands a set of handles to include everything they depend on.
- *
- * Lets a caller name a few roots instead of restating a dependency tree that is already declared
- * at registration, so the set keeps up with changes to those declarations on its own.
- *
- * @since 7.2.0
- * @access private
- *
- * @param WP_Dependencies $dependencies Registry to resolve the handles against.
- * @param string[]        $handles      Root handles to expand.
- * @return string[] The roots together with everything they depend on, roots first. Handles that
- *                  are not registered are dropped, as are their dependencies.
- *
- * @phpstan-param non-empty-list<non-empty-string> $handles
- * @phpstan-return list<non-empty-string>
- */
-function _wp_expand_dependency_handles( WP_Dependencies $dependencies, array $handles ): array {
-	$expanded = array();
-	$queue    = array_values( $handles );
-
-	while ( $queue ) {
-		$handle = array_shift( $queue );
-
-		if ( isset( $expanded[ $handle ] ) || ! isset( $dependencies->registered[ $handle ] ) ) {
-			continue;
-		}
-
-		$expanded[ $handle ] = true;
-
-		foreach ( $dependencies->registered[ $handle ]->deps as $dependency ) {
-			if ( is_string( $dependency ) && '' !== $dependency && ! isset( $expanded[ $dependency ] ) ) {
-				$queue[] = $dependency;
-			}
-		}
-	}
-
-	return array_keys( $expanded );
-}
-
-/**
  * Prints prefetch links for the assets of the screen the user is most likely to open next.
  *
  * Runs wherever the next screen can be predicted with confidence, and prefetches only what that
@@ -2706,9 +2666,9 @@ function wp_prefetch_admin_assets(): void {
 		return;
 	}
 
-	$on_login       = ( 'login_head' === current_action() );
-	$script_handles = array();
-	$style_handles  = array();
+	$on_login     = ( 'login_head' === current_action() );
+	$script_roots = array();
+	$style_roots  = array();
 
 	if ( $on_login ) {
 		/*
@@ -2781,8 +2741,8 @@ function wp_prefetch_admin_assets(): void {
 		/*
 		 * The handles that block rendering on every admin screen: the stylesheets, and the scripts
 		 * printed in the head. These are what stand between the redirect and the first paint, so
-		 * they are what is worth having in the cache already. Every handle listed here loads on all
-		 * admin screens, not just the one the login happens to land on, so the list does not depend
+		 * they are what is worth having in the cache already. Every handle these expand to loads on
+		 * all admin screens, not just the one the login happens to land on, so the list does not depend
 		 * on the destination. Screen-specific handles are deliberately left out: `site-health`
 		 * blocks rendering on the Dashboard but loads nowhere else.
 		 *
@@ -2792,38 +2752,25 @@ function wp_prefetch_admin_assets(): void {
 		 * when the login form is submitted competes with the admin screen's own render-blocking
 		 * stylesheets and delays its first paint on a slow connection.
 		 *
-		 * Handles registered without a source of their own, or not registered at all, are skipped.
+		 * These are roots rather than the full set: everything they depend on is pulled in with them
+		 * below, so the set follows the dependencies declared in wp_default_scripts() and
+		 * wp_default_styles(). `jquery` stands for `jquery-core` and `jquery-migrate`, and `wp-admin`
+		 * for the admin's own stylesheets, which is what the `colors` handle enqueued on every admin
+		 * screen depends on. Aliases like these have no source of their own, so only what they expand
+		 * to is prefetched. `colors` itself is left out, since the color scheme is a per-user setting
+		 * and the user is not known yet.
 		 */
-		$script_handles = array(
-			'jquery-core',
-			'jquery-migrate',
+		$script_roots = array(
+			'jquery',
 			'utils',
 		);
 
-		$style_handles = array(
-			'dashicons',
-			'admin-bar',
-			'common',
-			'forms',
-			'admin-menu',
-			'dashboard',
-			'list-tables',
-			'edit',
-			'revisions',
-			'media',
-			'themes',
-			'about',
-			'nav-menus',
-			'wp-pointer',
-			'widgets',
-			'site-icon',
-			'l10n',
-			'wp-base-styles',
-			'wp-tooltip',
+		$style_roots = array(
+			'wp-admin',
 			'buttons',
+			'admin-bar',
+			'wp-pointer',
 			'wp-auth-check',
-			'wp-theme',
-			'wp-components',
 			'wp-commands',
 		);
 	}
@@ -2841,25 +2788,21 @@ function wp_prefetch_admin_assets(): void {
 
 	if ( $next_screen_is_block_editor ) {
 		/*
-		 * Roots rather than the full set: everything these depend on is pulled in with them, so the
-		 * list follows the dependencies declared in wp_default_styles() instead of restating them.
-		 * `wp-edit-post` alone accounts for most of the editor chrome; the rest cover the media
-		 * modal, the block directory, the format library and the editor's own reset.
+		 * Roots as well, expanded along with any from the login screen. `wp-edit-post` alone accounts
+		 * for most of the editor chrome; the rest cover the media modal, the block directory, the
+		 * format library and the editor's own reset.
 		 */
-		$style_handles = array_merge(
-			$style_handles,
-			_wp_expand_dependency_handles(
-				wp_styles(),
-				array(
-					'wp-edit-post',
-					'wp-block-editor-content',
-					'wp-block-directory',
-					'wp-format-library',
-					'wp-reset-editor-styles',
-					'editor-buttons',
-					'media-views',
-					'imgareaselect',
-				)
+		$style_roots = array_merge(
+			$style_roots,
+			array(
+				'wp-edit-post',
+				'wp-block-editor-content',
+				'wp-block-directory',
+				'wp-format-library',
+				'wp-reset-editor-styles',
+				'editor-buttons',
+				'media-views',
+				'imgareaselect',
 			)
 		);
 	}
@@ -2868,12 +2811,34 @@ function wp_prefetch_admin_assets(): void {
 
 	foreach (
 		array(
-			'script' => array( wp_scripts(), $script_handles ),
-			'style'  => array( wp_styles(), $style_handles ),
+			'script' => array( wp_scripts(), $script_roots ),
+			'style'  => array( wp_styles(), $style_roots ),
 		)
-		as $as => list( $dependencies, $handles )
+		as $as => list( $dependencies, $queue )
 	) {
-		foreach ( $handles as $handle ) {
+		/*
+		 * Expand the roots to include everything they depend on, roots first. A handle that is not
+		 * registered is dropped along with its dependencies.
+		 */
+		$handles = array();
+
+		while ( $queue ) {
+			$handle = array_shift( $queue );
+
+			if ( isset( $handles[ $handle ] ) || ! isset( $dependencies->registered[ $handle ] ) ) {
+				continue;
+			}
+
+			$handles[ $handle ] = true;
+
+			foreach ( $dependencies->registered[ $handle ]->deps as $dependency ) {
+				if ( is_string( $dependency ) && '' !== $dependency && ! isset( $handles[ $dependency ] ) ) {
+					$queue[] = $dependency;
+				}
+			}
+		}
+
+		foreach ( array_keys( $handles ) as $handle ) {
 			/*
 			 * Whichever screen this is running on shares some of these handles and has already
 			 * printed them by the time this runs, so the browser is fetching them anyway.
