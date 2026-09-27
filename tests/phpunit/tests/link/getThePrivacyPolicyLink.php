@@ -84,32 +84,27 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 * @ticket 64748
 	 */
 	public function test_get_the_privacy_policy_link_should_allow_supported_title_markup() {
-		wp_update_post(
-			array(
-				'ID'         => self::$privacy_policy_page_id,
-				'post_title' => '<strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <script>alert("test")</script>',
-			)
-		);
-
 		$privacy_policy_page_id = self::$privacy_policy_page_id;
-		$filter                 = static function ( $title, $post_id ) use ( $privacy_policy_page_id ) {
+
+		// Run after core `the_title` formatting filters (e.g. wptexturize).
+		$filter = static function ( $title, $post_id ) use ( $privacy_policy_page_id ) {
 			if ( (int) $privacy_policy_page_id === (int) $post_id ) {
-				return '<span class="page-title">' . $title . '</span>';
+				return '<strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span class="page-title">Page</span> <script>alert("test")</script>';
 			}
 
 			return $title;
 		};
 
-		add_filter( 'the_title', $filter, 10, 2 );
+		add_filter( 'the_title', $filter, 20, 2 );
 
 		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
 
 		$actual_link = get_the_privacy_policy_link();
 
-		remove_filter( 'the_title', $filter, 10 );
+		remove_filter( 'the_title', $filter, 20 );
 
 		$this->assertStringEndsWith(
-			'><span class="page-title"><strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> alert("test")</span></a>',
+			'><strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span class="page-title">Page</span> alert("test")</a>',
 			$actual_link
 		);
 	}
