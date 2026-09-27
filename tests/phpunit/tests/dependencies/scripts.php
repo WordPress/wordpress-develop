@@ -101,11 +101,11 @@ JS;
 		$find_id_tag_processor = new WP_HTML_Tag_Processor( $expected );
 		$find_id_tag_processor->next_token();
 		$id = $find_id_tag_processor->get_attribute( 'id' );
-		assert( is_string( $id ) );
+		$this->assertIsString( $id, 'The expected SCRIPT tag must have an ID attribute.' );
 
 		$processor = ( new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
 			public function get_script_html() {
-				assert( 'SCRIPT' === $this->get_tag() );
+				assert( 'SCRIPT' === $this->get_tag(), 'The processor must be paused on a SCRIPT tag.' );
 				$this->set_bookmark( 'here' );
 				$span = $this->bookmarks['_here'];
 				return substr( $this->html, $span->start, $span->length );
@@ -3103,7 +3103,7 @@ HTML;
 		ob_start();
 		$output = $wp_scripts->print_inline_script( $handle, $position, true );
 		$this->assertEqualHTML( $expected_tag, ob_get_clean() );
-		$this->assertEquals( $expected_data, $output );
+		$this->assertSame( $expected_data, $output );
 	}
 
 	/**
@@ -3891,7 +3891,7 @@ HTML;
 		$this->assertEqualHTML( $expected_header, $header, '<body>', 'Expected header script markup to match.' );
 		$this->assertEqualHTML( $expected_footer, $footer, '<body>', 'Expected footer script markup to match.' );
 		$this->assertEqualSets( $expected_in_footer, wp_scripts()->in_footer, 'Expected to have the same handles for in_footer.' );
-		$this->assertEquals( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
+		$this->assertSame( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
 	}
 
 	/**
