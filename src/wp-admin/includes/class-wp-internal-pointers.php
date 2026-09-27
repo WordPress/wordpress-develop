@@ -98,7 +98,10 @@ final class WP_Internal_Pointers {
 			return;
 		}
 
-		// Add pointers script and style to queue.
+		/*
+		 * Add pointers script and style to queue. The style is prefetched from the login screen by
+		 * wp_prefetch_admin_assets(), which needs updating if this changes.
+		 */
 		wp_enqueue_style( 'wp-pointer' );
 		wp_enqueue_script( 'wp-pointer' );
 	}
