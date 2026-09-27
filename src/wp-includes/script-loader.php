@@ -2689,6 +2689,13 @@ function wp_prefetch_admin_assets(): void {
 		 * for most of the editor chrome, including the block editor's content and reset styles by way
 		 * of `wp-edit-blocks`; the rest cover the block directory, the format library, the classic
 		 * editor's buttons and the media modal.
+		 *
+		 * Each root mirrors an enqueue elsewhere, which carries a note pointing back here:
+		 * `wp-edit-post` in wp-admin/edit-form-blocks.php, `wp-block-directory` in
+		 * wp_enqueue_editor_block_directory_assets(), `wp-format-library` in
+		 * wp_enqueue_editor_format_library_assets(), `editor-buttons` in
+		 * _WP_Editors::enqueue_default_editor(), and `media-views` and `imgareaselect` in
+		 * wp_enqueue_media().
 		 */
 		$style_roots = array_merge(
 			$style_roots,
@@ -3267,6 +3274,7 @@ function enqueue_editor_block_styles_assets() {
  */
 function wp_enqueue_editor_block_directory_assets() {
 	wp_enqueue_script( 'wp-block-directory' );
+	// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'wp-block-directory' );
 }
 
@@ -3277,6 +3285,7 @@ function wp_enqueue_editor_block_directory_assets() {
  */
 function wp_enqueue_editor_format_library_assets() {
 	wp_enqueue_script( 'wp-format-library' );
+	// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'wp-format-library' );
 }
 
