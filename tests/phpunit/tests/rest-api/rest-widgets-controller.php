@@ -215,6 +215,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_context_param() {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/widgets' );
 		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
 		$data     = $response->get_data();
 
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'], 'The collection context default should be view.' );
@@ -222,6 +223,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/widgets/text-1' );
 		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
 		$data     = $response->get_data();
 
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'], 'The single widget context default should be view.' );
