@@ -1236,6 +1236,246 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `current_page_parent` is not added to the blog page menu item
+	 * when viewing a custom post type archive.
+	 *
+	 * @ticket 38486
+	 *
+	 * @covers ::_wp_menu_item_classes_by_context
+	 */
+	public function test_current_page_parent_not_added_to_blog_page_on_cpt_archive() {
+		register_post_type(
+			'wptests_cpt',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+
+		$blog_page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_title'  => 'Blog Page',
+				'post_status' => 'publish',
+			)
+		);
+		update_option( 'page_for_posts', $blog_page_id );
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $blog_page_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$this->go_to( get_post_type_archive_link( 'wptests_cpt' ) );
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$classes = $menu_items[0]->classes;
+
+		delete_option( 'page_for_posts' );
+		unregister_post_type( 'wptests_cpt' );
+
+		$this->assertNotContains( 'current_page_parent', $classes );
+	}
+
+	/**
+	 * Tests that `current_page_parent` is not added to the blog page menu item
+	 * when viewing a singular custom post type.
+	 *
+	 * @ticket 38486
+	 *
+	 * @covers ::_wp_menu_item_classes_by_context
+	 */
+	public function test_current_page_parent_not_added_to_blog_page_on_cpt_singular() {
+		register_post_type(
+			'wptests_cpt',
+			array(
+				'public' => true,
+			)
+		);
+
+		$blog_page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_title'  => 'Blog Page',
+				'post_status' => 'publish',
+			)
+		);
+		update_option( 'page_for_posts', $blog_page_id );
+
+		$cpt_post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wptests_cpt',
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $blog_page_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$this->go_to( get_permalink( $cpt_post_id ) );
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$classes = $menu_items[0]->classes;
+
+		delete_option( 'page_for_posts' );
+		unregister_post_type( 'wptests_cpt' );
+
+		$this->assertNotContains( 'current_page_parent', $classes );
+	}
+
+	/**
+	 * Tests that `current_page_parent` is still added to the blog page menu item
+	 * when viewing a singular standard post.
+	 *
+	 * @ticket 38486
+	 *
+	 * @covers ::_wp_menu_item_classes_by_context
+	 */
+	public function test_current_page_parent_added_to_blog_page_on_standard_post_singular() {
+		$blog_page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_title'  => 'Blog Page',
+				'post_status' => 'publish',
+			)
+		);
+		update_option( 'page_for_posts', $blog_page_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $blog_page_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$classes = $menu_items[0]->classes;
+
+		delete_option( 'page_for_posts' );
+
+		$this->assertContains( 'current_page_parent', $classes );
+	}
+
+	/**
+	 * Tests that `current_page_parent` is not added to any menu item
+	 * when `page_for_posts` is not set.
+	 *
+	 * @ticket 38486
+	 *
+	 * @covers ::_wp_menu_item_classes_by_context
+	 */
+	public function test_current_page_parent_not_added_when_page_for_posts_not_set() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $page_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$this->assertNotContains( 'current_page_parent', $menu_items[0]->classes );
+	}
+
+	/**
+	 * Tests that `current_page_parent` is added to the post type archive menu item
+	 * when viewing a singular custom post type.
+	 *
+	 * @ticket 38486
+	 *
+	 * @covers ::_wp_menu_item_classes_by_context
+	 */
+	public function test_current_page_parent_added_to_cpt_archive_item_on_cpt_singular() {
+		register_post_type(
+			'wptests_cpt',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+
+		$cpt_post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wptests_cpt',
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'   => 'post_type_archive',
+				'menu-item-object' => 'wptests_cpt',
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		$this->go_to( get_permalink( $cpt_post_id ) );
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$classes = $menu_items[0]->classes;
+
+		unregister_post_type( 'wptests_cpt' );
+
+		$this->assertContains( 'current_page_parent', $classes );
+	}
+
+	/**
 	 * Test passed post_date/post_date_gmt.
 	 *
 	 * When inserting a nav menu item, it should be possible to set the post_date
