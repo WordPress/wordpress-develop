@@ -1,4 +1,3 @@
-/* stylelint-disable selector-id-pattern, selector-class-pattern -- This file extensively uses single underscores in ID and class selectors; they cannot be changed because of backward compatibility reasons. */
 #customize-theme-controls #accordion-section-menu_locations {
 	position: relative;
 	margin-top: 30px;
@@ -1061,4 +1060,3 @@ li.assigned-to-menu-location .add-new-menu-item {
 		top: 154px; /* 146 + 8 for 40px input */
 	}
 }
-/* stylelint-enable */
