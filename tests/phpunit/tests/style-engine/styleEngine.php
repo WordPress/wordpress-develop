@@ -336,15 +336,30 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				'block_styles'    => array(
 					'typography' => array(
 						'fontVariationSettings' => array(
-							'GRAD' => 50,
-							'opsz' => 24,
-							'YOPQ' => '24',
-							'YTLC' => false,
-							'YTUC' => array(),
-							'wght' => 700,
-							'ital' => 1,
-							'XT;A' => 1,
-							'XTRA' => 'wide',
+							'GRAD'  => 50,
+							'opsz'  => 24,
+							'YOPQ'  => '24',
+							'YTLC'  => false,
+							'YTUC'  => array(),
+							'wght'  => 700,
+							'ital'  => 1,
+							'XT;A'  => 1,
+							'XTRA'  => 'wide',
+							// A tag begins with a letter, so this is not one, and
+							// PHP has already stored the key as the integer 1234.
+							'1234'  => 10,
+							'1ABC'  => 10,
+							' abc'  => 10,
+							'ab c'  => 10,
+							'abc'   => 10,
+							'abcde' => 10,
+							/*
+								* The registry pads a short tag with trailing spaces,
+								* but a declaration's whitespace runs are collapsed, so
+								* these could only be written as a different tag.
+							*/
+							'abc '  => 10,
+							'a   '  => 10,
 						),
 					),
 				),
@@ -353,6 +368,27 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 					'css'          => 'font-variation-settings:"GRAD" 50, "opsz" 24;',
 					'declarations' => array(
 						'font-variation-settings' => '"GRAD" 50, "opsz" 24',
+					),
+				),
+			),
+
+			'font_variation_settings_axis_tag_syntax'      => array(
+				'block_styles'    => array(
+					'typography' => array(
+						'fontVariationSettings' => array(
+							// A registered tag, a foundry-defined one, and
+							// digits after the first letter.
+							'opsz' => 24,
+							'GRAD' => 50,
+							'A123' => 10,
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'font-variation-settings:"opsz" 24, "GRAD" 50, "A123" 10;',
+					'declarations' => array(
+						'font-variation-settings' => '"opsz" 24, "GRAD" 50, "A123" 10',
 					),
 				),
 			),
