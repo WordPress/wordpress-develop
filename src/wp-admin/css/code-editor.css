@@ -1,4 +1,3 @@
-/* stylelint-disable selector-class-pattern -- The whole file necessarily uses selectors that contain an uppercase character in .CodeMirror. */
 .wrap [class*="CodeMirror-lint-marker"],
 .wp-core-ui [class*="CodeMirror-lint-message"],
 .wrap .CodeMirror-lint-marker-multiple {
@@ -75,4 +74,3 @@
 .wrap .CodeMirror .CodeMirror-linenumber {
 	color: #646970;
 }
-/* stylelint-enable */
