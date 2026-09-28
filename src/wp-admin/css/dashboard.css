@@ -1,4 +1,3 @@
-/* stylelint-disable selector-id-pattern -- This file extensively uses single underscores in ID selectors; they cannot be changed because of backward compatibility reasons. */
 #wpbody-content #dashboard-widgets.columns-1 .postbox-container {
 	width: 100%;
 }
@@ -1518,4 +1517,3 @@ a.rsswidget {
 		text-align: right;
 	}
 }
-/* stylelint-enable */
