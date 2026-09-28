@@ -1549,7 +1549,7 @@ switch ( $action ) {
 			?>
 			<p class="forgetmenot">
 				<input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked( $rememberme ); ?> />
-				<label for="rememberme"><?php esc_html_e( 'Remember Me' ); ?></label>
+				<label for="rememberme"><?php esc_html_e( 'Remember Me, this is a checkbox' ); ?></label>
 				<?php
 				echo wp_get_toggletip(
 					$rememberme_help_text,
