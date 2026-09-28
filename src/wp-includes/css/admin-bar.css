@@ -562,6 +562,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	gap: 6px;
 }
 
+#wpadminbar #wp-admin-bar-site-name.has-site-icon > .ab-item > .ab-icon {
+	display: none;
+}
+
 /* The adminbar icon needs additional styling to prevent 3rd party styles from overriding the size. */
 #wpadminbar #wp-admin-bar-site-name > .ab-item img.site-icon {
 	width: 20px;
