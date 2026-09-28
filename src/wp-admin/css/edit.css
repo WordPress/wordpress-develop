@@ -1,4 +1,3 @@
-/* stylelint-disable selector-id-pattern, selector-class-pattern -- This file extensively uses single underscores in ID and class selectors; they cannot be changed because of backward compatibility reasons. */
 #poststuff {
 	padding-top: 10px;
 	min-width: 763px;
@@ -2144,4 +2143,3 @@ table.links-table {
 		margin: 2em 0 0;
 	}
 }
-/* stylelint-enable */
