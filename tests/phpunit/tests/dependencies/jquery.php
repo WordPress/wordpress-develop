@@ -40,6 +40,31 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure the required jQuery files exist on the file system.
+	 *
+	 * @dataProvider data_jquery_files_exist
+	 *
+	 * @param string $file_name The file name the should exist.
+	 */
+	public function test_jquery_files_exist( $file_name ) {
+		$this->assertFileExists( ABSPATH . "/wp-includes/js/jquery/{$file_name}" );
+	}
+
+	/**
+	 * Data provider for test_jquery_files_exist.
+	 *
+	 * @return array<string, array{ 0: string }>
+	 */
+	public function data_jquery_files_exist() {
+		return array(
+			'jquery'             => array( 'jquery.js' ),
+			'jquery-min'         => array( 'jquery.min.js' ),
+			'jquery-migrate'     => array( 'jquery-migrate.js' ),
+			'jquery-migrate-min' => array( 'jquery-migrate.min.js' ),
+		);
+	}
+
+	/**
 	 * @ticket 22896
 	 *
 	 * @expectedIncorrectUsage wp_deregister_script
