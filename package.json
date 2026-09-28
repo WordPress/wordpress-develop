@@ -134,6 +134,7 @@
 		"whatwg-fetch": "3.0.0"
 	},
 	"scripts": {
+		"postinstall": "cd gb-src && npm ci --ignore-scripts && npm rebuild node-sass",
 		"build": "grunt build",
 		"build:dev": "grunt build --dev",
 		"dev": "grunt watch --dev",

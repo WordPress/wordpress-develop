@@ -193,6 +193,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			alias: {
 				'lodash-es': 'lodash',
 			},
+			// The @wordpress packages are symlinked from gb-src. Resolve them via
+			// node_modules so module paths, and thus hashed module IDs, are stable.
+			symlinks: false,
 		},
 		module: {
 			rules: [
