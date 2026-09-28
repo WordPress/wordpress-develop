@@ -1357,15 +1357,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 
 		/*
-		 * Record the attachment this chain of edits started from, so the original can be
+		 * Record the attachment this chain of edits started from, so the edit root can be
 		 * found in one lookup from any image later in the chain. The new attachment inherits
-		 * the original recorded on the image being edited, or that image itself when it was
+		 * the edit root recorded on the image being edited, or that image itself when it was
 		 * uploaded rather than edited.
 		 */
 		update_post_meta(
 			$new_attachment_id,
-			'_wp_attachment_original_id',
-			wp_get_original_attachment_id( $attachment_id )
+			'_wp_attachment_edit_root_id',
+			wp_get_edit_root_attachment_id( $attachment_id )
 		);
 
 		/**
@@ -1526,10 +1526,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * Edit context only, since only editors need it.
 		 * Not validated: deleting an attachment clears it from images edited from it.
 		 */
-		if ( in_array( 'original_attachment', $fields, true ) && 'edit' === $request['context'] ) {
-			$original_id = wp_get_original_attachment_id( $post->ID );
+		if ( in_array( 'edit_root', $fields, true ) && 'edit' === $request['context'] ) {
+			$edit_root_id = wp_get_edit_root_attachment_id( $post->ID );
 
-			$data['original_attachment'] = $original_id !== (int) $post->ID ? $original_id : 0;
+			$data['edit_root'] = $edit_root_id !== (int) $post->ID ? $edit_root_id : 0;
 		}
 
 		if ( in_array( 'source_url', $fields, true ) ) {
@@ -1691,15 +1691,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		/*
-		 * Let clients fetch the original attachment in the same request with `_embed`,
+		 * Let clients fetch the edit root in the same request with `_embed`,
 		 * the way `featured_media` is paired with its own link. Added here rather than in
 		 * `prepare_links()` because that method cannot see the request, and this belongs
 		 * in the `edit` context only, alongside the field itself.
 		 */
-		if ( ! empty( $data['original_attachment'] ) ) {
+		if ( ! empty( $data['edit_root'] ) ) {
 			$response->add_link(
-				'https://api.w.org/original-attachment',
-				rest_url( rest_get_route_for_post( $data['original_attachment'] ) ),
+				'https://api.w.org/edit-root',
+				rest_url( rest_get_route_for_post( $data['edit_root'] ) ),
 				array( 'embeddable' => true )
 			);
 		}
@@ -1842,7 +1842,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		$schema['properties']['original_attachment'] = array(
+		$schema['properties']['edit_root'] = array(
 			'description' => __( 'The ID of the attachment this attachment\'s chain of edits started from, or 0 if none is recorded.' ),
 			'type'        => 'integer',
 			'context'     => array( 'edit' ),
