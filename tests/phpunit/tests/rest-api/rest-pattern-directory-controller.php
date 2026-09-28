@@ -691,6 +691,8 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
+		$this->assertSame( 'pattern-directory-item', $data['schema']['title'] );
+
 		$properties = $data['schema']['properties'];
 		$this->assertSameSets(
 			array(
