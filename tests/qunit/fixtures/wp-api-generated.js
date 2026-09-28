@@ -11089,6 +11089,7 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "network": {
+                            "default": 1,
                             "description": "The site's network ID. Default is the current network ID.",
                             "type": "integer",
                             "required": false
@@ -11208,6 +11209,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "network": {
+                            "default": 1,
                             "description": "The site's network ID. Default is the current network ID.",
                             "type": "integer",
                             "required": false
