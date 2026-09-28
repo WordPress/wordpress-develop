@@ -1,5 +1,3 @@
-/* stylelint-disable selector-id-pattern, selector-class-pattern -- This file extensively uses single underscores in ID and class selectors; they cannot be changed because of backward compatibility reasons. */
-
 /**
  * TinyMCE and Quicklinks toolbars
  */
@@ -1885,4 +1883,3 @@ html:lang(he-il) .rtl .quicktags-toolbar input {
 		background: none;
 	}
 }
-/* stylelint-enable */
