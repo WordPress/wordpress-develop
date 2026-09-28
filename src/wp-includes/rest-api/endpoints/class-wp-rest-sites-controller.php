@@ -987,9 +987,9 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			$prepared_site['domain'] = $request['domain'];
 		}
 
-		$domain_check = $this->check_domain_is_available( $prepared_site, $request );
-		if ( is_wp_error( $domain_check ) ) {
-			return $domain_check;
+		$url_check = $this->check_url_is_available( $prepared_site, $request );
+		if ( is_wp_error( $url_check ) ) {
+			return $url_check;
 		}
 
 		/**
@@ -1173,7 +1173,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request       The current request.
 	 * @return true|WP_Error True if the domain and path are available, WP_Error otherwise.
 	 */
-	protected function check_domain_is_available( $prepared_site, $request ) {
+	protected function check_url_is_available( $prepared_site, $request ) {
 		$id         = (int) $request['id'];
 		$domain     = isset( $prepared_site['domain'] ) ? $prepared_site['domain'] : '';
 		$path       = isset( $prepared_site['path'] ) ? $prepared_site['path'] : '/';
