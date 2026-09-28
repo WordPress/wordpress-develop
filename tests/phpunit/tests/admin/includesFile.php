@@ -483,28 +483,34 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		add_filter(
 			'pre_http_request',
 			static function ( $preempt, array $parsed_args, string $url ) use ( &$loopback_requested ) {
-				if ( str_contains( $url, 'wp_scrape_key' ) ) {
-					$loopback_requested = true;
-					$query              = wp_parse_url( $url, PHP_URL_QUERY );
-					wp_parse_str( $query, $query_args );
-					$scrape_key = $query_args['wp_scrape_key'];
-					return array(
-						'body'     => "###### wp_scraping_result_start:$scrape_key ######true###### wp_scraping_result_end:$scrape_key ######",
-						'response' => array( 'code' => 200 ),
-					);
+				$query_string = wp_parse_url( $url, PHP_URL_QUERY );
+				if ( ! is_string( $query_string ) ) {
+					return $preempt;
 				}
-				return $preempt;
+				wp_parse_str( $query_string, $query_args );
+				if ( ! isset( $query_args['wp_scrape_key'] ) || ! is_string( $query_args['wp_scrape_key'] ) ) {
+					return $preempt;
+				}
+
+				$loopback_requested = true;
+				return array(
+					'body'     => sprintf( '###### wp_scraping_result_start:%1$s ######true###### wp_scraping_result_end:%1$s ######', $query_args['wp_scrape_key'] ),
+					'response' => array( 'code' => 200 ),
+				);
 			},
 			10,
 			3
 		);
+
+		$content = file_get_contents( WP_PLUGIN_DIR . '/' . $plugin );
+		$this->assertIsString( $content, "Expected $plugin to exist on disk." );
 
 		$this->assertTrue(
 			wp_edit_theme_plugin_file(
 				array(
 					'plugin'     => $plugin,
 					'file'       => $plugin,
-					'newcontent' => file_get_contents( WP_PLUGIN_DIR . '/' . $plugin ),
+					'newcontent' => $content,
 					'nonce'      => wp_create_nonce( 'edit-plugin_' . $plugin ),
 				)
 			)
