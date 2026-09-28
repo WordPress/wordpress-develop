@@ -1,4 +1,3 @@
-/* stylelint-disable selector-id-pattern, selector-class-pattern -- This file extensively uses single underscores in ID and class selectors; they cannot be changed because of backward compatibility reasons. */
 input,
 select,
 textarea,
@@ -1995,4 +1994,3 @@ table.form-table td .updated p {
 		transform: rotate(359deg);
 	}
 }
-/* stylelint-enable */
