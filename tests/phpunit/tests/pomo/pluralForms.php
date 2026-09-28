@@ -40,6 +40,9 @@ class PluralFormsTest extends WP_UnitTestCase {
 	/**
 	 * @ticket 41562
 	 * @dataProvider data_regression
+	 *
+	 * @param int    $nplurals   Number of plural forms.
+	 * @param string $expression Plural-Forms expression.
 	 */
 	public function test_regression( int $nplurals, string $expression ): void {
 		require_once dirname( __DIR__, 2 ) . '/includes/plural-form-function.php';
@@ -62,7 +65,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 	/**
 	 * Distinct plural expressions from the GlotPress locales file, keyed by one locale that uses each.
 	 *
-	 * @see https://raw.githubusercontent.com/GlotPress/GlotPress-WP/develop/locales/locales.php
+	 * @see https://github.com/GlotPress/GlotPress/blob/1bf58a783e1888849faf45b53dbc84bc169b3246/locales/locales.php
 	 *
 	 * @return array<string, array{ 0: int, 1: string }>
 	 */
