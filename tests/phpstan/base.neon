@@ -222,6 +222,10 @@ parameters:
 	excludePaths:
 		analyseAndScan:
 			- ../../src/wp-admin/includes/noop.php
+			# Locally installed npm dependencies, such as in bundled themes, which may include PHP files.
+			- */node_modules/*
+			# Composer dependencies of themes and plugins, which are not part of core.
+			- ../../src/wp-content/*/vendor/*
 		analyse:
 			# These files are deprecated.
 			- ../../src/wp-admin/includes/deprecated.php
