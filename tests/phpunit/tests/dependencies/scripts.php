@@ -4233,6 +4233,7 @@ HTML;
 			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
 			'jquery-form'                      => array( 'jquery-form' ),
 			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'jquery-migrate'                   => array( 'jquery-migrate' ),
 			'htmlhint'                         => array( 'htmlhint' ),
 			'jsonlint'                         => array( 'jsonlint' ),
 			'lodash'                           => array( 'lodash' ),
