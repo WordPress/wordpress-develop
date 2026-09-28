@@ -1378,10 +1378,24 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not implement get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'], 'The collection context default should be view.' );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'], 'The collection context enum should be view, embed, and edit.' );
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/' . $this->revision_1_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'], 'The single revision context default should be view.' );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'], 'The single revision context enum should be view, embed, and edit.' );
 	}
 
 	/**
