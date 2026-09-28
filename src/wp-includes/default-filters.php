@@ -509,6 +509,7 @@ add_filter( 'pre_option_embed_autourls', '__return_true' );
 
 // Default settings for heartbeat.
 add_filter( 'heartbeat_settings', 'wp_heartbeat_settings' );
+add_filter( 'nonce_life', 'wp_heartbeat_refresh_nonce_life', 10, 2 );
 
 // Check if the user is logged out.
 add_action( 'admin_enqueue_scripts', 'wp_auth_check_load' );
