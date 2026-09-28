@@ -290,45 +290,36 @@
 	width: 24px;
 	height: 24px;
 	fill: currentColor;
-	transition: color 0.1s ease-in-out;
 }
 
 div.wp-menu-image::before {
-	color: #a7aaad;
-	color: rgba(240, 246, 252, 0.6);
 	padding: 7px 0;
 	transition: all 0.1s ease-in-out;
 }
 
-#adminmenu div.wp-menu-image::before,
-#adminmenu div.wp-menu-image.svg-icon svg {
+#adminmenu div.wp-menu-image {
 	color: #a7aaad;
 	color: rgba(240, 246, 252, 0.6);
+	transition: color 0.1s ease-in-out;
 }
 
-#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image::before,
-#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image.svg-icon svg,
-#adminmenu .wp-has-current-submenu div.wp-menu-image::before,
-#adminmenu .wp-has-current-submenu div.wp-menu-image.svg-icon svg,
-#adminmenu .current div.wp-menu-image::before,
-#adminmenu .current div.wp-menu-image.svg-icon svg,
-#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image::before,
-#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image.svg-icon svg,
-#adminmenu a.current:hover div.wp-menu-image::before,
-#adminmenu a.current:hover div.wp-menu-image.svg-icon svg,
-#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image::before,
-#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image.svg-icon svg,
-#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image::before,
-#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image.svg-icon svg {
+#adminmenu div.wp-menu-image::before {
+	color: inherit;
+}
+
+#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image,
+#adminmenu .wp-has-current-submenu div.wp-menu-image,
+#adminmenu .current div.wp-menu-image,
+#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image,
+#adminmenu a.current:hover div.wp-menu-image,
+#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,
+#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image {
 	color: #fff;
 }
 
-#adminmenu li:hover div.wp-menu-image::before,
-#adminmenu li:hover div.wp-menu-image.svg-icon svg,
-#adminmenu li a:focus div.wp-menu-image::before,
-#adminmenu li a:focus div.wp-menu-image.svg-icon svg,
-#adminmenu li.opensub div.wp-menu-image::before,
-#adminmenu li.opensub div.wp-menu-image.svg-icon svg {
+#adminmenu li:hover div.wp-menu-image,
+#adminmenu li a:focus div.wp-menu-image,
+#adminmenu li.opensub div.wp-menu-image {
 	color: #72aee6;
 }
 
