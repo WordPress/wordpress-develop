@@ -601,8 +601,8 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertArrayHasKey( 'schema', $data );
 		$this->assertSame( 'rendered-block', $data['schema']['title'] );
 		$this->assertSame( 'object', $data['schema']['type'] );
-		$this->arrayHasKey( 'rendered', $data['schema']['properties'] );
-		$this->arrayHasKey( 'string', $data['schema']['properties']['rendered']['type'] );
+		$this->assertArrayHasKey( 'rendered', $data['schema']['properties'] );
+		$this->assertSame( 'string', $data['schema']['properties']['rendered']['type'] );
 		$this->assertSame( array( 'edit' ), $data['schema']['properties']['rendered']['context'] );
 	}
 
@@ -643,12 +643,15 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
-	 * The get_context_param() method is not used for block rendering.
-	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', self::$rest_api_route . self::$block_name );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'], 'The context default should be view.' );
+		$this->assertSame( array( 'edit' ), $data['endpoints'][0]['args']['context']['enum'], 'The context enum should be edit.' );
 	}
 
 	/**

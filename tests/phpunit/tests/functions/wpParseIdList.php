@@ -16,7 +16,7 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 	 * @dataProvider data_wp_parse_id_list
 	 * @dataProvider data_unexpected_input
 	 *
-	 * @param mixed[]|string $input_list
+	 * @param mixed[]|string|int $input_list
 	 * @param array<non-negative-int> $expected
 	 */
 	public function test_wp_parse_id_list( $input_list, array $expected ): void {
@@ -37,7 +37,7 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ input_list: mixed[]|string, expected: array<non-negative-int> }>
+	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<non-negative-int> }>
 	 */
 	public function data_wp_parse_id_list(): array {
 		return array(
@@ -74,13 +74,25 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 				'input_list' => array( -1, 2, '-3', '4' ),
 				'expected'   => array( 1, 2, 3, 4 ),
 			),
+			'positive int'             => array(
+				'input_list' => 5,
+				'expected'   => array( 5 ),
+			),
+			'negative int'             => array(
+				'input_list' => -5,
+				'expected'   => array( 5 ),
+			),
+			'zero'                     => array(
+				'input_list' => 0,
+				'expected'   => array( 0 ),
+			),
 		);
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ input_list: mixed[]|string, expected: array<non-negative-int> }>
+	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<non-negative-int> }>
 	 */
 	public function data_unexpected_input(): array {
 		return array(
@@ -98,6 +110,10 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 			),
 			'array with spaces'  => array(
 				'input_list' => array( '1 2 string with spaces' ),
+				'expected'   => array( 1 ),
+			),
+			'comma in array'     => array(
+				'input_list' => array( '1,2' ),
 				'expected'   => array( 1 ),
 			),
 			'string with html'   => array(

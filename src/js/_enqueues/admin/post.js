@@ -14,6 +14,11 @@ window.makeSlugeditClickable = window.editPermalink = function(){};
 // Make sure the wp object exists.
 window.wp = window.wp || {};
 
+/**
+ * Handles the dynamic functionality needed on post and term pages.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 ( function( $ ) {
 	var titleHasFocus = false,
 		__ = wp.i18n.__;
@@ -253,7 +258,9 @@ window.wp = window.wp || {};
 }(jQuery));
 
 /**
- * Heartbeat refresh nonces.
+ * Handles the Heartbeat refresh nonces.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {
 	var check, timeout;
@@ -299,7 +306,9 @@ window.wp = window.wp || {};
 }(jQuery));
 
 /**
- * All post and postbox controls and functionality.
+ * Handles all post and postbox controls and functionality.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 jQuery( function($) {
 	var stamp, visibility, $submitButtons, updateVisibility, updateText,
@@ -620,11 +629,11 @@ jQuery( function($) {
 		});
 
 		/**
-		 * Before adding a new taxonomy, disable submit button.
+		 * Disables the submit button before adding a new taxonomy.
 		 *
 		 * @param {Object} s Taxonomy object which will be added.
 		 *
-		 * @return {Object}
+		 * @return {Object} Taxonomy object with additional data to be sent to the server.
 		 */
 		catAddBefore = function( s ) {
 			if ( !$('#new'+taxonomy).val() ) {
@@ -1321,7 +1330,10 @@ jQuery( function($) {
 } );
 
 /**
- * TinyMCE word count display
+ * Handles the TinyMCE word count display.
+ *
+ * @param {JQueryStatic}         $       The jQuery object.
+ * @param {wp.utils.WordCounter} counter The WordCounter object.
  */
 ( function( $, counter ) {
 	$( function() {
