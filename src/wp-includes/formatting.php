@@ -560,7 +560,7 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( '|<p>(<li.+?)</p>|', '$1', $text );
 
 	// If a <blockquote> is wrapped with a <p>, move it inside the <blockquote>.
-	$text = preg_replace( '|<p><blockquote([^>]*)>|i', '<blockquote$1><p>', $text );
+	$text = preg_replace( '!<p><blockquote((?:[^>"\']|"[^"]*"|\'[^\']*\')*)>!i', '<blockquote$1><p>', $text );
 	$text = str_replace( '</blockquote></p>', '</p></blockquote>', $text );
 
 	// If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
@@ -2401,6 +2401,34 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 }
 
 /**
+ * Truncates a slug to a given length.
+ *
+ * Non-ASCII slugs are stored percent-encoded, so the slug is truncated on a
+ * character boundary to avoid cutting a percent-encoded sequence in half.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @see utf8_uri_encode()
+ *
+ * @param string $slug   The slug to truncate.
+ * @param int    $length Optional. Max length of the slug. Default 200 (characters).
+ * @return string The truncated slug.
+ */
+function wp_truncate_slug( $slug, $length = 200 ) {
+	if ( strlen( $slug ) > $length ) {
+		$decoded_slug = urldecode( $slug );
+		if ( $decoded_slug === $slug ) {
+			$slug = substr( $slug, 0, $length );
+		} else {
+			$slug = utf8_uri_encode( $decoded_slug, $length, true );
+		}
+	}
+
+	return rtrim( $slug, '-' );
+}
+
+/**
  * Ensures a string is a valid SQL 'order by' clause.
  *
  * Accepts one or more columns, with or without a sort order (ASC / DESC).
@@ -2412,6 +2440,10 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
  *
  * @param string $orderby Order by clause to be validated.
  * @return string|false Returns $orderby if valid, false otherwise.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $orderby
+ * @phpstan-return ( T is non-empty-string ? T|false : false )
  */
 function sanitize_sql_orderby( $orderby ) {
 	if ( preg_match( '/^\s*(([a-z0-9_]+|`[a-z0-9_]+`)(\s+(ASC|DESC))?\s*(,\s*(?=[a-z0-9_`])|$))+$/i', $orderby ) || preg_match( '/^\s*RAND\(\s*\)\s*$/i', $orderby ) ) {
@@ -2788,6 +2820,16 @@ function format_to_edit( $content, $rich_text = false ) {
  * @param int $number     Number to append zeros to if not greater than threshold.
  * @param int $threshold  Digit places number needs to be to not have zeros added.
  * @return string Adds leading zeros to number if needed.
+ *
+ * @phpstan-return (
+ *     $threshold is 0
+ *         ? lowercase-string&non-empty-string&numeric-string
+ *         : (
+ *             $number is int<0, max>
+ *                 ? lowercase-string&non-empty-string&numeric-string
+ *                 : lowercase-string&non-empty-string
+ *         )
+ * )
  */
 function zeroise( $number, $threshold ) {
 	return sprintf( '%0' . $threshold . 's', $number );
@@ -3840,9 +3882,9 @@ function sanitize_email( $email ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $sanitized_email The sanitized email address.
-		 * @param string $email           The email address, as provided to sanitize_email().
-		 * @param string|null $message    A message to pass to the user. null if email is sanitized.
+		 * @param string      $sanitized_email The sanitized email address.
+		 * @param string      $email           The email address, as provided to sanitize_email().
+		 * @param string|null $message         A message to pass to the user. null if email is sanitized.
 		 */
 		return apply_filters( 'sanitize_email', '', $email, 'email_too_short' );
 	}
@@ -4521,8 +4563,12 @@ function _deep_replace( $search, $subject ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $data Unescaped data.
- * @return string|array Escaped data, in the same type as supplied.
+ * @param string|string[] $data Unescaped data.
+ * @return string|string[] Escaped data, in the same type as supplied.
+ *
+ * @phpstan-template TKey of array-key
+ * @phpstan-param string|array<TKey, string> $data
+ * @phpstan-return ( $data is string ? string : array<TKey, string> )
  */
 function esc_sql( $data ) {
 	global $wpdb;
@@ -4848,10 +4894,6 @@ EOF;
 	$safe_text = (string) preg_replace_callback(
 		$regex,
 		static function ( $matches ) {
-			if ( ! isset( $matches[0] ) ) {
-				return '';
-			}
-
 			if ( isset( $matches['non_cdata'] ) ) {
 				// escape HTML entities in the non-CDATA Section.
 				return _wp_specialchars( $matches['non_cdata'], ENT_XML1 );

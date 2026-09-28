@@ -425,11 +425,17 @@ div.mce-path {
 	border-color: #50575e;
 }
 
-.mce-btn.mce-active,
-.mce-btn.mce-active button,
-.mce-btn.mce-active:hover button,
-.mce-btn.mce-active i,
-.mce-btn.mce-active:hover i {
+/*
+ * TinyMCE appends its skin stylesheet when the editor initializes. The skin may
+ * be parsed after this stylesheet. The extra `mce-toolbar` class gives these
+ * selectors a higher specificity than the skin's white active state, so that
+ * the styling no longer depend on source order.
+ */
+.mce-toolbar .mce-btn.mce-active,
+.mce-toolbar .mce-btn.mce-active button,
+.mce-toolbar .mce-btn.mce-active:hover button,
+.mce-toolbar .mce-btn.mce-active i,
+.mce-toolbar .mce-btn.mce-active:hover i {
 	color: inherit;
 }
 

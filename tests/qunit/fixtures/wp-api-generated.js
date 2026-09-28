@@ -11237,6 +11237,12 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
+                        "page_for_privacy_policy": {
+                            "title": "",
+                            "description": "The ID of the page that should be displayed as the privacy policy page",
+                            "type": "integer",
+                            "required": false
+                        },
                         "default_ping_status": {
                             "title": "",
                             "description": "Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.",
@@ -14932,6 +14938,7 @@ mockedApiResponse.settings = {
     "show_on_front": "posts",
     "page_on_front": 0,
     "page_for_posts": 0,
+    "page_for_privacy_policy": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,
