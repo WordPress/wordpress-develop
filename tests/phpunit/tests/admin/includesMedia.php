@@ -102,6 +102,12 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 		return $attachments ? (int) reset( $attachments ) : 0;
 	}
 
+	public function tear_down() {
+		$this->remove_added_uploads();
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that a `filesize` stored in the attachment metadata is normalized to a positive integer.
 	 *

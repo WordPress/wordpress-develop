@@ -250,6 +250,13 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                  If `$callback` and `$priority` are both provided, a boolean is returned
 	 *                  for whether the specific function is registered at that priority.
 	 * @phpstan-param Maybe_Callable|false $callback
+	 * @phpstan-return (
+	 *     $callback is false
+	 *         ? bool
+	 *         : ( $priority is int
+	 *             ? bool
+	 *             : false|int )
+	 * )
 	 */
 	public function has_filter( $hook_name = '', $callback = false, $priority = false ) {
 		if ( false === $callback ) {
@@ -526,7 +533,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetset.php
 	 *
 	 * @param int|null $offset The offset to assign the value to.
-	 * @param array    $value The value to set.
+	 * @param array    $value  The value to set.
 	 * @phpstan-param array<non-decimal-int-string, Hook_Callback> $value
 	 */
 	#[ReturnTypeWillChange]

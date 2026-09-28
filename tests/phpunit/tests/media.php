@@ -497,12 +497,30 @@ CAP;
 	}
 
 	/**
-	 * @ticket 23776
+	 * Mocks a remote page with no oEmbed discovery links.
 	 *
-	 * @group external-http
+	 * @return array Response array for the `pre_http_request` filter.
+	 */
+	public function mock_page_without_oembed_links() {
+		return array(
+			'headers'  => array( 'content-type' => 'text/html' ),
+			'body'     => '<html><head><title>Example</title></head><body></body></html>',
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	}
+
+	/**
+	 * @ticket 23776
 	 */
 	public function test_autoembed_no_paragraphs_around_urls() {
 		global $wp_embed;
+
+		add_filter( 'pre_http_request', array( $this, 'mock_page_without_oembed_links' ) );
 
 		$content = <<<EOF
 $ my command
@@ -1988,10 +2006,10 @@ EOF;
 
 	/**
 	 * @ticket 33016
-	 *
-	 * @group external-http
 	 */
 	public function test_multiline_comment_with_embeds() {
+		add_filter( 'pre_http_request', array( $this, 'mock_page_without_oembed_links' ) );
+
 		$content = <<<EOF
 Start.
 [embed]http://www.youtube.com/embed/TEST01YRHA0[/embed]
@@ -2033,11 +2051,10 @@ EOF;
 
 	/**
 	 * @ticket 33016
-	 *
-	 * @group external-http
 	 */
 	public function test_oembed_explicit_media_link() {
 		global $wp_embed;
+		add_filter( 'pre_http_request', array( $this, 'mock_page_without_oembed_links' ) );
 		add_filter( 'embed_maybe_make_link', array( $this, 'filter_wp_embed_shortcode_custom' ), 10, 2 );
 
 		$content = <<<EOF
@@ -6255,7 +6272,7 @@ EOF;
 		wp_generate_attachment_metadata( $attachment_id, $file );
 
 		// Clean up the filter.
-		remove_filter( 'wp_editor_set_quality', array( $this, 'assert_dimensions_in_wp_editor_set_quality' ), 10, 3 );
+		remove_filter( 'wp_editor_set_quality', array( $this, 'assert_dimensions_in_wp_editor_set_quality' ) );
 	}
 
 	/**
