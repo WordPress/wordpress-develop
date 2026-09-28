@@ -726,10 +726,46 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Settings_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$expected   = array(
+			'title',
+			'description',
+			'timezone',
+			'date_format',
+			'time_format',
+			'site_logo',
+			'start_of_week',
+			'language',
+			'use_smilies',
+			'default_category',
+			'default_post_format',
+			'posts_per_page',
+			'show_on_front',
+			'page_on_front',
+			'page_for_posts',
+			'page_for_privacy_policy',
+			'default_ping_status',
+			'default_comment_status',
+			'site_icon',
+		);
+
+		if ( ! is_multisite() ) {
+			$expected[] = 'url';
+			$expected[] = 'email';
+		}
+
+		$this->assertSame( 'settings', $data['schema']['title'] );
+		$this->assertSameSets( $expected, array_keys( $properties ) );
 	}
 
 	/**
