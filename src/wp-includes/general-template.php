@@ -5734,7 +5734,7 @@ function wp_required_field_message() {
  * Outputs the nonce used in the heartbeat XHR.
  *
  * @since 3.6.0
- * @since 7.1.0 Added the `refreshNonce` setting.
+ * @since 7.2.0 Added the `refreshNonce` setting.
  *
  * @param array $settings
  * @return array Heartbeat settings.
@@ -5761,7 +5761,7 @@ function wp_heartbeat_settings( $settings ) {
  * browser tab was suspended. Like all nonces it is tied to the session token,
  * so it stops working when the user logs out.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param int        $lifespan Lifespan of nonces in seconds.
  * @param string|int $action   The nonce action.

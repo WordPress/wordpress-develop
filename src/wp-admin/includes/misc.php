@@ -1310,7 +1310,7 @@ function wp_refresh_metabox_loader_nonces( $response, $data ) {
  * Adds the latest Heartbeat and REST API nonce to the Heartbeat response.
  *
  * @since 5.0.0
- * @since 7.1.0 Added the Heartbeat refresh nonce.
+ * @since 7.2.0 Added the Heartbeat refresh nonce.
  *
  * @param array $response The Heartbeat response.
  * @return array The Heartbeat response.
