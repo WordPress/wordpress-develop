@@ -249,6 +249,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * @ticket 40538
 	 * @ticket 64651
+	 * @ticket 66158
 	 *
 	 * @covers ::get_item_schema
 	 */
@@ -258,11 +259,12 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		$data     = $response->get_data();
 
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 4, $properties );
+		$this->assertCount( 5, $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'label', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'collection', $properties );
+		$this->assertArrayHasKey( 'keywords', $properties );
 	}
 
 	/**
