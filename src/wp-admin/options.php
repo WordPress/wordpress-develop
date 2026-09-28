@@ -399,56 +399,57 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 $options = $wpdb->get_results( "SELECT * FROM $wpdb->options ORDER BY option_name" );
 
 foreach ( (array) $options as $option ) :
-	$disabled = false;
-
 	if ( '' === $option->option_name ) {
 		continue;
 	}
 
-	if ( 'home' === $option->option_name && defined( 'WP_HOME' ) ) {
+	$value         = $option->option_value;
+	$disabled      = false;
+	$is_serialized = false;
+
+	if ( ( 'home' === $option->option_name && defined( 'WP_HOME' ) )
+		|| ( 'siteurl' === $option->option_name && defined( 'WP_SITEURL' ) )
+	) {
 		$disabled = true;
 	}
 
-	if ( 'siteurl' === $option->option_name && defined( 'WP_SITEURL' ) ) {
-		$disabled = true;
-	}
-
-	if ( is_serialized( $option->option_value ) ) {
-		if ( is_serialized_string( $option->option_value ) ) {
-			// This is a serialized string, so we should display it.
-			$value               = maybe_unserialize( $option->option_value );
+	if ( is_serialized( $value ) ) {
+		if ( is_serialized_string( $value ) ) {
+			// Serialized strings can be safely displayed and edited as their unserialized form.
+			$value               = maybe_unserialize( $value );
 			$options_to_update[] = $option->option_name;
 		} else {
-			$value    = 'SERIALIZED DATA';
-			$disabled = true;
+			// Other serialized values (arrays, objects) are shown raw, read-only, inside a collapsible <details>.
+			$disabled      = true;
+			$is_serialized = true;
 		}
 	} elseif ( str_starts_with( $option->option_name, 'connectors_' )
 		&& str_ends_with( $option->option_name, '_api_key' )
 	) {
 		// Mask connector API keys and prevent updates from this screen.
-		$value    = _wp_connectors_mask_api_key( $option->option_value );
+		$value    = _wp_connectors_mask_api_key( $value );
 		$disabled = true;
 	} else {
-		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
 	}
 
-	$class = 'all-options';
-
-	if ( $disabled ) {
-		$class .= ' disabled';
-	}
-
-	$name = esc_attr( $option->option_name );
+	$class = 'all-options' . ( $disabled ? ' disabled' : '' );
+	$name  = esc_attr( $option->option_name );
 	?>
 <tr>
 	<th scope="row"><label for="<?php echo $name; ?>"><?php echo esc_html( $option->option_name ); ?></label></th>
-<td>
-	<?php if ( str_contains( $value, "\n" ) ) : ?>
-		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
+	<td>
+	<?php if ( $is_serialized ) : ?>
+		<details class="<?php echo $class; ?>">
+			<summary><?php esc_html_e( 'Serialized data' ); ?></summary>
+			<textarea class="<?php echo $class; ?>" id="<?php echo $name; ?>" cols="30" rows="5" readonly="readonly"><?php echo esc_textarea( $value ); ?></textarea>
+		</details>
+	<?php elseif ( str_contains( $value, "\n" ) ) : ?>
+		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"<?php disabled( $disabled, true ); ?>><?php echo esc_textarea( $value ); ?></textarea>
 	<?php else : ?>
 		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />
-	<?php endif; ?></td>
+	<?php endif; ?>
+	</td>
 </tr>
 <?php endforeach; ?>
 </table>
