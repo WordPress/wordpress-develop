@@ -544,7 +544,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 *
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on the search query.
 		 *
-		 * @this wp.media.model.Attachments
+		 * @this {wp.media.model.Attachments}
 		 *
 		 * @return {boolean} True if the attachment matches the search filter, false otherwise.
 		 */
@@ -564,7 +564,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 * @static
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on its type.
 		 *
-		 * @this wp.media.model.Attachments
+		 * @this {wp.media.model.Attachments}
 		 *
 		 * @return {boolean} True if the attachment matches the type filter, false otherwise.
 		 */
@@ -593,7 +593,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 * @static
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on its uploadedTo property.
 		 *
-		 * @this wp.media.model.Attachments
+		 * @this {wp.media.model.Attachments}
 		 *
 		 * @return {boolean} True if the attachment matches the uploadedTo filter, false otherwise.
 		 */
@@ -611,7 +611,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 * @static
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on its status property.
 		 *
-		 * @this wp.media.model.Attachments
+		 * @this {wp.media.model.Attachments}
 		 *
 		 * @return {boolean} True if the attachment matches the status filter, false otherwise.
 		 */

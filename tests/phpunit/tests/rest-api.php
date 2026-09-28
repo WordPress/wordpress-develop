@@ -910,7 +910,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		// Switch to an admin request on a different domain name.
 		$_SERVER['SERVER_NAME'] = 'admin.example.org';
 		update_option( 'siteurl', 'http://admin.example.org' );
-		$this->assertNotEquals( $_SERVER['SERVER_NAME'], parse_url( home_url(), PHP_URL_HOST ) );
+		$this->assertNotSame( $_SERVER['SERVER_NAME'], parse_url( home_url(), PHP_URL_HOST ) );
 
 		// Test an HTTP URL.
 		unset( $_SERVER['HTTPS'] );
@@ -982,14 +982,14 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @dataProvider data_rest_parse_date
 	 */
 	public function test_rest_parse_date( $date, $expected ) {
-		$this->assertEquals( $expected, rest_parse_date( $date ) );
+		$this->assertSame( $expected, rest_parse_date( $date ) );
 	}
 
 	public function data_rest_parse_date() {
 		return array(
 			// Valid dates with timezones.
 			array( '2017-01-16T11:30:00-05:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5 * HOUR_IN_SECONDS ),
-			array( '2017-01-16T11:30:00-05:30', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5.5 * HOUR_IN_SECONDS ),
+			array( '2017-01-16T11:30:00-05:30', (int) ( gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5.5 * HOUR_IN_SECONDS ) ),
 			array( '2017-01-16T11:30:00-05', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5 * HOUR_IN_SECONDS ),
 			array( '2017-01-16T11:30:00+05', gmmktime( 11, 30, 0, 1, 16, 2017 ) - 5 * HOUR_IN_SECONDS ),
 			array( '2017-01-16T11:30:00-00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),

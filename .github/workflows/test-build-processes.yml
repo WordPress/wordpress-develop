@@ -43,6 +43,7 @@ on:
       - 'tools/gutenberg/**'
       - 'tools/vendors/**'
       - 'tools/webpack/**'
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/test-build-processes.yml'
       - '.github/workflows/reusable-test-core-build-process.yml'
   workflow_dispatch:
