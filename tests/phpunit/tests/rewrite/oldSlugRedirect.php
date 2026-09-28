@@ -8,6 +8,8 @@
 class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	protected $old_slug_redirect_url;
 
+	protected $old_slug_redirect_post_id;
+
 	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -22,7 +24,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		add_filter( 'old_slug_redirect_url', array( $this, 'filter_old_slug_redirect_url' ), 10, 1 );
+		add_filter( 'old_slug_redirect_url', array( $this, 'filter_old_slug_redirect_url' ), 10, 2 );
 
 		$this->set_permalink_structure( '/%postname%/' );
 
@@ -33,7 +35,8 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$this->old_slug_redirect_url = null;
+		$this->old_slug_redirect_url     = null;
+		$this->old_slug_redirect_post_id = null;
 
 		parent::tear_down();
 	}
@@ -182,6 +185,28 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 39442
+	 */
+	public function test_old_slug_redirect_url_filter_receives_redirect_post_id() {
+		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		wp_update_post(
+			array(
+				'ID'        => self::$post_id,
+				'post_name' => 'bar-baz',
+			)
+		);
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame(
+			self::$post_id,
+			$this->old_slug_redirect_post_id,
+			'The old slug redirect URL filter should receive the redirect post ID.'
+		);
+	}
+
+	/**
 	 * @ticket 35031
 	 */
 	public function test_old_slug_doesnt_redirect_when_reused() {
@@ -210,8 +235,9 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		$this->assertNull( $this->old_slug_redirect_url );
 	}
 
-	public function filter_old_slug_redirect_url( $url ) {
-		$this->old_slug_redirect_url = $url;
+	public function filter_old_slug_redirect_url( $url, $post_id ) {
+		$this->old_slug_redirect_url     = $url;
+		$this->old_slug_redirect_post_id = $post_id;
 		return false;
 	}
 }
