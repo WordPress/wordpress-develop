@@ -468,6 +468,8 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * @ticket 66129
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::wp_edit_theme_plugin_file
 	 */
 	public function test_wp_edit_theme_plugin_file_runs_loopback_check_for_network_active_plugin() {
 		$user_id = self::factory()->user->create();
@@ -475,16 +477,19 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		wp_set_current_user( $user_id );
 
 		$plugin = 'hello.php';
-		activate_plugin( $plugin, '', true );
+		$this->assertNull( activate_plugin( $plugin, '', true ) );
 
 		$loopback_requested = false;
 		add_filter(
 			'pre_http_request',
-			function ( $preempt, $parsed_args, $url ) use ( &$loopback_requested ) {
+			static function ( $preempt, array $parsed_args, string $url ) use ( &$loopback_requested ) {
 				if ( str_contains( $url, 'wp_scrape_key' ) ) {
 					$loopback_requested = true;
+					$query              = wp_parse_url( $url, PHP_URL_QUERY );
+					wp_parse_str( $query, $query_args );
+					$scrape_key = $query_args['wp_scrape_key'];
 					return array(
-						'body'     => '',
+						'body'     => "###### wp_scraping_result_start:$scrape_key ######true###### wp_scraping_result_end:$scrape_key ######",
 						'response' => array( 'code' => 200 ),
 					);
 				}
@@ -494,17 +499,16 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 			3
 		);
 
-		wp_edit_theme_plugin_file(
-			array(
-				'plugin'     => $plugin,
-				'file'       => $plugin,
-				'newcontent' => file_get_contents( WP_PLUGIN_DIR . '/' . $plugin ),
-				'nonce'      => wp_create_nonce( 'edit-plugin_' . $plugin ),
+		$this->assertTrue(
+			wp_edit_theme_plugin_file(
+				array(
+					'plugin'     => $plugin,
+					'file'       => $plugin,
+					'newcontent' => file_get_contents( WP_PLUGIN_DIR . '/' . $plugin ),
+					'nonce'      => wp_create_nonce( 'edit-plugin_' . $plugin ),
+				)
 			)
 		);
-
-		deactivate_plugins( $plugin );
-		revoke_super_admin( $user_id );
 
 		$this->assertTrue( $loopback_requested, 'Editing a network-active plugin file should trigger the fatal-error loopback check.' );
 	}
