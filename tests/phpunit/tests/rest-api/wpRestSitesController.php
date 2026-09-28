@@ -1460,35 +1460,35 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_domain_validation() {
 		return array(
-			'plain hostname'            => array( 'example.org', true ),
-			'subdomain'                 => array( 'sub.example.org', true ),
-			'hostname with port'        => array( 'example.org:8080', true ),
+			'plain hostname'                            => array( 'example.org', true ),
+			'subdomain'                                 => array( 'sub.example.org', true ),
+			'hostname with port'                        => array( 'example.org:8080', true ),
 			// The shape produced by wp-admin/network/site-new.php for a subdomain install
 			// when the network domain itself carries a port, e.g. "blogname.localhost:8889".
 			'subdomain of a network domain with a port' => array( 'blogname.localhost:8889', true ),
-			'ipv4'                      => array( '198.51.100.10', true ),
-			'ipv4 with port'            => array( '198.51.100.10:8080', true ),
-			'bare ipv6 loopback, no port' => array( '::1', true ),
-			'bare ipv6, no port'        => array( '2001:db8::1', true ),
-			'bare full-length ipv6, no port' => array( '2001:0db8:0000:0000:0000:0000:0000:0001', true ),
-			'bare ipv4-mapped ipv6, no port' => array( '::ffff:192.0.2.1', true ),
+			'ipv4'                                      => array( '198.51.100.10', true ),
+			'ipv4 with port'                            => array( '198.51.100.10:8080', true ),
+			'bare ipv6 loopback, no port'               => array( '::1', true ),
+			'bare ipv6, no port'                        => array( '2001:db8::1', true ),
+			'bare full-length ipv6, no port'            => array( '2001:0db8:0000:0000:0000:0000:0000:0001', true ),
+			'bare ipv4-mapped ipv6, no port'            => array( '::ffff:192.0.2.1', true ),
 			// Ambiguous: no brackets to separate a port, so the whole string is
 			// parsed as a literal (8-group, after :: expansion) IPv6 address.
 			'ambiguous unbracketed ipv6 with trailing digits treated as address' => array( '2001:db8::1:8080', true ),
 			// Bracketed IPv6 is not supported at all: brackets aren't valid
 			// hostname or bare-IP characters, so any leading `[` is rejected outright.
-			'bracketed ipv6 is rejected'          => array( '[2001:db8::1]', false ),
-			'bracketed ipv6 with port is rejected' => array( '[2001:db8::1]:8080', false ),
-			'bracketed ipv6 loopback is rejected' => array( '[::1]', false ),
-			'empty brackets are rejected'         => array( '[]', false ),
+			'bracketed ipv6 is rejected'                => array( '[2001:db8::1]', false ),
+			'bracketed ipv6 with port is rejected'      => array( '[2001:db8::1]:8080', false ),
+			'bracketed ipv6 loopback is rejected'       => array( '[::1]', false ),
+			'empty brackets are rejected'               => array( '[]', false ),
 			'unbracketed ipv6-shaped string with a port-like trailing group is rejected' => array( '1:2:3:4:5:6:7:8:9', false ),
-			'empty domain'              => array( '', false ),
-			'domain with a space'       => array( 'example org', false ),
-			'domain with a scheme'      => array( 'http://example.org', false ),
-			'leading hyphen label'      => array( '-example.org', false ),
-			'empty label'               => array( 'example..org', false ),
-			'port out of range'        => array( 'example.org:99999', false ),
-			'non numeric port'          => array( 'example.org:abc', false ),
+			'empty domain'                              => array( '', false ),
+			'domain with a space'                       => array( 'example org', false ),
+			'domain with a scheme'                      => array( 'http://example.org', false ),
+			'leading hyphen label'                      => array( '-example.org', false ),
+			'empty label'                               => array( 'example..org', false ),
+			'port out of range'                         => array( 'example.org:99999', false ),
+			'non numeric port'                          => array( 'example.org:abc', false ),
 		);
 	}
 
@@ -1564,20 +1564,20 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_path_validation() {
 		return array(
-			'root path'                 => array( '/', true ),
-			'single segment'            => array( '/tempor/', true ),
-			'nested segments'           => array( '/parent/child/', true ),
-			'segment with apostrophe'   => array( "/o'brien/", true ),
-			'segment with punctuation'  => array( '/with-hyphen_and.dot~tilde/', true ),
-			'percent encoded segment'   => array( '/percent%20encoded/', true ),
-			'empty path'                => array( '', false ),
-			'no leading slash'          => array( 'no-leading-slash/', false ),
-			'no trailing slash'         => array( '/no-trailing-slash', false ),
-			'double slash'              => array( '//double-slash//', false ),
-			'path with a space'         => array( '/with space/', false ),
-			'path with a query string'  => array( '/with?query/', false ),
-			'path with a fragment'      => array( '/with#fragment/', false ),
-			'path with a double quote'  => array( '/with"quote/', false ),
+			'root path'                => array( '/', true ),
+			'single segment'           => array( '/tempor/', true ),
+			'nested segments'          => array( '/parent/child/', true ),
+			'segment with apostrophe'  => array( "/o'brien/", true ),
+			'segment with punctuation' => array( '/with-hyphen_and.dot~tilde/', true ),
+			'percent encoded segment'  => array( '/percent%20encoded/', true ),
+			'empty path'               => array( '', false ),
+			'no leading slash'         => array( 'no-leading-slash/', false ),
+			'no trailing slash'        => array( '/no-trailing-slash', false ),
+			'double slash'             => array( '//double-slash//', false ),
+			'path with a space'        => array( '/with space/', false ),
+			'path with a query string' => array( '/with?query/', false ),
+			'path with a fragment'     => array( '/with#fragment/', false ),
+			'path with a double quote' => array( '/with"quote/', false ),
 		);
 	}
 
