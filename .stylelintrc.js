@@ -55,7 +55,7 @@ module.exports = {
 			},
 		],
 		'selector-class-pattern': [
-			'^[a-z][a-z0-9]*(?:(?:__|--|-)[a-z0-9]+)*$',
+			'^([a-z][a-z0-9]*)(-[a-z0-9]+)*$',
 			{
 				message:
 					'Class selector should use lowercase class segments separated with hyphens, double hyphens, or double underscores',
