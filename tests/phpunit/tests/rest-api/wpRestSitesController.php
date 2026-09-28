@@ -41,6 +41,23 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Get reflective access to a private/protected method on
+	 * the WP_REST_Sites_Controller class.
+	 *
+	 * @param string $method_name Method name for which to gain access.
+	 * @return ReflectionMethod
+	 * @throws ReflectionException Throws an exception if method does not exist.
+	 */
+	protected function get_reflective_method( $method_name ) {
+		$class  = new ReflectionClass( WP_REST_Sites_Controller::class );
+		$method = $class->getMethod( $method_name );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+		return $method;
+	}
+
+	/**
 	 * @ticket 40365
 	 * @covers ::register_routes
 	 */
@@ -303,6 +320,205 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertEquals( '/keep/', $data['path'] );
 		$this->assertEquals( 1, $data['mature'] );
+	}
+
+	/**
+	 * Data provider for test_check_url_is_available_on_create().
+	 *
+	 * Every case runs against the same two fixture sites: one at
+	 * WP_TESTS_DOMAIN . '/check-url-taken/' and one at WP_TESTS_DOMAIN . '/'
+	 * (the root), so a candidate path of `null` (omitted entirely) can
+	 * exercise the "defaults to root" fallback against the second fixture.
+	 *
+	 * @return array[]
+	 */
+	public function data_check_url_is_available_on_create() {
+		return array(
+			'a brand new domain and path is available' => array(
+				'check-url-is-available.example',
+				'/',
+				false,
+			),
+			'an existing domain and path is rejected'  => array(
+				WP_TESTS_DOMAIN,
+				'/check-url-taken/',
+				true,
+			),
+			'omitting path defaults to root, which is also taken' => array(
+				WP_TESTS_DOMAIN,
+				null,
+				true,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::check_url_is_available
+	 * @group ms-required
+	 * @dataProvider data_check_url_is_available_on_create
+	 *
+	 * @param string $candidate_domain Domain to check.
+	 * @param string|null $candidate_path Path to check, or null to omit the `path` key entirely.
+	 * @param bool $expect_conflict Whether a `rest_site_taken` error is expected.
+	 */
+	public function test_check_url_is_available_on_create( $candidate_domain, $candidate_path, $expect_conflict ) {
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-taken/',
+			)
+		);
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/',
+			)
+		);
+
+		$prepared_site = array( 'domain' => $candidate_domain );
+		if ( null !== $candidate_path ) {
+			$prepared_site['path'] = $candidate_path;
+		}
+
+		$method  = $this->get_reflective_method( 'check_url_is_available' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+
+		$result = $method->invoke( $this->endpoint, $prepared_site, $request );
+
+		if ( $expect_conflict ) {
+			$this->assertWPError( $result );
+			$this->assertSame( 'rest_site_taken', $result->get_error_code() );
+			$this->assertSame( 400, $result->get_error_data()['status'] );
+		} else {
+			$this->assertTrue( $result );
+		}
+	}
+
+	/**
+	 * The same domain/path is available on a different network.
+	 *
+	 * @ticket 40365
+	 * @covers ::check_url_is_available
+	 * @group ms-required
+	 */
+	public function test_check_url_is_available_allows_the_same_domain_and_path_on_a_different_network() {
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-shared/',
+			)
+		);
+
+		$other_network_id = self::factory()->network->create(
+			array(
+				'domain' => 'check-url-other-network.example',
+				'path'   => '/',
+			)
+		);
+
+		$method  = $this->get_reflective_method( 'check_url_is_available' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+
+		$result = $method->invoke(
+			$this->endpoint,
+			array(
+				'domain'     => WP_TESTS_DOMAIN,
+				'path'       => '/check-url-shared/',
+				'network_id' => $other_network_id,
+			),
+			$request
+		);
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Data provider for test_check_url_is_available_on_update().
+	 *
+	 * Both cases run against the same two fixture sites: the one being
+	 * updated (WP_TESTS_DOMAIN . '/check-url-free/') and another site
+	 * occupying WP_TESTS_DOMAIN . '/check-url-taken-2/'.
+	 *
+	 * @return array[]
+	 */
+	public function data_check_url_is_available_on_update() {
+		return array(
+			'keeps its own domain and path via fallback (no conflict)' => array(
+				array(),
+				false,
+			),
+			'changes to another site\'s domain and path (conflict)'    => array(
+				array(
+					'domain' => WP_TESTS_DOMAIN,
+					'path'   => '/check-url-taken-2/',
+				),
+				true,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::check_url_is_available
+	 * @group ms-required
+	 * @dataProvider data_check_url_is_available_on_update
+	 *
+	 * @param array $prepared_site   Prepared site data to check; empty to test the fallback to the current site's own values.
+	 * @param bool  $expect_conflict Whether a `rest_site_taken` error is expected.
+	 */
+	public function test_check_url_is_available_on_update( $prepared_site, $expect_conflict ) {
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-taken-2/',
+			)
+		);
+		$blog_id = self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-free/',
+			)
+		);
+
+		$method  = $this->get_reflective_method( 'check_url_is_available' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$result = $method->invoke( $this->endpoint, $prepared_site, $request );
+
+		if ( $expect_conflict ) {
+			$this->assertWPError( $result );
+			$this->assertSame( 'rest_site_taken', $result->get_error_code() );
+		} else {
+			$this->assertTrue( $result );
+		}
+	}
+
+	/**
+	 * An invalid site ID on update propagates the WP_Error from get_site()
+	 * rather than proceeding to the domain/path check.
+	 *
+	 * @ticket 40365
+	 * @covers ::check_url_is_available
+	 * @group ms-required
+	 */
+	public function test_check_url_is_available_propagates_an_invalid_id_on_update() {
+		$method  = $this->get_reflective_method( 'check_url_is_available' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+		$request->set_param( 'id', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$result = $method->invoke(
+			$this->endpoint,
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-invalid-id/',
+			),
+			$request
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_site_invalid_id', $result->get_error_code() );
 	}
 
 	/**
@@ -1172,35 +1388,35 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_domain_validation() {
 		return array(
-			'plain hostname'            => array( 'example.org', true ),
-			'subdomain'                 => array( 'sub.example.org', true ),
-			'hostname with port'        => array( 'example.org:8080', true ),
+			'plain hostname'                            => array( 'example.org', true ),
+			'subdomain'                                 => array( 'sub.example.org', true ),
+			'hostname with port'                        => array( 'example.org:8080', true ),
 			// The shape produced by wp-admin/network/site-new.php for a subdomain install
 			// when the network domain itself carries a port, e.g. "blogname.localhost:8889".
 			'subdomain of a network domain with a port' => array( 'blogname.localhost:8889', true ),
-			'ipv4'                      => array( '198.51.100.10', true ),
-			'ipv4 with port'            => array( '198.51.100.10:8080', true ),
-			'bare ipv6 loopback, no port' => array( '::1', true ),
-			'bare ipv6, no port'        => array( '2001:db8::1', true ),
-			'bare full-length ipv6, no port' => array( '2001:0db8:0000:0000:0000:0000:0000:0001', true ),
-			'bare ipv4-mapped ipv6, no port' => array( '::ffff:192.0.2.1', true ),
+			'ipv4'                                      => array( '198.51.100.10', true ),
+			'ipv4 with port'                            => array( '198.51.100.10:8080', true ),
+			'bare ipv6 loopback, no port'               => array( '::1', true ),
+			'bare ipv6, no port'                        => array( '2001:db8::1', true ),
+			'bare full-length ipv6, no port'            => array( '2001:0db8:0000:0000:0000:0000:0000:0001', true ),
+			'bare ipv4-mapped ipv6, no port'            => array( '::ffff:192.0.2.1', true ),
 			// Ambiguous: no brackets to separate a port, so the whole string is
 			// parsed as a literal (8-group, after :: expansion) IPv6 address.
 			'ambiguous unbracketed ipv6 with trailing digits treated as address' => array( '2001:db8::1:8080', true ),
 			// Bracketed IPv6 is not supported at all: brackets aren't valid
 			// hostname or bare-IP characters, so any leading `[` is rejected outright.
-			'bracketed ipv6 is rejected'          => array( '[2001:db8::1]', false ),
-			'bracketed ipv6 with port is rejected' => array( '[2001:db8::1]:8080', false ),
-			'bracketed ipv6 loopback is rejected' => array( '[::1]', false ),
-			'empty brackets are rejected'         => array( '[]', false ),
+			'bracketed ipv6 is rejected'                => array( '[2001:db8::1]', false ),
+			'bracketed ipv6 with port is rejected'      => array( '[2001:db8::1]:8080', false ),
+			'bracketed ipv6 loopback is rejected'       => array( '[::1]', false ),
+			'empty brackets are rejected'               => array( '[]', false ),
 			'unbracketed ipv6-shaped string with a port-like trailing group is rejected' => array( '1:2:3:4:5:6:7:8:9', false ),
-			'empty domain'              => array( '', false ),
-			'domain with a space'       => array( 'example org', false ),
-			'domain with a scheme'      => array( 'http://example.org', false ),
-			'leading hyphen label'      => array( '-example.org', false ),
-			'empty label'               => array( 'example..org', false ),
-			'port out of range'        => array( 'example.org:99999', false ),
-			'non numeric port'          => array( 'example.org:abc', false ),
+			'empty domain'                              => array( '', false ),
+			'domain with a space'                       => array( 'example org', false ),
+			'domain with a scheme'                      => array( 'http://example.org', false ),
+			'leading hyphen label'                      => array( '-example.org', false ),
+			'empty label'                               => array( 'example..org', false ),
+			'port out of range'                         => array( 'example.org:99999', false ),
+			'non numeric port'                          => array( 'example.org:abc', false ),
 		);
 	}
 
@@ -1276,20 +1492,20 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_path_validation() {
 		return array(
-			'root path'                 => array( '/', true ),
-			'single segment'            => array( '/tempor/', true ),
-			'nested segments'           => array( '/parent/child/', true ),
-			'segment with apostrophe'   => array( "/o'brien/", true ),
-			'segment with punctuation'  => array( '/with-hyphen_and.dot~tilde/', true ),
-			'percent encoded segment'   => array( '/percent%20encoded/', true ),
-			'empty path'                => array( '', false ),
-			'no leading slash'          => array( 'no-leading-slash/', false ),
-			'no trailing slash'         => array( '/no-trailing-slash', false ),
-			'double slash'              => array( '//double-slash//', false ),
-			'path with a space'         => array( '/with space/', false ),
-			'path with a query string'  => array( '/with?query/', false ),
-			'path with a fragment'      => array( '/with#fragment/', false ),
-			'path with a double quote'  => array( '/with"quote/', false ),
+			'root path'                => array( '/', true ),
+			'single segment'           => array( '/tempor/', true ),
+			'nested segments'          => array( '/parent/child/', true ),
+			'segment with apostrophe'  => array( "/o'brien/", true ),
+			'segment with punctuation' => array( '/with-hyphen_and.dot~tilde/', true ),
+			'percent encoded segment'  => array( '/percent%20encoded/', true ),
+			'empty path'               => array( '', false ),
+			'no leading slash'         => array( 'no-leading-slash/', false ),
+			'no trailing slash'        => array( '/no-trailing-slash', false ),
+			'double slash'             => array( '//double-slash//', false ),
+			'path with a space'        => array( '/with space/', false ),
+			'path with a query string' => array( '/with?query/', false ),
+			'path with a fragment'     => array( '/with#fragment/', false ),
+			'path with a double quote' => array( '/with"quote/', false ),
 		);
 	}
 
