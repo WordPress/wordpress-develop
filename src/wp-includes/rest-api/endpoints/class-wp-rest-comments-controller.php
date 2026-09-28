@@ -2070,7 +2070,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	/**
 	 * Sanitizes a single comment status or a list of comment statuses.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param string[]|string $statuses Comment status or array of comment statuses.
 	 * @return string[] Sanitized array of comment statuses.
