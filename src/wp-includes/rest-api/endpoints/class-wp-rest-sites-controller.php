@@ -176,7 +176,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		/*
 		 * This array defines mappings between public API query parameters whose
-		 * values are accepted as-passed, and their internal WP_Query parameter
+		 * values are accepted as-passed, and their internal WP_Site_Query parameter
 		 * name equivalents (some are the same). Only values which are also
 		 * present in $registered will be set.
 		 */
