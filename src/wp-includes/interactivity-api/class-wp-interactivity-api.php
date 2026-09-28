@@ -1345,6 +1345,11 @@ final class WP_Interactivity_API {
 	 *     merge_style_property( 'background:green;', 'color', 'red' ) => 'background:green;color:red;'
 	 *     merge_style_property( 'color:green;', 'color', null )       => ''
 	 *
+	 * Declarations are separated on semicolons without regard for quoted strings or
+	 * `url()` values, so the property being replaced is not recognized when its own
+	 * value contains a semicolon. Resolving that requires tokenizing the declaration
+	 * list rather than splitting it. See #65738.
+	 *
 	 * @param string            $style_attribute_value The current style attribute value.
 	 * @param string            $style_property_name   The style property name to set.
 	 * @param string|false|null $style_property_value  The value to set for the style property. With false, null or an
@@ -1362,7 +1367,25 @@ final class WP_Interactivity_API {
 			if ( empty( trim( $style_assignment ) ) ) {
 				continue;
 			}
-			list( $name, $value ) = explode( ':', $style_assignment );
+
+			/*
+			 * Only the first colon separates a property name from its value; a value may
+			 * legitimately contain more, as in `background-image:url(https://…)`.
+			 */
+			$name_and_value = explode( ':', $style_assignment, 2 );
+
+			/*
+			 * A segment with no colon is not a declaration. It is most often the remainder
+			 * of a value that was split above by a semicolon inside a quoted string or a
+			 * `url()`, as in `font-family:"Foo;Bar"`. Preserving it verbatim means
+			 * re-joining the segments restores the original value.
+			 */
+			if ( ! isset( $name_and_value[1] ) ) {
+				$result[] = $style_assignment . ';';
+				continue;
+			}
+
+			list( $name, $value ) = $name_and_value;
 			if ( trim( $name ) !== $style_property_name ) {
 				$result[] = trim( $name ) . ':' . trim( $value ) . ';';
 			}
