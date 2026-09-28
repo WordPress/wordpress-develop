@@ -562,6 +562,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	gap: 6px;
 }
 
+#wpadminbar #wp-admin-bar-site-name.has-site-icon > .ab-item > .ab-icon {
+	display: none;
+}
+
 #wpadminbar #wp-admin-bar-site-name > .ab-item .site-icon {
 	width: 20px;
 	height: 20px;

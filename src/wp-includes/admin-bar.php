@@ -401,11 +401,10 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 		$blogname = sprintf( __( 'User Dashboard: %s' ), esc_html( get_network()->site_name ) );
 	}
 
-	$title         = wp_html_excerpt( $blogname, 40, '&hellip;' );
-	$meta          = array(
+	$title = wp_html_excerpt( $blogname, 40, '&hellip;' );
+	$meta  = array(
 		'menu_title' => $title,
 	);
-	$has_site_icon = false;
 
 	if ( ! is_network_admin() && ! is_user_admin() ) {
 		/** This filter is documented in wp-includes/admin-bar.php */
@@ -423,13 +422,10 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 
 			$title         = $site_icon . $title;
 			$meta['class'] = 'has-site-icon';
-			$has_site_icon = true;
 		}
 	}
 
-	if ( ! $has_site_icon ) {
-		$title = _wp_admin_bar_icon( ( is_admin() || ! current_user_can( 'read' ) ) ? 'core-admin/home' : 'core-admin/dashboard' ) . $title;
-	}
+	$title = _wp_admin_bar_icon( ( is_admin() || ! current_user_can( 'read' ) ) ? 'core-admin/home' : 'core-admin/dashboard' ) . $title;
 
 	$wp_admin_bar->add_node(
 		array(
