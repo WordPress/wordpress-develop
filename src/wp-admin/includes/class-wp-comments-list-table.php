@@ -442,7 +442,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 			if ( ! empty( $output ) && $this->has_items() ) {
 				echo $output;
-				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
 		}
 
@@ -875,7 +875,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 				'replyto',
 				'vim-r comment-inline',
 				esc_attr__( 'Reply to this comment' ),
-				__( 'Reply' )
+				/* translators: Comment reply button text. */
+				_x( 'Reply', 'verb' )
 			);
 		}
 

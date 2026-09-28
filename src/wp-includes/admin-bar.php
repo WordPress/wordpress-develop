@@ -276,7 +276,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 	/* translators: %s: Current user's display name. */
 	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . wp_get_current_user()->display_name . '</span>' );
 
-	$avatar = get_avatar( $user_id, 26 );
+	$avatar = get_avatar( $user_id, 28 );
 	$wp_admin_bar->add_node(
 		array(
 			'id'     => 'my-account',
@@ -385,15 +385,35 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 	}
 
 	$title = wp_html_excerpt( $blogname, 40, '&hellip;' );
+	$meta  = array(
+		'menu_title' => $title,
+	);
+
+	if ( ! is_network_admin() && ! is_user_admin() ) {
+		/** This filter is documented in wp-includes/admin-bar.php */
+		$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
+
+		if ( true === $show_site_icons && has_site_icon() ) {
+			$site_icon_url    = get_site_icon_url( 32 );
+			$site_icon_url_2x = get_site_icon_url( 64 );
+			$srcset           = ( $site_icon_url_2x && $site_icon_url !== $site_icon_url_2x ) ? sprintf( ' srcset="%s 2x"', esc_url( $site_icon_url_2x ) ) : '';
+			$site_icon        = sprintf(
+				'<img class="site-icon" src="%s"%s alt="" width="20" height="20" />',
+				esc_url( $site_icon_url ),
+				$srcset
+			);
+
+			$title         = $site_icon . $title;
+			$meta['class'] = 'has-site-icon';
+		}
+	}
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-name',
 			'title' => $title,
 			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
-			'meta'  => array(
-				'menu_title' => $title,
-			),
+			'meta'  => $meta,
 		)
 	);
 
@@ -971,8 +991,12 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	 */
 	$function = <<<'JS'
 		( applePattern, appleOSLabel ) => {
-			if ( ( new RegExp( applePattern ) ).test( navigator.userAgent ) ) {
-				document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' ).textContent = appleOSLabel;
+			if ( ! ( new RegExp( applePattern, 'i' ) ).test( navigator.userAgent ) ) {
+				return;
+			}
+			const kbd = document.querySelector( '#wp-admin-bar-command-palette .ab-label kbd' );
+			if ( kbd ) {
+				kbd.textContent = appleOSLabel;
 			}
 		}
 	JS;
@@ -1056,7 +1080,7 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 		array(
 			'id'    => 'new-content',
 			'title' => $title,
-			'href'  => admin_url( current( array_keys( $actions ) ) ),
+			'href'  => admin_url( array_key_first( $actions ) ),
 			'meta'  => array(
 				'menu_title' => _x( 'New', 'admin bar menu group label' ),
 			),
@@ -1461,50 +1485,4 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 	}
 
 	return 'true' === $pref;
-}
-
-/**
- * Adds CSS from the administration color scheme stylesheet on the front end.
- *
- * @since 7.0.0
- *
- * @global array $_wp_admin_css_colors Registered administration color schemes.
- */
-function wp_admin_bar_add_color_scheme_to_front_end() {
-	if ( is_admin() ) {
-		return;
-	}
-
-	global $_wp_admin_css_colors;
-
-	if ( empty( $_wp_admin_css_colors ) ) {
-		register_admin_color_schemes();
-	}
-
-	$color_scheme = get_user_option( 'admin_color' );
-
-	if ( empty( $color_scheme ) || ! isset( $_wp_admin_css_colors[ $color_scheme ] ) ) {
-		$color_scheme = 'modern';
-	}
-
-	$color = $_wp_admin_css_colors[ $color_scheme ] ?? null;
-	$url   = $color->url ?? '';
-
-	if ( $url ) {
-		$response = wp_remote_get( $url );
-		if ( ! is_wp_error( $response ) ) {
-			$css = $response['body'];
-			if ( is_string( $css ) && str_contains( $css, '#wpadminbar' ) ) {
-				$start_position = strpos( $css, '#wpadminbar' );
-				$end_position   = strpos( $css, '.wp-pointer' );
-				if ( false !== $end_position && $end_position > $start_position ) {
-					$css = substr( $css, $start_position, $end_position - $start_position );
-					if ( SCRIPT_DEBUG ) {
-						$css = str_replace( '/* Pointers */', '', $css );
-					}
-				}
-				wp_add_inline_style( 'admin-bar', $css );
-			}
-		}
-	}
 }
