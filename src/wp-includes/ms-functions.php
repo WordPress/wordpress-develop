@@ -40,18 +40,19 @@ function get_sitestats() {
  * @since MU (3.0.0)
  *
  * @param int $user_id The unique ID of the user
- * @return WP_Site|void The blog object
+ * @return WP_Site|object|null|false The blog object
  */
 function get_active_blog_for_user( $user_id ) {
 	$blogs = get_blogs_of_user( $user_id );
 	if ( empty( $blogs ) ) {
-		return;
+		return null;
 	}
 
 	if ( ! is_multisite() ) {
 		return $blogs[ get_current_blog_id() ];
 	}
 
+	$primary      = null;
 	$primary_blog = get_user_meta( $user_id, 'primary_blog', true );
 	$first_blog   = current( $blogs );
 	if ( false !== $primary_blog ) {
@@ -100,7 +101,7 @@ function get_active_blog_for_user( $user_id ) {
 				}
 			}
 		} else {
-			return;
+			return null;
 		}
 
 		return $ret;
@@ -1179,6 +1180,17 @@ function wpmu_signup_user_notification(
  *
  * @param string $key The activation key provided to the user.
  * @return array|WP_Error An array containing information about the activated user and/or blog.
+ * @phpstan-return array{
+ *     user_id: int,
+ *     password: string,
+ *     meta: array<string, mixed>,
+ * }|array{
+ *     blog_id: int,
+ *     user_id: int,
+ *     password: string,
+ *     title: string,
+ *     meta: array<string, mixed>,
+ * }|WP_Error
  */
 function wpmu_activate_signup(
 	#[\SensitiveParameter]
@@ -1186,6 +1198,7 @@ function wpmu_activate_signup(
 ) {
 	global $wpdb;
 
+	/** @var object{ signup_id: string, domain: string, path: string, title: string, user_login: string, user_email: string, registered: string, activated: string, active: string, activation_key: string, meta: string|null }|null $signup */
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $key ) );
 
 	if ( empty( $signup ) ) {
@@ -1200,7 +1213,12 @@ function wpmu_activate_signup(
 		}
 	}
 
-	$meta     = maybe_unserialize( $signup->meta );
+	if ( is_string( $signup->meta ) ) {
+		/** @var array<string, mixed> $meta */
+		$meta = maybe_unserialize( $signup->meta );
+	} else {
+		$meta = array();
+	}
 	$password = wp_generate_password( 12, false );
 
 	$user_id = username_exists( $signup->user_login );
@@ -1219,7 +1237,7 @@ function wpmu_activate_signup(
 
 	if ( empty( $signup->domain ) ) {
 		$wpdb->update(
-			$wpdb->signups,
+			(string) $wpdb->signups,
 			array(
 				'active'    => 1,
 				'activated' => $now,
@@ -1261,7 +1279,7 @@ function wpmu_activate_signup(
 		if ( 'blog_taken' === $blog_id->get_error_code() ) {
 			$blog_id->add_data( $signup );
 			$wpdb->update(
-				$wpdb->signups,
+				(string) $wpdb->signups,
 				array(
 					'active'    => 1,
 					'activated' => $now,
@@ -1273,7 +1291,7 @@ function wpmu_activate_signup(
 	}
 
 	$wpdb->update(
-		$wpdb->signups,
+		(string) $wpdb->signups,
 		array(
 			'active'    => 1,
 			'activated' => $now,
@@ -1823,7 +1841,7 @@ Name: %3$s'
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param array $new_site_email {
+	 * @param array   $new_site_email {
 	 *     Used to build wp_mail().
 	 *
 	 *     @type string $to      The email address of the recipient.
@@ -1831,8 +1849,8 @@ Name: %3$s'
 	 *     @type string $message The content of the email.
 	 *     @type string $headers Headers.
 	 * }
-	 * @param WP_Site $site         Site object of the new site.
-	 * @param WP_User $user         User object of the administrator of the new site.
+	 * @param WP_Site $site           Site object of the new site.
+	 * @param WP_User $user           User object of the administrator of the new site.
 	 */
 	$new_site_email = apply_filters( 'new_site_email', $new_site_email, $site, $user );
 
@@ -2259,8 +2277,8 @@ function maybe_add_existing_user_to_blog() {
  *     @type int    $user_id The ID of the user being added to the current blog.
  *     @type string $role    The role to be assigned to the user.
  * }
- * @return true|WP_Error|void True on success or a WP_Error object if the user doesn't exist
- *                            or could not be added. Void if $details array was not provided.
+ * @return true|WP_Error|null True on success or a WP_Error object if the user doesn't exist
+ *                            or could not be added. Null if $details array was not provided.
  */
 function add_existing_user_to_blog( $details = false ) {
 	if ( is_array( $details ) ) {
@@ -2280,6 +2298,7 @@ function add_existing_user_to_blog( $details = false ) {
 
 		return $result;
 	}
+	return null;
 }
 
 /**
@@ -2911,7 +2930,7 @@ All at ###SITENAME###
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $email_change_email {
+	 * @param array  $email_change_email {
 	 *     Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient.
@@ -2924,9 +2943,9 @@ All at ###SITENAME###
 	 *          - `###SITEURL###`   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
-	 * @param string $old_email  The old network admin email address.
-	 * @param string $new_email  The new network admin email address.
-	 * @param int    $network_id ID of the network.
+	 * @param string $old_email          The old network admin email address.
+	 * @param string $new_email          The new network admin email address.
+	 * @param int    $network_id         ID of the network.
 	 */
 	$email_change_email = apply_filters( 'network_admin_email_change_email', $email_change_email, $old_email, $new_email, $network_id );
 

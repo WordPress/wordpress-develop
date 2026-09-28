@@ -454,7 +454,7 @@ class Theme_Upgrader extends WP_Upgrader {
 					)
 				);
 
-				$this->skin->before( $result );
+				$this->skin->before();
 				$this->skin->error( $result );
 				$this->skin->after();
 			} elseif ( isset( $upgrade_data['requires_php'] ) && ! is_php_version_compatible( $upgrade_data['requires_php'] ) ) {
@@ -468,7 +468,7 @@ class Theme_Upgrader extends WP_Upgrader {
 					)
 				);
 
-				$this->skin->before( $result );
+				$this->skin->before();
 				$this->skin->error( $result );
 				$this->skin->after();
 			} else {
@@ -746,7 +746,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @global WP_Filesystem_Base $wp_filesystem Subclass
+	 * @global WP_Filesystem_Base $wp_filesystem Filesystem subclass.
 	 *
 	 * @param bool   $removed
 	 * @param string $local_destination
