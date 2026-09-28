@@ -127,6 +127,52 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * The multisite check runs before the logged-in check, so a logged-out
+	 * request against a single-site install reports the environment problem,
+	 * not a generic authentication error.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @group ms-excluded
+	 */
+	public function test_get_items_no_ms_when_logged_out() {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * A logged-out request with no `user` filter has neither `manage_sites`
+	 * nor a matching own-user filter, so it's still forbidden.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_items_forbidden_when_logged_out() {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
+	}
+
+	/**
+	 * The collection is intentionally readable while logged out, as long
+	 * as the request is scoped to "my sites" via the `user` filter.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_items_me_filter_is_readable_when_logged_out() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'user', 'me' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
 	 * @ticket 40365
 	 * @covers ::get_item
 	 * @group ms-excluded
@@ -138,6 +184,133 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-excluded
+	 */
+	public function test_get_item_no_ms_when_logged_out() {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/1' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * A logged-out request can't be a site member and lacks `manage_sites`,
+	 * so it's forbidden even in the default view context.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_item_forbidden_when_logged_out() {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/1' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_item_edit_context_forbidden_when_logged_out() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/1' );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
+	}
+
+	/**
+	 * A member of the site (even without `manage_sites`) can view it in
+	 * the default view context.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_item_view_context_allowed_for_site_member() {
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
+
+		wp_set_current_user( $user_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
+	 * A logged-in user who is neither a super admin nor a member of the
+	 * site is forbidden from viewing it, even in the default view context.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_item_view_context_forbidden_for_non_member() {
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+
+		wp_set_current_user( $user_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+	}
+
+	/**
+	 * Site membership only grants the default view context; edit context
+	 * still requires `manage_sites`.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_item_edit_context_forbidden_for_site_member() {
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+	}
+
+	/**
+	 * A logged-in user who is neither a super admin nor a member of the
+	 * site is still forbidden from viewing it in edit context.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_item_edit_context_forbidden_for_non_member() {
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
 	}
 
 	/**
@@ -349,6 +522,36 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 40365
+	 * @covers ::create_item_permissions_check
+	 * @group ms-excluded
+	 */
+	public function test_create_item_no_ms_when_logged_out() {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/tempor/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::create_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_create_item_requires_being_logged_in() {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/tempor/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_create', $response, 401 );
+	}
+
+	/**
+	 * @ticket 40365
 	 * @covers ::update_item
 	 * @group ms-excluded
 	 */
@@ -362,6 +565,37 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item_permissions_check
+	 * @group ms-excluded
+	 */
+	public function test_update_item_no_ms_when_logged_out() {
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/1' );
+		$request->set_param( 'path', '/incididunt/' );
+		$request->set_param( 'mature', 1 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_update_item_requires_being_logged_in() {
+		$blog_id = self::factory()->blog->create();
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'path', '/incididunt/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 	}
 
 	/**
@@ -402,6 +636,37 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::delete_item_permissions_check
+	 * @group ms-excluded
+	 */
+	public function test_delete_item_no_ms_when_logged_out() {
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/1' );
+		$request->set_param( 'force', true );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_multisite_not_installed', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::delete_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_delete_item_requires_being_logged_in() {
+		$blog_id = self::factory()->blog->create();
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'force', true );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 401 );
+		$this->assertNotNull( get_site( $blog_id ) );
 	}
 
 	/**
@@ -480,6 +745,29 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertErrorResponse( 'rest_cannot_delete_main_site', $response, 403 );
 		$this->assertNotNull( get_site( $main_site_id ) );
+	}
+
+	/**
+	 * A regular site administrator does not have the network-level
+	 * capability required to delete a site.
+	 *
+	 * @ticket 40365
+	 * @covers ::delete_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_delete_item_requires_delete_sites_cap() {
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'force', true );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, rest_authorization_required_code() );
+		$this->assertNotNull( get_site( $blog_id ) );
 	}
 
 	/**

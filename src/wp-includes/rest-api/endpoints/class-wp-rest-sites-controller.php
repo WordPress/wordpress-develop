@@ -118,16 +118,12 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @return WP_Error|bool True if the request has read access, error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-
-		if ( 0 === get_current_user_id() ) {
-			return false;
+		$multisite_support = $this->check_multisite_support();
+		if ( is_wp_error( $multisite_support ) ) {
+			return $multisite_support;
 		}
 
-		if ( ! is_multisite() ) {
-			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
-		}
-
-		if ( current_user_can( 'manage_sites' ) ) {
+		if ( $this->check_edit_permission() ) {
 			return true;
 		}
 
@@ -395,20 +391,23 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @return WP_Error|bool True if the request has read access for the item, error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
+		$multisite_support = $this->check_multisite_support();
+		if ( is_wp_error( $multisite_support ) ) {
+			return $multisite_support;
+		}
+
 		$site = $this->get_site( $request['id'] );
 		if ( is_wp_error( $site ) ) {
 			return $site;
 		}
 
-		if ( 0 === get_current_user_id() ) {
-			return false;
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+
+		if ( 'view' === $context && is_user_member_of_blog( get_current_user_id(), (int) $site->blog_id ) ) {
+			return true;
 		}
 
-		if ( ! is_multisite() ) {
-			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
-		}
-
-		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'manage_sites' ) ) {
+		if ( ! $this->check_edit_permission() ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -444,15 +443,16 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @return WP_Error|bool True if the request has access to create items, error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		if ( 0 === get_current_user_id() ) {
-			return false;
+		$multisite_support = $this->check_multisite_support();
+		if ( is_wp_error( $multisite_support ) ) {
+			return $multisite_support;
 		}
 
-		if ( ! is_multisite() ) {
-			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
+		if ( ! current_user_can( 'create_sites' ) ) {
+			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to create sites.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
-		return current_user_can( 'create_sites' );
+		return true;
 	}
 
 	/**
@@ -542,8 +542,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $fields_update;
 		}
 
-		$context = current_user_can( 'manage_sites' ) ? 'edit' : 'view';
-
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$request->set_param( 'context', $context );
 
 		$response = $this->prepare_item_for_response( $site, $request );
@@ -564,20 +563,17 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @return WP_Error|bool True if the request has access to update the item, error object otherwise.
 	 */
 	public function update_item_permissions_check( $request ) {
+		$multisite_support = $this->check_multisite_support();
+		if ( is_wp_error( $multisite_support ) ) {
+			return $multisite_support;
+		}
+
 		$site = $this->get_site( $request['id'] );
 		if ( is_wp_error( $site ) ) {
 			return $site;
 		}
 
-		if ( 0 === get_current_user_id() ) {
-			return false;
-		}
-
-		if ( ! is_multisite() ) {
-			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
-		}
-
-		if ( ! $this->check_edit_permission( $site ) ) {
+		if ( ! $this->check_edit_permission() ) {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this site.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -661,20 +657,17 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @return WP_Error|bool True if the request has access to delete the item, error object otherwise.
 	 */
 	public function delete_item_permissions_check( $request ) {
+		$multisite_support = $this->check_multisite_support();
+		if ( is_wp_error( $multisite_support ) ) {
+			return $multisite_support;
+		}
+
 		$site = $this->get_site( $request['id'] );
 		if ( is_wp_error( $site ) ) {
 			return $site;
 		}
 
-		if ( 0 === (int) get_current_user_id() ) {
-			return false;
-		}
-
-		if ( ! is_multisite() ) {
-			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
-		}
-
-		if ( ! current_user_can( 'delete_site', $request['id'] ) ) {
+		if ( ! $this->check_delete_permission( $site ) ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete this site.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -730,7 +723,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 				}
 			}
 
-			update_blog_status( $blog_id, 'deleted', 1 );
+			update_blog_status( $blog_id, 'deleted', '1' );
 
 			/** This action is documented in wp-includes/ms-site.php */
 			do_action_deprecated( 'deleted_blog', array( $blog_id, false ), '5.1.0' );
@@ -1546,22 +1539,40 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Checks if a site can be edited or deleted.
+	 * Checks if the current user can edit sites.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether the current user can edit sites.
+	 */
+	protected function check_edit_permission() {
+		return current_user_can( 'manage_sites' );
+	}
+
+	/**
+	 * Checks if a site can be deleted.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param object $site Site object.
-	 * @return bool Whether the site can be edited or deleted.
+	 * @return bool Whether the site can be deleted.
 	 */
-	protected function check_edit_permission( $site ) {
-		if ( 0 === (int) get_current_user_id() ) {
-			return false;
-		}
+	protected function check_delete_permission( $site ) {
+		return current_user_can( 'delete_sites' ) && current_user_can( 'delete_site', $site->blog_id );
+	}
 
+	/**
+	 * Checks that multisite is enabled, as this controller requires it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return true|WP_Error True if multisite is enabled, WP_Error otherwise.
+	 */
+	protected function check_multisite_support() {
 		if ( ! is_multisite() ) {
-			return false;
+			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
 		}
 
-		return current_user_can( 'manage_sites' );
+		return true;
 	}
 }
