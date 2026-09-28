@@ -2777,37 +2777,22 @@ function wp_prefetch_admin_assets(): void {
 			}
 
 			/*
-			 * The URLs come from the same methods WP_Scripts::do_item() and WP_Styles::do_item()
-			 * use for the tags they print, so they match what the next screen will request.
+			 * The URLs are built the same way WP_Scripts::do_item() and WP_Styles::do_item() build
+			 * those in the tags they print, so they match what the next screen will request. They are
+			 * not escaped yet, so the filter sees plain URLs; they are escaped when printed.
 			 */
+			$urls = array( $dependencies->get_src( $handle ) );
+
 			if ( $dependencies instanceof WP_Styles ) {
-				$src  = $dependencies->registered[ $handle ]->src;
-				$urls = array();
+				$rtl_src = $dependencies->get_rtl_src( $handle );
 
-				// A handle that only aliases other handles has no stylesheet of its own.
-				if ( is_string( $src ) && '' !== $src ) {
-					$urls[] = $dependencies->_css_href( $src, $dependencies->registered[ $handle ]->ver, $handle );
-				}
-
-				$rtl_href = $dependencies->get_rtl_href( $handle );
-
-				if ( null !== $rtl_href ) {
+				if ( null !== $rtl_src ) {
 					if ( 'replace' === $dependencies->get_data( $handle, 'rtl' ) ) {
-						$urls = array( $rtl_href );
+						$urls = array( $rtl_src );
 					} else {
-						$urls[] = $rtl_href;
+						$urls[] = $rtl_src;
 					}
 				}
-
-				/*
-				 * Unlike a script's URL, a stylesheet's comes back escaped for an HTML attribute, with
-				 * `&` as `&#038;`. Decode it so the filter sees plain URLs throughout, and so a
-				 * callback appending the plain form of one is collapsed with it. The URLs are escaped
-				 * again when printed.
-				 */
-				$urls = array_map( array( 'WP_HTML_Decoder', 'decode_attribute' ), $urls );
-			} else {
-				$urls = array( $dependencies->get_src( $handle ) );
 			}
 
 			foreach ( array_filter( $urls ) as $url ) {

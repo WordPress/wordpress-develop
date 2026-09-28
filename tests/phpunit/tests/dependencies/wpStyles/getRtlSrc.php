@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for {@see WP_Styles::get_rtl_href()}.
+ * Tests for {@see WP_Styles::get_rtl_src()}.
  *
  * @package WordPress
  * @subpackage Script Loader
@@ -8,9 +8,9 @@
  * @group dependencies
  * @group scripts
  *
- * @covers WP_Styles::get_rtl_href
+ * @covers WP_Styles::get_rtl_src
  */
-class Tests_Dependencies_WpStyles_GetRtlHref extends WP_UnitTestCase {
+class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 
 	/**
 	 * Style registry under test.
@@ -46,7 +46,7 @@ class Tests_Dependencies_WpStyles_GetRtlHref extends WP_UnitTestCase {
 			$this->styles->add_data( 'test', $key, $value );
 		}
 
-		$this->assertSame( $expected, $this->styles->get_rtl_href( 'test' ) );
+		$this->assertSame( $expected, $this->styles->get_rtl_src( 'test' ) );
 	}
 
 	/**
@@ -69,7 +69,7 @@ class Tests_Dependencies_WpStyles_GetRtlHref extends WP_UnitTestCase {
 				'http://example.org/wp-admin/css/test-rtl.min.css?ver=1.0',
 			),
 			'rtl URL'                     => array( '/wp-admin/css/test.css', '1.0', array( 'rtl' => 'https://cdn.example.com/test-rtl.css' ), 'https://cdn.example.com/test-rtl.css?ver=1.0' ),
-			'rtl URL with a query string' => array( '/wp-admin/css/test.css', '1.0', array( 'rtl' => 'https://cdn.example.com/test-rtl.css?a=1' ), 'https://cdn.example.com/test-rtl.css?a=1&#038;ver=1.0' ),
+			'rtl URL with a query string' => array( '/wp-admin/css/test.css', '1.0', array( 'rtl' => 'https://cdn.example.com/test-rtl.css?a=1' ), 'https://cdn.example.com/test-rtl.css?a=1&ver=1.0' ),
 		);
 	}
 
@@ -96,7 +96,7 @@ class Tests_Dependencies_WpStyles_GetRtlHref extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertNull( $this->styles->get_rtl_href( 'test' ) );
+		$this->assertNull( $this->styles->get_rtl_src( 'test' ) );
 	}
 
 	/**
@@ -135,7 +135,7 @@ class Tests_Dependencies_WpStyles_GetRtlHref extends WP_UnitTestCase {
 			2
 		);
 
-		$this->assertSame( 'http://cdn.example.com/wp-admin/css/test-rtl.css?ver=1.0', $this->styles->get_rtl_href( 'test' ) );
+		$this->assertSame( 'http://cdn.example.com/wp-admin/css/test-rtl.css?ver=1.0', $this->styles->get_rtl_src( 'test' ) );
 		$this->assertSame(
 			array( 'http://example.org/wp-admin/css/test.css?ver=1.0', 'test-rtl' ),
 			$filter->get_args()[0]
@@ -143,8 +143,9 @@ class Tests_Dependencies_WpStyles_GetRtlHref extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the URL matches the one {@see WP_Styles::do_item()} prints, whether the right-to-left
-	 * stylesheet replaces the left-to-right one or loads alongside it.
+	 * Tests that the URL matches the one {@see WP_Styles::do_item()} prints, once decoded from the
+	 * attribute, whether the right-to-left stylesheet replaces the left-to-right one or loads
+	 * alongside it.
 	 *
 	 * @ticket 57548
 	 *
@@ -154,13 +155,24 @@ class Tests_Dependencies_WpStyles_GetRtlHref extends WP_UnitTestCase {
 	 * @param positive-int   $expected Number of stylesheets expected to be printed.
 	 */
 	public function test_matches_printed_href( $rtl, int $expected ): void {
-		$this->styles->add( 'test', '/wp-admin/css/test.css', array(), '1.0' );
+		// A query string of its own, so the printed URL has an `&` that is escaped in the attribute.
+		$this->styles->add( 'test', '/wp-admin/css/test.css?color=blue', array(), '1.0' );
 		$this->styles->add_data( 'test', 'rtl', $rtl );
 
 		$output = get_echo( array( $this->styles, 'do_item' ), array( 'test' ) );
 
-		$this->assertStringContainsString( "id='test-rtl-css' href='{$this->styles->get_rtl_href( 'test' )}'", $output );
 		$this->assertSame( $expected, substr_count( $output, "rel='stylesheet'" ) );
+
+		$processor = new WP_HTML_Tag_Processor( $output );
+		$href      = null;
+		while ( $processor->next_tag( 'LINK' ) ) {
+			if ( 'test-rtl-css' === $processor->get_attribute( 'id' ) ) {
+				$href = $processor->get_attribute( 'href' );
+			}
+		}
+
+		$this->assertSame( 'http://example.org/wp-admin/css/test-rtl.css?color=blue&ver=1.0', $href );
+		$this->assertSame( $href, $this->styles->get_rtl_src( 'test' ) );
 	}
 
 	/**
