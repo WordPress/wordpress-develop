@@ -4172,6 +4172,7 @@ HTML;
 	 *
 	 * @ticket 61855
 	 * @ticket 60048
+	 * @ticket 60478
 	 *
 	 * @covers ::wp_default_scripts
 	 * @covers ::wp_default_packages_vendor
