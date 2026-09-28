@@ -1094,9 +1094,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	public function test_rest_preload_api_request_with_method() {
-		rest_get_server();
-
-		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
 
 		$preload_paths = array(
@@ -1112,8 +1109,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS' ) );
 		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
-
-		$GLOBALS['wp_rest_server'] = $rest_server;
 	}
 
 	/**
@@ -1126,9 +1121,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @param array|string $expected_preload_path Expected path after preloading.
 	 */
 	public function test_rest_preload_api_request_removes_trailing_slashes( $preload_path, $expected_preload_path ) {
-		rest_get_server();
-
-		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
 
 		$actual_preload_path = rest_preload_api_request( array(), $preload_path );
@@ -1136,8 +1128,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 			$actual_preload_path = key( $actual_preload_path );
 		}
 		$this->assertSame( $expected_preload_path, $actual_preload_path );
-
-		$GLOBALS['wp_rest_server'] = $rest_server;
 	}
 
 	/**
