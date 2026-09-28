@@ -10,7 +10,7 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'export_others_personal_data' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to export personal data on this site.' ) );
+	wp_die( __( 'Sorry, you are not allowed to export personal data on this site.' ), 403 );
 }
 
 // Used in the HTML title tag.
