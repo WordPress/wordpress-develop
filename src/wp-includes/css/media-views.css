@@ -717,6 +717,10 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	outline: 2px solid transparent;
 }
 
+.media-menu .media-menu-item.hidden {
+	display: none;
+}
+
 .media-menu .separator {
 	height: 0;
 	margin: 12px 20px;
