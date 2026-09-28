@@ -1,5 +1,3 @@
-/* stylelint-disable selector-class-pattern -- This file extensively uses single underscores in class selectors; they cannot be changed because of backward compatibility reasons. */
-
 /**
  * Manage Themes
  */
@@ -2062,4 +2060,3 @@ body.full-overlay-active {
 		width: 100%;
 	}
 }
-/* stylelint-enable */
