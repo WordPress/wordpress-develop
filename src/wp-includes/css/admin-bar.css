@@ -263,17 +263,19 @@ html:lang(he-il) .rtl #wpadminbar * {
 	width: 24px;
 	height: 24px;
 	fill: currentColor;
-	transition: color 0.1s ease-in-out;
 }
 
 #wpadminbar .ab-icon,
-#wpadminbar .ab-icon::before,
-#wpadminbar .ab-item::before,
-#wpadminbar #adminbarsearch::before {
+#wpadminbar .ab-item::before {
 	position: relative;
 	color: #a7aaad;
 	color: rgba(240, 246, 252, 0.6);
 	transition: color 0.1s ease-in-out;
+}
+
+#wpadminbar .ab-icon::before {
+	position: relative;
+	color: inherit;
 }
 
 #wpadminbar .ab-label {
@@ -306,29 +308,22 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar.nojs .quicklinks .menupop:hover ul li a:hover,
 #wpadminbar.nojs .quicklinks .menupop:hover ul li a:focus,
 #wpadminbar li:hover .ab-icon,
-#wpadminbar li:hover .ab-icon::before,
 #wpadminbar li:hover .ab-item::before,
 #wpadminbar li a:focus .ab-icon,
-#wpadminbar li a:focus .ab-icon::before,
 #wpadminbar li .ab-item:focus::before,
 #wpadminbar li .ab-item:focus .ab-icon,
-#wpadminbar li .ab-item:focus .ab-icon::before,
 #wpadminbar li.hover .ab-icon,
-#wpadminbar li.hover .ab-icon::before,
 #wpadminbar li.hover .ab-item::before,
-#wpadminbar li:hover #adminbarsearch::before,
-#wpadminbar li #adminbarsearch.adminbar-focused::before {
+#wpadminbar li #adminbarsearch.adminbar-focused .ab-icon {
 	color: #72aee6;
 }
 
 #wpadminbar.mobile .quicklinks .ab-icon,
-#wpadminbar.mobile .quicklinks .ab-icon::before,
 #wpadminbar.mobile .quicklinks .ab-item::before {
 	color: #c3c4c7;
 }
 
 #wpadminbar.mobile .quicklinks .hover .ab-icon,
-#wpadminbar.mobile .quicklinks .hover .ab-icon::before,
 #wpadminbar.mobile .quicklinks .hover .ab-item::before {
 	color: #72aee6;
 }
