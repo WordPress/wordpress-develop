@@ -132,7 +132,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit sites.' ), array( 'status' => rest_authorization_required_code() ) );
+		return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
 	}
 
 	/**
@@ -151,7 +151,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		}
 
 		if ( 'me' === $user ) {
-			return true;
+			return is_user_logged_in();
 		}
 
 		return get_current_user_id() === (int) $user;
@@ -403,7 +403,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
-		if ( 'view' === $context && is_user_member_of_blog( get_current_user_id(), (int) $site->blog_id ) ) {
+		if ( in_array( $context, array( 'view', 'embed' ), true ) && is_user_member_of_blog( get_current_user_id(), (int) $site->blog_id ) ) {
 			return true;
 		}
 
@@ -641,7 +641,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $fields_update;
 		}
 
-		$request->set_param( 'context', 'edit' );
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$request->set_param( 'context', $context );
 
 		$response = $this->prepare_item_for_response( $site, $request );
 

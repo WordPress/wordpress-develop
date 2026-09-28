@@ -156,20 +156,20 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The collection is intentionally readable while logged out, as long
-	 * as the request is scoped to "my sites" via the `user` filter.
+	 * The `user=me` own-sites filter requires being logged in, same as any
+	 * other collection request - it is not an anonymous-access bypass.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
 	 * @group ms-required
 	 */
-	public function test_get_items_me_filter_is_readable_when_logged_out() {
+	public function test_get_items_me_filter_forbidden_when_logged_out() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
 		$request->set_param( 'user', 'me' );
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	/**
@@ -243,6 +243,29 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $user_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
+	 * A member of the site (even without `manage_sites`) can also view it
+	 * in the `embed` context, same as the default `view` context.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_item_embed_context_allowed_for_site_member() {
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'context', 'embed' );
+
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
