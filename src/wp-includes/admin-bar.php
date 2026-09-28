@@ -118,14 +118,17 @@ function wp_admin_bar_render() {
 /**
  * Returns inline SVG markup wrapped for use as an admin bar node icon.
  *
- * @since 7.1.0
+ * @since 7.2.0
  * @access private
  *
  * @param string $icon_name Namespaced icon name, e.g. 'core-admin/wordpress'.
- * @return string Admin bar icon markup.
+ * @return string Admin bar icon markup, or empty string if the icon is not found.
  */
 function _wp_admin_bar_icon( $icon_name ) {
 	$svg = wp_get_icon( $icon_name );
+	if ( '' === $svg ) {
+		return '';
+	}
 	return '<span class="ab-icon svg-icon" aria-hidden="true">' . $svg . '</span>';
 }
 
