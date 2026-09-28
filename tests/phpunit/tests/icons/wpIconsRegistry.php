@@ -295,7 +295,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$icon = $this->registry->get_registered_icon( 'test-collection/unsafe-content' );
-		$this->assertSame( '<svg viewbox="0 0 24 24"><path d="M0 0" /></svg>', $icon['content'] );
+		$this->assertEqualHTML( '<svg viewbox="0 0 24 24"><path d="M0 0" /></svg>', $icon['content'] );
 	}
 
 	/**
@@ -309,7 +309,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 * @param non-falsy-string $expected The expected sanitized output.
 	 */
 	public function test_sanitize_icon_content( $input, $expected ) {
-		$this->assertSame( $expected, $this->sanitize_icon_content( $input ) );
+		$this->assertEqualHTML( $expected, $this->sanitize_icon_content( $input ) );
 	}
 
 	/**

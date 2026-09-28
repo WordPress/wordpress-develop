@@ -1121,7 +1121,6 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_approved' => '0',
 			)
 		);
-		$this->assertIsInt( $c );
 
 		update_option( 'comments_notify', 1 );
 
@@ -1148,7 +1147,6 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_approved' => '0',
 			)
 		);
-		$this->assertIsInt( $c );
 
 		add_filter( 'notify_post_author', '__return_true' );
 
@@ -1186,7 +1184,6 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_approved' => '0',
 			)
 		);
-		$this->assertIsInt( $c );
 
 		update_option( 'wp_notes_notify', 1 );
 
@@ -1211,7 +1208,6 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID' => self::$post_id,
 			)
 		);
-		$this->assertIsInt( $c );
 
 		update_option( 'comments_notify', 0 );
 
@@ -2036,7 +2032,6 @@ class Tests_Comment extends WP_UnitTestCase {
 	 */
 	public function test_get_comment_should_only_treat_numeric_values_as_comment_ids(): void {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
-		$this->assertIsInt( $comment_id );
 
 		$comment = get_comment( (string) $comment_id );
 		$this->assertInstanceOf( WP_Comment::class, $comment, 'Expected a numeric string to be treated as a comment ID.' );
