@@ -450,7 +450,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug.' );
 
 		$num_queries = get_num_queries();
-		$this->assertFalse( redirect_guess_404_permalink() );
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug on second run.' );
 		$this->assertSame( $num_queries, get_num_queries(), 'A cached "not found" result performed an additional database query.' );
 	}
 
@@ -463,7 +463,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->go_to( 'redirect-guess-404-permalink-new-post' );
 
 		// Prime a "not found" cache entry.
-		$this->assertFalse( redirect_guess_404_permalink() );
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match before the matching post exists.' );
 
 		$post = self::factory()->post->create(
 			array(
@@ -490,7 +490,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$this->go_to( 'redirect-guess-404-permalink-delete-m' );
 
-		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink() );
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink(), 'Did not guess the correct permalink before deletion.' );
 
 		wp_delete_post( $post, true );
 
@@ -519,15 +519,15 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		);
 
 		$this->go_to( '/?name=redirect-guess-collisio&post_type=post' );
-		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink() );
+		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink(), 'Setting post type to post did not return the post permalink.' );
 
 		// Re-run without navigating away (go_to() flushes the object cache) to confirm the cached result is reused.
 		$num_queries = get_num_queries();
-		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink() );
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink(), 'Result changed between cached and uncached run.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'A cached lookup performed an additional database query.' );
 
 		$this->go_to( '/?name=redirect-guess-collisio&post_type=page' );
-		$this->assertSame( get_permalink( $page_post ), redirect_guess_404_permalink(), 'Different post_type query var produced a colliding cached result.' );
+		$this->assertSame( get_permalink( $page_post ), redirect_guess_404_permalink(), 'Setting post type to page did not return the page permalink.' );
 	}
 
 	/**
