@@ -661,6 +661,7 @@ function create_initial_post_types() {
 		'publish',
 		array(
 			'label'       => _x( 'Published', 'post status' ),
+			'description' => __( 'Visible to everyone.' ),
 			'public'      => true,
 			'_builtin'    => true, /* internal use only. */
 			/* translators: %s: Number of published posts. */
@@ -675,6 +676,7 @@ function create_initial_post_types() {
 		'future',
 		array(
 			'label'       => _x( 'Scheduled', 'post status' ),
+			'description' => __( 'Publish automatically on a chosen date.' ),
 			'protected'   => true,
 			'_builtin'    => true, /* internal use only. */
 			/* translators: %s: Number of scheduled posts. */
@@ -689,6 +691,7 @@ function create_initial_post_types() {
 		'draft',
 		array(
 			'label'         => _x( 'Draft', 'post status' ),
+			'description'   => __( 'Not ready to publish.' ),
 			'protected'     => true,
 			'_builtin'      => true, /* internal use only. */
 			/* translators: %s: Number of draft posts. */
@@ -704,6 +707,7 @@ function create_initial_post_types() {
 		'pending',
 		array(
 			'label'         => _x( 'Pending', 'post status' ),
+			'description'   => __( 'Waiting for review before publishing.' ),
 			'protected'     => true,
 			'_builtin'      => true, /* internal use only. */
 			/* translators: %s: Number of pending posts. */
@@ -719,6 +723,7 @@ function create_initial_post_types() {
 		'private',
 		array(
 			'label'       => _x( 'Private', 'post status' ),
+			'description' => __( 'Only visible to site admins and editors.' ),
 			'private'     => true,
 			'_builtin'    => true, /* internal use only. */
 			/* translators: %s: Number of private posts. */
@@ -1424,6 +1429,8 @@ function _wp_privacy_statuses() {
  *
  *     @type bool|string $label                     A descriptive name for the post status marked
  *                                                  for translation. Defaults to value of $post_status.
+ *     @type string      $description               A short description of what the post status does.
+ *                                                  Default empty string.
  *     @type array|false $label_count               Nooped plural text from _n_noop() to provide the singular
  *                                                  and plural forms of the label for counts. Default false
  *                                                  which means the `$label` argument will be used for both
@@ -1464,6 +1471,7 @@ function register_post_status( $post_status, $args = array() ) {
 	// Args prefixed with an underscore are reserved for internal use.
 	$defaults = array(
 		'label'                     => false,
+		'description'               => '',
 		'label_count'               => false,
 		'exclude_from_search'       => null,
 		'_builtin'                  => false,
