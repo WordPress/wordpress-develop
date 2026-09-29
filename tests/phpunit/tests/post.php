@@ -1065,20 +1065,20 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_status' => 'draft',
 			)
 		);
-		$post_one    = get_post( $post_ids[0] );
-		$post_two    = get_post( $post_ids[1] );
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
 		$this->assertSame( '', $post_one->post_name );
 		$this->assertSame( '', $post_two->post_name );
 		wp_trash_post( $post_one->ID );
 		wp_trash_post( $post_two->ID );
-		$post_one    = get_post( $post_ids[0] );
-		$post_two    = get_post( $post_ids[1] );
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
 		$this->assertSame( '__trashed', $post_one->post_name );
 		$this->assertSame( '__trashed-2', $post_two->post_name );
-		wp_untrash_post($post_one->ID);
-		wp_untrash_post($post_two->ID);
-		$post_one    = get_post( $post_ids[0] );
-		$post_two    = get_post( $post_ids[1] );
+		wp_untrash_post( $post_one->ID );
+		wp_untrash_post( $post_two->ID );
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
 		$this->assertSame( '', $post_one->post_name );
 		$this->assertSame( '', $post_two->post_name );
 	}
@@ -1107,8 +1107,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_two = get_post( $post_ids[1] );
 		$this->assertSame( 'test-post__trashed', $post_one->post_name );
 		$this->assertSame( 'test-post__trashed-2', $post_two->post_name );
-		wp_untrash_post($post_one->ID);
-		wp_untrash_post($post_two->ID);
+		wp_untrash_post( $post_one->ID );
+		wp_untrash_post( $post_two->ID );
 		$post_one = get_post( $post_ids[0] );
 		$post_two = get_post( $post_ids[1] );
 		$this->assertSame( 'test-post', $post_one->post_name );
