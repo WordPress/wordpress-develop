@@ -327,8 +327,8 @@
 	height: 100%;
 	width: auto !important; /* override potential width added by plugins */
 	display: grid;
-	grid-template-columns: repeat( 2, 1fr );
-	/* grid-template-rows: repeat( 2, 1fr ); */
+	grid-template-columns: repeat(2, 1fr);
+	/* grid-template-rows: repeat(2, 1fr); */
 	grid-column-gap: 8px;
 	grid-row-gap: 8px;
 	align-items: end;
@@ -341,7 +341,7 @@
 /* Reset styles from the FOlders plugin for testing purposes */
 .media-frame .media-toolbar-secondary select {
     width: auto !important;
-    margin: 0 !important
+    margin: 0 !important;
 }
 
 label[for="media-attachment-filters"] {
