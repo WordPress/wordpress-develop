@@ -1309,6 +1309,20 @@ switch ( $action ) {
 
 		$reauth = ! empty( $_REQUEST['reauth'] );
 
+		/*
+		 * Remember the logged-in cookie of the session an interim login starts,
+		 * so the success page can create nonces for that session.
+		 */
+		$interim_logged_in_cookie = '';
+		if ( $interim_login ) {
+			add_action(
+				'set_logged_in_cookie',
+				static function ( $logged_in_cookie ) use ( &$interim_logged_in_cookie ) {
+					$interim_logged_in_cookie = $logged_in_cookie;
+				}
+			);
+		}
+
 		$user = wp_signon( array(), $secure_cookie );
 
 		if ( empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) ) {
@@ -1353,6 +1367,23 @@ switch ( $action ) {
 				$message       = '<p class="message">' . __( 'You have logged in successfully.' ) . '</p>';
 				$interim_login = 'success';
 				login_header( '', $message );
+
+				if ( $interim_logged_in_cookie ) {
+					/*
+					 * Nonces are tied to the session token, and logging in again
+					 * starts a new session, so the page behind the login dialog
+					 * now holds a Heartbeat refresh nonce nothing will accept.
+					 * Hand it one for the new session: the page reads it from this
+					 * same-origin frame and exchanges it for fresh nonces.
+					 */
+					$_COOKIE[ LOGGED_IN_COOKIE ] = $interim_logged_in_cookie;
+					wp_set_current_user( $user->ID );
+
+					printf(
+						'<input type="hidden" id="wp-auth-check-heartbeat-refresh-nonce" value="%s" />',
+						esc_attr( wp_create_nonce( 'heartbeat-refresh-nonce' ) )
+					);
+				}
 
 				?>
 				</div>
