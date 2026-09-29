@@ -50,7 +50,7 @@ final class WP_Customize_Manager {
 	 * Methods and properties dealing with managing widgets in the Customizer.
 	 *
 	 * @since 3.9.0
-	 * @var WP_Customize_Widgets
+	 * @var WP_Customize_Widgets|null
 	 */
 	public $widgets;
 
@@ -58,7 +58,7 @@ final class WP_Customize_Manager {
 	 * Methods and properties dealing with managing nav menus in the Customizer.
 	 *
 	 * @since 4.3.0
-	 * @var WP_Customize_Nav_Menus
+	 * @var WP_Customize_Nav_Menus|null
 	 */
 	public $nav_menus;
 
@@ -1224,11 +1224,11 @@ final class WP_Customize_Manager {
 			$changeset_data = $this->get_changeset_post_data( $this->changeset_post_id() );
 		}
 
-		$sidebars_widgets = isset( $starter_content['widgets'] ) && $this->widgets instanceof WP_Customize_Widgets ? $starter_content['widgets'] : array();
-		$attachments      = isset( $starter_content['attachments'] ) && $this->nav_menus instanceof WP_Customize_Nav_Menus ? $starter_content['attachments'] : array();
-		$posts            = isset( $starter_content['posts'] ) && $this->nav_menus instanceof WP_Customize_Nav_Menus ? $starter_content['posts'] : array();
+		$sidebars_widgets = isset( $starter_content['widgets'] ) && ! empty( $this->widgets ) ? $starter_content['widgets'] : array();
+		$attachments      = isset( $starter_content['attachments'] ) && ! empty( $this->nav_menus ) ? $starter_content['attachments'] : array();
+		$posts            = isset( $starter_content['posts'] ) && ! empty( $this->nav_menus ) ? $starter_content['posts'] : array();
 		$options          = $starter_content['options'] ?? array();
-		$nav_menus        = isset( $starter_content['nav_menus'] ) && $this->nav_menus instanceof WP_Customize_Nav_Menus ? $starter_content['nav_menus'] : array();
+		$nav_menus        = isset( $starter_content['nav_menus'] ) && ! empty( $this->nav_menus ) ? $starter_content['nav_menus'] : array();
 		$theme_mods       = $starter_content['theme_mods'] ?? array();
 
 		// Widgets.
