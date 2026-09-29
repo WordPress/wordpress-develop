@@ -2172,6 +2172,44 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that restoring a note leaves reactions the user had removed in the trash.
+	 *
+	 * Removing a reaction trashes it, so a note can have both a removed reaction
+	 * and a live one with the same emoji. Only the live one was trashed along
+	 * with the note, so only it should come back.
+	 *
+	 * @ticket 63191
+	 * @covers ::wp_trash_comment
+	 * @covers ::wp_untrash_comment
+	 */
+	public function test_wp_untrash_comment_does_not_restore_removed_note_reactions() {
+		if ( ! EMPTY_TRASH_DAYS ) {
+			$this->markTestSkipped( 'Trash is disabled, so trashing permanently deletes.' );
+		}
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$removed_id = $this->create_reaction_on_note( $note_id );
+		wp_trash_comment( $removed_id );
+
+		$live_id = $this->create_reaction_on_note( $note_id );
+
+		wp_trash_comment( $note_id );
+		wp_untrash_comment( $note_id );
+
+		$this->assertSame( 'trash', get_comment( $removed_id )->comment_approved, 'A reaction the user removed was restored with its note.' );
+		$this->assertSame( '1', get_comment( $live_id )->comment_approved, 'The live reaction was not restored with its note.' );
+		$this->assertSame( '', get_comment_meta( $live_id, '_wp_trash_meta_with_note', true ), 'The restored reaction kept its cascade flag.' );
+	}
+
+	/**
 	 * Tests that trashing a note reply carries that reply's reactions along.
 	 *
 	 * @ticket 63191

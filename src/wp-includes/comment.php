@@ -1798,9 +1798,15 @@ function wp_trash_comment( $comment_id ) {
 		 * Trash a note's reactions with it, at any depth. The child-note
 		 * cascade below trashes each reply in turn, which brings the replies'
 		 * own reactions along through this same branch.
+		 *
+		 * Each one is flagged so that restoring the note brings back only these
+		 * reactions, and not ones the user had already removed, which are
+		 * trashed too.
 		 */
 		foreach ( wp_get_note_reaction_ids( $comment, 'approve' ) as $reaction_id ) {
-			wp_trash_comment( $reaction_id );
+			if ( wp_trash_comment( $reaction_id ) ) {
+				add_comment_meta( $reaction_id, '_wp_trash_meta_with_note', '1', true );
+			}
 		}
 
 		// For top level 'note' type comments, also trash children.
@@ -1832,7 +1838,7 @@ function wp_trash_comment( $comment_id ) {
  * Removes a comment from the Trash
  *
  * @since 2.9.0
- * @since 7.2.0 A note's reactions are restored along with it.
+ * @since 7.2.0 A note's reactions that were trashed along with it are restored.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1862,6 +1868,7 @@ function wp_untrash_comment( $comment_id ) {
 	if ( wp_set_comment_status( $comment, $status ) ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_status' );
+		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_with_note' );
 
 		/**
 		 * Fires immediately after a comment is restored from the Trash.
@@ -1874,9 +1881,14 @@ function wp_untrash_comment( $comment_id ) {
 		 */
 		do_action( 'untrashed_comment', $comment->comment_ID, $comment );
 
-		// Restore the note's reactions alongside it.
+		/*
+		 * Restore the reactions that were trashed along with the note. Reactions
+		 * the user removed before that stay in the trash.
+		 */
 		foreach ( wp_get_note_reaction_ids( $comment, 'trash' ) as $reaction_id ) {
-			wp_untrash_comment( $reaction_id );
+			if ( get_comment_meta( $reaction_id, '_wp_trash_meta_with_note', true ) ) {
+				wp_untrash_comment( $reaction_id );
+			}
 		}
 
 		return true;
