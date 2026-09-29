@@ -101,7 +101,7 @@ function get_the_modified_author( $post = null ) {
 	if ( ! $last_id ) {
 		return null;
 	}
-	$last_user = get_userdata( $last_id );
+	$last_user = get_authordata( $last_id );
 
 	/**
 	 * Filters the display name of the author who last edited the current post.
@@ -157,6 +157,9 @@ function the_modified_author() {
  *
  * @since 2.8.0
  * @since 6.9.0 Removed `aim`, `jabber`, and `yim` as valid values for the `$field` parameter.
+ * @since 7.2.0 `$authordata` may now be a WP_User instance with capability and role data
+ *              not yet loaded; requesting the (undocumented) `caps`, `roles`, or `allcaps`
+ *              fields now loads that data on demand.
  *
  * @global WP_User|false|null $authordata The current author's data.
  *
@@ -171,11 +174,17 @@ function get_the_author_meta( $field = '', $user_id = false ) {
 		global $authordata;
 		$user_id = $authordata->ID ?? 0;
 	} else {
-		$authordata = get_userdata( $user_id );
+		$authordata = get_authordata( $user_id );
 	}
 
 	if ( in_array( $field, array( 'login', 'pass', 'nicename', 'email', 'url', 'registered', 'activation_key', 'status' ), true ) ) {
 		$field = 'user_' . $field;
+	}
+
+	// These aren't part of the documented $field list above, but are read directly off
+	// $authordata by third-party code; ensure they're loaded if $authordata is short-init.
+	if ( in_array( $field, array( 'caps', 'roles', 'allcaps' ), true ) && $authordata instanceof WP_User ) {
+		$authordata->get_role_caps();
 	}
 
 	$value = $authordata->$field ?? '';
@@ -392,7 +401,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 		$link = $file . '?author=' . $author_id;
 	} else {
 		if ( '' === $author_nicename ) {
-			$user = get_userdata( $author_id );
+			$user = get_authordata( $author_id );
 			if ( ! empty( $user->user_nicename ) ) {
 				$author_nicename = $user->user_nicename;
 			}
@@ -527,7 +536,7 @@ function wp_list_authors( $args = '' ) {
 			continue;
 		}
 
-		$author = get_userdata( $author_id );
+		$author = get_authordata( $author_id );
 
 		if ( $parsed_args['exclude_admin'] && 'admin' === $author->display_name ) {
 			continue;
