@@ -2017,6 +2017,10 @@ function wp_kses_bad_protocol( $content, $allowed_protocols ) {
  * @return string Filtered content.
  */
 function wp_kses_no_null( $content, $options = null ) {
+	if ( null === $content ) {
+		return '';
+	}
+
 	if ( ! isset( $options['slash_zero'] ) ) {
 		$options = array( 'slash_zero' => 'remove' );
 	}
