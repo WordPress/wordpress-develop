@@ -261,11 +261,13 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			if ( $redirect_url ) {
 				$redirect['query'] = remove_query_arg( 'page_id', $redirect['query'] );
 			}
-		} elseif ( is_page() && ! empty( $_GET['pagename'] ) && ! $redirect_url ) {
+		} elseif ( is_page() && ! empty( $_GET['pagename'] ) && ! get_query_var( 'paged' ) && ! $redirect_url ) {
 			$redirect_url = get_permalink( $wp_query->get_queried_object_id() );
 			$redirect_obj = get_post( $wp_query->get_queried_object_id() );
 
 			if ( $redirect_url ) {
+				// Feeds and comment pages are appended to this path further down.
+				$redirect['path']  = parse_url( $redirect_url, PHP_URL_PATH );
 				$redirect['query'] = remove_query_arg( 'pagename', $redirect['query'] );
 			}
 		} elseif ( is_page() && ! is_feed() && ! $redirect_url
@@ -281,13 +283,15 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			if ( $redirect_url ) {
 				$redirect['query'] = remove_query_arg( 'page_id', $redirect['query'] );
 			}
-		} elseif ( is_home() && ! empty( $_GET['pagename'] ) && ! $redirect_url
+		} elseif ( is_home() && ! empty( $_GET['pagename'] ) && ! is_feed() && ! $redirect_url
 			&& 'page' === get_option( 'show_on_front' ) && $wp_query->get_queried_object_id() === (int) get_option( 'page_for_posts' )
 		) {
 			$redirect_url = get_permalink( get_option( 'page_for_posts' ) );
 			$redirect_obj = get_post( get_option( 'page_for_posts' ) );
 
 			if ( $redirect_url ) {
+				// Paging is appended to this path further down.
+				$redirect['path']  = parse_url( $redirect_url, PHP_URL_PATH );
 				$redirect['query'] = remove_query_arg( 'pagename', $redirect['query'] );
 			}
 		} elseif ( ! empty( $_GET['m'] ) && ( is_year() || is_month() || is_day() ) ) {
@@ -346,6 +350,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect_obj = $author;
 
 				if ( $redirect_url ) {
+					// Paging and feeds are appended to this path further down.
+					$redirect['path']  = parse_url( $redirect_url, PHP_URL_PATH );
 					$redirect['query'] = remove_query_arg( array( 'author', 'author_name' ), $redirect['query'] );
 				}
 			}

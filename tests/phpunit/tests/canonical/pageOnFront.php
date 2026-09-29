@@ -75,6 +75,8 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 			// The `pagename` query var of the posts page should redirect to the pretty permalink.
 			array( '/?pagename=blog-page', '/blog-page/', 20902 ),
 			array( '/?pagename=blog-page&test=one', '/blog-page/?test=one', 20902 ),
+			// The posts page supports regular pagination.
+			array( '/?pagename=blog-page&paged=2', '/blog-page/page/2/', 20902 ),
 		);
 	}
 }

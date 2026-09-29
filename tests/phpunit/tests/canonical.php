@@ -187,6 +187,8 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/?pagename=sample-page&test=one', '/sample-page/?test=one', 20902 ), // Extra query vars should be kept.
 			array( '/?pagename=parent/child1/grandchild', '/parent/child1/grandchild/', 20902 ), // Hierarchical page path.
 			array( '/?pagename=does-not-exist', '/?pagename=does-not-exist', 20902 ), // A page that does not exist is a 404: no redirect.
+			array( '/?pagename=sample-page&feed=rss2', '/sample-page/feed/', 20902 ),
+			array( '/?pagename=sample-page&paged=2', '/page/2/?pagename=sample-page', 20902 ), // Paging does not apply to a page: unchanged, the page name is not dropped.
 			array( '/abo', '/about/' ),
 			array( '/parent/child1/grandchild/', '/parent/child1/grandchild/' ),
 			array( '/parent/child2/grandchild/', '/parent/child2/grandchild/' ),
@@ -251,6 +253,11 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/?author_name=canonical-author', '/author/canonical-author/', 20902 ),
 			array( '/?author_name=canonical-author&test=one', '/author/canonical-author/?test=one', 20902 ), // Extra query vars should be kept.
 			array( '/?author_name=does-not-exist', '/?author_name=does-not-exist', 20902 ), // No such author: no redirect.
+			// Paging and feeds should be added to the author URL, not replace it.
+			array( '/?author_name=canonical-author&paged=1', '/author/canonical-author/', 20902 ),
+			array( '/?author_name=canonical-author&paged=2', '/author/canonical-author/page/2/', 20902 ),
+			array( '/?author_name=canonical-author&feed=rss2', '/author/canonical-author/feed/', 20902 ),
+			array( '/?author=%d&paged=2', '/author/canonical-author/page/2/', 20902 ),
 			// array( '/?author=%d&year=2008', '/2008/?author=3'),
 			// array( '/author/canonical-author/?year=2008', '/2008/?author=3'), // Either or, see previous testcase.
 			array( '/author/canonical-author/?author[1]=hello', '/author/canonical-author/?author[1]=hello', 60059 ),
@@ -308,6 +315,25 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			'author'      => array( 'author' ),
 			'author_name' => array( 'author_name' ),
 		);
+	}
+
+	/**
+	 * Paging and feeds of a `?post_format=` request should be added to the post format URL.
+	 *
+	 * @ticket 20902
+	 */
+	public function test_post_format_query_var_with_paging_and_feed() {
+		// Together with the audio post from the fixtures, this gives two pages of audio posts.
+		$post_ids = self::factory()->post->create_many( 5, array( 'post_date' => '2008-07-01 00:00:00' ) );
+
+		foreach ( $post_ids as $post_id ) {
+			set_post_format( $post_id, 'audio' );
+		}
+
+		$this->assertCanonical( '/?post_format=audio&paged=1', '/type/audio/', 20902 );
+		$this->assertCanonical( '/?post_format=audio&paged=2', '/type/audio/page/2/', 20902 );
+		$this->assertCanonical( '/?post_format=audio&paged=2&test=one', '/type/audio/page/2/?test=one', 20902 );
+		$this->assertCanonical( '/?post_format=audio&feed=rss2', '/type/audio/feed/', 20902 );
 	}
 
 	/**
