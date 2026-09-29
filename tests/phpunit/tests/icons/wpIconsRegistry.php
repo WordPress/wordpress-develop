@@ -653,7 +653,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 			)
 		);
 
-		/**
+		/*
 		 * The search term is deliberately absent from both the name and the label,
 		 * so a match can only come from the keywords.
 		 */
