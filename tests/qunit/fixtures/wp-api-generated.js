@@ -11285,7 +11285,8 @@ mockedApiResponse.Schema = {
         "/wp/v2/themes": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
@@ -11306,6 +11307,29 @@ mockedApiResponse.Schema = {
                             "required": false
                         }
                     }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "slug": {
+                            "type": "string",
+                            "description": "WordPress.org theme directory slug.",
+                            "pattern": "[\\w\\-]+",
+                            "required": true
+                        },
+                        "status": {
+                            "description": "The theme activation status.",
+                            "type": "string",
+                            "enum": [
+                                "inactive",
+                                "active"
+                            ],
+                            "default": "inactive",
+                            "required": false
+                        }
+                    }
                 }
             ],
             "_links": {
@@ -11315,12 +11339,51 @@ mockedApiResponse.Schema = {
         "/wp/v2/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
             ],
             "endpoints": [
                 {
                     "methods": [
                         "GET"
+                    ],
+                    "args": {
+                        "stylesheet": {
+                            "description": "The theme's stylesheet. This uniquely identifies the theme.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "stylesheet": {
+                            "description": "The theme's stylesheet. This uniquely identifies the theme.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "status": {
+                            "description": "A named status for the theme.",
+                            "type": "string",
+                            "enum": [
+                                "inactive",
+                                "active"
+                            ],
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
                     ],
                     "args": {
                         "stylesheet": {
