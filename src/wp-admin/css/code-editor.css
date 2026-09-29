@@ -75,10 +75,10 @@
 	color: #646970;
 }
 
-.CodeMirror-gutter-filler,
-.CodeMirror-hscrollbar,
-.CodeMirror-scrollbar-filler,
-.CodeMirror-vscrollbar {
+.CodeMirror .CodeMirror-gutter-filler,
+.CodeMirror .CodeMirror-hscrollbar,
+.CodeMirror .CodeMirror-scrollbar-filler,
+.CodeMirror .CodeMirror-vscrollbar {
 	z-index: 16;
 }
 
