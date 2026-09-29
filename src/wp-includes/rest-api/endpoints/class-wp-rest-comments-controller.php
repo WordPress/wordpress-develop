@@ -812,8 +812,19 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			 * U+FE0F is dropped on the client so visually-equivalent
 			 * presentations collapse onto a single key.
 			 */
+			/*
+			 * Read the content the same two ways prepare_item_for_database()
+			 * does, so `content` and `content.raw` are both accepted.
+			 */
+			$raw_content = '';
+			if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
+				$raw_content = $request['content'];
+			} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
+				$raw_content = $request['content']['raw'];
+			}
+
 			$valid_slugs = wp_list_pluck( self::get_note_reaction_emojis(), 'value' );
-			$emoji_slug  = isset( $request['content'] ) ? wp_strip_all_tags( $request['content'] ) : '';
+			$emoji_slug  = trim( wp_strip_all_tags( $raw_content ) );
 
 			$is_curated_slug = in_array( $emoji_slug, $valid_slugs, true );
 			$is_hex_key      = (bool) preg_match( '/^[0-9a-f]{2,6}(-[0-9a-f]{2,6}){0,15}$/', $emoji_slug );

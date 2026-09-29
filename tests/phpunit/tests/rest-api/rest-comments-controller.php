@@ -4859,6 +4859,45 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * A reaction can be sent in the object form of `content`, like any comment.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_create_reaction_accepts_raw_content_object() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'parent'  => $note_id,
+					'content' => array( 'raw' => 'rocket' ),
+					'type'    => 'reaction',
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
+
+		$new_comment = get_comment( $response->get_data()['id'] );
+		$this->assertSame( 'rocket', $new_comment->comment_content );
+	}
+
+	/**
 	 * The pre-insert uniqueness check is not atomic. Simulate a concurrent
 	 * request winning the race — inserting the same reaction after this
 	 * request's check but before its own insert — and assert the post-insert
