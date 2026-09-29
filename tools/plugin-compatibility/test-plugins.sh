@@ -236,7 +236,7 @@ run_checks() {
 	# only removed when this script created it, so that `--dir` never deletes a directory it was handed.
 	cleanup_environment() {
 		if [ -n "${SERVER_PID}" ]; then
-			kill "${SERVER_PID}" > /dev/null 2>&1
+			stop_server
 		fi
 
 		if [ "${KEEP_INSTALL}" = "yes" ]; then
@@ -244,6 +244,23 @@ run_checks() {
 		else
 			rm -rf "${WORK_DIR}"
 		fi
+	}
+
+	# The built-in server forks its workers, and they keep answering on the port after the process that
+	# started them is gone. The server runs in its own process group (see below) so that the whole group can
+	# be stopped at once, and this waits for the last of them to exit so that a run which follows straight
+	# after finds the port free.
+	stop_server() {
+		kill -TERM -- "-${SERVER_PID}" > /dev/null 2>&1
+
+		for _ in $( seq 1 50 ); do
+			kill -0 -- "-${SERVER_PID}" > /dev/null 2>&1 || break
+			sleep 0.1
+		done
+
+		kill -KILL -- "-${SERVER_PID}" > /dev/null 2>&1
+		wait "${SERVER_PID}" > /dev/null 2>&1
+		SERVER_PID=""
 	}
 
 	trap cleanup_environment EXIT INT TERM
@@ -285,8 +302,13 @@ run_checks() {
 	# `PHP_CLI_SERVER_WORKERS` is set because the built-in server is single threaded by default. Plenty of
 	# plugins make a loopback request to the site they are running on, and a single threaded server cannot
 	# answer one while it is still serving the request that made it.
+	#
+	# Job control is switched on just long enough to start the server, because that is what gives a
+	# background job a process group of its own, whose ID is the PID of the server.
+	set -m
 	PHP_CLI_SERVER_WORKERS=4 php -S "127.0.0.1:${SERVER_PORT}" -t "${WP_DIR}" > "${SERVER_LOG}" 2>&1 &
 	SERVER_PID=$!
+	set +m
 
 	SERVER_READY="no"
 
