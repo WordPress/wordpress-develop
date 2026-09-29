@@ -36,7 +36,7 @@ function wp_fix_server_vars() {
 
 	$default_server_values = array(
 		'SERVER_SOFTWARE' => '',
-		'REQUEST_URI'     => '',
+		'REQUEST_URI'     => '/',
 	);
 
 	$_SERVER = array_merge( $default_server_values, $_SERVER );
