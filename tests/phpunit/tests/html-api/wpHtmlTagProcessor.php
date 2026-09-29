@@ -1541,6 +1541,45 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65372
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 *
+	 * @dataProvider data_remove_attribute_preserves_self_closing_flag_state
+	 *
+	 * @param string $html                           HTML containing the attribute to remove.
+	 * @param int    $removal_count                  Number of times to remove the attribute.
+	 * @param string $expected                       Expected HTML after removing the attribute.
+	 * @param bool   $expected_has_self_closing_flag Expected self-closing flag state.
+	 */
+	public function test_remove_attribute_preserves_self_closing_flag_state( $html, $removal_count, $expected, $expected_has_self_closing_flag ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag( 'g' );
+		$this->assertSame( $expected_has_self_closing_flag, $processor->has_self_closing_flag(), 'Test setup has the wrong self-closing flag state.' );
+
+		for ( $i = 0; $i < $removal_count; $i++ ) {
+			$processor->remove_attribute( 'attr' );
+			$this->assertNull( $processor->get_attribute( 'attr' ) );
+		}
+
+		$this->assertSame( $expected, $processor->get_updated_html() );
+		$this->assertSame( $expected_has_self_closing_flag, $processor->has_self_closing_flag(), 'Removing the attribute changed the self-closing flag state.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_remove_attribute_preserves_self_closing_flag_state() {
+		return array(
+			'Attribute preceded by a slash'      => array( '<svg><g /attr>ok', 1, '<svg><g / >ok', false ),
+			'Attribute before self-closing flag' => array( '<svg><g /attr/>ok', 1, '<svg><g / />ok', true ),
+			'Duplicate attribute removed twice'  => array( '<svg><g attr /attr>ok', 2, '<svg><g  / >ok', false ),
+		);
+	}
+
+	/**
 	 * @ticket 58119
 	 *
 	 * @since 6.3.2 Removes all duplicated attributes as expected.
