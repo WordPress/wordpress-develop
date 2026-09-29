@@ -471,7 +471,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertFalse( wp_attachment_is( 'video', $attachment_id ) );
 
 		if ( is_multisite() ) {
-			remove_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ), 10, 2 );
+			remove_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ) );
 		}
 	}
 
