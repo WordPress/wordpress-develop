@@ -26,7 +26,7 @@ return array(
 					<p class="has-text-align-center">' . esc_html__( 'A podcast about birds', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
-					<!-- wp:spacer {"height":40} -->
+					<!-- wp:spacer {"height":"40px"} -->
 					<div style="height:40px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -53,7 +53,7 @@ return array(
 					<!-- /wp:buttons --></div>
 					<!-- /wp:group -->
 
-					<!-- wp:spacer {"height":40} -->
+					<!-- wp:spacer {"height":"40px"} -->
 					<div style="height:40px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

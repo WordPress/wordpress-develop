@@ -16,7 +16,7 @@ return array(
 					<h2 class="alignwide" style="font-size:clamp(3.25rem, 8vw, 6.25rem);line-height:1.15;margin-bottom:2rem"><em>' . esc_html__( 'Speaker Series', 'twentytwentytwo' ) . '</em></h2>
 					<!-- /wp:heading -->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -120,7 +120,7 @@ return array(
 					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide"/>
 					<!-- /wp:separator -->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
