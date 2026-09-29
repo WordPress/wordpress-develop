@@ -584,7 +584,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the filter can turn prefetching off.
+	 * Tests that the filter can turn prefetching off, in which case neither the prefetch links nor
+	 * the script prefetching them in browsers that lack `rel="prefetch"` are printed.
 	 *
 	 * @ticket 57548
 	 *
@@ -605,7 +606,41 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertSame( array(), $this->get_prefetched_on_login() );
+		$this->assertSame( '', $this->get_login_head_output() );
+	}
+
+	/**
+	 * Tests that the script prefetching the links in browsers that lack `rel="prefetch"` is printed
+	 * once, after all of the prefetch links it reads from the page.
+	 *
+	 * @ticket 57548
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_prints_polyfill_after_prefetch_links(): void {
+		define( 'CONCATENATE_SCRIPTS', false );
+
+		$processor      = new WP_HTML_Tag_Processor( $this->get_login_head_output() );
+		$links          = 0;
+		$scripts        = array();
+		$links_after_js = 0;
+		while ( $processor->next_tag() ) {
+			if ( 'LINK' === $processor->get_tag() && 'prefetch' === $processor->get_attribute( 'rel' ) ) {
+				++$links;
+				if ( $scripts ) {
+					++$links_after_js;
+				}
+			} elseif ( 'SCRIPT' === $processor->get_tag() ) {
+				$scripts[] = $processor->get_modifiable_text();
+			}
+		}
+
+		$this->assertGreaterThan( 0, $links, 'Expected prefetch links to be printed.' );
+		$this->assertCount( 1, $scripts, 'Expected one script to be printed.' );
+		$this->assertSame( 0, $links_after_js, 'Expected the script to follow all of the prefetch links.' );
+		$this->assertStringContainsString( 'link[rel~="prefetch"]', $scripts[0] );
+		$this->assertStringContainsString( '//# sourceURL=wp_prefetch_admin_assets', $scripts[0] );
 	}
 
 	/**
@@ -631,6 +666,20 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * @return list<array{ href: string, as: string }> Prefetch links in the order printed.
 	 */
 	private function get_prefetched_on_login( array $request = array(), ?string $action = 'login', bool $interim_login = false ): array {
+		return $this->parse_prefetch_links( $this->get_login_head_output( $request, $action, $interim_login ) );
+	}
+
+	/**
+	 * Runs the login screen's prefetching and returns everything it printed.
+	 *
+	 * @param array<string, string> $request       Request parameters of the login screen.
+	 * @param string|null           $action        Action as resolved by wp-login.php, or null for
+	 *                                             `login_head` fired by a plugin outside of it.
+	 * @param bool                  $interim_login Whether wp-login.php is displaying the interim
+	 *                                             login modal.
+	 * @return string Printed markup.
+	 */
+	private function get_login_head_output( array $request = array(), ?string $action = 'login', bool $interim_login = false ): string {
 		$_REQUEST = $request;
 
 		$GLOBALS['action']        = $action;
@@ -639,7 +688,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		remove_all_actions( 'login_head' );
 		add_action( 'login_head', 'wp_prefetch_admin_assets' );
 
-		return $this->parse_prefetch_links( get_echo( 'do_action', array( 'login_head' ) ) );
+		return get_echo( 'do_action', array( 'login_head' ) );
 	}
 
 	/**

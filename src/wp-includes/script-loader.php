@@ -2872,6 +2872,10 @@ function wp_prefetch_admin_assets(): void {
 		$unique_resources[ $href ] = $as;
 	}
 
+	if ( ! $unique_resources ) {
+		return;
+	}
+
 	// Build and output the HTML for each unique resource.
 	foreach ( $unique_resources as $href => $as ) {
 		printf(
@@ -2880,6 +2884,56 @@ function wp_prefetch_admin_assets(): void {
 			esc_attr( $as )
 		);
 	}
+
+	/*
+	 * Safari does not support `rel="prefetch"`, so in browsers that lack it, fetch the URLs of the
+	 * page's prefetch links with fetch() instead, to put the responses in the HTTP cache all the
+	 * same. Reading the links from the page, rather than passing their URLs to the script, keeps a
+	 * single list of them, and also covers any prefetch links added by plugins. The fetches wait
+	 * until the current screen has loaded, and ask for low priority, so they stay out of the way
+	 * of its own assets. Unlike a prefetch link, a fetch still in flight is canceled when the user
+	 * navigates away, so it cannot compete with the next screen's render-blocking assets.
+	 *
+	 * The requests use `no-cors` mode and include credentials, as the stylesheet and script
+	 * requests of the next screen do, so the cached responses match what that screen will ask for.
+	 * The body is read to completion so that the full response is cached.
+	 */
+	$js_function = <<<'JS'
+		/**
+		 * Prefetches the page's rel=prefetch links with fetch() in browsers that do not support rel=prefetch.
+		 *
+		 * @see https://caniuse.com/link-rel-prefetch
+		 */
+		() => {
+			if ( document.createElement( 'link' ).relList?.supports?.( 'prefetch' ) ) {
+				return;
+			}
+
+			const prefetch = () => {
+				for ( const link of document.querySelectorAll( 'link[rel~="prefetch"][href]' ) ) {
+					fetch( link.href, { mode: 'no-cors', credentials: 'include', priority: 'low' } )
+						.then( ( response ) => response.blob() )
+						.catch( () => {} );
+				}
+			};
+
+			const schedule = () => {
+				if ( 'requestIdleCallback' in window ) {
+					window.requestIdleCallback( prefetch );
+				} else {
+					setTimeout( prefetch, 0 );
+				}
+			};
+
+			if ( 'complete' === document.readyState ) {
+				schedule();
+			} else {
+				window.addEventListener( 'load', schedule, { once: true } );
+			}
+		}
+		JS;
+
+	wp_print_inline_script_tag( "( $js_function )();\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 }
 
 /**
