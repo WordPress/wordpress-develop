@@ -226,10 +226,10 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$this->set_permalink_structure( '' );
 
 		foreach ( $this->get_canonical_redirects_to_plain_permalinks_cases() as $case ) {
-			$post_key                 = $case[0];
-			$user_role                = $case[1];
-			$requested                = $case[2];
-			$expected                 = $case[3];
+			$post_key                = $case[0];
+			$user_role               = $case[1];
+			$requested               = $case[2];
+			$expected                = $case[3];
 			$enable_attachment_pages = array_key_exists( 4, $case ) ? $case[4] : true;
 
 			update_option( 'wp_attachment_pages_enabled', $enable_attachment_pages ? 1 : 0 );
