@@ -1062,7 +1062,7 @@ class Tests_Post extends WP_UnitTestCase {
 			2,
 			array(
 				'post_content' => 'Test Post',
-				'post_status' => 'draft',
+				'post_status'  => 'draft',
 			)
 		);
 		$post_one = get_post( $post_ids[0] );
@@ -1093,8 +1093,8 @@ class Tests_Post extends WP_UnitTestCase {
 			2,
 			array(
 				'post_content' => 'Test Post',
-				'post_status' => 'draft',
-				'post_name' => 'test-post',
+				'post_status'  => 'draft',
+				'post_name'    => 'test-post',
 			)
 		);
 		$post_one = get_post( $post_ids[0] );
