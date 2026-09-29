@@ -39,16 +39,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-section.php
 		-
-			message: '#^Property WP_Customize_Manager\:\:\$nav_menus \(WP_Customize_Nav_Menus\) in empty\(\) is not falsy\.$#'
-			identifier: empty.property
-			count: 1
-			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php
-		-
-			message: '#^Property WP_Customize_Manager\:\:\$nav_menus \(WP_Customize_Nav_Menus\) in empty\(\) is not falsy\.$#'
-			identifier: empty.property
-			count: 1
-			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php
-		-
 			message: '#^Property WP_Customize_Partial\:\:\$render_callback \(callable\) in empty\(\) is not falsy\.$#'
 			identifier: empty.property
 			count: 2
