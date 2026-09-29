@@ -304,7 +304,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 }
 
 /* Aligns bottom border when table block is aligned center in editor. */
-.wp-block[data-align=center] > .wp-block-table {
+.wp-block[data-align="center"] > .wp-block-table {
 	clear: both;
 	width: fit-content;
 	margin-left: auto;
@@ -312,7 +312,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 }
 
 /* Aligns bottom margin when table block is aligned center in editor. */
-.wp-block[data-align=center] > .wp-block-table table {
+.wp-block[data-align="center"] > .wp-block-table table {
 	margin-bottom: 24px;
 }
 
