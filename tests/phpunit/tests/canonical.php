@@ -148,6 +148,12 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			// Taxonomies with extra query vars.
 			array( '/category/cat-a/page/1/?test=one%20two', '/category/cat-a/?test=one%20two', 18086 ), // Extra query vars should stay encoded.
 
+			// Post formats.
+			array( '/?post_format=audio', '/type/audio/', 20902 ),
+			array( '/?post_format=audio&test=one', '/type/audio/?test=one', 20902 ), // Extra query vars should be kept.
+			array( '/type/audio/', '/type/audio/', 20902 ), // No redirect.
+			array( '/?post_format=video', '/?post_format=video', 20902 ), // A format without posts is a 404: no redirect.
+
 			// Categories with dates.
 			array(
 				'/2008/04/?cat=1',
@@ -177,6 +183,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			// Pages.
 			array( '/child-page-1/', '/parent-page/child-page-1/' ),
 			array( '/?page_id=144', '/parent-page/child-page-1/' ),
+			array( '/?pagename=sample-page', '/sample-page/', 20902 ),
+			array( '/?pagename=sample-page&test=one', '/sample-page/?test=one', 20902 ), // Extra query vars should be kept.
+			array( '/?pagename=parent/child1/grandchild', '/parent/child1/grandchild/', 20902 ), // Hierarchical page path.
+			array( '/?pagename=does-not-exist', '/?pagename=does-not-exist', 20902 ), // A page that does not exist is a 404: no redirect.
 			array( '/abo', '/about/' ),
 			array( '/parent/child1/grandchild/', '/parent/child1/grandchild/' ),
 			array( '/parent/child2/grandchild/', '/parent/child2/grandchild/' ),
@@ -238,6 +248,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 			// Authors.
 			array( '/?author=%d', '/author/canonical-author/' ),
+			array( '/?author_name=canonical-author', '/author/canonical-author/', 20902 ),
+			array( '/?author_name=canonical-author&test=one', '/author/canonical-author/?test=one', 20902 ), // Extra query vars should be kept.
+			array( '/?author_name=does-not-exist', '/?author_name=does-not-exist', 20902 ), // No such author: no redirect.
 			// array( '/?author=%d&year=2008', '/2008/?author=3'),
 			// array( '/author/canonical-author/?year=2008', '/2008/?author=3'), // Either or, see previous testcase.
 			array( '/author/canonical-author/?author[1]=hello', '/author/canonical-author/?author[1]=hello', 60059 ),
@@ -264,6 +277,36 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '//2008////', '/2008/' ),
 
 			// @todo Endpoints (feeds, trackbacks, etc). More fuzzed mixed query variables, comment paging, Home page (static).
+		);
+	}
+
+	/**
+	 * A `?author_name=` request for a user without published posts should not be redirected,
+	 * the same as a `?author=` request for that user.
+	 *
+	 * @ticket 20902
+	 *
+	 * @dataProvider data_author_query_vars_without_published_posts
+	 *
+	 * @param string $query_var The author query var to test, either `author` or `author_name`.
+	 */
+	public function test_author_query_var_without_published_posts_is_not_redirected( $query_var ) {
+		$user_id = self::factory()->user->create( array( 'user_login' => 'author-without-posts' ) );
+
+		$test_url = ( 'author' === $query_var ) ? "/?author={$user_id}" : '/?author_name=author-without-posts';
+
+		$this->assertCanonical( $test_url, $test_url, 20902 );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_author_query_vars_without_published_posts() {
+		return array(
+			'author'      => array( 'author' ),
+			'author_name' => array( 'author_name' ),
 		);
 	}
 
