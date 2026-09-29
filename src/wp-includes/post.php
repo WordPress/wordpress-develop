@@ -4244,8 +4244,8 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
 	 * @param WP_Post|bool|null $untrash         Whether to go forward with untrashing.
-	 * @param WP_Post   		$post            Post object.
-	 * @param string    		$previous_status The status of the post at the point where it was trashed.
+	 * @param WP_Post           $post            Post object.
+	 * @param string            $previous_status The status of the post at the point where it was trashed.
 	 */
 	$check = apply_filters( 'pre_untrash_post', null, $post, $previous_status );
 	if ( null !== $check ) {
