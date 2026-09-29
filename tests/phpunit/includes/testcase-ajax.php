@@ -67,6 +67,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		'closed-postboxes',
 		'hidden-columns',
 		'update-welcome-panel',
+		'set-media-library-settings',
 		'menu-get-metabox',
 		'wp-link-ajax',
 		'menu-locations-save',
