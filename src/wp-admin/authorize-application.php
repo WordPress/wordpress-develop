@@ -11,16 +11,27 @@ require_once __DIR__ . '/admin.php';
 
 $error        = null;
 $new_password = '';
+$user         = wp_get_current_user();
 
 // This is the no-js fallback script. Generally this will all be handled by `auth-app.js`.
 if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['action'] ) {
 	check_admin_referer( 'authorize_application_password' );
 
-	$success_url = $_POST['success_url'];
-	$reject_url  = $_POST['reject_url'];
-	$app_name    = $_POST['app_name'];
-	$app_id      = $_POST['app_id'];
-	$redirect    = '';
+	$success_url    = $_POST['success_url'];
+	$reject_url     = $_POST['reject_url'];
+	$app_name       = $_POST['app_name'];
+	$app_id         = $_POST['app_id'];
+	$success_format = isset( $_POST['success_format'] ) ? $_POST['success_format'] : 'query';
+	$redirect       = '';
+	$request        = compact( 'app_name', 'app_id', 'success_url', 'reject_url', 'success_format' );
+	$is_valid       = wp_is_authorize_application_password_request_valid( $request, $user );
+
+	if ( is_wp_error( $is_valid ) ) {
+		wp_die(
+			__( 'The Authorize Application request is not allowed.' ) . ' ' . implode( ' ', $is_valid->get_error_messages() ),
+			__( 'Cannot Authorize Application' )
+		);
+	}
 
 	if ( isset( $_POST['reject'] ) ) {
 		if ( $reject_url ) {
@@ -43,14 +54,42 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 			list( $new_password ) = $created;
 
 			if ( $success_url ) {
-				$redirect = add_query_arg(
-					array(
-						'site_url'   => urlencode( site_url() ),
-						'user_login' => urlencode( wp_get_current_user()->user_login ),
-						'password'   => urlencode( $new_password ),
-					),
-					$success_url
-				);
+				if ( 'form_post' === $success_format ) {
+					?>
+					<!DOCTYPE html>
+					<html <?php language_attributes(); ?>>
+					<head>
+						<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+						<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
+						<title><?php esc_html_e( 'Authorizing Application' ); ?></title>
+					</head>
+					<body>
+						<form id="callback-form" action="<?php echo esc_url( $success_url, array( 'http', 'https' ) ); ?>" method="post">
+							<input type="hidden" name="site_url" value="<?php echo esc_attr( site_url() ); ?>" />
+							<input type="hidden" name="user_login" value="<?php echo esc_attr( $user->user_login ); ?>" />
+							<input type="hidden" name="password" value="<?php echo esc_attr( $new_password ); ?>" />
+							<noscript>
+								<p><?php esc_html_e( 'JavaScript is required to complete the authorization automatically.' ); ?></p>
+								<button type="submit"><?php esc_html_e( 'Complete Authorization' ); ?></button>
+							</noscript>
+						</form>
+						<script>
+							document.getElementById( 'callback-form' ).submit();
+						</script>
+					</body>
+					</html>
+					<?php
+					exit;
+				} else {
+					$redirect = add_query_arg(
+						array(
+							'site_url'   => site_url(),
+							'user_login' => $user->user_login,
+							'password'   => $new_password,
+						),
+						$success_url
+					);
+				}
 			}
 		}
 	}
@@ -65,9 +104,10 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 // Used in the HTML title tag.
 $title = __( 'Authorize Application' );
 
-$app_name    = ! empty( $_REQUEST['app_name'] ) ? $_REQUEST['app_name'] : '';
-$app_id      = ! empty( $_REQUEST['app_id'] ) ? $_REQUEST['app_id'] : '';
-$success_url = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : null;
+$app_name       = ! empty( $_REQUEST['app_name'] ) ? $_REQUEST['app_name'] : '';
+$app_id         = ! empty( $_REQUEST['app_id'] ) ? $_REQUEST['app_id'] : '';
+$success_url    = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : null;
+$success_format = ! empty( $_REQUEST['success_format'] ) ? $_REQUEST['success_format'] : 'query';
 
 if ( ! empty( $_REQUEST['reject_url'] ) ) {
 	$reject_url = $_REQUEST['reject_url'];
@@ -77,9 +117,7 @@ if ( ! empty( $_REQUEST['reject_url'] ) ) {
 	$reject_url = null;
 }
 
-$user = wp_get_current_user();
-
-$request  = compact( 'app_name', 'app_id', 'success_url', 'reject_url' );
+$request  = compact( 'app_name', 'app_id', 'success_url', 'reject_url', 'success_format' );
 $is_valid = wp_is_authorize_application_password_request_valid( $request, $user );
 
 if ( is_wp_error( $is_valid ) ) {
@@ -124,10 +162,11 @@ wp_localize_script(
 	'auth-app',
 	'authApp',
 	array(
-		'site_url'   => site_url(),
-		'user_login' => $user->user_login,
-		'success'    => $success_url,
-		'reject'     => $reject_url ? $reject_url : admin_url(),
+		'site_url'       => site_url(),
+		'user_login'     => $user->user_login,
+		'success'        => $success_url,
+		'success_format' => $success_format,
+		'reject'         => $reject_url ? $reject_url : admin_url(),
 	)
 );
 
@@ -241,6 +280,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<input type="hidden" name="action" value="authorize_application_password" />
 				<input type="hidden" name="app_id" value="<?php echo esc_attr( $app_id ); ?>" />
 				<input type="hidden" name="success_url" value="<?php echo esc_url( $success_url ); ?>" />
+				<input type="hidden" name="success_format" value="<?php echo esc_attr( $success_format ); ?>" />
 				<input type="hidden" name="reject_url" value="<?php echo esc_url( $reject_url ); ?>" />
 
 				<div class="form-field">
@@ -280,20 +320,28 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p class="description" id="description-approve">
 					<?php
 					if ( $success_url ) {
-						printf(
-							/* translators: %s: The URL the user is being redirected to. */
-							__( 'You will be sent to %s' ),
-							'<strong><code>' . esc_html(
-								add_query_arg(
-									array(
-										'site_url'   => site_url(),
-										'user_login' => $user->user_login,
-										'password'   => '[------]',
-									),
-									$success_url
-								)
-							) . '</code></strong>'
-						);
+						if ( 'form_post' === $success_format ) {
+							printf(
+								/* translators: %s: The URL the user is being redirected to. */
+								__( 'Your connection details will be sent to %s.' ),
+								'<strong><code>' . esc_html( $success_url ) . '</code></strong>'
+							);
+						} else {
+							printf(
+								/* translators: %s: The URL the user is being redirected to. */
+								__( 'You will be sent to %s' ),
+								'<strong><code>' . esc_html(
+									add_query_arg(
+										array(
+											'site_url'   => site_url(),
+											'user_login' => $user->user_login,
+											'password'   => '[------]',
+										),
+										$success_url
+									)
+								) . '</code></strong>'
+							);
+						}
 					} else {
 						_e( 'You will be given a password to manually enter into the application in question.' );
 					}
