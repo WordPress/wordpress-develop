@@ -819,7 +819,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param array $posts
 	 * @param int   $level
 	 */
-	private function _display_rows( $posts, $level = 0 ) {
+	private function _display_rows( $posts, $level = 0 ): void {
 		$post_type = $this->screen->post_type;
 
 		// Create array of post IDs.
@@ -846,7 +846,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param int   $pagenum
 	 * @param int   $per_page
 	 */
-	private function _display_rows_hierarchical( $pages, $pagenum = 1, $per_page = 20 ) {
+	private function _display_rows_hierarchical( $pages, $pagenum = 1, $per_page = 20 ): void {
 		global $wpdb;
 
 		$level = 0;
@@ -956,7 +956,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param int   $per_page
 	 * @param array $to_display List of pages to be displayed. Passed by reference.
 	 */
-	private function _page_rows( &$children_pages, &$count, $parent_page, $level, $pagenum, $per_page, &$to_display ) {
+	private function _page_rows( &$children_pages, &$count, $parent_page, $level, $pagenum, $per_page, &$to_display ): void {
 		if ( ! isset( $children_pages[ $parent_page ] ) ) {
 			return;
 		}
