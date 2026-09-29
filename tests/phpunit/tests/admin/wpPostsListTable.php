@@ -197,6 +197,61 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64932
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_child_page_row_title_has_hierarchy_description() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$output = $this->get_hierarchical_page_list_output(
+			array(
+				self::$top[1],
+				self::$children[1][1],
+			)
+		);
+
+		$expected = sprintf(
+			'<span aria-hidden="true">&#8212;</span> ' .
+			'<a class="row-title" href="%1$s" aria-describedby="post-hierarchy-%2$d">Child 1</a>' .
+			'<span id="post-hierarchy-%2$d" class="hidden">Child of Top Level Page 1</span>',
+			get_edit_post_link( self::$children[1][1]->ID ),
+			self::$children[1][1]->ID
+		);
+
+		$this->assertStringContainsString( $expected, $output );
+	}
+
+	/**
+	 * @ticket 64932
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_top_level_page_row_title_does_not_have_hierarchy_description() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$output = $this->get_hierarchical_page_list_output(
+			array(
+				self::$top[1],
+			)
+		);
+
+		$this->assertStringContainsString(
+			sprintf(
+				'<a class="row-title" href="%s">Top Level Page 1</a>',
+				get_edit_post_link( self::$top[1]->ID )
+			),
+			$output
+		);
+		$this->assertStringNotContainsString( 'aria-describedby="post-hierarchy-', $output );
+		$this->assertStringNotContainsString( 'class="hidden">Child of ', $output );
+	}
+
+	/**
 	 * Helper function to test the output of a page which uses `WP_Posts_List_Table`.
 	 *
 	 * @param array $args         Query args for the list of pages.
@@ -243,6 +298,27 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		foreach ( $expected_ids as $id ) {
 			$this->assertStringContainsString( sprintf( 'id="post-%d"', $id ), $output );
 		}
+	}
+
+	/**
+	 * Gets the output for a hierarchical page list table.
+	 *
+	 * @param WP_Post[] $posts Posts to display.
+	 * @return string List table rows output.
+	 */
+	protected function get_hierarchical_page_list_output( array $posts ) {
+		$_REQUEST['paged']   = 1;
+		$GLOBALS['per_page'] = 20;
+
+		ob_start();
+		$this->table->set_hierarchical_display( true );
+		$this->table->display_rows( $posts );
+		$output = ob_get_clean();
+
+		unset( $_REQUEST['paged'] );
+		unset( $GLOBALS['per_page'] );
+
+		return $output;
 	}
 
 	/**
