@@ -25,6 +25,14 @@ class WP_REST_Post_Meta_Fields extends WP_REST_Meta_Fields {
 	protected $post_type;
 
 	/**
+	 * Cache invalidation callback for posts.
+	 *
+	 * @since TBD
+	 * @var string
+	 */
+	protected $cache_callback = 'wp_cache_set_posts_last_changed';
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0

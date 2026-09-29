@@ -17,6 +17,14 @@
 class WP_REST_Comment_Meta_Fields extends WP_REST_Meta_Fields {
 
 	/**
+	 * Cache invalidation callback for comments.
+	 *
+	 * @since TBD
+	 * @var string
+	 */
+	protected $cache_callback = 'wp_cache_set_comments_last_changed';
+
+	/**
 	 * Retrieves the comment type for comment meta.
 	 *
 	 * @since 4.7.0
