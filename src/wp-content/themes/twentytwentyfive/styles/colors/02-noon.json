@@ -4,6 +4,16 @@
 	"title": "Noon",
 	"settings": {
 		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#5F5F5F",
+						"#F8F7F5"
+					],
+					"name": "Noon Filter",
+					"slug": "noon-filter"
+				}
+			],
 			"palette": [
 				{
 					"color": "#F8F7F5",
