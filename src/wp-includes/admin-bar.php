@@ -1486,3 +1486,34 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 
 	return 'true' === $pref;
 }
+
+/**
+ * Enqueues the admin bar color scheme stylesheet on the front end if present.
+ *
+ * @since 7.2.0
+ */
+function wp_admin_bar_add_color_scheme_to_front_end() {
+	if ( is_admin() ) {
+		return;
+	}
+
+	$color_scheme = get_user_option( 'admin_color' );
+	if ( empty( $color_scheme ) ) {
+		$color_scheme = 'modern';
+	}
+
+	if (
+		sanitize_key( $color_scheme ) !== $color_scheme
+		|| ! file_exists( ABSPATH . "wp-admin/css/colors/{$color_scheme}/admin-bar.css" )
+	) {
+		return;
+	}
+
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+
+	wp_enqueue_style(
+		'admin-bar-color-scheme',
+		admin_url( "css/colors/{$color_scheme}/admin-bar{$suffix}.css" ),
+		array( 'admin-bar' )
+	);
+}
