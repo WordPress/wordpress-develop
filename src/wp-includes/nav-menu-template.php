@@ -403,6 +403,11 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 		$classes[] = 'menu-item-type-' . $menu_item->type;
 		$classes[] = 'menu-item-object-' . $menu_item->object;
 
+		// This menu item has no label.
+		if ( '' === $menu_item->post_title ) {
+			$classes[] = 'no-title';
+		}
+
 		// This menu item is set as the 'Front Page'.
 		if ( 'post_type' === $menu_item->type && $front_page_id === (int) $menu_item->object_id ) {
 			$classes[] = 'menu-item-home';
