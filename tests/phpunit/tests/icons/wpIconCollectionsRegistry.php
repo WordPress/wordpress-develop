@@ -201,4 +201,92 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	public function test_unregister_unknown_collection() {
 		$this->assertFalse( $this->collections->unregister( 'ghost' ) );
 	}
+
+	/**
+	 * Should register collections as public by default.
+	 *
+	 * @ticket 66087
+	 *
+	 * @covers ::register
+	 */
+	public function test_register_collection_defaults_to_public() {
+		$this->collections->register( 'my-collection', array( 'label' => 'My Collection' ) );
+
+		$this->assertTrue( $this->collections->get_registered( 'my-collection' )['public'] );
+	}
+
+	/**
+	 * Should preserve explicitly configured collection visibility.
+	 *
+	 * @ticket 66087
+	 *
+	 * @dataProvider data_boolean_public_properties
+	 *
+	 * @covers ::register
+	 *
+	 * @param bool $is_public Whether the collection is public.
+	 */
+	public function test_register_collection_accepts_boolean_public_property( $is_public ) {
+		$result = $this->collections->register(
+			'my-collection',
+			array(
+				'label'  => 'My Collection',
+				'public' => $is_public,
+			)
+		);
+
+		$this->assertTrue( $result );
+		$this->assertSame( $is_public, $this->collections->get_registered( 'my-collection' )['public'] );
+	}
+
+	/**
+	 * Data provider for supported collection visibility values.
+	 *
+	 * @return array[]
+	 */
+	public function data_boolean_public_properties() {
+		return array(
+			'public collection'     => array( true ),
+			'non-public collection' => array( false ),
+		);
+	}
+
+	/**
+	 * Should reject collection visibility values that are not booleans.
+	 *
+	 * @ticket 66087
+	 *
+	 * @dataProvider data_non_boolean_public_properties
+	 *
+	 * @covers ::register
+	 *
+	 * @expectedIncorrectUsage WP_Icon_Collections_Registry::register
+	 *
+	 * @param mixed $is_public Invalid collection visibility value.
+	 */
+	public function test_register_collection_rejects_non_boolean_public_property( $is_public ) {
+		$result = $this->collections->register(
+			'my-collection',
+			array(
+				'label'  => 'My Collection',
+				'public' => $is_public,
+			)
+		);
+
+		$this->assertFalse( $result );
+		$this->assertFalse( $this->collections->is_registered( 'my-collection' ) );
+	}
+
+	/**
+	 * Data provider for unsupported collection visibility values.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_boolean_public_properties() {
+		return array(
+			'string'  => array( 'false' ),
+			'integer' => array( 0 ),
+			'array'   => array( array() ),
+		);
+	}
 }
