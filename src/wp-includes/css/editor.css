@@ -1847,15 +1847,10 @@ div.wp-link-input input {
 	}
 }
 
-/* =Overlay Body
--------------------------------------------------------------- */
-
 .mce-fullscreen {
 	z-index: 100010;
 }
 
-/* =Localization
--------------------------------------------------------------- */
 .rtl .wp-switch-editor,
 .rtl .quicktags-toolbar input {
 	font-family: Tahoma, sans-serif;
