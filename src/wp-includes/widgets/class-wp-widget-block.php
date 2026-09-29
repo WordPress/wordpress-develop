@@ -171,6 +171,7 @@ class WP_Widget_Block extends WP_Widget {
 	 * Handles updating settings for the current Block widget instance.
 	 *
 	 * @since 5.8.0
+	 * @since 7.2.0 Custom CSS is stripped from the content for users without the `edit_css` capability.
 
 	 * @param array $new_instance New settings for this instance as input by the user via
 	 *                            WP_Widget::form().
@@ -184,6 +185,11 @@ class WP_Widget_Block extends WP_Widget {
 			$instance['content'] = $new_instance['content'];
 		} else {
 			$instance['content'] = wp_kses_post( $new_instance['content'] );
+		}
+
+		if ( ! current_user_can( 'edit_css' ) ) {
+			// wp_strip_custom_css_from_blocks() expects slashed content.
+			$instance['content'] = wp_unslash( wp_strip_custom_css_from_blocks( wp_slash( $instance['content'] ) ) );
 		}
 
 		return $instance;

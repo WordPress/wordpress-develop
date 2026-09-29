@@ -1449,6 +1449,7 @@ final class WP_Customize_Widgets {
 	 *
 	 * @since 3.9.0
 	 * @since 5.8.0 Added the `$id_base` parameter.
+	 * @since 7.2.0 Custom CSS is stripped from the 'block' widget content for users without the `edit_css` capability.
 	 *
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 *
@@ -1472,6 +1473,11 @@ final class WP_Customize_Widgets {
 					 * Filter the content here to prevent vulnerabilities.
 					 */
 					$value['raw_instance']['content'] = wp_kses_post( $value['raw_instance']['content'] );
+				}
+
+				if ( 'block' === $id_base && ! current_user_can( 'edit_css' ) ) {
+					// wp_strip_custom_css_from_blocks() expects slashed content.
+					$value['raw_instance']['content'] = wp_unslash( wp_strip_custom_css_from_blocks( wp_slash( $value['raw_instance']['content'] ) ) );
 				}
 
 				return $value['raw_instance'];
