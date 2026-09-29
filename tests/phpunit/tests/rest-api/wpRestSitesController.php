@@ -173,6 +173,24 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * A non-numeric `user` value casts to `0` via `(int)`, which must not be
+	 * allowed to match a logged-out request's `get_current_user_id()` (also
+	 * `0`) and grant the own-sites-filter bypass.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_items_non_numeric_user_filter_forbidden_when_logged_out() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'user', 'xyz' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
+	}
+
+	/**
 	 * @ticket 40365
 	 * @covers ::get_item
 	 * @group ms-excluded

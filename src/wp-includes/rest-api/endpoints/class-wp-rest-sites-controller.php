@@ -154,7 +154,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return is_user_logged_in();
 		}
 
-		return get_current_user_id() === (int) $user;
+		return is_user_logged_in() && get_current_user_id() === (int) $user;
 	}
 
 	/**
