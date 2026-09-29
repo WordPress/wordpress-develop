@@ -382,18 +382,43 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that nothing is prefetched for a user who cannot create posts of the type listed.
+	 * Tests that nothing is prefetched for a user who cannot edit posts of the type listed.
 	 *
 	 * @ticket 57548
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_admin_screen_prints_nothing_for_user_who_cannot_create_posts(): void {
+	public function test_admin_screen_prints_nothing_for_user_who_cannot_edit_posts(): void {
 		define( 'CONCATENATE_SCRIPTS', false );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ) );
+	}
+
+	/**
+	 * Tests that the editor's stylesheets are prefetched for a user who can edit posts of the type
+	 * listed but not create them, since opening an existing post leads to the editor as well.
+	 *
+	 * A Contributor can edit patterns but not create them, which requires `publish_posts`.
+	 *
+	 * @ticket 57548
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_admin_screen_prefetches_for_user_who_can_edit_but_not_create_posts(): void {
+		define( 'CONCATENATE_SCRIPTS', false );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'contributor' ) ) );
+
+		$post_type_object = get_post_type_object( 'wp_block' );
+		$this->assertInstanceOf( WP_Post_Type::class, $post_type_object );
+		$this->assertTrue( current_user_can( $post_type_object->cap->edit_posts ), 'Expected the user to be able to edit patterns.' );
+		$this->assertFalse( current_user_can( $post_type_object->cap->create_posts ), 'Expected the user not to be able to create patterns.' );
+
+		$links = $this->get_prefetched_on_admin_screen( 'edit-wp_block' );
+
+		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/dist/edit-post/style(\.min)?\.css#' );
 	}
 
 	/**

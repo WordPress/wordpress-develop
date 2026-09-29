@@ -2642,11 +2642,14 @@ function wp_prefetch_admin_assets(): void {
 		}
 
 		/*
-		 * A user who cannot create this post type will never reach the editor from here, and a post
-		 * type still using the classic editor would not load any of these stylesheets.
+		 * A user who cannot edit posts of this type will never reach the editor from here, and a
+		 * post type still using the classic editor would not load any of these stylesheets. This is
+		 * `edit_posts` rather than `create_posts`, since the editor is reached by opening an existing
+		 * post as well as by adding a new one, and a user may be able to do the first but not the
+		 * second. Adding a new one requires `edit_posts` too.
 		 */
 		if (
-			! current_user_can( $post_type_object->cap->create_posts ) ||
+			! current_user_can( $post_type_object->cap->edit_posts ) ||
 			! use_block_editor_for_post_type( $post_type )
 		) {
 			return;
