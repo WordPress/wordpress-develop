@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-activate.php
-		-
 			message: '#^Variable \$pagenow might not be defined\.$#'
 			identifier: variable.undefined
 			count: 3
