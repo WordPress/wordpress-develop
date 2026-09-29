@@ -94,8 +94,7 @@ class Tests_Filesystem_WpFilesystemDirect_Move extends WP_Filesystem_Direct_Unit
 
 		// Force failure conditions.
 		$filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Direct' )
-								// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
-								->setMethods( array( 'exists', 'delete' ) )
+								->onlyMethods( array( 'exists', 'delete' ) )
 								->setConstructorArgs( array( null ) )
 								->getMock();
 
@@ -130,8 +129,7 @@ class Tests_Filesystem_WpFilesystemDirect_Move extends WP_Filesystem_Direct_Unit
 		// Set up mock filesystem.
 		$filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Direct' )
 								->setConstructorArgs( array( null ) )
-								// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
-								->setMethods( array( 'exists', 'delete', 'is_file', 'copy' ) )
+								->onlyMethods( array( 'exists', 'delete', 'is_file', 'copy' ) )
 								->getMock();
 
 		$filesystem_mock->expects( $this->exactly( 2 ) )->method( 'exists' )->willReturn( array( true, true ) );
