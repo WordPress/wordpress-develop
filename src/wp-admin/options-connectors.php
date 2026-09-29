@@ -69,7 +69,7 @@ function _wp_connectors_preload_paths( array $preload_paths ): array {
 
 	return $preload_paths;
 }
-add_filter( 'options-connectors-wp-admin_preload_paths', '_wp_connectors_preload_paths' );
+add_filter( 'wp_options_connectors_wp_admin_preload_paths', '_wp_connectors_preload_paths' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
