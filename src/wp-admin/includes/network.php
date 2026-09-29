@@ -378,8 +378,8 @@ function network_step1( $errors = false ) {
 			<tr>
 				<th scope='row'><label for="sitename"><?php esc_html_e( 'Network Title' ); ?></label></th>
 				<td>
-					<input name='sitename' id='sitename' type='text' size='45' value='<?php echo esc_attr( $site_name ); ?>' />
-					<p class="description">
+					<input name='sitename' id='sitename' type='text' size='45' aria-describedby='sitename-desc' value='<?php echo esc_attr( $site_name ); ?>' />
+					<p class="description" id="sitename-desc">
 						<?php _e( 'What would you like to call your network?' ); ?>
 					</p>
 				</td>
@@ -387,8 +387,8 @@ function network_step1( $errors = false ) {
 			<tr>
 				<th scope='row'><label for="email"><?php esc_html_e( 'Network Admin Email' ); ?></label></th>
 				<td>
-					<input name='email' id='email' type='text' size='45' value='<?php echo esc_attr( $admin_email ); ?>' />
-					<p class="description">
+					<input name='email' id='email' type='text' size='45' aria-describedby='email-desc' value='<?php echo esc_attr( $admin_email ); ?>' />
+					<p class="description" id="email-desc">
 						<?php _e( 'Your email address.' ); ?>
 					</p>
 				</td>
