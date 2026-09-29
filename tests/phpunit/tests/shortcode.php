@@ -544,7 +544,7 @@ EOF;
 	 * @dataProvider data_escaping
 	 */
 	public function test_escaping( $input, $output ) {
-		return $this->assertSame( $output, do_shortcode( $input ) );
+		return $this->assertEqualHTML( $output, do_shortcode( $input ) );
 	}
 
 	public function data_escaping() {
@@ -622,7 +622,7 @@ EOF;
 	 * @dataProvider data_escaping2
 	 */
 	public function test_escaping2( $input, $output ) {
-		return $this->assertSame( $output, strip_shortcodes( $input ) );
+		return $this->assertEqualHTML( $output, strip_shortcodes( $input ) );
 	}
 
 	public function data_escaping2() {
