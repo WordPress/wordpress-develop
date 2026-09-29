@@ -5309,32 +5309,29 @@ function wp_parse_str( $input_string, &$result ) {
  *
  * @since 2.3.0
  *
- * @param string         $content           Text to be converted.
- * @param array[]|string $allowed_html      Allowed HTML elements and attributes, or context name.
+ * @param string $content Text to be converted.
  * @return string Converted text.
  */
-function wp_pre_kses_less_than( $content, $allowed_html = array() ) {
-	if ( ! is_array( $allowed_html ) ) {
-		$allowed_html = wp_kses_allowed_html( $allowed_html );
+function wp_pre_kses_less_than( $content ) {
+	$processor = new WP_HTML_Tag_Processor( $content );
+
+	while ( $processor->next_token() ) {
+		$attribute_names = $processor->get_attribute_names_with_prefix( '' );
+
+		if ( ! is_array( $attribute_names ) ) {
+			continue;
+		}
+
+		foreach ( $attribute_names as $attribute_name ) {
+			$attribute_value = $processor->get_attribute( $attribute_name );
+
+			if ( is_string( $attribute_value ) && str_contains( $attribute_value, '<' ) ) {
+				$processor->set_attribute( $attribute_name, $attribute_value );
+			}
+		}
 	}
 
-	$content = preg_replace_callback(
-		"~<([a-zA-Z][a-zA-Z0-9:-]*)\\s+(?:\"[^\"]*\"|'[^']*'|[^<>\"'])*(?:>|$)~",
-		static function ( $matches ) use ( $allowed_html ) {
-			if ( ! isset( $allowed_html[ strtolower( $matches[1] ) ] ) ) {
-				return $matches[0];
-			}
-
-			return preg_replace_callback(
-				"~(\"[^\"]*\"|'[^']*')~",
-				static function ( $attribute_value ) {
-					return str_replace( '<', '&lt;', $attribute_value[0] );
-				},
-				$matches[0]
-			);
-		},
-		$content
-	);
+	$content = $processor->get_updated_html();
 
 	return preg_replace_callback(
 		'%<[^>]*?((?=<)|>|$)%',

@@ -2334,9 +2334,14 @@ EOF;
 	 * @ticket 62024
 	 */
 	public function test_wp_kses_preserves_literal_less_than_in_quoted_attribute_value() {
-		$html = '<button data-glide-dir="<">&lt;</button>';
-
-		$this->assertSame( '<button data-glide-dir="&lt;">&lt;</button>', wp_kses_post( $html ) );
+		$this->assertSame(
+			'<button data-glide-dir="&lt;">&lt;</button>',
+			wp_kses_post( '<button data-glide-dir="<">&lt;</button>' )
+		);
+		$this->assertSame(
+			'<button data-glide-dir="&lt;">&lt;</button>',
+			wp_kses_post( "<button data-glide-dir='<'>&lt;</button>" )
+		);
 	}
 
 	/**
