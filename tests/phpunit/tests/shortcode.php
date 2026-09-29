@@ -769,6 +769,8 @@ EOF;
 	/**
 	 * Ensure the shortcode attribute regex is the same in both the PHP and JS implementations.
 	 *
+	 * @group assets
+	 *
 	 * @ticket 34191
 	 * @ticket 51734
 	 */
