@@ -1,10 +1,7 @@
 {
   "src/wp-admin/css/about.css": {
-    "no-duplicate-selectors": {
-      "count": 6
-    },
-    "property-disallowed-list": {
-      "count": 2
+    "selector-class-pattern": {
+      "count": 203
     },
     "selector-no-qualifying-type": {
       "count": 17
@@ -26,49 +23,22 @@
     }
   },
   "src/wp-admin/css/common.css": {
-    "color-named": {
-      "count": 1
-    },
-    "declaration-property-unit-allowed-list": {
-      "count": 10
-    },
-    "no-duplicate-selectors": {
-      "count": 8
-    },
-    "selector-class-pattern": {
-      "count": 6
-    },
-    "selector-id-pattern": {
-      "count": 17
-    },
     "selector-no-qualifying-type": {
-      "count": 170
+      "count": 171
     }
   },
   "src/wp-admin/css/customize-controls.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 8
-    },
-    "no-duplicate-selectors": {
-      "count": 2
-    },
     "selector-class-pattern": {
       "count": 31
     },
     "selector-id-pattern": {
-      "count": 38
+      "count": 37
     },
     "selector-no-qualifying-type": {
-      "count": 75
+      "count": 78
     }
   },
   "src/wp-admin/css/customize-nav-menus.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 1
-    },
-    "no-duplicate-selectors": {
-      "count": 1
-    },
     "selector-class-pattern": {
       "count": 32
     },
@@ -76,13 +46,10 @@
       "count": 7
     },
     "selector-no-qualifying-type": {
-      "count": 12
+      "count": 13
     }
   },
   "src/wp-admin/css/customize-widgets.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 1
-    },
     "selector-class-pattern": {
       "count": 20
     },
@@ -91,46 +58,19 @@
     }
   },
   "src/wp-admin/css/dashboard.css": {
-    "function-disallowed-list": {
-      "count": 3
-    },
-    "no-duplicate-selectors": {
-      "count": 4
-    },
-    "selector-class-pattern": {
-      "count": 1
-    },
     "selector-id-pattern": {
-      "count": 88
+      "count": 87
     },
     "selector-no-qualifying-type": {
-      "count": 28
+      "count": 30
     }
   },
   "src/wp-admin/css/deprecated-media.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 2
-    },
-    "no-duplicate-selectors": {
-      "count": 1
-    },
-    "selector-class-pattern": {
-      "count": 3
-    },
     "selector-no-qualifying-type": {
-      "count": 41
+      "count": 39
     }
   },
   "src/wp-admin/css/edit.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 3
-    },
-    "function-disallowed-list": {
-      "count": 1
-    },
-    "no-duplicate-selectors": {
-      "count": 3
-    },
     "selector-class-pattern": {
       "count": 39
     },
@@ -138,19 +78,10 @@
       "count": 12
     },
     "selector-no-qualifying-type": {
-      "count": 115
+      "count": 147
     }
   },
   "src/wp-admin/css/forms.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 2
-    },
-    "function-disallowed-list": {
-      "count": 1
-    },
-    "no-duplicate-selectors": {
-      "count": 5
-    },
     "selector-class-pattern": {
       "count": 22
     },
@@ -158,21 +89,12 @@
       "count": 8
     },
     "selector-no-qualifying-type": {
-      "count": 258
+      "count": 259
     }
   },
   "src/wp-admin/css/install.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 1
-    },
-    "selector-id-pattern": {
-      "count": 2
-    },
     "selector-no-qualifying-type": {
       "count": 12
-    },
-    "selector-type-no-unknown": {
-      "count": 3
     }
   },
   "src/wp-admin/css/l10n.css": {
@@ -181,46 +103,19 @@
     }
   },
   "src/wp-admin/css/list-tables.css": {
-    "color-named": {
-      "count": 1
-    },
-    "declaration-property-unit-allowed-list": {
-      "count": 4
-    },
-    "function-disallowed-list": {
-      "count": 2
-    },
-    "no-duplicate-selectors": {
-      "count": 1
-    },
-    "selector-class-pattern": {
-      "count": 2
-    },
     "selector-no-qualifying-type": {
-      "count": 223
+      "count": 246
     }
   },
   "src/wp-admin/css/login.css": {
-    "no-duplicate-selectors": {
-      "count": 1
-    },
     "selector-class-pattern": {
-      "count": 2
-    },
-    "selector-id-pattern": {
-      "count": 2
+      "count": 5
     },
     "selector-no-qualifying-type": {
       "count": 18
     }
   },
   "src/wp-admin/css/media.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 3
-    },
-    "no-duplicate-selectors": {
-      "count": 1
-    },
     "selector-class-pattern": {
       "count": 20
     },
@@ -228,19 +123,10 @@
       "count": 4
     },
     "selector-no-qualifying-type": {
-      "count": 29
+      "count": 30
     }
   },
   "src/wp-admin/css/nav-menus.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 1
-    },
-    "no-duplicate-selectors": {
-      "count": 2
-    },
-    "selector-id-pattern": {
-      "count": 1
-    },
     "selector-no-qualifying-type": {
       "count": 43
     }
@@ -250,37 +136,20 @@
       "count": 34
     }
   },
-  "src/wp-admin/css/site-health.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 1
-    },
-    "selector-id-pattern": {
-      "count": 7
-    }
-  },
   "src/wp-admin/css/site-icon.css": {
     "selector-no-qualifying-type": {
       "count": 3
     }
   },
   "src/wp-admin/css/themes.css": {
-    "function-disallowed-list": {
-      "count": 2
-    },
-    "no-duplicate-selectors": {
-      "count": 5
-    },
     "selector-class-pattern": {
-      "count": 7
+      "count": 8
     },
     "selector-no-qualifying-type": {
       "count": 32
     }
   },
   "src/wp-admin/css/widgets.css": {
-    "no-duplicate-selectors": {
-      "count": 1
-    },
     "selector-class-pattern": {
       "count": 19
     },
@@ -289,6 +158,9 @@
     }
   },
   "src/wp-admin/css/wp-tooltip.css": {
+    "selector-class-pattern": {
+      "count": 20
+    },
     "selector-no-qualifying-type": {
       "count": 6
     }
@@ -303,43 +175,30 @@
       "count": 10
     }
   },
+  "src/wp-includes/css/classic-themes.css": {
+    "selector-class-pattern": {
+      "count": 2
+    }
+  },
   "src/wp-includes/css/customize-preview.css": {
-    "keyframe-block-no-duplicate-selectors": {
-      "count": 10
-    },
     "selector-no-qualifying-type": {
       "count": 2
     }
   },
   "src/wp-includes/css/editor.css": {
-    "declaration-property-unit-allowed-list": {
-      "count": 8
-    },
-    "font-family-no-missing-generic-family-keyword": {
-      "count": 2
-    },
-    "no-duplicate-selectors": {
-      "count": 5
-    },
     "selector-class-pattern": {
-      "count": 16
+      "count": 17
     },
     "selector-id-pattern": {
       "count": 10
     },
     "selector-no-qualifying-type": {
-      "count": 167
+      "count": 166
     }
   },
   "src/wp-includes/css/media-views.css": {
-    "no-duplicate-selectors": {
-      "count": 3
-    },
-    "property-disallowed-list": {
-      "count": 1
-    },
     "selector-no-qualifying-type": {
-      "count": 135
+      "count": 134
     }
   },
   "src/wp-includes/css/wp-embed-template.css": {
@@ -353,9 +212,6 @@
     }
   },
   "src/wp-admin/css/colors/_admin.scss": {
-    "no-duplicate-selectors": {
-      "count": 1
-    },
     "selector-no-qualifying-type": {
       "count": 96
     }
