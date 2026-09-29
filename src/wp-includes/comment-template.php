@@ -2332,6 +2332,57 @@ function wp_list_comments( $args = array(), $comments = null ) {
 					}
 				}
 
+				$query_per_page = (int) $parsed_args['per_page'];
+				if ( '' === $parsed_args['per_page'] && get_option( 'page_comments' ) ) {
+					$query_per_page = (int) get_query_var( 'comments_per_page' );
+				}
+
+				$query_max_depth = $parsed_args['max_depth'];
+				if ( '' === $query_max_depth ) {
+					$query_max_depth = get_option( 'thread_comments' ) ? get_option( 'thread_comments_depth' ) : -1;
+				}
+
+				// Paging has to count the same comments that are displayed.
+				if ( 'all' !== $parsed_args['type'] ) {
+					$comment_args['type'] = $parsed_args['type'];
+				}
+
+				// A threaded list paginates by top level comment, and the walker needs each one's descendants.
+				if ( -1 !== (int) $query_max_depth ) {
+					$comment_args['hierarchical'] = true;
+				}
+
+				$query_page = (int) $parsed_args['page'];
+
+				if ( '' === $parsed_args['page'] ) {
+					if ( empty( $overridden_cpage ) ) {
+						$query_page = (int) get_query_var( 'cpage' );
+					} elseif ( 'newest' === get_option( 'default_comments_page' ) && $query_per_page > 0 ) {
+						/*
+						 * The last page cannot be located without a total, so count the comments
+						 * that paging applies to. This mirrors the count comments_template() uses.
+						 */
+						$count_query          = new WP_Comment_Query();
+						$count_args           = $comment_args;
+						$count_args['count']  = true;
+						$count_args['number'] = 0;
+						$count_args['offset'] = 0;
+
+						$query_page = (int) ceil( $count_query->query( $count_args ) / $query_per_page );
+					} else {
+						$query_page = 1;
+					}
+				}
+
+				if ( 0 === $query_page && 0 !== $query_per_page ) {
+					$query_page = 1;
+				}
+
+				if ( $query_per_page > 0 ) {
+					$comment_args['number'] = $query_per_page;
+					$comment_args['offset'] = ( $query_page - 1 ) * $query_per_page;
+				}
+
 				$comments = get_comments( $comment_args );
 
 				if ( 'all' !== $parsed_args['type'] ) {
@@ -2343,6 +2394,15 @@ function wp_list_comments( $args = array(), $comments = null ) {
 					$_comments = $comments_by_type[ $parsed_args['type'] ];
 				} else {
 					$_comments = $comments;
+				}
+
+				/*
+				 * The requested page has already been fetched, so stop Walker_Comment from
+				 * paginating a second time. This mirrors what comments_template() does.
+				 */
+				if ( $query_per_page > 0 ) {
+					$parsed_args['page']     = 0;
+					$parsed_args['per_page'] = 0;
 				}
 			}
 
