@@ -594,8 +594,17 @@ test_plugins() {
 				fi
 			done
 
-			# Anything the dependencies logged on their way up is not the responsibility of the plugin under
-			# test, so the log starts empty again here.
+			# A dependency can fatal after the page has started to render, which still answers with a 200.
+			# The fatal only shows up in the log, and it would show up again once the plugin under test is
+			# active and be blamed on that plugin, so the log is checked before it is cleared.
+			if [ "${STATUS}" = "PASS" ] && [ -f "${WP_DIR}/wp-content/debug.log" ] && grep -q 'PHP Fatal' "${WP_DIR}/wp-content/debug.log"; then
+				grep 'PHP Fatal' "${WP_DIR}/wp-content/debug.log"
+				STATUS="SKIPPED"
+				REASON="The required plugins are not healthy on their own: $( grep -m 1 'PHP Fatal' "${WP_DIR}/wp-content/debug.log" | cut -c 1-200 )"
+			fi
+
+			# Anything else the dependencies logged on their way up is not the responsibility of the plugin
+			# under test, so the log starts empty again here.
 			rm -f "${WP_DIR}/wp-content/debug.log"
 		fi
 
