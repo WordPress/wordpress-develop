@@ -1453,7 +1453,7 @@ final class WP_Customize_Manager {
 		}
 
 		// The nav_menus_created_posts setting is why nav_menus component is dependency for adding posts.
-		if ( $this->nav_menus instanceof WP_Customize_Nav_Menus && ! empty( $starter_content_auto_draft_post_ids ) ) {
+		if ( ! empty( $this->nav_menus ) && ! empty( $starter_content_auto_draft_post_ids ) ) {
 			$setting_id = 'nav_menus_created_posts';
 			$this->set_post_value( $setting_id, array_unique( array_values( $starter_content_auto_draft_post_ids ) ) );
 			$this->pending_starter_content_settings_ids[] = $setting_id;
