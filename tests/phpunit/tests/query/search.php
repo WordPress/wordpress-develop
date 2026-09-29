@@ -32,6 +32,10 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		return $this->q->query( $args );
 	}
 
+	private function get_texturized_search_term( $title ) {
+		return html_entity_decode( wptexturize( $title ), ENT_QUOTES, 'UTF-8' );
+	}
+
 	public function test_search_order_title_relevance() {
 		foreach ( range( 1, 7 ) as $i ) {
 			self::factory()->post->create(
@@ -50,6 +54,38 @@ class Tests_Query_Search extends WP_UnitTestCase {
 
 		$posts = $this->get_search_results( 'About' );
 		$this->assertSame( $post_id, reset( $posts )->ID );
+	}
+
+	/**
+	 * @ticket 63209
+	 */
+	public function test_search_should_match_texturized_double_quotes() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title' => '"New" a good post',
+				'post_type'  => $this->post_type,
+			)
+		);
+
+		$posts = $this->get_search_results( $this->get_texturized_search_term( '"New" a good post' ) );
+
+		$this->assertSame( array( $post_id ), wp_list_pluck( $posts, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 63209
+	 */
+	public function test_search_should_match_texturized_apostrophes() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title' => "Today's post",
+				'post_type'  => $this->post_type,
+			)
+		);
+
+		$posts = $this->get_search_results( $this->get_texturized_search_term( "Today's post" ) );
+
+		$this->assertSame( array( $post_id ), wp_list_pluck( $posts, 'ID' ) );
 	}
 
 	public function test_search_terms_query_var() {
