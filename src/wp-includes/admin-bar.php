@@ -1492,7 +1492,7 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
  *
  * @since 7.2.0
  */
-function wp_admin_bar_add_color_scheme_to_front_end() {
+function wp_enqueue_admin_bar_color_scheme_styles() {
 	if ( is_admin() ) {
 		return;
 	}
@@ -1502,18 +1502,20 @@ function wp_admin_bar_add_color_scheme_to_front_end() {
 		$color_scheme = 'modern';
 	}
 
-	if (
-		sanitize_key( $color_scheme ) !== $color_scheme
-		|| ! file_exists( ABSPATH . "wp-admin/css/colors/{$color_scheme}/admin-bar.css" )
-	) {
+	if ( sanitize_key( $color_scheme ) !== $color_scheme ) {
 		return;
 	}
 
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	$path   = "css/colors/{$color_scheme}/admin-bar{$suffix}.css";
+
+	if ( ! file_exists( ABSPATH . 'wp-admin/' . $path ) ) {
+		return;
+	}
 
 	wp_enqueue_style(
 		'admin-bar-color-scheme',
-		admin_url( "css/colors/{$color_scheme}/admin-bar{$suffix}.css" ),
+		admin_url( $path ),
 		array( 'admin-bar' )
 	);
 }

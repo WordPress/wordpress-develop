@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Tests for wp_admin_bar_add_color_scheme_to_front_end().
+ * Tests for wp_enqueue_admin_bar_color_scheme_styles().
  *
  * @group admin-bar
  * @group toolbar
  *
- * @covers ::wp_admin_bar_add_color_scheme_to_front_end
+ * @covers ::wp_enqueue_admin_bar_color_scheme_styles
  */
-class Tests_AdminBar_wpAdminBarAddColorSchemeToFrontEnd extends WP_UnitTestCase {
+class Tests_AdminBar_wpEnqueueAdminBarColorSchemeStyles extends WP_UnitTestCase {
 
 	/**
 	 * User ID.
@@ -49,7 +49,7 @@ class Tests_AdminBar_wpAdminBarAddColorSchemeToFrontEnd extends WP_UnitTestCase 
 	public function test_enqueues_stylesheet_for_core_color_scheme() {
 		update_user_option( self::$user_id, 'admin_color', 'blue', true );
 
-		wp_admin_bar_add_color_scheme_to_front_end();
+		wp_enqueue_admin_bar_color_scheme_styles();
 
 		$this->assertTrue( wp_style_is( 'admin-bar-color-scheme' ), 'The admin bar color scheme stylesheet should be enqueued.' );
 
@@ -69,7 +69,7 @@ class Tests_AdminBar_wpAdminBarAddColorSchemeToFrontEnd extends WP_UnitTestCase 
 	public function test_does_not_enqueue_stylesheet_for_color_scheme_without_admin_bar_stylesheet( $color_scheme ) {
 		update_user_option( self::$user_id, 'admin_color', $color_scheme, true );
 
-		wp_admin_bar_add_color_scheme_to_front_end();
+		wp_enqueue_admin_bar_color_scheme_styles();
 
 		$this->assertFalse( wp_style_is( 'admin-bar-color-scheme', 'registered' ) );
 	}
@@ -93,7 +93,7 @@ class Tests_AdminBar_wpAdminBarAddColorSchemeToFrontEnd extends WP_UnitTestCase 
 		update_user_option( self::$user_id, 'admin_color', 'blue', true );
 		set_current_screen( 'dashboard' );
 
-		wp_admin_bar_add_color_scheme_to_front_end();
+		wp_enqueue_admin_bar_color_scheme_styles();
 
 		$this->assertFalse( wp_style_is( 'admin-bar-color-scheme', 'registered' ) );
 	}
