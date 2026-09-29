@@ -33,11 +33,19 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $ignore_files;
 
 	/**
-	 * Site locale before each test.
+	 * The value of $GLOBALS['locale'] before each test, or null if it was unset.
 	 *
-	 * @var string
+	 * @var string|null
 	 */
-	protected $original_locale = 'en_US';
+	protected $original_locale;
+
+	/**
+	 * The translation controller's locale before each test, or null if
+	 * set_up() did not capture it.
+	 *
+	 * @var string|null
+	 */
+	protected $original_translation_locale;
 
 	/**
 	 * Fixture factory.
@@ -136,13 +144,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		$this->clean_up_global_scope();
 
-		/*
-		 * Capture the site locale after resetting the runtime cache so it can be
-		 * restored without querying the database after the test transaction rolls back.
-		 */
-		unset( $GLOBALS['locale'] );
-		$this->original_locale = determine_locale();
-		WP_Translation_Controller::get_instance()->set_locale( $this->original_locale );
+		$this->original_locale             = $GLOBALS['locale'] ?? null;
+		$this->original_translation_locale = WP_Translation_Controller::get_instance()->get_locale();
 
 		/*
 		 * When running core tests, ensure that post types and taxonomies
@@ -257,9 +260,17 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
 		wp_set_current_user( 0 );
-		// Synchronize the locale globals with the site locale captured before the test.
-		$GLOBALS['locale'] = $this->original_locale;
-		WP_Translation_Controller::get_instance()->set_locale( $this->original_locale );
+
+		// Restore the locale captured in set_up(); skip it for tests that bypass parent::set_up().
+		if ( null !== $this->original_translation_locale ) {
+			if ( null === $this->original_locale ) {
+				unset( $GLOBALS['locale'] );
+			} else {
+				$GLOBALS['locale'] = $this->original_locale;
+			}
+			WP_Translation_Controller::get_instance()->set_locale( $this->original_translation_locale );
+		}
+
 		$this->reset_lazyload_queue();
 
 		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();

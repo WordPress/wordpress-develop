@@ -80,10 +80,6 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 */
 	public function set_up() {
 		parent::set_up();
-
-		unset( $GLOBALS['locale'] );
-		get_locale();
-
 		reset_phpmailer_instance();
 	}
 
@@ -96,8 +92,6 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 		reset_phpmailer_instance();
 		restore_previous_locale();
 		parent::tear_down();
-
-		unset( $GLOBALS['locale'] );
 	}
 
 	/**

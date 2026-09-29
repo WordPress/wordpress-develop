@@ -60,9 +60,6 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		unset( $GLOBALS['locale'] );
-		get_locale();
-
 		set_current_screen( 'dashboard' );
 		reset_phpmailer_instance();
 	}
@@ -75,10 +72,10 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 	public function tear_down() {
 		reset_phpmailer_instance();
 
+		unset( $GLOBALS['locale'] );
+
 		restore_previous_locale();
 		parent::tear_down();
-
-		unset( $GLOBALS['locale'] );
 	}
 
 	/**

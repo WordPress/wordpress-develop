@@ -19,8 +19,6 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	 * @dataProvider data_resolve_relative_path
 	 */
 	public function test_resolve_relative_path( $translation_path, $handle, $src, $textdomain, $filter = array() ) {
-		wp_scripts();
-
 		if ( ! empty( $filter ) ) {
 			add_filter( $filter[0], $filter[1], 10, $filter[2] ?? 1 );
 		}
