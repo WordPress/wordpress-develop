@@ -110,6 +110,22 @@ parameters:
 			path: src/wp-includes/canonical.php
 			count: 1
 
+		# In core, @internal is advisory for extenders: it marks a symbol that plugins should not rely on. Core itself is
+		# one codebase and its own uses of these symbols are intended. PHPStan scopes @internal by root namespace, and
+		# since core symbols live in the global namespace, it reports every use outside the declaring class or file.
+		#
+		# The identifier depends on where the symbol is used (e.g. new.internalClass, parameter.internalInterface,
+		# varTag.internalTrait), so the entry matches on the message instead, which always names the symbol right after
+		# "internal <kind>". The name must not contain a backslash, so uses of @internal symbols from namespaced
+		# third-party libraries like SimplePie and Requests are still reported. A bundled library in the global
+		# namespace cannot be told apart from core that way, so it must be excluded by its prefix instead. Currently
+		# that is only sodium_compat (ParagonIE_), which marks much of its API as @internal. These checks are only
+		# enabled by bleedingEdge; functions, class constants, instantiations, and static calls are checked from level 0,
+		# and methods, properties, and type references from level 2.
+		-
+			message: '#\binternal (?:static )?(?:class|interface|trait|enum|function|method|constant|property) (?!ParagonIE_)\w++(?!\\)#'
+			reportUnmatched: false
+
 		# Level 2:
 		# ValueError is PHP 8.0+; core throws it conditionally so the docblocks are correct for WP's 7.4+ range,
 		# but bleedingEdge's version-aware check treats the class as non-existent against the PHP 7.4 floor.
