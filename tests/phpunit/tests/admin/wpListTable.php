@@ -17,14 +17,22 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	/**
 	 * Original value of $GLOBALS['hook_suffix'].
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	private static $original_hook_suffix;
+
+	/**
+	 * Whether $GLOBALS['hook_suffix'] existed before the test class ran.
+	 *
+	 * @var bool
+	 */
+	private static $hook_suffix_was_set;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		static::$original_hook_suffix = $GLOBALS['hook_suffix'];
+		static::$hook_suffix_was_set  = array_key_exists( 'hook_suffix', $GLOBALS );
+		static::$original_hook_suffix = $GLOBALS['hook_suffix'] ?? null;
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 	}
@@ -37,8 +45,12 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	public function clean_up_global_scope() {
-		global $hook_suffix;
-		$hook_suffix = static::$original_hook_suffix;
+		if ( static::$hook_suffix_was_set ) {
+			$GLOBALS['hook_suffix'] = static::$original_hook_suffix;
+		} else {
+			unset( $GLOBALS['hook_suffix'] );
+		}
+
 		parent::clean_up_global_scope();
 	}
 
@@ -61,13 +73,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$hook = new MockAction();
 		add_filter( 'list_table_primary_column', array( $hook, 'filter' ) );
 
-		/*
-		 * Set a dummy value for the current screen in the admin to prevent
-		 * `_get_list_table()` throwing.
-		 */
-		$GLOBALS['hook_suffix'] = 'my-hook';
-
-		$list_table = _get_list_table( $list_class );
+		$list_table = _get_list_table(
+			$list_class,
+			array( 'screen' => 'wp-list-table-test-' . sanitize_key( $list_class ) )
+		);
 
 		$column_headers = new ReflectionProperty( $list_table, '_column_headers' );
 		if ( PHP_VERSION_ID < 80100 ) {
@@ -97,7 +106,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		 */
 		$list_primary_columns = array(
 			'WP_Application_Passwords_List_Table'         => 'name',
-			'WP_Comments_List_Table'                      => 'author',
+			'WP_Comments_List_Table'                      => 'comment',
 			'WP_Links_List_Table'                         => 'name',
 			'WP_Media_List_Table'                         => 'title',
 			'WP_MS_Sites_List_Table'                      => 'blogname',
@@ -591,5 +600,60 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$expected_html = '<input type="hidden" name="orderby" value="title" />';
 
 		$this->assertStringContainsString( $expected_html, $actual );
+	}
+
+	/**
+	 * Tests that `WP_List_Table::_js_vars()` prints its data through
+	 * `wp_print_inline_script_tag()`, so attributes such as a per-request nonce
+	 * can be attached via the `wp_inline_script_attributes` filter.
+	 *
+	 * @ticket 59446
+	 *
+	 * @covers WP_List_Table::_js_vars
+	 */
+	public function test_js_vars_prints_inline_script_tag_with_filterable_attributes() {
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'test-list-table-nonce';
+				return $attributes;
+			}
+		);
+
+		$actual = get_echo( array( $this->list_table, '_js_vars' ) );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
+		$this->assertSame( 'test-list-table-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
+		$this->assertStringContainsString( 'list_args =', $processor->get_modifiable_text(), 'The expected JavaScript variable was not printed.' );
+	}
+
+	/**
+	 * Tests that `WP_Themes_List_Table::_js_vars()` prints its data through
+	 * `wp_print_inline_script_tag()`, so attributes such as a per-request nonce
+	 * can be attached via the `wp_inline_script_attributes` filter.
+	 *
+	 * @ticket 59446
+	 *
+	 * @covers WP_Themes_List_Table::_js_vars
+	 */
+	public function test_themes_list_table_js_vars_prints_inline_script_tag_with_filterable_attributes() {
+		$themes_list_table = _get_list_table( WP_Themes_List_Table::class, array( 'screen' => 'themes' ) );
+		$this->assertInstanceOf( WP_Themes_List_Table::class, $themes_list_table, 'Expected list table class.' );
+
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'test-themes-list-table-nonce';
+				return $attributes;
+			}
+		);
+
+		$actual = get_echo( array( $themes_list_table, '_js_vars' ) );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
+		$this->assertSame( 'test-themes-list-table-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
+		$this->assertStringContainsString( 'theme_list_args =', $processor->get_modifiable_text(), 'The expected JavaScript variable was not printed.' );
 	}
 }
