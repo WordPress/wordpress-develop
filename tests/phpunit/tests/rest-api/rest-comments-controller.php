@@ -4898,6 +4898,83 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * A reaction can only be created approved.
+	 *
+	 * Held, spammed or trashed reactions are invisible to the uniqueness check
+	 * and the reaction summary, so repeated requests could pile them up.
+	 *
+	 * @ticket 63191
+	 *
+	 * @dataProvider data_create_reaction_status
+	 *
+	 * @param string $status          Requested status.
+	 * @param int    $expected_status Expected HTTP status.
+	 */
+	public function test_create_reaction_only_allows_approved_status( $status, $expected_status ) {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'parent'  => $note_id,
+					'content' => 'heart',
+					'type'    => 'reaction',
+					'status'  => $status,
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( 201 === $expected_status ) {
+			$this->assertSame( 201, $response->get_status() );
+			$this->assertSame( '1', get_comment( $response->get_data()['id'] )->comment_approved );
+		} else {
+			$this->assertErrorResponse( 'rest_comment_invalid_status', $response, $expected_status );
+			$this->assertSame(
+				array(),
+				get_comments(
+					array(
+						'parent' => $note_id,
+						'type'   => 'reaction',
+						'status' => 'any',
+						'fields' => 'ids',
+					)
+				),
+				'No reaction should have been stored.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: int}>
+	 */
+	public function data_create_reaction_status() {
+		return array(
+			'approve' => array( 'approve', 201 ),
+			'hold'    => array( 'hold', 400 ),
+			'spam'    => array( 'spam', 400 ),
+			'trash'   => array( 'trash', 400 ),
+		);
+	}
+
+	/**
 	 * The pre-insert uniqueness check is not atomic. Simulate a concurrent
 	 * request winning the race — inserting the same reaction after this
 	 * request's check but before its own insert — and assert the post-insert

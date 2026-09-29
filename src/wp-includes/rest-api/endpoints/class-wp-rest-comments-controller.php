@@ -853,6 +853,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			/*
+			 * A reaction is always approved. The uniqueness check, the race
+			 * cleanup below and the reaction summary only see approved rows, so
+			 * a reaction created in any other status could never be counted,
+			 * deduplicated or, since reactions cannot be updated, fixed.
+			 */
+			if ( isset( $request['status'] ) && ! in_array( $request['status'], array( 'approve', 'approved', '1' ), true ) ) {
+				return new WP_Error(
+					'rest_comment_invalid_status',
+					__( 'A reaction cannot be created with that status.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			/*
 			 * Enforce uniqueness: one emoji per user per note.
 			 *
 			 * Scope to active (approved) reactions only — trashed reactions
@@ -1081,7 +1095,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( isset( $request['status'] ) ) {
+		/*
+		 * Reactions are inserted approved and their status was validated above.
+		 * Skipping them here also keeps a request from changing the status of a
+		 * row that the race cleanup above may have handed it from another request.
+		 */
+		if ( isset( $request['status'] ) && null === $reaction_slug ) {
 			$this->handle_status_param( $request['status'], $comment_id );
 		}
 
