@@ -4161,14 +4161,14 @@ function wp_trash_post( $post_id = 0 ) {
 	 * @since 4.9.0
 	 * @since 6.3.0 Added the `$previous_status` parameter.
 	 *
-	 * @param bool|null $trash           Whether to go forward with trashing.
+	 * @param WP_Post|false|null $check  Whether to go forward with deletion. Anything other than null will short-circuit deletion.
 	 * @param WP_Post   $post            Post object.
 	 * @param string    $previous_status The status of the post about to be trashed.
 	 */
 	$check = apply_filters( 'pre_trash_post', null, $post, $previous_status );
 
 	if ( null !== $check ) {
-		return false;
+		return $check;
 	}
 
 	/**
@@ -4243,13 +4243,13 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * @since 4.9.0
 	 * @since 5.6.0 Added the `$previous_status` parameter.
 	 *
-	 * @param bool|null $untrash         Whether to go forward with untrashing.
-	 * @param WP_Post   $post            Post object.
-	 * @param string    $previous_status The status of the post at the point where it was trashed.
+	 * @param WP_Post|bool|null $untrash         Whether to go forward with untrashing.
+	 * @param WP_Post   		$post            Post object.
+	 * @param string    		$previous_status The status of the post at the point where it was trashed.
 	 */
 	$check = apply_filters( 'pre_untrash_post', null, $post, $previous_status );
 	if ( null !== $check ) {
-		return false;
+		return $check;
 	}
 
 	/**
