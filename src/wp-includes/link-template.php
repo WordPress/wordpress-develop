@@ -132,8 +132,8 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 			$post_status_obj->private &&
 			current_user_can( 'read_post', $post->ID )
 		) ||
-		// Protected posts don't have plain links if getting a sample URL.
-		( $post_status_obj->protected && $sample )
+		// Protected posts and auto-drafts don't have plain links if getting a sample URL.
+		( $sample && ( $post_status_obj->protected || 'auto-draft' === $post->post_status ) )
 	) {
 		return false;
 	}
