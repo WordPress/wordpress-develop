@@ -1604,12 +1604,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Only grab one comment to verify the comment has children.
+		/*
+		 * Only grab one comment to verify the comment has children. Reactions are
+		 * left out: they are summarized in `reaction_summary`, and counting them
+		 * would advertise a `children` link on a note that has no replies.
+		 */
 		$comment_children = $comment->get_children(
 			array(
-				'count'   => true,
-				'orderby' => 'none',
-				'type'    => 'all',
+				'count'        => true,
+				'orderby'      => 'none',
+				'type'         => 'all',
+				'type__not_in' => array( 'reaction' ),
 			)
 		);
 
@@ -1627,12 +1632,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Embedding children for notes requires `type` and `status` inheritance.
-		if ( isset( $links['children'] ) && in_array( $comment->comment_type, wp_get_internal_comment_types(), true ) ) {
-			// Notes have reaction children; reactions don't have children of their own.
-			$child_type = 'note' === $comment->comment_type ? 'reaction' : $comment->comment_type;
-			$args       = array(
+		if ( isset( $links['children'] ) && 'note' === $comment->comment_type ) {
+			$args = array(
 				'parent' => $comment->comment_ID,
-				'type'   => $child_type,
+				'type'   => $comment->comment_type,
 				'status' => 'all',
 			);
 

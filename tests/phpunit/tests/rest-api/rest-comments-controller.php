@@ -4137,11 +4137,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Test children link for note comment type. Based on test_get_comment_with_children_link.
 	 *
-	 * Notes expose a `children` link that targets their reaction children
-	 * (not nested notes), so embedded children resolve to reactions.
-	 *
 	 * @ticket 64152
-	 * @ticket 63191
 	 */
 	public function test_get_note_with_children_link() {
 		$parent_comment_id = self::factory()->comment->create(
@@ -4160,8 +4156,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $parent_comment_id,
 				'comment_post_ID'  => self::$post_id,
 				'user_id'          => self::$admin_id,
-				'comment_type'     => 'reaction',
-				'comment_content'  => 'heart',
+				'comment_type'     => 'note',
+				'comment_content'  => 'First child note comment',
 			)
 		);
 
@@ -4192,7 +4188,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// Verify the href attribute contains the expected status and type parameters.
 		$this->assertStringContainsString( 'status=all', $children[0]['href'] );
-		$this->assertStringContainsString( 'type=reaction', $children[0]['href'] );
+		$this->assertStringContainsString( 'type=note', $children[0]['href'] );
 	}
 
 	/**
@@ -5265,12 +5261,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * The `children` link on a note response points at reaction children,
-	 * not at notes — so embedded children resolve to reactions.
+	 * A note's `children` link keeps targeting its reply notes once reactions exist.
+	 *
+	 * Reactions are summarized in `reaction_summary`, so they neither change
+	 * where the link points nor make a note without replies advertise one.
 	 *
 	 * @ticket 63191
 	 */
-	public function test_note_children_link_targets_reactions() {
+	public function test_note_children_link_ignores_reactions() {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id = self::factory()->post->create();
@@ -5284,7 +5282,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		// Create a reaction child so the note exposes a children link.
 		self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
@@ -5299,13 +5296,29 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertArrayNotHasKey( 'children', $response->get_links(), 'A note with only reactions should not advertise children.' );
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Reply note',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
 		$links    = $response->get_links();
 
-		$this->assertArrayHasKey( 'children', $links );
+		$this->assertArrayHasKey( 'children', $links, 'A note with a reply should advertise children.' );
 		$href = $links['children'][0]['href'];
-		$this->assertStringContainsString( 'type=reaction', $href );
-		$this->assertStringNotContainsString( 'type=note', $href );
+		$this->assertStringContainsString( 'type=note', $href );
+		$this->assertStringNotContainsString( 'type=reaction', $href );
 	}
+
 	/**
 	 * A reaction may only be added on the current user's own behalf.
 	 *
