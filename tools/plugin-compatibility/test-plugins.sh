@@ -552,21 +552,30 @@ test_plugins() {
 			DEPTH=$(( DEPTH + 1 ))
 		done
 
-		# Step 3: activate the dependencies, deepest first. That is the reverse of the order they were
-		# discovered in, and it matters because core will not activate a plugin ahead of its own
-		# requirements either.
+		# Step 3: activate the dependencies. Core will not activate a plugin ahead of its own requirements,
+		# and the order they were discovered in says nothing about the order they depend on each other in -
+		# a plugin can require `base, extension` where `extension` requires `base` as well. So they are
+		# activated in passes: each pass activates whatever it can, and whatever core declined is tried
+		# again on the next. A pass that activates nothing means the rest can never be activated, whether
+		# because one of them is broken or because they require each other.
 		if [ "${STATUS}" = "PASS" ] && [ "${#DEPENDENCIES[@]}" -gt 0 ]; then
-			for (( INDEX = ${#DEPENDENCIES[@]} - 1; INDEX >= 0; INDEX-- )); do
-				DEPENDENCY="${DEPENDENCIES[${INDEX}]}"
-				DEPENDENCY_EXIT_CODE=0
-				DEPENDENCY_OUTPUT="$( wp plugin activate "${DEPENDENCY}" 2>&1 )" || DEPENDENCY_EXIT_CODE=$?
-				printf '%s\n' "${DEPENDENCY_OUTPUT}"
+			INACTIVE=( "${DEPENDENCIES[@]}" )
 
-				if [ "${DEPENDENCY_EXIT_CODE}" -ne 0 ]; then
+			while [ "${#INACTIVE[@]}" -gt 0 ]; do
+				STILL_INACTIVE=()
+
+				for DEPENDENCY in "${INACTIVE[@]}"; do
+					DEPENDENCY_OUTPUT="$( wp plugin activate "${DEPENDENCY}" 2>&1 )" || STILL_INACTIVE[${#STILL_INACTIVE[@]}]="${DEPENDENCY}"
+					printf '%s\n' "${DEPENDENCY_OUTPUT}"
+				done
+
+				if [ "${#STILL_INACTIVE[@]}" -eq "${#INACTIVE[@]}" ]; then
 					STATUS="SKIPPED"
-					REASON="The required plugin ${DEPENDENCY} could not be activated"
+					REASON="The required plugin ${STILL_INACTIVE[0]} could not be activated"
 					break
 				fi
+
+				INACTIVE=( ${STILL_INACTIVE[@]+"${STILL_INACTIVE[@]}"} )
 			done
 		fi
 
