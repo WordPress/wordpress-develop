@@ -8,7 +8,10 @@
  */
 
 use WordPress\AiClient\AiClient;
+use WordPress\AiClient\Common\Contracts\CachesDataInterface;
+use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
+use WordPress\AiClient\Providers\Http\Exception\ClientException;
 
 /**
  * Checks if a connector is registered.
@@ -581,6 +584,10 @@ function wp_connectors_get_application_password_credentials( array $auth ): arra
 /**
  * Checks whether an API key is valid for a given provider.
  *
+ * A key is only reported as invalid when the provider rejects it. Failures that
+ * do not reflect on the key, such as network errors, server errors, or rate
+ * limiting, return null.
+ *
  * @since 7.0.0
  * @access private
  *
@@ -610,11 +617,64 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
 			new ApiKeyRequestAuthentication( $key )
 		);
 
-		return $registry->isProviderConfigured( $provider_id );
+		$provider_class_name = $registry->getProviderClassName( $provider_id );
+
+		/*
+		 * ListModelsApiBasedProviderAvailability::isConfigured() reports every failure as false,
+		 * which makes an unreachable provider indistinguishable from a rejected key. Send the
+		 * same list models request directly so that its failure can be told apart.
+		 */
+		if ( ! ( $provider_class_name::availability() instanceof ListModelsApiBasedProviderAvailability ) ) {
+			return $registry->isProviderConfigured( $provider_id );
+		}
+
+		$model_metadata_directory = $provider_class_name::modelMetadataDirectory();
+
+		// A cached model list says nothing about the key being checked.
+		if ( $model_metadata_directory instanceof CachesDataInterface ) {
+			$model_metadata_directory->invalidateCaches();
+		}
+
+		$model_metadata_directory->listModelMetadata();
+		return true;
+	} catch ( ClientException $e ) {
+		// The provider rejected the key, unless the request timed out or was rate limited.
+		if ( ! in_array( $e->getCode(), array( 408, 429 ), true ) ) {
+			return false;
+		}
+
+		wp_trigger_error( __FUNCTION__, $e->getMessage() );
+		return null;
 	} catch ( Exception $e ) {
 		wp_trigger_error( __FUNCTION__, $e->getMessage() );
 		return null;
 	}
+}
+
+/**
+ * Sanitizes a connector API key setting.
+ *
+ * A key matching the mask that `_wp_connectors_rest_settings_dispatch()` places
+ * in REST responses keeps the stored key, so a masked settings response can be
+ * submitted back to the endpoint unchanged.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param mixed  $value  The submitted setting value.
+ * @param string $option The option name being sanitized.
+ * @return string The sanitized API key.
+ */
+function _wp_connectors_sanitize_api_key( $value, string $option ): string {
+	$value  = sanitize_text_field( $value );
+	$stored = get_option( $option );
+
+	// A masked key means a client resubmitted a masked REST response.
+	if ( is_string( $stored ) && '' !== $stored && _wp_connectors_mask_api_key( $stored ) === $value ) {
+		return $stored;
+	}
+
+	return $value;
 }
 
 /**
@@ -683,8 +743,9 @@ function wp_connectors_sanitize_application_password_credentials( $value, string
  * password field of default application-password credential objects.
  *
  * On POST or PUT requests, validates each updated AI provider API key before
- * masking. If validation fails, the key is reverted to an empty string.
- * Application password values are masked but not validated.
+ * masking. If the provider rejects the key, it is reverted to an empty string.
+ * A key that cannot be verified, for example because the provider is
+ * unreachable, is kept. Application password values are masked but not validated.
  *
  * @since 7.0.0
  * @access private
@@ -738,7 +799,8 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 			&& is_string( $value ) && '' !== $value
 			&& 'ai_provider' === $connector_data['type']
 		) {
-			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
+			// Only discard a key the provider rejected, not one that could not be verified.
+			if ( false === _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
 				update_option( $setting_name, '' );
 				$data[ $setting_name ] = '';
 				continue;
@@ -802,7 +864,9 @@ function _wp_register_default_connector_settings(): void {
 					),
 					'default'           => '',
 					'show_in_rest'      => true,
-					'sanitize_callback' => 'sanitize_text_field',
+					'sanitize_callback' => static function ( $value ) use ( $setting_name ) {
+						return _wp_connectors_sanitize_api_key( $value, $setting_name );
+					},
 				)
 			);
 		} elseif ( 'application_password' === $auth['method'] ) {
