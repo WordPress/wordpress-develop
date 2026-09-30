@@ -1,13 +1,19 @@
 <?php
 /**
- * Widget For displaying post format posts
+ * Twenty Eleven Ephemera Widget class
+ *
+ * @package WordPress
+ * @subpackage Twenty_Eleven
+ * @since Twenty Eleven 1.0
+ */
+
+/**
+ * Widget for displaying post format posts.
  *
  * Handles displaying Aside, Link, Status, and Quote Posts available with Twenty Eleven.
  *
  * @link https://developer.wordpress.org/themes/functionality/widgets/#developing-widgets
  *
- * @package WordPress
- * @subpackage Twenty_Eleven
  * @since Twenty Eleven 1.0
  */
 class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
