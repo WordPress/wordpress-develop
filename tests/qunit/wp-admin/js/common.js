@@ -2,7 +2,7 @@
 jQuery( function() {
 	const content = document.getElementById( 'wpbody-content' );
 	const tableMarkup = '<table class="wp-list-table"><tbody><tr><td>Post title</td></tr></tbody></table>';
-	const wrapperMarkup = '<div class="wp-list-table-scroll">' + tableMarkup + '</div>';
+	const wrapperMarkup = '<div class="wp-list-table-scroll" tabindex="0">' + tableMarkup + '</div>';
 
 	function overflow( wrapper ) {
 		return [
@@ -27,7 +27,7 @@ jQuery( function() {
 
 	const initialOverflow = overflow( content.firstElementChild );
 
-	QUnit.module( 'List table overflow indicators', {
+	QUnit.module( 'List table overflow', {
 		beforeEach: async function() {
 			this.sandbox = sinon.createSandbox();
 			content.innerHTML = wrapperMarkup;
@@ -100,17 +100,53 @@ jQuery( function() {
 	} );
 
 	QUnit.test( 'Updates overflow indicators when the table or its viewport changes width', async function( assert ) {
+		assert.strictEqual( this.wrapper.tabIndex, 0, 'A scrolling wrapper is in the Tab order.' );
+
 		this.table.style.width = '600px';
 		await afterResize();
 		assert.deepEqual( overflow( this.wrapper ), [ false, false ], 'Shrinking the table clears the overflow indicator without a scroll event.' );
+		assert.strictEqual( this.wrapper.tabIndex, -1, 'A fitting table does not add a Tab stop.' );
 
 		this.wrapper.style.width = '400px';
 		await afterResize();
 		assert.deepEqual( overflow( this.wrapper ), [ false, true ], 'Shrinking the viewport reveals overflow without a scroll event.' );
+		assert.strictEqual( this.wrapper.tabIndex, 0, 'The wrapper returns to the Tab order when scrolling is needed.' );
 
 		this.wrapper.style.width = '800px';
 		await afterResize();
 		assert.deepEqual( overflow( this.wrapper ), [ false, false ], 'Widening the viewport clears the overflow indicator.' );
+		assert.strictEqual( this.wrapper.tabIndex, -1, 'The wrapper leaves the Tab order when the table fits again.' );
+	} );
+
+	QUnit.test( 'Preserves focus when a focused wrapper stops overflowing', async function( assert ) {
+		this.wrapper.focus();
+		assert.strictEqual( document.activeElement, this.wrapper, 'The overflowing wrapper can receive focus.' );
+
+		this.table.style.width = '600px';
+		await afterResize();
+		assert.strictEqual( this.wrapper.tabIndex, -1, 'The fitting wrapper is removed from the Tab order.' );
+		assert.strictEqual( document.activeElement, this.wrapper, 'Removing overflow does not move focus.' );
+
+		const link = document.createElement( 'a' );
+		link.href = '#';
+		link.textContent = 'Edit';
+		this.table.querySelector( 'td' ).appendChild( link );
+		link.focus();
+		assert.strictEqual( link.tabIndex, 0, 'Links inside a fitting wrapper remain in the Tab order.' );
+		assert.strictEqual( document.activeElement, link, 'Focus can move to a link inside the fitting wrapper.' );
+	} );
+
+	QUnit.test( 'Skips wrappers with visible overflow, as in the mobile layout', async function( assert ) {
+		this.wrapper.style.overflowX = 'visible';
+		this.wrapper.style.width = '400px';
+		await afterResize();
+		assert.ok( this.wrapper.scrollWidth > this.wrapper.clientWidth, 'The table extends beyond its wrapper.' );
+		assert.strictEqual( this.wrapper.tabIndex, -1, 'A wrapper that does not provide scrolling is not a Tab stop.' );
+
+		this.wrapper.style.overflowX = 'auto';
+		this.wrapper.style.width = '800px';
+		await afterResize();
+		assert.strictEqual( this.wrapper.tabIndex, 0, 'The wrapper returns to the Tab order when its scrolling layout returns.' );
 	} );
 
 	QUnit.test( 'Cleans up a replaced wrapper and initializes its replacement', async function( assert ) {
@@ -150,6 +186,25 @@ jQuery( function() {
 		this.wrapper.firstElementChild.style.width = '600px';
 		await afterResize();
 		assert.deepEqual( overflow( this.wrapper ), [ false, false ], 'Resizing the replacement table updates its overflow indicators.' );
+	} );
+
+	[ null, '0' ].forEach( function( tabIndex ) {
+		QUnit.test( 'Restores the original tabindex attribute on cleanup: ' + tabIndex, async function( assert ) {
+			const wrapper = document.createElement( 'div' );
+			wrapper.className = 'wp-list-table-scroll';
+			if ( tabIndex !== null ) {
+				wrapper.setAttribute( 'tabindex', tabIndex );
+			}
+			wrapper.innerHTML = tableMarkup;
+			wrapper.firstElementChild.style.width = '600px';
+			content.appendChild( wrapper );
+			await afterResize();
+			assert.strictEqual( wrapper.tabIndex, -1, 'The fitting wrapper is removed from the Tab order.' );
+
+			wrapper.remove();
+			await Promise.resolve();
+			assert.strictEqual( wrapper.getAttribute( 'tabindex' ), tabIndex, 'Cleanup restores the original attribute.' );
+		} );
 	} );
 
 	QUnit.test( 'Moves overflow tracking when a table moves to another wrapper', async function( assert ) {

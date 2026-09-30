@@ -2236,7 +2236,7 @@ $( function( $ ) {
 }( jQuery, window ));
 
 /**
- * Indicates remaining horizontal content in list tables.
+ * Manages overflow indicators and keyboard access for list tables.
  *
  * @since 7.2.0
  */
@@ -2262,19 +2262,24 @@ jQuery( function() {
 	 */
 	function observeTableOverflow( table ) {
 		const wrapper = table.parentElement;
+		const tabIndex = wrapper.getAttribute( 'tabindex' );
 
 		/**
-		 * Updates the overflow indicator at each edge with hidden content.
+		 * Updates the overflow indicators and the wrapper's place in the Tab order.
 		 *
 		 * @since 7.2.0
 		 *
 		 * @return {void}
 		 */
 		function update() {
-			const isRTL = window.getComputedStyle( wrapper ).direction === 'rtl';
+			const style = window.getComputedStyle( wrapper );
+			const isRTL = style.direction === 'rtl';
 			const scrollLeft = isRTL ? -wrapper.scrollLeft : wrapper.scrollLeft;
 			const maxScroll = Math.max( 0, wrapper.scrollWidth - wrapper.clientWidth );
 			const position = Math.min( maxScroll, Math.max( 0, scrollLeft ) );
+
+			// Skip non-scrolling wrappers without moving focus if the wrapper is already focused.
+			wrapper.tabIndex = maxScroll > 0 && ( style.overflowX === 'auto' || style.overflowX === 'scroll' ) ? 0 : -1;
 
 			// Allow for fractional scroll positions at either end of the table.
 			wrapper.classList.toggle( 'has-scroll-overflow-start', position > 1 );
@@ -2293,6 +2298,11 @@ jQuery( function() {
 				observer.disconnect();
 				wrapper.removeEventListener( 'scroll', update );
 				wrapper.classList.remove( 'has-scroll-overflow-start', 'has-scroll-overflow-end' );
+				if ( tabIndex === null ) {
+					wrapper.removeAttribute( 'tabindex' );
+				} else {
+					wrapper.setAttribute( 'tabindex', tabIndex );
+				}
 			}
 		} );
 	}
