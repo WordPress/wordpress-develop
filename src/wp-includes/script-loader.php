@@ -3500,6 +3500,15 @@ function wp_enqueue_classic_theme_styles() {
 function wp_enqueue_command_palette_assets() {
 	global $menu, $submenu;
 
+	/*
+	 * Include an unmodified $wp_version.
+	 *
+	 * Note: wp_get_wp_version() is not used here, as this file can be included
+	 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+	 * wp-includes/functions.php is not loaded.
+	 */
+	require ABSPATH . WPINC . '/version.php';
+
 	$command_palette_settings = array(
 		'is_network_admin' => is_network_admin(),
 	);
@@ -3731,7 +3740,7 @@ function wp_enqueue_command_palette_assets() {
 				array(
 					'src'    => add_query_arg(
 						'ver',
-						get_bloginfo( 'version' ),
+						$wp_version,
 						admin_url( 'js/teletype' . wp_scripts_get_suffix() . '.js' )
 					),
 					'name'   => wp_get_current_user()->display_name,
