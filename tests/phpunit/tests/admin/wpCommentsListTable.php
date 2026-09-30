@@ -215,6 +215,55 @@ OPTIONS;
 	}
 
 	/**
+	 * @ticket 12104
+	 *
+	 * @covers WP_Comments_List_Table::single_row
+	 */
+	public function test_single_row_should_be_shown_for_users_who_can_moderate_comments() {
+		$role = 'comment_moderator';
+		add_role(
+			$role,
+			'Comment Moderator',
+			array(
+				'read'              => true,
+				'moderate_comments' => true,
+			)
+		);
+
+		$user_id = self::factory()->user->create( array( 'role' => $role ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'private',
+			)
+		);
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$ob_level = ob_get_level();
+		ob_start();
+		try {
+			$this->table->single_row( get_comment( $comment_id ) );
+			$output = ob_get_clean();
+
+			$this->assertStringContainsString( "id='comment-{$comment_id}'", $output );
+			$this->assertStringContainsString( 'Edit this comment', $output );
+		} finally {
+			if ( ob_get_level() > $ob_level ) {
+				ob_end_clean();
+			}
+
+			remove_role( $role );
+		}
+	}
+
+	/**
 	 * Verify that the comments table never shows the note comment_type.
 	 *
 	 * @ticket 64198
