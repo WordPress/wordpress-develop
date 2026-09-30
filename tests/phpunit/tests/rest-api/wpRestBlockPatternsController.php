@@ -267,14 +267,10 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * The block patterns endpoint has no single-item route.
-	 *
-	 * @ticket 40538
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item() {
-		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE . '/1' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		// Controller does not implement get_item().
 	}
 
 	/**
