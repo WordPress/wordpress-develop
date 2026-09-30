@@ -17,6 +17,14 @@
 class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 7.2.0
+	 * @var false
+	 */
+	protected $allow_batch = false;
+
+	/**
 	 * Instance of a site meta fields object.
 	 *
 	 * @since 7.2.0
@@ -60,7 +68,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -72,7 +81,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
-				'args'   => array(
+				'args'        => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the object.' ),
 						'type'        => 'integer',
@@ -104,7 +113,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 	}
