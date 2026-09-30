@@ -70,6 +70,7 @@ services:
 
     extra_hosts:
       - localhost:host-gateway
+      - host.docker.internal:host-gateway
 
   ##
   # The MySQL container.
@@ -131,6 +132,7 @@ services:
 
     extra_hosts:
       - localhost:host-gateway
+      - host.docker.internal:host-gateway
 
     depends_on:
       php:

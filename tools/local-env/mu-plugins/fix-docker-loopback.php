@@ -39,10 +39,11 @@ function resolve_loopback_to_host_gateway( $handle, array $args, string $url ): 
 		return;
 	}
 
-	// host.docker.internal resolves to the host gateway, which reaches the published web-server port.
+	// host.docker.internal resolves to the host gateway, which reaches the published web-server port. Docker Desktop
+	// provides this name automatically, while on Linux Docker Engine it comes from the docker-compose `extra_hosts`.
 	$gateway = gethostbyname( 'host.docker.internal' );
 	if ( 'host.docker.internal' === $gateway ) {
-		return; // Not running under Docker Desktop / gateway unavailable.
+		return; // Gateway unavailable (e.g. not running under Docker).
 	}
 
 	$port = wp_parse_url( $url, PHP_URL_PORT );
