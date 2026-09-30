@@ -263,7 +263,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	/**
 	 * Handles the main menu for the frame.
 	 *
-	 * @param {wp.Backbone.View} view
+	 * @param {wp.Backbone.View} view The menu view for the main menu.
 	 */
 	mainMenu: function( view ) {
 		view.set({
@@ -294,7 +294,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	/**
 	 * Handles the gallery menu for the frame.
 	 *
-	 * @param {wp.Backbone.View} view
+	 * @param {wp.Backbone.View} view The menu view for the gallery menu.
 	 */
 	galleryMenu: function( view ) {
 		var lastState = this.lastState(),
@@ -326,7 +326,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	/**
 	 * Handles the playlist menu for the frame.
 	 *
-	 * @param {wp.Backbone.View} view The menu view.
+	 * @param {wp.Backbone.View} view The menu view for the playlist menu.
 	 */
 	playlistMenu: function( view ) {
 		var lastState = this.lastState(),

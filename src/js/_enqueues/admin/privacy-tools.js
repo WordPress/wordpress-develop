@@ -30,8 +30,6 @@ jQuery( function( $ ) {
 	 * @return {void}
 	 */
 	function clearResultsAfterRow( $requestRow ) {
-		$requestRow.removeClass( 'has-request-results' );
-
 		if ( $requestRow.next().hasClass( 'request-results' ) ) {
 			$requestRow.next().remove();
 		}
@@ -59,8 +57,6 @@ jQuery( function( $ ) {
 			itemList = '<ul>' + itemList + '</ul>';
 		}
 
-		$requestRow.addClass( 'has-request-results' );
-
 		if ( $requestRow.hasClass( 'status-request-confirmed' ) ) {
 			resultRowClasses = resultRowClasses + ' status-request-confirmed';
 		}
@@ -75,7 +71,7 @@ jQuery( function( $ ) {
 				'<p>' + summaryMessage + '</p>' +
 				itemList +
 				'</div>' +
-				'</td>' +
+				'</th>' +
 				'</tr>';
 		});
 	}

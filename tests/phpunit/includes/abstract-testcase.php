@@ -119,7 +119,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		$this->factory = static::factory();
 
-		if ( ! self::$ignore_files ) {
+		if ( null === self::$ignore_files ) {
 			self::$ignore_files = $this->scan_user_uploads();
 		}
 
@@ -229,7 +229,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		// Reset comment globals.
-		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt', 'in_comment_loop' );
 		foreach ( $comment_globals as $global ) {
 			$GLOBALS[ $global ] = null;
 		}
@@ -1415,9 +1415,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		} else {
 			$req = $url;
 		}
-		if ( ! isset( $parts['query'] ) ) {
-			$parts['query'] = '';
-		}
+		$parts['query'] ??= '';
 
 		$_SERVER['REQUEST_URI'] = $req;
 		unset( $_SERVER['PATH_INFO'] );
@@ -1437,21 +1435,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		_cleanup_query_vars();
 
 		$GLOBALS['wp']->main( $parts['query'] );
-	}
-
-	/**
-	 * Allows tests to be skipped on single or multisite installs by using @group annotations.
-	 *
-	 * This is a custom extension of the PHPUnit requirements handling.
-	 *
-	 * @since 3.5.0
-	 * @deprecated 5.9.0 This method has not been functional since PHPUnit 7.0.
-	 */
-	protected function checkRequirements() {
-		// For PHPUnit 5/6, as we're overloading a public PHPUnit native method in those versions.
-		if ( is_callable( 'PHPUnit\Framework\TestCase', 'checkRequirements' ) ) {
-			parent::checkRequirements();
-		}
 	}
 
 	/**
@@ -1593,11 +1576,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Deletes files added to the `uploads` directory during tests.
 	 *
 	 * This method works in tandem with the `set_up()` and `rmdir()` methods:
-	 * - `set_up()` scans the `uploads` directory before every test, and stores
-	 *   its contents inside of the `$ignore_files` property.
+	 * - `set_up()` stores the initial `uploads` directory snapshot in the
+	 *   `$ignore_files` property, including when the directory is empty.
 	 * - `rmdir()` and its helper methods only delete files that are not listed
 	 *   in the `$ignore_files` property. If called during `tear_down()` in tests,
-	 *   this will only delete files added during the previously run test.
+	 *   this deletes files added after the initial snapshot.
 	 */
 	public function remove_added_uploads() {
 		$uploads = wp_upload_dir();
@@ -1634,8 +1617,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return string[] List of file paths.
 	 */
 	public function scan_user_uploads() {
-		static $files = array();
-		if ( ! empty( $files ) ) {
+		static $files = null;
+		if ( null !== $files ) {
 			return $files;
 		}
 

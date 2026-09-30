@@ -60,7 +60,7 @@
 	 * Determine model based on API route.
 	 *
 	 * @param {string} route The API route.
-	 * @return {Backbone Model} The model found at given route. Undefined if not found.
+	 * @return {Backbone.Model|undefined} The model found at given route. Undefined if not found.
 	 */
 	wp.api.getModelByRoute = function( route ) {
 		return _.find( wp.api.models, function( model ) {
@@ -72,7 +72,7 @@
 	 * Determine collection based on API route.
 	 *
 	 * @param {string} route The API route.
-	 * @return {Backbone Model} The collection found at given route. Undefined if not found.
+	 * @return {Backbone.Collection|undefined} The collection found at given route. Undefined if not found.
 	 */
 	wp.api.getCollectionByRoute = function( route ) {
 		return _.find( wp.api.collections, function( collection ) {
@@ -206,8 +206,8 @@
 	/**
 	 * Extract a route part based on negative index.
 	 *
-	 * @param {string}   route          The endpoint route.
-	 * @param {number}   part           The number of parts from the end of the route to retrieve. Default 1.
+	 * @param {string}  route           The endpoint route.
+	 * @param {number}  part            The number of parts from the end of the route to retrieve. Default 1.
 	 *                                  Example route `/a/b/c`: part 1 is `c`, part 2 is `b`, part 3 is `a`.
 	 * @param {string}  [versionString] Version string, defaults to `wp.api.versionString`.
 	 * @param {boolean} [reverse]       Whether to reverse the order when extracting the route part. Optional, default false.
@@ -311,9 +311,9 @@
 	/**
 	 * Add mixins and helpers to models depending on their defaults.
 	 *
-	 * @param {Backbone Model} model          The model to attach helpers and mixins to.
+	 * @param {Backbone.Model} model          The model to attach helpers and mixins to.
 	 * @param {string}         modelClassName The classname of the constructed model.
-	 * @param {Object} 	       loadingObjects An object containing the models and collections we are building.
+	 * @param {Object}         loadingObjects An object containing the models and collections we are building.
 	 * @return {undefined} No return value.
 	 */
 	wp.api.utils.addMixinsAndHelpers = function( model, modelClassName, loadingObjects ) {
@@ -858,21 +858,22 @@
 			initialize: function() {
 
 				/**
-				* Types that don't support trashing require passing ?force=true to delete.
-				*
-				*/
+				 * Types that don't support trashing require passing ?force=true to delete.
+				 */
 				if ( -1 === _.indexOf( trashableTypes, this.name ) ) {
 					this.requireForceForDelete = true;
 				}
 			},
 
 			/**
-			 * Set nonce header before every Backbone sync.
+			 * Sets a nonce header before every Backbone sync.
 			 *
-			 * @param {string}          method  The CRUD method ("create", "read", "update", or "delete") to be performed.
-			 * @param {Backbone.Model}  model   The model to be synced.
-			 * @param {{beforeSend}, *} options Additional options for the sync.
-			 * @return {*}.
+			 * @param {string}         method               The CRUD method ("create", "read", "update", or "delete") to be performed.
+			 * @param {Backbone.Model} model                The model to be synced.
+			 * @param {Object}         options              Additional options for the sync.
+			 * @param {Function}       [options.beforeSend] A function to be called before sending the request.
+			 * @param {Function}       [options.complete]   A function to be called when the request completes.
+			 * @return {JQuery.Promise} A promise that resolves when the sync operation completes.
 			 */
 			sync: function( method, model, options ) {
 				var beforeSend;
@@ -1028,14 +1029,18 @@
 			},
 
 			/**
-			 * Extend Backbone.Collection.sync to add nonce and pagination support.
+			 * Extends Backbone.Collection.sync to add nonce and pagination support.
 			 *
-			 * Set nonce header before every Backbone sync.
+			 * Sets a nonce header before every Backbone sync.
 			 *
-			 * @param {string}         method  The CRUD method ("create", "read", "update", or "delete") to be performed.
-			 * @param {Backbone.Model} model   The model to be synced.
-			 * @param {{success}, *}   options Additional options for the sync.
-			 * @return {*}.
+			 * @param {string}         method               The CRUD method ("create", "read", "update", or "delete") to be performed.
+			 * @param {Backbone.Model} model                The model to be synced.
+			 * @param {Object}         options              Additional options for the sync.
+			 * @param {Function}       [options.beforeSend] A function to be called before sending the request.
+			 * @param {Function}       [options.success]    A function to be called when the request succeeds.
+			 * @param {Function}       [options.complete]   A function to be called when the request completes, regardless of success or failure.
+			 * @param {Object}         [options.data]       Data to be sent with the request.
+			 * @return {JQuery.Promise} A promise that resolves when the sync operation completes.
 			 */
 			sync: function( method, model, options ) {
 				var beforeSend, success,
@@ -1109,8 +1114,9 @@
 			/**
 			 * Fetches the next page of objects if a new page exists.
 			 *
-			 * @param {data: {page}} options An object containing the page number to fetch. If not provided, the next page will be fetched.
-			 * @return {*}.
+			 * @param {Object} [options]           An object containing the page number to fetch. If not provided, the next page will be fetched.
+			 * @param {number} [options.data.page] The page number to fetch.
+			 * @return {JQuery.Promise} A promise that resolves when the fetch operation completes.
 			 */
 			more: function( options ) {
 				options = options || {};
@@ -1546,7 +1552,7 @@
 	/**
 	 * Initialize the wp-api, optionally passing the API root.
 	 *
-	 * @param {Object} [args]
+	 * @param {Object} [args]               The arguments for initializing the wp-api.
 	 * @param {string} [args.nonce]         The nonce. Optional, defaults to wpApiSettings.nonce.
 	 * @param {string} [args.apiRoot]       The api root. Optional, defaults to wpApiSettings.root.
 	 * @param {string} [args.versionString] The version string. Optional, defaults to wpApiSettings.root.
