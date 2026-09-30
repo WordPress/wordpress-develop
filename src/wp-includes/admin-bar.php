@@ -322,10 +322,10 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 	);
 
 	/* translators: %s: Current user's display name. */
-	$howdy = sprintf( __( 'Howdy, %s' ), "<span class='display-name'>{$current_user->display_name}</span>" );
+	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . $current_user->display_name . '</span>' );
 
 	$user_info  = get_avatar( $user_id, 64 );
-	$user_info .= "<span class='howdy'>{$howdy}</span>";
+	$user_info .= '<span class="howdy">' . $howdy . '</span>';
 
 	if ( $current_user->display_name !== $current_user->user_login ) {
 		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
