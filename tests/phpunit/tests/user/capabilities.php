@@ -2636,9 +2636,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @covers ::get_super_admins
 	 */
 	public function test_get_super_admins_global_override_does_not_apply_to_other_networks() {
-		$network_id           = self::factory()->network->create();
-		$had_global_override  = array_key_exists( 'super_admins', $GLOBALS );
-		$old_super_admins     = $had_global_override ? $GLOBALS['super_admins'] : null;
+		$network_id          = self::factory()->network->create();
+		$had_global_override = array_key_exists( 'super_admins', $GLOBALS );
+		$old_super_admins    = $had_global_override ? $GLOBALS['super_admins'] : null;
 		delete_network_option( $network_id, 'site_admins' );
 		update_network_option( $network_id, 'site_admins', array( 'network-admin' ) );
 
