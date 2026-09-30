@@ -4172,6 +4172,7 @@ HTML;
 	 *
 	 * @ticket 61855
 	 * @ticket 60048
+	 * @ticket 60478
 	 *
 	 * @covers ::wp_default_scripts
 	 * @covers ::wp_default_packages_vendor
@@ -4233,6 +4234,7 @@ HTML;
 			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
 			'jquery-form'                      => array( 'jquery-form' ),
 			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'jquery-migrate'                   => array( 'jquery-migrate' ),
 			'htmlhint'                         => array( 'htmlhint' ),
 			'jsonlint'                         => array( 'jsonlint' ),
 			'lodash'                           => array( 'lodash' ),

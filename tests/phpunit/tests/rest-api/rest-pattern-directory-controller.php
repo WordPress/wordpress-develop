@@ -679,14 +679,34 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
+	 * @ticket 40538
+	 *
 	 * @covers WP_REST_Pattern_Directory_Controller::get_item_schema
 	 *
 	 * @since 5.8.0
-	 *
-	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
-		// The controller's schema is hardcoded, so tests would not be meaningful.
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/pattern-directory/patterns' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( 'pattern-directory-item', $data['schema']['title'] );
+
+		$properties = $data['schema']['properties'];
+		$this->assertSameSets(
+			array(
+				'id',
+				'title',
+				'content',
+				'categories',
+				'keywords',
+				'description',
+				'viewport_width',
+				'block_types',
+			),
+			array_keys( $properties )
+		);
 	}
 
 	/**
