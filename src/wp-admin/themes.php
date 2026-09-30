@@ -664,7 +664,7 @@ foreach ( $themes as $theme ) :
 <?php endforeach; ?>
 	</div>
 </div>
-<div class="theme-overlay" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Theme Details' ); ?>"></div>
+<div class="theme-overlay theme-overlay-initial" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Theme Details' ); ?>"></div>
 
 <p class="no-themes"><?php _e( 'No themes found. Try a different search.' ); ?></p>
 

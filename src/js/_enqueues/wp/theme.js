@@ -620,18 +620,16 @@ themes.view.Theme = wp.Backbone.View.extend({
 		if ( 0 === this.model.collection.indexOf( current ) ) {
 			previousThemeButton
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
-
-			nextThemeButton.trigger( 'focus' );
+				.attr( 'aria-disabled', true )
+				.trigger( 'focus' );
 		}
 
 		// Disable next if the next model is undefined.
 		if ( _.isUndefined( this.model.collection.at( this.model.collection.indexOf( current ) + 1 ) ) ) {
 			nextThemeButton
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
-
-			previousThemeButton.trigger( 'focus' );
+				.attr( 'aria-disabled', true )
+				.trigger( 'focus' );
 		}
 	},
 
@@ -725,11 +723,14 @@ themes.view.Details = wp.Backbone.View.extend({
 
 	// Set initial focus and constrain tabbing within the theme browser modal.
 	containFocus: function( $el ) {
+		// Set initial focus on the theme overlay, only on first render.
+		var $themeOverlay = $( '.theme-overlay' );
+		if ( $themeOverlay.hasClass( 'theme-overlay-initial' ) ) {
+			_.delay( function() {
+				$themeOverlay.trigger( 'focus' ).removeClass( 'theme-overlay-initial' );
+			}, 100 );
+		}
 
-		// Set initial focus on the primary action control.
-		_.delay( function() {
-			$( '.theme-overlay' ).trigger( 'focus' );
-		}, 100 );
 
 		// Constrain tabbing within the modal.
 		$el.on( 'keydown.wp-themes', function( event ) {
@@ -789,6 +790,9 @@ themes.view.Details = wp.Backbone.View.extend({
 				if ( themes.focusedTheme ) {
 					themes.focusedTheme.find('.more-details').trigger( 'focus' );
 				}
+
+				// Add back the `theme-overlay-initial` class for the theme overlay.
+				$( '.theme-overlay' ).addClass( 'theme-overlay-initial' );
 			});
 		}
 
@@ -803,12 +807,12 @@ themes.view.Details = wp.Backbone.View.extend({
 		if ( this.model.cid === this.model.collection.at(0).cid ) {
 			this.$el.find( '.left' )
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
+				.attr( 'aria-disabled', true );
 		}
 		if ( this.model.cid === this.model.collection.at( this.model.collection.length - 1 ).cid ) {
 			this.$el.find( '.right' )
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
+				.attr( 'aria-disabled', true );
 		}
 	},
 
@@ -1354,6 +1358,8 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', nextModel.cid );
+			// Move focus to the 'Next' navigation button after the view fully re-rendeers.
+			$( '.theme-header .right' ).trigger( 'focus' );
 			themes.announceThemeDebounced( nextModel );
 		}
 	},
@@ -1389,6 +1395,8 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', previousModel.cid );
+			// Move focus to the 'Previous' navigation button after the view fully re-rendeers.
+			$( '.theme-header .left' ).trigger( 'focus' );
 			themes.announceThemeDebounced( previousModel );
 		}
 	},
