@@ -1020,7 +1020,7 @@ function redirect_guess_404_permalink() {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$post_id = (int) $wpdb->get_var( $query );
 
-			// We cache misses as well as hits.
+			// Cache misses as well as hits.
 			wp_cache_set_salted( $cache_key, $post_id, 'post-queries', $last_changed );
 		}
 
