@@ -4,6 +4,12 @@
  * @output wp-admin/js/teletype-loader.js
  */
 
+/**
+ * IIFE.
+ *
+ * @param {Object} wp       The global WordPress JS object.
+ * @param {Object} settings The settings object.
+ */
 ( function ( wp, settings ) {
 	'use strict';
 
