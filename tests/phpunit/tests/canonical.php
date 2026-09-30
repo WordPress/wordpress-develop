@@ -434,7 +434,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertSame( get_permalink( $post ), $first_run, 'Did not guess the correct permalink on first run.' );
 
 		$start_num_queries = get_num_queries();
-		$second_run  = redirect_guess_404_permalink();
+		$second_run        = redirect_guess_404_permalink();
 		$this->assertSame( $first_run, $second_run, 'Result changed between cached and uncached run.' );
 		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached lookup performed an additional database query.' );
 	}
