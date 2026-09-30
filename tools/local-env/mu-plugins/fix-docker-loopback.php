@@ -35,7 +35,8 @@ function resolve_loopback_to_host_gateway( $handle, array $args, string $url ): 
 
 	// Only rewrite requests aimed at this site (loopback), not arbitrary outbound requests.
 	$home_host = wp_parse_url( home_url(), PHP_URL_HOST );
-	if ( $host !== $home_host ) {
+	$site_host = wp_parse_url( site_url(), PHP_URL_HOST );
+	if ( $host !== $home_host && $host !== $site_host ) {
 		return;
 	}
 
