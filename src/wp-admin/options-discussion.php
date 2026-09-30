@@ -52,10 +52,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php _e( 'Attempt to notify any blogs linked to from the post' ); ?></label>
 <br />
 <label for="default_ping_status">
+<input type="hidden" name="default_ping_status" value="closed" />
 <input name="default_ping_status" type="checkbox" id="default_ping_status" value="open" <?php checked( 'open', get_option( 'default_ping_status' ) ); ?> />
 <?php _e( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new posts' ); ?></label>
 <br />
 <label for="default_comment_status">
+<input type="hidden" name="default_comment_status" value="closed" />
 <input name="default_comment_status" type="checkbox" id="default_comment_status" value="open" <?php checked( 'open', get_option( 'default_comment_status' ) ); ?> />
 <?php _e( 'Allow people to submit comments on new posts' ); ?></label>
 <br />
