@@ -1492,7 +1492,7 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
  *
  * @since 7.2.0
  */
-function wp_enqueue_admin_bar_color_scheme_styles() {
+function wp_enqueue_admin_bar_color_scheme_styles(): void {
 	if ( is_admin() ) {
 		return;
 	}

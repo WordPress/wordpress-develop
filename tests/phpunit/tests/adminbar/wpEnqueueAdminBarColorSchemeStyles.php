@@ -15,14 +15,14 @@ class Tests_AdminBar_wpEnqueueAdminBarColorSchemeStyles extends WP_UnitTestCase 
 	 *
 	 * @var int
 	 */
-	private static $user_id;
+	private static int $user_id;
 
 	/**
 	 * Original value of the `$wp_styles` global.
 	 *
 	 * @var WP_Styles|null
 	 */
-	private $original_wp_styles;
+	private ?WP_Styles $original_wp_styles;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create();
@@ -77,9 +77,9 @@ class Tests_AdminBar_wpEnqueueAdminBarColorSchemeStyles extends WP_UnitTestCase 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ 0: string }>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_color_schemes_without_admin_bar_stylesheet() {
+	public static function data_color_schemes_without_admin_bar_stylesheet(): array {
 		return array(
 			'fresh'         => array( 'fresh' ),
 			'plugin scheme' => array( 'my-plugin-scheme' ),
