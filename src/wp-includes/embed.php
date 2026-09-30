@@ -974,7 +974,10 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 	if ( ! empty( $results ) ) {
 		$secret = wp_generate_password( 10, false );
 
-		$url = esc_url( "{$results[2]}#?secret=$secret" );
+		// Strip any existing #?secret= fragment (e.g. from a same-site embed URL) before appending the new one.
+		$src = preg_replace( '/#\?secret=[^#]*/', '', $results[2] );
+
+		$url = esc_url( "{$src}#?secret=$secret" );
 		$q   = $results[1];
 
 		$html = str_replace( $results[0], ' src=' . $q . $url . $q . ' data-secret=' . $q . $secret . $q, $html );
