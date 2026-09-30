@@ -281,7 +281,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 	</h2>
 	<div class="theme-browser content-filterable"></div>
-	<div class="theme-install-overlay wp-full-overlay expanded"></div>
+	<div class="theme-install-overlay wp-full-overlay expanded" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Browse Themes' ); ?>"></div>
 
 	<p class="no-themes"><?php _e( 'No themes found. Try a different search.' ); ?></p>
 	<span class="spinner"></span>

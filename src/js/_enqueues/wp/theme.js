@@ -964,6 +964,8 @@ themes.view.Preview = themes.view.Details.extend({
 
 		this.$el.fadeIn( 200, function() {
 			$body.addClass( 'theme-installer-active full-overlay-active' );
+			// Set initial focus on the theme installer overlay modal dialog.
+			self.$el.trigger( 'focus' );
 		});
 
 		this.$el.find( 'iframe' ).one( 'load', function() {
