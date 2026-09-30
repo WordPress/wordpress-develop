@@ -195,7 +195,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		// List mode uploads via media-new.php, so the grid integration
 		// script has no business on this screen either.
 		await expect(
-			page.locator( 'script[src*="media-library-upload"]' )
+			page.locator( 'script[src*="media-frame-upload"]' )
 		).toHaveCount( 0 );
 
 		// Visiting with ?mode= persists the user's preference; restore it.

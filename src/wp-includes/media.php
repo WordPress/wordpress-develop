@@ -4913,6 +4913,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
  * all media JS APIs.
  *
  * @since 3.5.0
+ * @since 7.2.0 Also enqueues the client-side upload integration for the media frame on cross-origin isolated screens.
  *
  * @global int       $content_width
  * @global wpdb      $wpdb          WordPress database abstraction object.
@@ -5302,6 +5303,7 @@ function wp_enqueue_media( $args = array() ) {
 	 * is registered internally before we try to localize it. See #24724.
 	 */
 	wp_enqueue_script( 'media-editor' );
+	wp_enqueue_media_frame_upload();
 	wp_localize_script( 'media-views', '_wpMediaViewsL10n', $strings );
 
 	wp_enqueue_script( 'media-audiovideo' );
@@ -6810,7 +6812,10 @@ function wp_get_media_library_upload_settings(): array {
  * Nothing is enqueued unless client-side media processing is enabled and the
  * browser honors Document-Isolation-Policy: without isolation the page never
  * becomes cross-origin isolated, the script would no-op, and the whole
- * wp-upload-media dependency chain would be loaded for nothing.
+ * wp-upload-media dependency chain would be loaded for nothing. The same
+ * goes for a screen wp_set_up_cross_origin_isolation() did not isolate,
+ * such as the Customizer or the Site Icon picker: the media frame loads
+ * there too, but its uploads stay on the classic path.
  *
  * The screen script self-guards at runtime too: when the browser turns out
  * not to be isolated or lacks client-side media support, it no-ops and the
@@ -6830,6 +6835,10 @@ function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
 		return;
 	}
 
+	if ( ! wp_is_cross_origin_isolated_request() ) {
+		return;
+	}
+
 	wp_enqueue_script( $handle );
 
 	wp_add_inline_script(
@@ -6840,13 +6849,18 @@ function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
 }
 
 /**
- * Enqueues the script that routes Media Library grid uploads through
- * the client-side media processing pipeline.
+ * Enqueues the script that routes uploads started from a media frame
+ * through the client-side media processing pipeline.
+ *
+ * Covers every `wp.media` frame that uploads through `wp.Uploader`: the
+ * Media Library grid and the media modal the block editor, the site editor
+ * and the block widgets screen open. wp_enqueue_media() calls this on any
+ * screen that was cross-origin isolated, so it rarely needs calling directly.
  *
  * @since 7.2.0
  */
-function wp_enqueue_media_library_upload(): void {
-	_wp_enqueue_media_upload_pipeline_script( 'media-library-upload' );
+function wp_enqueue_media_frame_upload(): void {
+	_wp_enqueue_media_upload_pipeline_script( 'media-frame-upload' );
 }
 
 /**
@@ -6878,6 +6892,24 @@ function wp_start_cross_origin_isolation_output_buffer(): void {
 			return wp_add_crossorigin_attributes( $output );
 		}
 	);
+
+	$GLOBALS['_wp_cross_origin_isolated'] = true;
+}
+
+/**
+ * Whether the current request has been set up for cross-origin isolation.
+ *
+ * True once wp_set_up_cross_origin_isolation() has armed the
+ * Document-Isolation-Policy header for the screen being rendered, which is
+ * what lets scripts that need a cross-origin isolated page, such as the
+ * client-side media upload integration, decide whether to load at all.
+ *
+ * @since 7.2.0
+ *
+ * @return bool True when the response will be cross-origin isolated.
+ */
+function wp_is_cross_origin_isolated_request(): bool {
+	return ! empty( $GLOBALS['_wp_cross_origin_isolated'] );
 }
 
 /**

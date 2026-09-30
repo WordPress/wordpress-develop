@@ -31,6 +31,8 @@ declare namespace plupload {
 	 * Settings passed to a plupload uploader.
 	 */
 	interface UploaderSettings {
+		/** Where files are posted; async-upload.php for attachment uploads. */
+		url?: string;
 		multipart_params?: Record< string, string >;
 
 		/**
@@ -317,8 +319,10 @@ interface Window {
 	__clientSideMediaProcessing?: boolean;
 
 	/**
-	 * Guards against a screen upload script running twice.
+	 * Guards against a screen upload script running twice. The media frame
+	 * flag also tells other scripts, such as the Gutenberg plugin's media
+	 * modal integration, that core already handles these uploads.
 	 */
-	__wpMediaLibraryUpload?: boolean;
+	__wpMediaFrameUpload?: boolean;
 	__wpMediaNewUpload?: boolean;
 }

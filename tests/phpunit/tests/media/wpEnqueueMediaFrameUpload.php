@@ -1,13 +1,14 @@
 <?php
 
 /**
- * Tests for enqueueing the Media Library client-side upload integration.
+ * Tests for enqueueing the media frame client-side upload integration.
  *
  * @group media
- * @covers ::wp_enqueue_media_library_upload
+ * @covers ::wp_enqueue_media_frame_upload
  * @covers ::wp_get_media_library_upload_settings
+ * @covers ::wp_is_cross_origin_isolated_request
  */
-class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
+class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 
 	/**
 	 * Original HTTP_HOST value.
@@ -49,6 +50,9 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 		set_current_screen( 'upload' );
 		$this->original_wp_scripts = $GLOBALS['wp_scripts'] ?? null;
 		$GLOBALS['wp_scripts']     = new WP_Scripts();
+
+		// The screen was cross-origin isolated, as wp_set_up_cross_origin_isolation() records.
+		$GLOBALS['_wp_cross_origin_isolated'] = true;
 	}
 
 	public function tear_down() {
@@ -66,6 +70,7 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 
 		$GLOBALS['wp_scripts']     = $this->original_wp_scripts;
 		$GLOBALS['current_screen'] = null;
+		unset( $GLOBALS['_wp_cross_origin_isolated'] );
 
 		remove_all_filters( 'wp_client_side_media_processing_enabled' );
 		parent::tear_down();
@@ -75,9 +80,55 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	 * @ticket 65661
 	 */
 	public function test_script_enqueued() {
-		wp_enqueue_media_library_upload();
+		wp_enqueue_media_frame_upload();
 
-		$this->assertTrue( wp_script_is( 'media-library-upload', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'media-frame-upload', 'enqueued' ) );
+	}
+
+	/**
+	 * A screen wp_set_up_cross_origin_isolation() did not isolate cannot run
+	 * the pipeline, so the media frame there keeps its classic uploads and
+	 * does not download the pipeline bundles.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_script_not_enqueued_when_request_not_isolated() {
+		unset( $GLOBALS['_wp_cross_origin_isolated'] );
+
+		$this->assertFalse( wp_is_cross_origin_isolated_request() );
+
+		wp_enqueue_media_frame_upload();
+
+		$this->assertFalse( wp_script_is( 'media-frame-upload', 'enqueued' ) );
+	}
+
+	/**
+	 * The block editor, the site editor and the block widgets screen load the
+	 * media modal through wp_enqueue_media(), so that is where the frame
+	 * integration is enqueued on an isolated screen.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_wp_enqueue_media_enqueues_script_on_isolated_screen() {
+		set_current_screen( 'post' );
+
+		wp_enqueue_media();
+
+		$this->assertTrue( wp_script_is( 'media-frame-upload', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'media-editor', 'enqueued' ) );
+	}
+
+	/**
+	 * @ticket 65661
+	 */
+	public function test_wp_enqueue_media_skips_script_when_request_not_isolated() {
+		unset( $GLOBALS['_wp_cross_origin_isolated'] );
+		set_current_screen( 'options-general' );
+
+		wp_enqueue_media();
+
+		$this->assertFalse( wp_script_is( 'media-frame-upload', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'media-editor', 'enqueued' ) );
 	}
 
 	/**
@@ -86,9 +137,9 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	public function test_script_not_enqueued_when_client_side_processing_disabled() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
 
-		wp_enqueue_media_library_upload();
+		wp_enqueue_media_frame_upload();
 
-		$this->assertFalse( wp_script_is( 'media-library-upload', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'media-frame-upload', 'enqueued' ) );
 	}
 
 	/**
@@ -101,9 +152,9 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	public function test_script_not_enqueued_for_non_chromium_user_agent() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0';
 
-		wp_enqueue_media_library_upload();
+		wp_enqueue_media_frame_upload();
 
-		$this->assertFalse( wp_script_is( 'media-library-upload', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'media-frame-upload', 'enqueued' ) );
 	}
 
 	/**
@@ -112,9 +163,9 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	public function test_script_not_enqueued_for_older_chromium() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 
-		wp_enqueue_media_library_upload();
+		wp_enqueue_media_frame_upload();
 
-		$this->assertFalse( wp_script_is( 'media-library-upload', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'media-frame-upload', 'enqueued' ) );
 	}
 
 	/**
@@ -125,9 +176,9 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	 * @ticket 65661
 	 */
 	public function test_dependencies() {
-		wp_enqueue_media_library_upload();
+		wp_enqueue_media_frame_upload();
 
-		$script = wp_scripts()->registered['media-library-upload'];
+		$script = wp_scripts()->registered['media-frame-upload'];
 		$this->assertContains( 'media-views', $script->deps );
 		$this->assertContains( 'media-upload-pipeline', $script->deps );
 		$this->assertNotContains( 'wp-block-editor', $script->deps );
@@ -144,7 +195,7 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	 * @ticket 65661
 	 */
 	public function test_inline_settings_expose_all_keys() {
-		wp_enqueue_media_library_upload();
+		wp_enqueue_media_frame_upload();
 
 		$before = wp_scripts()->get_data( 'media-upload-pipeline', 'before' );
 		$inline = implode( "\n", (array) $before );
@@ -171,7 +222,7 @@ class Tests_Media_wpEnqueueMediaLibraryUpload extends WP_UnitTestCase {
 	 * @ticket 65661
 	 */
 	public function test_inline_settings_match_upload_settings() {
-		wp_enqueue_media_library_upload();
+		wp_enqueue_media_frame_upload();
 
 		$before = wp_scripts()->get_data( 'media-upload-pipeline', 'before' );
 		$inline = implode( "\n", (array) $before );

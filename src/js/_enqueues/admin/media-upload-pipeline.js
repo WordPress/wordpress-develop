@@ -2,7 +2,7 @@
  * Shared glue for routing classic admin uploads through the client-side
  * media pipeline.
  *
- * The Media Library grid (media-library-upload.js) and the Add New Media
+ * The media frames (media-frame-upload.js) and the Add New Media
  * File screen (media-new-upload.js) both intercept plupload and hand files
  * to @wordpress/upload-media instead. Everything that is not specific to
  * one screen's UI lives here: feature detection, configuring the
@@ -336,11 +336,32 @@ window.wp = window.wp || {};
 	}
 
 	/**
+	 * Whether something else already configured the store on this page.
+	 *
+	 * The block editor renders its own MediaUploadProvider into the same
+	 * store. Neither `mediaSideload` nor `mediaFinalize` has a default, so
+	 * their presence proves a provider's settings landed, whichever one
+	 * rendered them.
+	 *
+	 * @return {boolean} True when the store carries a provider's settings.
+	 */
+	function isStoreConfigured() {
+		const storeSettings = wp.data.select( uploadStore ).getSettings();
+		return Boolean(
+			storeSettings &&
+				storeSettings.mediaSideload &&
+				storeSettings.mediaFinalize
+		);
+	}
+
+	/**
 	 * Configures the upload-media store for this page, once.
 	 *
 	 * Rendering the provider with useSubRegistry: false wires the settings
-	 * into the store that wp.data.dispatch/select address (the block editor
-	 * does the same).
+	 * into the store that wp.data.dispatch/select address. The block editor
+	 * does the same for its own uploads, so on a screen where it already
+	 * has, its settings are used as they are and no second provider is
+	 * rendered.
 	 *
 	 * @return {boolean} True when the pipeline is configured and usable.
 	 */
@@ -355,6 +376,12 @@ window.wp = window.wp || {};
 
 		configured = true;
 		uploadStore = wp.uploadMedia.store;
+
+		if ( isStoreConfigured() ) {
+			wp.data.subscribe( onStoreChange, uploadStore );
+			addUnloadGuard();
+			return true;
+		}
 
 		/*
 		 * The media-utils package branches on this flag: without it
@@ -386,11 +413,19 @@ window.wp = window.wp || {};
 
 		// Only the upload-media store can change what this listener reads.
 		wp.data.subscribe( onStoreChange, uploadStore );
+		addUnloadGuard();
 
-		// Warn before leaving while uploads are in flight: thumbnails that
-		// have not been sideloaded yet are lost and the attachment is left
-		// unfinalized, unlike classic uploads that complete server-side
-		// once the bytes arrive.
+		return true;
+	}
+
+	/**
+	 * Warns before leaving while uploads are in flight.
+	 *
+	 * Thumbnails that have not been sideloaded yet are lost and the
+	 * attachment is left unfinalized, unlike classic uploads that complete
+	 * server-side once the bytes arrive.
+	 */
+	function addUnloadGuard() {
 		window.addEventListener( 'beforeunload', function ( event ) {
 			if ( inFlight > 0 ) {
 				event.preventDefault();
@@ -398,30 +433,24 @@ window.wp = window.wp || {};
 				event.returnValue = '';
 			}
 		} );
-
-		return true;
 	}
 
 	/**
-	 * Whether the store has received its settings.
+	 * Whether the store has received a provider's settings.
 	 *
-	 * The provider renders asynchronously, so a file added before the
+	 * A provider renders asynchronously, so a file added before its
 	 * settings land must be left to classic plupload - a degradation,
 	 * never data loss. The store's default state already carries a no-op
-	 * `mediaUpload`, so only a setting the provider alone supplies proves
-	 * the real ones have landed: a file queued before that would be handed
-	 * to the no-op and never upload.
+	 * `mediaUpload`, so only settings a provider alone supplies prove the
+	 * real ones have landed: a file queued before that would be handed to
+	 * the no-op and never upload. The block editor's provider counts too:
+	 * when it renders after this script's, its settings replace them, and
+	 * they drive the same pipeline.
 	 *
 	 * @return {boolean} True when the store is ready to accept files.
 	 */
 	function isReady() {
-		if ( ! configured ) {
-			return false;
-		}
-		const storeSettings = wp.data.select( uploadStore ).getSettings();
-		return Boolean(
-			storeSettings && storeSettings.mediaSideload === mediaSideload
-		);
+		return configured && isStoreConfigured();
 	}
 
 	/**

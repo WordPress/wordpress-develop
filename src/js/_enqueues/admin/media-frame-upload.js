@@ -1,28 +1,29 @@
 /**
- * Routes Media Library grid uploads through the client-side media pipeline.
+ * Routes media frame uploads through the client-side media pipeline.
  *
- * On wp-admin/upload.php (grid mode) WordPress uploads via wp.Uploader /
- * plupload to async-upload.php. When the browser is cross-origin isolated
- * and supports the client-side pipeline, this script intercepts the
- * uploader's FilesAdded handler and hands files to wp.mediaUploadPipeline
- * (media-upload-pipeline.js) instead: the original image is uploaded via
- * the REST API and thumbnails are generated in the browser (wasm-vips),
- * then sideloaded and finalized.
+ * Every wp.media frame - the Media Library grid on wp-admin/upload.php and
+ * the media modal the block editor, the site editor and the block widgets
+ * screen open - uploads via wp.Uploader / plupload to async-upload.php.
+ * When the browser is cross-origin isolated and supports the client-side
+ * pipeline, this script intercepts the uploader's FilesAdded handler and
+ * hands files to wp.mediaUploadPipeline (media-upload-pipeline.js)
+ * instead: the original image is uploaded via the REST API and thumbnails
+ * are generated in the browser (wasm-vips), then sideloaded and finalized.
  *
- * The grid's own UI is reused: the same placeholder tiles, progress bars,
- * "Uploading n/m" status, and error sidebar that wp-plupload.js drives.
+ * The frame's own UI is reused: the same placeholder tiles, progress bars,
+ * "Uploading n/m" status, and error list that wp-plupload.js drives.
  *
  * When client-side support is unavailable the script cleanly no-ops and
  * the classic plupload flow is left untouched.
  *
- * @output wp-admin/js/media-library-upload.js
+ * @output wp-admin/js/media-frame-upload.js
  */
 
 /* global plupload */
 
 ( function () {
 	// Guard against double execution (e.g. duplicate enqueues).
-	if ( window.__wpMediaLibraryUpload ) {
+	if ( window.__wpMediaFrameUpload ) {
 		return;
 	}
 
@@ -41,7 +42,7 @@
 		return;
 	}
 
-	window.__wpMediaLibraryUpload = true;
+	window.__wpMediaFrameUpload = true;
 
 	/**
 	 * Resets the upload queue once every attachment has finished uploading.
@@ -135,6 +136,30 @@
 	}
 
 	/**
+	 * Whether a plupload uploader posts attachments the way wp.Uploader does
+	 * by default.
+	 *
+	 * The init wrapper below reaches every wp.Uploader built on the page,
+	 * and a plugin can build one for its own purposes. Core's defaults tell
+	 * an attachment upload apart: it posts to async-upload.php with the
+	 * `upload-attachment` action. Anything a plugin pointed elsewhere, or
+	 * gave another action, is uploading something else and is left alone.
+	 *
+	 * @param {plupload.Uploader} up The plupload uploader instance.
+	 * @return {boolean} True when the uploader posts attachments.
+	 */
+	function isAttachmentUploader( up ) {
+		const settings = up.settings || {};
+		const params = settings.multipart_params || {};
+		const url = String( settings.url || '' ).split( '?' )[ 0 ];
+
+		return (
+			'upload-attachment' === params.action &&
+			url.endsWith( 'async-upload.php' )
+		);
+	}
+
+	/**
 	 * Intercepts files added to a plupload uploader.
 	 *
 	 * Returns undefined (not false) when the pipeline cannot take the batch
@@ -149,7 +174,11 @@
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function handleFilesAdded( wpUploader, up, files ) {
-		if ( ! pipeline.isReady() || ! pipeline.canHandleBatch( files ) ) {
+		if (
+			! isAttachmentUploader( up ) ||
+			! pipeline.isReady() ||
+			! pipeline.canHandleBatch( files )
+		) {
 			return;
 		}
 
@@ -236,7 +265,8 @@
 
 	// Wrap wp.Uploader.prototype.init (an empty stub called once per instance
 	// after plupload is initialized) to bind a higher-priority FilesAdded
-	// handler on every uploader instance, including the Media Library grid's.
+	// handler on every uploader instance: the grid's, and the one each media
+	// modal creates when it opens.
 	const originalInit = wp.Uploader.prototype.init;
 	wp.Uploader.prototype.init = function () {
 		originalInit.apply( this, arguments );
@@ -244,10 +274,10 @@
 		const wpUploader = /** @type {WPUploader} */ ( this );
 		const up = /** @type {plupload.Uploader|undefined} */ ( this.uploader );
 
-		if ( ! up || up.__wpMediaLibraryUploadBound ) {
+		if ( ! up || up.__wpMediaFrameUploadBound ) {
 			return;
 		}
-		up.__wpMediaLibraryUploadBound = true;
+		up.__wpMediaFrameUploadBound = true;
 
 		// plupload sorts handlers by priority (descending) and a `false`
 		// return breaks the chain, so priority 100 runs before and suppresses

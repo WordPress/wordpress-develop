@@ -48,6 +48,9 @@ class Tests_Media_wpEnqueueMediaNewUpload extends WP_UnitTestCase {
 		set_current_screen( 'media' );
 		$this->original_wp_scripts = $GLOBALS['wp_scripts'] ?? null;
 		$GLOBALS['wp_scripts']     = new WP_Scripts();
+
+		// The screen was cross-origin isolated, as wp_set_up_cross_origin_isolation() records.
+		$GLOBALS['_wp_cross_origin_isolated'] = true;
 	}
 
 	public function tear_down() {
@@ -65,6 +68,7 @@ class Tests_Media_wpEnqueueMediaNewUpload extends WP_UnitTestCase {
 
 		$GLOBALS['wp_scripts']     = $this->original_wp_scripts;
 		$GLOBALS['current_screen'] = null;
+		unset( $GLOBALS['_wp_cross_origin_isolated'] );
 
 		remove_all_filters( 'wp_client_side_media_processing_enabled' );
 		parent::tear_down();
