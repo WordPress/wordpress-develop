@@ -2738,6 +2738,8 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $post_id
  */
 function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
 	// Make sure meta is deleted from the post, not from a revision.
@@ -2830,7 +2832,7 @@ function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) 
  * @return bool Whether the post meta key was deleted from the database.
  */
 function delete_post_meta_by_key( $post_meta_key ) {
-	return delete_metadata( 'post', null, $post_meta_key, '', true );
+	return delete_metadata( 'post', 0, $post_meta_key, '', true );
 }
 
 /**
@@ -5719,7 +5721,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_id ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5756,7 +5758,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id, $post_parent ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5812,7 +5814,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5833,31 +5835,6 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 	 * @param string $original_slug The original post slug.
 	 */
 	return apply_filters( 'wp_unique_post_slug', $slug, $post_id, $post_status, $post_type, $post_parent, $original_slug );
-}
-
-/**
- * Truncates a post slug.
- *
- * @since 3.6.0
- * @access private
- *
- * @see utf8_uri_encode()
- *
- * @param string $slug   The slug to truncate.
- * @param int    $length Optional. Max length of the slug. Default 200 (characters).
- * @return string The truncated slug.
- */
-function _truncate_post_slug( $slug, $length = 200 ) {
-	if ( strlen( $slug ) > $length ) {
-		$decoded_slug = urldecode( $slug );
-		if ( $decoded_slug === $slug ) {
-			$slug = substr( $slug, 0, $length );
-		} else {
-			$slug = utf8_uri_encode( $decoded_slug, $length, true );
-		}
-	}
-
-	return rtrim( $slug, '-' );
 }
 
 /**
@@ -6414,6 +6391,9 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		FROM $wpdb->posts
 		WHERE post_name IN ($in_string)
 		AND post_type IN ($post_type_in_string)
+		ORDER BY
+			post_status = 'publish' DESC,
+			post_status IN ('draft', 'pending', 'auto-draft') ASC, ID ASC
 	";
 
 	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string }> $pages */
@@ -6445,7 +6425,17 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				&& $p->post_name === $revparts[ $count ]
 			) {
 				$found_id = $page->ID;
-				if ( $page->post_type === $post_type ) {
+
+				/*
+				 * A string like 'page' also searches attachments: /about/photo/ could be
+				 * a child page or an attachment page, and this lookup handles both.
+				 * Keep an attachment as a fallback, but keep looking for the requested
+				 * type so an attachment cannot hide a page with the same path.
+				 *
+				 * An array is the exact list of types to search; no extra types are added.
+				 * SQL already checks that list, so stop at the first full-path match.
+				 */
+				if ( is_array( $post_type ) || $page->post_type === $post_type ) {
 					break;
 				}
 			}
@@ -6975,7 +6965,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	wp_delete_object_term_relationships( $post_id, get_object_taxonomies( $post->post_type ) );
 
 	// Delete all for any posts.
-	delete_metadata( 'post', null, '_thumbnail_id', $post_id, true );
+	delete_metadata( 'post', 0, '_thumbnail_id', $post_id, true );
 
 	wp_defer_comment_counting( true );
 
@@ -8724,7 +8714,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 		return $post->post_name;
 	}
 	add_post_meta( $post->ID, '_wp_desired_post_slug', $post->post_name );
-	$post_name = _truncate_post_slug( $post->post_name, 191 ) . '__trashed';
+	$post_name = wp_truncate_slug( $post->post_name, 191 ) . '__trashed';
 	$wpdb->update( $wpdb->posts, array( 'post_name' => $post_name ), array( 'ID' => $post->ID ) );
 	clean_post_cache( $post->ID );
 	return $post_name;
