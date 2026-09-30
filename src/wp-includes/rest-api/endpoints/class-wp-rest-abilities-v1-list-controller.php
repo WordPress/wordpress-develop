@@ -81,6 +81,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * Retrieves all abilities.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 Added support for the `include_deprecated` parameter.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Response object on success.
@@ -96,6 +97,10 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $request['namespace'] ) ) {
 			$query_args['namespace'] = $request['namespace'];
+		}
+
+		if ( ! empty( $request['include_deprecated'] ) ) {
+			$query_args['include_deprecated'] = true;
 		}
 
 		if ( ! empty( $request['meta'] ) ) {
@@ -334,8 +339,8 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 							'type'        => 'boolean',
 						),
 						'deprecated'  => array(
-							'description' => __( 'Deprecation details for the ability, or false when the ability is not deprecated.' ),
-							'type'        => array( 'boolean', 'object' ),
+							'description' => __( 'Deprecation details for the ability, or null when the ability is not deprecated.' ),
+							'type'        => array( 'null', 'object' ),
 							'properties'  => array(
 								'since'       => array(
 									'description' => __( 'Version of the ability provider that deprecated the ability.' ),
@@ -367,7 +372,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `namespace` and `meta` parameters and the `rest_abilities_collection_params` filter.
 	 * @since 7.2.0 Added the `has_required_capabilities` parameter.
-	 * @since 7.2.0 Added support for filtering by the `deprecated` meta property.
+	 * @since 7.2.0 Added the `include_deprecated` parameter.
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
@@ -391,6 +396,12 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'description'       => __( 'Limit results to abilities in specific ability category.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+			'include_deprecated'        => array(
+				'description'       => __( 'Whether to include deprecated abilities in the results.' ),
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 			'namespace'                 => array(
@@ -423,25 +434,6 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 						),
 						'additionalProperties' => true,
 					),
-					'deprecated'  => array(
-						'description'          => __( 'Limit results by deprecation status or details. Use true to return only deprecated abilities, false to return only active abilities, or an object to match specific deprecation details.' ),
-						'type'                 => array( 'boolean', 'object' ),
-						'properties'           => array(
-							'since'       => array(
-								'description' => __( 'Version of the ability provider that deprecated the ability.' ),
-								'type'        => 'string',
-							),
-							'replacement' => array(
-								'description' => __( 'Namespaced ability to use instead.' ),
-								'type'        => 'string',
-							),
-							'message'     => array(
-								'description' => __( 'Additional migration guidance.' ),
-								'type'        => 'string',
-							),
-						),
-						'additionalProperties' => true,
-					),
 				),
 				'additionalProperties' => true,
 			),
@@ -460,7 +452,6 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 		 * boolean, before the meta filter matches it.
 		 *
 		 * @since 7.1.0
-		 * @since 7.2.0 Added the `deprecated` meta collection parameter.
 		 *
 		 * @param array $query_params JSON Schema-formatted collection parameters.
 		 */
