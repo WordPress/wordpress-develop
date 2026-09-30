@@ -157,7 +157,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( null, self::$passed_post_before_status );
+		$this->assertNull( self::$passed_post_before_status );
 		$this->assertSame( 'a new post', self::$passed_post_title );
 	}
 
@@ -197,7 +197,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 		);
 		rest_get_server()->dispatch( $request );
 
-		$this->assertSame( null, self::$passed_post_before_title );
+		$this->assertNull( self::$passed_post_before_title );
 		$this->assertSame( 'new title', self::$passed_post_title );
 	}
 

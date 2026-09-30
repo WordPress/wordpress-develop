@@ -692,7 +692,7 @@ function site_admin_notice() {
 	if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $wp_db_version ) {
 		$upgrade_network_message = sprintf(
 			/* translators: %s: URL to Upgrade Network screen. */
-			__( 'Thank you for Updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
+			__( 'Thank you for updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
 			esc_url( network_admin_url( 'upgrade.php' ) )
 		);
 
@@ -1003,6 +1003,7 @@ function confirm_delete_users( $users ) {
 												'include' => $blog_users,
 												'show'    => 'display_name_with_login',
 												'id'      => "reassign_user_{$details->userblog_id}_{$delete_user->ID}",
+												'blog_id' => $details->userblog_id,
 											)
 										);
 										?>

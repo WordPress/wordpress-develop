@@ -2370,6 +2370,54 @@ HTML;
 	}
 
 	/**
+	 * Ensures that tag-name-terminating characters close RCDATA and RAWTEXT elements.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_rcdata_and_rawtext_tag_name_terminators
+	 *
+	 * @param non-falsy-string $tag_name            The RCDATA or RAWTEXT tag name.
+	 * @param non-falsy-string $tag_name_terminator The tag-name-terminating character.
+	 */
+	public function test_rcdata_and_rawtext_end_tags_accept_tag_name_terminators( string $tag_name, string $tag_name_terminator ): void {
+		$end_tag_closer = '>' === $tag_name_terminator ? '' : '>';
+		$processor      = new WP_HTML_Tag_Processor( "<{$tag_name}>content</{$tag_name}{$tag_name_terminator}{$end_tag_closer}<div>" );
+
+		$this->assertTrue( $processor->next_token(), "Expected to find complete {$tag_name} tag." );
+		$this->assertSame( strtoupper( $tag_name ), $processor->get_tag() );
+		$this->assertSame( 'content', $processor->get_modifiable_text() );
+		$this->assertTrue( $processor->next_tag( 'DIV' ), "Expected to find DIV after the {$tag_name} element." );
+	}
+
+	/**
+	 * Provides every RCDATA and RAWTEXT tag with every tag-name-terminating character.
+	 *
+	 * @return Generator<non-falsy-string, array{non-falsy-string, non-falsy-string}> Test cases.
+	 */
+	public static function data_rcdata_and_rawtext_tag_name_terminators(): Generator {
+		foreach ( array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'STYLE', 'XMP', 'TEXTAREA', 'TITLE' ) as $tag_name ) {
+			foreach ( self::data_tag_name_terminators() as $terminator_name => $terminator_data ) {
+				yield "{$tag_name} + {$terminator_name}" => array( strtolower( $tag_name ), $terminator_data[0] );
+			}
+		}
+	}
+
+	/**
+	 * Provides tag-name-terminating characters.
+	 *
+	 * @return Generator<non-falsy-string, array{non-falsy-string}> Test cases.
+	 */
+	public static function data_tag_name_terminators(): Generator {
+		yield 'SPACE'             => array( ' ' );
+		yield 'TAB'               => array( "\t" );
+		yield 'LINE FEED'         => array( "\n" );
+		yield 'FORM FEED'         => array( "\f" );
+		yield 'CARRIAGE RETURN'   => array( "\r" );
+		yield 'SOLIDUS'           => array( '/' );
+		yield 'GREATER-THAN SIGN' => array( '>' );
+	}
+
+	/**
 	 * Invalid tag names are comments on tag closers.
 	 *
 	 * @ticket 58007

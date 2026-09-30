@@ -210,10 +210,24 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/widgets' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'], 'The collection context default should be view.' );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'], 'The collection context enum should be view, embed, and edit.' );
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/widgets/text-1' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'], 'The single widget context default should be view.' );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'], 'The single widget context enum should be view, embed, and edit.' );
 	}
 
 	/**
@@ -1728,7 +1742,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Helper to remove links key.
 	 *
 	 * @param array $data Array of data.
-	 *
 	 * @return array
 	 */
 	protected function remove_links( $data ) {

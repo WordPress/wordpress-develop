@@ -3705,8 +3705,11 @@ mockedApiResponse.Schema = {
                                 "array"
                             ],
                             "items": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1
                             },
+                            "minItems": 1,
+                            "minLength": 1,
                             "required": true
                         },
                         "convert_format": {
@@ -3739,6 +3742,7 @@ mockedApiResponse.Schema = {
                             "description": "Array of sub-size metadata collected from sideload responses.",
                             "type": "array",
                             "default": [],
+                            "maxItems": 100,
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -3749,8 +3753,11 @@ mockedApiResponse.Schema = {
                                             "array"
                                         ],
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "minLength": 1
                                         },
+                                        "minItems": 1,
+                                        "minLength": 1,
                                         "required": true
                                     },
                                     "width": {
@@ -3762,7 +3769,8 @@ mockedApiResponse.Schema = {
                                         "minimum": 1
                                     },
                                     "file": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "mime_type": {
                                         "type": "string",
@@ -3773,7 +3781,8 @@ mockedApiResponse.Schema = {
                                         "minimum": 1
                                     },
                                     "original_image": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     }
                                 }
                             },
@@ -11228,6 +11237,12 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
+                        "page_for_privacy_policy": {
+                            "title": "",
+                            "description": "The ID of the page that should be displayed as the privacy policy page",
+                            "type": "integer",
+                            "required": false
+                        },
                         "default_ping_status": {
                             "title": "",
                             "description": "Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.",
@@ -14923,6 +14938,7 @@ mockedApiResponse.settings = {
     "show_on_front": "posts",
     "page_on_front": 0,
     "page_for_posts": 0,
+    "page_for_privacy_policy": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,
