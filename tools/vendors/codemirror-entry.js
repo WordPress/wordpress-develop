@@ -20,7 +20,7 @@ import 'codemirror/addon/lint/lint';
 import 'codemirror/addon/lint/css-lint';
 import 'codemirror/addon/lint/html-lint';
 
-import '../../src/js/_enqueues/vendor/codemirror/javascript-lint';
+import '../../src/js/_enqueues/lib/codemirror/javascript-lint';
 import 'codemirror/addon/lint/json-lint';
 
 // Addons (Other)

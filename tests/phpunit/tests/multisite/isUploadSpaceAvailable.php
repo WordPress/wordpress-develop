@@ -8,6 +8,8 @@
  *
  * @group ms-required
  * @group multisite
+ *
+ * @covers ::is_upload_space_available
  */
 class Tests_Multisite_IsUploadSpaceAvailable extends WP_UnitTestCase {
 

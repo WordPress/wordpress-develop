@@ -46,6 +46,7 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
  *
  * @since 2.0.0
  * @since 5.5.0 A return value was added.
+ * @since 7.1.0 The comment parent can be updated via `$_POST['comment_parent']`.
  *
  * @return int|WP_Error The value 1 if the comment was updated, 0 if not updated.
  *                      A WP_Error object on failure.
@@ -72,6 +73,89 @@ function edit_comment() {
 	}
 	if ( isset( $_POST['comment_ID'] ) ) {
 		$_POST['comment_ID'] = (int) $_POST['comment_ID'];
+	}
+
+	if ( isset( $_POST['comment_parent'] ) ) {
+		$comment_id     = (int) $_POST['comment_ID'];
+		$comment_parent = (int) $_POST['comment_parent'];
+
+		$_POST['comment_parent'] = $comment_parent;
+
+		$comment = get_comment( $comment_id );
+
+		if ( $comment && $comment_parent && $comment_parent !== (int) $comment->comment_parent ) {
+			if ( ! get_option( 'thread_comments' ) ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'The comment parent cannot be changed because threaded comments are disabled.' ) );
+			}
+
+			if ( $comment_parent === $comment_id ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'A comment cannot be a reply to itself.' ) );
+			}
+
+			$parent              = get_comment( $comment_parent );
+			$parent_status       = $parent ? wp_get_comment_status( $parent ) : false;
+			$comment_status      = $_POST['comment_approved'] ?? $comment->comment_approved;
+			$comment_is_approved = in_array( $comment_status, array( 1, '1', 'approve' ), true );
+
+			// The parent must be a comment of the same type, on the same post, and publicly visible if the comment is approved.
+			if (
+				! $parent
+				|| (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID
+				|| $parent->comment_type !== $comment->comment_type
+				|| in_array( $parent_status, array( 'spam', 'trash' ), true )
+				|| ( $comment_is_approved && 'approved' !== $parent_status )
+			) {
+				return new WP_Error( 'comment_parent_invalid', __( 'Invalid parent comment.' ) );
+			}
+
+			// Walk up the new parent's ancestors to prevent creating a threading loop.
+			$ancestors    = array();
+			$ancestor     = $parent;
+			$parent_depth = 1;
+
+			while ( $ancestor && $ancestor->comment_parent && ! isset( $ancestors[ $ancestor->comment_ID ] ) ) {
+				if ( (int) $ancestor->comment_parent === $comment_id ) {
+					return new WP_Error( 'comment_parent_invalid', __( 'A comment cannot be a reply to one of its own replies.' ) );
+				}
+
+				$ancestors[ $ancestor->comment_ID ] = true;
+				++$parent_depth;
+
+				$ancestor = get_comment( $ancestor->comment_parent );
+			}
+
+			$max_thread_depth = (int) get_option( 'thread_comments_depth' );
+
+			if ( $max_thread_depth ) {
+				/*
+				 * The comment's replies move with it, so the whole subtree must stay within
+				 * the maximum depth. Measure its height one level of replies at a time,
+				 * stopping as soon as the subtree cannot fit, which also bounds the loop
+				 * should the stored comment hierarchy contain a cycle.
+				 */
+				$subtree_height = 1;
+				$level_ids      = array( $comment_id );
+
+				while ( $level_ids && $parent_depth + $subtree_height <= $max_thread_depth ) {
+					$level_ids = get_comments(
+						array(
+							'parent__in' => $level_ids,
+							'fields'     => 'ids',
+							'status'     => 'any',
+							'orderby'    => 'none',
+						)
+					);
+
+					if ( $level_ids ) {
+						++$subtree_height;
+					}
+				}
+
+				if ( $parent_depth + $subtree_height > $max_thread_depth ) {
+					return new WP_Error( 'comment_parent_invalid', __( 'The comment cannot be moved there because it or its replies would exceed the maximum threading depth.' ) );
+				}
+			}
+		}
 	}
 
 	foreach ( array( 'aa', 'mm', 'jj', 'hh', 'mn' ) as $timeunit ) {
@@ -214,6 +298,7 @@ function enqueue_comment_hotkeys_js() {
  * @since 2.5.0
  *
  * @param string $msg Error Message. Assumed to contain HTML and be sanitized.
+ * @return never
  */
 function comment_footer_die( $msg ) {
 	echo "<div class='wrap'><p>$msg</p></div>";

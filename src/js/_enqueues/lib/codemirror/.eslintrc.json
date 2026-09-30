@@ -1,0 +1,17 @@
+{
+	"overrides": [
+		{
+			"files": [ "javascript-lint.js" ],
+			"parserOptions": {
+				"sourceType": "module",
+				"ecmaVersion": 2020
+			}
+		},
+		{
+			"files": [ "htmlhint-kses.js" ],
+			"parserOptions": {
+				"ecmaVersion": 2020
+			}
+		}
+	]
+}
