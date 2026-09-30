@@ -1597,9 +1597,23 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Context is not supported for themes.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		// Collection.
+		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
+
+		// Single.
+		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route . '/' . get_stylesheet() );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
 	}
 }
