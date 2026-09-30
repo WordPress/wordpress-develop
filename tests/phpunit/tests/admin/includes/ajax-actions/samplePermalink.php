@@ -84,7 +84,7 @@ class Tests_wp_ajax_sample_permalink extends WP_Ajax_UnitTestCase {
 
 		$_POST = array(
 			'action'               => 'sample-permalink',
-			'post_id'              => 123,
+			'post_id'              => self::factory()->post->create(),
 			'samplepermalinknonce' => 'invalid-nonce',
 		);
 
