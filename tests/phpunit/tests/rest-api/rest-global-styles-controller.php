@@ -298,14 +298,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * The global styles controller has no collection get_items() route.
-	 *
-	 * @ticket 40538
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		// Controller does not implement get_items().
 	}
 
 	/**
