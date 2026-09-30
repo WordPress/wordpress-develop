@@ -1487,41 +1487,15 @@ function register_post_status( $post_status, $args = array() ) {
 		$args->internal = true;
 	}
 
-	if ( null === $args->public ) {
-		$args->public = false;
-	}
-
-	if ( null === $args->private ) {
-		$args->private = false;
-	}
-
-	if ( null === $args->protected ) {
-		$args->protected = false;
-	}
-
-	if ( null === $args->internal ) {
-		$args->internal = false;
-	}
-
-	if ( null === $args->publicly_queryable ) {
-		$args->publicly_queryable = $args->public;
-	}
-
-	if ( null === $args->exclude_from_search ) {
-		$args->exclude_from_search = $args->internal;
-	}
-
-	if ( null === $args->show_in_admin_all_list ) {
-		$args->show_in_admin_all_list = ! $args->internal;
-	}
-
-	if ( null === $args->show_in_admin_status_list ) {
-		$args->show_in_admin_status_list = ! $args->internal;
-	}
-
-	if ( null === $args->date_floating ) {
-		$args->date_floating = false;
-	}
+	$args->public                    ??= false;
+	$args->private                   ??= false;
+	$args->protected                 ??= false;
+	$args->internal                  ??= false;
+	$args->publicly_queryable        ??= $args->public;
+	$args->exclude_from_search       ??= $args->internal;
+	$args->show_in_admin_all_list    ??= ! $args->internal;
+	$args->show_in_admin_status_list ??= ! $args->internal;
+	$args->date_floating             ??= false;
 
 	if ( false === $args->label ) {
 		$args->label = $post_status;
@@ -1575,6 +1549,7 @@ function get_post_status_object( $post_status ) {
  *                               from the array needs to match; 'and' means all elements must match.
  *                               Default 'and'.
  * @return string[]|stdClass[] A list of post status names or objects.
+ * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, stdClass> )
  */
 function get_post_stati( $args = array(), $output = 'names', $operator = 'and' ) {
 	global $wp_post_statuses;
@@ -1917,19 +1892,19 @@ function register_post_type( $post_type, $args = array() ) {
  *
  * @since 4.5.0
  *
- * @global array $wp_post_types List of post types.
+ * @global array<string, string>       $post_type_meta_caps Used to store meta capabilities.
+ * @global array<string, WP_Post_Type> $wp_post_types       List of post types.
  *
  * @param string $post_type Post type to unregister.
  * @return true|WP_Error True on success, WP_Error on failure or if the post type doesn't exist.
  */
 function unregister_post_type( $post_type ) {
-	global $wp_post_types;
-
-	if ( ! post_type_exists( $post_type ) ) {
-		return new WP_Error( 'invalid_post_type', __( 'Invalid post type.' ) );
-	}
+	global $post_type_meta_caps, $wp_post_types;
 
 	$post_type_object = get_post_type_object( $post_type );
+	if ( ! $post_type_object ) {
+		return new WP_Error( 'invalid_post_type', __( 'Invalid post type.' ) );
+	}
 
 	// Do not allow unregistering internal post types.
 	if ( $post_type_object->_builtin ) {
@@ -1943,6 +1918,20 @@ function unregister_post_type( $post_type ) {
 	$post_type_object->unregister_taxonomies();
 
 	unset( $wp_post_types[ $post_type ] );
+
+	/*
+	 * Rebuild the meta capabilities of the post types that remain.
+	 *
+	 * They are keyed by the custom capability name, so a single entry may be owed to any
+	 * number of registered post types. Removing the entries for this post type alone could
+	 * therefore remove entries that the others still depend on.
+	 */
+	$post_type_meta_caps = array();
+	foreach ( $wp_post_types as $registered_post_type ) {
+		if ( $registered_post_type->map_meta_cap ) {
+			_post_type_meta_capabilities( get_object_vars( $registered_post_type->cap ) );
+		}
+	}
 
 	/**
 	 * Fires after a post type was unregistered.
@@ -2011,7 +2000,7 @@ function unregister_post_type( $post_type ) {
  * @see map_meta_cap()
  *
  * @param object $args Post type registration arguments.
- * @return object {
+ * @return stdClass {
  *     Object with all the capabilities as member variables.
  *
  *     @type string $edit_post              Capability to edit a post.
@@ -2081,16 +2070,20 @@ function get_post_type_capabilities( $args ) {
 }
 
 /**
- * Stores or returns a list of post type meta caps for map_meta_cap().
+ * Stores a list of post type meta caps for {@see map_meta_cap()}.
  *
  * @since 3.1.0
+ * @since 4.5.0 The list moved to the `$post_type_meta_caps` global and the function
+ *              no longer returns it when called without arguments.
+ * @since 7.2.0 The `$capabilities` parameter defaults to an empty array rather than `null`.
  * @access private
  *
- * @global array $post_type_meta_caps Used to store meta capabilities.
+ * @global array<string, string> $post_type_meta_caps Used to store meta capabilities.
  *
- * @param string[] $capabilities Post type meta capabilities.
+ * @param array<string, string> $capabilities Map of core meta capability name to the custom
+ *                                            capability name it is registered under.
  */
-function _post_type_meta_capabilities( $capabilities = null ) {
+function _post_type_meta_capabilities( $capabilities = array() ): void {
 	global $post_type_meta_caps;
 
 	foreach ( $capabilities as $core => $custom ) {
@@ -2102,56 +2095,6 @@ function _post_type_meta_capabilities( $capabilities = null ) {
 
 /**
  * Builds an object with all post type labels out of a post type object.
- *
- * Accepted keys of the label array in the post type object:
- *
- * - `name` - General name for the post type, usually plural. The same and overridden
- *          by `$post_type_object->label`. Default is 'Posts' / 'Pages'.
- * - `singular_name` - Name for one object of this post type. Default is 'Post' / 'Page'.
- * - `add_new` - Label for adding a new item. Default is 'Add Post' / 'Add Page'.
- * - `add_new_item` - Label for adding a new singular item. Default is 'Add Post' / 'Add Page'.
- * - `edit_item` - Label for editing a singular item. Default is 'Edit Post' / 'Edit Page'.
- * - `new_item` - Label for the new item page title. Default is 'New Post' / 'New Page'.
- * - `view_item` - Label for viewing a singular item. Default is 'View Post' / 'View Page'.
- * - `view_items` - Label for viewing post type archives. Default is 'View Posts' / 'View Pages'.
- * - `search_items` - Label for searching plural items. Default is 'Search Posts' / 'Search Pages'.
- * - `not_found` - Label used when no items are found. Default is 'No posts found' / 'No pages found'.
- * - `not_found_in_trash` - Label used when no items are in the Trash. Default is 'No posts found in Trash' /
- *                        'No pages found in Trash'.
- * - `parent_item_colon` - Label used to prefix parents of hierarchical items. Not used on non-hierarchical
- *                       post types. Default is 'Parent Page:'.
- * - `all_items` - Label to signify all items in a submenu link. Default is 'All Posts' / 'All Pages'.
- * - `archives` - Label for archives in nav menus. Default is 'Post Archives' / 'Page Archives'.
- * - `attributes` - Label for the attributes meta box. Default is 'Post Attributes' / 'Page Attributes'.
- * - `insert_into_item` - Label for the media frame button. Default is 'Insert into post' / 'Insert into page'.
- * - `uploaded_to_this_item` - Label for the media frame filter. Default is 'Uploaded to this post' /
- *                           'Uploaded to this page'.
- * - `featured_image` - Label for the featured image meta box title. Default is 'Featured image'.
- * - `set_featured_image` - Label for setting the featured image. Default is 'Set featured image'.
- * - `remove_featured_image` - Label for removing the featured image. Default is 'Remove featured image'.
- * - `use_featured_image` - Label in the media frame for using a featured image. Default is 'Use as featured image'.
- * - `menu_name` - Label for the menu name. Default is the same as `name`.
- * - `filter_items_list` - Label for the table views hidden heading. Default is 'Filter posts list' /
- *                       'Filter pages list'.
- * - `filter_by_date` - Label for the date filter in list tables. Default is 'Filter by date'.
- * - `items_list_navigation` - Label for the table pagination hidden heading. Default is 'Posts list navigation' /
- *                           'Pages list navigation'.
- * - `items_list` - Label for the table hidden heading. Default is 'Posts list' / 'Pages list'.
- * - `item_published` - Label used when an item is published. Default is 'Post published.' / 'Page published.'
- * - `item_published_privately` - Label used when an item is published with private visibility.
- *                              Default is 'Post published privately.' / 'Page published privately.'
- * - `item_reverted_to_draft` - Label used when an item is switched to a draft.
- *                            Default is 'Post reverted to draft.' / 'Page reverted to draft.'
- * - `item_trashed` - Label used when an item is moved to Trash. Default is 'Post trashed.' / 'Page trashed.'
- * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
- *                    'Page scheduled.'
- * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
- * - `item_link` - Title for a navigation link block variation. Default is 'Post Link' / 'Page Link'.
- * - `item_link_description` - Description for a navigation link block variation. Default is 'A link to a post.' /
- *                             'A link to a page.'
- *
- * Above, the first default value is for non-hierarchical post types (like posts)
- * and the second one is for hierarchical post types (like pages).
  *
  * Note: To set labels used in post type admin notices, see the {@see 'post_updated_messages'} filter.
  *
@@ -2176,7 +2119,84 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @access private
  *
  * @param object|WP_Post_Type $post_type_object Post type object.
- * @return object Object with all the labels as member variables.
+ * @return stdClass {
+ *     Post type labels object. The first default value is for non-hierarchical post types
+ *     (like posts) and the second one is for hierarchical post types (like pages).
+ *
+ *     @type string      $name                     General name for the post type, usually plural. The same and
+ *                                                 overridden by `$post_type_object->label`.
+ *                                                 Default is 'Posts' / 'Pages'.
+ *     @type string      $singular_name            Name for one object of this post type. Default is 'Post' / 'Page'.
+ *     @type string      $add_new                  Label for adding a new item. Default is 'Add Post' / 'Add Page'.
+ *     @type string      $add_new_item             Label for adding a new singular item.
+ *                                                 Default is 'Add Post' / 'Add Page'.
+ *     @type string      $edit_item                Label for editing a singular item.
+ *                                                 Default is 'Edit Post' / 'Edit Page'.
+ *     @type string      $new_item                 Label for the new item page title.
+ *                                                 Default is 'New Post' / 'New Page'.
+ *     @type string      $view_item                Label for viewing a singular item.
+ *                                                 Default is 'View Post' / 'View Page'.
+ *     @type string      $view_items               Label for viewing post type archives.
+ *                                                 Default is 'View Posts' / 'View Pages'.
+ *     @type string      $search_items             Label for searching plural items.
+ *                                                 Default is 'Search Posts' / 'Search Pages'.
+ *     @type string      $not_found                Label used when no items are found.
+ *                                                 Default is 'No posts found' / 'No pages found'.
+ *     @type string      $not_found_in_trash       Label used when no items are in the Trash.
+ *                                                 Default is 'No posts found in Trash' / 'No pages found in Trash'.
+ *     @type string|null $parent_item_colon        Label used to prefix parents of hierarchical items. Not used on
+ *                                                 non-hierarchical post types.
+ *                                                 Default is 'Parent Page:'.
+ *     @type string      $all_items                Label to signify all items in a submenu link.
+ *                                                 Default is 'All Posts' / 'All Pages'.
+ *     @type string      $archives                 Label for archives in nav menus.
+ *                                                 Default is 'Post Archives' / 'Page Archives'.
+ *     @type string      $attributes               Label for the attributes meta box.
+ *                                                 Default is 'Post Attributes' / 'Page Attributes'.
+ *     @type string      $insert_into_item         Label for the media frame button.
+ *                                                 Default is 'Insert into post' / 'Insert into page'.
+ *     @type string      $uploaded_to_this_item    Label for the media frame filter.
+ *                                                 Default is 'Uploaded to this post' / 'Uploaded to this page'.
+ *     @type string      $featured_image           Label for the featured image meta box title.
+ *                                                 Default is 'Featured image'.
+ *     @type string      $set_featured_image       Label for setting the featured image.
+ *                                                 Default is 'Set featured image'.
+ *     @type string      $remove_featured_image    Label for removing the featured image.
+ *                                                 Default is 'Remove featured image'.
+ *     @type string      $use_featured_image       Label in the media frame for using a featured image.
+ *                                                 Default is 'Use as featured image'.
+ *     @type string      $menu_name                Label for the menu name. Default is the same as `name`.
+ *     @type string      $name_admin_bar           Label for the object name in the admin bar.
+ *                                                 Default is the value of `singular_name` in the given labels, or the
+ *                                                 post type key.
+ *     @type string      $filter_items_list        Label for the table views hidden heading.
+ *                                                 Default is 'Filter posts list' / 'Filter pages list'.
+ *     @type string      $filter_by_date           Label for the date filter in list tables.
+ *                                                 Default is 'Filter by date'.
+ *     @type string      $items_list_navigation    Label for the table pagination hidden heading.
+ *                                                 Default is 'Posts list navigation' / 'Pages list navigation'.
+ *     @type string      $items_list               Label for the table hidden heading.
+ *                                                 Default is 'Posts list' / 'Pages list'.
+ *     @type string      $item_published           Label used when an item is published.
+ *                                                 Default is 'Post published.' / 'Page published.'
+ *     @type string      $item_published_privately Label used when an item is published with private visibility.
+ *                                                 Default is 'Post published privately.' / 'Page published privately.'
+ *     @type string      $item_reverted_to_draft   Label used when an item is switched to a draft.
+ *                                                 Default is 'Post reverted to draft.' / 'Page reverted to draft.'
+ *     @type string      $item_trashed             Label used when an item is moved to Trash.
+ *                                                 Default is 'Post trashed.' / 'Page trashed.'
+ *     @type string      $item_scheduled           Label used when an item is scheduled for publishing.
+ *                                                 Default is 'Post scheduled.' / 'Page scheduled.'
+ *     @type string      $item_updated             Label used when an item is updated.
+ *                                                 Default is 'Post updated.' / 'Page updated.'
+ *     @type string      $item_link                Title for a navigation link block variation.
+ *                                                 Default is 'Post Link' / 'Page Link'.
+ *     @type string      $item_link_description    Description for a navigation link block variation.
+ *                                                 Default is 'A link to a post.' / 'A link to a page.'
+ *     @type string      $template_name            Label for the single item template. Only set when the post type is
+ *                                                 given a `singular_name` label.
+ *                                                 Default is 'Single item: ' followed by the singular name.
+ * }
  */
 function get_post_type_labels( $post_type_object ) {
 	$nohier_vs_hier_defaults = WP_Post_Type::get_default_labels();
@@ -2619,7 +2639,11 @@ function is_post_embeddable( $post = null ) {
  * @return WP_Post[]|int[] Array of post objects or post IDs.
  *
  * @phpstan-return (
- *     $args is array{ fields: 'ids', ... } ? int[] : WP_Post[]
+ *     $args is array{ fields: 'ids', ... }
+ *         ? int[]
+ *         : ( $args is array{ fields: 'id=>parent', ... }
+ *             ? array<int, int>
+ *             : WP_Post[] )
  * )
  */
 function get_posts( $args = null ) {
@@ -2714,6 +2738,8 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $post_id
  */
 function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
 	// Make sure meta is deleted from the post, not from a revision.
@@ -2746,6 +2772,18 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -2794,7 +2832,7 @@ function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) 
  * @return bool Whether the post meta key was deleted from the database.
  */
 function delete_post_meta_by_key( $post_meta_key ) {
-	return delete_metadata( 'post', null, $post_meta_key, '', true );
+	return delete_metadata( 'post', 0, $post_meta_key, '', true );
 }
 
 /**
@@ -2839,17 +2877,23 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array<string, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
- *                                                 Post meta values will always be strings, even for values which would
- *                                                 otherwise be retrieved individually as arrays or objects via
- *                                                 {@see get_post_meta()}. An empty array is returned if the post has
- *                                                 no post meta.
+ * @return array<string|int, array<int, string>>|false Array of post meta values keyed by meta key, or false on failure.
+ *                                                     Post meta values will always be strings, even for values which
+ *                                                     would otherwise be retrieved individually as arrays or objects
+ *                                                     via {@see get_post_meta()}. A meta key which is a numeric string
+ *                                                     is keyed by the equivalent integer, as PHP casts such array keys.
+ *                                                     An empty array is returned if the post has no post meta.
+ *
+ * @phpstan-return array<array-key, list<string>>|false
  */
 function get_post_custom( $post_id = 0 ) {
 	$post_id = absint( $post_id );
 
 	if ( ! $post_id ) {
 		$post_id = get_the_ID();
+		if ( false === $post_id ) {
+			return false;
+		}
 	}
 
 	return get_post_meta( $post_id );
@@ -2863,7 +2907,11 @@ function get_post_custom( $post_id = 0 ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|null Array of the keys, if retrieved.
+ * @return array<string|int>|null Array of the meta field keys, if retrieved. Null if the post has no
+ *                                post meta, or if the post meta could not be retrieved. A key which is
+ *                                a numeric string is returned as the equivalent integer.
+ *
+ * @phpstan-return non-empty-list<array-key>|null
  */
 function get_post_custom_keys( $post_id = 0 ) {
 	$custom = get_post_custom( $post_id );
@@ -2889,7 +2937,11 @@ function get_post_custom_keys( $post_id = 0 ) {
  *
  * @param string $key     Optional. Meta field key. Default empty.
  * @param int    $post_id Optional. Post ID. Default is the ID of the global `$post`.
- * @return array|null Meta field values.
+ * @return string[]|null Meta field values. Null if `$key` is not specified, if the post has no
+ *                       meta for that key, or if the post meta could not be retrieved.
+ *                       Values are always strings, as described for {@see get_post_custom()}.
+ *
+ * @phpstan-return ( $key is ''|'0' ? null : list<string>|null )
  */
 function get_post_custom_values( $key = '', $post_id = 0 ) {
 	if ( ! $key ) {
@@ -3597,7 +3649,11 @@ function wp_count_attachments( $mime_type = '' ) {
  * @since 2.9.0
  * @since 5.3.0 Added the 'Documents', 'Spreadsheets', and 'Archives' mime type groups.
  *
- * @return array List of post mime types.
+ * @return array<string, array{0: string, 1: string, 2: array}> List of post mime types, keyed by mime type group
+ *                                                              or by a comma-separated list of mime types. Each
+ *                                                              value is a three-item array: the plural name of the
+ *                                                              group, the label for its "Manage" screen, and the
+ *                                                              translatable count strings returned by _n_noop().
  */
 function get_post_mime_types() {
 	$post_mime_types = array(   // array( adj, noun )
@@ -3690,7 +3746,8 @@ function get_post_mime_types() {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param array $post_mime_types Default list of post mime types.
+	 * @param array<string, array{0: string, 1: string, 2: array}> $post_mime_types Default list of post mime types.
+	 *                                                                              See {@see get_post_mime_types()}.
 	 */
 	return apply_filters( 'post_mime_types', $post_mime_types );
 }
@@ -4397,10 +4454,28 @@ function wp_untrash_post_comments( $post = null ) {
  *                       global $post. Default 0.
  * @param array $args    Optional. Category query parameters. Default empty array.
  *                       See WP_Term_Query::__construct() for supported arguments.
- * @return array|WP_Error List of categories. If the `$fields` argument passed via `$args` is 'all' or
- *                        'all_with_object_id', an array of WP_Term objects will be returned. If `$fields`
- *                        is 'ids', an array of category IDs. If `$fields` is 'names', an array of category names.
- *                        WP_Error object if 'category' taxonomy doesn't exist.
+ * @return int[]|WP_Term[]|string[]|string|WP_Error List of categories. An array of category IDs by
+ *                                                  default, and if the `$fields` argument passed via
+ *                                                  `$args` is 'ids'. If `$fields` is 'all' or
+ *                                                  'all_with_object_id', an array of WP_Term objects.
+ *                                                  If `$fields` is 'names', an array of category names.
+ *                                                  If `$fields` is 'count', a count thereof as a numeric
+ *                                                  string. WP_Error object if 'category' taxonomy
+ *                                                  doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'id=>parent', ... }
+ *             ? array<int, int>|WP_Error
+ *             : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                 ? string[]|WP_Error
+ *                 : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                     ? array<int, string>|WP_Error
+ *                     : ( $args is array{ fields: 'all'|'all_with_object_id', ... }
+ *                         ? WP_Term[]|WP_Error
+ *                         : int[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_categories( $post_id = 0, $args = array() ) {
 	$post_id = (int) $post_id;
@@ -4425,8 +4500,24 @@ function wp_get_post_categories( $post_id = 0, $args = array() ) {
  *                       global $post. Default 0.
  * @param array $args    Optional. Tag query parameters. Default empty array.
  *                       See WP_Term_Query::__construct() for supported arguments.
- * @return array|WP_Error Array of WP_Term objects on success or empty array if no tags were found.
- *                        WP_Error object if 'post_tag' taxonomy doesn't exist.
+ * @return WP_Term[]|int[]|string[]|string|WP_Error Array of WP_Term objects on success or empty array if no
+ *                                                  tags were found. A count thereof as a numeric string if
+ *                                                  the `$fields` argument passed via `$args` is 'count'.
+ *                                                  WP_Error object if 'post_tag' taxonomy doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : WP_Term[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_tags( $post_id = 0, $args = array() ) {
 	return wp_get_post_terms( $post_id, 'post_tag', $args );
@@ -4446,8 +4537,24 @@ function wp_get_post_tags( $post_id = 0, $args = array() ) {
  *
  *     @type string $fields Term fields to retrieve. Default 'all'.
  * }
- * @return array|WP_Error Array of WP_Term objects on success or empty array if no terms were found.
- *                        WP_Error object if `$taxonomy` doesn't exist.
+ * @return WP_Term[]|int[]|string[]|string|WP_Error Array of WP_Term objects on success or empty array if no
+ *                                                  terms were found. A count thereof as a numeric string if
+ *                                                  the `$fields` argument passed via `$args` is 'count'.
+ *                                                  WP_Error object if `$taxonomy` doesn't exist.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'count', ... }
+ *         ? numeric-string|WP_Error
+ *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
+ *             ? int[]|WP_Error
+ *             : ( $args is array{ fields: 'id=>parent', ... }
+ *                 ? array<int, int>|WP_Error
+ *                 : ( $args is array{ fields: 'names'|'slugs', ... }
+ *                     ? string[]|WP_Error
+ *                     : ( $args is array{ fields: 'id=>name'|'id=>slug', ... }
+ *                         ? array<int, string>|WP_Error
+ *                         : WP_Term[]|WP_Error ) ) ) )
+ * )
  */
 function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array() ) {
 	$post_id = (int) $post_id;
@@ -5614,7 +5721,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_id ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5651,7 +5758,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id, $post_parent ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5707,7 +5814,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		) {
 			$suffix = 2;
 			do {
-				$alt_post_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id ) );
 				++$suffix;
 			} while ( $post_name_check );
@@ -5728,31 +5835,6 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 	 * @param string $original_slug The original post slug.
 	 */
 	return apply_filters( 'wp_unique_post_slug', $slug, $post_id, $post_status, $post_type, $post_parent, $original_slug );
-}
-
-/**
- * Truncates a post slug.
- *
- * @since 3.6.0
- * @access private
- *
- * @see utf8_uri_encode()
- *
- * @param string $slug   The slug to truncate.
- * @param int    $length Optional. Max length of the slug. Default 200 (characters).
- * @return string The truncated slug.
- */
-function _truncate_post_slug( $slug, $length = 200 ) {
-	if ( strlen( $slug ) > $length ) {
-		$decoded_slug = urldecode( $slug );
-		if ( $decoded_slug === $slug ) {
-			$slug = substr( $slug, 0, $length );
-		} else {
-			$slug = utf8_uri_encode( $decoded_slug, $length, true );
-		}
-	}
-
-	return rtrim( $slug, '-' );
 }
 
 /**
@@ -5907,7 +5989,7 @@ function wp_set_post_categories( $post_id = 0, $post_categories = array(), $appe
  *
  * @param string  $new_status Transition to this post status.
  * @param string  $old_status Previous post status.
- * @param WP_Post $post Post data.
+ * @param WP_Post $post       Post data.
  */
 function wp_transition_post_status( $new_status, $old_status, $post ) {
 	/**
@@ -6309,6 +6391,9 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		FROM $wpdb->posts
 		WHERE post_name IN ($in_string)
 		AND post_type IN ($post_type_in_string)
+		ORDER BY
+			post_status = 'publish' DESC,
+			post_status IN ('draft', 'pending', 'auto-draft') ASC, ID ASC
 	";
 
 	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string }> $pages */
@@ -6340,7 +6425,17 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				&& $p->post_name === $revparts[ $count ]
 			) {
 				$found_id = $page->ID;
-				if ( $page->post_type === $post_type ) {
+
+				/*
+				 * A string like 'page' also searches attachments: /about/photo/ could be
+				 * a child page or an attachment page, and this lookup handles both.
+				 * Keep an attachment as a fallback, but keep looking for the requested
+				 * type so an attachment cannot hide a page with the same path.
+				 *
+				 * An array is the exact list of types to search; no extra types are added.
+				 * SQL already checks that list, so stop at the first full-path match.
+				 */
+				if ( is_array( $post_type ) || $page->post_type === $post_type ) {
 					break;
 				}
 			}
@@ -6870,7 +6965,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	wp_delete_object_term_relationships( $post_id, get_object_taxonomies( $post->post_type ) );
 
 	// Delete all for any posts.
-	delete_metadata( 'post', null, '_thumbnail_id', $post_id, true );
+	delete_metadata( 'post', 0, '_thumbnail_id', $post_id, true );
 
 	wp_defer_comment_counting( true );
 
@@ -8619,7 +8714,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 		return $post->post_name;
 	}
 	add_post_meta( $post->ID, '_wp_desired_post_slug', $post->post_name );
-	$post_name = _truncate_post_slug( $post->post_name, 191 ) . '__trashed';
+	$post_name = wp_truncate_slug( $post->post_name, 191 ) . '__trashed';
 	$wpdb->update( $wpdb->posts, array( 'post_name' => $post_name ), array( 'ID' => $post->ID ) );
 	clean_post_cache( $post->ID );
 	return $post_name;
@@ -8677,7 +8772,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
  * @since 5.4.0 Added the `$unfiltered` parameter.
  *
  * @param int  $attachment_id Attachment ID.
- * @param bool $unfiltered Optional. Passed through to `get_attached_file()`. Default false.
+ * @param bool $unfiltered    Optional. Passed through to `get_attached_file()`. Default false.
  * @return string|false Path to the original image file or false if the attachment is not an image.
  */
 function wp_get_original_image_path( $attachment_id, $unfiltered = false ) {

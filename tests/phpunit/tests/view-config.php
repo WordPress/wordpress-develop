@@ -75,6 +75,71 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns the form field with the given id from a view configuration.
+	 *
+	 * @param array  $config The view configuration.
+	 * @param string $id     The form field id.
+	 * @return array|null The form field, or null when absent.
+	 */
+	private function get_form_field( $config, $id ) {
+		foreach ( $config['form']['fields'] as $field ) {
+			if ( is_array( $field ) && isset( $field['id'] ) && $id === $field['id'] ) {
+				return $field;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * The `status` and `discussion` groups of the default post type form declare
+	 * their panel summary explicitly, for built-in and custom post types alike.
+	 *
+	 * @ticket 65981
+	 *
+	 * @dataProvider data_default_form_post_types
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_default_form_groups_declare_summary( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		foreach ( array( 'status', 'discussion' ) as $group ) {
+			$field = $this->get_form_field( $config, $group );
+			$this->assertNotNull( $field, "The `{$group}` group is present." );
+			$this->assertNotEmpty( $field['children'], "The `{$group}` group keeps its children." );
+			$this->assertSame(
+				array(
+					'type'    => 'panel',
+					'summary' => $group,
+				),
+				$field['layout'],
+				"The `{$group}` group summary is explicit."
+			);
+		}
+
+		if ( 'page' !== $post_type && 'post' !== $post_type ) {
+			unregister_post_type( $post_type );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_default_form_post_types() {
+		return array(
+			'page'             => array( 'page' ),
+			'post'             => array( 'post' ),
+			'custom post type' => array( 'summaries_cpt' ),
+		);
+	}
+
+	/**
 	 * The default configuration exposes the documented shape for an unknown entity.
 	 */
 	public function test_default_config_for_unknown_entity() {
