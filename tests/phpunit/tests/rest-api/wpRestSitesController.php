@@ -41,6 +41,23 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Get reflective access to a private/protected method on
+	 * the WP_REST_Sites_Controller class.
+	 *
+	 * @param string $method_name Method name for which to gain access.
+	 * @return ReflectionMethod
+	 * @throws ReflectionException Throws an exception if method does not exist.
+	 */
+	protected function get_reflective_method( $method_name ) {
+		$class  = new ReflectionClass( WP_REST_Sites_Controller::class );
+		$method = $class->getMethod( $method_name );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+		return $method;
+	}
+
+	/**
 	 * @ticket 40365
 	 * @covers ::register_routes
 	 */
@@ -517,6 +534,200 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertEquals( '/keep/', $data['path'] );
 		$this->assertEquals( 1, $data['mature'] );
+	}
+
+	/**
+	 * Data provider for test_check_url_is_available_on_create().
+	 *
+	 * Every case runs against the same two fixture sites: one at
+	 * WP_TESTS_DOMAIN . '/check-url-taken/' and one at WP_TESTS_DOMAIN . '/'
+	 * (the root), so a candidate path of `null` (omitted entirely) can
+	 * exercise the "defaults to root" fallback against the second fixture.
+	 *
+	 * @return array[]
+	 */
+	public function data_check_url_is_available_on_create() {
+		return array(
+			'a brand new domain and path is available' => array(
+				'check-url-is-available.example',
+				'/',
+				false,
+			),
+			'an existing domain and path is rejected'  => array(
+				WP_TESTS_DOMAIN,
+				'/check-url-taken/',
+				true,
+			),
+			'omitting path defaults to root, which is also taken' => array(
+				WP_TESTS_DOMAIN,
+				null,
+				true,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::check_url_is_available
+	 * @group ms-required
+	 * @dataProvider data_check_url_is_available_on_create
+	 *
+	 * @param string $candidate_domain Domain to check.
+	 * @param string|null $candidate_path Path to check, or null to omit the `path` key entirely.
+	 * @param bool $expect_conflict Whether a `rest_site_taken` error is expected.
+	 */
+	public function test_check_url_is_available_on_create( $candidate_domain, $candidate_path, $expect_conflict ) {
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-taken/',
+			)
+		);
+		// WP_TESTS_DOMAIN . '/' is already taken by the main site.
+
+		$prepared_site = array( 'domain' => $candidate_domain );
+		if ( null !== $candidate_path ) {
+			$prepared_site['path'] = $candidate_path;
+		}
+
+		$method  = $this->get_reflective_method( 'check_url_is_available' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+
+		$result = $method->invoke( $this->endpoint, $prepared_site, $request );
+
+		if ( $expect_conflict ) {
+			$this->assertWPError( $result );
+			$this->assertSame( 'rest_site_taken', $result->get_error_code() );
+			$this->assertSame( 400, $result->get_error_data()['status'] );
+		} else {
+			$this->assertTrue( $result );
+		}
+	}
+
+	/**
+	 * The same domain/path is available on a different network.
+	 *
+	 * @ticket 40365
+	 * @covers ::check_url_is_available
+	 * @group ms-required
+	 */
+	public function test_check_url_is_available_allows_the_same_domain_and_path_on_a_different_network() {
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-shared/',
+			)
+		);
+
+		$other_network_id = self::factory()->network->create(
+			array(
+				'domain' => 'check-url-other-network.example',
+				'path'   => '/',
+			)
+		);
+
+		$method  = $this->get_reflective_method( 'check_url_is_available' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+
+		$result = $method->invoke(
+			$this->endpoint,
+			array(
+				'domain'     => WP_TESTS_DOMAIN,
+				'path'       => '/check-url-shared/',
+				'network_id' => $other_network_id,
+			),
+			$request
+		);
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Data provider for test_check_url_is_available_on_update().
+	 *
+	 * Both cases run against the same two fixture sites: the one being
+	 * updated (WP_TESTS_DOMAIN . '/check-url-free/') and another site
+	 * occupying WP_TESTS_DOMAIN . '/check-url-taken-2/'.
+	 *
+	 * @return array[]
+	 */
+	public function data_check_url_is_available_on_update() {
+		return array(
+			'keeps its own domain and path via fallback (no conflict)' => array(
+				array(),
+				false,
+			),
+			'changes to another site\'s domain and path (conflict)'    => array(
+				array(
+					'domain' => WP_TESTS_DOMAIN,
+					'path'   => '/check-url-taken-2/',
+				),
+				true,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::check_url_is_available
+	 * @group ms-required
+	 * @dataProvider data_check_url_is_available_on_update
+	 *
+	 * @param array $prepared_site   Prepared site data to check; empty to test the fallback to the current site's own values.
+	 * @param bool  $expect_conflict Whether a `rest_site_taken` error is expected.
+	 */
+	public function test_check_url_is_available_on_update( $prepared_site, $expect_conflict ) {
+		self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-taken-2/',
+			)
+		);
+		$blog_id = self::factory()->blog->create(
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-free/',
+			)
+		);
+
+		$method  = $this->get_reflective_method( 'check_url_is_available' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$result = $method->invoke( $this->endpoint, $prepared_site, $request );
+
+		if ( $expect_conflict ) {
+			$this->assertWPError( $result );
+			$this->assertSame( 'rest_site_taken', $result->get_error_code() );
+		} else {
+			$this->assertTrue( $result );
+		}
+	}
+
+	/**
+	 * An invalid site ID on update propagates the WP_Error from get_site()
+	 * rather than proceeding to the domain/path check.
+	 *
+	 * @ticket 40365
+	 * @covers ::check_url_is_available
+	 * @group ms-required
+	 */
+	public function test_check_url_is_available_propagates_an_invalid_id_on_update() {
+		$method  = $this->get_reflective_method( 'check_url_is_available' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+		$request->set_param( 'id', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$result = $method->invoke(
+			$this->endpoint,
+			array(
+				'domain' => WP_TESTS_DOMAIN,
+				'path'   => '/check-url-invalid-id/',
+			),
+			$request
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_site_invalid_id', $result->get_error_code() );
 	}
 
 	/**
@@ -1783,5 +1994,224 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$sites = $response->get_data();
 		$this->assertCount( 1, $sites );
 		$this->assertEquals( array( $blog_ids[0] ), wp_list_pluck( $sites, 'id' ) );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @covers ::check_network_ids_exist
+	 * @group ms-required
+	 */
+	public function test_get_items_permissions_check_invalid_network_id() {
+		wp_set_current_user( self::factory()->user->create() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'network', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @covers ::check_network_ids_exist
+	 * @group ms-required
+	 */
+	public function test_get_items_permissions_check_invalid_network_exclude_id() {
+		wp_set_current_user( self::factory()->user->create() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'network_exclude', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @covers ::check_network_access
+	 * @group ms-required
+	 */
+	public function test_get_items_permissions_check_denies_access_to_another_network() {
+		wp_set_current_user( self::factory()->user->create() );
+		$network_id = self::factory()->network->create();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'network', $network_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @covers ::check_network_access
+	 * @group ms-required
+	 */
+	public function test_get_items_permissions_check_allows_filtering_by_the_current_network() {
+		wp_set_current_user( self::factory()->user->create() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'network', get_current_network_id() );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		// The user still lacks manage_sites, but the network filter itself is not the reason.
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::create_item_permissions_check
+	 * @covers ::check_network_ids_exist
+	 * @group ms-required
+	 */
+	public function test_create_item_permissions_check_invalid_network_id() {
+		wp_set_current_user( self::factory()->user->create() );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/rejected/' );
+		$request->set_param( 'network', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::create_item_permissions_check
+	 * @covers ::check_network_access
+	 * @group ms-required
+	 */
+	public function test_create_item_permissions_check_denies_access_to_another_network() {
+		wp_set_current_user( self::factory()->user->create() );
+		$network_id = self::factory()->network->create();
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/rejected/' );
+		$request->set_param( 'network', $network_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::create_item_permissions_check
+	 * @covers ::check_network_access
+	 * @group ms-required
+	 */
+	public function test_create_item_permissions_check_allows_a_super_admin_of_the_target_network() {
+		$user       = self::factory()->user->create_and_get();
+		$network_id = self::factory()->network->create();
+		update_network_option( $network_id, 'site_admins', array( $user->user_login ) );
+		// create_sites is checked against the current network, so grant it there too.
+		grant_super_admin( $user->ID );
+		wp_set_current_user( $user->ID );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'network', $network_id );
+
+		$this->assertTrue( $this->endpoint->create_item_permissions_check( $request ) );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item_permissions_check
+	 * @covers ::check_network_ids_exist
+	 * @group ms-required
+	 */
+	public function test_update_item_permissions_check_invalid_network_id() {
+		$blog_id = self::factory()->blog->create();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+		$request->set_param( 'network', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item_permissions_check
+	 * @covers ::check_network_access
+	 * @group ms-required
+	 */
+	public function test_update_item_permissions_check_denies_moving_a_site_to_another_network() {
+		$blog_id    = self::factory()->blog->create();
+		$network_id = self::factory()->network->create();
+		delete_network_option( $network_id, 'site_admins' );
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+		$request->set_param( 'network', $network_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item_permissions_check
+	 * @covers ::check_network_access
+	 * @group ms-required
+	 */
+	public function test_update_item_permissions_check_allows_the_sites_own_network_by_default() {
+		$blog_id = self::factory()->blog->create();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @covers ::check_network_access
+	 * @group ms-required
+	 */
+	public function test_get_item_permissions_check_denies_a_site_on_another_network() {
+		wp_set_current_user( self::$superadmin_id );
+		$network_id = self::factory()->network->create();
+		delete_network_option( $network_id, 'site_admins' );
+		$blog_id = self::factory()->blog->create( array( 'site_id' => $network_id ) );
+
+		wp_set_current_user( self::factory()->user->create() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @covers ::check_network_access
+	 * @group ms-required
+	 */
+	public function test_get_item_permissions_check_allows_a_site_on_the_current_network() {
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create();
+		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
 	}
 }

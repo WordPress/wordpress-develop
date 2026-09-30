@@ -17,6 +17,14 @@
 class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 7.2.0
+	 * @var false
+	 */
+	protected $allow_batch = false;
+
+	/**
 	 * Instance of a site meta fields object.
 	 *
 	 * @since 7.2.0
@@ -60,7 +68,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -72,7 +81,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
-				'args'   => array(
+				'args'        => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the object.' ),
 						'type'        => 'integer',
@@ -104,7 +113,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 	}
@@ -130,6 +140,30 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		// Without that capability a user may still ask for their own sites.
 		if ( $this->is_own_user_filter( $request ) ) {
 			return true;
+		}
+
+		if ( isset( $request['network'] ) ) {
+			$network_check = $this->check_network_ids_exist( (array) $request['network'] );
+			if ( is_wp_error( $network_check ) ) {
+				return $network_check;
+			}
+
+			$network_access = $this->check_network_access( get_current_user_id(), (array) $request['network'] );
+			if ( is_wp_error( $network_access ) ) {
+				return $network_access;
+			}
+		}
+
+		if ( isset( $request['network_exclude'] ) ) {
+			$network_check = $this->check_network_ids_exist( (array) $request['network_exclude'] );
+			if ( is_wp_error( $network_check ) ) {
+				return $network_check;
+			}
+
+			$network_access = $this->check_network_access( get_current_user_id(), (array) $request['network_exclude'] );
+			if ( is_wp_error( $network_access ) ) {
+				return $network_access;
+			}
 		}
 
 		return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -401,6 +435,18 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $site;
 		}
 
+		if ( $site->network_id > 0 ) {
+			$network_check = $this->check_network_ids_exist( (array) $site->network_id );
+			if ( is_wp_error( $network_check ) ) {
+				return $network_check;
+			}
+
+			$network_access = $this->check_network_access( get_current_user_id(), (array) $site->network_id );
+			if ( is_wp_error( $network_access ) ) {
+				return $network_access;
+			}
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		if ( in_array( $context, array( 'view', 'embed' ), true ) && is_user_member_of_blog( get_current_user_id(), (int) $site->blog_id ) ) {
@@ -409,6 +455,55 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! $this->check_edit_permission() ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validates that all network IDs in a request parameter exist.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int[] $network_ids Array of network IDs.
+	 * @return true|WP_Error True if all network IDs are valid, WP_Error otherwise.
+	 */
+	protected function check_network_ids_exist( array $network_ids ) {
+		foreach ( $network_ids as $network_id ) {
+			if ( ! get_network( $network_id ) ) {
+				return new WP_Error( 'rest_network_id_invalid', __( 'Invalid network ID.' ), array( 'status' => 400 ) );
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks if a user can access sites on the given networks.
+	 *
+	 * A user can always access the current network. Access to any other
+	 * network requires the user to be a super admin of that network.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int   $user_id     User ID.
+	 * @param int[] $network_ids Array of network IDs.
+	 * @return true|WP_Error True if the user can access all given networks, WP_Error otherwise.
+	 */
+	protected function check_network_access( $user_id, array $network_ids ) {
+		$current_network_id = get_current_network_id();
+		if ( count( $network_ids ) === 1 && $current_network_id === $network_ids[0] ) {
+			return true;
+		}
+
+		foreach ( $network_ids as $network_id ) {
+			if ( (int) $network_id === $current_network_id ) {
+				continue;
+			}
+
+			if ( ! is_super_admin( $user_id, $network_id ) ) {
+				return new WP_Error( 'rest_cannot_view_network', __( 'Sorry, you are not allowed to access sites on this network.' ), array( 'status' => rest_authorization_required_code() ) );
+			}
 		}
 
 		return true;
@@ -446,6 +541,19 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$multisite_support = $this->check_multisite_support();
 		if ( is_wp_error( $multisite_support ) ) {
 			return $multisite_support;
+		}
+
+		$network_id = isset( $request['network'] ) ? (int) $request['network'] : get_current_network_id();
+		if ( $network_id > 0 ) {
+			$network_check = $this->check_network_ids_exist( (array) $network_id );
+			if ( is_wp_error( $network_check ) ) {
+				return $network_check;
+			}
+
+			$network_access = $this->check_network_access( get_current_user_id(), (array) $network_id );
+			if ( is_wp_error( $network_access ) ) {
+				return $network_access;
+			}
 		}
 
 		if ( ! current_user_can( 'create_sites' ) ) {
@@ -571,6 +679,19 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$site = $this->get_site( $request['id'] );
 		if ( is_wp_error( $site ) ) {
 			return $site;
+		}
+
+		$network_id = isset( $request['network'] ) ? (int) $request['network'] : $site->network_id;
+		if ( $network_id > 0 ) {
+			$network_check = $this->check_network_ids_exist( (array) $network_id );
+			if ( is_wp_error( $network_check ) ) {
+				return $network_check;
+			}
+
+			$network_access = $this->check_network_access( get_current_user_id(), (array) $network_id );
+			if ( is_wp_error( $network_access ) ) {
+				return $network_access;
+			}
 		}
 
 		if ( ! $this->check_edit_permission() ) {
@@ -981,9 +1102,9 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			$prepared_site['domain'] = $request['domain'];
 		}
 
-		$domain_check = $this->check_domain_is_available( $prepared_site, $request );
-		if ( is_wp_error( $domain_check ) ) {
-			return $domain_check;
+		$url_check = $this->check_url_is_available( $prepared_site, $request );
+		if ( is_wp_error( $url_check ) ) {
+			return $url_check;
 		}
 
 		/**
@@ -1167,7 +1288,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request       The current request.
 	 * @return true|WP_Error True if the domain and path are available, WP_Error otherwise.
 	 */
-	protected function check_domain_is_available( $prepared_site, $request ) {
+	protected function check_url_is_available( $prepared_site, $request ) {
 		$id         = (int) $request['id'];
 		$domain     = isset( $prepared_site['domain'] ) ? $prepared_site['domain'] : '';
 		$path       = isset( $prepared_site['path'] ) ? $prepared_site['path'] : '/';

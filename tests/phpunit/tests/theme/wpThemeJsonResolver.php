@@ -61,11 +61,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
-	/**
-	 * @var array|null
-	 */
-	private $queries;
-
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
@@ -108,7 +103,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
-		$this->queries = array();
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
