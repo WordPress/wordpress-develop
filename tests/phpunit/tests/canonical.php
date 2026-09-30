@@ -433,10 +433,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$first_run = redirect_guess_404_permalink();
 		$this->assertSame( get_permalink( $post ), $first_run, 'Did not guess the correct permalink on first run.' );
 
-		$num_queries = get_num_queries();
+		$start_num_queries = get_num_queries();
 		$second_run  = redirect_guess_404_permalink();
 		$this->assertSame( $first_run, $second_run, 'Result changed between cached and uncached run.' );
-		$this->assertSame( $num_queries, get_num_queries(), 'A cached lookup performed an additional database query.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached lookup performed an additional database query.' );
 	}
 
 	/**
@@ -449,9 +449,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug.' );
 
-		$num_queries = get_num_queries();
+		$start_num_queries = get_num_queries();
 		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug on second run.' );
-		$this->assertSame( $num_queries, get_num_queries(), 'A cached "not found" result performed an additional database query.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached "not found" result performed an additional database query.' );
 	}
 
 	/**
@@ -471,9 +471,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		$num_queries = get_num_queries();
+		$start_num_queries = get_num_queries();
 		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink(), 'Newly created matching post was not found after cache invalidation.' );
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'Expected exactly one new query after the posts cache was invalidated.' );
+		$this->assertSame( 1, get_num_queries() - $start_num_queries, 'Expected exactly one new query after the posts cache was invalidated.' );
 	}
 
 	/**
@@ -494,9 +494,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		wp_delete_post( $post, true );
 
-		$num_queries = get_num_queries();
+		$start_num_queries = get_num_queries();
 		$this->assertFalse( redirect_guess_404_permalink(), 'Deleted post should no longer be guessed after cache invalidation.' );
-		$this->assertSame( 1, get_num_queries() - $num_queries, 'Expected exactly one new query after the posts cache was invalidated by deletion.' );
+		$this->assertSame( 1, get_num_queries() - $start_num_queries, 'Expected exactly one new query after the posts cache was invalidated by deletion.' );
 	}
 
 	/**
@@ -522,9 +522,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink(), 'Setting post type to post did not return the post permalink.' );
 
 		// Re-run without navigating away (go_to() flushes the object cache) to confirm the cached result is reused.
-		$num_queries = get_num_queries();
+		$start_num_queries = get_num_queries();
 		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink(), 'Result changed between cached and uncached run.' );
-		$this->assertSame( $num_queries, get_num_queries(), 'A cached lookup performed an additional database query.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached lookup performed an additional database query.' );
 
 		$this->go_to( '/?name=redirect-guess-collisio&post_type=page' );
 		$this->assertSame( get_permalink( $page_post ), redirect_guess_404_permalink(), 'Setting post type to page did not return the page permalink.' );
