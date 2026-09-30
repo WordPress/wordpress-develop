@@ -409,10 +409,20 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		$page_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/pages/%d', $page_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->check_get_post_response( $response, 'view' );
 	}
 
 	public function test_get_item_invalid_post_type() {
