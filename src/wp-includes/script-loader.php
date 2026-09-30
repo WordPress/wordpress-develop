@@ -3623,7 +3623,7 @@ function wp_enqueue_command_palette_assets() {
 	/*
 	 * Styles for teletype easter egg.
 	 *
-	 * These are added to the DOM via the teletype CSS if the
+	 * These are added to the DOM via the teletype JavaScript if the
 	 * easter egg is activated. Stored here to allow for HEREDOC
 	 * highlighting by IDEs.
 	 */
