@@ -731,23 +731,23 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	/**
 	 * @ticket 39082
 	 * @group ms-required
+	 * @dataProvider data_my_sites_network_menu_items
 	 */
-	public function test_my_sites_network_menu_for_regular_user() {
+	public function test_my_sites_network_menu_for_regular_user( $id, $cap ) {
 		wp_set_current_user( self::$editor_id );
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
 
 		$nodes = $wp_admin_bar->get_nodes();
-		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %s must not display for a regular user.', $id ) );
-		}
+		$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %s must not display for a regular user.', $id ) );
 	}
 
 	/**
 	 * @ticket 39082
 	 * @group ms-required
+	 * @dataProvider data_my_sites_network_menu_items
 	 */
-	public function test_my_sites_network_menu_for_super_admin() {
+	public function test_my_sites_network_menu_for_super_admin( $id, $cap ) {
 		wp_set_current_user( self::$editor_id );
 
 		grant_super_admin( self::$editor_id );
@@ -755,16 +755,15 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		revoke_super_admin( self::$editor_id );
 
 		$nodes = $wp_admin_bar->get_nodes();
-		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %s must display for a super admin.', $id ) );
-		}
+		$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %s must display for a super admin.', $id ) );
 	}
 
 	/**
 	 * @ticket 39082
 	 * @group ms-required
+	 * @dataProvider data_my_sites_network_menu_items
 	 */
-	public function test_my_sites_network_menu_for_regular_user_with_network_caps() {
+	public function test_my_sites_network_menu_for_regular_user_with_network_caps( $id, $cap ) {
 		global $current_user;
 
 		$network_user_caps = array( 'manage_network', 'manage_network_themes', 'manage_network_plugins' );
@@ -780,26 +779,129 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		}
 
 		$nodes = $wp_admin_bar->get_nodes();
-		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			if ( in_array( $cap, $network_user_caps, true ) ) {
-				$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
-			} else {
-				$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
-			}
+		if ( in_array( $cap, $network_user_caps, true ) ) {
+			$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
+		} else {
+			$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
 		}
 	}
 
-	private function get_my_sites_network_menu_items() {
+	/**
+	 * Data provider for test_my_sites_network_menu_for_regular_user() and
+	 * test_my_sites_network_menu_for_super_admin().
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $id  The ID of the menu item.
+	 *         @type string $cap The capability required to see the menu item.
+	 *     }
+	 * }
+	 */
+	public function data_my_sites_network_menu_items() {
 		return array(
-			'my-sites-super-admin' => 'manage_network',
-			'network-admin'        => 'manage_network',
-			'network-admin-d'      => 'manage_network',
-			'network-admin-s'      => 'manage_sites',
-			'network-admin-u'      => 'manage_network_users',
-			'network-admin-t'      => 'manage_network_themes',
-			'network-admin-p'      => 'manage_network_plugins',
-			'network-admin-o'      => 'manage_network_options',
+			array( 'my-sites-super-admin', 'manage_network' ),
+			array( 'network-admin', 'manage_network' ),
+			array( 'network-admin-d', 'manage_network' ),
+			array( 'network-admin-s', 'manage_sites' ),
+			array( 'network-admin-u', 'manage_network_users' ),
+			array( 'network-admin-t', 'manage_network_themes' ),
+			array( 'network-admin-p', 'manage_network_plugins' ),
+			array( 'network-admin-o', 'manage_network_options' ),
 		);
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 */
+	public function test_site_name_menu_has_no_site_icon_when_unset() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_includes_site_icon_when_set() {
+		wp_set_current_user( self::$editor_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertStringContainsString( '<img class="site-icon"', $node_site_name->title );
+		$this->assertStringContainsString( esc_url( get_site_icon_url( 32 ) ), $node_site_name->title );
+		$this->assertSame( 'has-site-icon', $node_site_name->meta['class'] );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_respects_show_site_icons_filter() {
+		wp_set_current_user( self::$editor_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		add_filter( 'wp_admin_bar_show_site_icons', '__return_false' );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @group multisite
+	 * @group ms-required
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_has_no_site_icon_in_network_admin() {
+		wp_set_current_user( self::$admin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		set_current_screen( 'dashboard-network' );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertTrue( is_network_admin() );
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @group multisite
+	 * @group ms-required
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_has_no_site_icon_in_user_admin() {
+		wp_set_current_user( self::$admin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		set_current_screen( 'dashboard-user' );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertTrue( is_user_admin() );
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
 	}
 
 	/**

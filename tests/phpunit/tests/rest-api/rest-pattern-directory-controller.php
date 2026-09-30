@@ -82,7 +82,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 */
 	public function assertPatternMatchesSchema( $pattern ) {
 		$schema     = static::$controller->get_item_schema();
-		$pattern_id = isset( $pattern->id ) ? $pattern->id : '{pattern ID is missing}';
+		$pattern_id = $pattern->id ?? '{pattern ID is missing}';
 
 		$this->assertTrue(
 			rest_validate_value_from_schema( $pattern, $schema ),
@@ -679,14 +679,34 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
+	 * @ticket 40538
+	 *
 	 * @covers WP_REST_Pattern_Directory_Controller::get_item_schema
 	 *
 	 * @since 5.8.0
-	 *
-	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
-		// The controller's schema is hardcoded, so tests would not be meaningful.
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/pattern-directory/patterns' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( 'pattern-directory-item', $data['schema']['title'] );
+
+		$properties = $data['schema']['properties'];
+		$this->assertSameSets(
+			array(
+				'id',
+				'title',
+				'content',
+				'categories',
+				'keywords',
+				'description',
+				'viewport_width',
+				'block_types',
+			),
+			array_keys( $properties )
+		);
 	}
 
 	/**
@@ -707,7 +727,9 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 */
 	public function test_transient_keys_get_generated_correctly( $parameters_1, $parameters_2, $message, $assert_same = true ) {
 		$reflection_method = new ReflectionMethod( static::$controller, 'get_transient_key' );
-		$reflection_method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_method->setAccessible( true );
+		}
 
 		$result_1 = $reflection_method->invoke( self::$controller, $parameters_1 );
 		$result_2 = $reflection_method->invoke( self::$controller, $parameters_2 );

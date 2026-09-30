@@ -64,6 +64,6 @@ class Tests_XMLRPC_wp_editProfile extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$user_data = get_userdata( $editor_id );
-		$this->assertNotEquals( $new_email, $user_data->email );
+		$this->assertNotSame( $new_email, $user_data->user_email );
 	}
 }

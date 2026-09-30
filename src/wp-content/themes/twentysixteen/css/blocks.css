@@ -111,6 +111,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	color: inherit;
 }
 
+.has-text-color .wp-block-quote:not(.has-text-color),
+.has-text-color .wp-block-quote:not(.has-text-color) cite {
+	color: inherit;
+}
+
 .wp-block-quote cite:before {
 	content: "\2014\00a0";
 }

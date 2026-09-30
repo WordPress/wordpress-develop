@@ -63,7 +63,9 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		// Setup an empty testing instance of `WP_Block_Pattern_Categories_Registry` and save the original.
 		self::$orig_registry              = WP_Block_Pattern_Categories_Registry::get_instance();
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Pattern_Categories_Registry', 'instance' );
-		self::$registry_instance_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( true );
+		}
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
 		self::$registry_instance_property->setValue( null, $test_registry );
 
@@ -89,7 +91,10 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 
 		// Restore the original registry instance.
 		self::$registry_instance_property->setValue( null, self::$orig_registry );
-		self::$registry_instance_property->setAccessible( false );
+
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( false );
+		}
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
 	}
@@ -136,8 +141,6 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 
 	/**
 	 * @ticket 56481
-	 *
-	 * @param string $path The path to test.
 	 */
 	public function test_head_request_with_specified_fields_returns_success_response() {
 		wp_set_current_user( self::$admin_id );
@@ -223,9 +226,19 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Pattern_Categories_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertCount( 3, $properties, 'The schema should contain 3 properties.' );
+		$this->assertArrayHasKey( 'name', $properties, 'The schema should contain a name property.' );
+		$this->assertArrayHasKey( 'label', $properties, 'The schema should contain a label property.' );
+		$this->assertArrayHasKey( 'description', $properties, 'The schema should contain a description property.' );
 	}
 }

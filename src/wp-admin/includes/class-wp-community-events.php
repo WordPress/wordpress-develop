@@ -39,7 +39,7 @@ class WP_Community_Events {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @param int        $user_id       WP user ID.
+	 * @param int         $user_id       WP user ID.
 	 * @param false|array $user_location {
 	 *     Stored location data for the user. false to pass no location.
 	 *
@@ -122,7 +122,7 @@ class WP_Community_Events {
 		} elseif ( ! isset( $response_body['location'], $response_body['events'] ) ) {
 			$response_error = new WP_Error(
 				'api-invalid-response',
-				isset( $response_body['error'] ) ? $response_body['error'] : __( 'Unknown API error.' )
+				$response_body['error'] ?? __( 'Unknown API error.' )
 			);
 		}
 

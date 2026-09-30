@@ -421,8 +421,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		if ( $request->is_method( 'get' ) ) {
 			$this->assertCount( $total_posts - 2, $data );
-			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
-			$this->assertNotEquals( self::$author_id, $data[0]['author'] );
+			$this->assertNotSame( self::$editor_id, $data[0]['author'] );
+			$this->assertNotSame( self::$author_id, $data[0]['author'] );
 		} else {
 			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
@@ -438,8 +438,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		if ( $request->is_method( 'get' ) ) {
 			$this->assertCount( $total_posts - 1, $data );
-			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
-			$this->assertNotEquals( self::$editor_id, $data[1]['author'] );
+			$this->assertNotSame( self::$editor_id, $data[0]['author'] );
+			$this->assertNotSame( self::$editor_id, $data[1]['author'] );
 		} else {
 			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
@@ -880,7 +880,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotEmpty( $all_data );
 
 		foreach ( $all_data as $post ) {
-			$this->assertNotEquals( $draft_id, $post['id'] );
+			$this->assertNotSame( $draft_id, $post['id'] );
 		}
 	}
 
@@ -2775,6 +2775,36 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		);
 	}
 
+	/**
+	 * Test that the `class_list` property is a list.
+	 *
+	 * @ticket 64247
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
+	public function test_class_list_is_list() {
+		$post_id = self::factory()->post->create();
+
+		// Filter 'post_class' to add a duplicate which should be removed by `array_unique()`.
+		add_filter(
+			'post_class',
+			function ( $classes ) {
+				return array_merge(
+					array( 'duplicate-class', 'duplicate-class' ),
+					$classes
+				);
+			}
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'class_list', $data );
+		$this->assertContains( 'duplicate-class', $data['class_list'] );
+		$this->assertTrue( array_is_list( $data['class_list'] ), 'Expected class_list to be a list.' );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 
@@ -3014,7 +3044,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
 		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
-		$this->assertNotEquals( '0000-00-00T00:00:00', $data['date_gmt'] );
+		$this->assertNotSame( '0000-00-00T00:00:00', $data['date_gmt'] );
 
 		$this->check_create_post_response( $response );
 
@@ -3298,6 +3328,111 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$data     = $response->get_data();
 		$this->assertSame( 0, $data['featured_media'] );
 		$this->assertSame( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
+	}
+
+	/**
+	 * Data provider for featured media link permission tests.
+	 *
+	 * @return array
+	 */
+	public function data_featured_media_link_permissions() {
+		return array(
+			'unauthenticated user with draft parent attachment' => array(
+				'attachment_parent_status' => 'draft',
+				'attachment_status'        => 'inherit',
+				'user_id'                  => 0,
+				'expect_link'              => false,
+			),
+			'authenticated editor with draft parent attachment' => array(
+				'attachment_parent_status' => 'draft',
+				'attachment_status'        => 'inherit',
+				'user_id'                  => 'editor',
+				'expect_link'              => true,
+			),
+			'unauthenticated user with published attachment' => array(
+				'attachment_parent_status' => null,
+				'attachment_status'        => 'publish',
+				'user_id'                  => 0,
+				'expect_link'              => true,
+			),
+		);
+	}
+
+	/**
+	 * Tests that featured media links respect attachment permissions.
+	 *
+	 * @ticket 64183
+	 * @dataProvider data_featured_media_link_permissions
+	 *
+	 * @param string|null $attachment_parent_status Status of the attachment's parent post, or null for no parent.
+	 * @param string      $attachment_status Status to set on the attachment.
+	 * @param int|string  $user_id User ID (0 for unauthenticated) or 'editor' for editor role.
+	 * @param bool        $expect_link Whether the featured media link should be included.
+	 */
+	public function test_get_item_featured_media_link_permissions( $attachment_parent_status, $attachment_status, $user_id, $expect_link ) {
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		// Create attachment parent if needed.
+		$parent_post_id = 0;
+		if ( null !== $attachment_parent_status ) {
+			$parent_post_id = self::factory()->post->create(
+				array(
+					'post_title'  => 'Parent Post',
+					'post_status' => $attachment_parent_status,
+				)
+			);
+		}
+
+		// Create attachment.
+		$attachment_id = self::factory()->attachment->create_object(
+			$file,
+			$parent_post_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		// Set attachment status if different from default.
+		if ( 'publish' === $attachment_status ) {
+			wp_update_post(
+				array(
+					'ID'          => $attachment_id,
+					'post_status' => 'publish',
+				)
+			);
+		}
+
+		// Create published post with featured media.
+		$published_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Published Post',
+				'post_status' => 'publish',
+			)
+		);
+		set_post_thumbnail( $published_post_id, $attachment_id );
+
+		// Set current user.
+		if ( 'editor' === $user_id ) {
+			wp_set_current_user( self::$editor_id );
+		} else {
+			wp_set_current_user( $user_id );
+		}
+
+		// Make request.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $published_post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		// Assert link presence based on expectation.
+		if ( $expect_link ) {
+			$this->assertArrayHasKey( 'https://api.w.org/featuredmedia', $links );
+			$this->assertSame(
+				rest_url( '/wp/v2/media/' . $attachment_id ),
+				$links['https://api.w.org/featuredmedia'][0]['href']
+			);
+		} else {
+			$this->assertArrayNotHasKey( 'https://api.w.org/featuredmedia', $links );
+		}
 	}
 
 	public function test_create_post_invalid_author() {
@@ -3585,7 +3720,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_assign_term', $response, 403 );
 	}
@@ -3690,8 +3825,8 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		// Verify the post is set to the future date.
 		$this->assertSame( $new_data['date_gmt'], $future_date );
 		$this->assertSame( $new_data['date'], $future_date );
-		$this->assertNotEquals( $new_data['date_gmt'], $new_data['modified_gmt'] );
-		$this->assertNotEquals( $new_data['date'], $new_data['modified'] );
+		$this->assertNotSame( $new_data['date_gmt'], $new_data['modified_gmt'] );
+		$this->assertNotSame( $new_data['date'], $new_data['modified'] );
 
 		// Update post with a blank field (date or date_gmt).
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
@@ -3710,12 +3845,12 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
 		$this->assertSame( $new_data['date_gmt'], $new_data['date'] );
-		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
+		$this->assertNotSame( $new_data['date_gmt'], $future_date );
 
 		$post = get_post( $post_id, 'ARRAY_A' );
 		$this->assertSame( $post['post_date_gmt'], '0000-00-00 00:00:00' );
-		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
-		$this->assertNotEquals( $new_data['date'], $future_date );
+		$this->assertNotSame( $new_data['date_gmt'], $future_date );
+		$this->assertNotSame( $new_data['date'], $future_date );
 	}
 
 	public function test_rest_update_post_raw() {
@@ -4319,7 +4454,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_assign_term', $response, 403 );
 	}
@@ -4959,7 +5094,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, get_post_meta( $post_id, 'my_custom_int', true ) );
+		$this->assertSame( '123', get_post_meta( $post_id, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$request->set_body_params(
@@ -4971,7 +5106,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 123, $response->data['my_custom_int'] );
+		$this->assertSame( '123', $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
@@ -5536,7 +5671,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		$this->assertEqualsWithDelta( strtotime( mysql_to_rfc3339( $new_time ) ), strtotime( $body['date'] ), 2, 'The dates should be equal' );
 
-		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+		$this->assertNotSame( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
 
 	/**
@@ -5578,7 +5713,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertEqualsWithDelta( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 2, 'The dates should be equal' );
 		$this->assertEqualsWithDelta( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 2, 'The dates should be equal' );
 
-		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+		$this->assertNotSame( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
 
 	/**

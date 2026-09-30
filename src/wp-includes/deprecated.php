@@ -150,6 +150,7 @@ function previous_post($format='%', $previous='previous post: ', $title='yes', $
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$previous;
 	if ( 'yes' == $title )
+		/** This filter is documented in wp-includes/post-template.php */
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -185,6 +186,7 @@ function next_post($format='%', $next='next post: ', $title='yes', $in_same_cat=
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$next;
 	if ( 'yes' == $title )
+		/** This filter is documented in wp-includes/post-template.php */
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -1060,6 +1062,7 @@ function get_links_list($order = 'name') {
 			// Handle each category.
 
 			// Display the category name.
+			/** This filter is documented in wp-includes/bookmark-template.php */
 			echo '  <li id="linkcat-' . $cat->term_id . '" class="linkcat"><h2>' . apply_filters('link_category', $cat->name ) . "</h2>\n\t<ul>\n";
 			// Call get_links() with all the appropriate params.
 			get_links($cat->term_id, '<li>', "</li>", "\n", true, 'name', false);
@@ -1820,7 +1823,7 @@ function _nc( $single, $plural, $number, $domain = 'default' ) {
  * @deprecated 2.8.0 Use _n()
  * @see _n()
  */
-function __ngettext( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __ngettext( ...$args ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', '_n()' );
 	return _n( ...$args );
 }
@@ -1832,7 +1835,7 @@ function __ngettext( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameR
  * @deprecated 2.8.0 Use _n_noop()
  * @see _n_noop()
  */
-function __ngettext_noop( ...$args ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+function __ngettext_noop( ...$args ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', '_n_noop()' );
 	return _n_noop( ...$args );
 
@@ -2018,7 +2021,15 @@ function get_attachment_innerHTML($id = 0, $fullsize = false, $max_dims = false)
  *                            Default OBJECT.
  * @param string $filter      Optional. How to filter the link for output. Accepts 'raw', 'edit',
  *                            'attribute', 'js', 'db', or 'display'. Default 'raw'.
- * @return object|array Bookmark object or array, depending on the type specified by `$output`.
+ * @return object|array|null Bookmark object or array, depending on the type specified by `$output`.
+ *                            Null if the bookmark does not exist.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return null|(
+ *     $output is 'ARRAY_A' ? array<string, mixed> : (
+ *         $output is 'ARRAY_N' ? array<int, mixed> : stdClass
+ *     )
+ * )
  */
 function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmark()' );
@@ -2515,6 +2526,16 @@ function is_taxonomy( $taxonomy ) {
  * @param string $taxonomy The taxonomy name to use
  * @param int $parent ID of parent term under which to confine the exists search.
  * @return mixed Get the term ID or term object, if exists.
+ *
+ * @phpstan-return (
+ *     $term is 0
+ *         ? 0
+ *         : (
+ *             $term is ''
+ *                 ? null
+ *                 : ( $taxonomy is '' ? string|null : array{ term_id: string, term_taxonomy_id: string }|null )
+ *         )
+ * )
  */
 function is_term( $term, $taxonomy = '', $parent = 0 ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'term_exists()' );
@@ -2702,6 +2723,7 @@ function get_boundary_post_rel_link($title = '%title', $in_same_cat = false, $ex
 
 	$title = str_replace('%title', $post->post_title, $title);
 	$title = str_replace('%date', $date, $title);
+	/** This filter is documented in wp-includes/post-template.php */
 	$title = apply_filters('the_title', $title, $post->ID);
 
 	$link = $start ? "<link rel='start' title='" : "<link rel='end' title='";
@@ -2779,6 +2801,7 @@ function get_parent_post_rel_link( $title = '%title' ) {
 
 	$title = str_replace('%title', $post->post_title, $title);
 	$title = str_replace('%date', $date, $title);
+	/** This filter is documented in wp-includes/post-template.php */
 	$title = apply_filters('the_title', $title, $post->ID);
 
 	$link = "<link rel='up' title='";
@@ -3371,7 +3394,7 @@ function wp_convert_bytes_to_hr( $bytes ) {
 
 	$units = array( 0 => 'B', 1 => 'KB', 2 => 'MB', 3 => 'GB', 4 => 'TB' );
 	$log   = log( $bytes, KB_IN_BYTES );
-	$power = (int) $log;
+	$power = ! is_nan( $log ) && ! is_infinite( $log ) ? (int) $log : 0;
 	$size  = KB_IN_BYTES ** ( $log - $power );
 
 	if ( ! is_nan( $size ) && array_key_exists( $power, $units ) ) {
@@ -4264,9 +4287,7 @@ function wp_render_duotone_filter_preset( $preset ) {
 function wp_skip_border_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$border_support = isset( $block_type->supports['__experimentalBorder'] )
-		? $block_type->supports['__experimentalBorder']
-		: false;
+	$border_support = $block_type->supports['__experimentalBorder'] ?? false;
 
 	return is_array( $border_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
@@ -4288,9 +4309,7 @@ function wp_skip_border_serialization( $block_type ) {
 function wp_skip_dimensions_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$dimensions_support = isset( $block_type->supports['__experimentalDimensions'] )
-		? $block_type->supports['__experimentalDimensions']
-		: false;
+	$dimensions_support = $block_type->supports['__experimentalDimensions'] ?? false;
 
 	return is_array( $dimensions_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
@@ -4312,9 +4331,7 @@ function wp_skip_dimensions_serialization( $block_type ) {
 function wp_skip_spacing_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$spacing_support = isset( $block_type->supports['spacing'] )
-		? $block_type->supports['spacing']
-		: false;
+	$spacing_support = $block_type->supports['spacing'] ?? false;
 
 	return is_array( $spacing_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
@@ -4570,6 +4587,13 @@ function _filter_query_attachment_filenames( $clauses ) {
  *                                 respectively. Default OBJECT.
  * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? non-empty-array<string, mixed>|null : (
+ *         $output is 'ARRAY_N' ? non-empty-array<int, mixed>|null : WP_Post|null
+ *     )
+ * )
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
 	_deprecated_function( __FUNCTION__, '6.2.0', 'WP_Query' );
@@ -4796,7 +4820,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		return $image;
 	}
 
-	/** This filter is documented in wp-admin/includes/media.php */
+	/** This filter is documented in wp-includes/media.php */
 	$value = apply_filters( 'wp_img_tag_add_loading_attr', $value, $image, $context );
 
 	if ( $value ) {
@@ -5897,10 +5921,9 @@ function _wp_theme_json_webfonts_handler() {
 function print_embed_styles() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	$suffix    = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
 	?>
-	<style<?php echo $type_attr; ?>>
+	<style>
 		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
 	</style>
 	<?php
@@ -5922,9 +5945,8 @@ function print_emoji_styles() {
 
 	$printed = true;
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?>>
+	<style>
 	img.wp-smiley,
 	img.emoji {
 		display: inline !important;
@@ -5949,9 +5971,8 @@ function print_emoji_styles() {
  */
 function wp_admin_bar_header() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?> media="print">#wpadminbar { display:none; }</style>
+	<style media="print">#wpadminbar { display:none; }</style>
 	<?php
 }
 
@@ -5963,9 +5984,8 @@ function wp_admin_bar_header() {
  */
 function _admin_bar_bump_cb() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_bump_styles' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?> media="screen">
+	<style media="screen">
 	html { margin-top: 32px !important; }
 	@media screen and ( max-width: 782px ) {
 	  html { margin-top: 46px !important; }
@@ -6176,7 +6196,9 @@ function the_block_template_skip_link() {
 			padding: 0;
 			position: absolute !important;
 			width: 1px;
+			/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 			word-wrap: normal !important;
+			word-break: normal !important;
 		}
 
 		.skip-link.screen-reader-text:focus {
@@ -6397,7 +6419,6 @@ function wp_enqueue_global_styles_custom_css() {
  *
  * @param array  $block     Block object.
  * @param string $variation Slug for the block style variation.
- *
  * @return string The unique variation name.
  */
 function wp_create_block_style_variation_instance_name( $block, $variation ) {
@@ -6460,4 +6481,98 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
 
 	return $editor_settings;
+}
+
+/**
+ * Prints a CSS rule to fix potential visual issues with images using `sizes=auto`.
+ *
+ * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
+ * `width: auto` or `width: fit-content` to appear smaller.
+ *
+ * @since 6.7.1
+ * @deprecated 6.9.0 Use wp_enqueue_img_auto_sizes_contain_css_fix() instead.
+ * @see wp_enqueue_img_auto_sizes_contain_css_fix()
+ *
+ * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
+ * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62731
+ */
+function wp_print_auto_sizes_contain_css_fix() {
+	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_enqueue_img_auto_sizes_contain_css_fix' );
+
+	/** This filter is documented in wp-includes/media.php */
+	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
+	if ( ! $add_auto_sizes ) {
+		return;
+	}
+
+	?>
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	<?php
+}
+
+/**
+ * Adds slashes to a string or recursively adds slashes to strings within an array.
+ *
+ * This function is just a wrapper for `wp_slash()`. It was originally related to
+ * magic quotes functionality which was deprecated in PHP 5.3.0 and removed in PHP 5.4.0.
+ *
+ * @since 0.71
+ * @deprecated 7.0.0 Use wp_slash() instead.
+ * @see wp_slash()
+ *
+ * @param string|array $gpc String or array of data to slash.
+ * @return string|array Slashed `$gpc`.
+ *
+ * @phpstan-return ( $gpc is string ? string : array )
+ */
+function addslashes_gpc( $gpc ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_slash()' );
+	return wp_slash( $gpc );
+}
+
+/**
+ * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
+ *
+ * This function is deprecated, use {@see wp_get_script_tag()} or {@see wp_get_inline_script_tag()} instead.
+ *
+ * @since 5.7.0
+ * @deprecated 7.0.0 Use wp_get_script_tag() or wp_get_inline_script_tag().
+ * @see wp_get_script_tag()
+ * @see wp_get_inline_script_tag()
+ *
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string String made of sanitized `<script>` tag attributes.
+ */
+function wp_sanitize_script_attributes( $attributes ) {
+	_deprecated_function( __FUNCTION__, '7.0.0', 'wp_get_script_tag() or wp_get_inline_script_tag()' );
+
+	$attributes_string = '';
+	foreach ( $attributes as $attribute_name => $attribute_value ) {
+		if ( is_bool( $attribute_value ) ) {
+			if ( $attribute_value ) {
+				$attributes_string .= ' ' . esc_attr( $attribute_name );
+			}
+		} else {
+			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
+	}
+	return $attributes_string;
+}
+
+/**
+ * Truncates a post slug.
+ *
+ * @since 3.6.0
+ * @deprecated 7.2.0 Use wp_truncate_slug() instead.
+ * @see wp_truncate_slug()
+ *
+ * @param string $slug   The slug to truncate.
+ * @param int    $length Optional. Max length of the slug. Default 200 (characters).
+ * @return string The truncated slug.
+ */
+function _truncate_post_slug( $slug, $length = 200 ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'wp_truncate_slug()' );
+
+	return wp_truncate_slug( $slug, $length );
 }

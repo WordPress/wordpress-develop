@@ -57,7 +57,24 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			}
 		}
 
+		remove_filter( 'map_meta_cap', array( $this, 'deny_manage_privacy_options' ), 10 );
+
 		parent::tear_down();
+	}
+
+	/**
+	 * Maps `manage_privacy_options` to `do_not_allow`, as happens for a site
+	 * administrator on multisite.
+	 *
+	 * @param string[] $caps Primitive capabilities required.
+	 * @param string   $cap  Capability being checked.
+	 * @return string[] Primitive capabilities required.
+	 */
+	public function deny_manage_privacy_options( $caps, $cap ) {
+		if ( 'manage_privacy_options' === $cap ) {
+			return array( 'do_not_allow' );
+		}
+		return $caps;
 	}
 
 	public function test_register_routes() {
@@ -116,6 +133,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'show_on_front',
 			'page_on_front',
 			'page_for_posts',
+			'page_for_privacy_policy',
 			'default_ping_status',
 			'default_comment_status',
 			'site_icon', // Registered in wp-includes/blocks/site-logo.php
@@ -403,6 +421,40 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( get_option( 'blogname' ), $data['title'] );
 	}
 
+	public function test_update_item_privacy_policy_page() {
+		wp_set_current_user( self::$administrator );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$administrator );
+		}
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'page_for_privacy_policy', $page_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $page_id, $data['page_for_privacy_policy'] );
+		$this->assertSame( $page_id, (int) get_option( 'wp_page_for_privacy_policy' ) );
+	}
+
+	public function test_update_item_privacy_policy_page_without_capability() {
+		wp_set_current_user( self::$administrator );
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'wp_page_for_privacy_policy', $page_id );
+		$other_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		add_filter( 'map_meta_cap', array( $this, 'deny_manage_privacy_options' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'page_for_privacy_policy', $other_page_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $page_id, $data['page_for_privacy_policy'], 'The response should still report the previous page.' );
+		$this->assertSame( $page_id, (int) get_option( 'wp_page_for_privacy_policy' ), 'The option should not change.' );
+	}
+
 	public function update_setting_custom_callback( $result, $name, $value, $args ) {
 		if ( 'title' === $name && 'The new title!' === $value ) {
 			// Do not allow changing the title in this case.
@@ -631,8 +683,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_update_item_with_invalid_enum() {
-		update_option( 'posts_per_page', 9 );
-
 		wp_set_current_user( self::$administrator );
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
 		$request->set_param( 'default_ping_status', 'open&closed' );
@@ -676,10 +726,46 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Settings_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$expected   = array(
+			'title',
+			'description',
+			'timezone',
+			'date_format',
+			'time_format',
+			'site_logo',
+			'start_of_week',
+			'language',
+			'use_smilies',
+			'default_category',
+			'default_post_format',
+			'posts_per_page',
+			'show_on_front',
+			'page_on_front',
+			'page_for_posts',
+			'page_for_privacy_policy',
+			'default_ping_status',
+			'default_comment_status',
+			'site_icon',
+		);
+
+		if ( ! is_multisite() ) {
+			$expected[] = 'url';
+			$expected[] = 'email';
+		}
+
+		$this->assertSame( 'settings', $data['schema']['title'] );
+		$this->assertSameSets( $expected, array_keys( $properties ) );
 	}
 
 	/**
@@ -794,6 +880,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'string', $title['type'] );
 		$this->assertSame( 'Title', $title['title'] );
 		$this->assertSame( 'Site title.', $title['description'] );
-		$this->assertSame( null, $title['default'] );
+		$this->assertNull( $title['default'] );
 	}
 }

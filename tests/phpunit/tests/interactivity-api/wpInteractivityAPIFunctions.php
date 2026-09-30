@@ -282,7 +282,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	public function test_process_directives_only_process_the_root_interactive_blocks() {
 		$class                = new ReflectionClass( 'WP_Interactivity_API' );
 		$directive_processors = $class->getProperty( 'directive_processors' );
-		$directive_processors->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$directive_processors->setAccessible( true );
+		}
 		$old_directive_processors = $directive_processors->getValue();
 		$directive_processors->setValue( null, array( 'data-wp-test' => array( $this, 'data_wp_test_processor' ) ) );
 		$html                               = '<div data-wp-test></div>';

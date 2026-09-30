@@ -47,7 +47,7 @@ if ( ! current_user_can( 'upgrade_network' ) ) {
 echo '<div class="wrap">';
 echo '<h1>' . __( 'Upgrade Network' ) . '</h1>';
 
-$action = isset( $_GET['action'] ) ? $_GET['action'] : 'show';
+$action = $_GET['action'] ?? 'show';
 
 switch ( $action ) {
 	case 'upgrade':
@@ -124,7 +124,7 @@ switch ( $action ) {
 		}
 		echo '</ul>';
 		?><p><?php _e( 'If your browser does not start loading the next page automatically, click this link:' ); ?> <a class="button" href="upgrade.php?action=upgrade&amp;n=<?php echo ( $n + 5 ); ?>"><?php _e( 'Next Sites' ); ?></a></p>
-		<script type="text/javascript">
+		<script>
 		<!--
 		function nextpage() {
 			location.href = "upgrade.php?action=upgrade&n=<?php echo ( $n + 5 ); ?>";
