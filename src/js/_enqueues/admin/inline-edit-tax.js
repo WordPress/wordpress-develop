@@ -13,12 +13,11 @@ window.wp = window.wp || {};
  *
  * @namespace inlineEditTax
  *
- * @property {string} type The type of inline edit we are currently on.
- * @property {string} what The type property with a hash prefixed and a dash
- *                         suffixed.
+ * @property {string}       type The type of inline edit we are currently on.
+ * @property {string}       what The type property with a hash prefixed and a dash suffixed.
  *
- * @param {JQueryStatic} $  The jQuery object.
- * @param {Object}       wp The WordPress object.
+ * @param    {JQueryStatic} $    The jQuery object.
+ * @param    {Object}       wp   The WordPress object.
  */
 ( function( $, wp ) {
 
@@ -30,7 +29,7 @@ window.inlineEditTax = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @this inlineEditTax
+	 * @this {inlineEditTax}
 	 * @memberof inlineEditTax
 	 * @return {void}
 	 */
@@ -94,7 +93,7 @@ window.inlineEditTax = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @this inlineEditTax
+	 * @this {inlineEditTax}
 	 * @memberof inlineEditTax
 	 *
 	 * @param {HTMLElement} el An element within the table row or the table row
@@ -112,12 +111,12 @@ window.inlineEditTax = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @this inlineEditTax
+	 * @this {inlineEditTax}
 	 * @memberof inlineEditTax
 	 *
 	 * @param {string|HTMLElement} id The ID of the term we want to quick edit or an
 	 *                                element within the table row or the
-	 * table row itself.
+	 *                                table row itself.
 	 * @return {boolean} Always returns false.
 	 */
 	edit : function(id) {
@@ -159,12 +158,12 @@ window.inlineEditTax = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @this inlineEditTax
+	 * @this {inlineEditTax}
 	 * @memberof inlineEditTax
 	 *
 	 * @param {string|HTMLElement} id The ID of the term we want to quick edit or an
 	 *                                element within the table row or the
-	 * table row itself.
+	 *                                table row itself.
 	 * @return {boolean} Always returns false.
 	 */
 	save : function(id) {
@@ -256,7 +255,7 @@ window.inlineEditTax = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @this inlineEditTax
+	 * @this {inlineEditTax}
 	 * @memberof inlineEditTax
 	 * @return {void}
 	 */

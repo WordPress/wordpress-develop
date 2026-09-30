@@ -119,11 +119,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php
 		-
-			message: '#^Parameter \#1 \$bytes of function size_format expects int\|string, float\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-site-health.php
-		-
 			message: '#^Parameter \#2 \$allowed_html of function wp_kses expects array\<array\>\|string, array\<string, array\<string, bool\>\|true\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -364,7 +359,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/install.php
 		-
-			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int given\.$#'
+			message: '#^Parameter \#2 \$menu_data of function wp_save_nav_menu_items expects array\<array\>, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/nav-menus.php
@@ -734,7 +729,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\|string\|false\> given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\<min, \-1\>\|int\<1, max\>\|string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
@@ -778,11 +773,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/class-wp-embed.php
-		-
-			message: '#^Parameter \#3 \$priority of function _wp_filter_build_unique_id expects int, false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-hook.php
 		-
 			message: '#^Parameter \#3 \$value of function curl_setopt expects int, string given\.$#'
 			identifier: argument.type
@@ -854,7 +844,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: int\|string, post_date_gmt\: int\|string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
@@ -994,6 +984,11 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
 		-
+			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/general-template.php
+		-
 			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -1079,11 +1074,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-site.php
 		-
-			message: '#^Parameter \#2 \$object_id of function delete_metadata expects int, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/ms-site.php
-		-
 			message: '#^Parameter \#3 \$year of function wp_checkdate expects int, \(string\|false\) given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1129,7 +1119,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/pluggable.php
 		-
-			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array given\.$#'
+			message: '#^Parameter \#1 \$args of function get_pages expects array\{child_of\?\: int, sort_order\?\: string, sort_column\?\: string, hierarchical\?\: bool, exclude\?\: array\<int\>, include\?\: array\<int\>, meta_key\?\: string, meta_value\?\: string, \.\.\., \.\.\.\}\|string, non\-empty\-array\<mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post-template.php
@@ -1205,11 +1195,6 @@ parameters:
 			path: ../../../src/wp-includes/post.php
 		-
 			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Parameter \#2 \$object_id of function delete_metadata expects int, null given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/post.php
