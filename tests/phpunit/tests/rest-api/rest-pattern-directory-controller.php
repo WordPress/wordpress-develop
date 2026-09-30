@@ -579,10 +579,14 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * The pattern directory has no single-item route.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns/1' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
