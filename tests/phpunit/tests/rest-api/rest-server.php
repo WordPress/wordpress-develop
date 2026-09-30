@@ -23,8 +23,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$filename       = DIR_TESTDATA . '/images/test-image-large.jpg';
-		self::$icon_id  = $factory->attachment->create_upload_object( $filename );
+		self::$icon_id  = $factory->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => 'rest-server-site-icon/test-image-large.jpg',
+			)
+		);
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
