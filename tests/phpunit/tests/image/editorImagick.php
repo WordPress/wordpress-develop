@@ -836,14 +836,15 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing
+	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing.
 	 * Used to identify indexed PNG images, see https://www.w3.org/TR/PNG-Chunks.html#C.IHDR.
 	 *
 	 * @ticket 63448
+	 *
 	 * @dataProvider data_png_color_type_after_resize
 	 *
-	 * @param string $file_path             Path to the image file.
-	 * @param int    $expected_color_type   The expected original color type.
+	 * @param string $file_path           Path to the image file.
+	 * @param int    $expected_color_type The expected original color type.
 	 */
 	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
 
@@ -902,6 +903,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Tests that alpha transparency is preserved after resizing.
 	 *
 	 * @ticket 63448
+	 *
 	 * @dataProvider data_alpha_transparency_is_preserved_after_resize
 	 *
 	 * @param string $file_path Path to the image file.

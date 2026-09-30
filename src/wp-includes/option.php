@@ -245,7 +245,7 @@ function get_option( $option, $default_value = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 1.5.0 As 'option_' . $setting
+	 * @since 1.5.0 As `option_{$setting}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 *
@@ -547,10 +547,7 @@ function wp_set_options_autoload( array $options, $autoload ) {
  */
 function wp_set_option_autoload( $option, $autoload ) {
 	$result = wp_set_option_autoload_values( array( $option => $autoload ) );
-	if ( isset( $result[ $option ] ) ) {
-		return $result[ $option ];
-	}
-	return false;
+	return $result[ $option ] ?? false;
 }
 
 /**
@@ -562,6 +559,8 @@ function wp_set_option_autoload( $option, $autoload ) {
  * @since 2.2.0
  *
  * @param string $option Option name.
+ * @return void Never returns if `$option` is protected, as the function dies in that case.
+ * @phpstan-return ( $option is 'alloptions'|'notoptions' ? never : void )
  */
 function wp_protect_special_option( $option ) {
 	if ( 'alloptions' === $option || 'notoptions' === $option ) {
@@ -1356,10 +1355,11 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param bool|null $autoload The default autoload value to set. Returning true will be set as 'auto-on' in the
-	 *                            database, false will be set as 'auto-off', and null will be set as 'auto'.
-	 * @param string    $option   The passed option name.
-	 * @param mixed     $value    The passed option value to be saved.
+	 * @param bool|null $autoload         The default autoload value to set. Returning true will be set as 'auto-on' in the
+	 *                                    database, false will be set as 'auto-off', and null will be set as 'auto'.
+	 * @param string    $option           The passed option name.
+	 * @param mixed     $value            The passed option value to be saved.
+	 * @param mixed     $serialized_value The passed option value to be saved, in serialized form.
 	 */
 	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value, $serialized_value );
 	if ( is_bool( $autoload ) ) {
@@ -1785,7 +1785,7 @@ function wp_user_settings() {
 function get_user_setting( $name, $default_value = false ) {
 	$all_user_settings = get_all_user_settings();
 
-	return isset( $all_user_settings[ $name ] ) ? $all_user_settings[ $name ] : $default_value;
+	return $all_user_settings[ $name ] ?? $default_value;
 }
 
 /**
@@ -2051,7 +2051,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * Returning a value other than false from the filter will short-circuit retrieval
 	 * and return that value instead.
 	 *
-	 * @since 2.9.0 As 'pre_site_option_' . $key
+	 * @since 2.9.0 As `pre_site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
@@ -2154,7 +2154,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 2.9.0 As 'site_option_' . $key
+	 * @since 2.9.0 As `site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
@@ -2203,7 +2203,7 @@ function add_network_option( $network_id, $option, $value ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 2.9.0 As 'pre_add_site_option_' . $key
+	 * @since 2.9.0 As `pre_add_site_option_{$key}`.
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
@@ -2267,7 +2267,7 @@ function add_network_option( $network_id, $option, $value ) {
 		 *
 		 * The dynamic portion of the hook name, `$option`, refers to the option name.
 		 *
-		 * @since 2.9.0 As "add_site_option_{$key}"
+		 * @since 2.9.0 As `add_site_option_{$key}`.
 		 * @since 3.0.0
 		 * @since 4.7.0 The `$network_id` parameter was added.
 		 *
@@ -2373,7 +2373,7 @@ function delete_network_option( $network_id, $option ) {
 		 *
 		 * The dynamic portion of the hook name, `$option`, refers to the option name.
 		 *
-		 * @since 2.9.0 As "delete_site_option_{$key}"
+		 * @since 2.9.0 As `delete_site_option_{$key}`.
 		 * @since 3.0.0
 		 * @since 4.7.0 The `$network_id` parameter was added.
 		 *
@@ -2770,6 +2770,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
  *
  * @since 4.7.0
  * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
+ * @since 7.2.0 The `wp_page_for_privacy_policy` option was registered, exposed as `page_for_privacy_policy`.
  */
 function register_initial_settings() {
 	register_setting(
@@ -2963,6 +2964,18 @@ function register_initial_settings() {
 	);
 
 	register_setting(
+		'reading',
+		'wp_page_for_privacy_policy',
+		array(
+			'show_in_rest' => array(
+				'name' => 'page_for_privacy_policy',
+			),
+			'type'         => 'integer',
+			'description'  => __( 'The ID of the page that should be displayed as the privacy policy page' ),
+		)
+	);
+
+	register_setting(
 		'discussion',
 		'default_ping_status',
 		array(
@@ -2990,25 +3003,6 @@ function register_initial_settings() {
 			'description'  => __( 'Allow people to submit comments on new posts.' ),
 		)
 	);
-
-	register_setting(
-		'reading',
-		'active_templates',
-		array(
-			'type'         => 'object',
-			// Do not set the default value to an empty array! For some reason
-			// that will prevent the option from being set to an empty array.
-			'show_in_rest' => array(
-				'schema' => array(
-					'type'                 => 'object',
-					// Properties can be integers, strings, or false
-					// (deactivated).
-					'additionalProperties' => true,
-				),
-			),
-			'label'        => 'Active Templates',
-		)
-	);
 }
 
 /**
@@ -3028,19 +3022,21 @@ function register_initial_settings() {
  * @param string $option_group A settings group name. Should correspond to an allowed option key name.
  *                             Default allowed option key names include 'general', 'discussion', 'media',
  *                             'reading', 'writing', and 'options'.
- * @param string $option_name The name of an option to sanitize and save.
+ * @param string $option_name  The name of an option to sanitize and save.
  * @param array  $args {
  *     Data used to describe the setting when registered.
  *
- *     @type string     $type              The type of data associated with this setting.
- *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
- *     @type string     $label             A label of the data attached to this setting.
- *     @type string     $description       A description of the data attached to this setting.
- *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
- *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
- *                                         When registering complex settings, this argument may optionally be an
- *                                         array with a 'schema' key.
- *     @type mixed      $default           Default value when calling `get_option()`.
+ *     @type string        $type              The type of data associated with this setting.
+ *                                            Valid values are 'string', 'boolean', 'integer', 'number', 'array',
+ *                                            and 'object'.
+ *     @type string        $label             A label of the data attached to this setting.
+ *     @type string        $description       A description of the data attached to this setting.
+ *     @type callable|null $sanitize_callback A callback function that sanitizes the option's value.
+ *                                            Default null.
+ *     @type bool|array    $show_in_rest      Whether data associated with this setting should be included in the
+ *                                            REST API. When registering complex settings, this argument may
+ *                                            optionally be an array with a 'schema' key.
+ *     @type mixed         $default           Default value when calling `get_option()`.
  * }
  */
 function register_setting( $option_group, $option_name, $args = array() ) {
@@ -3251,15 +3247,18 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *     @type array ...$0 {
  *         Data used to describe the setting when registered.
  *
- *         @type string     $type              The type of data associated with this setting.
- *                                             Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
- *         @type string     $label             A label of the data attached to this setting.
- *         @type string     $description       A description of the data attached to this setting.
- *         @type callable   $sanitize_callback A callback function that sanitizes the option's value.
- *         @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
- *                                             When registering complex settings, this argument may optionally be an
- *                                             array with a 'schema' key.
- *         @type mixed      $default           Default value when calling `get_option()`.
+ *         @type string        $type              The type of data associated with this setting.
+ *                                                Valid values are 'string', 'boolean', 'integer', 'number', 'array',
+ *                                                and 'object'.
+ *         @type string        $group             The settings group name the setting was registered in.
+ *         @type string        $label             A label of the data attached to this setting.
+ *         @type string        $description       A description of the data attached to this setting.
+ *         @type callable|null $sanitize_callback A callback function that sanitizes the option's value.
+ *         @type bool|array    $show_in_rest      Whether data associated with this setting should be included in the
+ *                                                REST API. When registering complex settings, this argument may
+ *                                                optionally be an array with a 'schema' key.
+ *         @type mixed         $default           Default value when calling `get_option()`. Only present when the
+ *                                                setting was registered with a default.
  *     }
  * }
  */

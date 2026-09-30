@@ -18,8 +18,6 @@ if ( isset( $_GET['privacy-notice'] ) ) {
 // Used in the HTML title tag.
 $title = __( 'Freedoms' );
 
-list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
-
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap about__container">

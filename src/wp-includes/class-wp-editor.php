@@ -978,7 +978,7 @@ final class _WP_Editors {
 		}
 
 		?>
-		<script type="text/javascript">
+		<script>
 		window.wp = window.wp || {};
 		window.wp.editor = window.wp.editor || {};
 		window.wp.editor.getDefaultSettings = function() {
@@ -1252,7 +1252,7 @@ final class _WP_Editors {
 				'Nonbreaking space'                    => __( 'Nonbreaking space' ),
 				'Page break'                           => __( 'Page break' ),
 				'Paste as text'                        => __( 'Paste as text' ),
-				'Preview'                              => __( 'Preview' ),
+				'Preview'                              => _x( 'Preview', 'verb' ),
 				'Print'                                => __( 'Print' ),
 				'Save'                                 => __( 'Save' ),
 				'Fullscreen'                           => __( 'Fullscreen' ),
@@ -1364,7 +1364,7 @@ final class _WP_Editors {
 				/* translators: Word count. */
 				'Words: {0}'                           => sprintf( __( 'Words: %s' ), '{0}' ),
 				'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' =>
-					__( 'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' ) . "\n\n" .
+					__( 'Paste is now in plain text mode. Contents will now be pasted as plain text until you turn this option off.' ) . "\n\n" .
 					__( 'If you are looking to paste rich content from Microsoft Word, try turning this option off. The editor will clean up text pasted from Word automatically.' ),
 				'Rich Text Area. Press ALT-F9 for menu. Press ALT-F10 for toolbar. Press ALT-0 for help' =>
 					__( 'Rich Text Area. Press Alt-Shift-H for help.' ),
@@ -1384,7 +1384,7 @@ final class _WP_Editors {
 				'Format'                               => _x( 'Format', 'TinyMCE menu' ),
 
 				// WordPress strings.
-				'Toolbar Toggle'                       => array( __( 'Toolbar Toggle' ), 'accessZ' ),
+				'Toolbar Toggle'                       => array( __( 'Extended Toolbar' ), 'accessZ' ),
 				'Insert Read More tag'                 => array( __( 'Insert Read More tag' ), 'accessT' ),
 				'Insert Page Break tag'                => array( __( 'Insert Page Break tag' ), 'accessP' ),
 				'Read more...'                         => __( 'Read more...' ), // Title on the placeholder inside the editor (no ellipsis).
@@ -1563,7 +1563,7 @@ final class _WP_Editors {
 
 		wp_print_scripts( array( 'wp-tinymce' ) );
 
-		echo "<script type='text/javascript'>\n" . self::wp_mce_translation() . "</script>\n";
+		echo "<script>\n" . self::wp_mce_translation() . "</script>\n";
 	}
 
 	/**
@@ -1620,7 +1620,7 @@ final class _WP_Editors {
 		do_action( 'before_wp_tiny_mce', self::$mce_settings );
 		?>
 
-		<script type="text/javascript">
+		<script>
 		tinyMCEPreInit = {
 			baseURL: "<?php echo $baseurl; ?>",
 			suffix: "<?php echo $suffix; ?>",
@@ -1644,7 +1644,7 @@ final class _WP_Editors {
 
 			if ( self::$ext_plugins ) {
 				// Load the old-format English strings to prevent unsightly labels in old style popups.
-				echo "<script type='text/javascript' src='{$baseurl}/langs/wp-langs-en.js?$version'></script>\n";
+				echo "<script src='{$baseurl}/langs/wp-langs-en.js?$version'></script>\n";
 			}
 		}
 
@@ -1659,7 +1659,7 @@ final class _WP_Editors {
 		do_action( 'wp_tiny_mce_init', self::$mce_settings );
 
 		?>
-		<script type="text/javascript">
+		<script>
 		<?php
 
 		if ( self::$ext_plugins ) {

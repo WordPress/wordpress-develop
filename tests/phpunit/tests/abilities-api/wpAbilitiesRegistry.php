@@ -23,6 +23,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Set up each test method.
 	 */
 	public function set_up(): void {
+		require_once DIR_TESTDATA . '/../includes/class-tests-custom-ability-class.php';
+
 		parent::set_up();
 
 		$this->registry = new WP_Abilities_Registry();
@@ -223,6 +225,68 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an invalid category type is rejected before the category lookup.
+	 *
+	 * @ticket 65569
+	 *
+	 * @dataProvider data_invalid_category_types
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 *
+	 * @param mixed $category Invalid category value.
+	 */
+	public function test_register_ability_rejects_invalid_category_type( $category ): void {
+		$args             = self::$test_ability_args;
+		$args['category'] = $category;
+
+		$result = $this->registry->register( self::$test_ability_name, $args );
+
+		$this->assertNull( $result );
+		$this->assertStringContainsString(
+			'Ability category must be a string.',
+			$this->caught_doing_it_wrong['WP_Abilities_Registry::register']
+		);
+	}
+
+	/**
+	 * Data provider for invalid category types.
+	 *
+	 * @return array<string, array<mixed>> Test cases.
+	 */
+	public static function data_invalid_category_types(): array {
+		return array(
+			'null'    => array( null ),
+			'boolean' => array( false ),
+			'integer' => array( 1 ),
+			'array'   => array( array() ),
+		);
+	}
+
+	/**
+	 * Tests that an empty category is rejected rather than replaced by the default.
+	 *
+	 * @ticket 65569
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_rejects_empty_category(): void {
+		$args             = self::$test_ability_args;
+		$args['category'] = '';
+
+		$result = $this->registry->register( self::$test_ability_name, $args );
+
+		$this->assertNull( $result );
+		$this->assertStringContainsString(
+			'Ability category "" is not registered.',
+			$this->caught_doing_it_wrong['WP_Abilities_Registry::register']
+		);
+	}
+
+	/**
 	 * Should reject ability registration without an execute callback.
 	 *
 	 * @ticket 64098
@@ -255,6 +319,36 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should allow ability registration with custom ability_class that overrides do_execute.
+	 *
+	 * @ticket 64407
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_register_with_custom_ability_class_without_execute_callback() {
+		// Remove execute_callback and permission_callback since the custom class provides its own implementation.
+		unset( self::$test_ability_args['execute_callback'] );
+		unset( self::$test_ability_args['permission_callback'] );
+
+		self::$test_ability_args['ability_class'] = 'Tests_Custom_Ability_Class';
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+
+		$this->assertInstanceOf( WP_Ability::class, $result, 'Should return a WP_Ability instance.' );
+		$this->assertInstanceOf( Tests_Custom_Ability_Class::class, $result, 'Should return an instance of the custom class.' );
+
+		// Verify the custom execute method works.
+		$execute_result = $result->execute(
+			array(
+				'a' => 5,
+				'b' => 3,
+			)
+		);
+		$this->assertSame( 15, $execute_result, 'Custom do_execute should multiply instead of add.' );
 	}
 
 	/**
@@ -326,7 +420,6 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->assertNull( $result );
 	}
 
-
 	/**
 	 * Should reject ability registration with invalid `annotations` type.
 	 *
@@ -373,6 +466,23 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_invalid_show_in_rest_type() {
 		self::$test_ability_args['meta']['show_in_rest'] = 5;
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should reject ability registration with invalid public type.
+	 *
+	 * @ticket 65568
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_public_type() {
+		self::$test_ability_args['meta']['public'] = 5;
 
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
@@ -468,7 +578,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->registry->register( 'test/three', self::$test_ability_args );
 
 		$result = $this->registry->get_registered( 'test/two' );
-		$this->assertEquals( 'test/two', $result->get_name() );
+		$this->assertSame( 'test/two', $result->get_name() );
 	}
 
 	/**
@@ -499,7 +609,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->registry->register( 'test/three', self::$test_ability_args );
 
 		$result = $this->registry->unregister( 'test/three' );
-		$this->assertEquals( 'test/three', $result->get_name() );
+		$this->assertSame( 'test/three', $result->get_name() );
 
 		$this->assertFalse( $this->registry->is_registered( 'test/three' ) );
 	}
