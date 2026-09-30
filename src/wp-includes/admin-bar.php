@@ -273,7 +273,11 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		$profile_url = false;
 	}
 
-	$display_name = wp_get_current_user()->display_name;
+	$current_user = wp_get_current_user();
+	$display_name = $current_user->display_name;
+	if ( '' === $display_name ) {
+		$display_name = $current_user->user_login;
+	}
 
 	$avatar = get_avatar( $user_id, 28 );
 	$wp_admin_bar->add_node(
