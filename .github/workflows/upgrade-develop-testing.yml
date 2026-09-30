@@ -12,7 +12,10 @@ on:
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/smoke-check/**'
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   pull_request:
@@ -23,9 +26,13 @@ on:
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
+  schedule:
+    - cron: '0 0 * * 1'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -81,7 +88,7 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
         # WordPress 5.3 is the oldest version that supports PHP 7.4.
-        wp: [ '5.3', '6.9', '7.0', '7.1-RC2' ]
+        wp: [ '5.3', '7.0', '7.1' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -93,13 +100,14 @@ jobs:
       multisite: ${{ matrix.multisite }}
 
   # Run a limited set of upgrade tests for the current branch on forks.
+  #
+  # Pull requests meeting the filtering criteria run, but `push` and `schedule` configured runs are explicitly disabled
+  # for forks.
   upgrade-tests-develop-forks:
     name: Upgrade from ${{ matrix.wp }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
-    # This job also runs for the push event, which has no draft state to check.
     if: |
-      github.repository != 'WordPress/wordpress-develop' && (
-        github.event_name != 'pull_request' ||
+      github.repository != 'WordPress/wordpress-develop' && github.event_name == 'pull_request' && (
         ! github.event.repository.private ||
         ! github.event.pull_request.draft ||
         contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
@@ -114,7 +122,7 @@ jobs:
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
-        wp: [ '6.9', '7.0', '7.1-RC2' ]
+        wp: [ '7.0', '7.1' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
