@@ -473,13 +473,13 @@ if ( $tab ) {
 			<button class="previous-theme"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Previous theme' );
+				_ex( 'Previous', 'theme' );
 				?>
 			</span></button>
 			<button class="next-theme"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Next theme' );
+				_ex( 'Next', 'theme' );
 				?>
 			</span></button>
 			<# if ( data.installed ) { #>
