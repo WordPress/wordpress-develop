@@ -107,19 +107,21 @@ else :
 	do_action( 'myblogs_allblogs_options' );
 	?>
 	<br clear="all" />
-	<ul class="my-sites striped">
 	<?php
 	/**
-	 * Filters the settings HTML markup in the Global Settings section on the My Sites screen.
+	 * Filters the settings HTML markup on the My Sites screen.
 	 *
 	 * By default, the Global Settings section is hidden. Passing a non-empty
-	 * string to this filter will enable the section, and allow new settings
-	 * to be added, either globally or for specific sites.
+	 * string to this filter when `$context` is 'global' will enable the section
+	 * above the sites list under a "Global Settings" heading.
+	 *
+	 * When `$context` is a site object, the passed settings HTML markup is
+	 * displayed inside the site's list item (`<li>`) element.
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string $settings_html The settings HTML markup. Default empty.
-	 * @param string $context       Context of the setting (global or site-specific). Default 'global'.
+	 * @param string        $settings_html The settings HTML markup. Default empty.
+	 * @param string|object $context       Context of the setting. Either 'global' or an object containing the site data. Default 'global'.
 	 */
 	$settings_html = apply_filters( 'myblogs_options', '', 'global' );
 
@@ -127,7 +129,9 @@ else :
 		echo '<h2>' . __( 'Global Settings' ) . '</h2>';
 		echo $settings_html;
 	}
-
+	?>
+	<ul class="my-sites striped">
+	<?php
 	reset( $blogs );
 
 	foreach ( $blogs as $user_blog ) {
