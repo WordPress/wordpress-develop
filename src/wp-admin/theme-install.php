@@ -390,7 +390,7 @@ if ( $tab ) {
 		</p></div>
 	<# } #>
 
-	<span class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></span>
+	<button type="button" class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></button>
 	<div class="theme-author">
 		<?php
 		/* translators: %s: Theme author name. */
