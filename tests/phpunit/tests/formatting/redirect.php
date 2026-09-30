@@ -260,4 +260,52 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 39695
+	 *
+	 * @dataProvider data_wp_create_preload_header
+	 *
+	 * @covers ::wp_create_preload_header
+	 *
+	 * @param string $url      The URL to preload.
+	 * @param string $expected Expected header string.
+	 */
+	public function test_wp_create_preload_header( $url, $expected ) {
+		$this->assertSame( $expected, wp_create_preload_header( $url ) );
+	}
+
+	/**
+	 * Data provider for test_wp_create_preload_header().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_create_preload_header() {
+		return array(
+			'relative path ending in slash'               => array(
+				'/wp-admin/',
+				'Link: </wp-admin/>; rel=preload; as=document',
+			),
+			'relative path ending in .php'                => array(
+				'/wp-login.php',
+				'Link: </wp-login.php>; rel=preload; as=document',
+			),
+			'relative path with query string'             => array(
+				'/wp-login.php?redirect_to=%2Fwp-admin%2F&reauth=1',
+				'Link: </wp-login.php?redirect_to=%2Fwp-admin%2F&reauth=1>; rel=preload; as=document',
+			),
+			'same-site absolute URL'                      => array(
+				site_url( '/wp-login.php' ),
+				'Link: </wp-login.php>; rel=preload; as=document',
+			),
+			'external URL returns empty string'           => array(
+				'https://external.example.com/wp-login.php',
+				'',
+			),
+			'non-document extension returns empty string' => array(
+				'/wp-content/uploads/file.zip',
+				'',
+			),
+		);
+	}
 }
