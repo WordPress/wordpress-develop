@@ -964,6 +964,11 @@
 		}
 	}
 
+	//! Social Icons
+	a:where(.wp-block-social-link-anchor) {
+		text-decoration: none;
+	}
+
 	//! Font Sizes
 	.has-small-font-size {
 		font-size: $font__size-sm;

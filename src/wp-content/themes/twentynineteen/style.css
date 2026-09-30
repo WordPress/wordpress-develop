@@ -6325,6 +6325,10 @@ body.page .main-navigation {
   font-size: 0.71111em;
 }
 
+.entry .entry-content a:where(.wp-block-social-link-anchor) {
+  text-decoration: none;
+}
+
 .entry .entry-content .has-small-font-size {
   font-size: 0.88889em;
 }
