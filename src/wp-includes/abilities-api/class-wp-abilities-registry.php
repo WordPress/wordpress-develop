@@ -79,12 +79,12 @@ final class WP_Abilities_Registry {
 	 *                                                      to clients such as the REST API, MCP, or AI agents.
 	 *                                                      Seeds the default for per-channel flags like
 	 *                                                      `$show_in_rest`. Defaults to false.
-	 *         @type false|array<string, string> $deprecated {
-	 *             Optional. Deprecation details. Set to an array to mark the ability as deprecated. At least one
-	 *             supported detail must be provided. Deprecated abilities remain available by exact name and can
-	 *             be explicitly included or excluded from discovery through meta filtering. Default false.
+	 *         @type null|array<string, string> $deprecated {
+	 *             Optional. Deprecation details. If set, mark the ability as deprecated. Deprecated abilities are hidden
+	 *             from discovery by default, but can be retrieved by exact name or explicitly included in discovery
+	 *             with the `include_deprecated` argument. Default null.
 	 *
-	 *             @type string $since       Optional. Version of the ability provider that deprecated the ability.
+	 *             @type string $since       Version of the ability provider that deprecated the ability.
 	 *             @type string $replacement Optional. Namespaced ability to use instead.
 	 *             @type string $message     Optional. Additional migration guidance.
 	 *         }
@@ -146,12 +146,12 @@ final class WP_Abilities_Registry {
 		 *                                                        available to clients such as the REST API, MCP, or AI
 		 *                                                        agents. Seeds the default for per-channel flags like
 		 *                                                        `$show_in_rest`. Defaults to false.
-		 *         @type false|array<string, string> $deprecated {
-		 *             Optional. Deprecation details. Set to an array to mark the ability as deprecated. At least one
-		 *             supported detail must be provided. Deprecated abilities remain available by exact name and can
-		 *             be explicitly included or excluded from discovery through meta filtering. Default false.
+		 *         @type null|array<string, string> $deprecated {
+		 *             Optional. Deprecation details. If set, mark the ability as deprecated. Deprecated abilities are hidden
+		 *             from discovery by default, but can be retrieved by exact name or explicitly included in discovery
+		 *             with the `include_deprecated` argument. Default null.
 		 *
-		 *             @type string $since       Optional. Version of the ability provider that deprecated the ability.
+		 *             @type string $since       Version of the ability provider that deprecated the ability.
 		 *             @type string $replacement Optional. Namespaced ability to use instead.
 		 *             @type string $message     Optional. Additional migration guidance.
 		 *         }
@@ -287,6 +287,7 @@ final class WP_Abilities_Registry {
 	 * Do not use this method directly. Instead, use the `wp_get_ability()` function.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 Added deprecation notices for abilities with the `deprecated` meta property.
 	 *
 	 * @see wp_get_ability()
 	 *
@@ -303,7 +304,13 @@ final class WP_Abilities_Registry {
 			);
 			return null;
 		}
-		return $this->registered_abilities[ $name ];
+
+		$ability = $this->registered_abilities[ $name ];
+
+		// Check if the ability is deprecated and handle it accordingly.
+		$ability->_handle_ability_deprecation();
+
+		return $ability;
 	}
 
 	/**

@@ -898,31 +898,18 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				case 'deprecated_ability_run':
 					$additional_message = $message;
 
-					if ( $version ) {
-						if ( $replacement ) {
-							$message = sprintf(
-								'Ability %1$s is deprecated since version %2$s! Use %3$s instead.',
-								$function_name,
-								$version,
-								$replacement
-							);
-						} else {
-							$message = sprintf(
-								'Ability %1$s is deprecated since version %2$s with no alternative available.',
-								$function_name,
-								$version
-							);
-						}
-					} elseif ( $replacement ) {
+					if ( $replacement ) {
 						$message = sprintf(
-							'Ability %1$s is deprecated! Use %2$s instead.',
+							'Ability %1$s is deprecated since version %2$s. Use %3$s instead.',
 							$function_name,
+							$version,
 							$replacement
 						);
 					} else {
 						$message = sprintf(
-							'Ability %s is deprecated with no alternative available.',
-							$function_name
+							'Ability %1$s is deprecated since version %2$s with no alternative available.',
+							$function_name,
+							$version
 						);
 					}
 					if ( $additional_message ) {

@@ -87,7 +87,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 */
 	public function tear_down(): void {
 		// Clean up test abilities.
-		foreach ( wp_get_abilities() as $ability ) {
+		foreach ( wp_get_abilities( array( 'include_deprecated' => true ) ) as $ability ) {
 			if ( ! str_starts_with( $ability->get_name(), 'test/' ) ) {
 				continue;
 			}
@@ -450,7 +450,10 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 				'permission_callback' => '__return_true',
 				'meta'                => array(
 					'show_in_rest' => true,
-					'deprecated'   => array( 'replacement' => 'test/calculator' ),
+					'deprecated'   => array(
+						'since'       => '2.0.0',
+						'replacement' => 'test/calculator',
+					),
 				),
 			)
 		);

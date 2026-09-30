@@ -772,11 +772,11 @@ function rest_handle_deprecated_argument( $function_name, $message, $version ) {
 }
 
 /**
- * Handles _deprecated_ability() errors.
+ * Handles deprecated ability notices.
  *
  * @since 7.2.0
  *
- * @param string $ability_name The ability that was executed.
+ * @param string $ability_name The deprecated ability that was retrieved.
  * @param string $replacement  The ability that should be used as a replacement.
  * @param string $version      The version of the ability provider that deprecated the ability.
  * @param string $message      Additional migration guidance.
@@ -786,18 +786,12 @@ function rest_handle_deprecated_ability( $ability_name, $replacement, $version, 
 		return;
 	}
 
-	if ( $version && $replacement ) {
-		/* translators: 1: Ability name, 2: Version number, 3: Alternative ability name. */
+	if ( $replacement ) {
+		/* translators: Developer debugging message. 1: Ability name, 2: Version number, 3: Alternative ability name. */
 		$string = sprintf( __( '%1$s (since %2$s; use %3$s instead)' ), $ability_name, $version, $replacement );
-	} elseif ( $version ) {
-		/* translators: 1: Ability name, 2: Version number. */
-		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $ability_name, $version );
-	} elseif ( $replacement ) {
-		/* translators: 1: Ability name, 2: Alternative ability name. */
-		$string = sprintf( __( '%1$s (use %2$s instead)' ), $ability_name, $replacement );
 	} else {
-		/* translators: %s: Ability name. */
-		$string = sprintf( __( '%s (no alternative available)' ), $ability_name );
+		/* translators: Developer debugging message. 1: Ability name, 2: Version number. */
+		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $ability_name, $version );
 	}
 
 	if ( $message ) {
