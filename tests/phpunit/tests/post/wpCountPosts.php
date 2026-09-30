@@ -7,7 +7,7 @@
  *
  * @covers ::wp_count_posts
  */
-class Tests_Post_WpCountPosts extends WP_UnitTestCase {
+class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 66098
