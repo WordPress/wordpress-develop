@@ -287,13 +287,243 @@ jobs:
       new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
 
+  # Builds the list of locales that are expected to have a localized package for the version being tested.
+  #
+  # Localized packages are built after the en_US package, usually 1-3 hours later and sometimes days later. Right after
+  # a release, dispatch this workflow only after the localized packages are published, or every locale job will fail.
+  #
+  # "latest" and "nightly" are tested as the latest stable release, because there are no localized nightly builds.
+  #
+  # A locale is expected when it has a localized package for an earlier version on the same branch: the first
+  # release of the branch (X.Y) or the previous minor release. Locales below the translation thresholds have no
+  # localized package, so they are not expected. A version with no earlier release on its branch (X.Y) has no baseline,
+  # and neither has a version that is not a stable release. No locale is tested for those.
+  #
+  # Also returns the version of PHP and MySQL to test with, and the version each locale starts from in upgrade tests.
+  #
+  # Keep this job the same in install-testing.yml and upgrade-testing.yml.
+  build-locale-matrix:
+    name: Build Locale Test Matrix
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.locales.outputs.version }}
+      locales: ${{ steps.locales.outputs.locales }}
+      start-versions: ${{ steps.locales.outputs.start-versions }}
+      php-version: ${{ steps.locales.outputs.php-version }}
+      mysql-version: ${{ steps.locales.outputs.mysql-version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+          sparse-checkout: |
+            .version-support-php.json
+            .version-support-mysql.json
+          sparse-checkout-cone-mode: false
+
+      - name: Find the locales that are expected to have a localized package
+        id: locales
+        env:
+          WP_VERSION: ${{ inputs.new-version || 'latest' }}
+        run: |
+          set -o pipefail
+
+          if [[ "$WP_VERSION" == 'latest' || "$WP_VERSION" == 'nightly' ]]; then
+            WP_VERSION="$( curl -fsS --retry 3 'https://api.wordpress.org/core/version-check/1.7/' | jq -r '.offers[0].version' )"
+          fi
+
+          branch="$( cut -d . -f 1-2 <<< "$WP_VERSION" )"
+          stable="$( curl -fsS --retry 3 'https://api.wordpress.org/core/stable-check/1.0/' | jq -r 'keys[]' | sort -V )"
+          previous="$( grep -B 1 -x -F "$WP_VERSION" <<< "$stable" | head -n 1 || true )"
+
+          if [[ "$previous" == "$WP_VERSION" || "$( cut -d . -f 1-2 <<< "$previous" )" != "$branch" ]]; then
+            echo "::notice::No locales are tested, because ${WP_VERSION} is not a stable release with an earlier release on its branch."
+            echo "locales=[]" >> "$GITHUB_OUTPUT"
+            echo "start-versions={}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Any answer but 200 or 404 fails the step, so an outage cannot drop locales from the test.
+          has_package() {
+            local code
+            code="$( curl -sI --retry 3 -o /dev/null -w '%{http_code}' "https://downloads.wordpress.org/release/${1}/wordpress-${2}.zip" || true )"
+            case "$code" in
+              200) return 0 ;;
+              404) return 1 ;;
+              *) echo "::error::Checking the ${2} package for ${1} returned HTTP ${code}." >&2; exit 1 ;;
+            esac
+          }
+
+          start_versions="$(
+            curl -fsS --retry 3 "https://api.wordpress.org/translations/core/1.0/?version=${WP_VERSION}" \
+              | jq -r '.translations[].language' \
+              | while read -r locale; do
+                  if has_package "$locale" "$branch"; then
+                    echo "$locale $branch"
+                  elif has_package "$locale" "$previous"; then
+                    echo "$locale $previous"
+                  fi
+                done \
+              | jq -Rsc 'split("\n") | map(select(length > 0) | split(" ") | { (.[0]): .[1] }) | add // {}'
+          )"
+
+          support_key="${branch//./-}"
+          php_version="$( jq -r --arg v "$support_key" '.[$v][-1] // empty' .version-support-php.json )"
+          mysql_version="$( jq -r --arg v "$support_key" '.[$v] // [] | first(("8.4", "8.0", "5.7") as $x | select(index($x)) | $x) // empty' .version-support-mysql.json )"
+
+          if [[ -z "$php_version" || -z "$mysql_version" ]]; then
+            echo "::error::No supported PHP or MySQL version is listed for WordPress ${branch}."
+            exit 1
+          fi
+
+          {
+            echo "version=${WP_VERSION}"
+            echo "locales=$( jq -c 'keys' <<< "$start_versions" )"
+            echo "start-versions=${start_versions}"
+            echo "php-version=${php_version}"
+            echo "mysql-version=${mysql_version}"
+          } >> "$GITHUB_OUTPUT"
+
+  # Tests updating a localized site to the version being tested, from an earlier version on the same branch. Older
+  # branches are not tested, because many locales have no localized package for older versions.
+  #
+  # Tests both ways a localized site can update:
+  # - auto: updates with the en_US package, then updates the core translation with a language pack. This is how
+  #   automatic updates work.
+  # - manual: updates with the localized package, as WP-CLI and the "Update now" button do.
+  #
+  # Performs the following steps:
+  # - Sets up PHP.
+  # - Downloads the localized package of the starting version.
+  # - Creates a `wp-config.php` file.
+  # - Installs WordPress.
+  # - Updates to the version being tested, with the en_US or the localized package.
+  # - Updates the database.
+  # - Updates the core translation (auto).
+  # - Verifies the files against the package checksums.
+  # - Confirms the WordPress version, and the locale of the package (manual) or the core translation (auto).
+  # - Serves the updated site and confirms it renders.
+  upgrade-tests-locale:
+    name: ${{ fromJSON( needs.build-locale-matrix.outputs.start-versions )[ matrix.locale ] }} to ${{ needs.build-locale-matrix.outputs.version }} / ${{ matrix.locale }} / ${{ matrix.path }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && needs.build-locale-matrix.outputs.locales != '[]' }}
+    timeout-minutes: 10
+    needs: [ build-locale-matrix ]
+
+    env:
+      WP_ADMIN_USER: admin
+      WP_ADMIN_PASSWORD: password
+      WP_START_VERSION: ${{ fromJSON( needs.build-locale-matrix.outputs.start-versions )[ matrix.locale ] }}
+      WP_VERSION: ${{ needs.build-locale-matrix.outputs.version }}
+      WP_LOCALE: ${{ matrix.locale }}
+      WP_PACKAGE_LOCALE: ${{ matrix.path == 'auto' && 'en_US' || matrix.locale }}
+    strategy:
+      fail-fast: false
+      matrix:
+        locale: ${{ fromJSON( needs.build-locale-matrix.outputs.locales ) }}
+        path: [ 'auto', 'manual' ]
+        php: [ '${{ needs.build-locale-matrix.outputs.php-version }}' ]
+        db-version: [ '${{ needs.build-locale-matrix.outputs.mysql-version }}' ]
+
+    services:
+      database:
+        image: mysql:${{ matrix.db-version }}
+        ports:
+          - 3306
+        # Ping over TCP, to wait for the TCP server rather than the Unix socket.
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --protocol=tcp"
+          --health-interval="30s"
+          --health-timeout="10s"
+          --health-retries="5"
+          -e MYSQL_ROOT_PASSWORD="root"
+          -e MYSQL_DATABASE="test_db"
+          --entrypoint sh mysql:${{ matrix.db-version }}
+          -c "exec docker-entrypoint.sh mysqld${{ contains( fromJSON('["5.4", "5.5", "5.6", "7.0", "7.1", "7.2", "7.3"]'), matrix.php ) && ( matrix.db-version == '8.4' && ' --mysql-native-password=ON --authentication-policy=mysql_native_password' || ' --default-authentication-plugin=mysql_native_password' ) || '' }}"
+
+    steps:
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '${{ matrix.php }}'
+          coverage: none
+          tools: wp-cli
+
+      - name: Download WordPress ${{ env.WP_START_VERSION }}
+        run: wp core download --version="${WP_START_VERSION}" --locale="${WP_LOCALE}"
+
+      - name: Create wp-config.php file
+        run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost="127.0.0.1:${DB_PORT}"
+        env:
+          DB_PORT: ${{ job.services.database.ports['3306'] }}
+
+      - name: Install WordPress
+        run: |
+          wp core install --url=http://localhost/ --title="Upgrade Test" --admin_user="${WP_ADMIN_USER}" \
+          --admin_password="${WP_ADMIN_PASSWORD}" --admin_email=me@example.org --skip-email --locale="${WP_LOCALE}"
+
+      - name: Upgrade to WordPress ${{ env.WP_VERSION }} (${{ env.WP_PACKAGE_LOCALE }})
+        run: wp core update --version="${WP_VERSION}" --locale="${WP_PACKAGE_LOCALE}"
+
+      - name: Update the database
+        run: wp core update-db
+
+      - name: Update the core translation
+        if: ${{ matrix.path == 'auto' }}
+        run: wp language core update
+
+      - name: Verify the checksums of the package
+        run: wp core verify-checksums --locale="${WP_PACKAGE_LOCALE}"
+
+      - name: Check the version and locale of the package
+        run: |
+          actual="$( wp core version --extra | sed -n -e 's/^WordPress version:[[:space:]]*//p' -e 's/^Package language:[[:space:]]*//p' | paste -s -d ' ' - )"
+          if [[ "$actual" != "${WP_VERSION} ${WP_PACKAGE_LOCALE}" ]]; then
+            echo "::error::Expected WordPress ${WP_VERSION} ${WP_PACKAGE_LOCALE}, found ${actual}."
+            exit 1
+          fi
+
+      - name: Check that the core translation is for WordPress ${{ env.WP_VERSION }}
+        if: ${{ matrix.path == 'auto' }}
+        run: |
+          set -o pipefail
+
+          pack="$(
+            curl -fsS --retry 3 "https://api.wordpress.org/translations/core/1.0/?version=${WP_VERSION}" \
+              | jq -r --arg locale "$WP_LOCALE" '.translations[] | select(.language == $locale) | .version'
+          )"
+          if [[ "$pack" != "$WP_VERSION" ]]; then
+            echo "::error::Expected a ${WP_LOCALE} language pack for WordPress ${WP_VERSION}, found one for ${pack:-no version}."
+            exit 1
+          fi
+
+          status="$( wp language core list --language="$WP_LOCALE" --fields=status,update --format=csv | tail -n 1 )"
+          if [[ "$status" != 'active,none' ]]; then
+            echo "::error::Expected the ${WP_LOCALE} core translation to be active and up to date, found ${status}."
+            exit 1
+          fi
+
+      - name: Post-upgrade smoke check
+        uses: WordPress/wordpress-develop/.github/actions/smoke-check@trunk # zizmor: ignore[unpinned-uses]
+        with:
+          admin-user: ${{ env.WP_ADMIN_USER }}
+          admin-password: ${{ env.WP_ADMIN_PASSWORD }}
+
   slack-notifications:
     name: Slack Notifications
     uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
-    needs: [ build-test-matrix, upgrade-tests-recent-releases, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-oldest-wp-mysql ]
+    needs: [ build-test-matrix, upgrade-tests-recent-releases, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-oldest-wp-mysql, build-locale-matrix, upgrade-tests-locale ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
