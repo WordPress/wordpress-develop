@@ -146,30 +146,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		if ( isset( $request['network'] ) ) {
-			$network_check = $this->check_network_ids_exist( (array) $request['network'] );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
-
-			$network_access = $this->check_network_access( get_current_user_id(), (array) $request['network'] );
-			if ( is_wp_error( $network_access ) ) {
-				return $network_access;
-			}
-		}
-
-		if ( isset( $request['network_exclude'] ) ) {
-			$network_check = $this->check_network_ids_exist( (array) $request['network_exclude'] );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
-
-			$network_access = $this->check_network_access( get_current_user_id(), (array) $request['network_exclude'] );
-			if ( is_wp_error( $network_access ) ) {
-				return $network_access;
-			}
-		}
-
 		return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit sites.' ), array( 'status' => rest_authorization_required_code() ) );
 	}
 
@@ -442,69 +418,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
 		}
 
-		if ( $site->network_id > 0 ) {
-			$network_check = $this->check_network_ids_exist( (array) $site->network_id );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
-
-			$network_access = $this->check_network_access( get_current_user_id(), (array) $site->network_id );
-			if ( is_wp_error( $network_access ) ) {
-				return $network_access;
-			}
-		}
-
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'manage_sites' ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Validates that all network IDs in a request parameter exist.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param int[] $network_ids Array of network IDs.
-	 * @return true|WP_Error True if all network IDs are valid, WP_Error otherwise.
-	 */
-	protected function check_network_ids_exist( array $network_ids ) {
-		foreach ( $network_ids as $network_id ) {
-			if ( ! get_network( $network_id ) ) {
-				return new WP_Error( 'rest_network_id_invalid', __( 'Invalid network ID.' ), array( 'status' => 400 ) );
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Checks if a user can access sites on the given networks.
-	 *
-	 * A user can always access the current network. Access to any other
-	 * network requires the user to be a super admin of that network.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param int   $user_id     User ID.
-	 * @param int[] $network_ids Array of network IDs.
-	 * @return true|WP_Error True if the user can access all given networks, WP_Error otherwise.
-	 */
-	protected function check_network_access( $user_id, array $network_ids ) {
-		$current_network_id = get_current_network_id();
-		if ( count( $network_ids ) === 1 && $current_network_id === $network_ids[0] ) {
-			return true;
-		}
-
-		foreach ( $network_ids as $network_id ) {
-			if ( (int) $network_id === $current_network_id ) {
-				continue;
-			}
-
-			if ( ! is_super_admin( $user_id, $network_id ) ) {
-				return new WP_Error( 'rest_cannot_view_network', __( 'Sorry, you are not allowed to access sites on this network.' ), array( 'status' => rest_authorization_required_code() ) );
-			}
 		}
 
 		return true;
@@ -545,19 +460,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! is_multisite() ) {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
-		}
-
-		$network_id = isset( $request['network'] ) ? (int) $request['network'] : get_current_network_id();
-		if ( $network_id > 0 ) {
-			$network_check = $this->check_network_ids_exist( (array) $network_id );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
-
-			$network_access = $this->check_network_access( get_current_user_id(), (array) $network_id );
-			if ( is_wp_error( $network_access ) ) {
-				return $network_access;
-			}
 		}
 
 		return current_user_can( 'create_sites' );
@@ -677,26 +579,12 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $site;
 		}
 
-		$current_user_id = get_current_user_id();
-		if ( 0 === $current_user_id ) {
+		if ( 0 === get_current_user_id() ) {
 			return false;
 		}
 
 		if ( ! is_multisite() ) {
 			return new WP_Error( 'rest_multisite_not_installed', __( 'Multisite is not installed' ), array( 'status' => 400 ) );
-		}
-
-		$network_id = isset( $request['network'] ) ? (int) $request['network'] : $site->network_id;
-		if ( $network_id > 0 ) {
-			$network_check = $this->check_network_ids_exist( (array) $network_id );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
-
-			$network_access = $this->check_network_access( $current_user_id, (array) $network_id );
-			if ( is_wp_error( $network_access ) ) {
-				return $network_access;
-			}
 		}
 
 		if ( ! $this->check_edit_permission( $site ) ) {
