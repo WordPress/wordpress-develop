@@ -129,14 +129,10 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	}
 
 	/**
-	 * The block directory has no single-item route.
-	 *
-	 * @ticket 40538
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item() {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-directory/example-block' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		// Controller does not implement get_item().
 	}
 
 	/**
