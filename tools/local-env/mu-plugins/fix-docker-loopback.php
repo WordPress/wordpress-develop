@@ -1,12 +1,20 @@
 <?php
 /**
  * Plugin Name: Fix Docker Loopback Requests
- * Description: Routes WordPress loopback HTTP requests (Site Health, wp_remote_get(home_url()), cron, etc.) to the Docker host gateway. Inside the php/cli containers "localhost" is the container's own loopback where nothing listens on the published port, so requests to home_url() fail with "cURL error 7: Could not connect to server". The docker-compose `extra_hosts: localhost:host-gateway` mapping is meant to address this, but it has no effect when cURL resolves "localhost" via glibc's getaddrinfo(), which special-cases that name to loopback and never sees the /etc/hosts gateway entry. This shim is therefore not always necessary -- on resolvers that do honor the mapping (e.g. a c-ares-based libcurl) loopback already works -- but it forces the gateway resolution at the cURL layer for the environments where it does not.
+ * Plugin URI: https://core.trac.wordpress.org/ticket/65484
+ * Description: Routes loopback HTTP requests (cron, Site Health, file editor checks) to the Docker host gateway. Copied from <code>tools/local-env/mu-plugins/fix-docker-loopback.php</code> when the environment starts, so make changes there, then run <code>npm run env:restart</code>.
+ * Version: 1.0.0
+ * Author: WordPress Core Team
+ * Author URI: https://make.wordpress.org/core/
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ *
+ * Inside the php and cli containers, "localhost" is the container itself, where nothing listens on the published
+ * web-server port. Loopback requests therefore fail with "cURL error 7: Could not connect to server". The
+ * `localhost:host-gateway` entry in docker-compose's `extra_hosts` does not help, because 127.0.0.1 is still
+ * resolved for "localhost". This shim pins requests for the site's own host to the gateway at the cURL layer.
  *
  * This is a development-environment-only shim and should never ship to production.
- *
- * This file is copied from tools/local-env/mu-plugins/fix-docker-loopback.php, so ensure any changes are made there.
- * Restart the environment to apply the changes, as that file will be re-copied when the container starts.
  *
  * @package WordPress\Develop
  */
